@@ -1,0 +1,239 @@
+/**
+ * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community Edition) available.
+ * Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+ * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * http://opensource.org/licenses/MIT
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+ * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
+ */
+
+@import '../../css/variable.css';
+@import '../../css/mixins/ellipsis.css';
+
+.biz-panel-header {
+    .left {
+        .is-disabled {
+            cursor: not-allowed !important;
+        }
+    }
+}
+
+.biz-config-namespace-title {
+    display: inline-block;
+    height: 60px;
+    line-height: 60px;
+    font-size: 16px;
+    margin-left: 20px;
+}
+
+.biz-panel-header {
+    .right {
+        .biz-search-input {
+            input {
+                padding-right: 30px;
+            }
+        }
+    }
+}
+
+.biz-namespace-table {
+
+    tr th:first-child,
+    tr td:first-child {
+        padding-left: 25px;
+    }
+
+    .cluster-wrapper {
+        width: 280px;
+    }
+
+    .bk-form-input,
+    .bk-selector,
+    .cluster-wrapper {
+        display: none;
+    }
+
+    .is-edit {
+
+        .bk-form-input,
+        .bk-selector,
+        .cluster-wrapper {
+            display: inline-block;
+        }
+    }
+
+    .labels-wrapper {
+        float: left;
+        max-width: 820px;
+        overflow: hidden;
+        height: 24px;
+        padding-right: 40px;
+
+        &.expand {
+            overflow: visible;
+            height: auto;
+            padding-top: 10px;
+            padding-bottom: 5px;
+        }
+
+        &.fake {
+            overflow: visible;
+            height: auto;
+            visibility: hidden;
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+    }
+
+    .toggle-labels {
+        font-size: 12px;
+        position: absolute;
+        top: 6px;
+        float: left;
+
+        i {
+            margin-left: 3px;
+            position: absolute;
+            top: 0;
+        }
+
+        &.expand {
+            top: 16px;
+        }
+    }
+
+    .labels-inner {
+        border: 1px solid $borderWeightColor;
+        border-radius: 2px;
+        height: 24px;
+        line-height: 21px;
+        float: left;
+        margin-right: 5px;
+        margin-bottom: 5px;
+        font-size: 0;
+
+        .bk-tooltip-rel {
+            height: 17px;
+            line-height: 22px;
+        }
+
+        .key,
+        .value {
+            @mixin ellipsis 140px;
+            font-size: 12px;
+            text-align: center;
+            padding: 0 10px;
+        }
+
+        .key {
+            background-color: #fff;
+            border-right: 1px solid $borderWeightColor;
+        }
+
+        .value {
+            background-color: $bgHoverColor;
+        }
+    }
+
+}
+
+.bk-table.has-table-hover>tbody>tr.no-hover:hover {
+    background-color: transparent;
+}
+
+.biz-cluster-set-variable-sideslider {
+    margin: 0;
+    padding: 0;
+    z-index: 999;
+
+    .wrapper {
+        padding: 20px 40px 40px;
+    }
+
+    .flex-item {
+        display: flex;
+
+        .left,
+        .right {
+            flex: 1;
+        }
+
+        .right {
+            margin-left: -30px;
+        }
+    }
+
+    .cluster-wrapper {
+        width: 270px;
+    }
+
+    .biz-key-value-wrapper {
+        .biz-key-value-item {
+            position: relative;
+            margin-bottom: 10px;
+
+            input.right {
+                margin-left: 35px;
+            }
+
+            .equals-sign {
+                color: $fnMinorColor;
+                position: absolute;
+                top: 6px;
+                display: inline-block;
+                left: 284px;
+            }
+        }
+
+        .bk-form-input {
+            width: 270px;
+        }
+    }
+
+    .set-label-form {
+        .bk-tooltip-inner {
+            max-width: 260px;
+        }
+
+        .bk-form-item+.bk-form-item {
+            margin-top: 5px;
+        }
+
+        .label {
+            color: $fontWeightColor;
+            font-size: 14px;
+            font-weight: 700;
+        }
+
+        .action-inner {
+            margin-top: 30px;
+
+            button {
+                width: 90px;
+            }
+
+            button+button {
+                margin-left: 0;
+            }
+        }
+
+        .bk-form-input {
+            @mixin ellipsis 270px;
+        }
+    }
+
+    button.disabled {
+        background-color: #fafafa;
+        border-color: $borderLightColor;
+        color: #ccc;
+        cursor: not-allowed;
+
+        &:hover {
+            background-color: #fafafa;
+            border-color: $borderLightColor;
+        }
+    }
+}

@@ -1,0 +1,334 @@
+/**
+ * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community Edition) available.
+ * Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+ * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * http://opensource.org/licenses/MIT
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+ * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
+ */
+
+@import '../../css/variable.css';
+@import '../../css/mixins/ellipsis.css';
+
+.biz-cluster-wrapper {
+    padding: 0;
+}
+
+.biz-cluster-list {
+    padding: 30px 0 30px 30px;
+    font-size: 0;
+}
+
+.biz-status-box {
+    margin-top: 10px;
+}
+
+.biz-actions {
+    position: absolute;
+    right: 20px;
+    top: 12px;
+
+    .button {
+        width: 32px;
+        height: 32px;
+        border: none;
+        background: transparent;
+        font-size: 26px;
+        color: $fnMinorColor;
+        padding: 0;
+        margin: 0 3px;
+    }
+}
+
+.biz-cluster {
+    width: 300px;
+    height: 320px;
+    border: 1px solid $borderWeightColor;
+    border-radius: 2px;
+    box-shadow: 0 0 8px rgba(221, 228, 235, 0.3);
+    background: #fff;
+    position: relative;
+    display: inline-block;
+    margin: 0 22px 22px 0;
+    vertical-align: top;
+
+    .bk-mark-corner {
+        z-index: 10;
+        left: -2px;
+
+        &:before {
+            border-color: $warningColor transparent transparent $warningColor;
+        }
+
+        p {
+            left: -6px;
+        }
+    }
+
+    .biz-cluster-header {
+        height: 75px;
+        padding: 17px 0 0 24px;
+        border-bottom: 1px solid $borderWeightColor;
+        position: relative;
+
+        .cluster-title {
+            @mixin ellipsis 200px;
+            font-size: 16px;
+            font-weight: normal;
+            margin: 0 0 4px 0;
+
+            a {
+                color: $fontColor;
+
+                &:hover {
+                    color: $primaryColor;
+                }
+            }
+        }
+
+        .cluster-metadata {
+            margin: 0;
+            font-size: 12px;
+            color: $fnMinorColor;
+
+            .cluster-id {
+                @mixin ellipsis 200px;
+                vertical-align: bottom;
+            }
+
+            .stag,
+            .prod {
+                border: 1px solid $fnMinorColor;
+                padding: 1px 8px;
+                border-radius: 2px;
+                margin-left: 5px;
+                height: 21px;
+                display: inline-block;
+                transform: scale(0.85);
+            }
+
+            .stag {
+                color: $warningColor;
+                background-color: #fff3da;
+                border: solid 1px $warningColor;
+            }
+
+            .prod {
+                color: $primaryColor;
+                background-color: #e1f3ff;
+                border: solid 1px $primaryColor;
+            }
+        }
+
+        .bk-dropdown-menu {
+            position: absolute;
+            top: 8px;
+            right: 0;
+        }
+
+        .cluster-opera-btn {
+            width: 70px;
+            height: 60px;
+            border: none;
+            background: transparent;
+            font-size: 30px;
+            outline: 0;
+            margin-bottom: -30px;
+            color: $fnMinorColor;
+
+            &.hover {
+                color: $primaryColor;
+            }
+        }
+    }
+
+    .biz-cluster-content {
+        padding: 30px 24px;
+    }
+}
+
+.biz-cluster-title {
+    display: inline-block;
+    height: 60px;
+    line-height: 60px;
+    font-size: 16px;
+    margin-left: 20px;
+}
+
+.biz-guide-box {
+    background: transparent;
+    box-shadow: none;
+
+    .title {
+        font-size: 22px;
+        color: #333;
+    }
+}
+
+.biz-cluster-guide {
+    width: 380px;
+    height: calc(100% - 282px);
+    padding: 40px 30px;
+    position: fixed;
+    right: 0;
+    top: 72px;
+    background: #fff;
+    border-left: 1px solid $borderColor;
+    font-size: 14px;
+    color: $fontWeightColor;
+
+    .title {
+        font-size: 18px;
+        color: #333948;
+        margin: 0;
+        padding: 0;
+        margin-bottom: 18px;
+    }
+
+    .text {
+        line-height: 24px;
+        padding: 0;
+        margin: 0 0 30px 0;
+
+        strong {
+            color: #52525d;
+        }
+    }
+
+    dt {
+        font-weight: bold;
+        margin-bottom: 6px;
+        padding-left: 9px;
+        position: relative;
+
+        &:before {
+            content: '';
+            width: 4px;
+            height: 4px;
+            background-color: $fontWeightColor;
+            display: inline-block;
+            border-radius: 50%;
+            position: absolute;
+            left: 0;
+            top: 8px;
+        }
+    }
+
+    dd {
+        margin-bottom: 6px;
+        line-height: 24px
+    }
+
+    .operate {
+        margin-top: 25px;
+    }
+}
+
+.biz-progress-box {
+    margin-bottom: 28px;
+}
+
+.biz-log-box {
+    font-size: 12px;
+
+    .operation-item {
+        padding: 10px 0;
+        border-bottom: 1px solid $borderWeightColor;
+
+        &:last-child {
+            border-bottom: none;
+        }
+    }
+
+    .log-message {
+        line-height: 22px;
+        font-size: 12px;
+        padding: 0;
+        font-family: Microsoft Yahei;
+        margin: 0 0 5px 0;
+
+        &.title {
+            font-size: 14px;
+            font-weight: 700;
+        }
+
+        &.item {
+            margin-left: 20px;
+        }
+    }
+}
+
+.biz-cluster-add {
+    cursor: pointer;
+    text-align: center;
+    &:hover {
+        border-color: $primaryColor;
+        /*.add-btn {
+            border-color: $primaryColor;
+        }
+        .bk-icon {
+            color: $primaryColor;
+        }*/
+    }
+    .add-btn {
+        width: 110px;
+        height: 110px;
+        margin-top: 80px;
+        text-align: center;
+        display: inline-block;
+        padding-top: 21px;
+
+        img {
+            width: 80px;
+        }
+    }
+    .bk-icon {
+        font-size: 32px;
+        font-weight: bold;
+        color: #C3CDD7;
+    }
+    strong {
+        font-size: 14px;
+        color: #979BA5;
+        display: block;
+        margin-top: -12px;
+        font-weight: normal;
+    }
+}
+
+.cluster-opera-btn {
+    .bk-icon.icon-more {
+        color: #979BA5;
+        font-size: 26px;
+        width: 32px;
+        height: 32px;
+        display: inline-block;
+        line-height: 32px;
+    }
+
+    &.hover {
+        .bk-icon.icon-more {
+            color: $primaryColor;
+            background-color: #F0F1F5;
+            border-radius: 50%;
+        }
+    }
+}
+
+@media screen and (max-width: $mediaWidth) {
+    .biz-cluster-guide {
+        width: 320px;
+    }
+
+    .biz-cluster-list {
+        padding: 20px;
+    }
+}
+
+@media screen and (min-width: $mediaWidth) {
+    .biz-guide-box.show-guide {
+        margin-right: 380px;
+    }
+}

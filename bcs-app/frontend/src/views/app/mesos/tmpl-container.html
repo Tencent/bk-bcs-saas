@@ -1,0 +1,404 @@
+<div class="biz-content">
+    <div class="biz-top-bar">
+        <div class="biz-app-instance-title">
+            <i class="bk-icon icon-arrows-left back" @click="goInstanceDetail"></i>
+            <!-- <span @click="refreshCurRouter">{{containerInfo.container_name || '--'}}</span> -->
+            <span style="cursor: default;">{{containerInfo.container_name || '--'}}</span>
+        </div>
+        <bk-guide></bk-guide>
+    </div>
+    <div class="biz-content-wrapper biz-app-instance">
+        <app-exception v-if="exceptionCode" :type="exceptionCode.code" :text="exceptionCode.msg"></app-exception>
+        <div v-else class="biz-app-instance-wrapper" v-bkloading="{isLoading: contentLoading}">
+            <div class="biz-app-instance-header">
+                <div class="header-item">
+                    <div class="key-label">主机名称：</div>
+                    <bk-tooltip :delay="500" placement="bottom-start">
+                        <div class="value-label">{{containerInfo.host_name || '--'}}</div>
+                        <template slot="content">
+                            <p style="text-align: left; white-space: normal;word-break: break-all;font-weight: 400;">{{containerInfo.host_name || '--'}}</p>
+                        </template>
+                    </bk-tooltip>
+                </div>
+                <div class="header-item">
+                    <div class="key-label">主机IP：</div>
+                    <bk-tooltip :delay="500" placement="bottom">
+                        <div class="value-label">{{containerInfo.host_ip || '--'}}</div>
+                        <template slot="content">
+                            <p style="text-align: left; white-space: normal;word-break: break-all;font-weight: 400;">{{containerInfo.host_ip || '--'}}</p>
+                        </template>
+                    </bk-tooltip>
+                </div>
+                <div class="header-item">
+                    <div class="key-label">容器IP：</div>
+                    <bk-tooltip :delay="500" placement="bottom">
+                        <div class="value-label">{{containerInfo.container_ip || '--'}}</div>
+                        <template slot="content">
+                            <p style="text-align: left; white-space: normal;word-break: break-all;font-weight: 400;">{{containerInfo.container_ip || '--'}}</p>
+                        </template>
+                    </bk-tooltip>
+                </div>
+                <div class="header-item">
+                    <div class="key-label">容器ID：</div>
+                    <bk-tooltip :delay="500" placement="bottom">
+                        <div class="value-label">{{containerInfo.container_id || '--'}}</div>
+                        <template slot="content">
+                            <p style="text-align: left; white-space: normal;word-break: break-all;font-weight: 400;">{{containerInfo.container_id || '--'}}</p>
+                        </template>
+                    </bk-tooltip>
+                </div>
+                <div class="header-item">
+                    <div class="key-label">镜像：</div>
+                    <bk-tooltip :delay="500" placement="bottom">
+                        <div class="value-label">{{containerInfo.image || '--'}}</div>
+                        <template slot="content">
+                            <p style="text-align: left; white-space: normal;word-break: break-all;font-weight: 400;">{{containerInfo.image || '--'}}</p>
+                        </template>
+                    </bk-tooltip>
+                </div>
+                <div class="header-item">
+                    <div class="key-label">网络模式：</div>
+                    <bk-tooltip :delay="500" placement="bottom">
+                        <div class="value-label">{{containerInfo.network_mode || '--'}}</div>
+                        <template slot="content">
+                            <p style="text-align: left; white-space: normal;word-break: break-all;font-weight: 400;">{{containerInfo.network_mode || '--'}}</p>
+                        </template>
+                    </bk-tooltip>
+                </div>
+            </div>
+            <div class="biz-app-instance-chart-wrapper">
+                <div class="biz-app-instance-chart">
+                    <div class="part top-left">
+                        <div class="info">
+                            <div class="left">CPU使用率</div>
+                        </div>
+                        <chart :options="cpuLine" ref="containerCpuLine" auto-resize></chart>
+                    </div>
+                    <div class="part top-right">
+                        <div class="info">
+                            <div class="left">内存</div>
+                        </div>
+                        <chart :options="memLine" ref="containerMemLine" auto-resize></chart>
+                    </div>
+                </div>
+                <div class="biz-app-instance-chart">
+                    <div class="part bottom-left">
+                        <div class="info">
+                            <div class="left">网络</div>
+                        </div>
+                        <chart :options="netLine" ref="containerNetLine" auto-resize></chart>
+                    </div>
+                    <div class="part">
+                        <div class="info">
+                            <div class="left">磁盘IO</div>
+                        </div>
+                        <chart :options="diskLine" ref="containerDiskLine" auto-resize></chart>
+                    </div>
+                </div>
+            </div>
+            <div class="biz-app-container-table-wrapper">
+                <bk-tab :type="'fill'" :active-name="tabActiveName" @tab-changed="tabChanged">
+                    <bk-tabpanel name="ports" title="端口映射">
+                        <table class="bk-table has-table-hover biz-table biz-app-container-ports-table">
+                            <thead>
+                                <tr>
+                                    <th style="text-align: left;padding-left: 27px; width: 300px">
+                                        Name
+                                    </th>
+                                    <th style="width: 150px">Host Port</th>
+                                    <th style="width: 150px">Container Port</th>
+                                    <th style="width: 100px">Protocol</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <template v-if="portList.length">
+                                    <tr v-for="(port, index) in portList">
+                                        <td style="text-align: left;padding-left: 27px;">
+                                            <bk-tooltip placement="top" :delay="500">
+                                                <p class="port-name">{{port.name}}</p>
+                                                <template slot="content">
+                                                    <p style="text-align: left; white-space: normal;word-break: break-all;">{{port.name}}</p>
+                                                </template>
+                                            </bk-tooltip>
+                                        </td>
+                                        <td>{{port.hostPort}}</td>
+                                        <td>{{port.containerPort}}</td>
+                                        <td>
+                                            <bk-tooltip placement="top" :delay="500">
+                                                <p class="port-protocol">{{port.protocol}}</p>
+                                                <template slot="content">
+                                                    <p style="text-align: left; white-space: normal;word-break: break-all;">{{port.protocol}}</p>
+                                                </template>
+                                            </bk-tooltip>
+                                        </td>
+                                    </tr>
+                                </template>
+                                <template v-else>
+                                    <tr>
+                                        <td colspan="4">
+                                            <div class="bk-message-box no-data">
+                                                <p class="message empty-message">该应用的网络模式无需端口映射</p>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </template>
+                            </tbody>
+                        </table>
+                    </bk-tabpanel>
+                    <bk-tabpanel name="commands" title="命令">
+                        <table class="bk-table has-table-hover biz-table biz-app-container-commands-table">
+                            <thead>
+                                <tr>
+                                    <th style="text-align: left;padding-left: 27px; width: 300px">
+                                        Command
+                                    </th>
+                                    <th style="width: 200px">Args</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <template v-if="commandList.length">
+                                    <tr v-for="(command, index) in commandList">
+                                        <td style="text-align: left;padding-left: 27px;">
+                                            <bk-tooltip placement="top" :delay="500">
+                                                <p class="command-name">{{command.command}}</p>
+                                                <template slot="content">
+                                                    <p style="text-align: left; white-space: normal;word-break: break-all;">{{command.command}}</p>
+                                                </template>
+                                            </bk-tooltip>
+                                        </td>
+                                        <td>
+                                            <bk-tooltip placement="top" :delay="500">
+                                                <p class="command-args">{{command.args}}</p>
+                                                <template slot="content">
+                                                    <p style="text-align: left; white-space: normal;word-break: break-all;">{{command.args}}</p>
+                                                </template>
+                                            </bk-tooltip>
+                                        </td>
+                                    </tr>
+                                </template>
+                                <template v-else>
+                                    <tr>
+                                        <td colspan="2">
+                                            <div class="bk-message-box no-data">
+                                                <p class="message empty-message">无数据</p>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </template>
+                            </tbody>
+                        </table>
+                    </bk-tabpanel>
+                    <bk-tabpanel name="volumes" title="挂载卷">
+                        <table class="bk-table has-table-hover biz-table biz-app-container-volumes-table">
+                            <thead>
+                                <tr>
+                                    <th style="text-align: left;padding-left: 27px; width: 250px">
+                                        Host Path
+                                    </th>
+                                    <th style="width: 250px">Mount Path</th>
+                                    <th style="width: 140px">ReadOnly</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <template v-if="volumeList.length">
+                                    <tr v-for="(volume, index) in volumeList">
+                                        <td style="text-align: left;padding-left: 27px;">
+                                            <bk-tooltip placement="top" :delay="500">
+                                                <p class="volume-host">{{volume.hostPath}}</p>
+                                                <template slot="content">
+                                                    <p style="text-align: left; white-space: normal;word-break: break-all;">{{volume.hostPath}}</p>
+                                                </template>
+                                            </bk-tooltip>
+                                        </td>
+                                        <td>
+                                            <bk-tooltip placement="top" :delay="500">
+                                                <p class="volume-mount">{{volume.mountPath}}</p>
+                                                <template slot="content">
+                                                    <p style="text-align: left; white-space: normal;word-break: break-all;">{{volume.mountPath}}</p>
+                                                </template>
+                                            </bk-tooltip>
+                                        </td>
+                                        <td>{{volume.readOnly}}</td>
+                                    </tr>
+                                </template>
+                                <template v-else>
+                                    <tr>
+                                        <td colspan="3">
+                                            <div class="bk-message-box no-data">
+                                                <p class="message empty-message">无数据</p>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </template>
+                            </tbody>
+                        </table>
+                    </bk-tabpanel>
+                    <bk-tabpanel name="env_args" title="环境变量">
+                        <table class="bk-table has-table-hover biz-table biz-app-container-env-table">
+                            <thead>
+                                <tr>
+                                    <th style="text-align: left;padding-left: 27px; width: 150px">
+                                        Key
+                                    </th>
+                                    <th style="width: 350px">Value</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <template v-if="envList.length">
+                                    <tr v-for="(env, index) in envList">
+                                        <td style="text-align: left;padding-left: 27px;">
+                                            <bk-tooltip placement="top" :delay="500">
+                                                <p class="env-key">{{env.name}}</p>
+                                                <template slot="content">
+                                                    <p style="text-align: left; white-space: normal;word-break: break-all;">{{env.name}}</p>
+                                                </template>
+                                            </bk-tooltip>
+                                        </td>
+                                        <td>
+                                            <bk-tooltip placement="top" :delay="500">
+                                                <p class="env-value">{{env.value}}</p>
+                                                <template slot="content">
+                                                    <p style="text-align: left; white-space: normal;word-break: break-all;">{{env.value}}</p>
+                                                </template>
+                                            </bk-tooltip>
+                                        </td>
+                                    </tr>
+                                </template>
+                                <template v-else>
+                                    <tr>
+                                        <td colspan="2">
+                                            <div class="bk-message-box no-data">
+                                                <p class="message empty-message">无数据</p>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </template>
+                            </tbody>
+                        </table>
+                    </bk-tabpanel>
+                    <bk-tabpanel name="health_check" title="健康检查">
+                        <table class="bk-table has-table-hover biz-table biz-app-container-health-table">
+                            <thead>
+                                <tr>
+                                    <th style="text-align: left;padding-left: 27px; width: 150px">
+                                        Type
+                                    </th>
+                                    <th style="width: 140px">Result</th>
+                                    <th style="width: 350px">Message</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <template v-if="healthList.length">
+                                    <tr v-for="(health, index) in healthList">
+                                        <td style="text-align: left;padding-left: 27px;">
+                                            <bk-tooltip placement="top" :delay="500">
+                                                <p class="health-type">{{health.type}}</p>
+                                                <template slot="content">
+                                                    <p style="text-align: left; white-space: normal;word-break: break-all;">{{health.type}}</p>
+                                                </template>
+                                            </bk-tooltip>
+                                        </td>
+                                        <td>{{health.result}}</td>
+                                        <td>
+                                            <bk-tooltip placement="top" :delay="500">
+                                                <p class="health-message">{{health.message}}</p>
+                                                <template slot="content">
+                                                    <p style="text-align: left; white-space: normal;word-break: break-all;">{{health.message}}</p>
+                                                </template>
+                                            </bk-tooltip>
+                                        </td>
+                                    </tr>
+                                </template>
+                                <template v-else>
+                                    <tr>
+                                        <td colspan="3">
+                                            <div class="bk-message-box no-data">
+                                                <p class="message empty-message">无数据</p>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </template>
+                            </tbody>
+                        </table>
+                    </bk-tabpanel>
+                    <bk-tabpanel name="labels" title="标签">
+                        <table class="bk-table has-table-hover biz-table biz-app-container-label-table">
+                            <thead>
+                                <tr>
+                                    <th style="text-align: left;padding-left: 27px; width: 150px">
+                                        Key
+                                    </th>
+                                    <th style="width: 350px">Value</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <template v-if="labelList.length">
+                                    <tr v-for="(label, index) in labelList">
+                                        <td style="text-align: left;padding-left: 27px;">
+                                            <bk-tooltip placement="top" :delay="500">
+                                                <p class="label-key">{{label.key}}</p>
+                                                <template slot="content">
+                                                    <p style="text-align: left; white-space: normal;word-break: break-all;">{{label.key}}</p>
+                                                </template>
+                                            </bk-tooltip>
+                                        </td>
+                                        <td>
+                                            <bk-tooltip placement="top" :delay="500">
+                                                <p class="label-value">{{label.val}}</p>
+                                                <template slot="content">
+                                                    <p style="text-align: left; white-space: normal;word-break: break-all;">{{label.val}}</p>
+                                                </template>
+                                            </bk-tooltip>
+                                        </td>
+                                    </tr>
+                                </template>
+                                <template v-else>
+                                    <tr>
+                                        <td colspan="2">
+                                            <div class="bk-message-box no-data">
+                                                <p class="message empty-message">无数据</p>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </template>
+                            </tbody>
+                        </table>
+                    </bk-tabpanel>
+                    <bk-tabpanel name="resources" title="资源限制">
+                        <table class="bk-table has-table-hover biz-table biz-app-container-resource-table">
+                            <thead>
+                                <tr>
+                                    <th style="text-align: left;padding-left: 27px; width: 150px">
+                                        Cpu
+                                    </th>
+                                    <th style="width: 350px">Memory</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <template v-if="resourceList.length">
+                                    <tr v-for="(resource, index) in resourceList">
+                                        <td style="text-align: left;padding-left: 27px;">
+                                            <p class="resource-cpu">{{parseFloat(resource.cpu)}}</p>
+                                        </td>
+                                        <td>
+                                            <p class="resource-mem">{{parseFloat(resource.memory)}}</p>
+                                        </td>
+                                    </tr>
+                                </template>
+                                <template v-else>
+                                    <tr>
+                                        <td colspan="2">
+                                            <div class="bk-message-box no-data">
+                                                <p class="message empty-message">无数据</p>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </template>
+                            </tbody>
+                        </table>
+                    </bk-tabpanel>
+                </bk-tab>
+            </div>
+        </div>
+    </div>
+</div>

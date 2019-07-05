@@ -1,0 +1,379 @@
+/**
+ * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community Edition) available.
+ * Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+ * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * http://opensource.org/licenses/MIT
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+ * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
+ */
+
+@import '../../css/variable.css';
+@import '../../css/mixins/ellipsis.css';
+@import '../../css/mixins/clearfix.css';
+@import '../../css/mixins/scroller.css';
+
+.biz-tpl-title {
+    display: inline-block;
+    height: 60px;
+    line-height: 60px;
+    font-size: 16px;
+    margin-left: 20px;
+}
+
+.biz-actions {
+    position: absolute;
+    right: 20px;
+    top: 19px;
+
+    .button {
+        width: 32px;
+        height: 32px;
+        border: none;
+        background: transparent;
+        font-size: 26px;
+        color: #c3cdd7;
+        padding: 0;
+        margin: 0 3px;
+    }
+}
+
+.biz-tpl-list {
+    font-size: 14px;
+}
+
+.biz-tpl {
+    width: 300px;
+    height: 320px;
+    border: 1px solid #dde4eb;
+    border-radius: 2px;
+    box-shadow: 0 0 8px rgba(221, 228, 235, 0.3);
+    background: #fff;
+    position: relative;
+    display: inline-block;
+    margin: 0 22px 22px 0;
+    vertical-align: top;
+
+    .bk-mark-corner {
+        z-index: 10;
+        left: -2px;
+
+        &:before {
+            border-color: #ffb400 transparent transparent #ffb400;
+        }
+
+        p {
+            left: -6px;
+        }
+    }
+
+    .biz-tpl-header {
+        height: 86px;
+        text-align: center;
+        border-bottom: 1px solid #dde4eb;
+        position: relative;
+        background-color: #fafbfd;
+    }
+
+    .biz-tpl-content {
+        padding: 30px;
+        text-align: center;
+    }
+
+    .tpl-desc {
+        height: 120px;
+        margin-bottom: 20px;
+        word-break: break-all;
+    }
+}
+
+
+.biz-inner-table {
+    width: 100%;
+    border: 1px solid $borderColor;
+
+    tr {
+        height: 100px;
+    }
+
+    td {
+        background: #fff;
+
+        border-right: none;
+        border-left: none;
+    }
+
+    .logo {
+        width: 100px;
+        text-align: center;
+        border-right: 1px solid $borderColor;
+
+        .logo-wrapper {
+            width: 100px;
+        }
+
+        img {
+            width: 60px;
+        }
+    }
+
+    .data {
+        width: 230px;
+        padding: 0 10px 0 20px;
+    }
+
+    .version {
+        width: 120px;
+    }
+
+    .description {
+        padding-right: 10px;
+    }
+
+    .update {
+        width: 170px;
+    }
+
+    .source {
+        width: 110px;
+    }
+
+    .action {
+        width: 80px;
+    }
+
+    .title {
+        font-size: 14px;
+        font-weight: bold;
+        display: block;
+        color: #5d6075;
+        margin: 0 0 10px 0;
+    }
+
+    .vertion {
+        font-size: 12px;
+        color: #7b7d8a;
+        margin: 0 0 5px 0;
+    }
+
+    strong {
+        display: block;
+    }
+
+    button.btn {
+        transition: none;
+
+        &:hover {
+            background-color: #3c96ff;
+            border-color: #3c96ff;
+            opacity: 1;
+            color: #fff;
+        }
+    }
+}
+
+.biz-config-templateset-title {
+    display: inline-block;
+    height: 60px;
+    line-height: 60px;
+    font-size: 16px;
+    margin-left: 20px;
+}
+
+.biz-templateset-table {
+    border-bottom: none;
+
+    &.bk-table>thead>tr>th {
+        height: 42px;
+        background-color: #ebf0f5;
+        color: #52525d;
+    }
+}
+
+.biz-templateset-table>tbody>tr {
+    &:first-child {
+        >td {
+            padding-top: 20px;
+        }
+    }
+
+    &:hover {
+        .resoruce-selector {
+            display: inline-block;
+        }
+    }
+}
+
+.biz-templateset-table>tbody>tr>td {
+    padding: 10px 0 0 0;
+    border: none;
+
+    &:first-child {
+        padding-left: 20px;
+
+        .templateset-val-box {
+            border-left: 1px solid $borderWeightColor;
+            border-right: 1px solid $borderWeightColor;
+            border-radius: 2px 0 0 2px;
+        }
+    }
+
+    &:last-child {
+        padding-right: 20px;
+
+        .templateset-val-box {
+            border-right: 1px solid $borderWeightColor;
+            border-radius: 0 2px 2px 0;
+        }
+    }
+
+    .resoruce-selector {
+        position: absolute;
+        right: 148px;
+        width: 100px;
+        display: none;
+    }
+
+    .templateset-val-box {
+        width: 100%;
+        min-height: 100px;
+        background: #fff;
+        vertical-align: middle;
+        border-top: 1px solid $borderWeightColor;
+        border-bottom: 1px solid $borderWeightColor;
+        display: table;
+        color: $fontColor;
+        font-size: 12px;
+        line-height: 1;
+
+        .title {
+            margin: 0 0 12px 0;
+            font-size: 14px;
+            color: #5d6075;
+        }
+
+        .vertion {
+            margin: 0 0 8px 0;
+        }
+
+        .url {
+            font-size: 14px;
+            margin: 0 0 10px 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            max-width: 500px;
+
+            &:first-child {
+                margin-top: 5px;
+            }
+        }
+
+        strong {
+            font-size: 14px;
+            display: block;
+            margin-bottom: 10px;
+
+            &:first-child {
+                margin-top: 5px;
+            }
+        }
+    }
+}
+
+.center {
+    text-align: center !important;
+}
+
+.biz-page-box {
+    padding-top: 20px;
+}
+
+.biz-guide-box {
+    box-shadow: none;
+    background-color: transparent;
+}
+
+.biz-config-templateset-copy-dialog {
+    button.disabled {
+        background-color: #fafafa;
+        border-color: #e6e6e6;
+        color: #cccccc;
+        cursor: not-allowed;
+
+        &:hover {
+            background-color: #fafafa;
+            border-color: #e6e6e6;
+        }
+    }
+}
+
+.tpl-name {
+    @mixin ellipsis 200px;
+}
+
+.tpl-version {
+    @mixin ellipsis 100px;
+}
+
+.helm-repos-detail {
+    .repos-item {
+        overflow: hidden;
+        margin-bottom: 10px;
+    }
+
+    .label {
+        font-size: 13px;
+        font-weight: weight;
+        float: left;
+    }
+
+    .url {
+        font-size: 13px;
+        float: left;
+    }
+
+    .wrapper {
+        overflow: hidden;
+    }
+
+    .auth {
+        border: 1px solid $borderWeightColor;
+        background: #fafafa;
+        margin: 5px 0;
+        border-radius: 2px;
+        clear: both;
+        padding: 10px;
+        text-align: left;
+
+        div {
+            margin-right: 10px;
+            line-height: 24px;
+            display: block;
+        }
+
+        .bk-icon {
+            margin-left: 10px;
+            cursor: pointer;
+        }
+    }
+}
+
+.st0 {
+    fill: #ebf0f5;
+}
+
+.st1 {
+    display: none;
+    fill: #ebf0f5;
+}
+
+.st2 {
+    display: none;
+}
+
+.st3 {
+    display: inline;
+    fill: #ebf0f5;
+}

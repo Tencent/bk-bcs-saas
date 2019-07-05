@@ -1,0 +1,83 @@
+{
+    "name": "",
+    "desc": "",
+    "command": "",
+    "args_text": "",
+    "args": [],
+    "workingDir": "",
+    "parameters": [
+    ],
+    "logPathList": [],
+    "parameter_list": [
+        {
+            "key": "",
+            "value": ""
+        }
+    ],
+    "type": "MESOS",
+    "env_list": [
+        {   
+            "type": "custom",
+            "key": "",
+            "value": ""
+        }
+    ],
+    "env": [
+    ],
+    "imageName": "",
+    "imageVersion": "",
+    "image": "",
+    "imagePullPolicy": "Always",
+    "privileged": false,
+    "ports": [
+    ],
+    "healthChecks": [
+        {
+            "type": "",
+            "delaySeconds": 10,
+            "intervalSeconds": 60,
+            "timeoutSeconds": 20,
+            "consecutiveFailures": 0,
+            "gracePeriodSeconds": 10,
+            "command": {
+                "portName": "",
+                "value": ""
+            },
+            "http": {
+                "port": "",
+                "portName": "",
+                "scheme": "http",
+                "path": "",
+                "headers": {
+                }
+            },
+            "tcp": {
+                "port": "",
+                "portName": ""
+            }
+        }
+    ],
+    "resources": {
+        "limits": {
+            "cpu": 2,
+            "memory": 8
+        }
+    },
+    "volumes": [
+        {
+            "volume": {
+                "hostPath": "",
+                "mountPath": "",
+                "subPath": "",
+                "readOnly": false
+            },
+            "type": "custom",
+            "name": ""
+        }
+    ],
+    "logListCache": [
+        {
+            "value": ""
+        }
+    ]
+}

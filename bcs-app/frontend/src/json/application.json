@@ -1,0 +1,172 @@
+{
+    "isEdited": false,
+    "id": 0,
+    "name": "",
+    "desc": "",
+    "config": {
+        "monitorLevel": "general",
+        "webCache": {
+            "remarkListCache": [
+                {
+                    "key": "",
+                    "value": ""
+                }
+            ],
+            "labelListCache": [
+                {
+                    "key": "",
+                    "value": ""
+                }
+            ],
+            "logLabelListCache": [
+                {
+                    "key": "",
+                    "value": ""
+                }
+            ],
+            "isMetric": false,
+            "metricIdList": []
+        },
+        "kind": "application",
+        "restartPolicy": {
+            "policy": "OnFailure",
+            "interval": 5,
+            "backoff": 10,
+            "maxtimes": 0
+        },
+        "customLogLabel": {},
+        "killPolicy": {
+            "gracePeriod": 10
+        },
+        "metricPolicy": {
+            "isUsed": false,
+            "list": []
+        },
+        "constraint": {
+            "intersectionItem": [
+                {
+                    "unionData": [
+                        {
+                            "name": "hostname",
+                            "operate": "CLUSTER",
+                            "type": 4,
+                            "arg_value": "",
+                            "text": {
+                                "value": ""
+                            },
+                            "set": {
+                                "item": []
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        "metadata": {
+            "annotations": {
+            },
+            "labels": {
+            },
+            "name": ""
+        },
+        "spec": {
+            "instance": 1,
+            "template": {
+                "metadata": {
+                },
+                "spec": {
+                    "containers": [
+                        {
+                            "name": "",
+                            "desc": "",
+                            "command": "",
+                            "args_text": "",
+                            "args": [],
+                            "workingDir": "",
+                            "parameters": [
+                            ],
+                            "logPathList": [],
+                            "parameter_list": [
+                                {
+                                    "key": "",
+                                    "value": ""
+                                }
+                            ],
+                            "type": "MESOS",
+                            "env_list": [
+                                {
+                                    "type": "custom",
+                                    "key": "",
+                                    "value": ""
+                                }
+                            ],
+                            "imageName": "",
+                            "imageVersion": "",
+                            "image": "",
+                            "imagePullPolicy": "Always",
+                            "privileged": false,
+                            "ports": [
+                            ],
+                            "healthChecks": [
+                                {
+                                    "type": "",
+                                    "delaySeconds": 10,
+                                    "intervalSeconds": 60,
+                                    "timeoutSeconds": 20,
+                                    "consecutiveFailures": 0,
+                                    "gracePeriodSeconds": 10,
+                                    "command": {
+                                        "portName": "",
+                                        "value": ""
+                                    },
+                                    "http": {
+                                        "port": "",
+                                        "portName": "",
+                                        "scheme": "http",
+                                        "path": "",
+                                        "headers": {
+                                        }
+                                    },
+                                    "tcp": {
+                                        "port": "",
+                                        "portName": ""
+                                    }
+                                }
+                            ],
+                            "resources": {
+                                "limits": {
+                                    "cpu": 2, 
+                                    "memory": 8
+                                }, 
+                                "requests": {
+                                    "cpu": "", 
+                                    "memory": ""
+                                }
+                            },
+                            "volumes": [
+                                {
+                                    "volume": {
+                                        "hostPath": "",
+                                        "mountPath": "",
+                                        "subPath": "",
+                                        "readOnly": false
+                                    },
+                                    "type": "custom",
+                                    "name": ""
+                                }
+                            ],
+                            "logListCache": [
+                                {
+                                    "value": ""
+                                }
+                            ]
+                        }
+                    ],
+                    "networkMode": "BRIDGE",
+                    "networkType": "cnm",
+                    "custom_value": ""
+                }
+            }
+        }
+    }
+}

@@ -1,0 +1,34 @@
+<template src="./tmpl-container.html"></template>
+
+<script>
+    import mixinBaseContainer from '../mixins/mixin-base-container'
+
+    export default {
+        mixins: [mixinBaseContainer],
+        data () {
+            return {
+                CATEGORY: 'job'
+            }
+        },
+        methods: {
+            /**
+             * 返回实例详情
+             */
+            goInstanceDetail () {
+                this.$router.push({
+                    name: 'jobInstanceDetail',
+                    params: {
+                        projectId: this.projectId,
+                        projectCode: this.projectCode,
+                        instanceId: this.instanceId,
+                        searchParamsList: this.searchParamsList
+                    }
+                })
+            }
+        }
+    }
+</script>
+
+<style scoped>
+    @import '../container.css';
+</style>

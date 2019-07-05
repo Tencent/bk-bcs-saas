@@ -1,0 +1,37 @@
+spring:
+  application:
+    name: project
+    desc: Devops Project Service
+    version: 4.0
+    packageName: com.tencent.devops.project
+  datasource:
+    url: jdbc:mysql://127.0.0.1:3306/devops_project?useSSL=false&autoReconnect=true&timezone=+800&useUnicode=true&characterEncoding=utf8&allowMultiQueries=true
+    username: root
+    password: mysql
+  cloud:
+    consul:
+      host: localhost
+      port: 8500
+      discovery:
+        tags: dev
+
+server:
+  port: 8065
+
+#蓝鲸登录平台API地址
+bk_login:
+  path: bkdevops
+  getUser: get_user/
+  getAllUser: get_all_users/
+  bk_app_code: bkdevops
+  bk_app_secret: bkdevops
+  #内部企业版蓝鲸平台
+  url: http://bk.com
+  outurl: https://bk.com
+
+auth:
+  url: http://bk.com
+  xBkAppCode: bkdevops
+  xBkAppSecret: bkdevops
+bcs_cc:
+  externalUrl: http://bk.com

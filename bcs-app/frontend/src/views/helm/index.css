@@ -1,0 +1,482 @@
+/**
+ * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community Edition) available.
+ * Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+ * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * http://opensource.org/licenses/MIT
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+ * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
+ */
+
+@import '../../css/variable.css';
+@import '../../css/mixins/ellipsis.css';
+
+.biz-helm-title {
+    display: inline-block;
+    height: 60px;
+    line-height: 60px;
+    font-size: 16px;
+    margin-left: 20px;
+}
+
+.biz-actions {
+    position: absolute;
+    right: 20px;
+    top: 19px;
+
+    .button {
+        width: 32px;
+        height: 32px;
+        border: none;
+        background: transparent;
+        font-size: 26px;
+        color: #c3cdd7;
+        padding: 0;
+        margin: 0 3px;
+    }
+}
+
+.biz-helm-list {
+    font-size: 0;
+}
+
+.biz-cluster {
+    width: 300px;
+    height: 320px;
+    border: 1px solid #dde4eb;
+    border-radius: 2px;
+    box-shadow: 0 0 8px rgba(221, 228, 235, 0.3);
+    background: #fff;
+    position: relative;
+    display: inline-block;
+    margin: 0 22px 22px 0;
+    vertical-align: top;
+
+    .bk-mark-corner {
+        z-index: 10;
+        left: -2px;
+
+        &:before {
+            border-color: #ffb400 transparent transparent #ffb400;
+        }
+
+        p {
+            left: -6px;
+        }
+    }
+
+    .biz-helm-header {
+        height: 86px;
+        padding: 22px 0 0 30px;
+        border-bottom: 1px solid #dde4eb;
+        position: relative;
+        background-color: #fafbfd;
+
+        .cluster-title {
+            @mixin ellipsis 200px;
+            font-size: 18px;
+            font-weight: normal;
+            margin: 0 0 10px 0;
+
+            a {
+                color: $fontColor;
+                width: 200px;
+                overflow: hidden;
+                display: inline-block;
+                text-overflow: ellipsis;
+
+                &:hover {
+                    color: $primaryColor;
+                }
+            }
+        }
+
+        .cluster-metadata {
+            margin: 0;
+            font-size: 12px;
+            color: #c3cdd7;
+
+            .cluster-id {
+                @mixin ellipsis 200px;
+                vertical-align: bottom;
+            }
+
+            .stag,
+            .prod {
+                border: 1px solid #c3cdd7;
+                padding: 1px 8px;
+                border-radius: 2px;
+                margin-left: 5px;
+                height: 21px;
+            }
+
+            .stag {
+                color: #ffb400;
+                background-color: #fff3da;
+                border: solid 1px #ffb400;
+            }
+
+            .prod {
+                color: #3c96ff;
+                background-color: #e1f3ff;
+                border: solid 1px #3c96ff;
+            }
+        }
+
+        .bk-dropdown-menu {
+            position: absolute;
+            top: 13px;
+            right: 0;
+        }
+
+        .cluster-opera-btn {
+            width: 70px;
+            height: 60px;
+            border: none;
+            background: transparent;
+            font-size: 30px;
+            outline: 0;
+            margin-bottom: -30px;
+            color: #c3cdd7;
+
+            &.hover {
+                color: $primaryColor;
+            }
+        }
+    }
+
+    .biz-helm-content {
+        padding: 30px;
+    }
+}
+
+.biz-progress-box {
+    margin-bottom: 28px;
+}
+
+.flex {
+    display: flex;
+}
+
+.biz-inner-table {
+    width: 100%;
+    border: 1px solid $borderColor;
+
+    tr {
+        height: 100px;
+    }
+
+    td {
+        background: #fff;
+        border-right: none;
+        border-left: none;
+    }
+
+    .app-name {
+        max-width: 160px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        display: inline-block;
+        vertical-align: middle;
+        margin-right: 5px;
+    }
+
+    .logo {
+        width: 100px;
+        text-align: center;
+        border-right: 1px solid $borderColor;
+    }
+
+    .data {
+        width: 240px;
+        padding-left: 20px;
+    }
+
+    .namespace {
+        min-width: 230px;
+        padding: 0 10px;
+    }
+
+    .version {
+        width: 100px;
+    }
+
+    .status {
+        width: 100px;
+    }
+
+    .deploy {
+        width: 160px;
+    }
+
+    .opera_record {
+        width: 250px;
+    }
+
+    .action {
+        width: 205px;
+    }
+
+    .title {
+        font-size: 14px;
+        font-weight: bold;
+        display: block;
+        color: #5d6075;
+        margin: 0 0 10px 0;
+    }
+
+    .vertion {
+        font-size: 12px;
+        color: #7b7d8a;
+        margin: 0 0 5px 0;
+    }
+
+    a {
+        font-size: 12px;
+        color: #3c96ff;
+    }
+
+    strong {
+        display: block;
+    }
+
+    button.btn {
+        transition: none;
+
+        &:hover {
+            background-color: #3c96ff;
+            border-color: #3c96ff;
+            opacity: 1;
+            color: #fff;
+        }
+    }
+}
+
+.biz-config-templateset-title {
+    display: inline-block;
+    height: 60px;
+    line-height: 60px;
+    font-size: 16px;
+    margin-left: 20px;
+}
+
+.biz-templateset-table {
+    border-bottom: none;
+
+    &.bk-table>thead>tr>th {
+        height: 42px;
+        background-color: #ebf0f5;
+        color: #52525d;
+    }
+}
+
+.biz-templateset-table>tbody>tr {
+    &:first-child {
+        >td {
+            padding-top: 20px;
+        }
+    }
+
+    &:hover {
+        .resoruce-selector {
+            display: inline-block;
+        }
+    }
+}
+
+.biz-templateset-table>tbody>tr>td {
+    padding: 10px 0 0 0;
+    border: none;
+
+    &:first-child {
+        padding-left: 20px;
+
+        .templateset-val-box {
+            border-left: 1px solid $borderWeightColor;
+            border-right: 1px solid $borderWeightColor;
+            border-radius: 2px 0 0 2px;
+        }
+    }
+
+    &:last-child {
+        padding-right: 20px;
+
+        .templateset-val-box {
+            border-right: 1px solid $borderWeightColor;
+            border-radius: 0 2px 2px 0;
+        }
+    }
+
+    .resoruce-selector {
+        position: absolute;
+        right: 148px;
+        width: 100px;
+        display: none;
+    }
+
+    .templateset-val-box {
+        width: 100%;
+        min-height: 100px;
+        background: #fff;
+        vertical-align: middle;
+        border-top: 1px solid $borderWeightColor;
+        border-bottom: 1px solid $borderWeightColor;
+        display: table;
+        color: $fontColor;
+        font-size: 12px;
+        line-height: 1;
+
+        .title {
+            margin: 0 0 12px 0;
+            font-size: 14px;
+            color: #5d6075;
+        }
+
+        .vertion {
+            margin: 0 0 8px 0;
+        }
+
+        .url {
+            font-size: 14px;
+            margin: 0 0 10px 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            max-width: 500px;
+
+            &:first-child {
+                margin-top: 5px;
+            }
+        }
+
+        strong {
+            font-size: 14px;
+            display: block;
+            margin-bottom: 10px;
+
+            &:first-child {
+                margin-top: 5px;
+            }
+        }
+    }
+}
+
+.center {
+    text-align: center !important;
+}
+
+.biz-page-box {
+    padding-top: 20px;
+}
+
+.biz-guide-box {
+    box-shadow: none;
+    background-color: transparent;
+}
+
+.biz-config-templateset-copy-dialog {
+    button.disabled {
+        background-color: #fafafa;
+        border-color: #e6e6e6;
+        color: #cccccc;
+        cursor: not-allowed;
+
+        &:hover {
+            background-color: #fafafa;
+            border-color: #e6e6e6;
+        }
+    }
+}
+
+.error-tip {
+    color: $dangerColor;
+    font-weight: normal;
+}
+
+.bk-dialog-btn-confirm,
+.bk-dialog-btn-cancel {
+    width: auto !important;
+    min-width: 72px;
+    margin-top: 0 !important;
+}
+
+.icon-search {
+    color: #c3cdd7;
+}
+
+.biz-error-message {
+    white-space: pre-line;
+    text-align: left;
+    max-height: 200px;
+    overflow: auto;
+    margin: 0 0 15px 0;
+}
+
+.biz-message {
+    margin-bottom: 0;
+
+    h3 {
+        text-align: left;
+        font-size: 14px;
+    }
+
+    p {
+        text-align: left;
+        font-size: 13px;
+    }
+}
+
+.biz-footer {
+    text-align: right;
+    padding-right: 15px;
+}
+
+.biz-check-btn {
+    cursor: pointer;
+}
+
+.bk-button {
+    position: relative;
+}
+
+.biz-status-icon {
+    cursor: pointer;
+    right: -10px;
+    padding: 0 10px;
+    position: relative;
+}
+
+.tip-trigger {
+    vertical-align: middle;
+    cursor: pointer;
+}
+
+.biz-data-table {
+    tr.has-error {
+        td {
+            cursor: pointer;
+        }
+    }
+}
+
+.biz-mark {
+    font-size: 10px;
+    padding: 0 5px;
+    height: 20px;
+    line-height: 20px;
+    color: #fff;
+    display: inline-block;
+    border-radius: 2px;
+    transform: scale(0.75);
+}
+
+/* 自适应 */
+@media screen and (max-width: $mediaWidth) {
+    .app-version {
+        max-width: 170px;
+        @mixin ellipsis;
+        margin-right: 5px;
+    }
+}

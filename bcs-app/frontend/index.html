@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <link rel="icon" href="{{ STATIC_URL }}<%= htmlWebpackPlugin.options.staticUrl %>/images/favicon.ico" type="image/x-icon" />
+        <link rel="shortcut icon" href="{{ STATIC_URL }}<%= htmlWebpackPlugin.options.staticUrl %>/images/favicon.ico" type="image/x-icon" />
+        <meta charset="utf-8">
+        <title> index </title>
+    </head>
+<body>
+<div id="app"></div>
+<script>
+    var DEVOPS_HOST = '{{ DEVOPS_HOST }}'
+    var DEVOPS_BCS_API_URL = '{{ DEVOPS_BCS_API_URL }}'
+    var STATIC_URL = '{{ STATIC_URL }}'
+    var DEVOPS_ARTIFACTORY_HOST = '{{ DEVOPS_ARTIFACTORY_HOST }}'
+    var BK_CC_HOST = '{{ BK_CC_HOST }}'
+    var SITE_URL = '{{ SITE_URL }}'
+    var BK_IAM_APP_URL = '{{ BK_IAM_APP_URL }}'
+
+    var PROJECT_MESOS = 2
+    var PROJECT_K8S = 1
+
+    if (window.self === window.top) {
+        window.location.href = DEVOPS_HOST + '/console/'
+    }
+
+    document.domain = '{{ SESSION_COOKIE_DOMAIN }}'
+</script>
+<script src="{{ STATIC_URL }}<%= htmlWebpackPlugin.options.staticUrl %>/lib.bundle.js"></script>
+</body>
+</html>
