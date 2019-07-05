@@ -1,0 +1,3 @@
+org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
+com.tencent.devops.common.web.WebAutoConfiguration,\
+com.tencent.devops.common.web.mq.RabbitMQAutoConfiguration

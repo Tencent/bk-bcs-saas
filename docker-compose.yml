@@ -1,0 +1,184 @@
+version: "3.5"
+
+x-bcs-common:
+  extra_host: &bcs_extra_hosts
+    []
+
+services:
+  svr-consul:
+    container_name: svr-consul
+    image: consul:1.5.1
+    restart: unless-stopped
+    user: root
+    command: consul agent -server -data-dir=/consul/data -ui -bootstrap -datacenter=bkdevops -domain=bkdevops -bootstrap -client='{{ GetInterfaceIP "eth0" }}'
+    volumes:
+      - ./data/consul:/consul/data
+
+  svr-mariadb:
+    container_name: svr-mariadb
+    image: mariadb:10.3.11
+    restart: unless-stopped
+    environment:
+      - MYSQL_ROOT_PASSWORD='open-bcs-saas'
+    volumes:
+      - ./data/mysql:/var/lib/mysql
+      - ./bcs-projmgr:/data/bcs-projmgr
+
+  svr-redis:
+    container_name: svr-redis
+    image: redis:5.0.3-stretch
+    restart: unless-stopped
+    volumes:
+      - ./data/redis:/data
+
+  gateway:
+    container_name: gateway
+    image: openresty/openresty:1.13.6.2-2-centos
+    restart: unless-stopped
+    command: /usr/local/openresty/nginx/conf/docker-entrypoint.sh
+    volumes:
+      - ./bcs-projmgr/gateway:/usr/local/openresty/nginx/conf
+      - ./bcs-projmgr/frontend/dist:/usr/local/openresty/nginx/frontend/console
+    ports:
+      - 80:80
+    environment:
+      - DEV_DEVOPS_HOST=${DEV_DEVOPS_HOST}
+      - DEV_DEVOPS_API_HOST=${DEV_DEVOPS_API_HOST}
+      - DEV_BCS_APP_HOST=${DEV_BCS_APP_HOST}
+      - BK_PAAS_HOST=${BK_PAAS_HOST}
+    extra_hosts: *bcs_extra_hosts
+
+  bcs-pm:
+    container_name: bcs-pm
+    image: bcs-pm
+    restart: unless-stopped
+    command: >
+      sh -c 'java -Dlogger.config.file="./conf/log4j2.xml" \
+        -Dspring.datasource.url="jdbc:mysql://svr-mariadb:3306/devops_project?useSSL=false&autoReconnect=true&timezone=+800&useUnicode=true&characterEncoding=utf8&allowMultiQueries=true" \
+        -Dspring.datasource.username="root" \
+        -Dspring.datasource.password="open-bcs-saas" \
+        -Dspring.cloud.consul.host="svr-consul" \
+        -Dspring.cloud.consul.port="8500" \
+        -Dserver.port="8065" \
+        -Dbk_login.path="${APIGW_HOST}/api/c/compapi/v2/bk_login/" \
+        -Dbk_login.url="${APIGW_HOST}" \
+        -Dbk_login.outurl="${BK_PAAS_HOST}" \
+        -Dbk_login.bk_app_code="bk_devops" \
+        -Dbk_login.bk_app_secret="${BCS_PM_APP_TOKEN}" \
+        -Dauth.xBkAppCode="bk_devops" \
+        -Dauth.xBkAppSecret="${BCS_PM_APP_TOKEN}" \
+        -Dauth.url="${IAM_HOST}" \
+        -Dbcs_cc.externalUrl="http://bcs-cc:8080/projects/" \
+        -Dbcs_cc.url="http://bcs-cc:8080/projects/" \
+        -Dhttps.proxyHost="${PROXY_HOST}" \
+        -Dhttps.proxyPort=${PROXY_PORT} \
+        -Dhttp.proxyHost="${PROXY_HOST}" \
+        -Dhttp.proxyPort=${PROXY_PORT} \
+        -Dhttp.nonProxyHosts="${NON_PROXY_HOSTS}" \
+        -jar "./release/service-project-1.0.0.jar"'
+
+    build:
+      context: ./bcs-projmgr/pm
+      dockerfile: Dockerfile-dev
+      network: bk-bcs-saas_default
+    volumes:
+      - ./bcs-projmgr/pm/conf:/data/conf
+    extra_hosts: *bcs_extra_hosts
+
+  bcs-cc:
+    container_name: bcs-cc
+    image: bcs-cc
+    restart: unless-stopped
+    command: /data/docker-entrypoint.sh
+    build:
+      context: ./bcs-cc
+      dockerfile: Dockerfile-dev
+    volumes:
+      - ./bcs-cc:/data
+    environment:
+      - IAM_HOST=${IAM_HOST}
+      - HTTP_PROXY=${HTTP_PROXY}
+      - BCS_CC_APP_TOKEN=${BCS_CC_APP_TOKEN}
+    extra_hosts: *bcs_extra_hosts
+
+  bcs-app:
+    container_name: bcs-app
+    image: bcs-app
+    restart: unless-stopped
+    command: python manage.py runserver 0.0.0.0:8000
+    build:
+      context: ./bcs-app
+      dockerfile: Dockerfile-dev
+    volumes:
+      - ./bcs-app:/data
+    environment:
+      - BK_PAAS_HOST=${BK_PAAS_HOST}
+      - DJANGO_SETTINGS_MODULE=backend.settings.ce.dev
+      - DB_HOST=svr-mariadb
+      - DB_PASSWORD=open-bcs-saas
+      - BK_BROKER_URL=redis://svr-redis:6379/0
+      - BKAPP_REDIS_URL=redis://svr-redis:6379/0
+      - BKAPP_IAM_HOST=${IAM_HOST}
+      - BKAPP_ARTIFACTORY_HOST=${ARTIFACTORY_HOST}
+      - BKAPP_THANOS_HOST=${THANOS_HOST}
+      - BKAPP_HARBOR_CHARTS_DOMAIN=${HARBOR_CHARTS_HOST}
+      - BKAPP_BCS_API_DOMAIN=${BCS_API_HOST}
+      - APP_TOKEN=${BCS_APP_APP_TOKEN}
+      - DEV_DEVOPS_HOST=${DEV_DEVOPS_HOST}
+      - DEV_DEVOPS_API_HOST=${DEV_DEVOPS_API_HOST}
+      - DEV_BCS_APP_HOST=${DEV_BCS_APP_HOST}
+      - BCS_CC_HOST=http://bcs-cc:8080
+      - BKAPP_K8S_VERSION=${BKAPP_K8S_VERSION}
+      - BKAPP_MESOS_VERSION=${BKAPP_MESOS_VERSION}
+      - http_proxy=${HTTP_PROXY}
+      - https_proxy=${HTTPS_PROXY}
+      - no_proxy=${NO_PROXY}
+    extra_hosts: *bcs_extra_hosts
+    ports:
+      - 8000:8000
+
+  bcs-app-celery:
+    container_name: bcs-app-celery
+    image: bcs-app
+    restart: unless-stopped
+    command: python manage.py celery worker -l info
+    volumes:
+      - ./bcs-app:/data
+    environment:
+      - C_FORCE_ROOT=1
+      - BK_PAAS_HOST=${BK_PAAS_HOST}
+      - DJANGO_SETTINGS_MODULE=backend.settings.ce.dev
+      - DB_HOST=svr-mariadb
+      - DB_PASSWORD=open-bcs-saas
+      - BKAPP_IAM_HOST=${IAM_HOST}
+      - BK_BROKER_URL=redis://svr-redis:6379/0
+      - BKAPP_REDIS_URL=redis://svr-redis:6379/0
+      - DEV_DEVOPS_HOST=${DEV_DEVOPS_HOST}
+      - DEV_DEVOPS_API_HOST=${DEV_DEVOPS_API_HOST}
+      - DEV_BCS_APP_HOST=${DEV_BCS_APP_HOST}
+      - BCS_CC_HOST=http://bcs-cc:8080
+      - APP_TOKEN=${BCS_APP_APP_TOKEN}
+      - BKAPP_HARBOR_CHARTS_DOMAIN=${HARBOR_CHARTS_HOST}
+      - http_proxy=${HTTP_PROXY}
+      - https_proxy=${HTTPS_PROXY}
+      - no_proxy=${NO_PROXY}
+    extra_hosts: *bcs_extra_hosts
+
+  web-console:
+    container_name: web-console
+    image: bcs-app
+    restart: unless-stopped
+    command: python -m backend.web_console
+    volumes:
+      - ./bcs-app:/data
+    environment:
+      - BK_PAAS_HOST=${BK_PAAS_HOST}
+      - DJANGO_SETTINGS_MODULE=backend.settings.ce.dev
+      - DB_HOST=svr-mariadb
+      - DB_PASSWORD=open-bcs-saas
+      - BKAPP_REDIS_URL=redis://svr-redis:6379/0
+      - DEV_DEVOPS_HOST=${DEV_DEVOPS_HOST}
+      - DEV_DEVOPS_API_HOST=${DEV_DEVOPS_API_HOST}
+      - DEV_BCS_APP_HOST=${DEV_BCS_APP_HOST}
+      - BCS_CC_HOST=http://bcs-cc:8080
+    extra_hosts: *bcs_extra_hosts

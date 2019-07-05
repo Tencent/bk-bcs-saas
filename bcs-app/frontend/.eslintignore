@@ -1,0 +1,9 @@
+mock/
+build/
+dist/
+static/
+webpack_cache/
+src/components/diff/diffview.js
+src/components/diff/index.vue
+src/components/bk-magic/bk-magic-vue.js
+src/components/bk-magic/bk-magic-vue.min.js

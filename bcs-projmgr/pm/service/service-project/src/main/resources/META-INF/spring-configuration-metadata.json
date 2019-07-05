@@ -1,0 +1,27 @@
+{
+  "hints": [],
+  "groups": [
+    {
+      "sourceType": "com.tencent.devops.project.configuration.TOFProperties",
+      "name": "project",
+      "type": "com.tencent.devops.project.configuration.TOFProperties"
+    }
+  ],
+  "properties": [
+    {
+      "sourceType": "com.tencent.devops.project.configuration.TOFProperties",
+      "name": "tof.host",
+      "type": "java.lang.String"
+    },
+    {
+      "sourceType": "com.tencent.devops.project.configuration.TOFProperties",
+      "name": "tof.appCode",
+      "type": "java.lang.String"
+    },
+    {
+      "sourceType": "com.tencent.devops.project.configuration.TOFProperties",
+      "name": "tof.appSecret",
+      "type": "java.lang.String"
+    }
+  ]
+}

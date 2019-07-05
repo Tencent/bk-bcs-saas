@@ -1,0 +1,166 @@
+/*!
+ * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community Edition) available.
+ * Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+ * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * http://opensource.org/licenses/MIT
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+ * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
+ *
+ */
+
+@charset "utf-8";
+@import "./conf";
+
+/*===================================================*\
+ * bk-table
+\*===================================================*/
+
+.bk-table {
+    width: 100%;
+    max-width: 100%;
+    table-layout: fixed;
+    border: 0;
+    text-align: left;
+    >thead,
+    >tbody {
+        >tr {
+            >th,
+            >td {
+                height: 60px;
+                vertical-align: middle;
+                color: #7b7d8a;
+                font-size: 14px;
+                padding: 10px;
+                border-top: 1px solid $borderLightColor;
+            }
+        }
+    }
+
+    >tfoot {
+        border-top: 1px solid #ddd;
+    }
+
+    >thead>tr>th {
+        vertical-align: bottom;
+        height: 50px;
+        text-align: left;
+        border-bottom: 1px solid $borderLightColor;
+        color: #666;
+        font-size: 14px;
+    }
+
+    >tbody>tr>td {
+        color: #888;
+        font-size: 14px;
+    }
+
+    >caption+thead,
+    >colgroup+thead,
+    >thead:first-child {
+        >tr:first-child {
+            >th,
+            >td {
+                border-top: 0;
+            }
+        }
+    } // Account for multiple tbody instances
+    >tbody+tbody {
+        border-top: 2px solid $borderLightColor;
+    }
+
+    &.has-thead-bordered {
+        border: 1px solid $borderLightColor;
+        >thead,
+        >tbody,
+        >tfoot {
+            >tr {
+                >th {
+                    border: 1px solid $borderLightColor;
+                    border-bottom: none;
+                }
+            }
+        }
+    }
+
+    &.has-table-bordered {
+        border: 1px solid $borderLightColor;
+        >thead,
+        >tbody {
+            >tr {
+                >td {
+                    border: 1px solid $borderLightColor;
+                }
+            }
+        }
+        >thead,
+        >tbody,
+        >tfoot {
+            >tr {
+                >th {
+                    border: 1px solid $borderLightColor;
+                    border-bottom: none;
+                }
+            }
+        }
+
+        >thead>tr {
+            >th,
+            >td {
+                border-bottom-width: 2px;
+            }
+        }
+    }
+
+    &.has-table-striped {
+        >tbody>tr:nth-child(2n+2) {
+            background-color: #fafafa;
+        }
+    }
+
+    &.has-table-hover {
+        >tbody>tr:hover {
+            background-color: #f5f5f5;
+        }
+    }
+
+    .table-operations {
+        > .operation {
+            cursor: pointer;
+            color: #3c96ff;
+            &:not(:last-child) {
+                margin-right: 10px;
+            }
+        }
+    }
+}
+
+
+.bk-table-sortable {
+    position: relative;
+}
+
+.bk-sort-box {
+    position: absolute;
+    right: 5px;
+    top: 15px;
+    margin-left: 5px;
+    cursor: pointer;
+    display: inline-block;
+    width: 20px;
+    height: 10px;
+    font-size: 10px;
+    .ascing {
+        position: absolute;
+        top: -7px;
+    }
+    .descing {
+        position: absolute;
+        bottom: -7px;
+    }
+    .cur-sort {
+        color: #57a3f1;
+        font-weight: bold;
+    }
+}

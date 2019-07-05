@@ -1,0 +1,206 @@
+<template>
+    <router-view :key="time" v-if="isK8sCreate"></router-view>
+    <div class="biz-content" v-else>
+        <app-exception :type="'404'"></app-exception>
+    </div>
+</template>
+<script>
+    export default {
+        data () {
+            return {
+                time: Date.now(),
+                isProjectChange: false,
+                isK8sCreate: true
+            }
+        },
+        computed: {
+            curProject () {
+                const project = this.$store.state.curProject
+                return project
+            },
+            deployments () {
+                return this.$store.state.k8sTemplate.deployments
+            },
+            services () {
+                return this.$store.state.k8sTemplate.services
+            },
+            configmaps () {
+                return this.$store.state.k8sTemplate.configmaps
+            },
+            secrets () {
+                return this.$store.state.k8sTemplate.secrets
+            },
+            daemonsets () {
+                return this.$store.state.k8sTemplate.daemonsets
+            },
+            jobs () {
+                return this.$store.state.k8sTemplate.jobs
+            },
+            statefulsets () {
+                return this.$store.state.k8sTemplate.statefulsets
+            },
+            ingresss () {
+                return this.$store.state.k8sTemplate.ingresss
+            },
+            projectId () {
+                return this.$route.params.projectId
+            }
+        },
+        mounted () {
+            const createRoutes = [
+                'k8sTemplatesetDeployment',
+                'k8sTemplatesetService',
+                'k8sTemplatesetConfigmap',
+                'k8sTemplatesetSecret',
+                'k8sTemplatesetDaemonset',
+                'k8sTemplatesetJob',
+                'k8sTemplatesetStatefulset',
+                'k8sTemplatesetIngress'
+            ]
+            const routeName = this.$route.name
+            if (createRoutes.join(',').indexOf(routeName) < 0) {
+                this.clearData()
+            }
+            this.checkProjectType()
+            this.getExistConfigmap()
+
+            window.addEventListener('change::$currentProjectId', async e => {
+                this.isProjectChange = true
+            })
+        },
+        beforeRouteLeave (to, from, next) {
+            // let isEdited = false
+            // this.deployments.forEach(item => {
+            //     if (item.isEdited) {
+            //         isEdited = true
+            //     }
+            // })
+            // this.services.forEach(item => {
+            //     if (item.isEdited) {
+            //         isEdited = true
+            //     }
+            // })
+            // this.configmaps.forEach(item => {
+            //     if (item.isEdited) {
+            //         isEdited = true
+            //     }
+            // })
+            // this.secrets.forEach(item => {
+            //     if (item.isEdited) {
+            //         isEdited = true
+            //     }
+            // })
+            // this.daemonsets.forEach(item => {
+            //     if (item.isEdited) {
+            //         isEdited = true
+            //     }
+            // })
+            // this.jobs.forEach(item => {
+            //     if (item.isEdited) {
+            //         isEdited = true
+            //     }
+            // })
+            // this.statefulsets.forEach(item => {
+            //     if (item.isEdited) {
+            //         isEdited = true
+            //     }
+            // })
+            // this.ingresss.forEach(item => {
+            //     if (item.isEdited) {
+            //         isEdited = true
+            //     }
+            // })
+            
+            // if (!this.isProjectChange && (isEdited || this.$store.state.k8sTemplate.canTemplateBindVersion)) {
+            //     const store = this.$store
+            //     const self = this
+            //     store.commit('updateAllowRouterChange', false)
+            //     this.$bkInfo({
+            //         title: '确认',
+            //         content: '确定要离开？数据未保存，离开后将会丢失.',
+            //         confirmFn () {
+            //             self.clearData()
+            //             store.commit('updateAllowRouterChange', true)
+            //             next(true)
+            //         }
+            //     })
+            //     next(false)
+            // } else {
+            //     this.clearData()
+            //     next(true)
+            // }
+            this.clearData()
+            next(true)
+        },
+        methods: {
+            /**
+             * 获取已经存在的configmap
+             */
+            async getExistConfigmap () {
+                try {
+                    const res = await this.$store.dispatch('k8sTemplate/getExistConfigmap', { projectId: this.projectId })
+                    this.$store.commit('k8sTemplate/updateExistConfigmap', res.data)
+                } catch (e) {
+                    this.$store.commit('k8sTemplate/updateExistConfigmap', [])
+                }
+            },
+
+            /**
+             * 清空模板集数据
+             */
+            clearData () {
+                this.$store.commit('k8sTemplate/clearCurTemplateData')
+            },
+
+            /**
+             * 获取项目类型
+             * @param  {number} id 项目ID
+             * @return {number}  项目类型
+             */
+            async getProjectKind (id) {
+                const curProject = this.curProject
+                let kind = 0
+                if (curProject && curProject.project_id === id) {
+                    kind = curProject.kind
+                } else {
+                    const projects = this.onlineProjectList
+                    for (const project of projects) {
+                        if (project.project_id === id) {
+                            kind = project.kind
+                        }
+                    }
+                }
+                return kind
+            },
+
+            /**
+             * 查看项目类型
+             */
+            async checkProjectType () {
+                const projectKind = await this.getProjectKind(this.projectId)
+                
+                if (projectKind === PROJECT_K8S) {
+                    this.isK8sCreate = true
+                } else {
+                    this.isK8sCreate = false
+                }
+            },
+
+            /**
+             * 重新刷新
+             */
+            reloadTemplateset () {
+                // this.time = Date.now()
+                this.isK8sCreate = false
+                this.$nextTick(() => {
+                    this.isK8sCreate = true
+                })
+            }
+        }
+    }
+</script>
+<style scoped>
+    .biz-configuration-create-box {
+        width: 100%;
+    }
+</style>

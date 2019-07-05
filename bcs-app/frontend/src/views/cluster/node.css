@@ -1,0 +1,657 @@
+/**
+ * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community Edition) available.
+ * Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+ * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * http://opensource.org/licenses/MIT
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+ * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
+ */
+
+@import '../../css/variable.css';
+@import '../../css/mixins/ellipsis.css';
+@import '../../css/mixins/clearfix.css';
+
+.biz-content-wrapper {
+    min-height: 580px;
+}
+
+.biz-cluster-node-header {
+    padding: 0 20px 20px 20px;
+    position: relative;
+
+    .batch-operate {
+        width: 132px;
+        padding-left: 15px;
+        border: 1px solid #dde4eb;
+        height: 38px;
+        line-height: 36px;
+        display: inline-block;
+        white-space: nowrap;
+        outline: none;
+        cursor: pointer;
+        white-space: nowrap;
+        -webkit-appearance: none;
+        vertical-align: middle;
+        font-size: 14px;
+        background: #fff;
+        border-radius: 2px 0 0 2px;
+        box-sizing: border-box;
+        color: #737987;
+        text-decoration: none;
+        transition: background-color ease 0.3s;
+        &.disabled {
+            color: #c3cdd7;
+            cursor: not-allowed;
+        }
+        .label {
+            display: inline-block;
+            /* width: 55px; */
+            text-align: left;
+            @mixin ellipsis 85px;
+        }
+        .bk-icon {
+            color: #c3cdd7;
+            margin-left: 0;
+            margin-right: 0;
+            right: 8px;
+            font-weight: 700;
+            font-size: 10px;
+            top: 14px;
+            position: absolute;
+        }
+    }
+
+    .biz-searcher-wrapper {
+        width: 600px;
+        position: absolute;
+        top: 0;
+        right: 110px;
+    }
+
+    .set-label {
+        font-size: 14px;
+        margin: 20px 30px 10px 0px;
+        height: 20px;
+        position: absolute;
+        right: 0;
+    }
+
+    .is-disabled {
+        cursor: not-allowed !important;
+    }
+
+    .close-wrapper {
+        cursor: pointer;
+        display: inline-block;
+        position: absolute;
+        top: 0px;
+        right: 73px;
+
+        button {
+            border-color: $borderWeightColor;
+            border-left: none;
+            border-radius: 0;
+            width: 38px;
+            height: 38px;
+        }
+    }
+
+    .refresh-wrapper {
+        cursor: pointer;
+        display: inline-block;
+        position: absolute;
+        top: 0px;
+        right: 30px;
+
+        .refresh {
+            color: $iconPrimaryColor;
+        }
+
+        button {
+            border-color: $borderWeightColor;
+            width: 38px;
+            height: 38px;
+        }
+    }
+}
+
+.biz-cluster-node-title {
+    display: inline-block;
+    height: 60px;
+    line-height: 60px;
+    font-size: 16px;
+    margin-left: 20px;
+    cursor: pointer;
+
+    .back {
+        font-size: 16px;
+        font-weight: 700;
+        position: relative;
+        top: 1px;
+        cursor: pointer;
+        color: $iconPrimaryColor
+    }
+}
+
+.biz-cluster-node-wrapper {
+    background-color: $bgHoverColor;
+    border: 1px solid $borderWeightColor;
+    border-radius: 2px;
+}
+
+.biz-cluster-tab-header {
+    height: 60px;
+    line-height: 60px;
+    font-size: 0;
+    border-bottom: 1px solid $borderWeightColor;
+
+    .header-item {
+        font-size: 14px;
+        display: inline-block;
+        width: 140px;
+        text-align: center;
+        border: none;
+        cursor: pointer;
+
+        i {
+            font-size: 16px;
+            margin-right: 8px;
+            position: relative;
+            top: 2px;
+        }
+
+        &.active {
+            color: $iconPrimaryColor;
+            background-color: #fff;
+            border-right: 1px solid $borderWeightColor;
+            border-left: 1px solid $borderWeightColor;
+            font-weight: 700;
+            cursor: default;
+
+            i {
+                font-weight: 700;
+            }
+        }
+    }
+}
+
+.biz-cluster-tab-content {
+    padding-top: 20px;
+    background-color: #fff;
+
+    .node-ring {
+        vertical-align: middle;
+    }
+}
+
+.bk-table-footer {
+    @mixin clearfix;
+    padding: 10px 20px 7px 20px;
+}
+
+.biz-cluster-create-table-header {
+    @mixin clearfix;
+    border: 1px solid $borderWeightColor;
+    background-color: #fff;
+    height: 60px;
+    line-height: 59px;
+    font-size: 16px;
+    padding: 0 20px;
+    border-bottom: none;
+    border-top-left-radius: 2px;
+    border-top-right-radius: 2px;
+
+    .left {
+        float: left;
+
+        .remain-tip {
+            font-size: 12px;
+            margin-left: 10px;
+            color: $dangerColor;
+        }
+    }
+
+    .right {
+        float: right;
+    }
+
+    .page-wrapper {
+        height: 22px;
+        display: inline-block;
+        position: relative;
+        top: 5px;
+        line-height: 22px;
+
+        ul {
+            margin: 0;
+            padding: 0;
+            display: inline-block;
+            overflow: hidden;
+            height: 22px;
+        }
+
+        .page-item {
+            min-width: 22px;
+            height: 22px;
+            line-height: 20px;
+            text-align: center;
+            display: inline-block;
+            vertical-align: middle;
+            font-size: 14px;
+            float: left;
+            margin-right: 0;
+            border: 1px solid $fnMinorColor;
+            box-sizing: border-box;
+            border-radius: 2px;
+            overflow: hidden;
+
+            i {
+                font-size: 12px;
+            }
+
+            &:first-child {
+                border-top-right-radius: 0;
+                border-bottom-right-radius: 0;
+            }
+
+            &:last-child {
+                border-top-left-radius: 0;
+                border-bottom-left-radius: 0;
+            }
+
+            &:hover {
+                border-color: $iconPrimaryColor;
+            }
+
+            &.disabled {
+                border-color: $fnMinorColor !important;
+
+                .page-button {
+                    cursor: not-allowed;
+                    background-color: #fafafa;
+
+                    &:hover {
+                        color: $fontWeightColor;
+                    }
+                }
+            }
+
+            .page-button {
+                display: block;
+                color: $fontWeightColor;
+                background-color: #fff;
+
+                &:hover {
+                    color: $iconPrimaryColor;
+                }
+            }
+        }
+    }
+}
+
+.biz-cluster-create-table {
+    background-color: #fff;
+    border: 1px solid $borderWeightColor;
+    width: 800px;
+
+    thead {
+        background-color: $bgHoverColor;
+
+        tr {
+            th {
+                height: 40px;
+            }
+        }
+    }
+
+    tbody {
+        tr {
+            &:hover {
+                background-color: $bgHoverColor;
+            }
+
+            td {
+                height: 40px;
+                font-size: 12px;
+            }
+        }
+    }
+
+    .no-data {
+        min-height: 399px;
+
+        .empty-message {
+            margin-top: 160px;
+        }
+    }
+}
+
+.biz-cluster-create-choose-dialog {
+    .biz-searcher-wrapper {
+        width: 320px;
+        position: absolute;
+        top: 0;
+        right: 0;
+    }
+    .cchost-paging-mask {
+        position: absolute;
+        width: 100%;
+        height: 32px;
+        cursor: not-allowed;
+    }
+
+    .biz-cluster-create-table {
+        width: 920px;
+
+        thead {
+            tr {
+                th {
+                    padding-top: 0;
+                    padding-bottom: 0;
+                }
+            }
+        }
+
+        tbody {
+            tr {
+                td {
+                    padding-top: 0;
+                    padding-bottom: 0;
+                }
+            }
+        }
+
+        .name {
+            vertical-align: middle;
+            @mixin ellipsis 120px;
+        }
+
+        .inner-ip {
+            @mixin ellipsis 200px;
+        }
+
+        .idcunit {
+            @mixin ellipsis 200px;
+        }
+
+        .server-rack {
+            @mixin ellipsis 130px;
+        }
+
+        .device-class {
+            @mixin ellipsis 80px;
+        }
+    }
+
+    .biz-page-box {
+        padding: 10px 25px 10px 0;
+        background-color: $bgHoverColor;
+        border-top: 1px solid $borderWeightColor;
+        margin-top: -3px;
+    }
+
+    button.disabled {
+        background-color: #fafafa;
+        border-color: $borderLightColor;
+        color: #cccccc;
+        cursor: not-allowed;
+    }
+}
+
+.biz-node-re-initialization-dialog {
+    button.disabled {
+        background-color: #fafafa;
+        border-color: $borderLightColor;
+        color: #cccccc;
+        cursor: not-allowed;
+    }
+}
+
+.biz-cluster-set-label-sideslider {
+    margin: 0;
+    padding: 0;
+    z-index: 999;
+
+    .title-tip {
+        position: absolute;
+        top: 23px;
+        font-size: 12px;
+        left: 120px;
+    }
+
+    .wrapper {
+        padding: 30px 40px 40px;
+    }
+
+    .flex-item {
+        display: flex;
+
+        .left,
+        .right {
+            flex: 1;
+        }
+    }
+
+    .biz-key-value-wrapper {
+        .biz-key-value-item {
+            margin-bottom: 10px;
+
+            input.right {
+                margin-left: 35px;
+            }
+        }
+
+        .bk-form-input {
+            width: 240px;
+        }
+
+        .action-btn {
+            width: auto;
+            padding: 0;
+            height: 36px;
+            text-align: center;
+            display: inline-block;
+            border: none;
+            background: transparent;
+            outline: none;
+            margin-left: 5px;
+
+            .bk-icon {
+                width: 24px;
+                height: 24px;
+                line-height: 24px;
+                border-radius: 50%;
+                vertical-align: middle;
+                color: $fontWeightColor;
+                font-size: 14px;
+                display: inline-block;
+            }
+        }
+    }
+
+    .set-label-form {
+        .bk-form-item+.bk-form-item {
+            margin-top: 20px;
+        }
+
+        .red {
+            color: red;
+            margin-right: 3px;
+        }
+
+        .label {
+            color: $fontWeightColor;
+            font-size: 14px;
+            font-weight: 700;
+        }
+
+        .text-input-half {
+            width: 270px;
+
+            &.has-suffix {
+                width: 195px;
+                float: left;
+                border-radius: 2px 0 0 2px;
+            }
+        }
+
+        .suffix {
+            height: 36px;
+            text-align: center;
+            line-height: 34px;
+            display: inline-block;
+            background: $bgHoverColor;
+            border: 1px solid $fnMinorColor;
+            color: $fontWeightColor;
+            font-size: 14px;
+            border-radius: 0 2px 2px 0;
+            font-size: 14px;
+            border-left: none;
+            width: 75px;
+            float: left
+        }
+
+        .http-header {
+            .operator {
+                padding: 0 3px;
+            }
+        }
+
+        .action-inner {
+            margin-top: 30px;
+
+            button {
+                width: 90px;
+            }
+
+            button+button {
+                margin-left: 0;
+            }
+        }
+    }
+
+    button.disabled {
+        background-color: #fafafa;
+        border-color: $borderLightColor;
+        color: #ccc;
+        cursor: not-allowed;
+
+        &:hover {
+            background-color: #fafafa;
+            border-color: $borderLightColor;
+        }
+    }
+
+    .bk-dialog-title {
+        font-size: 24px;
+    }
+
+    .bk-form-radio {
+        padding: 0 0 7px 0;
+    }
+
+    .del-count {
+        min-width: 36px;
+        height: 36px;
+        text-align: center;
+        line-height: 34px;
+        display: inline-block;
+        vertical-align: bottom;
+        background: $bgHoverColor;
+        border: 1px solid $fnMinorColor;
+        color: $fontWeightColor;
+        font-size: 14px;
+        border-radius: 2px 0 0 2px;
+        padding: 0 10px 0 15px;
+        font-size: 14px;
+        border-right: none;
+    }
+
+    .del-count-input {
+        width: 358px;
+        font-size: 14px;
+        border-radius: 0 2px 2px 0;
+        margin-right: 7px;
+    }
+
+    .del-count-dropdown-menu {
+        float: left;
+    }
+
+    .del-count-icon-angle-down {
+        padding-left: 12px;
+        font-weight: 700;
+        font-size: 10px;
+        width: 12px;
+        min-width: 12px;
+        color: $fnMinorColor;
+    }
+
+    .del-count-icon-info {
+        font-size: 18px;
+        color: $fnMinorColor;
+        vertical-align: middle;
+        cursor: pointer;
+    }
+
+    .update-interval-input {
+        width: 134px;
+        font-size: 14px;
+        border-radius: 2px 0 0 2px;
+        float: left;
+    }
+
+    .update-interval-icon-info {
+        font-size: 18px;
+        color: $fnMinorColor;
+        vertical-align: middle;
+        cursor: pointer;
+    }
+
+    .scroll-order-form-item {
+        padding-top: 7px;
+
+        .bk-form-radio {
+            margin-right: 39px;
+        }
+    }
+
+    .scroll-order-icon-info {
+        font-size: 18px;
+        color: $fnMinorColor;
+        vertical-align: middle;
+        cursor: pointer;
+    }
+}
+
+.biz-log-box {
+    font-size: 12px;
+
+    .operation-item {
+        padding: 10px 0;
+        border-bottom: 1px solid $borderWeightColor;
+
+        &:last-child {
+            border-bottom: none;
+        }
+    }
+
+    .log-message {
+        line-height: 22px;
+        font-size: 12px;
+        padding: 0;
+        font-family: Microsoft Yahei;
+        margin: 0 0 5px 0;
+
+        &.title {
+            font-size: 14px;
+            font-weight: 700;
+        }
+
+        &.item {
+            margin-left: 20px;
+        }
+    }
+}
