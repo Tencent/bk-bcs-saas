@@ -1,7 +1,7 @@
 # SaaS of BlueKing Container Service
 <img src="docs/resource/logo/bcs_en.png" width="250" hegiht="10" align=center />
 
-[![license](https://img.shields.io/badge/license-MIT-blue.svg?style=flat)](https://github.com/Tencent/bk-bcs-saas/blob/master/LICENSE) [![Release Version](https://img.shields.io/badge/release-3.2.2-blue.svg)](https://github.com/Tencent/bk-bcs-saas/releases) [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-blue.svg)](https://github.com/Tencent/bk-bcs-saas/pulls) [![](https://travis-ci.com/Tencent/bk-bcs-saas.svg?token=ypkHQqxUR3Y3ctuD7qFS&branch=master)](https://travis-ci.com/Tencent/bk-bcs-saas)
+[![license](https://img.shields.io/badge/license-MIT-blue.svg?style=flat)](https://github.com/Tencent/bk-bcs-saas/blob/master/LICENSE) [![Release Version](https://img.shields.io/badge/release-1.0.x-blue.svg)](https://github.com/Tencent/bk-bcs-saas/releases) [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-blue.svg)](https://github.com/Tencent/bk-bcs-saas/pulls) [![](https://travis-ci.com/Tencent/bk-bcs-saas.svg?token=ypkHQqxUR3Y3ctuD7qFS&branch=master)](https://travis-ci.com/Tencent/bk-bcs-saas)
 
 
 
@@ -34,11 +34,9 @@ The SaaS source code of BCS contains:
 
 
 
-## Install
-- [Local development and installation guidelines - bcs-cc(In Chinese)](/docs/install/dev-install-bcs-cc.md)
-- [Local development and installation guidelines - bcs-projmgr(In Chinese)](/docs/bcs-app/dev-install-bcs-projmgr.md)
-- [Local development and installation guidelines - bcs-app(In Chinese)](/docs/install/dev-install-bcs-app.md)
-- [Replace the installed ce version]()
+## Getting started
+- [Local development and installation guidelines(In Chinese)](/docs/install/dev-install-overview.md)
+- [Replace the installed ce version](https://docs.bk.tencent.com/bk_osed/Open-Bcs.html#open_bcs)
 
 ## Release
 
