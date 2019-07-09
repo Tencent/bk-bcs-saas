@@ -180,4 +180,4 @@ scripts/publish/build.sh build_web_console
 会在build目录生成一个bcs_web_console-ce-{datetime}.tar.gz的包
 
 #### 2. 替换已经安装的社区版
-- 参考[开源bk-bcs-saas替换社区版部署指南](xxx)替换BCS-WebConsole
+- 参考[开源bk-bcs-saas替换社区版部署指南](https://docs.bk.tencent.com/bk_osed/Open-Bcs.html#%E4%BA%8C%E3%80%81-%E6%9B%BF%E6%8D%A2bcswebconsole)替换BCS-WebConsole
