@@ -34,7 +34,9 @@ BCS_APP_APP_TOKEN=                                         # bcs-app token
 ARTIFACTORY_HOST=hub.bk.com:80                             # 社区版Habor地址
 THANOS_HOST=http://query.thanos.service.consul:19192       # 社区版Thanos地址
 HARBOR_CHARTS_HOST=http://hub.bk.com                       # 社区版Habor地址(用于Helm Charts Repo)
-BCS_API_HOST=api.bcs.service.consul                        # 社区版bcs-services地址
+BCS_API_HOST=https://api.bcs.service.consul:8443           # 社区版bcs-services地址
+BKAPP_K8S_VERSION=v1.12.3
+BKAPP_MESOS_VERSION=1.7.2
 
 # 社区版中控机执行命令获取 
 BCS_CC_APP_TOKEN=                                          # bcs-cc token
@@ -63,6 +65,7 @@ x-bcs-common:
   extra_host: &bcs_extra_hosts
     - iam.service.consul:10.0.0.1
     - paas.service.consul:10.0.0.1
+    - api.bcs.service.consul:10.0.0.1
 ```
 - 社区版中控机获取token并配置到.env文件中
 
