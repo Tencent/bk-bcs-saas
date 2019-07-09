@@ -94,4 +94,4 @@ bin/bcs_cc cc -c etc/dev.yaml
 参考`编译源码`步骤，编译二进制文件；如果已编译，可忽略此步
 
 #### 2. 替换的社区版
-参考[开源bk-bcs-saas替换社区版部署指南](xxx)替换BCS-CC
+参考[开源bk-bcs-saas替换社区版部署指南](https://docs.bk.tencent.com/bk_osed/Open-Bcs.html#%E4%B8%80%E3%80%81%E6%9B%BF%E6%8D%A2bcs-cc)替换BCS-CC
