@@ -41,7 +41,7 @@
 > 目前社区版5.1在灰度内测中，若想体验，请填写问卷留下邮箱等信息，蓝鲸将在1-2个工作日通过邮箱方式，交付软件。感谢对蓝鲸的支持与理解
 > 问卷链接：[https://wj.qq.com/s2/3830461/a8bc/](https://wj.qq.com/s2/3830461/a8bc/)
 
-> 蓝鲸社区版5.1完全开放下载时间为2019-07-05
+> 蓝鲸社区版5.1完全开放下载时间为2019-07-20
 
 - [本地安装部署指引](/docs/install/dev-install-overview.md)
 - [替换已安装的蓝鲸社区版指引](https://docs.bk.tencent.com/bk_osed/Open-Bcs.html#open_bcs)
