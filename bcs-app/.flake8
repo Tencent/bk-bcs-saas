@@ -1,0 +1,17 @@
+[flake8]
+ignore = W292,E116,C901,E302,F401
+exclude =
+    *migrations*,
+    *.pyc,
+    .git,
+    __pycache__,
+    node_modules/*,
+    */templates_module*,
+    */bin/*,
+    */settings/*,
+max-line-length=119
+max-complexity=12
+format=pylint
+show_source = True
+statistics = True
+count = True
