@@ -8,4 +8,4 @@ install:
 
 script:
   - cd bcs-app/backend
-  - flake8 --config=.flake8 .
+  # - flake8 --config=.flake8 .
