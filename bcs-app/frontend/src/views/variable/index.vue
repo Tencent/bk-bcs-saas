@@ -35,7 +35,8 @@
                                 <tr>
                                     <th style="width: 50px;">
                                         <label class="bk-form-checkbox">
-                                            <input type="checkbox" name="check-all-user" :checked="isCheckCurPageAll" @click="toogleCheckCurPage">
+                                            <input type="checkbox" name="check-all-user" v-model="isCheckCurPageAll" @click="toogleCheckCurPage" v-if="curPageData.filter(item => item.category !== 'sys').length">
+                                            <input type="checkbox" v-else name="check-all-user" disabled="disabled" />
                                         </label>
                                     </th>
                                     <th style="width: 170px;">
@@ -344,7 +345,7 @@
                 },
                 curProjectData: null,
                 isQuoteLoading: true,
-                curSelectedData: [],
+                curAllSelectedData: [],
                 curQuotePageData: [],
                 quoteList: [],
                 batchVarList: [],
@@ -388,13 +389,13 @@
                 },
                 curBatchVar: null,
                 curVar: {
-                    'name': '',
-                    'key': '',
-                    'default': {
-                        'value': ''
+                    name: '',
+                    key: '',
+                    default: {
+                        value: ''
                     },
-                    'desc': '',
-                    'scope': 'global'
+                    desc: '',
+                    scope: 'global'
                 },
                 isLoading: true,
                 isPageLoading: false,
@@ -421,22 +422,6 @@
             }
         },
         computed: {
-            isCheckCurPageAll () {
-                if (this.curPageData.length) {
-                    const vars = this.curPageData
-                    const selectVars = vars.filter(item => {
-                        return item.isChecked === true
-                    })
-                    const canSelectVars = vars.filter(item => {
-                        return item.category !== 'sys'
-                    })
-                    if (selectVars.length && (selectVars.length === canSelectVars.length)) {
-                        return true
-                    }
-                    return false
-                }
-                return false
-            },
             projectId () {
                 return this.$route.params.projectId
             },
@@ -495,6 +480,7 @@
 
             /**
              * 获取对应变量所有命名空间变量列表
+             *
              * @param  {Object} data 变量
              */
             async batchUpdate (data) {
@@ -568,14 +554,11 @@
              * 批量删除变量
              */
             removeVars () {
-                const datas = this.curPageData.filter(item => {
-                    return item.isChecked
-                })
                 const names = []
                 const ids = []
 
-                if (datas.length) {
-                    datas.forEach(item => {
+                if (this.curAllSelectedData.length) {
+                    this.curAllSelectedData.forEach(item => {
                         names.push(item.name)
                         ids.push(item.id)
                     })
@@ -637,34 +620,71 @@
             /**
              * 是否全选
              */
-            toogleCheckCurPage () {
-                const isChecked = this.isCheckCurPageAll
-                this.curPageData.forEach((item) => {
-                    if (item.category !== 'sys') {
-                        item.isChecked = !isChecked
-                    }
-                })
-                this.selectVar()
+            toogleCheckCurPage (e) {
                 this.$nextTick(() => {
-                    this.alreadySelectedNums = this.curPageData.filter(item => item.isChecked).length
+                    const isChecked = this.isCheckCurPageAll
+                    this.curPageData.forEach(item => {
+                        item.isChecked = item.category === 'sys' ? false : isChecked
+                    })
+
+                    const curAllSelectedData = []
+                    curAllSelectedData.splice(0, 0, ...this.curAllSelectedData)
+                    // 用于区分是否已经选择过
+                    const hasCheckedList = curAllSelectedData.map(item => item.id)
+                    if (isChecked) {
+                        const checkedList = this.curPageData.filter(
+                            item => item.category !== 'sys' && !hasCheckedList.includes(item.id)
+                        )
+                        curAllSelectedData.push(...checkedList)
+                        this.curAllSelectedData.splice(0, this.curAllSelectedData.length, ...curAllSelectedData)
+                    } else {
+                        // 当前页所有合法的 variable id 集合
+                        const validIdList = this.curPageData.filter(
+                            item => item.category !== 'sys'
+                        ).map(item => item.id)
+
+                        const newCurAllSelectedData = []
+                        this.curAllSelectedData.forEach(checkedVariable => {
+                            if (validIdList.indexOf(checkedVariable.id) < 0) {
+                                newCurAllSelectedData.push(JSON.parse(JSON.stringify(checkedVariable)))
+                            }
+                        })
+                        this.curAllSelectedData.splice(0, this.curAllSelectedData.length, ...newCurAllSelectedData)
+                    }
+
+                    this.alreadySelectedNums = this.curAllSelectedData.length
                 })
             },
 
             /**
              * 每行的多选框点击事件
+             *
+             * @param {Object} variable 当前变量对象即当前行
              */
-            rowClick () {
+            rowClick (variable) {
                 this.$nextTick(() => {
-                    this.alreadySelectedNums = this.curPageData.filter(item => item.isChecked).length
-                })
-            },
+                    // 当前页选中的
+                    const checkedCurPageList = this.curPageData.filter(item => item.isChecked)
+                    // 当前页合法的
+                    const validList = this.curPageData.filter(item => item.category !== 'sys')
+                    this.isCheckCurPageAll = checkedCurPageList.length === validList.length
 
-            selectVar () {
-                const vars = this.curPageData
-                const selectVars = vars.filter((item) => {
-                    return item.isChecked === true
+                    const curAllSelectedData = []
+                    if (variable.isChecked) {
+                        curAllSelectedData.splice(0, curAllSelectedData.length, ...this.curAllSelectedData)
+                        if (!this.curAllSelectedData.filter(checkedVariable => checkedVariable.id === variable.id).length) {
+                            curAllSelectedData.push(variable)
+                        }
+                    } else {
+                        this.curAllSelectedData.forEach(checkedVariable => {
+                            if (checkedVariable.id !== variable.id) {
+                                curAllSelectedData.push(JSON.parse(JSON.stringify(checkedVariable)))
+                            }
+                        })
+                    }
+                    this.curAllSelectedData.splice(0, this.curAllSelectedData.length, ...curAllSelectedData)
+                    this.alreadySelectedNums = this.curAllSelectedData.length
                 })
-                this.curSelectedData.splice(0, this.curSelectedData.length, ...selectVars)
             },
 
             /**
@@ -689,7 +709,22 @@
                     this.searchKeyWord = ''
                     this.pageConf.total = res.count
                     this.curPageData = res.results
-                    this.clearSelectedVarList()
+
+                    const checkVariableIdList = this.curAllSelectedData.map(variable => variable.id)
+                    this.curPageData.forEach(item => {
+                        if (item.category !== 'sys') {
+                            item.isChecked = checkVariableIdList.indexOf(item.id) > -1
+                        }
+                    })
+
+                    // 当前页选中的
+                    const checkedCurPageList = this.curPageData.filter(item => item.isChecked === true)
+                    // 当前页合法的
+                    const validList = this.curPageData.filter(item => item.category !== 'sys')
+                    this.isCheckCurPageAll = validList.length === 0
+                        ? false
+                        : checkedCurPageList.length === validList.length
+
                     this.initPageConf()
                 } catch (e) {
                     catchErrorHandler(e, this)
@@ -860,6 +895,10 @@
                         this.clearInput()
                         this.varDialogConfig.isShow = false
                         this.getDataByPage()
+
+                        this.pageConf.curPage = 1
+                        this.isCheckCurPageAll = false
+                        this.curAllSelectedData.splice(0, this.curAllSelectedData.length, ...[])
                     }
                 } catch (e) {
                     catchErrorHandler(e, this)
@@ -886,6 +925,10 @@
                         this.clearInput()
                         this.varDialogConfig.isShow = false
                         this.getDataByPage()
+
+                        this.pageConf.curPage = 1
+                        this.isCheckCurPageAll = false
+                        this.curAllSelectedData.splice(0, this.curAllSelectedData.length, ...[])
                     }
                 } catch (e) {
                     catchErrorHandler(e, this)
@@ -914,6 +957,10 @@
                             message: '变量删除成功！'
                         })
                         this.getDataByPage()
+
+                        this.pageConf.curPage = 1
+                        this.isCheckCurPageAll = false
+                        this.curAllSelectedData.splice(0, this.curAllSelectedData.length, ...[])
                     }
                 } catch (e) {
                     catchErrorHandler(e, this)
