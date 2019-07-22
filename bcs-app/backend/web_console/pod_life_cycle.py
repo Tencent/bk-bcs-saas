@@ -74,7 +74,7 @@ class PodLifeCycle:
 
         return pods
 
-    @redis_lock('pod_life_cycle.clean_user_pod', constants.CLEAN_USER_POD_INTERVAL - 2)  # 锁定60秒
+    @redis_lock('pod_life_cycle.clean_user_pod', constants.CLEAN_USER_POD_INTERVAL, shift=constants.LOCK_SHIFT)
     @run_on_executor
     def clean_user_pod(self):
         logger.debug('start clean user pod')
