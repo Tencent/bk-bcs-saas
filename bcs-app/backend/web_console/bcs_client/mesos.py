@@ -12,11 +12,13 @@
 # specific language governing permissions and limitations under the License.
 #
 import logging
+from concurrent.futures import ThreadPoolExecutor
 from urllib.parse import urlparse
 
 import arrow
 import tornado.gen
 from django.utils.encoding import smart_text
+from tornado.concurrent import run_on_executor
 from tornado.httpclient import HTTPRequest
 from tornado.ioloop import IOLoop
 
@@ -28,6 +30,8 @@ logger = logging.getLogger(__name__)
 
 
 class MesosClientBase(BCSClientBase):
+    executor = ThreadPoolExecutor()
+
     def __init__(self, url, rows, cols, msg_handler, host_ip, exec_id, api_client):
         super().__init__(url, rows, cols, msg_handler)
         self.host_ip = host_ip
@@ -40,6 +44,7 @@ class MesosClientBase(BCSClientBase):
         """
         self.ws.write_message(message)
 
+    @run_on_executor
     def set_pty_size(self, rows: int, cols: int):
         """设置长宽高
         """
