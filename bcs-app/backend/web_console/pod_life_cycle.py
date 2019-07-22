@@ -15,6 +15,7 @@ import json
 import logging
 import shlex
 import time
+from concurrent.futures import ThreadPoolExecutor
 
 import yaml
 from django.conf import settings
@@ -23,6 +24,7 @@ from django.utils.encoding import smart_text
 from kubernetes import client
 from kubernetes.client.rest import ApiException
 from kubernetes.stream import stream
+from tornado.concurrent import run_on_executor
 from tornado.ioloop import PeriodicCallback
 
 from backend.utils.cache import rd_client
@@ -40,7 +42,8 @@ class UserTokenNotFound(Exception):
     pass
 
 
-class PodLifeCycle(object):
+class PodLifeCycle:
+    executor = ThreadPoolExecutor()
 
     @classmethod
     def heartbeat(cls, name):
@@ -72,6 +75,7 @@ class PodLifeCycle(object):
         return pods
 
     @redis_lock('pod_life_cycle.clean_user_pod', constants.CLEAN_USER_POD_INTERVAL - 2)  # 锁定60秒
+    @run_on_executor
     def clean_user_pod(self):
         try:
             self._clean_user_pod()
