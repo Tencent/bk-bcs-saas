@@ -26,9 +26,9 @@ class redis_lock(object):  # noqa
     Distributed lock by redis
     """
 
-    def __init__(self, key, timeout, redis_client=None):
+    def __init__(self, key, timeout, shift=0, redis_client=None):
         self.key = key
-        self.timeout = timeout
+        self.timeout = timeout + shift
         self.redis_client = redis_client or cache.rd_client
 
     def __call__(self, task_definition):
