@@ -43,6 +43,8 @@ HELLO_MESSAGE = 'Welcome To BCS Console'
 WEBSOCKET_PING_INTERVAL = 10
 # pod清理时间间隔
 CLEAN_USER_POD_INTERVAL = 60
+# 锁偏差时间常量
+LOCK_SHIFT = -2
 
 # 链接自动断开时间, 10分钟
 TICK_TIMEOUT = 60 * 10
