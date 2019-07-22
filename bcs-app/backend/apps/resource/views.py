@@ -527,24 +527,6 @@ class ResourceOperate(object):
                             except Exception:
                                 pass
 
-            # 备注中的更新时间比 db 中的更新时间早的话，不允许更新 （watch 上报数据会有延迟）
-            if _s['can_update'] and _s['update_time']:
-                # 获取db中的更新时间
-                namespace_id = namespace_dict.get(_s['namespace'])
-                _instance_sets = InstanceConfig.objects.filter(
-                    namespace=namespace_id,
-                    category=s_cate,
-                    name=_s['resourceName'],
-                    is_deleted=False
-                )
-                if _instance_sets:
-                    is_upateing = _instance_sets.filter(
-                        updated__gt=_s['update_time'], oper_type='update').exists()
-                    if is_upateing:
-                        _s['status'] = 'updating'
-                        _s['can_update'] = _s['can_delete'] = False
-                        _s['can_update_msg'] = _s['can_delete_msg'] = u"正在更新中，请稍后操作"
-
         # 兼容 k8s & mesos 数据格式
         data = data_handler(data, project_kind)
         # 检查是否用命名空间的使用权限
