@@ -339,34 +339,6 @@ class Services(viewsets.ViewSet, BaseAPI):
                     _s['can_update'] = True
                     _s['can_update_msg'] = ''
 
-                # if template_id:
-                #     is_tempalte_exist = Template.objects.filter(id=template_id).exists()
-                #     if is_tempalte_exist:
-                #         _s['can_update'] = True
-                #         _s['can_update_msg'] = ''
-
-                # 备注中的更新时间比 db 中的更新时间早的话，不允许更新 （watch 上报数据会有延迟）
-                if _s['can_update'] and _s['update_time']:
-                    if project_kind == 2:
-                        # mesos 相关数据
-                        s_cate = 'service'
-                    else:
-                        s_cate = 'K8sService'
-
-                    # 获取db中的更新时间
-                    _instance_sets = InstanceConfig.objects.filter(
-                        namespace=namespace_id,
-                        category=s_cate,
-                        name=_s['resourceName'],
-                        is_deleted=False
-                    )
-                    if _instance_sets:
-                        is_upateing = _instance_sets.filter(
-                            updated__gt=_s['update_time'], oper_type='update').exists()
-                        if is_upateing:
-                            _s['status'] = 'updating'
-                            _s['can_update'] = _s['can_delete'] = False
-                            _s['can_update_msg'] = _s['can_delete_msg'] = u"正在更新中，请稍后操作"
             data += cluster_services
         # 按时间倒序排列
         data.sort(key=lambda x: x.get('createTime', ''), reverse=True)

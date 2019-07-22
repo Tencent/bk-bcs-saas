@@ -54,7 +54,7 @@ class App(models.Model):
     cluster_id = models.CharField("Cluster ID", max_length=32)
     chart = models.ForeignKey(Chart, db_constraint=False)
     release = models.ForeignKey(ChartRelease, db_constraint=False)
-    name = models.CharField(max_length=32)  # same with namespace in common case
+    name = models.CharField(max_length=128)  # same with namespace in common case
     namespace = models.CharField(max_length=32)
     # namespace_id is a full name of `ns_id`, they indicate the same thing
     namespace_id = models.IntegerField("Namespace ID", db_index=True)

@@ -44,7 +44,7 @@ RGW_CONFIG = {
 HELM_REPO_ENV = "stag"
 PLATFORM_REPO_DOMAIN = ""
 
-HELM_DOC_TRICKS = "https://bk.tencent.com/docs/"
+HELM_DOC_TRICKS = "https://docs.bk.tencent.com/bcs/Container/helm/Skills.html"
 HELM_SYNC_DO_DEPLOY = False
 # *********************************** Helm Config End *****************************
 

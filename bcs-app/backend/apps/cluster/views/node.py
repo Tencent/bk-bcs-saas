@@ -402,6 +402,7 @@ class NodeGetUpdateDeleteViewSet(NodeBase, NodeLabelBase, viewsets.ViewSet):
 
 
 class FailedNodeDeleteViewSet(NodeBase, NodeLabelBase, viewsets.ViewSet):
+    renderer_classes = (BKAPIRenderer, BrowsableAPIRenderer)
 
     def delete(self, request, project_id, cluster_id, node_id):
         """Delete failed node"""
@@ -1118,6 +1119,7 @@ class RescheduleNodePods(NodeBase, viewsets.ViewSet):
 
 
 class NodeForceDeleteViewSet(NodeBase, NodeLabelBase, viewsets.ViewSet):
+    renderer_classes = (BKAPIRenderer, BrowsableAPIRenderer)
 
     def delete(self, request, project_id, cluster_id, node_id):
         self.delete_node_label(request, node_id)
