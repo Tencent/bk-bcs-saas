@@ -76,7 +76,7 @@ type UpdateClusterDataJSON struct {
 	ProjectID         string    `json: "project_id"`
 	ClusterID         string    `json:"cluster_id"`
 	Name              string    `json:"name"`
-	Description       string    `json:"description"`
+	Description       *string   `json:"description"`
 	Status            string    `json:"status"`
 	Disabled          *bool     `json:"disabled"`
 	Environment       string    `json:"environment"`
@@ -386,7 +386,7 @@ func (updaterData UpdateClusterDataJSON) UpdateRecord() error {
 	}
 	clusterUpdater := qs.GetUpdater()
 	clusterUpdater = clusterUpdater.SetNameWithoutEmpty(
-		updaterData.Name).SetDescription(
+		updaterData.Name).SetDescriptionWithoutNil(
 		updaterData.Description).SetDisableWithoutNil(
 		updaterData.Disabled).SetAreaIDWithoutNil(
 		updaterData.AreaID).SetTotalCPUWithoutNil(

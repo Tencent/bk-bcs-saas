@@ -234,3 +234,12 @@ func (u ClusterUpdater) SetStatusWithoutEmpty(status string) ClusterUpdater {
 	u.fields[string(ClusterDBSchema.Status)] = status
 	return u
 }
+
+//SetDescriptionWithoutNil :
+func (u ClusterUpdater) SetDescriptionWithoutNil(description *string) ClusterUpdater {
+	if description == nil {
+		return u
+	}
+	u.fields[string(ClusterDBSchema.Description)] = *description
+	return u
+}
