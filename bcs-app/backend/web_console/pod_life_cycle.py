@@ -77,11 +77,11 @@ class PodLifeCycle:
     @redis_lock('pod_life_cycle.clean_user_pod', constants.CLEAN_USER_POD_INTERVAL - 2)  # 锁定60秒
     @run_on_executor
     def clean_user_pod(self):
-        logger.info('start clean user pod')
+        logger.debug('start clean user pod')
 
         try:
             self._clean_user_pod()
-            logger.info('clean user pod success')
+            logger.debug('clean user pod success')
         except Exception as error:
             logger.error("clean user pod error: %s", error)
 
