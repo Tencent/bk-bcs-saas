@@ -317,6 +317,12 @@
     }
 }
 
+.cluster-btn-disabled {
+    width: 70px;
+    cursor: not-allowed;
+    color: #ccc !important;
+}
+
 @media screen and (max-width: $mediaWidth) {
     .biz-cluster-guide {
         width: 320px;

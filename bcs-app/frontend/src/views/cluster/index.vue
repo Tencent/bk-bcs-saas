@@ -90,21 +90,15 @@
                                             <a href="javascript:void(0)" @click="confirmDeleteCluster(cluster, clusterIndex)">删除</a>
                                         </li>
                                     </template>
-                                    <!-- <template>
+                                    <template v-else>
                                         <li style="position: relative;">
-                                            <div class="bk-tooltip biz-cluster-delete-tooltip">
-                                                <div class="bk-tooltip-rel">
-                                                    <a href="javascript:void(0)" class="link" style="width: 86px;">删除</a>
-                                                </div>
-                                                <div class="bk-tooltip-popper" style="position: absolute; will-change: transform; transform-origin: right center; display: none; top: 0px; left: 0px; transform: translate3d(-5px, 0px, 0px);">
-                                                    <div class="bk-tooltip-content">
-                                                        <div class="bk-tooltip-arrow"></div>
-                                                        <div class="bk-tooltip-inner">请先删除集群内所有节点，才可进行集群删除操作</div>
-                                                    </div>
-                                                </div>
-                                            </div>
+                                            <a class="bk-tooltip biz-cluster-delete-tooltip">
+                                                <bk-tooltip content="您需要删除集群内所有节点后，再进行集群删除操作" placement="right">
+                                                    <div class="bk-dropdown-item cluster-btn-disabled">删除</div>
+                                                </bk-tooltip>
+                                            </a>
                                         </li>
-                                    </template> -->
+                                    </template>
                                     <li v-if="!cluster.permissions.use">
                                         <a :href="createApplyPermUrl({
                                             policy: 'use',
