@@ -12,6 +12,7 @@
 # specific language governing permissions and limitations under the License.
 #
 import json
+import logging
 
 from django.utils import timezone
 from rest_framework import serializers
@@ -21,6 +22,7 @@ from backend.utils.exceptions import ResNotFoundError
 from backend.apps.configuration import models
 from backend.apps.configuration.k8s import serializers as kserializers
 from backend.apps.configuration.mesos import serializers as mserializers
+from django.core.exceptions import ObjectDoesNotExist
 from .constants import RESOURCE_NAMES, K8sResourceName, MesosResourceName
 
 SLZ_CLASS = [kserializers.K8sDeploymentSLZ, kserializers.K8sDaemonsetSLZ, kserializers.K8sJobSLZ,
@@ -30,6 +32,7 @@ SLZ_CLASS = [kserializers.K8sDeploymentSLZ, kserializers.K8sDaemonsetSLZ, kseria
              mserializers.ConfigMapSLZ, mserializers.SecretSLZ]
 RESOURCE_SLZ_MAP = dict(zip(RESOURCE_NAMES, SLZ_CLASS))
 
+logger = logging.getLogger(__name__)
 
 def get_slz_class_by_resource_name(resource_name):
     return RESOURCE_SLZ_MAP[resource_name]
@@ -156,7 +159,7 @@ class VentityWithTemplateSLZ(serializers.Serializer):
         project_id = data['project_id']
         try:
             template = models.get_template_by_project_and_id(project_id, ventity.template_id)
-        except ValidationError as e:
+        except ValidationError:
             raise ValidationError(f"模板集版本(id:{version_id})不属于该项目(id:{project_id})")
         else:
             data['template'] = template
@@ -173,8 +176,13 @@ class TemplateResourceSLZ(serializers.Serializer):
         try:
             ventity = models.VersionedEntity.objects.get(id=version_id)
             template = models.Template.objects.get(id=ventity.template_id)
-        except Exception as e:
+
+        except ObjectDoesNotExist:
             raise ResNotFoundError(f"模板集版本(id:{version_id})不存在")
+
+        except Exception as error:
+            logger.exceptions('get template error, %s', error)
+            raise ResNotFoundError(f"模板集版本(id:{version_id})获取失败")
 
         project_id = data['project_id']
         if project_id != template.project_id:

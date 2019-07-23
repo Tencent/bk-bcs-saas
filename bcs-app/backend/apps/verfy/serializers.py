@@ -35,7 +35,7 @@ class PermVerifySLZ(serializers.Serializer):
     def validate(self, data):
         if data['policy_code'] not in ['create', 'deploy', 'download']:
             if verify_resource_exist and (not data.get('resource_code')):
-                raise ValidateError("【resource_code】不能为空")
+                raise ValidationError("【resource_code】不能为空")
             if not data.get('resource_name'):
                 raise ValidationError("【resource_name】不能为空")
         else:
@@ -56,7 +56,7 @@ class PermMultiVerifySLZ(serializers.Serializer):
         def validate(self, data):
             if data['policy_code'] not in ['create', 'deploy', 'download']:
                 if verify_resource_exist and (not data.get('resource_code')):
-                    raise ValidateError("【resource_code】不能为空")
+                    raise ValidationError("【resource_code】不能为空")
                 if not data.get('resource_name'):
                     raise ValidationError("【resource_name】不能为空")
             else:

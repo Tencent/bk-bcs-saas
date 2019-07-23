@@ -321,7 +321,7 @@ class ProfileGenerator(object):
                 tls_cert = TlsCert.objects.get(id=cert_id)
                 crt_content = tls_cert.cert
                 key_content = tls_cert.key
-            except Exception as e:
+            except Exception:
                 raise ValidationError(f"Ingress[{ingress_name}]中使用的 TLS 证书(id:{cert_id})不存在")
         else:
             try:

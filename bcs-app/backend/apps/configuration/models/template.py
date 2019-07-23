@@ -331,7 +331,7 @@ class ShowVersion(BaseModel):
             if isinstance(self.history, list):
                 self.history = json.dumps(list(set(self.history)))
             super().save(*args, **kwargs)
-        except IntegrityError as e:
+        except IntegrityError:
             # TODO mark refactor use ValidationError not properly
             detail = {
                 '版本': [f"版本号[{self.name}]已经存在,请重新填写"]
@@ -532,7 +532,7 @@ class VersionedEntity(BaseModel):
         resource_id_list = ventity.get_resource_id_list(resource_name)
         try:
             resource_id_list.remove(resource_id)  # resource_id is string type
-        except Exception as e:
+        except Exception:
             pass
         resource_id_list.append(new_resource_id)
 

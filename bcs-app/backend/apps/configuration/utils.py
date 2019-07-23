@@ -15,16 +15,20 @@
 模板集的公共方法
 """
 import json
+import logging
 import re
 from collections import Counter
-from rest_framework.exceptions import ValidationError
-from backend.apps.constants import ProjectKind, ClusterType
-from backend.apps.configuration.models import (Template, ShowVersion, VersionedEntity,
-                                               MODULE_DICT, CATE_SHOW_NAME)
-from backend.apps.configuration.constants import VARIABLE_PATTERN, NUM_VAR_ERROR_MSG
+
+from backend.apps.configuration.constants import NUM_VAR_ERROR_MSG, VARIABLE_PATTERN
+from backend.apps.configuration.models import CATE_SHOW_NAME, MODULE_DICT, ShowVersion, Template, VersionedEntity
+from backend.apps.constants import ClusterType, ProjectKind
 from backend.utils import cache
 from backend.utils.exceptions import ResNotFoundError
+from rest_framework.exceptions import ValidationError
+
 from .constants import RESOURCE_NAMES
+
+logger = logging.getLogger(__name__)
 
 KEY_PATTERN = re.compile(r'{{([^}]*)}}')
 REAL_NUM_VAR_PATTERN = re.compile(r"^%s*$" % VARIABLE_PATTERN)
@@ -107,7 +111,8 @@ def get_all_template_config(project_id):
     for ver in versioned_entity:
         try:
             entity = json.loads(ver['entity'])
-        except Exception as e:
+        except Exception as error:
+            logger.exception('load entity error, %s, %s', ver, error)
             continue
 
         # 重复出现的id，需要重复添加
