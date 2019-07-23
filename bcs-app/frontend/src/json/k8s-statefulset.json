@@ -6,7 +6,7 @@
     "service_tag": "",
     "config": {
         "apiVersion": "apps/v1beta2",
-        "kind": "Deployment",
+        "kind": "StatefulSet",
         "monitorLevel": "general",
         "webCache": {
             "volumes": [
