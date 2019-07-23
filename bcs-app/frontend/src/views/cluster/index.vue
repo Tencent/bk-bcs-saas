@@ -94,7 +94,7 @@
                                         <li style="position: relative;">
                                             <a class="bk-tooltip biz-cluster-delete-tooltip">
                                                 <bk-tooltip content="您需要删除集群内所有节点后，再进行集群删除操作" placement="right">
-                                                    <div class="bk-dropdown-item cluster-dropdown-btn-disabled">删除</div>
+                                                    <div class="bk-dropdown-item cluster-btn-disabled">删除</div>
                                                 </bk-tooltip>
                                             </a>
                                         </li>

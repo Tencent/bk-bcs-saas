@@ -317,7 +317,7 @@
     }
 }
 
-.cluster-dropdown-btn-disabled {
+.cluster-btn-disabled {
     width: 70px;
     cursor: not-allowed;
     color: #ccc !important;
