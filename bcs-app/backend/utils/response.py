@@ -79,7 +79,7 @@ class BKAPIResponse(Response):
     """APIResponse封装
     """
 
-    def __init__(self, data: Union[list, dict], message: str='', permissions: Union[None, dict]=None):
+    def __init__(self, data: Union[list, dict], message: str = '', permissions: Union[None, dict] = None):
         assert isinstance(data, (list, dict)), "data必须是list或者dict类型"
         self.message = message
         self.permissions = permissions

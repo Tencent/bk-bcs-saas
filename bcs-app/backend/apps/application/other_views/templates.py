@@ -65,8 +65,7 @@ class TemplateNamespace(BaseAPI):
             is_deleted=False,
             is_bcs_success=True
         ).exclude(
-            Q(oper_type=app_constants.DELETE_INSTANCE) |
-            Q(ins_state=InsState.NO_INS.value)
+            Q(oper_type=app_constants.DELETE_INSTANCE) | Q(ins_state=InsState.NO_INS.value)
         )
         if category != "ALL":
             ins_set = ins_set.filter(category=category, name=res_name)

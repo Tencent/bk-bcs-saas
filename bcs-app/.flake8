@@ -1,5 +1,5 @@
 [flake8]
-ignore = W292,E116,C901,E302,F401
+ignore = W292,E116,C901,E302,F401,W605
 exclude =
     *migrations*,
     *.pyc,
@@ -9,7 +9,7 @@ exclude =
     */templates_module*,
     */bin/*,
     */settings/*,
-max-line-length=119
+max-line-length=129
 max-complexity=12
 format=pylint
 show_source = True

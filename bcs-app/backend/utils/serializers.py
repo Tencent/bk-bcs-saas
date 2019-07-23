@@ -11,21 +11,22 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-import json
-import re
-import yaml
 import inspect
-from Crypto.PublicKey import RSA
+import json
+import logging
+import re
 
+import six
+import yaml
 import jsonschema
-
+from backend.utils.sanitizer import clean_html
+from Crypto.PublicKey import RSA
 from django.conf import settings
 from django.core.validators import RegexValidator
 from django.utils import timezone
-from rest_framework import serializers, fields
-import six
+from rest_framework import fields, serializers
 
-from backend.utils.sanitizer import clean_html
+logger = logging.getLogger(__name__)
 
 
 class MaskField(serializers.CharField):
@@ -103,7 +104,8 @@ class JsonSchemaField(serializers.JSONField):
         if isinstance(data, (bytes, str)):
             try:
                 data = json.loads(data)
-            except yaml.scanner.ScannerError as e:
+            except yaml.scanner.ScannerError as error:
+                logger.info('load json data error: %s, %s', data, error)
                 raise serializers.ValidationError("invalidated json field")
 
         try:

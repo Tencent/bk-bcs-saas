@@ -100,7 +100,7 @@ class KubeConfig:
             }
         }
 
-    def dumps(self, current_context: str=""):
+    def dumps(self, current_context: str = ""):
         """Represent current config as a kubeconfig file
 
         :returns: kubeconfig file content
