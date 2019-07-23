@@ -489,7 +489,8 @@ def node_exec_bcs_task(old_log, request=None):
             params.get("kind"), username,
             list(node_info.keys()), params.get("cc_app_id")
         )
-    except Exception as err:
+    except Exception as error:
+        logger.error("add add_cluster_node error: %s", error)
         node_ip_status(new_log, new_log.project_id, new_log.cluster_id, node_info)
         return
 

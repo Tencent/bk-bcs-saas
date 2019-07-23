@@ -64,7 +64,7 @@ def validate_res_duplicate(containers, category):
 def validate_app_in_ventity(app_id_list, version_id):
     try:
         ventity = models.VersionedEntity.objects.get(id=version_id)
-    except models.VersionedEntity.DoesNotExist as e:
+    except models.VersionedEntity.DoesNotExist:
         raise ValidationError(f"模板集版本(id:{version_id})不存在")
 
     app_list = ventity.get_mesos_apps()

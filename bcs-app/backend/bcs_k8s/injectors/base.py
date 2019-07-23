@@ -24,8 +24,9 @@ logger = logging.getLogger(__name__)
 class Matcher:
     """ A matcher is used to indicate whether we should inject data to target resoruce.
     """
+
     def match(self, resource):
-        raise NotImplemented
+        raise NotImplementedError
 
     def get_kind(self, resource):
         return resource.get("kind")

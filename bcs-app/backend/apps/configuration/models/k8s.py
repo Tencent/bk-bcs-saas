@@ -49,7 +49,7 @@ class K8sResource(BaseModel):
     def get_config(self):
         try:
             config = json.loads(self.config)
-        except Exception as e:
+        except Exception:
             logger.exception(f"解析 {self.__class__.__name__}({self.id}) config 异常")
             return {}
         return config
