@@ -95,7 +95,7 @@ class BaseCluster:
         log.set_params(log_params)
 
     def create_cluster_via_bcs(
-            self, cluster_id, cc_module, config=None, version='1.12.3', environment='prod', websvr=None): # noqa
+            self, cluster_id, cc_module, config=None, version='1.12.3', environment='prod', websvr=None):  # noqa
         """调用bcs接口创建集群
         """
         self.cluster_id = cluster_id
@@ -152,7 +152,7 @@ class BaseCluster:
                 self.cc_app_id, self.username, websvr
             )
         except Exception as err:
-            logger.exception('Create cluster error')
+            logger.exception('Create cluster error: %s', err)
             task_info = {'code': ErrorCode.UnknownError}
 
         # 存储快照

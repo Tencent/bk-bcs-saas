@@ -35,12 +35,12 @@ def _get_des_key(shared_key):
             (b & 0xfe) | (
                 (
                     (
-                        (b >> 1) ^
-                        (b >> 2) ^
-                        (b >> 3) ^
-                        (b >> 4) ^
-                        (b >> 5) ^
-                        (b >> 6) ^
+                        (b >> 1) ^  # noqa
+                        (b >> 2) ^  # noqa
+                        (b >> 3) ^  # noqa
+                        (b >> 4) ^  # noqa
+                        (b >> 5) ^  # noqa
+                        (b >> 6) ^  # noqa
                         (b >> 7)
                     ) ^ 0x01
                 ) & 0x01

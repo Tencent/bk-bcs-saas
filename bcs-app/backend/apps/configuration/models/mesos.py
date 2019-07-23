@@ -49,7 +49,7 @@ class MesosResource(BaseModel):
     def get_config(self):
         try:
             config = json.loads(self.config)
-        except Exception as e:
+        except Exception:
             logger.exception(f"解析 {self.__class__.__name__}({self.id}) config 异常")
             return {}
         return config
@@ -225,7 +225,7 @@ class Service(MesosResource, ResourceMixin):
         # 保存关联应用的权重信息
         try:
             app_id_value = json.loads(self.app_id)
-        except Exception as e:
+        except Exception:
             app_id_value = self.app_id
             self.app_id = json.dumps(self.app_id)
 

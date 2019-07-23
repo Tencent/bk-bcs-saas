@@ -468,22 +468,30 @@ class ResourceOperate(object):
                     _s['can_update'] = _s['can_delete'] = False
                     _s['can_update_msg'] = _s['can_delete_msg'] = u"不允许操作系统命名空间"
                     continue
+
                 # 处理平台集群和命名空间下的数据
-                if (_s['namespace'] in constants.K8S_PLAT_NAMESPACE and
-                    cluster_id in constants.K8S_PLAT_CLUSTER_ID) or (
-                    _s['namespace'] in constants.K8S_COMPONENT_NAMESPACE
-                ):
+                if _s['namespace'] in constants.K8S_PLAT_NAMESPACE and cluster_id in constants.K8S_PLAT_CLUSTER_ID:
                     _s['can_update'] = _s['can_delete'] = False
                     _s['can_update_msg'] = _s['can_delete_msg'] = u"不允许操作平台命名空间"
                     continue
+
+                if _s['namespace'] in constants.K8S_COMPONENT_NAMESPACE:
+                    _s['can_update'] = _s['can_delete'] = False
+                    _s['can_update_msg'] = _s['can_delete_msg'] = u"不允许操作平台命名空间"
+                    continue
+
             # 处理创建命名空间时生成的default-token-xxx
-            is_namespace_default_token = True if (s_cate == 'K8sSecret' and
-                                                  _s['name'].startswith('default-token')
-                                                  ) else False
+            if s_cate == 'K8sSecret' and _s['name'].startswith('default-token'):
+                is_namespace_default_token = True
+            else:
+                is_namespace_default_token = False
+
             # 处理系统默认生成的Secret
-            is_k8s_image_sercret = True if (s_cate == 'K8sSecret' and
-                                            _s['name'] == '%s%s' % (K8S_IMAGE_SECRET_PRFIX, _s['namespace'])
-                                            ) else False
+            if s_cate == 'K8sSecret' and _s['name'] == '%s%s' % (K8S_IMAGE_SECRET_PRFIX, _s['namespace']):
+                is_k8s_image_sercret = True
+            else:
+                is_k8s_image_sercret = False
+
             is_mesos_image_sercret = True if (s_cate == 'secret' and _s['name'] == MESOS_IMAGE_SECRET) else False
             if is_k8s_image_sercret or is_mesos_image_sercret or is_namespace_default_token:
                 _s['can_update'] = _s['can_delete'] = False

@@ -30,7 +30,7 @@ class BaseProvider:
         params config: data matchs SCHEMA, it contains necessary data for apply this kind of token.
         return: it must return a which can be serialize to json
         """
-        raise NotImplemented
+        raise NotImplementedError
 
     @staticmethod
     def validate(token, request_data):
@@ -40,4 +40,4 @@ class BaseProvider:
         params token: object of .models.Token which indicate request user
         params request_data: parameters for do operation
         """
-        raise NotImplemented
+        raise NotImplementedError
