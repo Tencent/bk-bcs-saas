@@ -5,7 +5,7 @@
     "desc": "",
     "config": {
         "apiVersion": "apps/v1beta2",
-        "kind": "Daemonset",
+        "kind": "DaemonSet",
         "monitorLevel": "general",
         "webCache": {
             "volumes": [
