@@ -925,11 +925,14 @@
                     </div>
                 </div>
                 <div class="diff-wrapper">
-                    <js-diff v-if="rollingUpdateDialogConf.oldContent"
-                        :src-content="rollingUpdateDialogConf.oldContent"
-                        :target-content="rollingUpdateDialogConf.newContent"
-                        @change-count="getDiffChangeCount"
-                    />
+                    <bk-diff
+                        v-if="rollingUpdateDialogConf.oldContent"
+                        :old-content="rollingUpdateDialogConf.oldContent"
+                        :new-content="rollingUpdateDialogConf.newContent"
+                        :format="'side-by-side'"
+                        :context="200"
+                        @change-count="getDiffChangeCount">
+                    </bk-diff>
                 </div>
             </div>
         </template>
