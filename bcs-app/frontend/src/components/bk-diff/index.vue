@@ -96,7 +96,6 @@
 
                 this.$emit('change-count', diffJsonConf.changeLines)
                 if (diffJsonConf.changeLines) {
-                    // diffJsonConf = this.getDiffJson(oldContent, newContent + '\r', context)
                     const html = Diff2Html.getPrettyHtml(diffJsonConf, {
                         inputFormat: 'json',
                         outputFormat: outputFormat,
@@ -105,7 +104,15 @@
                     })
                     return htmlReplace(html)
                 } else {
-                    return `<div class="diff-tip-box" style="line-height: ${this.minHeight}px;">数据没有差异</div>`
+                    diffJsonConf = this.getDiffJson(oldContent, newContent + '\r', context)
+                    const html = Diff2Html.getPrettyHtml(diffJsonConf, {
+                        inputFormat: 'json',
+                        outputFormat: outputFormat,
+                        showFiles: false,
+                        matching: 'lines'
+                    })
+                    return htmlReplace(html)
+                    // return `<div class="diff-tip-box" style="line-height: ${this.minHeight}px;">数据没有差异</div>`
                 }
             }
         }
