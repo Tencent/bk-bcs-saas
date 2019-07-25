@@ -113,7 +113,7 @@
                                         </div>
                                     </div>
 
-                                    <div class="bk-form-item">
+                                    <!-- <div class="bk-form-item">
                                         <label class="bk-label" style="width: 105px;">标签：</label>
                                         <div class="bk-form-content" style="margin-left: 105px;">
                                             <bk-keyer
@@ -127,7 +127,7 @@
                                                 :can-disabled="true">
                                             </bk-keyer>
                                         </div>
-                                    </div>
+                                    </div> -->
 
                                     <div class="bk-form-item">
                                         <div class="bk-form-content" style="margin-left: 105px;">
