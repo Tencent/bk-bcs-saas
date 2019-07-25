@@ -54,6 +54,10 @@
             format: {
                 type: String,
                 default: 'line-by-line'
+            },
+            minHeight: {
+                type: Number,
+                default: 100
             }
         },
         computed: {
@@ -90,19 +94,19 @@
                 
                 let diffJsonConf = this.getDiffJson(oldContent, newContent, context, outputFormat)
 
-                // 没有改变时，强制出现对比
-                if (!diffJsonConf.changeLines) {
-                    diffJsonConf = this.getDiffJson(oldContent, newContent + '\r', context)
-                }
-
-                const html = Diff2Html.getPrettyHtml(diffJsonConf, {
-                    inputFormat: 'json',
-                    outputFormat: outputFormat,
-                    showFiles: false,
-                    matching: 'lines'
-                })
                 this.$emit('change-count', diffJsonConf.changeLines)
-                return htmlReplace(html)
+                if (diffJsonConf.changeLines) {
+                    // diffJsonConf = this.getDiffJson(oldContent, newContent + '\r', context)
+                    const html = Diff2Html.getPrettyHtml(diffJsonConf, {
+                        inputFormat: 'json',
+                        outputFormat: outputFormat,
+                        showFiles: false,
+                        matching: 'lines'
+                    })
+                    return htmlReplace(html)
+                } else {
+                    return `<div class="diff-tip-box" style="line-height: ${this.minHeight}px;">数据没有差异</div>`
+                }
             }
         }
     }
