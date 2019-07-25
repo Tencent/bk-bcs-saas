@@ -138,16 +138,16 @@ export default {
                 })
                 list.push(apps)
             }
-            if (data.Job) {
-                const apps = {
-                    deploy_name: 'Job',
-                    children: []
-                }
-                data.Job.forEach(item => {
-                    apps.children.push(item)
-                })
-                list.push(apps)
-            }
+            // if (data.Job) {
+            //     const apps = {
+            //         deploy_name: 'Job',
+            //         children: []
+            //     }
+            //     data.Job.forEach(item => {
+            //         apps.children.push(item)
+            //     })
+            //     list.push(apps)
+            // }
             if (data.StatefulSet) {
                 const apps = {
                     deploy_name: 'StatefulSet',
