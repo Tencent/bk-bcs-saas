@@ -1552,10 +1552,10 @@
                         id: 'emptyDir(Memory)',
                         name: 'emptyDir(Memory)'
                     },
-                    {
-                        id: 'persistentVolumeClaim',
-                        name: 'persistentVolumeClaim'
-                    },
+                    // {
+                    //     id: 'persistentVolumeClaim',
+                    //     name: 'persistentVolumeClaim'
+                    // },
                     {
                         id: 'hostPath',
                         name: 'hostPath'
