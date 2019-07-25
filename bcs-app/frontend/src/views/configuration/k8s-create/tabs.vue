@@ -10,7 +10,7 @@
                 <span class="bk-badge">{{services.length}}</span>
             </div>
             <div :class="['header-item', { 'active': activeRoute === 'k8sTemplatesetConfigmap' }]" @click="toggleRouter('k8sTemplatesetConfigmap')">
-                Configmap
+                ConfigMap
                 <span class="bk-badge">{{configmaps.length}}</span>
             </div>
             <div :class="['header-item', { 'active': activeRoute === 'k8sTemplatesetSecret' }]" @click="toggleRouter('k8sTemplatesetSecret')">

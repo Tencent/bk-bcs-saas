@@ -78,7 +78,7 @@
                                                     @item-selected="selectApps">
                                                 </bk-selector>
                                             </div>
-                                            <span class="biz-tip ml10" v-if="!isDataLoading && !applicationList.length">请先配置Deployment/Daemonset/Job/StatefulSet，再进行关联</span>
+                                            <span class="biz-tip ml10" v-if="!isDataLoading && !applicationList.length">请先配置Deployment/DaemonSet/StatefulSet，再进行关联</span>
                                         </div>
                                     </div>
                                     <div class="bk-form-item">
