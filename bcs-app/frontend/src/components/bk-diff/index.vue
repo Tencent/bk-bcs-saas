@@ -67,7 +67,7 @@
                 const args = ['', oldContent, newContent, '', '', { context: context }]
                 const patch = createPatch(...args)
                 const outStr = Diff2Html.getJsonFromDiff(patch, {
-                    inputFormat: 'json',
+                    inputFormat: 'diff',
                     outputFormat: outputFormat,
                     showFiles: true,
                     matching: 'lines'
