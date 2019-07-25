@@ -42,4 +42,12 @@
     .d2h-file-wrapper {
         border: none;
     }
+
+    .diff-tip-box {
+        height: 100%;
+        min-height: 100px;
+        text-align: center;
+        border-radius: 2px;
+        line-height: 100px;
+    }
 }
