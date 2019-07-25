@@ -604,8 +604,6 @@
             i {
                 font-size: 16px;
                 margin-right: 8px;
-                position: relative;
-                top: 2px;
             }
 
             &.active {
