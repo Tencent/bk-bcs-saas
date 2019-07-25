@@ -75,6 +75,14 @@
     top: 9px;
 }
 
+.code-diff-container {
+    max-height: 500px;
+    overflow: auto;
+    position: relative;
+    border: 1px solid #ddd;
+    border-radius: 2px;
+}
+
 .code-diff-header {
     display: flex;
     margin-bottom: 10px;
