@@ -13,15 +13,15 @@ import moment from 'moment'
 
 import { catchErrorHandler } from '@open/common/util'
 import bkSearcher from '@open/components/bk-searcher'
-import diff from '@open/components/diff'
+import bkDiff from '@open/components/bk-diff'
 import applyPerm from '@open/mixins/apply-perm'
 import ace from '@open/components/ace-editor'
 
 export default {
     mixins: [applyPerm],
     components: {
-        'js-diff': diff,
-        'bk-searcher': bkSearcher,
+        bkDiff,
+        bkSearcher,
         ace
     },
     data () {
@@ -1677,11 +1677,11 @@ export default {
          */
         getDiffChangeCount (count) {
             if (count === 0) {
-                this.rollingUpdateDialogConf.noDiffMsg = '更新版本与当前版本无差异'
-                this.updateDialogConf.noDiffMsg = '更新版本与当前版本无差异'
+                this.rollingUpdateDialogConf && (this.rollingUpdateDialogConf.noDiffMsg = '更新版本与当前版本无差异')
+                this.updateDialogConf && (this.updateDialogConf.noDiffMsg = '更新版本与当前版本无差异')
             } else {
-                this.rollingUpdateDialogConf.noDiffMsg = ''
-                this.updateDialogConf.noDiffMsg = ''
+                this.rollingUpdateDialogConf && (this.rollingUpdateDialogConf.noDiffMsg = '')
+                this.updateDialogConf && (this.updateDialogConf.noDiffMsg = '')
             }
         },
 

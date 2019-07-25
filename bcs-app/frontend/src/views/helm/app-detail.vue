@@ -317,10 +317,14 @@
                     <h3>当前 Release 参数：</h3>
                     <h3>Chart 默认值：</h3>
                 </div>
-                <code-diff
-                    :src-content="curEditYaml"
-                    :target-content="curVersionYaml">
-                </code-diff>
+                <div class="code-diff-container">
+                    <bk-diff
+                        :old-content="curEditYaml"
+                        :new-content="curVersionYaml"
+                        :context="200"
+                        :format="'side-by-side'">
+                    </bk-diff>
+                </div>
             </div>
             <template slot="footer">
                 <div class="biz-footer">
@@ -336,11 +340,11 @@
     import path2tree from '@open/common/path2tree'
     import baseMixin from '@open/mixins/helm/mixin-base'
     import { catchErrorHandler } from '@open/common/util'
-    import diff from '@open/components/diff'
+    import bkDiff from '@open/components/bk-diff'
 
     export default {
         components: {
-            'code-diff': diff
+            bkDiff
         },
         mixins: [baseMixin],
         data () {
@@ -500,7 +504,6 @@
             this.getAppVersions(appId)
             this.getNamespaceList()
             this.winHeight = window.innerHeight
-            this.editYaml()
         },
         beforeRouteLeave (to, from, next) {
             this.isRouterLeave = true
@@ -613,7 +616,7 @@
                         json: formData,
                         yaml: this.curTplYaml
                     })
-                    this.curTplYaml = res.data.yaml
+                    this.curTplYaml = res.data.yaml.replace(/\'/ig, '\"')
                     this.$nextTick(() => {
                         this.yamlEditor.gotoLine(0, 0)
                     })
@@ -766,7 +769,7 @@
 
                     this.setPreviewList(files)
                     this.curTplReadme = files[`${tplName}/README.md`]
-                    this.curTplYaml = result.valuefile
+                    this.curTplYaml = result.valuefile.replace(/\'/ig, '\"')
                     if (questions.questions) {
                         questions.questions.forEach(question => {
                             this.fieldset = result.release.answers

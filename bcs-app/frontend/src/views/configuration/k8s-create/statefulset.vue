@@ -228,7 +228,7 @@
                                                     </div>
                                                 </div>
                                             </bk-tabpanel>
-                                            <bk-tabpanel name="tab3" title="卷模板">
+                                            <!-- <bk-tabpanel name="tab3" title="卷模板">
                                                 <div class="bk-form m20">
                                                     <table class="biz-simple-table" style="width: 720px;">
                                                         <thead>
@@ -296,7 +296,7 @@
                                                         </tbody>
                                                     </table>
                                                 </div>
-                                            </bk-tabpanel>
+                                            </bk-tabpanel> -->
                                         </bk-tab>
 
                                         <bk-tab :type="'fill'" :active-name="'tab2'" :size="'small'" v-show="isPodPanelShow" style="margin-left: 105px;">
@@ -1618,10 +1618,10 @@
                         id: 'emptyDir(Memory)',
                         name: 'emptyDir(Memory)'
                     },
-                    {
-                        id: 'persistentVolumeClaim',
-                        name: 'persistentVolumeClaim'
-                    },
+                    // {
+                    //     id: 'persistentVolumeClaim',
+                    //     name: 'persistentVolumeClaim'
+                    // },
                     {
                         id: 'hostPath',
                         name: 'hostPath'
