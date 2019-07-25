@@ -168,6 +168,7 @@
             color: #c3cdd7;
             padding: 0;
             margin: 0 3px;
+            line-height: 1;
         }
     }
 

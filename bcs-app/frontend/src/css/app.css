@@ -295,7 +295,7 @@ input:-webkit-autofill, textarea:-webkit-autofill, select:-webkit-autofill {
     .biz-search-btn {
         position: absolute;
         right: 10px;
-        top: 8px;
+        top: 5px;
         font-size: 16px;
         color: $fontColor;
     }
@@ -608,8 +608,6 @@ input:-webkit-autofill, textarea:-webkit-autofill, select:-webkit-autofill {
         i {
             font-size: 16px;
             margin-right: 8px;
-            position: relative;
-            top: 2px;
         }
         .bk-badge {
             background-color: #c3cdd7;
@@ -1462,6 +1460,11 @@ div.jsoneditor {
     min-width: 910px;
     max-width: 1175px;
 }
+
+.bk-button .bk-icon {
+    top: 0;
+}
+
 .bk-button-group {
     @mixin clearfix;
     .item {
