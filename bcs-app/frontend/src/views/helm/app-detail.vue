@@ -322,6 +322,7 @@
                         :old-content="curEditYaml"
                         :new-content="curVersionYaml"
                         :context="200"
+                        :min-height="400"
                         :format="'side-by-side'">
                     </bk-diff>
                 </div>
