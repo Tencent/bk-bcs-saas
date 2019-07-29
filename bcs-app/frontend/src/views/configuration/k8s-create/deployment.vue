@@ -2882,8 +2882,6 @@
                     this.setCurApplication(data.deployments[0], 0)
                 } else if (data.deployment && data.deployment.length) {
                     this.setCurApplication(data.deployment[0], 0)
-                } else if (!this.curVersion) {
-                    this.addLocalApplication()
                 }
             },
 

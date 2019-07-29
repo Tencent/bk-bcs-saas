@@ -787,14 +787,14 @@
                                                 <div class="bk-form-item">
                                                     <label class="bk-label" style="width: 105px;">CPU限制：</label>
                                                     <div class="bk-form-content" style="margin-left: 105px;">
-                                                        <div class="bk-form-input-group mr20">
+                                                        <div class="bk-form-input-group mr5">
                                                             <bk-input
                                                                 type="number"
-                                                                :min="0"
+                                                                :min="0.001"
                                                                 :is-decimals="true"
                                                                 :max="128"
-                                                                placeholder="请输入，范围为0.001-128"
-                                                                style="width: 250px;"
+                                                                placeholder="请输入"
+                                                                style="width: 100px;"
                                                                 :value.sync="curContainer.resources.limits.cpu"
                                                                 :list="varList"
                                                             >
@@ -803,18 +803,44 @@
                                                                 核
                                                             </span>
                                                         </div>
+                                                        <bk-tooltip content="设置CPU上限，范围为0.001-128" placement="top">
+                                                            <span class="bk-badge">
+                                                                <i class="bk-icon icon-question"></i>
+                                                            </span>
+                                                        </bk-tooltip>
+                                                        <div class="bk-form-input-group ml20 mr5">
+                                                            <bk-input
+                                                                type="number"
+                                                                style="width: 100px;"
+                                                                :min="0.001"
+                                                                :is-decimals="true"
+                                                                :max="curContainer.resources.limits.cpu ? curContainer.resources.limits.cpu : Number.MAX_VALUE"
+                                                                placeholder="请输入"
+                                                                :value.sync="curContainer.resources.requests.cpu"
+                                                                :list="varList"
+                                                            >
+                                                            </bk-input>
+                                                            <span class="input-group-addon">
+                                                                核
+                                                            </span>
+                                                        </div>
+                                                        <bk-tooltip content="设置CPU下限，范围为0.001-128" placement="top">
+                                                            <span class="bk-badge">
+                                                                <i class="bk-icon icon-question"></i>
+                                                            </span>
+                                                        </bk-tooltip>
                                                     </div>
                                                 </div>
                                                 <div class="bk-form-item">
                                                     <label class="bk-label" style="width: 105px;">内存限制：</label>
                                                     <div class="bk-form-content" style="margin-left: 105px;">
-                                                        <div class="bk-form-input-group mr20">
+                                                        <div class="bk-form-input-group mr5">
                                                             <bk-input
                                                                 type="number"
                                                                 :is-decimals="true"
                                                                 :min="0"
                                                                 placeholder="请输入"
-                                                                style="width: 250px;"
+                                                                style="width: 100px;"
                                                                 :value.sync="curContainer.resources.limits.memory"
                                                                 :list="varList"
                                                             >
@@ -823,6 +849,32 @@
                                                                 M
                                                             </span>
                                                         </div>
+                                                        <bk-tooltip content="设置内存上限" placement="top">
+                                                            <span class="bk-badge">
+                                                                <i class="bk-icon icon-question"></i>
+                                                            </span>
+                                                        </bk-tooltip>
+
+                                                        <div class="bk-form-input-group ml20 mr5">
+                                                            <bk-input
+                                                                type="number"
+                                                                style="width: 100px;"
+                                                                :min="0"
+                                                                :max="curContainer.resources.limits.memory ? curContainer.resources.limits.memory : Number.MAX_VALUE"
+                                                                placeholder="请输入"
+                                                                :value.sync="curContainer.resources.requests.memory"
+                                                                :list="varList"
+                                                            >
+                                                            </bk-input>
+                                                            <span class="input-group-addon">
+                                                                M
+                                                            </span>
+                                                        </div>
+                                                        <bk-tooltip content="设置内存下限" placement="top">
+                                                            <span class="bk-badge">
+                                                                <i class="bk-icon icon-question"></i>
+                                                            </span>
+                                                        </bk-tooltip>
                                                     </div>
                                                 </div>
                                             </div>
