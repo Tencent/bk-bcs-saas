@@ -146,6 +146,8 @@ APPLICATION_SCHEMA = {
                                                             "cpu": {
                                                                 "oneOf": [
                                                                     {"type": "string",
+                                                                     "pattern": "^$"},
+                                                                    {"type": "string",
                                                                      "pattern": NUM_VAR_PATTERN},
                                                                     {"type": "number",
                                                                      "minimum": 0},
@@ -153,6 +155,8 @@ APPLICATION_SCHEMA = {
                                                             },
                                                             "memory": {
                                                                 "oneOf": [
+                                                                    {"type": "string",
+                                                                     "pattern": "^$"},
                                                                     {"type": "string",
                                                                      "pattern": NUM_VAR_PATTERN},
                                                                     {"type": "number",
@@ -168,6 +172,8 @@ APPLICATION_SCHEMA = {
                                                             "cpu": {
                                                                 "oneOf": [
                                                                     {"type": "string",
+                                                                     "pattern": "^$"},
+                                                                    {"type": "string",
                                                                      "pattern": NUM_VAR_PATTERN},
                                                                     {"type": "number",
                                                                      "minimum": 0},
@@ -175,6 +181,8 @@ APPLICATION_SCHEMA = {
                                                             },
                                                             "memory": {
                                                                 "oneOf": [
+                                                                    {"type": "string",
+                                                                     "pattern": "^$"},
                                                                     {"type": "string",
                                                                      "pattern": NUM_VAR_PATTERN},
                                                                     {"type": "number",
