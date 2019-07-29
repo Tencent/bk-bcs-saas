@@ -158,41 +158,6 @@ class SchedulerBase(object):
         if len(normal_nodes) == 0:
             raise ClusterNotReady("没有可用节点，请添加或启用节点")
 
-    def get_limits(self, config):
-        """获取资源需求
-        """
-        for res, specs in config.items():
-            if res not in ['application', 'deployment']:
-                continue
-            for spec in specs:
-                limits = {'num': int(spec['config']['spec']['instance'])}
-                for container in spec['config']['spec']['template']['spec']['containers']:
-                    limits.update(container['resources']['limits'])
-                    yield limits
-
-    def resources_ready(self, cluster_id, config):
-        """CPU，内存检查
-        """
-        result = paas_cc.get_cluster(
-            self.access_token, self.project_id, cluster_id)
-        if result.get('code') != 0:
-            raise ClusterNotReady("获取资源失败，请联系蓝鲸管理员解决")
-
-        data = result.get('data') or {}
-        remain_cpu = data.get('remain_cpu') or 0
-        remain_mem = data.get('remain_mem') or 0
-
-        cpu_require = 0
-        mem_require = 0
-        # CPU单位是核心，有小数点，内存单位是M，和paas-cc返回一致
-        for i in self.get_limits(config):
-            cpu_require += float(i['cpu']) * i['num']
-            mem_require += float(i['memory']) * i['num']
-        if remain_cpu < cpu_require:
-            raise ClusterNotReady("没有足够的CPU资源")
-        if remain_mem < mem_require:
-            raise ClusterNotReady("没有足够的内存资源")
-
     def instantiation(self, is_update=False):
         """实例化
         """
@@ -205,7 +170,6 @@ class SchedulerBase(object):
             try:
                 # 前置检查
                 self.cluster_ready(cluster_id)
-                self.resources_ready(cluster_id, config)
             except ClusterNotReady as error:
                 logger.warning(
                     "bcs_instantiation failed, cluster not ready %s", error)
