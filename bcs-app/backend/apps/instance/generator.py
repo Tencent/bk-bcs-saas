@@ -53,7 +53,7 @@ from backend.apps.instance.constants import (K8S_SECRET_SYS_CONFIG, K8S_CONFIGMA
                                              K8S_DEPLPYMENT_SYS_CONFIG, K8S_DAEMONSET_SYS_CONFIG, K8S_JOB_SYS_CONFIG,
                                              K8S_STATEFULSET_SYS_CONFIG, K8S_RESOURCE_UNIT, K8S_ENV_KEY,
                                              K8S_IMAGE_SECRET_PRFIX, LABEL_MONITOR_LEVEL, LABEL_MONITOR_LEVEL_DEFAULT,
-                                             MESOS_IMAGE_SECRET, INGRESS_ID_SEPARATOR)
+                                             MESOS_IMAGE_SECRET, INGRESS_ID_SEPARATOR, MESOS_MODULE_NAME)
 from backend.utils.func_controller import get_func_controller
 from backend.apps.instance.utils_pub import get_cluster_version
 from backend.apps.ticket.models import TlsCert
@@ -433,7 +433,7 @@ class MesosProfileGenerator(ProfileGenerator):
         global mesos_res_mapping
         from backend.apps.instance.resources import BCSResource
         for res in BCSResource:
-            if 'mesos' not in res.__module__:
+            if MESOS_MODULE_NAME not in res.__module__:
                 continue
 
             name = str(res.__name__).lower()

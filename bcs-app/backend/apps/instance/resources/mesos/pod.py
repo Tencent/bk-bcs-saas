@@ -17,9 +17,9 @@ from backend.apps.instance.resources import BCSResource
 class Pod(BCSResource):
     def set_resources(self, resources):
         limits = resources.get('limits') or {}
-        limits['cpu'] = str(limits.get('cpu'))
-        limits['memory'] = str(limits.get('memory'))
+        limits['cpu'] = str(limits.get('cpu') or '')
+        limits['memory'] = str(limits.get('memory') or '')
 
         requests = resources.get('requests') or {}
-        requests['cpu'] = str(requests.get('cpu'))
-        requests['memory'] = str(requests.get('memory'))
+        requests['cpu'] = str(requests.get('cpu') or '')
+        requests['memory'] = str(requests.get('memory') or '')

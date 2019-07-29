@@ -17,8 +17,10 @@ import pkgutil
 import importlib
 import os
 
+from backend.apps.instance.constants import MESOS_MODULE_NAME
+
 pkgpath = os.path.dirname(__file__)
-for m in ['mesos']:
+for m in [MESOS_MODULE_NAME]:
     for _, name, _ in pkgutil.iter_modules([f'{pkgpath}/{m}']):
         if not name.startswith('__'):
             importlib.import_module(f'.{name}', f'{__name__}.{m}')
