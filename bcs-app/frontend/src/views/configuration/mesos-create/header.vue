@@ -1,5 +1,5 @@
 <template>
-    <div class="biz-top-bar" :style="{ marginBottom: isNewTemplate ? '0px' : '55px' }">
+    <div class="biz-top-bar" :style="{ marginBottom: (isNewTemplate || !canTemplateEdit) ? '0px' : '55px' }">
         <i class="biz-back bk-icon icon-arrows-left" @click="beforeLeave"></i>
 
         <template v-if="exceptionCode">
@@ -502,6 +502,9 @@
             },
             curTemplate () {
                 return this.$store.state.mesosTemplate.curTemplate
+            },
+            canTemplateEdit () {
+                return this.curTemplate.permissions && this.curTemplate.permissions.edit
             },
             applications () {
                 return this.$store.state.mesosTemplate.applications
