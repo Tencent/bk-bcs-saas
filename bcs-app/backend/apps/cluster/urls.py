@@ -148,3 +148,11 @@ urlpatterns += [
         views.QueryNodeLabelKeys.as_view({'get': 'label_values'})
     )
 ]
+
+# operation api
+urlpatterns += [
+    url(
+        r'^api/projects/(?P<project_id>[\w\-]+)/clusters/(?P<cluster_id>[\w\-]+)/nodes/(?P<node_id>\d+)/$',
+        views.DeleteNotReadyNode.as_view({'delete': 'delete'})
+    )
+]
