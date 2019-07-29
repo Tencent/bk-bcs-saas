@@ -29,4 +29,5 @@ class ResourceRegistry(type):
         return iter(cls.registry)
 
 
-class BCSResource(metaclass=ResourceRegistry): pass
+class BCSResource(metaclass=ResourceRegistry):
+    pass
