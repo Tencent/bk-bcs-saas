@@ -472,8 +472,6 @@
                     await this.initApplications(version)
                     if (data.services && data.services.length) {
                         this.setCurService(data.services[0], 0)
-                    } else if (data.service && data.service.length) {
-                        this.setCurService(data.service[0], 0)
                     }
                 }
             },
