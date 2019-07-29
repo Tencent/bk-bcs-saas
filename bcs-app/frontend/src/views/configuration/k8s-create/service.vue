@@ -466,15 +466,15 @@
                     })
                 }
             },
-            initResource (data) {
+            async initResource (data) {
                 const version = data.latest_version_id || data.version
                 if (version) {
-                    this.initApplications(version)
-                }
-                if (data.services && data.services.length) {
-                    this.setCurService(data.services[0], 0)
-                } else if (data.service && data.service.length) {
-                    this.setCurService(data.service[0], 0)
+                    await this.initApplications(version)
+                    if (data.services && data.services.length) {
+                        this.setCurService(data.services[0], 0)
+                    } else if (data.service && data.service.length) {
+                        this.setCurService(data.service[0], 0)
+                    }
                 }
             },
             tabResource (type) {
