@@ -59,8 +59,12 @@
     ],
     "resources": {
         "limits": {
-            "cpu": 2,
-            "memory": 8
+            "cpu": "", 
+            "memory": ""
+        }, 
+        "requests": {
+            "cpu": 2, 
+            "memory": 4096
         }
     },
     "volumes": [
