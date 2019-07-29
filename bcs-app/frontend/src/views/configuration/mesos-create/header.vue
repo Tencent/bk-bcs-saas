@@ -1,5 +1,5 @@
 <template>
-    <div class="biz-top-bar" :style="{ marginBottom: isNewTemplate ? '0px' : '55px' }">
+    <div class="biz-top-bar" :style="{ marginBottom: (isNewTemplate || !canTemplateEdit) ? '0px' : '55px' }">
         <i class="biz-back bk-icon icon-arrows-left" @click="beforeLeave"></i>
 
         <template v-if="exceptionCode">
@@ -502,6 +502,9 @@
             },
             curTemplate () {
                 return this.$store.state.mesosTemplate.curTemplate
+            },
+            canTemplateEdit () {
+                return this.curTemplate.permissions && this.curTemplate.permissions.edit
             },
             applications () {
                 return this.$store.state.mesosTemplate.applications
@@ -1503,12 +1506,27 @@
                         }
                     }
 
-                    // 资源限制
-                    if (container.resources.limits.cpu !== undefined) {
+                    /**
+                     * 资源限制
+                     * 0、cpu和mem上下限对应，填了一个，另一个就必须填
+                     * 1、request、limit都填
+                     * 2、request不填、limit填，后端将limit给request
+                     * 3、request填、limit不填，limit不限制
+                     */
+                    // cpu上限
+                    if (container.resources.limits.cpu === '' && container.resources.requests.cpu === '' && container.resources.limits.memory === '' && container.resources.requests.memory === '') {
+                        this.$bkMessage({
+                            theme: 'error',
+                            message: megPrefix + `容器"${container.name}"的资源限制配置：CPU和内存限制必须配置！`,
+                            delay: 5000
+                        })
+                        return false
+                    }
+                    if (container.resources.limits.cpu !== '') {
                         if (container.resources.limits.cpu < 0.001) {
                             this.$bkMessage({
                                 theme: 'error',
-                                message: megPrefix + `容器"${container.name}"的资源限制配置：CPU限制不能少于0.001！`,
+                                message: megPrefix + `容器"${container.name}"的资源限制配置：CPU上限不能少于0.001！`,
                                 delay: 5000
                             })
                             return false
@@ -1516,7 +1534,105 @@
                         if (container.resources.limits.cpu > 128) {
                             this.$bkMessage({
                                 theme: 'error',
-                                message: megPrefix + `容器"${container.name}"的资源限制配置：CPU限制不能大于128！`,
+                                message: megPrefix + `容器"${container.name}"的资源限制配置：CPU上限不能大于128！`,
+                                delay: 5000
+                            })
+                            return false
+                        }
+
+                        if (container.resources.limits.memory === '') {
+                            this.$bkMessage({
+                                theme: 'error',
+                                message: megPrefix + `容器"${container.name}"的资源限制配置：内存上限不能为空！`,
+                                delay: 5000
+                            })
+                            return false
+                        }
+
+                        if (container.resources.requests.cpu && (container.resources.limits.cpu < container.resources.requests.cpu)) {
+                            this.$bkMessage({
+                                theme: 'error',
+                                message: megPrefix + `容器"${container.name}"的资源限制配置：CPU上限不能小于下限！`,
+                                delay: 5000
+                            })
+                            return false
+                        }
+                    }
+
+                    // cpu下限
+                    if (container.resources.requests.cpu !== '') {
+                        if (container.resources.requests.cpu < 0.001) {
+                            this.$bkMessage({
+                                theme: 'error',
+                                message: megPrefix + `容器"${container.name}"的资源限制配置：CPU下限不能少于0.001！`,
+                                delay: 5000
+                            })
+                            return false
+                        }
+                        if (container.resources.requests.cpu > 128) {
+                            this.$bkMessage({
+                                theme: 'error',
+                                message: megPrefix + `容器"${container.name}"的资源限制配置：CPU下限不能大于128！`,
+                                delay: 5000
+                            })
+                            return false
+                        }
+
+                        if (container.resources.requests.memory === '') {
+                            this.$bkMessage({
+                                theme: 'error',
+                                message: megPrefix + `容器"${container.name}"的资源限制配置：内存下限不能为空！`,
+                                delay: 5000
+                            })
+                            return false
+                        }
+
+                        if (container.resources.limits.cpu && (container.resources.limits.cpu < container.resources.requests.cpu)) {
+                            this.$bkMessage({
+                                theme: 'error',
+                                message: megPrefix + `容器"${container.name}"的资源限制配置：CPU上限不能小于下限！`,
+                                delay: 5000
+                            })
+                            return false
+                        }
+                    }
+
+                    // 内存上限
+                    if (container.resources.limits.memory !== '') {
+                        if (container.resources.limits.cpu === '') {
+                            this.$bkMessage({
+                                theme: 'error',
+                                message: megPrefix + `容器"${container.name}"的资源限制配置：CPU上限不能为空！`,
+                                delay: 5000
+                            })
+                            return false
+                        }
+
+                        if (container.resources.requests.memory && (container.resources.limits.memory < container.resources.requests.memory)) {
+                            this.$bkMessage({
+                                theme: 'error',
+                                message: megPrefix + `容器"${container.name}"的资源限制配置：内存上限不能小于下限！`,
+                                delay: 5000
+                            })
+                            return false
+                        }
+                    }
+
+                    // 内存下限
+                    if (container.resources.requests.memory !== '') {
+                        if (container.resources.requests.cpu === '') {
+                            this.$bkMessage({
+                                theme: 'error',
+                                message: megPrefix + `容器"${container.name}"的资源限制配置：CPU下限不能为空！`,
+                                delay: 5000
+                            })
+                            return false
+                        }
+
+                        if (container.resources.limits.memory && (container.resources.limits.memory < container.resources.requests.memory)) {
+                            this.$bkMessage({
+                                theme: 'error',
+                                message: megPrefix + `容器"${container.name}"的资源限制配置：内存上限不能小于下限！`,
                                 delay: 5000
                             })
                             return false
