@@ -19,7 +19,6 @@ DONE:
 
 TODO：
 """
-import time
 import uuid
 import re
 import datetime
@@ -29,12 +28,14 @@ import copy
 import json
 import shlex
 from urllib.parse import urlparse
-from django.conf import settings
+from collections import OrderedDict
+
 from rest_framework.exceptions import ValidationError
+from django.conf import settings
 
 from backend.components import paas_cc
 from backend.components.ticket import TicketClient
-from backend.apps.configuration.models import (MODULE_DICT, VersionedEntity, Application,
+from backend.apps.configuration.models import (MODULE_DICT, VersionedEntity,
                                                get_pod_list_by_tag, get_k8s_port_list, CATE_SHOW_NAME,
                                                get_secret_name_by_certid)
 from backend.apps.configuration.constants import NUM_VAR_PATTERN
@@ -52,7 +53,7 @@ from backend.apps.instance.constants import (K8S_SECRET_SYS_CONFIG, K8S_CONFIGMA
                                              K8S_DEPLPYMENT_SYS_CONFIG, K8S_DAEMONSET_SYS_CONFIG, K8S_JOB_SYS_CONFIG,
                                              K8S_STATEFULSET_SYS_CONFIG, K8S_RESOURCE_UNIT, K8S_ENV_KEY,
                                              K8S_IMAGE_SECRET_PRFIX, LABEL_MONITOR_LEVEL, LABEL_MONITOR_LEVEL_DEFAULT,
-                                             MESOS_IMAGE_SECRET, INGRESS_ID_SEPARATOR)
+                                             MESOS_IMAGE_SECRET, INGRESS_ID_SEPARATOR, MESOS_MODULE_NAME)
 from backend.utils.func_controller import get_func_controller
 from backend.apps.instance.utils_pub import get_cluster_version
 from backend.apps.ticket.models import TlsCert
@@ -61,9 +62,10 @@ from backend.utils.error_codes import error_codes
 logger = logging.getLogger(__name__)
 REAL_NUM_VAR_PATTERN = re.compile(r"%s" % NUM_VAR_PATTERN)
 HANDLED_NUM_VAR_PATTERN = re.compile(r"%s}" % NUM_VAR_PATTERN)
+mesos_res_mapping = OrderedDict()
 
 
-class ProfileGenerator(object):
+class ProfileGenerator:
     resource_name = None
     resource_sys_config = None
 
@@ -424,7 +426,38 @@ class K8sProfileGenerator(ProfileGenerator):
         return CATE_SHOW_NAME.get(self.resource_name, self.resource_name)
 
 
-class ApplicationProfileGenerator(ProfileGenerator):
+class MesosProfileGenerator(ProfileGenerator):
+    def __init__(self, resource_id, namespace_id, is_validate=True, **params):
+        super().__init__(resource_id, namespace_id, is_validate, **params)
+
+        global mesos_res_mapping
+        from backend.apps.instance.resources import BCSResource
+        for res in BCSResource:
+            if MESOS_MODULE_NAME not in res.__module__:
+                continue
+
+            name = str(res.__name__).lower()
+            component = name + 's'  # make plural
+            if component in mesos_res_mapping:
+                continue
+
+            mesos_res_mapping[component] = ''
+            mesos_res_mapping[component] = res()
+            mesos_res_mapping[name] = component
+
+    def __getattr__(self, name):
+        global mesos_res_mapping
+        if name in mesos_res_mapping:
+            component = mesos_res_mapping[name]
+            if type(component) is not str:
+                return component
+
+            return mesos_res_mapping[component]
+
+        return object.__getattribute__(self, name)
+
+
+class ApplicationProfileGenerator(MesosProfileGenerator):
     resource_name = "application"
     resource_sys_config = APPLICATION_SYS_CONFIG
 
@@ -537,12 +570,7 @@ class ApplicationProfileGenerator(ProfileGenerator):
                                                     self.resource_show_name, self.is_preview, self.is_validate)
 
             # 2.3 处理 resources 资源限制
-            limits = _c.get('resources', {}).get('limits')
-            if settings.IS_CUP_LIMIT:
-                limits['cpu'] = '0.1'
-            else:
-                limits['cpu'] = str(limits.get('cpu')) or '0.1'
-            limits['memory'] = str(limits.get('memory'))
+            self.pod.set_resources(_c.get('resources', {}))
 
             # 2.4 处理 volumes 中的字段
             volumes = _c.get('volumes')

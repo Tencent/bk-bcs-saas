@@ -137,7 +137,7 @@ APPLICATION_SCHEMA = {
                                             "privileged": {"type": "boolean"},
                                             "resources": {
                                                 "type": "object",
-                                                "required": ["limits"],
+                                                "required": ["limits", "requests"],
                                                 "properties": {
                                                     "limits": {
                                                         "type": "object",
@@ -146,6 +146,8 @@ APPLICATION_SCHEMA = {
                                                             "cpu": {
                                                                 "oneOf": [
                                                                     {"type": "string",
+                                                                     "pattern": "^$"},
+                                                                    {"type": "string",
                                                                      "pattern": NUM_VAR_PATTERN},
                                                                     {"type": "number",
                                                                      "minimum": 0},
@@ -153,6 +155,34 @@ APPLICATION_SCHEMA = {
                                                             },
                                                             "memory": {
                                                                 "oneOf": [
+                                                                    {"type": "string",
+                                                                     "pattern": "^$"},
+                                                                    {"type": "string",
+                                                                     "pattern": NUM_VAR_PATTERN},
+                                                                    {"type": "number",
+                                                                     "minimum": 0},
+                                                                ]
+                                                            }
+                                                        }
+                                                    },
+                                                    "requests": {
+                                                        "type": "object",
+                                                        "required": ["cpu", "memory"],
+                                                        "properties": {
+                                                            "cpu": {
+                                                                "oneOf": [
+                                                                    {"type": "string",
+                                                                     "pattern": "^$"},
+                                                                    {"type": "string",
+                                                                     "pattern": NUM_VAR_PATTERN},
+                                                                    {"type": "number",
+                                                                     "minimum": 0},
+                                                                ]
+                                                            },
+                                                            "memory": {
+                                                                "oneOf": [
+                                                                    {"type": "string",
+                                                                     "pattern": "^$"},
                                                                     {"type": "string",
                                                                      "pattern": NUM_VAR_PATTERN},
                                                                     {"type": "number",

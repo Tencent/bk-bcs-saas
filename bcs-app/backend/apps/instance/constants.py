@@ -19,6 +19,8 @@ import copy
 from django.conf import settings
 from backend.utils.basic import ChoicesEnum
 
+MESOS_MODULE_NAME = 'mesos'
+
 # 所有配置文件的公共 label
 LABLE_TEMPLATE_ID = "io.tencent.paas.templateid"
 LABLE_VERSION_ID = "io.tencent.paas.versionid"
@@ -103,7 +105,6 @@ APPLICATION_SYS_CONFIG = {
         "namespace": "{{SYS_NAMESPACE}}"
     }
 }
-
 
 DEPLPYMENT_SYS_CONFIG = {
     "apiVersion": "v4",
@@ -262,8 +263,6 @@ service 中添加:
 LB_LABLES = copy.deepcopy(BCS_LABELS)
 LB_LABLES["loadbalance"] = "{{SYS_BCSGROUP}}"
 LB_LABLES[LABLE_PROJECT_ID] = "{{SYS_PROJECT_ID}}"
-# 测试环境要做资源限制
-LB_CPU = "0.1" if settings.IS_CUP_LIMIT else "3"
 
 LB_SYS_CONFIG = {
     "apiVersion": "v4",
