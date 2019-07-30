@@ -1,6 +1,6 @@
 <template>
     <div class="consult-tools">
-        <a :class="{ 'consult-item': true, 'default-hover': index === 0 }" v-for="(entry, index) in consultTypeList" :key="index" :href="entry.href" :target="entry.target">
+        <a :class="{ 'consult-item': true }" v-for="(entry, index) in consultTypeList" :key="index" :href="entry.href" :target="entry.target">
             <i class="bk-icon" :class="entry.icon"></i>
             <div class="custom-panel trans-fadeout" @click.stop="prevent($event)">
                 <div class="panel-arrow"></div>
