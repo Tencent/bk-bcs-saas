@@ -19,6 +19,8 @@ import copy
 from django.conf import settings
 from backend.utils.basic import ChoicesEnum
 
+MESOS_MODULE_NAME = 'mesos'
+
 # 所有配置文件的公共 label
 LABLE_TEMPLATE_ID = "io.tencent.paas.templateid"
 LABLE_VERSION_ID = "io.tencent.paas.versionid"
@@ -250,13 +252,13 @@ K8S_HPA_SYS_CONFIG = {
         "metrics": [
             {
                 "type": "Resource",
-                        "resource": {
-                            "name": "cpu",
-                            "target": {
-                                "type": "Utilization",
-                                "averageUtilization": 20
-                            }
-                        }
+                "resource": {
+                    "name": "cpu",
+                    "target": {
+                        "type": "Utilization",
+                        "averageUtilization": 20
+                    }
+                }
             }
         ]
     }
