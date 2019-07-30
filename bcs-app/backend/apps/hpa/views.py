@@ -14,6 +14,7 @@
 import logging
 
 from rest_framework import viewsets
+from rest_framework import views
 from rest_framework.renderers import BrowsableAPIRenderer
 from rest_framework.response import Response
 
@@ -24,6 +25,7 @@ from backend.utils.renderers import BKAPIRenderer
 from backend.apps.instance import constants as instance_constants
 from backend.apps.application import constants as application_constants
 from backend.apps.hpa import utils
+from backend.apps.hpa import constants
 
 logger = logging.getLogger(__name__)
 
@@ -74,3 +76,12 @@ class HPA(viewsets.ViewSet, BaseAPI):
                 k8s_hpa_list.append(data)
 
         return Response(k8s_hpa_list)
+
+
+class HPAMetrics(views.APIView):
+    renderer_classes = (BKAPIRenderer, BrowsableAPIRenderer)
+
+    def get(self, request, project_id):
+        """获取支持的HPA metric列表
+        """
+        return Response(constants.HPA_METRICS)

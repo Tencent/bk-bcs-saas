@@ -17,4 +17,5 @@ from . import views
 
 urlpatterns = [
     url(r'^$', views.HPA.as_view({'get': 'list'})),
+    url(r'^metrics/$', views.HPAMetrics.as_view()),
 ]
