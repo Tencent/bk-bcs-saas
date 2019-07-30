@@ -13,11 +13,11 @@
 #
 from backend.apps.configuration.constants import RESOURCE_NAMES, K8sResourceName, MesosResourceName
 from .base import POD_RES_LIST, logger
-from .k8s import K8sDeployment, K8sConfigMap, K8sSecret, K8sDaemonSet, K8sJob, K8sService, K8sStatefulSet, K8sIngress
+from .k8s import K8sDeployment, K8sConfigMap, K8sSecret, K8sDaemonSet, K8sJob, K8sService, K8sStatefulSet, K8sIngress, K8sHPA
 from .mesos import Application, Deplpyment, Service, ConfigMap, Secret
 
 MODEL_CLASS_LIST = [K8sDeployment, K8sDaemonSet, K8sJob, K8sStatefulSet, K8sService, K8sConfigMap, K8sSecret,
-                    K8sIngress, Application, Deplpyment, Service, ConfigMap, Secret]
+                    K8sIngress, K8sHPA, Application, Deplpyment, Service, ConfigMap, Secret]
 
 RESOURCE_MODEL_MAP = dict(zip(RESOURCE_NAMES, MODEL_CLASS_LIST))
 
@@ -36,6 +36,7 @@ MODULE_DICT = {
     "K8sJob": K8sJob,
     "K8sStatefulSet": K8sStatefulSet,
     "K8sIngress": K8sIngress,
+    'K8S-HPA': K8sHPA
 }
 
 

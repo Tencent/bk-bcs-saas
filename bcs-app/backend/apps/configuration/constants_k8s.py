@@ -788,3 +788,76 @@ K8S_STATEFULSET_DIFF = {
 }
 K8S_STATEFULSET_SCHNEA = update_nested_dict(
     K8S_DEPLPYMENT_SCHNEA, K8S_STATEFULSET_DIFF)
+
+
+K8S_HPA_SCHNEA = {
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "id": "k8s_hpa",
+
+    "type": "object",
+    "required": ["metadata", "spec"],
+    "properties": {
+        "metadata": {
+            "type": "object",
+            "required": ["name"],
+            "properties": {
+                "name": {
+                    "type": "string",
+                    "pattern": K8S_RES_NAME_PATTERN
+                }
+            }
+        },
+        "spec": {
+            "type": "object",
+            "required": ["scaleTargetRef", "minReplicas", "maxReplicas", "metrics"],
+            "properties": {
+                "scaleTargetRef": {
+                    "type": "object",
+                    "required": ["kind", "name"],
+                    "properties": {
+                        "kind": {
+                            "type": "string",
+                            "pattern": K8S_RES_NAME_PATTERN
+                        },
+                        "name": {
+                            "type": "string",
+                            "pattern": K8S_RES_NAME_PATTERN
+                        }
+                    }
+                },
+                "minReplicas": {
+                    "type": "number",
+                    "minimum": 0,
+                },
+                "maxReplicas": {
+                    "type": "number",
+                    "minimum": 0,
+                },
+                "metrics": {
+                    "type": "object",
+                    "required": ["type", "resource"],
+                    "properties": {
+                        "type": {
+                            "type": "string",
+                            "pattern": K8S_RES_NAME_PATTERN
+                        },
+                        "resource": {
+                            "type": "object",
+                            "required": ["name", "targetAverageUtilization"],
+                            "properties": {
+                                "name": {
+                                    "type": "string",
+                                    "pattern": K8S_RES_NAME_PATTERN
+                                },
+                                "targetAverageUtilization": {
+                                    "type": "string",
+                                    "pattern": K8S_RES_NAME_PATTERN
+                                },
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

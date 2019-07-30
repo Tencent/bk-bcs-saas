@@ -45,7 +45,7 @@ urlpatterns = [
 
     # 资源：更新/删除，即创建新的版本
     url(
-        r'^api/configuration/(?P<project_id>\w{32})/version/(?P<version_id>\d+)/(?P<resource_name>\w+)/'
+        r'^api/configuration/(?P<project_id>\w{32})/version/(?P<version_id>\d+)/(?P<resource_name>[\w\-]+)/'
         r'(?P<resource_id>\d+)/$', views.UpdateDestroyAppResourceView.as_view()),
 
     # 根据版本id查询所有的资源id

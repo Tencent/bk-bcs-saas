@@ -27,7 +27,7 @@ from .constants import RESOURCE_NAMES, K8sResourceName, MesosResourceName
 
 SLZ_CLASS = [kserializers.K8sDeploymentSLZ, kserializers.K8sDaemonsetSLZ, kserializers.K8sJobSLZ,
              kserializers.K8sStatefulSetSLZ, kserializers.K8sServiceSLZ, kserializers.K8sConfigMapSLZ,
-             kserializers.K8sSecretSLZ, kserializers.K8sIngressSLZ, mserializers.ApplicationSLZ,
+             kserializers.K8sSecretSLZ, kserializers.K8sIngressSLZ, kserializers.K8SHPASLZ, mserializers.ApplicationSLZ,
              mserializers.DeploymentSLZ, mserializers.ServiceSLZ,
              mserializers.ConfigMapSLZ, mserializers.SecretSLZ]
 RESOURCE_SLZ_MAP = dict(zip(RESOURCE_NAMES, SLZ_CLASS))

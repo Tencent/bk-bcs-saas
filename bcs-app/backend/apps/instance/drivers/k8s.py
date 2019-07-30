@@ -289,3 +289,21 @@ class Scheduler(SchedulerBase):
             namespace=ns, metric_name=name, cluster_type='k8s')
         if result.get('code') != 0:
             raise ComponentError(result.get('message', ''))
+
+    def handler_k8s_hpa(self, ns, cluster_id, spec):
+        """下发HPA配置
+        """
+        client = K8SClient(self.access_token, self.project_id, cluster_id, env=None)
+        spec['apiVersion'] = 'autoscaling/v2beta2'
+        try:
+            result = client.create_hpa(ns, spec)
+        except Exception as error:
+            logger.exception('create hpa error, %s', error)
+            import ipdb
+            ipdb.set_trace()
+            raise Rollback(result)
+        return result
+
+    def rollback_k8s_hpa(self, ns, cluster_id, spec):
+        """回滚HPA
+        """

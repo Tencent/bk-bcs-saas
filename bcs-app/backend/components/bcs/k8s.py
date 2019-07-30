@@ -22,6 +22,9 @@ from backend.components.utils import http_get, http_patch, http_delete, http_put
 from backend.utils.errcodes import ErrorCode
 from backend.utils.exceptions import ComponentError
 from backend.components.bcs import BCSClientBase
+from kubernetes import client
+from kubernetes.client.rest import ApiException
+from django.utils.functional import cached_property
 
 logger = logging.getLogger(__name__)
 
@@ -39,6 +42,27 @@ HTTP_KWARGS = {
 class K8SClient(BCSClientBase):
     """K8S Client
     """
+
+    @cached_property
+    def k8s_raw_client(self):
+        context = {}
+        cluster_info = self.query_cluster()
+        context.update(cluster_info)
+
+        credentials = self.get_client_credentials(cluster_info['id'])
+        context.update(credentials)
+
+        configure = client.Configuration()
+        configure.verify_ssl = False
+        configure.host = f"{self._bcs_server_host}{context['server_address_path']}".rstrip('/')
+        configure.api_key = {"authorization": f"Bearer {context['user_token']}"}
+        api_client = client.ApiClient(configure)
+        return api_client
+
+    @property
+    def hpa_client(self):
+        api_client = client.AutoscalingV2beta2Api(self.k8s_raw_client)
+        return api_client
 
     @property
     def storage_host(self):
@@ -879,3 +903,40 @@ class K8SClient(BCSClientBase):
         # 已经创建的会返回500, code_name: CANNOT_CREATE_RTOKEN
         result = http_post(url, params=params, headers=headers, raise_for_status=False)
         return result
+
+    def list_hpa(self, namespace=None):
+        """获取hpa
+        - namespace 为空则获取全部
+        """
+        if namespace:
+            data = self.hpa_client.list_namespaced_horizontal_pod_autoscaler(namespace)
+        else:
+            data = self.hpa_client.list_horizontal_pod_autoscaler_for_all_namespaces()
+        return data
+
+    def get_hpa(self, namespace, name):
+        return self.hpa_client.read_namespaced_horizontal_pod_autoscaler(namespace, name)
+
+    def create_hpa(self, namespace, spec):
+        """创建HPA
+        """
+        # _preload_content 设置为True, 修复kubernetes condition 异常
+        return self.hpa_client.create_namespaced_horizontal_pod_autoscaler(namespace, spec, _preload_content=False)
+
+    def update_hpa(self, namespace, name, spec):
+        """修改HPA
+        """
+        return self.hpa_client.patch_namespaced_horizontal_pod_autoscaler(namespace, name, spec)
+
+    def delete_hpa(self, namespace, name):
+        return self.hpa_client.delete_namespaced_horizontal_pod_autoscaler(namespace, name)
+
+    def apply_hpa(self, namespace, spec):
+        """部署HPA
+        """
+        name = spec.get('name')
+        resource = self.get_hpa(namespace, name)
+        if resource:
+            return self.update_hpa(namespace, name, spec)
+        else:
+            return self.create_hpa(namespace, spec)

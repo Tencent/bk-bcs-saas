@@ -50,7 +50,7 @@ error_codes.add_codes([
     ErrorCodeCls("DBOperError", u"DB操作异常", 400),
 ])
 
-OTHER_CATEGORY = ["service", "secret", "configmap", "K8sSecret", "K8sConfigMap", "K8sService", "K8sIngress"]
+OTHER_CATEGORY = ["service", "secret", "configmap", "K8sSecret", "K8sConfigMap", "K8sService", "K8sIngress", "K8sHPA"]
 
 
 class BaseAPI(views.APIView):
