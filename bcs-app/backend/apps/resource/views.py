@@ -806,24 +806,3 @@ def data_handler(data, project_id):
         else:
             ret_data.append(info)
     return ret_data
-
-
-class HPA(viewsets.ViewSet, BaseAPI, ResourceOperate):
-    render_classes = (BKAPIRenderer,)
-
-    def list(self, request, project_id):
-        """ 获取项目下所有的secrets """
-        cluster_dicts = self.get_project_cluster_info(request, project_id)
-        cluster_data = cluster_dicts.get('results', {}) or {}
-        access_token = request.user.token.access_token
-        data = []
-        for cluster_info in cluster_data:
-            cluster_id = cluster_info.get('cluster_id')
-            cluster_env = cluster_info.get('environment')
-            client = k8s.K8SClient(access_token, project_id, cluster_id, env=cluster_env)
-            hpa = client.list_hpa()
-            data.extend(hpa.to_dict()['items'])
-
-        # 按时间倒序排列
-        data.sort(key=lambda x: x.get('createTime', ''), reverse=True)
-        return Response(data)
