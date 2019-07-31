@@ -140,6 +140,7 @@ bcs-projmgr/pm/gradle/
 bcs-projmgr/pm/gradlew
 bcs-projmgr/pm/gradlew.bat
 bcs-projmgr/pm/version.txt
+bcs-projmgr/pm/common/common-*/out
 
 # devops frontend
 bcs-projmgr/frontend/.DS_Store
