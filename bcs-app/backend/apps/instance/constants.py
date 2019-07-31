@@ -294,8 +294,6 @@ service 中添加:
 LB_LABLES = copy.deepcopy(BCS_LABELS)
 LB_LABLES["loadbalance"] = "{{SYS_BCSGROUP}}"
 LB_LABLES[LABLE_PROJECT_ID] = "{{SYS_PROJECT_ID}}"
-# 测试环境要做资源限制
-LB_CPU = "0.1" if settings.IS_CUP_LIMIT else "3"
 
 LB_SYS_CONFIG = {
     "apiVersion": "v4",
