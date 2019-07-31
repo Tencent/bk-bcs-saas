@@ -194,10 +194,13 @@ class K8sService(K8sResource, ResourceMixin):
         svc_list = []
         svc_qsets = cls.objects.filter(id__in=resource_id_list)
         for svc in svc_qsets:
-            svc_list.append({
+            ports = svc.get_ports_config()
+            svc_info = {
                 'service_tag': svc.service_tag,
-                'service_name': svc.name
-            })
+                'service_name': svc.name,
+                'service_ports': [p.get('port') for p in ports if p.get('port')]
+            }
+            svc_list.append(svc_info)
         return svc_list
 
     def get_res_config(self, is_simple):
