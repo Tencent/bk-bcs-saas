@@ -915,7 +915,7 @@ class K8SClient(BCSClientBase):
         return data
 
     def get_hpa(self, namespace, name):
-        return self.hpa_client.read_namespaced_horizontal_pod_autoscaler(namespace, name)
+        return self.hpa_client.read_namespaced_horizontal_pod_autoscaler(name, namespace)
 
     def create_hpa(self, namespace, spec):
         """创建HPA
@@ -926,17 +926,27 @@ class K8SClient(BCSClientBase):
     def update_hpa(self, namespace, name, spec):
         """修改HPA
         """
-        return self.hpa_client.patch_namespaced_horizontal_pod_autoscaler(namespace, name, spec)
+        return self.hpa_client.patch_namespaced_horizontal_pod_autoscaler(name, namespace, spec)
 
     def delete_hpa(self, namespace, name):
-        return self.hpa_client.delete_namespaced_horizontal_pod_autoscaler(namespace, name)
+        return self.hpa_client.delete_namespaced_horizontal_pod_autoscaler(name, namespace)
 
     def apply_hpa(self, namespace, spec):
         """部署HPA
         """
-        name = spec.get('name')
-        resource = self.get_hpa(namespace, name)
-        if resource:
-            return self.update_hpa(namespace, name, spec)
+        name = spec['metadata']['name']
+        try:
+            self.get_hpa(namespace, name)
+        except client.rest.ApiException as error:
+            if error.status == 404:
+                result = self.create_hpa(namespace, spec)
+                logger.info('hpa not found, create a new hpa, %s', result)
+                return result
+            else:
+                logger.error('get hpa error: %s', error)
+                raise error
+        except Exception as error:
+            logger.exception('get hpa exception: %s', error)
         else:
-            return self.create_hpa(namespace, spec)
+            logger.info('hpa found, create a new hpa, %s, %s', namespace, spec)
+            return self.update_hpa(namespace, name, spec)

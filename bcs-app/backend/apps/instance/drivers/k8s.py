@@ -296,12 +296,10 @@ class Scheduler(SchedulerBase):
         client = K8SClient(self.access_token, self.project_id, cluster_id, env=None)
         spec['apiVersion'] = 'autoscaling/v2beta2'
         try:
-            result = client.create_hpa(ns, spec)
+            result = client.apply_hpa(ns, spec)
         except Exception as error:
-            logger.exception('create hpa error, %s', error)
-            import ipdb
-            ipdb.set_trace()
-            raise Rollback(result)
+            logger.exception('deploy hpa error, %s', error)
+            raise Rollback({})
         return result
 
     def rollback_k8shpa(self, ns, cluster_id, spec):
