@@ -216,6 +216,7 @@
                                                     <a href="javascript:void(0);" class="bk-text-button" @click.stop="showLog(node)">查看日志</a>
                                                     <template v-if="node.status === 'delete_failed'">
                                                         <a href="javascript:void(0);" class="bk-text-button" @click.stop="delFailedNode(node, index)">删除</a>
+                                                        <a href="javascript:void(0);" class="bk-text-button" @click.stop="showFaultRemove(node, index)">故障移除</a>
                                                     </template>
                                                     <template v-else-if="node.status === 'remove_failed'">
                                                         <a href="javascript:void(0);" class="bk-text-button" @click.stop="reTryDel(node, index)">重试</a>
@@ -329,6 +330,7 @@
                                                 <td style="text-align: left;">
                                                     <a href="javascript:void(0);" class="bk-text-button" @click.stop="showDelNode(node, index)">删除</a>
                                                     <a href="javascript:void(0);" class="bk-text-button" @click.stop="showForceDelNode(node, index)">强制删除</a>
+                                                    <a href="javascript:void(0);" class="bk-text-button" @click.stop="showFaultRemove(node, index)">故障移除</a>
                                                 </td>
                                             </template>
 
@@ -650,6 +652,19 @@
             :canceling-btn-text="'取消'"
             :confirm-callback="confirmForceRemoveNode"
             :cancel-callback="cancelForceRemoveNode">
+        </tip-dialog>
+
+        <tip-dialog
+            ref="faultRemoveDialog"
+            icon="bk-icon icon-exclamation-triangle"
+            :show-close="false"
+            sub-title="此操作无法撤回，请确认： "
+            :check-list="faultRemoveoticeList"
+            :confirm-btn-text="'确定'"
+            :confirming-btn-text="'移除中...'"
+            :canceling-btn-text="'取消'"
+            :confirm-callback="confirmFaultRemove"
+            :cancel-callback="cancelFaultRemove">
         </tip-dialog>
 
         <bk-dialog
