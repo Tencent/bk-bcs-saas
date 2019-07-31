@@ -241,27 +241,6 @@ K8S_HPA_SYS_CONFIG = {
         "labels": PUBLIC_LABELS,
         "annotations": PUBLIC_ANNOTATIONS,
     },
-    "spec": {
-        "maxReplicas": 10,
-        "minReplicas": 1,
-        "scaleTargetRef": {
-            "apiVersion": "extensions/v1beta1",
-            "kind": "Deployment",
-            "name": "hpa-test"
-        },
-        "metrics": [
-            {
-                "type": "Resource",
-                "resource": {
-                    "name": "cpu",
-                    "target": {
-                        "type": "Utilization",
-                        "averageUtilization": 20
-                    }
-                }
-            }
-        ]
-    }
 }
 
 # k8s 资源限制单位
