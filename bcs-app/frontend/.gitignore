@@ -81,3 +81,5 @@ webpack-stats.json
 *.bak*
 .cache
 static
+
+mock/ajax/app/cluster.js

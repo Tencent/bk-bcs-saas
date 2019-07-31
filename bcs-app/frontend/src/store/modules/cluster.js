@@ -750,7 +750,7 @@ export default {
         },
 
         /**
-         * 移除节点 /api/projects/b37778ec757544868a01e1f01f07037f/cluster/BCS-K8S-15007/node/297/failed_delete/
+         * 移除节点 /api/projects/(?P[\w-]+)/cluster/(?P[\w-]+)/node/(?P\d+)/failed_delete/
          *
          * @param {Object} context store 上下文对象
          * @param {string} projectId 项目 id
@@ -769,9 +769,39 @@ export default {
             )
         },
 
+        /**
+         * 设置 helm enable
+         *
+         * @param {Object} context store 上下文对象
+         * @param {string} projectId 项目 id
+         * @param {string} clusterId 集群 id
+         * @param {string} nodeId 节点 id 即 ip
+         * @param {Object} config 请求的配置
+         *
+         * @return {Promise} promise 对象
+         */
         enableClusterHelm (context, { projectId, clusterId }, config = {}) {
             const url = `${DEVOPS_BCS_API_URL}/api/bcs/k8s/configuration/${projectId}/helm_init/?cluster_id=${clusterId}`
             return http.post(url, { cluster_id: clusterId }, config)
+        },
+
+        /**
+         * 移除故障节点 /api/projects/(?P[\w-]+)/clusters/(?P[\w-]+)/nodes/(?P\d+)/
+         *
+         * @param {Object} context store 上下文对象
+         * @param {string} projectId 项目 id
+         * @param {string} clusterId 集群 id
+         * @param {string} nodeId 节点 id 即 ip
+         * @param {Object} config 请求的配置
+         *
+         * @return {Promise} promise 对象
+         */
+        faultRemoveNode (context, { projectId, clusterId, nodeId }, config = {}) {
+            return http.delete(
+                `${DEVOPS_BCS_API_URL}/api/projects/${projectId}/clusters/${clusterId}/nodes/${nodeId}/`,
+                {},
+                config
+            )
         }
     }
 }
