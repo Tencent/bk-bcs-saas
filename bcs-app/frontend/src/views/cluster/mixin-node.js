@@ -71,6 +71,13 @@ export default {
                     isChecked: false
                 }
             ],
+            faultRemoveoticeList: [
+                {
+                    id: 1,
+                    text: '仅删除节点的信息记录，需要手动清理节点及其服务',
+                    isChecked: false
+                }
+            ],
             // nodeList 分页配置
             nodeListPageConf: {
                 // 总数
@@ -1451,6 +1458,75 @@ export default {
             }, 300)
             this.curNode = null
             this.curNodeIndex = -1
+            this.cancelLoop = false
+            this.refreshWithCurCondition()
+        },
+
+        /**
+         * 显示故障移除节点弹框
+         *
+         * @param {Object} node 节点对象
+         * @param {number} index 节点对象在节点管理中的索引
+         */
+        async showFaultRemove (node, index) {
+            if (!node.permissions.edit) {
+                await this.$store.dispatch('getResourcePermissions', {
+                    project_id: this.projectId,
+                    policy_code: 'edit',
+                    resource_code: this.curClusterInPage.cluster_id,
+                    resource_name: this.curClusterInPage.name,
+                    resource_type: `cluster_${this.curClusterInPage.environment === 'stag' ? 'test' : 'prod'}`
+                })
+            }
+
+            this.curNode = Object.assign({}, node)
+            this.curNodeIndex = index
+            this.$refs.faultRemoveDialog.title = `确定移除故障节点：${node.inner_ip}？`
+            this.$refs.faultRemoveDialog.show()
+        },
+
+        /**
+         * 故障移除节点
+         */
+        async confirmFaultRemove () {
+            const node = this.curNode
+
+            this.$refs.faultRemoveDialog.isConfirming = true
+            try {
+                await this.$store.dispatch('cluster/faultRemoveNode', {
+                    projectId: node.project_id,
+                    clusterId: node.cluster_id,
+                    nodeId: node.id
+                })
+                this.$refs.faultRemoveDialog.isConfirming = false
+
+                this.$set(this.nodeList, this.curNodeIndex, this.curNode)
+                this.$set(this.nodeListTmp, this.curNodeIndex, this.curNode)
+                this.cancelLoop = false
+                this.refreshWithCurCondition()
+
+                this.resetBatchStatus()
+
+                setTimeout(() => {
+                    this.curNode = null
+                    this.curNodeIndex = -1
+                }, 200)
+            } catch (e) {
+                this.$refs.faultRemoveDialog.isConfirming = false
+                catchErrorHandler(e, this)
+            }
+        },
+
+        /**
+         * 故障移除节点弹层取消
+         */
+        cancelFaultRemove () {
+            setTimeout(() => {
+                this.$refs.faultRemoveDialog.title = '确定移除故障节点？'
+            }, 300)
+            this.curNode = null
+            this.curNodeIndex = -1
+            this.$refs.faultRemoveDialog.isConfirming = false
             this.cancelLoop = false
             this.refreshWithCurCondition()
         },
