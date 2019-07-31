@@ -27,7 +27,7 @@ from .models import (Template, VersionedEntity, Application, get_app_resource, S
                      MODULE_DICT, POD_RES_LIST, K8sService, K8sStatefulSet, CATE_SHOW_NAME)
 from .constants_bak import APPLICATION_SCHEMA, DEPLPYMENT_SCHNEA, SERVICE_SCHEM, CONFIGMAP_SCHEM, SECRET_SCHEM
 from .constants_k8s import (K8S_SECRET_SCHEM, K8S_CONFIGMAP_SCHEM, K8S_SERVICE_SCHEM, K8S_DEPLPYMENT_SCHNEA,
-                            K8S_DAEMONSET_SCHNEA, K8S_JOB_SCHNEA, K8S_STATEFULSET_SCHNEA, AFFINITY_SCHNEA)
+                            K8S_DAEMONSET_SCHNEA, K8S_JOB_SCHNEA, K8S_STATEFULSET_SCHNEA, AFFINITY_SCHNEA, K8S_HPA_SCHNEA)
 from backend.apps.configuration.utils import get_real_category, check_var_by_config
 from backend.apps.instance.models import VersionInstance, InstanceConfig
 from backend.accounts import bcs_perm
@@ -558,20 +558,19 @@ class K8sHPACreateOrUpdateSLZ(serializers.Serializer):
     def validate_config(self, config):
         name = config.get('metadata', {}).get('name') or ""
         if not K8S_RENAME.match(name):
-            raise ValidationError(
-                u"Secret %s" % K8S_NAME_ERROR_MSG)
+            raise ValidationError("HPA %s" % K8S_NAME_ERROR_MSG)
 
         if settings.IS_TEMPLATE_VALIDATE:
             try:
-                json_validate(config, K8S_SECRET_SCHEM)
+                json_validate(config, K8S_HPA_SCHNEA)
             except JsonValidationError as e:
-                raise ValidationError(u"Secret 配置信息格式错误:%s" % e.message)
+                raise ValidationError("HPA 配置信息格式错误:%s" % e.message)
             except SchemaError as e:
-                raise ValidationError(u"Secret 配置信息格式错误:%s" % e)
+                raise ValidationError("HPA 配置信息格式错误:%s" % e)
 
         return json.dumps(config)
 
     def validate(self, data):
         config = json.loads(data['config'])
         name = config.get('metadata', {}).get('name') or ""
-        return check_resource_name("K8sSecret", data, name)
+        return check_resource_name("K8sHPA", data, name)
