@@ -67,7 +67,6 @@ class SchedulerBase(object):
         config = sorted(
             config.items(), key=lambda x: self.INIT_ORDERING.get(x[0], math.inf))
         for res, specs in config:
-            res = res.replace('-', '_')
             if is_update:
                 handler = getattr(self, 'handler_update_%s' %
                                   res.lower(), None)

@@ -1635,8 +1635,8 @@ class K8sStatefulSetGenerator(K8sDeploymentGenerator):
         remove_key(db_config['spec'], 'strategy')
         return db_config
 
-class K8SHPAGenerator(K8sProfileGenerator):
-    resource_name = "K8S-HPA"
+class K8sHPAGenerator(K8sProfileGenerator):
+    resource_name = "K8sHPA"
     resource_sys_config = instance_constants.K8S_HPA_SYS_CONFIG
 
 
@@ -1656,5 +1656,5 @@ GENERATOR_DICT = {
     "K8sJob": K8sJobGenerator,
     "K8sStatefulSet": K8sStatefulSetGenerator,
     "K8sIngress": K8sIngressGenerator,
-    "K8S-HPA": K8SHPAGenerator,
+    "K8sHPA": K8sHPAGenerator,
 }

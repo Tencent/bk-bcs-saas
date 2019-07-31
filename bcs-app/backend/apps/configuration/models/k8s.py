@@ -265,7 +265,7 @@ CATE_SHOW_NAME = {
     "K8sJob": "Job",
     "K8sStatefulSet": "StatefulSet",
     "K8sIngress": "Ingress",
-    "K8S-HPA": "HPA"
+    "K8sHPA": "HPA",
 }
 
 # 资源类型在前端展示的缩写名称
@@ -284,5 +284,5 @@ CATE_ABBR_NAME = {
     "K8sJob": "job",
     "K8sStatefulSet": "sts",
     "K8sIngress": "Ing",
-    "K8S-HPA": "hpa"
+    "K8sHPA": "hpa"
 }

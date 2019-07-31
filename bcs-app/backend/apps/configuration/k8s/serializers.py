@@ -174,5 +174,5 @@ class K8sServiceSLZ(BCSResourceSLZ):
 
         return data
 
-class K8SHPASLZ(BCSResourceSLZ):
-    resource_name = serializers.CharField(default=K8sResourceName.K8SHPA.value)
+class K8sHPASLZ(BCSResourceSLZ):
+    resource_name = serializers.CharField(default=K8sResourceName.K8sHPA.value)

@@ -290,7 +290,7 @@ class Scheduler(SchedulerBase):
         if result.get('code') != 0:
             raise ComponentError(result.get('message', ''))
 
-    def handler_k8s_hpa(self, ns, cluster_id, spec):
+    def handler_k8shpa(self, ns, cluster_id, spec):
         """下发HPA配置
         """
         client = K8SClient(self.access_token, self.project_id, cluster_id, env=None)
@@ -304,6 +304,6 @@ class Scheduler(SchedulerBase):
             raise Rollback(result)
         return result
 
-    def rollback_k8s_hpa(self, ns, cluster_id, spec):
+    def rollback_k8shpa(self, ns, cluster_id, spec):
         """回滚HPA
         """

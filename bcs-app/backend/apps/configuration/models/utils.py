@@ -36,7 +36,7 @@ MODULE_DICT = {
     "K8sJob": K8sJob,
     "K8sStatefulSet": K8sStatefulSet,
     "K8sIngress": K8sIngress,
-    'K8S-HPA': K8sHPA
+    'K8sHPA': K8sHPA
 }
 
 
