@@ -15,12 +15,13 @@
 """
 import logging
 import json
+
 from django.utils import timezone
 from django.db import transaction
 from rest_framework.exceptions import ValidationError
 
 from backend.components import paas_cc
-from backend.apps.configuration.models import VersionedEntity, Template, ShowVersion, CATE_ABBR_NAME, MODULE_DICT
+from backend.apps.configuration.models import VersionedEntity, Template, ShowVersion, CATE_ABBR_NAME
 from backend.apps.instance.models import VersionInstance, InstanceConfig, MetricConfig
 from backend.apps.instance.generator import GENERATOR_DICT, get_bcs_context
 from backend.apps.instance.drivers import get_scheduler_driver
