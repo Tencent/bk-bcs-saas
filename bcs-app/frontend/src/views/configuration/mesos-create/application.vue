@@ -1875,14 +1875,14 @@
                                 value: ''
                             },
                             http: {
-                                port: '',
+                                port: 0,
                                 portName: '',
                                 scheme: 'http',
                                 path: '',
                                 headers: {}
                             },
                             tcp: {
-                                port: '',
+                                port: 0,
                                 portName: ''
                             }
                         }
