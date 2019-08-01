@@ -1016,7 +1016,7 @@
                                                                                 placeholder="请输入"
                                                                                 style="width: 100px;"
                                                                                 :min="0"
-                                                                                :value.sync="curContainer.healthChecks[0].tmeoutSeconds"
+                                                                                :value.sync="curContainer.healthChecks[0].timeoutSeconds"
                                                                                 :list="varList"
                                                                             >
                                                                             </bk-input>
@@ -1046,13 +1046,18 @@
                                                                             <span class="input-group-addon">
                                                                                 次失败
                                                                             </span>
+                                                                            <bk-tooltip content="健康检查连续失败的次数，达到次数后会重新调度容器" placement="top">
+                                                                                <span class="bk-badge ml5">
+                                                                                    <i class="bk-icon icon-question" style="cursor: pointer;"></i>
+                                                                                </span>
+                                                                            </bk-tooltip>
                                                                         </div>
                                                                     </div>
                                                                 </div>
 
                                                                 <div class="bk-form-inline-item">
-                                                                    <label class="bk-label" style="width: 130px;">健康阈值：</label>
-                                                                    <div class="bk-form-content" style="margin-left: 130px;">
+                                                                    <label class="bk-label" style="width: 107px;">健康阈值：</label>
+                                                                    <div class="bk-form-content" style="margin-left: 107px;">
                                                                         <div class="bk-form-input-group">
                                                                             <bk-input
                                                                                 type="number"
@@ -1283,11 +1288,11 @@
                     {
                         id: 'REMOTE_TCP',
                         name: 'REMOTE_TCP'
-                    },
-                    {
-                        id: 'COMMAND',
-                        name: 'COMMAND'
                     }
+                    // {
+                    //     id: 'COMMAND',
+                    //     name: 'COMMAND'
+                    // }
                 ],
                 logList: [
                     {
@@ -1862,8 +1867,8 @@
                             type: '',
                             delaySeconds: 10,
                             intervalSeconds: 60,
-                            timeoutSeconds: 20,
-                            consecutiveFailures: 3,
+                            timeoutSeconds: 10,
+                            consecutiveFailures: 0,
                             gracePeriodSeconds: 10,
                             command: {
                                 portName: '',

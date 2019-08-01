@@ -36,7 +36,7 @@
             "type": "",
             "delaySeconds": 10,
             "intervalSeconds": 60,
-            "timeoutSeconds": 20,
+            "timeoutSeconds": 10,
             "consecutiveFailures": 0,
             "gracePeriodSeconds": 10,
             "command": {
