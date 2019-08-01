@@ -120,7 +120,7 @@
                                         "value": ""
                                     },
                                     "http": {
-                                        "port": "",
+                                        "port": 0,
                                         "portName": "",
                                         "scheme": "http",
                                         "path": "",
@@ -128,7 +128,7 @@
                                         }
                                     },
                                     "tcp": {
-                                        "port": "",
+                                        "port": 0,
                                         "portName": ""
                                     }
                                 }
