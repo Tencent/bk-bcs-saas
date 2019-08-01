@@ -353,8 +353,7 @@
                     total: 0,
                     totalPage: 1,
                     pageSize: 10,
-                    curPage: 1,
-                    show: true
+                    curPage: 1
                 },
                 batchDialogConfig: {
                     isShow: false,
@@ -451,14 +450,6 @@
                 this.pageConf.pageSize = pageSize
                 this.pageConf.curPage = 1
                 this.getDataByPage()
-            },
-
-            /**
-             * 清空搜索
-             */
-            clearSearch () {
-                this.searchKeyword = ''
-                this.searchVar()
             },
 
             /**
@@ -751,6 +742,9 @@
                 this.pageConf.totalPage = Math.ceil(this.pageConf.total / this.pageConf.pageSize)
                 if (this.pageConf.curPage > this.pageConf.totalPage) {
                     this.pageConf.curPage = this.pageConf.totalPage
+                }
+                if (this.pageConf.curPage === 0) {
+                    this.pageConf.curPage = 1
                 }
             },
 
