@@ -57,10 +57,9 @@ from backend.apps.instance.constants import (K8S_SECRET_SYS_CONFIG, K8S_CONFIGMA
 from backend.utils.func_controller import get_func_controller
 from backend.apps.instance.utils_pub import get_cluster_version
 from backend.apps.ticket.models import TlsCert
-from backend.utils.error_codes import error_codes
+from backend.apps.instance.resources.utils import handle_number_var
 
 logger = logging.getLogger(__name__)
-REAL_NUM_VAR_PATTERN = re.compile(r"%s" % NUM_VAR_PATTERN)
 HANDLED_NUM_VAR_PATTERN = re.compile(r"%s}" % NUM_VAR_PATTERN)
 mesos_res_mapping = OrderedDict()
 
@@ -365,35 +364,6 @@ class ProfileGenerator:
         return metric_lables
 
 
-def is_rate_number(var):
-    try:
-        if var[-1] != '%':
-            return False
-        int(var[:-1])
-    except Exception:
-        return False
-    return True
-
-
-def handle_number_var(var, name, is_preview, is_validate=True):
-    if isinstance(var, int) or isinstance(var, float):
-        return var
-
-    if is_rate_number(var):
-        return var
-
-    # 预览模式下将变量添加 }，标识前端需要将该值转成数字
-    if is_preview:
-        if REAL_NUM_VAR_PATTERN.match(var):
-            return var.replace("}}", "}}}")
-    try:
-        var = int(var)
-    except Exception:
-        if is_validate:
-            raise error_codes.ValidateError(f"{name} 的值[{var}]不是一个有效数字")
-    return var
-
-
 def handle_k8s_api_version(config_profile, cluster_id, cluster_version, controller_type):
     # 由功能开关控制是否在配置文件中添加 apiVersion 字段
 
@@ -546,28 +516,10 @@ class ApplicationProfileGenerator(MesosProfileGenerator):
                         self.is_preview, self.is_validate)
                     remove_key(_p, 'isDisabled')
                     remove_key(_p, 'isLink')
+
             # 2.2 处理 healthChecks 中的字段
-            health_checks = _c.get('healthChecks')
-            for _h in range(len(health_checks) - 1, -1, -1):
-                _h_value = health_checks[_h]
-                _type = _h_value.get('type')
-                if not _h_value.get(_type, {}).get('portName'):
-                    health_checks.pop(_h)
-                _h_value['delaySeconds'] = handle_number_var(
-                    _h_value['delaySeconds'], "Application[%s]delaySeconds" % self.resource_show_name,
-                    self.is_preview, self.is_validate)
-                _h_value['intervalSeconds'] = handle_number_var(
-                    _h_value['intervalSeconds'], "Application[%s]intervalSeconds" % self.resource_show_name,
-                    self.is_preview, self.is_validate)
-                _h_value['timeoutSeconds'] = handle_number_var(
-                    _h_value['timeoutSeconds'], "Application[%s]timeoutSeconds" % self.resource_show_name,
-                    self.is_preview, self.is_validate)
-                _h_value['consecutiveFailures'] = handle_number_var(
-                    _h_value['consecutiveFailures'], "Application[%s]consecutiveFailures" %
-                                                     self.resource_show_name, self.is_preview, self.is_validate)
-                _h_value['gracePeriodSeconds'] = handle_number_var(
-                    _h_value['gracePeriodSeconds'], "Application[%s]gracePeriodSeconds" %
-                                                    self.resource_show_name, self.is_preview, self.is_validate)
+            self.pod.set_health_checks(_c.get('healthChecks'), self.resource_show_name, self.is_preview,
+                                       self.is_validate)
 
             # 2.3 处理 resources 资源限制
             self.pod.set_resources(_c.get('resources', {}))

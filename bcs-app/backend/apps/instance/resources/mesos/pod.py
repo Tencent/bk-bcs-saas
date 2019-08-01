@@ -12,9 +12,20 @@
 # specific language governing permissions and limitations under the License.
 #
 from backend.apps.instance.resources import BCSResource
+from backend.apps.instance.resources import utils
+
+SUPPORTED_HEALTH_CHECKS = ['HTTP', 'REMOTE_HTTP', 'TCP', 'REMOTE_TCP']
 
 
 class Pod(BCSResource):
+
+    def _health_checks_params_to_int(self, health_check, resource_name, is_preview, is_validate):
+        common_check_params = ['delaySeconds', 'intervalSeconds', 'timeoutSeconds', 'consecutiveFailures',
+                               'gracePeriodSeconds']
+        for p in common_check_params:
+            health_check[p] = utils.handle_number_var(health_check[p], f'Application[{resource_name}]{p}', is_preview,
+                                                      is_validate)
+
     def set_resources(self, resources):
         limits = resources.get('limits') or {}
         limits['cpu'] = str(limits.get('cpu') or '')
@@ -23,3 +34,15 @@ class Pod(BCSResource):
         requests = resources.get('requests') or {}
         requests['cpu'] = str(requests.get('cpu') or '')
         requests['memory'] = str(requests.get('memory') or '')
+
+    def set_health_checks(self, health_checks, resource_name, is_preview, is_validate):
+        if not health_checks:
+            return
+
+        # only one
+        hc = health_checks[0]
+        if hc.get('type') not in SUPPORTED_HEALTH_CHECKS:
+            del health_checks[0]
+            return
+
+        self._health_checks_params_to_int(hc, resource_name, is_preview, is_validate)
