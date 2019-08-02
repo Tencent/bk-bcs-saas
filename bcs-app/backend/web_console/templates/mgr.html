@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <link rel="stylesheet" href="{{ settings.SITE_STATIC_URL }}/assets/vue/bk-magic-vue.min.css">
+    <title>BCS Console Mgr</title>
+    <style type="text/css">
+        .console-iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+            background: #000;
+        }
+
+        .bk-tab-section {
+            border: none;
+        }
+
+        .bk-tab-content {
+            background: #000;
+            padding: 20px;
+        }
+
+        .bk-tab-section {
+            padding: 0;
+        }
+
+        .close {
+            width: 24px;
+            height: 24px;
+            text-align: center;
+            line-height: 24px;
+            display: inline-block;
+            font-style: normal;
+            font-size: 12px;
+            background: #eee;
+            border-radius: 50%;
+            overflow: hidden;
+            vertical-align: middle;
+            margin-left: 10px;
+            color: #999;
+            cursor: pointer;
+            transform: scale(0.9);
+        }
+
+        #app .bk-dropdown-menu {
+            display: inline-block;
+            position: relative;
+            position: absolute;
+            left: 0;
+            top: 42px;
+            z-index: 1000;
+            background: #fff;
+            width: 200px;
+        }
+
+        [v-cloak] {
+            display: none;
+        }
+    </style>
+</head>
+
+<body style="background-color: #000;">
+    <div id="app">
+        $[clusterList]
+        <bk-tab addable :active.sync="active" :closable="closable" @add-panel="addPanel" @close-panel="closePanel">
+            <bk-tab-panel v-for="(panel, index) in panels" v-bind="panel" :key="index">
+                <iframe :src="panel.url" class="console-iframe"
+                    :style="{width: `${winWidth - 40}px`, height: `${winHeight - 40}px`}"></iframe>
+            </bk-tab-panel>
+        </bk-tab>
+
+        <div class="bk-dropdown-menu" :style="{left: `${dropdownLeft}px`}" v-cloak v-show="isDropdownShow">
+            <div class="bk-dropdown-content right-align is-show" v-cloak>
+                <ul class="bk-dropdown-list">
+                    <li>
+                        <a href="javascript:;" v-cloak @click="addTerminal(cluster)"
+                            v-for="cluster of clusterList">$[cluster.name]</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    <script src="{{ settings.SITE_STATIC_URL }}/assets/vue/vue.js"></script>
+    <script src="{{ settings.SITE_STATIC_URL }}/assets/vue/bk-magic-vue.min.js"></script>
+    <script src="{{ settings.SITE_STATIC_URL }}/assets/jquery.min.js"></script>
+    <script type="text/javascript">
+        var app = new Vue({
+            delimiters: ['$[', ']'],
+            el: '#app',
+            data: {
+                panels: [],
+                active: 'test',
+                winWidth: 1270,
+                winHeight: 500,
+                projectId: '',
+                siteUrl: '',
+                dropdownLeft: 0,
+                isDropdownShow: false,
+                clusterList: []
+            },
+            computed: {
+                closable() {
+                    return this.panels.length > 1
+                }
+            },
+            mounted() {
+                this.init()
+                console.log(this)
+            },
+            methods: {
+                init() {
+                    this.winWidth = $(window).width()
+                    this.winHeight = $(window).height()
+
+                    $(window).resize(function () {
+                        this.winWidth = $(window).width()
+                        this.winHeight = $(window).height()
+                        console.log(this.winWidth)
+
+                    })
+
+                    const params = this.parseUrlQuery()
+                    this.projectId = params.projectId
+                    this.siteUrl = params.siteUrl
+                    this.openTab(params)
+                    this.watchMessage()
+
+                    const cluster_url = '{{ settings.DEVOPS_BCS_API_URL }}/api/projects/{{ project_id }}/clusters?limit=1000'
+
+                    self = this
+                    $.getJSON(cluster_url, function (result) {
+                        self.clusterList = result.data.results
+                        console.log(self.clusterList)
+                    })
+                },
+                parseUrlQuery() {
+                    const obj = {}
+                    let keyvalue = []
+                    let url = window.location.href
+                    let key = ''
+                    let value = ''
+                    let paraString = url.substring(url.indexOf('?') + 1, url.length).split('&')
+
+                    for (const i in paraString) {
+                        keyvalue = paraString[i].split('=')
+                        key = keyvalue[0]
+                        value = keyvalue[1]
+                        obj[key] = value
+                    }
+                    return obj
+                },
+                openTab(data) {
+                    const self = this
+                    const clusterId = data.clusterId
+                    const clusterName = data.clusterName
+                    const siteUrl = data.siteUrl
+                    const url = `{{ settings.DEVOPS_BCS_API_URL }}/web_console/{{ project_id }}/cluster/${clusterId}/`
+                    console.log("open tab", url)
+
+                    const tabKeys = self.panels.map(item => {
+                        return item.name
+                    })
+
+                    if (!tabKeys.includes(clusterId)) {
+                        self.panels.push({
+                            name: clusterId,
+                            label: clusterName,
+                            url: url
+                        })
+                    }
+                    self.active = clusterId
+                    console.log(self.panels)
+                },
+                watchMessage() {
+                    const self = this
+                    window.addEventListener('message', function (event) {
+                        self.openTab(event.data)
+
+                    })
+
+                    window.onbeforeunload = function (e) {
+                        // return true
+                    }
+                },
+                closePanel(index, panel) {
+                    this.panels.splice(index, 1)
+                    this.isDropdownShow = false
+                },
+                addPanel() {
+                    this.dropdownLeft = $('.bk-tab-add-controller').offset().left
+                    this.isDropdownShow = true
+                },
+                addTerminal(cluster) {
+                    this.openTab({
+                        projectId: this.projectId,
+                        siteUrl: this.siteUrl,
+                        clusterId: cluster.cluster_id,
+                        clusterName: cluster.name
+                    })
+                    this.isDropdownShow = false
+                }
+            }
+        })
+    </script>
+</body>
+
+</html>

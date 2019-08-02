@@ -49,6 +49,14 @@ class IndexPageHandler(tornado.web.RequestHandler):
             'cluster_id': cluster_id}
         self.render('templates/index.html', **data)
 
+class MgrHandler(tornado.web.RequestHandler):
+    """管理页
+    """
+
+    def get(self, project_id, cluster_id):
+        data = {'settings': settings, 'project_id': project_id, 'cluster_id': cluster_id}
+        self.render('templates/mgr.html', **data)
+
 
 class BcsWebSocketHandler(tornado.websocket.WebSocketHandler):
     """WebSocket处理
