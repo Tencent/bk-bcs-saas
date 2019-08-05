@@ -46,14 +46,15 @@ CLEAN_USER_POD_INTERVAL = 60
 # 锁偏差时间常量
 LOCK_SHIFT = -2
 
-# 链接自动断开时间, 10分钟
-TICK_TIMEOUT = 60 * 10
-# 清理POD，2个小时
-USER_POD_EXPIRE_TIME = 3600 * 2
+# 链接自动断开时间, 30分钟
+TICK_TIMEOUT = 60 * 30
+# 清理POD，4个小时
+USER_POD_EXPIRE_TIME = 3600 * 4
 # Context 过期时间, 12个小时
 USER_CTX_EXPIRE_TIME = 3600 * 12
 
 WEB_CONSOLE_HEARTBEAT_KEY = 'bcs::web_console::heartbeat'
+LABEL_WEB_CONSOLE_CREATE_TIMESTAMP = 'io.tencent.web_console.create_timestamp'
 NAMESPACE = 'web-console'
 
 # 1080p页面测试得来
