@@ -206,11 +206,11 @@
                                                     {{node.status === 'initial_failed' || node.status === 'so_init_failed' || node.status === 'check_failed' || node.status === 'bke_failed' || node.status === 'schedule_failed' ? '初始化失败' : '删除失败'}}
                                                 </td>
                                                 <td>{{node.containers}}</td>
-                                                <td v-if="node.cpu !== null && node.cpu !== undefined"><ring-cell :percent="node.cpu" :fill-color="'#3ede78'"></ring-cell></td>
+                                                <td v-if="node.cpuMetric !== null && node.cpuMetric !== undefined"><ring-cell :percent="node.cpuMetric" :fill-color="'#3ede78'"></ring-cell></td>
                                                 <td v-else><loading-cell></loading-cell></td>
-                                                <td v-if="node.mem !== null && node.mem !== undefined"><ring-cell :percent="node.mem" :fill-color="'#3c96ff'"></ring-cell></td>
+                                                <td v-if="node.memMetric !== null && node.memMetric !== undefined"><ring-cell :percent="node.memMetric" :fill-color="'#3c96ff'"></ring-cell></td>
                                                 <td v-else><loading-cell></loading-cell></td>
-                                                <td v-if="node.io !== null && node.io !== undefined"><ring-cell :percent="node.io" :fill-color="'#853cff'"></ring-cell></td>
+                                                <td v-if="node.ioMetric !== null && node.ioMetric !== undefined"><ring-cell :percent="node.ioMetric" :fill-color="'#853cff'"></ring-cell></td>
                                                 <td v-else><loading-cell></loading-cell></td>
                                                 <td style="text-align: left;">
                                                     <a href="javascript:void(0);" class="bk-text-button" @click.stop="showLog(node)">查看日志</a>
@@ -241,11 +241,11 @@
                                                     不可调度
                                                 </td>
                                                 <td>{{node.containers}}</td>
-                                                <td v-if="node.cpu !== null && node.cpu !== undefined"><ring-cell :percent="node.cpu" :fill-color="'#3ede78'"></ring-cell></td>
+                                                <td v-if="node.cpuMetric !== null && node.cpuMetric !== undefined"><ring-cell :percent="node.cpuMetric" :fill-color="'#3ede78'"></ring-cell></td>
                                                 <td v-else><loading-cell></loading-cell></td>
-                                                <td v-if="node.mem !== null && node.mem !== undefined"><ring-cell :percent="node.mem" :fill-color="'#3c96ff'"></ring-cell></td>
+                                                <td v-if="node.memMetric !== null && node.memMetric !== undefined"><ring-cell :percent="node.memMetric" :fill-color="'#3c96ff'"></ring-cell></td>
                                                 <td v-else><loading-cell></loading-cell></td>
-                                                <td v-if="node.io !== null && node.io !== undefined"><ring-cell :percent="node.io" :fill-color="'#853cff'"></ring-cell></td>
+                                                <td v-if="node.ioMetric !== null && node.ioMetric !== undefined"><ring-cell :percent="node.ioMetric" :fill-color="'#853cff'"></ring-cell></td>
                                                 <td v-else><loading-cell></loading-cell></td>
                                                 <td>
                                                     <a href="javascript:void(0);" class="bk-text-button" @click.stop="enableNode(node, index)">允许调度</a>
@@ -282,11 +282,11 @@
                                                     不可调度
                                                 </td>
                                                 <td>{{node.containers}}</td>
-                                                <td v-if="node.cpu !== null && node.cpu !== undefined"><ring-cell :percent="node.cpu" :fill-color="'#3ede78'"></ring-cell></td>
+                                                <td v-if="node.cpuMetric !== null && node.cpuMetric !== undefined"><ring-cell :percent="node.cpuMetric" :fill-color="'#3ede78'"></ring-cell></td>
                                                 <td v-else><loading-cell></loading-cell></td>
-                                                <td v-if="node.mem !== null && node.mem !== undefined"><ring-cell :percent="node.mem" :fill-color="'#3c96ff'"></ring-cell></td>
+                                                <td v-if="node.memMetric !== null && node.memMetric !== undefined"><ring-cell :percent="node.memMetric" :fill-color="'#3c96ff'"></ring-cell></td>
                                                 <td v-else><loading-cell></loading-cell></td>
-                                                <td v-if="node.io !== null && node.io !== undefined"><ring-cell :percent="node.io" :fill-color="'#853cff'"></ring-cell></td>
+                                                <td v-if="node.ioMetric !== null && node.ioMetric !== undefined"><ring-cell :percent="node.ioMetric" :fill-color="'#853cff'"></ring-cell></td>
                                                 <td v-else><loading-cell></loading-cell></td>
                                                 <td style="text-align: left;">
                                                     <a href="javascript:void(0);" class="bk-text-button" @click.stop="enableNode(node, index)">允许调度</a>
@@ -321,11 +321,11 @@
                                                     不正常
                                                 </td>
                                                 <td>{{node.containers}}</td>
-                                                <td v-if="node.cpu !== null && node.cpu !== undefined"><ring-cell :percent="node.cpu" :fill-color="'#3ede78'"></ring-cell></td>
+                                                <td v-if="node.cpuMetric !== null && node.cpuMetric !== undefined"><ring-cell :percent="node.cpuMetric" :fill-color="'#3ede78'"></ring-cell></td>
                                                 <td v-else><loading-cell></loading-cell></td>
-                                                <td v-if="node.mem !== null && node.mem !== undefined"><ring-cell :percent="node.mem" :fill-color="'#3c96ff'"></ring-cell></td>
+                                                <td v-if="node.memMetric !== null && node.memMetric !== undefined"><ring-cell :percent="node.memMetric" :fill-color="'#3c96ff'"></ring-cell></td>
                                                 <td v-else><loading-cell></loading-cell></td>
-                                                <td v-if="node.io !== null && node.io !== undefined"><ring-cell :percent="node.io" :fill-color="'#853cff'"></ring-cell></td>
+                                                <td v-if="node.ioMetric !== null && node.ioMetric !== undefined"><ring-cell :percent="node.ioMetric" :fill-color="'#853cff'"></ring-cell></td>
                                                 <td v-else><loading-cell></loading-cell></td>
                                                 <td style="text-align: left;">
                                                     <a href="javascript:void(0);" class="bk-text-button" @click.stop="showDelNode(node, index)">删除</a>
@@ -354,11 +354,11 @@
                                                     不正常
                                                 </td>
                                                 <td>{{node.containers}}</td>
-                                                <td v-if="node.cpu !== null && node.cpu !== undefined"><ring-cell :percent="node.cpu" :fill-color="'#3ede78'"></ring-cell></td>
+                                                <td v-if="node.cpuMetric !== null && node.cpuMetric !== undefined"><ring-cell :percent="node.cpuMetric" :fill-color="'#3ede78'"></ring-cell></td>
                                                 <td v-else><loading-cell></loading-cell></td>
-                                                <td v-if="node.mem !== null && node.mem !== undefined"><ring-cell :percent="node.mem" :fill-color="'#3c96ff'"></ring-cell></td>
+                                                <td v-if="node.memMetric !== null && node.memMetric !== undefined"><ring-cell :percent="node.memMetric" :fill-color="'#3c96ff'"></ring-cell></td>
                                                 <td v-else><loading-cell></loading-cell></td>
-                                                <td v-if="node.io !== null && node.io !== undefined"><ring-cell :percent="node.io" :fill-color="'#853cff'"></ring-cell></td>
+                                                <td v-if="node.ioMetric !== null && node.ioMetric !== undefined"><ring-cell :percent="node.ioMetric" :fill-color="'#853cff'"></ring-cell></td>
                                                 <td v-else><loading-cell></loading-cell></td>
                                                 <td style="text-align: left;">
                                                     <a href="javascript:void(0);" class="bk-text-button" @click.stop="stopNode(node, index)">停止调度</a>

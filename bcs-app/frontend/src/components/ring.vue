@@ -97,6 +97,7 @@
         },
         watch: {
             percent (val) {
+                this.updateProcess(val)
                 this.queue.push(val)
                 if (this.timer) {
                     return
