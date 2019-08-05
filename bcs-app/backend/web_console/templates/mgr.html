@@ -54,27 +54,43 @@
             width: 200px;
         }
 
+        .bk-tab-label-wrapper .bk-tab-label-list .bk-tab-label-item {
+            min-width: 200px;
+        }
+
         [v-cloak] {
             display: none;
+        }
+
+        .mask {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            left: 0;
+            right: 0;
+            top: 0;
+            bottom: 0;
+            z-index: 1;
+            opacity: 0;
         }
     </style>
 </head>
 
 <body style="background-color: #000;">
     <div id="app">
-        $[clusterList]
-        <bk-tab addable :active.sync="active" :closable="closable" @add-panel="addPanel" @close-panel="closePanel">
+        <bk-tab addable :active.sync="active" :closable="closable" @add-panel="addPanel" @close-panel="closePanel"
+            v-bk-clickoutside="handleClick">
             <bk-tab-panel v-for="(panel, index) in panels" v-bind="panel" :key="index">
-                <iframe :src="panel.url" class="console-iframe"
-                    :style="{width: `${winWidth - 40}px`, height: `${winHeight - 40}px`}"></iframe>
+                <iframe @click="handleClick" :src="panel.url" class="console-iframe"
+                    :style="{width: `${winWidth - 40}px`, height: `${winHeight - 100}px`}"></iframe>
             </bk-tab-panel>
         </bk-tab>
-
+        <div class="mask" v-show="isDropdownShow"></div>
         <div class="bk-dropdown-menu" :style="{left: `${dropdownLeft}px`}" v-cloak v-show="isDropdownShow">
             <div class="bk-dropdown-content right-align is-show" v-cloak>
                 <ul class="bk-dropdown-list">
                     <li>
-                        <a href="javascript:;" v-cloak @click="addTerminal(cluster)"
+                        <a href="javascript:;" v-cloak @click.stop.prevent="addTerminal(cluster)"
                             v-for="cluster of clusterList">$[cluster.name]</a>
                     </li>
                 </ul>
@@ -89,6 +105,7 @@
             delimiters: ['$[', ']'],
             el: '#app',
             data: {
+                tabIndex: 0,
                 panels: [],
                 active: 'test',
                 winWidth: 1270,
@@ -106,7 +123,6 @@
             },
             mounted() {
                 this.init()
-                console.log(this)
             },
             methods: {
                 init() {
@@ -120,19 +136,27 @@
 
                     })
 
-                    const params = this.parseUrlQuery()
-                    this.projectId = params.projectId
-                    this.siteUrl = params.siteUrl
-                    this.openTab(params)
-                    this.watchMessage()
+                    // const params = this.parseUrlQuery()
+                    const url = window.location.href
+                    const reg = /mgr\/([\w\d]*)\/cluster\/([\w\d-]*)\//
+                    const matcher = url.match(reg)
 
-                    const cluster_url = '{{ settings.DEVOPS_BCS_API_URL }}/api/projects/{{ project_id }}/clusters?limit=1000'
+                    if (matcher) {
+                        this.projectId = matcher[1]
+                        this.watchMessage()
 
-                    self = this
-                    $.getJSON(cluster_url, function (result) {
-                        self.clusterList = result.data.results
-                        console.log(self.clusterList)
-                    })
+                        const cluster_url = '{{ settings.DEVOPS_BCS_API_URL }}/api/projects/{{ project_id }}/clusters?limit=1000'
+                        self = this
+                        $.getJSON(cluster_url, function (result) {
+                            self.clusterList = result.data.results
+                            self.openTab({
+                                clusterId: matcher[2]
+                            })
+                        })
+                    }
+                },
+                handleClick() {
+                    this.isDropdownShow = false
                 },
                 parseUrlQuery() {
                     const obj = {}
@@ -151,9 +175,10 @@
                     return obj
                 },
                 openTab(data) {
+                    if (!data.clusterId) return
                     const self = this
                     const clusterId = data.clusterId
-                    const clusterName = data.clusterName
+                    let clusterName = 'default'
                     const siteUrl = data.siteUrl
                     const url = `{{ settings.DEVOPS_BCS_API_URL }}/web_console/{{ project_id }}/cluster/${clusterId}/`
                     console.log("open tab", url)
@@ -162,14 +187,19 @@
                         return item.name
                     })
 
-                    if (!tabKeys.includes(clusterId)) {
-                        self.panels.push({
-                            name: clusterId,
-                            label: clusterName,
-                            url: url
-                        })
-                    }
-                    self.active = clusterId
+                    this.clusterList.forEach(item => {
+                        if (item.cluster_id === clusterId) {
+                            clusterName = item.name
+                        }
+                    })
+                    this.tabIndex++
+                    self.panels.push({
+                        name: clusterId + this.tabIndex,
+                        label: clusterName + this.tabIndex,
+                        url: url
+                    })
+                    self.active = clusterId + this.tabIndex
+                    this.isDropdownShow = false
                     console.log(self.panels)
                 },
                 watchMessage() {
@@ -178,20 +208,23 @@
                         self.openTab(event.data)
 
                     })
-
-                    window.onbeforeunload = function (e) {
-                        // return true
-                    }
                 },
                 closePanel(index, panel) {
                     this.panels.splice(index, 1)
                     this.isDropdownShow = false
                 },
                 addPanel() {
-                    this.dropdownLeft = $('.bk-tab-add-controller').offset().left
+                    let left = $('.bk-tab-add-controller').offset().left
+                    if ((left + 200) > this.winWidth) {
+                        this.dropdownLeft = left - 200
+                    } else {
+                        this.dropdownLeft = left
+                    }
+
                     this.isDropdownShow = true
                 },
                 addTerminal(cluster) {
+                    console.log('addTerminal')
                     this.openTab({
                         projectId: this.projectId,
                         siteUrl: this.siteUrl,
