@@ -385,9 +385,9 @@ export default {
                     // 轮询时不用发送 getNodeSummary 请求，直接从 nodeSummaryMap 中获取数据
                     this.nodeListTmp.forEach((item, index) => {
                         if (this.nodeSummaryMap[item.id]) {
-                            item.cpu = this.nodeSummaryMap[item.id].cpu
-                            item.mem = this.nodeSummaryMap[item.id].mem
-                            item.io = this.nodeSummaryMap[item.id].io
+                            item.cpuMetric = this.nodeSummaryMap[item.id].cpuMetric
+                            item.memMetric = this.nodeSummaryMap[item.id].memMetric
+                            item.ioMetric = this.nodeSummaryMap[item.id].ioMetric
                         }
                     })
                 }
@@ -561,14 +561,14 @@ export default {
                     nodeId: cur.inner_ip
                 })
 
-                cur.cpu = res.data.cpu
-                cur.mem = res.data.mem
-                cur.io = res.data.io
+                cur.cpuMetric = res.data.cpu
+                cur.memMetric = res.data.mem
+                cur.ioMetric = res.data.io
 
                 this.nodeSummaryMap[cur.id] = {
-                    cpu: cur.cpu,
-                    mem: cur.mem,
-                    io: cur.io
+                    cpuMetric: cur.cpuMetric,
+                    memMetric: cur.memMetric,
+                    ioMetric: cur.ioMetric
                 }
 
                 this.$set(this.nodeList, index, cur)

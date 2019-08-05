@@ -539,7 +539,7 @@ export default {
          * @return {Promise} promise 对象
          */
         getNodeSummary (context, { projectId, nodeId }, config = {}) {
-            // return http.get(`/api/projects/cluster?invoke=getNodeList`
+            // return http.get(`/app/cluster?invoke=getNodeSummary&${projectId}&${nodeId}`, {}, config)
             return http.get(
                 `${DEVOPS_BCS_API_URL}/api/projects/${projectId}/metrics/node/summary/?res_id=${nodeId}`,
                 {},
