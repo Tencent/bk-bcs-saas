@@ -78,9 +78,9 @@
                     matching: 'lines'
                 })
 
-                const addLines = outStr[0].addedLines
+                const addedLines = outStr[0].addedLines
                 const deleteLines = outStr[0].deletedLines
-                const changeLines = Math.max(addLines, deleteLines)
+                const changeLines = Math.max(addedLines, deleteLines)
                 outStr.changeLines = changeLines
 
                 return outStr
