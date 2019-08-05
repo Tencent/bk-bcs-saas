@@ -65,21 +65,22 @@
                 return this.createdHtml(this.oldContent, this.newContent, this.context, this.format)
             }
         },
-        
+
         methods: {
             getDiffJson (oldContent, newContent, context, outputFormat) {
                 const args = ['', oldContent, newContent, '', '', { context: context }]
                 const patch = createPatch(...args)
+
                 const outStr = Diff2Html.getJsonFromDiff(patch, {
                     inputFormat: 'diff',
                     outputFormat: outputFormat,
                     showFiles: true,
                     matching: 'lines'
                 })
-                
-                const addLines = outStr[0].addedLines
+
+                const addedLines = outStr[0].addedLines
                 const deleteLines = outStr[0].deletedLines
-                const changeLines = Math.max(addLines, deleteLines)
+                const changeLines = Math.max(addedLines, deleteLines)
                 outStr.changeLines = changeLines
 
                 return outStr
@@ -91,7 +92,7 @@
                         '<span class="d2h-code-line-ctn"><code>$1</code></span>'
                     )
                 }
-                
+
                 let diffJsonConf = this.getDiffJson(oldContent, newContent, context, outputFormat)
 
                 this.$emit('change-count', diffJsonConf.changeLines)
@@ -105,6 +106,15 @@
                     return htmlReplace(html)
                 } else {
                     diffJsonConf = this.getDiffJson(oldContent, newContent + '\r', context)
+
+                    diffJsonConf.changeLines = 0
+                    diffJsonConf[0].addedLines = 0
+                    const firstBlock = diffJsonConf[0].blocks[0]
+                    firstBlock.header = ''
+                    firstBlock.newStartLine = '0'
+                    firstBlock.oldStartLine = '0'
+                    firstBlock.lines.splice(firstBlock.lines.length - 1, 1)
+
                     const html = Diff2Html.getPrettyHtml(diffJsonConf, {
                         inputFormat: 'json',
                         outputFormat: outputFormat,
