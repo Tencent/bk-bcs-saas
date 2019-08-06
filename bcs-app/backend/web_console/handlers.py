@@ -36,7 +36,7 @@ class IndexPageHandler(tornado.web.RequestHandler):
     """
 
     def get(self, project_id, cluster_id):
-        session_url = f'{settings.DEVOPS_BCS_API_URL}/api/projects/{project_id}/cluster/{cluster_id}/web_console/session/'  # noqa
+        session_url = f'{settings.DEVOPS_BCS_API_URL}/api/projects/{project_id}/clusters/{cluster_id}/web_console/session/'  # noqa
 
         # mesos集群会带具体信息
         query = self.request.query
@@ -58,12 +58,12 @@ class MgrHandler(tornado.web.RequestHandler):
         self.render('templates/mgr.html', **data)
 
 
-class BcsWebSocketHandler(tornado.websocket.WebSocketHandler):
+class BCSWebSocketHandler(tornado.websocket.WebSocketHandler):
     """WebSocket处理
     """
 
     def __init__(self, *args, **kwargs):
-        super(BcsWebSocketHandler, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.input_record = []
         self.input_buffer = ''
         self.last_input_ts = IOLoop.current().time()
