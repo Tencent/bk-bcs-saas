@@ -105,10 +105,11 @@
                     })
                     return htmlReplace(html)
                 } else {
-                    diffJsonConf = this.getDiffJson(oldContent, newContent + '\r', context)
+                    diffJsonConf = this.getDiffJson(oldContent, newContent + '\n', context, outputFormat)
 
                     diffJsonConf.changeLines = 0
                     diffJsonConf[0].addedLines = 0
+                    diffJsonConf[0].deletedLines = 0
                     const firstBlock = diffJsonConf[0].blocks[0]
                     firstBlock.header = ''
                     firstBlock.newStartLine = '0'
