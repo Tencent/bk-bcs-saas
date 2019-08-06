@@ -268,7 +268,7 @@
                     const clusterId = data.clusterId
                     let clusterName = 'default'
                     const siteUrl = data.siteUrl
-                    const url = `{{ settings.DEVOPS_BCS_API_URL }}/web_console/{{ project_id }}/cluster/${clusterId}/?source=mgr`
+                    const url = `{{ settings.DEVOPS_BCS_API_URL }}/web_console/projects/{{ project_id }}/clusters/${clusterId}/?source=mgr`
 
                     const tabKeys = self.panels.map(item => {
                         return item.name

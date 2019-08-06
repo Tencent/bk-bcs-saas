@@ -16,6 +16,6 @@ from django.conf.urls import url
 from . import views
 
 urlpatterns = [
-    url(r'^api/projects/(?P<project_id>[\w\-]+)/cluster/(?P<cluster_id>[\w\-]+)/web_console/session/$',
+    url(r'^api/projects/(?P<project_id>[\w\-]+)/clusters/(?P<cluster_id>[\w\-]+)/web_console/session/$',
         views.WebConsoleSession.as_view()),
 ]
