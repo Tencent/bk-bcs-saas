@@ -934,7 +934,7 @@ export default {
 
             const clusterId = cluster.cluster_id
             const containerId = container.container_id
-            const url = `${DEVOPS_BCS_API_URL}/web_console/${this.projectId}/cluster/${clusterId}/?container_id=${containerId}`
+            const url = `${DEVOPS_BCS_API_URL}/web_console/projects/${this.projectId}/clusters/${clusterId}/?container_id=${containerId}`
 
             if (this.terminalWins.hasOwnProperty(clusterId)) {
                 const win = this.terminalWins[clusterId]
