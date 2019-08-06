@@ -98,10 +98,23 @@ class PodLifeCycle:
                 logger.info('clean %s pod not success, %s', cluster_id, error)
 
     def _clean_user_pod_by_cluster(self, v1, pod_list, alive_pods):
+        min_expire_time = time.time() - constants.USER_POD_EXPIRE_TIME
+
         for pod in pod_list.items:
             if pod.status.phase == 'Pending':
                 continue
 
+            # 小于一个周期的pod不清理
+            if pod.metadata.labels and pod.metadata.labels.get(constants.LABEL_WEB_CONSOLE_CREATE_TIMESTAMP):
+                pod_create_time = int(pod.metadata.labels[constants.LABEL_WEB_CONSOLE_CREATE_TIMESTAMP])
+            else:
+                pod_create_time = None
+
+            if pod_create_time and pod_create_time > min_expire_time:
+                logger.info('pod %s exist time %s > %s, just ignore', pod.metadata.name, pod_create_time, min_expire_time)
+                continue
+
+            # 有心跳上报的pod不清理
             if pod.metadata.name in alive_pods:
                 continue
 
@@ -287,6 +300,9 @@ def ensure_pod(ctx):
     except ApiException as error:
         # 不存在，则创建
         if error.status == 404:
+            # 添加时间戳
+            ctx['LABEL_WEB_CONSOLE_CREATE_TIMESTAMP'] = constants.LABEL_WEB_CONSOLE_CREATE_TIMESTAMP
+            ctx['create_timestamp'] = int(time.time())
             body = yaml.load(render_to_string('conf_tpl/pod.yaml', ctx))
             # 添加环境特有变量
             body['spec'].update(ctx['pod_spec'])
