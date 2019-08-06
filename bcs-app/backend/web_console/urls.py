@@ -11,10 +11,10 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-from backend.web_console.handlers import BcsWebSocketHandler, IndexPageHandler, MgrHandler
+from backend.web_console.handlers import BCSWebSocketHandler, IndexPageHandler, MgrHandler
 
 handlers = [
-    (r'/web_console/(?P<project_id>\w{32})/cluster/(?P<cluster_id>[\w-]+)/', IndexPageHandler),
-    (r'/web_console/mgr/(?P<project_id>\w{32})/cluster/(?P<cluster_id>[\w-]+)/', MgrHandler),
-    (r'/web_console/ws/(?P<project_id>\w{32})/cluster/(?P<cluster_id>[\w-]+)/', BcsWebSocketHandler)
+    (r'/web_console/projects/(?P<project_id>\w{32})/mgr/', MgrHandler),
+    (r'/web_console/projects/(?P<project_id>\w{32})/clusters/(?P<cluster_id>[\w-]+)/', IndexPageHandler),
+    (r'/web_console/projects/(?P<project_id>\w{32})/clusters/(?P<cluster_id>[\w-]+)/ws/', BCSWebSocketHandler)
 ]

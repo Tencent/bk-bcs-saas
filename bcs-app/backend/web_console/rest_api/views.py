@@ -173,13 +173,10 @@ class WebConsoleSession(views.APIView):
         else:
             scheme = 'ws'
         bcs_api_url = bcs_api_url._replace(scheme=scheme)
+        # 连接ws的来源方式, 有容器直连(direct)和多tab管理(mgr)
+        source = request.query_params.get('source', 'direct')
 
-        ws_url = '{bcs_api_url}/web_console/ws/{project_id}/cluster/{cluster_id}/?session_id={session_id}'.format(  # noqa
-            bcs_api_url=bcs_api_url.geturl(),
-            project_id=project_id,
-            cluster_id=cluster_id,
-            session_id=session_id,
-        )
+        ws_url = f'{bcs_api_url.geturl()}/web_console/projects/{project_id}/clusters/{cluster_id}/ws/?session_id={session_id}&source={source}'  # noqa
 
         data = {
             'session_id': session_id,

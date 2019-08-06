@@ -41,7 +41,9 @@ class WebConsoleFormatter(LogstashFormatterBase):
         return self.serialize(message)
 
 
-def len_char(string):
+def zh_length(string):
+    """计算中文字符串长度, 中文为2个长度
+    """
     length = 0
     for i in string:
         if '\u4e00' <= i <= '\u9fff':
@@ -51,16 +53,26 @@ def len_char(string):
     return length
 
 
-def hello_message(message=constants.HELLO_MESSAGE, width=81):
+def hello_message(source=None):
     """连接是显示的字符串
     """
     messages = []
+    if source == 'mgr':
+        guide_message = constants.MGR_GUIDE_MESSAGE
+    else:
+        guide_message = constants.GUIDE_MESSAGE
+
+    # 两边一个#字符，加一个空格
+    width = max([zh_length(i) + 3 for i in guide_message])
+
     messages.append('#' * width)
-    console = '#' + ((width - 2 - len(message)) // 2) * ' ' + message + ((width - 2 - len(message)) // 2) * ' ' + ' #'
+    left_space = (width - 2 - len(constants.HELLO_MESSAGE)) // 2
+    right_space = width - 2 - left_space - len(constants.HELLO_MESSAGE)
+    console = '#' + left_space * ' ' + constants.HELLO_MESSAGE + right_space * ' ' + '#'
     messages.append(console)
     messages.append('#' * width)
-    for guide in constants.GUIDE_MESSAGE:
-        messages.append('#' + guide + (width - len_char(guide) - 2) * ' ' + '#')
+    for guide in guide_message:
+        messages.append('#' + guide + (width - zh_length(guide) - 2) * ' ' + '#')
     messages.append('#' * width)
     return '\r\n'.join(messages) + '\r\n'
 

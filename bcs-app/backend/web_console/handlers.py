@@ -36,7 +36,7 @@ class IndexPageHandler(tornado.web.RequestHandler):
     """
 
     def get(self, project_id, cluster_id):
-        session_url = f'{settings.DEVOPS_BCS_API_URL}/api/projects/{project_id}/cluster/{cluster_id}/web_console/session/'  # noqa
+        session_url = f'{settings.DEVOPS_BCS_API_URL}/api/projects/{project_id}/clusters/{cluster_id}/web_console/session/'  # noqa
 
         # mesos集群会带具体信息
         query = self.request.query
@@ -53,17 +53,17 @@ class MgrHandler(tornado.web.RequestHandler):
     """管理页
     """
 
-    def get(self, project_id, cluster_id):
-        data = {'settings': settings, 'project_id': project_id, 'cluster_id': cluster_id}
+    def get(self, project_id):
+        data = {'settings': settings, 'project_id': project_id}
         self.render('templates/mgr.html', **data)
 
 
-class BcsWebSocketHandler(tornado.websocket.WebSocketHandler):
+class BCSWebSocketHandler(tornado.websocket.WebSocketHandler):
     """WebSocket处理
     """
 
     def __init__(self, *args, **kwargs):
-        super(BcsWebSocketHandler, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.input_record = []
         self.input_buffer = ''
         self.last_input_ts = IOLoop.current().time()
@@ -77,6 +77,7 @@ class BcsWebSocketHandler(tornado.websocket.WebSocketHandler):
         self.exit_buffer = ''
         self.exit_command = 'exit'
         self.user_pod_name = None
+        self.source = None
 
     def check_origin(self, origin):
         return True
@@ -92,6 +93,7 @@ class BcsWebSocketHandler(tornado.websocket.WebSocketHandler):
         self.cluster_id = cluster_id
         self.context = context
         self.user_pod_name = context['user_pod_name']
+        self.source = self.get_argument('source')
 
         rows = self.get_argument('rows')
         rows = utils.format_term_size(rows, constants.DEFAULT_ROWS)
