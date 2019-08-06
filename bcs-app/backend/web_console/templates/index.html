@@ -169,6 +169,25 @@
                 // send ctrl-w
                 term.__socket.send('\x17');
                 return false;
+            } else if (e.altKey && (e.code == 'KeyN')) {
+                event.preventDefault();
+                if (window.parent) {
+                    window.parent.postMessage({
+                        type: 'shortcut',
+                        key: 'showDropdown'
+                    }, window.location.origin)
+                }
+                return false;
+            } else if (event.altKey && (event.keyCode >= 49 && event.keyCode <= 57)) {
+                event.preventDefault();
+                if (window.parent) {
+                    window.parent.postMessage({
+                        type: 'shortcut',
+                        key: 'activeTab',
+                        value: event.keyCode
+                    }, window.location.origin)
+                }
+                return false;
             }
         })
 
