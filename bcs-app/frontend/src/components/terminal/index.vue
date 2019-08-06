@@ -29,7 +29,7 @@
     export default {
         data () {
             return {
-                terminalWins: {},
+                terminalWins: null,
                 isActive: false,
                 isShow: false,
                 showTimer: 0,
@@ -104,19 +104,16 @@
                 }
 
                 const clusterId = cluster.cluster_id
-                const url = `${DEVOPS_BCS_API_URL}/web_console/${this.projectId}/cluster/${clusterId}/`
-
-                if (this.terminalWins.hasOwnProperty(clusterId)) {
-                    const win = this.terminalWins[clusterId]
-                    if (!win.closed) {
-                        this.terminalWins[clusterId].focus()
+                const url = `${DEVOPS_BCS_API_URL}/web_console/mgr/${this.projectId}/#cluster=${clusterId}`
+                
+                if (this.terminalWins) {
+                    if (!this.terminalWins.closed) {
+                        this.terminalWins.focus()
                     } else {
-                        const win = window.open(url, '', 'width=990,height=618')
-                        this.terminalWins[clusterId] = win
+                        this.terminalWins = window.open(url, '')
                     }
                 } else {
-                    const win = window.open(url, '', 'width=990,height=618')
-                    this.terminalWins[clusterId] = win
+                    this.terminalWins = window.open(url, '')
                 }
             }
         }
