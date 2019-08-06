@@ -104,7 +104,7 @@
                 }
 
                 const clusterId = cluster.cluster_id
-                const url = `${DEVOPS_BCS_API_URL}/web_console/mgr/${this.projectId}/#cluster=${clusterId}`
+                const url = `${DEVOPS_BCS_API_URL}/web_console/projects/${this.projectId}/mgr/#cluster=${clusterId}`
                 
                 if (this.terminalWins) {
                     if (!this.terminalWins.closed) {

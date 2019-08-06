@@ -193,7 +193,7 @@
 
                     // const params = this.parseUrlQuery()
                     const url = window.location.href
-                    const reg = /mgr\/([\w\d]*)\/#cluster=([\w\d-]*)/
+                    const reg = /projects\/([\w\d]*)\/mgr\/#cluster=([\w\d-]*)/
                     const matcher = url.match(reg)
 
                     if (matcher) {

@@ -754,11 +754,11 @@
              * @param {number} index 集群对象在集群列表中的索引
              */
             openWebConsole (cluster, index) {
-                // {host}/backend/web_console/this.projectId/cluster/cluster.cluster_id/
+                // {host}/backend/web_console/projects/this.projectId/clusters/cluster.cluster_id/
                 const location = window.location
                 window.open(
-                    `${location.protocol}//${location.host.replace(/\.bcs/, '')}/backend/web_console/`
-                        + `${this.projectId}/cluster/${cluster.cluster_id}/`,
+                    `${location.protocol}//${location.host.replace(/\.bcs/, '')}/backend/web_console/projects/`
+                        + `${this.projectId}/clusters/${cluster.cluster_id}/`,
                     'web-console',
                     'left=100,top=100,width=990,height=590,toolbar=0,resizable=1'
                 )
