@@ -53,8 +53,8 @@ class MgrHandler(tornado.web.RequestHandler):
     """管理页
     """
 
-    def get(self, project_id, cluster_id):
-        data = {'settings': settings, 'project_id': project_id, 'cluster_id': cluster_id}
+    def get(self, project_id):
+        data = {'settings': settings, 'project_id': project_id}
         self.render('templates/mgr.html', **data)
 
 
@@ -77,6 +77,7 @@ class BcsWebSocketHandler(tornado.websocket.WebSocketHandler):
         self.exit_buffer = ''
         self.exit_command = 'exit'
         self.user_pod_name = None
+        self.source = None
 
     def check_origin(self, origin):
         return True
@@ -92,6 +93,7 @@ class BcsWebSocketHandler(tornado.websocket.WebSocketHandler):
         self.cluster_id = cluster_id
         self.context = context
         self.user_pod_name = context['user_pod_name']
+        self.source = self.get_argument('source')
 
         rows = self.get_argument('rows')
         rows = utils.format_term_size(rows, constants.DEFAULT_ROWS)

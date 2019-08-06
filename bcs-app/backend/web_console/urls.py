@@ -15,6 +15,6 @@ from backend.web_console.handlers import BcsWebSocketHandler, IndexPageHandler, 
 
 handlers = [
     (r'/web_console/(?P<project_id>\w{32})/cluster/(?P<cluster_id>[\w-]+)/', IndexPageHandler),
-    (r'/web_console/mgr/(?P<project_id>\w{32})/cluster/(?P<cluster_id>[\w-]+)/', MgrHandler),
+    (r'/web_console/mgr/(?P<project_id>\w{32})/', MgrHandler),
     (r'/web_console/ws/(?P<project_id>\w{32})/cluster/(?P<cluster_id>[\w-]+)/', BcsWebSocketHandler)
 ]

@@ -268,7 +268,7 @@
                     const clusterId = data.clusterId
                     let clusterName = 'default'
                     const siteUrl = data.siteUrl
-                    const url = `{{ settings.DEVOPS_BCS_API_URL }}/web_console/{{ project_id }}/cluster/${clusterId}/`
+                    const url = `{{ settings.DEVOPS_BCS_API_URL }}/web_console/{{ project_id }}/cluster/${clusterId}/?source=mgr`
 
                     const tabKeys = self.panels.map(item => {
                         return item.name
@@ -336,7 +336,7 @@
                         window.location.hash = `cluster=${this.panels[0].clusterId}`
                     }
                     this.$bkNotify({
-                        theme: 'warning',
+                        theme: 'primary',
                         offsetY: 1,
                         delay: 3000,
                         message: `【${index + 1}】${panel.label} 连接已经断开`

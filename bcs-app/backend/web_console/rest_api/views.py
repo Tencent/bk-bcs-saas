@@ -173,13 +173,9 @@ class WebConsoleSession(views.APIView):
         else:
             scheme = 'ws'
         bcs_api_url = bcs_api_url._replace(scheme=scheme)
+        source = request.query_params.get('source', 'base')
 
-        ws_url = '{bcs_api_url}/web_console/ws/{project_id}/cluster/{cluster_id}/?session_id={session_id}'.format(  # noqa
-            bcs_api_url=bcs_api_url.geturl(),
-            project_id=project_id,
-            cluster_id=cluster_id,
-            session_id=session_id,
-        )
+        ws_url = f'{bcs_api_url.geturl()}/web_console/ws/{project_id}/cluster/{cluster_id}/?session_id={session_id}&source={source}'  # noqa
 
         data = {
             'session_id': session_id,

@@ -54,7 +54,7 @@ class BCSClientBase(abc.ABC):
 
     def post_connected(self):
         logger.info("connected")
-        self.msg_handler.write_message({'data': hello_message()})
+        self.msg_handler.write_message({'data': hello_message(self.msg_handler.source)})
         self.msg_handler.start_record()
         self.msg_handler.tick_timeout()
         self.set_pty_size(self.init_rows, self.init_cols)
