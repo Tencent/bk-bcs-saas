@@ -105,9 +105,12 @@
 
                 const clusterId = cluster.cluster_id
                 const url = `${DEVOPS_BCS_API_URL}/web_console/projects/${this.projectId}/mgr/#cluster=${clusterId}`
-                
                 if (this.terminalWins) {
                     if (!this.terminalWins.closed) {
+                        this.terminalWins.postMessage({
+                            clusterId: clusterId,
+                            clusterName: cluster.name
+                        }, DEVOPS_BCS_HOST)
                         this.terminalWins.focus()
                     } else {
                         this.terminalWins = window.open(url, '')
