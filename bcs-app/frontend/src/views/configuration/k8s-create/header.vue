@@ -1455,7 +1455,7 @@
                 // const nameReg2 = /^[a-zA-Z]{1}[a-zA-Z0-9-_]{0,29}$/
                 const pathReg = /\/((?!\.)[\w\d\-./~]+)+/
                 const portNameReg = /^[a-z]{1}[a-z0-9-]{0,255}$/
-                const volumeNameReg = /^[a-zA-Z]{1}[a-zA-Z0-9-_]{0,29}$/
+                const volumeNameReg = /^[a-zA-Z]{1}[a-zA-Z0-9-_]{0,253}$/
                 const chineseReg = /[\u4e00-\u9fa5]+/
                 const labelKeyReg = /^([A-Za-z0-9][-A-Za-z0-9_./]*)?[A-Za-z0-9]$/
                 const envKeyReg = /^([A-Za-z0-9][-A-Za-z0-9_.]*)?[A-Za-z0-9]$/
@@ -1621,7 +1621,7 @@
                                 megPrefix += `卷：`
                                 this.$bkMessage({
                                     theme: 'error',
-                                    message: megPrefix + '挂载名只能包含：字母、数字、连字符(-)、下划线(_)，首字母必须是字母，长度小于30个字符',
+                                    message: megPrefix + '挂载名只能包含：字母、数字、连字符(-)、下划线(_)，首字母必须是字母，长度小于253个字符',
                                     delay: 8000
                                 })
                                 return false
