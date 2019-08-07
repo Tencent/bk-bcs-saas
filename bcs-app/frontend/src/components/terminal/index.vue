@@ -104,16 +104,23 @@
                 }
 
                 const clusterId = cluster.cluster_id
-                const url = `${DEVOPS_BCS_API_URL}/web_console/mgr/${this.projectId}/#cluster=${clusterId}`
-                
+                const url = `${DEVOPS_BCS_API_URL}/web_console/projects/${this.projectId}/mgr/#cluster=${clusterId}`
+
                 if (this.terminalWins) {
-                    if (!this.terminalWins.closed) {
+                    const win = this.terminalWins
+                    if (!win.closed) {
+                        win.postMessage({
+                            clusterId: clusterId,
+                            clusterName: cluster.name
+                        }, DEVOPS_BCS_HOST)
                         this.terminalWins.focus()
                     } else {
-                        this.terminalWins = window.open(url, '')
+                        const win = window.open(url, '')
+                        this.terminalWins = win
                     }
                 } else {
-                    this.terminalWins = window.open(url, '')
+                    const win = window.open(url, '')
+                    this.terminalWins = win
                 }
             }
         }
