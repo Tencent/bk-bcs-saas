@@ -183,12 +183,5 @@ class K8sHPASLZ(BCSResourceSLZ):
         except ValidationError as e:
             raise ValidationError(f'{short_name} {e}')
 
-        # 校验配置信息中的变量名是否规范
-        validate_variable_inconfig(config)
-
         if settings.IS_TEMPLATE_VALIDATE:
             validate_res_config(config, short_name, get_config_schema(resource_name))
-            try:
-                validate_affinity(config)
-            except ValidationError as e:
-                raise ValidationError(f'{short_name} {e}')
