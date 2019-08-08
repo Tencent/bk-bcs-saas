@@ -677,7 +677,7 @@ export default {
          * @return {Promise} promise 对象
          */
         getPortsByDeployments (context, { projectId, version, apps }) {
-            return http.get(`${DEVOPS_BCS_API_URL}/api/configuration/${projectId}/K8sDeployment/ports/${version}/?deploy_tag_list=${JSON.stringify(apps)}`)
+            return http.get(`${DEVOPS_BCS_API_URL}/api/configuration/projects/${projectId}/versions/${version}/K8sContainerPorts/?deploy_tag_list=${JSON.stringify(apps)}`)
         },
 
         /**
@@ -1703,6 +1703,16 @@ export default {
          */
         getExistConfigmap (context, { projectId }) {
             return http.get(`${DEVOPS_BCS_API_URL}/api/resource/projects/${projectId}/configmap/exist/list/`)
+        },
+
+        /**
+         * statefulset关联service
+         *
+         * @param {Object} context store 上下文对象
+         * @param {Object} 请求参数，包括projectId
+         */
+        bindServiceForStatefulset (context, { projectId, versionId, statefulsetId, data }) {
+            return http.put(`${DEVOPS_BCS_API_URL}/api/configuration/projects/${projectId}/versions/${versionId}/K8sStatefulSet/${statefulsetId}/service-tag/`, data)
         }
     }
 }
