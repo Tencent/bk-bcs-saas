@@ -799,14 +799,14 @@ def data_handler(data):
         if 'createTime' in info:
             info["createTime"] = ' '.join(
                 RE_COMPILE.findall(info["createTime"])[:2])
-            # mesos configmap/secret获取的是datas中的数据
-            info_datas = getitems(info, ['data', 'datas'], {})
-            if info_datas:
-                info['data']['datas'] = dict(sorted(info_datas.items(), key=lambda x: x[0]))
-            # k8s configmap/secret获取的是data中的数据
-            info_data = getitems(info, ['data', 'data'], {})
-            if info_data:
-                info['data']['data'] = dict(sorted(info_data.items(), key=lambda x: x[0]))
-            ret_data.append(info)
+        # mesos configmap/secret获取的是datas中的数据
+        info_datas = getitems(info, ['data', 'datas'], {})
+        if info_datas:
+            info['data']['datas'] = dict(sorted(info_datas.items(), key=lambda x: x[0]))
+        # k8s configmap/secret获取的是data中的数据
+        info_data = getitems(info, ['data', 'data'], {})
+        if info_data:
+            info['data']['data'] = dict(sorted(info_data.items(), key=lambda x: x[0]))
+        ret_data.append(info)
 
     return ret_data
