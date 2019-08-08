@@ -102,12 +102,19 @@
                     }
                     await this.$store.dispatch('getResourcePermissions', params)
                 }
-
                 const clusterId = cluster.cluster_id
                 const url = `${DEVOPS_BCS_API_URL}/web_console/projects/${this.projectId}/mgr/#cluster=${clusterId}`
-                
+                const urlMetadata = DEVOPS_BCS_API_URL.split('/')
+                let backendHost = ''
+                if (urlMetadata[2]) {
+                    backendHost = `${urlMetadata[0]}://${urlMetadata[2]}`
+                }
                 if (this.terminalWins) {
                     if (!this.terminalWins.closed) {
+                        this.terminalWins.postMessage({
+                            clusterId: clusterId,
+                            clusterName: cluster.name
+                        }, backendHost)
                         this.terminalWins.focus()
                     } else {
                         this.terminalWins = window.open(url, '')
