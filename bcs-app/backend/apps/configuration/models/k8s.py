@@ -88,7 +88,7 @@ class K8sPodResource(K8sResource):
             resource = cls.objects.get(id=old_id)
         except cls.DoesNotExist:
             raise cls.DoesNotExist(f"{cls.__name__} Id ({old_id}) 不存在")
-        # 需要与保留其他资源的关联关系，所以更新后的记录 service_tag 要与原来的记录保持一致
+        # 需要与保留其他资源的关联关系，所以更新后的记录 deploy_tag 要与原来的记录保持一致
         deploy_tag = resource.deploy_tag
         if not deploy_tag:
             deploy_tag = int(time.time() * 1000000)
@@ -164,7 +164,8 @@ class K8sService(K8sResource, ResourceMixin):
     """
     service 中的 ports 一定是在 k8s Deployment 中有的。Deployment(ports) 大于等于 service(ports)
     """
-    deploy_tag_list = models.TextField("关联的Deployment ID", help_text="可以关联多个Pod,json格式存储，选填")
+    deploy_tag_list = models.TextField("关联的含有Pod资源(如K8sDeployment)的ID",
+                                       help_text="可以关联多个Pod,json格式存储,可选")
     service_tag = models.CharField("K8sService 标识", max_length=32,
                                    help_text="每次保存时会生成新的应用记录，用来记录与其他资源的关联关系")
 
