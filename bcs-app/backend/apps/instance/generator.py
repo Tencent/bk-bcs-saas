@@ -36,7 +36,7 @@ from django.conf import settings
 from backend.components import paas_cc
 from backend.components.ticket import TicketClient
 from backend.apps.configuration.models import (MODULE_DICT, VersionedEntity,
-                                               get_pod_list_by_tag, get_k8s_port_list, CATE_SHOW_NAME,
+                                               get_pod_qsets_by_tag, get_k8s_container_ports, CATE_SHOW_NAME,
                                                get_secret_name_by_certid)
 from backend.apps.configuration.constants import NUM_VAR_PATTERN
 from backend.apps.instance.funutils import update_nested_dict, render_mako_context
@@ -1096,9 +1096,9 @@ def handel_k8s_service_db_config(db_config, deploy_tag_list, version_id,
     # 获取所有端口中的id
     ports_dict = {}
     if ports:
-        version = VersionedEntity.objects.get(id=version_id)
-        pod_list = get_pod_list_by_tag(deploy_tag_list, version.get_entity())
-        pod_ports = get_k8s_port_list(pod_list)
+        ventity = VersionedEntity.objects.get(id=version_id)
+        pod_qsets = get_pod_qsets_by_tag(deploy_tag_list, ventity)
+        pod_ports = get_k8s_container_ports(pod_qsets)
         ports_dict = {i['id']: i['name'] for i in pod_ports}
     for _p in ports:
         # 端口 & 协议必填

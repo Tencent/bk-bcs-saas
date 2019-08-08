@@ -38,7 +38,7 @@ from rest_framework.renderers import BrowsableAPIRenderer
 from backend.utils.error_codes import error_codes
 from backend.utils.renderers import BKAPIRenderer
 from backend.apps.application.constants import K8S_KIND
-from backend.apps.configuration.models import K8sService, get_pod_qsets_by_tag, get_k8s_container_ports
+from backend.apps.configuration.models import K8sService, get_pod_qsets_by_tag, get_k8s_container_ports, K8sStatefulSet
 from backend.apps.configuration.constants import K8sResourceName
 from backend.apps.configuration.mixins import GetVersionedEntity
 
@@ -132,3 +132,10 @@ class TemplateResourceView(viewsets.ViewSet, GetVersionedEntity):
                 if str(p.get('id')) == str(port_id):
                     raise error_codes.APIError(f"端口在 Service[{svc.name}] 中已经被关联,不能删除")
         return Response({})
+
+    def update_sts_service_tag(self, request, project_id, version_id, sts_deploy_tag):
+        service_tag = request.GET.get('service_tag')
+        ventity = self.get_versioned_entity(project_id, version_id)
+        sts_id_list = ventity.get_resource_id_list(K8sResourceName.K8sStatefulSet.value)
+        K8sStatefulSet.objects.filter(id__in=sts_id_list, deploy_tag=sts_deploy_tag).update(service_tag=service_tag)
+        return Response({'sts_deploy_tag': sts_deploy_tag})

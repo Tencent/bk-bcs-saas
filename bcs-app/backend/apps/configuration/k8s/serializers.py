@@ -18,8 +18,7 @@ from rest_framework.exceptions import ValidationError
 from backend.apps.configuration.constants import K8sResourceName
 from backend.apps.configuration.validator import validate_variable_inconfig, get_name_from_config, \
     validate_res_config, validate_name_duplicate
-from .validator import get_config_schema, validate_k8s_res_name, validate_service_tag, validate_pod_selector, \
-    validate_affinity
+from .validator import get_config_schema, validate_k8s_res_name, validate_pod_selector, validate_affinity
 
 
 class BCSResourceSLZ(serializers.Serializer):
@@ -89,11 +88,7 @@ class K8sJobSLZ(K8sPodUnitSLZ):
 
 class K8sStatefulSetSLZ(K8sPodUnitSLZ):
     resource_name = serializers.CharField(default=K8sResourceName.K8sStatefulSet.value)
-    service_tag = serializers.CharField(required=True)
-
-    def validate(self, data):
-        validate_service_tag(data)
-        return super().validate(data)
+    service_tag = serializers.CharField(default='')
 
 
 class K8sConfigMapSLZ(BCSResourceSLZ):
@@ -137,7 +132,6 @@ class K8sIngressSLZ(BCSResourceSLZ):
 
 
 class K8sServiceSLZ(BCSResourceSLZ):
-    # k8s 中 service 可不关联应用
     resource_name = serializers.CharField(default=K8sResourceName.K8sService.value)
     deploy_tag_list = serializers.JSONField(required=False)
     resource_version = serializers.CharField(required=False, allow_blank=True, allow_null=True)
@@ -156,15 +150,16 @@ class K8sServiceSLZ(BCSResourceSLZ):
         if not deploy_tag_list:
             deploy_tag_list = []
         if not isinstance(deploy_tag_list, list):
-            raise ValidationError("Service模板: 关联的Deployment参数格式错误")
+            raise ValidationError("Service模板: 关联应用参数格式错误")
         return deploy_tag_list
 
     def validate(self, data):
+        # 目前仅支持配置了selector的Service的创建, 因此需要校验deploy_tag_list字段
         if not data.get('version_id'):
-            raise ValidationError("请先创建 Deployment，再创建 Service")
+            raise ValidationError("请先创建 Deployment/StatefulSet/Daemonset，再创建 Service")
 
         if not data.get('deploy_tag_list'):
-            raise ValidationError(f"Service模板中{data.get('name')}: 请选择关联的 Deployment")
+            raise ValidationError(f"Service模板中{data.get('name')}: 请选择关联的 Deployment/StatefulSet/Daemonset")
 
         config = data['config']
         if not data.get('namespace_id') and not data.get('instance_id'):

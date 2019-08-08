@@ -142,7 +142,7 @@ class ShowVersionViewSet(viewsets.ViewSet, TemplatePermission):
         # model Template updated field need change when save version
         template.save(update_fields=['updated'])
 
-        return Response({'show_version_id': show_version.id})
+        return Response({'show_version_id': show_version.id, 'real_version_id': show_version.real_version_id})
 
     def save_without_ventity(self, request, project_id, template_id):
         """仅仅创建可见版本

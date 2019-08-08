@@ -12,6 +12,7 @@
 # specific language governing permissions and limitations under the License.
 #
 from django.conf.urls import url
+
 from . import views
 
 # ###### K8s 页面依赖的API
@@ -35,9 +36,10 @@ urlpatterns = [
     url(r'^api/configuration/(?P<project_id>\w{32})/K8sService/(?P<version_id>\-?\d+)/$',
         views.TemplateResourceView.as_view({'get': 'list_services'})),
 
-    # 查询指定 deployment 中 port 信息
-    url(r'^api/configuration/(?P<project_id>\w{32})/K8sDeployment/ports/(?P<version_id>\-?\d+)/$',
+    # 查询模板集指定版本中 Deployment/Statefulset等资源的container的port信息
+    url(r'^api/configuration/projects/(?P<project_id>\w{32})/versions/(?P<version_id>\-?\d+)/K8sContainerPorts/$',
         views.TemplateResourceView.as_view({'get': 'list_container_ports'})),
+
     # 检查指定的 port 是否被 service 关联 TODO mark refactor 前端似乎未用
     url(
         r'^api/configuration/(?P<project_id>\w{32})/K8sDeployment/check/version/(?P<version_id>\d+)/port/'
@@ -48,4 +50,9 @@ urlpatterns = [
     # 查询指定deployment 中 label 信息
     url(r'^api/configuration/(?P<project_id>\w{32})/K8sDeployment/labels/(?P<version_id>\-?\d+)/$',
         views.TemplateResourceView.as_view({'get': 'list_pod_res_labels'})),
+
+    url(
+        r'^api/configuration/projects/(?P<project_id>\w{32})/versions/(?P<version_id>\-?\d+)/'
+        r'K8sStatefulSet/(?P<sts_deploy_tag>\d{16})/service-tag/$',
+        views.TemplateResourceView.as_view({'put': 'update_sts_service_tag'}))
 ]
