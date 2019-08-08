@@ -1592,6 +1592,7 @@ class K8sHPAGenerator(K8sProfileGenerator):
     resource_name = "K8sHPA"
     resource_sys_config = instance_constants.K8S_HPA_SYS_CONFIG
 
+
 GENERATOR_DICT = {
     "application": ApplicationProfileGenerator,
     "deployment": DeploymentProfileGenerator,
