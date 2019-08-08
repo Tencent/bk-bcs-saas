@@ -183,25 +183,26 @@
                                         <i class="bk-icon icon-arrows-right"></i>
                                     </td>
                                     <td>
-                                        <bk-input
-                                            type="text"
-                                            placeholder="服务名称"
+                                        <bk-selector
                                             style="width: 180px;"
-                                            :value.sync="pathRule.backend.serviceName"
-                                            :list="varList"
-                                        >
-                                        </bk-input>
+                                            placeholder="服务名称"
+                                            :disabled="isLoadBalanceEdited"
+                                            :setting-key="'_id'"
+                                            :display-key="'_name'"
+                                            :selected.sync="pathRule.backend.serviceName"
+                                            :list="linkServices || []">
+                                        </bk-selector>
                                     </td>
                                     <td>
-                                        <bk-input
-                                            type="number"
-                                            placeholder="服务端口"
+                                        <bk-selector
                                             style="width: 180px;"
-                                            :min="0"
-                                            :value.sync="pathRule.backend.servicePort"
-                                            :list="varList"
-                                        >
-                                        </bk-input>
+                                            placeholder="服务端口"
+                                            :disabled="isLoadBalanceEdited"
+                                            :setting-key="'_id'"
+                                            :display-key="'_name'"
+                                            :selected.sync="pathRule.backend.servicePort"
+                                            :list="linkServices[pathRule.backend.serviceName] || []">
+                                        </bk-selector>
                                     </td>
                                     <td>
                                         <button class="action-btn ml5" @click.stop.prevent="addRulePath">
@@ -236,6 +237,9 @@
                 default () {
                     return JSON.parse(JSON.stringify(ingressParams))
                 }
+            },
+            version: {
+                type: [String, Number]
             }
         },
         data () {
@@ -246,6 +250,7 @@
                 isTlsPanelShow: false,
                 isCertListLoading: false,
                 curIngress: this.ingressData,
+                isLoadingServices: false,
                 curRule: this.ingressData.config.spec.rules[0],
                 computerList: [{
                     name: '',
@@ -272,8 +277,33 @@
             projectId () {
                 return this.$route.params.projectId
             },
+            linkServices () {
+                const list = this.$store.state.k8sTemplate.linkServices.map(item => {
+                    item._id = item.service_tag
+                    item._name = item.service_name
+                    return item
+                })
+                list.forEach(item => {
+                    list[item.service_tag] = []
+                    item.service_ports.forEach(port => {
+                        list[item.service_tag].push({
+                            _id: port,
+                            _name: port
+                        })
+                    })
+                })
+                return list
+            },
             varList () {
-                return this.$store.state.variable.varList
+                const list = this.$store.state.variable.varList.map(item => {
+                    item._id = item.key
+                    item._name = item.key
+                    return item
+                })
+                return list
+            },
+            linkPorts () {
+                return []
             },
             certListUrl () {
                 return this.$store.state.k8sTemplate.certListUrl

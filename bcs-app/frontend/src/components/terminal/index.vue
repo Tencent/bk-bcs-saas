@@ -111,7 +111,6 @@
                 if (urlMetadata[2]) {
                     backendHost = `${urlMetadata[0]}://${urlMetadata[2]}`
                 }
-                console.log('backendHost', backendHost)
                 if (this.terminalWins) {
                     const win = this.terminalWins
                     if (!win.closed) {
