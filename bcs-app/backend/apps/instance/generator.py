@@ -58,6 +58,7 @@ from backend.utils.func_controller import get_func_controller
 from backend.apps.instance.utils_pub import get_cluster_version
 from backend.apps.ticket.models import TlsCert
 from backend.apps.instance.resources.utils import handle_number_var
+from backend.apps.instance import constants as instance_constants
 
 logger = logging.getLogger(__name__)
 HANDLED_NUM_VAR_PATTERN = re.compile(r"%s}" % NUM_VAR_PATTERN)
@@ -1587,6 +1588,10 @@ class K8sStatefulSetGenerator(K8sDeploymentGenerator):
         return db_config
 
 
+class K8sHPAGenerator(K8sProfileGenerator):
+    resource_name = "K8sHPA"
+    resource_sys_config = instance_constants.K8S_HPA_SYS_CONFIG
+
 GENERATOR_DICT = {
     "application": ApplicationProfileGenerator,
     "deployment": DeploymentProfileGenerator,
@@ -1603,4 +1608,5 @@ GENERATOR_DICT = {
     "K8sJob": K8sJobGenerator,
     "K8sStatefulSet": K8sStatefulSetGenerator,
     "K8sIngress": K8sIngressGenerator,
+    "K8sHPA": K8sHPAGenerator,
 }

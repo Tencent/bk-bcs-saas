@@ -33,7 +33,7 @@ KEY_NAME_PATTERN = "^[a-zA-Z{]{1}[a-zA-Z0-9-_.{}]{0,254}$"
 
 # TODO mark refactor 这部分整个项目需要统一到一个地方维护
 KRESOURCE_NAMES = ['K8sDeployment', 'K8sDaemonSet', 'K8sJob', 'K8sStatefulSet', 'K8sService', 'K8sConfigMap',
-                   'K8sSecret', 'K8sIngress']
+                   'K8sSecret', 'K8sIngress', 'K8sHPA']
 MRESOURCE_NAMES = ['application', 'deployment', 'service', 'configmap', 'secret']
 RESOURCE_NAMES = KRESOURCE_NAMES + MRESOURCE_NAMES
 
@@ -58,6 +58,7 @@ class K8sResourceName(ChoicesEnum):
     K8sConfigMap = 'K8sConfigMap'
     K8sSecret = 'K8sSecret'
     K8sIngress = 'K8sIngress'
+    K8sHPA = 'K8sHPA'
 
     _choices_labels = (
         (K8sDeployment, 'K8sDeployment'),
@@ -67,7 +68,8 @@ class K8sResourceName(ChoicesEnum):
         (K8sService, 'K8sService'),
         (K8sConfigMap, 'K8sConfigMap'),
         (K8sSecret, 'K8sSecret'),
-        (K8sIngress, 'K8sIngress')
+        (K8sIngress, 'K8sIngress'),
+        (K8sHPA, 'K8sHPA'),
     )
 
 

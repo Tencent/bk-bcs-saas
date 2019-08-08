@@ -168,3 +168,7 @@ class K8sServiceSLZ(BCSResourceSLZ):
             self._validate_name_duplicate(data)
 
         return data
+
+
+class K8sHPASLZ(BCSResourceSLZ):
+    resource_name = serializers.CharField(default=K8sResourceName.K8sHPA.value)

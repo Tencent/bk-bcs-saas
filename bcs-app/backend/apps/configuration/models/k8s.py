@@ -245,8 +245,11 @@ class K8sIngress(K8sResource, ResourceMixin):
     desc = models.TextField("描述", help_text="前台展示字段，bcs api 中无该信息")
     category = models.CharField("类型", max_length=16, blank=True, null=True, help_text="该字段已经废弃")
 
+class K8sHPA(K8sResource, ResourceMixin):
+    pass
 
 # TODO refactor
+
 
 # 资源类型在前端展示的名称
 # backend.apps.configuration.utils.get_real_category 方法依赖下面约定的规则
@@ -265,7 +268,8 @@ CATE_SHOW_NAME = {
     "K8sDaemonSet": "DaemonSet",
     "K8sJob": "Job",
     "K8sStatefulSet": "StatefulSet",
-    "K8sIngress": "Ingress"
+    "K8sIngress": "Ingress",
+    "K8sHPA": "HPA",
 }
 
 # 资源类型在前端展示的缩写名称
@@ -283,5 +287,6 @@ CATE_ABBR_NAME = {
     "K8sDaemonSet": "ds",
     "K8sJob": "job",
     "K8sStatefulSet": "sts",
-    "K8sIngress": "Ing"
+    "K8sIngress": "Ing",
+    "K8sHPA": "hpa"
 }
