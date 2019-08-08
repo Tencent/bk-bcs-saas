@@ -49,6 +49,7 @@ from backend.apps.configuration.models import Template
 from backend.apps.network.serializers import BatchResourceSLZ
 from backend.apps.application.constants import SOURCE_TYPE_MAP
 from backend.utils.renderers import BKAPIRenderer
+from backend.utils.basic import getitems
 
 
 logger = logging.getLogger(__name__)
@@ -536,7 +537,7 @@ class ResourceOperate(object):
                                 pass
 
         # 兼容 k8s & mesos 数据格式
-        data = data_handler(data, project_kind)
+        data = data_handler(data)
         # 检查是否用命名空间的使用权限
         perm = bcs_perm.Namespace(request, project_id, bcs_perm.NO_RES)
         data = perm.hook_perms(data, ns_id_flag='namespace_id', cluster_id_flag='cluster_id', ns_name_flag='namespace')
@@ -792,17 +793,20 @@ class Endpoints(BaseAPI):
         })
 
 
-def data_handler(data, project_id):
+def data_handler(data):
     ret_data = []
     for info in data:
         if 'createTime' in info:
             info["createTime"] = ' '.join(
                 RE_COMPILE.findall(info["createTime"])[:2])
-        if project_id == 1 and 'data' in info:
-            info["data"]["datas"] = {}
-            for key, val in ((info.get("data") or {}).get("data") or {}).items():
-                info["data"]["datas"].update({key: {"content": val}})
-            ret_data.append(info)
-        else:
-            ret_data.append(info)
+        # mesos configmap/secret获取的是datas中的数据
+        info_datas = getitems(info, ['data', 'datas'], {})
+        if info_datas:
+            info['data']['datas'] = dict(sorted(info_datas.items(), key=lambda x: x[0]))
+        # k8s configmap/secret获取的是data中的数据
+        info_data = getitems(info, ['data', 'data'], {})
+        if info_data:
+            info['data']['data'] = dict(sorted(info_data.items(), key=lambda x: x[0]))
+        ret_data.append(info)
+
     return ret_data
