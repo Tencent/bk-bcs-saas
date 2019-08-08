@@ -79,12 +79,11 @@
                             </div>
                         </div>
                         <div class="biz-configuration-content" style="position: relative;">
-                            <k8s-ingress :ingress-data="curIngress" :key="curIngress.id"></k8s-ingress>
+                            <k8s-ingress :ingress-data="curIngress" :key="curIngress.id" :version="curVersion"></k8s-ingress>
                         </div>
                     </template>
                 </div>
             </div>
-
         </div>
     </div>
 </template>
@@ -184,15 +183,27 @@
             })
         },
         methods: {
+            initServices (version) {
+                const projectId = this.projectId
+                this.$store.dispatch('k8sTemplate/getServicesByVersion', { projectId, version })
+            },
             exceptionHandler (exceptionCode) {
                 this.isDataLoading = false
                 this.exceptionCode = exceptionCode
             },
             initResource (data) {
+                const version = data.latest_version_id || data.version
+
                 if (data.ingresss && data.ingresss.length) {
                     this.setCurIngress(data.ingresss[0], 0)
                 } else if (data.ingress && data.ingress.length) {
                     this.setCurIngress(data.ingress[0], 0)
+                }
+
+                if (version) {
+                    this.initServices(version)
+                } else {
+                    this.isLoadingServices = false
                 }
             },
             saveIngressSuccess (params) {
