@@ -756,7 +756,7 @@ K8S_SERVICE_SCHEMA = {
                                      "maximum": 65535},
                                 ]
                             },
-                            "protocol": {"type": "string", "enmu": ["TCP", "UDP"]},
+                            "protocol": {"type": "string", "enum": ["TCP", "UDP"]},
                             "targetPort": {
                                 "anyof": [
                                     {"type": "number", "minimum": 1,
@@ -781,10 +781,72 @@ K8S_SERVICE_SCHEMA = {
     }
 }
 
-K8S_INGRESS_SCHEMA = {"type": "object",
-                      "required": ["metadata", "spec"]}
+K8S_INGRESS_SCHEMA = {
+    "type": "object",
+    "required": ["metadata", "spec"]
+}
+
+K8S_HPA_SCHNEA = {
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "id": "k8s_hpa",
+
+    "type": "object",
+    "required": ["apiVersion", "kind", "metadata", "spec"],
+    "properties": {
+        "apiVersion": {"type": "string", "enum": ["autoscaling/v2beta2"]},
+        "kind": {"type": "string", "enum": ["HorizontalPodAutoscaler"]},
+        "metadata": {
+            "type": "object",
+            "required": ["name"],
+            "properties": {
+                "name": {"type": "string", "pattern": K8S_RES_NAME_PATTERN}
+            }
+        },
+        "spec": {
+            "type": "object",
+            "required": ["scaleTargetRef", "minReplicas", "maxReplicas", "metrics"],
+            "properties": {
+                "scaleTargetRef": {
+                    "type": "object",
+                    "required": ["kind", "name"],
+                    "properties": {
+                        "kind": {"type": "string", "enum": ["Deployment"]},
+                        "name": {"type": "string", "pattern": K8S_RES_NAME_PATTERN}
+                    }
+                },
+                "minReplicas": {"type": "number", "minimum": 0},
+                "maxReplicas": {"type": "number", "minimum": 0},
+                "metrics": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "required": ["type", "resource"],
+                        "properties": {
+                            "type": {"type": "string", "enum": ["Resource"]},
+                            "resource": {
+                                "type": "object",
+                                "required": ["name", "target"],
+                                "properties": {
+                                    "name": {"type": "string", "enum": ["cpu", "memory"]},
+                                    "target": {
+                                        "type": "object",
+                                        "required": ["type", "averageUtilization"],
+                                        "properties": {
+                                            "type": {"type": "string", "enum": ["Utilization"]},
+                                            "averageUtilization": {"type": "number", "minimum": 0}
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
 
 CONFIG_SCHEMA = [K8S_DEPLOYMENT_SCHEMA, K8S_DAEMONSET_SCHEMA, K8S_JOB_SCHEMA, K8S_STATEFULSET_SCHEMA,
-                 K8S_SERVICE_SCHEMA, K8S_CONFIGMAP_SCHEMA, K8S_SECRET_SCHEMA, K8S_INGRESS_SCHEMA]
+                 K8S_SERVICE_SCHEMA, K8S_CONFIGMAP_SCHEMA, K8S_SECRET_SCHEMA, K8S_INGRESS_SCHEMA, K8S_HPA_SCHNEA]
 
 CONFIG_SCHEMA_MAP = dict(zip(KRESOURCE_NAMES, CONFIG_SCHEMA))

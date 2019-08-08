@@ -172,3 +172,23 @@ class K8sServiceSLZ(BCSResourceSLZ):
 
 class K8sHPASLZ(BCSResourceSLZ):
     resource_name = serializers.CharField(default=K8sResourceName.K8sHPA.value)
+
+    def _validate_config(self, data):
+        config = data['config']
+        resource_name = data['resource_name']
+        short_name = resource_name[3:]
+        try:
+            name = data['name']
+            validate_k8s_res_name(name)
+        except ValidationError as e:
+            raise ValidationError(f'{short_name} {e}')
+
+        # 校验配置信息中的变量名是否规范
+        validate_variable_inconfig(config)
+
+        if settings.IS_TEMPLATE_VALIDATE:
+            validate_res_config(config, short_name, get_config_schema(resource_name))
+            try:
+                validate_affinity(config)
+            except ValidationError as e:
+                raise ValidationError(f'{short_name} {e}')

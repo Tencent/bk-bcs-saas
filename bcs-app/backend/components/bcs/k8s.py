@@ -49,17 +49,17 @@ class K8SClient(BCSClientBase):
         cluster_info = self.query_cluster()
         context.update(cluster_info)
 
-         credentials = self.get_client_credentials(cluster_info['id'])
+        credentials = self.get_client_credentials(cluster_info['id'])
         context.update(credentials)
 
-         configure = client.Configuration()
+        configure = client.Configuration()
         configure.verify_ssl = False
         configure.host = f"{self._bcs_server_host}{context['server_address_path']}".rstrip('/')
         configure.api_key = {"authorization": f"Bearer {context['user_token']}"}
         api_client = client.ApiClient(configure)
         return api_client
 
-     @property
+    @property
     def hpa_client(self):
         api_client = client.AutoscalingV2beta2Api(self.k8s_raw_client)
         return api_client
@@ -915,38 +915,38 @@ class K8SClient(BCSClientBase):
         return data
 
     def get_hpa(self, namespace, name):
-    return self.hpa_client.read_namespaced_horizontal_pod_autoscaler(name, namespace)
+        return self.hpa_client.read_namespaced_horizontal_pod_autoscaler(name, namespace)
 
     def create_hpa(self, namespace, spec):
-    """创建HPA
-    """
-    # _preload_content 设置为True, 修复kubernetes condition 异常
-    return self.hpa_client.create_namespaced_horizontal_pod_autoscaler(namespace, spec, _preload_content=False)
+        """创建HPA
+        """
+        # _preload_content 设置为True, 修复kubernetes condition 异常
+        return self.hpa_client.create_namespaced_horizontal_pod_autoscaler(namespace, spec, _preload_content=False)
 
     def update_hpa(self, namespace, name, spec):
-    """修改HPA
-    """
-    return self.hpa_client.patch_namespaced_horizontal_pod_autoscaler(name, namespace, spec)
+        """修改HPA
+        """
+        return self.hpa_client.patch_namespaced_horizontal_pod_autoscaler(name, namespace, spec)
 
     def delete_hpa(self, namespace, name):
-    return self.hpa_client.delete_namespaced_horizontal_pod_autoscaler(name, namespace)
+        return self.hpa_client.delete_namespaced_horizontal_pod_autoscaler(name, namespace)
 
     def apply_hpa(self, namespace, spec):
-    """部署HPA
-    """
-    name = spec['metadata']['name']
-    try:
-        self.get_hpa(namespace, name)
-    except client.rest.ApiException as error:
-        if error.status == 404:
-            result = self.create_hpa(namespace, spec)
-            logger.info('hpa not found, create a new hpa, %s', result)
-            return result
+        """部署HPA
+        """
+        name = spec['metadata']['name']
+        try:
+            self.get_hpa(namespace, name)
+        except client.rest.ApiException as error:
+            if error.status == 404:
+                result = self.create_hpa(namespace, spec)
+                logger.info('hpa not found, create a new hpa, %s', result)
+                return result
+            else:
+                logger.error('get hpa error: %s', error)
+                raise error
+        except Exception as error:
+            logger.exception('get hpa exception: %s', error)
         else:
-            logger.error('get hpa error: %s', error)
-            raise error
-    except Exception as error:
-        logger.exception('get hpa exception: %s', error)
-    else:
-        logger.info('hpa found, create a new hpa, %s, %s', namespace, spec)
-        return self.update_hpa(namespace, name, spec)
+            logger.info('hpa found, create a new hpa, %s, %s', namespace, spec)
+            return self.update_hpa(namespace, name, spec)

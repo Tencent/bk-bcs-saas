@@ -302,6 +302,6 @@ class Scheduler(SchedulerBase):
             raise Rollback({})
         return result
 
-     def rollback_k8shpa(self, ns, cluster_id, spec):
+    def rollback_k8shpa(self, ns, cluster_id, spec):
         """回滚HPA
         """
