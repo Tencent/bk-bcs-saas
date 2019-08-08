@@ -150,7 +150,7 @@ class K8sServiceSLZ(BCSResourceSLZ):
         if not deploy_tag_list:
             deploy_tag_list = []
         if not isinstance(deploy_tag_list, list):
-            raise ValidationError("Service模板: 关联的Pod资源参数格式错误")
+            raise ValidationError("Service模板: 关联应用参数格式错误")
         return deploy_tag_list
 
     def validate(self, data):

@@ -137,7 +137,7 @@ def get_secret_name_by_certid(cert_id, ingress_name):
     secret名称: 以小写字母或数字开头和结尾，只能包含：小写字母、数字、连字符(-)、点(.)
     """
     cert_id = str(cert_id).replace('_', '-')
-    return '%s-%s-srt' % (ingress_name, cert_id)
+    return f'{ingress_name}-{cert_id}-srt'
 
 
 def get_pod_qsets_by_tag(tag_list, ventity):
