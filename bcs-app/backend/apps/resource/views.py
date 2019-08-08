@@ -803,7 +803,7 @@ def data_handler(data, project_id):
             info_data = (info.get('data') or {}).get('data') or {}
             for key, val in info_data.items():
                 info["data"]["datas"].update({key: {"content": val}})
-            # sort keys
+            # sort keys for configmap/secret
             info['data']['datas'] = dict(sorted(info['data']['datas'].items(), key=lambda x: x[0]))
             info['data']['data'] = dict(sorted(info_data.items(), key=lambda x: x[0]))
             ret_data.append(info)
