@@ -102,7 +102,6 @@
                     }
                     await this.$store.dispatch('getResourcePermissions', params)
                 }
-
                 const clusterId = cluster.cluster_id
                 const url = `${DEVOPS_BCS_API_URL}/web_console/projects/${this.projectId}/mgr/#cluster=${clusterId}`
                 const urlMetadata = DEVOPS_BCS_API_URL.split('/')
