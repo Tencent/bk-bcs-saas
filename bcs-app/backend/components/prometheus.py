@@ -356,7 +356,7 @@ def get_cluster_disk_usage(cluster_list: list, start: int, end: int) -> tuple:
     if not cluster_list:
         return ({}, {})
 
-    porm_query = f'sum(node_filesystem_free{{device!="rootfs", cluster_id=~"{ cluster_id }"}}) by (cluster_id)'
+    porm_query = f'sum(node_filesystem_free_bytes{{device!="rootfs", device!="tmpfs", cluster_id=~"{ cluster_id }"}}) by (cluster_id)'  # noqa
 
     free_result = query_range(porm_query, start, end, step)
     if free_result.get('status') != 'success' or not free_result['data']['result']:
@@ -364,7 +364,7 @@ def get_cluster_disk_usage(cluster_list: list, start: int, end: int) -> tuple:
     else:
         free = {i['metric']['cluster_id']: i['values'] for i in free_result['data']['result']}
 
-    porm_query = f'sum(node_filesystem_size{{device!="rootfs", cluster_id=~"{ cluster_id }"}}) by (cluster_id)'
+    porm_query = f'sum(node_filesystem_size_bytes{{device!="rootfs", device!="tmpfs", cluster_id=~"{ cluster_id }"}}) by (cluster_id)'  # noqa
     total_result = query_range(porm_query, start, end, step)
     if total_result.get('status') != 'success' or not total_result['data']['result']:
         total = {}

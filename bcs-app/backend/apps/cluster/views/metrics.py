@@ -85,11 +85,10 @@ class ClusterMetrics(ClusterMetricsBase, MetricsParamsBase, viewsets.ViewSet):
     def update_metric_disk(self, request, cluster_id, metrics_disk):
         """update metric disk by prometheus
         """
-        if request.project.kind == app_constants.ProjectKind.K8S.value:
-            try:
-                metrics_disk = prometheus.fixed_disk_usage_history(cluster_id)
-            except Exception as err:
-                logger.error('prometheus error, %s', err)
+        try:
+            metrics_disk = prometheus.fixed_disk_usage_history(cluster_id)
+        except Exception as err:
+            logger.error('prometheus error, %s', err)
         return metrics_disk
 
     def compose_metric(self, request, cluster_data):
