@@ -104,34 +104,6 @@ class BCSClientBase:
             return server_ip[self._bcs_server_stag]
 
     @property
-    def _bke_server_host(self):
-        """bke地址
-        """
-        return settings.BKE_SERVER_HOST
-
-    @property
-    def _bke_server_host_ip(self):
-        """bke地址
-        """
-        return getattr(settings, 'BKE_SERVER_HOST_IP', None)
-
-    @property
-    def _bke_https_server_host(self):
-        """bke HTTPS 地址
-        """
-        server_host = getattr(settings, 'BKE_HTTPS_SERVER_HOST', None)
-        if server_host:
-            return server_host
-        return self._bke_server_host
-
-    @property
-    def bcs_https_server_host(self):
-        """根据集群ENV，获取bcs https 地址
-        """
-        stag = self._bcs_server_stag
-        return settings.BCS_CLUSTER_ENV_AND_HTTPS_SERVER_HOST.get(stag)
-
-    @property
     def headers(self):
         _headers = {
             "BCS-ClusterID": self.cluster_id,

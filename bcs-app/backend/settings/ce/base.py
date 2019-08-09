@@ -204,9 +204,5 @@ SITE_STATIC_URL = SITE_URL + STATIC_URL.strip('/')
 IS_COMMON_EXCEPTION_MSG = False
 COMMON_EXCEPTION_MSG = ""
 
-# env map bcs https server host
-BCS_CLUSTER_ENV_AND_HTTPS_SERVER_HOST = {
-    'prod': os.environ.get('BKAPP_BCS_API_DOMAIN')
-}
 # BCS API PRE PATH
 BCS_API_PRE_PATH = '{APIGW_HOST}/api/apigw/{APIGW}/{STAG}'

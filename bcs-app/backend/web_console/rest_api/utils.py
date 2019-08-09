@@ -91,14 +91,10 @@ def get_k8s_cluster_context(client, project_id, cluster_id):
         server_address_path = context['server_address_path']
 
     # API调用地址, 可以为http/https
-    # NOTE: 切换回BKE
-    # server_address = f'{client._bke_server_host}{server_address_path}'
     server_address = f'{client._bcs_server_host}{server_address_path}'
     context['server_address'] = server_address.rstrip('/')
 
     # Kubectl Config地址, 必须为https
-    # NOTE: 切换回BKE
-    # https_server_address = f'{client._bke_https_server_host}{server_address_path}'
     https_server_address = f'{client._bcs_https_server_host}{server_address_path}'
     context['https_server_address'] = https_server_address.rstrip('/')
 
@@ -126,12 +122,10 @@ def get_k8s_admin_context(client, context, mode):
 
 def get_k8s_pod_spec(client):
     pod_spec = settings.WEB_CONSOLE_POD_SPEC.copy()
-    # NOTE: 切换回BKE
-    # if client._bke_server_host_ip:
     if client._bcs_server_host_ip:
         pod_spec['hostAliases'] = [{
-            'ip': client._bke_server_host_ip,
-            'hostnames': [urlparse(client._bke_https_server_host).hostname]
+            'ip': client._bcs_server_host_ip,
+            'hostnames': [urlparse(client._bcs_https_server_host).hostname]
         }]
 
     return pod_spec

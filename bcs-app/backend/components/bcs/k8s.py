@@ -74,8 +74,6 @@ class K8SClient(BCSClientBase):
 
     @property
     def rest_host(self):
-        # NOTE: 切换回BKE
-        # return REST_PREFIX.format(apigw_host=self._bke_server_host)
         return REST_PREFIX.format(apigw_host=self.api_host)
 
     def get_namespace(self, params=None):
