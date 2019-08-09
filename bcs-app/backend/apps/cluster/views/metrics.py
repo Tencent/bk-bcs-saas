@@ -81,7 +81,7 @@ class ClusterMetrics(ClusterMetricsBase, MetricsParamsBase, viewsets.ViewSet):
             raise error_codes.APIError.f(resp.get('message'))
         return resp.get('data') or {}
 
-    def update_metric_disk(self, request, cluster_id, metrics_disk):
+    def get_prom_disk_data(self, request, cluster_id, metrics_disk):
         """update metric disk by prometheus
         """
         try:
@@ -126,7 +126,7 @@ class ClusterMetrics(ClusterMetricsBase, MetricsParamsBase, viewsets.ViewSet):
         metrics_cpu, metrics_mem, metrics_disk = self.compose_metric(request, cluster_data)
 
         if use_prometheus_source(request):
-            metrics_disk = self.update_metric_disk(request, cluster_id, metrics_disk)
+            metrics_disk = self.get_prom_disk_data(request, cluster_id, metrics_disk)
 
         return response.Response({'cpu': metrics_cpu, 'mem': metrics_mem, 'disk': metrics_disk})
 
