@@ -89,3 +89,12 @@ def status_transfer(status, running_status_list, failed_status_list):
     elif status in failed_status_list:
         return "failed"
     return "success"
+
+def use_prometheus_source(request):
+    """是否使用prometheus数据源
+    """
+    if settings.DEFAULT_METRIC_SOURCE == 'prometheus':
+        return True
+    if request.project.project_code in settings.DEFAULT_METRIC_SOURCE_PROM_WLIST:
+        return True
+    return False
