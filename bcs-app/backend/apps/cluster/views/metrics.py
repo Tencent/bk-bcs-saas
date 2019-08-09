@@ -16,29 +16,28 @@ import time
 from itertools import groupby
 
 import arrow
+from django.conf import settings
 from rest_framework import response, serializers, viewsets
 from rest_framework.renderers import BrowsableAPIRenderer
-from django.conf import settings
 
-from backend.apps import constants
+from backend.accounts import bcs_perm
+from backend.apps import constants as app_constants
+from backend.apps.cluster import serializers as cluster_serializers
+from backend.apps.cluster.utils import use_prometheus_source
 from backend.apps.cluster.views.metric_handler import get_namespace_metric, get_node_metric
 from backend.apps.configuration.models import Template
 from backend.apps.instance.constants import InsState
 from backend.apps.instance.models import InstanceConfig, VersionInstance
+from backend.components import bcs
 from backend.components import data as apigw_data
-from backend.components import paas_cc
+from backend.components import paas_cc, prometheus
 from backend.components.bcs import k8s, mesos
 from backend.utils.basic import normalize_metric
 from backend.utils.errcodes import ErrorCode
 from backend.utils.error_codes import error_codes
-from backend.utils.response import APIResult
-from backend.accounts import bcs_perm
-from backend.components import bcs
 from backend.utils.funutils import num_transform
-from backend.components import prometheus
-from backend.apps import constants as app_constants
 from backend.utils.renderers import BKAPIRenderer
-from backend.apps.cluster import serializers as cluster_serializers
+from backend.utils.response import APIResult
 
 logger = logging.getLogger(__name__)
 
@@ -125,8 +124,9 @@ class ClusterMetrics(ClusterMetricsBase, MetricsParamsBase, viewsets.ViewSet):
         if not cluster_data.get('results'):
             return response.Response({'cpu': [], 'mem': [], 'disk': []})
         metrics_cpu, metrics_mem, metrics_disk = self.compose_metric(request, cluster_data)
-        # add k8s disk data by prometheus
-        metrics_disk = self.update_metric_disk(request, cluster_id, metrics_disk)
+
+        if use_prometheus_source(request):
+            metrics_disk = self.update_metric_disk(request, cluster_id, metrics_disk)
 
         return response.Response({'cpu': metrics_cpu, 'mem': metrics_mem, 'disk': metrics_disk})
 
@@ -139,8 +139,7 @@ class DockerMetrics(MetricsParamsBase, viewsets.ViewSet):
         """
         params = self.get_params(request)
 
-        if settings.DEFAULT_METRIC_SOURCE == 'prometheus' or \
-                request.project.project_code in settings.DEFAULT_METRIC_SOURCE_PROM_WLIST:
+        if use_prometheus_source(request):
             data = self.get_prom_data(params)
         else:
             data = self.get_bk_data(params, request.project.cc_app_id)
@@ -211,8 +210,7 @@ class DockerMetrics(MetricsParamsBase, viewsets.ViewSet):
         """
         data = self.get_multi_params(request)
 
-        if settings.DEFAULT_METRIC_SOURCE == 'prometheus' or \
-                request.project.project_code in settings.DEFAULT_METRIC_SOURCE_PROM_WLIST:
+        if use_prometheus_source(request):
             data = self.get_multi_prom_data(data)
         else:
             data = self.get_multi_bk_data(data, request.project.cc_app_id)
@@ -301,8 +299,7 @@ class NodeMetrics(ClusterMetricsBase, MetricsParamsBase, viewsets.ViewSet):
         except Exception as err:
             return response.Response({'code': ErrorCode.NoError, 'data': {'list': []}, 'message': err})
 
-        if settings.DEFAULT_METRIC_SOURCE == 'prometheus' or \
-                request.project.project_code in settings.DEFAULT_METRIC_SOURCE_PROM_WLIST:
+        if use_prometheus_source(request):
             data = self.get_prom_data(params)
         else:
             data = self.get_bk_data(params, request.project.cc_app_id)
@@ -372,8 +369,7 @@ class NodeSummaryMetrics(viewsets.ViewSet):
         """get cpu/mem/disk info
         """
         params = self.get_params(request)
-        if settings.DEFAULT_METRIC_SOURCE == 'prometheus' or \
-                request.project.project_code in settings.DEFAULT_METRIC_SOURCE_PROM_WLIST:
+        if use_prometheus_source(request):
             data = self.get_prom_data(params['res_id'])
         else:
             data = self.get_bk_data(params['res_id'], request.project.cc_app_id)
