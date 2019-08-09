@@ -31,6 +31,7 @@ from .constants_k8s import (K8S_SECRET_SCHEM, K8S_CONFIGMAP_SCHEM, K8S_SERVICE_S
 from backend.apps.configuration.utils import get_real_category, check_var_by_config
 from backend.apps.instance.models import VersionInstance, InstanceConfig
 from backend.accounts import bcs_perm
+from backend.apps.configuration.k8s import constants as constants_k8s
 
 logger = logging.getLogger(__name__)
 

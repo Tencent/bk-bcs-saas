@@ -233,6 +233,15 @@ K8S_STATEFULSET_SYS_CONFIG = {
     "spec": POD_SYS_CONFIG
 }
 
+K8S_HPA_SYS_CONFIG = {
+    "kind": "HorizontalPodAutoscaler",
+    "metadata": {
+        "namespace": "{{SYS_NAMESPACE}}",
+        "labels": PUBLIC_LABELS,
+        "annotations": PUBLIC_ANNOTATIONS,
+    },
+}
+
 # k8s 资源限制单位
 K8S_RESOURCE_UNIT = {
     'cpu': 'm',
@@ -456,7 +465,8 @@ API_VERSION = {
         'Namespace': 'v1',
         'Node': 'v1',
         'PersistentVolume': 'v1',
-        'Role': 'rbac.authorization.k8s.io/v1alpha1'
+        'Role': 'rbac.authorization.k8s.io/v1alpha1',
+        'HorizontalPodAutoscaler': ''
     },
     '1.12.3': {
         'DaemonSet': 'apps/v1',
@@ -481,5 +491,6 @@ API_VERSION = {
         'Node': 'v1',
         'PersistentVolume': 'v1',
         'Role': 'rbac.authorization.k8s.io/v1',
+        'HorizontalPodAutoscaler': 'autoscaling/v2beta2'
     }
 }
