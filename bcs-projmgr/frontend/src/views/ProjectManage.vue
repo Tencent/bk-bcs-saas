@@ -302,8 +302,8 @@ export default class ProjectManage extends Vue {
     }
 
     goProject(project_code: string): void {
-        // window.open(`/console/perm/my-project?project_code=${project_code}`, '_blank')
-        window.open(`/console/bcs/${project_code}/cluster?v`, '_blank')
+        // window.open(`/console/perm/my-project?project_code=${project_code}`, '_self')
+        window.open(`/console/bcs/${project_code}/cluster?v`, '_self')
     }
 
     goUserManager() {
@@ -599,7 +599,6 @@ export default class ProjectManage extends Vue {
         text-align: center;
         color: #fff;
         font-size: 16px;
-        cursor: pointer;
         &:hover {
             .bg-avatar {
                 display: block;
