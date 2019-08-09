@@ -11,9 +11,6 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-from .mesos import Application, Deplpyment, Service, ConfigMap, Secret
-from .k8s import K8sDeployment, K8sConfigMap, K8sSecret, K8sDaemonSet, K8sJob, K8sService, K8sStatefulSet, K8sIngress, K8sHPA
-from .base import POD_RES_LIST, logger
 from . import base, k8s, mesos
 from backend.apps.configuration.constants import RESOURCE_NAMES, K8sResourceName, MesosResourceName
 
@@ -30,15 +27,15 @@ MODULE_DICT = {
     "configmap": mesos.ConfigMap,
     "secret": mesos.Secret,
     # k8s 相关资源
-    "K8sDeployment": K8sDeployment,
-    "K8sService": K8sService,
-    "K8sConfigMap": K8sConfigMap,
-    "K8sSecret": K8sSecret,
-    "K8sDaemonSet": K8sDaemonSet,
-    "K8sJob": K8sJob,
-    "K8sStatefulSet": K8sStatefulSet,
-    "K8sIngress": K8sIngress,
-    'K8sHPA': K8sHPA
+    "K8sDeployment": k8s.K8sDeployment,
+    "K8sService": k8s.K8sService,
+    "K8sConfigMap": k8s.K8sConfigMap,
+    "K8sSecret": k8s.K8sSecret,
+    "K8sDaemonSet": k8s.K8sDaemonSet,
+    "K8sJob": k8s.K8sJob,
+    "K8sStatefulSet": k8s.K8sStatefulSet,
+    "K8sIngress": k8s.K8sIngress,
+    'K8sHPA': k8s.K8sHPA
 }
 
 
