@@ -11,6 +11,9 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
+from backend.components.bcs import k8s
+from backend.apps.instance import constants as instance_constants
+from backend.apps.application import constants as application_constants
 
 def get_current_metrics(instance):
     """获取当前监控值
@@ -46,3 +49,42 @@ def get_current_metrics_display(instance):
     display = ', '.join(f'{metric["name"]}({metric["current"]}/{metric["target"]})' for metric in current_metrics)
 
     return display
+
+def get_cluster_hpa_list(access_token, project_id, cluster_id, cluster_env, cluster_name):
+    """获取基础hpa列表
+    """
+    hpa_list = []
+    client = k8s.K8SClient(access_token, project_id, cluster_id, env=cluster_env)
+    hpa = client.list_hpa().to_dict()['items']
+
+    for _config in hpa:
+        labels = _config.get('metadata', {}).get('labels') or {}
+        # 获取模板集信息
+        template_id = labels.get(instance_constants.LABLE_TEMPLATE_ID)
+        # 资源来源
+        source_type = labels.get(instance_constants.SOURCE_TYPE_LABEL_KEY)
+        if not source_type:
+            source_type = "template" if template_id else "other"
+
+        annotations = _config.get('metadata', {}).get('annotations') or {}
+
+        data = {
+            'cluster_name': cluster_name,
+            'cluster_id': cluster_id,
+            'name': _config['metadata']['name'],
+            'namespace': _config['metadata']['namespace'],
+            'max_replicas': _config['spec']['max_replicas'],
+            'min_replicas': _config['spec']['min_replicas'],
+            'current_replicas': _config['status']['current_replicas'],
+            'current_metrics_display': get_current_metrics_display(_config),
+            'current_metrics': get_current_metrics(_config),
+            'source_type': application_constants.SOURCE_TYPE_MAP.get(source_type),
+            'creator': annotations.get(instance_constants.ANNOTATIONS_CREATOR, ''),
+            'create_time': annotations.get(instance_constants.ANNOTATIONS_CREATE_TIME, ''),
+        }
+
+        data['update_time'] = annotations.get(instance_constants.ANNOTATIONS_UPDATE_TIME, data['create_time'])
+        data['updator'] = annotations.get(instance_constants.ANNOTATIONS_UPDATOR, data['creator'])
+        hpa_list.append(data)
+
+    return hpa_list

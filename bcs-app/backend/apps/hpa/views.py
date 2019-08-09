@@ -39,41 +39,14 @@ class HPA(viewsets.ViewSet, BaseAPI):
         cluster_data = cluster_dicts.get('results', {}) or {}
         access_token = request.user.token.access_token
         k8s_hpa_list = []
+
         for cluster_info in cluster_data:
-            cluster_id = cluster_info.get('cluster_id')
+
+            cluster_id = cluster_info['cluster_id']
             cluster_env = cluster_info.get('environment')
-            client = k8s.K8SClient(access_token, project_id, cluster_id, env=cluster_env)
-            hpa = client.list_hpa().to_dict()['items']
-
-            for _config in hpa:
-                labels = _config.get('metadata', {}).get('labels') or {}
-                # 获取模板集信息
-                template_id = labels.get(instance_constants.LABLE_TEMPLATE_ID)
-                # 资源来源
-                source_type = labels.get(instance_constants.SOURCE_TYPE_LABEL_KEY)
-                if not source_type:
-                    source_type = "template" if template_id else "other"
-
-                annotations = _config.get('metadata', {}).get('annotations') or {}
-
-                data = {
-                    'cluster_name': cluster_info['name'],
-                    'cluster_id': cluster_id,
-                    'name': _config['metadata']['name'],
-                    'namespace': _config['metadata']['namespace'],
-                    'max_replicas': _config['spec']['max_replicas'],
-                    'min_replicas': _config['spec']['min_replicas'],
-                    'current_replicas': _config['status']['current_replicas'],
-                    'current_metrics_display': utils.get_current_metrics_display(_config),
-                    'current_metrics': utils.get_current_metrics(_config),
-                    'source_type': application_constants.SOURCE_TYPE_MAP.get(source_type),
-                    'creator': annotations.get(instance_constants.ANNOTATIONS_CREATOR, ''),
-                    'create_time': annotations.get(instance_constants.ANNOTATIONS_CREATE_TIME, ''),
-                }
-
-                data['update_time'] = annotations.get(instance_constants.ANNOTATIONS_UPDATE_TIME, data['create_time'])
-                data['updator'] = annotations.get(instance_constants.ANNOTATIONS_UPDATOR, data['creator'])
-                k8s_hpa_list.append(data)
+            cluster_name = cluster_info['name']
+            hpa_list = utils.get_cluster_hpa_list(access_token, project_id, cluster_id, cluster_env, cluster_name)
+            k8s_hpa_list.extend(hpa_list)
 
         return Response(k8s_hpa_list)
 
