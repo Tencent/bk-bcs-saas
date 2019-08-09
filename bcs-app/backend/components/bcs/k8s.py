@@ -11,20 +11,20 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-import logging
-import json
-import copy
 import base64
+import copy
+import json
+import logging
 
 from django.conf import settings
-
-from backend.components.utils import http_get, http_patch, http_delete, http_put, http_post
-from backend.utils.errcodes import ErrorCode
-from backend.utils.exceptions import ComponentError
-from backend.components.bcs import BCSClientBase
+from django.utils.functional import cached_property
 from kubernetes import client
 from kubernetes.client.rest import ApiException
-from django.utils.functional import cached_property
+
+from backend.components.bcs import BCSClientBase
+from backend.components.utils import http_delete, http_get, http_patch, http_post, http_put
+from backend.utils.errcodes import ErrorCode
+from backend.utils.exceptions import ComponentError
 
 logger = logging.getLogger(__name__)
 
