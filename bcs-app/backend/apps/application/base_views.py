@@ -51,7 +51,7 @@ error_codes.add_codes([
 ])
 
 # 模板集删除时, 需要一起删除的资源
-CASCADE_DELETE_CATEGORY = ["service", "secret", "configmap", "K8sSecret", "K8sConfigMap", "K8sService", "K8sIngress", "K8sHPA"]
+CASCADE_DELETE_RESOURCES = ["service", "secret", "configmap", "K8sSecret", "K8sConfigMap", "K8sService", "K8sIngress", "K8sHPA"]
 
 
 class BaseAPI(views.APIView):
@@ -778,7 +778,7 @@ class BaseAPI(views.APIView):
         if deleted_time:
             info.deleted_time = deleted_time
         # 删除模板集是指定category，其他更新为none
-        if category in CASCADE_DELETE_CATEGORY:
+        if category in CASCADE_DELETE_RESOURCES:
             info.is_deleted = True
             info.deleted_time = datetime.now()
         if created:
