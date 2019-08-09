@@ -777,7 +777,7 @@ class BaseAPI(views.APIView):
         info.status = status
         if deleted_time:
             info.deleted_time = deleted_time
-        # 删除模板集是指定category，其他更新为none
+        # 删除模板集是级联删除的resource，其他更新时为none
         if category in CASCADE_DELETE_RESOURCES:
             info.is_deleted = True
             info.deleted_time = datetime.now()
