@@ -50,7 +50,8 @@ error_codes.add_codes([
     ErrorCodeCls("DBOperError", u"DB操作异常", 400),
 ])
 
-OTHER_CATEGORY = ["service", "secret", "configmap", "K8sSecret", "K8sConfigMap", "K8sService", "K8sIngress", "K8sHPA"]
+# 模板集删除时, 需要一起删除的资源
+SHOULD_DELETE_CATEGORY = ["service", "secret", "configmap", "K8sSecret", "K8sConfigMap", "K8sService", "K8sIngress", "K8sHPA"]
 
 
 class BaseAPI(views.APIView):
@@ -776,7 +777,8 @@ class BaseAPI(views.APIView):
         info.status = status
         if deleted_time:
             info.deleted_time = deleted_time
-        if category in OTHER_CATEGORY:
+        # 删除模板集是指定category，其他更新为none
+        if category in SHOULD_DELETE_CATEGORY:
             info.is_deleted = True
             info.deleted_time = datetime.now()
         if created:
