@@ -52,7 +52,7 @@ buildscript {
 
     repositories {
         mavenLocal()
-        maven { url "https://repo.spring.io/libs-milestone" }
+        maven { url "http://mirrors.cloud.tencent.com/nexus/repository/maven-public" }
         mavenCentral()
         jcenter()
     }
@@ -75,7 +75,7 @@ allprojects {
 
     repositories {
         mavenLocal()
-        maven { url "https://repo.spring.io/libs-milestone" }
+        maven { url "http://mirrors.cloud.tencent.com/nexus/repository/maven-public" }
         mavenCentral()
         jcenter()
     }
