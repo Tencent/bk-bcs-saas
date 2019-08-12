@@ -74,8 +74,6 @@ class K8SClient(BCSClientBase):
 
     @property
     def rest_host(self):
-        # NOTE: 切换回BKE
-        # return REST_PREFIX.format(apigw_host=self._bke_server_host)
         return REST_PREFIX.format(apigw_host=self.api_host)
 
     def get_namespace(self, params=None):
@@ -850,7 +848,7 @@ class K8SClient(BCSClientBase):
         return self.get_namespace(params=params)
 
     def query_cluster(self):
-        """获取bke_cluster_id, identifier
+        """获取bcs_cluster_id, identifier
         """
         url = f'{self.rest_host}/bcs/query_by_id/'
         params = {
@@ -876,26 +874,26 @@ class K8SClient(BCSClientBase):
 
         return result
 
-    def get_client_credentials(self, bke_cluster_id: str) -> dict:
+    def get_client_credentials(self, bcs_cluster_id: str) -> dict:
         """获取证书, user_token, server_address_path
         """
-        url = f'{self.rest_host}/{bke_cluster_id}/client_credentials'
+        url = f'{self.rest_host}/{bcs_cluster_id}/client_credentials'
 
         params = {'access_token': self.access_token}
 
         result = http_get(url, params=params, raise_for_status=False)
         return result
 
-    def get_register_tokens(self, bke_cluster_id: str) -> dict:
-        url = f'{self.rest_host}/{bke_cluster_id}/register_tokens'
+    def get_register_tokens(self, bcs_cluster_id: str) -> dict:
+        url = f'{self.rest_host}/{bcs_cluster_id}/register_tokens'
 
         params = {'access_token': self.access_token}
 
         result = http_get(url, params=params, raise_for_status=False)
         return result
 
-    def create_register_tokens(self, bke_cluster_id: str) -> dict:
-        url = f'{self.rest_host}/{bke_cluster_id}/register_tokens'
+    def create_register_tokens(self, bcs_cluster_id: str) -> dict:
+        url = f'{self.rest_host}/{bcs_cluster_id}/register_tokens'
 
         params = {'access_token': self.access_token}
         headers = {'content-type': 'application/json'}
