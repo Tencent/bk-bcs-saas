@@ -930,8 +930,8 @@
                         :old-content="rollingUpdateDialogConf.oldContent"
                         :new-content="rollingUpdateDialogConf.newContent"
                         :format="'side-by-side'"
-                        :context="200"
                         :min-height="400"
+                        :context="200"
                         @change-count="getDiffChangeCount">
                     </bk-diff>
                 </div>
@@ -973,39 +973,55 @@
         <template slot="content">
             <div v-bkloading="{isLoading: rollingUpdateInNotPlatformDialogConf.loading}" style="min-height: 505px;">
                 <div class="biz-code-wrapper" v-if="!rollingUpdateInNotPlatformDialogConf.loading">
-                    <div class="left">
-                        <div class="rolling-update-in-not-platform-tip">当前线上配置</div>
-                        <div class="build-code-fullscreen" title="全屏" @click="setFullScreen('compareEditor')">
-                            <i class="bk-icon icon-full-screen"></i>
-                        </div>
-                        <ace
-                            :value="compareEditorConfig.value"
-                            :width="compareEditorConfig.width"
-                            :height="compareEditorConfig.height"
-                            :lang="compareEditorConfig.lang"
-                            :read-only="compareEditorConfig.readOnly"
-                            :full-screen="compareEditorConfig.fullScreen"
-                            @init="editorInitAfterForCompare">
-                        </ace>
+                    <div class="toggle-diff-edit">
+                        <a href="javascript:void(0);" class="bk-text-button" @click="toggleDiffEdit">{{rollingUpdateInNotPlatformDialogConf.toggleStr}}</a>
                     </div>
-                    <div class="right">
-                        <div class="rolling-update-in-not-platform-tip">编辑并确定，将更新该配置到线上</div>
-                        <div class="build-code-fullscreen" title="全屏" @click="setFullScreen('editor')">
-                            <i class="bk-icon icon-full-screen"></i>
+                    <template v-if="rollingUpdateInNotPlatformDialogConf.showType === 'diff'">
+                        <div class="diff-wrapper" style="margin-top: 26px;">
+                            <bk-diff
+                                :old-content="compareEditorConfig.value"
+                                :new-content="editorValue"
+                                :format="'side-by-side'"
+                                :min-height="400"
+                                :context="200">
+                            </bk-diff>
                         </div>
-                        <ace
-                            :value="editorConfig.value"
-                            :width="editorConfig.width"
-                            :height="editorConfig.height"
-                            :lang="editorConfig.lang"
-                            :read-only="editorConfig.readOnly"
-                            :full-screen="editorConfig.fullScreen"
-                            @change-annotation="changeAnnotation(...arguments)"
-                            @input="editorChangeHandler"
-                            @init="editorInitAfter">
-                            <!-- @change-annotation="changeAnnotation(index, ...arguments)" -->
-                        </ace>
-                    </div>
+                    </template>
+                    <template v-else>
+                        <div class="left">
+                            <div class="rolling-update-in-not-platform-tip"><i class="bk-icon icon-info-circle"></i>当前线上配置</div>
+                            <div class="build-code-fullscreen" title="全屏" @click="setFullScreen('compareEditor')">
+                                <i class="bk-icon icon-full-screen"></i>
+                            </div>
+                            <ace
+                                :value="compareEditorConfig.value"
+                                :width="compareEditorConfig.width"
+                                :height="compareEditorConfig.height"
+                                :lang="compareEditorConfig.lang"
+                                :read-only="compareEditorConfig.readOnly"
+                                :full-screen="compareEditorConfig.fullScreen"
+                                @init="editorInitAfterForCompare">
+                            </ace>
+                        </div>
+                        <div class="right">
+                            <div class="rolling-update-in-not-platform-tip"><i class="bk-icon icon-info-circle"></i>编辑并确定，将更新该配置到线上</div>
+                            <div class="build-code-fullscreen" title="全屏" @click="setFullScreen('editor')">
+                                <i class="bk-icon icon-full-screen"></i>
+                            </div>
+                            <ace
+                                :value="editorConfig.value"
+                                :width="editorConfig.width"
+                                :height="editorConfig.height"
+                                :lang="editorConfig.lang"
+                                :read-only="editorConfig.readOnly"
+                                :full-screen="editorConfig.fullScreen"
+                                @change-annotation="changeAnnotation(...arguments)"
+                                @input="editorChangeHandler"
+                                @init="editorInitAfter">
+                                <!-- @change-annotation="changeAnnotation(index, ...arguments)" -->
+                            </ace>
+                        </div>
+                    </template>
                 </div>
             </div>
         </template>

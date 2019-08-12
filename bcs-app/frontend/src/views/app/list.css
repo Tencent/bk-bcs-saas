@@ -576,6 +576,13 @@
 }
 
 .biz-rolling-update-dialog {
+    .toggle-diff-edit {
+        position: absolute;
+        top: 0;
+        right: 0;
+        font-size: 14px;
+        z-index: 1;
+    }
     .no-diff-msg {
         display: inline-block;
         color: #ff5656;
@@ -583,9 +590,14 @@
         margin-right: 10px;
     }
     .rolling-update-in-not-platform-tip {
-        color: #ff5656;
+        color: #737987;
         font-size: 14px;
         margin-bottom: 5px;
+        i {
+            position: relative;
+            margin-right: 5px;
+            top: -1px;
+        }
     }
     .title-wrapper {
         display: flex;

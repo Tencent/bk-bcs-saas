@@ -60,7 +60,10 @@ export default {
                 title: '',
                 closeIcon: true,
                 loading: false,
-                content: ''
+                content: '',
+                // diff, edit
+                showType: 'edit',
+                toggleStr: '查看对比'
             },
             updateInNotPlatformDialogConf: {
                 isShow: false,
@@ -1518,6 +1521,53 @@ export default {
         },
 
         /**
+         * 非模板集滚动更新切换 diff 和 edit
+         */
+        toggleDiffEdit () {
+            if (this.rollingUpdateInNotPlatformDialogConf.showType === 'edit') {
+                if (this.compareEditorConfig.value === this.editorValue) {
+                    this.bkMessageInstance && this.bkMessageInstance.close()
+                    this.bkMessageInstance = this.$bkMessage({
+                        theme: 'primary',
+                        delay: 2000,
+                        message: '当前内容一致，没有差异'
+                    })
+                } else {
+                    this.rollingUpdateInNotPlatformDialogConf.showType = 'diff'
+                    this.rollingUpdateInNotPlatformDialogConf.toggleStr = '开始编辑'
+                }
+            } else {
+                this.rollingUpdateInNotPlatformDialogConf.showType = 'edit'
+                this.editorConfig.value = this.editorValue
+                setTimeout(() => {
+                    this.rollingUpdateInNotPlatformDialogConf.toggleStr = '查看对比'
+
+                    this.compareEditorConfig.editor.gotoLine(0, 0, true)
+
+                    this.editorConfig.editor.gotoLine(0, 0, true)
+                    this.editorConfig.editor.focus()
+
+                    // ace editor 同步滚动
+                    const session = this.editorConfig.editor.getSession()
+                    const compareSession = this.compareEditorConfig.editor.getSession()
+                    session.on('changeScrollTop', scroll => {
+                        compareSession.setScrollTop(parseInt(scroll, 10) || 0)
+                    })
+                    session.on('changeScrollLeft', scroll => {
+                        compareSession.setScrollLeft(parseInt(scroll, 10) || 0)
+                    })
+
+                    compareSession.on('changeScrollTop', scroll => {
+                        session.setScrollTop(parseInt(scroll, 10) || 0)
+                    })
+                    compareSession.on('changeScrollLeft', scroll => {
+                        session.setScrollLeft(parseInt(scroll, 10) || 0)
+                    })
+                }, 10)
+            }
+        },
+
+        /**
          * 关闭滚动更新弹层
          */
         hideRollingUpdateInNotPlatform () {
@@ -1528,6 +1578,8 @@ export default {
             setTimeout(() => {
                 this.editorConfig.value = ''
                 this.editorValue = ''
+                this.rollingUpdateInNotPlatformDialogConf.showType = 'edit'
+                this.rollingUpdateInNotPlatformDialogConf.toggleStr = '查看对比'
 
                 this.cancelLoop = false
                 if (this.viewMode === 'namespace') {
@@ -1679,6 +1731,18 @@ export default {
             if (count === 0) {
                 this.rollingUpdateDialogConf && (this.rollingUpdateDialogConf.noDiffMsg = '更新版本与当前版本无差异')
                 this.updateDialogConf && (this.updateDialogConf.noDiffMsg = '更新版本与当前版本无差异')
+                const diffWrapper = document.querySelector('.diff-wrapper')
+                if (diffWrapper) {
+                    this.$nextTick(() => {
+                        const sideDiffNodes = diffWrapper.querySelectorAll('.d2h-file-side-diff')
+                        if (sideDiffNodes) {
+                            sideDiffNodes.forEach(node => {
+                                const firstTr = node.querySelector('tr:nth-child(1)')
+                                firstTr && firstTr.parentNode.removeChild(firstTr)
+                            })
+                        }
+                    })
+                }
             } else {
                 this.rollingUpdateDialogConf && (this.rollingUpdateDialogConf.noDiffMsg = '')
                 this.updateDialogConf && (this.updateDialogConf.noDiffMsg = '')
