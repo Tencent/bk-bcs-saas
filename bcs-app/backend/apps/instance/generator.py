@@ -53,7 +53,8 @@ from backend.apps.instance.constants import (K8S_SECRET_SYS_CONFIG, K8S_CONFIGMA
                                              K8S_DEPLPYMENT_SYS_CONFIG, K8S_DAEMONSET_SYS_CONFIG, K8S_JOB_SYS_CONFIG,
                                              K8S_STATEFULSET_SYS_CONFIG, K8S_RESOURCE_UNIT, K8S_ENV_KEY,
                                              K8S_IMAGE_SECRET_PRFIX, LABEL_MONITOR_LEVEL, LABEL_MONITOR_LEVEL_DEFAULT,
-                                             MESOS_IMAGE_SECRET, INGRESS_ID_SEPARATOR, MESOS_MODULE_NAME)
+                                             MESOS_IMAGE_SECRET, INGRESS_ID_SEPARATOR, MESOS_MODULE_NAME,
+                                             K8S_MODULE_NAME)
 from backend.utils.func_controller import get_func_controller
 from backend.apps.instance.utils_pub import get_cluster_version
 from backend.apps.ticket.models import TlsCert
@@ -63,6 +64,7 @@ from backend.apps.instance import constants as instance_constants
 logger = logging.getLogger(__name__)
 HANDLED_NUM_VAR_PATTERN = re.compile(r"%s}" % NUM_VAR_PATTERN)
 mesos_res_mapping = OrderedDict()
+k8s_res_mapping = OrderedDict()
 
 
 class ProfileGenerator:
@@ -382,6 +384,35 @@ def handle_k8s_api_version(config_profile, cluster_id, cluster_version, controll
 class K8sProfileGenerator(ProfileGenerator):
     """k8s 配置文件，将 json 格式转换为 yaml 格式
     """
+
+    def __init__(self, resource_id, namespace_id, is_validate=True, **params):
+        super().__init__(resource_id, namespace_id, is_validate, **params)
+
+        global k8s_res_mapping
+        from backend.apps.instance.resources import BCSResource
+        for res in BCSResource:
+            if K8S_MODULE_NAME not in res.__module__:
+                continue
+
+            name = str(res.__name__).lower()
+            component = name + 's'  # make plural
+            if component in k8s_res_mapping:
+                continue
+
+            k8s_res_mapping[component] = ''
+            k8s_res_mapping[component] = res()
+            k8s_res_mapping[name] = component
+
+    def __getattr__(self, name):
+        global k8s_res_mapping
+        if name in k8s_res_mapping:
+            component = k8s_res_mapping[name]
+            if type(component) is not str:
+                return component
+
+            return k8s_res_mapping[component]
+
+        return object.__getattribute__(self, name)
 
     def format_config_profile(self, config_profile):
         config_profile = json.loads(config_profile)
@@ -1141,31 +1172,12 @@ class K8sDeploymentGenerator(K8sProfileGenerator):
 
     def handle_pod_config(self, db_config):
         db_spec = db_config['spec']
-        # Recreate 时删除 rollingUpdate
-        update_strategy = db_spec['strategy']
-        if update_strategy.get('type') == 'Recreate':
-            remove_key(update_strategy, 'rollingUpdate')
-        else:
-            # 前端生成的 minReadySecond 不在 spec 下则从 spec.strategy.rollingUpdate 中获取
-            roll_update_strategy = update_strategy['rollingUpdate']
-            if 'minReadySecond' not in db_spec:
-                min_readys = roll_update_strategy.get('minReadySecond')
-                if min_readys is not None:
-                    min_readys = handle_number_var(
-                        min_readys, "%s[%s]minReadySecond" %
-                                    (self.resource_name, self.resource_show_name),
-                        self.is_preview, self.is_validate)
-                    db_spec['minReadySecond'] = min_readys
-            remove_key(roll_update_strategy, 'minReadySecond')
-
-            roll_update_strategy['maxUnavailable'] = handle_number_var(
-                roll_update_strategy['maxUnavailable'], "%s[%s]maxUnavailable" %
-                                                        (self.resource_name, self.resource_show_name),
-                self.is_preview, self.is_validate)
-            roll_update_strategy['maxSurge'] = handle_number_var(
-                roll_update_strategy['maxSurge'], "%s[%s]maxSurge" %
-                                                  (self.resource_name, self.resource_show_name),
-                self.is_preview, self.is_validate)
+        self.pod.set_base_spec(
+            db_spec, self.resource_name, self.resource_show_name, self.is_preview, self.is_validate
+        )
+        self.pod.set_strategy(
+            db_spec['strategy'], self.resource_name, self.resource_show_name, self.is_preview, self.is_validate
+        )
         return db_config
 
     def handle_db_config(self, db_config):

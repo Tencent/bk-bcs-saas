@@ -20,6 +20,7 @@ from django.conf import settings
 from backend.utils.basic import ChoicesEnum
 
 MESOS_MODULE_NAME = 'mesos'
+K8S_MODULE_NAME = 'k8s'
 
 # 所有配置文件的公共 label
 LABLE_TEMPLATE_ID = "io.tencent.paas.templateid"
