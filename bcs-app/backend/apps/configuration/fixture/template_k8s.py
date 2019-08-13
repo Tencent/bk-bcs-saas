@@ -204,14 +204,6 @@ K8S_TEMPLATE = {
                                 }
                             }
                         ],
-                        "strategy": {
-                            "type": "RollingUpdate",
-                            "rollingUpdate": {
-                                "maxUnavailable": 1,
-                                "maxSurge": 0,
-                                "minReadySecond": 0
-                            }
-                        },
                         "selector": {
                             "matchLabels": {
                                 "app": "rumpetroll"
@@ -415,21 +407,23 @@ K8S_TEMPLATE = {
                         ],
                         "isMetric": False,
                         "metricIdList": [],
-                        "affinityYaml": "podAntiAffinity:\n  requiredDuringSchedulingIgnoredDuringExecution:\n  - labelSelector:\n      matchExpressions:\n      - key: app\n        operator: In\n        values:\n        - redis\n    topologyKey: \"kubernetes.io/hostname\"",  # noqa
+                        "affinityYaml": "podAntiAffinity:\n  requiredDuringSchedulingIgnoredDuringExecution:\n  - labelSelector:\n      matchExpressions:\n      - key: app\n        operator: In\n        values:\n        - redis\n    topologyKey: \"kubernetes.io/hostname\"",
+                        # noqa
                         "nodeSelectorList": [
                             {
                                 "key": "app",
                                 "value": "redis"
                             }
                         ],
-                        "affinityYamlCache": "podAntiAffinity:\n  requiredDuringSchedulingIgnoredDuringExecution:\n  - labelSelector:\n      matchExpressions:\n      - key: app\n        operator: In\n        values:\n        - redis\n    topologyKey: \"kubernetes.io/hostname\""  # noqa
+                        "affinityYamlCache": "podAntiAffinity:\n  requiredDuringSchedulingIgnoredDuringExecution:\n  - labelSelector:\n      matchExpressions:\n      - key: app\n        operator: In\n        values:\n        - redis\n    topologyKey: \"kubernetes.io/hostname\""
+                        # noqa
                     },
                     "customLogLabel": {},
                     "metadata": {
                         "name": "deploy-redis1"
                     },
                     "spec": {
-                        "minReadySecond": 0,
+                        "minReadySeconds": 0,
                         "replicas": 1,
                         "strategy": {
                             "type": "RollingUpdate",
@@ -621,15 +615,17 @@ K8S_TEMPLATE = {
                         ],
                         "isMetric": False,
                         "metricIdList": [],
-                        "affinityYaml": "podAntiAffinity:\n  requiredDuringSchedulingIgnoredDuringExecution:\n  - labelSelector:\n      matchExpressions:\n      - key: app\n        operator: In\n        values:\n        - nginx\n    topologyKey: \"kubernetes.io/hostname\"\npodAffinity:\n  requiredDuringSchedulingIgnoredDuringExecution:\n  - labelSelector:\n      matchExpressions:\n      - key: app\n        operator: In\n        values:\n        - redis\n    topologyKey: \"kubernetes.io/hostname\"",  # noqa
-                        "affinityYamlCache": "podAntiAffinity:\n  requiredDuringSchedulingIgnoredDuringExecution:\n  - labelSelector:\n      matchExpressions:\n      - key: app\n        operator: In\n        values:\n        - nginx\n    topologyKey: \"kubernetes.io/hostname\"\npodAffinity:\n  requiredDuringSchedulingIgnoredDuringExecution:\n  - labelSelector:\n      matchExpressions:\n      - key: app\n        operator: In\n        values:\n        - redis\n    topologyKey: \"kubernetes.io/hostname\""  # noqa
+                        "affinityYaml": "podAntiAffinity:\n  requiredDuringSchedulingIgnoredDuringExecution:\n  - labelSelector:\n      matchExpressions:\n      - key: app\n        operator: In\n        values:\n        - nginx\n    topologyKey: \"kubernetes.io/hostname\"\npodAffinity:\n  requiredDuringSchedulingIgnoredDuringExecution:\n  - labelSelector:\n      matchExpressions:\n      - key: app\n        operator: In\n        values:\n        - redis\n    topologyKey: \"kubernetes.io/hostname\"",
+                        # noqa
+                        "affinityYamlCache": "podAntiAffinity:\n  requiredDuringSchedulingIgnoredDuringExecution:\n  - labelSelector:\n      matchExpressions:\n      - key: app\n        operator: In\n        values:\n        - nginx\n    topologyKey: \"kubernetes.io/hostname\"\npodAffinity:\n  requiredDuringSchedulingIgnoredDuringExecution:\n  - labelSelector:\n      matchExpressions:\n      - key: app\n        operator: In\n        values:\n        - redis\n    topologyKey: \"kubernetes.io/hostname\""
+                        # noqa
                     },
                     "customLogLabel": {},
                     "metadata": {
                         "name": "deploy-nginx1"
                     },
                     "spec": {
-                        "minReadySecond": 0,
+                        "minReadySeconds": 0,
                         "replicas": 1,
                         "strategy": {
                             "type": "RollingUpdate",

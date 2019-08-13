@@ -19,12 +19,13 @@ SUPPORTED_HEALTH_CHECKS = ['HTTP', 'REMOTE_HTTP', 'TCP', 'REMOTE_TCP']
 
 class Pod(BCSResource):
 
-    def _health_checks_params_to_int(self, health_check, resource_name, is_preview, is_validate):
+    def _health_checks_params_to_int(self, health_check, metadata_name, is_preview, is_validate):
         common_check_params = ['delaySeconds', 'intervalSeconds', 'timeoutSeconds', 'consecutiveFailures',
                                'gracePeriodSeconds']
         for p in common_check_params:
-            health_check[p] = utils.handle_number_var(health_check[p], f'Application[{resource_name}]{p}', is_preview,
-                                                      is_validate)
+            health_check[p] = utils.handle_number_var(
+                health_check[p], f'Application[{metadata_name}]{p}', is_preview, is_validate
+            )
 
     def set_resources(self, resources):
         limits = resources.get('limits') or {}
@@ -35,7 +36,7 @@ class Pod(BCSResource):
         requests['cpu'] = str(requests.get('cpu') or '')
         requests['memory'] = str(requests.get('memory') or '')
 
-    def set_health_checks(self, health_checks, resource_name, is_preview, is_validate):
+    def set_health_checks(self, health_checks, metadata_name, is_preview, is_validate):
         if not health_checks:
             return
 
@@ -45,4 +46,4 @@ class Pod(BCSResource):
             del health_checks[0]
             return
 
-        self._health_checks_params_to_int(hc, resource_name, is_preview, is_validate)
+        self._health_checks_params_to_int(hc, metadata_name, is_preview, is_validate)
