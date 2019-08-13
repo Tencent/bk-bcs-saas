@@ -839,13 +839,10 @@ export default {
                     const data = res.data || {}
                     Object.keys(data).forEach(key => {
                         data[key].forEach(item => {
-                            // item.config.aaa = '{{aaa-test1}}'
-                            // item.config.bbb = '{{aaa-test2}}}'
                             const content = JSON.stringify(item.config, null, 4)
                             list.push({
-                                // name: `${key}:${item.name}`,
+                                name: `${key}:${item.name}`, // 防止不同资源名称相同冲突
                                 tag: key,
-                                name: item.name,
                                 content: content,
                                 originalContent: content
                             })
