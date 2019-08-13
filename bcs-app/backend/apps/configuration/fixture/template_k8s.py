@@ -407,7 +407,10 @@ K8S_TEMPLATE = {
                         ],
                         "isMetric": False,
                         "metricIdList": [],
-                        "affinityYaml": "podAntiAffinity:\n  requiredDuringSchedulingIgnoredDuringExecution:\n  - labelSelector:\n      matchExpressions:\n      - key: app\n        operator: In\n        values:\n        - redis\n    topologyKey: \"kubernetes.io/hostname\"",
+                        "affinityYaml": "podAntiAffinity:\n  requiredDuringSchedulingIgnoredDuringExecution:\n  "
+                                        "- labelSelector:\n      matchExpressions:\n      - key: app\n        "
+                                        "operator: In\n        values:\n        - redis\n    "
+                                        "topologyKey: \"kubernetes.io/hostname\"",
                         # noqa
                         "nodeSelectorList": [
                             {
@@ -415,7 +418,10 @@ K8S_TEMPLATE = {
                                 "value": "redis"
                             }
                         ],
-                        "affinityYamlCache": "podAntiAffinity:\n  requiredDuringSchedulingIgnoredDuringExecution:\n  - labelSelector:\n      matchExpressions:\n      - key: app\n        operator: In\n        values:\n        - redis\n    topologyKey: \"kubernetes.io/hostname\""
+                        "affinityYamlCache": "podAntiAffinity:\n  requiredDuringSchedulingIgnoredDuringExecution:\n  "
+                                             "- labelSelector:\n      matchExpressions:\n      - key: app\n        "
+                                             "operator: In\n        values:\n        - redis\n    "
+                                             "topologyKey: \"kubernetes.io/hostname\""
                         # noqa
                     },
                     "customLogLabel": {},
@@ -615,9 +621,22 @@ K8S_TEMPLATE = {
                         ],
                         "isMetric": False,
                         "metricIdList": [],
-                        "affinityYaml": "podAntiAffinity:\n  requiredDuringSchedulingIgnoredDuringExecution:\n  - labelSelector:\n      matchExpressions:\n      - key: app\n        operator: In\n        values:\n        - nginx\n    topologyKey: \"kubernetes.io/hostname\"\npodAffinity:\n  requiredDuringSchedulingIgnoredDuringExecution:\n  - labelSelector:\n      matchExpressions:\n      - key: app\n        operator: In\n        values:\n        - redis\n    topologyKey: \"kubernetes.io/hostname\"",
+                        "affinityYaml": "podAntiAffinity:\n  requiredDuringSchedulingIgnoredDuringExecution:\n  "
+                                        "- labelSelector:\n      matchExpressions:\n      - key: app\n        "
+                                        "operator: In\n        values:\n        - nginx\n    "
+                                        "topologyKey: \"kubernetes.io/hostname\"\npodAffinity:\n  "
+                                        "requiredDuringSchedulingIgnoredDuringExecution:\n  - labelSelector:\n      "
+                                        "matchExpressions:\n      - key: app\n        operator: In\n        "
+                                        "values:\n        - redis\n    topologyKey: \"kubernetes.io/hostname\"",
                         # noqa
-                        "affinityYamlCache": "podAntiAffinity:\n  requiredDuringSchedulingIgnoredDuringExecution:\n  - labelSelector:\n      matchExpressions:\n      - key: app\n        operator: In\n        values:\n        - nginx\n    topologyKey: \"kubernetes.io/hostname\"\npodAffinity:\n  requiredDuringSchedulingIgnoredDuringExecution:\n  - labelSelector:\n      matchExpressions:\n      - key: app\n        operator: In\n        values:\n        - redis\n    topologyKey: \"kubernetes.io/hostname\""
+                        "affinityYamlCache": "podAntiAffinity:\n  requiredDuringSchedulingIgnoredDuringExecution:\n  "
+                                             "- labelSelector:\n      matchExpressions:\n      - key: app\n        "
+                                             "operator: In\n        values:\n        - nginx\n    "
+                                             "topologyKey: \"kubernetes.io/hostname\"\npodAffinity:\n  "
+                                             "requiredDuringSchedulingIgnoredDuringExecution:\n  "
+                                             "- labelSelector:\n      matchExpressions:\n      - key: app\n        "
+                                             "operator: In\n        values:\n        - redis\n    "
+                                             "topologyKey: \"kubernetes.io/hostname\""
                         # noqa
                     },
                     "customLogLabel": {},

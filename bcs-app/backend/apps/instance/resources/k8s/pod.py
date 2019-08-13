@@ -37,5 +37,5 @@ class Pod(BCSResource):
             if 'rollingUpdate' in strategy:
                 del strategy['rollingUpdate']
             return
-        
+
         self._strategy_params_to_int(strategy['rollingUpdate'], resource_name, metadata_name, is_preview, is_validate)
