@@ -218,7 +218,7 @@
                                                     </div>
 
                                                     <div class="bk-form-item" v-show="curApplication.config.spec.strategy.type === 'RollingUpdate'">
-                                                        <label class="bk-label" style="width: 155px;">minReadySecond：</label>
+                                                        <label class="bk-label" style="width: 155px;">minReadySeconds：</label>
                                                         <div class="bk-form-content" style="margin-left: 155px;">
                                                             <div class="bk-form-input-group">
                                                                 <bk-input
@@ -226,7 +226,7 @@
                                                                     placeholder="请输入"
                                                                     style="width: 215px;"
                                                                     :min="0"
-                                                                    :value.sync="curApplication.config.spec.minReadySecond"
+                                                                    :value.sync="curApplication.config.spec.minReadySeconds"
                                                                     :list="varList"
                                                                 >
                                                                 </bk-input>

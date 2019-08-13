@@ -246,6 +246,11 @@ export default {
                     item.config.monitorLevel = 'general'
                 }
 
+                // deployment兼容接口数据
+                if (item.config.spec.hasOwnProperty('minReadySecond') && !item.config.spec.hasOwnProperty('minReadySeconds')) {
+                    item.config.spec.minReadySeconds = item.config.spec.minReadySecond
+                }
+
                 const spec = item.config.spec.template.spec
                 spec.allContainers = []
                 spec.containers.forEach(container => {
