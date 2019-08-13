@@ -214,7 +214,7 @@ class AppNamespaceView(AccessTokenMixin, ProjectMixin, viewsets.ReadOnlyModelVie
 
     def get_queryset(self):
 
-        result = paas_cc.get_namespace_list(self.access_token, self.project_id)
+        result = paas_cc.get_namespace_list(self.access_token, self.project_id, desire_all_data=True)
         results = result["data"]["results"]
         if not results:
             return []
