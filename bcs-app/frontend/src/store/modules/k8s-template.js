@@ -1804,7 +1804,7 @@ export default {
          * @param {Object} 请求参数，包括projectId
          */
         bindServiceForStatefulset (context, { projectId, versionId, statefulsetId, data }) {
-            return http.put(`${DEVOPS_BCS_API_URL}/api/configuration/projects/${projectId}/versions/${versionId}/K8sStatefulSet/${statefulsetId}/service-tag/`, data)
+            return http.put(`${DEVOPS_BCS_API_URL}/api/configuration/projects/${projectId}/versions/${versionId}/K8sStatefulSet/${statefulsetId}/service-tag/`, data, { cancelWhenRouteChange: false )
         }
     }
 }
