@@ -134,7 +134,7 @@ class TemplateResourceView(viewsets.ViewSet, GetVersionedEntity):
         return Response({})
 
     def update_sts_service_tag(self, request, project_id, version_id, sts_deploy_tag):
-        service_tag = request.GET.get('service_tag')
+        service_tag = request.data.get('service_tag')
         ventity = self.get_versioned_entity(project_id, version_id)
         sts_id_list = ventity.get_resource_id_list(K8sResourceName.K8sStatefulSet.value)
         K8sStatefulSet.objects.filter(id__in=sts_id_list, deploy_tag=sts_deploy_tag).update(service_tag=service_tag)
