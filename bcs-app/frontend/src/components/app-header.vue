@@ -36,7 +36,8 @@
                     'k8sTemplatesetDaemonset',
                     'k8sTemplatesetJob',
                     'k8sTemplatesetStatefulset',
-                    'k8sTemplatesetIngress'
+                    'k8sTemplatesetIngress',
+                    'k8sTemplatesetHPA'
                 ],
                 loadBalanceRouters: [
                     'loadBalance',
@@ -180,6 +181,7 @@
                     'k8sTemplatesetConfigmap',
                     'k8sTemplatesetSecret',
                     'k8sTemplatesetIngress',
+                    'k8sTemplatesetHPA',
                     'instantiation',
                     'metricManage'
                 ]
