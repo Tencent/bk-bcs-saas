@@ -88,7 +88,7 @@ class K8sJobSLZ(K8sPodUnitSLZ):
 
 class K8sStatefulSetSLZ(K8sPodUnitSLZ):
     resource_name = serializers.CharField(default=K8sResourceName.K8sStatefulSet.value)
-    service_tag = serializers.CharField(default='')
+    service_tag = serializers.CharField(default='', allow_blank=True, allow_null=True)
 
 
 class K8sConfigMapSLZ(BCSResourceSLZ):
