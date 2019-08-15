@@ -28,6 +28,7 @@ import network from './modules/network'
 import mesosTemplate from './modules/mesos-template'
 import k8sTemplate from './modules/k8s-template'
 import helm from './modules/helm'
+import hpa from './modules/hpa'
 import menuConfig from './menu-config'
 
 Vue.use(Vuex)
@@ -50,7 +51,8 @@ const store = new Vuex.Store({
         network,
         mesosTemplate,
         k8sTemplate,
-        helm
+        helm,
+        hpa
     },
     // 公共 store
     state: {
