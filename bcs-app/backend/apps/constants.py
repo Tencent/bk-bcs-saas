@@ -17,6 +17,7 @@ from django.conf import settings
 
 from enum import Enum
 from backend.utils.basic import ChoicesEnum
+from backend.apps.constants_bk import ProjectKind
 from backend.apps.constants_bk import *  # noqa
 
 
@@ -69,17 +70,6 @@ class EnvType(Enum):
     DEV = 'dev'
     TEST = 'test'
     PROD = 'prod'
-
-
-# 项目类型
-class ProjectKind(ChoicesEnum):
-    K8S = 1
-    MESOS = 2
-
-    _choices_labels = (
-        (1, 'Kubernetes'),
-        (2, 'Mesos')
-    )
 
 
 ClusterType = dict(ProjectKind._choices_labels.get_choices())

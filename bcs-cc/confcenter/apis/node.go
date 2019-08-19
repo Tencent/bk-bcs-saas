@@ -139,9 +139,11 @@ func BatchOperateNodes(c *gin.Context) {
 		return
 	}
 	// check cluster exist
-	if err := models.ValidateProjectCluster(projectID, clusterID); err != nil {
-		utils.DBErrorResponse(c, err)
-		return
+	if projectID != "null" {
+		if err := models.ValidateProjectCluster(projectID, clusterID); err != nil {
+			utils.DBErrorResponse(c, err)
+			return
+		}
 	}
 	// split create or update
 	createNodeList := data.Creates
@@ -279,12 +281,12 @@ func GetAllNodeList(c *gin.Context) {
 			utils.DBErrorResponse(c, err)
 			return
 		}
-		
+
 		for _, clusterInfo := range clusterList {
 			clusterIDList = append(clusterIDList, clusterInfo.ClusterID)
 		}
 	}
-	
+
 	// search node list
 	data, err := models.NodeListByCluster(clusterIDList, nodeFilterStatus)
 	if err != nil {

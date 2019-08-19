@@ -46,3 +46,12 @@ func masterFilterString(qs ManagerMasterQuerySet, field string, val string) Mana
 	}
 	return qs
 }
+
+// SetInstanceIDWithoutEmpty : update instance id
+func (u ManagerMasterUpdater) SetInstanceIDWithoutEmpty(instanceID string) ManagerMasterUpdater {
+	if instanceID == "" {
+		return u
+	}
+	u.fields[string(ManagerMasterDBSchema.InstanceID)] = instanceID
+	return u
+}

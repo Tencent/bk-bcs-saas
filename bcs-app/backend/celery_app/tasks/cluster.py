@@ -380,10 +380,10 @@ def exec_bcs_task(old_log, request=None):
         params.get("cluster_id"), None
     )
     rsp = client.create_cluster(
-        params.get("kind"), username,
+        params.get("kind_name"), username,
         params.get("master_ips", []),
         data={
-            "modules": params.get("module_name", ""),
+            "modules": params.get("module_list", ""),
             "appID": constants.BCS_APP_ID,
             "needNat": params.get("need_nat", True),
         }
@@ -486,7 +486,7 @@ def node_exec_bcs_task(old_log, request=None):
             user_token, project_id, cluster_id, None
         )
         rsp = client.add_cluster_node(
-            params.get("kind"), username,
+            params.get("kind_name"), username,
             list(node_info.keys()), params.get("cc_app_id")
         )
     except Exception as error:
@@ -988,7 +988,7 @@ def get_pod_taskgroup_info(log):
     """查询node下pod信息为空
     """
     params = json.loads(log.params)
-    kind = params.get("cluster_kind")
+    kind = params.get("kind_name")
     if kind not in ["k8s", "mesos"]:
         log.status = models.CommonStatus.RemoveFailed
         log.log = json.dumps({
@@ -1073,7 +1073,7 @@ def delete_cluster_node(new_log):
         log.token, log.project_id, log.cluster_id, None
     )
     resp = bcs_client.delete_cluster_node(
-        params.get("cluster_kind"), log.operator, list(params.get("nodes", {}).keys())
+        params.get("kind_name"), log.operator, list(params.get("nodes", {}).keys())
     )
     if not resp.get("result"):
         log.is_finished = True

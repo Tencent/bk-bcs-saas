@@ -243,3 +243,12 @@ func (u ClusterUpdater) SetDescriptionWithoutNil(description *string) ClusterUpd
 	u.fields[string(ClusterDBSchema.Description)] = *description
 	return u
 }
+
+// SetExtraClusterIDWithoutNil : update extra cluster id
+func (u ClusterUpdater) SetExtraClusterIDWithoutNil(extraClusterID *string) ClusterUpdater {
+	if extraClusterID == nil {
+		return u
+	}
+	u.fields[string(ClusterDBSchema.ExtraClusterID)] = *extraClusterID
+	return u
+}

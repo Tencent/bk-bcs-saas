@@ -32,3 +32,21 @@ func (u NodeUpdater) SetStatusWithEmpty(status string) NodeUpdater {
 	u.fields[string(NodeDBSchema.Status)] = status
 	return u
 }
+
+// SetInstanceIDWithoutEmpty : update node instance id
+func (u NodeUpdater) SetInstanceIDWithoutEmpty(instanceID string) NodeUpdater {
+	if instanceID == "" {
+		return u
+	}
+	u.fields[string(NodeDBSchema.InstanceID)] = instanceID
+	return u
+}
+
+//SetProjectIDWithEmpty :
+func (u NodeUpdater) SetProjectIDWithEmpty(projectID string) NodeUpdater {
+	if projectID == "" || projectID == "null" {
+		return u
+	}
+	u.fields[string(NodeDBSchema.ProjectID)] = projectID
+	return u
+}

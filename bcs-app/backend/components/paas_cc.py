@@ -375,11 +375,12 @@ def update_node_with_cluster(access_token, project_id, data):
     return http_put(url, json=data, headers=headers)
 
 
-def get_zk_config(access_token, project_id, cluster_id):
-    cluster = get_cluster(access_token, project_id, cluster_id)
-    if cluster.get('code') != 0:
-        raise error_codes.APIError(cluster.get('message'))
-    environment = cluster['data']['environment']
+def get_zk_config(access_token, project_id, cluster_id, environment=None):
+    if not environment:
+        cluster = get_cluster(access_token, project_id, cluster_id)
+        if cluster.get('code') != 0:
+            raise error_codes.APIError(cluster.get('message'))
+        environment = cluster['data']['environment']
 
     url = f'{CC_HOST}/zk_config/'
     params = {'access_token': access_token, 'environment': environment}
@@ -501,3 +502,15 @@ def get_project_cluster_resource(access_token):
         })
     }
     return http_get(url, headers=headers)
+
+
+def update_master(access_token, project_id, cluster_id, data):
+    """更新master信息
+    """
+    url = f'{CC_HOST}/projects/{project_id}/clusters/{cluster_id}/masters/'
+    headers = {
+        "X-BKAPI-AUTHORIZATION": json.dumps({
+            "access_token": access_token
+        })
+    }
+    return http_put(url, json=data, headers=headers)
