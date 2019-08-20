@@ -35,7 +35,7 @@ from backend.apps.cluster.utils import cluster_env_transfer, status_transfer
 from backend.utils.renderers import BKAPIRenderer
 from backend.apps.cluster import serializers as cluster_serializers
 from backend.apps.cluster.views_bk import cluster
-from backend.apps.cluster.views_bk.driver import cmdb
+from backend.apps.cluster.views_bk.tools import cmdb
 
 DEFAULT_OPER_USER = settings.DEFAULT_OPER_USER
 
@@ -99,7 +99,7 @@ class ClusterCreateListViewSet(viewsets.ViewSet):
             request.user.token.access_token, project_id, desire_all_data=1
         )
         if cluster_resp.get('code') != ErrorCode.NoError:
-            logger.error(f'get cluster error, {cluster_resp}')
+            logger.error('get cluster error, %s', cluster_resp)
             return {}
         return cluster_resp.get('data') or {}
 

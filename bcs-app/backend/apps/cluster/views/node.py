@@ -39,8 +39,7 @@ from backend.apps.cluster.driver import BaseDriver
 from backend.apps.cluster import serializers as node_serializers
 from backend.utils.renderers import BKAPIRenderer
 from backend.apps.cluster.views_bk import node
-from backend.apps.cluster.views_bk.driver import cmdb
-from backend.apps.cluster.views_bk.driver import gse
+from backend.apps.cluster.views_bk.tools import cmdb, gse
 
 logger = logging.getLogger(__name__)
 
