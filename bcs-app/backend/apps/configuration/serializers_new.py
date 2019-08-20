@@ -23,7 +23,7 @@ from backend.apps.configuration import models
 from backend.apps.configuration.k8s import serializers as kserializers
 from backend.apps.configuration.mesos import serializers as mserializers
 from django.core.exceptions import ObjectDoesNotExist
-from .constants import RESOURCE_NAMES, K8sResourceName, MesosResourceName
+from .constants import RESOURCE_NAMES, MesosResourceName
 
 SLZ_CLASS = [kserializers.K8sDeploymentSLZ, kserializers.K8sDaemonsetSLZ, kserializers.K8sJobSLZ,
              kserializers.K8sStatefulSetSLZ, kserializers.K8sServiceSLZ, kserializers.K8sConfigMapSLZ,
@@ -33,6 +33,7 @@ SLZ_CLASS = [kserializers.K8sDeploymentSLZ, kserializers.K8sDaemonsetSLZ, kseria
 RESOURCE_SLZ_MAP = dict(zip(RESOURCE_NAMES, SLZ_CLASS))
 
 logger = logging.getLogger(__name__)
+
 
 def get_slz_class_by_resource_name(resource_name):
     return RESOURCE_SLZ_MAP[resource_name]
@@ -46,18 +47,11 @@ def can_delete_resource(ventity, resource_name, resource_id):
             raise ValidationError(f"{resource_name}[{pod_res_name}] 被以下资源关联，不能被删除: "
                                   f"{','.join(related_svc_names)}")
 
-    # 验证 Service 是否被 statefulset 关联
-    if resource_name in [K8sResourceName.K8sService.value, ]:
-        svc_name, related_ss_names = models.get_service_related_statefulset(ventity, resource_id)
-        if related_ss_names:
-            raise ValidationError(f"{resource_name}[{svc_name}] 被以下资源关联，不能被删除: "
-                                  f"{','.join(related_ss_names)}")
-
     # 删除 Application 时，需要先判断 Deployment 和 service 的依赖关系
     if resource_name == MesosResourceName.application.value:
         app_name, related_resource_names = models.get_application_related_resource(ventity, resource_id)
         if related_resource_names:
-            raise ValidationError(f"{resource_name}[app_name] 被以下资源关联，不能删除: "
+            raise ValidationError(f"{resource_name}[{app_name}] 被以下资源关联，不能删除: "
                                   f"{','.join(related_resource_names)}")
 
 
