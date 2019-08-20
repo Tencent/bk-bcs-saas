@@ -183,7 +183,8 @@ class CreateAppResourceView(APIView, TemplatePermission):
         return {
             'id': resource.id,
             'version': ventity.id,
-            'template_id': template_id
+            'template_id': template_id,
+            'resource_data': resource.get_res_config(is_simple=True)
         }
 
     @transaction.atomic
@@ -265,7 +266,11 @@ class UpdateDestroyAppResourceView(APIView, TemplatePermission):
         # model Template updated field need change when update resource
         template.save(update_fields=['updated'])
 
-        return Response({'id': robj.id, 'version': new_ventity.id})
+        return Response({
+            'id': robj.id,
+            'version': new_ventity.id,
+            'resource_data': robj.get_res_config(is_simple=True)
+        })
 
     def delete(self, request, project_id, version_id, resource_name, resource_id):
         validate_resource_name(resource_name)

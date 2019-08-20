@@ -206,11 +206,9 @@ class K8sService(K8sResource, ResourceMixin):
 
     def get_res_config(self, is_simple):
         c = super().get_res_config(is_simple)
+        c['service_tag'] = self.service_tag
         if not is_simple:
-            c.update({
-                'deploy_tag_list': self.get_deploy_tag_list(),
-                'service_tag': self.service_tag,
-            })
+            c['deploy_tag_list'] = self.get_deploy_tag_list()
         return c
 
     def get_ports_config(self):
@@ -245,8 +243,10 @@ class K8sIngress(K8sResource, ResourceMixin):
     desc = models.TextField("描述", help_text="前台展示字段，bcs api 中无该信息")
     category = models.CharField("类型", max_length=16, blank=True, null=True, help_text="该字段已经废弃")
 
+
 class K8sHPA(K8sResource, ResourceMixin):
     pass
+
 
 # TODO refactor
 
