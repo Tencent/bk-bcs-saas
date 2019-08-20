@@ -17,7 +17,6 @@ from django.conf import settings
 
 from enum import Enum
 from backend.utils.basic import ChoicesEnum
-from backend.apps.constants_bk import ProjectKind
 from backend.apps.constants_bk import *  # noqa
 
 
