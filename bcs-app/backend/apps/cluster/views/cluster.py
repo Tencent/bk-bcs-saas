@@ -381,12 +381,13 @@ class ClusterMasterInfo(ClusterPermBase, viewsets.ViewSet):
     def cluster_master_info(self, request, project_id, cluster_id):
         self.can_view_cluster(request, project_id, cluster_id)
         ip_only = request.query_params.get('ip_only')
+        cc_app_id = constants.BCS_APP_ID or request.project.cc_app_id
         # get master ip
         master_ips = self.get_master_ips(request, project_id, cluster_id)
         if ip_only == 'true':
             return response.Response([{'inner_ip': ip} for ip in master_ips])
         # get cc hosts
-        cc_host_info = cmdb.CMDBClient(request).get_cc_hosts()
+        cc_host_info = cmdb.CMDBClient(request).get_cc_hosts(cc_app_id=cc_app_id)
         # compose the data
         ret_data = []
         for info in cc_host_info:
