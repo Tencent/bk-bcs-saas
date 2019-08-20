@@ -20,7 +20,7 @@ from rest_framework import response, viewsets
 from rest_framework.renderers import BrowsableAPIRenderer
 
 from backend.activity_log import client
-from backend.components import cc, paas_cc, data as data_api, gse
+from backend.components import paas_cc, data as data_api
 from backend.components.bcs import k8s, mesos
 from backend.utils.errcodes import ErrorCode
 from backend.utils.error_codes import error_codes
@@ -39,6 +39,7 @@ from backend.apps.cluster.driver import BaseDriver
 from backend.apps.cluster import serializers as node_serializers
 from backend.utils.renderers import BKAPIRenderer
 from backend.apps.cluster.views_bk import node
+from backend.apps.cluster.views_bk.tools import cmdb, gse
 
 logger = logging.getLogger(__name__)
 
@@ -453,17 +454,6 @@ class CCHostListViewSet(NodeBase, NodeHandler, viewsets.ViewSet):
         }
         return format_data
 
-    def get_agent_status(self, request, ip_list):
-        hosts = []
-        for info in ip_list:
-            plat_info = info.get('bk_cloud_id') or []
-            plat_id = plat_info[0]['id'] if plat_info else 0
-            hosts.extend([
-                {'plat_id': plat_id, 'bk_cloud_id': plat_id, 'ip': ip}
-                for ip in info.get('inner_ip', '').split(',')
-            ])
-        return gse.get_agent_status(request.user.username, hosts)
-
     def update_agent_status(self, cc_host_map, gse_host_status):
         gse_host_status_map = {info['ip']: info for info in gse_host_status}
         for ips in cc_host_map:
@@ -516,27 +506,16 @@ class CCHostListViewSet(NodeBase, NodeHandler, viewsets.ViewSet):
         node_list.extend(used_node_list)
         return node_list
 
-    def get_cc_application_name(self, username, cc_app_id):
-        self.cc_application_name = cc.get_application_name(username, cc_app_id)
-
-    def get_cc_hosts(self, cc_app_id, username):
-        resp = cc.get_cc_hosts(cc_app_id, username)
-        if not resp.get("result"):
-            raise error_codes.APIError(resp.get("message"))
-        return resp.get("data") or []
-
     def post(self, request, project_id):
         """get cmdb host info, include gse status, use status
         """
         # get request data
         data = self.get_data(request)
-        # get cc app id by project
-        cc_app_id = request.project['cc_app_id']
-        username = request.user.username
-        host_list = self.get_cc_hosts(cc_app_id, username)
+        cmdb_client = cmdb.CMDBClient(request)
+        host_list = cmdb_client.get_cc_hosts()
         # filter node list
         host_list = self.filter_node(host_list, data['ip_list'])
-        self.get_cc_application_name(username, cc_app_id)
+        self.cc_application_name = cmdb_client.get_cc_application_name()
         # get host list, return as soon as possible when empty
         if not host_list:
             return response.Response({
@@ -553,7 +532,7 @@ class CCHostListViewSet(NodeBase, NodeHandler, viewsets.ViewSet):
         pagination_data = custom_paginator(host_list, data['offset'], limit=data['limit'])
         # for frontend display
         cc_host_map = self.get_cc_host_mappings(pagination_data['results'])
-        gse_host_status = self.get_agent_status(request, cc_host_map.values())
+        gse_host_status = gse.GSEClient.get_agent_status(request, cc_host_map.values())
         # compose the host list with gse status and host status
         self.update_agent_status(cc_host_map, gse_host_status)
 
@@ -636,9 +615,7 @@ class NodeInfo(NodeBase, viewsets.ViewSet):
             logger.error('get node error, %s', err)
             return response.Response([])
         node_id = self.get_node_id(inner_ip, node_list)
-        data = cc.get_host_base_info(
-            request.user.username, request.project.get('cc_app_id'), inner_ip
-        )
+        data = cmdb.CMDBClient(request).get_host_base_info(inner_ip)
         # provider can only be CMDB
         data.update({'provider': 'CMDB', 'id': node_id})
         return response.Response(data)

@@ -59,6 +59,7 @@ type Node struct {
 	MEM         float64 `json:"mem" gorm:"default:0"`
 	Disk        float64 `json:"disk" gorm:"default:0"`
 	IPResources float64 `json:"ip_resources" gorm:"default:0"`
+	InstanceID  string  `json:"instance_id" gorm:"size:64"`
 }
 
 // NodeFilterData :
@@ -168,9 +169,9 @@ func BatchUpdateRecord(data []Node, excludeStatus []string) (nodeListInfo []Node
 	nodeQuerySet := NewNodeQuerySet(tx).StatusNotInWithoutError(excludeStatus...)
 	for _, node := range data {
 		updater := nodeQuerySet.InnerIPEq(node.InnerIP).GetUpdater()
-		updater = updater.SetProjectID(node.ProjectID).SetClusterID(node.ClusterID)
+		updater = updater.SetProjectIDWithEmpty(node.ProjectID).SetClusterID(node.ClusterID)
 		updater = updater.SetStatusWithEmpty(node.Status).SetDescription(node.Description)
-		if err := updater.Update(); err != nil {
+		if err := updater.SetInstanceIDWithoutEmpty(node.InstanceID).Update(); err != nil {
 			tx.Rollback()
 			return nil, err
 		}
@@ -191,7 +192,7 @@ func (node *Node) UpdateRecord() error {
 	nodeQuerySet := NewNodeQuerySet(db).IDEq(node.ID)
 	updater := nodeQuerySet.GetUpdater()
 	updater = updater.SetStatusWithEmpty(node.Status).SetDescription(node.Description).SetName(node.Name)
-	if err := updater.Update(); err != nil {
+	if err := updater.SetInstanceIDWithoutEmpty(node.InstanceID).Update(); err != nil {
 		return err
 	}
 	if err := node.RetriveRecord(); err != nil {

@@ -33,6 +33,7 @@ type ManagerMaster struct {
 	Backup       string `json:"backup" gorm:"size:128"`
 	Hostname     string `json:"hostname" gorm:"size:128"`
 	Status       string `json:"status" gorm:"size:16"`
+	InstanceID   string `json:"instance_id" gorm:"size:64"`
 }
 
 // CheckInnerIPList : check inner ip
@@ -118,7 +119,7 @@ func (master *ManagerMaster) UpdateRecord() error {
 	db := storage.GetDefaultSession().DB
 	qs := NewManagerMasterQuerySet(db).InnerIPEq(master.InnerIP)
 	updater := qs.GetUpdater()
-	if err := updater.SetStatus(master.Status).Update(); err != nil {
+	if err := updater.SetStatus(master.Status).SetInstanceIDWithoutEmpty(master.InstanceID).Update(); err != nil {
 		return err
 	}
 	return master.RetriveRecord()

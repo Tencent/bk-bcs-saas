@@ -29,7 +29,7 @@ from backend.utils.error_codes import error_codes
 from backend.utils.renderers import BKAPIRenderer
 from backend.utils.cache import region
 from backend.apps.configuration.init_data import init_template
-from backend.apps.projects.utils import start_project_task
+from backend.apps.projects.utils import start_project_task, get_app_by_user_role, get_application_name
 from backend.apps.projects.drivers.base import BaseDriver
 from backend.utils.basic import normalize_datetime
 
@@ -124,7 +124,7 @@ class Projects(viewsets.ViewSet):
         data['created_at'], data['updated_at'] = self.normalize_create_update_time(
             data['created_at'], data['updated_at'])
         # 添加业务名称
-        data['cc_app_name'] = cc.get_application_name(request.user.username, request.project.cc_app_id)
+        data['cc_app_name'] = get_application_name(request)
         data['can_edit'] = self.can_edit(request, project_id)
         return Response(data)
 
@@ -205,5 +205,5 @@ class CC(viewsets.ViewSet):
     def list(self, request):
         """获取当前用户CC列表
         """
-        data = cc.get_app_by_user_role(request.user.username)
+        data = get_app_by_user_role(request)
         return Response(data)

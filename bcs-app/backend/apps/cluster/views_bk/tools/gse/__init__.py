@@ -11,17 +11,19 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-from . import k8s, mesos
+from backend.components import gse
 
 
-class BaseDriver:
+class GSEClient:
 
-    # 1：k8s 2: mesos
-    KIND_DRIVER = {
-        1: k8s.K8SDriver,
-        2: mesos.MesosDriver,
-        3: k8s.K8SDriver
-    }
-
-    def __init__(self, project_kind):
-        self.driver = self.KIND_DRIVER[project_kind]
+    @classmethod
+    def get_agent_status(cls, request, ip_list):
+        hosts = []
+        for info in ip_list:
+            plat_info = info.get('bk_cloud_id') or []
+            plat_id = plat_info[0]['id'] if plat_info else 0
+            hosts.extend([
+                {'plat_id': plat_id, 'bk_cloud_id': plat_id, 'ip': ip}
+                for ip in info.get('inner_ip', '').split(',')
+            ])
+        return gse.get_agent_status(request.project.bg_id, request.project.kind, request.user.username, hosts)

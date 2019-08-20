@@ -13,6 +13,8 @@
 #
 """各版本差异常量定义
 """
+from backend.utils.basic import ChoicesEnum
+
 
 # 不检查IP是否重复的业务
 SKIP_BIZ_INFO = {}
@@ -34,5 +36,16 @@ BCS_APP_ID = ""
 verify_resource_exist = False
 
 # nginx ingress controller path
-CONTROLLER_IMAGE_PATH = "bcs/k8s/nginx-ingress-controller"
-BACKEND_IMAGE_PATH = "bcs/k8s/defaultbackend"
+CONTROLLER_IMAGE_PATH = "public/bcs/k8s/nginx-ingress-controller"
+BACKEND_IMAGE_PATH = "public/bcs/k8s/defaultbackend"
+
+
+# 项目类型
+class ProjectKind(ChoicesEnum):
+    K8S = 1
+    MESOS = 2
+
+    _choices_labels = (
+        (1, 'Kubernetes'),
+        (2, 'Mesos')
+    )

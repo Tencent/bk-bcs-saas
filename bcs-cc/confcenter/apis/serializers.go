@@ -183,8 +183,9 @@ type createMasterData struct {
 
 // update master info
 type updateMasterData struct {
-	InnerIP string `binding:"required" json:"inner_ip"`
-	Status  string `binding:"required" json:"status"`
+	InnerIP    string `binding:"required" json:"inner_ip"`
+	Status     string `binding:"required" json:"status"`
+	InstanceID string `json:"instance_id"`
 }
 
 type batchCreateMasterData struct {
@@ -229,6 +230,7 @@ type createClusterDataJSON struct {
 	MasterIPs       []createMasterData `binding:"required,dive" json:"master_ips"`
 	NeedNAT         bool               `json:"need_nat"`
 	NotNeedNAT      bool               `json:"not_need_nat"`
+	ExtraClusterID  string             `json:"extra_cluster_id"`
 }
 
 /* cluster end*/
@@ -248,6 +250,7 @@ type nodeCreateDataJSON struct {
 	OutterIP    string `json:"outter_ip"`
 	Kind        string `json:"kind"`
 	DeviceClass string `json:"device_class"`
+	InstanceID  string `json:"instance_id"`
 }
 
 type nodeUpdateDataJSON struct {
@@ -255,6 +258,7 @@ type nodeUpdateDataJSON struct {
 	Name        string `json:"name"`
 	Description string `json:"description"`
 	Status      string `json:"status"`
+	InstanceID  string `json:"instance_id"`
 }
 
 type nodeBatchOperateDataJSON struct {
@@ -266,6 +270,7 @@ type nodeUpdateDataByID struct {
 	Name        string `json:"name"`
 	Description string `json:"description"`
 	Status      string `json:"status"`
+	InstanceID  string `json:"instance_id"`
 }
 
 type updateNodeParams struct {

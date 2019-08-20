@@ -190,6 +190,8 @@ class NodeUpdateLog(GcloudPollingTask):
         ("so_initial", "SO 机器初始化"),
         ("bke_install", "安装BKE"),
         ("remove", "删除节点"),
+        ('bind_lb', "绑定LB"),
+        ('init_env', "初始化环境")
     )
     # node_id = models.CharField(max_length=32)
     node_id = models.TextField()

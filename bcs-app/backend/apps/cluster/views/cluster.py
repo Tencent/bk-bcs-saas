@@ -35,6 +35,7 @@ from backend.apps.cluster.utils import cluster_env_transfer, status_transfer
 from backend.utils.renderers import BKAPIRenderer
 from backend.apps.cluster import serializers as cluster_serializers
 from backend.apps.cluster.views_bk import cluster
+from backend.apps.cluster.views_bk.tools import cmdb
 
 DEFAULT_OPER_USER = settings.DEFAULT_OPER_USER
 
@@ -98,7 +99,8 @@ class ClusterCreateListViewSet(viewsets.ViewSet):
             request.user.token.access_token, project_id, desire_all_data=1
         )
         if cluster_resp.get('code') != ErrorCode.NoError:
-            raise error_codes.APIError(cluster_resp.get('message'))
+            logger.error('get cluster error, %s', cluster_resp)
+            return {}
         return cluster_resp.get('data') or {}
 
     def get_cluster_create_perm(self, request, project_id):
@@ -366,12 +368,6 @@ class ClusterMasterInfo(ClusterPermBase, viewsets.ViewSet):
         master_ip_info = data.get("results") or []
         return [info["inner_ip"] for info in master_ip_info if info.get("inner_ip")]
 
-    def get_cc_hosts(self, request, cc_app_id):
-        cc_host_info = cc.get_app_hosts(request.user.username, cc_app_id)
-        if not cc_host_info.get("result"):
-            raise error_codes.APIError(cc_host_info.get("message"))
-        return cc_host_info.get("data") or []
-
     def responseslz(self, info):
         return {
             'host_name': info.get('HostName'),
@@ -385,13 +381,12 @@ class ClusterMasterInfo(ClusterPermBase, viewsets.ViewSet):
     def cluster_master_info(self, request, project_id, cluster_id):
         self.can_view_cluster(request, project_id, cluster_id)
         ip_only = request.query_params.get('ip_only')
-        cc_app_id = constants.BCS_APP_ID or request.project['cc_app_id']
         # get master ip
         master_ips = self.get_master_ips(request, project_id, cluster_id)
         if ip_only == 'true':
             return response.Response([{'inner_ip': ip} for ip in master_ips])
         # get cc hosts
-        cc_host_info = self.get_cc_hosts(request, cc_app_id)
+        cc_host_info = cmdb.CMDBClient(request).get_cc_hosts()
         # compose the data
         ret_data = []
         for info in cc_host_info:

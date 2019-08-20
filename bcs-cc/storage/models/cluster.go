@@ -54,6 +54,7 @@ type Cluster struct {
 	RemainDisk        float64    `json:"remain_disk"`
 	CapacityUpdatedAt *time.Time `json:"capacity_updated_at"`
 	NotNeedNAT        bool       `json:"not_need_nat" gorm:"default:false"`
+	ExtraClusterID    string     `json:"extra_cluster_id" gorm:"size:64"`
 }
 
 // ClusterFilterParams :
@@ -97,6 +98,7 @@ type UpdateClusterDataJSON struct {
 	NeedNAT           *bool     `json:"need_nat"`
 	AgentList         *[]string `json:"agent_list"`
 	RelatedProjects   *[]string `json:"related_projects"`
+	ExtraClusterID    *string   `json:"extra_cluster_id"`
 }
 
 func clusterListBase(filter ClusterFilterParams) (clusterList []Cluster, err error) {
@@ -392,13 +394,15 @@ func (updaterData UpdateClusterDataJSON) UpdateRecord() error {
 		updaterData.AreaID).SetTotalCPUWithoutNil(
 		updaterData.TotalCPU).SetRemainCPUWithoutNil(
 		updaterData.RemainCPU).SetTotalDiskWithoutNil(
+		updaterData.TotalDisk).SetRemainDiskWithoutNil(
 		updaterData.RemainDisk).SetTotalMemWithoutNil(
 		updaterData.TotalMem).SetRemainMemWithoutNil(
 		updaterData.RemainMem).SetStatusWithoutEmpty(
 		updaterData.Status).SetCapacityUpdatedAt(
 		&currTime).SetIPResourceTotalWithoutNil(
 		updaterData.IPResourceTotal).SetIPResourceUsedWithoutNil(
-		updaterData.IPResourceUsed).SetNotNeedNATWithoutNil(updaterData.NeedNAT)
+		updaterData.IPResourceUsed).SetNotNeedNATWithoutNil(
+		updaterData.NeedNAT).SetExtraClusterIDWithoutNil(updaterData.ExtraClusterID)
 	updateRelatedProjects := ""
 	relatedProjects := updaterData.RelatedProjects
 	if relatedProjects != nil {
