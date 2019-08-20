@@ -164,7 +164,7 @@
                 { id: 'Pod', name: 'Pod' },
                 { id: 'deployment', name: 'deployment' },
                 { id: 'Node', name: 'node' },
-                { id: 'HorizontalPod', name: 'HorizontalPod' },
+                { id: 'HorizontalPodAutoscaler', name: 'HPA' },
                 { id: 'Service', name: 'Service' },
                 { id: 'task', name: 'task' },
                 { id: 'slaver', name: 'slaver' }
