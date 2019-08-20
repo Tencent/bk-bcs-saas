@@ -595,29 +595,24 @@ class VersionedEntity(BaseModel):
         return apps[0]
 
     @classmethod
-    def get_k8s_service_by_statefulset_id(cls, versioned_entity_id, statefulset_id):
+    def get_k8s_service_by_statefulset_id(cls, ventity_id, sts_id):
         try:
-            ver_entity = cls.objects.get(id=versioned_entity_id)
+            ventity = cls.objects.get(id=ventity_id)
         except Exception:
-            raise ValidationError(u"模板版本(version_id:%s)不存在" %
-                                  versioned_entity_id)
+            raise ValidationError(f"模板版本(version_id:{ventity_id})不存在")
         try:
-            stateful_set = k8s.K8sStatefulSet.objects.get(id=statefulset_id)
+            statefulset = k8s.K8sStatefulSet.objects.get(id=sts_id)
         except Exception:
-            raise ValidationError(u"StatefulSet(id:%s)不存在" % statefulset_id)
+            raise ValidationError(f"StatefulSet(id:{sts_id})不存在")
 
-        entity = ver_entity.get_entity()
-        k8s_service_ids = entity.get('K8sService') if entity else None
-        if not k8s_service_ids:
-            raise ValidationError(
-                u"模板版本(version_id:%s)下没有可以关联的StatefulSet" % versioned_entity_id)
-        _id_list = k8s_service_ids.split(',')
-        k8s_services = k8s.K8sService.objects.filter(
-            id__in=_id_list, service_tag=stateful_set.service_tag)
-        if not k8s_services:
-            raise ValidationError(
-                u"StatefulSet(id:%s)没有关联的Service" % statefulset_id)
-        return k8s_services[0]
+        svc_id_list = ventity.get_resource_id_list(K8sResourceName.K8sService.value)
+
+        if svc_id_list:
+            svc = k8s.K8sService.objects.filter(id__in=svc_id_list, service_tag=statefulset.service_tag).first()
+            if svc:
+                return svc
+
+        raise ValidationError(f"模板版本(version_id:{ventity_id})使用了StatefulSet, 但未关联任何Service")
 
     @classmethod
     def get_related_apps_by_service(cls, versioned_entity_id, service_id):
