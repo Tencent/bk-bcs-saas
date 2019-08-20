@@ -608,9 +608,9 @@ class VersionedEntity(BaseModel):
         svc_id_list = ventity.get_resource_id_list(K8sResourceName.K8sService.value)
 
         if svc_id_list:
-            svc_qsets = k8s.K8sService.objects.filter(id__in=svc_id_list, service_tag=statefulset.service_tag)
-            if svc_qsets:
-                return svc_qsets[0]
+            svc = k8s.K8sService.objects.filter(id__in=svc_id_list, service_tag=statefulset.service_tag).first()
+            if svc:
+                return svc
 
         raise ValidationError(f"模板版本(version_id:{ventity_id})使用了StatefulSet, 但未关联任何Service")
 
