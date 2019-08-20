@@ -3,7 +3,7 @@
         "apiVersion": "autoscaling/v2beta2",
         "kind": "HorizontalPodAutoscaler",
         "metadata": {
-            "natme": ""
+            "name": ""
         },
         "spec": {
             "maxReplicas": 10,
