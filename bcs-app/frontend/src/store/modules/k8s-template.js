@@ -505,6 +505,7 @@ export default {
             for (const item of state.statefulsets) {
                 if (item.id === preId) {
                     item.id = statefulset.id
+                    item.deploy_tag = statefulset.resource_data.deploy_tag
                     item.config.spec.template.metadata.labels = targetData.config.spec.template.metadata.labels
                     item.config.spec.selector.matchLabels = targetData.config.spec.selector.matchLabels
                     delete item.cache
@@ -517,6 +518,7 @@ export default {
             for (const item of state.services) {
                 if (item.id === preId) {
                     item.id = service.id
+                    item.service_tag = service.resource_data.service_tag
                 }
             }
             const list = JSON.parse(JSON.stringify(state.services))
