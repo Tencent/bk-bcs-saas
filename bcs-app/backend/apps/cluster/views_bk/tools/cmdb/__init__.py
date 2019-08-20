@@ -23,8 +23,9 @@ class CMDBClient:
         self.cc_app_id = request.project.cc_app_id
         self.username = request.user.username
 
-    def get_cc_hosts(self):
-        cc_host_info = cc.get_app_hosts(self.request.user.username, self.cc_app_id)
+    def get_cc_hosts(self, cc_app_id=None):
+        cc_app_id = cc_app_id or self.cc_app_id
+        cc_host_info = cc.get_app_hosts(self.request.user.username, cc_app_id)
         if not cc_host_info.get("result"):
             raise error_codes.APIError(cc_host_info.get("message"))
         return cc_host_info.get("data") or []
