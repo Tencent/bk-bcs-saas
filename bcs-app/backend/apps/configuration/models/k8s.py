@@ -97,11 +97,9 @@ class K8sPodResource(K8sResource):
 
     def get_res_config(self, is_simple):
         c = super().get_res_config(is_simple)
+        c['deploy_tag'] = self.deploy_tag
         if not is_simple:
-            c.update({
-                'deploy_tag': self.deploy_tag,
-                'desc': self.desc,
-            })
+            c['desc'] = self.desc
         return c
 
     def get_labels(self):
