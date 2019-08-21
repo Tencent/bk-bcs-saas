@@ -214,7 +214,7 @@
                     return false
                 } else {
                     const from = this.routerName
-                    this.$emit('tabChange', from)
+                    this.$emit('tab-change', from)
                 }
 
                 this.activeRoute = target
@@ -248,10 +248,10 @@
     }
 </script>
 
-<style scoped>
-    @import '../../../css/variable.css';
-    @import '../../../css/mixins/ellipsis.css';
-    @import '../../../css/mixins/scroller.css';
+<style scoped lang="postcss">
+    @import '@open/css/variable.css';
+    @import '@open/css/mixins/ellipsis.css';
+    @import '@open/css/mixins/scroller.css';
 
     .biz-var-panel {
         width: 495px;

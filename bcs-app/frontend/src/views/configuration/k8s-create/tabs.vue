@@ -33,6 +33,10 @@
                 Ingress
                 <span class="bk-badge">{{ingresss.length}}</span>
             </div>
+            <div :class="['header-item', { 'active': activeRoute === 'k8sTemplatesetHPA' }]" @click="toggleRouter('k8sTemplatesetHPA')" v-if="runEnv === 'dev'">
+                HPA
+                <span class="bk-badge">{{HPAs.length}}</span>
+            </div>
         </div>
         <div :class="['biz-var-panel', { 'show': isVarPanelShow }]" v-clickoutside="hidePanel">
             <div class="var-panel-header">
@@ -105,7 +109,8 @@
             return {
                 activeRoute: this.$route.name,
                 varUserWay: '{{变量KEY}}',
-                isVarPanelShow: false
+                isVarPanelShow: false,
+                runEnv: window.RUN_ENV
             }
         },
         computed: {
@@ -184,6 +189,17 @@
                     return ingresss
                 } else {
                     return ingresss.filter(item => {
+                        // 过滤出没保存在服务端的数据
+                        return (item.id + '').indexOf('local_') < 0
+                    })
+                }
+            },
+            HPAs () {
+                const HPAs = this.$store.state.k8sTemplate.HPAs
+                if (this.isVersionIsDraf) {
+                    return HPAs
+                } else {
+                    return HPAs.filter(item => {
                         // 过滤出没保存在服务端的数据
                         return (item.id + '').indexOf('local_') < 0
                     })
@@ -270,21 +286,21 @@
                     return false
                 } else {
                     const from = this.routerName
-                    this.$emit('tabChange', from)
+                    this.$emit('tab-change', from, target)
                 }
+            },
 
+            goResource (target) {
                 this.activeRoute = target
 
-                setTimeout(() => {
-                    this.$router.push({
-                        name: target,
-                        params: {
-                            projectId: this.projectId,
-                            projectCode: this.projectCode,
-                            templateId: this.templateId
-                        }
-                    })
-                }, 700)
+                this.$router.push({
+                    name: target,
+                    params: {
+                        projectId: this.projectId,
+                        projectCode: this.projectCode,
+                        templateId: this.templateId
+                    }
+                })
             },
 
             /**

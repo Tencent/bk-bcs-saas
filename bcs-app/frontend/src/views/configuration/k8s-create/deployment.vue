@@ -14,7 +14,7 @@
                     :text="exceptionCode.msg">
                 </app-exception>
                 <div class="biz-tab-box" v-else v-show="!isDataLoading">
-                    <biz-tabs @tabChange="tabResource"></biz-tabs>
+                    <biz-tabs @tab-change="tabResource" ref="commonTab"></biz-tabs>
                     <div class="biz-tab-content" v-bkloading="{ isLoading: isTabChanging }">
                         <template v-if="!deployments.length">
                             <div class="biz-guide-box mt0">
@@ -659,7 +659,7 @@
 
                                             <bk-tabpanel name="tab2" title="挂载卷">
                                                 <div class="bk-form m20">
-                                                    <table class="biz-simple-table" v-if="curMountVolumes.length">
+                                                    <table class="biz-simple-table" v-if="curApplication.config.webCache.volumes.length">
                                                         <thead>
                                                             <tr>
                                                                 <th style="width: 200px;">卷</th>
@@ -1973,23 +1973,6 @@
                     })
                 }
             },
-            'curMountVolumes' (volumes) {
-                setTimeout(() => {
-                    const volumesNames = volumes.map(item => item.name)
-                    const tmp = this.curContainer.volumeMounts.filter(item => {
-                        return volumesNames.includes(item.name)
-                    })
-                    if (!tmp.length) {
-                        tmp.push({
-                            'name': '',
-                            'mountPath': '',
-                            'subPath': '',
-                            'readOnly': false
-                        })
-                    }
-                    this.curContainer.volumeMounts = tmp
-                }, 600)
-            },
             'curApplication' () {
                 this.curContainerIndex = 0
                 const container = this.curApplication.config.spec.template.spec.allContainers[0]
@@ -2888,9 +2871,10 @@
             /**
              * 切换到其它资源时回调，调用整体head自动对当前数据进行尝试时保存
              */
-            tabResource (type) {
+            async tabResource (type, target) {
                 this.isTabChanging = true
-                this.$refs.commonHeader.autoSaveResource(type)
+                await this.$refs.commonHeader.autoSaveResource(type)
+                this.$refs.commonTab.goResource(target)
             },
 
             /**
@@ -3078,6 +3062,20 @@
 
                 this.livenessProbeHeaders = this.getProbeHeaderList(this.curContainer.livenessProbe.httpGet.httpHeaders)
                 this.readinessProbeHeaders = this.getProbeHeaderList(this.curContainer.readinessProbe.httpGet.httpHeaders)
+                
+                const volumesNames = this.curApplication.config.webCache.volumes.map(item => item.name)
+                const tmp = this.curContainer.volumeMounts.filter(item => {
+                    return volumesNames.includes(item.name)
+                })
+                if (!tmp.length) {
+                    tmp.push({
+                        'name': '',
+                        'mountPath': '',
+                        'subPath': '',
+                        'readOnly': false
+                    })
+                }
+                this.curContainer.volumeMounts = tmp
             },
 
             /**

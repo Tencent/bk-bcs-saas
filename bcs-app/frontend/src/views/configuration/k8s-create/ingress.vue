@@ -12,7 +12,7 @@
                 :text="exceptionCode.msg">
             </app-exception>
             <div class="biz-tab-box" v-else v-show="!isDataLoading" style="overflow:hidden;">
-                <biz-tabs @tabChange="tabResource"></biz-tabs>
+                <biz-tabs @tab-change="tabResource" ref="commonTab"></biz-tabs>
                 <bk-dialog
                     :is-show.sync="dialogConf.isShow"
                     :width="dialogConf.width"
@@ -46,7 +46,6 @@
                                     </div>
                                 </div>
                             </div>
-                            <p class="pb30 f13 biz-danger-text">提示：K8S原生规则需在“网络” => “LoadBalance”中新建LoadBalance才能生效</p>
                         </div>
                     </div>
                 </bk-dialog>
@@ -62,6 +61,10 @@
                     </template>
                     <template v-else>
                         <div class="biz-configuration-topbar">
+                            <p class="biz-tip mb10">
+                                <i class="bk-icon icon-info-circle-shape"></i>
+                                K8S原生规则需在“网络” => “LoadBalance”中新建LoadBalance才能生效
+                            </p>
                             <div class="biz-list-operation">
                                 <div class="item" v-for="(ingress, index) in ingresss" :key="ingress.id">
                                     <button :class="['bk-button', { 'bk-primary': curIngress.id === ingress.id }]" @click.stop="setCurIngress(ingress, index)">
@@ -183,27 +186,26 @@
             })
         },
         methods: {
-            initServices (version) {
+            async initServices (version) {
                 const projectId = this.projectId
-                this.$store.dispatch('k8sTemplate/getServicesByVersion', { projectId, version })
+                await this.$store.dispatch('k8sTemplate/getServicesByVersion', { projectId, version })
             },
             exceptionHandler (exceptionCode) {
                 this.isDataLoading = false
                 this.exceptionCode = exceptionCode
             },
-            initResource (data) {
+            async initResource (data) {
                 const version = data.latest_version_id || data.version
 
+                if (version) {
+                    await this.initServices(version)
+                } else {
+                    this.isLoadingServices = false
+                }
                 if (data.ingresss && data.ingresss.length) {
                     this.setCurIngress(data.ingresss[0], 0)
                 } else if (data.ingress && data.ingress.length) {
                     this.setCurIngress(data.ingress[0], 0)
-                }
-
-                if (version) {
-                    this.initServices(version)
-                } else {
-                    this.isLoadingServices = false
                 }
             },
             saveIngressSuccess (params) {
@@ -234,10 +236,10 @@
                     })
                 }, 500)
             },
-            tabResource (type) {
+            async tabResource (type, target) {
                 this.isTabChanging = true
-                this.$refs.commonHeader.autoSaveResource(type)
-                this.$refs.commonHeader.saveTemplate()
+                await this.$refs.commonHeader.autoSaveResource(type)
+                this.$refs.commonTab.goResource(target)
             },
             addLocalIngress () {
                 const ingress = JSON.parse(JSON.stringify(ingressParams))

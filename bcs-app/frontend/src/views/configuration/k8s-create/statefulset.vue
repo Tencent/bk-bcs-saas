@@ -13,7 +13,7 @@
                     :text="exceptionCode.msg">
                 </app-exception>
                 <div class="biz-tab-box" v-else v-show="!isDataLoading">
-                    <biz-tabs @tabChange="tabResource"></biz-tabs>
+                    <biz-tabs @tab-change="tabResource" ref="commonTab"></biz-tabs>
                     <div class="biz-tab-content" v-bkloading="{ isLoading: isTabChanging }">
                         <template v-if="!statefulsets.length">
                             <div class="biz-guide-box mt0">
@@ -104,10 +104,11 @@
                                         </div>
                                     </div>
 
-                                    <div class="bk-form-item is-required">
+                                    <div class="bk-form-item" v-if="curApplication.service_tag">
                                         <label class="bk-label" style="width: 130px;">关联Service：</label>
                                         <div class="bk-form-content" style="margin-left: 130px;">
                                             <div class="bk-dropdown-box" style="width: 310px;" @click="reloadServices">
+                                                <!-- <input type="text" class="bk-form-input" :value="linkServiceName" disabled> -->
                                                 <bk-selector
                                                     placeholder="请选择关联的Service"
                                                     :setting-key="'service_tag'"
@@ -116,6 +117,7 @@
                                                     :list="serviceList"
                                                     :prevent-init-trigger="'true'"
                                                     :is-loading="isLoadingServices"
+                                                    :disabled="true"
                                                 >
                                                 </bk-selector>
                                             </div>
@@ -1778,6 +1780,16 @@
             serviceList () {
                 return this.$store.state.k8sTemplate.linkServices
             },
+            linkServiceName () {
+                if (this.curApplication.service_tag) {
+                    const service = this.serviceList.find(item => {
+                        return item.service_tag === this.curApplication.service_tag
+                    })
+                    return service ? service.service_name : ''
+                } else {
+                    return ''
+                }
+            },
             curMountVolumes () {
                 const results = this.curApplication.config.webCache.volumes.filter(item => {
                     return item.name
@@ -2055,21 +2067,6 @@
                         'readOnly': false
                     })
                 }
-            },
-            'curMountVolumes' (volumes) {
-                const volumesNames = volumes.map(item => item.name)
-                const tmp = this.curContainer.volumeMounts.filter(item => {
-                    return volumesNames.includes(item.name)
-                })
-                if (!tmp.length) {
-                    tmp.push({
-                        'name': '',
-                        'mountPath': '',
-                        'subPath': '',
-                        'readOnly': false
-                    })
-                }
-                this.curContainer.volumeMounts = tmp
             },
             'curApplication' () {
                 this.curContainerIndex = 0
@@ -2896,10 +2893,10 @@
                     this.isLoadingServices = false
                 }
             },
-            tabResource (type) {
+            async tabResource (type, target) {
                 this.isTabChanging = true
-                this.$refs.commonHeader.autoSaveResource(type)
-                this.$refs.commonHeader.saveTemplate()
+                await this.$refs.commonHeader.autoSaveResource(type)
+                this.$refs.commonTab.goResource(target)
             },
             exceptionHandler (exceptionCode) {
                 this.isDataLoading = false
@@ -3062,6 +3059,20 @@
 
                 this.livenessProbeHeaders = this.getProbeHeaderList(this.curContainer.livenessProbe.httpGet.httpHeaders)
                 this.readinessProbeHeaders = this.getProbeHeaderList(this.curContainer.readinessProbe.httpGet.httpHeaders)
+
+                const volumesNames = this.curApplication.config.webCache.volumes.map(item => item.name)
+                const tmp = this.curContainer.volumeMounts.filter(item => {
+                    return volumesNames.includes(item.name)
+                })
+                if (!tmp.length) {
+                    tmp.push({
+                        'name': '',
+                        'mountPath': '',
+                        'subPath': '',
+                        'readOnly': false
+                    })
+                }
+                this.curContainer.volumeMounts = tmp
             },
             removeContainer (index) {
                 const containers = this.curApplication.config.spec.template.spec.allContainers

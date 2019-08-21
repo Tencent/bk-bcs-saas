@@ -13,7 +13,7 @@
                     :text="exceptionCode.msg">
                 </app-exception>
                 <div class="biz-tab-box" v-else v-show="!isDataLoading">
-                    <biz-tabs @tabChange="tabResource"></biz-tabs>
+                    <biz-tabs @tab-change="tabResource"></biz-tabs>
                     <div class="biz-tab-content" v-bkloading="{ isLoading: isTabChanging }">
                         <template v-if="!configmaps.length">
                             <div class="biz-guide-box mt0" style="padding: 140px 30px;">

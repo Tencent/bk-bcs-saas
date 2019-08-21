@@ -13,7 +13,7 @@
                     :text="exceptionCode.msg">
                 </app-exception>
                 <div class="biz-tab-box" v-else v-show="!isDataLoading">
-                    <biz-tabs @tabChange="tabResource"></biz-tabs>
+                    <biz-tabs @tab-change="tabResource" ref="commonTab"></biz-tabs>
                     <div class="biz-tab-content" v-bkloading="{ isLoading: isTabChanging }">
                         <template v-if="!configmaps.length">
                             <div class="biz-guide-box mt0">
@@ -497,10 +497,10 @@
                     this.setCurConfigmap(data.configmap[0], 0)
                 }
             },
-            tabResource (type) {
+            async tabResource (type, target) {
                 this.isTabChanging = true
-                this.$refs.commonHeader.autoSaveResource(type)
-                this.$refs.commonHeader.saveTemplate()
+                await this.$refs.commonHeader.autoSaveResource(type)
+                this.$refs.commonTab.goResource(target)
             },
             showJsonPanel () {
                 this.toJsonDialogConf.title = this.curConfigmap.config.metadata.name + '.yaml'

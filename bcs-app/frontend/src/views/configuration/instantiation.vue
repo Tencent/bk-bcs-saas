@@ -1621,7 +1621,7 @@
                                 item => item.environment !== 'prod'
                             )[0]
                             me.$router.push({
-                                name: me.curProject.kind === 1 ? 'deployments' : 'mesos',
+                                name: me.curProject.kind === PROJECT_MESOS ? 'mesos' : 'deployments',
                                 params: {
                                     isProdCluster: !hasNoProd,
                                     projectId: me.projectId,

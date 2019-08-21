@@ -609,6 +609,9 @@
             ingresss () {
                 return this.$store.state.k8sTemplate.ingresss
             },
+            HPAs () {
+                return this.$store.state.k8sTemplate.HPAs
+            },
             projectId () {
                 return this.$route.params.projectId
             },
@@ -634,6 +637,11 @@
             },
             imageList () {
                 return this.$store.state.k8sTemplate.imageList
+            },
+            linkServices () {
+                return this.$store.state.k8sTemplate.linkServices.map(item => {
+                    return item.service_name
+                })
             }
         },
         watch: {
@@ -654,6 +662,7 @@
             beforeLeave () {
                 const self = this
                 let isEdited = false
+
                 this.deployments.forEach(item => {
                     if (item.isEdited) {
                         isEdited = true
@@ -694,6 +703,11 @@
                         isEdited = true
                     }
                 })
+                this.HPAs.forEach(item => {
+                    if (item.isEdited) {
+                        isEdited = true
+                    }
+                })
                 if (isEdited || this.$store.state.k8sTemplate.canTemplateBindVersion) {
                     this.$bkInfo({
                         title: '确认',
@@ -712,10 +726,9 @@
                     const data = res.data
                     this.$store.commit('k8sTemplate/updateImageList', data)
                 }, res => {
-                    const message = res.message
                     this.$bkMessage({
                         theme: 'error',
-                        message: message,
+                        message: res.message,
                         delay: 10000
                     })
                 })
@@ -751,10 +764,9 @@
                                 }
                             })
                         }, res => {
-                            const message = res.message
                             this.$bkMessage({
                                 theme: 'error',
-                                message: message,
+                                message: res.message,
                                 delay: '3000'
                             })
                         })
@@ -786,11 +798,10 @@
                             })
                             self.goTemplatePage()
                         }, res => {
-                            const message = res.message
                             this.$store.commit('k8sTemplate/updateIsTemplateSaving', false)
                             this.$bkMessage({
                                 theme: 'error',
-                                message: message,
+                                message: res.message,
                                 hasCloseIcon: true,
                                 delay: '3000'
                             })
@@ -851,10 +862,9 @@
                     })
                     this.reloadTemplateLockStatus()
                 } catch (res) {
-                    const message = res.message
                     this.$bkMessage({
                         theme: 'error',
-                        message: message,
+                        message: res.message,
                         hasCloseIcon: true,
                         delay: '3000'
                     })
@@ -884,10 +894,9 @@
                     })
                     this.reloadTemplateLockStatus()
                 } catch (res) {
-                    const message = res.message
                     this.$bkMessage({
                         theme: 'error',
-                        message: message,
+                        message: res.message,
                         hasCloseIcon: true,
                         delay: '3000'
                     })
@@ -909,6 +918,7 @@
                 const jobs = []
                 const statefulsets = []
                 const ingresss = []
+                const HPAs = []
 
                 this.deployments.forEach(async (deployment) => {
                     const result = await this.formatDeploymentData(deployment)
@@ -950,6 +960,11 @@
                     ingresss.push(result)
                 })
 
+                this.HPAs.forEach(async (HPA) => {
+                    const result = await this.formatHPAsData(HPA)
+                    HPAs.push(result)
+                })
+
                 const data = {
                     draft: {
                         K8sDeployment: deployments,
@@ -959,7 +974,8 @@
                         K8sDaemonSet: daemonsets,
                         K8sJob: jobs,
                         K8sStatefulSet: statefulsets,
-                        K8sIngress: ingresss
+                        K8sIngress: ingresss,
+                        k8sHPAs: HPAs
                     }
                 }
 
@@ -991,11 +1007,10 @@
                             })
                         }
                     }, res => {
-                        const message = res.message
                         this.$store.commit('k8sTemplate/updateIsTemplateSaving', false)
                         this.$bkMessage({
                             theme: 'error',
-                            message: message,
+                            message: res.message,
                             hasCloseIcon: true,
                             delay: '3000'
                         })
@@ -1058,7 +1073,8 @@
                         daemonsets: res.data.K8sDaemonsets,
                         jobs: res.data.K8sJobs,
                         statefulsets: res.data.K8sStatefulsets,
-                        ingresss: res.data.K8sIngress
+                        ingresss: res.data.K8sIngress,
+                        HPAs: res.data.K8sHPA
                     }
                     this.$emit('switchVersion', data)
                     // 如果不是操作删除版本，则可隐藏
@@ -1070,7 +1086,7 @@
             async autoSaveResource (type) {
                 // 没编辑权限不保存
                 if (!this.curTemplate.permissions.edit) {
-                    return false
+                    return true
                 }
 
                 switch (type) {
@@ -1089,7 +1105,7 @@
                                             this.$store.commit('k8sTemplate/updateCurTemplateId', result.template_id)
                                         }
                                     }
-                                    return false
+                                    return true
                                 }
                             }
                         }
@@ -1110,7 +1126,7 @@
                                             this.$store.commit('k8sTemplate/updateCurTemplateId', result.template_id)
                                         }
                                     }
-                                    return false
+                                    return true
                                 }
                             }
                         }
@@ -1131,7 +1147,7 @@
                                             this.$store.commit('k8sTemplate/updateCurTemplateId', result.template_id)
                                         }
                                     }
-                                    return false
+                                    return true
                                 }
                             }
                         }
@@ -1152,7 +1168,7 @@
                                             this.$store.commit('k8sTemplate/updateCurTemplateId', result.template_id)
                                         }
                                     }
-                                    return false
+                                    return true
                                 }
                             }
                         }
@@ -1166,6 +1182,11 @@
                                 const isValid = await this.checkServiceData(service)
                                 if (isValid) {
                                     const result = await this.saveService(service)
+                                    this.$store.state.k8sTemplate.services.forEach(service => {
+                                        if (service.id === result.id) {
+                                            service.cache.deploy_tag_list = service.deploy_tag_list
+                                        }
+                                    })
                                     if (result) {
                                         this.$store.commit('k8sTemplate/updateBindVersion', true)
                                         if (result.template_id) {
@@ -1173,7 +1194,7 @@
                                             this.$store.commit('k8sTemplate/updateCurTemplateId', result.template_id)
                                         }
                                     }
-                                    return false
+                                    return true
                                 }
                             }
                         }
@@ -1194,7 +1215,7 @@
                                             this.$store.commit('k8sTemplate/updateCurTemplateId', result.template_id)
                                         }
                                     }
-                                    return false
+                                    return true
                                 }
                             }
                         }
@@ -1215,7 +1236,7 @@
                                             this.$store.commit('k8sTemplate/updateCurTemplateId', result.template_id)
                                         }
                                     }
-                                    return false
+                                    return true
                                 }
                             }
                         }
@@ -1236,12 +1257,34 @@
                                             this.$store.commit('k8sTemplate/updateCurTemplateId', result.template_id)
                                         }
                                     }
-                                    return false
+                                    return true
+                                }
+                            }
+                        }
+                        break
+
+                    case 'k8sTemplatesetHPA':
+                        const HPAs = this.HPAs
+                        // 对HPA资源数据检测
+                        for (const HPA of HPAs) {
+                            if (HPA.isEdited) {
+                                const isValid = await this.checkHPAData(HPA)
+                                if (isValid) {
+                                    const result = await this.saveHPA(HPA)
+                                    if (result) {
+                                        this.$store.commit('k8sTemplate/updateBindVersion', true)
+                                        if (result.template_id) {
+                                            this.newTemplateId = result.template_id
+                                            this.$store.commit('k8sTemplate/updateCurTemplateId', result.template_id)
+                                        }
+                                    }
+                                    return true
                                 }
                             }
                         }
                         break
                 }
+                return true
             },
             async saveTemplate (event) {
                 const projectId = this.projectId
@@ -1279,10 +1322,9 @@
                         }
                     } catch (res) {
                         this.$store.commit('k8sTemplate/updateIsTemplateSaving', false)
-                        const message = res.message
                         this.$bkMessage({
                             theme: 'error',
-                            message: message,
+                            message: res.message,
                             hasCloseIcon: true,
                             delay: '3000'
                         })
@@ -1322,7 +1364,8 @@
                         daemonsets: this.daemonsets,
                         jobs: this.jobs,
                         statefulsets: this.statefulsets,
-                        ingress: this.ingresss
+                        ingress: this.ingresss,
+                        HPAs: this.HPAs
                     }
                     this.isTemplateLoading = false
                     callback(data)
@@ -1409,15 +1452,15 @@
                             daemonsets: data.K8sDaemonSet,
                             jobs: data.K8sJob,
                             statefulsets: data.K8sStatefulSet,
-                            ingresss: data.K8sIngress
+                            ingresss: data.K8sIngress,
+                            HPAs: data.K8sHPA
                         }
                         callback(resources)
                     }, res => {
-                        const message = res.message
                         this.$store.commit('k8sTemplate/updateIsTemplateSaving', false)
                         this.$bkMessage({
                             theme: 'error',
-                            message: message,
+                            message: res.message,
                             hasCloseIcon: true,
                             delay: '10000'
                         })
@@ -1432,7 +1475,8 @@
                         daemonsets: this.daemonsets,
                         jobs: this.jobs,
                         statefulsets: this.statefulsets,
-                        ingresss: this.ingresss
+                        ingresss: this.ingresss,
+                        HPAs: this.HPAs
                     }
                     callback(resources)
                 }
@@ -1455,7 +1499,7 @@
                 // const nameReg2 = /^[a-zA-Z]{1}[a-zA-Z0-9-_]{0,29}$/
                 const pathReg = /\/((?!\.)[\w\d\-./~]+)+/
                 const portNameReg = /^[a-z]{1}[a-z0-9-]{0,255}$/
-                const volumeNameReg = /^[a-zA-Z]{1}[a-zA-Z0-9-_]{0,253}$/
+                const volumeNameReg = /^[a-zA-Z]{1}[a-zA-Z0-9-]{0,253}$/
                 const chineseReg = /[\u4e00-\u9fa5]+/
                 const labelKeyReg = /^([A-Za-z0-9][-A-Za-z0-9_./]*)?[A-Za-z0-9]$/
                 const envKeyReg = /^([A-Za-z0-9][-A-Za-z0-9_.]*)?[A-Za-z0-9]$/
@@ -1535,13 +1579,15 @@
                     }
                 }
 
+                // statefulset 关联service
                 if (application.hasOwnProperty('service_tag') && !application.service_tag) {
-                    megPrefix += `关联Service：`
-                    this.$bkMessage({
-                        theme: 'error',
-                        message: megPrefix + '请选择要关联的service!'
-                    })
-                    return false
+                    // application.service_tag = 'a'
+                    // megPrefix += `关联Service：`
+                    // this.$bkMessage({
+                    //     theme: 'error',
+                    //     message: megPrefix + '请选择要关联的service!'
+                    // })
+                    // return false
                 }
 
                 if (application.config.spec.hasOwnProperty('volumeClaimTemplates')) {
@@ -1621,7 +1667,7 @@
                                 megPrefix += `卷：`
                                 this.$bkMessage({
                                     theme: 'error',
-                                    message: megPrefix + '挂载名只能包含：字母、数字、连字符(-)、下划线(_)，首字母必须是字母，长度小于253个字符',
+                                    message: megPrefix + '挂载名只能包含：字母、数字、连字符(-)，首字母必须是字母，长度小于253个字符',
                                     delay: 8000
                                 })
                                 return false
@@ -2145,6 +2191,7 @@
                 const configmaps = this.configmaps
                 const secrets = this.secrets
                 const ingresss = this.ingresss
+                const HPAs = this.HPAs
 
                 // 对deployment资源数据检测
                 for (const deployment of deployments) {
@@ -2231,12 +2278,19 @@
                     }
                 }
 
-                if (this.isDataSaveing) {
-                    return false
-                } else {
-                    this.$store.commit('k8sTemplate/updateIsTemplateSaving', true)
-                    this.isDataSaveing = true
+                // 对HPA资源数据检测
+                for (const HPA of HPAs) {
+                    if (HPA.isEdited) {
+                        const isValid = await this.checkHPAData(HPA)
+                        if (!isValid) {
+                            return false
+                        }
+                    }
                 }
+
+                if (this.isDataSaveing) return
+                this.$store.commit('k8sTemplate/updateIsTemplateSaving', true)
+                this.isDataSaveing = true
 
                 // 保存deployments
                 for (const deployment of deployments) {
@@ -2382,6 +2436,24 @@
                     }
                 }
 
+                // 保存HPAs
+                for (const HPA of HPAs) {
+                    if (!HPA.isEdited) {
+                        continue
+                    }
+                    const preId = HPA.id
+                    const result = await this.saveHPA(HPA)
+                    if (!result) {
+                        return false
+                    } else {
+                        this.$emit('saveHPASuccess', {
+                            responseData: result,
+                            resource: HPA,
+                            preId: preId
+                        })
+                    }
+                }
+
                 this.$store.commit('k8sTemplate/updateIsTemplateSaving', false)
                 await this.getVersionList()
                 this.versionSidePanel.isShow = false
@@ -2485,11 +2557,10 @@
                     this.selectedVersion = ''
                     this.versionDialogConf.isShow = false
                 }, res => {
-                    const message = res.message
                     this.$store.commit('k8sTemplate/updateIsTemplateSaving', false)
                     this.$bkMessage({
                         theme: 'error',
-                        message: message
+                        message: res.message
                     })
                 })
             },
@@ -2620,6 +2691,13 @@
                                 preId: preId
                             })
                             break
+                        case 'HPA':
+                            this.$store.commit('k8sTemplate/updateHPAById', {
+                                HPA: responseData,
+                                targetData: targetData,
+                                preId: preId
+                            })
+                            break
                     }
                 }
                 if (responseData.template_id) {
@@ -2646,11 +2724,10 @@
                     this.updateLocalData(responseData, resource, resourceType)
                     return responseData
                 }, res => {
-                    const message = res.message
                     this.$store.commit('k8sTemplate/updateIsTemplateSaving', false)
                     this.$bkMessage({
                         theme: 'error',
-                        message: message,
+                        message: res.message,
                         hasCloseIcon: true,
                         delay: '10000'
                     })
@@ -2675,11 +2752,10 @@
                     this.updateLocalData(responseData, resource, resourceType)
                     return responseData
                 }, res => {
-                    const message = res.message
                     this.$store.commit('k8sTemplate/updateIsTemplateSaving', false)
                     this.$bkMessage({
                         theme: 'error',
-                        message: message,
+                        message: res.message,
                         hasCloseIcon: true,
                         delay: '10000'
                     })
@@ -2705,11 +2781,10 @@
                     this.updateLocalData(responseData, resource, resourceType)
                     return responseData
                 }, res => {
-                    const message = res.message
                     this.$store.commit('k8sTemplate/updateIsTemplateSaving', false)
                     this.$bkMessage({
                         theme: 'error',
-                        message: message,
+                        message: res.message,
                         hasCloseIcon: true,
                         delay: '10000'
                     })
@@ -2730,6 +2805,77 @@
                     }
                 } else {
                     result = await this.createFirstService(data, service)
+                }
+                // 如果成功，且绑定的是statefulset则自动同步到相应的statefulset资源
+                if (result && result.version) {
+                    const statefulsetItem = service.deploy_tag_list.find(item => {
+                        return item.indexOf('K8sStatefulSet') > -1
+                    })
+                    if (statefulsetItem) {
+                        const statefulsetId = statefulsetItem.split('|')[0]
+                        try {
+                            // 绑定
+                            this.statefulsets.forEach(statefulset => {
+                                // 把其它已经绑定的statefulset进行解绑
+                                if (statefulset.deploy_tag !== statefulsetId && statefulset.service_tag === service.service_tag) {
+                                    statefulset.service_tag = ''
+                                    this.$store.dispatch('k8sTemplate/bindServiceForStatefulset', {
+                                        projectId: this.projectId,
+                                        versionId: result.version,
+                                        statefulsetId: statefulset.deploy_tag,
+                                        data: {
+                                            service_tag: ''
+                                        }
+                                    })
+                                }
+                                // 给绑定的statefulset同步本地数据
+                                if (String(statefulset.deploy_tag) === statefulsetId) {
+                                    statefulset.service_tag = service.service_tag
+                                }
+                            })
+                            // 同步到接口
+                            await this.$store.dispatch('k8sTemplate/bindServiceForStatefulset', {
+                                projectId: this.projectId,
+                                versionId: result.version,
+                                statefulsetId: statefulsetId,
+                                data: {
+                                    service_tag: service.service_tag
+                                }
+                            })
+                        } catch (res) {
+                            this.$bkMessage({
+                                theme: 'error',
+                                message: res.message,
+                                hasCloseIcon: true,
+                                delay: '3000'
+                            })
+                        }
+                    } else {
+                        // 如果原来已经存在statefulset，现在取消那需要解绑
+                        if (service.cache && service.cache.deploy_tag_list) {
+                            const statefulsetItem = service.cache.deploy_tag_list.find(item => {
+                                return item.indexOf('K8sStatefulSet') > -1
+                            })
+                            if (statefulsetItem) {
+                                const statefulsetId = statefulsetItem.split('|')[0]
+                                // 绑定
+                                this.statefulsets.forEach(statefulset => {
+                                    // 把其它已经绑定的statefulset进行解绑
+                                    if (String(statefulset.deploy_tag) === statefulsetId) {
+                                        statefulset.service_tag = ''
+                                        this.$store.dispatch('k8sTemplate/bindServiceForStatefulset', {
+                                            projectId: this.projectId,
+                                            versionId: result.version,
+                                            statefulsetId: statefulset.deploy_tag,
+                                            data: {
+                                                service_tag: ''
+                                            }
+                                        })
+                                    }
+                                })
+                            }
+                        }
+                    }
                 }
                 return result
             },
@@ -2826,8 +2972,207 @@
                         })
                         return false
                     }
+                    
+                    const paths = rule.http.paths
+
+                    for (const path of paths) {
+                        if (path.backend.serviceName && !path.backend.servicePort) {
+                            megPrefix += `路径组：`
+                            this.$bkMessage({
+                                theme: 'error',
+                                message: megPrefix + '请关联服务端口！',
+                                delay: 8000
+                            })
+                            return false
+                        }
+
+                        if (path.backend.serviceName && !this.linkServices.includes(path.backend.serviceName)) {
+                            megPrefix += `路径组：`
+                            this.$bkMessage({
+                                theme: 'error',
+                                message: megPrefix + `关联的Service【${path.backend.serviceName}】不存在，请重新绑定！`,
+                                delay: 8000
+                            })
+                            return false
+                        }
+                    }
                 }
                 return true
+            },
+            async saveHPA (HPA) {
+                let result
+                const data = await this.formatHPAData(HPA)
+
+                if (this.curVersion) {
+                    if (HPA.id.indexOf && (HPA.id.indexOf('local') > -1)) {
+                        result = await this.createHPA(data, HPA)
+                    } else {
+                        result = await this.updateHPA(data, HPA)
+                    }
+                } else {
+                    result = await this.createFirstHPA(data, HPA)
+                }
+                return result
+            },
+            async checkHPAData (HPA) {
+                const HPAName = HPA.config.metadata.name
+                const nameReg = /^[a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*$/
+                let megPrefix = `"${HPAName}"中`
+
+                if (HPAName === '') {
+                    megPrefix += '名称：'
+                    this.$bkMessage({
+                        theme: 'error',
+                        message: '请输入名称！'
+                    })
+                    return false
+                }
+
+                if (!nameReg.test(HPAName)) {
+                    megPrefix += '名称：'
+                    this.$bkMessage({
+                        theme: 'error',
+                        message: megPrefix + '名称错误，以小写字母或数字开头和结尾，只能包含：小写字母、数字、连字符(-)、点(.)',
+                        delay: 5000
+                    })
+                    return false
+                }
+
+                if (!HPA.config.spec.scaleTargetRef.name) {
+                    megPrefix += '关联应用：'
+                    this.$bkMessage({
+                        theme: 'error',
+                        message: megPrefix + '请先关联应用',
+                        delay: 5000
+                    })
+                    return false
+                }
+
+                if (HPA.config.spec.minReplicas === '') {
+                    megPrefix += '实例数范围：'
+                    this.$bkMessage({
+                        theme: 'error',
+                        message: megPrefix + '最小实例数不能为空！',
+                        delay: 5000
+                    })
+                    return false
+                }
+
+                if (HPA.config.spec.maxReplicas === '') {
+                    megPrefix += '实例数范围：'
+                    this.$bkMessage({
+                        theme: 'error',
+                        message: megPrefix + '最大实例数不能为空！',
+                        delay: 5000
+                    })
+                    return false
+                }
+
+                if (HPA.config.spec.maxReplicas < HPA.config.spec.minReplicas) {
+                    megPrefix += '实例数范围：'
+                    this.$bkMessage({
+                        theme: 'error',
+                        message: megPrefix + '最大实例数不能小于最小实例数！',
+                        delay: 5000
+                    })
+                    return false
+                }
+
+                if (HPA.config.spec.metrics.length) {
+                    for (const metric of HPA.config.spec.metrics) {
+                        if (!metric.type) {
+                            megPrefix += '扩缩容触发条件：'
+                            this.$bkMessage({
+                                theme: 'error',
+                                message: megPrefix + '请选择资源类型！',
+                                delay: 5000
+                            })
+                            return false
+                        }
+
+                        if (metric.type === 'Resource' && !metric.resource.target.averageUtilization) {
+                            megPrefix += '扩缩容触发条件：'
+                            this.$bkMessage({
+                                theme: 'error',
+                                message: megPrefix + '资源目标不能为空！',
+                                delay: 5000
+                            })
+                            return false
+                        }
+                    }
+                }
+
+                return true
+            },
+            async formatHPAData (HPA) {
+                const params = JSON.parse(JSON.stringify(HPA))
+                params.template = {
+                    name: this.curTemplate.name,
+                    desc: this.curTemplate.desc
+                }
+                delete params.isEdited
+                delete params.cache
+                return params
+            },
+            async createHPA (data, HPA) {
+                const version = this.curVersion
+                const projectId = this.projectId
+                const result = this.$store.dispatch('k8sTemplate/addHPA', { projectId, version, data }).then(res => {
+                    const responseData = res.data
+                    this.updateLocalData(responseData, HPA, 'HPA')
+                    return responseData
+                }, res => {
+                    this.$store.commit('k8sTemplate/updateIsTemplateSaving', false)
+                    this.$bkMessage({
+                        theme: 'error',
+                        message: res.message,
+                        hasCloseIcon: true,
+                        delay: '10000'
+                    })
+                    this.isDataSaveing = false
+                })
+                return result
+            },
+            async updateHPA (data, HPA) {
+                const version = this.curVersion
+                const projectId = this.projectId
+                const HPAId = data.id
+                const result = this.$store.dispatch('k8sTemplate/updateHPA', { projectId, version, data, HPAId }).then(res => {
+                    const data = res.data
+                    this.updateLocalData(data, HPA, 'HPA')
+                    this.isDataSaveing = false
+                    return data
+                }, res => {
+                    this.$store.commit('k8sTemplate/updateIsTemplateSaving', false)
+                    this.$bkMessage({
+                        theme: 'error',
+                        message: res.message,
+                        hasCloseIcon: true,
+                        delay: '10000'
+                    })
+                    this.isDataSaveing = false
+                })
+                return result
+            },
+            async createFirstHPA (data, HPA) {
+                const templateId = this.curTemplateId
+                const projectId = this.projectId
+                const result = await this.$store.dispatch('k8sTemplate/addFirstHPA', { projectId, templateId, data }).then(res => {
+                    const responseData = res.data
+                    this.updateLocalData(responseData, HPA, 'HPA')
+                    this.isDataSaveing = false
+                    return data
+                }, res => {
+                    this.$store.commit('k8sTemplate/updateIsTemplateSaving', false)
+                    this.$bkMessage({
+                        theme: 'error',
+                        message: res.message,
+                        hasCloseIcon: true,
+                        delay: '10000'
+                    })
+                    this.isDataSaveing = false
+                })
+                return result
             },
             async checkServiceData (service) {
                 const serviceName = service.config.metadata.name
@@ -2855,11 +3200,34 @@
                     return false
                 }
 
-                if (service.config.spec.type === 'NodePort' && !service.deploy_tag_list.length) {
+                if (!service.deploy_tag_list.length) {
                     megPrefix += '关联应用：'
                     this.$bkMessage({
                         theme: 'error',
                         message: megPrefix + '请选择要关联的应用',
+                        delay: 3000
+                    })
+                    return false
+                }
+
+                const statefulsetList = service.deploy_tag_list.filter(item => {
+                    return item.indexOf('K8sStatefulSet') > -1
+                })
+                if (statefulsetList.length >= 2) {
+                    this.$bkMessage({
+                        theme: 'error',
+                        message: '不可同时绑定多个StatefulSet',
+                        hasCloseIcon: true,
+                        delay: '3000'
+                    })
+                    return false
+                }
+
+                if (!service.config.webCache.link_labels.length) {
+                    megPrefix += '关联标签：'
+                    this.$bkMessage({
+                        theme: 'error',
+                        message: megPrefix + '请选择要关联的标签',
                         delay: 3000
                     })
                     return false
@@ -3017,11 +3385,10 @@
                     this.updateLocalData(responseData, ingress, 'ingress')
                     return responseData
                 }, res => {
-                    const message = res.message
                     this.$store.commit('k8sTemplate/updateIsTemplateSaving', false)
                     this.$bkMessage({
                         theme: 'error',
-                        message: message,
+                        message: res.message,
                         hasCloseIcon: true,
                         delay: '10000'
                     })
@@ -3039,11 +3406,10 @@
                     this.isDataSaveing = false
                     return data
                 }, res => {
-                    const message = res.message
                     this.$store.commit('k8sTemplate/updateIsTemplateSaving', false)
                     this.$bkMessage({
                         theme: 'error',
-                        message: message,
+                        message: res.message,
                         hasCloseIcon: true,
                         delay: '10000'
                     })
@@ -3060,11 +3426,10 @@
                     this.isDataSaveing = false
                     return data
                 }, res => {
-                    const message = res.message
                     this.$store.commit('k8sTemplate/updateIsTemplateSaving', false)
                     this.$bkMessage({
                         theme: 'error',
-                        message: message,
+                        message: res.message,
                         hasCloseIcon: true,
                         delay: '10000'
                     })
@@ -3080,11 +3445,10 @@
                     this.updateLocalData(responseData, service, 'service')
                     return responseData
                 }, res => {
-                    const message = res.message
                     this.$store.commit('k8sTemplate/updateIsTemplateSaving', false)
                     this.$bkMessage({
                         theme: 'error',
-                        message: message,
+                        message: res.message,
                         hasCloseIcon: true,
                         delay: '10000'
                     })
@@ -3101,11 +3465,10 @@
                     this.isDataSaveing = false
                     return responseData
                 }, res => {
-                    const message = res.message
                     this.$store.commit('k8sTemplate/updateIsTemplateSaving', false)
                     this.$bkMessage({
                         theme: 'error',
-                        message: message,
+                        message: res.message,
                         hasCloseIcon: true,
                         delay: '10000'
                     })
@@ -3123,11 +3486,10 @@
                     this.isDataSaveing = false
                     return data
                 }, res => {
-                    const message = res.message
                     this.$store.commit('k8sTemplate/updateIsTemplateSaving', false)
                     this.$bkMessage({
                         theme: 'error',
-                        message: message,
+                        message: res.message,
                         hasCloseIcon: true,
                         delay: '10000'
                     })
@@ -3143,11 +3505,10 @@
                     this.updateLocalData(responseData, configmap, 'configmap')
                     return responseData
                 }, res => {
-                    const message = res.message
                     this.$store.commit('k8sTemplate/updateIsTemplateSaving', false)
                     this.$bkMessage({
                         theme: 'error',
-                        message: message,
+                        message: res.message,
                         hasCloseIcon: true,
                         delay: '10000'
                     })
@@ -3164,11 +3525,10 @@
                     this.isDataSaveing = false
                     return responseData
                 }, res => {
-                    const message = res.message
                     this.$store.commit('k8sTemplate/updateIsTemplateSaving', false)
                     this.$bkMessage({
                         theme: 'error',
-                        message: message,
+                        message: res.message,
                         hasCloseIcon: true,
                         delay: '10000'
                     })
@@ -3185,11 +3545,10 @@
                     this.updateLocalData(responseData, configmap, 'configmap')
                     return responseData
                 }, res => {
-                    const message = res.message
                     this.$store.commit('k8sTemplate/updateIsTemplateSaving', false)
                     this.$bkMessage({
                         theme: 'error',
-                        message: message,
+                        message: res.message,
                         hasCloseIcon: true,
                         delay: '10000'
                     })
@@ -3284,11 +3643,10 @@
                     this.updateLocalData(data, secret, 'secret')
                     return data
                 }, res => {
-                    const message = res.message
                     this.$store.commit('k8sTemplate/updateIsTemplateSaving', false)
                     this.$bkMessage({
                         theme: 'error',
-                        message: message,
+                        message: res.message,
                         hasCloseIcon: true,
                         delay: '10000'
                     })
@@ -3304,11 +3662,10 @@
                     this.updateLocalData(data, secret, 'secret')
                     return data
                 }, res => {
-                    const message = res.message
                     this.$store.commit('k8sTemplate/updateIsTemplateSaving', false)
                     this.$bkMessage({
                         theme: 'error',
-                        message: message,
+                        message: res.message,
                         hasCloseIcon: true,
                         delay: '10000'
                     })
@@ -3325,11 +3682,10 @@
                     this.updateLocalData(data, secret, 'secret')
                     return data
                 }, res => {
-                    const message = res.message
                     this.$store.commit('k8sTemplate/updateIsTemplateSaving', false)
                     this.$bkMessage({
                         theme: 'error',
-                        message: message,
+                        message: res.message,
                         hasCloseIcon: true,
                         delay: '10000'
                     })
@@ -3566,22 +3922,6 @@
             .bk-icon {
                 display: none;
             }
-
-            /*&.selected {
-                color: #3c96ff;
-
-                .bk-icon {
-                    display: inline-block;
-                    color: #30d878;
-                    position: absolute;
-                    right: 15px;
-                    top: 12px;
-                }
-            }
-
-            &:hover {
-                background: #e7f1fd;
-            }*/
         }
     }
 </style>

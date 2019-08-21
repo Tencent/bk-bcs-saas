@@ -55,7 +55,8 @@
                 'k8sTemplatesetDaemonset',
                 'k8sTemplatesetJob',
                 'k8sTemplatesetStatefulset',
-                'k8sTemplatesetIngress'
+                'k8sTemplatesetIngress',
+                'k8sTemplatesetHPA'
             ]
             const routeName = this.$route.name
             if (createRoutes.join(',').indexOf(routeName) < 0) {
@@ -179,10 +180,10 @@
             async checkProjectType () {
                 const projectKind = await this.getProjectKind(this.projectId)
                 
-                if (projectKind === PROJECT_K8S) {
-                    this.isK8sCreate = true
-                } else {
+                if (projectKind === PROJECT_MESOS) {
                     this.isK8sCreate = false
+                } else {
+                    this.isK8sCreate = true
                 }
             },
 
