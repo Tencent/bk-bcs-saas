@@ -209,7 +209,7 @@ export default class Header extends Vue {
     }
 
     goToDocs(): void {
-        this.to(BCS_DOCS_URL)
+        window.open(BCS_DOCS_URL, '_blank')
     }
 
     goToPm(): void {
