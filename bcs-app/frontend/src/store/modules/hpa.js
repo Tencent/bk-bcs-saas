@@ -70,7 +70,6 @@ export default {
          * @return {Promise} promise 对象
          */
         deleteHPA (context, { projectId, clusterId, namespace, name }, config = {}) {
-            debugger
             const url = `${DEVOPS_BCS_API_URL}/api/hpa/projects/${projectId}/clusters/${clusterId}/namespaces/${namespace}/${name}/`
             return http.delete(url, {}, config)
         }
