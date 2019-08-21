@@ -662,11 +662,7 @@
             beforeLeave () {
                 const self = this
                 let isEdited = false
-                this.deployments.forEach(item => {
-                    if (item.isEdited) {
-                        isEdited = true
-                    }
-                })
+
                 this.services.forEach(item => {
                     if (item.isEdited) {
                         isEdited = true
@@ -1085,7 +1081,7 @@
             async autoSaveResource (type) {
                 // 没编辑权限不保存
                 if (!this.curTemplate.permissions.edit) {
-                    return true
+                    return false
                 }
 
                 switch (type) {
