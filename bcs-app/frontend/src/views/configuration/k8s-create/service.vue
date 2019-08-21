@@ -13,7 +13,7 @@
                     :text="exceptionCode.msg">
                 </app-exception>
                 <div class="biz-tab-box" v-else v-show="!isDataLoading">
-                    <biz-tabs @tabChange="tabResource"></biz-tabs>
+                    <biz-tabs @tabChange="tabResource" ref="commonTab"></biz-tabs>
                     <div class="biz-tab-content" v-bkloading="{ isLoading: isTabChanging }">
                         <template v-if="!services.length">
                             <div class="biz-guide-box mt0">
@@ -62,7 +62,7 @@
                                             </div>
                                         </div>
                                     </div>
-                                    <div class="bk-form-item">
+                                    <div class="bk-form-item is-required">
                                         <label class="bk-label" style="width: 130px;">关联应用：</label>
                                         <div class="bk-form-content" style="margin-left: 130px;">
                                             <div class="bk-dropdown-box" style="width: 310px;" @click="reloadApplications">
@@ -81,7 +81,7 @@
                                             <span class="biz-tip ml10" v-if="!isDataLoading && !applicationList.length">请先配置Deployment/DaemonSet/StatefulSet，再进行关联</span>
                                         </div>
                                     </div>
-                                    <div class="bk-form-item">
+                                    <div class="bk-form-item is-required">
                                         <label class="bk-label" style="width: 130px;">关联标签：</label>
                                         <div class="bk-form-content key-tip-wrapper" style="margin-left: 130px;">
                                             <template v-if="appLabels.length && !isLabelsLoading">
@@ -433,11 +433,6 @@
                 }
             }
         },
-        // async beforeRouteLeave (to, form, next) {
-        //     // 修改模板集信息
-        //     await this.$refs.commonHeader.saveTemplate()
-        //     next()
-        // },
         mounted () {
             this.$refs.commonHeader.initTemplate((data) => {
                 this.initResource(data)
@@ -470,15 +465,16 @@
                 const version = data.latest_version_id || data.version
                 if (version) {
                     await this.initApplications(version)
-                    if (data.services && data.services.length) {
-                        this.setCurService(data.services[0], 0)
-                    }
+                }
+
+                if (data.services && data.services.length) {
+                    this.setCurService(data.services[0], 0)
                 }
             },
-            tabResource (type) {
+            async tabResource (type, target) {
                 this.isTabChanging = true
-                this.$refs.commonHeader.autoSaveResource(type)
-                this.$refs.commonHeader.saveTemplate()
+                await this.$refs.commonHeader.autoSaveResource(type)
+                this.$refs.commonTab.goResource(target)
             },
             exceptionHandler (exceptionCode) {
                 this.isDataLoading = false

@@ -187,10 +187,11 @@
                                             style="width: 180px;"
                                             placeholder="服务名称"
                                             :disabled="isLoadBalanceEdited"
-                                            :setting-key="'_id'"
+                                            :setting-key="'_name'"
                                             :display-key="'_name'"
                                             :selected.sync="pathRule.backend.serviceName"
-                                            :list="linkServices || []">
+                                            :list="linkServices || []"
+                                            @item-selected="handlerSelectService(pathRule)">
                                         </bk-selector>
                                     </td>
                                     <td>
@@ -284,15 +285,20 @@
                     return item
                 })
                 list.forEach(item => {
-                    list[item.service_tag] = []
+                    list[item.service_name] = []
                     item.service_ports.forEach(port => {
-                        list[item.service_tag].push({
+                        list[item.service_name].push({
                             _id: port,
                             _name: port
                         })
                     })
                 })
                 return list
+            },
+            serviceNames () {
+                return this.$store.state.k8sTemplate.linkServices.map(item => {
+                    return item.service_name
+                })
             },
             varList () {
                 const list = this.$store.state.variable.varList.map(item => {
@@ -353,6 +359,11 @@
                 }
                 return list
             }
+        },
+        mounted () {
+            this.$nextTick(() => {
+                this.checkService()
+            })
         },
         methods: {
             /**
@@ -571,8 +582,28 @@
 
                 this.curRule.http.paths.push(params)
             },
-            removeRulePath (pathRulem, index) {
+            removeRulePath (pathRule, index) {
                 this.curRule.http.paths.splice(index, 1)
+            },
+            handlerSelectService (pathRule) {
+                pathRule.backend.servicePort = ''
+            },
+            checkService (pathRule) {
+                const rules = this.curIngress.config.spec.rules
+                for (const rule of rules) {
+                    const paths = rule.http.paths
+                    for (const path of paths) {
+                        if (path.backend.serviceName && !this.serviceNames.includes(path.backend.serviceName)) {
+                            this.$bkMessage({
+                                theme: 'error',
+                                message: `${this.curIngress.config.metadata.name}中路径组：关联的Service【${path.backend.serviceName}】不存在，请重新绑定！`,
+                                delay: 5000
+                            })
+                            return false
+                        }
+                    }
+                }
+                return true
             }
         }
     }

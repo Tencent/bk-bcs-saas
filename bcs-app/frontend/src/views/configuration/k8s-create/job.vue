@@ -13,7 +13,7 @@
                     :text="exceptionCode.msg">
                 </app-exception>
                 <div class="biz-tab-box" v-else v-show="!isDataLoading">
-                    <biz-tabs @tabChange="tabResource"></biz-tabs>
+                    <biz-tabs @tabChange="tabResource" ref="commonTab"></biz-tabs>
                     <div class="biz-tab-content" v-bkloading="{ isLoading: isTabChanging }">
                         <template v-if="!jobs.length">
                             <div class="biz-guide-box mt0">
@@ -1932,21 +1932,6 @@
                     })
                 }
             },
-            'curMountVolumes' (volumes) {
-                const volumesNames = volumes.map(item => item.name)
-                const tmp = this.curContainer.volumeMounts.filter(item => {
-                    return volumesNames.includes(item.name)
-                })
-                if (!tmp.length) {
-                    tmp.push({
-                        'name': '',
-                        'mountPath': '',
-                        'subPath': '',
-                        'readOnly': false
-                    })
-                }
-                this.curContainer.volumeMounts = tmp
-            },
             'curApplication' () {
                 this.curContainerIndex = 0
                 const container = this.curApplication.config.spec.template.spec.allContainers[0]
@@ -2721,10 +2706,10 @@
                     this.setCurApplication(data.job[0], 0)
                 }
             },
-            tabResource (type) {
+            async tabResource (type, target) {
                 this.isTabChanging = true
-                this.$refs.commonHeader.autoSaveResource(type)
-                this.$refs.commonHeader.saveTemplate()
+                await this.$refs.commonHeader.autoSaveResource(type)
+                this.$refs.commonTab.goResource(target)
             },
             exceptionHandler (exceptionCode) {
                 this.isDataLoading = false
@@ -2888,6 +2873,20 @@
 
                 this.livenessProbeHeaders = this.getProbeHeaderList(this.curContainer.livenessProbe.httpGet.httpHeaders)
                 this.readinessProbeHeaders = this.getProbeHeaderList(this.curContainer.readinessProbe.httpGet.httpHeaders)
+
+                const volumesNames = this.curApplication.config.webCache.volumes.map(item => item.name)
+                const tmp = this.curContainer.volumeMounts.filter(item => {
+                    return volumesNames.includes(item.name)
+                })
+                if (!tmp.length) {
+                    tmp.push({
+                        'name': '',
+                        'mountPath': '',
+                        'subPath': '',
+                        'readOnly': false
+                    })
+                }
+                this.curContainer.volumeMounts = tmp
             },
             removeContainer (index) {
                 const containers = this.curApplication.config.spec.template.spec.allContainers
