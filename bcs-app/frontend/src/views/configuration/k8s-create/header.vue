@@ -639,10 +639,9 @@
                 return this.$store.state.k8sTemplate.imageList
             },
             linkServices () {
-                const list = this.$store.state.k8sTemplate.linkServices.map(item => {
+                return this.$store.state.k8sTemplate.linkServices.map(item => {
                     return item.service_name
                 })
-                return list
             }
         },
         watch: {
@@ -726,10 +725,9 @@
                     const data = res.data
                     this.$store.commit('k8sTemplate/updateImageList', data)
                 }, res => {
-                    const message = res.message
                     this.$bkMessage({
                         theme: 'error',
-                        message: message,
+                        message: res.message,
                         delay: 10000
                     })
                 })
@@ -765,10 +763,9 @@
                                 }
                             })
                         }, res => {
-                            const message = res.message
                             this.$bkMessage({
                                 theme: 'error',
-                                message: message,
+                                message: res.message,
                                 delay: '3000'
                             })
                         })
@@ -800,11 +797,10 @@
                             })
                             self.goTemplatePage()
                         }, res => {
-                            const message = res.message
                             this.$store.commit('k8sTemplate/updateIsTemplateSaving', false)
                             this.$bkMessage({
                                 theme: 'error',
-                                message: message,
+                                message: res.message,
                                 hasCloseIcon: true,
                                 delay: '3000'
                             })
@@ -865,10 +861,9 @@
                     })
                     this.reloadTemplateLockStatus()
                 } catch (res) {
-                    const message = res.message
                     this.$bkMessage({
                         theme: 'error',
-                        message: message,
+                        message: res.message,
                         hasCloseIcon: true,
                         delay: '3000'
                     })
@@ -898,10 +893,9 @@
                     })
                     this.reloadTemplateLockStatus()
                 } catch (res) {
-                    const message = res.message
                     this.$bkMessage({
                         theme: 'error',
-                        message: message,
+                        message: res.message,
                         hasCloseIcon: true,
                         delay: '3000'
                     })
@@ -1012,11 +1006,10 @@
                             })
                         }
                     }, res => {
-                        const message = res.message
                         this.$store.commit('k8sTemplate/updateIsTemplateSaving', false)
                         this.$bkMessage({
                             theme: 'error',
-                            message: message,
+                            message: res.message,
                             hasCloseIcon: true,
                             delay: '3000'
                         })
@@ -1328,10 +1321,9 @@
                         }
                     } catch (res) {
                         this.$store.commit('k8sTemplate/updateIsTemplateSaving', false)
-                        const message = res.message
                         this.$bkMessage({
                             theme: 'error',
-                            message: message,
+                            message: res.message,
                             hasCloseIcon: true,
                             delay: '3000'
                         })
@@ -1464,11 +1456,10 @@
                         }
                         callback(resources)
                     }, res => {
-                        const message = res.message
                         this.$store.commit('k8sTemplate/updateIsTemplateSaving', false)
                         this.$bkMessage({
                             theme: 'error',
-                            message: message,
+                            message: res.message,
                             hasCloseIcon: true,
                             delay: '10000'
                         })
@@ -2296,12 +2287,9 @@
                     }
                 }
 
-                if (this.isDataSaveing) {
-                    return false
-                } else {
-                    this.$store.commit('k8sTemplate/updateIsTemplateSaving', true)
-                    this.isDataSaveing = true
-                }
+                if (this.isDataSaveing) return
+                this.$store.commit('k8sTemplate/updateIsTemplateSaving', true)
+                this.isDataSaveing = true
 
                 // 保存deployments
                 for (const deployment of deployments) {
@@ -2568,11 +2556,10 @@
                     this.selectedVersion = ''
                     this.versionDialogConf.isShow = false
                 }, res => {
-                    const message = res.message
                     this.$store.commit('k8sTemplate/updateIsTemplateSaving', false)
                     this.$bkMessage({
                         theme: 'error',
-                        message: message
+                        message: res.message
                     })
                 })
             },
@@ -2736,11 +2723,10 @@
                     this.updateLocalData(responseData, resource, resourceType)
                     return responseData
                 }, res => {
-                    const message = res.message
                     this.$store.commit('k8sTemplate/updateIsTemplateSaving', false)
                     this.$bkMessage({
                         theme: 'error',
-                        message: message,
+                        message: res.message,
                         hasCloseIcon: true,
                         delay: '10000'
                     })
@@ -2765,11 +2751,10 @@
                     this.updateLocalData(responseData, resource, resourceType)
                     return responseData
                 }, res => {
-                    const message = res.message
                     this.$store.commit('k8sTemplate/updateIsTemplateSaving', false)
                     this.$bkMessage({
                         theme: 'error',
-                        message: message,
+                        message: res.message,
                         hasCloseIcon: true,
                         delay: '10000'
                     })
@@ -2795,11 +2780,10 @@
                     this.updateLocalData(responseData, resource, resourceType)
                     return responseData
                 }, res => {
-                    const message = res.message
                     this.$store.commit('k8sTemplate/updateIsTemplateSaving', false)
                     this.$bkMessage({
                         theme: 'error',
-                        message: message,
+                        message: res.message,
                         hasCloseIcon: true,
                         delay: '10000'
                     })
@@ -2876,7 +2860,6 @@
                                 // 绑定
                                 this.statefulsets.forEach(statefulset => {
                                     // 把其它已经绑定的statefulset进行解绑
-                                    console.log(statefulset.deploy_tag)
                                     if (String(statefulset.deploy_tag) === statefulsetId) {
                                         statefulset.service_tag = ''
                                         this.$store.dispatch('k8sTemplate/bindServiceForStatefulset', {
@@ -3138,11 +3121,10 @@
                     this.updateLocalData(responseData, HPA, 'HPA')
                     return responseData
                 }, res => {
-                    const message = res.message
                     this.$store.commit('k8sTemplate/updateIsTemplateSaving', false)
                     this.$bkMessage({
                         theme: 'error',
-                        message: message,
+                        message: res.message,
                         hasCloseIcon: true,
                         delay: '10000'
                     })
@@ -3160,11 +3142,10 @@
                     this.isDataSaveing = false
                     return data
                 }, res => {
-                    const message = res.message
                     this.$store.commit('k8sTemplate/updateIsTemplateSaving', false)
                     this.$bkMessage({
                         theme: 'error',
-                        message: message,
+                        message: res.message,
                         hasCloseIcon: true,
                         delay: '10000'
                     })
@@ -3181,11 +3162,10 @@
                     this.isDataSaveing = false
                     return data
                 }, res => {
-                    const message = res.message
                     this.$store.commit('k8sTemplate/updateIsTemplateSaving', false)
                     this.$bkMessage({
                         theme: 'error',
-                        message: message,
+                        message: res.message,
                         hasCloseIcon: true,
                         delay: '10000'
                     })
@@ -3404,11 +3384,10 @@
                     this.updateLocalData(responseData, ingress, 'ingress')
                     return responseData
                 }, res => {
-                    const message = res.message
                     this.$store.commit('k8sTemplate/updateIsTemplateSaving', false)
                     this.$bkMessage({
                         theme: 'error',
-                        message: message,
+                        message: res.message,
                         hasCloseIcon: true,
                         delay: '10000'
                     })
@@ -3426,11 +3405,10 @@
                     this.isDataSaveing = false
                     return data
                 }, res => {
-                    const message = res.message
                     this.$store.commit('k8sTemplate/updateIsTemplateSaving', false)
                     this.$bkMessage({
                         theme: 'error',
-                        message: message,
+                        message: res.message,
                         hasCloseIcon: true,
                         delay: '10000'
                     })
@@ -3447,11 +3425,10 @@
                     this.isDataSaveing = false
                     return data
                 }, res => {
-                    const message = res.message
                     this.$store.commit('k8sTemplate/updateIsTemplateSaving', false)
                     this.$bkMessage({
                         theme: 'error',
-                        message: message,
+                        message: res.message,
                         hasCloseIcon: true,
                         delay: '10000'
                     })
@@ -3467,11 +3444,10 @@
                     this.updateLocalData(responseData, service, 'service')
                     return responseData
                 }, res => {
-                    const message = res.message
                     this.$store.commit('k8sTemplate/updateIsTemplateSaving', false)
                     this.$bkMessage({
                         theme: 'error',
-                        message: message,
+                        message: res.message,
                         hasCloseIcon: true,
                         delay: '10000'
                     })
@@ -3488,11 +3464,10 @@
                     this.isDataSaveing = false
                     return responseData
                 }, res => {
-                    const message = res.message
                     this.$store.commit('k8sTemplate/updateIsTemplateSaving', false)
                     this.$bkMessage({
                         theme: 'error',
-                        message: message,
+                        message: res.message,
                         hasCloseIcon: true,
                         delay: '10000'
                     })
@@ -3510,11 +3485,10 @@
                     this.isDataSaveing = false
                     return data
                 }, res => {
-                    const message = res.message
                     this.$store.commit('k8sTemplate/updateIsTemplateSaving', false)
                     this.$bkMessage({
                         theme: 'error',
-                        message: message,
+                        message: res.message,
                         hasCloseIcon: true,
                         delay: '10000'
                     })
@@ -3530,11 +3504,10 @@
                     this.updateLocalData(responseData, configmap, 'configmap')
                     return responseData
                 }, res => {
-                    const message = res.message
                     this.$store.commit('k8sTemplate/updateIsTemplateSaving', false)
                     this.$bkMessage({
                         theme: 'error',
-                        message: message,
+                        message: res.message,
                         hasCloseIcon: true,
                         delay: '10000'
                     })
@@ -3551,11 +3524,10 @@
                     this.isDataSaveing = false
                     return responseData
                 }, res => {
-                    const message = res.message
                     this.$store.commit('k8sTemplate/updateIsTemplateSaving', false)
                     this.$bkMessage({
                         theme: 'error',
-                        message: message,
+                        message: res.message,
                         hasCloseIcon: true,
                         delay: '10000'
                     })
@@ -3572,11 +3544,10 @@
                     this.updateLocalData(responseData, configmap, 'configmap')
                     return responseData
                 }, res => {
-                    const message = res.message
                     this.$store.commit('k8sTemplate/updateIsTemplateSaving', false)
                     this.$bkMessage({
                         theme: 'error',
-                        message: message,
+                        message: res.message,
                         hasCloseIcon: true,
                         delay: '10000'
                     })
@@ -3671,11 +3642,10 @@
                     this.updateLocalData(data, secret, 'secret')
                     return data
                 }, res => {
-                    const message = res.message
                     this.$store.commit('k8sTemplate/updateIsTemplateSaving', false)
                     this.$bkMessage({
                         theme: 'error',
-                        message: message,
+                        message: res.message,
                         hasCloseIcon: true,
                         delay: '10000'
                     })
@@ -3691,11 +3661,10 @@
                     this.updateLocalData(data, secret, 'secret')
                     return data
                 }, res => {
-                    const message = res.message
                     this.$store.commit('k8sTemplate/updateIsTemplateSaving', false)
                     this.$bkMessage({
                         theme: 'error',
-                        message: message,
+                        message: res.message,
                         hasCloseIcon: true,
                         delay: '10000'
                     })
@@ -3712,11 +3681,10 @@
                     this.updateLocalData(data, secret, 'secret')
                     return data
                 }, res => {
-                    const message = res.message
                     this.$store.commit('k8sTemplate/updateIsTemplateSaving', false)
                     this.$bkMessage({
                         theme: 'error',
-                        message: message,
+                        message: res.message,
                         hasCloseIcon: true,
                         delay: '10000'
                     })

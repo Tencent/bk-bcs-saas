@@ -286,7 +286,7 @@
                     return false
                 } else {
                     const from = this.routerName
-                    this.$emit('tabChange', from, target)
+                    this.$emit('tab-change', from, target)
                 }
             },
 

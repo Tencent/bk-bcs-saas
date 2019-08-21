@@ -12,7 +12,7 @@
                 :text="exceptionCode.msg">
             </app-exception>
             <div class="biz-tab-box" v-else v-show="!isDataLoading" style="overflow:hidden;">
-                <biz-tabs @tabChange="tabResource" ref="commonTab"></biz-tabs>
+                <biz-tabs @tab-change="tabResource" ref="commonTab"></biz-tabs>
                 <bk-dialog
                     :is-show.sync="dialogConf.isShow"
                     :width="dialogConf.width"

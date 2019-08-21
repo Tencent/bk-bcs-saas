@@ -214,7 +214,7 @@
                     return false
                 } else {
                     const from = this.routerName
-                    this.$emit('tabChange', from)
+                    this.$emit('tab-change', from)
                 }
 
                 this.activeRoute = target
