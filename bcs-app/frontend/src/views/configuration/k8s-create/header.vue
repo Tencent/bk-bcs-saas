@@ -2826,7 +2826,6 @@
                     const statefulsetItem = service.deploy_tag_list.find(item => {
                         return item.indexOf('K8sStatefulSet') > -1
                     })
-                    console.log('sss', statefulsetItem)
                     if (statefulsetItem) {
                         const statefulsetId = statefulsetItem.split('|')[0]
                         try {
@@ -2868,12 +2867,10 @@
                         }
                     } else {
                         // 如果原来已经存在statefulset，现在取消那需要解绑
-                        console.log(service.cache.deploy_tag_list)
                         if (service.cache && service.cache.deploy_tag_list) {
                             const statefulsetItem = service.cache.deploy_tag_list.find(item => {
                                 return item.indexOf('K8sStatefulSet') > -1
                             })
-                            console.log(statefulsetItem)
                             if (statefulsetItem) {
                                 const statefulsetId = statefulsetItem.split('|')[0]
                                 // 绑定
@@ -2882,7 +2879,6 @@
                                     console.log(statefulset.deploy_tag)
                                     if (String(statefulset.deploy_tag) === statefulsetId) {
                                         statefulset.service_tag = ''
-                                        console.log('end')
                                         this.$store.dispatch('k8sTemplate/bindServiceForStatefulset', {
                                             projectId: this.projectId,
                                             versionId: result.version,
