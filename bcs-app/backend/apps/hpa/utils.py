@@ -84,6 +84,8 @@ def get_cluster_hpa_list(request, project_id, cluster_id, cluster_env, cluster_n
         namespace = _config['metadata']['namespace']
         deployment_name = _config['spec']['scaleTargetRef']['name']
 
+        deployment_link = f'{settings.DEVOPS_HOST}/console/bcs/bkistio/app/deployments/{deployment_name}/{namespace}/deployment'
+
         data = {
             'cluster_name': cluster_name,
             'environment': cluster_env,
@@ -99,8 +101,7 @@ def get_cluster_hpa_list(request, project_id, cluster_id, cluster_env, cluster_n
             'creator': annotations.get(instance_constants.ANNOTATIONS_CREATOR, ''),
             'create_time': annotations.get(instance_constants.ANNOTATIONS_CREATE_TIME, ''),
             'deployment_name': deployment_name,
-            'deployment_link': f'{settings.DEVOPS_HOST}/console/bcs/bkistio/app/deployments/{deployment_name}/{namespace}/deployment'
-        }
+            'deployment_link': deployment_link}
 
         data['update_time'] = annotations.get(instance_constants.ANNOTATIONS_UPDATE_TIME, data['create_time'])
         data['updator'] = annotations.get(instance_constants.ANNOTATIONS_UPDATOR, data['creator'])
