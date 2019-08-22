@@ -33,6 +33,7 @@ from backend.utils.errcodes import ErrorCode
 from backend.apps.application.constants import FUNC_MAP
 from backend.apps.instance.utils_pub import get_cluster_version
 from backend.apps.hpa.utils import CATEGORY as HPA_CATEGORY
+from backend.apps.whitelist_bk import ensure_hpa_wlist
 
 logger = logging.getLogger(__name__)
 
@@ -150,6 +151,10 @@ def validate_ns_by_tempalte_id(template_id, ns_list, access_token, project_id, i
         access_token, project_id, limit=ALL_LIMIT)
     namespace = namespace.get('data', {}).get('results') or []
     namespace_dict = {str(i['id']): i['name'] for i in namespace}
+
+    # hpa白名单控制
+    cluster_id_list = list(set([i['cluster_id'] for i in namespace]))
+    ensure_hpa_wlist(cluster_id_list)
 
     # 查看模板下已经实例化过的 ns
     exist_instance_id = VersionInstance.objects.filter(
