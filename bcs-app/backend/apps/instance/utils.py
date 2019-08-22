@@ -154,7 +154,8 @@ def validate_ns_by_tempalte_id(template_id, ns_list, access_token, project_id, i
 
     # hpa白名单控制
     cluster_id_list = list(set([i['cluster_id'] for i in namespace]))
-    ensure_hpa_wlist(cluster_id_list)
+    if K8sResourceName.K8sHPA.value in instance_entity:
+        ensure_hpa_wlist(cluster_id_list)
 
     # 查看模板下已经实例化过的 ns
     exist_instance_id = VersionInstance.objects.filter(
