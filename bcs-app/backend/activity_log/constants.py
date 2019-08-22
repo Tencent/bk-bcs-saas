@@ -12,6 +12,7 @@
 # specific language governing permissions and limitations under the License.
 #
 from django.conf import settings
+from backend.apps.configuration.constants import K8sResourceName
 
 ActivityTypes = dict(
     add='创建',
@@ -53,6 +54,7 @@ ResourceTypes = dict(
     metric='Metric',
     web_console='WebConsole',
     helm_app='Helm',
+    hpa='HPA',
 )
 
 ResourceTypeChoices = {v: k for k, v in ResourceTypes.items()}
