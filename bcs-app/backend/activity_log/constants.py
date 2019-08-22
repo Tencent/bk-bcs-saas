@@ -12,7 +12,6 @@
 # specific language governing permissions and limitations under the License.
 #
 from django.conf import settings
-from backend.apps.configuration.constants import K8sResourceName
 
 ActivityTypes = dict(
     add='创建',
