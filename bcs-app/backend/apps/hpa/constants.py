@@ -15,13 +15,13 @@
 # metric server 支持的 metric
 HPA_METRICS = [
     {
-        'type': 'resource',
+        'type': 'Resource',
         'name': 'cpu',
         'description': "CPU使用率",
         "target_unit": '%',
     },
     {
-        'type': 'resource',
+        'type': 'Resource',
         'name': 'memory',
         'description': "内存使用率",
         "target_unit": '%',

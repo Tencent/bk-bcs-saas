@@ -159,6 +159,9 @@ def validate_ns_by_tempalte_id(template_id, ns_list, access_token, project_id, i
     exist_ns = []
     # 查询每类资源已经实例化的ns，求合集，这些已经实例化过的ns不能再被实例化
     for cate in instance_entity:
+        # HPA 编辑以模板集为准, 可以重复实例化
+        if cate == 'K8sHPA':
+            continue
         cate_data = instance_entity[cate]
         cate_name_list = [i.get('name') for i in cate_data if i.get('name')]
         cate_ns = filter_ns.filter(

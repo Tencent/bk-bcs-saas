@@ -446,6 +446,11 @@ class InstanceNameSpaceView(viewsets.ViewSet):
         ns_resources = {}
         for inst_config in exist_ns:
             ns_id = int(inst_config.namespace)
+
+            # HPA只通过模板集管理，可以重试实例化(apply操作)
+            if inst_config.category == 'K8sHPA':
+                continue
+
             if ns_id not in ns_resources:
                 ns_resources[ns_id] = [inst_config.category, ]
             else:

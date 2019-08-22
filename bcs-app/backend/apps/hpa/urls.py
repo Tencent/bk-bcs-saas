@@ -16,6 +16,8 @@ from django.conf.urls import url
 from . import views
 
 urlpatterns = [
-    url(r'^$', views.HPA.as_view({'get': 'list'})),
+    url(r'^$', views.HPA.as_view({'get': 'list', 'delete': 'batch_delete'})),
+    url(r'^clusters/(?P<cluster_id>[\w-]+)/namespaces/(?P<namespace>[\w-]+)/(?P<name>[\w-]+)/$',
+        views.HPA.as_view({'delete': 'delete'})),
     url(r'^metrics/$', views.HPAMetrics.as_view()),
 ]
