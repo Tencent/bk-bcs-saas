@@ -906,10 +906,16 @@ class K8SClient(BCSClientBase):
         """获取hpa
         - namespace 为空则获取全部
         """
-        if namespace:
-            data = self.hpa_client.list_namespaced_horizontal_pod_autoscaler(namespace)
-        else:
-            data = self.hpa_client.list_horizontal_pod_autoscaler_for_all_namespaces()
+        try:
+            # _preload_content 设置为True, 修复kubernetes condition 异常
+            if namespace:
+                resp = self.hpa_client.list_namespaced_horizontal_pod_autoscaler(namespace, _preload_content=False)
+            else:
+                resp = self.hpa_client.list_horizontal_pod_autoscaler_for_all_namespaces(_preload_content=False)
+            data = json.loads(resp.data)
+        except Exception as error:
+            logger.exception("list hpa error, %s", error)
+            data = {}
         return data
 
     def get_hpa(self, namespace, name):
@@ -927,7 +933,14 @@ class K8SClient(BCSClientBase):
         return self.hpa_client.patch_namespaced_horizontal_pod_autoscaler(name, namespace, spec)
 
     def delete_hpa(self, namespace, name):
-        return self.hpa_client.delete_namespaced_horizontal_pod_autoscaler(name, namespace)
+        try:
+            return self.hpa_client.delete_namespaced_horizontal_pod_autoscaler(name, namespace)
+        except client.rest.ApiException as error:
+            if error.status == 404:
+                return
+            else:
+                logger.error('delete hpa error: %s', error)
+                raise
 
     def apply_hpa(self, namespace, spec):
         """部署HPA
