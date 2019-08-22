@@ -1091,3 +1091,19 @@
         }
     }
 }
+
+[class^="bk-icon"],
+[class*="bk-icon"] {
+    margin-top: -1px;
+}
+
+.bk-form-input-group .input-group-addon.is-left {
+    margin-right: -1px;
+    border-left: 1px solid #c3cdd7;
+    border-radius: 2px 0 0 2px;
+}
+
+.bk-message .bk-message-icon .bk-icon {
+    position: relative;
+    top: -1px;
+}
