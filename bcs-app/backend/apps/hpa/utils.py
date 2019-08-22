@@ -67,7 +67,7 @@ def get_cluster_hpa_list(request, project_id, cluster_id, cluster_env, cluster_n
     """获取基础hpa列表
     """
     access_token = request.user.token.access_token
-    project_name = request.project.name
+    project_code = request.project.english_name
     hpa_list = []
     client = k8s.K8SClient(access_token, project_id, cluster_id, env=cluster_env)
     hpa = client.list_hpa(namespace).get('items') or []
@@ -85,7 +85,7 @@ def get_cluster_hpa_list(request, project_id, cluster_id, cluster_env, cluster_n
         namespace = _config['metadata']['namespace']
         deployment_name = _config['spec']['scaleTargetRef']['name']
 
-        deployment_link = f'{settings.DEVOPS_HOST}/console/bcs/{project_name}/app/deployments/{deployment_name}/{namespace}/deployment'  # noqa
+        deployment_link = f'{settings.DEVOPS_HOST}/console/bcs/{project_code}/app/deployments/{deployment_name}/{namespace}/deployment'  # noqa
 
         data = {
             'cluster_name': cluster_name,
@@ -161,13 +161,12 @@ def get_deployment_hpa(request, project_id, cluster_id, ns_name, deployments):
 def activity_log(project_id, username, resource_name, description, status):
     """操作记录
     """
-    with activity_client.ContextActivityLogClient(
-            project_id=project_id,
-            user=username,
-            resource_type='hpa',
-            resource=resource_name).log_start() as ual:
-
-        if status is True:
-            ual.log_delete(activity_status='succeed', description=description)
-        else:
-            ual.log_delete(activity_status='failed', description=description)
+    client = activity_client.ContextActivityLogClient(
+        project_id=project_id,
+        user=username,
+        resource_type='hpa',
+        resource=resource_name)
+    if status is True:
+        client.log_delete(activity_status='succeed', description=description)
+    else:
+        client.log_delete(activity_status='failed', description=description)
