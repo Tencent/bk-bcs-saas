@@ -20,7 +20,6 @@ from rest_framework.renderers import BrowsableAPIRenderer
 from rest_framework.response import Response
 
 from backend.accounts import bcs_perm
-from backend.activity_log import client as activity_client
 from backend.apps.application import constants as application_constants
 from backend.apps.application.base_views import BaseAPI
 from backend.apps.constants import ALL_LIMIT, ProjectKind
