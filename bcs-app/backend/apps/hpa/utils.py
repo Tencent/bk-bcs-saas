@@ -16,16 +16,15 @@ import logging
 from django.conf import settings
 from django.utils import timezone
 
+from backend.activity_log import client as activity_client
 from backend.apps.application import constants as application_constants
 from backend.apps.application.constants import DELETE_INSTANCE
+from backend.apps.configuration.constants import K8sResourceName
 from backend.apps.instance import constants as instance_constants
 from backend.apps.instance.models import InstanceConfig
 from backend.components.bcs import k8s
-from backend.activity_log import client as activity_client
 
 logger = logging.getLogger(__name__)
-
-CATEGORY = 'K8sHPA'
 
 def get_current_metrics(instance):
     """获取当前监控值
@@ -130,7 +129,7 @@ def delete_hpa(request, project_id, cluster_id, namespace, namespace_id, name):
         return False, "删除HPA资源失败"
 
     # 删除成功则更新状态
-    instances = InstanceConfig.objects.filter(namespace=namespace_id, category=CATEGORY, name=name)
+    instances = InstanceConfig.objects.filter(namespace=namespace_id, category=K8sResourceName.K8sHPA.value, name=name)
     if not instances:
         instances.update(updator=username,
                          oper_type=DELETE_INSTANCE,

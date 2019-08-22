@@ -31,12 +31,13 @@ from backend.components import paas_cc
 from backend.utils.error_codes import error_codes
 from backend.utils.renderers import BKAPIRenderer
 from backend.utils.response import BKAPIResponse
+from backend.apps.configuration.constants import K8sResourceName
 
 logger = logging.getLogger(__name__)
 
 class HPA(viewsets.ViewSet, BaseAPI, ResourceOperate):
     renderer_classes = (BKAPIRenderer, BrowsableAPIRenderer)
-    category = 'K8sHPA'
+    category = K8sResourceName.K8sHPA.value
 
     def list(self, request, project_id):
         """获取所有HPA数据

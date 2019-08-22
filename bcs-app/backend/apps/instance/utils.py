@@ -32,7 +32,7 @@ from backend.components.bcs.k8s import K8SClient
 from backend.utils.errcodes import ErrorCode
 from backend.apps.application.constants import FUNC_MAP
 from backend.apps.instance.utils_pub import get_cluster_version
-from backend.apps.hpa.utils import CATEGORY as HPA_CATEGORY
+from backend.apps.configuration.constants import K8sResourceName
 from backend.apps.whitelist_bk import ensure_hpa_wlist
 
 logger = logging.getLogger(__name__)
@@ -166,7 +166,7 @@ def validate_ns_by_tempalte_id(template_id, ns_list, access_token, project_id, i
     # 查询每类资源已经实例化的ns，求合集，这些已经实例化过的ns不能再被实例化
     for cate in instance_entity:
         # HPA 编辑以模板集为准, 可以重复实例化
-        if cate == HPA_CATEGORY:
+        if cate == K8sResourceName.K8sHPA.value:
             continue
         cate_data = instance_entity[cate]
         cate_name_list = [i.get('name') for i in cate_data if i.get('name')]
