@@ -288,7 +288,8 @@ class GetInstances(object):
                 'create_at': info['createTime'],
                 'update_at': info['updateTime'],
                 'source_type': SOURCE_TYPE_MAP.get(source_type),
-                'version': labels.get('io.tencent.paas.version')  # 标识应用的线上版本
+                'version': labels.get('io.tencent.paas.version'),  # 标识应用的线上版本
+                'hpa': info['hpa']  # 是否绑定了HPA
             }
             if spec.get('paused'):
                 ret_data[curr_key]['status'] = 'Paused'

@@ -53,6 +53,7 @@ ResourceTypes = dict(
     metric='Metric',
     web_console='WebConsole',
     helm_app='Helm',
+    hpa='HPA',
 )
 
 ResourceTypeChoices = {v: k for k, v in ResourceTypes.items()}
