@@ -392,15 +392,24 @@
                 return JSON.parse(JSON.stringify(list))
             },
             curConfigmapKeyList () {
-                if (this.curConfigmap && this.curConfigmap.data.datas) {
+                if (this.curConfigmap) {
                     const results = []
-                    const keys = Object.keys(this.curConfigmap.data.datas)
+                    let data = {}
+
+                    if (this.currentView === 'k8sService') {
+                        data = this.curConfigmap.data.data
+                    } else {
+                        data = this.curConfigmap.data.datas
+                    }
+                    
+                    const keys = Object.keys(data)
                     keys.forEach(item => {
                         results.push({
                             key: item,
-                            value: this.curConfigmap.data.datas[item].content
+                            value: data[item].content
                         })
                     })
+
                     return results
                 } else {
                     return []

@@ -367,15 +367,24 @@
                 return JSON.parse(JSON.stringify(list))
             },
             curSecretKeyList () {
-                if (this.curSecret && this.curSecret.data.datas) {
+                if (this.curSecret) {
                     const results = []
-                    const keys = Object.keys(this.curSecret.data.datas)
+                    let data = {}
+
+                    if (this.currentView === 'k8sService') {
+                        data = this.curSecret.data.data
+                    } else {
+                        data = this.curSecret.data.datas
+                    }
+                    
+                    const keys = Object.keys(data)
                     keys.forEach(item => {
                         results.push({
                             key: item,
-                            value: this.curSecret.data.datas[item].content
+                            value: data[`${item}`].content
                         })
                     })
+                    
                     return results
                 } else {
                     return []
