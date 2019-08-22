@@ -165,6 +165,9 @@ class PermissionMeta(object):
             raise NoAuthPermError(msg, self.get_err_data(action_id))
         return can
 
+    def get_msg_key(self, cmd):
+        return f'{cmd}_msg'
+
     def get_msg(self, cmd):
         """获取消息
         """
@@ -535,6 +538,8 @@ class Namespace(PermissionMeta):
 
     def hook_base_perms(self, ns_list, ns_id_flag='id', cluster_id_flag='cluster_id', ns_name_flag='name', **filter_parms):  # noqa
         default_perms = {perm: True for perm in self.POLICY_LIST}
+        default_msg = {self.get_msg_key(p): '' if p == 'view' else '没有集群使用权限' for p in self.POLICY_LIST}
+
         default_perms.update({'create': True, 'view': True, 'use': True, 'delete': True})
         ns_list = ns_list or []
         for data in ns_list:
@@ -569,6 +574,7 @@ class Namespace(PermissionMeta):
 
             if any_res not in perm_res and cluster_resource_id not in perm_res:
                 ns['permissions'] = default
+                ns['permissions'].update(default_msg)
                 if is_filter is False:
                     perm_ns_list.append(ns)
                 continue
@@ -582,17 +588,25 @@ class Namespace(PermissionMeta):
                 any_ns_res = f'cluster:{ns_cluster_id}/namespace:*'
                 if any_ns_res in perm_res or ns_resource_id in perm_res:
                     default[p] = True
+                    default_msg[self.get_msg_key(p)] = ''
+                else:
+                    default[p] = False
+                    default_msg[self.get_msg_key(p)] = self.get_msg(p)
 
             # 将权限key转换为前端可识别的字符
             default['view'] = default.get('cluster-readonly', False)
             default['use'] = default.get('cluster-manager', False)
             default['delete'] = default.get('cluster-manager', False)
+            default_msg['view_msg'] = default_msg.get('cluster-readonly_msg', '')
+            default_msg['use_msg'] = default_msg.get('cluster-readonly_msg', '')
+            default_msg['delete_msg'] = default_msg.get('cluster-readonly_msg', '')
 
             # 是否需要顾虑使用权限
             if is_filter is True and default[filter_type] is False:
                 continue
 
             ns['permissions'] = default
+            ns['permissions'].update(default_msg)
             perm_ns_list.append(ns)
 
         return perm_ns_list

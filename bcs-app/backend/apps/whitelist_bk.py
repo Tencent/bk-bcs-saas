@@ -11,13 +11,11 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-from django.conf.urls import url
 
-from . import views
+from backend.utils.func_controller import get_func_controller
+from backend.utils.exceptions import APIError
 
-urlpatterns = [
-    url(r'^$', views.HPA.as_view({'get': 'list', 'delete': 'batch_delete'})),
-    url(r'^clusters/(?P<cluster_id>[\w-]+)/namespaces/(?P<namespace>[\w-]+)/(?P<name>[\w-]+)/$',
-        views.HPA.as_view({'delete': 'delete'})),
-    url(r'^metrics/$', views.HPAMetrics.as_view()),
-]
+def ensure_hpa_wlist(cluster_id_list: str) -> bool:
+    """HPA按集群做白名单控制
+    """
+    return True

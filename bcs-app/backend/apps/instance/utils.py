@@ -32,6 +32,8 @@ from backend.components.bcs.k8s import K8SClient
 from backend.utils.errcodes import ErrorCode
 from backend.apps.application.constants import FUNC_MAP
 from backend.apps.instance.utils_pub import get_cluster_version
+from backend.apps.configuration.constants import K8sResourceName
+from backend.apps.whitelist_bk import ensure_hpa_wlist
 
 logger = logging.getLogger(__name__)
 
@@ -150,6 +152,10 @@ def validate_ns_by_tempalte_id(template_id, ns_list, access_token, project_id, i
     namespace = namespace.get('data', {}).get('results') or []
     namespace_dict = {str(i['id']): i['name'] for i in namespace}
 
+    # hpa白名单控制
+    cluster_id_list = list(set([i['cluster_id'] for i in namespace]))
+    ensure_hpa_wlist(cluster_id_list)
+
     # 查看模板下已经实例化过的 ns
     exist_instance_id = VersionInstance.objects.filter(
         template_id=template_id, is_deleted=False).values_list('id', flat=True)
@@ -159,6 +165,9 @@ def validate_ns_by_tempalte_id(template_id, ns_list, access_token, project_id, i
     exist_ns = []
     # 查询每类资源已经实例化的ns，求合集，这些已经实例化过的ns不能再被实例化
     for cate in instance_entity:
+        # HPA 编辑以模板集为准, 可以重复实例化
+        if cate == K8sResourceName.K8sHPA.value:
+            continue
         cate_data = instance_entity[cate]
         cate_name_list = [i.get('name') for i in cate_data if i.get('name')]
         cate_ns = filter_ns.filter(

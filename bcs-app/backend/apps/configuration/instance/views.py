@@ -50,6 +50,7 @@ from backend.apps.configuration.models import MODULE_DICT
 from backend.apps.application.base_views import error_codes
 from backend.apps.configuration.tasks import check_instance_status
 from backend.utils.renderers import BKAPIRenderer
+from backend.apps.configuration.constants import K8sResourceName
 
 logger = logging.getLogger(__name__)
 
@@ -446,6 +447,11 @@ class InstanceNameSpaceView(viewsets.ViewSet):
         ns_resources = {}
         for inst_config in exist_ns:
             ns_id = int(inst_config.namespace)
+
+            # HPA只通过模板集管理，可以重试实例化(apply操作)
+            if inst_config.category == K8sResourceName.K8sHPA.value:
+                continue
+
             if ns_id not in ns_resources:
                 ns_resources[ns_id] = [inst_config.category, ]
             else:
