@@ -936,11 +936,12 @@ class K8SClient(BCSClientBase):
         try:
             return self.hpa_client.delete_namespaced_horizontal_pod_autoscaler(name, namespace)
         except client.rest.ApiException as error:
+            # 404 资源未找到, 直接返回
             if error.status == 404:
                 return
-            else:
-                logger.error('delete hpa error: %s', error)
-                raise
+
+            logger.error('delete hpa error: %s', error)
+            raise
 
     def apply_hpa(self, namespace, spec):
         """部署HPA

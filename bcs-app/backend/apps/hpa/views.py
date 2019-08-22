@@ -66,37 +66,23 @@ class HPA(viewsets.ViewSet, BaseAPI, ResourceOperate):
 
         return Response(k8s_hpa_list)
 
-    def delete(self, request, project_id, cluster_id, namespace, name):
+    def delete(self, request, project_id, cluster_id, ns_name, name):
         # 检查用户是否有命名空间的使用权限
-        username = request.user.username
-        namespace_dict = self.check_namespace_use_perm(request, project_id, [namespace])
-        namespace_id = namespace_dict.get(namespace)
-
         if request.project.kind != ProjectKind.K8S.value:
             raise error_codes.NotOpen("HPA暂时只支持K8S集群")
 
-        result, message = utils.delete_hpa(request, project_id, cluster_id, namespace, namespace_id, name)
+        username = request.user.username
+        namespace_dict = self.check_namespace_use_perm(request, project_id, [ns_name])
+        namespace_id = namespace_dict.get(ns_name)
+
+        result, message = utils.delete_hpa(request, project_id, cluster_id, ns_name, namespace_id, name)
         if result is False:
-            activity_client.ContextActivityLogClient(
-                project_id=project_id,
-                user=username,
-                resource_type="hpa",
-                resource=name,
-                resource_id=0,
-                extra=json.dumps({}),
-                description=f'删除HPA:{name}失败[命名空间:{namespace}], {message}'
-            ).log_delete(activity_status="failed")
+            message = f'删除HPA:{name}失败[命名空间:{ns_name}], {message}'
+            utils.activity_log(project_id, username, name, message, result)
             raise error_codes.APIError(message)
 
-        activity_client.ContextActivityLogClient(
-            project_id=project_id,
-            user=username,
-            resource_type="hpa",
-            resource=name,
-            resource_id=0,
-            extra=json.dumps({}),
-            description=f'删除HPA:{name}成功[命名空间:{namespace}]'
-        ).log_delete(activity_status="succeed")
+        message = f'删除HPA:{name}成功[命名空间:{ns_name}]'
+        utils.activity_log(project_id, username, name, message, result)
 
         return Response({})
 
@@ -111,58 +97,46 @@ class HPA(viewsets.ViewSet, BaseAPI, ResourceOperate):
         slz.is_valid(raise_exception=True)
         data = slz.data['data']
         # 检查用户是否有命名空间的使用权限
-        namespace_list = [_d.get('namespace') for _d in data]
-        namespace_list = set(namespace_list)
+        namespace_list = set([_d.get('namespace') for _d in data])
         namespace_dict = self.check_namespace_use_perm(request, project_id, namespace_list)
         success_list = []
         failed_list = []
         for _d in data:
             cluster_id = _d.get('cluster_id')
             name = _d.get('name')
-            namespace = _d.get('namespace')
-            namespace_id = namespace_dict.get(namespace)
-            # 删除service
-            result, message = utils.delete_hpa(request, project_id, cluster_id, namespace, namespace_id, name)
+            ns_name = _d.get('namespace')
+            ns_id = namespace_dict.get(ns_name)
+            # 删除 hpa
+            result, message = utils.delete_hpa(request, project_id, cluster_id, ns_name, ns_id, name)
             if result is False:
                 failed_list.append({
                     'name': name,
-                    'desc': u'%s[命名空间:%s]:%s' % (name, namespace, message)
+                    'desc': f'{name}[命名空间:{ns_name}]:{message}'
                 })
             else:
                 success_list.append({
                     'name': name,
-                    'desc': u'%s[命名空间:%s]' % (name, namespace),
+                    'desc': f'{name}[命名空间:{ns_name}]'
                 })
 
         # 添加操作审计
         if success_list:
             name_list = [_s.get('name') for _s in success_list]
             desc_list = [_s.get('desc') for _s in success_list]
-            message = u"以下%s删除成功:%s" % (self.category, ";".join(desc_list))
-            activity_client.ContextActivityLogClient(
-                project_id=project_id,
-                user=username,
-                resource_type="hpa",
-                resource=';'.join(name_list),
-                resource_id=0,
-                extra=json.dumps({}),
-                description=message
-            ).log_delete(activity_status="succeed")
+
+            desc_list_msg = ";".join(desc_list)
+            message = f"以下{self.category}删除成功:{desc_list_msg}"
+
+            utils.activity_log(project_id, username, ';'.join(name_list), message, True)
 
         if failed_list:
             name_list = [_s.get('name') for _s in failed_list]
             desc_list = [_s.get('desc') for _s in failed_list]
 
-            message = u"以下%s删除失败:%s" % (self.category, ";".join(desc_list))
-            activity_client.ContextActivityLogClient(
-                project_id=project_id,
-                user=username,
-                resource_type="hpa",
-                resource=';'.join(name_list),
-                resource_id=0,
-                extra=json.dumps({}),
-                description=message
-            ).log_delete(activity_status="failed")
+            desc_list_msg = ";".join(desc_list)
+            message = f"以下{self.category}删除失败:{desc_list_msg}"
+
+            utils.activity_log(project_id, username, ';'.join(name_list), message, False)
 
         # 有一个失败，则返回失败
         if failed_list:
