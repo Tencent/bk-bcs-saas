@@ -50,6 +50,7 @@ from backend.apps.configuration.models import MODULE_DICT
 from backend.apps.application.base_views import error_codes
 from backend.apps.configuration.tasks import check_instance_status
 from backend.utils.renderers import BKAPIRenderer
+from backend.apps.hpa.utils import CATEGORY as HPA_CATEGORY
 
 logger = logging.getLogger(__name__)
 
@@ -448,7 +449,7 @@ class InstanceNameSpaceView(viewsets.ViewSet):
             ns_id = int(inst_config.namespace)
 
             # HPA只通过模板集管理，可以重试实例化(apply操作)
-            if inst_config.category == 'K8sHPA':
+            if inst_config.category == HPA_CATEGORY:
                 continue
 
             if ns_id not in ns_resources:
