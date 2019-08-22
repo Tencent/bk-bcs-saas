@@ -33,6 +33,7 @@ from backend.utils.errcodes import ErrorCode
 from backend.apps.configuration.models import Template
 from backend.celery_app.tasks.application import update_create_error_record
 from backend.utils.basic import getitems
+from backend.apps.hpa.utils import get_deployment_hpa
 
 logger = logging.getLogger(__name__)
 
@@ -263,6 +264,10 @@ class GetInstances(object):
         if resp.get('code') != ErrorCode.NoError:
             raise error_codes.APIError.f(resp.get('message'))
         data = resp.get('data') or []
+
+        # 添加HPA绑定信息
+        data = get_deployment_hpa(request, project_id, cluster_id, ns_name, data)
+
         for info in data:
             spec = getitems(info, ['data', 'spec'], default={})
             # 针对不同的模板获取不同的值
