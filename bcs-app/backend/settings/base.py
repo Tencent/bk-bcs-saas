@@ -380,6 +380,9 @@ WEB_CONSOLE_KUBECTLD_IMAGE_PATH = ''
 WEB_CONSOLE_POD_SPEC = {}
 WEB_CONSOLE_PORT = int(os.environ.get('WEB_CONSOLE_PORT', 28800))
 
+# 灰度功能提示消息
+GRAYSCALE_FEATURE_MSG = "功能灰度测试中，请联系管理员添加白名单"
+
 # 覆盖配置
 try:
     from .base_bk import DATABASE_ROUTERS, TEMPLATES, STATICFILES_DIRS
