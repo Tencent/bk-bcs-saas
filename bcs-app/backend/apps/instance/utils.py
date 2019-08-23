@@ -30,7 +30,7 @@ from backend.apps.instance.drivers import get_scheduler_driver
 from backend.apps.instance.generator import GENERATOR_DICT, get_bcs_context
 from backend.apps.instance.models import InstanceConfig, MetricConfig, VersionInstance
 from backend.apps.instance.utils_pub import get_cluster_version
-from backend.apps.whitelist_bk import enabled_hpa_wlist
+from backend.apps.whitelist_bk import enabled_hpa_feature
 from backend.components import paas_cc
 from backend.components.bcs.k8s import K8SClient
 from backend.components.bcs.mesos import MesosClient
@@ -157,7 +157,7 @@ def validate_ns_by_tempalte_id(template_id, ns_list, access_token, project_id, i
     # hpa白名单控制
     cluster_id_list = list(set([i['cluster_id'] for i in namespace]))
     if K8sResourceName.K8sHPA.value in instance_entity:
-        if not enabled_hpa_wlist(cluster_id_list):
+        if not enabled_hpa_feature(cluster_id_list):
             raise error_codes.APIError(f"当前实例化包含HPA资源，{settings.GRAYSCALE_FEATURE_MSG}")
 
     # 查看模板下已经实例化过的 ns
