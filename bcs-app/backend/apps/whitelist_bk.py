@@ -13,9 +13,8 @@
 #
 
 from backend.utils.func_controller import get_func_controller
-from backend.utils.exceptions import APIError
 
-def ensure_hpa_wlist(cluster_id_list: str) -> bool:
+def enabled_hpa_wlist(cluster_id_list: list) -> bool:
     """HPA按集群做白名单控制
     """
     return True
