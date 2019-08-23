@@ -679,9 +679,9 @@
                         labels.push(params)
                     }
                     this.appLabels.splice(0, this.appLabels.length, ...labels)
-                    this.isLabelsLoading = false
                 }, res => {
                     this.appLabels.splice(0, this.appLabels.length)
+                }).finally(() => {
                     this.isLabelsLoading = false
                 })
             },
@@ -733,8 +733,6 @@
             },
             removeService (service, index) {
                 const self = this
-                const projectId = this.projectId
-                const version = this.curVersion
                 const serviceId = service.id
 
                 this.$bkInfo({
@@ -744,24 +742,65 @@
                         if (serviceId.indexOf && serviceId.indexOf('local_') > -1) {
                             self.removeLocalService(service, index)
                         } else {
-                            self.$store.dispatch('k8sTemplate/removeService', { serviceId, version, projectId }).then(res => {
-                                const data = res.data
-                                self.removeLocalService(service, index)
-
-                                if (data.version) {
-                                    self.$store.commit('k8sTemplate/updateCurVersion', data.version)
-                                    self.$store.commit('k8sTemplate/updateBindVersion', true)
-                                }
-                            }, res => {
-                                const message = res.message
-                                self.$bkMessage({
-                                    theme: 'error',
-                                    message: message
-                                })
-                            })
+                            self.deleteService(service, index)
                         }
                     }
                 })
+            },
+            async deleteService (service, index) {
+                const projectId = this.projectId
+                const version = this.curVersion
+                const serviceId = service.id
+
+                try {
+                    const res = await this.$store.dispatch('k8sTemplate/removeService', { serviceId, version, projectId })
+                    const data = res.data
+                    this.removeLocalService(service, index)
+
+                    if (data.version) {
+                        this.$store.commit('k8sTemplate/updateCurVersion', data.version)
+                        this.$store.commit('k8sTemplate/updateBindVersion', true)
+                    }
+                    this.unBindStatefulset(service, data.version)
+                } catch (res) {
+                    const message = res.message
+                    this.$bkMessage({
+                        theme: 'error',
+                        message: message
+                    })
+                }
+            },
+            async unBindStatefulset (service, version) {
+                const statefulsetItem = service.deploy_tag_list.find(item => {
+                    return item.indexOf('K8sStatefulSet') > -1
+                })
+
+                if (statefulsetItem) {
+                    const statefulsetId = statefulsetItem.split('|')[0]
+                    try {
+                        // 绑定
+                        this.statefulsets.forEach(statefulset => {
+                            // 把其它已经绑定的statefulset进行解绑
+                            if (statefulset.deploy_tag === statefulsetId) {
+                                statefulset.service_tag = ''
+                                this.$store.dispatch('k8sTemplate/bindServiceForStatefulset', {
+                                    projectId: this.projectId,
+                                    versionId: version,
+                                    statefulsetId: statefulset.deploy_tag,
+                                    data: {
+                                        service_tag: ''
+                                    }
+                                })
+                            }
+                        })
+                    } catch (res) {
+                        this.$bkMessage({
+                            theme: 'error',
+                            message: res.message,
+                            hasCloseIcon: true
+                        })
+                    }
+                }
             },
             saveServiceSuccess (params) {
                 this.services.forEach(item => {

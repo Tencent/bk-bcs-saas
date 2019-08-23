@@ -756,28 +756,12 @@
                                                         </div>
                                                     </div>
                                                     <div class="bk-form-item">
-                                                        <label class="bk-label" style="width: 105px;">CPU限制：</label>
+                                                        <label class="bk-label" style="width: 105px;">CPU：</label>
                                                         <div class="bk-form-content" style="margin-left: 105px;">
                                                             <div class="bk-form-input-group mr5">
-                                                                <bk-input
-                                                                    type="number"
-                                                                    style="width: 100px;"
-                                                                    :min="0"
-                                                                    placeholder="请输入"
-                                                                    :value.sync="curContainer.resources.limits.cpu"
-                                                                    :list="varList"
-                                                                >
-                                                                </bk-input>
-                                                                <span class="input-group-addon">
-                                                                    m
+                                                                <span class="input-group-addon is-left">
+                                                                    requests
                                                                 </span>
-                                                            </div>
-                                                            <bk-tooltip content="设置CPU上限" placement="top">
-                                                                <span class="bk-badge">
-                                                                    <i class="bk-icon icon-question"></i>
-                                                                </span>
-                                                            </bk-tooltip>
-                                                            <div class="bk-form-input-group ml20 mr5">
                                                                 <bk-input
                                                                     type="number"
                                                                     style="width: 100px;"
@@ -792,7 +776,29 @@
                                                                     m
                                                                 </span>
                                                             </div>
-                                                            <bk-tooltip content="设置CPU下限" placement="top">
+                                                            <bk-tooltip content="设置CPU下限，1000m=1核CPU" placement="top">
+                                                                <span class="bk-badge">
+                                                                    <i class="bk-icon icon-question"></i>
+                                                                </span>
+                                                            </bk-tooltip>
+
+                                                            <div class="bk-form-input-group ml20 mr5">
+                                                                <span class="input-group-addon is-left">
+                                                                    limits
+                                                                </span>
+                                                                <bk-input
+                                                                    type="number"
+                                                                    style="width: 100px;"
+                                                                    :min="0"
+                                                                    placeholder="请输入"
+                                                                    :value.sync="curContainer.resources.limits.cpu"
+                                                                    :list="varList">
+                                                                </bk-input>
+                                                                <span class="input-group-addon">
+                                                                    m
+                                                                </span>
+                                                            </div>
+                                                            <bk-tooltip content="设置CPU上限，1000m=1核CPU" placement="top">
                                                                 <span class="bk-badge">
                                                                     <i class="bk-icon icon-question"></i>
                                                                 </span>
@@ -800,28 +806,12 @@
                                                         </div>
                                                     </div>
                                                     <div class="bk-form-item">
-                                                        <label class="bk-label" style="width: 105px;">内存限制：</label>
+                                                        <label class="bk-label" style="width: 105px;">内存：</label>
                                                         <div class="bk-form-content" style="margin-left: 105px;">
                                                             <div class="bk-form-input-group mr5">
-                                                                <bk-input
-                                                                    type="number"
-                                                                    style="width: 100px;"
-                                                                    :min="0"
-                                                                    placeholder="请输入"
-                                                                    :value.sync="curContainer.resources.limits.memory"
-                                                                    :list="varList"
-                                                                >
-                                                                </bk-input>
-                                                                <span class="input-group-addon">
-                                                                    Mi
+                                                                <span class="input-group-addon is-left">
+                                                                    requests
                                                                 </span>
-                                                            </div>
-                                                            <bk-tooltip content="设置内存上限" placement="top">
-                                                                <span class="bk-badge">
-                                                                    <i class="bk-icon icon-question"></i>
-                                                                </span>
-                                                            </bk-tooltip>
-                                                            <div class="bk-form-input-group ml20 mr5">
                                                                 <bk-input
                                                                     type="number"
                                                                     style="width: 100px;"
@@ -837,6 +827,28 @@
                                                                 </span>
                                                             </div>
                                                             <bk-tooltip content="设置内存下限" placement="top">
+                                                                <span class="bk-badge">
+                                                                    <i class="bk-icon icon-question"></i>
+                                                                </span>
+                                                            </bk-tooltip>
+
+                                                            <div class="bk-form-input-group ml20 mr5">
+                                                                <span class="input-group-addon is-left">
+                                                                    limits
+                                                                </span>
+                                                                <bk-input
+                                                                    type="number"
+                                                                    style="width: 100px;"
+                                                                    :min="0"
+                                                                    placeholder="请输入"
+                                                                    :value.sync="curContainer.resources.limits.memory"
+                                                                    :list="varList">
+                                                                </bk-input>
+                                                                <span class="input-group-addon">
+                                                                    Mi
+                                                                </span>
+                                                            </div>
+                                                            <bk-tooltip content="设置内存上限" placement="top">
                                                                 <span class="bk-badge">
                                                                     <i class="bk-icon icon-question"></i>
                                                                 </span>
@@ -1910,21 +1922,6 @@
                     })
                 }
             },
-            'curMountVolumes' (volumes) {
-                const volumesNames = volumes.map(item => item.name)
-                const tmp = this.curContainer.volumeMounts.filter(item => {
-                    return volumesNames.includes(item.name)
-                })
-                if (!tmp.length) {
-                    tmp.push({
-                        'name': '',
-                        'mountPath': '',
-                        'subPath': '',
-                        'readOnly': false
-                    })
-                }
-                this.curContainer.volumeMounts = tmp
-            },
             'curApplication' () {
                 this.curContainerIndex = 0
                 const container = this.curApplication.config.spec.template.spec.allContainers[0]
@@ -2869,6 +2866,20 @@
 
                 this.livenessProbeHeaders = this.getProbeHeaderList(this.curContainer.livenessProbe.httpGet.httpHeaders)
                 this.readinessProbeHeaders = this.getProbeHeaderList(this.curContainer.readinessProbe.httpGet.httpHeaders)
+
+                const volumesNames = this.curApplication.config.webCache.volumes.map(item => item.name)
+                const tmp = this.curContainer.volumeMounts.filter(item => {
+                    return volumesNames.includes(item.name)
+                })
+                if (!tmp.length) {
+                    tmp.push({
+                        'name': '',
+                        'mountPath': '',
+                        'subPath': '',
+                        'readOnly': false
+                    })
+                }
+                this.curContainer.volumeMounts = tmp
             },
             removeContainer (index) {
                 const containers = this.curApplication.config.spec.template.spec.allContainers
