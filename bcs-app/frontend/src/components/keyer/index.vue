@@ -5,7 +5,7 @@
                 <template v-if="varList.length">
                     <bk-input
                         type="text"
-                        placeholder="键"
+                        :placeholder="keyPlaceholder"
                         style="width: 240px;"
                         :value.sync="keyItem.key"
                         :list="varList"
@@ -18,7 +18,7 @@
                     <input
                         type="text"
                         class="bk-form-input"
-                        placeholder="键"
+                        :placeholder="keyPlaceholder"
                         v-model="keyItem.key"
                         :disabled="keyItem.disabled && !keyItem.linkMessage"
                         @paste="pasteKey(keyItem, $event)"
@@ -31,7 +31,7 @@
                 <template v-if="varList.length">
                     <bk-input
                         type="text"
-                        placeholder="值"
+                        :placeholder="valuePlaceholder"
                         style="width: 240px;"
                         :value.sync="keyItem.value"
                         :list="varList"
@@ -44,7 +44,7 @@
                     <input
                         type="text"
                         class="bk-form-input"
-                        placeholder="值"
+                        :placeholder="valuePlaceholder"
                         v-model="keyItem.value"
                         @input="valueChange"
                         :disabled="keyItem.disabled && !keyItem.linkMessage"
@@ -59,13 +59,13 @@
                 </button>
                 <label class="bk-form-checkbox" style="margin-left: 20px;" v-if="isLinkToSelector">
                     <input type="checkbox" v-model="keyItem.isSelector" @change="valueChange">
-                    添加至选择器
+                    {{addToSelectorStr}}
                 </label>
                 <div v-if="keyItem.linkMessage" class="biz-tip mt5 f12">{{keyItem.linkMessage}}</div>
             </div>
         </div>
         <slot>
-            <p :class="['biz-tip', { 'is-danger': isTipChange }]">{{isTipChange && tip ? tip : '小提示：同时粘贴多行“键=值”的文本会自动添加多行记录'}}</p>
+            <p :class="['biz-tip', { 'is-danger': isTipChange }]">{{tip ? tip : '小提示：同时粘贴多行“键=值”的文本会自动添加多行记录'}}</p>
         </slot>
     </div>
 </template>
@@ -94,6 +94,18 @@
                 default () {
                     return []
                 }
+            },
+            keyPlaceholder: {
+                type: String,
+                default: '键'
+            },
+            valuePlaceholder: {
+                type: String,
+                default: '值'
+            },
+            addToSelectorStr: {
+                type: String,
+                default: '添加至选择器'
             }
         },
         data () {

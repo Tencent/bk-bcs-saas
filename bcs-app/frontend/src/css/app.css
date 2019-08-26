@@ -2266,3 +2266,13 @@ div.jsoneditor {
         @mixin ellipsis 90px;
     }
 }
+
+.biz-metric-manage-create-sideslider {
+    .bk-number {
+        .bk-number-content.bk-number-larger {
+            .bk-number-icon-content {
+                margin-top: 0 !important;
+            }
+        }
+    }
+}
