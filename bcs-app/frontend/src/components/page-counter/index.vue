@@ -1,18 +1,34 @@
 <template>
     <div class="biz-page-count">
         <div class="total-page">
-            共计{{total || totalPage}}条
+            <template v-if="isEn">
+                Total: {{total || totalPage}} items
+            </template>
+            <template v-else>
+                共计{{total || totalPage}}条
+            </template>
         </div>
         <div class="page-count-selector">
-            每页
-            <bk-selector
-                style="width: 70px; display: inline-block;"
-                :placeholder="'请选择要实例化的模板'"
-                :selected.sync="selected"
-                :list="pageCounterList"
-                @item-selected="pageCounterSelect">
-            </bk-selector>
-            条
+            <template v-if="isEn">
+                <bk-selector
+                    style="width: 100px; display: inline-block;"
+                    :placeholder="placeholder"
+                    :selected.sync="selected"
+                    :list="pageCounterListEN"
+                    @item-selected="pageCounterSelect">
+                </bk-selector>
+            </template>
+            <template v-else>
+                每页
+                <bk-selector
+                    style="width: 70px; display: inline-block;"
+                    :placeholder="placeholder"
+                    :selected.sync="selected"
+                    :list="pageCounterList"
+                    @item-selected="pageCounterSelect">
+                </bk-selector>
+                条
+            </template>
         </div>
     </div>
 </template>
@@ -31,32 +47,32 @@
             pageSize: {
                 type: Number,
                 default: 10
+            },
+            placeholder: {
+                type: String,
+                default: '请选择要实例化的模板'
+            },
+            isEn: {
+                type: Boolean,
+                default: false
             }
         },
         data () {
             return {
                 selected: this.pageSize,
                 pageCounterList: [
-                    {
-                        id: 5,
-                        name: '5'
-                    },
-                    {
-                        id: 10,
-                        name: '10'
-                    },
-                    {
-                        id: 20,
-                        name: '20'
-                    },
-                    {
-                        id: 50,
-                        name: '50'
-                    },
-                    {
-                        id: 100,
-                        name: '100'
-                    }
+                    { id: 5, name: '5' },
+                    { id: 10, name: '10' },
+                    { id: 20, name: '20' },
+                    { id: 50, name: '50' },
+                    { id: 100, name: '100' }
+                ],
+                pageCounterListEN: [
+                    { id: 5, name: '5/page' },
+                    { id: 10, name: '10/page' },
+                    { id: 20, name: '20/page' },
+                    { id: 50, name: '50/page' },
+                    { id: 100, name: '100/page' }
                 ]
             }
         },
