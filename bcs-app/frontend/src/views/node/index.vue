@@ -2,7 +2,7 @@
     <div class="biz-content">
         <div class="biz-top-bar">
             <div class="biz-app-title">
-                节点
+                {{$t('节点')}}
             </div>
             <bk-guide></bk-guide>
         </div>
