@@ -16,18 +16,18 @@
                 <div class="biz-panel-header biz-node-query">
                     <div class="left">
                         <button class="bk-button bk-default" @click="showSetLabel">
-                            <span>设置标签</span>
+                            <span>{{$t('设置标签')}}</span>
                         </button>
                     </div>
                     <div class="right">
                         <bk-dropdown-menu :align="'center'" :trigger="'click'" ref="toggleFilterDropdownMenu">
                             <a href="javascript:void(0);" slot="dropdown-trigger" class="bk-text-button toggle-filter">
-                                <span class="label">{{curSelectedClusterName === 'all' ? '全部集群' : curSelectedClusterName}}</span>
+                                <span class="label">{{curSelectedClusterName === 'all' ? $t('全部集群') : curSelectedClusterName}}</span>
                                 <i class="bk-icon icon-angle-down dropdown-menu-angle-down"></i>
                             </a>
                             <ul class="bk-dropdown-list" slot="dropdown-content">
                                 <li @click.stop="changeCluster({ name: 'all' })">
-                                    <a href="javascript:void(0)">全部集群</a>
+                                    <a href="javascript:void(0)">{{$t('全部集群')}}</a>
                                 </li>
                                 <li v-for="(cluster, index) in clusterList" @click.stop="changeCluster(cluster)" :key="index">
                                     <a href="javascript:void(0)">{{cluster.name}}</a>
@@ -40,7 +40,7 @@
                         </div>
                         <span class="close-wrapper">
                             <template v-if="$refs.searcher && $refs.searcher.searchParams && $refs.searcher.searchParams.length">
-                                <button class="bk-button bk-default is-outline is-icon" title="清除" @click="clearSearchParams">
+                                <button class="bk-button bk-default is-outline is-icon" :title="$t('清除')" @click="clearSearchParams">
                                     <i class="bk-icon icon-close"></i>
                                 </button>
                             </template>
@@ -50,7 +50,7 @@
                             </template>
                         </span>
                         <span class="refresh-wrapper">
-                            <bk-tooltip class="refresh" :content="'刷新'" :delay="500" placement="top">
+                            <bk-tooltip class="refresh" :content="$t('刷新')" :delay="500" placement="top">
                                 <button class="bk-button bk-default is-outline is-icon" @click="refresh">
                                     <i class="bk-icon icon-refresh"></i>
                                 </button>
@@ -69,11 +69,11 @@
                                             <input type="checkbox" v-else name="check-instance" disabled="disabled" />
                                         </label>
                                     </th>
-                                    <th style="width: 120px; text-align: left;">主机名/IP</th>
-                                    <th style="width: 100px;">状态</th>
-                                    <th style="width: 150px;">所属集群</th>
-                                    <th style="width: 300px;">标签</th>
-                                    <th style="width: 200px;">操作</th>
+                                    <th style="width: 120px; text-align: left;">{{$t('主机名/IP')}}</th>
+                                    <th style="width: 100px;">{{$t('状态')}}</th>
+                                    <th style="width: 150px;">{{$t('所属集群')}}</th>
+                                    <th style="width: 300px;">{{$t('标签')}}</th>
+                                    <th style="width: 200px;">{{$t('操作')}}</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -92,7 +92,7 @@
                                             <td>{{node.inner_ip}}</td>
                                             <td style="white-space: nowrap;">
                                                 <div class="biz-status-node"><loading-cell :style="{ left: 0 }" :ext-cls="['bk-spin-loading-mini', 'bk-spin-loading-danger']"></loading-cell></div>
-                                                {{node.status === 'initializing' || node.status === 'so_initializing' || node.status === 'initial_checking' ? '初始化中' : '删除中'}}
+                                                {{node.status === 'initializing' || node.status === 'so_initializing' || node.status === 'initial_checking' ? $t('初始化中') : $t('删除中')}}
                                             </td>
                                             <td style="white-space: nowrap;">
                                                 <bk-tooltip :content="`${node.cluster_id}`" placement="top">
@@ -112,10 +112,10 @@
                                                                 v-if="node.showExpand"
                                                                 @click.stop="toggleLabel(node, index)">
                                                                 <template v-if="!node.isExpandLabels">
-                                                                    展开<i class="bk-icon icon-angle-down"></i>
+                                                                    {{$t('展开')}}<i class="bk-icon icon-angle-down"></i>
                                                                 </template>
                                                                 <template v-else>
-                                                                    收起<i class="bk-icon icon-angle-up"></i>
+                                                                    {{$t('收起')}}<i class="bk-icon icon-angle-up"></i>
                                                                 </template>
                                                             </a>
                                                         </div>
@@ -124,8 +124,8 @@
                                                 <template v-else>--</template>
                                             </td>
                                             <td>
-                                                <a href="javascript:void(0);" class="bk-text-button disabled">设置标签</a>
-                                                <a href="javascript:void(0);" class="bk-text-button" @click.stop="goClusterNode(node)">更多操作</a>
+                                                <a href="javascript:void(0);" class="bk-text-button disabled">{{$t('设置标签')}}</a>
+                                                <a href="javascript:void(0);" class="bk-text-button" @click.stop="goClusterNode(node)">{{$t('更多操作')}}</a>
                                             </td>
                                         </template>
 
@@ -145,7 +145,7 @@
                                             </td>
                                             <td style="white-space: nowrap;">
                                                 <div class="biz-status-node"><i class="node danger"></i></div>
-                                                {{node.status === 'initial_failed' || node.status === 'so_init_failed' || node.status === 'check_failed' || node.status === 'schedule_failed' || node.status === 'bke_failed' ? '初始化失败' : '移除失败'}}
+                                                {{node.status === 'initial_failed' || node.status === 'so_init_failed' || node.status === 'check_failed' || node.status === 'schedule_failed' || node.status === 'bke_failed' ? $t('初始化失败') : $t('移除失败')}}
                                             </td>
                                             <td>
                                                 <bk-tooltip :content="`${node.cluster_id}`" placement="top">
@@ -167,10 +167,10 @@
                                                                 v-if="node.showExpand"
                                                                 @click.stop="toggleLabel(node, index)">
                                                                 <template v-if="!node.isExpandLabels">
-                                                                    展开<i class="bk-icon icon-angle-down"></i>
+                                                                    {{$t('展开')}}<i class="bk-icon icon-angle-down"></i>
                                                                 </template>
                                                                 <template v-else>
-                                                                    收起<i class="bk-icon icon-angle-up"></i>
+                                                                    {{$t('收起')}}<i class="bk-icon icon-angle-up"></i>
                                                                 </template>
                                                             </a>
                                                         </div>
@@ -179,8 +179,8 @@
                                                 <template v-else>--</template>
                                             </td>
                                             <td>
-                                                <a href="javascript:void(0);" class="bk-text-button disabled">设置标签</a>
-                                                <a href="javascript:void(0);" class="bk-text-button" @click.stop="goClusterNode(node)">更多操作</a>
+                                                <a href="javascript:void(0);" class="bk-text-button disabled">{{$t('设置标签')}}</a>
+                                                <a href="javascript:void(0);" class="bk-text-button" @click.stop="goClusterNode(node)">{{$t('更多操作')}}</a>
                                             </td>
                                         </template>
 
@@ -198,7 +198,7 @@
                                             </td>
                                             <td>
                                                 <div class="biz-status-node"><i class="node warning"></i></div>
-                                                不可调度
+                                                {{$t('不可调度')}}
                                             </td>
                                             <td>
                                                 <bk-tooltip :content="`${node.cluster_id}`" placement="top">
@@ -220,10 +220,10 @@
                                                                 v-if="node.showExpand"
                                                                 @click.stop="toggleLabel(node, index)">
                                                                 <template v-if="!node.isExpandLabels">
-                                                                    展开<i class="bk-icon icon-angle-down"></i>
+                                                                    {{$t('展开')}}<i class="bk-icon icon-angle-down"></i>
                                                                 </template>
                                                                 <template v-else>
-                                                                    收起<i class="bk-icon icon-angle-up"></i>
+                                                                    {{$t('收起')}}<i class="bk-icon icon-angle-up"></i>
                                                                 </template>
                                                             </a>
                                                         </div>
@@ -232,8 +232,8 @@
                                                 <template v-else>--</template>
                                             </td>
                                             <td>
-                                                <a href="javascript:void(0);" class="bk-text-button disabled">设置标签</a>
-                                                <a href="javascript:void(0);" class="bk-text-button" @click.stop="goClusterNode(node)">更多操作</a>
+                                                <a href="javascript:void(0);" class="bk-text-button disabled">{{$t('设置标签')}}</a>
+                                                <a href="javascript:void(0);" class="bk-text-button" @click.stop="goClusterNode(node)">{{$t('更多操作')}}</a>
                                             </td>
                                         </template>
 
@@ -251,7 +251,7 @@
                                             </td>
                                             <td>
                                                 <div class="biz-status-node"><i class="node warning"></i></div>
-                                                不可调度
+                                                {{$t('不可调度')}}
                                             </td>
                                             <td>
                                                 <bk-tooltip :content="`${node.cluster_id}`" placement="top">
@@ -273,10 +273,10 @@
                                                                 v-if="node.showExpand"
                                                                 @click.stop="toggleLabel(node, index)">
                                                                 <template v-if="!node.isExpandLabels">
-                                                                    展开<i class="bk-icon icon-angle-down"></i>
+                                                                    {{$t('展开')}}<i class="bk-icon icon-angle-down"></i>
                                                                 </template>
                                                                 <template v-else>
-                                                                    收起<i class="bk-icon icon-angle-up"></i>
+                                                                    {{$t('收起')}}<i class="bk-icon icon-angle-up"></i>
                                                                 </template>
                                                             </a>
                                                         </div>
@@ -285,8 +285,8 @@
                                                 <template v-else>--</template>
                                             </td>
                                             <td>
-                                                <a href="javascript:void(0);" class="bk-text-button disabled">设置标签</a>
-                                                <a href="javascript:void(0);" class="bk-text-button" @click.stop="goClusterNode(node)">更多操作</a>
+                                                <a href="javascript:void(0);" class="bk-text-button disabled">{{$t('设置标签')}}</a>
+                                                <a href="javascript:void(0);" class="bk-text-button" @click.stop="goClusterNode(node)">{{$t('更多操作')}}</a>
                                             </td>
                                         </template>
 
@@ -305,7 +305,7 @@
                                             </td>
                                             <td>
                                                 <div class="biz-status-node"><i class="node danger"></i></div>
-                                                不正常
+                                                {{$t('不正常')}}
                                             </td>
                                             <td>
                                                 <bk-tooltip :content="`${node.cluster_id}`" placement="top">
@@ -327,10 +327,10 @@
                                                                 v-if="node.showExpand"
                                                                 @click.stop="toggleLabel(node, index)">
                                                                 <template v-if="!node.isExpandLabels">
-                                                                    展开<i class="bk-icon icon-angle-down"></i>
+                                                                    {{$t('展开')}}<i class="bk-icon icon-angle-down"></i>
                                                                 </template>
                                                                 <template v-else>
-                                                                    收起<i class="bk-icon icon-angle-up"></i>
+                                                                    {{$t('收起')}}<i class="bk-icon icon-angle-up"></i>
                                                                 </template>
                                                             </a>
                                                         </div>
@@ -339,8 +339,8 @@
                                                 <template v-else>--</template>
                                             </td>
                                             <td>
-                                                <a href="javascript:void(0);" class="bk-text-button disabled">设置标签</a>
-                                                <a href="javascript:void(0);" class="bk-text-button" @click.stop="goClusterNode(node)">更多操作</a>
+                                                <a href="javascript:void(0);" class="bk-text-button disabled">{{$t('设置标签')}}</a>
+                                                <a href="javascript:void(0);" class="bk-text-button" @click.stop="goClusterNode(node)">{{$t('更多操作')}}</a>
                                             </td>
                                         </template>
 
@@ -358,7 +358,7 @@
                                             </td>
                                             <td>
                                                 <div class="biz-status-node"><i class="node success"></i></div>
-                                                正常
+                                                {{$t('正常')}}
                                             </td>
                                             <td>
                                                 <bk-tooltip :content="`${node.cluster_id}`" placement="top">
@@ -380,10 +380,10 @@
                                                                 v-if="node.showExpand"
                                                                 @click.stop="toggleLabel(node, index)">
                                                                 <template v-if="!node.isExpandLabels">
-                                                                    展开<i class="bk-icon icon-angle-down"></i>
+                                                                    {{$t('展开')}}<i class="bk-icon icon-angle-down"></i>
                                                                 </template>
                                                                 <template v-else>
-                                                                    收起<i class="bk-icon icon-angle-up"></i>
+                                                                    {{$t('收起')}}<i class="bk-icon icon-angle-up"></i>
                                                                 </template>
                                                             </a>
                                                         </div>
@@ -392,8 +392,8 @@
                                                 <template v-else>--</template>
                                             </td>
                                             <td>
-                                                <a href="javascript:void(0);" class="bk-text-button" @click.stop="showSetLabelInRow(node)">设置标签</a>
-                                                <a href="javascript:void(0);" class="bk-text-button" @click.stop="goClusterNode(node)">更多操作</a>
+                                                <a href="javascript:void(0);" class="bk-text-button" @click.stop="showSetLabelInRow(node)">{{$t('设置标签')}}</a>
+                                                <a href="javascript:void(0);" class="bk-text-button" @click.stop="goClusterNode(node)">{{$t('更多操作')}}</a>
                                             </td>
                                         </template>
                                     </tr>
@@ -402,7 +402,7 @@
                                     <tr>
                                         <td colspan="6">
                                             <div class="bk-message-box no-data">
-                                                <p class="message empty-message">无数据</p>
+                                                <p class="message empty-message">{{$t('无数据')}}</p>
                                             </div>
                                         </td>
                                     </tr>
@@ -412,6 +412,7 @@
                     </div>
                     <div class="biz-page-wrapper" v-if="pageConf.total">
                         <bk-page-counter
+                            :is-en="isEn"
                             :total="pageConf.total"
                             :page-size="pageConf.pageSize"
                             @change="changePageSize">
@@ -421,7 +422,12 @@
                             :total-page="pageConf.totalPage"
                             @page-change="pageChange">
                         </bk-paging>
-                        <div class="already-selected-nums" v-if="alreadySelectedNums">已选{{alreadySelectedNums}}条</div>
+                        <template v-if="isEn">
+                            <div class="already-selected-nums" v-if="alreadySelectedNums">Checked: {{alreadySelectedNums}}</div>
+                        </template>
+                        <template v-else>
+                            <div class="already-selected-nums" v-if="alreadySelectedNums">已选{{alreadySelectedNums}}条</div>
+                        </template>
                     </div>
                 </div>
             </template>
@@ -435,21 +441,22 @@
             class="biz-cluster-set-label-sideslider"
             @hidden="hideSetLabel">
             <template slot="content">
-                <div class="title-tip">标签有助于整理你的资源（如 env:prod），详情可查看<a :href="labelDocUrl" target="_blank" class="bk-text-button">帮助文档</a></div>
+                <div class="title-tip" v-if="isEn">Tags help organize your resources (like env:prod), <a :href="labelDocUrl" target="_blank" class="bk-text-button">Show detail</a></div>
+                <div class="title-tip" v-else>标签有助于整理你的资源（如 env:prod），详情可查看<a :href="labelDocUrl" target="_blank" class="bk-text-button">帮助文档</a></div>
                 <div class="wrapper" style="position: relative;" v-bkloading="{ isLoading: setLabelConf.loading }">
                     <form class="bk-form bk-form-vertical set-label-form">
                         <div class="bk-form-item flex-item">
                             <div class="left">
-                                <label class="bk-label label">键：</label>
+                                <label class="bk-label label">{{$t('键')}}：</label>
                             </div>
                             <div class="right">
-                                <label class="bk-label label">值：
+                                <label class="bk-label label">{{$t('值')}}：
                                     <template v-if="showMixinTip">
                                         <bk-tooltip :delay="300" placement="top">
                                             <i class="bk-icon icon-question-circle" style="vertical-align: middle;"></i>
                                             <div slot="content">
-                                                <p class="app-biz-node-label-tip-content">为什么会有混合值：</p>
-                                                <p class="app-biz-node-label-tip-content">已选节点的标签中存在同一个键对应多个值</p>
+                                                <p class="app-biz-node-label-tip-content">{{$t('为什么会有混合值')}}：</p>
+                                                <p class="app-biz-node-label-tip-content">{{$t('已选节点的标签中存在同一个键对应多个值')}}</p>
                                             </div>
                                         </bk-tooltip>
                                     </template>
@@ -464,12 +471,12 @@
                                             <input type="text" class="bk-form-input" disabled v-model="label.key">
                                         </template>
                                         <template v-else>
-                                            <input type="text" placeholder="键" maxlength="30" class="bk-form-input" v-model="label.key">
+                                            <input type="text" :placeholder="$t('键')" maxlength="30" class="bk-form-input" v-model="label.key">
                                         </template>
                                         <span class="equals-sign">=</span>
-                                        <input type="text" maxlength="30" class="bk-form-input right" placeholder="混合值" v-if="label.isMixin" v-model="label.value">
-                                        <input type="text" maxlength="30" class="bk-form-input right" placeholder="值" v-else-if="!label.value" v-model="label.value">
-                                        <input type="text" maxlength="30" class="bk-form-input right" placeholder="值" v-else v-model="label.value">
+                                        <input type="text" maxlength="30" class="bk-form-input right" :placeholder="$t('混合值')" v-if="label.isMixin" v-model="label.value">
+                                        <input type="text" maxlength="30" class="bk-form-input right" :placeholder="$t('值')" v-else-if="!label.value" v-model="label.value">
+                                        <input type="text" maxlength="30" class="bk-form-input right" :placeholder="$t('值')" v-else v-model="label.value">
 
                                         <template v-if="labelList.length === 1">
                                             <button class="action-btn">
@@ -496,10 +503,10 @@
                         </div>
                         <div class="action-inner">
                             <button type="button" class="bk-dialog-btn bk-dialog-btn-confirm bk-btn-primary" @click="confirmSetLabel">
-                                保存
+                                {{$t('保存')}}
                             </button>
                             <button type="button" class="bk-dialog-btn bk-dialog-btn-cancel" @click="hideSetLabel">
-                                取消
+                                {{$t('取消')}}
                             </button>
                         </div>
                     </form>
@@ -569,7 +576,7 @@
                 curRowNode: {},
                 setLabelConf: {
                     isShow: false,
-                    title: '设置标签',
+                    title: this.$t('设置标签'),
                     width: 750,
                     loading: false
                 },
@@ -599,6 +606,9 @@
             labelDocUrl () {
                 const curProject = this.$store.state.curProject
                 return curProject.kind === 1 ? this.PROJECT_CONFIG.doc.nodeLabelK8s : this.PROJECT_CONFIG.doc.nodeLabelMesos
+            },
+            isEn () {
+                return this.$store.state.isEn
             }
         },
         watch: {
@@ -1083,7 +1093,7 @@
                     this.bkMessageInstance && this.bkMessageInstance.close()
                     this.bkMessageInstance = this.$bkMessage({
                         theme: 'error',
-                        message: '请选择节点'
+                        message: this.$t('请选择节点')
                     })
                     return
                 }
@@ -1229,7 +1239,7 @@
                     if (labelInfo[key]) {
                         this.$bkMessage({
                             theme: 'error',
-                            message: `键值【${key}】重复，请重新填写`
+                            message: this.$t('键值【{key}】重复，请重新填写', { key: key })
                         })
                         return
                     }

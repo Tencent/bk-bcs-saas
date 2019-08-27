@@ -281,7 +281,7 @@
         position: absolute;
         top: 23px;
         font-size: 12px;
-        left: 120px;
+        left: 130px;
         color: $fnMinorColor;
     }
 
@@ -439,7 +439,7 @@
 
 @media screen and (max-width: 1400px) {
     .bk-text-button {
-        vertical-align: middle;
+        vertical-align: bottom;
         @mixin ellipsis 300px;
     }
 
@@ -453,7 +453,7 @@
 
 @media screen and (max-width: 1280px) {
     .bk-text-button {
-        vertical-align: middle;
+        vertical-align: bottom;
         @mixin ellipsis 200px;
     }
     .biz-node-list {

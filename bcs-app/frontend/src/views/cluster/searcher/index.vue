@@ -99,17 +99,17 @@
                     </template>
                     <template v-else>
                         <li>
-                            <a href="javascript:void(0);">没有数据</a>
+                            <a href="javascript:void(0);">{{$t('没有数据')}}</a>
                         </li>
                     </template>
                 </ul>
                 <div class="action" v-if="valueList && valueList.length && Object.keys(selectedValues).filter(v => selectedValues[v]).length">
-                    <span class="btn" @click="confirmSelectValue">确认</span>
-                    <span class="btn" @click="cancelSelectValue">取消</span>
+                    <span class="btn" @click="confirmSelectValue">{{$t('确认')}}</span>
+                    <span class="btn" @click="cancelSelectValue">{{$t('取消')}}</span>
                 </div>
                 <div class="action" v-else>
-                    <span class="btn disabled">确认</span>
-                    <span class="btn disabled">取消</span>
+                    <span class="btn disabled">{{$t('确认')}}</span>
+                    <span class="btn disabled">{{$t('取消')}}</span>
                 </div>
             </div>
         </div>
@@ -143,13 +143,13 @@
             return {
                 curInputValue: '',
                 labelList: [
-                    { id: 'ip', text: 'IP地址' },
-                    { id: 'labels', text: '标签' }
+                    { id: 'ip', text: this.$t('IP地址') },
+                    { id: 'labels', text: this.$t('标签') }
                 ],
                 // 输入框的最小宽度
                 minInputWidth: 190,
                 // 输入框的最大宽度
-                maxInputWidth: 250,
+                maxInputWidth: 300,
                 // 显示 label 的弹层
                 showLabel: false,
                 // 显示 key 的弹层
@@ -248,7 +248,7 @@
                 if (label.id === 'ip') {
                     curSearchParams.value = ''
                     this.curSearchParams = Object.assign({}, curSearchParams)
-                    this.inputPlaceholder = '请输入要搜索的ip，多个ip以 | 隔开'
+                    this.inputPlaceholder = this.$t('请输入要搜索的ip，多个ip以 | 隔开')
 
                     this.$nextTick(() => {
                         this.$refs.searchInput.focus()
@@ -274,7 +274,7 @@
                             this.$refs.searchInput.focus()
                             this.isListeningInputKeyup = true
                         })
-                        this.inputPlaceholder = '请输入要搜索的key'
+                        this.inputPlaceholder = this.$t('请输入要搜索的key')
                     } catch (e) {
                         catchErrorHandler(e, this)
                     } finally {
@@ -295,7 +295,7 @@
                     this.showValue = true
                     this.tagLoading = true
                     this.curInputValue = ''
-                    this.inputPlaceholder = '请输入要搜索的value'
+                    this.inputPlaceholder = this.$t('请输入要搜索的value')
                     const res = await this.$store.dispatch('cluster/getNodeValueListByKey', {
                         projectId: this.projectId,
                         clusterId: this.clusterId,
@@ -330,7 +330,7 @@
                 this.selectedValues = Object.assign({}, {})
                 this.keyList.splice(0, this.keyList.length, ...this.keyListTmp)
                 this.curSearchParams.key = ''
-                this.inputPlaceholder = '请输入要搜索的key'
+                this.inputPlaceholder = this.$t('请输入要搜索的key')
                 this.showKey = true
                 this.showValue = false
                 this.$nextTick(() => {
