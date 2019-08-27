@@ -11,6 +11,9 @@
 
 import Vue from 'vue'
 import VeeValidate from 'vee-validate'
+import VueI18n from 'vue-i18n'
+
+import bkMagic from './components/bk-magic/bk-magic-vue.min'
 import './common/bkmagic'
 import App from './App'
 import router from './router'
@@ -36,6 +39,9 @@ import focus from './directives/focus/index'
 
 import PROJECT_CONFIG from './config'
 
+import en from './common/lang/en.js'
+import cn from './common/lang/cn.js'
+
 Vue.component('app-header', appHeader)
 Vue.component('app-exception', Exception)
 Vue.component('app-auth', AuthComponent)
@@ -48,6 +54,7 @@ Vue.component('bk-guide', bkGuide)
 Vue.component('bk-data-searcher', bkDataSearcher)
 Vue.component('bk-page-counter', bkPageCounter)
 
+Vue.use(VueI18n)
 Vue.use(VeeValidate)
 Vue.use(focus)
 
@@ -70,6 +77,21 @@ function loadScriptCallback (e) {
         }
     })
 
+    const messages = {
+        'en-US': Object.assign(bkMagic.langPkg.enUS, en),
+        'zh-CN': Object.assign(bkMagic.langPkg.zhCN, cn)
+    }
+
+    // 代码中获取当前语言 this.$i18n.locale
+    const i18n = new VueI18n({
+        locale: store.getters.lang,
+        fallbackLocale: 'zh-CN',
+        // silentTranslationWarn: true,
+        messages
+    })
+
+    bkMagic.locale.i18n((key, value) => i18n.t(key, value))
+
     window.bus = bus
     window.mainComponent = new Vue({
         el: '#app',
@@ -78,6 +100,7 @@ function loadScriptCallback (e) {
         components: {
             App
         },
+        i18n,
         template: '<App/>'
     })
 }

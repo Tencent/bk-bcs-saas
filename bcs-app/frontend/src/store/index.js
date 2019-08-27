@@ -11,6 +11,7 @@
 
 import Vue from 'vue'
 import Vuex from 'vuex'
+import cookie from 'cookie'
 
 import http from '@open/api'
 import { unifyObjectStyle } from '@open/common/util'
@@ -33,8 +34,15 @@ import menuConfig from './menu-config'
 
 Vue.use(Vuex)
 
-const menuList = menuConfig.menuList
-const k8sMenuList = menuConfig.k8sMenuList
+// cookie 中 zh-cn / en
+let lang = cookie.parse(document.cookie).blueking_language || 'zh-cn'
+if (['zh-CN', 'zh-cn', 'cn', 'zhCN', 'zhcn'].indexOf(lang) > -1) {
+    lang = 'zh-CN'
+} else {
+    lang = 'en-US'
+}
+
+const { menuList, k8sMenuList } = menuConfig(lang)
 
 const store = new Vuex.Store({
     // 模块
@@ -69,13 +77,18 @@ const store = new Vuex.Store({
             k8sMenuList: k8sMenuList
         },
 
+        // 当前语言环境
+        lang: lang,
+        isEn: lang === 'en-US',
+
         // 是否允许路由跳转
         allowRouterChange: true
     },
     // 公共 getters
     getters: {
         mainContentLoading: state => state.mainContentLoading,
-        user: state => state.user
+        user: state => state.user,
+        lang: state => state.lang
     },
     // 公共 mutations
     mutations: {
