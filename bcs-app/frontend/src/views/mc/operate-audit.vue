@@ -79,8 +79,8 @@
                                             {{item.activityType}}
                                         </td>
                                         <td>
-                                            <p><span style="color: #c3cdd7;">类型：</span>{{item.extra.resourceType || '--'}}</p>
-                                            <p style="white-space: nowrap;"><span style="color: #c3cdd7;">对象：</span>{{item.extra.resource || '--'}}</p>
+                                            <p class="extra-info" :title="item.extra.resourceType || '--'"><span>类型：</span>{{item.extra.resourceType || '--'}}</p>
+                                            <p class="extra-info" :title="item.extra.resource || '--'"><span>对象：</span>{{item.extra.resource || '--'}}</p>
                                         </td>
                                         <td>
                                             <i class="bk-icon" :class="item.activityStatus === '完成' || item.activityStatus === '成功' ? 'success icon-check-circle' : 'fail icon-close-circle'"></i>{{item.activityStatus}}

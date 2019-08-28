@@ -16,8 +16,8 @@
  *      @mixin ellipsis 100px;
  */
 
-@define-mixin ellipsis $maxWidth {
-    display: inline-block;
+@define-mixin ellipsis $maxWidth, $display: inline-block {
+    display: $display;
     max-width: $maxWidth;
     overflow: hidden;
     text-overflow: ellipsis;
