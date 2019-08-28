@@ -90,8 +90,8 @@
                                             {{item.component}}
                                         </td>
                                         <td>
-                                            <p><span style="color: #c3cdd7;">级别：</span>{{item.extra.level || '--'}}</p>
-                                            <p><span style="color: #c3cdd7;">对象：</span>{{item.extra.kind || '--'}}</p>
+                                            <p class="extra-info" :title="item.extra.level || '--'"><span>级别：</span>{{item.extra.level || '--'}}</p>
+                                            <p class="extra-info" :title="item.extra.kind || '--'"><span>对象：</span>{{item.extra.kind || '--'}}</p>
                                         </td>
                                         <td>
                                             <bk-tooltip :content="item.cluster_id" placement="top">
