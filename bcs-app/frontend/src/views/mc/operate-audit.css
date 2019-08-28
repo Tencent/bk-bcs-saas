@@ -53,6 +53,12 @@
 
     p {
         margin: 0;
+        &.extra-info {
+            @mixin ellipsis 200px, block;
+            span {
+                color: #c3cdd7;
+            }
+        }
     }
 
     tbody {
