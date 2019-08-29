@@ -429,7 +429,7 @@ class NamespaceView(NamespaceBase, viewsets.ViewSet):
             result['data']['ns_vars'] = NameSpaceVariable.get_ns_vars(
                 ns_id, project_id)
         return result
-    
+
     def create(self, request, project_id, is_validate_perm=True):
         """新建命名空间
         k8s 流程：新建namespace配置文件并下发 -> 新建包含仓库账号信息的sercret配置文件并下发 -> 在paas-cc上注册
