@@ -1019,7 +1019,8 @@ export default {
                 }
 
                 const res = await this.$store.dispatch('app/getContainterLog', params)
-                this.logList.unshift(...(res.data || []))
+                // this.logList.unshift(...(res.data || []))
+                this.logList.splice(0, this.logList.length, ...(res.data || []))
             } catch (e) {
                 catchErrorHandler(e, this)
             } finally {
