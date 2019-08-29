@@ -43,8 +43,8 @@ var nodeFilterStatus = []string{}
 // node initlizing status
 var nodeInitializingStatus = "initializing"
 
-// project k8s kind
-var k8sKind uint = 1
+// project mesos kind
+var mesosKind uint = 2
 
 // empty flag
 var nullParam = "null"

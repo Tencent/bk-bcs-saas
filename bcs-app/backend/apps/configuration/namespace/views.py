@@ -31,6 +31,7 @@ from backend.components.bcs.k8s import K8SClient
 from backend.components.bcs.mesos import MesosClient
 from backend.utils.error_codes import error_codes
 from backend.utils.response import APIResult
+from backend.activity_log import client
 
 logger = logging.getLogger(__name__)
 K8S_PROJECT_KIND = 1
@@ -380,24 +381,8 @@ class NamespaceView(NamespaceBase, viewsets.ViewSet):
         client = MesosClient(access_token, project_id, cluster_id, env=None)
         client.delete_secret(ns_name, MESOS_IMAGE_SECRET)
 
-    def create(self, request, project_id, is_validate_perm=True):
-        """新建命名空间
-        k8s 流程：新建namespace配置文件并下发 -> 新建包含仓库账号信息的sercret配置文件并下发 -> 在paas-cc上注册
-        mesos流程：新建包含仓库账号信息的sercret配置文件并下发 -> 在paas-cc上注册
-        """
-        serializer = NamespaceSLZ(data=request.data, context={
-            'request': request, 'project_id': project_id})
-        serializer.is_valid(raise_exception=True)
-
-        data = serializer.data
-
-        # 判断权限
-        perm = bcs_perm.Namespace(request, project_id, bcs_perm.NO_RES, data['cluster_id'])
-        perm.can_create(raise_exception=is_validate_perm)
-
-        data = serializer.data
+    def create_flow(self, request, project_id, data, perm):
         access_token = request.user.token.access_token
-
         project_kind = request.project.kind
         project_code = request.project.english_name
         if ClusterType.get(project_kind) == 'Kubernetes':
@@ -439,12 +424,39 @@ class NamespaceView(NamespaceBase, viewsets.ViewSet):
             res, not_exist_vars = NameSpaceVariable.batch_save(
                 ns_id, data['ns_vars'])
             if not_exist_vars:
-                not_exist_show_msg = ['%s[id:%s]' %
-                                      (i['key'], i['id']) for i in not_exist_vars]
-                result['message'] = u"以下变量不存在:%s" % ";".join(
-                    not_exist_show_msg)
+                not_exist_show_msg = [f'{i["key"]}[id:{i["id"]}]' for i in not_exist_vars]
+                result['message'] = f"以下变量不存在:{';'.join(not_exist_show_msg)}"
             result['data']['ns_vars'] = NameSpaceVariable.get_ns_vars(
                 ns_id, project_id)
+        return result
+
+    def create(self, request, project_id, is_validate_perm=True):
+        """新建命名空间
+        k8s 流程：新建namespace配置文件并下发 -> 新建包含仓库账号信息的sercret配置文件并下发 -> 在paas-cc上注册
+        mesos流程：新建包含仓库账号信息的sercret配置文件并下发 -> 在paas-cc上注册
+        """
+        serializer = NamespaceSLZ(data=request.data, context={
+            'request': request, 'project_id': project_id})
+        serializer.is_valid(raise_exception=True)
+
+        data = serializer.data
+
+        # 判断权限
+        cluster_id = data['cluster_id']
+        perm = bcs_perm.Namespace(request, project_id, bcs_perm.NO_RES, cluster_id)
+        perm.can_create(raise_exception=is_validate_perm)
+
+        data = serializer.data
+        description = f'集群: {cluster_id}, 创建命名空间: 命名空间[{data["name"]}]'
+        with client.ContextActivityLogClient(
+                project_id=project_id,
+                user=request.user.username,
+                resource_type='namespace',
+                resource=data['name'],
+                description=description
+        ).log_add():
+            result = self.create_flow(request, project_id, data, perm)
+
         return response.Response(result)
 
     def update(self, request, project_id, namespace_id, is_validate_perm=True):
