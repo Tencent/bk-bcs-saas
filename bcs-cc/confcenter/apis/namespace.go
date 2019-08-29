@@ -45,7 +45,7 @@ func NamespaceList(c *gin.Context) {
 	// handle the k8s/mesos namespace list by project kind
 	var nsList []map[string]interface{}
 	var count int
-	if projectKind == k8sKind {
+	if projectKind != mesosKind {
 		nsList, count, err = models.K8SNamespaceList(filter)
 		if err != nil {
 			utils.DBErrorResponse(c, err)
@@ -84,7 +84,7 @@ func NamespaceInfo(c *gin.Context) {
 	}
 	// separation the k8s/mesos
 	var nsInfo map[string]interface{}
-	if projectKind == k8sKind {
+	if projectKind != mesosKind {
 		namespace := &models.KubernetesNamespace{Model: models.Model{ID: nsID}, ProjectID: projectID, ClusterID: clusterID}
 		if err := namespace.RetriveRecord(); err != nil {
 			utils.DBErrorResponse(c, err)
@@ -121,7 +121,7 @@ func DeleteNamespace(c *gin.Context) {
 		return
 	}
 	// separate the k8s/mesos
-	if projectKind == k8sKind {
+	if projectKind != mesosKind {
 		namespace := &models.KubernetesNamespace{Model: models.Model{ID: nsID}, ProjectID: projectID, ClusterID: clusterID}
 		if err := namespace.DeleteRecord(); err != nil {
 			utils.DBErrorResponse(c, err)
@@ -146,7 +146,7 @@ func DeleteClusterNamespaces(c *gin.Context) {
 		return
 	}
 	// separate the k8s/mesos
-	if projectKind == k8sKind {
+	if projectKind != mesosKind {
 		if err := models.DeleteK8SClusterNamespaces(projectID, clusterID); err != nil {
 			utils.DBErrorResponse(c, err)
 			return
@@ -180,7 +180,7 @@ func CreateNamespace(c *gin.Context) {
 		return
 	}
 	// separate the k8s/mesos
-	if projectKind == k8sKind {
+	if projectKind != mesosKind {
 		namespace := &models.KubernetesNamespace{ProjectID: projectID, ClusterID: clusterID}
 		if err := mapstructure.Decode(data, &namespace); err != nil {
 			utils.BadReqJSONResponse(c, err)
@@ -234,7 +234,7 @@ func UpdateNamespace(c *gin.Context) {
 		imageSecretExist = true
 	}
 	// separate the k8s/mesos
-	if projectKind == k8sKind {
+	if projectKind != mesosKind {
 		namespace := models.KubernetesNamespace{ProjectID: projectID, ClusterID: clusterID, Model: models.Model{ID: nsID}}
 		if err := mapstructure.Decode(data, &namespace); err != nil {
 			utils.BadReqJSONResponse(c, err)
