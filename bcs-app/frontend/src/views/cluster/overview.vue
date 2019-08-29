@@ -452,8 +452,11 @@
                     const nodeTotal = res.data.node.total || 0
                     if (nodeTotal === 0) {
                         this.nodePercent = 0
+                        this.nodePercentStr = 0
                     } else {
-                        this.nodePercent = nodeActived * 100 / nodeTotal
+                        const nodePercent = nodeActived * 100 / nodeTotal
+                        this.nodePercent = nodePercent
+                        this.nodePercentStr = nodePercent === 100 ? '100%' : nodePercent.toFixed(1) + '%'
                     }
                     this.nodeActived = `${nodeActived}台`
                     this.nodeDisabled = `${res.data.node.disabled || 0}台`
@@ -462,8 +465,11 @@
                     const namespaceTotal = res.data.namespace.total || 0
                     if (namespaceTotal === 0) {
                         this.namespacePercent = 0
+                        this.namespacePercentStr = 0
                     } else {
-                        this.namespacePercent = namespaceActived * 100 / namespaceTotal
+                        const namespacePercent = namespaceActived * 100 / namespaceTotal
+                        this.namespacePercent = namespacePercent
+                        this.namespacePercentStr = namespacePercent === 100 ? '100%' : namespacePercent.toFixed(1) + '%'
                     }
                     this.namespaceActived = `${namespaceActived}个`
                     this.namespaceTotal = `${namespaceTotal}个`
@@ -472,8 +478,11 @@
                     const ipTotal = res.data.ip_resource.total || 0
                     if (ipTotal === 0) {
                         this.ipPercent = 0
+                        this.ipPercentStr = 0
                     } else {
-                        this.ipPercent = ipUsed * 100 / ipTotal
+                        const ipPercent = ipUsed * 100 / ipTotal
+                        this.ipPercent = ipPercent
+                        this.ipPercentStr = ipPercent === 100 ? '100%' : ipPercent.toFixed(1) + '%'
                     }
                     this.ipUsed = `${ipUsed}个`
                     this.ipTotal = `${ipTotal}个`
@@ -656,7 +665,7 @@
         }
 
         .number {
-            font-size: 54px;
+            font-size: 50px;
         }
 
         .label {
