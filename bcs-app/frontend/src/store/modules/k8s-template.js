@@ -373,7 +373,7 @@ export default {
                         item.isEdited = false
                     }
                 })
-                state.HPAs.splice(0, state.statefulsets.length, ...data.K8sHPA)
+                state.HPAs.splice(0, state.HPAs.length, ...data.K8sHPA)
             } else {
                 state.HPAs.splice(0, state.HPAs.length)
             }

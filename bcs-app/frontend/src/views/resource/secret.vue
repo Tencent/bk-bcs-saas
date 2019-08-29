@@ -388,7 +388,7 @@
                         keys.forEach(key => {
                             results.push({
                                 key: key,
-                                value: data[`${key}`].content
+                                value: data[key].content
                             })
                         })
                     }
