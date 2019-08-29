@@ -178,11 +178,8 @@ class DockerMetrics(MetricsParamsBase, viewsets.ViewSet):
             _data['list'] = metrics_data
         elif data['metric'] == 'cpu_summary':
             for i in _data['list']:
-                real_usage = i.get('total_usage')
-                i['real_usage'] = normalize_metric(real_usage) if real_usage else 0
-                i['usage'] = normalize_metric(i.get('cpuusage'))
-                i.pop('cpuusage', None)
-                i.pop('total_usage', None)
+                i['usage'] = normalize_metric(i.get('cpu_totalusage'))
+                i.pop('cpu_totalusage', None)
         elif data['metric'] == 'mem':
             for i in _data['list']:
                 i['rss_pct'] = normalize_metric(i['rss_pct'])
@@ -239,12 +236,9 @@ class DockerMetrics(MetricsParamsBase, viewsets.ViewSet):
                 _metrics = []
                 for i in metrics:
                     container_name = i['container_name']
-                    total_usage = i.get('total_usage')
-                    real_usage = normalize_metric(total_usage) if total_usage else 0
                     _metrics.append({
-                        'usage': normalize_metric(i['cpuusage']),
+                        'usage': normalize_metric(i.get('cpu_totalusage')),
                         'time': i['time'],
-                        'real_usage': real_usage
                     })
                 metrics_data.append({'id': _id, 'container_name': container_name, 'metrics': _metrics})
             _data['list'] = metrics_data
