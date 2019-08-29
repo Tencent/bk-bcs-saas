@@ -49,7 +49,7 @@ DEFAULT_SEARCH_SIZE = 100
 API_URL = f'{DATA_API_V3_PREFIX}/dataquery/query/'
 
 DockerMetricFields = {
-    'cpu_summary': ['cpu_totalusage', 'id', 'container_name'],  # 使用率 cpuusage
+    'cpu_summary': ['cpu_totalusage', 'id', 'container_name'],  # 使用率 cpu_totalusage
     'mem': ['rss', 'total', 'rss_pct', 'id', 'container_name'],  # 使用率 rss/total
     'disk': ['used_pct', 'device_name', 'container_name'],
     'net': ['rxbytes', 'txbytes', 'rxpackets', 'txpackets', 'container_name']
