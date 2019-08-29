@@ -373,17 +373,25 @@
 
                     if (this.currentView === 'k8sService') {
                         data = this.curSecret.data.data
+
+                        const keys = Object.keys(data)
+                        keys.forEach(key => {
+                            results.push({
+                                key: key,
+                                value: data[key]
+                            })
+                        })
                     } else {
                         data = this.curSecret.data.datas
-                    }
-                    
-                    const keys = Object.keys(data)
-                    keys.forEach(item => {
-                        results.push({
-                            key: item,
-                            value: data[`${item}`].content
+
+                        const keys = Object.keys(data)
+                        keys.forEach(key => {
+                            results.push({
+                                key: key,
+                                value: data[key].content
+                            })
                         })
-                    })
+                    }
                     
                     return results
                 } else {

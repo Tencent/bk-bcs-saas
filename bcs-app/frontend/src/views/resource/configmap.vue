@@ -398,17 +398,25 @@
 
                     if (this.currentView === 'k8sService') {
                         data = this.curConfigmap.data.data
+
+                        const keys = Object.keys(data)
+                        keys.forEach(item => {
+                            results.push({
+                                key: item,
+                                value: data[item]
+                            })
+                        })
                     } else {
                         data = this.curConfigmap.data.datas
-                    }
-                    
-                    const keys = Object.keys(data)
-                    keys.forEach(item => {
-                        results.push({
-                            key: item,
-                            value: data[item].content
+
+                        const keys = Object.keys(data)
+                        keys.forEach(item => {
+                            results.push({
+                                key: item,
+                                value: data[item].content
+                            })
                         })
-                    })
+                    }
 
                     return results
                 } else {
