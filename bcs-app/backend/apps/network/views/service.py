@@ -260,9 +260,7 @@ class Services(viewsets.ViewSet, BaseAPI):
         # 获取kind
 
         logger.debug("get project kind: %s" % project_id)
-        flag, project_kind = self.get_project_kind(request, project_id)
-        if not flag:
-            return project_kind
+        project_kind = request.project.kind
 
         logger.debug("get project clusters: %s" % project_id)
         cluster_dicts = self.get_project_cluster_info(request, project_id)

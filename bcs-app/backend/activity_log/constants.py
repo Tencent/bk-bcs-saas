@@ -41,6 +41,7 @@ ResourceTypes = dict(
     project='项目',
     cluster='集群',
     node='节点',
+    namespace='命名空间',
     template='模板集',
     instance='应用',
 
