@@ -213,6 +213,9 @@ export default {
         curProject () {
             const project = this.$store.state.curProject
             return project
+        },
+        isEn () {
+            return this.$store.state.isEn
         }
     },
     watch: {
@@ -1563,12 +1566,12 @@ export default {
         async schedulerConfirm () {
             this.isUpdating = true
             try {
-                const res = await this.$store.dispatch('cluster/schedulerNode', {
+                await this.$store.dispatch('cluster/schedulerNode', {
                     projectId: this.curNode.project_id,
                     clusterId: this.curNode.cluster_id,
                     nodeId: this.curNode.id
                 })
-                this.curNode.status = res.data.status
+                // this.curNode.status = res.data.status
                 this.$set(this.nodeList, this.curNodeIndex, this.curNode)
                 this.$set(this.nodeListTmp, this.curNodeIndex, this.curNode)
 

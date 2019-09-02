@@ -5,7 +5,7 @@
                 <template v-if="exceptionCode">
                     <div @click="goIndex">
                         <i class="bk-icon icon-arrows-left back"></i>
-                        <span>返回</span>
+                        <span>{{$t('返回')}}</span>
                     </div>
                 </template>
                 <template v-else>
@@ -29,22 +29,22 @@
             <div v-if="!exceptionCode && !showLoading" class="biz-cluster-overview-wrapper">
                 <div class="biz-cluster-tab-header">
                     <div class="header-item active">
-                        <i class="bk-icon icon-bar-chart"></i>总览
+                        <i class="bk-icon icon-bar-chart"></i>{{$t('总览')}}
                     </div>
                     <div class="header-item" @click="goNode">
-                        <i class="bk-icon icon-list"></i>节点管理
+                        <i class="bk-icon icon-list"></i>{{$t('节点管理')}}
                     </div>
                     <div class="header-item" @click="goInfo">
-                        <i class="icon-cc icon-cc-machine"></i>集群信息
+                        <i class="icon-cc icon-cc-machine"></i>{{$t('集群信息')}}
                     </div>
                 </div>
                 <div class="biz-cluster-tab-content">
                     <div class="biz-cluster-overview-chart">
                         <div class="chart-box top">
                             <div class="info">
-                                <div class="left">CPU使用率</div>
-                                <div class="right" v-if="cpuUsagePercent === '无数据'">
-                                    <div><span>无数据</span></div>
+                                <div class="left">{{$t('CPU使用率')}}</div>
+                                <div class="right" v-if="cpuUsagePercent === $t('无数据')">
+                                    <div><span>{{$t('无数据')}}</span></div>
                                 </div>
                                 <div class="right" v-else>
                                     <div><span>{{cpuUsagePercent}}</span><sup>%</sup></div>
@@ -56,9 +56,9 @@
 
                         <div class="chart-box top">
                             <div class="info">
-                                <div class="left">内存使用率</div>
-                                <div class="right" v-if="memUsagePercent === '无数据'">
-                                    <div><span>无数据</span></div>
+                                <div class="left">{{$t('内存使用率')}}</div>
+                                <div class="right" v-if="memUsagePercent === $t('无数据')">
+                                    <div><span>{{$t('无数据')}}</span></div>
                                 </div>
                                 <div class="right" v-else>
                                     <div><span>{{memUsagePercent}}</span><sup>%</sup></div>
@@ -70,9 +70,9 @@
 
                         <div class="chart-box top">
                             <div class="info">
-                                <div class="left">磁盘使用率</div>
-                                <div class="right" v-if="diskUsagePercent === '无数据'">
-                                    <div><span>无数据</span></div>
+                                <div class="left">{{$t('磁盘使用率')}}</div>
+                                <div class="right" v-if="diskUsagePercent === $t('无数据')">
+                                    <div><span>{{$t('无数据')}}</span></div>
                                 </div>
                                 <div class="right" v-else>
                                     <div><span>{{diskUsagePercent}}</span><sup>%</sup></div>
@@ -86,16 +86,16 @@
                     <div class="biz-cluster-overview-chart">
                         <div class="chart-box bottom">
                             <div class="info">
-                                <div class="left">节点</div>
+                                <div class="left">{{$t('节点')}}</div>
                                 <div class="right">
                                     <div>
                                         <i class="bk-icon icon-circle"></i>
-                                        <span>使用中</span>
+                                        <span>{{$t('使用中')}}</span>
                                         <span>{{nodeActived}}</span>
                                     </div>
                                     <div>
                                         <i class="bk-icon icon-circle"></i>
-                                        <span>未使用</span>
+                                        <span>{{$t('未使用')}}</span>
                                         <span>{{nodeDisabled}}</span>
                                     </div>
                                 </div>
@@ -112,16 +112,16 @@
 
                         <div class="chart-box bottom">
                             <div class="info">
-                                <div class="left">命名空间</div>
+                                <div class="left">{{$t('命名空间')}}</div>
                                 <div class="right">
                                     <div>
                                         <i class="bk-icon icon-circle"></i>
-                                        <span>已使用</span>
+                                        <span>{{$t('已使用')}}</span>
                                         <span>{{namespaceActived}}</span>
                                     </div>
                                     <div>
                                         <i class="bk-icon icon-circle"></i>
-                                        <span>总量</span>
+                                        <span>{{$t('总量')}}</span>
                                         <span>{{namespaceTotal}}</span>
                                     </div>
                                 </div>
@@ -202,6 +202,9 @@
             curCluster () {
                 this.curClusterInPage = Object.assign({}, this.$store.state.cluster.curCluster)
                 return this.$store.state.cluster.curCluster
+            },
+            isEn () {
+                return this.$store.state.isEn
             }
         },
         created () {
@@ -253,17 +256,17 @@
                         if (!data.code || data.code === 404) {
                             this.exceptionCode = {
                                 code: '404',
-                                msg: '当前访问的页面不存在'
+                                msg: this.$t('当前访问的页面不存在')
                             }
                         } else if (data.code === 403) {
                             this.exceptionCode = {
                                 code: '403',
-                                msg: 'Sorry，您的权限不足!'
+                                msg: this.$t('Sorry，您的权限不足!')
                             }
                         } else if (data.code === 400) {
                             this.exceptionCode = {
                                 code: '404',
-                                msg: '当前访问的集群不存在!'
+                                msg: this.$t('当前访问的集群不存在')
                             }
                         } else {
                             console.error(e)
@@ -293,17 +296,17 @@
                 const cpuRef = this.$refs.cpuLine
                 try {
                     cpuRef && cpuRef.showLoading({
-                        text: '正在加载',
+                        text: this.$t('正在加载中...'),
                         color: '#30d878',
                         maskColor: 'rgba(255, 255, 255, 0.8)'
                     })
                     memRef && memRef.showLoading({
-                        text: '正在加载',
+                        text: this.$t('正在加载中...'),
                         color: '#30d878',
                         maskColor: 'rgba(255, 255, 255, 0.8)'
                     })
                     diskRef && diskRef.showLoading({
-                        text: '正在加载',
+                        text: this.$t('正在加载中...'),
                         color: '#30d878',
                         maskColor: 'rgba(255, 255, 255, 0.8)'
                     })
@@ -336,12 +339,12 @@
                 let emptyData = []
 
                 if (!list.length) {
-                    this.cpuUsagePercent = '无数据'
-                    this.cpuUsage = '无数据'
-                    this.cpuTotal = '无数据'
+                    this.cpuUsagePercent = this.$t('无数据')
+                    this.cpuUsage = this.$t('无数据')
+                    this.cpuTotal = this.$t('无数据')
 
                     chartData = [{
-                        value: [+new Date(), 0, '无数据']
+                        value: [+new Date(), 0, this.$t('无数据')]
                     }]
                     emptyData = [0]
                 } else {
@@ -393,12 +396,12 @@
                 let emptyData = []
 
                 if (!list.length) {
-                    this[`${idx}UsagePercent`] = '无数据'
-                    this[`${idx}Usage`] = '无数据'
-                    this[`${idx}Total`] = '无数据'
+                    this[`${idx}UsagePercent`] = this.$t('无数据')
+                    this[`${idx}Usage`] = this.$t('无数据')
+                    this[`${idx}Total`] = this.$t('无数据')
 
                     chartData = [{
-                        value: [+new Date(), 0, '无数据']
+                        value: [+new Date(), 0, this.$t('无数据')]
                     }]
                     emptyData = [0]
                 } else {
@@ -458,8 +461,8 @@
                         this.nodePercent = nodePercent
                         this.nodePercentStr = nodePercent === 100 ? '100%' : nodePercent.toFixed(1) + '%'
                     }
-                    this.nodeActived = `${nodeActived}台`
-                    this.nodeDisabled = `${res.data.node.disabled || 0}台`
+                    this.nodeActived = this.isEn ? `${nodeActived} set` : `${nodeActived}台`
+                    this.nodeDisabled = this.isEn ? `${res.data.node.disabled || 0} set` : `${res.data.node.disabled || 0}台`
 
                     const namespaceActived = res.data.namespace.actived || 0
                     const namespaceTotal = res.data.namespace.total || 0
@@ -471,8 +474,8 @@
                         this.namespacePercent = namespacePercent
                         this.namespacePercentStr = namespacePercent === 100 ? '100%' : namespacePercent.toFixed(1) + '%'
                     }
-                    this.namespaceActived = `${namespaceActived}个`
-                    this.namespaceTotal = `${namespaceTotal}个`
+                    this.namespaceActived = this.isEn ? namespaceActived : `${namespaceActived}个`
+                    this.namespaceTotal = this.isEn ? namespaceTotal : `${namespaceTotal}个`
 
                     const ipUsed = res.data.ip_resource.used || 0
                     const ipTotal = res.data.ip_resource.total || 0
@@ -484,8 +487,8 @@
                         this.ipPercent = ipPercent
                         this.ipPercentStr = ipPercent === 100 ? '100%' : ipPercent.toFixed(1) + '%'
                     }
-                    this.ipUsed = `${ipUsed}个`
-                    this.ipTotal = `${ipTotal}个`
+                    this.ipUsed = this.isEn ? ipUsed : `${ipUsed}个`
+                    this.ipTotal = this.isEn ? ipTotal : `${ipTotal}个`
                 } catch (e) {
                     catchErrorHandler(e, this)
                 }

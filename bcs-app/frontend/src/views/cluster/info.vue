@@ -3,7 +3,7 @@
         <div class="biz-top-bar">
             <div class="biz-cluster-node-title">
                 <i class="bk-icon icon-arrows-left back" @click="goIndex"></i>
-                <template v-if="exceptionCode"><span>返回</span></template>
+                <template v-if="exceptionCode"><span>{{$t('返回')}}</span></template>
                 <template v-else>
                     <template v-if="curClusterInPage.cluster_id">
                         <span @click="refreshCurRouter">{{curClusterInPage.name}}</span>
@@ -25,24 +25,24 @@
             <div v-if="!exceptionCode" class="biz-cluster-info-inner">
                 <div class="biz-cluster-tab-header">
                     <div class="header-item" @click="goOverview">
-                        <i class="bk-icon icon-bar-chart"></i>总览
+                        <i class="bk-icon icon-bar-chart"></i>{{$t('总览')}}
                     </div>
                     <div class="header-item" @click="goNode">
-                        <i class="bk-icon icon-list"></i>节点管理
+                        <i class="bk-icon icon-list"></i>{{$t('节点管理')}}
                     </div>
                     <div class="header-item active">
-                        <i class="cc-icon icon-cc-machine"></i>集群信息
+                        <i class="cc-icon icon-cc-machine"></i>{{$t('集群信息')}}
                     </div>
                 </div>
                 <div class="biz-cluster-tab-content" v-bkloading="{ isLoading: containerLoading, opacity: 1 }">
                     <div class="biz-cluster-info-form-wrapper">
                         <div class="label">
-                            基本信息
+                            {{$t('基本信息')}}
                         </div>
                         <div class="content">
                             <div class="row">
                                 <div class="left">
-                                    <p>集群名称</p>
+                                    <p>{{$t('集群名称')}}</p>
                                 </div>
                                 <div class="right">
                                     <template v-if="!isClusterNameEdit">
@@ -55,15 +55,14 @@
                                         <div class="bk-form bk-name-form">
                                             <div class="bk-form-item">
                                                 <div class="bk-form-inline-item">
-                                                    <input maxlength="64" type="text" placeholder="请输入集群名称，不超过64个字符" class="bk-form-input cluster-name" v-model="clusterEditName">
+                                                    <input maxlength="64" type="text" :placeholder="$t('请输入集群名称，不超过64个字符')" class="bk-form-input cluster-name" v-model="clusterEditName">
                                                 </div>
                                                 <div class="bk-form-inline-item">
                                                     <a href="javascript:void(0);" class="bk-text-button" @click="updateClusterName">
-                                                        保存
+                                                        {{$t('保存')}}
                                                     </a>
-
                                                     <a href="javascript:void(0);" class="bk-text-button" @click="cancelEditClusterName">
-                                                        取消
+                                                        {{$t('取消')}}
                                                     </a>
                                                 </div>
                                             </div>
@@ -73,13 +72,13 @@
                             </div>
                             <div class="row">
                                 <div class="left">
-                                    <p>集群ID</p>
+                                    <p>{{$t('集群ID')}}</p>
                                 </div>
                                 <div class="right">{{curClusterId}}</div>
                             </div>
                             <div class="row">
                                 <div class="left">
-                                    <p>状态</p>
+                                    <p>{{$t('状态')}}</p>
                                 </div>
                                 <div class="right">{{statusName}}</div>
                             </div>
@@ -91,7 +90,7 @@
                             </div> -->
                             <div class="row">
                                 <div class="left">
-                                    <p>Master数量</p>
+                                    <p>{{$t('Master数量')}}</p>
                                 </div>
                                 <div class="right">
                                     <a href="javascript:void(0);" class="bk-text-button" @click="showMasterInfo">
@@ -101,31 +100,31 @@
                             </div>
                             <div class="row">
                                 <div class="left">
-                                    <p>节点数量</p>
+                                    <p>{{$t('节点数量')}}</p>
                                 </div>
                                 <div class="right">{{nodeCount}}</div>
                             </div>
                             <div class="row">
                                 <div class="left">
-                                    <p>配置</p>
+                                    <p>{{$t('配置')}}</p>
                                 </div>
                                 <div class="right">{{configInfo}}</div>
                             </div>
                             <div class="row">
                                 <div class="left">
-                                    <p>创建时间</p>
+                                    <p>{{$t('创建时间')}}</p>
                                 </div>
                                 <div class="right">{{createdTime}}</div>
                             </div>
                             <div class="row">
                                 <div class="left">
-                                    <p>更新时间</p>
+                                    <p>{{$t('更新时间')}}</p>
                                 </div>
                                 <div class="right">{{updatedTime}}</div>
                             </div>
                             <div class="row">
                                 <div class="left">
-                                    <p>集群描述</p>
+                                    <p>{{$t('集群描述')}}</p>
                                 </div>
                                 <div class="right">
                                     <template v-if="!isClusterDescEdit">
@@ -138,15 +137,14 @@
                                         <div class="bk-form bk-desc-form">
                                             <div class="bk-form-item">
                                                 <div class="bk-form-inline-item">
-                                                    <textarea maxlength="128" placeholder="请输入集群描述，不超过128个字符" class="bk-form-textarea" v-model="clusterEditDesc"></textarea>
+                                                    <textarea maxlength="128" :placeholder="$t('请输入集群描述，不超过128个字符')" class="bk-form-textarea" v-model="clusterEditDesc"></textarea>
                                                 </div>
                                                 <div class="bk-form-inline-item">
                                                     <a href="javascript:void(0);" class="bk-text-button" @click="updateClusterDesc">
-                                                        保存
+                                                        {{$t('保存')}}
                                                     </a>
-
                                                     <a href="javascript:void(0);" class="bk-text-button" @click="cancelEditClusterDesc">
-                                                        取消
+                                                        {{$t('取消')}}
                                                     </a>
                                                 </div>
                                             </div>
@@ -156,7 +154,7 @@
                             </div>
                             <div class="row">
                                 <div class="left">
-                                    <p>集群变量</p>
+                                    <p>{{$t('集群变量')}}</p>
                                 </div>
                                 <div class="right">
                                     <a href="javascript:void(0);" class="bk-text-button" @click="showSetVariable" v-if="variableCount !== '--'">
@@ -195,9 +193,10 @@
                         <table class="bk-table has-table-hover biz-table biz-cluster-node-dialog-table">
                             <thead>
                                 <tr>
-                                    <th style="width: 350px; padding-left: 30px;">主机名称</th>
-                                    <th style="width: 220px;">内网IP</th>
-                                    <th style="width: 120px;">Agent状态</th>
+                                    <th style="width: 350px; padding-left: 30px;">{{$t('主机名称')}}</th>
+                                    <th style="width: 220px;">{{$t('内网IP')}}</th>
+                                    <th style="width: 120px;">{{$t('Agent状态')}}</th>
+
                                 </tr>
                             </thead>
                             <tbody>
@@ -221,22 +220,27 @@
                                         </td>
                                         <td>
                                             <span class="biz-success-text" style="vertical-align: super;" v-if="String(host.agent) === '1'">
-                                                正常
+                                                {{$t('正常')}}
                                             </span>
                                             <template v-else-if="String(host.agent) === '0'">
                                                 <bk-tooltip placement="top">
                                                     <span class="biz-warning-text f12" style="vertical-align: super;">
-                                                        异常
+                                                        {{$t('异常')}}
                                                     </span>
                                                     <template slot="content">
                                                         <p style="text-align: left; white-space: normal;word-break: break-all;">
-                                                            Agent异常，请先安装
+                                                            <template v-if="isEn">
+                                                                Agent abnormal, please install first
+                                                            </template>
+                                                            <template v-else>
+                                                                Agent异常，请先安装
+                                                            </template>
                                                         </p>
                                                     </template>
                                                 </bk-tooltip>
                                             </template>
                                             <span class="biz-danger-text f12" style="vertical-align: super;" v-else>
-                                                错误
+                                                {{$t('错误')}}
                                             </span>
                                         </td>
                                     </tr>
@@ -245,7 +249,7 @@
                                     <tr>
                                         <td colspan="3">
                                             <div class="bk-message-box no-data">
-                                                <p class="message empty-message">无数据</p>
+                                                <p class="message empty-message">{{$t('无数据')}}</p>
                                             </div>
                                         </td>
                                     </tr>
@@ -277,7 +281,7 @@
                     <form class="bk-form bk-form-vertical set-label-form">
                         <div class="bk-form-item flex-item">
                             <div class="left">
-                                <label class="bk-label label">变量：</label>
+                                <label class="bk-label label">{{$t('变量：')}}</label>
                             </div>
                         </div>
                         <div class="bk-form-item">
@@ -291,17 +295,17 @@
                                             </template>
                                         </bk-tooltip>
                                         <span class="equals-sign">=</span>
-                                        <input type="text" class="bk-form-input right" placeholder="值" v-model="variable.value">
+                                        <input type="text" class="bk-form-input right" :placeholder="$t('值')" v-model="variable.value">
                                     </div>
                                 </div>
                             </div>
                         </div>
                         <div class="action-inner">
                             <button type="button" class="bk-dialog-btn bk-dialog-btn-confirm bk-btn-primary" @click="confirmSetVariable">
-                                保存
+                                {{$t('保存')}}
                             </button>
                             <button type="button" class="bk-dialog-btn bk-dialog-btn-cancel" @click="hideSetVariable">
-                                取消
+                                {{$t('取消')}}
                             </button>
                         </div>
                     </form>
@@ -359,7 +363,7 @@
                 variableList: [],
                 setVariableConf: {
                     isShow: false,
-                    title: '设置变量',
+                    title: this.$t('设置变量'),
                     width: 680,
                     loading: false
                 },
@@ -380,6 +384,9 @@
             curCluster () {
                 this.curClusterInPage = Object.assign({}, this.$store.state.cluster.curCluster)
                 return this.$store.state.cluster.curCluster || {}
+            },
+            isEn () {
+                return this.$store.state.isEn
             }
         },
         destroyed () {
@@ -452,7 +459,7 @@
                     this.ver = data.ver || '--'
                     let masterCount = data.master_count || 0
                     if (masterCount) {
-                        masterCount += '个'
+                        masterCount += this.isEn ? '' : '个'
                     } else {
                         masterCount = '--'
                     }
@@ -464,7 +471,7 @@
                     this.updatedTime = data.updated_at ? moment(data.updated_at).format('YYYY-MM-DD HH:mm:ss') : '--'
                     this.description = data.description || '--'
 
-                    this.configInfo = `${data.total_cpu}核${(data.total_mem).toFixed(0)}GB`
+                    this.configInfo = this.isEn ? `${data.total_cpu}core${(data.total_mem).toFixed(0)}GB` : `${data.total_cpu}核${(data.total_mem).toFixed(0)}GB`
 
                     this.fetchVariableInfo()
                 } catch (e) {
@@ -484,7 +491,7 @@
 
                     let variableCount = res.count || 0
                     if (variableCount) {
-                        variableCount += '个'
+                        variableCount += this.isEn ? '' : '个'
                     } else {
                         variableCount = '--'
                     }
@@ -573,7 +580,7 @@
                 try {
                     this.pageConf.curPage = 1
                     this.dialogConf.isShow = true
-                    this.dialogConf.title = 'Master信息'
+                    this.dialogConf.title = this.$t('Master信息')
                     this.dialogConf.loading = true
                     this.curPageData.splice(0, this.curPageData.length, ...[])
 
@@ -711,7 +718,7 @@
                 if (!data.name) {
                     this.$bkMessage({
                         theme: 'error',
-                        message: '请输入集群名称！'
+                        message: this.$t('请输入集群名称')
                     })
                     return false
                 }
@@ -725,7 +732,7 @@
                     this.curClusterInPage.name = data.name
                     this.$bkMessage({
                         theme: 'success',
-                        message: '修改成功！'
+                        message: this.$t('修改成功！')
                     })
                 }).catch(res => {
                     this.$bkMessage({
@@ -744,7 +751,7 @@
                 if (!data.description) {
                     this.$bkMessage({
                         theme: 'error',
-                        message: '请输入集群描述！'
+                        message: this.$t('请输入集群描述')
                     })
                     return false
                 }
@@ -757,7 +764,7 @@
                     this.description = data.description
                     this.$bkMessage({
                         theme: 'success',
-                        message: '修改成功！'
+                        message: this.$t('修改成功！')
                     })
                 }).catch(res => {
                     this.$bkMessage({
