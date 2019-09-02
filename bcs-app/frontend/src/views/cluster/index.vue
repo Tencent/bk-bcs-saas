@@ -358,7 +358,7 @@
                 <div class="biz-message" v-if="helmErrorCode === 40032">
                     <template v-if="isEn">
                         <h3>No nodes under cluster, and you need to:</h3>
-                        <p>1Under cluster, add nodes</p>
+                        <p>Under cluster, add nodes</p>
                     </template>
                     <template v-else>
                         <h3>集群下没有节点，您需要：</h3>

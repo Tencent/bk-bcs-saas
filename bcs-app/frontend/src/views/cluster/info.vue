@@ -196,7 +196,6 @@
                                     <th style="width: 350px; padding-left: 30px;">{{$t('主机名称')}}</th>
                                     <th style="width: 220px;">{{$t('内网IP')}}</th>
                                     <th style="width: 120px;">{{$t('Agent状态')}}</th>
-
                                 </tr>
                             </thead>
                             <tbody>
