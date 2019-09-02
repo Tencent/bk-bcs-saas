@@ -142,6 +142,11 @@ export default {
     '变量：': 'Variable: ',
     '请输入集群描述，不超过128个字符': 'Please enter the cluster desc, no more than 120 characters',
     'Master信息': 'Master Info',
+    '当前节点已被项目（{projectName}）的集群（{clusterName}）占用': 'The current node is already occupied by the cluster（{clusterName}）of the project（{projectName}）',
+    '无匹配的主机资源': 'No matching host resources',
+    '当前访问的页面不存在': 'Currently accessed page does not exist',
+    '当前访问的集群不存在': 'The currently accessed cluster does not exist',
+    'Sorry，您的权限不足!': 'Sorry, your permissions are not enough!',
 
     // 变量的使用 $t('test', { vari1: 1, vari2: 2 })
     'test': '{vari1} ---english--- {vari2}'
