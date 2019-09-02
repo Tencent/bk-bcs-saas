@@ -132,31 +132,25 @@ class App(models.Model):
             self.set_transitioning(False, message)
             return None, None
 
-        # get inject configs
-        configs = None
-        if self.inject_configs:
-            configs = self.inject_configs
+        # 因为注入的内容中包含动态变化的内容，比如upator等的变动；因此更新后每次渲染
+        configs = bcs_info_injector.inject_configs(
+            extra_inject_source=extra_inject_source,
+            ignore_empty_access_token=ignore_empty_access_token,
+            access_token=access_token,
+            project_id=self.project_id,
+            cluster_id=self.cluster_id,
+            namespace_id=self.namespace_id,
+            namespace=self.namespace,
+            creator=self.creator,
+            updator=username,
+            created_at=self.created,
+            updated_at=self.updated,
+            version=self.release.chartVersionSnapshot.version
+        )
 
-        if not configs:
-            configs = bcs_info_injector.inject_configs(
-                extra_inject_source=extra_inject_source,
-                ignore_empty_access_token=ignore_empty_access_token,
-                access_token=access_token,
-                project_id=self.project_id,
-                cluster_id=self.cluster_id,
-                namespace_id=self.namespace_id,
-                namespace=self.namespace,
-                creator=self.creator,
-                updator=username,
-                created_at=self.created,
-                updated_at=self.updated,
-                version=self.release.chartVersionSnapshot.version
-            )
-
-        # save inject config first time
-        if not self.inject_configs:
-            self.inject_configs = configs
-            self.save(update_fields=["inject_configs"])
+        # save inject config after update
+        self.inject_configs = configs
+        self.save(update_fields=["inject_configs"])
 
         resources_list = bcs_info_injector.parse_manifest(content)
         manager = bcs_info_injector.InjectManager(
