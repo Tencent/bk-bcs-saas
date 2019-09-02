@@ -2,10 +2,10 @@
     <div class="biz-content">
         <div class="biz-top-bar">
             <div class="biz-cluster-title">
-                集群
+                {{$t('集群')}}
             </div>
             <div class="biz-actions">
-                <bk-tooltip :content="'快速入门'" :delay="500" placement="bottom" ref="guideTooltip">
+                <bk-tooltip :content="$t('快速入门')" :delay="500" placement="left" ref="guideTooltip" :transfer="true">
                     <a class="button" href="javascript:void(0)" @click.stop.prevent="showGuide">
                         <i class="bk-icon icon-calendar"></i>
                     </a>
@@ -74,27 +74,27 @@
                                 </button>
                                 <ul class="bk-dropdown-list" slot="dropdown-content" style="max-height: 210px; overflow: visible;">
                                     <li>
-                                        <a href="javascript:void(0)" @click="goOverviewOrNode('clusterOverview', cluster)">总览</a>
+                                        <a href="javascript:void(0)" @click="goOverviewOrNode('clusterOverview', cluster)">{{$t('总览')}}</a>
                                     </li>
                                     <li>
-                                        <a href="javascript:void(0)" @click="goOverviewOrNode('clusterNode', cluster)">节点管理</a>
+                                        <a href="javascript:void(0)" @click="goOverviewOrNode('clusterNode', cluster)">{{$t('节点管理')}}</a>
                                     </li>
                                     <li>
-                                        <a href="javascript:void(0)" @click="goClusterInfo(cluster)">集群信息</a>
+                                        <a href="javascript:void(0)" @click="goClusterInfo(cluster)">{{$t('集群信息')}}</a>
                                     </li>
                                     <li v-if="isHelmEnable">
-                                        <a href="javascript:void(0)" @click="enableClusterHelm(cluster)">启用Helm</a>
+                                        <a href="javascript:void(0)" @click="enableClusterHelm(cluster)">{{$t('启用Helm')}}</a>
                                     </li>
                                     <template v-if="cluster.allow">
                                         <li>
-                                            <a href="javascript:void(0)" @click="confirmDeleteCluster(cluster, clusterIndex)">删除</a>
+                                            <a href="javascript:void(0)" @click="confirmDeleteCluster(cluster, clusterIndex)">{{$t('删除')}}</a>
                                         </li>
                                     </template>
                                     <template v-else>
                                         <li style="position: relative;">
                                             <a class="bk-tooltip biz-cluster-delete-tooltip">
-                                                <bk-tooltip content="您需要删除集群内所有节点后，再进行集群删除操作" placement="right">
-                                                    <div class="bk-dropdown-item cluster-btn-disabled">删除</div>
+                                                <bk-tooltip :content="$t('您需要删除集群内所有节点后，再进行集群删除操作')" placement="right">
+                                                    <div class="bk-dropdown-item cluster-btn-disabled">{{$t('删除')}}</div>
                                                 </bk-tooltip>
                                             </a>
                                         </li>
@@ -104,7 +104,7 @@
                                             policy: 'use',
                                             projectCode: projectCode,
                                             idx: `cluster_${cluster.environment === 'stag' ? 'test' : 'prod'}:${cluster.cluster_id}`
-                                        })" target="_blank">申请使用权限</a>
+                                        })" target="_blank">{{$t('申请使用权限')}}</a>
                                     </li>
                                 </ul>
                             </bk-dropdown-menu>
@@ -117,7 +117,7 @@
                                 </button>
                                 <ul class="bk-dropdown-list" slot="dropdown-content">
                                     <li>
-                                        <a href="javascript:void(0)" @click="confirmDeleteCluster(cluster, clusterIndex)">删除</a>
+                                        <a href="javascript:void(0)" @click="confirmDeleteCluster(cluster, clusterIndex)">{{$t('删除')}}</a>
                                     </li>
                                 </ul>
                             </bk-dropdown-menu>
@@ -136,9 +136,9 @@
                                         <div class="rotate rotate8"></div>
                                     </div>
                                 </div>
-                                <p class="status-text">正在删除中，请稍等···</p>
+                                <p class="status-text">{{$t('正在删除中，请稍等···')}}</p>
                                 <div class="status-opera">
-                                    <a href="javascript:void(0);" class="bk-text-button" @click.prevent="showLog(cluster)">查看日志</a>
+                                    <a href="javascript:void(0);" class="bk-text-button" @click.prevent="showLog(cluster)">{{$t('查看日志')}}</a>
                                 </div>
                             </div>
                         </div>
@@ -149,11 +149,10 @@
                                 <div class="status-icon danger">
                                     <i class="bk-icon icon-close-circle"></i>
                                 </div>
-                                <p class="status-text">删除失败，请重试</p>
+                                <p class="status-text">{{$t('删除失败，请重试')}}</p>
                                 <div class="status-opera">
-                                    <a href="javascript:void(0);" class="bk-text-button" @click.prevent="showLog(cluster)">查看日志</a> |
-                                    <a href="javascript:void(0);" class="bk-text-button" @click="confirmDeleteCluster(cluster, clusterIndex)">重新删除</a> <!-- |
-                                    <a href="javascript:void(0);" class="bk-text-button">修改参数</a> -->
+                                    <a href="javascript:void(0);" class="bk-text-button" @click.prevent="showLog(cluster)">{{$t('查看日志')}}</a> |
+                                    <a href="javascript:void(0);" class="bk-text-button" @click="confirmDeleteCluster(cluster, clusterIndex)">{{$t('重新删除')}}</a>
                                 </div>
                             </div>
                         </div>
@@ -173,9 +172,9 @@
                                         <div class="rotate rotate8"></div>
                                     </div>
                                 </div>
-                                <p class="status-text">正在初始化中，请稍等···</p>
+                                <p class="status-text">{{$t('正在初始化中，请稍等···')}}</p>
                                 <div class="status-opera">
-                                    <a href="javascript:void(0);" class="bk-text-button" @click.prevent="showLog(cluster)">查看日志</a>
+                                    <a href="javascript:void(0);" class="bk-text-button" @click.prevent="showLog(cluster)">{{$t('查看日志')}}</a>
                                 </div>
                             </div>
                         </div>
@@ -186,9 +185,9 @@
                                 <div class="status-icon danger">
                                     <i class="bk-icon icon-close-circle"></i>
                                 </div>
-                                <p class="status-text">初始化失败，请重试</p>
+                                <p class="status-text">{{$t('初始化失败，请重试')}}</p>
                                 <div class="status-opera">
-                                    <a href="javascript:void(0);" class="bk-text-button" @click.prevent="showLog(cluster)">查看日志</a> |
+                                    <a href="javascript:void(0);" class="bk-text-button" @click.prevent="showLog(cluster)">{{$t('查看日志')}}</a> |
                                     <a href="javascript:void(0);" class="bk-text-button" @click="reInitializationCluster(cluster, clusterIndex)">重新初始化</a> <!-- |
                                     <a href="javascript:void(0);" class="bk-text-button">修改参数</a> -->
                                 </div>
@@ -201,7 +200,7 @@
                                 <div class="status-icon success">
                                     <i class="bk-icon icon-check-circle"></i>
                                 </div>
-                                <p class="status-text">恭喜，集群创建成功！</p>
+                                <p class="status-text">{{$t('恭喜，集群创建成功！')}}</p>
                             </div>
                         </div>
 
@@ -209,7 +208,7 @@
                         <div class="biz-cluster-content" v-else>
                             <div class="biz-progress-box">
                                 <div class="progress-header">
-                                    <span class="title">CPU使用率</span>
+                                    <span class="title">{{$t('CPU使用率')}}</span>
                                     <span class="percent">
                                         {{conversionPercent(cluster.remain_cpu, cluster.total_cpu)}}%
                                     </span>
@@ -221,7 +220,7 @@
                             </div>
                             <div class="biz-progress-box">
                                 <div class="progress-header">
-                                    <span class="title">内存使用率</span>
+                                    <span class="title">{{$t('内存使用率')}}</span>
                                     <span class="percent">
                                         {{conversionPercent(cluster.remain_mem, cluster.total_mem)}}%
                                     </span>
@@ -232,7 +231,7 @@
                             </div>
                             <div class="biz-progress-box">
                                 <div class="progress-header">
-                                    <span class="title">磁盘使用率</span>
+                                    <span class="title">{{$t('磁盘使用率')}}</span>
                                     <span class="percent">
                                         {{conversionPercent(cluster.remain_disk, cluster.total_disk)}}%
                                     </span>
@@ -247,24 +246,24 @@
                         <div class="add-btn">
                             <!-- <i class="bk-icon icon-plus"></i> -->
                             <img src="@open/images/plus.svg" />
-                            <strong>点击新建集群</strong>
+                            <strong>{{$t('点击新建集群')}}</strong>
                         </div>
                     </div>
                 </div>
             </template>
             <template v-else-if="!exceptionCode && !clusterList.length && !showLoading">
                 <div :class="['biz-guide-box',{ 'show-guide': isShowGuide }]" v-show="!showLoading">
-                    <p class="title">欢迎使用容器服务</p>
-                    <p class="desc">使用容器服务，蓝鲸将为您快速搭建、运维和管理容器集群，您可以轻松对容器进行启动、停止等操作，也可以查看集群、容器及服务的状态，以及使用各种组件服务。</p>
+                    <p class="title">{{$t('欢迎使用容器服务')}}</p>
+                    <p class="desc">{{$t('使用容器服务，蓝鲸将为您快速搭建、运维和管理容器集群，您可以轻松对容器进行启动、停止等操作，也可以查看集群、容器及服务的状态，以及使用各种组件服务。')}}</p>
                     <p class="desc">
-                        <a :href="PROJECT_CONFIG.doc.quickStart" target="_blank">请点击了解更多<i class="bk-icon icon-angle-double-right ml5"></i></a>
+                        <a :href="PROJECT_CONFIG.doc.quickStart" target="_blank">{{$t('请点击了解更多')}}<i class="bk-icon icon-angle-double-right ml5"></i></a>
                     </p>
                     <a href="javascript:void(0);" class="bk-button bk-primary bk-button-large" @click="gotCreateCluster">
-                        <span style="margin-left: 0;">创建容器集群</span>
+                        <span style="margin-left: 0;">{{$t('创建容器集群')}}</span>
                     </a>
 
                     <button class="bk-button bk-default bk-button-large" @click="showGuide">
-                        <span style="margin-left: 0;">快速入门指引</span>
+                        <span style="margin-left: 0;">{{$t('快速入门指引')}}</span>
                     </button>
                 </div>
             </template>
@@ -280,7 +279,7 @@
             <div slot="content" style="margin: 0 0 0 20px;">
                 <template v-if="logEndState === 'none'">
                     <div class="biz-no-data">
-                        暂无日志信息
+                        {{$t('暂无日志信息')}}
                     </div>
                 </template>
                 <template v-else>
@@ -307,11 +306,11 @@
                                 </span>
                             </div>
                             <div v-if="op.status.toLowerCase() === 'success'" class="biz-success-text f14" style="margin: 0 0 5px 0; font-weight: 700; margin-left: 20px;">
-                                操作成功
+                                {{$t('操作成功')}}
                             </div>
                             <div v-else-if="op.status.toLowerCase() === 'failed'" class="biz-danger-text f14" style="margin: 0 0 5px 0; font-weight: 700; margin-left: 20px;">
-                                操作失败
-                                <span style="margin-left: 10px;" v-if="op.task_url"><a :href="op.task_url" class="bk-text-button" target="_blank">查看详情</a></span>
+                                {{$t('操作失败')}}
+                                <span style="margin-left: 10px;" v-if="op.task_url"><a :href="op.task_url" class="bk-text-button" target="_blank">{{$t('查看详情')}}</a></span>
                             </div>
                             <div style="margin: 10px 0px 5px 13px; font-size: 10px;" v-else>
                                 <div class="bk-spin-loading bk-spin-loading-small bk-spin-loading-primary">
@@ -324,7 +323,7 @@
                                     <div class="rotate rotate7"></div>
                                     <div class="rotate rotate8"></div>
                                 </div>
-                                正在加载中...
+                                {{$t('正在加载中...')}}
                             </div>
                         </div>
                     </div>
@@ -347,17 +346,24 @@
                 <div class="helm-repos-detail" v-else>
                     <div class="repos-item">
                         <div class="wrapper mb10">
-                            <p class="url mb15">您可以通过<router-link class="bk-text-button bk-primary" :to="{ name: 'helmTplList' }">Helm Chart</router-link>的方式管理K8S资源</p>
+                            <p class="url mb15" v-if="isEn">You can manage K8S resources through <router-link class="bk-text-button bk-primary" :to="{ name: 'helmTplList' }">Helm Chart</router-link></p>
+                            <p class="url mb15" v-else>您可以通过<router-link class="bk-text-button bk-primary" :to="{ name: 'helmTplList' }">Helm Chart</router-link>的方式管理K8S资源</p>
                             <p class="url mb25">
-                                <a :href="PROJECT_CONFIG.doc.serviceAccess" target="_blank" class="bk-text-button">点击了解更多</a>
+                                <a :href="PROJECT_CONFIG.doc.serviceAccess" target="_blank" class="bk-text-button">{{$t('点击了解更多')}}</a>
                             </p>
                         </div>
                     </div>
                 </div>
 
                 <div class="biz-message" v-if="helmErrorCode === 40032">
-                    <h3>集群下没有节点，您需要：</h3>
-                    <p>在集群下，添加节点</p>
+                    <template v-if="isEn">
+                        <h3>No nodes under cluster, and you need to:</h3>
+                        <p>1Under cluster, add nodes</p>
+                    </template>
+                    <template v-else>
+                        <h3>集群下没有节点，您需要：</h3>
+                        <p>在集群下，添加节点</p>
+                    </template>
                 </div>
             </div>
         </bk-dialog>
@@ -365,11 +371,11 @@
         <tip-dialog
             ref="clusterNoticeDialog"
             icon="bk-icon icon-exclamation-triangle"
-            title="确定删除集群？"
-            sub-title="此操作无法撤回，请确认："
+            :title="$t('确定删除集群？')"
+            :sub-title="$t('此操作无法撤回，请确认：')"
             :check-list="clusterNoticeList"
-            confirm-btn-text="确定"
-            cancel-btn-text="取消"
+            :confirm-btn-text="$t('确定')"
+            :cancel-btn-text="$t('取消')"
             :confirm-callback="deleteCluster">
         </tip-dialog>
     </div>
@@ -394,12 +400,12 @@
                 clusterNoticeList: [
                     {
                         id: 1,
-                        text: '将master主机归还到你业务的空闲机模块',
+                        text: this.$t('将master主机归还到你业务的空闲机模块'),
                         isChecked: false
                     },
                     {
                         id: 2,
-                        text: '清理其它容器服务相关组件',
+                        text: this.$t('清理其它容器服务相关组件'),
                         isChecked: false
                     }
                 ],
@@ -443,6 +449,9 @@
             },
             isHelmEnable () {
                 return false
+            },
+            isEn () {
+                return this.$store.state.isEn
             }
         },
         created () {
@@ -608,7 +617,7 @@
                         }
                         tasks.push(operation)
                     })
-                    console.log('tasks', tasks)
+
                     this.logList.splice(0, this.logList.length, ...tasks)
 
                     if (this.logEndState === 'success'
@@ -812,10 +821,10 @@
                         projectId: this.projectId,
                         clusterId: cluster.cluster_id
                     })
-                    this.helmDialog.title = '启用Helm成功'
+                    this.helmDialog.title = this.$t('启用Helm成功')
                     this.helmDialog.isShow = true
                 } catch (e) {
-                    this.helmDialog.title = '启用Helm失败'
+                    this.helmDialog.title = this.$t('启用Helm失败')
                     this.helmErrorCode = e.code
                     this.helmEnableMessage = e.message || e.data.msg || e.statusText
                     this.helmDialog.isShow = true
