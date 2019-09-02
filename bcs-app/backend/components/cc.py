@@ -241,19 +241,19 @@ def get_host_base_info(username, bk_biz_id, inner_ip):
     data = get_application_host(username, bk_biz_id, inner_ip)
     ret_data = {
         'Cpu': {
-            'CpuNum': data.get('bk_cpu')
+            'CpuNum': data.get('bk_cpu', 0)
         },
         'Disk': {
             'Total': data.get('bk_disk', 0) * 1024 * 1024 * 1024
         },
-        'InnerIP': data.get('bk_host_innerip'),
-        'HostID': data.get('bk_host_id'),
+        'InnerIP': data.get('bk_host_innerip', ''),
+        'HostID': data.get('bk_host_id', ''),
         'Memory': {
-            'Total': data.get('bk_mem') * 1024 * 1024
+            'Total': data.get('bk_mem', 0) * 1024 * 1024
         },
         'System': {
-            'OS': data.get('bk_os_name'),
-            'kernelVersion': data.get('bk_os_version'),
+            'OS': data.get('bk_os_name', ''),
+            'kernelVersion': data.get('bk_os_version', ''),
             'clientDockerVersion': '',
             'serverDockerVersion': ''
         },

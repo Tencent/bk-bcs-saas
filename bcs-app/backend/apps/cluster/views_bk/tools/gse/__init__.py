@@ -26,4 +26,4 @@ class GSEClient:
                 {'plat_id': plat_id, 'bk_cloud_id': plat_id, 'ip': ip}
                 for ip in info.get('inner_ip', '').split(',')
             ])
-        return gse.get_agent_status(request.project.bg_id, request.project.kind, request.user.username, hosts)
+        return gse.get_agent_status(request.user.username, hosts)
