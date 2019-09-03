@@ -45,7 +45,7 @@ def chart_version_getter(resource, context):
 def get_custom_labels(resource, context):
     return '{}'
 
- 
+
 @dataclass
 class BcsInfoProvider:
     # note: all data it provide must be pickleable
