@@ -17,6 +17,7 @@ from dataclasses import dataclass
 import re
 
 from . import dpath
+from backend.utils.basic import getitems
 
 logger = logging.getLogger(__name__)
 
@@ -166,14 +167,32 @@ class InjectManager:
             self.resources[idx] = resource
         return self.resources
 
+    def filter_env(self, path, resource, config_data):
+        custom_label_key = 'io_tencent_bcs_custom_labels'
+        matched_path_list = ["/spec/containers/*", "/spec/template/spec/containers/*"]
+        # 如果路径不匹配，则不进行bcs_env的处理
+        if path not in matched_path_list:
+            return config_data
+        # 查找相应的相应的key
+        pod_container_config =  getitems(resource, ['spec', 'containers'], [])
+        resource_container_config = getitems(resource, ['spec', 'template', 'spec', 'containers'], [])
+        resource_container_config.extend(pod_container_config)
+        for config in resource_container_config:
+            env = config.get('env') or []
+            # 如果io_tencent_bcs_custom_labels已经存在在resource的env中，则需要去掉平台注入的这个key
+            if custom_label_key in [item.get('name') for item in env if item]:
+                return {'env': [item for item in config_data['env'] if item.get('name') != custom_label_key]}
+        return config_data
+
     def do_config_inject(self, config, resource):
         for path in config["paths"]:
             for matcher_cfg in config["matchers"]:
+                data = self.filter_env(path, resource, config['data'])
                 matcher = self.make_matcher(matcher_cfg)
                 injector = BaseInjector(
                     matcher=matcher,
                     path=path,
-                    data=config["data"]
+                    data=data
                 )
                 if injector.filter(resource):
                     resource = injector.do_inject(resource, self.context)
