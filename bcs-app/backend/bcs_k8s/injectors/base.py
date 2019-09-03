@@ -174,7 +174,7 @@ class InjectManager:
         if path not in matched_path_list:
             return config_data
         # 查找相应的相应的key
-        pod_container_config =  getitems(resource, ['spec', 'containers'], [])
+        pod_container_config = getitems(resource, ['spec', 'containers'], [])
         resource_container_config = getitems(resource, ['spec', 'template', 'spec', 'containers'], [])
         resource_container_config.extend(pod_container_config)
         for config in resource_container_config:
