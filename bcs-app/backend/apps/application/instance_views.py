@@ -177,9 +177,7 @@ class QueryAllTaskgroups(BaseTaskgroupCls):
         """查询所有taskgroup信息
         """
         # 获取kind
-        flag, project_kind = self.get_project_kind(request, project_id)
-        if not flag:
-            return project_kind
+        project_kind = request.project.kind
         cluster_id, namespace, rc_names, category = self.common_handler(
             request, project_id, instance_id, project_kind)
         # 获取taskagroup或者group

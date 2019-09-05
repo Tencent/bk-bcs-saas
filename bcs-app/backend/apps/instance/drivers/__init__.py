@@ -19,12 +19,8 @@ from backend.apps.instance.drivers import mesos, k8s
 ClusterType = dict(ProjectKind._choices_labels.get_choices())
 
 
-def get_scheduler_driver(access_token, project_id, configuration):
-    project = paas_cc.get_project(access_token, project_id)
-    if project.get('code') != 0 or not project.get('data'):
-        raise error_codes.APIError.f(project.get('message'))
-
-    cluster_type = ClusterType.get(project['data']['kind'])
+def get_scheduler_driver(access_token, project_id, configuration, project_kind):
+    cluster_type = ClusterType.get(project_kind)
     # for test
     # cluster_type = 'Mesos'
 
