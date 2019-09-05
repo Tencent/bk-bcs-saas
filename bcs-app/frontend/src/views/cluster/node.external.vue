@@ -260,7 +260,7 @@
                                                         <ul class="bk-dropdown-list" slot="dropdown-content">
                                                             <li>
                                                                 <a href="javascript:void(0);" class="bk-text-button" @click.stop="schedulerNode(node, index)">
-                                                                    {{curProject.kind === 1 ? $t('pod迁移') : $('taskgroup迁移')}}
+                                                                    {{curProject.kind === 1 ? $t('pod迁移') : $t('taskgroup迁移')}}
                                                                 </a>
                                                             </li>
                                                         </ul>
@@ -299,7 +299,7 @@
                                                         <ul class="bk-dropdown-list" slot="dropdown-content">
                                                             <li>
                                                                 <a href="javascript:void(0);" class="bk-text-button" @click.stop="schedulerNode(node, index)">
-                                                                    {{curProject.kind === 1 ? $t('pod迁移') : $('taskgroup迁移')}}
+                                                                    {{curProject.kind === 1 ? $t('pod迁移') : $t('taskgroup迁移')}}
                                                                 </a>
                                                             </li>
                                                         </ul>
