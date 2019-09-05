@@ -428,7 +428,7 @@ def save_all_config(slz_data, access_token="", username="", is_update=False):
     return configuration
 
 
-def handle_all_config(slz_data, access_token="", username="", is_update=False):
+def handle_all_config(slz_data, access_token="", username="", is_update=False, request=None):
     """
     """
     project_id = slz_data['project_id']
@@ -439,7 +439,7 @@ def handle_all_config(slz_data, access_token="", username="", is_update=False):
     # 调用 bcs API
     if is_start:
         driver = get_scheduler_driver(
-            access_token, project_id, configuration)
+            access_token, project_id, configuration, request=request)
         instantiation_result = driver.instantiation(is_update)
         return instantiation_result
 
