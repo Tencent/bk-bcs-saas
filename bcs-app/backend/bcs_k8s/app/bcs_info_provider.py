@@ -42,6 +42,10 @@ def chart_version_getter(resource, context):
     return context.get("version", "")
 
 
+def get_custom_labels(resource, context):
+    return '{}'
+
+
 @dataclass
 class BcsInfoProvider:
     # note: all data it provide must be pickleable
@@ -214,6 +218,12 @@ class BcsInfoProvider:
         }, {
             "name": "io_tencent_bcs_controller_name",
             "value": resource_name_getter,
+        }, {
+            "name": "io_tencent_bcs_custom_labels",
+            "value": get_custom_labels,
+        }, {
+            "name": "io_tencent_bcs_custom_labels",
+            "value": '{}',
         }]
 
         return data
