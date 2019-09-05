@@ -338,7 +338,7 @@ class VersionInstanceView(viewsets.ViewSet):
         slz_data['version_id'] = version_id
         slz_data['show_version_id'] = show_version_id
 
-        result = handle_all_config(slz_data, access_token, username, request=request)
+        result = handle_all_config(slz_data, access_token, username, project_kind=request.project.kind)
         instance_entity = slz_data.get("instance_entity")
         all_tmpl_name_dict = self.get_tmpl_name(instance_entity)
 

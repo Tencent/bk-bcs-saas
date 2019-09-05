@@ -675,7 +675,7 @@ class Services(viewsets.ViewSet, BaseAPI):
         }
 
         driver = get_scheduler_driver(
-            access_token, project_id, configuration, request=request)
+            access_token, project_id, configuration, request.project.kind)
         result = driver.instantiation(is_update=True)
 
         failed = []

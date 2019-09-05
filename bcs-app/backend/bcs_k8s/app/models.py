@@ -132,7 +132,7 @@ class App(models.Model):
             self.set_transitioning(False, message)
             return None, None
 
-        # 因为注入的内容中包含动态变化的内容，比如upator等的变动；因此更新后每次渲染
+        # 因为注入的内容中包含动态变化的内容，比如updator等的变动；因此更新后每次渲染
         configs = bcs_info_injector.inject_configs(
             extra_inject_source=extra_inject_source,
             ignore_empty_access_token=ignore_empty_access_token,
