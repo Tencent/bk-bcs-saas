@@ -39,8 +39,7 @@ import focus from './directives/focus/index'
 
 import PROJECT_CONFIG from './config'
 
-import en from './common/lang/en.js'
-import cn from './common/lang/cn.js'
+import lang from './common/lang'
 
 Vue.component('app-header', appHeader)
 Vue.component('app-exception', Exception)
@@ -75,6 +74,13 @@ function loadScriptCallback (e) {
         data () {
             return { PROJECT_CONFIG }
         }
+    })
+
+    const en = {}
+    const cn = {}
+    Object.keys(lang).forEach(key => {
+        en[key] = lang[key][0]
+        cn[key] = lang[key][1] || key
     })
 
     const messages = {
