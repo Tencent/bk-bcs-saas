@@ -283,9 +283,7 @@ class ResourceOperate(object):
         """更新
         """
         access_token = request.user.token.access_token
-        flag, project_kind = self.get_project_kind(request, project_id)
-        if not flag:
-            return project_kind
+        project_kind = request.project.kind
 
         if project_kind == 2:
             # mesos 相关数据
@@ -393,7 +391,7 @@ class ResourceOperate(object):
         }
 
         driver = get_scheduler_driver(
-            access_token, project_id, configuration)
+            access_token, project_id, configuration, request.project.kind)
         result = driver.instantiation(is_update=True)
 
         failed = []
