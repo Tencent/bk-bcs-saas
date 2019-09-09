@@ -2,10 +2,10 @@
     <div class="biz-content">
         <div class="biz-top-bar">
             <div class="biz-project-image-title">
-                项目镜像
+                {{$t('项目镜像')}}
             </div>
             <div class="biz-actions">
-                <a :href="PROJECT_CONFIG.doc.harborGuide" target="_blank" class="bk-text-button ml10">如何推镜像？</a>
+                <a :href="PROJECT_CONFIG.doc.harborGuide" target="_blank" class="bk-text-button ml10">{{$t('如何推镜像？')}}</a>
             </div>
         </div>
 
@@ -14,7 +14,7 @@
                 <div class="biz-panel-header biz-project-image-query">
                     <div class="right">
                         <div class="biz-search-input" style="width: 300px;">
-                            <input @keyup.enter="enterHandler" v-model="searchKey" type="text" class="bk-form-input" placeholder="输入镜像名，按Enter搜索">
+                            <input @keyup.enter="enterHandler" v-model="searchKey" type="text" class="bk-form-input" :placeholder="$t('输入镜像名，按Enter搜索')">
                             <a href="javascript:void(0)" class="biz-search-btn" @click="handleClick" v-if="!searchKey">
                                 <i class="bk-icon icon-search icon-search-li"></i>
                             </a>
@@ -37,15 +37,15 @@
                                             <span>{{item.name}}</span>
                                         </div>
                                         <div class="attr">
-                                            <span>类型：{{item.type || '--'}}</span>
-                                            <span>来源：{{item.deployBy || '--'}}</span>
+                                            <span>{{$t('类型：')}}{{item.type || '--'}}</span>
+                                            <span>{{$t('来源：')}}{{item.deployBy || '--'}}</span>
                                         </div>
                                         <div class="desc">
-                                            简介：{{item.desc || '--'}}
+                                            {{$t('简介：')}}{{item.desc || '--'}}
                                         </div>
                                     </div>
                                     <div class="detail" @click="toImageDetail(item)">
-                                        详情<i class="bk-icon icon-angle-right"></i>
+                                        {{$t('详情')}}<i class="bk-icon icon-angle-right"></i>
                                     </div>
                                 </div>
                             </div>
@@ -53,7 +53,7 @@
                     </template>
                     <template v-else-if="!isPageLoading">
                         <div class="empty">
-                            <p class="biz-empty-message">无数据</p>
+                            <p class="biz-empty-message">{{$t('无数据')}}</p>
                         </div>
                     </template>
                     <template v-else>
@@ -62,6 +62,7 @@
                 </div>
                 <div class="biz-page-wrapper" v-if="pageConf.total">
                     <bk-page-counter
+                        :is-en="isEn"
                         :total="pageConf.total"
                         :page-size="pageConf.pageSize"
                         @change="changePageSize">
@@ -117,6 +118,9 @@
             },
             dataList () {
                 return this.$store.state.depot.projectImage.dataList
+            },
+            isEn () {
+                return this.$store.state.isEn
             }
         },
         watch: {

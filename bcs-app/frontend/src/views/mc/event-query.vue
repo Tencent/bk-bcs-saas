@@ -2,7 +2,7 @@
     <div class="biz-content">
         <div class="biz-top-bar">
             <div class="biz-event-query-title">
-                事件查询
+                {{$t('事件查询')}}
             </div>
             <bk-guide></bk-guide>
         </div>
@@ -10,7 +10,7 @@
             <template v-if="!isInitLoading">
                 <div class="biz-panel-header biz-event-query-query" style="padding-right: 0;">
                     <div class="left">
-                        <bk-selector :placeholder="'集群'"
+                        <bk-selector :placeholder="$t('集群')"
                             :selected.sync="clusterIndex"
                             :list="dropdownClusterList"
                             :setting-key="'cluster_id'"
@@ -20,7 +20,7 @@
                         </bk-selector>
                     </div>
                     <div class="left">
-                        <bk-selector :placeholder="'事件对象'"
+                        <bk-selector :placeholder="$t('事件对象')"
                             :selected.sync="kindIndex"
                             :list="kindList"
                             :setting-key="'id'"
@@ -30,7 +30,7 @@
                         </bk-selector>
                     </div>
                     <div class="left">
-                        <bk-selector :placeholder="'事件级别'"
+                        <bk-selector :placeholder="$t('事件级别')"
                             :selected.sync="levelIndex"
                             :list="levelList"
                             :setting-key="'id'"
@@ -40,7 +40,7 @@
                         </bk-selector>
                     </div>
                     <div class="left component">
-                        <bk-selector :placeholder="'组件'"
+                        <bk-selector :placeholder="$t('组件')"
                             :selected.sync="componentIndex"
                             :list="componentList"
                             :setting-key="'id'"
@@ -61,8 +61,8 @@
                         </bk-date-range>
                     </div>
                     <div class="left">
-                        <bk-button type="primary" title="查询" icon="search" @click="handleClick">
-                            查询
+                        <bk-button type="primary" :title="$t('查询')" icon="search" @click="handleClick">
+                            {{$t('查询')}}
                         </bk-button>
                     </div>
                 </div>
@@ -72,12 +72,12 @@
                             <thead>
                                 <tr>
                                     <th style="width: 260px; text-align: left;padding-left: 30px;">
-                                        时间
+                                        {{$t('时间')}}
                                     </th>
-                                    <th style="width: 200px;">组件</th>
-                                    <th style="width: 170px;">对象及级别</th>
-                                    <th style="width: 250px;">所属集群</th>
-                                    <th style="width: 100px;">事件内容</th>
+                                    <th style="width: 200px;">{{$t('组件')}}</th>
+                                    <th style="width: 170px;">{{$t('对象及级别')}}</th>
+                                    <th style="width: 250px;">{{$t('所属集群')}}</th>
+                                    <th style="width: 100px;">{{$t('事件内容')}}</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -90,8 +90,8 @@
                                             {{item.component}}
                                         </td>
                                         <td>
-                                            <p class="extra-info" :title="item.extra.level || '--'"><span>级别：</span>{{item.extra.level || '--'}}</p>
-                                            <p class="extra-info" :title="item.extra.kind || '--'"><span>对象：</span>{{item.extra.kind || '--'}}</p>
+                                            <p class="extra-info" :title="item.extra.level || '--'"><span>{{$t('级别：')}}</span>{{item.extra.level || '--'}}</p>
+                                            <p class="extra-info" :title="item.extra.kind || '--'"><span>{{$t('对象：')}}</span>{{item.extra.kind || '--'}}</p>
                                         </td>
                                         <td>
                                             <bk-tooltip :content="item.cluster_id" placement="top">
@@ -114,7 +114,7 @@
                                     <tr class="no-hover">
                                         <td colspan="5">
                                             <div class="bk-message-box">
-                                                <p class="message empty-message">无数据</p>
+                                                <p class="message empty-message">{{$t('无数据')}}</p>
                                             </div>
                                         </td>
                                     </tr>
@@ -134,6 +134,7 @@
 
                 <div class="biz-page-wrapper" v-if="pageConf.show">
                     <bk-page-counter
+                        :is-en="isEn"
                         :total="pageConf.total"
                         :page-size="pageConf.pageSize"
                         @change="changePageSize">
@@ -158,7 +159,7 @@
         data () {
             // 事件对象下拉框 list
             const kindList = [
-                { id: 'all', name: '全部' },
+                { id: 'all', name: this.$t('全部1') },
                 { id: 'rc', name: 'rc' },
                 { id: 'Endpoints', name: 'Endpoints' },
                 { id: 'Pod', name: 'Pod' },
@@ -177,7 +178,7 @@
 
             // 事件级别下拉框 list
             const levelList = [
-                { id: 'all', name: '全部' },
+                { id: 'all', name: this.$t('全部1') },
                 { id: 'Normal', name: 'Normal' },
                 { id: 'Warning', name: 'Warning' }
             ]
@@ -189,7 +190,7 @@
 
             // 组件下拉框 list
             const componentList = [
-                { id: 'all', name: '全部' },
+                { id: 'all', name: this.$t('全部1') },
                 { id: 'scheduler/controller', name: 'scheduler/controller' },
                 { id: 'controller', name: 'controller' },
                 { id: 'kubelet', name: 'kubelet' },
@@ -203,10 +204,10 @@
 
             return {
                 ranges: {
-                    '昨天': [moment().subtract(1, 'days'), moment()],
-                    '最近一周': [moment().subtract(7, 'days'), moment()],
-                    '最近一个月': [moment().subtract(1, 'month'), moment()],
-                    '最近三个月': [moment().subtract(3, 'month'), moment()]
+                    [this.$t('昨天')]: [moment().subtract(1, 'days'), moment()],
+                    [this.$t('最近一周')]: [moment().subtract(7, 'days'), moment()],
+                    [this.$t('最近一个月')]: [moment().subtract(1, 'month'), moment()],
+                    [this.$t('最近三个月')]: [moment().subtract(3, 'month'), moment()]
                 },
                 // 集群下拉框选中索引
                 clusterIndex: -1,
@@ -255,6 +256,9 @@
         computed: {
             projectId () {
                 return this.$route.params.projectId
+            },
+            isEn () {
+                return this.$store.state.isEn
             }
         },
         mounted () {
@@ -295,7 +299,7 @@
                         list.forEach(item => {
                             this.dropdownClusterList.push(item)
                         })
-                        this.dropdownClusterList.unshift({ cluster_id: 'all', name: '全部' })
+                        this.dropdownClusterList.unshift({ cluster_id: 'all', name: this.$t('全部1') })
                     }
                 } catch (e) {
                     // console.log(this.bkMessageInstance.isShow)

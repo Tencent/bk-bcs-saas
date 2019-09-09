@@ -14,22 +14,22 @@
                     </div>
                     <div class="left-content">
                         <p class="image-name" :title="imageName">{{imageName}}</p>
-                        <p class="download-count">{{downloadCount + '次下载'}}</p>
+                        <p class="download-count">{{downloadCount + $t('次下载')}}</p>
                     </div>
                 </div>
                 <div class="right-wrapper">
                     <div class="top-content">
                         <div class="updator">
-                            <p>最近更新人</p>
+                            <p>{{$t('最近更新人')}}</p>
                             <p>{{modifiedBy}}</p>
                         </div>
                         <div class="update-date">
-                            <p>最近更新时间</p>
+                            <p>{{$t('最近更新时间')}}</p>
                             <p>{{modified}}</p>
                         </div>
                     </div>
                     <div class="bottom-content">
-                        <p>仓库相对地址</p>
+                        <p>{{$t('仓库相对地址')}}</p>
                         <p>{{imagePath}}</p>
                     </div>
                 </div>
@@ -39,11 +39,11 @@
                 <thead>
                     <tr>
                         <th style="width: 15%; text-align: left;padding-left: 30px;">
-                            名称
+                            {{$t('名称')}}
                         </th>
-                        <th>大小</th>
-                        <th>最近更新时间</th>
-                        <th>地址</th>
+                        <th>{{$t('大小')}}</th>
+                        <th>{{$t('最近更新时间')}}</th>
+                        <th>{{$t('地址')}}</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -65,7 +65,7 @@
                         </tr>
                         <tr v-if="!hasNext" class="empty-row">
                             <td colspan="4">
-                                没有更多TAG
+                                {{$t('没有更多TAG')}}
                             </td>
                         </tr>
                     </template>
@@ -73,7 +73,7 @@
                         <tr class="no-hover">
                             <td colspan="4">
                                 <div class="bk-message-box">
-                                    <p class="message empty-message">无数据</p>
+                                    <p class="message empty-message">{{$t('无数据')}}</p>
                                 </div>
                             </td>
                         </tr>

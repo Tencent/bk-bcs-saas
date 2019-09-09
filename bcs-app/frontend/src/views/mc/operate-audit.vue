@@ -2,7 +2,7 @@
     <div class="biz-content">
         <div class="biz-top-bar">
             <div class="biz-operate-audit-title">
-                操作审计
+                {{$t('操作审计')}}
             </div>
             <bk-guide></bk-guide>
         </div>
@@ -10,7 +10,7 @@
             <template v-if="!isInitLoading">
                 <div class="biz-panel-header biz-operate-audit-query">
                     <div class="left">
-                        <bk-selector :placeholder="'操作对象类型'"
+                        <bk-selector :placeholder="$t('操作对象类型')"
                             :selected.sync="resourceTypeIndex"
                             :list="resourceTypeList"
                             :setting-key="'id'"
@@ -20,7 +20,7 @@
                         </bk-selector>
                     </div>
                     <div class="left">
-                        <bk-selector :placeholder="'操作类型'"
+                        <bk-selector :placeholder="$t('操作类型')"
                             :selected.sync="activityTypeIndex"
                             :list="activityTypeList"
                             :setting-key="'id'"
@@ -30,7 +30,7 @@
                         </bk-selector>
                     </div>
                     <div class="left">
-                        <bk-selector :placeholder="'状态'"
+                        <bk-selector :placeholder="$t('状态')"
                             :selected.sync="activityStatusIndex"
                             :list="activityStatusList"
                             :setting-key="'id'"
@@ -49,8 +49,8 @@
                         </bk-date-range>
                     </div>
                     <div class="left">
-                        <bk-button type="primary" title="查询" icon="search" @click="handleClick">
-                            查询
+                        <bk-button type="primary" :title="$t('查询')" icon="search" @click="handleClick">
+                            {{$t('查询')}}
                         </bk-button>
                     </div>
                 </div>
@@ -60,13 +60,13 @@
                             <thead>
                                 <tr>
                                     <th style="width: 260px; text-align: left;padding-left: 30px;">
-                                        时间
+                                        {{$t('时间')}}
                                     </th>
-                                    <th style="width: 100px;">操作类型</th>
-                                    <th style="width: 170px;">对象及类型</th>
-                                    <th style="width: 130px;">状态</th>
-                                    <th style="width: 150px;">发起者</th>
-                                    <th style="width: 200px;">描述</th>
+                                    <th style="width: 100px;">{{$t('操作类型')}}</th>
+                                    <th style="width: 170px;">{{$t('对象及类型')}}</th>
+                                    <th style="width: 130px;">{{$t('状态')}}</th>
+                                    <th style="width: 150px;">{{$t('发起者')}}</th>
+                                    <th style="width: 200px;">{{$t('描述')}}</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -79,11 +79,11 @@
                                             {{item.activityType}}
                                         </td>
                                         <td>
-                                            <p class="extra-info" :title="item.extra.resourceType || '--'"><span>类型：</span>{{item.extra.resourceType || '--'}}</p>
-                                            <p class="extra-info" :title="item.extra.resource || '--'"><span>对象：</span>{{item.extra.resource || '--'}}</p>
+                                            <p class="extra-info" :title="item.extra.resourceType || '--'"><span>{{$t('类型：')}}</span>{{item.extra.resourceType || '--'}}</p>
+                                            <p class="extra-info" :title="item.extra.resource || '--'"><span>{{$t('对象：')}}</span>{{item.extra.resource || '--'}}</p>
                                         </td>
                                         <td>
-                                            <i class="bk-icon" :class="item.activityStatus === '完成' || item.activityStatus === '成功' ? 'success icon-check-circle' : 'fail icon-close-circle'"></i>{{item.activityStatus}}
+                                            <i class="bk-icon" :class="item.activityStatus === $t('完成1') || item.activityStatus === $t('成功1') ? 'success icon-check-circle' : 'fail icon-close-circle'"></i>{{item.activityStatus}}
                                         </td>
                                         <td>{{item.user}}</td>
                                         <td>
@@ -102,7 +102,7 @@
                                     <tr class="no-hover">
                                         <td colspan="6">
                                             <div class="bk-message-box" v-if="!isPageLoading">
-                                                <p class="message empty-message">无数据</p>
+                                                <p class="message empty-message">{{$t('无数据')}}</p>
                                             </div>
                                         </td>
                                     </tr>
@@ -121,6 +121,7 @@
                 </div>
                 <div class="biz-page-wrapper" v-if="pageConf.show">
                     <bk-page-counter
+                        :is-en="isEn"
                         :total="pageConf.total"
                         :page-size="pageConf.pageSize"
                         @change="changePageSize">
@@ -142,20 +143,19 @@
         data () {
             // 操作类型下拉框 list
             const activityTypeList = [
-                { id: 'all', name: '全部' },
-                { id: 'note', name: '注意' },
-                { id: 'add', name: '创建' },
-                { id: 'modify', name: '更新' },
-                { id: 'delete', name: '删除' },
-                { id: 'begin', name: '开始' },
-                { id: 'end', name: '结束' },
-                { id: 'start', name: '启动' },
-                { id: 'pause', name: '暂停' },
-                { id: 'carryon', name: '继续' },
-                { id: 'stop', name: '停止' },
-                { id: 'restart', name: '重启' },
-                { id: 'query', name: '查询' },
-                { id: 'rollback', name: '回滚' }
+                { id: 'all', name: this.$t('全部1') },
+                { id: 'note', name: this.$t('注意1') },
+                { id: 'add', name: this.$t('创建1') },
+                { id: 'modify', name: this.$t('更新1') },
+                { id: 'delete', name: this.$t('删除1') },
+                { id: 'begin', name: this.$t('开始1') },
+                { id: 'end', name: this.$t('结束1') },
+                { id: 'start', name: this.$t('启动1') },
+                { id: 'pause', name: this.$t('暂停1') },
+                { id: 'carryon', name: this.$t('继续1') },
+                { id: 'stop', name: this.$t('停止1') },
+                { id: 'restart', name: this.$t('重启1') },
+                { id: 'query', name: this.$t('查询1') }
             ]
             // 操作类型 map
             const activityTypeMap = {}
@@ -165,13 +165,13 @@
 
             // 状态下拉框 list
             const activityStatusList = [
-                { id: 'all', name: '全部' },
-                { id: 'unknown', name: '未知' },
-                { id: 'completed', name: '完成' },
-                { id: 'error', name: '错误' },
-                { id: 'busy', name: '处理中' },
-                { id: 'succeed', name: '成功' },
-                { id: 'failed', name: '失败' }
+                { id: 'all', name: this.$t('全部1') },
+                { id: 'unknown', name: this.$t('未知1') },
+                { id: 'completed', name: this.$t('完成1') },
+                { id: 'error', name: this.$t('错误1') },
+                { id: 'busy', name: this.$t('处理中1') },
+                { id: 'succeed', name: this.$t('成功1') },
+                { id: 'failed', name: this.$t('失败1') }
             ]
             // 操作状态 map
             const activityStatusMap = {}
@@ -240,6 +240,11 @@
                 bkMessageInstance: null
             }
         },
+        computed: {
+            isEn () {
+                return this.$store.state.isEn
+            }
+        },
         watch: {
             '$route.params.projectId': {
                 handler: 'routerChangeHandler',
@@ -291,7 +296,7 @@
                             name: this.resourceTypeMap[key]
                         })
                     })
-                    this.resourceTypeList.unshift({ id: 'all', name: '全部' })
+                    this.resourceTypeList.unshift({ id: 'all', name: this.$t('全部1') })
                 } catch (e) {
                     this.bkMessageInstance = this.$bkMessage({
                         theme: 'error',
