@@ -29,7 +29,7 @@ MGR_GUIDE_MESSAGE = [
 # pod版本
 KUBECTLD_VERSION = OrderedDict({
     '1.12.3_debian_0.1': [
-        re.compile(r'1\.12.*')
+        re.compile(r'^[vV]?1\.12\.\w+$'),
     ],
 })
 
