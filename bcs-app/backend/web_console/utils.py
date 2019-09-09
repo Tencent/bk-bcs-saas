@@ -19,7 +19,6 @@ import time
 from django.conf import settings
 from logstash.formatter import LogstashFormatterBase
 
-from backend.components import paas_cc
 from backend.components.utils import http_post
 from backend.utils.log import LogstashRedisHandler
 from backend.web_console import constants
@@ -124,17 +123,9 @@ def _setup_logging(verbose=None, filename=None):
     logging.basicConfig(format=LOG_FORMAT, level=level, filename=filename)
 
 
-def get_kubectld_version(access_token, project_id, cluster_id):
-    """获取集群版本
+def get_kubectld_version(version):
+    """获取 kubectl 镜像版本
     """
-    try:
-        snapshot = paas_cc.get_cluster_snapshot(access_token, project_id, cluster_id)
-        configure = json.loads(snapshot['data']['configure'])
-        version = configure['version']
-    except Exception as error:
-        logger.exception('get cluster snapshot error, %s', error)
-        version = None
-
     if not version:
         return constants.DEFAULT_KUBECTLD_VERSION
 

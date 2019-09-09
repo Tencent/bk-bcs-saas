@@ -11,6 +11,7 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
+import copy
 import hashlib
 import string
 from urllib.parse import urlparse
@@ -73,12 +74,7 @@ def get_k8s_context(client, container_id: str) -> dict:
 def get_k8s_cluster_context(client, project_id, cluster_id):
     """获取集群信息
     """
-    context = {}
-    cluster_info = client.query_cluster()
-    context.update(cluster_info)
-
-    cred = client.get_client_credentials(cluster_info['id'])
-    context.update(cred)
+    context = copy.deepcopy(client.context)
 
     # 原始集群ID
     context['source_cluster_id'] = cluster_id

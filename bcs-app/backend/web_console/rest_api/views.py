@@ -63,7 +63,7 @@ class WebConsoleSession(views.APIView):
                 f"{message}，请检查 Deployment【kube-system/bcs-agent】是否正常{settings.COMMON_EXCEPTION_MSG}")
 
         # kubectl版本区别
-        kubectld_version = get_kubectld_version(request.user.token.access_token, project_id, cluster_id)
+        kubectld_version = get_kubectld_version(client.version)
 
         container_id = slz.validated_data.get('container_id')
         if container_id:
