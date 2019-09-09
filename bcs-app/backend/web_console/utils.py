@@ -12,14 +12,12 @@
 # specific language governing permissions and limitations under the License.
 #
 import copy
-import json
 import logging
 import time
 
 from django.conf import settings
 from logstash.formatter import LogstashFormatterBase
 
-from backend.components.utils import http_post
 from backend.utils.log import LogstashRedisHandler
 from backend.web_console import constants
 
