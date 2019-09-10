@@ -6,7 +6,7 @@
                 <span>{{$t('创建容器集群')}}</span>
             </div>
             <div class="biz-actions">
-                <bk-tooltip :content="$t('快速入门')" placement="bottom">
+                <bk-tooltip :content="$t('快速入门')" placement="left" :transfer="true">
                     <a class="button" href="javascript:void(0)" @click.stop.prevent="showGuide">
                         <i class="bk-icon icon-calendar"></i>
                     </a>
@@ -30,7 +30,7 @@
                             </label>
                         </div>
                     </div> -->
-                    <div class="form-item bk-form-item">
+                    <div class="form-item bk-form-item" :class="isEn ? 'en' : ''">
                         <label>{{$t('名称：')}}<span class="red">*</span></label>
                         <div class="form-item-inner">
                             <input maxlength="64" type="text" class="bk-form-input cluster-name" :placeholder="$t('请输入集群名称')"
@@ -41,7 +41,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="form-item bk-form-item">
+                    <div class="form-item bk-form-item" :class="isEn ? 'en' : ''">
                         <label>{{$t('集群描述：')}}<span class="red">*</span></label>
                         <div class="form-item-inner">
                             <textarea maxlength="128" v-model="description" class="bk-form-textarea" :class="validate.description.illegal ? 'is-danger' : ''" :placeholder="$t('请输入集群描述')"></textarea>
@@ -50,7 +50,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="form-item">
+                    <div class="form-item" :class="isEn ? 'en' : ''">
                         <label>{{$t('选择Master：')}}<span class="red">*</span></label>
                         <div class="form-item-inner">
                             <bk-button type="default" :class="validate.host.illegal ? 'is-danger' : ''" @click="openDialog">{{$t('选择服务器')}}</bk-button>
@@ -59,7 +59,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="form-item" v-if="hostList.length">
+                    <div class="form-item" :class="isEn ? 'en' : ''" v-if="hostList.length">
                         <label></label>
                         <div class="form-item-inner">
                             <div class="biz-cluster-create-table-header">
@@ -89,7 +89,7 @@
                             </table>
                         </div>
                     </div>
-                    <div class="form-item bk-form-item">
+                    <div class="form-item bk-form-item" :class="isEn ? 'en' : ''">
                         <label class="mt10">{{$t('注意事项：')}}<span class="red">*</span></label>
                         <div class="form-item-inner" style="vertical-align: top;">
                             <div v-if="isK8sProject">
@@ -112,7 +112,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="form-item">
+                    <div class="form-item" :class="isEn ? 'en' : ''">
                         <label></label>
                         <div class="form-item-inner">
                             <bk-button type="primary" @click="createCluster">{{$t('确定')}}</bk-button>
@@ -404,6 +404,9 @@
             },
             onlineProjectList () {
                 return this.$store.state.sideMenu.onlineProjectList
+            },
+            isEn () {
+                return this.$store.state.isEn
             }
         },
         watch: {
