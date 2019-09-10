@@ -28,31 +28,31 @@
                         </bk-tooltip>
                     </div>
                     <div class="header-item">
-                        <div class="key-label">内存：</div>
+                        <div class="key-label">{{$t('内存：')}}</div>
                         <bk-tooltip :content="nodeInfo.mem" placement="bottom">
                             <div class="value-label">{{nodeInfo.mem}}</div>
                         </bk-tooltip>
                     </div>
                     <div class="header-item">
-                        <div class="key-label">存储：</div>
+                        <div class="key-label">{{$t('存储：')}}</div>
                         <bk-tooltip :content="nodeInfo.disk" placement="bottom">
                             <div class="value-label">{{nodeInfo.disk}}</div>
                         </bk-tooltip>
                     </div>
                     <div class="header-item">
-                        <div class="key-label">IP来源：</div>
+                        <div class="key-label">{{$t('IP来源：')}}</div>
                         <bk-tooltip :content="nodeInfo.provider" placement="bottom">
                             <div class="value-label">{{nodeInfo.provider}}</div>
                         </bk-tooltip>
                     </div>
                     <div class="header-item">
-                        <div class="key-label">内核：</div>
+                        <div class="key-label">{{$t('内核：')}}</div>
                         <bk-tooltip :content="nodeInfo.kernel" placement="bottom">
                             <div class="value-label">{{nodeInfo.kernel}}</div>
                         </bk-tooltip>
                     </div>
                     <div class="header-item">
-                        <div class="key-label">操作系统：</div>
+                        <div class="key-label">{{$t('操作系统：')}}</div>
                         <bk-tooltip :content="nodeInfo.os" placement="bottom">
                             <div class="value-label">{{nodeInfo.os}}</div>
                         </bk-tooltip>
@@ -73,13 +73,13 @@
                                         </div>
                                         <ul class="bk-dropdown-list" slot="dropdown-content">
                                             <li>
-                                                <a href="javascript:;" @click.stop="toggleRange('cpuDropdown', 'cpuToggleRangeStr', 'cpu_summary', '1')">1小时</a>
+                                                <a href="javascript:;" @click.stop="toggleRange('cpuDropdown', 'cpuToggleRangeStr', 'cpu_summary', '1')">{{$t('1小时')}}</a>
                                             </li>
                                             <li>
-                                                <a href="javascript:;" @click.stop="toggleRange('cpuDropdown', 'cpuToggleRangeStr', 'cpu_summary', '2')">24小时</a>
+                                                <a href="javascript:;" @click.stop="toggleRange('cpuDropdown', 'cpuToggleRangeStr', 'cpu_summary', '2')">{{$t('24小时')}}</a>
                                             </li>
                                             <li>
-                                                <a href="javascript:;" @click.stop="toggleRange('cpuDropdown', 'cpuToggleRangeStr', 'cpu_summary', '3')">近7天</a>
+                                                <a href="javascript:;" @click.stop="toggleRange('cpuDropdown', 'cpuToggleRangeStr', 'cpu_summary', '3')">{{$t('近7天')}}</a>
                                             </li>
                                         </ul>
                                     </bk-dropdown-menu>
@@ -89,7 +89,7 @@
                         </div>
                         <div class="part top-right">
                             <div class="info">
-                                <div class="left">内存</div>
+                                <div class="left">{{$t('内存')}}</div>
                                 <div class="right">
                                     <bk-dropdown-menu :align="'right'" ref="memoryDropdown">
                                         <div style="cursor: pointer;" slot="dropdown-trigger">
@@ -100,13 +100,13 @@
                                         </div>
                                         <ul class="bk-dropdown-list" slot="dropdown-content">
                                             <li>
-                                                <a href="javascript:;" @click.stop="toggleRange('memoryDropdown', 'memToggleRangeStr', 'mem', '1')">1小时</a>
+                                                <a href="javascript:;" @click.stop="toggleRange('memoryDropdown', 'memToggleRangeStr', 'mem', '1')">{{$t('1小时')}}</a>
                                             </li>
                                             <li>
-                                                <a href="javascript:;" @click.stop="toggleRange('memoryDropdown', 'memToggleRangeStr', 'mem', '2')">24小时</a>
+                                                <a href="javascript:;" @click.stop="toggleRange('memoryDropdown', 'memToggleRangeStr', 'mem', '2')">{{$t('24小时')}}</a>
                                             </li>
                                             <li>
-                                                <a href="javascript:;" @click.stop="toggleRange('memoryDropdown', 'memToggleRangeStr', 'mem', '3')">近7天</a>
+                                                <a href="javascript:;" @click.stop="toggleRange('memoryDropdown', 'memToggleRangeStr', 'mem', '3')">{{$t('近7天')}}</a>
                                             </li>
                                         </ul>
                                     </bk-dropdown-menu>
@@ -118,7 +118,7 @@
                     <div class="biz-cluster-node-overview-chart">
                         <div class="part bottom-left">
                             <div class="info">
-                                <div class="left">网络</div>
+                                <div class="left">{{$t('网络')}}</div>
                                 <div class="right">
                                     <bk-dropdown-menu :align="'right'" ref="networkDropdown">
                                         <div style="cursor: pointer;" slot="dropdown-trigger">
@@ -129,13 +129,13 @@
                                         </div>
                                         <ul class="bk-dropdown-list" slot="dropdown-content">
                                             <li>
-                                                <a href="javascript:;" @click.stop="toggleRange('networkDropdown', 'networkToggleRangeStr', 'net', '1')">1小时</a>
+                                                <a href="javascript:;" @click.stop="toggleRange('networkDropdown', 'networkToggleRangeStr', 'net', '1')">{{$t('1小时')}}</a>
                                             </li>
                                             <li>
-                                                <a href="javascript:;" @click.stop="toggleRange('networkDropdown', 'networkToggleRangeStr', 'net', '2')">24小时</a>
+                                                <a href="javascript:;" @click.stop="toggleRange('networkDropdown', 'networkToggleRangeStr', 'net', '2')">{{$t('24小时')}}</a>
                                             </li>
                                             <li>
-                                                <a href="javascript:;" @click.stop="toggleRange('networkDropdown', 'networkToggleRangeStr', 'net', '3')">近7天</a>
+                                                <a href="javascript:;" @click.stop="toggleRange('networkDropdown', 'networkToggleRangeStr', 'net', '3')">{{$t('近7天')}}</a>
                                             </li>
                                         </ul>
                                     </bk-dropdown-menu>
@@ -156,13 +156,13 @@
                                         </div>
                                         <ul class="bk-dropdown-list" slot="dropdown-content">
                                             <li>
-                                                <a href="javascript:;" @click.stop="toggleRange('storageDropdown', 'storageToggleRangeStr', 'io', '1')">1小时</a>
+                                                <a href="javascript:;" @click.stop="toggleRange('storageDropdown', 'storageToggleRangeStr', 'io', '1')">{{$t('1小时')}}</a>
                                             </li>
                                             <li>
-                                                <a href="javascript:;" @click.stop="toggleRange('storageDropdown', 'storageToggleRangeStr', 'io', '2')">24小时</a>
+                                                <a href="javascript:;" @click.stop="toggleRange('storageDropdown', 'storageToggleRangeStr', 'io', '2')">{{$t('24小时')}}</a>
                                             </li>
                                             <li>
-                                                <a href="javascript:;" @click.stop="toggleRange('storageDropdown', 'storageToggleRangeStr', 'io', '3')">近7天</a>
+                                                <a href="javascript:;" @click.stop="toggleRange('storageDropdown', 'storageToggleRangeStr', 'io', '3')">{{$t('近7天')}}</a>
                                             </li>
                                         </ul>
                                     </bk-dropdown-menu>
@@ -174,16 +174,16 @@
                 </div>
                 <div class="biz-cluster-node-overview-table-wrapper">
                     <bk-tab :type="'fill'" :active-name="'container'" @tab-changed="tabChanged">
-                        <bk-tabpanel name="container" title="容器">
+                        <bk-tabpanel name="container" :title="$t('容器')">
                             <div class="container-table-wrapper" v-bkloading="{ isLoading: containerTableLoading }">
                                 <table class="bk-table has-table-hover biz-table biz-cluster-node-overview-table">
                                     <thead>
                                         <tr>
-                                            <th style="padding-left: 20px;">名称</th>
-                                            <th>状态</th>
-                                            <th>镜像</th>
+                                            <th style="padding-left: 20px;">{{$t('名称')}}</th>
+                                            <th>{{$t('状态')}}</th>
+                                            <th>{{$t('镜像')}}</th>
                                             <template v-if="curProject.kind === PROJECT_K8S">
-                                                <th style="min-width: 120px;">操作</th>
+                                                <th style="min-width: 120px;">{{$t('操作')}}</th>
                                             </template>
                                         </tr>
                                     </thead>
@@ -230,7 +230,7 @@
                                                             <a href="javascript: void(0);" class="bk-text-button" @click.stop="showTerminal(containerTableItem)">WebConsole</a>
                                                         </template>
                                                         <template v-else>
-                                                            <bk-tooltip content="容器状态不是running" placement="right">
+                                                            <bk-tooltip :content="$t('容器状态不是running')" placement="right">
                                                                 <a href="javascript: void(0);" class="bk-text-button is-disabled">WebConsole</a>
                                                             </bk-tooltip>
                                                         </template>
@@ -242,7 +242,7 @@
                                             <tr>
                                                 <td colspan="3">
                                                     <div class="bk-message-box no-data">
-                                                        <p class="message empty-message">无数据</p>
+                                                        <p class="message empty-message">{{$t('无数据')}}</p>
                                                     </div>
                                                 </td>
                                             </tr>
@@ -259,15 +259,15 @@
                                 </div>
                             </div>
                         </bk-tabpanel>
-                        <bk-tabpanel name="label" title="标签">
+                        <bk-tabpanel name="label" :title="$t('标签')">
                             <div class="container-table-wrapper" v-bkloading="{ isLoading: labelListLoading }">
                                 <table class="bk-table has-table-hover biz-table biz-app-instance-label-table">
                                     <thead>
                                         <tr>
                                             <th style="text-align: left;padding-left: 27px; width: 200px">
-                                                键
+                                                {{$t('键')}}
                                             </th>
-                                            <th style="width: 260px">值</th>
+                                            <th style="width: 260px">{{$t('值')}}</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -283,7 +283,7 @@
                                             <tr>
                                                 <td colspan="2">
                                                     <div class="bk-message-box no-data">
-                                                        <p class="message empty-message" v-if="!labelListLoading">无数据</p>
+                                                        <p class="message empty-message" v-if="!labelListLoading">{{$t('无数据')}}</p>
                                                     </div>
                                                 </td>
                                             </tr>
@@ -322,10 +322,10 @@
                 networkLine: nodeOverview.network,
                 storageLine: nodeOverview.storage,
                 bkMessageInstance: null,
-                cpuToggleRangeStr: '1小时',
-                memToggleRangeStr: '1小时',
-                networkToggleRangeStr: '1小时',
-                storageToggleRangeStr: '1小时',
+                cpuToggleRangeStr: this.$t('1小时'),
+                memToggleRangeStr: this.$t('1小时'),
+                networkToggleRangeStr: this.$t('1小时'),
+                storageToggleRangeStr: this.$t('1小时'),
                 nodeInfo: {},
                 containerTableLoading: false,
                 containerTableList: [],
@@ -581,7 +581,7 @@
                 }
 
                 ref && ref.showLoading({
-                    text: '正在加载',
+                    text: this.$t('正在加载'),
                     color: '#30d878',
                     maskColor: 'rgba(255, 255, 255, 0.8)'
                 })
@@ -611,11 +611,11 @@
 
                 if (!data.length) {
                     let startTime = null
-                    if (this.cpuToggleRangeStr === '1小时') {
+                    if (this.cpuToggleRangeStr === this.$t('1小时')) {
                         startTime = moment().subtract(1, 'hours').valueOf()
-                    } else if (this.cpuToggleRangeStr === '24小时') {
+                    } else if (this.cpuToggleRangeStr === this.$t('24小时')) {
                         startTime = moment().subtract(24, 'hours').valueOf()
-                    } else if (this.cpuToggleRangeStr === '近7天') {
+                    } else if (this.cpuToggleRangeStr === this.$t('近7天')) {
                         startTime = moment().subtract(7, 'days').valueOf()
                     }
                     data = [
@@ -671,11 +671,11 @@
 
                 if (!data.length) {
                     let startTime = null
-                    if (this.memToggleRangeStr === '1小时') {
+                    if (this.memToggleRangeStr === this.$t('1小时')) {
                         startTime = moment().subtract(1, 'hours').valueOf()
-                    } else if (this.memToggleRangeStr === '24小时') {
+                    } else if (this.memToggleRangeStr === this.$t('24小时')) {
                         startTime = moment().subtract(24, 'hours').valueOf()
-                    } else if (this.memToggleRangeStr === '近7天') {
+                    } else if (this.memToggleRangeStr === this.$t('近7天')) {
                         startTime = moment().subtract(7, 'days').valueOf()
                     }
                     data = [
@@ -747,11 +747,11 @@
 
                 if (!list.length) {
                     let startTime = null
-                    if (this.networkToggleRangeStr === '1小时') {
+                    if (this.networkToggleRangeStr === this.$t('1小时')) {
                         startTime = moment().subtract(1, 'hours').valueOf()
-                    } else if (this.networkToggleRangeStr === '24小时') {
+                    } else if (this.networkToggleRangeStr === this.$t('24小时')) {
                         startTime = moment().subtract(24, 'hours').valueOf()
-                    } else if (this.networkToggleRangeStr === '近7天') {
+                    } else if (this.networkToggleRangeStr === this.$t('近7天')) {
                         startTime = moment().subtract(7, 'days').valueOf()
                     }
                     list = [
@@ -839,11 +839,11 @@
 
                 if (!list.length) {
                     let startTime = null
-                    if (this.storageToggleRangeStr === '1小时') {
+                    if (this.storageToggleRangeStr === this.$t('1小时')) {
                         startTime = moment().subtract(1, 'hours').valueOf()
-                    } else if (this.storageToggleRangeStr === '24小时') {
+                    } else if (this.storageToggleRangeStr === this.$t('24小时')) {
                         startTime = moment().subtract(24, 'hours').valueOf()
-                    } else if (this.storageToggleRangeStr === '近7天') {
+                    } else if (this.storageToggleRangeStr === this.$t('近7天')) {
                         startTime = moment().subtract(7, 'days').valueOf()
                     }
                     list = [
@@ -919,11 +919,11 @@
              */
             toggleRange (dropdownRef, toggleRangeStr, idx, range) {
                 if (range === '1') {
-                    this[toggleRangeStr] = '1小时'
+                    this[toggleRangeStr] = this.$t('1小时')
                 } else if (range === '2') {
-                    this[toggleRangeStr] = '24小时'
+                    this[toggleRangeStr] = this.$t('24小时')
                 } else if (range === '3') {
-                    this[toggleRangeStr] = '近7天'
+                    this[toggleRangeStr] = this.$t('近7天')
                 }
 
                 this.$refs[dropdownRef].hide()

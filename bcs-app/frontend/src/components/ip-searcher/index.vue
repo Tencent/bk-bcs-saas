@@ -4,7 +4,7 @@
             <ul class="search-keys">
                 <template v-if="!isEdit && !disable && (!searchParams || !searchParams.length)">
                     <li class="placeholder">
-                        请输入IP，按Enter搜索
+                        {{$t('请输入IP，按Enter搜索')}}
                     </li>
                 </template>
                 <template v-else>
@@ -29,7 +29,7 @@
             </ul>
         </div>
         <div class="actions">
-            <bk-tooltip :content="'清空'" placement="top">
+            <bk-tooltip :content="$t('清空')" placement="top">
                 <template v-if="disable">
                     <a href="javascript:void(0)" class="btn clear-btn disable-btn" v-show="searchParams.length">
                         <i class="bk-icon icon-close"></i>
@@ -41,7 +41,7 @@
                     </a>
                 </template>
             </bk-tooltip>
-            <bk-tooltip :content="'搜索'" placement="top">
+            <bk-tooltip :content="$t('搜索')" placement="top">
                 <template v-if="disable">
                     <a href="javascript:void(0)" class="btn search-btn disable-btn">
                         <i class="bk-icon icon-search"></i>
@@ -55,7 +55,7 @@
             </bk-tooltip>
         </div>
         <div class="ip-searcher-footer" v-show="showTip && !disable">
-            <p class="placeholder">{{placeholder}}</p>
+            <p class="placeholder">{{placeholderRender}}</p>
         </div>
     </div>
 </template>
@@ -65,7 +65,7 @@
         props: {
             placeholder: {
                 type: String,
-                default: '多个IP以空格分开，按回车搜索'
+                default: ''
             },
             disable: {
                 type: Boolean,
@@ -83,7 +83,8 @@
                 curParams: {},
                 curInputValue: '',
                 showTip: false,
-                scrollNode: null
+                scrollNode: null,
+                placeholderRender: ''
             }
         },
         computed: {
@@ -92,6 +93,9 @@
                 const charLen = this.getCharLength(inputValue) + 1
                 return { width: charLen * 20 + 'px' }
             }
+        },
+        created () {
+            this.placeholderRender = this.placeholder || this.$t('多个IP以空格分开，按回车搜索')
         },
         mounted () {
             this.scrollNode = this.$refs.scrollNode

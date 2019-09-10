@@ -62,19 +62,19 @@ export default {
             deleteNodeNoticeList: [
                 {
                     id: 1,
-                    text: '当前节点上正在运行的容器会被调度到其它可用节点',
+                    text: this.$t('当前节点上正在运行的容器会被调度到其它可用节点'),
                     isChecked: false
                 },
                 {
                     id: 2,
-                    text: '清理容器服务系统组件',
+                    text: this.$t('清理容器服务系统组件'),
                     isChecked: false
                 }
             ],
             faultRemoveoticeList: [
                 {
                     id: 1,
-                    text: '仅删除节点的信息记录，需要手动清理节点及其服务',
+                    text: this.$t('仅删除节点的信息记录，需要手动清理节点及其服务'),
                     isChecked: false
                 }
             ],
@@ -184,7 +184,7 @@ export default {
             // 已经选中的 node 集合
             checkedNodes: {},
             isCheckCurPageAllNode: false,
-            dontAllowBatchMsg: '请选择节点',
+            dontAllowBatchMsg: this.$t('请选择节点'),
             batchDialogConf: {
                 isShow: false,
                 width: 400,
@@ -224,7 +224,7 @@ export default {
             const len = arr.length
             if (!len) {
                 this.allowBatch = false
-                this.dontAllowBatchMsg = '请选择节点'
+                this.dontAllowBatchMsg = this.$t('请选择节点')
                 return
             }
             this.allowBatch = true
@@ -275,7 +275,7 @@ export default {
                 params.ip = this.$route.query.inner_ip
                 this.ipSearchParams.splice(0, this.ipSearchParams.length, ...[{
                     id: 'ip',
-                    text: 'IP地址',
+                    text: this.$t('IP地址'),
                     value: params.ip,
                     valueArr: [params.ip]
                 }])
@@ -321,7 +321,7 @@ export default {
                     params.ip = this.$route.query.inner_ip
                     this.ipSearchParams.splice(0, this.ipSearchParams.length, ...[{
                         id: 'ip',
-                        text: 'IP地址',
+                        text: this.$t('IP地址'),
                         value: params.ip,
                         valueArr: [params.ip]
                     }])
@@ -367,7 +367,7 @@ export default {
                 })
 
                 if (!list.length) {
-                    this.dontAllowBatchMsg = '请选择节点'
+                    this.dontAllowBatchMsg = this.$t('请选择节点')
                 }
 
                 this.isCheckCurPageAllNode = list.length && list.every(item => this.checkedNodes[item.id])
@@ -816,7 +816,7 @@ export default {
             if (!len) {
                 this.$bkMessage({
                     theme: 'error',
-                    message: '请选择服务器'
+                    message: this.$t('请选择服务器')
                 })
                 return
             }
@@ -949,7 +949,9 @@ export default {
 
             this.reDelDialogConf.isShow = true
             this.reDelDialogConf.title = ' '
-            this.reDelDialogConf.content = `确认要强制删节点【${node.inner_ip}】？`
+            this.reDelDialogConf.content = this.$t(`确认要强制删除节点【{innerIp}】？`, {
+                innerIp: node.inner_ip
+            })
 
             this.curNode = Object.assign({}, node)
             this.curNodeIndex = index
@@ -1015,7 +1017,9 @@ export default {
 
             this.delDialogConf.isShow = true
             this.delDialogConf.title = ' '
-            this.delDialogConf.content = `确认要删除节点【${node.inner_ip}】？`
+            this.delDialogConf.content = this.$t(`确认要删除节点【{innerIp}】？`, {
+                innerIp: node.inner_ip
+            })
 
             this.curNode = Object.assign({}, node)
             this.curNodeIndex = index
@@ -1081,7 +1085,9 @@ export default {
 
             this.enableDialogConf.isShow = true
             this.enableDialogConf.title = ' '
-            this.enableDialogConf.content = `确认允许调度节点【${node.inner_ip}】？`
+            this.enableDialogConf.content = this.$t(`确认允许调度节点【{innerIp}】？`, {
+                innerIp: node.inner_ip
+            })
 
             this.curNode = Object.assign({}, node)
             this.curNodeIndex = index
@@ -1147,7 +1153,9 @@ export default {
 
             this.stopDialogConf.isShow = true
             this.stopDialogConf.title = ' '
-            this.stopDialogConf.content = `确认要停止调度节点【${node.inner_ip}】？`
+            this.stopDialogConf.content = this.$t(`确认要停止调度节点【{innerIp}】？`, {
+                innerIp: node.inner_ip
+            })
 
             this.curNode = Object.assign({}, node)
             this.curNodeIndex = index
@@ -1298,9 +1306,13 @@ export default {
             if (this.failStatus.includes(node.status)) {
                 this.removeDialogConf.isShow = true
                 this.removeDialogConf.title = ' '
-                this.removeDialogConf.content = `确认要删除节点【${node.inner_ip}】？`
+                this.removeDialogConf.content = this.$t(`确认要删除节点【{innerIp}】？`, {
+                    innerIp: node.inner_ip
+                })
             } else {
-                this.$refs.removeNodeDialog.title = `确定删除节点：${node.inner_ip}？`
+                this.$refs.removeNodeDialog.title = this.$t(`确认要删除节点【{innerIp}】？`, {
+                    innerIp: node.inner_ip
+                })
                 this.$refs.removeNodeDialog.show()
             }
         },
@@ -1345,7 +1357,7 @@ export default {
          */
         cancelDelNode () {
             setTimeout(() => {
-                this.$refs.removeNodeDialog.title = '确定删除节点？'
+                this.$refs.removeNodeDialog.title = this.$t('确定删除节点？')
             }, 300)
             this.curNode = null
             this.curNodeIndex = -1
@@ -1413,7 +1425,9 @@ export default {
 
             this.curNode = Object.assign({}, node)
             this.curNodeIndex = index
-            this.$refs.forceRemoveNodeDialog.title = `确定强制删除节点：${node.inner_ip}？`
+            this.$refs.forceRemoveNodeDialog.title = this.$t(`确认要强制删除节点【{innerIp}】？`, {
+                innerIp: node.inner_ip
+            })
             this.$refs.forceRemoveNodeDialog.show()
         },
 
@@ -1457,7 +1471,7 @@ export default {
          */
         cancelForceRemoveNode () {
             setTimeout(() => {
-                this.$refs.forceRemoveNodeDialog.title = '确定强制删除节点？'
+                this.$refs.forceRemoveNodeDialog.title = this.$t('确定强制删除节点？')
             }, 300)
             this.curNode = null
             this.curNodeIndex = -1
@@ -1484,7 +1498,9 @@ export default {
 
             this.curNode = Object.assign({}, node)
             this.curNodeIndex = index
-            this.$refs.faultRemoveDialog.title = `确定移除故障节点：${node.inner_ip}？`
+            this.$refs.faultRemoveDialog.title = this.$t(`确定移除故障节点：{innerIp}？`, {
+                innerIp: node.inner_ip
+            })
             this.$refs.faultRemoveDialog.show()
         },
 
@@ -1525,7 +1541,7 @@ export default {
          */
         cancelFaultRemove () {
             setTimeout(() => {
-                this.$refs.faultRemoveDialog.title = '确定移除故障节点？'
+                this.$refs.faultRemoveDialog.title = this.$t('确定移除故障节点？')
             }, 300)
             this.curNode = null
             this.curNodeIndex = -1
@@ -1553,8 +1569,11 @@ export default {
 
             this.schedulerDialogConf.isShow = true
             this.schedulerDialogConf.title = ' '
-            this.schedulerDialogConf.content = `确认要对节点【${node.inner_ip}】上的`
-                + `${this.curProject.kind === 1 ? 'Pod' : 'taskgroup'}进行迁移？`
+            this.schedulerDialogConf.content = this.isEn
+                ? 'Confirm that you want to migrate the '
+                    + `${this.curProject.kind === 1 ? 'Pod' : 'taskgroup'} on node【${node.inner_ip}】?`
+                : `确认要对节点【${node.inner_ip}】上的`
+                    + `${this.curProject.kind === 1 ? 'Pod' : 'taskgroup'}进行迁移？`
 
             this.curNode = Object.assign({}, node)
             this.curNodeIndex = index
@@ -1659,16 +1678,19 @@ export default {
             const len = Object.keys(this.checkedNodes).length
             let str = ''
             if (idx === '1') {
-                str = '允许调度'
+                str = this.$t('允许调度')
             } else if (idx === '2') {
-                str = '停止调度'
+                str = this.$t('停止调度')
             } else {
-                str = '删除'
+                str = this.$t('删除')
             }
             this.batchDialogConf.operateType = idx
             this.batchDialogConf.isShow = true
             this.batchDialogConf.title = ' '
-            this.batchDialogConf.content = `确定要对${len}个节点进行${str}操作？`
+            this.batchDialogConf.content = this.$t('确定要对{len}个节点进行{str}操作？', {
+                len: len,
+                str: str
+            })
         },
 
         /**

@@ -12,7 +12,7 @@
             <div v-else class="biz-app-instance-wrapper">
                 <div class="biz-app-instance-header">
                     <div class="header-item">
-                        <div class="key-label">主机名称：</div>
+                        <div class="key-label">{{$t('主机名称：')}}</div>
                         <bk-tooltip :delay="500" placement="bottom-start">
                             <div class="value-label">{{containerInfo.host_name || '--'}}</div>
                             <template slot="content">
@@ -21,7 +21,7 @@
                         </bk-tooltip>
                     </div>
                     <div class="header-item">
-                        <div class="key-label">主机IP：</div>
+                        <div class="key-label">{{$t('主机IP：')}}</div>
                         <bk-tooltip :delay="500" placement="bottom">
                             <div class="value-label">{{containerInfo.host_ip || '--'}}</div>
                             <template slot="content">
@@ -30,7 +30,7 @@
                         </bk-tooltip>
                     </div>
                     <div class="header-item">
-                        <div class="key-label">容器IP：</div>
+                        <div class="key-label">{{$t('容器IP：')}}</div>
                         <bk-tooltip :delay="500" placement="bottom">
                             <div class="value-label">{{containerInfo.container_ip || '--'}}</div>
                             <template slot="content">
@@ -39,7 +39,7 @@
                         </bk-tooltip>
                     </div>
                     <div class="header-item">
-                        <div class="key-label">容器ID：</div>
+                        <div class="key-label">{{$t('容器ID：')}}</div>
                         <bk-tooltip :delay="500" placement="bottom">
                             <div class="value-label">{{containerInfo.container_id || '--'}}</div>
                             <template slot="content">
@@ -48,7 +48,7 @@
                         </bk-tooltip>
                     </div>
                     <div class="header-item">
-                        <div class="key-label">镜像：</div>
+                        <div class="key-label">{{$t('镜像：')}}</div>
                         <bk-tooltip :delay="500" placement="bottom">
                             <div class="value-label">{{containerInfo.image || '--'}}</div>
                             <template slot="content">
@@ -57,7 +57,7 @@
                         </bk-tooltip>
                     </div>
                     <div class="header-item">
-                        <div class="key-label">网络模式：</div>
+                        <div class="key-label">{{$t('网络模式：')}}</div>
                         <bk-tooltip :delay="500" placement="bottom">
                             <div class="value-label">{{containerInfo.network_mode || '--'}}</div>
                             <template slot="content">
@@ -70,13 +70,13 @@
                     <div class="biz-app-instance-chart">
                         <div class="part top-left">
                             <div class="info">
-                                <div class="left">CPU使用率</div>
+                                <div class="left">{{$t('CPU使用率')}}</div>
                             </div>
                             <chart :options="cpuLine" ref="containerCpuLine" auto-resize></chart>
                         </div>
                         <div class="part top-right">
                             <div class="info">
-                                <div class="left">内存</div>
+                                <div class="left">{{$t('内存')}}</div>
                             </div>
                             <chart :options="memLine" ref="containerMemLine" auto-resize></chart>
                         </div>
@@ -84,13 +84,13 @@
                     <div class="biz-app-instance-chart">
                         <div class="part bottom-left">
                             <div class="info">
-                                <div class="left">网络</div>
+                                <div class="left">{{$t('网络')}}</div>
                             </div>
                             <chart :options="netLine" ref="containerNetLine" auto-resize></chart>
                         </div>
                         <div class="part">
                             <div class="info">
-                                <div class="left">磁盘IO</div>
+                                <div class="left">{{$t('磁盘IO')}}</div>
                             </div>
                             <chart :options="diskLine" ref="containerDiskLine" auto-resize></chart>
                         </div>
@@ -98,7 +98,7 @@
                 </div>
                 <div class="biz-app-container-table-wrapper">
                     <bk-tab :type="'fill'" :active-name="tabActiveName" @tab-changed="tabChanged">
-                        <bk-tabpanel name="ports" title="端口映射">
+                        <bk-tabpanel name="ports" :title="$t('端口映射')">
                             <table class="bk-table has-table-hover biz-table biz-app-container-ports-table">
                                 <thead>
                                     <tr>
@@ -137,7 +137,7 @@
                                         <tr>
                                             <td colspan="4">
                                                 <div class="bk-message-box no-data">
-                                                    <p class="message empty-message">该应用的网络模式无需端口映射</p>
+                                                    <p class="message empty-message">{{$t('该应用的网络模式无需端口映射')}}</p>
                                                 </div>
                                             </td>
                                         </tr>
@@ -145,7 +145,7 @@
                                 </tbody>
                             </table>
                         </bk-tabpanel>
-                        <bk-tabpanel name="commands" title="命令">
+                        <bk-tabpanel name="commands" :title="$t('命令')">
                             <table class="bk-table has-table-hover biz-table biz-app-container-commands-table">
                                 <thead>
                                     <tr>
@@ -180,7 +180,7 @@
                                         <tr>
                                             <td colspan="2">
                                                 <div class="bk-message-box no-data">
-                                                    <p class="message empty-message">无数据</p>
+                                                    <p class="message empty-message">{{$t('无数据')}}</p>
                                                 </div>
                                             </td>
                                         </tr>
@@ -188,7 +188,7 @@
                                 </tbody>
                             </table>
                         </bk-tabpanel>
-                        <bk-tabpanel name="volumes" title="挂载卷">
+                        <bk-tabpanel name="volumes" :title="$t('挂载卷')">
                             <table class="bk-table has-table-hover biz-table biz-app-container-volumes-table">
                                 <thead>
                                     <tr>
@@ -225,7 +225,7 @@
                                         <tr>
                                             <td colspan="3">
                                                 <div class="bk-message-box no-data">
-                                                    <p class="message empty-message">无数据</p>
+                                                    <p class="message empty-message">{{$t('无数据')}}</p>
                                                 </div>
                                             </td>
                                         </tr>
@@ -233,7 +233,7 @@
                                 </tbody>
                             </table>
                         </bk-tabpanel>
-                        <bk-tabpanel name="env_args" title="环境变量">
+                        <bk-tabpanel name="env_args" :title="$t('环境变量')">
                             <table class="bk-table has-table-hover biz-table biz-app-container-env-table">
                                 <thead>
                                     <tr>
@@ -268,7 +268,7 @@
                                         <tr>
                                             <td colspan="2">
                                                 <div class="bk-message-box no-data">
-                                                    <p class="message empty-message">无数据</p>
+                                                    <p class="message empty-message">{{$t('无数据')}}</p>
                                                 </div>
                                             </td>
                                         </tr>
@@ -276,7 +276,7 @@
                                 </tbody>
                             </table>
                         </bk-tabpanel>
-                        <bk-tabpanel name="health_check" title="健康检查">
+                        <bk-tabpanel name="health_check" :title="$t('健康检查')">
                             <table class="bk-table has-table-hover biz-table biz-app-container-health-table">
                                 <thead>
                                     <tr>
@@ -313,7 +313,7 @@
                                         <tr>
                                             <td colspan="3">
                                                 <div class="bk-message-box no-data">
-                                                    <p class="message empty-message">无数据</p>
+                                                    <p class="message empty-message">{{$t('无数据')}}</p>
                                                 </div>
                                             </td>
                                         </tr>
@@ -321,7 +321,7 @@
                                 </tbody>
                             </table>
                         </bk-tabpanel>
-                        <bk-tabpanel name="labels" title="标签">
+                        <bk-tabpanel name="labels" :title="$t('标签')">
                             <table class="bk-table has-table-hover biz-table biz-app-container-label-table">
                                 <thead>
                                     <tr>
@@ -356,7 +356,7 @@
                                         <tr>
                                             <td colspan="2">
                                                 <div class="bk-message-box no-data">
-                                                    <p class="message empty-message">无数据</p>
+                                                    <p class="message empty-message">{{$t('无数据')}}</p>
                                                 </div>
                                             </td>
                                         </tr>
@@ -364,7 +364,7 @@
                                 </tbody>
                             </table>
                         </bk-tabpanel>
-                        <bk-tabpanel name="resources" title="资源限制">
+                        <bk-tabpanel name="resources" :title="$t('资源限制')">
                             <table class="bk-table has-table-hover biz-table biz-app-container-resource-table">
                                 <thead>
                                     <tr>
@@ -389,7 +389,7 @@
                                         <tr>
                                             <td colspan="2">
                                                 <div class="bk-message-box no-data">
-                                                    <p class="message empty-message">无数据</p>
+                                                    <p class="message empty-message">{{$t('无数据')}}</p>
                                                 </div>
                                             </td>
                                         </tr>
@@ -529,7 +529,7 @@
                 const ref = this.$refs.containerCpuLine
                 try {
                     ref && ref.showLoading({
-                        text: '正在加载',
+                        text: this.$t('正在加载'),
                         color: '#30d878',
                         maskColor: 'rgba(255, 255, 255, 0.8)'
                     })
@@ -607,7 +607,7 @@
                 const ref = this.$refs.containerMemLine
                 try {
                     ref && ref.showLoading({
-                        text: '正在加载',
+                        text: this.$t('正在加载'),
                         color: '#30d878',
                         maskColor: 'rgba(255, 255, 255, 0.8)'
                     })
@@ -686,7 +686,7 @@
                 const ref = this.$refs.containerNetLine
                 try {
                     ref && ref.showLoading({
-                        text: '正在加载',
+                        text: this.$t('正在加载'),
                         color: '#30d878',
                         maskColor: 'rgba(255, 255, 255, 0.8)'
                     })
@@ -762,18 +762,18 @@
                     emptyData.push(0)
                 })
 
-                charOpts.legend.data.push('发送')
-                charOpts.legend.data.push('接收')
+                charOpts.legend.data.push(this.$t('发送'))
+                charOpts.legend.data.push(this.$t('接收'))
 
                 charOpts.series.push(
                     {
                         type: 'line',
-                        name: '发送',
+                        name: this.$t('发送'),
                         data: txbyteData
                     },
                     {
                         type: 'line',
-                        name: '接收',
+                        name: this.$t('接收'),
                         data: rxbyteData
                     }
                 )
@@ -803,7 +803,7 @@
                 const ref = this.$refs.containerDiskLine
                 try {
                     ref && ref.showLoading({
-                        text: '正在加载',
+                        text: this.$t('正在加载'),
                         color: '#30d878',
                         maskColor: 'rgba(255, 255, 255, 0.8)'
                     })

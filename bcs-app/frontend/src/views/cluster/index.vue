@@ -188,7 +188,7 @@
                                 <p class="status-text">{{$t('初始化失败，请重试')}}</p>
                                 <div class="status-opera">
                                     <a href="javascript:void(0);" class="bk-text-button" @click.prevent="showLog(cluster)">{{$t('查看日志')}}</a> |
-                                    <a href="javascript:void(0);" class="bk-text-button" @click="reInitializationCluster(cluster, clusterIndex)">重新初始化</a> <!-- |
+                                    <a href="javascript:void(0);" class="bk-text-button" @click="reInitializationCluster(cluster, clusterIndex)">{{$t('重新初始化')}}</a> <!-- |
                                     <a href="javascript:void(0);" class="bk-text-button">修改参数</a> -->
                                 </div>
                             </div>
