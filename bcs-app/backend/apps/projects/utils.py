@@ -15,6 +15,9 @@ import logging
 
 from backend.components import cc
 from backend.apps.depot.api import create_project_path_by_api
+from backend.apps.configuration.init_data import init_template
+from backend.utils.notify import notify_manager
+from backend.apps.projects.drivers.base import BaseDriver
 
 logger = logging.getLogger(__name__)
 
@@ -28,13 +31,30 @@ def backend_create_depot_path(request, project_id, pre_cc_app_id):
         logger.error("创建项目仓库路径失败，详细信息: %s" % err)
 
 
-def start_project_task(request, project_id, data, pre_cc_app_id):
-    backend_create_depot_path(request, project_id, pre_cc_app_id)
-
-
 def get_application_name(request):
     return cc.get_application_name(request.user.username, request.project.cc_app_id)
 
 
 def get_app_by_user_role(request):
     return cc.get_app_by_user_role(request.user.username)
+
+
+def start_tasks_for_project(request, project_id, data):
+    backend_create_depot_path(request, project_id, request.project.cc_app_id)
+    expected_kind = data.get('kind')
+    # 当需要变动调度类型，并且和先前不一样时，需要初始化模板
+    if (not expected_kind) or (expected_kind == request.project.kind):
+        return
+    logger.info(f'init_template [update] project_id: {project_id}')
+    init_template.delay(
+        project_id,
+        request.project.english_name,
+        expected_kind,
+        request.user.token.access_token,
+        request.user.username
+    )
+    # helm handler
+    BaseDriver(expected_kind).driver.backend_create_helm_info(project_id)
+
+    notify_manager.delay(
+        f"用户[{request.user.username}]在项目[{request.project.project_name}]下启用了容器服务，请关注")

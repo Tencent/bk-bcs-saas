@@ -306,6 +306,8 @@ class GetInstances(object):
                     instance_info[key]["backend_status"] = "BackendNormal"
                     update_create_error_id_list.append(instance_info[key]["id"])
                 val.pop("version", None)
+                # 针对模板集创建的应用更新时间以数据库为准，否则，从api中直接获取
+                val.pop('update_at', None)
                 instance_info[key].update(val)
             else:
                 val['namespace_id'] = ns_name_id.get(val.get('namespace'))
