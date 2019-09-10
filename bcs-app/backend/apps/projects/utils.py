@@ -39,7 +39,7 @@ def get_app_by_user_role(request):
     return cc.get_app_by_user_role(request.user.username)
 
 
-def start_tasks_for_project(request, project_id, data):
+def update_bcs_service_for_project(request, project_id, data):
     backend_create_depot_path(request, project_id, request.project.cc_app_id)
     expected_kind = data.get('kind')
     # 当需要变动调度类型，并且和先前不一样时，需要初始化模板

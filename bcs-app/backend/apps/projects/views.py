@@ -29,7 +29,7 @@ from backend.utils.error_codes import error_codes
 from backend.utils.renderers import BKAPIRenderer
 from backend.utils.cache import region
 from backend.apps.configuration.init_data import init_template
-from backend.apps.projects.utils import start_tasks_for_project, get_app_by_user_role, get_application_name
+from backend.apps.projects.utils import update_bcs_service_for_project, get_app_by_user_role, get_application_name
 from backend.apps.projects.drivers.base import BaseDriver
 from backend.utils.basic import normalize_datetime
 
@@ -149,9 +149,6 @@ class Projects(viewsets.ViewSet):
         data = self.validate_update_project_data(request)
         access_token = request.user.token.access_token
         data['updator'] = request.user.username
-        # 编辑之前项目绑定的业务和调度类型，用户后面判断是否进行相应的操作
-        pre_cc_app_id = request.project.cc_app_id
-        pre_kind = request.project.kind
 
         # 添加操作日志
         ual_client = client.UserActivityLogClient(
@@ -174,8 +171,8 @@ class Projects(viewsets.ViewSet):
 
         # 主动令缓存失效
         self.invalid_project_cache(project_id)
-        # 触发后台任务
-        start_tasks_for_project(request, project_id, data)
+        # 创建或更新依赖服务，包含data、template、helm
+        update_bcs_service_for_project(request, project_id, data)
 
         return Response(project_data)
 
