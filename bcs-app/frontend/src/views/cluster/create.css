@@ -95,6 +95,22 @@
             text-align: right;
         }
 
+        &.en {
+           >label {
+               width: 170px;
+            }
+
+            .form-item-inner {
+                .bk-form-radio {
+                    width: 140px;
+                }
+            }
+
+            textarea {
+                width: 720px;
+            }
+        }
+
         .cluster-name {
             width: 310px;
         }
