@@ -23,7 +23,6 @@ from rest_framework.renderers import BrowsableAPIRenderer
 
 from backend.accounts import bcs_perm
 from backend.apps.constants import ProjectKind
-from backend.bcs_k8s.bke_client.client import get_cluster_proper_kubectl
 from backend.components.bcs.k8s import K8SClient
 from backend.components.bcs.mesos import MesosClient
 from backend.utils.cache import rd_client
@@ -64,8 +63,7 @@ class WebConsoleSession(views.APIView):
                 f"{message}，请检查 Deployment【kube-system/bcs-agent】是否正常{settings.COMMON_EXCEPTION_MSG}")
 
         # kubectl版本区别
-        _, version = get_cluster_proper_kubectl(request.user.token.access_token, project_id, cluster_id)
-        kubectld_version = get_kubectld_version(version)
+        kubectld_version = get_kubectld_version(client.version)
 
         container_id = slz.validated_data.get('container_id')
         if container_id:

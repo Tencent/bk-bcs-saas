@@ -44,18 +44,22 @@ class K8SClient(BCSClientBase):
     """
 
     @cached_property
-    def k8s_raw_client(self):
+    def context(self):
+        """BCS API Context信息
+        """
         context = {}
         cluster_info = self.query_cluster()
         context.update(cluster_info)
-
         credentials = self.get_client_credentials(cluster_info['id'])
         context.update(credentials)
+        return context
 
+    @cached_property
+    def k8s_raw_client(self):
         configure = client.Configuration()
         configure.verify_ssl = False
-        configure.host = f"{self._bcs_server_host}{context['server_address_path']}".rstrip('/')
-        configure.api_key = {"authorization": f"Bearer {context['user_token']}"}
+        configure.host = f"{self._bcs_server_host}{self.context['server_address_path']}".rstrip('/')
+        configure.api_key = {"authorization": f"Bearer {self.context['user_token']}"}
         api_client = client.ApiClient(configure)
         return api_client
 
@@ -63,6 +67,14 @@ class K8SClient(BCSClientBase):
     def hpa_client(self):
         api_client = client.AutoscalingV2beta2Api(self.k8s_raw_client)
         return api_client
+
+    @property
+    def version(self):
+        """获取k8s版本, 使用git_version字段
+        """
+        _client = client.VersionApi(self.k8s_raw_client)
+        code = _client.get_code()
+        return code.git_version
 
     @property
     def storage_host(self):

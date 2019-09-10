@@ -20,7 +20,6 @@ from logstash.formatter import LogstashFormatterBase
 
 from backend.utils.log import LogstashRedisHandler
 from backend.web_console import constants
-from backend.components.utils import http_post
 
 logger = logging.getLogger(__name__)
 
@@ -122,13 +121,15 @@ def _setup_logging(verbose=None, filename=None):
     logging.basicConfig(format=LOG_FORMAT, level=level, filename=filename)
 
 
-def get_kubectld_version(cluster_version):
-    if not cluster_version:
+def get_kubectld_version(version):
+    """获取 kubectl 镜像版本
+    """
+    if not version:
         return constants.DEFAULT_KUBECTLD_VERSION
 
     for kubectld, patterns in constants.KUBECTLD_VERSION.items():
         for pattern in patterns:
-            if pattern.match(cluster_version):
+            if pattern.match(version):
                 return kubectld
 
     return constants.DEFAULT_KUBECTLD_VERSION
