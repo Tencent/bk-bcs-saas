@@ -465,7 +465,8 @@ class CCHostListViewSet(NodeBase, NodeHandler, viewsets.ViewSet):
                     continue
                 item_info = gse_host_status_map[item]
                 item_exist = item_info.get('exist') or item_info.get('bk_agent_alive')
-                exist = exist if exist > 0 else item_exist
+                # 防止出现None情况
+                exist = exist if exist > 0 else (item_exist or exist)
             # render agent status
             cc_host_map[ips]['agent'] = exist if exist else -1
 

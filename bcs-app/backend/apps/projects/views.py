@@ -120,7 +120,10 @@ class Projects(viewsets.ViewSet):
     def info(self, request, project_id):
         """单个项目信息
         """
-        data = request.project
+        project_resp = paas_cc.get_project(request.user.token.access_token, project_id)
+        if project_resp.get('code') != ErrorCode.NoError:
+            raise error_codes.APIError(f'not found project info, {project_resp.get("message")}')
+        data = project_resp['data']
         data['created_at'], data['updated_at'] = self.normalize_create_update_time(
             data['created_at'], data['updated_at'])
         # 添加业务名称
