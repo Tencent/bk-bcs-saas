@@ -52,7 +52,7 @@
                 </ul>
                 <ul class="bk-searcher-dropdown-list" v-else>
                     <li>
-                        <a href="javascript:void(0);">没有数据</a>
+                        <a href="javascript:void(0);">{{$t('没有数据')}}</a>
                     </li>
                 </ul>
             </div>

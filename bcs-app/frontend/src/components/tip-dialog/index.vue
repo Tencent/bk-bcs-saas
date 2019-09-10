@@ -13,11 +13,11 @@
                     <div class="logo">
                         <i :class="icon"></i>
                     </div>
-                    <h2 class="dialog-title">{{title}}</h2>
+                    <h2 class="dialog-title">{{titleRender}}</h2>
                     <span v-if="showClose" class="close-btn" title="关闭" @click="cancel">╳</span>
                 </div>
                 <div class="dialog-content">
-                    <strong>{{subTitle}}</strong>
+                    <strong>{{subTitleRender}}</strong>
                     <ul class="update-list">
                         <li v-for="(item, index) of noticeList" :key="index">
                             <label :class="['bk-form-checkbox']">
@@ -29,20 +29,20 @@
                     </ul>
                     <template v-if="canConfirm">
                         <div class="dialog-action" v-if="!isConfirming">
-                            <a href="javascript:void(0)" class="bk-button bk-primary bk-button-large dialog-btn" @click="confirm">{{confirmBtnText}}</a>
-                            <a href="javascript:void(0)" class="bk-button bk-default bk-button-large dialog-btn" @click="cancel">{{cancelBtnText}}</a>
+                            <a href="javascript:void(0)" class="bk-button bk-primary bk-button-large dialog-btn" @click="confirm">{{confirmBtnTextRender}}</a>
+                            <a href="javascript:void(0)" class="bk-button bk-default bk-button-large dialog-btn" @click="cancel">{{cancelBtnTextRender}}</a>
                         </div>
                         <div class="dialog-action" v-else>
-                            <a href="javascript:void(0)" class="bk-button bk-primary bk-button-large dialog-btn disabled">{{confirmingBtnText}}</a>
-                            <a href="javascript:void(0)" class="bk-button bk-default bk-button-large dialog-btn disabled">{{cancelingBtnText}}</a>
+                            <a href="javascript:void(0)" class="bk-button bk-primary bk-button-large dialog-btn disabled">{{confirmingBtnTextRender}}</a>
+                            <a href="javascript:void(0)" class="bk-button bk-default bk-button-large dialog-btn disabled">{{cancelingBtnTextRender}}</a>
                         </div>
                     </template>
                     <template v-else>
                         <div class="dialog-action">
                             <bk-tooltip content="请确认以上内容，才可操作" placement="top">
-                                <a href="javascript:void(0)" class="bk-button bk-primary bk-button-large dialog-btn disabled">{{confirmBtnText}}</a>
+                                <a href="javascript:void(0)" class="bk-button bk-primary bk-button-large dialog-btn disabled">{{confirmBtnTextRender}}</a>
                             </bk-tooltip>
-                            <a href="javascript:void(0)" class="bk-button bk-default bk-button-large dialog-btn" @click="cancel" style="margin-left: 10px;">{{cancelBtnText}}</a>
+                            <a href="javascript:void(0)" class="bk-button bk-default bk-button-large dialog-btn" @click="cancel" style="margin-left: 10px;">{{cancelBtnTextRender}}</a>
                         </div>
                     </template>
                 </div>
@@ -64,11 +64,11 @@
             },
             title: {
                 type: String,
-                default: '提示'
+                default: ''
             },
             subTitle: {
                 type: String,
-                default: '提示'
+                default: ''
             },
             checkList: {
                 type: Array,
@@ -78,19 +78,19 @@
             },
             confirmBtnText: {
                 type: String,
-                default: '确定'
+                default: ''
             },
             confirmingBtnText: {
                 type: String,
-                default: '执行中'
+                default: ''
             },
             cancelBtnText: {
                 type: String,
-                default: '取消'
+                default: ''
             },
             cancelingBtnText: {
                 type: String,
-                default: '取消中'
+                default: ''
             },
             confirmCallback: {
                 type: Function
@@ -113,7 +113,13 @@
                     isShow: false,
                     width: 600
                 },
-                noticeList: []
+                noticeList: [],
+                titleRender: '',
+                subTitleRender: '',
+                confirmBtnTextRender: '',
+                confirmingBtnTextRender: '',
+                cancelBtnTextRender: '',
+                cancelingBtnTextRender: ''
             }
         },
         computed: {
@@ -131,6 +137,12 @@
                 item.isNeedCheck = item.isChecked
             })
             this.noticeList = JSON.parse(JSON.stringify(this.checkList))
+            this.titleRender = this.title || this.$t('提示')
+            this.subTitleRender = this.subTitle || this.$t('提示')
+            this.confirmBtnTextRender = this.confirmBtnText || this.$t('确定')
+            this.confirmingBtnTextRender = this.confirmingBtnText || this.$t('执行中')
+            this.cancelBtnTextRender = this.cancelBtnText || this.$t('取消')
+            this.cancelingBtnTextRender = this.cancelingBtnText || this.$t('取消中')
         },
         methods: {
             show () {
@@ -176,5 +188,5 @@
     }
 </script>
 <style scoped lang="postcss">
-    @import './index.css'
+    @import './index.css';
 </style>
