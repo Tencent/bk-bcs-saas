@@ -7,7 +7,7 @@
                 </button>
                 <ul class="bk-dropdown-list" slot="dropdown-content">
                     <li class="dropdown-item">
-                        <a href="javascript:;" v-for="scopeItem of localScopeList" :key="scopeItem.id" @click="handleSechScope(scopeItem)">{{scopeItem.name}}</a>
+                        <a href="javascript:;" v-for="scopeItem of localScopeList" :title="scopeItem.name" :key="scopeItem.id" @click="handleSechScope(scopeItem)">{{scopeItem.name}}</a>
                     </li>
                 </ul>
             </bk-dropdown-menu>
