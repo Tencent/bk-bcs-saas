@@ -17,12 +17,12 @@
                 <div class="biz-panel-header">
                     <div class="left">
                         <button class="bk-button bk-default" @click.stop.prevent="removeConfigmaps" v-if="curPageData.length">
-                            <span>批量删除</span>
+                            <span>{{$t('批量删除')}}</span>
                         </button>
                     </div>
                     <div class="right">
                         <bk-data-searcher
-                            :placeholder="'输入名称或命名空间，按Enter搜索'"
+                            :placeholder="$t('输入名称或命名空间，按Enter搜索')"
                             :scope-list="searchScopeList"
                             :search-key.sync="searchKeyword"
                             :search-scope.sync="searchScope"
@@ -47,14 +47,14 @@
                                                 @click="toggleCheckCurPage" />
                                         </label>
                                     </th>
-                                    <th style="width: 300px;">名称</th>
-                                    <th style="width: 300px;">所属集群</th>
-                                    <th style="width: 300px;">命名空间</th>
-                                    <th style="width: 150px">来源</th>
-                                    <th style="width: 300px;">创建时间</th>
-                                    <th style="width: 300px;">更新时间</th>
-                                    <th style="width: 300px;">更新人</th>
-                                    <th style="width: 100px">操作</th>
+                                    <th style="min-width: 200px;">{{$t('名称')}}</th>
+                                    <th style="min-width: 130px;">{{$t('所属集群')}}</th>
+                                    <th style="min-width: 130px;">{{$t('命名空间')}}</th>
+                                    <th style="min-width: 130px">{{$t('来源')}}</th>
+                                    <th style="min-width: 130px;">{{$t('创建时间')}}</th>
+                                    <th style="min-width: 130px;">{{$t('更新时间')}}</th>
+                                    <th style="min-width: 130px;">{{$t('更新人')}}</th>
+                                    <th style="min-width: 130px">{{$t('操作')}}</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -104,14 +104,14 @@
                                             {{configmap.updator || '--'}}
                                         </td>
                                         <td>
-                                            <li style="width: 100px;">
-                                                <span v-if="configmap.can_update" @click.stop="updateConfigmap(configmap)" class="biz-operate">更新</span>
+                                            <li>
+                                                <span v-if="configmap.can_update" @click.stop="updateConfigmap(configmap)" class="biz-operate">{{$t('更新')}}</span>
                                                 <bk-tooltip :content="configmap.can_update_msg" v-else placement="left">
-                                                    <span class="biz-not-operate">更新</span>
+                                                    <span class="biz-not-operate">{{$t('更新')}}</span>
                                                 </bk-tooltip>
-                                                <span v-if="configmap.can_delete" @click.stop="removeConfigmap(configmap)" class="biz-operate">删除</span>
-                                                <bk-tooltip :content="configmap.can_delete_msg || '不可删除'" v-else placement="left">
-                                                    <span class="biz-not-operate">删除</span>
+                                                <span v-if="configmap.can_delete" @click.stop="removeConfigmap(configmap)" class="biz-operate">{{$t('删除')}}</span>
+                                                <bk-tooltip :content="configmap.can_delete_msg || $t('不可删除')" v-else placement="left">
+                                                    <span class="biz-not-operate">{{$t('删除')}}</span>
                                                 </bk-tooltip>
                                             </li>
                                         </td>
@@ -122,7 +122,7 @@
                                         <td colspan="8">
                                             <div class="biz-app-list">
                                                 <div class="bk-message-box">
-                                                    <p class="message empty-message" v-if="!isInitLoading">无数据</p>
+                                                    <p class="message empty-message" v-if="!isInitLoading">{{$t('无数据')}}</p>
                                                 </div>
                                             </div>
                                         </td>
@@ -133,6 +133,7 @@
                     </div>
                     <div class="biz-page-wrapper" v-if="pageConf.total">
                         <bk-page-counter
+                            :is-en="isEn"
                             :total="pageConf.total"
                             :page-size="pageConf.pageSize"
                             @change="changePageSize">
@@ -142,7 +143,7 @@
                             :total-page="pageConf.totalPage"
                             @page-change="pageChangeHandler">
                         </bk-paging>
-                        <div class="already-selected-nums" v-if="alreadySelectedNums">已选{{alreadySelectedNums}}条</div>
+                        <div class="already-selected-nums" v-if="alreadySelectedNums">{{$t('已选')}} {{alreadySelectedNums}} {{$t('条')}}</div>
                     </div>
                 </div>
             </template>
@@ -157,8 +158,8 @@
                     <table class="bk-table biz-data-table has-table-bordered">
                         <thead>
                             <tr>
-                                <th style="width: 270px;">键</th>
-                                <th>值<a href="javascript:void(0)" v-if="curConfigmapKeyList.length" class="bk-text-button display-text-btn" @click.stop.prevent="showKeyValue">{{isShowKeyValue ? '隐藏' : '明文显示'}}</a></th>
+                                <th style="width: 270px;">{{$t('键')}}</th>
+                                <th>{{$t('值')}}<a href="javascript:void(0)" v-if="curConfigmapKeyList.length" class="bk-text-button display-text-btn" @click.stop.prevent="showKeyValue">{{isShowKeyValue ? $t('隐藏') : $t('明文显示')}}</a></th>
                             </tr>
                         </thead>
                         <tbody>
@@ -173,14 +174,14 @@
                             </template>
                             <template v-else>
                                 <tr>
-                                    <td colspan="2"><p style="padding: 10px; text-align: center;">无数据</p></td>
+                                    <td colspan="2"><p style="padding: 10px; text-align: center;">{{$t('无数据')}}</p></td>
                                 </tr>
                             </template>
                         </tbody>
                     </table>
 
                     <div class="actions">
-                        <button class="show-labels-btn bk-button bk-button-small bk-primary">显示标签</button>
+                        <button class="show-labels-btn bk-button bk-button-small bk-primary">{{$t('显示标签')}}</button>
                     </div>
 
                     <div class="point-box">
@@ -193,7 +194,7 @@
                             </ul>
                         </template>
                         <template v-else>
-                            <p class="biz-no-data">无数据</p>
+                            <p class="biz-no-data">{{$t('无数据')}}</p>
                         </template>
                     </div>
                 </div>
@@ -208,7 +209,7 @@
                     <div v-bkloading="{ isLoading: isUpdateLoading }">
                         <div class="bk-form-item">
                             <div class="bk-form-item" style="margin-bottom: 20px;">
-                                <label class="bk-label">名称：</label>
+                                <label class="bk-label">{{$t('名称')}}：</label>
                                 <div class="bk-form-content" style="margin-left: 105px;">
                                     <input
                                         type="text"
@@ -219,7 +220,7 @@
                                         v-model="curConfigmapName" />
                                 </div>
                             </div>
-                            <label class="bk-label">键：</label>
+                            <label class="bk-label">{{$t('键')}}：</label>
                             <div class="bk-form-content" style="margin-left: 105px;">
                                 <div class="biz-list-operation">
                                     <div class="item" v-for="(data, index) in configmapKeyList" :key="index">
@@ -227,7 +228,7 @@
                                             :class="['bk-button', { 'bk-primary': curKeyIndex === index }]"
                                             v-if="!data.isEdit"
                                             @click.stop.prevent="setCurKey(data, index)">
-                                            {{data.key || '未命名'}}
+                                            {{data.key || $t('未命名')}}
                                         </button>
                                         <bk-input
                                             type="text"
@@ -242,7 +243,7 @@
                                         <span class="bk-icon icon-edit" v-show="!data.isEdit" @click.stop.prevent="editKey(data, index)"></span>
                                         <span class="bk-icon icon-close" v-show="!data.isEdit" @click.stop.prevent="removeKey(data, index)"></span>
                                     </div>
-                                    <bk-tooltip ref="keyTooltip" :content="'添加Key'" placement="top">
+                                    <bk-tooltip ref="keyTooltip" :content="$t('添加Key')" placement="top">
                                         <button class="bk-button bk-default is-outline is-icon" @click.stop.prevent="addKey">
                                             <i class="bk-icon icon-plus"></i>
                                         </button>
@@ -252,36 +253,36 @@
                         </div>
                         <template v-if="curKeyParams">
                             <div class="bk-form-item" style="margin-top: 0;" v-if="currentView === 'mesosService'">
-                                <label class="bk-label">值来源：</label>
+                                <label class="bk-label">{{$t('值来源')}}：</label>
                                 <div class="bk-form-content" style="margin-left: 105px;">
                                     <label class="bk-form-radio">
                                         <input type="radio" name="key-type" value="file" v-model="curKeyParams.type">
-                                        <i class="bk-radio-text">在线编辑</i>
+                                        <i class="bk-radio-text">{{$t('在线编辑')}}</i>
                                     </label>
                                     <label class="bk-form-radio">
                                         <input type="radio" name="key-type" value="http" v-model="curKeyParams.type">
-                                        <i class="bk-radio-text">仓库获取</i>
+                                        <i class="bk-radio-text">{{$t('仓库获取')}}</i>
                                     </label>
                                 </div>
                             </div>
                             <div class="bk-form-item" style="margin-top: 13px;">
-                                <label class="bk-label">值：</label>
+                                <label class="bk-label">{{$t('值')}}：</label>
                                 <div class="bk-form-content" style="margin-left: 105px;" v-if="currentView === 'k8sService'">
-                                    <textarea class="bk-form-textarea" style="height: 200px;" v-model="curKeyParams.content" :placeholder="'请输入键' + curKeyParams.key + '的内容'"></textarea>
+                                    <textarea class="bk-form-textarea" style="height: 200px;" v-model="curKeyParams.content" :placeholder="$t('请输入键') + curKeyParams.key + $t('的内容')"></textarea>
                                 </div>
                                 <div class="bk-form-content" style="margin-left: 105px;" v-else>
-                                    <textarea class="bk-form-textarea" style="height: 200px;" v-model="curKeyParams.content" :placeholder="'请输入键' + curKeyParams.key + '的内容'" v-if="curKeyParams.type === 'file'"></textarea>
-                                    <textarea class="bk-form-textarea" style="height: 200px;" v-model="curKeyParams.content" :placeholder="'请输入仓库中配置文件的相对路径'" v-else></textarea>
+                                    <textarea class="bk-form-textarea" style="height: 200px;" v-model="curKeyParams.content" :placeholder="$t('请输入键') + curKeyParams.key + $t('的内容')" v-if="curKeyParams.type === 'file'"></textarea>
+                                    <textarea class="bk-form-textarea" style="height: 200px;" v-model="curKeyParams.content" :placeholder="$t('请输入仓库中配置文件的相对路径')" v-else></textarea>
                                 </div>
-                                <label style="margin-left: 105px; font-size: 14px; color: #c3cdd7;" v-if="currentView === 'mesosService' && curKeyParams.type === 'file'">实例化时会将值的内容做base64编码</label>
+                                <label style="margin-left: 105px; font-size: 14px; color: #c3cdd7;" v-if="currentView === 'mesosService' && curKeyParams.type === 'file'">{{$t('实例化时会将值的内容做base64编码')}}</label>
                             </div>
                         </template>
                         <div class="action-inner" style="margin-top: 20px; margin-left: 105px;">
                             <button type="button" class="bk-dialog-btn bk-dialog-btn-confirm bk-btn-primary" @click="submitUpdateConfigmap">
-                                保存
+                                {{$t('保存')}}
                             </button>
                             <button type="button" class="bk-dialog-btn bk-dialog-btn-cancel" @click="cancleUpdateConfigmap">
-                                取消
+                                {{$t('取消')}}
                             </button>
                         </div>
                     </div>
@@ -297,7 +298,7 @@
                 @cancel="batchDialogConfig.isShow = false">
                 <div slot="content">
                     <div class="biz-batch-wrapper">
-                        <p class="batch-title">确定要删除以下Configmap？</p>
+                        <p class="batch-title">{{$t('确定要删除以下Configmap？')}}</p>
                         <ul class="batch-list">
                             <li v-for="(item, index) of batchDialogConfig.list" :key="index" :title="item">{{item}}</li>
                         </ul>
@@ -363,6 +364,9 @@
             }
         },
         computed: {
+            isEn () {
+                return this.$store.state.isEn
+            },
             isCheckCurPageAll () {
                 if (this.curPageData.length) {
                     const list = this.curPageData
@@ -437,7 +441,7 @@
 
                 results.length && results.unshift({
                     id: '',
-                    name: '全部集群'
+                    name: this.$t('全部集群')
                 })
 
                 return results
@@ -521,7 +525,7 @@
                 if (!data.length) {
                     this.$bkMessage({
                         theme: 'error',
-                        message: '请选择要删除的Configmap！'
+                        message: this.$t('请选择要删除的Configmap')
                     })
                     return false
                 }
@@ -549,7 +553,7 @@
 
                     this.$bkMessage({
                         theme: 'success',
-                        message: '删除成功！'
+                        message: this.$t('删除成功')
                     })
                     // 稍晚一点加载数据，接口不一定立即清除
                     setTimeout(() => {
@@ -597,7 +601,7 @@
 
                 this.addSlider.isShow = true
                 this.isUpdateLoading = true
-                this.addSlider.title = `更新${configmap.name}`
+                this.addSlider.title = `${this.$t('更新')}${configmap.name}`
                 this.curConfigmapName = configmap.name
                 this.namespaceId = configmap.namespace_id
                 this.instanceId = configmap.instance_id
@@ -642,7 +646,7 @@
                     clsName: 'biz-remove-dialog',
                     content: me.$createElement('p', {
                         class: 'biz-confirm-desc'
-                    }, `确定要删除Configmap【${configmap.name}】？`),
+                    }, `${this.$t('确定要删除Configmap')}【${configmap.name}】？`),
                     confirmFn () {
                         me.deleteConfigmap(configmap)
                     }
@@ -665,7 +669,7 @@
                     await this.$store.dispatch('resource/deleteConfigmap', { projectId, clusterId, namespace, name })
                     me.$bkMessage({
                         theme: 'success',
-                        message: '删除成功！'
+                        message: this.$t('删除成功')
                     })
                     // 稍晚一点加载数据，接口不一定立即清除
                     setTimeout(() => {
@@ -705,7 +709,7 @@
                         if (aKey[i] === aKey[i + 1]) {
                             this.bkMessageInstance = this.$bkMessage({
                                 theme: 'error',
-                                message: `键${aKey[i]}重复`
+                                message: `${this.$t('键')}【${aKey[i]}】${this.$t('重复')}`
                             })
                             return
                         }
@@ -727,7 +731,7 @@
                         if (aKey[i] === aKey[i + 1]) {
                             this.bkMessageInstance = this.$bkMessage({
                                 theme: 'error',
-                                message: `键${aKey[i]}重复`
+                                message: `${this.$t('键')}【${aKey[i]}】${this.$t('重复')}`
                             })
                             return
                         }
@@ -746,7 +750,7 @@
                     this.isPageLoading = true
                     this.$bkMessage({
                         theme: 'success',
-                        message: '更新成功！'
+                        message: this.$t('更新成功')
                     })
                     this.getConfigmapList()
                 } catch (e) {
@@ -812,7 +816,7 @@
                     if (!nameReg.test(data.key.replace(varReg, 'key'))) {
                         this.$bkMessage({
                             theme: 'error',
-                            message: '键名错误，只能包含：字母、数字、连字符(-)、点(.)、下划线(_)，首字母必须是字母，长度小于30个字符',
+                            message: this.$t('键名错误，只能包含：字母、数字、连字符(-)、点(.)、下划线(_)，首字母必须是字母，长度小于30个字符'),
                             delay: 5000
                         })
                         return false
@@ -825,7 +829,7 @@
                         } else {
                             this.$bkMessage({
                                 theme: 'error',
-                                message: '键不可重复',
+                                message: this.$t('键不可重复'),
                                 delay: 5000
                             })
                             data.isEdit = false
