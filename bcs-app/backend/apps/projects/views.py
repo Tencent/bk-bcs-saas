@@ -29,7 +29,7 @@ from backend.utils.error_codes import error_codes
 from backend.utils.renderers import BKAPIRenderer
 from backend.utils.cache import region
 from backend.apps.configuration.init_data import init_template
-from backend.apps.projects.utils import start_project_task, get_app_by_user_role, get_application_name
+from backend.apps.projects.utils import update_bcs_service_for_project, get_app_by_user_role, get_application_name
 from backend.apps.projects.drivers.base import BaseDriver
 from backend.utils.basic import normalize_datetime
 
@@ -120,7 +120,10 @@ class Projects(viewsets.ViewSet):
     def info(self, request, project_id):
         """单个项目信息
         """
-        data = request.project
+        project_resp = paas_cc.get_project(request.user.token.access_token, project_id)
+        if project_resp.get('code') != ErrorCode.NoError:
+            raise error_codes.APIError(f'not found project info, {project_resp.get("message")}')
+        data = project_resp['data']
         data['created_at'], data['updated_at'] = self.normalize_create_update_time(
             data['created_at'], data['updated_at'])
         # 添加业务名称
@@ -138,28 +141,6 @@ class Projects(viewsets.ViewSet):
         """
         region.delete(f'BK_DEVOPS_BCS:HAS_BCS_SERVICE:{project_id}')
 
-    def backend_tasks(self, request, project_id, data, pre_cc_app_id, pre_kind):
-        """更新项目后，需要进行的后台任务
-        """
-        start_project_task(request, project_id, data, pre_cc_app_id)
-        expected_kind = data.get('kind')
-        # 当需要变动调度类型，并且和先前不一样时，需要初始化模板
-        if (not expected_kind) or (expected_kind == pre_kind):
-            return
-        logger.info(f'init_template [update] project_id: {project_id}')
-        init_template.delay(
-            project_id,
-            request.project.english_name,
-            expected_kind,
-            request.user.token.access_token,
-            request.user.username
-        )
-        # helm handler
-        BaseDriver(data['kind']).driver.backend_create_helm_info(project_id)
-
-        notify.notify_manager.delay(
-            f"用户[{request.user.username}]在项目[{request.project.project_name}]下启用了容器服务，请关注")
-
     def update(self, request, project_id):
         """更新项目信息
         """
@@ -168,9 +149,6 @@ class Projects(viewsets.ViewSet):
         data = self.validate_update_project_data(request)
         access_token = request.user.token.access_token
         data['updator'] = request.user.username
-        # 编辑之前项目绑定的业务和调度类型，用户后面判断是否进行相应的操作
-        pre_cc_app_id = request.project.cc_app_id
-        pre_kind = request.project.kind
 
         # 添加操作日志
         ual_client = client.UserActivityLogClient(
@@ -193,8 +171,8 @@ class Projects(viewsets.ViewSet):
 
         # 主动令缓存失效
         self.invalid_project_cache(project_id)
-        # 触发后台任务
-        self.backend_tasks(request, project_id, data, pre_cc_app_id, pre_kind)
+        # 创建或更新依赖服务，包含data、template、helm
+        update_bcs_service_for_project(request, project_id, data)
 
         return Response(project_data)
 
