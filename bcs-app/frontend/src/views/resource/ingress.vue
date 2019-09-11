@@ -17,7 +17,7 @@
                 <div class="biz-panel-header">
                     <div class="left">
                         <button class="bk-button bk-default" @click.stop.prevent="removeIngresses" v-if="curPageData.length">
-                            <span>批量删除</span>
+                            <span>{{$t('批量删除')}}</span>
                         </button>
                     </div>
                     <div class="right">
@@ -46,14 +46,14 @@
                                                 @click="toogleCheckCurPage" />
                                         </label>
                                     </th>
-                                    <th style="width: 300px;">名称</th>
-                                    <th style="width: 300px;">所属集群</th>
-                                    <th style="width: 300px;">命名空间</th>
-                                    <th style="min-width: 70px;">来源</th>
-                                    <th style="width: 300px;">创建时间</th>
-                                    <th style="width: 300px;">更新时间</th>
-                                    <th style="width: 300px;">更新人</th>
-                                    <th style="width: 100px">操作</th>
+                                    <th style="width: 300px;">{{$t('名称')}}</th>
+                                    <th style="width: 300px;">{{$t('所属集群')}}</th>
+                                    <th style="width: 300px;">{{$t('命名空间')}}</th>
+                                    <th style="min-width: 70px;">{{$t('来源')}}</th>
+                                    <th style="width: 300px;">{{$t('创建时间')}}</th>
+                                    <th style="width: 300px;">{{$t('更新时间')}}</th>
+                                    <th style="width: 300px;">{{$t('更新人')}}</th>
+                                    <th style="width: 100px">{{$t('操作')}}</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -104,10 +104,10 @@
                                         </td>
                                         <td>
                                             <li style="width: 100px;">
-                                                <a @click.stop="showIngressDetail(ingress)" class="biz-operate">查看</a>
-                                                <a v-if="ingress.can_delete" @click.stop="removeIngress(ingress)" class="biz-operate">删除</a>
-                                                <bk-tooltip :content="ingress.can_delete_msg || '不可删除'" v-else placement="left">
-                                                    <span class="biz-not-operate">删除</span>
+                                                <a @click.stop="showIngressDetail(ingress)" class="biz-operate">{{$t('查看')}}</a>
+                                                <a v-if="ingress.can_delete" @click.stop="removeIngress(ingress)" class="biz-operate">{{$t('删除')}}</a>
+                                                <bk-tooltip :content="ingress.can_delete_msg || $t('不可删除')" v-else placement="left">
+                                                    <span class="biz-not-operate">{{$t('删除')}}</span>
                                                 </bk-tooltip>
                                             </li>
                                         </td>
@@ -118,7 +118,7 @@
                                         <td colspan="8">
                                             <div class="biz-app-list">
                                                 <div class="bk-message-box">
-                                                    <p class="message empty-message" v-if="!isInitLoading">无数据</p>
+                                                    <p class="message empty-message" v-if="!isInitLoading">{{$t('无数据')}}</p>
                                                 </div>
                                             </div>
                                         </td>
@@ -138,7 +138,7 @@
                             :total-page="pageConf.totalPage"
                             @page-change="pageChangeHandler">
                         </bk-paging>
-                        <div class="already-selected-nums" v-if="alreadySelectedNums">已选{{alreadySelectedNums}}条</div>
+                        <div class="already-selected-nums" v-if="alreadySelectedNums">{{$t('已选')}} {{alreadySelectedNums}} {{$t('条')}}</div>
                     </div>
                 </div>
             </template>
@@ -150,11 +150,11 @@
                 :title="ingressSlider.title"
                 :width="'800'">
                 <div class="p30" slot="content">
-                    <label class="biz-title">主机列表（spec.tls）</label>
+                    <label class="biz-title">{{$t('主机列表')}}（spec.tls）</label>
                     <table class="bk-table biz-data-table has-table-bordered">
                         <thead>
                             <tr>
-                                <th style="width: 270px;">主机名</th>
+                                <th style="width: 270px;">{{$t('主机名')}}</th>
                                 <th>SecretName</th>
                             </tr>
                         </thead>
@@ -167,20 +167,20 @@
                             </template>
                             <template v-else>
                                 <tr>
-                                    <td colspan="2"><p style="padding: 10px; text-align: center;">无数据</p></td>
+                                    <td colspan="2"><p style="padding: 10px; text-align: center;">{{$t('无数据')}}</p></td>
                                 </tr>
                             </template>
                         </tbody>
                     </table>
 
-                    <label class="biz-title">规则（spec.rules）</label>
+                    <label class="biz-title">{{$t('规则')}}（spec.rules）</label>
                     <table class="bk-table biz-data-table has-table-bordered">
                         <thead>
                             <tr>
-                                <th style="width: 200px;">主机名</th>
-                                <th style="width: 150px;">路径</th>
-                                <th>服务名称</th>
-                                <th style="width: 100px;">服务端口</th>
+                                <th style="width: 200px;">{{$t('主机名')}}</th>
+                                <th style="width: 150px;">{{$t('路径')}}</th>
+                                <th>{{$t('服务名称')}}</th>
+                                <th style="width: 100px;">{{$t('服务端口')}}</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -194,14 +194,14 @@
                             </template>
                             <template v-else>
                                 <tr>
-                                    <td colspan="4"><p style="padding: 10px; text-align: center;">无数据</p></td>
+                                    <td colspan="4"><p style="padding: 10px; text-align: center;">{{$t('无数据')}}</p></td>
                                 </tr>
                             </template>
                         </tbody>
                     </table>
 
                     <div class="actions">
-                        <button class="show-labels-btn bk-button bk-button-small bk-primary">显示标签</button>
+                        <button class="show-labels-btn bk-button bk-button-small bk-primary">{{$t('显示标签')}}</button>
                     </div>
 
                     <div class="point-box">
@@ -214,7 +214,7 @@
                             </ul>
                         </template>
                         <template v-else>
-                            <p class="biz-no-data">无数据</p>
+                            <p class="biz-no-data">{{$t('无数据')}}</p>
                         </template>
                     </div>
                 </div>
