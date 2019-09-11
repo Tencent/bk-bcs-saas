@@ -2,7 +2,7 @@
     <div class="biz-content">
         <div class="biz-top-bar">
             <div class="biz-config-namespace-title">
-                命名空间
+                {{$t('命名空间')}}
             </div>
             <bk-guide></bk-guide>
         </div>
@@ -17,9 +17,9 @@
                     <div class="left">
                         <button class="bk-button bk-primary" @click.stop.prevent="showAddNamespace">
                             <i class="bk-icon icon-plus"></i>
-                            <span>新建</span>
+                            <span>{{$t('新建')}}</span>
                         </button>
-                        <span class="biz-tip ml10" style="vertical-align: middle;">命名空间创建后不可更改</span>
+                        <span class="biz-tip ml10" style="vertical-align: middle;">{{$t('命名空间创建后不可更改')}}</span>
                     </div>
                     <div class="right">
                         <bk-data-searcher
@@ -37,10 +37,10 @@
                         <table class="bk-table has-table-hover biz-table biz-namespace-table" v-bkloading="{ isLoading: isPageLoading }">
                             <thead>
                                 <tr>
-                                    <th style="width: 200px;">名称</th>
-                                    <th style="width: 200px;">所属集群</th>
-                                    <th>变量</th>
-                                    <th style="width: 220px;">操作</th>
+                                    <th style="width: 200px;">{{$t('名称')}}</th>
+                                    <th style="width: 200px;">{{$t('所属集群')}}</th>
+                                    <th>{{$t('变量')}}</th>
+                                    <th style="width: 220px;">{{$t('操作')}}</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -83,10 +83,10 @@
                                                             v-if="ns.showExpand"
                                                             @click.stop="toggleLabel(ns, index)">
                                                             <template v-if="!ns.isExpandLabels">
-                                                                展开<i class="bk-icon icon-angle-down"></i>
+                                                                {{$t('展开')}}<i class="bk-icon icon-angle-down"></i>
                                                             </template>
                                                             <template v-else>
-                                                                收起<i class="bk-icon icon-angle-up"></i>
+                                                                {{$t('收起')}}<i class="bk-icon icon-angle-up"></i>
                                                             </template>
                                                         </a>
                                                     </div>
@@ -101,8 +101,8 @@
                                             <template v-else>--</template>
                                         </td>
                                         <td>
-                                            <a href="javascript:void(0)" class="bk-text-button" @click="showEditNamespace(ns, index)">设置变量值</a>
-                                            <a class="bk-text-button" v-if="!ns.permissions.use" @click="applyUsePermission(ns)">申请使用权限</a>
+                                            <a href="javascript:void(0)" class="bk-text-button" @click="showEditNamespace(ns, index)">{{$t('设置变量值')}}</a>
+                                            <a class="bk-text-button" v-if="!ns.permissions.use" @click="applyUsePermission(ns)">{{$t('申请使用权限')}}</a>
                                         </td>
                                     </tr>
                                 </template>
@@ -110,7 +110,7 @@
                                     <tr class="no-hover">
                                         <td colspan="4">
                                             <div class="bk-message-box">
-                                                <p class="message empty-message">无数据</p>
+                                                <p class="message empty-message">{{$t('无数据')}}</p>
                                             </div>
                                         </td>
                                     </tr>
@@ -128,6 +128,7 @@
                     </div>
                     <div class="biz-page-wrapper" v-if="pageConf.total">
                         <bk-page-counter
+                            :is-en="isEn"
                             :total="pageConf.total"
                             :page-size="pageConf.pageSize"
                             @change="changePageSize">
@@ -154,21 +155,21 @@
                     <div class="bk-form bk-form-vertical set-label-form">
                         <div class="bk-form-item flex-item">
                             <div class="left">
-                                <label class="bk-label label">名称：</label>
+                                <label class="bk-label label">{{$t('名称：')}}</label>
                             </div>
                             <div class="right" style="margin-left: 20px;">
-                                <label class="bk-label label">所属集群：</label>
+                                <label class="bk-label label">{{$t('所属集群：')}}</label>
                             </div>
                         </div>
                         <div class="bk-form-item flex-item">
                             <div class="left">
-                                <input type="text" class="bk-form-input" placeholder="请输入" v-model="addNamespaceConf.namespaceName" maxlength="30">
+                                <input type="text" class="bk-form-input" :placeholder="$t('请输入')" v-model="addNamespaceConf.namespaceName" maxlength="30">
                             </div>
                             <div class="right" style="margin-left: 20px;">
                                 <div class="cluster-wrapper">
                                     <bk-selector
                                         :field-type="'cluster'"
-                                        placeholder="请选择"
+                                        :placeholder="$t('请选择')"
                                         :setting-key="'cluster_id'"
                                         :display-key="'name'"
                                         :searchable="true"
@@ -183,7 +184,7 @@
                         <template v-if="addNamespaceConf.variableList && addNamespaceConf.variableList.length">
                             <div class="bk-form-item flex-item">
                                 <div class="left">
-                                    <label class="bk-label label">变量：</label>
+                                    <label class="bk-label label">{{$t('变量：')}}</label>
                                 </div>
                             </div>
                             <div class="bk-form-item">
@@ -197,7 +198,7 @@
                                                 </template>
                                             </bk-tooltip>
                                             <span class="equals-sign">=</span>
-                                            <input type="text" class="bk-form-input right" placeholder="值" v-model="variable.value">
+                                            <input type="text" class="bk-form-input right" :placeholder="$t('值')" v-model="variable.value">
                                         </div>
                                     </div>
                                 </div>
@@ -205,10 +206,10 @@
                         </template>
                         <div class="action-inner">
                             <button type="button" class="bk-dialog-btn bk-dialog-btn-confirm bk-btn-primary" @click="confirmAddNamespace">
-                                保存
+                                {{$t('保存')}}
                             </button>
                             <button type="button" class="bk-dialog-btn bk-dialog-btn-cancel" @click="hideAddNamespace">
-                                取消
+                                {{$t('取消')}}
                             </button>
                         </div>
                     </div>
@@ -228,10 +229,10 @@
                     <div class="bk-form bk-form-vertical set-label-form">
                         <div class="bk-form-item flex-item">
                             <div class="left">
-                                <label class="bk-label label">名称：</label>
+                                <label class="bk-label label">{{$t('名称：')}}</label>
                             </div>
                             <div class="right" style="margin-left: 20px;">
-                                <label class="bk-label label">所属集群：</label>
+                                <label class="bk-label label">{{$t('所属集群：')}}</label>
                             </div>
                         </div>
                         <div class="bk-form-item flex-item">
@@ -243,7 +244,7 @@
                                 <div class="cluster-wrapper">
                                     <bk-selector
                                         :field-type="'cluster'"
-                                        placeholder="请选择"
+                                        :placeholder="$t('请选择')"
                                         :setting-key="'cluster_id'"
                                         :display-key="'name'"
                                         :searchable="true"
@@ -259,7 +260,8 @@
                         <template v-if="editNamespaceConf.variableList && editNamespaceConf.variableList.length">
                             <div class="bk-form-item flex-item">
                                 <div class="left">
-                                    <label class="bk-label label">变量：<span class="biz-tip f13 fn">（可通过 <router-link class="bk-text-button" :to="{ name: 'var', params: { projectCode: projectCode } }">变量管理</router-link> 创建更多作用在命名空间的变量）</span></label>
+                                    <label class="bk-label label" v-if="isEn">Variables: <span class="biz-tip f13 fn">(You can create more variables in the namespace through <router-link class="bk-text-button" :to="{ name: 'var', params: { projectCode: projectCode } }">Variables</router-link>)</span></label>
+                                    <label class="bk-label label" v-else>变量：<span class="biz-tip f13 fn">（可通过 <router-link class="bk-text-button" :to="{ name: 'var', params: { projectCode: projectCode } }">变量管理</router-link> 创建更多作用在命名空间的变量）</span></label>
                                 </div>
                             </div>
                             <div class="bk-form-item">
@@ -273,7 +275,7 @@
                                                 </template>
                                             </bk-tooltip>
                                             <span class="equals-sign">=</span>
-                                            <input type="text" class="bk-form-input right" placeholder="值" v-model="variable.value">
+                                            <input type="text" class="bk-form-input right" :placeholder="$t('值')" v-model="variable.value">
                                         </div>
                                     </div>
                                 </div>
@@ -281,16 +283,17 @@
 
                             <div class="action-inner">
                                 <button type="button" class="bk-dialog-btn bk-dialog-btn-confirm bk-btn-primary" @click="confirmEditNamespace">
-                                    保存
+                                    {{$t('保存')}}
                                 </button>
                                 <button type="button" class="bk-dialog-btn bk-dialog-btn-cancel" @click="hideEditNamespace">
-                                    取消
+                                    {{$t('取消')}}
                                 </button>
                             </div>
                         </template>
                         <template v-else>
                             <div class="biz-tip mt40">
-                                该项目未设置作用在命名空间范围的环境变量，无法设置变量值，可前往 <router-link class="bk-text-button" :to="{ name: 'var', params: { projectCode: projectCode } }">变量管理</router-link> 设置
+                                <template v-if="isEn">The project does not set an environment variable that acts on the namespace. You cannot set the variable value. You can go to the <router-link class="bk-text-button" :to="{ name: 'var', params: { projectCode: projectCode } }">Variables</router-link> to set.</template>
+                                <template v-else>该项目未设置作用在命名空间范围的环境变量，无法设置变量值，可前往 <router-link class="bk-text-button" :to="{ name: 'var', params: { projectCode: projectCode } }">变量管理</router-link> 设置</template>
                             </div>
                         </template>
                     </div>
@@ -346,7 +349,7 @@
                 search: '',
                 addNamespaceConf: {
                     isShow: false,
-                    title: '新建命名空间',
+                    title: this.$t('新建命名空间'),
                     width: 680,
                     variableList: [],
                     namespaceName: '',
@@ -380,7 +383,7 @@
                 if (clusterList.length) {
                     results = [{
                         id: '',
-                        name: '全部集群'
+                        name: this.$t('全部集群')
                     }]
                     clusterList.forEach(item => {
                         results.push({
@@ -394,6 +397,9 @@
             },
             onlineProjectList () {
                 return this.$store.state.sideMenu.onlineProjectList
+            },
+            isEn () {
+                return this.$store.state.isEn
             }
         },
         destroyed () {
@@ -653,7 +659,7 @@
                     this.bkMessageInstance && this.bkMessageInstance.close()
                     this.bkMessageInstance = this.$bkMessage({
                         theme: 'error',
-                        message: '请填写命名空间名称'
+                        message: this.$t('请填写命名空间名称')
                     })
                     return
                 }
@@ -661,7 +667,7 @@
                 if (namespaceName.length < 2) {
                     this.$bkMessage({
                         theme: 'error',
-                        message: '命名空间名称不得小于2个字符'
+                        message: this.$t('命名空间名称不得小于2个字符')
                     })
                     return
                 }
@@ -669,7 +675,7 @@
                 if (!/^[a-z][a-z0-9-]+$/g.test(namespaceName)) {
                     this.$bkMessage({
                         theme: 'error',
-                        message: '命名空间名称只能包含小写字母、数字以及连字符(-)，且不能以数字开头'
+                        message: this.$t('命名空间名称只能包含小写字母、数字以及连字符(-)，且不能以数字开头')
                     })
                     return
                 }
@@ -678,7 +684,7 @@
                     this.bkMessageInstance && this.bkMessageInstance.close()
                     this.bkMessageInstance = this.$bkMessage({
                         theme: 'error',
-                        message: '请选择所属集群'
+                        message: this.$t('请选择所属集群')
                     })
                     return
                 }
@@ -737,7 +743,9 @@
                 this.editNamespaceConf.isShow = true
                 this.editNamespaceConf.loading = true
                 this.editNamespaceConf.namespaceName = ns.name
-                this.editNamespaceConf.title = `修改命名空间：${ns.name}`
+                this.editNamespaceConf.title = this.$t('修改命名空间：{nsName}', {
+                    nsName: ns.name
+                })
                 this.editNamespaceConf.ns = Object.assign({}, ns)
                 this.clusterId = ns.cluster_id
 
@@ -795,7 +803,7 @@
                     this.bkMessageInstance && this.bkMessageInstance.close()
                     this.bkMessageInstance = this.$bkMessage({
                         theme: 'error',
-                        message: '请填写命名空间名称'
+                        message: this.$t('请填写命名空间名称')
                     })
                     return
                 }
@@ -803,7 +811,7 @@
                 if (namespaceName.length < 2) {
                     this.$bkMessage({
                         theme: 'error',
-                        message: '命名空间名称不得小于2个字符'
+                        message: this.$t('命名空间名称不得小于2个字符')
                     })
                     return
                 }
@@ -811,7 +819,7 @@
                 if (!/^[a-z][a-z0-9-]+$/g.test(namespaceName)) {
                     this.$bkMessage({
                         theme: 'error',
-                        message: '命名空间名称只能包含小写字母、数字以及连字符(-)，且不能以数字开头'
+                        message: this.$t('命名空间名称只能包含小写字母、数字以及连字符(-)，且不能以数字开头')
                     })
                     return
                 }
@@ -820,7 +828,7 @@
                     this.bkMessageInstance && this.bkMessageInstance.close()
                     this.bkMessageInstance = this.$bkMessage({
                         theme: 'error',
-                        message: '请选择所属集群'
+                        message: this.$t('请选择所属集群')
                     })
                     return
                 }
@@ -870,7 +878,7 @@
             delNamespace (ns, index) {
                 const me = this
                 me.$bkInfo({
-                    title: '确定删除命名空间？',
+                    title: this.$t('确定删除命名空间？'),
                     async confirmFn () {
                         me.isPageLoading = true
                         try {

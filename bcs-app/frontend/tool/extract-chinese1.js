@@ -21,7 +21,7 @@ const vueFiles = {}
             }
         })
     })
-})([resolve(__dirname, '../src/views/cluster')])
+})([resolve(__dirname, '../src/views/configuration')])
 
 const JS_COMMENT_REG = /(\/\*([\s\S]*?)\*\/|([^:]|^)\/\/(.*)$)/mg
 const HTML_COMMENT_REG = /(<!--[\s\S]*?-->)/mg
