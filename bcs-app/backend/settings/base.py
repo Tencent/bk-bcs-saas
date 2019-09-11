@@ -258,9 +258,7 @@ def get_logging_config(log_level, rds_hander_settings=None, log_path="app.log"):
                 "level": "DEBUG",
                 "formatter": "verbose",
                 "filename": log_path,
-                "filters": ["request_id"],
-                "maxBytes": LOG_MAX_BYTES,
-                "backupCount": LOG_BACKUP_COUNT
+                "filters": ["request_id"]
             },
             'console': {
                 'level': 'DEBUG',
