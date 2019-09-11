@@ -2,7 +2,7 @@
     <div class="biz-data-searcher">
         <template v-if="localScopeList.length">
             <bk-dropdown-menu ref="dropdown" trigger="click" :align="'left'">
-                <button class="bk-button trigger-btn" slot="dropdown-trigger">
+                <button class="bk-button trigger-btn" slot="dropdown-trigger" style="width: 200px;">
                     <span class="btn-text">{{curScope.name}}</span><i class="bk-icon icon-angle-down"></i>
                 </button>
                 <ul class="bk-dropdown-list" slot="dropdown-content">
@@ -158,7 +158,7 @@
                     cursor: pointer;
                     display: inline-block;
                     vertical-align: middle;
-                    @mixin ellipsis 150px;
+                    @mixin ellipsis 240px;
                 }
             }
             .bk-button {
@@ -171,10 +171,10 @@
     .trigger-btn {
     }
     .btn-text {
-        width: 90px;
+        width: 140px;
         text-align: left;
         display: inline-block;
         vertical-align: middle;
-        @mixin ellipsis 90px;
+        @mixin ellipsis 150px;
     }
 </style>
