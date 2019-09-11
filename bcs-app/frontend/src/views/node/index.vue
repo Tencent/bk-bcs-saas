@@ -20,17 +20,17 @@
                         </button>
                     </div>
                     <div class="right">
-                        <bk-dropdown-menu :align="'center'" :trigger="'click'" ref="toggleFilterDropdownMenu">
+                        <bk-dropdown-menu :align="'left'" :trigger="'click'" ref="toggleFilterDropdownMenu">
                             <a href="javascript:void(0);" slot="dropdown-trigger" class="bk-text-button toggle-filter">
                                 <span class="label">{{curSelectedClusterName === 'all' ? $t('全部集群') : curSelectedClusterName}}</span>
                                 <i class="bk-icon icon-angle-down dropdown-menu-angle-down"></i>
                             </a>
                             <ul class="bk-dropdown-list" slot="dropdown-content">
                                 <li @click.stop="changeCluster({ name: 'all' })">
-                                    <a href="javascript:void(0)">{{$t('全部集群')}}</a>
+                                    <a href="javascript:void(0)" :title="$t('全部集群')">{{$t('全部集群')}}</a>
                                 </li>
                                 <li v-for="(cluster, index) in clusterList" @click.stop="changeCluster(cluster)" :key="index">
-                                    <a href="javascript:void(0)">{{cluster.name}}</a>
+                                    <a href="javascript:void(0)" :title="cluster.name">{{cluster.name}}</a>
                                 </li>
                             </ul>
                         </bk-dropdown-menu>
