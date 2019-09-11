@@ -302,6 +302,24 @@ export default {
     '搜索': ['Search'],
     '多个IP以空格分开，按回车搜索': ['Multiple IPs are separated by spaces, press Enter to search'],
 
+    '新建': ['Create'],
+    '命名空间创建后不可更改': ['Cannot be changed after the namespace is created'],
+    '变量': ['Variable'],
+    '设置变量值': ['Set variable value'],
+    '所属集群：': ['Belongs Cluster：'],
+    '请输入': ['Please Enter'],
+    '请选择': ['Please Select'],
+    '新建命名空间': ['Create Namespace'],
+    '请填写命名空间名称': ['Please fill the namespace name'],
+    '命名空间名称不得小于2个字符': ['Namespace name must be at least 2 characters'],
+    '命名空间名称只能包含小写字母、数字以及连字符(-)，且不能以数字开头': ['Namespace names can only contain lowercase letters, numbers, and hyphens (-), and cannot begin with a number'],
+    '请选择所属集群': ['Please select the cluster to which you belong'],
+    '修改命名空间：{nsName}': ['Update Namespace: {nsName}'],
+    '确定删除命名空间？': ['Confirm want to delete the namespace?'],
+    '输入关键字，按Enter搜索': ['Press Enter to search keyword'],
+    '集群列表': ['Clusters'],
+    '命名空间列表': ['Namespaces'],
+
     // 变量的使用 $t('test', { vari1: 1, vari2: 2 })
     'test': ['{vari1} ---english--- {vari2}']
 }

@@ -117,13 +117,13 @@
                 <template v-if="fieldType === 'cluster'">
                     <div class="bk-selector-create-item" @click.stop.prevent="goClusterList">
                         <i class="bk-icon icon-apps"></i>
-                        <i class="text">集群列表</i>
+                        <i class="text">{{$t('集群列表')}}</i>
                     </div>
                 </template>
                 <template v-if="fieldType === 'namespace'">
                     <div class="bk-selector-create-item" @click.stop.prevent="goNamespaceList">
                         <i class="bk-icon icon-apps"></i>
-                        <i class="text">命名空间列表</i>
+                        <i class="text">{{$t('命名空间列表')}}</i>
                     </div>
                 </template>
 

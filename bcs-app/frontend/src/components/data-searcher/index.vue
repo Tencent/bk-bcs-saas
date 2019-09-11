@@ -16,7 +16,7 @@
             <input
                 type="text"
                 class="bk-form-input"
-                :placeholder="placeholder"
+                :placeholder="placeholderRender"
                 v-model="localKey"
                 @keyup.enter="handleSearch" />
             <a href="javascript:void(0)" class="biz-search-btn" v-if="!localKey">
@@ -27,7 +27,7 @@
             </a>
         </div>
         <div class="biz-refresh-wrapper" v-if="widthRefresh">
-            <bk-tooltip class="refresh" :content="'刷新'" :delay="500" placement="top">
+            <bk-tooltip class="refresh" :content="$t('刷新')" :delay="500" placement="top">
                 <button :class="['bk-button bk-default is-outline is-icon']" @click="handleRefresh">
                     <i class="bk-icon icon-refresh"></i>
                 </button>
@@ -46,7 +46,7 @@
         props: {
             placeholder: {
                 type: String,
-                default: '输入关键字，按Enter搜索'
+                default: ''
             },
             searchKey: {
                 type: String,
@@ -75,8 +75,9 @@
                 localScopeList: [],
                 curScope: {
                     id: '',
-                    name: '全部集群'
-                }
+                    name: this.$t('全部集群')
+                },
+                placeholderRender: ''
             }
         },
         watch: {
@@ -95,6 +96,7 @@
         },
         created () {
             this.initLocalScopeList()
+            this.placeholderRender = this.placeholder || this.$t('输入关键字，按Enter搜索')
         },
         methods: {
             handleSechScope (data) {
