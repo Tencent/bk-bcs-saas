@@ -47,14 +47,15 @@
         .bk-dropdown-menu {
             float: left;
             right: 493px;
+            width: 200px;
             .bk-dropdown-list>li>a {
-                width: 132px;
-                @mixin ellipsis 132px;
+                width: 100%;
+                @mixin ellipsis 240px;
             }
         }
 
         .toggle-filter {
-            width: 132px;
+            width: 200px;
             padding-left: 15px;
             border: 1px solid #dde4eb;
             height: 38px;
@@ -421,9 +422,9 @@
 }
 
 .biz-searcher-wrapper {
-    width: 600px;
+    width: 540px;
     position: absolute;
-    right: 102px;
+    right: 94px;
 }
 
 /* 自适应 */
