@@ -129,6 +129,7 @@
                     </div>
                     <div class="biz-page-wrapper" v-if="pageConf.total">
                         <bk-page-counter
+                            :is-en="isEn"
                             :total="pageConf.total"
                             :page-size="pageConf.pageSize"
                             @change="changePageSize">
@@ -229,7 +230,7 @@
                 @cancel="batchDialogConfig.isShow = false">
                 <div slot="content">
                     <div class="biz-batch-wrapper">
-                        <p class="batch-title">确定要删除以下Ingress？</p>
+                        <p class="batch-title">{{$t('确定要删除以下Ingress？')}}</p>
                         <ul class="batch-list">
                             <li v-for="(item, index) of batchDialogConfig.list" :key="index">{{item}}</li>
                         </ul>
@@ -292,6 +293,9 @@
             }
         },
         computed: {
+            isEn () {
+                return this.$store.state.isEn
+            },
             curProject () {
                 return this.$store.state.curProject
             },
@@ -306,7 +310,7 @@
 
                 results.length && results.unshift({
                     id: '',
-                    name: '全部集群'
+                    name: this.$t('全部集群')
                 })
 
                 return results
@@ -434,7 +438,7 @@
                 if (!data.length) {
                     this.$bkMessage({
                         theme: 'error',
-                        message: '请选择要删除的Ingress！'
+                        message: this.$t('请选择要删除的Ingress')
                     })
                     return false
                 }
@@ -461,7 +465,7 @@
                     })
                     this.$bkMessage({
                         theme: 'success',
-                        message: '删除成功！'
+                        message: this.$t('删除成功')
                     })
                     // 稍晚一点加载数据，接口不一定立即清除
                     setTimeout(() => {
@@ -503,7 +507,7 @@
                     clsName: 'biz-remove-dialog',
                     content: me.$createElement('p', {
                         class: 'biz-confirm-desc'
-                    }, `确定要删除Ingress【${ingress.name}】？`),
+                    }, `${this.$t('确定要删除Ingress')}【${ingress.name}】？`),
                     confirmFn () {
                         me.deleteIngress(ingress)
                     }
@@ -531,7 +535,7 @@
                     })
                     me.$bkMessage({
                         theme: 'success',
-                        message: '删除成功！'
+                        message: this.$t('删除成功')
                     })
                     // 稍晚一点加载数据，接口不一定立即清除
                     setTimeout(() => {

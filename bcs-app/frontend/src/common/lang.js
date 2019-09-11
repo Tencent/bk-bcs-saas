@@ -455,6 +455,9 @@ export default {
     '主机名': ['Host Name'],
     '规则': ['Rule'],
     '服务名称': ['Service Name'],
+    '确定要删除以下Ingress？': ['Sure to delete this Ingress'],
+    '请选择要删除的Ingress': ['Please select the Ingress to delete'],
+    '确定要删除Ingress': ['Sure to delete this Ingress'],
     // 变量的使用 $t('test', { vari1: 1, vari2: 2 })
     'test': ['{vari1} ---english--- {vari2}']
 }
