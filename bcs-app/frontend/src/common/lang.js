@@ -319,6 +319,7 @@ export default {
     '输入关键字，按Enter搜索': ['Press Enter to search keyword'],
     '集群列表': ['Clusters'],
     '命名空间列表': ['Namespaces'],
+
     // 变量的使用 $t('test', { vari1: 1, vari2: 2 })
     'test': ['{vari1} ---english--- {vari2}']
 }
