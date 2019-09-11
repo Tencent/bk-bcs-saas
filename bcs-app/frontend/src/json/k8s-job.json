@@ -140,7 +140,7 @@
                                     "httpHeaders": []
                                 },
                                 "tcpSocket": {
-                                    "port": "esdisc"
+                                    "port": ""
                                 }, 
                                 "exec": {
                                     "command": ""
@@ -242,7 +242,7 @@
                                     "httpHeaders": []
                                 },
                                 "tcpSocket": {
-                                    "port": "esdisc"
+                                    "port": ""
                                 }, 
                                 "exec": {
                                     "command": ""
