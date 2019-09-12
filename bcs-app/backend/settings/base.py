@@ -212,6 +212,10 @@ REST_FRAMEWORK = {
 SESSION_COOKIE_NAME = 'backend_sessionid'
 CSRF_COOKIE_NAME = 'backend_csrftoken'
 LANGUAGE_COOKIE_NAME = 'backend_dj_language'
+# log max bytes：500m
+LOG_MAX_BYTES = 500 * 1024 * 1024
+# log count: 10
+LOG_BACKUP_COUNT = 10
 
 
 def get_logging_config(log_level, rds_hander_settings=None, log_path="app.log"):
