@@ -82,6 +82,11 @@ class Secret(MesosResource, MConfigMapAndSecretMixin):
     """
     pass
 
+class HPA(MesosResource, MConfigMapAndSecretMixin):
+    """HPA数据表
+    """
+    pass
+
 
 class Application(MesosResource, PodMixin):
     """

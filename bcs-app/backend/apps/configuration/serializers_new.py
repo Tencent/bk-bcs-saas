@@ -29,7 +29,7 @@ SLZ_CLASS = [kserializers.K8sDeploymentSLZ, kserializers.K8sDaemonsetSLZ, kseria
              kserializers.K8sStatefulSetSLZ, kserializers.K8sServiceSLZ, kserializers.K8sConfigMapSLZ,
              kserializers.K8sSecretSLZ, kserializers.K8sIngressSLZ, kserializers.K8sHPASLZ, mserializers.ApplicationSLZ,
              mserializers.DeploymentSLZ, mserializers.ServiceSLZ,
-             mserializers.ConfigMapSLZ, mserializers.SecretSLZ]
+             mserializers.ConfigMapSLZ, mserializers.SecretSLZ, mserializers.HPASLZ]
 RESOURCE_SLZ_MAP = dict(zip(RESOURCE_NAMES, SLZ_CLASS))
 
 logger = logging.getLogger(__name__)

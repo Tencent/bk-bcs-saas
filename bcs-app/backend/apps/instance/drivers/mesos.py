@@ -252,6 +252,16 @@ class Scheduler(SchedulerBase):
             logger.warning('set metric failed, %s, will try rollback.', result)
             raise Rollback(result)
 
+    def handler_hpa(self, ns, cluster_id, spec):
+        """绑定metric
+        """
+        client = mesos.MesosClient(
+            self.access_token, self.project_id, cluster_id, env=None)
+        result = client.apply_hpa(ns, spec=spec)
+        if result.get('code') != 0:
+            logger.warning('set metric failed, %s, will try rollback.', result)
+            raise ComponentError(result.get('message', ''))
+
     def rollback_metric(self, ns, cluster_id, spec):
         """回滚metric
         """

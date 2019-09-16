@@ -258,6 +258,8 @@ CATE_SHOW_NAME = {
     "service": "Service",
     "configmap": "ConfigMap",
     "secret": "Secret",
+    'hpa': 'HPA',
+
     # k8s:前台展示去掉 'K8s' 字符 （规则不可变）
     "K8sDeployment": "Deployment",
     "K8sService": "Service",
@@ -277,6 +279,7 @@ CATE_ABBR_NAME = {
     "service": "svc",
     "configmap": "cm",
     "secret": "srt",
+    'hpa': 'hpa',
     # k8s 相关资源
     "K8sDeployment": "dep",
     "K8sService": "svc",

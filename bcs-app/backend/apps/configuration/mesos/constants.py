@@ -609,6 +609,62 @@ SECRET_SCHEMA = {
     }
 }
 
-CONFIG_SCHEMA = [APPLICATION_SCHEMA, DEPLOYMENT_SCHEMA, SERVICE_SCHEMA, CONFIGMAP_SCHEMA, SECRET_SCHEMA]
+HPA_SCHNEA = {
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "id": "mesos_hpa",
+
+    "type": "object",
+    "required": ["apiVersion", "kind", "metadata", "spec"],
+    "properties": {
+        "apiVersion": {"type": "string", "enum": ["v4"]},
+        "kind": {"type": "string", "enum": ["autoscaler"]},
+        "metadata": {
+            "type": "object",
+            "required": ["name"],
+            "properties": {
+                "name": {"type": "string", "pattern": RES_NAME_PATTERN}
+            }
+        },
+        "spec": {
+            "type": "object",
+            "required": ["scaleTargetRef", "minInstance", "maxInstance", "metrics"],
+            "properties": {
+                "scaleTargetRef": {
+                    "type": "object",
+                    "required": ["kind", "name"],
+                    "properties": {
+                        "kind": {"type": "string", "enum": ["Deployment"]},
+                        "name": {"type": "string", "pattern": RES_NAME_PATTERN}
+                    }
+                },
+                "minInstance": {"type": "number", "minimum": 0},
+                "maxInstance": {"type": "number", "minimum": 0},
+                "metrics": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "required": ["name", "target", "described"],
+                        "properties": {
+                            "name": {"type": "string", "enum": ["cpu", "memory"]},
+                            "described": {"type": "string"},
+                            "target": {
+                                "type": "object",
+                                "required": ["kind", "averageUtilization", "variance"],
+                                "properties": {
+                                    "kind": {"type": "string", "enum": ["AverageUtilization"]},
+                                    "averageUtilization": {"type": "number", "minimum": 0},
+                                    "variance": {"type": "number", "minimum": 0}
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+CONFIG_SCHEMA = [APPLICATION_SCHEMA, DEPLOYMENT_SCHEMA, SERVICE_SCHEMA, CONFIGMAP_SCHEMA,
+                 SECRET_SCHEMA, HPA_SCHNEA]
 
 CONFIG_SCHEMA_MAP = dict(zip(MRESOURCE_NAMES, CONFIG_SCHEMA))
