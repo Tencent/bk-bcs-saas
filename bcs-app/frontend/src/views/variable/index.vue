@@ -2,7 +2,7 @@
     <div class="biz-content">
         <div class="biz-top-bar">
             <div class="biz-var-title">
-                变量管理
+                {{$t('变量管理')}}
             </div>
             <bk-guide></bk-guide>
         </div>
@@ -12,10 +12,10 @@
                     <div class="left">
                         <button class="bk-button bk-primary" @click.stop.prevent="addVar">
                             <i class="bk-icon icon-plus"></i>
-                            <span>新增变量</span>
+                            <span>{{$t('新增变量')}}</span>
                         </button>
                         <button class="bk-button bk-default" @click.stop.prevent="removeVars">
-                            <span>批量删除</span>
+                            <span>{{$t('批量删除')}}</span>
                         </button>
                     </div>
                     <div class="right">
@@ -40,14 +40,14 @@
                                         </label>
                                     </th>
                                     <th style="width: 170px;">
-                                        变量名称
+                                        {{$t('变量名称')}}
                                     </th>
                                     <th>KEY</th>
-                                    <th style="width: 110px;">类型</th>
-                                    <th style="width: 100px;">默认值</th>
-                                    <th style="width: 130px;">作用范围</th>
-                                    <th style="width: 100px;">引用处</th>
-                                    <th style="width: 220px; "><span class="ml15">操作</span></th>
+                                    <th style="width: 110px;">{{$t('类型')}}</th>
+                                    <th style="width: 100px;">{{$t('默认值')}}</th>
+                                    <th style="width: 130px;">{{$t('作用范围')}}</th>
+                                    <th style="width: 100px;">{{$t('引用处')}}</th>
+                                    <th style="width: 220px; "><span class="ml15">{{$t('操作')}}</span></th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -78,24 +78,24 @@
                                         <td>
                                             <a href="javascript:void(0);" class="bk-text-button" @click="getQuoteDetail(variable)">{{variable.quote_num}}</a></td>
                                         <td>
-                                            <a href="javascript:void(0);" class="ml15 bk-text-button" @click="batchUpdate(variable)" v-show="variable.category !== 'sys' && (variable.scope === 'namespace' || variable.scope === 'cluster')">批量更新</a>
+                                            <a href="javascript:void(0);" class="ml15 bk-text-button" @click="batchUpdate(variable)" v-show="variable.category !== 'sys' && (variable.scope === 'namespace' || variable.scope === 'cluster')">{{$t('批量更新')}}</a>
 
                                             <template v-if="variable.category === 'sys'">
-                                                <bk-tooltip :content="`系统内置变量，不能编辑`" placement="left">
-                                                    <a href="javascript:void(0);" class="bk-text-button is-disabled ml15">编辑</a>
+                                                <bk-tooltip :content="$t('系统内置变量，不能编辑')" placement="left">
+                                                    <a href="javascript:void(0);" class="bk-text-button is-disabled ml15">{{$t('编辑')}}</a>
                                                 </bk-tooltip>
                                             </template>
                                             <template v-else>
-                                                <a href="javascript:void(0);" class=" ml15 bk-text-button" @click="editVar(variable)">编辑</a>
+                                                <a href="javascript:void(0);" class=" ml15 bk-text-button" @click="editVar(variable)">{{$t('编辑')}}</a>
                                             </template>
 
                                             <template v-if="variable.category === 'sys'">
-                                                <bk-tooltip :content="`${variable.category === 'sys' ? '系统内置变量' : '已经被引用'}，不能删除`" placement="left">
-                                                    <a href="javascript:void(0);" class="ml15 bk-text-button is-disabled">删除</a>
+                                                <bk-tooltip :content="variable.category === 'sys' ? $t('系统内置变量') : $t('已经被引用，不能删除')" placement="left">
+                                                    <a href="javascript:void(0);" class="ml15 bk-text-button is-disabled">{{$t('删除')}}</a>
                                                 </bk-tooltip>
                                             </template>
                                             <template v-else>
-                                                <a href="javascript:void(0);" class="ml15 bk-text-button" @click="removeVar(variable)">删除</a>
+                                                <a href="javascript:void(0);" class="ml15 bk-text-button" @click="removeVar(variable)">{{$t('删除')}}</a>
                                             </template>
                                         </td>
                                     </tr>
@@ -104,7 +104,7 @@
                                     <tr style="background: none;">
                                         <td colspan="8">
                                             <div class="bk-message-box">
-                                                <p class="message empty-message" v-if="!isLoading">无数据</p>
+                                                <p class="message empty-message" v-if="!isLoading">{{$t('无数据')}}</p>
                                             </div>
                                         </td>
                                     </tr>
@@ -114,6 +114,7 @@
                     </div>
                     <div class="biz-page-wrapper" v-show="pageConf.total">
                         <bk-page-counter
+                            :is-en="isEn"
                             :total="pageConf.total"
                             :page-size="pageConf.pageSize"
                             @change="changePageSize">
@@ -123,7 +124,7 @@
                             :total-page="pageConf.totalPage"
                             @page-change="pageChange">
                         </bk-paging>
-                        <div class="already-selected-nums" v-if="alreadySelectedNums">已选{{alreadySelectedNums}}条</div>
+                        <div class="already-selected-nums" v-if="alreadySelectedNums">{{$t('已选')}} {{alreadySelectedNums}} {{$t('条')}}</div>
                     </div>
                 </div>
             </template>
@@ -137,7 +138,7 @@
                 <table class="bk-table biz-data-table has-table-bordered">
                     <thead>
                         <tr>
-                            <th style="width: 250px;">所属{{curBatchVar && curBatchVar.scope === 'namespace' ? '命名空间' : '集群'}}</th>
+                            <th style="width: 250px;">{{$t('所属')}}{{curBatchVar && curBatchVar.scope === 'namespace' ? $t('命名空间') : $t('集群')}}</th>
                             <th>值</th>
                         </tr>
                     </thead>
@@ -150,14 +151,14 @@
                         </template>
                         <template v-else>
                             <tr>
-                                <td colspan="2"><p style="padding: 10px; text-align: center;">无数据</p></td>
+                                <td colspan="2"><p style="padding: 10px; text-align: center;">{{$t('无数据')}}</p></td>
                             </tr>
                         </template>
                     </tbody>
                 </table>
                 <div v-if="batchVarList.length">
-                    <button class="bk-button bk-primary" @click="saveBatchVar">保存</button>
-                    <button class="bk-button bk-default" @click="cancelBatchVar">取消</button>
+                    <button class="bk-button bk-primary" @click="saveBatchVar">{{$t('保存')}}</button>
+                    <button class="bk-button bk-default" @click="cancelBatchVar">{{$t('取消')}}</button>
                 </div>
             </div>
         </bk-sideslider>
@@ -171,7 +172,7 @@
             @cancel="batchDialogConfig.isShow = false">
             <div slot="content">
                 <div class="biz-batch-wrapper">
-                    <p class="batch-title">确定要删除以下变量？</p>
+                    <p class="batch-title">{{$t('确定要删除以下变量？')}}</p>
                     <ul class="batch-list">
                         <li v-for="(item, index) of batchDialogConfig.list" :key="index">{{item}}</li>
                     </ul>
@@ -189,29 +190,29 @@
                 <div class="content-inner">
                     <div class="bk-form" style="margin-bottom: 20px; margin-right: 10px;">
                         <div class="bk-form-item">
-                            <label class="bk-label" style="width: 95px;">作用范围：</label>
+                            <label class="bk-label" style="width: 95px;">{{$t('作用范围')}}：</label>
                             <div class="bk-form-content" style="margin-left: 95px;">
                                 <label class="bk-form-radio">
                                     <input type="radio" value="global" name="scope" v-model="curVar.scope" :disabled="curVar.quote_num !== undefined && curVar.quote_num > 0">
-                                    <i class="bk-radio-text">全局变量</i>
+                                    <i class="bk-radio-text">{{$t('全局变量')}}</i>
                                 </label>
                                 <label class="bk-form-radio">
                                     <input type="radio" value="cluster" name="scope" v-model="curVar.scope" :disabled="curVar.quote_num !== undefined && curVar.quote_num > 0">
-                                    <i class="bk-radio-text">集群变量</i>
+                                    <i class="bk-radio-text">{{$t('集群变量')}}</i>
                                 </label>
-                                <label class="bk-form-radio">
+                                <label class="bk-form-radio" style="margin-right: 0;">
                                     <input type="radio" value="namespace" name="scope" v-model="curVar.scope" :disabled="curVar.quote_num !== undefined && curVar.quote_num > 0">
-                                    <i class="bk-radio-text">命名空间变量</i>
+                                    <i class="bk-radio-text">{{$t('命名空间变量')}}</i>
                                 </label>
                             </div>
                         </div>
                         <div class="bk-form-item is-required">
-                            <label class="bk-label" style="width: 95px;">名称：</label>
+                            <label class="bk-label" style="width: 95px;">{{$t('名称')}}：</label>
                             <div class="bk-form-content" style="margin-left: 95px;">
                                 <input type="text"
                                     maxlength="32"
                                     :class="['bk-form-input']"
-                                    placeholder="请输入32个字符以内的名称"
+                                    :placeholder="$t('请输入32个字符以内的名称')"
                                     v-model="curVar.name">
                             </div>
                         </div>
@@ -222,23 +223,23 @@
                                     :disabled="curVar.quote_num !== undefined && curVar.quote_num > 0"
                                     :class="['bk-form-input']"
                                     maxlength="64"
-                                    placeholder="请输入"
+                                    :placeholder="$t('请输入')"
                                     v-model="curVar.key">
                             </div>
                         </div>
                         <div class="bk-form-item">
-                            <label class="bk-label" style="width: 95px;">默认值：</label>
+                            <label class="bk-label" style="width: 95px;">{{$t('默认值')}}：</label>
                             <div class="bk-form-content" style="margin-left: 95px;">
                                 <input type="text"
                                     :class="['bk-form-input']"
-                                    placeholder="请输入"
+                                    :placeholder="$t('请输入')"
                                     v-model="curVar.default.value">
                             </div>
                         </div>
                         <div class="bk-form-item">
-                            <label class="bk-label" style="width: 95px;">说明：</label>
+                            <label class="bk-label" style="width: 95px;">{{$t('说明')}}：</label>
                             <div class="bk-form-content" style="margin-left: 95px;">
-                                <textarea maxlength="100" :class="['bk-form-textarea']" placeholder="请输入" v-model="curVar.desc" style="height: 60px;"></textarea>
+                                <textarea maxlength="100" :class="['bk-form-textarea']" :placeholder="$t('请输入')" v-model="curVar.desc" style="height: 60px;"></textarea>
                             </div>
                         </div>
                     </div>
@@ -248,19 +249,19 @@
                 <div class="bk-dialog-outer">
                     <template v-if="isSaving">
                         <button type="button" class="bk-dialog-btn bk-dialog-btn-confirm bk-btn-primary disabled">
-                            提交...
+                            {{$t('提交')}}...
                         </button>
                         <button type="button" class="bk-dialog-btn bk-dialog-btn-cancel disabled">
-                            取消
+                            {{$t('取消')}}
                         </button>
                     </template>
                     <template v-else>
                         <button type="button" class="bk-dialog-btn bk-dialog-btn-confirm bk-btn-primary"
                             @click="saveVar">
-                            提交
+                            {{$t('提交')}}
                         </button>
                         <button type="button" class="bk-dialog-btn bk-dialog-btn-cancel" @click="cancelVar">
-                            取消
+                            {{$t('取消')}}
                         </button>
                     </template>
                 </div>
@@ -287,9 +288,9 @@
                         <table class="bk-table has-table-hover biz-table biz-var-quote-table" :style="{ borderBottomWidth: curQuotePageData.length ? '1px' : 0 }" v-show="!isQuoteLoading">
                             <thead>
                                 <tr>
-                                    <th style="padding-left: 30px;">被引用位置</th>
-                                    <th style="width: 150px;">上下文</th>
-                                    <th style="width: 120px;">操作</th>
+                                    <th style="padding-left: 30px;">{{$t('被引用位置')}}</th>
+                                    <th style="width: 150px;">{{$t('上下文')}}</th>
+                                    <th style="width: 120px;">{{$t('操作')}}</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -302,7 +303,7 @@
                                             {{quote.context}}
                                         </td>
                                         <td>
-                                            <a href="javascript:void(0)" class="bk-text-button" @click="checkVarQuote(quote)">查看详情</a>
+                                            <a href="javascript:void(0)" class="bk-text-button" @click="checkVarQuote(quote)">{{$t('查看详情')}}</a>
                                         </td>
                                     </tr>
                                 </template>
@@ -310,7 +311,7 @@
                                     <tr>
                                         <td colspan="3">
                                             <div class="bk-message-box no-data">
-                                                <p class="message empty-message">无数据</p>
+                                                <p class="message empty-message">{{$t('无数据')}}</p>
                                             </div>
                                         </td>
                                     </tr>
@@ -339,9 +340,9 @@
         data () {
             return {
                 varScoped: {
-                    global: '全局变量',
-                    namespace: '命名空间变量',
-                    cluster: '集群变量'
+                    global: this.$t('全局变量'),
+                    namespace: this.$t('命名空间变量'),
+                    cluster: this.$t('集群变量')
                 },
                 curProjectData: null,
                 isQuoteLoading: true,
@@ -372,7 +373,7 @@
                 varDialogConfig: {
                     isShow: false,
                     width: 640,
-                    title: '新增变量'
+                    title: this.$t('新增变量')
                 },
                 isBatchVarLoading: false,
                 batchUpdateConf: {
@@ -402,25 +403,28 @@
                 searchScopeList: [
                     {
                         id: '',
-                        name: '全部作用范围'
+                        name: this.$t('全部作用范围')
                     },
                     {
                         id: 'global',
-                        name: '全局变量'
+                        name: this.$t('全局变量')
                     },
                     {
                         id: 'cluster',
-                        name: '集群变量'
+                        name: this.$t('集群变量')
                     },
                     {
                         id: 'namespace',
-                        name: '命名空间变量'
+                        name: this.$t('命名空间变量')
                     }
                 ],
                 alreadySelectedNums: 0
             }
         },
         computed: {
+            isEn () {
+                return this.$store.state.isEn
+            },
             projectId () {
                 return this.$route.params.projectId
             },
@@ -458,7 +462,7 @@
             addVar () {
                 this.isSaving = false
                 this.clearInput()
-                this.varDialogConfig.title = '新增变量'
+                this.varDialogConfig.title = this.$t('新增变量')
                 this.varDialogConfig.isShow = true
             },
 
@@ -522,7 +526,7 @@
                     await this.$store.dispatch(url, { projectId, varId, data })
                     this.$bkMessage({
                         theme: 'success',
-                        message: '变量更新成功！'
+                        message: this.$t('变量更新成功')
                     })
                     this.batchUpdateConf.isShow = false
                 } catch (e) {
@@ -537,7 +541,7 @@
             editVar (data) {
                 this.isSaving = false
                 this.curVar = JSON.parse(JSON.stringify(data))
-                this.varDialogConfig.title = '编辑变量'
+                this.varDialogConfig.title = this.$t('编辑变量')
                 this.varDialogConfig.isShow = true
             },
 
@@ -556,7 +560,7 @@
                 } else {
                     this.$bkMessage({
                         theme: 'error',
-                        message: '请选择要删除的变量！'
+                        message: this.$t('请选择要删除的变量')
                     })
                     return false
                 }
@@ -578,7 +582,7 @@
                     clsName: 'biz-remove-dialog',
                     content: this.$createElement('p', {
                         class: 'biz-confirm-desc'
-                    }, `确定要删除变量【${data.name}】?`),
+                    }, `${this.$t('确定要删除变量')}【${data.name}】?`),
                     confirmFn () {
                         self.deleteVar([data.id])
                     }
@@ -825,7 +829,7 @@
                 if (!this.curVar.name) {
                     this.$bkMessage({
                         theme: 'error',
-                        message: '请输入变量名称！'
+                        message: this.$t('请输入变量名称')
                     })
                     return false
                 }
@@ -833,7 +837,7 @@
                 if (this.curVar.name.length > 32) {
                     this.$bkMessage({
                         theme: 'error',
-                        message: '请输入32个字符以内的变量名称！'
+                        message: this.$t('请输入32个字符以内的变量名称')
                     })
                     return false
                 }
@@ -841,7 +845,7 @@
                 if (!this.curVar.key) {
                     this.$bkMessage({
                         theme: 'error',
-                        message: '请输入变量KEY！'
+                        message: this.$t('请输入变量KEY')
                     })
                     return false
                 }
@@ -850,7 +854,7 @@
                 if (!keyReg.test(this.curVar.key)) {
                     this.$bkMessage({
                         theme: 'error',
-                        message: 'KEY 只能包含字母、数字和下划线，且以字母开头，最大长度为64个字符！'
+                        message: this.$t('KEY 只能包含字母、数字和下划线，且以字母开头，最大长度为64个字符')
                     })
                     return false
                 }
@@ -884,7 +888,7 @@
                     if (res.code === 0) {
                         this.$bkMessage({
                             theme: 'success',
-                            message: '变量创建成功！'
+                            message: this.$t('变量创建成功')
                         })
                         this.clearInput()
                         this.varDialogConfig.isShow = false
@@ -914,7 +918,7 @@
                     if (res.code === 0) {
                         this.$bkMessage({
                             theme: 'success',
-                            message: '变量更新成功！'
+                            message: this.$t('变量更新成功')
                         })
                         this.clearInput()
                         this.varDialogConfig.isShow = false
@@ -948,7 +952,7 @@
                     if (res.code === 0) {
                         this.$bkMessage({
                             theme: 'success',
-                            message: '变量删除成功！'
+                            message: this.$t('变量删除成功')
                         })
                         this.getDataByPage()
 
