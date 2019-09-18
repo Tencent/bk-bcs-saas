@@ -360,26 +360,31 @@
                                                                         </template>
                                                                     </template>
 
-                                                                    <template v-if="instance.state.getRet().scale === 1">
-                                                                        <template v-if="instance.state.islock === true">
+                                                                    <template v-if="CATEGORY !== 'daemonset'">
+                                                                        <template v-if="instance.state.getRet().scale === 1">
+                                                                            <template v-if="instance.state.islock === true">
+                                                                                <a href="javascript:void(0);" class="bk-text-button is-disabled"
+                                                                                    :style="{marginRight: instance.state.getRet().rebuild === 1 ? '55px' : '0'}">
+                                                                                    扩缩容
+                                                                                </a>
+                                                                            </template>
+                                                                            <template v-if="instance.state.islock === false">
+                                                                                <a href="javascript:void(0);" class="bk-text-button"
+                                                                                    :style="{marginRight: instance.state.getRet().rebuild === 1 ? '55px' : '0'}"
+                                                                                    @click="showInstanceNum(instance, instanceIndex, tpl.instanceList)">
+                                                                                    扩缩容
+                                                                                </a>
+                                                                            </template>
+                                                                        </template>
+                                                                        <template v-else-if="instance.state.getRet().scale === 0">
                                                                             <a href="javascript:void(0);" class="bk-text-button is-disabled"
                                                                                 :style="{marginRight: instance.state.getRet().rebuild === 1 ? '55px' : '0'}">
                                                                                 扩缩容
                                                                             </a>
                                                                         </template>
-                                                                        <template v-if="instance.state.islock === false">
-                                                                            <a href="javascript:void(0);" class="bk-text-button"
-                                                                                :style="{marginRight: instance.state.getRet().rebuild === 1 ? '55px' : '0'}"
-                                                                                @click="showInstanceNum(instance, instanceIndex, tpl.instanceList)">
-                                                                                扩缩容
-                                                                            </a>
-                                                                        </template>
                                                                     </template>
-                                                                    <template v-else-if="instance.state.getRet().scale === 0">
-                                                                        <a href="javascript:void(0);" class="bk-text-button is-disabled"
-                                                                            :style="{marginRight: instance.state.getRet().rebuild === 1 ? '55px' : '0'}">
-                                                                            扩缩容
-                                                                        </a>
+                                                                    <template v-else>
+                                                                        <span style="display: inline-block; width: 50px;"> </span>
                                                                     </template>
 
                                                                     <template v-if="instance.state.getRet().rebuild === 1">
@@ -727,38 +732,43 @@
                                                                 </template>
                                                             </template>
 
-                                                            <template v-if="instance.state.getRet().scale === 1">
-                                                                <template v-if="instance.state.islock === true">
-                                                                    <a href="javascript:void(0);" class="bk-text-button is-disabled"
-                                                                        :style="{marginRight: instance.state.getRet().rebuild === 1 ? '55px' : '0'}">
-                                                                        扩缩容
-                                                                    </a>
-                                                                </template>
-                                                                <template v-if="instance.state.islock === false">
-                                                                    <a href="javascript:void(0);" class="bk-text-button"
-                                                                        :style="{marginRight: instance.state.getRet().rebuild === 1 ? '55px' : '0'}"
-                                                                        @click="showInstanceNum(instance, instanceIndex, namespace.appList)">
-                                                                        扩缩容
-                                                                    </a>
-                                                                    <!-- <template v-if="instance.from_platform">
+                                                            <template v-if="CATEGORY !== 'daemonset'">
+                                                                <template v-if="instance.state.getRet().scale === 1">
+                                                                    <template v-if="instance.state.islock === true">
+                                                                        <a href="javascript:void(0);" class="bk-text-button is-disabled"
+                                                                            :style="{marginRight: instance.state.getRet().rebuild === 1 ? '55px' : '0'}">
+                                                                            扩缩容
+                                                                        </a>
+                                                                    </template>
+                                                                    <template v-if="instance.state.islock === false">
                                                                         <a href="javascript:void(0);" class="bk-text-button"
                                                                             :style="{marginRight: instance.state.getRet().rebuild === 1 ? '55px' : '0'}"
                                                                             @click="showInstanceNum(instance, instanceIndex, namespace.appList)">
                                                                             扩缩容
                                                                         </a>
+                                                                        <!-- <template v-if="instance.from_platform">
+                                                                            <a href="javascript:void(0);" class="bk-text-button"
+                                                                                :style="{marginRight: instance.state.getRet().rebuild === 1 ? '55px' : '0'}"
+                                                                                @click="showInstanceNum(instance, instanceIndex, namespace.appList)">
+                                                                                扩缩容
+                                                                            </a>
+                                                                        </template>
+                                                                        <template v-else>
+                                                                            <a href="javascript:void(0);" class="bk-text-button is-disabled" :style="{marginRight: instance.state.getRet().rebuild === 1 ? '55px' : '0'}">
+                                                                                扩缩容
+                                                                            </a>
+                                                                        </template> -->
                                                                     </template>
-                                                                    <template v-else>
-                                                                        <a href="javascript:void(0);" class="bk-text-button is-disabled" :style="{marginRight: instance.state.getRet().rebuild === 1 ? '55px' : '0'}">
-                                                                            扩缩容
-                                                                        </a>
-                                                                    </template> -->
+                                                                </template>
+                                                                <template v-else-if="instance.state.getRet().scale === 0">
+                                                                    <a href="javascript:void(0);" class="bk-text-button is-disabled"
+                                                                        :style="{marginRight: instance.state.getRet().rebuild === 1 ? '55px' : '0'}">
+                                                                        扩缩容
+                                                                    </a>
                                                                 </template>
                                                             </template>
-                                                            <template v-else-if="instance.state.getRet().scale === 0">
-                                                                <a href="javascript:void(0);" class="bk-text-button is-disabled"
-                                                                    :style="{marginRight: instance.state.getRet().rebuild === 1 ? '55px' : '0'}">
-                                                                    扩缩容
-                                                                </a>
+                                                            <template v-else>
+                                                                <span style="display: inline-block; width: 50px;"> </span>
                                                             </template>
 
                                                             <template v-if="instance.state.getRet().rebuild === 1">
