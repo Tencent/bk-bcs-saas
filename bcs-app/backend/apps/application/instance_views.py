@@ -15,10 +15,14 @@ import re
 import json
 import logging
 import copy
+import time
 from datetime import datetime
 from collections import OrderedDict
 
 from django.db.models import Q
+from django.conf import settings
+from rest_framework.response import Response
+from rest_framework.renderers import BrowsableAPIRenderer
 
 from backend.components import paas_cc
 from backend.apps.application.utils import APIResponse, image_handler
@@ -51,6 +55,7 @@ from backend.celery_app.tasks.application import update_create_error_record
 from backend.apps.application.views import UpdateInstanceNew
 from backend.utils.basic import getitems
 from backend.apps.datalog import utils as datalog_utils
+from backend.utils.renderers import BKAPIRenderer
 
 logger = logging.getLogger(__name__)
 
@@ -1239,6 +1244,7 @@ class K8sContainerInfo(BaseAPI):
 
 
 class ContainerLogs(BaseAPI):
+    renderer_classes = (BKAPIRenderer, BrowsableAPIRenderer)
 
     def clean_log(self, log_data):
         all_data = log_data.get("data") or {}
@@ -1260,13 +1266,19 @@ class ContainerLogs(BaseAPI):
             standard_log = data.get_container_logs(container_id=container_id)
             standard_log = self.clean_log(standard_log)
 
-        ret_data = []
+        log_content = []
         for info in standard_log:
-            ret_data.append(info.get("_source", {}).get("log", ""))
+            source = info.get('_source') or {}
+            log = source.get('log') or ''
+            # 是否展示本地时间
+            if request.query_params.get('with_localtime', False):
+                localtime = time.strftime(
+                    settings.REST_FRAMEWORK['DATETIME_FORMAT'], time.localtime(source.get('dtEventTimeStamp')))
+                log_content.append({'log': log, 'localtime': localtime})
+            else:
+                log_content.append(log)
 
-        return APIResponse({
-            "data": ret_data
-        })
+        return Response(log_content)
 
 
 class InstanceConfigInfo(BaseAPI):
