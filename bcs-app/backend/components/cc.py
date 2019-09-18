@@ -65,7 +65,7 @@ def get_app_by_user_role(username, bk_supplier_account=None):
     # 组装数据
     if (maintainers_resp.get('code') != ErrorCode.NoError) or \
             (productor_resp.get('code') != ErrorCode.NoError):
-        return {}
+        return []
     data = maintainers_resp.get('data') or []
     data.extend(productor_resp.get('data') or [])
     return [
