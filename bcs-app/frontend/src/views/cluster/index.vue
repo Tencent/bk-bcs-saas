@@ -4,13 +4,7 @@
             <div class="biz-cluster-title">
                 {{$t('集群')}}
             </div>
-            <div class="biz-actions">
-                <bk-tooltip :content="$t('快速入门')" :delay="500" placement="left" ref="guideTooltip" :transfer="true">
-                    <a class="button" href="javascript:void(0)" @click.stop.prevent="showGuide">
-                        <i class="bk-icon icon-calendar"></i>
-                    </a>
-                </bk-tooltip>
-            </div>
+            <bk-guide></bk-guide>
         </div>
         <div class="biz-content-wrapper biz-cluster-wrapper" v-bkloading="{ isLoading: showLoading, opacity: 0.1 }">
             <app-exception
@@ -262,9 +256,9 @@
                         <span style="margin-left: 0;">{{$t('创建容器集群')}}</span>
                     </a>
 
-                    <button class="bk-button bk-default bk-button-large" @click="showGuide">
+                    <a class="bk-button bk-default bk-button-large" :href="PROJECT_CONFIG.doc.quickStart" target="_blank">
                         <span style="margin-left: 0;">{{$t('快速入门指引')}}</span>
-                    </button>
+                    </a>
                 </div>
             </template>
         </div>

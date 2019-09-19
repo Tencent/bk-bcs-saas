@@ -42,7 +42,14 @@
                     <div class="biz-cluster-overview-chart">
                         <div class="chart-box top">
                             <div class="info">
-                                <div class="left">{{$t('CPU使用率')}}</div>
+                                <div class="left">
+                                    {{$t('CPU占集群使用率')}}
+                                    <bk-tooltip placement="top" :content="$t('容器requests cpu占集群的使用率')">
+                                        <span style="font-size: 12px;cursor: pointer;vertical-align: text-top;">
+                                            <i class="bk-icon icon-info-circle"></i>
+                                        </span>
+                                    </bk-tooltip>
+                                </div>
                                 <div class="right" v-if="cpuUsagePercent === $t('无数据')">
                                     <div><span>{{$t('无数据')}}</span></div>
                                 </div>
@@ -56,7 +63,14 @@
 
                         <div class="chart-box top">
                             <div class="info">
-                                <div class="left">{{$t('内存使用率')}}</div>
+                                <div class="left">
+                                    {{$t('内存占集群使用率')}}
+                                    <bk-tooltip placement="top" :content="$t('容器requests 内存占集群的使用率')">
+                                        <span style="font-size: 12px;cursor: pointer;vertical-align: text-top;">
+                                            <i class="bk-icon icon-info-circle"></i>
+                                        </span>
+                                    </bk-tooltip>
+                                </div>
                                 <div class="right" v-if="memUsagePercent === $t('无数据')">
                                     <div><span>{{$t('无数据')}}</span></div>
                                 </div>

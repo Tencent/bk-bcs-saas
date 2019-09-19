@@ -1107,3 +1107,9 @@
     position: relative;
     top: -1px;
 }
+
+.bk-form-inline-item.is-required .bk-label:after,
+.bk-form-item.is-required .bk-label:after {
+    top: 0;
+    margin-top: 12px;
+}
