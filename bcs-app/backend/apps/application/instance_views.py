@@ -1267,11 +1267,13 @@ class ContainerLogs(BaseAPI):
             standard_log = self.clean_log(standard_log)
 
         log_content = []
+        with_localtime = request.query_params.get('with_localtime', False)
+
         for info in standard_log:
             source = info.get('_source') or {}
             log = source.get('log') or ''
             # 是否展示本地时间
-            if request.query_params.get('with_localtime', False):
+            if with_localtime:
                 localtime = time.strftime(
                     settings.REST_FRAMEWORK['DATETIME_FORMAT'], time.localtime(source.get('dtEventTimeStamp')))
                 log_content.append({'log': log, 'localtime': localtime})
