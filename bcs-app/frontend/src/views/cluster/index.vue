@@ -256,9 +256,9 @@
                         <span style="margin-left: 0;">{{$t('创建容器集群')}}</span>
                     </a>
 
-                    <button class="bk-button bk-default bk-button-large" @click="showGuide">
+                    <a class="bk-button bk-default bk-button-large" :href="PROJECT_CONFIG.doc.quickStart" target="_blank">
                         <span style="margin-left: 0;">{{$t('快速入门指引')}}</span>
-                    </button>
+                    </a>
                 </div>
             </template>
         </div>
