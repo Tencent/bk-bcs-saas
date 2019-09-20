@@ -98,3 +98,15 @@ def getitems(obj, items, default=None):
         return reduce(lambda x, i: x[i], items, obj)
     except (IndexError, KeyError, TypeError):
         return default
+
+
+def get_kubectl_version(cluster_version, kubectl_version_info, default_version):
+    if not cluster_version:
+        return default_version
+
+    for kubectl_version, patterns in kubectl_version_info.items():
+        for pattern in patterns:
+            if pattern.match(cluster_version):
+                return kubectl_version
+
+    return default_version

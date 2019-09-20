@@ -20,10 +20,11 @@ import requests
 from django.conf import settings
 from rest_framework.exceptions import PermissionDenied, APIException
 
+from . import constants
 from backend.components import paas_cc, bcs
 from backend.components.utils import http_post
 from backend.bcs_k8s import kubectl
-from . import constants
+from backend.utils.basic import get_kubectl_version
 
 
 logger = logging.getLogger(__name__)
@@ -185,13 +186,15 @@ class BCSClusterClient:
 
 
 def get_cluster_proper_kubectl(access_token, project_id, cluster_id):
-    snapshot = paas_cc.get_cluster_snapshot(access_token, project_id, cluster_id)
-    # version is default, not allow to select
-    try:
-        configure = json.loads(snapshot['data']['configure'])
-        version = configure['version']  # "1.12.3"
-        return settings.KUBECTL_BIN_MAP[version], version
-    except Exception as e:
-        logger.exception(f'get_cluster_proper_kubectl_bin failed, {e}')
+    bcs_api_client = bcs.k8s.K8SClient(access_token, project_id, cluster_id, None)
 
-    return settings.KUBECTL_BIN, None
+    kubectl_version = get_kubectl_version(
+        bcs_api_client.version, constants.KUBECTL_VERSION, constants.DEFAULT_KUBECTL_VERSION)
+
+    try:
+        kubectl_bin = settings.KUBECTL_BIN_MAP[kubectl_version]
+    except Exception as err:
+        logger.error("get kubectl error, kubectl version: %s, error message: %s", kubectl_version, err)
+        kubectl_bin = settings.KUBECTL_BIN_MAP[constants.DEFAULT_KUBECTL_VERSION]
+
+    return kubectl_bin, kubectl_version
