@@ -24,7 +24,7 @@ from . import constants
 from backend.components import paas_cc, bcs
 from backend.components.utils import http_post
 from backend.bcs_k8s import kubectl
-from backend.utils.basic import get_kubectl_version
+from backend.utils.basic import get_bcs_component_version
 
 
 logger = logging.getLogger(__name__)
@@ -188,7 +188,7 @@ class BCSClusterClient:
 def get_cluster_proper_kubectl(access_token, project_id, cluster_id):
     bcs_api_client = bcs.k8s.K8SClient(access_token, project_id, cluster_id, None)
 
-    kubectl_version = get_kubectl_version(
+    kubectl_version = get_bcs_component_version(
         bcs_api_client.version, constants.KUBECTL_VERSION, constants.DEFAULT_KUBECTL_VERSION)
 
     try:
