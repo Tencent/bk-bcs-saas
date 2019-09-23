@@ -20,9 +20,10 @@ from backend.activity_log import client as activity_client
 from backend.apps.application import constants as application_constants
 from backend.apps.application.constants import DELETE_INSTANCE
 from backend.apps.configuration.constants import K8sResourceName
+from backend.apps.constants import ProjectKind
 from backend.apps.instance import constants as instance_constants
 from backend.apps.instance.models import InstanceConfig
-from backend.components.bcs import k8s
+from backend.components.bcs import k8s, mesos
 
 logger = logging.getLogger(__name__)
 
@@ -69,7 +70,11 @@ def get_cluster_hpa_list(request, project_id, cluster_id, cluster_env, cluster_n
     access_token = request.user.token.access_token
     project_code = request.project.english_name
     hpa_list = []
-    client = k8s.K8SClient(access_token, project_id, cluster_id, env=cluster_env)
+    if request.project.coes == ProjectKind.MESOS.value:
+        client = mesos.MesosClient(access_token, project_id, cluster_id, env=cluster_env)
+    else:
+        client = k8s.K8SClient(access_token, project_id, cluster_id, env=cluster_env)
+
     hpa = client.list_hpa(namespace).get('items') or []
 
     for _config in hpa:

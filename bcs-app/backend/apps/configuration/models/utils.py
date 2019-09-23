@@ -16,7 +16,7 @@ from backend.apps.configuration.constants import RESOURCE_NAMES, K8sResourceName
 
 MODEL_CLASS_LIST = [k8s.K8sDeployment, k8s.K8sDaemonSet, k8s.K8sJob, k8s.K8sStatefulSet, k8s.K8sService,
                     k8s.K8sConfigMap, k8s.K8sSecret, k8s.K8sIngress, k8s.K8sHPA, mesos.Application, mesos.Deplpyment,
-                    mesos.Service, mesos.ConfigMap, mesos.Secret]
+                    mesos.Service, mesos.ConfigMap, mesos.Secret, mesos.HPA]
 
 RESOURCE_MODEL_MAP = dict(zip(RESOURCE_NAMES, MODEL_CLASS_LIST))
 
@@ -26,6 +26,7 @@ MODULE_DICT = {
     "service": mesos.Service,
     "configmap": mesos.ConfigMap,
     "secret": mesos.Secret,
+    "hpa": mesos.HPA,
     # k8s 相关资源
     "K8sDeployment": k8s.K8sDeployment,
     "K8sService": k8s.K8sService,
