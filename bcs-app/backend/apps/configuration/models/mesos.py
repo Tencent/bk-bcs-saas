@@ -68,6 +68,16 @@ class MesosResource(BaseModel):
             return None
         return config.get('metadata', {}).get('name')
 
+    @classmethod
+    def get_resources_info(cls, resource_id_list):
+        resource_data = []
+        robj_qsets = cls.objects.filter(id__in=resource_id_list)
+        for robj in robj_qsets:
+            resource_data.append({
+                'app_id': robj.app_id,
+                'app_name': robj.name
+            })
+        return resource_data
 
 class ConfigMap(MesosResource, MConfigMapAndSecretMixin):
     """
@@ -111,17 +121,6 @@ class Application(MesosResource, PodMixin):
         # 需要与保留其他资源的关联关系，所以更新后的记录 app_id 要与原来的记录保持一致
         kwargs['app_id'] = old_app.app_id
         return super().perform_update(old_id, **kwargs)
-
-    @classmethod
-    def get_resources_info(cls, resource_id_list):
-        resource_data = []
-        robj_qsets = cls.objects.filter(id__in=resource_id_list)
-        for robj in robj_qsets:
-            resource_data.append({
-                'app_id': robj.app_id,
-                'app_name': robj.name
-            })
-        return resource_data
 
     def get_res_config(self, is_simple):
         c = super().get_res_config(is_simple)
