@@ -98,3 +98,15 @@ def getitems(obj, items, default=None):
         return reduce(lambda x, i: x[i], items, obj)
     except (IndexError, KeyError, TypeError):
         return default
+
+
+def get_bcs_component_version(cluster_version, bcs_component_version_info, default_version):
+    if not cluster_version:
+        return default_version
+
+    for component_version, patterns in bcs_component_version_info.items():
+        for pattern in patterns:
+            if pattern.match(cluster_version):
+                return component_version
+
+    return default_version

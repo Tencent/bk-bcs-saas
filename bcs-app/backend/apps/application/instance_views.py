@@ -56,6 +56,7 @@ from backend.apps.application.views import UpdateInstanceNew
 from backend.utils.basic import getitems
 from backend.apps.datalog import utils as datalog_utils
 from backend.utils.renderers import BKAPIRenderer
+from backend.apps.constants import ProjectKind
 
 logger = logging.getLogger(__name__)
 
@@ -961,11 +962,10 @@ class TaskgroupEvents(BaseAPI):
                 request, project_id, labels.get("io.tencent.paas.templateid"), curr_inst.namespace)
             category = curr_inst.category
         # 获取kind
-        flag, project_kind = self.get_project_kind(request, project_id)
-        if not flag:
-            return project_kind
+        project_kind = request.project.kind
         # 获取application
-        if category == DEPLOYMENT_CATEGORY:
+        # NOTE: 针对mesos和k8s的deployment资源，前端传递的资源类型都是deployment，因此，需要添加容器服务编排类型进行区分
+        if category == DEPLOYMENT_CATEGORY and project_kind == ProjectKind.MESOS.value:
             application_info = self.get_rc_name_by_deployment(
                 request, project_id, cluster_id, inst_name,
                 project_kind=project_kind, namespace=inst_namespace
