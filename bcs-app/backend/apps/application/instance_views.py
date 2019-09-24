@@ -964,6 +964,7 @@ class TaskgroupEvents(BaseAPI):
         # 获取kind
         project_kind = request.project.kind
         # 获取application
+        # NOTE: 针对mesos和k8s的deployment资源，前端传递的资源类型都是deployment，因此，需要添加容器服务编排类型进行区分
         if category == DEPLOYMENT_CATEGORY and project_kind == ProjectKind.MESOS.value:
             application_info = self.get_rc_name_by_deployment(
                 request, project_id, cluster_id, inst_name,
