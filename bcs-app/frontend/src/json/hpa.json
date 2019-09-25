@@ -1,0 +1,29 @@
+{
+    "config": {
+        "apiVersion": "v4",
+        "kind": "autoscaler",
+        "metadata": {
+            "labels": {},
+            "name": ""
+        },
+        "spec": {
+            "maxInstance": 10,
+            "minInstance": 1,
+            "scaleTargetRef": {
+                "kind": "Deployment",
+                "name": ""
+            },
+            "metrics": [
+                {
+                    "name": "",
+                    "described": "",
+                    "target": {
+                        "kind": "AverageUtilization",
+                        "averageUtilization": "",
+                        "variance": 10
+                    }
+                }
+            ]
+        }
+    }
+}
