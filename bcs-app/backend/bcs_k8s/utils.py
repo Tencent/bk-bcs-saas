@@ -11,22 +11,7 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-from .constants_bk import *  # noqa
+from backend.utils.basic import get_bcs_component_version
 
-
-BCS_USER_NAME = "bke-dynamic-user"
-
-# cluster not found code
-CLUSTER_NOT_FOUND_CODE_NAME = 'CLUSTER_NOT_FOUND'
-
-# perm fail code
-CLUSTER_PERM_FAIL_CODE_NAMES = ['CHECK_USER_CLUSTER_PERM_FAIL', 'UNAUTHORIZED']
-
-# token not found code
-TOKEN_NOT_FOUND_CODE_NAME = 'RTOKEN_NOT_FOUND'
-
-# cluster exist code
-CLUSTER_EXIST_CODE_NAME = 'CLUSTER_ALREADY_EXISTS'
-
-# credentials not found code
-CREDENTIALS_NOT_FOUND_CODE_NAME = 'CREDENTIALS_NOT_FOUND'
+def get_kubectl_version(cluster_version, kubectl_version_info, default_kubectl_version):
+    return get_bcs_component_version(cluster_version, kubectl_version_info, default_kubectl_version)

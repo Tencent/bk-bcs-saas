@@ -367,6 +367,9 @@ class VersionedEntity(BaseModel):
 
     objects = VersionedEntityManager()
 
+    def __str__(self):
+        return f'<{self.version}/{self.template_id}/{self.last_version_id}>'
+
     def save(self, *args, **kwargs):
         # 捕获名称重复异常
         if isinstance(self.entity, dict):

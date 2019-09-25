@@ -34,7 +34,7 @@ KEY_NAME_PATTERN = "^[a-zA-Z{]{1}[a-zA-Z0-9-_.{}]{0,254}$"
 # TODO mark refactor 这部分整个项目需要统一到一个地方维护
 KRESOURCE_NAMES = ['K8sDeployment', 'K8sDaemonSet', 'K8sJob', 'K8sStatefulSet', 'K8sService', 'K8sConfigMap',
                    'K8sSecret', 'K8sIngress', 'K8sHPA']
-MRESOURCE_NAMES = ['application', 'deployment', 'service', 'configmap', 'secret']
+MRESOURCE_NAMES = ['application', 'deployment', 'service', 'configmap', 'secret', 'hpa']
 RESOURCE_NAMES = KRESOURCE_NAMES + MRESOURCE_NAMES
 
 
@@ -79,11 +79,13 @@ class MesosResourceName(ChoicesEnum):
     service = 'service'
     configmap = 'configmap'
     secret = 'secret'
+    hpa = 'hpa'
 
     _choices_labels = (
         (application, 'application'),
         (deployment, 'deployment'),
         (service, 'service'),
         (configmap, 'configmap'),
-        (secret, 'secret')
+        (secret, 'secret'),
+        (hpa, 'hpa')
     )

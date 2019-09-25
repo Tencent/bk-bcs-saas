@@ -50,9 +50,9 @@ type createAreaJSON struct {
 // update area params
 type updateAreaJSON struct {
 	models.Model
-	Description   string `json:"description"`
-	Configuration string `json:"configuration"`
-	ChineseName   string `json:"chinese_name"`
+	Description   *string `json:"description"`
+	Configuration *string `json:"configuration"`
+	ChineseName   *string `json:"chinese_name"`
 }
 
 /* areas end */

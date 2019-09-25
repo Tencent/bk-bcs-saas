@@ -545,3 +545,45 @@ class MesosClient(BCSClientBase):
             return result
         except Exception as error:
             logger.warning('resize_container_exec error, %s', error)
+
+    def create_hpa(self, namespace, spec):
+        """创建HPA
+        """
+        url = f'{self.api_host}/bcsapi/v4/scheduler/mesos/crd/namespaces/{namespace}/autoscaler'
+        result = http_post(url, json=spec, headers=self.headers)
+        return result
+
+    def update_hpa(self, namespace, spec):
+        """更新HPA
+        """
+        url = f'{self.api_host}/bcsapi/v4/scheduler/mesos/crd/namespaces/{namespace}/autoscaler'
+        result = http_put(url, json=spec, headers=self.headers)
+        return result
+
+    def get_hpa(self, namespace, name):
+        """获取HPA
+        """
+        url = f'{self.api_host}/bcsapi/v4/scheduler/mesos/crd/namespaces/{namespace}/autoscaler/{name}'
+        result = http_get(url, headers=self.headers)
+        return result
+
+    def apply_hpa(self, namespace, spec):
+        """创建或者更新HPA
+        """
+        name = spec['metadata']['name']
+        hpa = self.get_hpa(namespace, name)
+        if not hpa.get('result'):
+            return self.create_hpa(namespace, spec)
+        return self.update_hpa(namespace, spec)
+
+    def delete_hpa(self, namespace, name):
+        """删除HPA
+        """
+        url = f'{self.api_host}/bcsapi/v4/scheduler/mesos/crd/namespaces/{namespace}/autoscaler/{name}'
+        result = http_delete(url, headers=self.headers)
+        return result
+
+    def list_hpa(self, namespace=None):
+        """获取HPA列表
+        """
+        return {}

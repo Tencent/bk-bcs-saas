@@ -11,22 +11,15 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-from .constants_bk import *  # noqa
+import re
+from collections import OrderedDict
 
+# default kubectl version
+DEFAULT_KUBECTL_VERSION = '1.12.3'
 
-BCS_USER_NAME = "bke-dynamic-user"
-
-# cluster not found code
-CLUSTER_NOT_FOUND_CODE_NAME = 'CLUSTER_NOT_FOUND'
-
-# perm fail code
-CLUSTER_PERM_FAIL_CODE_NAMES = ['CHECK_USER_CLUSTER_PERM_FAIL', 'UNAUTHORIZED']
-
-# token not found code
-TOKEN_NOT_FOUND_CODE_NAME = 'RTOKEN_NOT_FOUND'
-
-# cluster exist code
-CLUSTER_EXIST_CODE_NAME = 'CLUSTER_ALREADY_EXISTS'
-
-# credentials not found code
-CREDENTIALS_NOT_FOUND_CODE_NAME = 'CREDENTIALS_NOT_FOUND'
+# KUBECTL VERSION
+KUBECTL_VERSION = OrderedDict({
+    '1.12.3': [
+        re.compile(r'^[vV]?1\.12\.\w+$')
+    ]
+})

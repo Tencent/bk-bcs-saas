@@ -15,10 +15,14 @@ import re
 import json
 import logging
 import copy
+import time
 from datetime import datetime
 from collections import OrderedDict
 
 from django.db.models import Q
+from django.conf import settings
+from rest_framework.response import Response
+from rest_framework.renderers import BrowsableAPIRenderer
 
 from backend.components import paas_cc
 from backend.apps.application.utils import APIResponse, image_handler
@@ -51,6 +55,8 @@ from backend.celery_app.tasks.application import update_create_error_record
 from backend.apps.application.views import UpdateInstanceNew
 from backend.utils.basic import getitems
 from backend.apps.datalog import utils as datalog_utils
+from backend.utils.renderers import BKAPIRenderer
+from backend.apps.constants import ProjectKind
 
 logger = logging.getLogger(__name__)
 
@@ -956,11 +962,10 @@ class TaskgroupEvents(BaseAPI):
                 request, project_id, labels.get("io.tencent.paas.templateid"), curr_inst.namespace)
             category = curr_inst.category
         # 获取kind
-        flag, project_kind = self.get_project_kind(request, project_id)
-        if not flag:
-            return project_kind
+        project_kind = request.project.kind
         # 获取application
-        if category == DEPLOYMENT_CATEGORY:
+        # NOTE: 针对mesos和k8s的deployment资源，前端传递的资源类型都是deployment，因此，需要添加容器服务编排类型进行区分
+        if category == DEPLOYMENT_CATEGORY and project_kind == ProjectKind.MESOS.value:
             application_info = self.get_rc_name_by_deployment(
                 request, project_id, cluster_id, inst_name,
                 project_kind=project_kind, namespace=inst_namespace
@@ -1239,6 +1244,7 @@ class K8sContainerInfo(BaseAPI):
 
 
 class ContainerLogs(BaseAPI):
+    renderer_classes = (BKAPIRenderer, BrowsableAPIRenderer)
 
     def clean_log(self, log_data):
         all_data = log_data.get("data") or {}
@@ -1260,13 +1266,21 @@ class ContainerLogs(BaseAPI):
             standard_log = data.get_container_logs(container_id=container_id)
             standard_log = self.clean_log(standard_log)
 
-        ret_data = []
-        for info in standard_log:
-            ret_data.append(info.get("_source", {}).get("log", ""))
+        log_content = []
+        with_localtime = request.query_params.get('with_localtime', False)
 
-        return APIResponse({
-            "data": ret_data
-        })
+        for info in standard_log:
+            source = info.get('_source') or {}
+            log = source.get('log') or ''
+            # 是否展示本地时间
+            if with_localtime:
+                localtime = time.strftime(
+                    settings.REST_FRAMEWORK['DATETIME_FORMAT'], time.localtime(source.get('dtEventTimeStamp')))
+                log_content.append({'log': log, 'localtime': localtime})
+            else:
+                log_content.append(log)
+
+        return Response(log_content)
 
 
 class InstanceConfigInfo(BaseAPI):

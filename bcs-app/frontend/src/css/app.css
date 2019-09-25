@@ -487,7 +487,7 @@ input:-webkit-autofill, textarea:-webkit-autofill, select:-webkit-autofill {
                 width: 310px;
                 text-align: left;
                 .bk-form-radio {
-                    width: 105px;
+                    width: 120px;
                     margin-right: 20px;
                 }
                 .bk-button {
