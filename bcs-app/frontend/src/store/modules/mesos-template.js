@@ -1081,6 +1081,18 @@ export default {
          */
         unlockTemplateset (context, { projectId, templateId }) {
             return http.post(`${DEVOPS_BCS_API_URL}/api/configuration/${projectId}/template/unlock/${templateId}/`)
+        },
+
+        /**
+         * 获取对应version 的deployment list
+         *
+         * @param {Object} context store 上下文对象
+         * @param {Object} params 请求参数
+         *
+         * @return {Promise} promise 对象
+         */
+        getDeploymentsByVersion (context, { projectId, version }) {
+            return http.get(`${DEVOPS_BCS_API_URL}/api/configuration/${projectId}/deployment/${version}/`)
         }
     }
 }
