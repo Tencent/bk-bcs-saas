@@ -36,6 +36,7 @@ export default {
         deployments: [],
         services: [],
         secrets: [],
+        HPAs: [],
         configmaps: [],
         versionList: [],
         imageList: [],
@@ -70,6 +71,7 @@ export default {
             state.deployments.splice(0, state.deployments.length, ...[])
             state.services.splice(0, state.services.length, ...[])
             state.secrets.splice(0, state.secrets.length, ...[])
+            state.HPAs.splice(0, state.HPAs.length, ...[])
             state.configmaps.splice(0, state.configmaps.length, ...[])
 
             state.linkApps.splice(0, state.linkApps.length, ...[])
@@ -279,6 +281,19 @@ export default {
             } else {
                 state.secrets.splice(0, state.secrets.length)
             }
+
+            if (data.hpa) {
+                data.hpa.forEach(item => {
+                    if (String(item.id).indexOf('local_') > -1) {
+                        item.isEdited = true
+                    } else {
+                        item.isEdited = false
+                    }
+                })
+                state.HPAs.splice(0, state.HPAs.length, ...data.hpa)
+            } else {
+                state.HPAs.splice(0, state.HPAs.length)
+            }
         },
         updateApplications (state, data) {
             state.applications.splice(0, state.applications.length, ...data)
@@ -331,6 +346,15 @@ export default {
             const list = JSON.parse(JSON.stringify(state.secrets))
             state.secrets.splice(0, state.secrets.length, ...list)
         },
+        updateHPAById (state, { HPA, preId }) {
+            for (const item of state.HPAs) {
+                if (item.id === preId) {
+                    item.id = HPA.id
+                }
+            }
+            const list = JSON.parse(JSON.stringify(state.HPAs))
+            state.HPAs.splice(0, state.HPAs.length, ...list)
+        },
         updateDeployments (state, data) {
             state.deployments.splice(0, state.deployments.length, ...data)
         },
@@ -350,6 +374,9 @@ export default {
         },
         updateSecrets (state, data) {
             state.secrets.splice(0, state.secrets.length, ...data)
+        },
+        updateHPAs (state, data) {
+            state.HPAs.splice(0, state.HPAs.length, ...data)
         },
         updateConfigmaps (state, data) {
             state.configmaps.splice(0, state.configmaps.length, ...data)
@@ -904,6 +931,66 @@ export default {
          */
         addFirstSecret (context, { data, templateId, projectId }, config = {}) {
             return http.post(`${DEVOPS_BCS_API_URL}/api/configuration/${projectId}/template/${templateId}/secret/`, data)
+        },
+
+        /**
+         * 获取HPA metric类型
+         *
+         * @param {Object} context store 上下文对象
+         * @param {Number} projectId project id
+         *
+         * @return {Promise} promise 对象
+         */
+        getHPAMetric (context, projectId) {
+            return http.get(`${DEVOPS_BCS_API_URL}/api/hpa/projects/${projectId}/metrics/`)
+        },
+
+        /**
+         * 创建HPA
+         *
+         * @param {Object} context store 上下文对象
+         * @param {Object} params 包括data, version, projectId
+         *
+         * @return {Promise} promise 对象
+         */
+        addHPA (context, { data, version, projectId }) {
+            return http.put(`${DEVOPS_BCS_API_URL}/api/configuration/${projectId}/version/${version}/hpa/0/`, data)
+        },
+
+        /**
+         * 更新HPA
+         *
+         * @param {Object} context store 上下文对象
+         * @param {Object} params 包括data, version, projectId, HPAId
+         *
+         * @return {Promise} promise 对象
+         */
+        updateHPA (context, { data, version, projectId, HPAId }) {
+            return http.put(`${DEVOPS_BCS_API_URL}/api/configuration/${projectId}/version/${version}/hpa/${HPAId}/`, data)
+        },
+
+        /**
+         * 删除HPA
+         *
+         * @param {Object} context store 上下文对象
+         * @param {Object} params 包括version, projectId, HPAId
+         *
+         * @return {Promise} promise 对象
+         */
+        removeHPA (context, { HPAId, version, projectId }) {
+            return http.delete(`${DEVOPS_BCS_API_URL}/api/configuration/${projectId}/version/${version}/hpa/${HPAId}/`)
+        },
+
+        /**
+         * 添加第一个HPA
+         *
+         * @param {Object} context store 上下文对象
+         * @param {Object} params 包括data, templateId, HPAId
+         *
+         * @return {Promise} promise 对象
+         */
+        addFirstHPA (context, { data, templateId, projectId }) {
+            return http.post(`${DEVOPS_BCS_API_URL}/api/configuration/${projectId}/template/${templateId}/hpa/`, data)
         },
 
         /**
