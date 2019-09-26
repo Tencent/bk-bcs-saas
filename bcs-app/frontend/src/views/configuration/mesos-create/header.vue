@@ -689,7 +689,8 @@
                             projectId: this.projectId,
                             projectCode: this.projectCode,
                             templateId: this.curTemplate.id,
-                            curTemplate: this.curTemplate
+                            curTemplate: this.curTemplate,
+                            curShowVersionId: this.curShowVersionId
                         }
                     })
                 }

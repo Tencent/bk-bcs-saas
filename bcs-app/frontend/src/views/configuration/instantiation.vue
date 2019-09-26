@@ -442,6 +442,9 @@
             },
             onlineProjectList () {
                 return this.$store.state.sideMenu.onlineProjectList
+            },
+            curShowVersionId () {
+                return this.$route.params.curShowVersionId
             }
         },
         created () {
@@ -581,6 +584,9 @@
                             show_version_name: item.show_version_name
                         })
                     })
+                    if (this.curShowVersionId) {
+                        this.tplsetVerIndex = this.curShowVersionId
+                    }
                 } catch (e) {
                     catchErrorHandler(e, this)
                 }
