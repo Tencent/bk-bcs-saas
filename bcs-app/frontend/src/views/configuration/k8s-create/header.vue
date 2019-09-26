@@ -816,7 +816,8 @@
                         params: {
                             projectId: this.projectId,
                             templateId: this.curTemplate.id,
-                            curTemplate: this.curTemplate
+                            curTemplate: this.curTemplate,
+                            curShowVersionId: this.curShowVersionId
                         }
                     })
                 }
@@ -2972,7 +2973,7 @@
                         })
                         return false
                     }
-                    
+
                     const paths = rule.http.paths
 
                     for (const path of paths) {
