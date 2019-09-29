@@ -112,6 +112,8 @@ export default class State {
             // 扩缩容 置灰，删除 重建 可用
             case 'Finish':
                 ret = Object.assign({}, OPERATE_MAP, {
+                    // 更新
+                    'update': 1,
                     // 扩缩容
                     'scale': 0,
                     // 重建
