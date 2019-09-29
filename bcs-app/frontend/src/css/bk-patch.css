@@ -1113,3 +1113,13 @@
     top: 0;
     margin-top: 12px;
 }
+
+.biz-app-container-log-sideslider {
+    .bk-sideslider-wrapper {
+        padding-bottom: 0;
+    }
+    .bk-sideslider-content {
+        max-height: calc(100vh - 60px);
+        height: calc(100% - 60px);
+    }
+}

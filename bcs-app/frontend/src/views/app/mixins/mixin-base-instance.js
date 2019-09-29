@@ -951,41 +951,6 @@ export default {
         },
 
         /**
-         * 显示容器日志
-         *
-         * @param {Object} container 当前容器
-         */
-        async showLog (container) {
-            this.logSideDialogConf.isShow = true
-            this.logSideDialogConf.title = container.name
-            this.logSideDialogConf.container = container
-            this.logLoading = true
-            try {
-                const params = {
-                    projectId: this.projectId,
-                    containerId: container.container_id
-                }
-
-                if (String(this.instanceId) === '0') {
-                    params.name = this.instanceName
-                    params.namespace = this.instanceNamespace
-                    params.category = this.instanceCategory
-                }
-
-                if (this.CATEGORY) {
-                    params.category = this.CATEGORY
-                }
-
-                const res = await this.$store.dispatch('app/getContainterLog', params)
-                this.logList.splice(0, this.logList.length, ...(res.data || []))
-            } catch (e) {
-                catchErrorHandler(e, this)
-            } finally {
-                this.logLoading = false
-            }
-        },
-
-        /**
          * 关闭日志
          *
          * @param {Object} cluster 当前集群对象
