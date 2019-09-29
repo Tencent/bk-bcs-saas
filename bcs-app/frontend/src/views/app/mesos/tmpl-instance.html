@@ -186,19 +186,11 @@
                                                                 </template>
                                                             </bk-tooltip>
                                                         </td>
-                                                        <td class="act" style="width: 250px;">
-                                                            <a href="javascript:void(0);" class="bk-text-button" v-if="container.container_id && taskgroup.status !== 'Starting'" @click="showLog(container)">
-                                                                日志
-                                                            </a>
-                                                            <a href="javascript:void(0);" class="bk-text-button is-disabled" v-else>
-                                                                日志
-                                                            </a>
-                                                        </td>
                                                     </tr>
                                                 </template>
                                                 <template v-else>
                                                     <tr>
-                                                        <td colspan="4">
+                                                        <td colspan="3">
                                                             <div class="bk-message-box">
                                                                 <p class="message empty-message" v-if="!taskgroup.containerLoading">无数据</p>
                                                             </div>
