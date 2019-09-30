@@ -28,7 +28,7 @@ from .node import (  # noqa
     BatchUpdateDeleteNodeViewSet
 )
 from .area import (  # noqa
-    AreaListViewSet,
+    AreaListViewSet, AreaInfoViewSet
 )
 
 from .metrics import (  # noqa

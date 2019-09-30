@@ -1274,8 +1274,10 @@ class ContainerLogs(BaseAPI):
             log = source.get('log') or ''
             # 是否展示本地时间
             if with_localtime:
+                timestamp = int(source.get('dtEventTimeStamp')) / 1000 \
+                    if str(source.get('dtEventTimeStamp')).isdigit() else None
                 localtime = time.strftime(
-                    settings.REST_FRAMEWORK['DATETIME_FORMAT'], time.localtime(source.get('dtEventTimeStamp')))
+                    settings.REST_FRAMEWORK['DATETIME_FORMAT'], time.localtime(timestamp))
                 log_content.append({'log': log, 'localtime': localtime})
             else:
                 log_content.append(log)
