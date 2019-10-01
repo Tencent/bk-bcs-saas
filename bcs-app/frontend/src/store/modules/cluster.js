@@ -98,6 +98,19 @@ export default {
         },
 
         /**
+         * 创建集群时根据所属地域获取所属 VPC 信息
+         *
+         * @param {Object} context store 上下文对象
+         * @param {string} projectId 项目 id
+         * @param {Object} config 请求的配置
+         *
+         * @return {Promise} promise 对象
+         */
+        getVPCByArea (context, areaId, config = {}) {
+            return http.get(`${DEVOPS_BCS_API_URL}/api/areas/${areaId}/`, {}, config)
+        },
+
+        /**
          * 创建集群时获取备选服务器列表
          *
          * @param {Object} context store 上下文对象
