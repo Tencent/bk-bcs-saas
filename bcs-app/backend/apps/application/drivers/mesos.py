@@ -17,3 +17,7 @@ class Driver:
     @classmethod
     def get_unit_info(cls, client, ns_name, inst_name, taskgroup_name, filed, category):
         pass
+
+    @classmethod
+    def get_events(cls, client, params):
+        return client.get_events(params)

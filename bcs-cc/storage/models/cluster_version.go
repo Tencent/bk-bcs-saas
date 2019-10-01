@@ -115,3 +115,18 @@ func (snapshot *ClusterConfigureVersion) CreateSnapshot() error {
 	}
 	return nil
 }
+
+// ClusterVersion : fetch the cluster version info
+func ClusterVersion(verID string, env string, kind string) ([]BaseVersion, error) {
+	qs := NewBaseVersionQuerySet(storage.GetDefaultSession().DB)
+	// queryset filter
+	qs = qs.Filter(map[string]string{
+		"version":     verID,
+		"environment": env,
+		"kind":        kind,
+	}, baseVersionFilterString)
+	qs = qs.OrderDescByID()
+	clusterVersion := []BaseVersion{}
+	err := qs.All(&clusterVersion)
+	return clusterVersion, err
+}

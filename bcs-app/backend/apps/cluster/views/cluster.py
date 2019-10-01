@@ -399,3 +399,16 @@ class ClusterMasterInfo(ClusterPermBase, viewsets.ViewSet):
                     ret_data.append(self.responseslz(info))
                 break
         return response.Response(ret_data)
+
+
+class ClusterVersionViewSet(viewsets.ViewSet):
+    renderer_classes = (BKAPIRenderer, BrowsableAPIRenderer)
+
+    def versions(self, request, project_id):
+        resp = paas_cc.get_cluster_versions(
+            request.user.token.access_token, kind=cluster_constants.ClusterType[request.project.coes])
+        if resp.get('code') != ErrorCode.NoError:
+            data = []
+        data = [info['version'] for info in resp.get('data') or []]
+
+        return response.Response(data)
