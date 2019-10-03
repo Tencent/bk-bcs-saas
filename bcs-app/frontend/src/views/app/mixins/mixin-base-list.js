@@ -775,6 +775,7 @@ export default {
                             buildInstance: item.build_instance,
                             operType: item.oper_type,
                             operTypeFlag: item.oper_type_flag,
+                            category: this.CATEGORY,
                             islock: false
                         })
                     } else {
@@ -948,6 +949,7 @@ export default {
                             buildInstance: item.build_instance,
                             operType: item.oper_type,
                             operTypeFlag: item.oper_type_flag,
+                            category: this.CATEGORY,
                             islock: false
                         })
                     } else {
