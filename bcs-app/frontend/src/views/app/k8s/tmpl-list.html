@@ -274,90 +274,88 @@
                                                                 <td>{{instance.build_instance}}/{{instance.instance}}</td>
                                                                 <td><p class="instance-createat">{{formatDate(instance.update_at)}}</p></td>
                                                                 <td class="act">
-                                                                    <template v-if="CATEGORY !== 'job'">
-                                                                        <template v-if="instance.state.getRet().rollingupdate === 1">
-                                                                            <template v-if="instance.state.islock === true">
-                                                                                <a href="javascript:void(0);" class="bk-text-button is-disabled">
-                                                                                    滚动升级
-                                                                                </a>
-                                                                            </template>
-                                                                            <template v-if="instance.state.islock === false">
-                                                                                <a href="javascript:void(0);" class="bk-text-button"
-                                                                                    @click="showRollingUpdate(instance, instanceIndex, tpl.instanceList)">
-                                                                                    滚动升级
-                                                                                </a>
-                                                                            </template>
-                                                                        </template>
-                                                                        <template v-else-if="instance.state.getRet().rollingupdate === 0">
+                                                                    <template v-if="instance.state.getRet().rollingupdate === 1">
+                                                                        <template v-if="instance.state.islock === true">
                                                                             <a href="javascript:void(0);" class="bk-text-button is-disabled">
                                                                                 滚动升级
                                                                             </a>
                                                                         </template>
-
-                                                                        <template v-if="instance.state.getRet().pause === 1">
-                                                                            <template v-if="instance.state.islock === true">
-                                                                                <a href="javascript:void(0);" class="bk-text-button is-disabled">
-                                                                                    暂停升级
-                                                                                </a>
-                                                                            </template>
-                                                                            <template v-if="instance.state.islock === false">
-                                                                                <a href="javascript:void(0);" class="bk-text-button"
-                                                                                    @click="pauseRollingUpdate(instance, instanceIndex, tpl.instanceList)">
-                                                                                    暂停升级
-                                                                                </a>
-                                                                            </template>
+                                                                        <template v-if="instance.state.islock === false">
+                                                                            <a href="javascript:void(0);" class="bk-text-button"
+                                                                                @click="showRollingUpdate(instance, instanceIndex, tpl.instanceList)">
+                                                                                滚动升级
+                                                                            </a>
                                                                         </template>
-                                                                        <template v-else-if="instance.state.getRet().pause === 0">
+                                                                    </template>
+                                                                    <template v-else-if="instance.state.getRet().rollingupdate === 0">
+                                                                        <a href="javascript:void(0);" class="bk-text-button is-disabled">
+                                                                            滚动升级
+                                                                        </a>
+                                                                    </template>
+
+                                                                    <template v-if="instance.state.getRet().pause === 1">
+                                                                        <template v-if="instance.state.islock === true">
                                                                             <a href="javascript:void(0);" class="bk-text-button is-disabled">
                                                                                 暂停升级
                                                                             </a>
                                                                         </template>
-
-                                                                        <template v-if="instance.state.getRet().resume === 1">
-                                                                            <template v-if="instance.state.islock === true">
-                                                                                <a href="javascript:void(0);" class="bk-text-button is-disabled" style="margin-right: 55px;">
-                                                                                    恢复升级
-                                                                                </a>
-                                                                            </template>
-                                                                            <template v-if="instance.state.islock === false">
-                                                                                <a href="javascript:void(0);" class="bk-text-button"
-                                                                                    :style="{
-                                                                                        marginRight: instance.status === 'Paused' && (instance.oper_type === 'rollingupdate' || instance.oper_type === 'pause')
-                                                                                            ? '55px'
-                                                                                            : '0'
-                                                                                    }"
-                                                                                    @click="resumeRollingUpdate(instance, instanceIndex, tpl.instanceList)">
-                                                                                    恢复升级
-                                                                                </a>
-                                                                            </template>
+                                                                        <template v-if="instance.state.islock === false">
+                                                                            <a href="javascript:void(0);" class="bk-text-button"
+                                                                                @click="pauseRollingUpdate(instance, instanceIndex, tpl.instanceList)">
+                                                                                暂停升级
+                                                                            </a>
                                                                         </template>
-                                                                        <template v-else-if="instance.state.getRet().resume === 0">
+                                                                    </template>
+                                                                    <template v-else-if="instance.state.getRet().pause === 0">
+                                                                        <a href="javascript:void(0);" class="bk-text-button is-disabled">
+                                                                            暂停升级
+                                                                        </a>
+                                                                    </template>
+
+                                                                    <template v-if="instance.state.getRet().resume === 1">
+                                                                        <template v-if="instance.state.islock === true">
                                                                             <a href="javascript:void(0);" class="bk-text-button is-disabled" style="margin-right: 55px;">
                                                                                 恢复升级
                                                                             </a>
                                                                         </template>
-
-                                                                        <template v-if="instance.state.getRet().cancel === 1">
-                                                                            <template v-if="instance.state.islock === true">
-                                                                                <a href="javascript:void(0);" class="bk-text-button is-disabled"
-                                                                                    :style="{marginRight: instance.state.getRet().rebuild === 1 ? '55px' : '0'}">
-                                                                                    取消升级
-                                                                                </a>
-                                                                            </template>
-                                                                            <template v-if="instance.state.islock === false">
-                                                                                <a href="javascript:void(0);" class="bk-text-button"
-                                                                                    :style="{marginRight: instance.state.getRet().rebuild === 1 ? '55px' : '0'}"
-                                                                                    @click="cancelRollingUpdate(instance, instanceIndex, tpl.instanceList)">
-                                                                                    取消升级
-                                                                                </a>
-                                                                            </template>
+                                                                        <template v-if="instance.state.islock === false">
+                                                                            <a href="javascript:void(0);" class="bk-text-button"
+                                                                                :style="{
+                                                                                    marginRight: instance.status === 'Paused' && (instance.oper_type === 'rollingupdate' || instance.oper_type === 'pause')
+                                                                                        ? '55px'
+                                                                                        : '0'
+                                                                                }"
+                                                                                @click="resumeRollingUpdate(instance, instanceIndex, tpl.instanceList)">
+                                                                                恢复升级
+                                                                            </a>
                                                                         </template>
-                                                                        <template v-else-if="instance.state.getRet().cancel === 0">
+                                                                    </template>
+                                                                    <template v-else-if="instance.state.getRet().resume === 0">
+                                                                        <a href="javascript:void(0);" class="bk-text-button is-disabled" style="margin-right: 55px;">
+                                                                            恢复升级
+                                                                        </a>
+                                                                    </template>
+
+                                                                    <template v-if="instance.state.getRet().cancel === 1">
+                                                                        <template v-if="instance.state.islock === true">
                                                                             <a href="javascript:void(0);" class="bk-text-button is-disabled"
                                                                                 :style="{marginRight: instance.state.getRet().rebuild === 1 ? '55px' : '0'}">
                                                                                 取消升级
                                                                             </a>
                                                                         </template>
+                                                                        <template v-if="instance.state.islock === false">
+                                                                            <a href="javascript:void(0);" class="bk-text-button"
+                                                                                :style="{marginRight: instance.state.getRet().rebuild === 1 ? '55px' : '0'}"
+                                                                                @click="cancelRollingUpdate(instance, instanceIndex, tpl.instanceList)">
+                                                                                取消升级
+                                                                            </a>
+                                                                        </template>
+                                                                    </template>
+                                                                    <template v-else-if="instance.state.getRet().cancel === 0">
+                                                                        <a href="javascript:void(0);" class="bk-text-button is-disabled"
+                                                                            :style="{marginRight: instance.state.getRet().rebuild === 1 ? '55px' : '0'}">
+                                                                            取消升级
+                                                                        </a>
                                                                     </template>
 
                                                                     <template v-if="CATEGORY !== 'daemonset'">
@@ -646,90 +644,88 @@
                                                         <td>{{instance.build_instance}}/{{instance.instance}}</td>
                                                         <td><p class="instance-createat">{{formatDate(instance.update_at)}}</p></td>
                                                         <td class="act">
-                                                            <template v-if="CATEGORY !== 'job'">
-                                                                <template v-if="instance.state.getRet().rollingupdate === 1">
-                                                                    <template v-if="instance.state.islock === true">
-                                                                        <a href="javascript:void(0);" class="bk-text-button is-disabled">
-                                                                            滚动升级
-                                                                        </a>
-                                                                    </template>
-                                                                    <template v-if="instance.state.islock === false">
-                                                                        <a href="javascript:void(0);" class="bk-text-button"
-                                                                            @click="showRollingUpdate(instance, instanceIndex, namespace.appList)">
-                                                                            滚动升级
-                                                                        </a>
-                                                                    </template>
-                                                                </template>
-                                                                <template v-else-if="instance.state.getRet().rollingupdate === 0">
+                                                            <template v-if="instance.state.getRet().rollingupdate === 1">
+                                                                <template v-if="instance.state.islock === true">
                                                                     <a href="javascript:void(0);" class="bk-text-button is-disabled">
                                                                         滚动升级
                                                                     </a>
                                                                 </template>
-
-                                                                <template v-if="instance.state.getRet().pause === 1">
-                                                                    <template v-if="instance.state.islock === true">
-                                                                        <a href="javascript:void(0);" class="bk-text-button is-disabled">
-                                                                            暂停升级
-                                                                        </a>
-                                                                    </template>
-                                                                    <template v-if="instance.state.islock === false">
-                                                                        <a href="javascript:void(0);" class="bk-text-button"
-                                                                            @click="pauseRollingUpdate(instance, instanceIndex, namespace.appList)">
-                                                                            暂停升级
-                                                                        </a>
-                                                                    </template>
+                                                                <template v-if="instance.state.islock === false">
+                                                                    <a href="javascript:void(0);" class="bk-text-button"
+                                                                        @click="showRollingUpdate(instance, instanceIndex, namespace.appList)">
+                                                                        滚动升级
+                                                                    </a>
                                                                 </template>
-                                                                <template v-else-if="instance.state.getRet().pause === 0">
+                                                            </template>
+                                                            <template v-else-if="instance.state.getRet().rollingupdate === 0">
+                                                                <a href="javascript:void(0);" class="bk-text-button is-disabled">
+                                                                    滚动升级
+                                                                </a>
+                                                            </template>
+
+                                                            <template v-if="instance.state.getRet().pause === 1">
+                                                                <template v-if="instance.state.islock === true">
                                                                     <a href="javascript:void(0);" class="bk-text-button is-disabled">
                                                                         暂停升级
                                                                     </a>
                                                                 </template>
-
-                                                                <template v-if="instance.state.getRet().resume === 1">
-                                                                    <template v-if="instance.state.islock === true">
-                                                                        <a href="javascript:void(0);" class="bk-text-button is-disabled" style="margin-right: 55px;">
-                                                                            恢复升级
-                                                                        </a>
-                                                                    </template>
-                                                                    <template v-if="instance.state.islock === false">
-                                                                        <a href="javascript:void(0);" class="bk-text-button"
-                                                                            :style="{
-                                                                                marginRight: instance.status === 'Paused' && (instance.oper_type === 'rollingupdate' || instance.oper_type === 'pause')
-                                                                                    ? '55px'
-                                                                                    : '0'
-                                                                            }"
-                                                                            @click="resumeRollingUpdate(instance, instanceIndex, namespace.appList)">
-                                                                            恢复升级
-                                                                        </a>
-                                                                    </template>
+                                                                <template v-if="instance.state.islock === false">
+                                                                    <a href="javascript:void(0);" class="bk-text-button"
+                                                                        @click="pauseRollingUpdate(instance, instanceIndex, namespace.appList)">
+                                                                        暂停升级
+                                                                    </a>
                                                                 </template>
-                                                                <template v-else-if="instance.state.getRet().resume === 0">
-                                                                    <a href="javascript:void(0);" class="bk-text-button is-disabled"  style="margin-right: 55px;">
+                                                            </template>
+                                                            <template v-else-if="instance.state.getRet().pause === 0">
+                                                                <a href="javascript:void(0);" class="bk-text-button is-disabled">
+                                                                    暂停升级
+                                                                </a>
+                                                            </template>
+
+                                                            <template v-if="instance.state.getRet().resume === 1">
+                                                                <template v-if="instance.state.islock === true">
+                                                                    <a href="javascript:void(0);" class="bk-text-button is-disabled" style="margin-right: 55px;">
                                                                         恢复升级
                                                                     </a>
                                                                 </template>
-
-                                                                <template v-if="instance.state.getRet().cancel === 1">
-                                                                    <template v-if="instance.state.islock === true">
-                                                                        <a href="javascript:void(0);" class="bk-text-button is-disabled"
-                                                                            :style="{marginRight: instance.state.getRet().rebuild === 1 ? '55px' : '0'}">
-                                                                            取消升级
-                                                                        </a>
-                                                                    </template>
-                                                                    <template v-if="instance.state.islock === false">
-                                                                        <a href="javascript:void(0);" class="bk-text-button"
-                                                                            :style="{marginRight: instance.state.getRet().rebuild === 1 ? '55px' : '0'}"
-                                                                            @click="cancelRollingUpdate(instance, instanceIndex, namespace.appList)">
-                                                                            取消升级
-                                                                        </a>
-                                                                    </template>
+                                                                <template v-if="instance.state.islock === false">
+                                                                    <a href="javascript:void(0);" class="bk-text-button"
+                                                                        :style="{
+                                                                            marginRight: instance.status === 'Paused' && (instance.oper_type === 'rollingupdate' || instance.oper_type === 'pause')
+                                                                                ? '55px'
+                                                                                : '0'
+                                                                        }"
+                                                                        @click="resumeRollingUpdate(instance, instanceIndex, namespace.appList)">
+                                                                        恢复升级
+                                                                    </a>
                                                                 </template>
-                                                                <template v-else-if="instance.state.getRet().cancel === 0">
+                                                            </template>
+                                                            <template v-else-if="instance.state.getRet().resume === 0">
+                                                                <a href="javascript:void(0);" class="bk-text-button is-disabled"  style="margin-right: 55px;">
+                                                                    恢复升级
+                                                                </a>
+                                                            </template>
+
+                                                            <template v-if="instance.state.getRet().cancel === 1">
+                                                                <template v-if="instance.state.islock === true">
                                                                     <a href="javascript:void(0);" class="bk-text-button is-disabled"
                                                                         :style="{marginRight: instance.state.getRet().rebuild === 1 ? '55px' : '0'}">
                                                                         取消升级
                                                                     </a>
                                                                 </template>
+                                                                <template v-if="instance.state.islock === false">
+                                                                    <a href="javascript:void(0);" class="bk-text-button"
+                                                                        :style="{marginRight: instance.state.getRet().rebuild === 1 ? '55px' : '0'}"
+                                                                        @click="cancelRollingUpdate(instance, instanceIndex, namespace.appList)">
+                                                                        取消升级
+                                                                    </a>
+                                                                </template>
+                                                            </template>
+                                                            <template v-else-if="instance.state.getRet().cancel === 0">
+                                                                <a href="javascript:void(0);" class="bk-text-button is-disabled"
+                                                                    :style="{marginRight: instance.state.getRet().rebuild === 1 ? '55px' : '0'}">
+                                                                    取消升级
+                                                                </a>
                                                             </template>
 
                                                             <template v-if="CATEGORY !== 'daemonset'">

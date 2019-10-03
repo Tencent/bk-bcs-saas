@@ -34,6 +34,7 @@ export default class State {
         this.instance = props.instance
         this.buildInstance = props.buildInstance
         this.operType = props.operType
+        this.category = props.category
         // backend_error && oper_type==create，oper_type_flag 为空
         // 否则，oper_type_flag 和 oper_type 同一个值，表示前端不显示重试+删除；显示的是这个值对应的操作，并且加上 error 的感叹号
         this.operTypeFlag = props.operTypeFlag
@@ -76,160 +77,61 @@ export default class State {
 
     _checkStatus (operType) {
         let ret = {}
-        switch (this.status) {
-            case 'Unready':
-                // 允许删除和重建
-                if (this.instance === 0) {
-                    ret = Object.assign({}, OPERATE_MAP, {
-                        // 滚动升级置灰
-                        rollingupdate: 0,
-                        // 扩缩容置灰
-                        scale: 0,
-                        // 重建可用
-                        rebuild: 1,
-                        // 删除可用
-                        delete: 1,
-                        showLoading: true
-                    })
-                } else {
-                    // 允许暂停、撤销、删除、重建
-                    if (operType === 'resume' || operType === 'rollingupdate' || operType === 'cancel') {
-                        if (this.buildInstance !== this.instance) {
-                            ret = Object.assign({}, OPERATE_MAP, {
-                                // 暂停可用
-                                pause: 1,
-                                // 撤销可用
-                                cancel: 1,
-                                // 重建可用
-                                rebuild: 1,
-                                // 删除可用
-                                delete: 1,
-                                showError: false,
-                                showLoading: true
-                            })
-                        } else {
-                            ret = Object.assign({}, OPERATE_MAP, {
-                                // 暂停可用
-                                pause: 1,
-                                // 撤销可用
-                                cancel: 1,
-                                // 重建可用
-                                rebuild: 1,
-                                // 删除可用
-                                delete: 1,
-                                showLoading: true
-                            })
-                        }
-                    } else if (operType === 'create' || operType === 'scale' || operType === 'rebuild') {
-                        // 允许删除、重建
+        if (this.status === 'Unready') {
+            // 允许删除和重建
+            if (this.instance === 0) {
+                ret = Object.assign({}, OPERATE_MAP, {
+                    // 滚动升级置灰
+                    rollingupdate: 0,
+                    // 扩缩容置灰
+                    scale: 0,
+                    // 重建可用
+                    rebuild: 1,
+                    // 删除可用
+                    delete: 1,
+                    showLoading: true
+                })
+            } else {
+                // 允许暂停、撤销、删除、重建
+                if (operType === 'resume' || operType === 'rollingupdate' || operType === 'cancel') {
+                    if (this.buildInstance !== this.instance) {
                         ret = Object.assign({}, OPERATE_MAP, {
-                            // 滚动升级
-                            rollingupdate: 1,
-                            // 扩缩容
-                            scale: 1,
+                            // 暂停可用
+                            pause: 1,
+                            // 撤销可用
+                            cancel: 1,
+                            // 重建可用
+                            rebuild: 1,
+                            // 删除可用
+                            delete: 1,
+                            showError: false,
+                            showLoading: true
+                        })
+                    } else {
+                        ret = Object.assign({}, OPERATE_MAP, {
+                            // 暂停可用
+                            pause: 1,
+                            // 撤销可用
+                            cancel: 1,
                             // 重建可用
                             rebuild: 1,
                             // 删除可用
                             delete: 1,
                             showLoading: true
                         })
-                    } else {
-                        // delete, 所有操作都不允许
-                        ret = Object.assign({}, OPERATE_MAP, {
-                            // 滚动升级置灰
-                            rollingupdate: 0,
-                            // 扩缩容置灰
-                            scale: 0,
-                            // 重建置灰
-                            rebuild: 0,
-                            // 删除置灰
-                            delete: 0,
-                            showLoading: true
-                        })
                     }
-                }
-                break
-            case 'Running':
-                // 允许删除和重建，Running 时 instance 不可能是 0
-                if (this.instance === 0) {
+                } else if (operType === 'create' || operType === 'scale' || operType === 'rebuild') {
+                    // 允许删除、重建
                     ret = Object.assign({}, OPERATE_MAP, {
-                        // 滚动升级置灰
-                        rollingupdate: 0,
-                        // 扩缩容置灰
-                        scale: 0,
+                        // 滚动升级
+                        rollingupdate: 1,
+                        // 扩缩容
+                        scale: 1,
                         // 重建可用
                         rebuild: 1,
                         // 删除可用
-                        delete: 1
-                    })
-                } else {
-                    // 允许滚动升级、扩缩容、删除、重建
-                    if (operType === 'create' || operType === 'rollingupdate'
-                        || operType === 'scale' || operType === 'rebuild' || operType === 'cancel'
-                    ) {
-                        ret = Object.assign({}, OPERATE_MAP, {
-                            // 滚动升级可以
-                            rollingupdate: 1,
-                            // 扩缩容可以
-                            scale: 1,
-                            // 重建可用
-                            rebuild: 1,
-                            // 删除可用
-                            delete: 1
-                        })
-                    } else if (operType === 'resume') {
-                        // 允许暂停、撤销、删除、重建
-                        if (this.buildInstance !== this.instance) {
-                            ret = Object.assign({}, OPERATE_MAP, {
-                                // 暂停可用
-                                pause: 1,
-                                // 撤销可用
-                                cancel: 1,
-                                // 重建可用
-                                rebuild: 1,
-                                // 删除可用
-                                delete: 1,
-                                showError: false,
-                                showLoading: true
-                            })
-                        } else {
-                            ret = Object.assign({}, OPERATE_MAP, {
-                                // 滚动升级可以
-                                rollingupdate: 1,
-                                // 扩缩容可以
-                                scale: 1,
-                                // 重建可用
-                                rebuild: 1,
-                                // 删除可用
-                                delete: 1
-                            })
-                        }
-                    } else {
-                        // delete, 所有操作都不允许
-                        ret = Object.assign({}, OPERATE_MAP, {
-                            // 滚动升级置灰
-                            rollingupdate: 0,
-                            // 扩缩容置灰
-                            scale: 0,
-                            // 重建置灰
-                            rebuild: 0,
-                            // 删除置灰
-                            delete: 0,
-                            showLoading: true
-                        })
-                    }
-                }
-                break
-            case 'Paused':
-                // 允许恢复、删除、重建
-                if (operType === 'rollingupdate' || operType === 'pause') {
-                    ret = Object.assign({}, OPERATE_MAP, {
-                        // 恢复可用
-                        resume: 1,
-                        // 重建可用
-                        rebuild: 1,
-                        // 删除可用
-                        delete: 1
+                        delete: 1,
+                        showLoading: true
                     })
                 } else {
                     // delete, 所有操作都不允许
@@ -245,8 +147,109 @@ export default class State {
                         showLoading: true
                     })
                 }
-                break
+            }
+        } else if (this.status === 'Running' || (this.category === 'job' && this.status === 'Completed')) {
+            // 允许删除和重建，Running 时 instance 不可能是 0
+            if (this.instance === 0) {
+                ret = Object.assign({}, OPERATE_MAP, {
+                    // 滚动升级置灰
+                    rollingupdate: 0,
+                    // 扩缩容置灰
+                    scale: 0,
+                    // 重建可用
+                    rebuild: 1,
+                    // 删除可用
+                    delete: 1
+                })
+            } else {
+                // 允许滚动升级、扩缩容、删除、重建
+                if (operType === 'create' || operType === 'rollingupdate'
+                    || operType === 'scale' || operType === 'rebuild' || operType === 'cancel'
+                ) {
+                    ret = Object.assign({}, OPERATE_MAP, {
+                        // 滚动升级可以
+                        rollingupdate: 1,
+                        // 扩缩容可以
+                        scale: 1,
+                        // 重建可用
+                        rebuild: 1,
+                        // 删除可用
+                        delete: 1
+                    })
+                } else if (operType === 'resume') {
+                    // 允许暂停、撤销、删除、重建
+                    if (this.buildInstance !== this.instance) {
+                        ret = Object.assign({}, OPERATE_MAP, {
+                            // 暂停可用
+                            pause: 1,
+                            // 撤销可用
+                            cancel: 1,
+                            // 重建可用
+                            rebuild: 1,
+                            // 删除可用
+                            delete: 1,
+                            showError: false,
+                            showLoading: true
+                        })
+                    } else {
+                        ret = Object.assign({}, OPERATE_MAP, {
+                            // 滚动升级可以
+                            rollingupdate: 1,
+                            // 扩缩容可以
+                            scale: 1,
+                            // 重建可用
+                            rebuild: 1,
+                            // 删除可用
+                            delete: 1
+                        })
+                    }
+                } else {
+                    // delete, 所有操作都不允许
+                    ret = Object.assign({}, OPERATE_MAP, {
+                        // 滚动升级置灰
+                        rollingupdate: 0,
+                        // 扩缩容置灰
+                        scale: 0,
+                        // 重建置灰
+                        rebuild: 0,
+                        // 删除置灰
+                        delete: 0,
+                        showLoading: true
+                    })
+                }
+            }
+        } else if (this.status === 'Paused') {
+            // 允许恢复、删除、重建
+            if (operType === 'rollingupdate' || operType === 'pause') {
+                ret = Object.assign({}, OPERATE_MAP, {
+                    // 恢复可用
+                    resume: 1,
+                    // 重建可用
+                    rebuild: 1,
+                    // 删除可用
+                    delete: 1
+                })
+            } else {
+                // delete, 所有操作都不允许
+                ret = Object.assign({}, OPERATE_MAP, {
+                    // 滚动升级置灰
+                    rollingupdate: 0,
+                    // 扩缩容置灰
+                    scale: 0,
+                    // 重建置灰
+                    rebuild: 0,
+                    // 删除置灰
+                    delete: 0,
+                    showLoading: true
+                })
+            }
         }
+
+        // k8s job 类型，没有滚动升级操作
+        if (this.category === 'job') {
+            ret.rollingupdate = -1
+        }
+
         return ret
     }
 }
