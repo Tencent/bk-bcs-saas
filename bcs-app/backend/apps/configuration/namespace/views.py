@@ -514,6 +514,7 @@ class NamespaceView(NamespaceBase, viewsets.ViewSet):
 
         # delete db resource record
         InstanceConfig.objects.filter(namespace=namespace_id).delete()
+        NameSpaceVariable.objects.filter(ns_id=namespace_id).delete()
 
         # delete bcs cc record
         ns_resp = paas_cc.delete_namespace(access_token, project_id, cluster_id, namespace_id)
