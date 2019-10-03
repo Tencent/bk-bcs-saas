@@ -20,6 +20,7 @@ from django.conf import settings
 from rest_framework import response, serializers, viewsets
 from rest_framework.exceptions import ValidationError
 
+from .resources import Namespace
 from backend.accounts import bcs_perm
 from backend.apps import constants
 from backend.apps.constants import K8S_SYS_NAMESPACE, ClusterType
@@ -32,6 +33,9 @@ from backend.components.bcs.mesos import MesosClient
 from backend.utils.error_codes import error_codes
 from backend.utils.response import APIResult
 from backend.activity_log import client
+from backend.utils.errcodes import ErrorCode
+from backend.apps.instance.models import InstanceConfig
+from backend.apps.constants import ProjectKind
 
 logger = logging.getLogger(__name__)
 K8S_PROJECT_KIND = 1
@@ -484,42 +488,39 @@ class NamespaceView(NamespaceBase, viewsets.ViewSet):
         return response.Response(result)
 
     def delete(self, request, project_id, namespace_id, is_validate_perm=True):
-        """删除集群
-        """
+        # NOTE: open mesos delete namespace, when mesos api ready
+        if request.project.kind == ProjectKind.MESOS.value:
+            raise error_codes.NotOpen('mesos api not ready')
+
         access_token = request.user.token.access_token
 
-        # 检查权限
+        # perm
         perm = bcs_perm.Namespace(request, project_id, namespace_id)
         perm.can_delete(raise_exception=is_validate_perm)
 
-        access_token = request.user.token.access_token
-        ns_result = paas_cc.get_namespace(access_token, project_id, namespace_id)
-        if ns_result.get('code') != 0:
-            raise error_codes.APIError.f(ns_result.get('message', ''))
-        ns_data = ns_result.get('data')
-        cluster_id = ns_data.get('cluster_id')
-        name = ns_data.get('name')
+        # namespace exist
+        ns_resp = paas_cc.get_namespace(access_token, project_id, namespace_id)
+        ns_data = ns_resp['data']
+        if ns_resp.get('code') != ErrorCode.NoError or not ns_data:
+            raise error_codes.APIError(f'query namespace exist error, {ns_resp.get("message")}')
 
-        project_kind = request.project.kind
-        if project_kind == K8S_PROJECT_KIND:
-            client = K8SClient(access_token, project_id, cluster_id, env=None)
-        elif project_kind == MESOS_PROJECT_KIND:
-            client = MesosClient(access_token, project_id, cluster_id, env=None)
-        else:
-            raise ValidationError("项目编排类型不正确")
+        # get namespace info
+        cluster_id, ns_name = ns_data.get('cluster_id'), ns_data.get('name')
 
-        # 删除 namespace
-        result = client.delete_namespace(name)
-        if result.get('code') != 0:
-            raise error_codes.ComponentError.f(
-                "删除Namespace失败，%s, 请联系管理员解决" % result.get('message'))
+        # start delete oper
+        # delete ns and corresponding resource
+        client = Namespace(access_token, project_id, request.project.kind, cluster_id)
+        client.delete(ns_name)
 
-        result = paas_cc.delete_namespace(
-            access_token, project_id, namespace_id)
-        if result.get('code') != 0:
-            raise error_codes.APIError.f(result.get('message'))
+        # delete db resource record
+        InstanceConfig.objects.filter(namespace=namespace_id).delete()
 
-        # 删除资源
+        # delete bcs cc record
+        ns_resp = paas_cc.delete_namespace(access_token, project_id, cluster_id, namespace_id)
+        if ns_resp.get('code') != ErrorCode.NoError:
+            raise error_codes.APIError(f'delete bcs cc namespace error, {ns_resp.get("message")}')
+
+        # delete ns registered perm
         perm.delete()
 
-        return response.Response(result)
+        return response.Response(ns_resp)
