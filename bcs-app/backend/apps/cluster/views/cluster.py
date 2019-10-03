@@ -406,7 +406,7 @@ class ClusterVersionViewSet(viewsets.ViewSet):
 
     def versions(self, request, project_id):
         resp = paas_cc.get_cluster_versions(
-            request.user.token.access_token, kind=cluster_constants.ClusterType[request.project.coes])
+            request.user.token.access_token, kind=cluster_constants.ClusterType[request.project.kind])
         if resp.get('code') != ErrorCode.NoError:
             data = []
         data = [info['version'] for info in resp.get('data') or []]
