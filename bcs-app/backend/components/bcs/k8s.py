@@ -978,6 +978,4 @@ class K8SClient(BCSClientBase):
     def get_events(self, params):
         """获取事件
         """
-        url = "{host}/events".format(host=self.storage_host)
-        resp = http_get(url, params=params, headers=self.headers)
-        return resp
+        return http_get(f'{self.storage_host}/events', params=params, headers=self.headers)

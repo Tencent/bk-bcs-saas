@@ -148,7 +148,7 @@ urlpatterns += [
         views.QueryNodeLabelKeys.as_view({'get': 'label_values'})
     ),
     url(
-        r'^api/projects/(?P<project_id>[\w\-]+)/cluster_type/versions/$',
+        r'^api/projects/(?P<project_id>[\w\-]+)/cluster_type_versions/$',
         views.ClusterVersionViewSet.as_view({'get': 'versions'})
     )
 ]
