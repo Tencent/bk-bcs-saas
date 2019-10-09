@@ -1280,7 +1280,7 @@ class ContainerLogs(BaseAPI):
                     settings.REST_FRAMEWORK['DATETIME_FORMAT'], time.localtime(timestamp))
                 log_content.append({'log': log, 'localtime': localtime})
             else:
-                log_content.append(log)
+                log_content.append({'log': log})
 
         return Response(log_content)
 
