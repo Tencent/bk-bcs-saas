@@ -68,16 +68,6 @@ class MesosResource(BaseModel):
             return None
         return config.get('metadata', {}).get('name')
 
-    @classmethod
-    def get_resources_info(cls, resource_id_list):
-        resource_data = []
-        robj_qsets = cls.objects.filter(id__in=resource_id_list)
-        for robj in robj_qsets:
-            resource_data.append({
-                'app_id': robj.app_id,
-                'app_name': robj.name
-            })
-        return resource_data
 
 class ConfigMap(MesosResource, MConfigMapAndSecretMixin):
     """
@@ -161,6 +151,17 @@ class Application(MesosResource, PodMixin):
             secret_name_list.extend(self._get_related_resource(container, 'secret'))
         return list(set(configmap_name_list)), list(set(secret_name_list))
 
+    @classmethod
+    def get_resources_info(cls, resource_id_list):
+        resource_data = []
+        robj_qsets = cls.objects.filter(id__in=resource_id_list)
+        for robj in robj_qsets:
+            resource_data.append({
+                'app_id': robj.app_id,
+                'app_name': robj.name
+            })
+        return resource_data
+
 
 class Deplpyment(MesosResource, ResourceMixin):
     """
@@ -209,6 +210,16 @@ class Deplpyment(MesosResource, ResourceMixin):
     @property
     def get_name(self):
         return self.name
+
+    @classmethod
+    def get_resources_info(cls, resource_id_list):
+        resource_data = []
+        robj_qsets = cls.objects.filter(id__in=resource_id_list)
+        for robj in robj_qsets:
+            resource_data.append({
+                'deployment_name': robj.name
+            })
+        return resource_data
 
 
 class Service(MesosResource, ResourceMixin):
