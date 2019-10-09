@@ -643,17 +643,16 @@ HPA_SCHNEA = {
                     "type": "array",
                     "items": {
                         "type": "object",
-                        "required": ["name", "target", "described"],
+                        "required": ["type", "name", "target"],
                         "properties": {
+                            "type": {"type": "string", "enum": ["Resource"]},
                             "name": {"type": "string", "enum": ["cpu", "memory"]},
-                            "described": {"type": "string"},
                             "target": {
                                 "type": "object",
-                                "required": ["kind", "averageUtilization", "variance"],
+                                "required": ["type", "averageUtilization"],
                                 "properties": {
-                                    "kind": {"type": "string", "enum": ["AverageUtilization"]},
+                                    "type": {"type": "string", "enum": ["AverageUtilization"]},
                                     "averageUtilization": {"type": "number", "minimum": 0},
-                                    "variance": {"type": "number", "minimum": 0}
                                 }
                             }
                         }

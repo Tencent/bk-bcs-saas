@@ -67,15 +67,15 @@ class HPA(viewsets.ViewSet, BaseAPI, ResourceOperate):
         return Response(k8s_hpa_list)
 
     def delete(self, request, project_id, cluster_id, ns_name, name):
-        # 检查用户是否有命名空间的使用权限
-        if request.project.kind != ProjectKind.K8S.value:
-            raise error_codes.NotOpen("HPA暂时只支持K8S集群")
-
         username = request.user.username
         namespace_dict = self.check_namespace_use_perm(request, project_id, [ns_name])
         namespace_id = namespace_dict.get(ns_name)
 
-        result, message = utils.delete_hpa(request, project_id, cluster_id, ns_name, namespace_id, name)
+        if request.project.kind == ProjectKind.K8S.value:
+            result, message = utils.delete_k8s_hpa(request, project_id, cluster_id, ns_name, namespace_id, name)
+        else:
+            result, message = utils.delete_mesos_hpa(request, project_id, cluster_id, ns_name, namespace_id, name)
+
         if result is False:
             message = f'删除HPA:{name}失败[命名空间:{ns_name}], {message}'
             utils.activity_log(project_id, username, name, message, result)
@@ -90,8 +90,6 @@ class HPA(viewsets.ViewSet, BaseAPI, ResourceOperate):
         """批量删除资源
         """
         username = request.user.username
-        if request.project.kind != ProjectKind.K8S.value:
-            raise error_codes.NotOpen("HPA暂时只支持K8S集群")
 
         slz = BatchResourceSLZ(data=request.data)
         slz.is_valid(raise_exception=True)
@@ -107,7 +105,10 @@ class HPA(viewsets.ViewSet, BaseAPI, ResourceOperate):
             ns_name = _d.get('namespace')
             ns_id = namespace_dict.get(ns_name)
             # 删除 hpa
-            result, message = utils.delete_hpa(request, project_id, cluster_id, ns_name, ns_id, name)
+            if request.project.kind == ProjectKind.K8S.value:
+                result, message = utils.delete_k8s_hpa(request, project_id, cluster_id, ns_name, ns_id, name)
+            else:
+                result, message = utils.delete_mesos_hpa(request, project_id, cluster_id, ns_name, ns_id, name)
             if result is False:
                 failed_list.append({
                     'name': name,

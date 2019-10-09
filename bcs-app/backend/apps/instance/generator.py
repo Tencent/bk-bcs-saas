@@ -736,6 +736,11 @@ class SecretProfileGenerator(ProfileGenerator):
         return db_config
 
 
+class HPAProfileGenerator(ProfileGenerator):
+    resource_name = "hpa"
+    resource_sys_config = instance_constants.HPA_SYS_CONFIG
+
+
 class MetricProfileGenerator(ProfileGenerator):
     resource_name = "metric"
     resource_sys_config = {}
@@ -1612,6 +1617,8 @@ GENERATOR_DICT = {
     "configmap": ConfigMapProfileGenerator,
     "secret": SecretProfileGenerator,
     "metric": MetricProfileGenerator,
+    'hpa': HPAProfileGenerator,
+
     # k8s 相关资源
     "K8sSecret": K8sSecretGenerator,
     "K8sConfigMap": K8sConfigMapGenerator,
