@@ -427,6 +427,12 @@ class VersionedEntity(BaseModel):
         app_id_list = self.get_resource_id_list(MesosResourceName.application.value)
         return mesos.Application.get_resources_info(app_id_list)
 
+    def get_mesos_deploys(self):
+        """获取mesos deploys 列表
+        """
+        deploy_id_list = self.get_resource_id_list(MesosResourceName.deployment.value)
+        return mesos.Deplpyment.get_resources_info(deploy_id_list)
+
     def get_k8s_svc_selector_labels(self):
         svc_id_list = self.get_resource_id_list(K8sResourceName.K8sService.value)
         label_dict = {}

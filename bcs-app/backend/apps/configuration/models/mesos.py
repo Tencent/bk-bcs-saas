@@ -112,17 +112,6 @@ class Application(MesosResource, PodMixin):
         kwargs['app_id'] = old_app.app_id
         return super().perform_update(old_id, **kwargs)
 
-    @classmethod
-    def get_resources_info(cls, resource_id_list):
-        resource_data = []
-        robj_qsets = cls.objects.filter(id__in=resource_id_list)
-        for robj in robj_qsets:
-            resource_data.append({
-                'app_id': robj.app_id,
-                'app_name': robj.name
-            })
-        return resource_data
-
     def get_res_config(self, is_simple):
         c = super().get_res_config(is_simple)
         if not is_simple:
@@ -161,6 +150,17 @@ class Application(MesosResource, PodMixin):
             configmap_name_list.extend(self._get_related_resource(container, 'configmap'))
             secret_name_list.extend(self._get_related_resource(container, 'secret'))
         return list(set(configmap_name_list)), list(set(secret_name_list))
+
+    @classmethod
+    def get_resources_info(cls, resource_id_list):
+        resource_data = []
+        robj_qsets = cls.objects.filter(id__in=resource_id_list)
+        for robj in robj_qsets:
+            resource_data.append({
+                'app_id': robj.app_id,
+                'app_name': robj.name
+            })
+        return resource_data
 
 
 class Deplpyment(MesosResource, ResourceMixin):
@@ -210,6 +210,16 @@ class Deplpyment(MesosResource, ResourceMixin):
     @property
     def get_name(self):
         return self.name
+
+    @classmethod
+    def get_resources_info(cls, resource_id_list):
+        resource_data = []
+        robj_qsets = cls.objects.filter(id__in=resource_id_list)
+        for robj in robj_qsets:
+            resource_data.append({
+                'deployment_name': robj.name
+            })
+        return resource_data
 
 
 class Service(MesosResource, ResourceMixin):
