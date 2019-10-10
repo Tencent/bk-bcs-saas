@@ -103,7 +103,6 @@ def slz_mesos_hpa_info(hpa, project_code, cluster_name, cluster_env, cluster_id)
         annotations = _config.get('metadata', {}).get('annotations') or {}
         namespace = _config['metadata']['namespace']
 
-        # 新建偶发有脏数据处理
         deployment_name = _config['spec'].get('ScaleTargetRef', {}).get('name')
         if deployment_name:
             deployment_link = f'{settings.DEVOPS_HOST}/console/bcs/{project_code}/app/mesos/{deployment_name}/{namespace}/deployment'  # noqa
