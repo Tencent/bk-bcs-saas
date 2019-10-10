@@ -104,11 +104,10 @@ def slz_mesos_hpa_info(hpa, project_code, cluster_name, cluster_env, cluster_id)
         namespace = _config['metadata']['namespace']
 
         deployment_name = _config['spec'].get('ScaleTargetRef', {}).get('name')
-        if deployment_name:
-            deployment_link = f'{settings.DEVOPS_HOST}/console/bcs/{project_code}/app/mesos/{deployment_name}/{namespace}/deployment'  # noqa
-        else:
-            deployment_name = '-'
-            deployment_link = ''
+        if not deployment_name:
+            continue
+
+        deployment_link = f'{settings.DEVOPS_HOST}/console/bcs/{project_code}/app/mesos/{deployment_name}/{namespace}/deployment'  # noqa
 
         current_metrics = get_mesos_current_metrics(_config)
         data = {
