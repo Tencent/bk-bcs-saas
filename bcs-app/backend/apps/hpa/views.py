@@ -122,7 +122,7 @@ class HPA(viewsets.ViewSet, BaseAPI, ResourceOperate):
             desc_list = [_s.get('desc') for _s in success_list]
 
             desc_list_msg = ";".join(desc_list)
-            message = f"以下{self.category}删除成功:{desc_list_msg}"
+            message = f"以下HPA删除成功:{desc_list_msg}"
 
             utils.activity_log(project_id, username, ';'.join(name_list), message, True)
 
@@ -131,7 +131,7 @@ class HPA(viewsets.ViewSet, BaseAPI, ResourceOperate):
             desc_list = [_s.get('desc') for _s in failed_list]
 
             desc_list_msg = ";".join(desc_list)
-            message = f"以下{self.category}删除失败:{desc_list_msg}"
+            message = f"以下HPA删除失败:{desc_list_msg}"
 
             utils.activity_log(project_id, username, ';'.join(name_list), message, False)
 
