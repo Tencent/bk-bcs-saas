@@ -178,14 +178,18 @@ def get_cluster_hpa_list(request, project_id, cluster_id, cluster_env, cluster_n
     access_token = request.user.token.access_token
     project_code = request.project.english_name
     hpa_list = []
-    if request.project.kind == ProjectKind.MESOS.value:
-        client = mesos.MesosClient(access_token, project_id, cluster_id, env=cluster_env)
-        hpa = client.list_hpa(namespace).get('data') or []
-        hpa_list = slz_mesos_hpa_info(hpa, project_code, cluster_name, cluster_env, cluster_id)
-    else:
-        client = k8s.K8SClient(access_token, project_id, cluster_id, env=cluster_env)
-        hpa = client.list_hpa(namespace).get('items') or []
-        hpa_list = slz_mesos_hpa_info(hpa, project_code, cluster_name, cluster_env, cluster_id)
+
+    try:
+        if request.project.kind == ProjectKind.MESOS.value:
+            client = mesos.MesosClient(access_token, project_id, cluster_id, env=cluster_env)
+            hpa = client.list_hpa(namespace).get('data') or []
+            hpa_list = slz_mesos_hpa_info(hpa, project_code, cluster_name, cluster_env, cluster_id)
+        else:
+            client = k8s.K8SClient(access_token, project_id, cluster_id, env=cluster_env)
+            hpa = client.list_hpa(namespace).get('items') or []
+            hpa_list = slz_mesos_hpa_info(hpa, project_code, cluster_name, cluster_env, cluster_id)
+    except Exception as error:
+        logger.error('get hpa list error, %s', error)
 
     return hpa_list
 
