@@ -19,13 +19,17 @@ from django.utils import timezone
 from backend.activity_log import client as activity_client
 from backend.apps.application import constants as application_constants
 from backend.apps.application.constants import DELETE_INSTANCE
-from backend.apps.configuration.constants import K8sResourceName
+from backend.apps.configuration.constants import K8sResourceName, MesosResourceName
 from backend.apps.constants import ProjectKind
 from backend.apps.instance import constants as instance_constants
 from backend.apps.instance.models import InstanceConfig
 from backend.components.bcs import k8s, mesos
 
 logger = logging.getLogger(__name__)
+
+
+class DeleteHPAError(Exception):
+    pass
 
 
 def get_mesos_current_metrics(instance):
@@ -190,18 +194,17 @@ def delete_mesos_hpa(request, project_id, cluster_id, namespace, namespace_id, n
     client = mesos.MesosClient(access_token, project_id, cluster_id, env=None)
 
     result = client.delete_hpa(namespace, name)
+
     if result.get('code') != 0:
-        return False, "删除HPA资源失败"
+        raise DeleteHPAError('删除HPA资源失败')
 
     # 删除成功则更新状态
-    instances = InstanceConfig.objects.filter(namespace=namespace_id, category=K8sResourceName.K8sHPA.value, name=name)
-    if not instances:
-        instances.update(updator=username,
-                         oper_type=DELETE_INSTANCE,
-                         deleted_time=timezone.now(),
-                         is_deleted=True,
-                         is_bcs_success=True)
-    return True, ''
+    InstanceConfig.objects.filter(namespace=namespace_id, category=MesosResourceName.hpa.value, name=name).update(
+        updator=username,
+        oper_type=DELETE_INSTANCE,
+        deleted_time=timezone.now(),
+        is_deleted=True,
+        is_bcs_success=True)
 
 def delete_k8s_hpa(request, project_id, cluster_id, namespace, namespace_id, name):
     username = request.user.username
@@ -216,20 +219,18 @@ def delete_k8s_hpa(request, project_id, cluster_id, namespace, namespace_id, nam
             pass
         else:
             logger.info('delete hpa error, %s', error)
-            return False, "删除HPA资源失败"
+            raise DeleteHPAError('删除HPA资源失败')
     except Exception as error:
         logger.error('delete hpa error, %s', error)
-        return False, "删除HPA资源失败"
+        raise DeleteHPAError('删除HPA资源失败')
 
     # 删除成功则更新状态
-    instances = InstanceConfig.objects.filter(namespace=namespace_id, category=K8sResourceName.K8sHPA.value, name=name)
-    if not instances:
-        instances.update(updator=username,
-                         oper_type=DELETE_INSTANCE,
-                         deleted_time=timezone.now(),
-                         is_deleted=True,
-                         is_bcs_success=True)
-    return True, ''
+    InstanceConfig.objects.filter(namespace=namespace_id, category=K8sResourceName.K8sHPA.value, name=name).update(
+        updator=username,
+        oper_type=DELETE_INSTANCE,
+        deleted_time=timezone.now(),
+        is_deleted=True,
+        is_bcs_success=True)
 
 def get_mesos_deployment_hpa(request, project_id, cluster_id, ns_name):
     hpa_list = get_cluster_hpa_list(

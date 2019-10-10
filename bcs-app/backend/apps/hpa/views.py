@@ -71,18 +71,18 @@ class HPA(viewsets.ViewSet, BaseAPI, ResourceOperate):
         namespace_dict = self.check_namespace_use_perm(request, project_id, [ns_name])
         namespace_id = namespace_dict.get(ns_name)
 
-        if request.project.kind == ProjectKind.K8S.value:
-            result, message = utils.delete_k8s_hpa(request, project_id, cluster_id, ns_name, namespace_id, name)
-        else:
-            result, message = utils.delete_mesos_hpa(request, project_id, cluster_id, ns_name, namespace_id, name)
-
-        if result is False:
-            message = f'删除HPA:{name}失败[命名空间:{ns_name}], {message}'
-            utils.activity_log(project_id, username, name, message, result)
+        try:
+            if request.project.kind == ProjectKind.K8S.value:
+                utils.delete_k8s_hpa(request, project_id, cluster_id, ns_name, namespace_id, name)
+            else:
+                utils.delete_mesos_hpa(request, project_id, cluster_id, ns_name, namespace_id, name)
+        except utils.DeleteHPAError as error:
+            message = f'删除HPA:{name}失败[命名空间:{ns_name}], {error}'
+            utils.activity_log(project_id, username, name, message, False)
             raise error_codes.APIError(message)
 
         message = f'删除HPA:{name}成功[命名空间:{ns_name}]'
-        utils.activity_log(project_id, username, name, message, result)
+        utils.activity_log(project_id, username, name, message, True)
 
         return Response({})
 
