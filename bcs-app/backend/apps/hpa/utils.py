@@ -234,7 +234,9 @@ def delete_k8s_hpa(request, project_id, cluster_id, namespace, namespace_id, nam
 
 def get_mesos_deployment_hpa(request, project_id, cluster_id, ns_name):
     hpa_list = get_cluster_hpa_list(
-        request, project_id, cluster_id,
+        request,
+        project_id,
+        cluster_id,
         cluster_env=None,
         cluster_name=None,
         namespace=ns_name)
@@ -246,7 +248,9 @@ def get_deployment_hpa(request, project_id, cluster_id, ns_name, deployments):
     """通过deployment查询HPA关联信息
     """
     hpa_list = get_cluster_hpa_list(
-        request, project_id, cluster_id,
+        request,
+        project_id,
+        cluster_id,
         cluster_env=None,
         cluster_name=None,
         namespace=ns_name)
