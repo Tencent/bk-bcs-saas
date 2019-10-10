@@ -11,6 +11,8 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
+import json
+
 from rest_framework import viewsets
 from rest_framework.response import Response
 from rest_framework.renderers import BrowsableAPIRenderer
@@ -32,3 +34,19 @@ class AreaListViewSet(viewsets.ViewSet):
             raise error_codes.APIError(area_resp.get('message'))
 
         return Response(area_resp.get('data') or {})
+
+
+class AreaInfoViewSet(viewsets.ViewSet):
+    renderer_classes = (BKAPIRenderer, BrowsableAPIRenderer)
+
+    def info(self, request, area_id):
+        """get the area info
+        """
+        resp = paas_cc.get_area_info(request.user.token.access_token, area_id)
+        if resp.get('code') != ErrorCode.NoError:
+            raise error_codes.APIError(f'request bcs cc area info api error, {resp.get("message")}')
+
+        data = resp.get('data') or {}
+        data['configuration'] = json.loads(data.pop('configuration', '{}'))
+
+        return Response(data)
