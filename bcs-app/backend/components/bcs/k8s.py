@@ -974,3 +974,8 @@ class K8SClient(BCSClientBase):
         else:
             logger.info('hpa found, create a new hpa, %s, %s', namespace, spec)
             return self.update_hpa(namespace, name, spec)
+
+    def get_events(self, params):
+        """获取事件
+        """
+        return http_get(f'{self.storage_host}/events', params=params, headers=self.headers)
