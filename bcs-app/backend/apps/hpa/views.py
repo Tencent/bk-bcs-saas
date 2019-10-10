@@ -101,15 +101,14 @@ class HPA(viewsets.ViewSet, BaseAPI, ResourceOperate):
             name = _d.get('name')
             ns_name = _d.get('namespace')
             ns_id = namespace_dict.get(ns_name)
+
             # 删除 hpa
-            if request.project.kind == ProjectKind.K8S.value:
-                result, message = utils.delete_k8s_hpa(request, project_id, cluster_id, ns_name, ns_id, name)
-            else:
-                result, message = utils.delete_mesos_hpa(request, project_id, cluster_id, ns_name, ns_id, name)
-            if result is False:
+            try:
+                utils.delete_hpa(request, project_id, cluster_id, ns_name, ns_id, name)
+            except utils.DeleteHPAError as error:
                 failed_list.append({
                     'name': name,
-                    'desc': f'{name}[命名空间:{ns_name}]:{message}'
+                    'desc': f'{name}[命名空间:{ns_name}]:{error}'
                 })
             else:
                 success_list.append({
