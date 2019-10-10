@@ -128,7 +128,8 @@ class K8sIngressSLZ(BCSResourceSLZ):
             validate_k8s_res_name(name)
         except ValidationError as e:
             raise ValidationError(f'{short_name} {e}')
-        # TODO :验证 Ingress 格式
+        if settings.IS_TEMPLATE_VALIDATE:
+            validate_res_config(data['config'], short_name, get_config_schema(data['resource_name']))
 
 
 class K8sServiceSLZ(BCSResourceSLZ):

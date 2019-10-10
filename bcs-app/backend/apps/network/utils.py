@@ -175,10 +175,10 @@ def handle_lb(username, access_token, project_id, lb_info, cc_app_id):
     return True, ''
 
 
-def delete_lb_by_bcs(access_token, project_id, cluster_id, namespace, lb_name, lb_id):
+def delete_lb_by_bcs(access_token, project_id, cluster_id, namespace, lb_name, lb_id, enforce=False):
     client = mesos.MesosClient(
         access_token, project_id, cluster_id, env=None)
-    resp = client.delete_deployment(namespace, lb_name)
+    resp = client.delete_deployment(namespace, lb_name, enforce=enforce)
     if resp.get("code") == ErrorCode.NoError:
         lb_info = MesosLoadBlance.objects.filter(id=lb_id)
         lb_info.update(

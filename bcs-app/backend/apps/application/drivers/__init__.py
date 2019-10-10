@@ -44,3 +44,6 @@ class BCSDriver:
             pod_name=params.get('unit_name'),
             field=params.get('field')
         )
+
+    def get_events(self, params):
+        return self.driver.get_events(self.bcs_client, params)

@@ -53,7 +53,7 @@ urlpatterns = [
     # 删除单个Ingress
     url(r'^api/resource/(?P<project_id>\w{32})/ingresses/clusters/(?P<cluster_id>[\w\-]+)/'\
         'namespaces/(?P<namespace>[\w\-]+)/endpoints/(?P<name>[\w.\-]+)/$',
-        views_ingress.IngressResource.as_view({'delete': 'delete_ingress'})),
+        views_ingress.IngressResource.as_view({'delete': 'delete_ingress', 'update': 'update_ingress'})),
     # 批量删除
     url(r'^api/resource/(?P<project_id>\w{32})/ingresses/batch/$',
         views_ingress.IngressResource.as_view({'post': 'batch_delete_ingress'})),

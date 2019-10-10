@@ -162,3 +162,22 @@ STORAGE_FIELD_LIST = [
     'data.status.phase',
     'data.status.containerStatuses'
 ]
+
+class ResourceStatus(ChoicesEnum):
+    Running = 'Running'
+    Unready = 'Unready'
+    Completed = 'Completed'
+
+
+RESOURCE_STATUS_FIELD_LIST = [
+    'data.status',
+    'resourceName',
+    'namespace',
+    'data.spec.parallelism',
+    'data.spec.paused',
+    'createTime',
+    'updateTime',
+    'data.metadata.labels',
+    'data.spec.replicas',
+    'data.spec.completions'
+]

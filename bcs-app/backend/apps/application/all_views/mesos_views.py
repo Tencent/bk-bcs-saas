@@ -29,6 +29,7 @@ from backend.apps.application.constants import (
 from backend.apps.configuration.models import Template
 from backend.celery_app.tasks.application import update_create_error_record
 from backend.apps.hpa.utils import get_mesos_deployment_hpa
+from backend.apps.application import utils
 
 logger = logging.getLogger(__name__)
 
@@ -428,6 +429,8 @@ class GetInstances(object):
             val.pop("update_time", None)
         if update_create_error_id_list:
             update_create_error_record.delay(update_create_error_id_list)
+
+        utils.delete_instance_records(all_status, instance_info)
 
     def inst_count_handler(self, instance_info, app_status):
         instance_list = list(instance_info.values())

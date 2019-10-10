@@ -11,13 +11,14 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
+import logging
 
-class Driver:
+from backend.components.bcs.mesos import MesosClient
+from backend.utils.error_codes import error_codes
+from backend.utils.errcodes import ErrorCode
 
-    @classmethod
-    def get_unit_info(cls, client, ns_name, inst_name, taskgroup_name, filed, category):
-        pass
+logger = logging.getLogger(__name__)
 
-    @classmethod
-    def get_events(cls, client, params):
-        return client.get_events(params)
+
+def delete(access_token, project_id, cluster_id, ns_name):
+    pass

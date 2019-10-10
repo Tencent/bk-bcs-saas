@@ -503,6 +503,8 @@ class LoadBalances(viewsets.ViewSet, BaseAPI):
 
         username = request.user.username
         access_token = request.user.token.access_token
+        # enforce delete flag, 1: enforce delete 0: not enforce
+        enforce = request.query_params.get('enforce', 0)
         with activity_client.ContextActivityLogClient(
             project_id=project_id,
             user=username,
@@ -512,7 +514,7 @@ class LoadBalances(viewsets.ViewSet, BaseAPI):
             extra=json.dumps(self.lb_data)
         ).log_stop() as ual_client:
             resust = delete_lb_by_bcs(
-                access_token, project_id, cluster_id, namespace, lb_name, lb_id)
+                access_token, project_id, cluster_id, namespace, lb_name, lb_id, enforce=enforce)
             ual_client.update_log(
                 activity_status='succeed' if resust.get('result') else 'failed',
                 description=u"停止LoadBalance：%s" % resust.get('message'),

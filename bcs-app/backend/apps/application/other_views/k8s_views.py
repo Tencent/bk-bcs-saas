@@ -168,7 +168,7 @@ class GetMusterTemplate(RetriveFilterFields):
             resp = getattr(client, curr_func)({
                 'name': ','.join(info[resource_name]['inst_list']),
                 'namespace': ','.join(info[resource_name]['ns_list']),
-                'field': self.filter_fields
+                'field': ','.join(app_constants.RESOURCE_STATUS_FIELD_LIST)
             })
             if resp.get('code') != ErrorCode.NoError:
                 raise error_codes.APIError(resp.get('message'))
@@ -306,7 +306,7 @@ class AppInstance(RetriveFilterFields):
             )
             curr_func = FUNC_MAP[category] % 'get'
             resp = getattr(client, curr_func)({
-                'field': self.filter_fields
+                'field': ','.join(app_constants.RESOURCE_STATUS_FIELD_LIST)
             })
             if resp.get('code') != ErrorCode.NoError:
                 raise error_codes.APIError.f(resp.get('message'))
@@ -324,7 +324,7 @@ class AppInstance(RetriveFilterFields):
                     'pod_count': f'{available}/{replicas}',
                     'build_instance': available,
                     'instance': replicas,
-                    'status': 'Unready' if (available != replicas or available <= 0) else 'Running',
+                    'status': utils.get_k8s_resource_status(category, info, replicas, available),
                 }
                 if spec.get('paused'):
                     ret_data[curr_key]['status'] = 'Paused'

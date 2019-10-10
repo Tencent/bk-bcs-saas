@@ -11,13 +11,20 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
+import logging
 
-class Driver:
+from backend.components.bcs.k8s import K8SClient
+from backend.utils.error_codes import error_codes
+from backend.utils.errcodes import ErrorCode
 
-    @classmethod
-    def get_unit_info(cls, client, ns_name, inst_name, taskgroup_name, filed, category):
-        pass
+logger = logging.getLogger(__name__)
 
-    @classmethod
-    def get_events(cls, client, params):
-        return client.get_events(params)
+
+def delete(access_token, project_id, cluster_id, ns_name):
+    client = K8SClient(access_token, project_id, cluster_id, env=None)
+    resp = client.delete_namespace(ns_name)
+    if resp.get('code') == ErrorCode.NoError:
+        return
+    if 'not found' in resp.get('message'):
+        return
+    raise error_codes.APIError(f'delete namespace error, name: {ns_name}, {resp.get("message")}')

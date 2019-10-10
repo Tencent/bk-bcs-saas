@@ -34,6 +34,7 @@ from backend.apps.configuration.models import Template
 from backend.celery_app.tasks.application import update_create_error_record
 from backend.utils.basic import getitems
 from backend.apps.hpa.utils import get_deployment_hpa
+from backend.apps.application import constants as app_constants
 
 logger = logging.getLogger(__name__)
 
@@ -244,22 +245,11 @@ class GetInstances(object):
             request.user.token.access_token,
             project_id, cluster_id, None
         )
-        field_list = [
-            'data.status',
-            'resourceName',
-            'namespace',
-            'data.spec.parallelism',
-            'data.spec.paused',
-            'createTime',
-            'updateTime',
-            'data.metadata.labels',
-            'data.spec.replicas'
-        ]
         curr_func = FUNC_MAP[resource_name] % 'get'
         resp = getattr(client, curr_func)({
             'name': inst_name,
             'namespace': ns_name,
-            'field': ','.join(field_list)
+            'field': ','.join(app_constants.RESOURCE_STATUS_FIELD_LIST)
         })
         if resp.get('code') != ErrorCode.NoError:
             raise error_codes.APIError.f(resp.get('message'))
@@ -282,7 +272,7 @@ class GetInstances(object):
                 'pod_count': f'{available}/{replicas}',
                 'build_instance': available,
                 'instance': replicas,
-                'status': 'Unready' if (available != replicas or available <= 0) else 'Running',
+                'status': utils.get_k8s_resource_status(resource_name, info, replicas, available),
                 'name': info['resourceName'],
                 'namespace': info['namespace'],
                 'create_at': info['createTime'],
@@ -325,6 +315,8 @@ class GetInstances(object):
             })
         if update_create_error_id_list:
             update_create_error_record.delay(update_create_error_id_list)
+
+        utils.delete_instance_records(inst_status_info, instance_info)
 
     def inst_count_handler(self, instance_list, app_status):
         ret_data = {

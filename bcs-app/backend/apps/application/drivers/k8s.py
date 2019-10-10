@@ -43,3 +43,7 @@ class Driver:
             raise error_codes.APIError(pod_resp.get('message'))
 
         return pod_resp.get('data')
+
+    @classmethod
+    def get_events(cls, client, params):
+        return client.get_events(params)

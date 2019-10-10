@@ -46,6 +46,11 @@ urlpatterns = [
         name='api.projects.areas',
     ),
     url(
+        r'^api/areas/(?P<area_id>\d+)/$',
+        views.AreaInfoViewSet.as_view({'get': 'info'}),
+        name='api.areas.info',
+    ),
+    url(
         r'^api/projects/(?P<project_id>[\w\-]+)/cluster_nodes/(?P<cluster_id>[\w\-]+)/?$',
         views.NodeCreateListViewSet.as_view({'get': 'list', 'post': 'create'}),
         name='api.projects.nodes',
@@ -146,6 +151,10 @@ urlpatterns += [
     url(
         r'^api/projects/(?P<project_id>[\w\-]+)/nodes/label_values/$',
         views.QueryNodeLabelKeys.as_view({'get': 'label_values'})
+    ),
+    url(
+        r'^api/projects/(?P<project_id>[\w\-]+)/cluster_type_versions/$',
+        views.ClusterVersionViewSet.as_view({'get': 'versions'})
     )
 ]
 

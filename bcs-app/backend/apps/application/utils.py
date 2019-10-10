@@ -24,6 +24,8 @@ from backend.utils.basic import getitems
 from backend.utils.errcodes import ErrorCode
 from backend.components import paas_cc
 from backend.utils.error_codes import error_codes
+from backend.apps.configuration.constants import K8sResourceName
+from backend.apps.instance.models import InstanceConfig
 
 STAG_ENV = 2
 PROD_ENV = 1
@@ -90,3 +92,21 @@ def base64_encode_params(info):
     """
     json_extra = bytes(json.dumps(info), 'utf-8')
     return base64.b64encode(json_extra)
+
+
+def get_k8s_resource_status(resource_name, resource_info, replicas, available):
+    # NOTE: add completed status for job
+    status = constants.ResourceStatus.Unready.value
+    if available == replicas and available > 0:
+        status = constants.ResourceStatus.Running.value
+    if resource_name == constants.REVERSE_CATEGORY_MAP[K8sResourceName.K8sJob.value]:
+        completed_replicas = getitems(resource_info, ['data', 'spec', 'completions'], default=0)
+        if completed_replicas == replicas and available > 0:
+            status = constants.ResourceStatus.Completed.value
+    return status
+
+
+def delete_instance_records(online_instances, local_instances):
+    diff_insts = set(local_instances) - set(online_instances.keys())
+    instance_id_list = [local_instances[key].get('id') for key in diff_insts]
+    InstanceConfig.objects.filter(id__in=instance_id_list).delete()
