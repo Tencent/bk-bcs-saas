@@ -89,3 +89,13 @@ class ApplicationView(viewsets.ViewSet, GetVersionedEntity):
                 if lb_res:
                     lb_list.append({'lb_id': lb.id, 'lb_name': lb.name})
         return Response(lb_list)
+
+
+class DeploymentView(viewsets.ViewSet, GetVersionedEntity):
+    renderer_classes = (BKAPIRenderer, BrowsableAPIRenderer)
+
+    def list(self, request, project_id, version_id):
+        """查看模板集指定版本的 Deployment 列表
+        """
+        ventity = self.get_versioned_entity(project_id, version_id)
+        return Response(ventity.get_mesos_deploys())

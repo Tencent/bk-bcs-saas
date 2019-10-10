@@ -18,6 +18,10 @@ urlpatterns = [
     # 查询指定版本的 Application 信息
     url(r'^api/configuration/(?P<project_id>\w{32})/apps/(?P<version_id>\-?\d+)/$',
         views.ApplicationView.as_view({'get': 'list_apps'})),
+
+    url(r'^api/configuration/projects/(?P<project_id>\w{32})/deployment/(?P<version_id>\-?\d+)/$',
+        views.DeploymentView.as_view({'get': 'list'})),
+
     # 查询指定版本的 port 信息
     url(r'^api/configuration/(?P<project_id>\w{32})/ports/(?P<version_id>\-?\d+)/$',
         views.ApplicationView.as_view({'get': 'list_container_ports'})),

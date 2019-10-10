@@ -15,7 +15,7 @@
 from .cluster import (  # noqa
     ClusterCreateListViewSet, ClusterCreateGetUpdateViewSet,
     ClusterInstallLogView, ClusterFilterViewSet, ClusterCheckDeleteViewSet,
-    ClusterInfo, ClusterMasterInfo
+    ClusterInfo, ClusterMasterInfo, ClusterVersionViewSet
 )
 
 from .node import (  # noqa
@@ -28,7 +28,7 @@ from .node import (  # noqa
     BatchUpdateDeleteNodeViewSet
 )
 from .area import (  # noqa
-    AreaListViewSet,
+    AreaListViewSet, AreaInfoViewSet
 )
 
 from .metrics import (  # noqa

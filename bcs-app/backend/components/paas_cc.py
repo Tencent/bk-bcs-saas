@@ -524,3 +524,14 @@ def delete_namespace(access_token, project_id, cluster_id, ns_id):
         })
     }
     return http_delete(url, headers=headers)
+
+
+def get_cluster_versions(access_token, ver_id='', env='', kind=''):
+    url = f'{CC_HOST}/v1/all/clusters/version_config/'
+    headers = {
+        "X-BKAPI-AUTHORIZATION": json.dumps({
+            "access_token": access_token
+        })
+    }
+    params = {'ver_id': ver_id, 'environment': env, 'kind': kind}
+    return http_get(url, params=params, headers=headers)

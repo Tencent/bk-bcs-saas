@@ -38,6 +38,7 @@ from backend.celery_app.tasks.application import delete_instance_task
 from backend.apps.application.utils import cluster_env
 from backend.accounts import bcs_perm
 from backend.apps.configuration.models import Template
+from backend.apps.application.drivers import BCSDriver
 
 logger = logging.getLogger(__name__)
 
@@ -751,10 +752,7 @@ class BaseAPI(views.APIView):
     def query_events(self, request, project_id, cluster_id, params):
         """查询事件
         """
-        client = BCSClient(
-            request.user.token.access_token,
-            project_id, cluster_id, None
-        )
+        client = BCSDriver(request, project_id, cluster_id)
         resp = client.get_events(params)
         if resp.get("code") != ErrorCode.NoError:
             return APIResponse({

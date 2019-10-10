@@ -137,3 +137,19 @@ func UpdateClusterBaseVersion(c *gin.Context) {
 	}
 	utils.OKJSONResponseWithMessage(c, nil, "Update cluster base version success")
 }
+
+// ClusterVersionConfig : cluster version configure
+func ClusterVersionConfig(c *gin.Context) {
+	// check params
+	params := new(clusterVersionParams)
+	if err := BindForm(c, params); err != nil {
+		utils.BadReqJSONResponse(c, ValidationError(err))
+		return
+	}
+	clusterVersion, err := models.ClusterVersion(params.VerID, params.Environment, params.Kind)
+	if err != nil {
+		utils.DBErrorResponse(c, err)
+		return
+	}
+	utils.OKJSONResponse(c, clusterVersion)
+}

@@ -147,4 +147,9 @@ func URLConf(engine *gin.Engine) {
 	{
 		projectResource.GET("/", apis.ProjectsResource)
 	}
+
+	clusterVersionConfig := engine.Group("/v1/all/clusters/version_config")
+	{
+		clusterVersionConfig.GET("/", apis.ClusterVersionConfig)
+	}
 }
