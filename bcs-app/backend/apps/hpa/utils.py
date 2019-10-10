@@ -232,6 +232,13 @@ def delete_k8s_hpa(request, project_id, cluster_id, namespace, namespace_id, nam
         is_deleted=True,
         is_bcs_success=True)
 
+
+def delete_hpa(request, project_id, cluster_id, ns_name, namespace_id, name):
+    if request.project.kind == ProjectKind.K8S.value:
+        delete_k8s_hpa(request, project_id, cluster_id, ns_name, namespace_id, name)
+    else:
+        delete_mesos_hpa(request, project_id, cluster_id, ns_name, namespace_id, name)
+
 def get_mesos_deployment_hpa(request, project_id, cluster_id, ns_name):
     hpa_list = get_cluster_hpa_list(
         request,
