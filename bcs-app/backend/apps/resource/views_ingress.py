@@ -23,7 +23,7 @@ from backend.apps.application.utils import APIResponse
 from backend.components.bcs import k8s
 from backend.utils.error_codes import error_codes
 from backend.utils.errcodes import ErrorCode
-from backend.apps.configuration.serializers import K8sIngressCreateOrUpdateSLZ
+from backend.apps.configuration.k8s.serializers import K8sIngressSLZ
 from backend.apps.instance.constants import K8S_INGRESS_SYS_CONFIG
 
 logger = logging.getLogger(__name__)
@@ -100,6 +100,6 @@ class IngressResource(viewsets.ViewSet, BaseAPI, ResourceOperate):
     def update_ingress(self, request, project_id, cluster_id, namespace, name):
         self.category = 'ingress'
         self.k8s_cate = 'K8sIngress'
-        self.k8s_slz = K8sIngressCreateOrUpdateSLZ
+        self.k8s_slz = K8sIngressSLZ
         self.k8s_sys_config = K8S_INGRESS_SYS_CONFIG
         return self.update_resource(request, project_id, cluster_id, namespace, name)

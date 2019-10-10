@@ -543,35 +543,3 @@ class K8sSecretCreateOrUpdateSLZ(serializers.Serializer):
         config = json.loads(data['config'])
         name = config.get('metadata', {}).get('name') or ""
         return check_resource_name("K8sSecret", data, name)
-
-
-class K8sIngressCreateOrUpdateSLZ(serializers.Serializer):
-    config = serializers.JSONField(required=True)
-    version_id = serializers.IntegerField(required=False)
-    item_id = serializers.IntegerField(required=False)
-    project_id = serializers.CharField(required=False)
-
-    namespace_id = serializers.CharField(
-        required=False, allow_blank=True, allow_null=True)
-    instance_id = serializers.CharField(
-        required=False, allow_blank=True, allow_null=True)
-
-    def validate_config(self, config):
-        name = config.get('metadata', {}).get('name') or ''
-        if not K8S_RENAME.match(name):
-            raise ValidationError(f'Ingress {K8S_NAME_ERROR_MSG}')
-
-        if settings.IS_TEMPLATE_VALIDATE:
-            try:
-                json_validate(config, constants_k8s.K8S_INGRESS_SCHEMA)
-            except JsonValidationError as e:
-                raise ValidationError(f'Ingress 配置信息格式错误:{e.message}')
-            except SchemaError as e:
-                raise ValidationError(f'Ingress 配置信息格式错误:{e}')
-
-        return json.dumps(config)
-
-    def validate(self, data):
-        config = json.loads(data['config'])
-        name = config.get('metadata', {}).get('name') or ''
-        return check_resource_name("K8sIngress", data, name)
