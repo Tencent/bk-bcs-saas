@@ -28,6 +28,7 @@ from backend.apps.application.constants import (
 )
 from backend.apps.configuration.models import Template
 from backend.celery_app.tasks.application import update_create_error_record
+from backend.apps.hpa.utils import get_mesos_deployment_hpa
 from backend.apps.application import utils
 
 logger = logging.getLogger(__name__)
@@ -311,10 +312,12 @@ class GetInstances(object):
         flag, resp = func(
             request, project_id, cluster_id, inst_name,
             category=category, project_kind=kind, namespace=ns_name,
-            field="data.metadata.name,data.metadata.namespace,data.status,data.message,data.buildedInstance,data.instance,updateTime,createTime,data.metadata.labels" # noqa
+            field="data.metadata.name,data.metadata.namespace,data.status,data.message,data.buildedInstance,data.instance,updateTime,createTime,data.metadata.labels"  # noqa
         )
+
         if not flag:
             raise error_codes.APIError.f(resp.data.get("message"))
+
         for val in resp.get("data", []):
             data = val.get("data", {})
             metadata = data.get("metadata", {})
@@ -339,7 +342,8 @@ class GetInstances(object):
                 "update_time": val.get("updateTime"),
                 "create_time": val.get("updateTime"),
                 "source_type": SOURCE_TYPE_MAP.get(source_type),
-                "version": labels.get("io.tencent.paas.version")
+                "version": labels.get("io.tencent.paas.version"),
+                'hpa': False  # Application 默认都是未绑定
             }
         return ret_data
 
@@ -355,6 +359,10 @@ class GetInstances(object):
         )
         if not flag:
             raise error_codes.APIError.f(resp.data.get("message"))
+
+        # 添加HPA绑定信息
+        hpa_list = get_mesos_deployment_hpa(request, project_id, cluster_id, ns_name)
+
         for val in resp.get("data", []):
             data = val.get("data", {})
             metadata = data.get("metadata", {})
@@ -367,7 +375,8 @@ class GetInstances(object):
                 "deployment_status": data.get("status"),
                 "deployemnt_status_message": data.get("message"),
                 "source_type": labels.get("io.tencent.paas.source_type"),
-                "version": labels.get("io.tencent.paas.version")
+                "version": labels.get("io.tencent.paas.version"),
+                "hpa": True if key_name in hpa_list else False
             }
         return ret_data
 
@@ -479,6 +488,8 @@ class GetInstances(object):
                     app_status_info.pop("category", None)
                     app_status_info.pop("deployment_status", None)
                     app_status_info.pop("deployment_status_message", None)
+                    # APP重新赋值HPA
+                    app_status_info['hpa'] = deploy_val['hpa']
                     deploy_val.update(app_status_info)
         all_status.update(deployment_status)
         all_status.update(copy_application_status)

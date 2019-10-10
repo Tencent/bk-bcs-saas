@@ -147,6 +147,16 @@ SECRET_SYS_CONFIG = {
     }
 }
 
+HPA_SYS_CONFIG = {
+    "apiVersion": "v4",
+    "kind": "autoscaler",
+    "metadata": {
+        "namespace": "{{SYS_NAMESPACE}}",
+        "labels": PUBLIC_LABELS,
+        "annotations": PUBLIC_ANNOTATIONS,
+    }
+}
+
 # ############################## k8s 相关资源
 
 # 模板集相关的实例化资源

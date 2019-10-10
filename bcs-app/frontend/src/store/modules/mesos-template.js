@@ -1092,7 +1092,7 @@ export default {
          * @return {Promise} promise 对象
          */
         getDeploymentsByVersion (context, { projectId, version }) {
-            return http.get(`${DEVOPS_BCS_API_URL}/api/configuration/${projectId}/deployment/${version}/`)
+            return http.get(`${DEVOPS_BCS_API_URL}/api/configuration/projects/${projectId}/deployment/${version}/`)
         }
     }
 }

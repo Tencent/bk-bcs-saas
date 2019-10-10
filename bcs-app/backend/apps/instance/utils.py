@@ -22,7 +22,7 @@ from django.conf import settings
 from rest_framework.exceptions import ValidationError
 
 from backend.apps.application.constants import FUNC_MAP
-from backend.apps.configuration.constants import K8sResourceName
+from backend.apps.configuration.constants import K8sResourceName, MesosResourceName
 from backend.apps.configuration.models import CATE_ABBR_NAME, ShowVersion, Template, VersionedEntity
 from backend.apps.constants import ALL_LIMIT
 from backend.apps.instance.constants import InsState
@@ -156,7 +156,7 @@ def validate_ns_by_tempalte_id(template_id, ns_list, access_token, project_id, i
 
     # hpa白名单控制
     cluster_id_list = list(set([i['cluster_id'] for i in namespace]))
-    if K8sResourceName.K8sHPA.value in instance_entity:
+    if K8sResourceName.K8sHPA.value in instance_entity or MesosResourceName.hpa.value in instance_entity:
         if not enabled_hpa_feature(cluster_id_list):
             raise error_codes.APIError(f"当前实例化包含HPA资源，{settings.GRAYSCALE_FEATURE_MSG}")
 
@@ -170,7 +170,7 @@ def validate_ns_by_tempalte_id(template_id, ns_list, access_token, project_id, i
     # 查询每类资源已经实例化的ns，求合集，这些已经实例化过的ns不能再被实例化
     for cate in instance_entity:
         # HPA 编辑以模板集为准, 可以重复实例化
-        if cate == K8sResourceName.K8sHPA.value:
+        if cate in [K8sResourceName.K8sHPA.value, MesosResourceName.hpa.value]:
             continue
         cate_data = instance_entity[cate]
         cate_name_list = [i.get('name') for i in cate_data if i.get('name')]
