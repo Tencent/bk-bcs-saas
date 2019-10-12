@@ -97,15 +97,15 @@
             },
             keyPlaceholder: {
                 type: String,
-                default: '键'
+                default: this.$t('键')
             },
             valuePlaceholder: {
                 type: String,
-                default: '值'
+                default: this.$t('值')
             },
             addToSelectorStr: {
                 type: String,
-                default: '添加至选择器'
+                default: this.$t('添加至选择器')
             }
         },
         data () {

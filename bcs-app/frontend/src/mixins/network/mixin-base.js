@@ -107,7 +107,7 @@ export default {
             if (!data.length) {
                 this.$bkMessage({
                     theme: 'error',
-                    message: '请选择要删除的Service！'
+                    message: this.$t('请选择要删除的Service')
                 })
                 return false
             }
