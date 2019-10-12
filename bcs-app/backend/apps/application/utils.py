@@ -17,6 +17,7 @@ import functools
 
 from rest_framework.response import Response
 from django.conf import settings
+from django.utils import timezone
 
 from backend.components.bcs.mesos import MesosClient
 from backend.apps.application import constants
@@ -109,4 +110,8 @@ def get_k8s_resource_status(resource_name, resource_info, replicas, available):
 def delete_instance_records(online_instances, local_instances):
     diff_insts = set(local_instances) - set(online_instances.keys())
     instance_id_list = [local_instances[key].get('id') for key in diff_insts]
-    InstanceConfig.objects.filter(id__in=instance_id_list).delete()
+    InstanceConfig.objects.filter(
+        id__in=instance_id_list
+    ).exclude(
+        oper_type=constants.REBUILD_INSTANCE
+    ).update(is_deleted=True, deleted_time=timezone.now())
