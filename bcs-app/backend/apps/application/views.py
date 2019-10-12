@@ -2099,6 +2099,8 @@ class ReCreateInstance(BaseAPI):
             self.bcs_single_app_perm_handler(
                 request, project_id, labels.get("io.tencent.paas.templateid"), curr_inst.namespace)
             category = curr_inst.category
+            # set the oper type
+            inst_info.update(oper_type=app_constants.REBUILD_INSTANCE)
         # 删除节点
         with client.ContextActivityLogClient(
             project_id=project_id,
