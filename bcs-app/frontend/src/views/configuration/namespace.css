@@ -237,3 +237,16 @@
         }
     }
 }
+
+.biz-namespace-del-dialog {
+    .title {
+        color: #333;
+        font-size: 20px;
+    }
+    .info {
+        margin: 10px 0;
+        font-size: 14px;
+        color: #333;
+        font-weight: 700;
+    }
+}

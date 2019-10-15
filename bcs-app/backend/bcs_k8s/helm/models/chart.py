@@ -166,7 +166,7 @@ class ChartVersion(BaseChartVersion):
     """
     chart = models.ForeignKey("Chart", related_name='versions')
     keywords = models.CharField(max_length=200, null=True, blank=True)
-    version = models.CharField(max_length=50)
+    version = models.CharField(max_length=255)
     digest = models.CharField(max_length=64)
 
     objects = ChartVersionManager()
@@ -237,7 +237,7 @@ class ChartVersionSnapshot(BaseChartVersion):
     只要digest, 就能确定引用的是同一个包, 全局唯一
     uniq: digest
     """
-    version = models.CharField(max_length=50)
+    version = models.CharField(max_length=255)
     version_id = models.IntegerField(
         default=-1,
         help_text="record the chart version which this snapshot comes from")

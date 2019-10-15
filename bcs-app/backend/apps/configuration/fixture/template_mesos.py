@@ -20,7 +20,6 @@ else:
     image_path_prefix = 'public/bcs'
 image_prefix = f'{settings.DEVOPS_ARTIFACTORY_HOST}/{image_path_prefix}'
 
-
 # service 中 app_weight 需要修改为 app_id
 MESOS_TEMPLATE = {
     "code": 0,
@@ -291,9 +290,13 @@ MESOS_TEMPLATE = {
                                             }
                                         ],
                                         "resources": {
-                                            "limits": {
+                                            "requests": {
                                                 "cpu": 1,
                                                 "memory": 100
+                                            },
+                                            "limits": {
+                                                "cpu": '',
+                                                "memory": ''
                                             }
                                         },
                                         "volumes": [],
@@ -448,9 +451,13 @@ MESOS_TEMPLATE = {
                                             }
                                         ],
                                         "resources": {
-                                            "limits": {
+                                            "requests": {
                                                 "cpu": 1,
                                                 "memory": 100
+                                            },
+                                            "limits": {
+                                                "cpu": '',
+                                                "memory": ''
                                             }
                                         },
                                         "volumes": [],

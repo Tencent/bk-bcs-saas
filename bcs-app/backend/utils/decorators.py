@@ -29,6 +29,8 @@ FORMAT_FUNC = {
     'json': json.loads,
 }
 
+# 最大返回字符数
+MAX_RESP_TEXT_SIZE = 1000
 
 def curl_log(func):
     """http请求添加curl log
@@ -66,7 +68,12 @@ def requests_curl_log(resp, st):
                 continue
             curl_req += " -H '{k}: {v}'".format(k=header[0], v=header[1])
 
-    curl_resp = 'RESP: [%s] %.2fms %s' % (resp.status_code, (time.time() - st) * 1000, resp.text)
+    if len(resp.text) > MAX_RESP_TEXT_SIZE:
+        resp_text = f"{resp.text[:MAX_RESP_TEXT_SIZE]}..."
+    else:
+        resp_text = resp.text
+
+    curl_resp = 'RESP: [%s] %.2fms %s' % (resp.status_code, (time.time() - st) * 1000, resp_text)
 
     logger.info('%s\n \t %s', curl_req, curl_resp)
 
