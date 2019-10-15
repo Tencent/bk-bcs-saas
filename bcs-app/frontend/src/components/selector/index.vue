@@ -302,7 +302,7 @@
                                 } else {
                                     item.isDisabled = false
                                 }
-                                this.componentKey++
+                                // this.componentKey++
                             })
                         }
                     })
