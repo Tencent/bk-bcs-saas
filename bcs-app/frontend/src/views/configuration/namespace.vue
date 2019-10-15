@@ -952,7 +952,7 @@
                     this.bkMessageInstance && this.bkMessageInstance.close()
                     this.bkMessageInstance = this.$bkMessage({
                         theme: 'success',
-                        message: '删除Namespace成功'
+                        message: this.$t('删除Namespace成功')
                     })
                 } catch (e) {
                     catchErrorHandler(e, this)
