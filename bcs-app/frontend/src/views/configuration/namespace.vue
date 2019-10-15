@@ -314,23 +314,28 @@
             :quick-close="false">
             <div slot="content" style="padding: 0 20px;">
                 <div class="title">
-                    删除命名空间
+                    {{$t('删除命名空间')}}
                 </div>
                 <div class="info">
-                    您确定要删除Namespace: {{delNamespaceDialogConf.ns.name}}吗？
+                    <template v-if="isEn">
+                        Confirm want to delete the namespace: {{delNamespaceDialogConf.ns.name}}?
+                    </template>
+                    <template v-else>
+                        您确定要删除Namespace: {{delNamespaceDialogConf.ns.name}}吗？
+                    </template>
                 </div>
                 <div style="color: red;">
-                    删除Namespace将销毁Namespace下的所有资源，销毁后所有数据将被清除且不可恢复，请提前备份好数据。
+                    {{$t('删除Namespace将销毁Namespace下的所有资源，销毁后所有数据将被清除且不可恢复，请提前备份好数据。')}}
                 </div>
             </div>
             <template slot="footer">
                 <div class="bk-dialog-outer">
                     <button type="button" class="bk-dialog-btn bk-dialog-btn-confirm bk-btn-primary"
                         @click="delNamespaceConfirm">
-                        删除
+                        {{$t('删除')}}
                     </button>
                     <button type="button" class="bk-dialog-btn bk-dialog-btn-cancel" @click="delNamespaceCancel">
-                        取消
+                        {{$t('取消')}}
                     </button>
                 </div>
             </template>
