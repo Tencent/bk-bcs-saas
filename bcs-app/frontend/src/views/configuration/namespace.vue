@@ -23,6 +23,7 @@
                     </div>
                     <div class="right">
                         <bk-data-searcher
+                            ref="dataSearcher"
                             :search-key.sync="search"
                             :scope-list="searchScopeList"
                             :search-scope.sync="searchScope"
@@ -103,6 +104,9 @@
                                         <td>
                                             <a href="javascript:void(0)" class="bk-text-button" @click="showEditNamespace(ns, index)">{{$t('设置变量值')}}</a>
                                             <a class="bk-text-button" v-if="!ns.permissions.use" @click="applyUsePermission(ns)">{{$t('申请使用权限')}}</a>
+                                            <a href="javascript:void(0)" class="bk-text-button" @click="showDelNamespace(ns, index)" v-if="curProject.kind === 1 || curProject.kind === 3">
+                                                {{$t('删除')}}
+                                            </a>
                                         </td>
                                     </tr>
                                 </template>
@@ -300,6 +304,37 @@
                 </div>
             </template>
         </bk-sideslider>
+
+        <bk-dialog
+            :is-show.sync="delNamespaceDialogConf.isShow"
+            :width="delNamespaceDialogConf.width"
+            :close-icon="delNamespaceDialogConf.closeIcon"
+            :ext-cls="'biz-namespace-del-dialog'"
+            :has-header="false"
+            :quick-close="false">
+            <div slot="content" style="padding: 0 20px;">
+                <div class="title">
+                    删除命名空间
+                </div>
+                <div class="info">
+                    您确定要删除Namespace: {{delNamespaceDialogConf.ns.name}}吗？
+                </div>
+                <div style="color: red;">
+                    删除Namespace将销毁Namespace下的所有资源，销毁后所有数据将被清除且不可恢复，请提前备份好数据。
+                </div>
+            </div>
+            <template slot="footer">
+                <div class="bk-dialog-outer">
+                    <button type="button" class="bk-dialog-btn bk-dialog-btn-confirm bk-btn-primary"
+                        @click="delNamespaceConfirm">
+                        删除
+                    </button>
+                    <button type="button" class="bk-dialog-btn bk-dialog-btn-cancel" @click="delNamespaceCancel">
+                        取消
+                    </button>
+                </div>
+            </template>
+        </bk-dialog>
     </div>
 </template>
 
@@ -367,7 +402,14 @@
                 },
                 permissions: {},
                 exceptionCode: null,
-                bkMessageInstance: null
+                bkMessageInstance: null,
+                delNamespaceDialogConf: {
+                    isShow: false,
+                    width: 650,
+                    title: '',
+                    closeIcon: false,
+                    ns: {}
+                }
             }
         },
         computed: {
@@ -400,6 +442,9 @@
             },
             isEn () {
                 return this.$store.state.isEn
+            },
+            curProject () {
+                return this.$store.state.curProject
             }
         },
         destroyed () {
@@ -870,30 +915,51 @@
             },
 
             /**
+             * 显示删除 namespace 确认框
+             *
+             * @param {Object} ns 当前 namespace 对象
+             * @param {number} index 当前 namespace 对象的索引
+             */
+            showDelNamespace (ns, index) {
+                this.delNamespaceDialogConf.isShow = true
+                this.delNamespaceDialogConf.ns = Object.assign({}, ns)
+            },
+
+            /**
              * 删除当前 namespace
              *
              * @param {Object} ns 当前 namespace 对象
              * @param {number} index 当前 namespace 对象的索引
              */
-            delNamespace (ns, index) {
-                const me = this
-                me.$bkInfo({
-                    title: this.$t('确定删除命名空间？'),
-                    async confirmFn () {
-                        me.isPageLoading = true
-                        try {
-                            await me.$store.dispatch('configuration/delNamespace', {
-                                projectId: me.projectId,
-                                namespaceId: ns.id
-                            })
-                            me.pageConf.curPage = 1
-                            me.fetchNamespaceList()
-                        } catch (e) {
-                            catchErrorHandler(e, me)
-                            me.isPageLoading = false
-                        }
-                    }
-                })
+            async delNamespaceConfirm () {
+                try {
+                    this.isPageLoading = true
+                    this.delNamespaceCancel()
+                    await this.$store.dispatch('configuration/delNamespace', {
+                        projectId: this.projectId,
+                        namespaceId: this.delNamespaceDialogConf.ns.id
+                    })
+                    this.search = ''
+                    this.searchScope = ''
+                    this.$refs.dataSearcher.handleRefresh()
+                } catch (e) {
+                    catchErrorHandler(e, this)
+                } finally {
+                    this.isPageLoading = false
+                }
+            },
+
+            /**
+             * 取消删除当前 namespace
+             *
+             * @param {Object} ns 当前 namespace 对象
+             * @param {number} index 当前 namespace 对象的索引
+             */
+            delNamespaceCancel () {
+                this.delNamespaceDialogConf.isShow = false
+                setTimeout(() => {
+                    this.delNamespaceDialogConf.ns = Object.assign({}, {})
+                }, 300)
             },
 
             /**
