@@ -946,11 +946,16 @@
                     })
                     this.search = ''
                     this.searchScope = ''
+                    // handleRefresh 会触发 refresh，refresh 触发 fetchNamespaceList
+                    // fetchNamespaceList 里把 isPageLoading 设置为 false
                     this.$refs.dataSearcher.handleRefresh()
+                    this.bkMessageInstance && this.bkMessageInstance.close()
+                    this.bkMessageInstance = this.$bkMessage({
+                        theme: 'success',
+                        message: this.$t('删除Namespace成功')
+                    })
                 } catch (e) {
                     catchErrorHandler(e, this)
-                } finally {
-                    this.isPageLoading = false
                 }
             },
 
