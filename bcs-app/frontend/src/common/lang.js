@@ -326,6 +326,7 @@ export default {
     '命名空间列表': ['Namespaces'],
     '删除命名空间': ['Delete namespace'],
     '删除Namespace将销毁Namespace下的所有资源，销毁后所有数据将被清除且不可恢复，请提前备份好数据。': ['Delete Namespace will destroy all resources under the Namespace. Then all data will be cleared and cannot be restored. Please backup the data.'],
+    '删除Namespace成功': ['Delete namespace successfully'],
 
     'HPA管理': ['HPA Manage'],
     '批量删除': ['Batch Delete'],
