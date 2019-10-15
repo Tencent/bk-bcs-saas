@@ -126,7 +126,12 @@
                         <i class="text">{{$t('命名空间列表')}}</i>
                     </div>
                 </template>
-
+                <template v-if="fieldType === 'metric'">
+                    <div class="bk-selector-create-item" @click.stop.prevent="goMetricList">
+                        <i class="bk-icon icon-apps"></i>
+                        <i class="text">{{$t('新建Metric')}}</i>
+                    </div>
+                </template>
             </div>
         </transition>
     </div>
@@ -404,6 +409,16 @@
             goNamespaceList () {
                 this.$router.push({
                     name: 'namespace',
+                    params: {
+                        projectId: this.projectId,
+                        projectCode: this.projectCode,
+                        needCheckPermission: true
+                    }
+                })
+            },
+            goMetricList () {
+                this.$router.push({
+                    name: 'metricManage',
                     params: {
                         projectId: this.projectId,
                         projectCode: this.projectCode,
