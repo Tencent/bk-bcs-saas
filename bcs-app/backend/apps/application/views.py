@@ -718,14 +718,14 @@ class AppInstance(BaseMusterMetric):
             if not conf:
                 continue
             metadata = conf.get("metadata", {})
-            key_name = (metadata.get("namespace"), metadata.get("name"))
-            if (not metadata.get("name", "").startswith(tmpl_name)) or (key_name in ret_data):
-                continue
             labels = metadata.get("labels")
             cluster_id = labels.get("io.tencent.bcs.clusterid")
             if not cluster_id:
                 continue
             if str(cluster_env_map.get(cluster_id, {}).get("cluster_env")) != str(cluster_type):
+                continue
+            key_name = (cluster_id, metadata.get("namespace"), metadata.get("name"))
+            if (not metadata.get("name", "").startswith(tmpl_name)) or (key_name in ret_data):
                 continue
             backend_status = "BackendNormal"
             oper_type_flag = ""
@@ -847,7 +847,7 @@ class AppInstance(BaseMusterMetric):
                 curr_app_id = "%s:%s" % (metadata.get("namespace"), metadata.get("name"))
                 if curr_app_id not in info:
                     continue
-                key_name = (metadata.get("namespace"), metadata.get("name"))
+                key_name = (cluster_id, metadata.get("namespace"), metadata.get("name"))
                 application = val.get("data", {}).get("application", {})
                 application_ext = val.get("data", {}).get("application_ext", {})
                 if key_name not in ret_data:
@@ -877,7 +877,7 @@ class AppInstance(BaseMusterMetric):
                 curr_app_id = "%s:%s" % (metadata.get("namespace"), metadata.get("name"))
                 if curr_app_id not in info:
                     continue
-                key_name = (metadata.get("namespace"), metadata.get("name"))
+                key_name = (cluster_id, metadata.get("namespace"), metadata.get("name"))
                 build_instance = data.get("buildedInstance") or 0
                 instance = data.get("instance") or 0
                 ret_data[key_name] = {
@@ -907,7 +907,7 @@ class AppInstance(BaseMusterMetric):
                 curr_app_id = "%s:%s" % (metadata.get("namespace"), metadata.get("name"))
                 if curr_app_id not in info:
                     continue
-                key_name = (metadata.get("namespace"), metadata.get("name"))
+                key_name = (cluster_id, metadata.get("namespace"), metadata.get("name"))
                 ret_data[key_name] = {
                     "deployment_status": data.get("status"),
                     "deployemnt_status_message": data.get("message")
@@ -940,7 +940,7 @@ class AppInstance(BaseMusterMetric):
         need_update_status = []
         update_create_error_id_list = []
         for info in instance_info.values():
-            key_name = (info["namespace"], info["name"])
+            key_name = (info['cluster_id'], info["namespace"], info["name"])
             if info["backend_status"] in ["BackendError"] and key_name in all_status:
                 update_create_error_id_list.append(info["id"])
                 info["backend_status"] = "BackendNormal"
@@ -1060,7 +1060,7 @@ class AppInstance(BaseMusterMetric):
                 for deploy, deploy_val in deployment_status.items():
                     app_name = deploy_application_info.get(deploy, [])
                     for name in app_name:
-                        key_name = (deploy[0], name)
+                        key_name = (deploy[0], deploy[1], name)
                         app_status_info = application_status.get(key_name, {})
                         deploy_val.update(app_status_info)
                 all_status = deployment_status
