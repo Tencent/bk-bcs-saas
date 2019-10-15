@@ -18,6 +18,9 @@
                         <button class="bk-button bk-default" @click="showSetLabel">
                             <span>{{$t('设置标签')}}</span>
                         </button>
+                        <button class="bk-button bk-default copy-ip-btn" @click="copyIp">
+                            <span>{{$t('复制IP')}}</span>
+                        </button>
                     </div>
                     <div class="right">
                         <bk-dropdown-menu :align="'left'" :trigger="'click'" ref="toggleFilterDropdownMenu">
@@ -517,6 +520,7 @@
 </template>
 
 <script>
+    import Clipboard from 'clipboard'
     import { catchErrorHandler } from '@open/common/util'
     import LoadingCell from '../cluster/loading-cell'
     import nodeSearcher from '../cluster/searcher'
@@ -593,7 +597,8 @@
                 clusterList: [],
                 curSelectedClusterName: 'all',
                 alreadySelectedNums: 0,
-                searchParams: []
+                searchParams: [],
+                clipboardInstance: null
             }
         },
         computed: {
@@ -620,12 +625,30 @@
         beforeDestroy () {
             clearTimeout(this.timer) && (this.timer = null)
             this.cancelLoop = true
+
+            this.clipboardInstance && this.clipboardInstance.destroy()
+            if (this.clipboardInstance && this.clipboardInstance.off) {
+                this.clipboardInstance.off('success')
+            }
         },
         destroyed () {
             clearTimeout(this.timer) && (this.timer = null)
             this.cancelLoop = true
+
+            this.clipboardInstance && this.clipboardInstance.destroy()
+            if (this.clipboardInstance && this.clipboardInstance.off) {
+                this.clipboardInstance.off('success')
+            }
         },
         async created () {
+            this.clipboardInstance = new Clipboard('.copy-ip-btn')
+            this.clipboardInstance.on('success', e => {
+                this.$bkMessage({
+                    theme: 'success',
+                    message: '复制成功'
+                })
+            })
+
             this.pageConf.curPage = 1
             this.pageLoading = true
             await this.fetchData()
@@ -704,7 +727,9 @@
                         projectId: this.projectId
                     })
 
-                    const list = res.data.results || []
+                    const data = res.data || {}
+
+                    const list = data.results || []
                     const nodeList = []
                     list.forEach(item => {
                         item.transformLabels = []
@@ -1082,6 +1107,31 @@
                         })
                     }
                     this.checkedNodeList.splice(0, this.checkedNodeList.length, ...checkedNodeList)
+                })
+            },
+
+            /**
+             * 复制 IP
+             */
+            copyIp () {
+                if (!this.checkedNodeList.length) {
+                    this.bkMessageInstance && this.bkMessageInstance.close()
+                    this.bkMessageInstance = this.$bkMessage({
+                        theme: 'error',
+                        message: this.$t('请选择节点')
+                    })
+                    return
+                }
+
+                this.clipboardInstance = new Clipboard('.copy-ip-btn', {
+                    text: trigger => this.checkedNodeList.map(checkedNode => checkedNode.inner_ip).join('\n')
+                })
+                this.clipboardInstance.on('success', e => {
+                    this.bkMessageInstance && this.bkMessageInstance.close()
+                    this.bkMessageInstance = this.$bkMessage({
+                        theme: 'success',
+                        message: `复制 ${this.checkedNodeList.length} 个IP成功`
+                    })
                 })
             },
 

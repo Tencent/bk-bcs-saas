@@ -12,6 +12,7 @@
 export default {
     '节点': ['Nodes'],
     '设置标签': ['Set Label'],
+    '复制IP': ['Copy IP'],
     '全部集群': ['All Clusters'],
     '清除': ['Clear'],
     '刷新': ['Refresh'],
