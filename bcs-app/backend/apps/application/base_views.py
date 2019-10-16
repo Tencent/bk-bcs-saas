@@ -33,12 +33,13 @@ from backend.components.bcs.k8s import K8SClient
 from backend.components.bcs.bcs_common_api import BCSClient
 from backend.apps.instance.models import InstanceEvent
 from backend.apps.instance.constants import EventType, InsState
-from backend.apps.application.constants import FUNC_MAP
+from backend.apps.application.constants import FUNC_MAP, NOT_TMPL_SOURCE_TYPE
 from backend.celery_app.tasks.application import delete_instance_task
 from backend.apps.application.utils import cluster_env
 from backend.accounts import bcs_perm
 from backend.apps.configuration.models import Template
 from backend.apps.application.drivers import BCSDriver
+from backend.apps.application.serializers import InstanceParamsSLZ
 
 logger = logging.getLogger(__name__)
 
@@ -1013,3 +1014,20 @@ class BaseInstanceView:
         if not inst_info:
             raise error_codes.CheckFailed(f"instance({inst_id}) not found")
         return inst_info
+
+
+class InstanceAPI(BaseAPI):
+
+    def get_params_for_client(self, request):
+        slz = InstanceParamsSLZ(data=request.query_params)
+        slz.is_valid(raise_exception=True)
+        return slz.validated_data
+
+    def get_inst_name_cluster_ns_info(self, request, project_id):
+        data = self.get_params_for_client(request)
+        ns_name_id_map = self.get_namespace_name_id(request, project_id)
+        ns_id = ns_name_id_map.get(data['namespace'])
+        # check perm
+        self.bcs_single_app_perm_handler(request, project_id, None, ns_id, source_type=NOT_TMPL_SOURCE_TYPE)
+
+        return data['cluster_id'], data['namespace'], data['name'], data['category']

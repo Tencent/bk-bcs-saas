@@ -52,3 +52,10 @@ class UpdateInstanceParams(BaseParams):
     version_id = serializers.IntegerField(label=u"版本ID", required=True)
     version = serializers.CharField(label=u"版本号", required=False)
     show_version_id = serializers.IntegerField(required=True)
+
+
+class InstanceParamsSLZ(BaseParams):
+    name = serializers.CharField()
+    namespace = serializers.CharField()
+    category = serializers.CharField()
+    cluster_id = serializers.CharField()
