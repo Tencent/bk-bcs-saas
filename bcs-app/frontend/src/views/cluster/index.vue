@@ -71,9 +71,6 @@
                                         <a href="javascript:void(0)" @click="goOverviewOrNode('clusterOverview', cluster)">{{$t('总览')}}</a>
                                     </li>
                                     <li>
-                                        <a href="javascript:void(0)" @click="goOverviewOrNode('clusterNode', cluster)">{{$t('节点管理')}}</a>
-                                    </li>
-                                    <li>
                                         <a href="javascript:void(0)" @click="goClusterInfo(cluster)">{{$t('集群信息')}}</a>
                                     </li>
                                     <li v-if="isHelmEnable">
@@ -199,42 +196,60 @@
                         </div>
 
                         <!-- 正常状态 -->
-                        <div class="biz-cluster-content" v-else>
-                            <div class="biz-progress-box">
-                                <div class="progress-header">
-                                    <span class="title">{{$t('CPU使用率')}}</span>
-                                    <span class="percent">
-                                        {{conversionPercent(cluster.remain_cpu, cluster.total_cpu)}}%
-                                    </span>
+                        <template v-else>
+                            <div class="biz-cluster-content" :class="curProject.kind === PROJECT_MESOS ? 'more-info' : ''">
+                                <div class="biz-progress-box">
+                                    <div class="progress-header">
+                                        <span class="title">{{$t('CPU使用率')}}</span>
+                                        <span class="percent">
+                                            {{conversionPercent(cluster.remain_cpu, cluster.total_cpu)}}%
+                                        </span>
+                                    </div>
+                                    <div class="progress">
+                                        <div class="progress-bar primary"
+                                            :style="{ width: `${conversionPercent(cluster.remain_cpu, cluster.total_cpu)}%` }"></div>
+                                    </div>
                                 </div>
-                                <div class="progress">
-                                    <div class="progress-bar primary"
-                                        :style="{ width: `${conversionPercent(cluster.remain_cpu, cluster.total_cpu)}%` }"></div>
+                                <div class="biz-progress-box">
+                                    <div class="progress-header">
+                                        <span class="title">{{$t('内存使用率')}}</span>
+                                        <span class="percent">
+                                            {{conversionPercent(cluster.remain_mem, cluster.total_mem)}}%
+                                        </span>
+                                    </div>
+                                    <div class="progress">
+                                        <div class="progress-bar success" :style="{ width: `${conversionPercent(cluster.remain_mem, cluster.total_mem)}%` }"></div>
+                                    </div>
+                                </div>
+                                <div class="biz-progress-box">
+                                    <div class="progress-header">
+                                        <span class="title">{{$t('磁盘使用率')}}</span>
+                                        <span class="percent">
+                                            {{conversionPercent(cluster.remain_disk, cluster.total_disk)}}%
+                                        </span>
+                                    </div>
+                                    <div class="progress">
+                                        <div class="progress-bar warning" :style="{ width: `${conversionPercent(cluster.remain_disk, cluster.total_disk)}%` }"></div>
+                                    </div>
+                                </div>
+                                <div class="biz-progress-box" v-if="curProject.kind === PROJECT_MESOS">
+                                    <div class="progress-header">
+                                        <span class="title">{{$t('集群IP')}}</span>
+                                        <span class="percent">
+                                            {{cluster.ip_resource_total === 0 ? 0 : `${cluster.ip_resource_used} / ${cluster.ip_resource_total}`}}
+                                        </span>
+                                    </div>
+                                    <div class="progress">
+                                        <div class="progress-bar warning" :style="{ width: `${cluster.ip_resource_total === 0 ? 0 : conversionPercent(cluster.ip_resource_total - cluster.ip_resource_used, cluster.ip_resource_total)}%` }"></div>
+                                    </div>
                                 </div>
                             </div>
-                            <div class="biz-progress-box">
-                                <div class="progress-header">
-                                    <span class="title">{{$t('内存使用率')}}</span>
-                                    <span class="percent">
-                                        {{conversionPercent(cluster.remain_mem, cluster.total_mem)}}%
-                                    </span>
-                                </div>
-                                <div class="progress">
-                                    <div class="progress-bar success" :style="{ width: `${conversionPercent(cluster.remain_mem, cluster.total_mem)}%` }"></div>
-                                </div>
+                            <div class="add-node-btn-wrapper">
+                                <button class="bk-button bk-default add-node-btn" @click="goOverviewOrNode('clusterNode', cluster)">
+                                    <span>{{$t('添加节点')}}</span>
+                                </button>
                             </div>
-                            <div class="biz-progress-box">
-                                <div class="progress-header">
-                                    <span class="title">{{$t('磁盘使用率')}}</span>
-                                    <span class="percent">
-                                        {{conversionPercent(cluster.remain_disk, cluster.total_disk)}}%
-                                    </span>
-                                </div>
-                                <div class="progress">
-                                    <div class="progress-bar warning" :style="{ width: `${conversionPercent(cluster.remain_disk, cluster.total_disk)}%` }"></div>
-                                </div>
-                            </div>
-                        </div>
+                        </template>
                     </div>
                     <div class="biz-cluster biz-cluster-add" @click="gotCreateCluster">
                         <div class="add-btn">
@@ -423,7 +438,8 @@
                 curCluster: null,
                 curClusterIndex: 0,
                 permissions: {},
-                cancelLoop: false
+                cancelLoop: false,
+                PROJECT_MESOS: window.PROJECT_MESOS
             }
         },
         computed: {
@@ -446,6 +462,9 @@
             },
             isEn () {
                 return this.$store.state.isEn
+            },
+            curProject () {
+                return this.$store.state.curProject
             }
         },
         created () {

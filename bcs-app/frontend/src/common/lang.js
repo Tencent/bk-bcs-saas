@@ -498,6 +498,8 @@ export default {
     '变量更新成功': ['Variable update succeeded'],
     '变量删除成功': ['Variable delete succeeded'],
     '请输入32个字符以内的名称': ['Please enter a name within 32 characters'],
+
+    '集群IP': ['Cluster IP'],
     // 变量的使用 $t('test', { vari1: 1, vari2: 2 })
     'test': ['{vari1} ---english--- {vari2}']
 }
