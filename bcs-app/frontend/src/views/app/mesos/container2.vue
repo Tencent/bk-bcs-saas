@@ -24,7 +24,10 @@
                 }
                 this.$router.push({
                     name: 'instanceDetail2',
-                    params: params
+                    params: params,
+                    query: {
+                        cluster_id: this.clusterId
+                    }
                 })
             }
         }

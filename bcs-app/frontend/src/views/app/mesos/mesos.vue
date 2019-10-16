@@ -103,7 +103,10 @@
 
                 this.$router.push({
                     name: instance.id === 0 ? 'instanceDetail2' : 'instanceDetail',
-                    params
+                    params,
+                    query: {
+                        cluster_id: instance.cluster_id
+                    }
                 })
             }
         }

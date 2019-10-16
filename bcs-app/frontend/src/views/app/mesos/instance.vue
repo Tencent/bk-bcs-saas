@@ -41,6 +41,9 @@
                         taskgroupName: taskgroup.name,
                         containerId: container.container_id,
                         searchParamsList: this.searchParamsList
+                    },
+                    query: {
+                        cluster_id: this.clusterId
                     }
                 })
             },

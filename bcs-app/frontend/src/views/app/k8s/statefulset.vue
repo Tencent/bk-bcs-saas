@@ -82,7 +82,10 @@
 
                 this.$router.push({
                     name: String(instance.id) === '0' ? 'statefulsetInstanceDetail2' : 'statefulsetInstanceDetail',
-                    params
+                    params,
+                    query: {
+                        cluster_id: instance.cluster_id
+                    }
                 })
             }
         }
