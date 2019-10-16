@@ -17,6 +17,9 @@
                         projectCode: this.projectCode,
                         instanceId: this.instanceId,
                         searchParamsList: this.searchParamsList
+                    },
+                    query: {
+                        cluster_id: this.clusterId
                     }
                 })
             }

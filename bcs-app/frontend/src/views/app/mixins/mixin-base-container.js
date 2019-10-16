@@ -75,6 +75,9 @@ export default {
         },
         searchParamsList () {
             return this.$route.params.searchParamsList
+        },
+        clusterId () {
+            return this.$route.query.cluster_id || ''
         }
     },
     mounted () {
@@ -95,7 +98,8 @@ export default {
                     projectId: this.projectId,
                     instanceId: this.instanceId,
                     taskgroupName: this.taskgroupName,
-                    containerId: this.containerId
+                    containerId: this.containerId,
+                    cluster_id: this.clusterId
                 }
 
                 if (String(this.instanceId) === '0') {
@@ -191,7 +195,8 @@ export default {
                 const params = {
                     projectId: this.projectId,
                     containerId: this.containerId,
-                    metric: 'cpu_summary'
+                    metric: 'cpu_summary',
+                    cluster_id: this.clusterId
                 }
                 if (this.CATEGORY) {
                     params.category = this.CATEGORY
@@ -270,7 +275,8 @@ export default {
                 const params = {
                     projectId: this.projectId,
                     containerId: this.containerId,
-                    metric: 'mem'
+                    metric: 'mem',
+                    cluster_id: this.clusterId
                 }
                 if (this.CATEGORY) {
                     params.category = this.CATEGORY
@@ -349,7 +355,8 @@ export default {
                 const params = {
                     projectId: this.projectId,
                     containerId: this.containerId,
-                    metric: 'net'
+                    metric: 'net',
+                    cluster_id: this.clusterId
                 }
                 if (this.CATEGORY) {
                     params.category = this.CATEGORY
@@ -455,7 +462,8 @@ export default {
                 const params = {
                     projectId: this.projectId,
                     containerId: this.containerId,
-                    metric: 'disk'
+                    metric: 'disk',
+                    cluster_id: this.clusterId
                 }
                 if (this.CATEGORY) {
                     params.category = this.CATEGORY
@@ -555,7 +563,8 @@ export default {
                         projectId: this.projectId,
                         instanceId: this.instanceId,
                         taskgroupName: this.taskgroupName,
-                        containerId: this.containerId
+                        containerId: this.containerId,
+                        cluster_id: this.clusterId
                     }
 
                     if (String(this.instanceId) === '0') {

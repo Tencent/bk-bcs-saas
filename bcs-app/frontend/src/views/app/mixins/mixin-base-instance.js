@@ -142,6 +142,9 @@ export default {
         },
         searchParamsList () {
             return this.$route.params.searchParamsList
+        },
+        clusterId () {
+            return this.$route.query.cluster_id || ''
         }
     },
     mounted () {
@@ -220,7 +223,8 @@ export default {
 
                 const params = {
                     projectId: this.projectId,
-                    instanceId: this.instanceId
+                    instanceId: this.instanceId,
+                    cluster_id: this.clusterId
                 }
 
                 if (String(this.instanceId) === '0') {
@@ -267,7 +271,8 @@ export default {
 
                 const params = {
                     projectId: this.projectId,
-                    instanceId: this.instanceId
+                    instanceId: this.instanceId,
+                    cluster_id: this.clusterId
                 }
 
                 if (String(this.instanceId) === '0') {
@@ -310,7 +315,8 @@ export default {
             this.instanceInfoLoading = true
             const params = {
                 projectId: this.projectId,
-                instanceId: this.instanceId
+                instanceId: this.instanceId,
+                cluster_id: this.clusterId
             }
 
             if (String(this.instanceId) === '0') {
@@ -366,7 +372,8 @@ export default {
             try {
                 const params = {
                     projectId: this.projectId,
-                    instanceId: this.instanceId
+                    instanceId: this.instanceId,
+                    cluster_id: this.clusterId
                 }
 
                 if (String(this.instanceId) === '0') {
@@ -426,7 +433,8 @@ export default {
             try {
                 const params = {
                     projectId: this.projectId,
-                    instanceId: this.instanceId
+                    instanceId: this.instanceId,
+                    cluster_id: this.clusterId
                 }
 
                 if (String(this.instanceId) === '0') {
@@ -469,7 +477,8 @@ export default {
                 const params = {
                     projectId: this.projectId,
                     res_id_list: this.containerIdList,
-                    metric: 'cpu_summary'
+                    metric: 'cpu_summary',
+                    cluster_id: this.clusterId
                 }
                 if (this.CATEGORY) {
                     params.category = this.CATEGORY
@@ -565,7 +574,8 @@ export default {
                 const params = {
                     projectId: this.projectId,
                     res_id_list: this.containerIdList,
-                    metric: 'mem'
+                    metric: 'mem',
+                    cluster_id: this.clusterId
                 }
                 if (this.CATEGORY) {
                     params.category = this.CATEGORY
@@ -670,7 +680,8 @@ export default {
                 const params = {
                     projectId: this.projectId,
                     instanceId: this.instanceId,
-                    taskgroupName: taskgroup.name
+                    taskgroupName: taskgroup.name,
+                    cluster_id: this.clusterId
                 }
 
                 if (String(this.instanceId) === '0') {
@@ -751,7 +762,8 @@ export default {
                 const params = {
                     projectId: this.projectId,
                     instanceId: this.instanceId,
-                    taskgroupName: taskgroup.name
+                    taskgroupName: taskgroup.name,
+                    cluster_id: this.clusterId
                 }
 
                 if (String(this.instanceId) === '0') {
@@ -829,7 +841,8 @@ export default {
                 const params = {
                     projectId: this.projectId,
                     instanceId: this.instanceId,
-                    taskgroupName: taskgroup.name
+                    taskgroupName: taskgroup.name,
+                    cluster_id: this.clusterId
                 }
 
                 if (String(this.instanceId) === '0') {
@@ -863,7 +876,8 @@ export default {
             try {
                 const params = {
                     projectId: this.projectId,
-                    instanceId: this.instanceId
+                    instanceId: this.instanceId,
+                    cluster_id: this.clusterId
                 }
 
                 if (String(this.instanceId) === '0') {
@@ -970,7 +984,8 @@ export default {
             try {
                 const params = {
                     projectId: this.projectId,
-                    containerId: this.logSideDialogConf.container.container_id
+                    containerId: this.logSideDialogConf.container.container_id,
+                    cluster_id: this.clusterId
                 }
 
                 if (String(this.instanceId) === '0') {
@@ -1002,7 +1017,8 @@ export default {
                 const params = {
                     projectId: this.projectId,
                     instanceId: this.instanceId,
-                    instanceName: this.instanceInfo.name
+                    instanceName: this.instanceInfo.name,
+                    cluster_id: this.clusterId
                 }
 
                 if (String(this.instanceId) === '0') {
@@ -1034,7 +1050,8 @@ export default {
                 const params = {
                     projectId: this.projectId,
                     instanceId: this.instanceId,
-                    instanceName: this.instanceInfo.name
+                    instanceName: this.instanceInfo.name,
+                    cluster_id: this.clusterId
                 }
 
                 if (String(this.instanceId) === '0') {
@@ -1066,7 +1083,8 @@ export default {
             try {
                 const params = {
                     projectId: this.projectId,
-                    instanceId: this.instanceId
+                    instanceId: this.instanceId,
+                    cluster_id: this.clusterId
                 }
 
                 if (String(this.instanceId) === '0') {
@@ -1102,6 +1120,7 @@ export default {
                 const params = {
                     projectId: this.projectId,
                     instanceId: this.instanceId,
+                    cluster_id: this.clusterId,
                     offset,
                     limit
                 }

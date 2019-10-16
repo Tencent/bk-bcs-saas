@@ -1058,7 +1058,8 @@ export default {
                         instanceId: this.curInstance.id,
                         name: this.curInstance.name,
                         namespace: this.curInstance.namespace,
-                        category: this.curInstance.category
+                        category: this.curInstance.category,
+                        cluster_id: this.curInstance.cluster_id
                     }
                     if (this.CATEGORY) {
                         params.category = this.CATEGORY
@@ -1145,7 +1146,8 @@ export default {
                         projectId: me.projectId,
                         instanceId: me.curInstance.id,
                         name: me.curInstance.name,
-                        conf: me.editorValue
+                        conf: me.editorValue,
+                        cluster_id: me.curInstance.cluster_id
                     }
                     if (!me.curInstance.from_platform && me.curInstance.id === 0) {
                         params.namespace = me.curInstance.namespace
@@ -1213,7 +1215,8 @@ export default {
                 const params = {
                     projectId: this.projectId,
                     instanceId: this.curInstance.id,
-                    showVersionId: id
+                    showVersionId: id,
+                    cluster_id: this.curInstance.cluster_id
                 }
 
                 if (this.CATEGORY) {
@@ -1313,7 +1316,8 @@ export default {
                         projectId: me.projectId,
                         instanceId: me.curInstance.id,
                         versionId: me.updateDialogConf.selectedVerId,
-                        variable: variable
+                        variable: variable,
+                        cluster_id: me.curInstance.cluster_id
                     }
 
                     if (me.CATEGORY) {
@@ -1456,7 +1460,8 @@ export default {
                         instanceId: this.curInstance.id,
                         name: this.curInstance.name,
                         namespace: this.curInstance.namespace,
-                        category: this.curInstance.category
+                        category: this.curInstance.category,
+                        cluster_id: this.curInstance.cluster_id
                     }
                     if (this.CATEGORY) {
                         params.category = this.CATEGORY
@@ -1613,7 +1618,8 @@ export default {
                         projectId: me.projectId,
                         instanceId: me.curInstance.id,
                         name: me.curInstance.name,
-                        conf: me.editorValue
+                        conf: me.editorValue,
+                        cluster_id: me.curInstance.cluster_id
                     }
                     if (!me.curInstance.from_platform && me.curInstance.id === 0) {
                         params.namespace = me.curInstance.namespace
@@ -1655,7 +1661,8 @@ export default {
 
                 const allVersionParams = {
                     projectId: this.projectId,
-                    instanceId: instanceId
+                    instanceId: instanceId,
+                    cluster_id: instance.cluster_id
                 }
 
                 if (instanceId === 0) {
@@ -1677,7 +1684,8 @@ export default {
 
                     const oldVerParams = {
                         projectId: this.projectId,
-                        instanceId: instanceId
+                        instanceId: instanceId,
+                        cluster_id: instance.cluster_id
                     }
                     if (this.CATEGORY) {
                         oldVerParams.category = this.CATEGORY
@@ -1688,7 +1696,8 @@ export default {
                     const newVerParams = {
                         projectId: this.projectId,
                         instanceId: instanceId,
-                        showVersionId: dialogConfRef.selectedVerId
+                        showVersionId: dialogConfRef.selectedVerId,
+                        cluster_id: instance.cluster_id
                     }
                     if (this.CATEGORY) {
                         newVerParams.category = this.CATEGORY
@@ -1782,7 +1791,8 @@ export default {
                 const params = {
                     projectId: this.projectId,
                     instanceId: this.curInstance.id,
-                    showVersionId: id
+                    showVersionId: id,
+                    cluster_id: this.curInstance.cluster_id
                 }
 
                 if (this.CATEGORY) {
@@ -1899,7 +1909,8 @@ export default {
                         projectId: me.projectId,
                         instanceId: me.curInstance.id,
                         version_id: me.rollingUpdateDialogConf.selectedVerId,
-                        variable: variable
+                        variable: variable,
+                        cluster_id: me.curInstance.cluster_id
                     }
 
                     if (me.CATEGORY) {
@@ -1987,7 +1998,8 @@ export default {
                     const params = {
                         projectId: me.projectId,
                         instanceId: me.curInstance.id,
-                        name: me.curInstance.name
+                        name: me.curInstance.name,
+                        cluster_id: me.curInstance.cluster_id
                     }
                     if (!me.curInstance.from_platform && me.curInstance.id === 0) {
                         params.namespace = me.curInstance.namespace
@@ -2093,7 +2105,8 @@ export default {
                     const params = {
                         projectId: me.projectId,
                         instanceId: me.curInstance.id,
-                        name: me.curInstance.name
+                        name: me.curInstance.name,
+                        cluster_id: me.curInstance.cluster_id
                     }
                     if (!me.curInstance.from_platform && me.curInstance.id === 0) {
                         params.namespace = me.curInstance.namespace
@@ -2199,7 +2212,8 @@ export default {
                     const params = {
                         projectId: me.projectId,
                         instanceId: me.curInstance.id,
-                        name: me.curInstance.name
+                        name: me.curInstance.name,
+                        cluster_id: me.curInstance.cluster_id
                     }
                     if (!me.curInstance.from_platform && me.curInstance.id === 0) {
                         params.namespace = me.curInstance.namespace
@@ -2333,7 +2347,8 @@ export default {
                         projectId: me.projectId,
                         instanceId: me.curInstance.id,
                         name: me.curInstance.name,
-                        instanceNum: me.instanceNum
+                        instanceNum: me.instanceNum,
+                        cluster_id: me.curInstance.cluster_id
                     }
                     if (!me.curInstance.from_platform && me.curInstance.id === 0) {
                         params.namespace = me.curInstance.namespace
@@ -2409,7 +2424,8 @@ export default {
                         instanceId: this.curInstance.id,
                         name: this.curInstance.name,
                         namespace: this.curInstance.namespace,
-                        category: this.curInstance.category
+                        category: this.curInstance.category,
+                        cluster_id: this.curInstance.cluster_id
                     }
                     this.reBuildDialogConf.loading = true
                     const res = await this.$store.dispatch('app/getVersionInRollingUpdateInNotPlatform', params)
@@ -2424,7 +2440,8 @@ export default {
                 } else {
                     const params = {
                         projectId: this.projectId,
-                        instanceId: this.curInstance.id
+                        instanceId: this.curInstance.id,
+                        cluster_id: this.curInstance.cluster_id
                     }
                     this.reBuildDialogConf.loading = true
                     const res = await this.$store.dispatch('app/getVersionInRollingUpdate', params)
@@ -2498,7 +2515,8 @@ export default {
             const params = {
                 projectId: this.projectId,
                 instanceId: this.curInstance.id,
-                name: this.curInstance.name
+                name: this.curInstance.name,
+                cluster_id: this.curInstance.cluster_id
             }
 
             if (!this.curInstance.from_platform && this.curInstance.id === 0) {
@@ -2598,7 +2616,8 @@ export default {
             const params = {
                 projectId: this.projectId,
                 instanceId: this.curInstance.id,
-                name: this.curInstance.name
+                name: this.curInstance.name,
+                cluster_id: this.curInstance.cluster_id
             }
             if (!this.curInstance.from_platform && this.curInstance.id === 0) {
                 params.namespace = this.curInstance.namespace
@@ -2696,7 +2715,8 @@ export default {
             const params = {
                 projectId: this.projectId,
                 instanceId: this.curInstance.id,
-                name: this.curInstance.name
+                name: this.curInstance.name,
+                cluster_id: this.curInstance.cluster_id
             }
             if (!this.curInstance.from_platform && this.curInstance.id === 0) {
                 params.namespace = this.curInstance.namespace
@@ -2780,7 +2800,8 @@ export default {
                 async confirmFn () {
                     const params = {
                         projectId: me.projectId,
-                        instanceId: me.curInstance.id
+                        instanceId: me.curInstance.id,
+                        cluster_id: me.curInstance.cluster_id
                     }
                     if (me.CATEGORY) {
                         params.category = me.CATEGORY
@@ -3046,7 +3067,6 @@ export default {
                 })
                 return
             }
-            console.log(namespace.prepareDeleteInstances)
 
             this.cancelLoopAppList()
 

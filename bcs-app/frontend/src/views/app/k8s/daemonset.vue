@@ -82,7 +82,10 @@
 
                 this.$router.push({
                     name: String(instance.id) === '0' ? 'daemonsetInstanceDetail2' : 'daemonsetInstanceDetail',
-                    params
+                    params,
+                    query: {
+                        cluster_id: instance.cluster_id
+                    }
                 })
             }
         }

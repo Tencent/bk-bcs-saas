@@ -29,7 +29,10 @@
                 }
                 this.$router.push({
                     name: 'statefulsetInstanceDetail2',
-                    params: params
+                    params: params,
+                    query: {
+                        cluster_id: this.clusterId
+                    }
                 })
             }
         }
