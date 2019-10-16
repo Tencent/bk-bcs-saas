@@ -197,7 +197,7 @@
 
                         <!-- 正常状态 -->
                         <template v-else>
-                            <div class="biz-cluster-content" :class="curProject.kind === 2 || curProject.kind === 3 ? 'more-info' : ''">
+                            <div class="biz-cluster-content" :class="curProject.kind === PROJECT_MESOS ? 'more-info' : ''">
                                 <div class="biz-progress-box">
                                     <div class="progress-header">
                                         <span class="title">{{$t('CPU使用率')}}</span>
@@ -232,7 +232,7 @@
                                         <div class="progress-bar warning" :style="{ width: `${conversionPercent(cluster.remain_disk, cluster.total_disk)}%` }"></div>
                                     </div>
                                 </div>
-                                <div class="biz-progress-box" v-if="curProject.kind === 2 || curProject.kind === 3">
+                                <div class="biz-progress-box" v-if="curProject.kind === PROJECT_MESOS">
                                     <div class="progress-header">
                                         <span class="title">{{$t('集群IP')}}</span>
                                         <span class="percent">
@@ -438,7 +438,8 @@
                 curCluster: null,
                 curClusterIndex: 0,
                 permissions: {},
-                cancelLoop: false
+                cancelLoop: false,
+                PROJECT_MESOS: window.PROJECT_MESOS
             }
         },
         computed: {
