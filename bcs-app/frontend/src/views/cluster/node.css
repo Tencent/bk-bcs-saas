@@ -17,6 +17,12 @@
     min-height: 580px;
 }
 
+.biz-cluster-node-tip {
+    padding: 0 20px 10px 20px;
+    font-size: 12px;
+    margin-top: -5px;
+}
+
 .biz-cluster-node-header {
     padding: 0 20px 20px 20px;
     position: relative;
