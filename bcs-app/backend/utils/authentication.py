@@ -55,13 +55,16 @@ class JWTClient(object):
     def app(self):
         return FancyDict(self.payload.get('app') or {})
 
-    def is_valid(self):
+    def is_valid(self, apigw_public_key=None):
         if not self.content:
             return False
 
         try:
+            if apigw_public_key is None:
+                apigw_public_key = settings.APIGW_PUBLIC_KEY
+
             self.headers = jwt.get_unverified_header(self.content)
-            self.payload = jwt.decode(self.content, settings.APIGW_PUBLIC_KEY, issuer='APIGW')
+            self.payload = jwt.decode(self.content, apigw_public_key, issuer='APIGW')
             return True
         except jwt_exceptions.InvalidTokenError as error:
             logger.error("check jwt error, %s", error)
