@@ -266,14 +266,14 @@
                                     </div>
                                 </template>
                                 <div class="candidate-namespace add-namespace" title="新增命名空间">
-                                    <bk-tooltip ref="addNamespaceNode" placement="top-end" :delay="500" :controlled="true">
+                                    <bk-tooltip ref="addNamespaceNode" placement="top-end" :delay="500" :controlled="true" @on-show="showAddNamespace(index)">
                                         <div class="candidate-namespace-name">
                                             <img src="@open/images/plus.svg" class="add-btn" />
                                         </div>
                                         <template slot="content">
                                             <div class="title">新增命名空间</div>
-                                            <input type="text" placeholder="输入名称" class="bk-form-input ns-name" v-model="namespaceName" v-if="dialogConf.loading" disabled />
-                                            <input type="text" placeholder="输入名称" class="bk-form-input ns-name" v-model="namespaceName" v-else />
+                                            <input type="text" ref="addNamespaceInputNode" placeholder="输入名称" class="bk-form-input ns-name" v-model="namespaceName" v-if="dialogConf.loading" disabled />
+                                            <input type="text" ref="addNamespaceInputNode" placeholder="输入名称" class="bk-form-input ns-name" v-model="namespaceName" v-else />
                                             <a href="javascript:;" class="bk-text-button link disabled" v-if="dialogConf.loading">
                                                 更多设置
                                                 <img src="@open/images/link-disabled.svg" />
@@ -1831,6 +1831,15 @@
                 } finally {
                     this.dialogConf.loading = false
                 }
+            },
+
+            /**
+             * 快速添加命名空间 tooltip 弹出回调函数
+             */
+            showAddNamespace (index) {
+                this.$nextTick(() => {
+                    this.$refs.addNamespaceInputNode[index] && this.$refs.addNamespaceInputNode[index].focus()
+                })
             },
 
             /**
