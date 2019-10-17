@@ -266,14 +266,14 @@
                                     </div>
                                 </template>
                                 <div class="candidate-namespace add-namespace" title="新增命名空间">
-                                    <bk-tooltip ref="addNamespaceNode" placement="top-end" :delay="500" :controlled="true">
-                                        <div class="candidate-namespace-name">
+                                    <bk-tooltip ref="addNamespaceNode" :delay="30000" placement="top-end" :controlled="true" @on-show="showAddNamespace(index)">
+                                        <div class="candidate-namespace-name" @click="triggerAddNamespace">
                                             <img src="@open/images/plus.svg" class="add-btn" />
                                         </div>
                                         <template slot="content">
                                             <div class="title">新增命名空间</div>
-                                            <input type="text" placeholder="输入名称" class="bk-form-input ns-name" v-model="namespaceName" v-if="dialogConf.loading" disabled />
-                                            <input type="text" placeholder="输入名称" class="bk-form-input ns-name" v-model="namespaceName" v-else />
+                                            <input type="text" ref="addNamespaceInputNode" placeholder="输入名称" class="bk-form-input ns-name" v-model="namespaceName" v-if="dialogConf.loading" disabled />
+                                            <input type="text" ref="addNamespaceInputNode" placeholder="输入名称" class="bk-form-input ns-name" v-model="namespaceName" v-else />
                                             <a href="javascript:;" class="bk-text-button link disabled" v-if="dialogConf.loading">
                                                 更多设置
                                                 <img src="@open/images/link-disabled.svg" />
@@ -1749,6 +1749,20 @@
             },
 
             /**
+             * 触发 快速添加命名空间
+             *
+             * @param {string} paramName paramDesc
+             *
+             * @return {string} returnDesc
+             */
+            triggerAddNamespace () {
+                this.$refs.addNamespaceNode.forEach(vnode => {
+                    vnode.visiable = true
+                    vnode.visible = true
+                })
+            },
+
+            /**
              * 快速添加命名空间确认
              *
              * @param {Object} item 当前集群对象
@@ -1828,19 +1842,33 @@
                     this.cancelNamespace()
                 } catch (e) {
                     catchErrorHandler(e, this)
+                    this.$nextTick(() => {
+                        this.$refs.addNamespaceInputNode[index] && this.$refs.addNamespaceInputNode[index].focus()
+                    })
                 } finally {
                     this.dialogConf.loading = false
                 }
             },
 
             /**
+             * 快速添加命名空间 tooltip 弹出回调函数
+             */
+            showAddNamespace (index) {
+                this.$nextTick(() => {
+                    this.$refs.addNamespaceInputNode[index] && this.$refs.addNamespaceInputNode[index].focus()
+                })
+            },
+
+            /**
              * 快速添加命名空间取消
              */
             cancelNamespace () {
-                this.namespaceName = ''
-                this.$refs.addNamespaceNode.forEach(vnode => {
-                    vnode.visiable = false
-                    vnode.visible = false
+                this.$nextTick(() => {
+                    this.namespaceName = ''
+                    this.$refs.addNamespaceNode.forEach(vnode => {
+                        vnode.visiable = false
+                        vnode.visible = false
+                    })
                 })
             }
         }
