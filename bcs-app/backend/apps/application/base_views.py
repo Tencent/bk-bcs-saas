@@ -39,7 +39,7 @@ from backend.apps.application.utils import cluster_env
 from backend.accounts import bcs_perm
 from backend.apps.configuration.models import Template
 from backend.apps.application.drivers import BCSDriver
-from backend.apps.application.serializers import InstanceParamsSLZ
+from backend.apps.application.common_views.serializers import BaseNotTemplateInstanceParamsSLZ
 
 logger = logging.getLogger(__name__)
 
@@ -1019,7 +1019,7 @@ class BaseInstanceView:
 class InstanceAPI(BaseAPI):
 
     def get_params_for_client(self, request):
-        slz = InstanceParamsSLZ(data=request.query_params)
+        slz = BaseNotTemplateInstanceParamsSLZ(data=request.query_params)
         slz.is_valid(raise_exception=True)
         return slz.validated_data
 

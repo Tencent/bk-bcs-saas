@@ -19,6 +19,7 @@ class BaseNotTemplateInstanceParamsSLZ(serializers.Serializer):
     name = serializers.CharField(required=True)
     namespace = serializers.CharField(required=True)
     category = serializers.CharField(required=True)
+    cluster_id = serializers.CharField()
 
 
 class K8SContainerInfoSLZ(serializers.Serializer):
