@@ -2101,6 +2101,9 @@ div.jsoneditor {
 
                 &.add-namespace {
                     cursor: default;
+                    .candidate-namespace-name {
+                        cursor: pointer;
+                    }
                     .add-btn {
                         width: 30px;
                         height: 30px;
