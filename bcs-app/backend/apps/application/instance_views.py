@@ -73,7 +73,7 @@ APP_STATUS = [1, 2, "1", "2"]
 DEFAULT_INSTANCE_NUM = 0
 
 
-class BaseTaskgroupCls(BaseAPI):
+class BaseTaskgroupCls(InstanceAPI):
 
     def common_handler_for_platform(self, request, project_id, instance_id, project_kind, field=None):
         """公共信息的处理
@@ -105,14 +105,7 @@ class BaseTaskgroupCls(BaseAPI):
 
     def common_handler_for_client(self, request, project_id):
         """针对非平台创建的应用的公共处理"""
-        name = request.GET.get("name")
-        namespace = request.GET.get("namespace")
-        category = request.GET.get("category")
-        if not (name and namespace and category):
-            raise error_codes.CheckFailed.f("参数[name]、[namespace]、[category]不能为空")
-        # 获取集群
-        cluster_id = self.get_cluster_by_ns_name(request, project_id, namespace)
-        # all_cluster_info = self.get_cluster_id_env(request, project_id)
+        cluster_id, namespace, name, category = self.get_instance_resource(request, project_id)
         return cluster_id, namespace, [name], category
 
     def common_handler(self, request, project_id, instance_id, project_kind, field=None):
