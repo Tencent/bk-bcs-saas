@@ -433,7 +433,7 @@
                 return JSON.parse(JSON.stringify(this.$store.state.variable.varList))
             },
             curVarKeyText () {
-                return `{{${this.curVar.key || '变量Key'}}}`
+                return `{{${this.curVar.key || this.$t('变量Key')}}}`
             }
         },
         mounted () {
