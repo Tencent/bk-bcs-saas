@@ -500,6 +500,9 @@ export default {
     '请输入32个字符以内的名称': ['Please enter a name within 32 characters'],
 
     '集群IP': ['Cluster IP'],
+
+    '您可以在模板集中使用': ['you can use'],
+    '来引用该变量': ['to import this Variable'],
     // 变量的使用 $t('test', { vari1: 1, vari2: 2 })
     'test': ['{vari1} ---english--- {vari2}']
 }

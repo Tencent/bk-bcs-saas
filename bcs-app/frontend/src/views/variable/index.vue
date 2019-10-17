@@ -240,6 +240,7 @@
                             <label class="bk-label" style="width: 95px;">{{$t('说明')}}：</label>
                             <div class="bk-form-content" style="margin-left: 95px;">
                                 <textarea maxlength="100" :class="['bk-form-textarea']" :placeholder="$t('请输入')" v-model="curVar.desc" style="height: 60px;"></textarea>
+                                <p class="biz-tip" style="text-align: left; margin-top: 10px;">{{$t('您可以在模板集中使用')}} {{curVarKeyText}} {{$t('来引用该变量')}}</p>
                             </div>
                         </div>
                     </div>
@@ -430,6 +431,9 @@
             },
             varList () {
                 return JSON.parse(JSON.stringify(this.$store.state.variable.varList))
+            },
+            curVarKeyText () {
+                return `{{${this.curVar.key || '变量Key'}}}`
             }
         },
         mounted () {
