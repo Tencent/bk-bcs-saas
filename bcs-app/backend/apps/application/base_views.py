@@ -33,12 +33,13 @@ from backend.components.bcs.k8s import K8SClient
 from backend.components.bcs.bcs_common_api import BCSClient
 from backend.apps.instance.models import InstanceEvent
 from backend.apps.instance.constants import EventType, InsState
-from backend.apps.application.constants import FUNC_MAP
+from backend.apps.application.constants import FUNC_MAP, NOT_TMPL_SOURCE_TYPE
 from backend.celery_app.tasks.application import delete_instance_task
 from backend.apps.application.utils import cluster_env
 from backend.accounts import bcs_perm
 from backend.apps.configuration.models import Template
 from backend.apps.application.drivers import BCSDriver
+from backend.apps.application.common_views.serializers import BaseNotTemplateInstanceParamsSLZ
 
 logger = logging.getLogger(__name__)
 
@@ -1013,3 +1014,23 @@ class BaseInstanceView:
         if not inst_info:
             raise error_codes.CheckFailed(f"instance({inst_id}) not found")
         return inst_info
+
+
+class InstanceAPI(BaseAPI):
+
+    def can_use_instance(self, request, project_id, ns_id):
+        # TODO: 调整函数名，并且注意替换调用的地方
+        self.bcs_single_app_perm_handler(request, project_id, None, ns_id, source_type=NOT_TMPL_SOURCE_TYPE)
+
+    def get_instance_resource(self, request, project_id):
+        """return cluster id，namespace name， instance name, instance category
+        """
+        slz = BaseNotTemplateInstanceParamsSLZ(data=request.query_params)
+        slz.is_valid(raise_exception=True)
+        data = slz.validated_data
+        ns_name_id_map = self.get_namespace_name_id(request, project_id)
+        ns_id = ns_name_id_map.get(data['namespace'])
+        # check perm
+        self.can_use_instance(request, project_id, ns_id, )
+
+        return data['cluster_id'], data['namespace'], data['name'], data['category']

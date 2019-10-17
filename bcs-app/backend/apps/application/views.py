@@ -39,7 +39,7 @@ from backend.apps.instance.models import (
 )
 from backend.apps.variable.models import Variable
 from backend.utils.errcodes import ErrorCode
-from backend.apps.application.base_views import BaseAPI, error_codes
+from backend.apps.application.base_views import BaseAPI, error_codes, InstanceAPI
 from backend.apps.configuration.models import MODULE_DICT
 from backend.apps.instance import constants
 from backend.apps.application import constants as app_constants
@@ -718,14 +718,14 @@ class AppInstance(BaseMusterMetric):
             if not conf:
                 continue
             metadata = conf.get("metadata", {})
-            key_name = (metadata.get("namespace"), metadata.get("name"))
-            if (not metadata.get("name", "").startswith(tmpl_name)) or (key_name in ret_data):
-                continue
             labels = metadata.get("labels")
             cluster_id = labels.get("io.tencent.bcs.clusterid")
             if not cluster_id:
                 continue
             if str(cluster_env_map.get(cluster_id, {}).get("cluster_env")) != str(cluster_type):
+                continue
+            key_name = (cluster_id, metadata.get("namespace"), metadata.get("name"))
+            if (not metadata.get("name", "").startswith(tmpl_name)) or (key_name in ret_data):
                 continue
             backend_status = "BackendNormal"
             oper_type_flag = ""
@@ -847,7 +847,7 @@ class AppInstance(BaseMusterMetric):
                 curr_app_id = "%s:%s" % (metadata.get("namespace"), metadata.get("name"))
                 if curr_app_id not in info:
                     continue
-                key_name = (metadata.get("namespace"), metadata.get("name"))
+                key_name = (cluster_id, metadata.get("namespace"), metadata.get("name"))
                 application = val.get("data", {}).get("application", {})
                 application_ext = val.get("data", {}).get("application_ext", {})
                 if key_name not in ret_data:
@@ -877,7 +877,7 @@ class AppInstance(BaseMusterMetric):
                 curr_app_id = "%s:%s" % (metadata.get("namespace"), metadata.get("name"))
                 if curr_app_id not in info:
                     continue
-                key_name = (metadata.get("namespace"), metadata.get("name"))
+                key_name = (cluster_id, metadata.get("namespace"), metadata.get("name"))
                 build_instance = data.get("buildedInstance") or 0
                 instance = data.get("instance") or 0
                 ret_data[key_name] = {
@@ -907,7 +907,7 @@ class AppInstance(BaseMusterMetric):
                 curr_app_id = "%s:%s" % (metadata.get("namespace"), metadata.get("name"))
                 if curr_app_id not in info:
                     continue
-                key_name = (metadata.get("namespace"), metadata.get("name"))
+                key_name = (cluster_id, metadata.get("namespace"), metadata.get("name"))
                 ret_data[key_name] = {
                     "deployment_status": data.get("status"),
                     "deployemnt_status_message": data.get("message")
@@ -940,7 +940,7 @@ class AppInstance(BaseMusterMetric):
         need_update_status = []
         update_create_error_id_list = []
         for info in instance_info.values():
-            key_name = (info["namespace"], info["name"])
+            key_name = (info['cluster_id'], info["namespace"], info["name"])
             if info["backend_status"] in ["BackendError"] and key_name in all_status:
                 update_create_error_id_list.append(info["id"])
                 info["backend_status"] = "BackendNormal"
@@ -1060,7 +1060,7 @@ class AppInstance(BaseMusterMetric):
                 for deploy, deploy_val in deployment_status.items():
                     app_name = deploy_application_info.get(deploy, [])
                     for name in app_name:
-                        key_name = (deploy[0], name)
+                        key_name = (deploy[0], deploy[1], name)
                         app_status_info = application_status.get(key_name, {})
                         deploy_val.update(app_status_info)
                 all_status = deployment_status
@@ -1162,7 +1162,7 @@ class CreateInstance(BaseAPI):
         return resp
 
 
-class UpdateInstanceNew(BaseAPI):
+class UpdateInstanceNew(InstanceAPI):
     """滚动更新实例
     """
     def get_instance_info(self, instance_id):
@@ -1343,21 +1343,13 @@ class UpdateInstanceNew(BaseAPI):
     def update_online_app(self, request, project_id, project_kind):
         """滚动更新线上应用
         """
-        name, namespace, category = self.get_params_for_client(request)
+        cluster_id, namespace, name, category = self.get_instance_resource(request, project_id)
         if category == "job":
             raise error_codes.CheckFailed.f("JOB类型不允许滚动升级")
         conf = dict(request.data).get("conf")
         if not conf:
             raise error_codes.CheckFailed.f("参数【conf】不能为空!")
         conf = json.loads(conf)
-        cluster_id = self.get_cluster_by_ns_name(request, project_id, namespace)
-        ns_name_id = self.get_namespace_name_id(request, project_id)
-        curr_inst_ns_id = ns_name_id.get(namespace)
-        # 添加权限
-        self.bcs_single_app_perm_handler(
-            request, project_id, "",
-            curr_inst_ns_id, source_type=app_constants.NOT_TMPL_SOURCE_TYPE
-        )
         resp = self.update_instance(
             request, project_id, project_kind, cluster_id,
             name, 0, namespace, category, conf
@@ -1514,7 +1506,7 @@ class UpdateApplication(UpdateInstanceNew):
         return APIResponse(resp)
 
 
-class ScaleInstance(BaseAPI):
+class ScaleInstance(InstanceAPI):
 
     def update_inst_conf(self, curr_inst, instance_num, inst_state):
         """更新配置
@@ -1574,22 +1566,13 @@ class ScaleInstance(BaseAPI):
     def scale_online_app(self, request, project_id, project_kind, inst_count):
         """扩缩容线上应用
         """
-        name, namespace, category = self.get_params_for_client(request)
-        cluster_id = self.get_cluster_by_ns_name(request, project_id, namespace)
-
+        cluster_id, namespace, name, category = self.get_instance_resource(request, project_id)
         online_app_conf = None
         if project_kind == 1:
             online_app_conf = self.online_app_conf(
                 request, project_id, project_kind, cluster_id,
                 name, namespace, category
             )
-        ns_name_id = self.get_namespace_name_id(request, project_id)
-        curr_inst_ns_id = ns_name_id.get(namespace)
-        # 添加权限
-        self.bcs_single_app_perm_handler(
-            request, project_id, "",
-            curr_inst_ns_id, source_type=app_constants.NOT_TMPL_SOURCE_TYPE
-        )
         return self.scale_inst(
             request, project_id, project_kind, cluster_id, 0,
             name, namespace, inst_count, category, online_app_conf
@@ -1803,7 +1786,7 @@ class RollbackApplication(CancelUpdateInstance):
         return APIResponse(resp)
 
 
-class PauseUpdateInstance(BaseAPI):
+class PauseUpdateInstance(InstanceAPI):
 
     def pause_inst(self, request, project_id, project_kind, cluster_id,
                    instance_id, name, namespace, category, conf=None):
@@ -1822,15 +1805,7 @@ class PauseUpdateInstance(BaseAPI):
         return resp
 
     def pause_online_app(self, request, project_id, project_kind):
-        name, namespace, category = self.get_params_for_client(request)
-        cluster_id = self.get_cluster_by_ns_name(request, project_id, namespace)
-        ns_name_id = self.get_namespace_name_id(request, project_id)
-        curr_inst_ns_id = ns_name_id.get(namespace)
-        # 添加权限
-        self.bcs_single_app_perm_handler(
-            request, project_id, "",
-            curr_inst_ns_id, source_type=app_constants.NOT_TMPL_SOURCE_TYPE
-        )
+        cluster_id, namespace, name, category = self.get_instance_resource(request, project_id)
         return self.pause_inst(
             request, project_id, project_kind, cluster_id, 0, name, namespace, category
         )
@@ -1868,7 +1843,7 @@ class PauseUpdateInstance(BaseAPI):
         return resp
 
 
-class ResumeUpdateInstance(BaseAPI):
+class ResumeUpdateInstance(InstanceAPI):
 
     def resume_inst(self, request, project_id, project_kind, cluster_id,
                     instance_id, name, namespace, category, conf=None):
@@ -1888,15 +1863,7 @@ class ResumeUpdateInstance(BaseAPI):
         return resp
 
     def resume_online_app(self, request, project_id, project_kind):
-        name, namespace, category = self.get_params_for_client(request)
-        cluster_id = self.get_cluster_by_ns_name(request, project_id, namespace)
-        ns_name_id = self.get_namespace_name_id(request, project_id)
-        curr_inst_ns_id = ns_name_id.get(namespace)
-        # 添加权限
-        self.bcs_single_app_perm_handler(
-            request, project_id, "",
-            curr_inst_ns_id, source_type=app_constants.NOT_TMPL_SOURCE_TYPE
-        )
+        cluster_id, namespace, name, category = self.get_instance_resource(request, project_id)
         return self.resume_inst(
             request, project_id, project_kind, cluster_id,
             0, name, namespace, category
@@ -2031,7 +1998,7 @@ class DeleteInstance(BaseAPI):
         return resp
 
 
-class ReCreateInstance(BaseAPI):
+class ReCreateInstance(InstanceAPI):
     """重新创建实例
     """
     def delete_instance_oper(self, request, cluster_id, ns_name, instance_name,
@@ -2062,8 +2029,7 @@ class ReCreateInstance(BaseAPI):
         return resp.get("data")
 
     def get_online_app_conf(self, request, project_id, project_kind):
-        name, namespace, category = self.get_params_for_client(request)
-        cluster_id = self.get_cluster_by_ns_name(request, project_id, namespace)
+        cluster_id, namespace, name, category = self.get_instance_resource(request, project_id)
         # get the online yaml
         online_app_conf = self.online_app_conf(
             request, project_id, project_kind, cluster_id,

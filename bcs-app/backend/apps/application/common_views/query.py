@@ -52,7 +52,6 @@ class K8SContainerInfo(BaseInstanceView, viewsets.ViewSet):
         ns_id = ns_info_by_name['id']
         # 校验权限
         base_perm_views.InstancePerm.can_use_instance(request, project_id, ns_id, source_type=None)
-        params['cluster_id'] = ns_info_by_name['cluster_id']
         return params
 
     def get_params_from_tmpl_type(self, request, project_id, instance_id):

@@ -36,7 +36,7 @@ from backend.apps.instance.models import (
 )
 from backend.apps.variable.models import Variable
 from backend.utils.errcodes import ErrorCode
-from backend.apps.application.base_views import BaseAPI, error_codes
+from backend.apps.application.base_views import BaseAPI, error_codes, InstanceAPI
 from backend.apps.configuration.models import MODULE_DICT
 from backend.apps.instance import constants
 from backend.apps.application import constants as app_constants
@@ -526,7 +526,7 @@ class QueryApplicationContainers(BaseTaskgroupCls):
         })
 
 
-class GetInstanceLabels(BaseAPI):
+class GetInstanceLabels(InstanceAPI):
 
     def get_instance_labels(self, info):
         """获取instance labels
@@ -543,19 +543,8 @@ class GetInstanceLabels(BaseAPI):
         """获取instance 信息
         """
         if str(instance_id) == "0":
-            name, namespace, category = self.get_params_for_client(request)
-            cluster_id = self.get_cluster_by_ns_name(request, project_id, namespace)
-            ns_name_id = self.get_namespace_name_id(request, project_id)
-            curr_inst_ns_id = ns_name_id.get(namespace)
-            # 添加权限
-            self.bcs_single_app_perm_handler(
-                request, project_id, "",
-                curr_inst_ns_id, source_type=app_constants.NOT_TMPL_SOURCE_TYPE
-            )
-            # 获取kind
-            flag, project_kind = self.get_project_kind(request, project_id)
-            if not flag:
-                return project_kind
+            cluster_id, namespace, name, category = self.get_instance_resource(request, project_id)
+            project_kind = request.project.kind
             # 请求storage获取时间
             field = "data.metadata.labels"
             if project_kind == 1:
@@ -588,7 +577,7 @@ class GetInstanceLabels(BaseAPI):
         })
 
 
-class GetInstanceAnnotations(BaseAPI):
+class GetInstanceAnnotations(InstanceAPI):
 
     def get_instance_annotations(self, info):
         """获取instance annotations
@@ -605,19 +594,8 @@ class GetInstanceAnnotations(BaseAPI):
         """获取注解信息
         """
         if str(instance_id) == "0":
-            name, namespace, category = self.get_params_for_client(request)
-            cluster_id = self.get_cluster_by_ns_name(request, project_id, namespace)
-            ns_name_id = self.get_namespace_name_id(request, project_id)
-            curr_inst_ns_id = ns_name_id.get(namespace)
-            # 添加权限
-            self.bcs_single_app_perm_handler(
-                request, project_id, "",
-                curr_inst_ns_id, source_type=app_constants.NOT_TMPL_SOURCE_TYPE
-            )
-            # 获取kind
-            flag, project_kind = self.get_project_kind(request, project_id)
-            if not flag:
-                return project_kind
+            cluster_id, namespace, name, category = self.get_instance_resource(request, project_id)
+            project_kind = request.project.kind
             # 请求storage获取时间
             field = ["data.metadata.annotations"]
             if project_kind == 2:
@@ -699,7 +677,7 @@ class GetInstanceStatus(BaseAPI):
         })
 
 
-class GetInstanceInfo(BaseAPI):
+class GetInstanceInfo(InstanceAPI):
 
     def get_cluster_info(self, request, project_id, cluster_id):
         resp = paas_cc.get_cluster(request.user.token.access_token, project_id, cluster_id)
@@ -732,15 +710,7 @@ class GetInstanceInfo(BaseAPI):
         """
         # 获取instance info
         if str(instance_id) == "0":
-            name, namespace, category = self.get_params_for_client(request)
-            cluster_id = self.get_cluster_by_ns_name(request, project_id, namespace)
-            ns_name_id = self.get_namespace_name_id(request, project_id)
-            curr_inst_ns_id = ns_name_id.get(namespace)
-            # 添加权限
-            self.bcs_single_app_perm_handler(
-                request, project_id, "",
-                curr_inst_ns_id, source_type=app_constants.NOT_TMPL_SOURCE_TYPE
-            )
+            cluster_id, namespace, name, category = self.get_instance_resource(request, project_id)
             # 获取kind
             project_kind = self.project_kind(request)
             # 请求storage获取时间
@@ -796,7 +766,7 @@ class GetInstanceInfo(BaseAPI):
         })
 
 
-class ReschedulerTaskgroup(BaseAPI):
+class ReschedulerTaskgroup(InstanceAPI):
     """
     针对k8s确认重新调度是删除pod
     """
@@ -822,15 +792,8 @@ class ReschedulerTaskgroup(BaseAPI):
         # 获取kind
         project_kind = self.project_kind(request)
         if str(instance_id) == "0":
-            instance_name, namespace_name, category = self.get_params_for_client(request)
-            cluster_id = self.get_cluster_by_ns_name(request, project_id, namespace_name)
-            ns_name_id = self.get_namespace_name_id(request, project_id)
-            curr_inst_ns_id = ns_name_id.get(namespace_name)
-            # 添加权限
-            self.bcs_single_app_perm_handler(
-                request, project_id, "",
-                curr_inst_ns_id, source_type=app_constants.NOT_TMPL_SOURCE_TYPE
-            )
+            cluster_id, namespace_name, instance_name, category = \
+                self.get_instance_resource(request, project_id)
         else:
             # 获取instance info
             inst_info = self.get_instance_info(instance_id)
@@ -852,7 +815,7 @@ class ReschedulerTaskgroup(BaseAPI):
         return resp
 
 
-class TaskgroupEvents(BaseAPI):
+class TaskgroupEvents(InstanceAPI):
 
     def get_instance_conf(self, info):
         """获取instance conf
@@ -934,15 +897,7 @@ class TaskgroupEvents(BaseAPI):
         offset = int(offset)
         limit = int(limit)
         if str(instance_id) == "0":
-            inst_name, inst_namespace, category = self.get_params_for_client(request)
-            cluster_id = self.get_cluster_by_ns_name(request, project_id, inst_namespace)
-            ns_name_id = self.get_namespace_name_id(request, project_id)
-            curr_inst_ns_id = ns_name_id.get(inst_namespace)
-            # 添加权限
-            self.bcs_single_app_perm_handler(
-                request, project_id, "",
-                curr_inst_ns_id, source_type=app_constants.NOT_TMPL_SOURCE_TYPE
-            )
+            cluster_id, inst_namespace, inst_name, category = self.get_instance_resource(request, project_id)
         else:
             # 通过instance id获取instance信息
             inst_info = self.get_instance_info(instance_id)
@@ -1007,7 +962,7 @@ class TaskgroupEvents(BaseAPI):
         return self.query_events(request, project_id, cluster_id, params)
 
 
-class ContainerInfo(BaseAPI):
+class ContainerInfo(InstanceAPI):
 
     def get_instance_conf(self, info):
         """获取instance conf
@@ -1082,15 +1037,7 @@ class ContainerInfo(BaseAPI):
         if not flag:
             return project_kind
         if str(instance_id) == "0":
-            instance_name, namespace, category = self.get_params_for_client(request)
-            cluster_id = self.get_cluster_by_ns_name(request, project_id, namespace)
-            ns_name_id = self.get_namespace_name_id(request, project_id)
-            curr_inst_ns_id = ns_name_id.get(namespace)
-            # 添加权限
-            self.bcs_single_app_perm_handler(
-                request, project_id, "",
-                curr_inst_ns_id, source_type=app_constants.NOT_TMPL_SOURCE_TYPE
-            )
+            cluster_id, namespace, instance_name, category = self.get_instance_resource(request, project_id)
         else:
             # 获取instance info
             inst_info = self.get_instance_info(instance_id)
@@ -1129,7 +1076,7 @@ class ContainerInfo(BaseAPI):
         })
 
 
-class K8sContainerInfo(BaseAPI):
+class K8sContainerInfo(InstanceAPI):
 
     def get_instance_conf(self, info):
         """获取instance conf
@@ -1203,15 +1150,7 @@ class K8sContainerInfo(BaseAPI):
         if not flag:
             return project_kind
         if str(instance_id) == "0":
-            name, namespace, category = self.get_params_for_client(request)
-            cluster_id = self.get_cluster_by_ns_name(request, project_id, namespace)
-            ns_name_id = self.get_namespace_name_id(request, project_id)
-            curr_inst_ns_id = ns_name_id.get(namespace)
-            # 添加权限
-            self.bcs_single_app_perm_handler(
-                request, project_id, "",
-                curr_inst_ns_id, source_type=app_constants.NOT_TMPL_SOURCE_TYPE
-            )
+            cluster_id, namespace, name, category = self.get_instance_resource(request, project_id)
         else:
             # 获取instance info
             inst_info = self.get_instance_info(instance_id)
@@ -1279,19 +1218,11 @@ class ContainerLogs(BaseAPI):
         return Response(log_content)
 
 
-class InstanceConfigInfo(BaseAPI):
+class InstanceConfigInfo(InstanceAPI):
     """获取应用实例配置文件信息
     """
     def get_online_app_conf(self, request, project_id, project_kind):
-        name, namespace, category = self.get_params_for_client(request)
-        cluster_id = self.get_cluster_by_ns_name(request, project_id, namespace)
-        ns_name_id = self.get_namespace_name_id(request, project_id)
-        curr_inst_ns_id = ns_name_id.get(namespace)
-        # 添加权限
-        self.bcs_single_app_perm_handler(
-            request, project_id, "",
-            curr_inst_ns_id, source_type=app_constants.NOT_TMPL_SOURCE_TYPE
-        )
+        cluster_id, namespace, name, category = self.get_instance_resource(request, project_id)
         # get the online yaml
         online_app_conf = self.online_app_conf(
             request, project_id, project_kind, cluster_id,
@@ -1792,7 +1723,7 @@ class UpdateVersionConfig:
         return config
 
 
-class GetInstanceVersionConf(UpdateInstanceNew, UpdateVersionConfig):
+class GetInstanceVersionConf(UpdateInstanceNew, UpdateVersionConfig, InstanceAPI):
 
     def get_show_version_info(self, show_version_id):
         """获取展示版本ID
@@ -1867,16 +1798,7 @@ class GetInstanceVersionConf(UpdateInstanceNew, UpdateVersionConfig):
     def get_online_app_conf(self, request, project_id, project_kind):
         """针对非模板创建的应用，获取线上的配置
         """
-        name, namespace, category = self.get_params_for_client(request)
-        cluster_id = self.get_cluster_by_ns_name(request, project_id, namespace)
-
-        ns_name_id = self.get_namespace_name_id(request, project_id)
-        curr_inst_ns_id = ns_name_id.get(namespace)
-        # 添加权限
-        self.bcs_single_app_perm_handler(
-            request, project_id, "",
-            curr_inst_ns_id, source_type=app_constants.NOT_TMPL_SOURCE_TYPE
-        )
+        cluster_id, namespace, name, category = self.get_instance_resource(request, project_id)
         return self.online_app_conf(
             request, project_id, project_kind, cluster_id,
             name, namespace, category

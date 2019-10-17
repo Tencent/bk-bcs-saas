@@ -287,7 +287,8 @@ class AppInstance(RetriveFilterFields):
         ret_data = {}
         for key, val in instance_info.items():
             cluster_id = val["cluster_id"]
-            app_id = "%s:%s" % (key[0], key[1])
+            # key： (cluster_id, namespace, resource_name)
+            app_id = f'{key[1]}:{key[2]}'
             if cluster_id in ret_data:
                 ret_data[cluster_id].append(app_id)
             else:
@@ -319,7 +320,7 @@ class AppInstance(RetriveFilterFields):
                 spec = (info.get('data') or {}).get('spec') or {}
                 # 针对不同的模板获取不同的值
                 replicas, available = utils.get_k8s_desired_ready_instance_count(info, category)
-                curr_key = (info['namespace'], info['resourceName'])
+                curr_key = (cluster_id, info['namespace'], info['resourceName'])
                 ret_data[curr_key] = {
                     'pod_count': f'{available}/{replicas}',
                     'build_instance': available,
