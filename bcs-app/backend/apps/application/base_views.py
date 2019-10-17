@@ -1018,6 +1018,10 @@ class BaseInstanceView:
 
 class InstanceAPI(BaseAPI):
 
+    def can_use_instance(self, request, project_id, ns_id):
+        # TODO: 调整函数名，并且注意替换调用的地方
+        self.bcs_single_app_perm_handler(request, project_id, None, ns_id, source_type=NOT_TMPL_SOURCE_TYPE)
+
     def get_instance_resource(self, request, project_id):
         """return cluster id，namespace name， instance name, instance category
         """
@@ -1027,6 +1031,6 @@ class InstanceAPI(BaseAPI):
         ns_name_id_map = self.get_namespace_name_id(request, project_id)
         ns_id = ns_name_id_map.get(data['namespace'])
         # check perm
-        self.bcs_single_app_perm_handler(request, project_id, None, ns_id, source_type=NOT_TMPL_SOURCE_TYPE)
+        self.can_use_instance(request, project_id, ns_id, )
 
         return data['cluster_id'], data['namespace'], data['name'], data['category']
