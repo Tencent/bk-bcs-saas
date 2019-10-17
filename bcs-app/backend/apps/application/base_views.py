@@ -1018,13 +1018,12 @@ class BaseInstanceView:
 
 class InstanceAPI(BaseAPI):
 
-    def get_params_for_client(self, request):
+    def get_instance_resource(self, request, project_id):
+        """return cluster id，namespace name， instance name, instance category
+        """
         slz = BaseNotTemplateInstanceParamsSLZ(data=request.query_params)
         slz.is_valid(raise_exception=True)
-        return slz.validated_data
-
-    def get_inst_name_cluster_ns_info(self, request, project_id):
-        data = self.get_params_for_client(request)
+        data = slz.validated_data
         ns_name_id_map = self.get_namespace_name_id(request, project_id)
         ns_id = ns_name_id_map.get(data['namespace'])
         # check perm

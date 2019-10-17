@@ -543,7 +543,7 @@ class GetInstanceLabels(InstanceAPI):
         """获取instance 信息
         """
         if str(instance_id) == "0":
-            cluster_id, namespace, name, category = self.get_inst_name_cluster_ns_info(request, project_id)
+            cluster_id, namespace, name, category = self.get_instance_resource(request, project_id)
             project_kind = request.project.kind
             # 请求storage获取时间
             field = "data.metadata.labels"
@@ -594,7 +594,7 @@ class GetInstanceAnnotations(InstanceAPI):
         """获取注解信息
         """
         if str(instance_id) == "0":
-            cluster_id, namespace, name, category = self.get_inst_name_cluster_ns_info(request, project_id)
+            cluster_id, namespace, name, category = self.get_instance_resource(request, project_id)
             project_kind = request.project.kind
             # 请求storage获取时间
             field = ["data.metadata.annotations"]
@@ -710,7 +710,7 @@ class GetInstanceInfo(InstanceAPI):
         """
         # 获取instance info
         if str(instance_id) == "0":
-            cluster_id, namespace, name, category = self.get_inst_name_cluster_ns_info(request, project_id)
+            cluster_id, namespace, name, category = self.get_instance_resource(request, project_id)
             # 获取kind
             project_kind = self.project_kind(request)
             # 请求storage获取时间
@@ -793,7 +793,7 @@ class ReschedulerTaskgroup(InstanceAPI):
         project_kind = self.project_kind(request)
         if str(instance_id) == "0":
             cluster_id, namespace_name, instance_name, category = \
-                self.get_inst_name_cluster_ns_info(request, project_id)
+                self.get_instance_resource(request, project_id)
         else:
             # 获取instance info
             inst_info = self.get_instance_info(instance_id)
@@ -897,7 +897,7 @@ class TaskgroupEvents(InstanceAPI):
         offset = int(offset)
         limit = int(limit)
         if str(instance_id) == "0":
-            cluster_id, inst_namespace, inst_name, category = self.get_inst_name_cluster_ns_info(request, project_id)
+            cluster_id, inst_namespace, inst_name, category = self.get_instance_resource(request, project_id)
         else:
             # 通过instance id获取instance信息
             inst_info = self.get_instance_info(instance_id)
@@ -1037,7 +1037,7 @@ class ContainerInfo(InstanceAPI):
         if not flag:
             return project_kind
         if str(instance_id) == "0":
-            cluster_id, namespace, instance_name, category = self.get_inst_name_cluster_ns_info(request, project_id)
+            cluster_id, namespace, instance_name, category = self.get_instance_resource(request, project_id)
         else:
             # 获取instance info
             inst_info = self.get_instance_info(instance_id)
@@ -1150,7 +1150,7 @@ class K8sContainerInfo(InstanceAPI):
         if not flag:
             return project_kind
         if str(instance_id) == "0":
-            cluster_id, namespace, name, category = self.get_inst_name_cluster_ns_info(request, project_id)
+            cluster_id, namespace, name, category = self.get_instance_resource(request, project_id)
         else:
             # 获取instance info
             inst_info = self.get_instance_info(instance_id)
@@ -1222,7 +1222,7 @@ class InstanceConfigInfo(InstanceAPI):
     """获取应用实例配置文件信息
     """
     def get_online_app_conf(self, request, project_id, project_kind):
-        cluster_id, namespace, name, category = self.get_inst_name_cluster_ns_info(request, project_id)
+        cluster_id, namespace, name, category = self.get_instance_resource(request, project_id)
         # get the online yaml
         online_app_conf = self.online_app_conf(
             request, project_id, project_kind, cluster_id,
@@ -1798,7 +1798,7 @@ class GetInstanceVersionConf(UpdateInstanceNew, UpdateVersionConfig, InstanceAPI
     def get_online_app_conf(self, request, project_id, project_kind):
         """针对非模板创建的应用，获取线上的配置
         """
-        cluster_id, namespace, name, category = self.get_inst_name_cluster_ns_info(request, project_id)
+        cluster_id, namespace, name, category = self.get_instance_resource(request, project_id)
         return self.online_app_conf(
             request, project_id, project_kind, cluster_id,
             name, namespace, category

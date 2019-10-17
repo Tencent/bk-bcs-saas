@@ -1343,7 +1343,7 @@ class UpdateInstanceNew(InstanceAPI):
     def update_online_app(self, request, project_id, project_kind):
         """滚动更新线上应用
         """
-        cluster_id, namespace, name, category = self.get_inst_name_cluster_ns_info(request, project_id)
+        cluster_id, namespace, name, category = self.get_instance_resource(request, project_id)
         if category == "job":
             raise error_codes.CheckFailed.f("JOB类型不允许滚动升级")
         conf = dict(request.data).get("conf")
@@ -1566,7 +1566,7 @@ class ScaleInstance(InstanceAPI):
     def scale_online_app(self, request, project_id, project_kind, inst_count):
         """扩缩容线上应用
         """
-        cluster_id, namespace, name, category = self.get_inst_name_cluster_ns_info(request, project_id)
+        cluster_id, namespace, name, category = self.get_instance_resource(request, project_id)
         online_app_conf = None
         if project_kind == 1:
             online_app_conf = self.online_app_conf(
@@ -1805,7 +1805,7 @@ class PauseUpdateInstance(InstanceAPI):
         return resp
 
     def pause_online_app(self, request, project_id, project_kind):
-        cluster_id, namespace, name, category = self.get_inst_name_cluster_ns_info(request, project_id)
+        cluster_id, namespace, name, category = self.get_instance_resource(request, project_id)
         return self.pause_inst(
             request, project_id, project_kind, cluster_id, 0, name, namespace, category
         )
@@ -1863,7 +1863,7 @@ class ResumeUpdateInstance(InstanceAPI):
         return resp
 
     def resume_online_app(self, request, project_id, project_kind):
-        cluster_id, namespace, name, category = self.get_inst_name_cluster_ns_info(request, project_id)
+        cluster_id, namespace, name, category = self.get_instance_resource(request, project_id)
         return self.resume_inst(
             request, project_id, project_kind, cluster_id,
             0, name, namespace, category
@@ -2029,7 +2029,7 @@ class ReCreateInstance(InstanceAPI):
         return resp.get("data")
 
     def get_online_app_conf(self, request, project_id, project_kind):
-        cluster_id, namespace, name, category = self.get_inst_name_cluster_ns_info(request, project_id)
+        cluster_id, namespace, name, category = self.get_instance_resource(request, project_id)
         # get the online yaml
         online_app_conf = self.online_app_conf(
             request, project_id, project_kind, cluster_id,
