@@ -265,6 +265,32 @@
                                         </bk-tooltip>
                                     </div>
                                 </template>
+                                <div class="candidate-namespace add-namespace" title="新增命名空间">
+                                    <bk-tooltip ref="addNamespaceNode" placement="top-end" :delay="500" :controlled="true">
+                                        <div class="candidate-namespace-name">
+                                            <img src="@open/images/plus.svg" class="add-btn" />
+                                        </div>
+                                        <template slot="content">
+                                            <div class="title">新增命名空间</div>
+                                            <input type="text" placeholder="输入名称" class="bk-form-input ns-name" v-model="namespaceName" v-if="dialogConf.loading" disabled />
+                                            <input type="text" placeholder="输入名称" class="bk-form-input ns-name" v-model="namespaceName" v-else />
+                                            <a href="javascript:;" class="bk-text-button link disabled" v-if="dialogConf.loading">
+                                                更多设置
+                                                <img src="@open/images/link-disabled.svg" />
+                                            </a>
+                                            <a href="javascript:;" class="bk-text-button link" @click="goNamespace" v-else>
+                                                更多设置
+                                                <img src="@open/images/link.svg" />
+                                            </a>
+                                            <div class="operate">
+                                                <a href="javascript:;" class="bk-text-button disabled" v-if="dialogConf.loading">保存</a>
+                                                <a href="javascript:;" class="bk-text-button" v-else @click="addNamespace(item, index)">保存</a>
+                                                <a href="javascript:;" class="bk-text-button disabled" v-if="dialogConf.loading" @click="cancelNamespace">取消</a>
+                                                <a href="javascript:;" class="bk-text-button" v-else @click="cancelNamespace">取消</a>
+                                            </div>
+                                        </template>
+                                    </bk-tooltip>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -406,7 +432,8 @@
                 },
                 curProject: null,
                 isSelectAllTpl: false,
-                previewErrorMessage: ''
+                previewErrorMessage: '',
+                namespaceName: ''
             }
         },
         computed: {
@@ -908,6 +935,8 @@
                 this.collapseTrigger()
                 item.isOpen = !item.isOpen
                 this.$set(this.candidateNamespaceList, index, item)
+
+                this.cancelNamespace()
             },
 
             /**
@@ -1717,6 +1746,102 @@
             },
             hideNamesapceDialog () {
                 this.goNamespaceDialogConf.isShow = false
+            },
+
+            /**
+             * 快速添加命名空间确认
+             *
+             * @param {Object} item 当前集群对象
+             * @param {number} index 当前集群对象的索引
+             */
+            async addNamespace (item, index) {
+                this.dialogConf.loading = true
+                try {
+                    const clusterId = item.results[0].cluster_id
+                    if (!this.namespaceName.trim()) {
+                        this.bkMessageInstance && this.bkMessageInstance.close()
+                        this.bkMessageInstance = this.$bkMessage({
+                            theme: 'error',
+                            message: this.$t('请填写命名空间名称')
+                        })
+                        return
+                    }
+
+                    if (this.namespaceName.length < 2) {
+                        this.$bkMessage({
+                            theme: 'error',
+                            message: this.$t('命名空间名称不得小于2个字符')
+                        })
+                        return
+                    }
+
+                    if (!/^[a-z][a-z0-9-]+$/g.test(this.namespaceName)) {
+                        this.$bkMessage({
+                            theme: 'error',
+                            message: this.$t('命名空间名称只能包含小写字母、数字以及连字符(-)，且不能以数字开头')
+                        })
+                        return
+                    }
+
+                    if (!clusterId) {
+                        this.bkMessageInstance && this.bkMessageInstance.close()
+                        this.bkMessageInstance = this.$bkMessage({
+                            theme: 'error',
+                            message: this.$t('请选择所属集群')
+                        })
+                        return
+                    }
+
+                    const addedRes = await this.$store.dispatch('configuration/addNamespace', {
+                        projectId: this.projectId,
+                        name: this.namespaceName,
+                        cluster_id: clusterId
+                    })
+
+                    const res = await this.$store.dispatch('configuration/getAllNamespaceList', {
+                        projectId: this.projectId,
+                        group_by: 'cluster_name',
+                        perm_can_use: 1
+                    })
+
+                    const resList = res.data
+                    const resCluster = resList.find(cluster => cluster.name === item.name)
+                    if (resCluster) {
+                        const resNamespaces = resCluster.results
+                        const itemNamespaces = item.results
+                        resNamespaces.forEach(ns => {
+                            const inItemNamespaces = itemNamespaces.find(
+                                itemNs => itemNs.id === ns.id && itemNs.name === ns.name
+                            )
+                            if (inItemNamespaces) {
+                                ns.isChoose = inItemNamespaces.isChoose
+                                ns.isExist = inItemNamespaces.isExist
+                            }
+                        })
+                        const resClusterIndex = resList.findIndex(cluster => cluster.name === item.name)
+                        this.$set(this.candidateNamespaceList, resClusterIndex, Object.assign(resCluster, {
+                            isOpen: this.candidateNamespaceList[resClusterIndex].isOpen
+                        }))
+
+                        this.selectNamespaceInDialog(index, addedRes.data, 0)
+                    }
+                    this.cancelNamespace()
+                } catch (e) {
+                    catchErrorHandler(e, this)
+                } finally {
+                    this.dialogConf.loading = false
+                }
+            },
+
+            /**
+             * 快速添加命名空间取消
+             */
+            cancelNamespace () {
+                this.namespaceName = ''
+                this.$refs.addNamespaceNode.forEach(vnode => {
+                    vnode.visiable = false
+                    vnode.visible = false
+                })
             }
         }
     }
