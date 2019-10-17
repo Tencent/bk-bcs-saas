@@ -2099,6 +2099,72 @@ div.jsoneditor {
                 float: left;
                 cursor: pointer;
 
+                &.add-namespace {
+                    cursor: default;
+                    .candidate-namespace-name {
+                        cursor: pointer;
+                    }
+                    .add-btn {
+                        width: 30px;
+                        height: 30px;
+                    }
+                    .bk-tooltip-content {
+                        box-shadow: 0px 3px 6px 0px rgba(0, 0, 0, 0.1);
+                    }
+                    .bk-tooltip-arrow {
+                        border-top-color: #dcdee5;
+                    }
+                    .bk-tooltip-inner {
+                        /* background-color: #fff; */
+                        background-color: #fff;
+                        width: 277px;
+                        height: 120px;
+                        border-radius: 2px;
+                        border: 1px solid #dcdee5;
+                        color: #63656e;
+                        padding: 13px 16px;
+                        font-size: 14px;
+                    }
+                    .ns-name {
+                        width: 246px;
+                        height: 32px;
+                        margin-top: 6px;
+                        margin-bottom: 2px;
+                        font-size: 12px;
+                        &:disabled {
+                            color: #aaa;
+                        }
+                    }
+                    .link {
+                        font-size: 12px;
+                        color: #3a84ff;
+                        position: relative;
+                        &.disabled {
+                            color: #ddd;
+                            cursor: not-allowed;
+                        }
+                        img {
+                            width: 12px;
+                            position: absolute;
+                            top: 3px;
+                            right: -13px;
+                        }
+                    }
+                    .operate {
+                        font-size: 12px;
+                        position: absolute;
+                        right: 16px;
+                        bottom: 18px;
+                        a {
+                            color: #3a84ff;
+                            &.disabled {
+                                color: #ddd;
+                                cursor: not-allowed;
+                            }
+                        }
+                    }
+                }
+
                 &:nth-of-type(6n) {
                     margin-right: 0;
                 }
