@@ -81,7 +81,9 @@ class GetNamespace(object):
                 else:
                     create_error[int(key)] = 1
             else:
-                ns_name_inst.append((ns_name, info.name))
+                instance_config = json.loads(info.config)
+                cluster_id = instance_config['metadata']['labels'].get('io.tencent.bcs.clusterid')
+                ns_name_inst.append((cluster_id, ns_name, info.name))
         return ret_data, ns_inst, create_error, ns_name_inst
 
     def get_ns_inst_error_count(
@@ -112,7 +114,8 @@ class GetNamespace(object):
                 logger.error("请求storage接口出现异常, 详情: %s" % resp)
                 continue
             resp_data = resp.get("data") or []
-            diff_inst = set(ns_name_inst) - set([(info["namespace"], info["resourceName"]) for info in resp_data])
+            diff_inst = set(ns_name_inst) - \
+                set([(cluster_id, info["namespace"], info["resourceName"]) for info in resp_data])
             for info in resp_data:
                 ns_name = info["namespace"]
                 spec = (info.get("data") or {}).get("spec") or {}
