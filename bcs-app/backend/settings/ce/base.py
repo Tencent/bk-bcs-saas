@@ -101,7 +101,7 @@ CLUSTER_ENV_FOR_FRONT = {
 }
 
 # 查询事务时的bcs环境
-BCS_EVENT_ENV = ["uat", "debug"]
+BCS_EVENT_ENV = ["prod"]
 
 APIGW_PUBLIC_KEY = ''
 
