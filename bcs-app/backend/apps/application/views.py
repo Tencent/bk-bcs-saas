@@ -819,7 +819,7 @@ class AppInstance(BaseMusterMetric):
         """
         ret_data = {}
         for key, info in instance_info.items():
-            app_name = deploy_app_info.get((info["namespace"], info["name"]), [])
+            app_name = deploy_app_info.get((info['cluster_id'], info["namespace"], info["name"]), [])
             if not app_name:
                 continue
             app_id = "%s:%s" % (info["namespace"], app_name[0])
