@@ -38,6 +38,17 @@
 .biz-configuration-instantiation-wrapper {
     display: inline-block;
     width: 100%;
+    .tip {
+        color: #a6b5ca;
+        font-size: 12px;
+        margin-top: -10px;
+        margin-bottom: 10px;
+        i {
+            position: relative;
+            top: -1px;
+            margin-right: 5px;
+        }
+    }
 }
 
 .biz-configuration-instantiation-header {

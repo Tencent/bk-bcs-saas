@@ -498,12 +498,12 @@ export default {
     '变量更新成功': ['Variable update succeeded'],
     '变量删除成功': ['Variable delete succeeded'],
     '请输入32个字符以内的名称': ['Please enter a name within 32 characters'],
-
     '集群IP': ['Cluster IP'],
-
     '您可以在模板集中使用': ['you can use'],
     '来引用该变量': ['to import this Variable'],
     '变量KEY': ['Variable Key'],
+    '模板实例化操作即平台通过用户配置的模板，生成对应的资源json文件，并将它们下发到指定集群的命名空间下。资源创建成功后，可在"应用"和"网络"中查看资源实例详情。': ['Template instantiation means that the platform generates the corresponding resource json files through the user-configured templates and sends them to the namespace of the specified cluster. After the resource is created successfully, you can view the resource instance details in Application and Network.'],
+    '模板实例化操作即平台通过用户配置的模板，生成对应的资源yaml文件，并将它们下发到指定集群的命名空间下。资源创建成功后，可在"应用"和"网络"中查看资源实例详情。': ['Template instantiation means that the platform generates the corresponding resource yaml files through the user-configured templates and sends them to the namespace of the specified cluster. After the resource is created successfully, you can view the resource instance details in Application and Network.'],
     // 变量的使用 $t('test', { vari1: 1, vari2: 2 })
     'test': ['{vari1} ---english--- {vari2}']
 }

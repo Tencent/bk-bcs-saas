@@ -10,6 +10,8 @@
         <div class="biz-content-wrapper">
             <app-exception v-if="exceptionCode" :type="exceptionCode.code" :text="exceptionCode.msg"></app-exception>
             <div v-else class="biz-configuration-instantiation-wrapper" v-bkloading="{ isLoading: createInstanceLoading }">
+                <div class="tip" v-if="curProject.kind === PROJECT_MESOS"><i class="bk-icon icon-info-circle-shape"></i>{{$t('模板实例化操作即平台通过用户配置的模板，生成对应的资源json文件，并将它们下发到指定集群的命名空间下。资源创建成功后，可在"应用"和"网络"中查看资源实例详情。')}}</div>
+                <div class="tip" v-else><i class="bk-icon icon-info-circle-shape"></i>{{$t('模板实例化操作即平台通过用户配置的模板，生成对应的资源yaml文件，并将它们下发到指定集群的命名空间下。资源创建成功后，可在"应用"和"网络"中查看资源实例详情。')}}</div>
                 <div class="biz-configuration-instantiation-header">
                     <div class="left">
                         <svg style="display: none;">
@@ -433,7 +435,8 @@
                 curProject: null,
                 isSelectAllTpl: false,
                 previewErrorMessage: '',
-                namespaceName: ''
+                namespaceName: '',
+                PROJECT_MESOS: window.PROJECT_MESOS
             }
         },
         computed: {
