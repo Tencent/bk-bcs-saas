@@ -34,6 +34,7 @@ ANNOTATIONS_UPDATOR = 'io.tencent.paas.updator'
 ANNOTATIONS_CREATE_TIME = 'io.tencent.paas.createTime'
 ANNOTATIONS_UPDATE_TIME = 'io.tencent.paas.updateTime'
 ANNOTATIONS_WEB_CACHE = 'io.tencent.paas.webCache'
+ANNOTATIONS_VERSION_ID = 'io.tencent.paas.versionid'
 
 # Application中用于关联service的label
 LABEL_SERVICE_NAME = "io.tencent.paas.application"
@@ -95,6 +96,7 @@ PUBLIC_ANNOTATIONS = {
     ANNOTATIONS_UPDATOR: "{{SYS_UPDATOR}}",
     ANNOTATIONS_CREATE_TIME: "{{SYS_CREATE_TIME}}",
     ANNOTATIONS_UPDATE_TIME: "{{SYS_UPDATE_TIME}}",
+    ANNOTATIONS_VERSION_ID: "{{SYS_VERSION_ID}}",
 }
 
 APPLICATION_SYS_CONFIG = {
