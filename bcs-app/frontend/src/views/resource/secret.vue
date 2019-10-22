@@ -582,7 +582,8 @@
                     const res = await this.$store.dispatch('resource/updateSelectSecret', {
                         projectId: this.projectId,
                         namespace: this.namespace,
-                        name: this.curSecretName
+                        name: this.curSecretName,
+                        clusterId: this.clusterId
                     })
                     const SecretObj = res.data.data[0] || {}
                     this.initKeyList(SecretObj)

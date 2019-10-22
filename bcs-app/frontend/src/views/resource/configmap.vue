@@ -612,7 +612,8 @@
                     const res = await this.$store.dispatch('resource/updateSelectConfigmap', {
                         projectId: this.projectId,
                         namespace: this.namespace,
-                        name: this.curConfigmapName
+                        name: this.curConfigmapName,
+                        clusterId: this.clusterId
                     })
                     const configmapObj = res.data.data[0] || {}
                     this.initKeyList(configmapObj)
