@@ -88,3 +88,8 @@ def can_use_namespaces(request, project_id, namespaces):
         ns_id = namespace_dict.get(ns)
         perm = bcs_perm.Namespace(request, project_id, ns_id)
         perm.can_use(raise_exception=True)
+
+
+def get_ns_id_map(access_token, project_id):
+    namespace_data = get_project_namespaces(access_token, project_id)
+    return {(ns['cluster_id'], ns['name']): ns['id'] for ns in namespace_data}

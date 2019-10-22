@@ -52,7 +52,7 @@ from backend.apps.network.serializers import (
 from backend.apps.network.models import MesosLoadBlance
 from backend.utils.error_codes import error_codes
 from backend.apps.application.constants import SOURCE_TYPE_MAP
-from backend.apps.utils import get_project_namespaces, get_namespace_id, can_use_namespaces, can_use_namespace
+from backend.apps import utils as app_utils
 
 logger = logging.getLogger(__name__)
 DEFAULT_ERROR_CODE = ErrorCode.UnknownError
@@ -120,7 +120,7 @@ class Services(viewsets.ViewSet, BaseAPI):
         labels = s_data.get('metadata', {}).get('labels') or {}
 
         # 获取命名空间的id
-        namespace_id = get_namespace_id(
+        namespace_id = app_utils.get_namespace_id(
             access_token, project_id, (cluster_id, namespace), cluster_id=cluster_id)
 
         instance_id = labels.get(LABLE_INSTANCE_ID)
@@ -273,8 +273,7 @@ class Services(viewsets.ViewSet, BaseAPI):
         cluster = {i['cluster_id']: i['name'] for i in cluster}
 
         # 获取命名空间的id
-        namespace_data = get_project_namespaces(access_token, project_id)
-        namespace_dict = {(ns['cluster_id'], ns['name']): ns['id'] for ns in namespace_data}
+        namespace_dict = app_utils.get_ns_id_map(request.user.token.access_token, project_id)
 
         # 项目下的所有模板集id
         all_template_id_list = Template.objects.filter(project_id=project_id).values_list('id', flat=True)
@@ -306,7 +305,7 @@ class Services(viewsets.ViewSet, BaseAPI):
                 _s['can_delete'] = True
                 _s['can_delete_msg'] = ''
 
-                namespace_id = namespace_dict.get((cluster_id, _s['namespace']))
+                namespace_id = namespace_dict.get((cluster_id, _s['namespace'])) if namespace_dict else None
                 _s['namespace_id'] = namespace_id
 
                 labels = _config.get('metadata', {}).get('labels', {})
@@ -393,9 +392,9 @@ class Services(viewsets.ViewSet, BaseAPI):
     def delete_services(self, request, project_id, cluster_id, namespace, name):
         username = request.user.username
         # 检查用户是否有命名空间的使用权限
-        namespace_id = get_namespace_id(
+        namespace_id = app_utils.get_namespace_id(
             request.user.token.access_token, project_id, (cluster_id, namespace), cluster_id=cluster_id)
-        can_use_namespace(request, project_id, namespace_id)
+        app_utils.can_use_namespace(request, project_id, namespace_id)
 
         flag, project_kind = self.get_project_kind(request, project_id)
         if not flag:
@@ -439,11 +438,10 @@ class Services(viewsets.ViewSet, BaseAPI):
         namespace_list = set(namespace_list)
 
         # check perm
-        can_use_namespaces(request, project_id, namespace_list)
+        app_utils.can_use_namespaces(request, project_id, namespace_list)
 
-        namespace_data = get_project_namespaces(request.user.token.access_token, project_id)
         # namespace_dict format: {(cluster_id, ns_name): ns_id}
-        namespace_dict = {(ns['cluster_id'], ns['name']): ns['id'] for ns in namespace_data}
+        namespace_dict = app_utils.get_ns_id_map(request.user.token.access_token, project_id)
 
         project_kind = request.project.kind
         success_list = []
