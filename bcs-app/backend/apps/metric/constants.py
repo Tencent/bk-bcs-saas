@@ -15,7 +15,10 @@ from django.conf import settings
 
 # 数据平台访问域名
 URI_FIELDS_BASE = settings.BK_PAAS_HOST
+
 # 数据平台app_code
 DATA_APP_CODE = 'data'
+
 # 数据平台清洗URL
-URI_DATA_CLEAN = '/s/data/dataset/info/{data_id}/#data_clean'
+_URI_DATA_CLEAN = '%2Fs%2Fdata%2Fdataset%2Finfo%2F{data_id}%2F%23data_clean'
+URI_DATA_CLEAN = f'{settings.BK_PAAS_HOST}?app={DATA_APP_CODE}&url=' + _URI_DATA_CLEAN
