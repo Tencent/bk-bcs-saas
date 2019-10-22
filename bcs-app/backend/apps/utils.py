@@ -14,6 +14,7 @@
 from backend.components import paas_cc
 from backend.utils.error_codes import error_codes
 from backend.utils.errcodes import ErrorCode
+from backend.accounts import bcs_perm
 
 
 def get_project_cluster_info(access_token, project_id):
@@ -48,3 +49,42 @@ def get_project_namespaces(access_token, project_id):
         raise error_codes.APIError(ns_resp.get('message'))
     data = ns_resp.get('data') or {}
     return data.get('results') or []
+
+
+def get_cluster_namespaces(access_token, project_id, cluster_id):
+    ns_resp = paas_cc.get_cluster_namespace_list(access_token, project_id, cluster_id, desire_all_data=True)
+    if ns_resp.get('code') != ErrorCode.NoError:
+        raise error_codes.APIError(f'get cluster namespace error, {ns_resp.get("message")}')
+    data = ns_resp.get('data') or {}
+    return data.get('results') or []
+
+
+def get_namespace_id(access_token, project_id, cluster_ns_name, cluster_id=None):
+    if cluster_id:
+        namespace_list = get_cluster_namespaces(access_token, project_id, cluster_id)
+    else:
+        namespace_list = get_project_namespaces(access_token, project_id)
+    for ns_info in namespace_list:
+        cluster_ns_name_item = (ns_info['cluster_id'], ns_info['name'])
+        if cluster_ns_name == cluster_ns_name_item:
+            return ns_info['id']
+
+    raise error_codes.ResNotFoundError(f'not found namespace: {cluster_ns_name}')
+
+
+def can_use_namespace(request, project_id, namespace_id):
+    perm = bcs_perm.Namespace(request, project_id, namespace_id)
+    perm.can_use(raise_exception=True)
+
+
+def can_use_namespaces(request, project_id, namespaces):
+    """
+    namespaces: [(cluster_id, ns_name)]
+    """
+    namespace_data = get_project_namespaces(request.user.token.access_token, project_id)
+    # format: {(cluster_id, ns_name): ns_id}
+    namespace_dict = {(ns['cluster_id'], ns['name']): ns['id'] for ns in namespace_data}
+    for ns in namespaces:
+        ns_id = namespace_dict.get(ns)
+        perm = bcs_perm.Namespace(request, project_id, ns_id)
+        perm.can_use(raise_exception=True)
