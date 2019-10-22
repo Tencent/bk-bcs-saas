@@ -25,7 +25,7 @@ from backend.utils.error_codes import error_codes
 from backend.utils.errcodes import ErrorCode
 from backend.apps.configuration.k8s.serializers import K8sIngressSLZ
 from backend.apps.instance.constants import K8S_INGRESS_SYS_CONFIG
-from backend.apps.utils import get_project_namespaces, get_namespace_id, can_use_namespaces, can_use_namespace
+from backend.apps import utils as app_utils
 
 logger = logging.getLogger(__name__)
 
@@ -58,8 +58,7 @@ class IngressResource(viewsets.ViewSet, BaseAPI, ResourceOperate):
         cluster_data = cluster_dicts.get('results', {}) or {}
 
         # 获取命名空间的id
-        namespace_data = get_project_namespaces(request.user.token.access_token, project_id)
-        namespace_dict = {(ns['cluster_id'], ns['name']): ns['id'] for ns in namespace_data}
+        namespace_dict = app_utils.get_ns_id_map(request.user.token.access_token, project_id)
 
         s_cate = 'K8sIngress'
         is_decode = False
