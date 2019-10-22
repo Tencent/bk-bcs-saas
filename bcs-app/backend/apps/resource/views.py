@@ -51,13 +51,14 @@ from backend.apps.application.constants import SOURCE_TYPE_MAP
 from backend.utils.renderers import BKAPIRenderer
 from backend.utils.basic import getitems
 from backend.apps import utils as app_utils
-
+from backend.apps.constants import ProjectKind
 
 logger = logging.getLogger(__name__)
 DEFAULT_ERROR_CODE = ErrorCode.UnknownError
 DEFAULT_SEARCH_FIELDS = ["data.metadata.labels", "data.metadata.annotations",
                          "createTime", "namespace", "resourceName"]
 RE_COMPILE = re.compile(r'[^T.]+')
+MESOS_VALUE = ProjectKind.MESOS.value
 
 
 class ConfigMapBase:
@@ -113,7 +114,7 @@ class ResourceOperate(object):
         username = request.user.username
         access_token = request.user.token.access_token
 
-        if project_kind == 2:
+        if project_kind == MESOS_VALUE:
             client = mesos.MesosClient(
                 access_token, project_id, cluster_id, env=None)
             curr_func = getattr(client, "delete_%s" % self.category)
@@ -278,7 +279,7 @@ class ResourceOperate(object):
         access_token = request.user.token.access_token
         project_kind = request.project.kind
 
-        if project_kind == 2:
+        if project_kind == MESOS_VALUE:
             # mesos 相关数据
             slz_class = self.mesos_slz
             s_sys_con = self.mesos_sys_config
@@ -530,13 +531,12 @@ class ResourceOperate(object):
 
 
 class ConfigMaps(viewsets.ViewSet, BaseAPI, ResourceOperate):
-    def get_configmaps_by_cluster_id(self, request, params, project_id, cluster_id, project_kind=2):
-        """查询configmaps
-        """
+    def get_configmaps_by_cluster_id(self, request, params, project_id, cluster_id, project_kind=MESOS_VALUE):
+
         access_token = request.user.token.access_token
         search_fields = copy.deepcopy(DEFAULT_SEARCH_FIELDS)
 
-        if project_kind == 2:
+        if project_kind == MESOS_VALUE:
             search_fields.append("data.datas")
             params.update({
                 "field": ",".join(search_fields)
@@ -572,7 +572,7 @@ class ConfigMaps(viewsets.ViewSet, BaseAPI, ResourceOperate):
 
         data = []
         params = dict(request.GET.items())
-        s_cate = 'configmap' if project_kind == 2 else 'K8sConfigMap'
+        s_cate = 'configmap' if project_kind == MESOS_VALUE else 'K8sConfigMap'
         access_token = request.user.token.access_token
         is_decode = request.GET.get('decode')
         is_decode = True if is_decode == '1' else False
@@ -657,13 +657,13 @@ class ConfigMapListView(ConfigMapBase, viewsets.ViewSet):
 
 
 class Secrets(viewsets.ViewSet, BaseAPI, ResourceOperate):
-    def get_secrets_by_cluster_id(self, request, params, project_id, cluster_id, project_kind=2):
+    def get_secrets_by_cluster_id(self, request, params, project_id, cluster_id, project_kind=MESOS_VALUE):
         """查询secrets
         """
         access_token = request.user.token.access_token
         search_fields = copy.deepcopy(DEFAULT_SEARCH_FIELDS)
 
-        if project_kind == 2:
+        if project_kind == MESOS_VALUE:
             search_fields.append("data.datas")
             params.update({
                 "field": ",".join(search_fields)
@@ -699,7 +699,7 @@ class Secrets(viewsets.ViewSet, BaseAPI, ResourceOperate):
 
         data = []
         params = dict(request.GET.items())
-        s_cate = 'secret' if project_kind == 2 else 'K8sSecret'
+        s_cate = 'secret' if project_kind == MESOS_VALUE else 'K8sSecret'
         access_token = request.user.token.access_token
         is_decode = request.GET.get('decode')
         is_decode = True if is_decode == '1' else False
@@ -770,7 +770,7 @@ class Endpoints(BaseAPI):
             "name": name,
             "namespace": namespace
         }
-        if project_kind == 2:
+        if project_kind == MESOS_VALUE:
             client = mesos.MesosClient(
                 access_token, project_id, cluster_id, env=None)
             resp = client.get_endpoints(params)

@@ -53,9 +53,11 @@ from backend.apps.network.models import MesosLoadBlance
 from backend.utils.error_codes import error_codes
 from backend.apps.application.constants import SOURCE_TYPE_MAP
 from backend.apps import utils as app_utils
+from backend.apps.constants import ProjectKind
 
 logger = logging.getLogger(__name__)
 DEFAULT_ERROR_CODE = ErrorCode.UnknownError
+MESOS_VALUE = ProjectKind.MESOS.value
 
 
 class Services(viewsets.ViewSet, BaseAPI):
@@ -64,11 +66,11 @@ class Services(viewsets.ViewSet, BaseAPI):
         """
         pass
 
-    def get_services_by_cluster_id(self, request, params, project_id, cluster_id, project_kind=2):
+    def get_services_by_cluster_id(self, request, params, project_id, cluster_id, project_kind=MESOS_VALUE):
         """查询services
         """
         access_token = request.user.token.access_token
-        if project_kind == 2:
+        if project_kind == MESOS_VALUE:
             client = mesos.MesosClient(
                 access_token, project_id, cluster_id, env=None)
             resp = client.get_services(params)
@@ -89,11 +91,11 @@ class Services(viewsets.ViewSet, BaseAPI):
         project_kind = request.project.kind
         access_token = request.user.token.access_token
         params = {
-            "env": "mesos" if project_kind == 2 else "k8s",
+            "env": "mesos" if project_kind == MESOS_VALUE else "k8s",
             "namespace": namespace,
             "name": name,
         }
-        if project_kind == 2:
+        if project_kind == MESOS_VALUE:
             client = mesos.MesosClient(
                 access_token, project_id, cluster_id, env=None)
             resp = client.get_services(params)
@@ -181,7 +183,7 @@ class Services(viewsets.ViewSet, BaseAPI):
         deploy_tag_list = web_cache.get('deploy_tag_list') or []
 
         app_weight = {}
-        if project_kind == 2:
+        if project_kind == MESOS_VALUE:
             # 处理 mesos 中Service的关联数据
             apps = entity.get('application') if entity else None
             application_id_list = apps.split(',') if apps else []
@@ -261,7 +263,7 @@ class Services(viewsets.ViewSet, BaseAPI):
 
         params = dict(request.GET.items())
         params.update({
-            "env": "mesos" if project_kind == 2 else "k8s",
+            "env": "mesos" if project_kind == MESOS_VALUE else "k8s",
         })
 
         data = []
@@ -351,7 +353,7 @@ class Services(viewsets.ViewSet, BaseAPI):
         username = request.user.username
         access_token = request.user.token.access_token
 
-        if project_kind == 2:
+        if project_kind == MESOS_VALUE:
             client = mesos.MesosClient(
                 access_token, project_id, cluster_id, env=None)
             resp = client.delete_service(namespace, name)
@@ -516,7 +518,7 @@ class Services(viewsets.ViewSet, BaseAPI):
         if not flag:
             return project_kind
 
-        if project_kind == 2:
+        if project_kind == MESOS_VALUE:
             # mesos 相关数据
             slz_class = ServiceCreateOrUpdateSLZ
             s_sys_con = SEVICE_SYS_CONFIG
@@ -555,7 +557,7 @@ class Services(viewsets.ViewSet, BaseAPI):
         entity = version_entity.get_entity()
 
         # 实例化时后台需要做的处理
-        if project_kind == 2:
+        if project_kind == MESOS_VALUE:
             app_weight = json.loads(data['app_id'])
             apps = entity.get('application') if entity else None
             application_id_list = apps.split(',') if apps else []
