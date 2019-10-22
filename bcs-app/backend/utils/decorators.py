@@ -60,13 +60,13 @@ def requests_curl_log(resp, st):
         curl_req += " -d '{body}'".format(body=force_str(resp.request.body))
 
     if resp.request.headers:
-        for header in resp.request.headers.items():
+        for key, value in resp.request.headers.items():
             # ignore headers
-            if header[0] in ['User-Agent', 'Accept-Encoding', 'Connection', 'Accept', 'Content-Length']:
+            if key in ['User-Agent', 'Accept-Encoding', 'Connection', 'Accept', 'Content-Length']:
                 continue
-            if header[0] == 'Cookie' and header[1].startswith('x_host_key'):
+            if key == 'Cookie' and value.startswith('x_host_key'):
                 continue
-            curl_req += " -H '{k}: {v}'".format(k=header[0], v=header[1])
+            curl_req += " -H '{k}: {v}'".format(k=key, v=value)
 
     if len(resp.text) > MAX_RESP_TEXT_SIZE:
         resp_text = f"{resp.text[:MAX_RESP_TEXT_SIZE]}...(total {len(resp.text)} Bytes)"
