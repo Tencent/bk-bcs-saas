@@ -94,11 +94,8 @@ class Metric(BaseModel):
         super(Metric, self).save()
 
     def to_json(self):
-        params = {'app': constants.DATA_APP_CODE,
-                  'url': constants.URI_DATA_CLEAN.format(data_id=self.data_id)}
-
         if self.data_id:
-            uri_data_clean = constants.URI_FIELDS_BASE + '?' + parse.urlencode(params)
+            uri_data_clean = constants.URI_DATA_CLEAN.format(data_id=self.data_id)
         else:
             uri_data_clean = ''
 
