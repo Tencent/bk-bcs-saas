@@ -52,10 +52,12 @@ from backend.apps.network.serializers import (
 from backend.apps.network.models import MesosLoadBlance
 from backend.utils.error_codes import error_codes
 from backend.apps.application.constants import SOURCE_TYPE_MAP
-# from backend.apps.network import serializers
+from backend.apps import utils as app_utils
+from backend.apps.constants import ProjectKind
 
 logger = logging.getLogger(__name__)
 DEFAULT_ERROR_CODE = ErrorCode.UnknownError
+MESOS_VALUE = ProjectKind.MESOS.value
 
 
 class Services(viewsets.ViewSet, BaseAPI):
@@ -64,11 +66,11 @@ class Services(viewsets.ViewSet, BaseAPI):
         """
         pass
 
-    def get_services_by_cluster_id(self, request, params, project_id, cluster_id, project_kind=2):
+    def get_services_by_cluster_id(self, request, params, project_id, cluster_id, project_kind=MESOS_VALUE):
         """查询services
         """
         access_token = request.user.token.access_token
-        if project_kind == 2:
+        if project_kind == MESOS_VALUE:
             client = mesos.MesosClient(
                 access_token, project_id, cluster_id, env=None)
             resp = client.get_services(params)
@@ -86,17 +88,14 @@ class Services(viewsets.ViewSet, BaseAPI):
     def get_service_info(self, request, project_id, cluster_id, namespace, name):  # noqa
         """获取单个 service 的信息
         """
-        flag, project_kind = self.get_project_kind(request, project_id)
-        if not flag:
-            return project_kind
-
+        project_kind = request.project.kind
         access_token = request.user.token.access_token
         params = {
-            "env": "mesos" if project_kind == 2 else "k8s",
+            "env": "mesos" if project_kind == MESOS_VALUE else "k8s",
             "namespace": namespace,
             "name": name,
         }
-        if project_kind == 2:
+        if project_kind == MESOS_VALUE:
             client = mesos.MesosClient(
                 access_token, project_id, cluster_id, env=None)
             resp = client.get_services(params)
@@ -123,12 +122,8 @@ class Services(viewsets.ViewSet, BaseAPI):
         labels = s_data.get('metadata', {}).get('labels') or {}
 
         # 获取命名空间的id
-        namespace_res = paas_cc.get_namespace_list(
-            access_token, project_id, limit=constants.ALL_LIMIT)
-        namespace_data = namespace_res.get('data', {}).get('results') or []
-        namespace_dict = {i['name']: i['id'] for i in namespace_data}
-        namespace = s_data.get('metadata', {}).get('namespace')
-        namespace_id = namespace_dict.get(namespace)
+        namespace_id = app_utils.get_namespace_id(
+            access_token, project_id, (cluster_id, namespace), cluster_id=cluster_id)
 
         instance_id = labels.get(LABLE_INSTANCE_ID)
 
@@ -188,7 +183,7 @@ class Services(viewsets.ViewSet, BaseAPI):
         deploy_tag_list = web_cache.get('deploy_tag_list') or []
 
         app_weight = {}
-        if project_kind == 2:
+        if project_kind == MESOS_VALUE:
             # 处理 mesos 中Service的关联数据
             apps = entity.get('application') if entity else None
             application_id_list = apps.split(',') if apps else []
@@ -268,7 +263,7 @@ class Services(viewsets.ViewSet, BaseAPI):
 
         params = dict(request.GET.items())
         params.update({
-            "env": "mesos" if project_kind == 2 else "k8s",
+            "env": "mesos" if project_kind == MESOS_VALUE else "k8s",
         })
 
         data = []
@@ -280,10 +275,7 @@ class Services(viewsets.ViewSet, BaseAPI):
         cluster = {i['cluster_id']: i['name'] for i in cluster}
 
         # 获取命名空间的id
-        namespace_res = paas_cc.get_namespace_list(
-            access_token, project_id, limit=constants.ALL_LIMIT)
-        namespace_data = namespace_res.get('data', {}).get('results') or []
-        namespace_dict = {i['name']: i['id'] for i in namespace_data}
+        namespace_dict = app_utils.get_ns_id_map(request.user.token.access_token, project_id)
 
         # 项目下的所有模板集id
         all_template_id_list = Template.objects.filter(project_id=project_id).values_list('id', flat=True)
@@ -292,6 +284,8 @@ class Services(viewsets.ViewSet, BaseAPI):
         skip_namespace_list.extend(constants.K8S_PLAT_NAMESPACE)
         for cluster_info in cluster_data:
             cluster_id = cluster_info.get('cluster_id')
+            if params.get('cluster_id') and params['cluster_id'] != cluster_id:
+                continue
             cluster_name = cluster_info.get('name')
             code, cluster_services = self.get_services_by_cluster_id(
                 request, params, project_id, cluster_id, project_kind=project_kind)
@@ -313,7 +307,7 @@ class Services(viewsets.ViewSet, BaseAPI):
                 _s['can_delete'] = True
                 _s['can_delete_msg'] = ''
 
-                namespace_id = namespace_dict.get(_s['namespace'])
+                namespace_id = namespace_dict.get((cluster_id, _s['namespace'])) if namespace_dict else None
                 _s['namespace_id'] = namespace_id
 
                 labels = _config.get('metadata', {}).get('labels', {})
@@ -355,28 +349,11 @@ class Services(viewsets.ViewSet, BaseAPI):
             "message": "ok"
         })
 
-    def check_namespace_use_perm(self, request, project_id, namespace_list):
-        """检查是否有命名空间的使用权限
-        """
-        access_token = request.user.token.access_token
-
-        # 根据 namespace  查询 ns_id
-        namespace_res = paas_cc.get_namespace_list(
-            access_token, project_id, limit=constants.ALL_LIMIT)
-        namespace_data = namespace_res.get('data', {}).get('results') or []
-        namespace_dict = {i['name']: i['id'] for i in namespace_data}
-        for namespace in namespace_list:
-            namespace_id = namespace_dict.get(namespace)
-            # 检查是否有命名空间的使用权限
-            perm = bcs_perm.Namespace(request, project_id, namespace_id)
-            perm.can_use(raise_exception=True)
-        return namespace_dict
-
     def delete_single_service(self, request, project_id, project_kind, cluster_id, namespace, namespace_id, name):
         username = request.user.username
         access_token = request.user.token.access_token
 
-        if project_kind == 2:
+        if project_kind == MESOS_VALUE:
             client = mesos.MesosClient(
                 access_token, project_id, cluster_id, env=None)
             resp = client.delete_service(namespace, name)
@@ -417,8 +394,9 @@ class Services(viewsets.ViewSet, BaseAPI):
     def delete_services(self, request, project_id, cluster_id, namespace, name):
         username = request.user.username
         # 检查用户是否有命名空间的使用权限
-        namespace_dict = self.check_namespace_use_perm(request, project_id, [namespace])
-        namespace_id = namespace_dict.get(namespace)
+        namespace_id = app_utils.get_namespace_id(
+            request.user.token.access_token, project_id, (cluster_id, namespace), cluster_id=cluster_id)
+        app_utils.can_use_namespace(request, project_id, namespace_id)
 
         flag, project_kind = self.get_project_kind(request, project_id)
         if not flag:
@@ -458,21 +436,23 @@ class Services(viewsets.ViewSet, BaseAPI):
         data = slz.data['data']
 
         # 检查用户是否有命名空间的使用权限
-        namespace_list = [_d.get('namespace') for _d in data]
+        namespace_list = [(ns['cluster_id'], ns.get('namespace')) for ns in data]
         namespace_list = set(namespace_list)
-        namespace_dict = self.check_namespace_use_perm(request, project_id, namespace_list)
 
-        flag, project_kind = self.get_project_kind(request, project_id)
-        if not flag:
-            return project_kind
+        # check perm
+        app_utils.can_use_namespaces(request, project_id, namespace_list)
 
+        # namespace_dict format: {(cluster_id, ns_name): ns_id}
+        namespace_dict = app_utils.get_ns_id_map(request.user.token.access_token, project_id)
+
+        project_kind = request.project.kind
         success_list = []
         failed_list = []
         for _d in data:
             cluster_id = _d.get('cluster_id')
             name = _d.get('name')
             namespace = _d.get('namespace')
-            namespace_id = namespace_dict.get(namespace)
+            namespace_id = namespace_dict.get((cluster_id, namespace))
             # 删除service
             resp = self.delete_single_service(request, project_id, project_kind,
                                               cluster_id, namespace, namespace_id, name)
@@ -538,7 +518,7 @@ class Services(viewsets.ViewSet, BaseAPI):
         if not flag:
             return project_kind
 
-        if project_kind == 2:
+        if project_kind == MESOS_VALUE:
             # mesos 相关数据
             slz_class = ServiceCreateOrUpdateSLZ
             s_sys_con = SEVICE_SYS_CONFIG
@@ -577,7 +557,7 @@ class Services(viewsets.ViewSet, BaseAPI):
         entity = version_entity.get_entity()
 
         # 实例化时后台需要做的处理
-        if project_kind == 2:
+        if project_kind == MESOS_VALUE:
             app_weight = json.loads(data['app_id'])
             apps = entity.get('application') if entity else None
             application_id_list = apps.split(',') if apps else []
@@ -705,14 +685,3 @@ class Services(viewsets.ViewSet, BaseAPI):
             "data": {
             }
         })
-
-
-# class Service(viewsets.ViewSet):
-#     renderer_classes = (BKAPIRenderer, BrowsableAPIRenderer)
-#
-#     def list(self, request, project_id):
-#         """get service list with pagination
-#         """
-#         slz = serializers.ServiceListSLZ(request.query_params)
-#         slz.is_valid(raise_exception=True)
-#         params = slz.validated_data

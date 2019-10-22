@@ -50,13 +50,15 @@ from backend.apps.network.serializers import BatchResourceSLZ
 from backend.apps.application.constants import SOURCE_TYPE_MAP
 from backend.utils.renderers import BKAPIRenderer
 from backend.utils.basic import getitems
-
+from backend.apps import utils as app_utils
+from backend.apps.constants import ProjectKind
 
 logger = logging.getLogger(__name__)
 DEFAULT_ERROR_CODE = ErrorCode.UnknownError
 DEFAULT_SEARCH_FIELDS = ["data.metadata.labels", "data.metadata.annotations",
                          "createTime", "namespace", "resourceName"]
 RE_COMPILE = re.compile(r'[^T.]+')
+MESOS_VALUE = ProjectKind.MESOS.value
 
 
 class ConfigMapBase:
@@ -106,29 +108,13 @@ class ResourceOperate(object):
     k8s_sys_config = None
     mesos_slz = None
     k8s_slz = None
-
-    def check_namespace_use_perm(self, request, project_id, namespace_list):
-        """检查是否有命名空间的使用权限
-        """
-        access_token = request.user.token.access_token
-
-        # 根据 namespace  查询 ns_id
-        namespace_res = paas_cc.get_namespace_list(
-            access_token, project_id, limit=constants.ALL_LIMIT)
-        namespace_data = namespace_res.get('data', {}).get('results') or []
-        namespace_dict = {i['name']: i['id'] for i in namespace_data}
-        for namespace in namespace_list:
-            namespace_id = namespace_dict.get(namespace)
-            # 检查是否有命名空间的使用权限
-            perm = bcs_perm.Namespace(request, project_id, namespace_id)
-            perm.can_use(raise_exception=True)
-        return namespace_dict
+    desc = "cluster: {cluster_id}, namespace: {namespace}, delete {resource_name}: {name}"
 
     def delete_single_resource(self, request, project_id, project_kind, cluster_id, namespace, namespace_id, name):
         username = request.user.username
         access_token = request.user.token.access_token
 
-        if project_kind == 2:
+        if project_kind == MESOS_VALUE:
             client = mesos.MesosClient(
                 access_token, project_id, cluster_id, env=None)
             curr_func = getattr(client, "delete_%s" % self.category)
@@ -172,8 +158,9 @@ class ResourceOperate(object):
         project_kind = request.project.kind
 
         # 检查用户是否有命名空间的使用权限
-        namespace_dict = self.check_namespace_use_perm(request, project_id, [namespace])
-        namespace_id = namespace_dict.get(namespace)
+        namespace_id = app_utils.get_namespace_id(
+            request.user.token.access_token, project_id, (cluster_id, namespace), cluster_id=cluster_id)
+        app_utils.can_use_namespace(request, project_id, namespace_id)
 
         resp = self.delete_single_resource(request, project_id, project_kind,
                                            cluster_id, namespace, namespace_id, name)
@@ -185,8 +172,8 @@ class ResourceOperate(object):
             resource=name,
             resource_id=0,
             extra=json.dumps({}),
-            description=u"删除%s[%s]命名空间[%s]" % (
-                self.category, name, namespace)
+            description=self.desc.format(
+                cluster_id=cluster_id, namespace=namespace, resource_name=self.category, name=name)
         ).log_modify(activity_status="succeed" if resp.get("code") == ErrorCode.NoError else "failed")
 
         # 已经删除的，需要将错误信息翻译一下
@@ -210,10 +197,14 @@ class ResourceOperate(object):
         slz.is_valid(raise_exception=True)
         data = slz.data['data']
 
-        # 检查用户是否有命名空间的使用权限
-        namespace_list = [_d.get('namespace') for _d in data]
+        namespace_list = [(ns['cluster_id'], ns.get('namespace')) for ns in data]
         namespace_list = set(namespace_list)
-        namespace_dict = self.check_namespace_use_perm(request, project_id, namespace_list)
+
+        # 检查用户是否有命名空间的使用权限
+        app_utils.can_use_namespaces(request, project_id, namespace_list)
+
+        # namespace_dict format: {(cluster_id, ns_name): ns_id}
+        namespace_dict = app_utils.get_ns_id_map(request.user.token.access_token, project_id)
 
         success_list = []
         failed_list = []
@@ -221,24 +212,27 @@ class ResourceOperate(object):
             cluster_id = _d.get('cluster_id')
             name = _d.get('name')
             namespace = _d.get('namespace')
-            namespace_id = namespace_dict.get(namespace)
+            namespace_id = namespace_dict.get((cluster_id, namespace))
             # 删除service
             resp = self.delete_single_resource(request, project_id, project_kind,
                                                cluster_id, namespace, namespace_id, name)
             # 处理已经删除，但是storage上报数据延迟的问题
             message = resp.get('message', '')
             is_delete_before = True if 'node does not exist' in message or 'not found' in message else False
-            if (resp.get("code") == ErrorCode.NoError):
+            if resp.get("code") == ErrorCode.NoError:
                 success_list.append({
                     'name': name,
-                    'desc': u'%s[命名空间:%s]' % (name, namespace),
+                    'desc': self.desc.format(
+                        cluster_id=cluster_id, namespace=namespace, resource_name=self.category, name=name)
                 })
             else:
                 if is_delete_before:
                     message = u'已经被删除，请手动刷新数据'
+                desc = self.desc.format(
+                    cluster_id=cluster_id, namespace=namespace, resource_name=self.category, name=name)
                 failed_list.append({
                     'name': name,
-                    'desc': u'%s[命名空间:%s]:%s' % (name, namespace, message),
+                    'desc': f'{desc}, message: {message}',
                 })
         code = 0
         message = ''
@@ -285,7 +279,7 @@ class ResourceOperate(object):
         access_token = request.user.token.access_token
         project_kind = request.project.kind
 
-        if project_kind == 2:
+        if project_kind == MESOS_VALUE:
             # mesos 相关数据
             slz_class = self.mesos_slz
             s_sys_con = self.mesos_sys_config
@@ -423,12 +417,7 @@ class ResourceOperate(object):
         })
 
     def handle_data(self, request, data, project_kind, s_cate, access_token,
-                    project_id, cluster_id, is_decode, cluster_env, cluster_name):
-        namespace_res = paas_cc.get_namespace_list(
-            access_token, project_id, limit=constants.ALL_LIMIT)
-        namespace_data = namespace_res.get('data', {}).get('results') or []
-        namespace_dict = {i['name']: i['id'] for i in namespace_data}
-
+                    project_id, cluster_id, is_decode, cluster_env, cluster_name, namespace_dict=None):
         for _s in data:
             _config = _s.get('data', {})
             annotations = _config.get(
@@ -445,7 +434,7 @@ class ResourceOperate(object):
             _s['can_delete'] = True
             _s['can_delete_msg'] = ''
 
-            _s['namespace_id'] = namespace_dict.get(_s['namespace'])
+            _s['namespace_id'] = namespace_dict.get((cluster_id, _s['namespace'])) if namespace_dict else None
             _s['cluster_id'] = cluster_id
             _s['environment'] = cluster_env
             _s['cluster_name'] = cluster_name
@@ -542,13 +531,12 @@ class ResourceOperate(object):
 
 
 class ConfigMaps(viewsets.ViewSet, BaseAPI, ResourceOperate):
-    def get_configmaps_by_cluster_id(self, request, params, project_id, cluster_id, project_kind=2):
-        """查询configmaps
-        """
+    def get_configmaps_by_cluster_id(self, request, params, project_id, cluster_id, project_kind=MESOS_VALUE):
+
         access_token = request.user.token.access_token
         search_fields = copy.deepcopy(DEFAULT_SEARCH_FIELDS)
 
-        if project_kind == 2:
+        if project_kind == MESOS_VALUE:
             search_fields.append("data.datas")
             params.update({
                 "field": ",".join(search_fields)
@@ -584,12 +572,19 @@ class ConfigMaps(viewsets.ViewSet, BaseAPI, ResourceOperate):
 
         data = []
         params = dict(request.GET.items())
-        s_cate = 'configmap' if project_kind == 2 else 'K8sConfigMap'
+        s_cate = 'configmap' if project_kind == MESOS_VALUE else 'K8sConfigMap'
         access_token = request.user.token.access_token
         is_decode = request.GET.get('decode')
         is_decode = True if is_decode == '1' else False
+
+        # get project namespace info
+        namespace_dict = app_utils.get_ns_id_map(access_token, project_id)
+
         for cluster_info in cluster_data:
             cluster_id = cluster_info.get('cluster_id')
+            # 当参数中集群ID存在时，判断集群ID匹配成功后，继续后续逻辑
+            if params.get('cluster_id') and params['cluster_id'] != cluster_id:
+                continue
             cluster_env = cluster_info.get('environment')
             code, cluster_configmaps = self.get_configmaps_by_cluster_id(
                 request, params, project_id, cluster_id, project_kind=project_kind)
@@ -598,7 +593,7 @@ class ConfigMaps(viewsets.ViewSet, BaseAPI, ResourceOperate):
                 continue
             self.handle_data(request, cluster_configmaps, project_kind, s_cate,
                              access_token, project_id, cluster_id,
-                             is_decode, cluster_env, cluster_info.get('name', ''))
+                             is_decode, cluster_env, cluster_info.get('name', ''), namespace_dict=namespace_dict)
             data += cluster_configmaps
 
         # 按时间倒序排列
@@ -662,13 +657,13 @@ class ConfigMapListView(ConfigMapBase, viewsets.ViewSet):
 
 
 class Secrets(viewsets.ViewSet, BaseAPI, ResourceOperate):
-    def get_secrets_by_cluster_id(self, request, params, project_id, cluster_id, project_kind=2):
+    def get_secrets_by_cluster_id(self, request, params, project_id, cluster_id, project_kind=MESOS_VALUE):
         """查询secrets
         """
         access_token = request.user.token.access_token
         search_fields = copy.deepcopy(DEFAULT_SEARCH_FIELDS)
 
-        if project_kind == 2:
+        if project_kind == MESOS_VALUE:
             search_fields.append("data.datas")
             params.update({
                 "field": ",".join(search_fields)
@@ -704,12 +699,18 @@ class Secrets(viewsets.ViewSet, BaseAPI, ResourceOperate):
 
         data = []
         params = dict(request.GET.items())
-        s_cate = 'secret' if project_kind == 2 else 'K8sSecret'
+        s_cate = 'secret' if project_kind == MESOS_VALUE else 'K8sSecret'
         access_token = request.user.token.access_token
         is_decode = request.GET.get('decode')
         is_decode = True if is_decode == '1' else False
+        # get project namespace info
+        namespace_dict = app_utils.get_ns_id_map(request.user.token.access_token, project_id)
+
         for cluster_info in cluster_data:
             cluster_id = cluster_info.get('cluster_id')
+            # 当参数中集群ID存在时，判断集群ID匹配成功后，继续后续逻辑
+            if params.get('cluster_id') and params['cluster_id'] != cluster_id:
+                continue
             cluster_env = cluster_info.get('environment')
             code, cluster_secrets = self.get_secrets_by_cluster_id(
                 request, params, project_id, cluster_id, project_kind=project_kind)
@@ -718,7 +719,7 @@ class Secrets(viewsets.ViewSet, BaseAPI, ResourceOperate):
                 continue
             self.handle_data(request, cluster_secrets, project_kind, s_cate,
                              access_token, project_id, cluster_id,
-                             is_decode, cluster_env, cluster_info.get('name', ''))
+                             is_decode, cluster_env, cluster_info.get('name', ''), namespace_dict=namespace_dict)
             data += cluster_secrets
 
         # 按时间倒序排列
@@ -769,7 +770,7 @@ class Endpoints(BaseAPI):
             "name": name,
             "namespace": namespace
         }
-        if project_kind == 2:
+        if project_kind == MESOS_VALUE:
             client = mesos.MesosClient(
                 access_token, project_id, cluster_id, env=None)
             resp = client.get_endpoints(params)
