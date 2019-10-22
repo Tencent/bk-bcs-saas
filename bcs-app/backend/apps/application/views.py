@@ -818,11 +818,12 @@ class AppInstance(BaseMusterMetric):
         """针对deployment组装请求taskgroup信息
         """
         ret_data = {}
-        for key, info in instance_info.items():
-            app_name = deploy_app_info.get((info['cluster_id'], info["namespace"], info["name"]), [])
-            if not app_name:
+        for _, info in instance_info.items():
+            # TODO: 后续重构时，注意匹配字段
+            app_name_list = deploy_app_info.get((info['cluster_id'], info["namespace"], info["name"]), [])
+            if not app_name_list:
                 continue
-            app_id = "%s:%s" % (info["namespace"], app_name[0])
+            app_id = "%s:%s" % (info["namespace"], app_name_list[0])
             cluster_id = info["cluster_id"]
             if cluster_id in ret_data:
                 ret_data[cluster_id].append(app_id)
