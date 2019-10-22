@@ -283,7 +283,7 @@ class Services(viewsets.ViewSet, BaseAPI):
         skip_namespace_list.extend(constants.K8S_PLAT_NAMESPACE)
         for cluster_info in cluster_data:
             cluster_id = cluster_info.get('cluster_id')
-            if params.get('cluster_id') and params['cluster_id'] == cluster_id:
+            if params.get('cluster_id') and params['cluster_id'] != cluster_id:
                 continue
             cluster_name = cluster_info.get('name')
             code, cluster_services = self.get_services_by_cluster_id(
