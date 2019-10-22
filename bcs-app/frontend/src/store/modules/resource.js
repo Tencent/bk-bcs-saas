@@ -154,8 +154,8 @@ export default {
         },
 
         // 点击更新时查询单个Secret
-        updateSelectSecret (context, { projectId, namespace, name }, config = {}) {
-            return http.get(`${DEVOPS_BCS_API_URL}/api/resource/${projectId}/secrets/?namespace=${namespace}&name=${name}&decode=1`)
+        updateSelectSecret (context, { projectId, namespace, name, clusterId }, config = {}) {
+            return http.get(`${DEVOPS_BCS_API_URL}/api/resource/${projectId}/secrets/?cluster_id=${clusterId}&namespace=${namespace}&name=${name}&decode=1`)
         },
 
         // 更新单个Secret
@@ -240,8 +240,8 @@ export default {
          *
          * @return {Promise} promise 对象
          */
-        updateSelectConfigmap (context, { projectId, namespace, name }, config = {}) {
-            return http.get(`${DEVOPS_BCS_API_URL}/api/resource/${projectId}/configmaps/?namespace=${namespace}&name=${name}&decode=1`)
+        updateSelectConfigmap (context, { projectId, namespace, name, clusterId }, config = {}) {
+            return http.get(`${DEVOPS_BCS_API_URL}/api/resource/${projectId}/configmaps/?cluster_id=${clusterId}&namespace=${namespace}&name=${name}&decode=1`)
         }
     }
 }
