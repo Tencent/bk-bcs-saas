@@ -34,95 +34,12 @@ from backend.utils.error_codes import error_codes
 from backend.utils.response import APIResult
 from backend.activity_log import client
 from backend.apps.constants import ProjectKind
+from backend.apps.configuration.namespace.serializers import CreateNamespaceSLZ, UpdateNamespaceSLZ
 
 logger = logging.getLogger(__name__)
-K8S_PROJECT_KIND = 1
-MESOS_PROJECT_KIND = 2
 
 
-class NamespaceUpdateSLZ(serializers.Serializer):
-    env_type = serializers.ChoiceField(
-        required=False, choices=[i.value for i in constants.EnvType])
-    name = serializers.RegexField(
-        r'^[a-z][a-z0-9-]+$', min_length=2, max_length=30, required=False)
-    cluster_id = serializers.CharField(required=False)
-    ns_vars = serializers.JSONField(required=False)
-
-    def validate_cluster_id(self, cluster_id):
-        access_token = self.context['request'].user.token.access_token
-        project_id = self.context['project_id']
-        result = paas_cc.get_all_clusters(
-            access_token, project_id, limit=constants.ALL_LIMIT)
-        if result.get('code') != 0:
-            raise ValidationError("校验 cluster_id 失败，%s" %
-                                  result.get('message'))
-
-        data = result['data']
-        if not data or data['count'] == 0:
-            raise ValidationError("cluster_id 不正确")
-
-        for cluster in data['results']:
-            if cluster_id == cluster['cluster_id']:
-                return cluster_id
-        raise ValidationError("cluster_id 不正确")
-
-    def validate_name(self, name):
-        """名字不能重复
-        - mesos 名称全局唯一
-        - k8s 同一集群下，名称唯一
-        """
-        # k8s 不能创建系统的命名空间
-        project_kind = self.context['request'].project.kind
-        if project_kind == K8S_PROJECT_KIND:
-            if name in K8S_SYS_NAMESPACE:
-                raise ValidationError(u"不允许创建系统命名空间[%s]" %
-                                      ','.join(K8S_SYS_NAMESPACE))
-
-        access_token = self.context['request'].user.token.access_token
-        project_id = self.context['project_id']
-        ns_id = self.context.get('ns_id')
-        result = paas_cc.get_namespace_list(
-            access_token, project_id, limit=constants.ALL_LIMIT)
-        if result.get('code') != 0:
-            raise ValidationError("校验名称失败, %s" % result)
-        if project_kind == K8S_PROJECT_KIND:
-            results = {
-                str(i['id']): (i['cluster_id'], i['name'])
-                for i in result['data']['results'] or []
-            }
-            cluster_id = self.initial_data['cluster_id']
-            ns_name = results.get(ns_id)
-            if (cluster_id, name) in results.values() and (cluster_id, name) != ns_name:
-                raise ValidationError("同一集群，命名空间名称不能重复")
-        elif project_kind == MESOS_PROJECT_KIND:
-            results = {str(i['id']): i['name']
-                       for i in result['data']['results'] or []}
-            ns_name = results.get(ns_id)
-            if name in results.values() and ns_name != name:
-                raise ValidationError("命名空间名称不能重复")
-        else:
-            raise ValidationError("项目编排类型不正确")
-        return name
-
-    def validate(self, data):
-        if not data:
-            raise ValidationError("【env_type】,【name】和【cluster_id】不能同时为空")
-        # 前端去掉环境类型字段，默认为 DEV
-        if 'env_type' not in data:
-            data['env_type'] = "dev"
-        return data
-
-
-class NamespaceSLZ(NamespaceUpdateSLZ):
-    cluster_id = serializers.CharField(required=True)
-    env_type = serializers.ChoiceField(
-        choices=[i.value for i in constants.EnvType], required=False)
-    # k8s同样限制长度为[2, 30]，只是为了前端显示使用
-    name = serializers.RegexField(
-        r'[a-z][a-z0-9-]+', min_length=2, max_length=30, required=True)
-
-
-class NamespaceBase(object):
+class NamespaceBase:
     """命名空间操作的基本方法
     其他地方也要用到，所以提取为单独的类
     """
@@ -437,7 +354,7 @@ class NamespaceView(NamespaceBase, viewsets.ViewSet):
         k8s 流程：新建namespace配置文件并下发 -> 新建包含仓库账号信息的sercret配置文件并下发 -> 在paas-cc上注册
         mesos流程：新建包含仓库账号信息的sercret配置文件并下发 -> 在paas-cc上注册
         """
-        serializer = NamespaceSLZ(data=request.data, context={
+        serializer = CreateNamespaceSLZ(data=request.data, context={
             'request': request, 'project_id': project_id})
         serializer.is_valid(raise_exception=True)
 
@@ -466,7 +383,7 @@ class NamespaceView(NamespaceBase, viewsets.ViewSet):
         不允许修改命名空间信息，只能修改变量信息
         TODO: 在wesley提供集群下使用的命名空间后，允许命名空间修改名称
         """
-        serializer = NamespaceUpdateSLZ(data=request.data, context={
+        serializer = UpdateNamespaceSLZ(data=request.data, context={
             'request': request, 'project_id': project_id, 'ns_id': namespace_id})
         serializer.is_valid(raise_exception=True)
         data = serializer.data
