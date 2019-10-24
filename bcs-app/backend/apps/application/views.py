@@ -1911,7 +1911,7 @@ class ResumeUpdateInstance(InstanceAPI):
         return resp
 
 
-class DeleteInstance(BaseAPI):
+class DeleteInstance(InstanceAPI):
 
     def get_enforce(self, request):
         # 是否强制删除
@@ -1930,21 +1930,7 @@ class DeleteInstance(BaseAPI):
         # 获取kind
         project_kind = self.project_kind(request)
         if str(instance_id) == "0":
-            data = dict(request.data) or {}
-            namespace = data.get("namespace")
-            name = data.get("name")
-            category = data.get("category")
-            if not (namespace and name and category):
-                raise error_codes.CheckFailed.f("参数[namespace]、[name]及[category]不能为空!")
-            cluster_id = self.get_cluster_by_ns_name(request, project_id, namespace)
-            # 删除操作
-            ns_name_id = self.get_namespace_name_id(request, project_id)
-            curr_inst_ns_id = ns_name_id.get(namespace)
-            # 添加权限
-            self.bcs_single_app_perm_handler(
-                request, project_id, "",
-                curr_inst_ns_id, source_type=app_constants.NOT_TMPL_SOURCE_TYPE
-            )
+            cluster_id, namespace, name, category = self.get_instance_resource(request, project_id)
             return self.delete_instance(
                 request, project_id, cluster_id, namespace,
                 name, category=category, kind=project_kind, enforce=enforce
