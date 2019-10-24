@@ -33,7 +33,7 @@ class BaseNamespaceSLZ(serializers.Serializer):
         project_id = self.context['project_id']
         data = app_utils.get_project_cluster_info(access_token, project_id)
         if not data or data['count'] == 0:
-            raise ValidationError('cluster of project is null in')
+            raise ValidationError('cluster of project is empty')
 
         for cluster in data['results']:
             if cluster_id == cluster['cluster_id']:
@@ -67,11 +67,5 @@ class CreateNamespaceSLZ(BaseNamespaceSLZ):
         return name
 
 
-class UpdateNamespaceSLZ(BaseNamespaceSLZ):
-    name = serializers.RegexField(
-        r'[a-z0-9]([-a-z0-9]*[a-z0-9])?', min_length=2, max_length=63, required=False)
+class UpdateNSVariableSLZ(serializers.Serializer):
     ns_vars = serializers.JSONField(required=False)
-
-    def validate_name(self, name):
-        # TODO: 现阶段没有开放编辑命名空间名称的功能，先不用校验name
-        return name

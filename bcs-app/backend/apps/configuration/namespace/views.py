@@ -34,7 +34,7 @@ from backend.utils.error_codes import error_codes
 from backend.utils.response import APIResult
 from backend.activity_log import client
 from backend.apps.constants import ProjectKind
-from backend.apps.configuration.namespace.serializers import CreateNamespaceSLZ, UpdateNamespaceSLZ
+from backend.apps.configuration.namespace.serializers import CreateNamespaceSLZ, UpdateNSVariableSLZ
 
 logger = logging.getLogger(__name__)
 
@@ -383,7 +383,7 @@ class NamespaceView(NamespaceBase, viewsets.ViewSet):
         不允许修改命名空间信息，只能修改变量信息
         TODO: 在wesley提供集群下使用的命名空间后，允许命名空间修改名称
         """
-        serializer = UpdateNamespaceSLZ(data=request.data, context={
+        serializer = UpdateNSVariableSLZ(data=request.data, context={
             'request': request, 'project_id': project_id, 'ns_id': namespace_id})
         serializer.is_valid(raise_exception=True)
         data = serializer.data
