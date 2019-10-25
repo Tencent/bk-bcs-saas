@@ -14,7 +14,7 @@
 from rest_framework.exceptions import ValidationError
 
 from backend.accounts import bcs_perm
-from .serializers_new import TemplateResourceSLZ
+from .serializers_new import VentityWithTemplateSLZ
 
 
 def validate_template_locked(template, username):
@@ -48,6 +48,6 @@ class TemplatePermission:
 class GetVersionedEntity:
     def get_versioned_entity(self, project_id, version_id):
         data = {'project_id': project_id, 'version_id': version_id}
-        serializer = TemplateResourceSLZ(data=data)
+        serializer = VentityWithTemplateSLZ(data=data)
         serializer.is_valid(raise_exception=True)
         return serializer.validated_data['ventity']

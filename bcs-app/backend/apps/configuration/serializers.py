@@ -28,7 +28,7 @@ from .models import (Template, VersionedEntity, Application, get_app_resource, S
 from .constants_bak import APPLICATION_SCHEMA, DEPLPYMENT_SCHNEA, SERVICE_SCHEM, CONFIGMAP_SCHEM, SECRET_SCHEM
 from .constants_k8s import (K8S_SECRET_SCHEM, K8S_CONFIGMAP_SCHEM, K8S_SERVICE_SCHEM, K8S_DEPLPYMENT_SCHNEA,
                             K8S_DAEMONSET_SCHNEA, K8S_JOB_SCHNEA, K8S_STATEFULSET_SCHNEA, AFFINITY_SCHNEA)
-from backend.apps.configuration.utils import get_real_category, check_var_by_config
+from backend.apps.configuration.utils import to_bcs_res_name, check_var_by_config
 from backend.apps.instance.models import VersionInstance, InstanceConfig
 from backend.accounts import bcs_perm
 from backend.apps.configuration.k8s import constants as constants_k8s
@@ -239,7 +239,7 @@ class ResourceRequstSLZ(serializers.Serializer):
 
     def validate_category(self, category):
         project_kind = self.context.get('project_kind')
-        return get_real_category(project_kind, category)
+        return to_bcs_res_name(project_kind, category)
 
 
 class TemplateCreateSLZ(serializers.Serializer):

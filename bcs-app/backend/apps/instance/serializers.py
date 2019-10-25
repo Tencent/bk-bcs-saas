@@ -14,7 +14,7 @@
 from rest_framework import serializers
 
 from .models import VersionInstance
-from backend.apps.configuration.utils import get_real_category
+from backend.apps.configuration.utils import to_bcs_res_name
 
 
 class InstanceNamespaceSLZ(serializers.Serializer):
@@ -27,7 +27,7 @@ class InstanceNamespaceSLZ(serializers.Serializer):
         project_kind = self.context['project_kind']
         for cate in instance_entity:
             # 将前台的模板类型转换为db存储的类型
-            real_cate = get_real_category(project_kind, cate)
+            real_cate = to_bcs_res_name(project_kind, cate)
             new_entity[real_cate] = instance_entity[cate]
         return new_entity
 

@@ -25,11 +25,11 @@ from rest_framework.renderers import BrowsableAPIRenderer
 from backend.accounts import bcs_perm
 from backend.apps.configuration.models import Template, VersionedEntity, get_default_version, \
     get_model_class_by_resource_name, get_template_by_project_and_id
-from backend.apps.configuration.serializers_new import SearchTemplateSLZ, CreateTemplateSLZ, TemplateDraftSLZ, \
+from backend.apps.configuration.serializers_new import SearchTemplateSLZ, TemplateDraftSLZ, \
     ListTemplateSLZ, VentityWithTemplateSLZ, get_slz_class_by_resource_name, can_delete_resource
 from backend.apps.configuration.serializers import ResourceSLZ, ResourceRequstSLZ, TemplateSLZ, TemplateUpdateSLZ, \
     get_tempate_info, is_tempalte_instance, TemplateCreateSLZ
-from backend.apps.configuration.utils import validate_resource_name
+from backend.apps.configuration.utils import validate_resource_name, create_template_with_perm_check
 from backend.apps.instance.utils import check_tempalte_available, validate_template_id
 from backend.utils.renderers import BKAPIRenderer
 from backend.activity_log import client
@@ -41,39 +41,6 @@ def is_create_template(template_id):
     if template_id == '0':
         return True
     return False
-
-
-def create_template(username, project_id, tpl_args):
-    if not tpl_args:
-        raise ValidationError("请先创建模板集")
-
-    tpl_args['project_id'] = project_id
-    serializer = CreateTemplateSLZ(data=tpl_args)
-    serializer.is_valid(raise_exception=True)
-    template = serializer.save(creator=username)
-    # 记录操作日志
-    client.ContextActivityLogClient(
-        project_id=project_id,
-        user=username,
-        resource_type='template',
-        resource=tpl_args['name'],
-        resource_id=template.id,
-        extra=json.dumps(tpl_args),
-        description="创建模板集"
-    ).log_add()
-
-    return template
-
-
-def create_template_with_perm_check(request, project_id, tpl_args):
-    # 验证用户是否有创建的权限
-    perm = bcs_perm.Templates(request, project_id, bcs_perm.NO_RES)
-    # 如果没有权限，会抛出异常
-    perm.can_create(raise_exception=True)
-    template = create_template(request.user.username, project_id, tpl_args)
-    # 注册资源到权限中心
-    perm.register(template.id, tpl_args['name'])
-    return template
 
 
 class TemplatesView(APIView):
