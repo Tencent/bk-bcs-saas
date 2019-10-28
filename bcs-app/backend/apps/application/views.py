@@ -751,8 +751,6 @@ class AppInstance(BaseMusterMetric):
                 "backend_status": backend_status,
                 "backend_status_message": inst_id_event_map.get(info.id) or u"请求失败，已通知管理员!",
                 "creator": info.creator,
-                "version": labels.get("io.tencent.paas.version"),
-                "version_id": labels.get("io.tencent.paas.versionid"),
                 "oper_type": info.oper_type,
                 "oper_type_flag": oper_type_flag,
                 "cluster_id": cluster_id,
@@ -766,6 +764,8 @@ class AppInstance(BaseMusterMetric):
                 "source_type": "模板集",
                 "from_platform": True
             }
+            annotations = metadata.get("annotations") or {}
+            item.update(utils.get_instance_version(annotations, labels))
             if project_kind == 2:
                 item.update({
                     "application_status": "Deploying",

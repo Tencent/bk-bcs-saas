@@ -229,8 +229,6 @@ class GetInstances(object):
                 "deployment_status_message": "",
                 "creator": info.creator,
                 "category": info.category,
-                "version": labels.get("io.tencent.paas.version"),
-                "version_id": labels.get("io.tencent.paas.versionid"),
                 "oper_type": info.oper_type,
                 "oper_type_flag": oper_type_flag,
                 "cluster_id": cluster_id,
@@ -243,6 +241,8 @@ class GetInstances(object):
                 "muster_id": muster_id,
                 "muster_name": self.get_muster_info(muster_id)
             }
+            annotations = metadata.get("annotations") or {}
+            ret_data[key_name].update(utils.get_instance_version(annotations, labels))
         return ret_data, category_data
 
     def get_cluster_namespace_inst(self, instance_info):
@@ -326,6 +326,7 @@ class GetInstances(object):
             instance = data.get("instance") or 0
             labels = metadata.get("labels", {})
             source_type = labels.get("io.tencent.paas.source_type") or "other"
+            annotations = metadata.get('annotations') or {}
             ret_data[key_name] = {
                 "name": metadata.get("name"),
                 "namespace": metadata.get("namespace"),
@@ -342,7 +343,7 @@ class GetInstances(object):
                 "update_time": val.get("updateTime"),
                 "create_time": val.get("updateTime"),
                 "source_type": SOURCE_TYPE_MAP.get(source_type),
-                "version": labels.get("io.tencent.paas.version"),
+                "version": utils.get_instance_version_name(annotations, labels),
                 'hpa': False  # Application 默认都是未绑定
             }
         return ret_data
@@ -368,6 +369,7 @@ class GetInstances(object):
             metadata = data.get("metadata", {})
             key_name = (metadata.get("namespace"), metadata.get("name"))
             labels = metadata.get("labels", {})
+            annotations = metadata.get('annotations') or {}
             ret_data[key_name] = {
                 "backend_status": "BackendNormal",
                 "backend_status_message": "请求失败，已通知管理员!",
@@ -375,7 +377,7 @@ class GetInstances(object):
                 "deployment_status": data.get("status"),
                 "deployemnt_status_message": data.get("message"),
                 "source_type": labels.get("io.tencent.paas.source_type"),
-                "version": labels.get("io.tencent.paas.version"),
+                "version": utils.get_instance_version_name(annotations, labels),
                 "hpa": True if key_name in hpa_list else False
             }
         return ret_data

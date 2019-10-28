@@ -23,8 +23,8 @@ MESOS_MODULE_NAME = 'mesos'
 K8S_MODULE_NAME = 'k8s'
 
 # 所有配置文件的公共 label
+# TODO: 后续可以去掉下面几个label相关
 LABLE_TEMPLATE_ID = "io.tencent.paas.templateid"
-LABLE_VERSION_ID = "io.tencent.paas.versionid"
 LABLE_VERSION = "io.tencent.paas.version"
 LABLE_INSTANCE_ID = "io.tencent.paas.instanceid"
 LABLE_PROJECT_ID = "io.tencent.paas.projectid"
@@ -35,6 +35,10 @@ ANNOTATIONS_CREATE_TIME = 'io.tencent.paas.createTime'
 ANNOTATIONS_UPDATE_TIME = 'io.tencent.paas.updateTime'
 ANNOTATIONS_WEB_CACHE = 'io.tencent.paas.webCache'
 ANNOTATIONS_VERSION_ID = 'io.tencent.paas.versionid'
+ANNOTATIONS_VERSION = "io.tencent.paas.version"
+ANNOTATIONS_INSTANCE_ID = "io.tencent.paas.instanceid"
+ANNOTATIONS_PROJECT_ID = "io.tencent.paas.projectid"
+ANNOTATIONS_TEMPLATE_ID = "io.tencent.paas.templateid"
 
 # Application中用于关联service的label
 LABEL_SERVICE_NAME = "io.tencent.paas.application"
@@ -80,7 +84,6 @@ MESOS_CUSTOM_LOG_LABEL_KEY = 'io.tencent.bcs.custom.labels'
 
 PAAS_LABLES = {
     LABLE_TEMPLATE_ID: "{{SYS_TEMPLATE_ID}}",
-    LABLE_VERSION_ID: "{{SYS_VERSION_ID}}",
     LABLE_VERSION: "{{SYS_VERSION}}",
     LABLE_INSTANCE_ID: "{{SYS_INSTANCE_ID}}",
     LABLE_PROJECT_ID: "{{SYS_PROJECT_ID}}",
@@ -97,7 +100,16 @@ PUBLIC_ANNOTATIONS = {
     ANNOTATIONS_CREATE_TIME: "{{SYS_CREATE_TIME}}",
     ANNOTATIONS_UPDATE_TIME: "{{SYS_UPDATE_TIME}}",
     ANNOTATIONS_VERSION_ID: "{{SYS_VERSION_ID}}",
+    ANNOTATIONS_VERSION: "{{SYS_VERSION}}",
+    ANNOTATIONS_INSTANCE_ID: "{{SYS_INSTANCE_ID}}",
+    ANNOTATIONS_PROJECT_ID: "{{SYS_PROJECT_ID}}",
+    ANNOTATIONS_TEMPLATE_ID: "{{SYS_TEMPLATE_ID}}",
+    SOURCE_TYPE_LABEL_KEY: "template"
 }
+
+# TODO: 先添加上，不影响先前使用
+BCS_ANNOTATIONS = BCS_LABELS.copy()
+PUBLIC_ANNOTATIONS.update(BCS_ANNOTATIONS)
 
 APPLICATION_SYS_CONFIG = {
     "apiVersion": "v4",

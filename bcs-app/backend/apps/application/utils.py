@@ -27,6 +27,7 @@ from backend.components import paas_cc
 from backend.utils.error_codes import error_codes
 from backend.apps.configuration.constants import K8sResourceName
 from backend.apps.instance.models import InstanceConfig
+from backend.apps.instance import constants as instance_constants
 
 STAG_ENV = 2
 PROD_ENV = 1
@@ -115,3 +116,22 @@ def delete_instance_records(online_instances, local_instances):
     ).exclude(
         oper_type=constants.REBUILD_INSTANCE
     ).update(is_deleted=True, deleted_time=timezone.now())
+
+
+def get_instance_version_name(annotations, labels):
+    name_key = instance_constants.ANNOTATIONS_VERSION
+    return annotations.get(name_key) or labels.get(name_key)
+
+
+def get_instance_version_id(annotations, labels):
+    id_key = instance_constants.ANNOTATIONS_VERSION_ID
+    return annotations.get(id_key) or labels.get(id_key)
+
+
+def get_instance_version(annotations, labels):
+    name = get_instance_version_name(annotations, labels)
+    id = get_instance_version_id(annotations, labels)
+    return {
+        'version': name,
+        'version_id': id
+    }
