@@ -35,6 +35,7 @@ from backend.celery_app.tasks.application import update_create_error_record
 from backend.utils.basic import getitems
 from backend.apps.hpa.utils import get_deployment_hpa
 from backend.apps.application import constants as app_constants
+from backend.apps.application.utils import get_instance_version, get_instance_version_name
 
 logger = logging.getLogger(__name__)
 
@@ -205,8 +206,6 @@ class GetInstances(object):
                 "status_message": "请点击查看详情",
                 "creator": info.creator,
                 "category": REVERSE_CATEGORY_MAP[info.category],
-                "version": labels.get("io.tencent.paas.version"),
-                "version_id": labels.get("io.tencent.paas.versionid"),
                 "oper_type": info.oper_type,
                 "oper_type_flag": oper_type_flag,
                 "cluster_id": cluster_id,
@@ -219,6 +218,8 @@ class GetInstances(object):
                 "cluster_env": cluster_name_env_map.get("cluster_env"),
                 "environment": cluster_name_env_map.get("cluster_env_str")
             }
+            annotations = metadata.get('annotations') or {}
+            ret_data[key_name].update(get_instance_version(annotations, labels))
         return ret_data
 
     def get_cluster_ns_inst(self, instance_info):
@@ -268,6 +269,7 @@ class GetInstances(object):
             curr_key = (info['namespace'], info['resourceName'])
             labels = getitems(info, ['data', 'metadata', 'labels'], default={})
             source_type = labels.get('io.tencent.paas.source_type') or 'other'
+            annotations = getitems(info, ['data', 'metadata', 'annotations'], default={})
             ret_data[curr_key] = {
                 'backend_status': 'BackendNormal',
                 'backend_status_message': '请求失败，已通知管理员!',
@@ -281,7 +283,7 @@ class GetInstances(object):
                 'create_at': info['createTime'],
                 'update_at': info['updateTime'],
                 'source_type': SOURCE_TYPE_MAP.get(source_type),
-                'version': labels.get('io.tencent.paas.version'),  # 标识应用的线上版本
+                'version': get_instance_version_name(annotations, labels),  # 标识应用的线上版本
                 'hpa': info['hpa']  # 是否绑定了HPA
             }
             if spec.get('paused'):
