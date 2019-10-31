@@ -266,7 +266,7 @@
 
             <bk-dialog
                 :is-show="batchDialogConfig.isShow"
-                :width="400"
+                :width="550"
                 :has-header="false"
                 :quick-close="false"
                 @confirm="deleteSecrets(batchDialogConfig.data)"
@@ -492,7 +492,7 @@
                             namespace: item.namespace,
                             name: item.name
                         })
-                        names.push(item.resourceName)
+                        names.push(`${item.cluster_name} / ${item.namespace} / ${item.resourceName}`)
                     }
                 })
                 if (!data.length) {
@@ -614,10 +614,10 @@
                 const me = this
                 me.$bkInfo({
                     title: ``,
-                    clsName: 'biz-remove-dialog',
+                    clsName: 'biz-remove-dialog max-size',
                     content: me.$createElement('p', {
                         class: 'biz-confirm-desc'
-                    }, `${this.$t('确定要删除Secret')}【${secret.name}】？`),
+                    }, `${this.$t('确定要删除Secret')}【${secret.cluster_name} / ${secret.namespace} / ${secret.name}】？`),
                     confirmFn () {
                         me.deleteSecret(secret)
                     }

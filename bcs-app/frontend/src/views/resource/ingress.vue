@@ -223,7 +223,7 @@
 
             <bk-dialog
                 :is-show="batchDialogConfig.isShow"
-                :width="400"
+                :width="550"
                 :has-header="false"
                 :quick-close="false"
                 @confirm="deleteIngresses(batchDialogConfig.data)"
@@ -431,7 +431,7 @@
                             namespace: item.namespace,
                             name: item.name
                         })
-                        names.push(item.resourceName)
+                        names.push(`${item.cluster_name} / ${item.namespace} / ${item.resourceName}`)
                     }
                 })
 
@@ -504,10 +504,10 @@
                 const me = this
                 me.$bkInfo({
                     title: ``,
-                    clsName: 'biz-remove-dialog',
+                    clsName: 'biz-remove-dialog max-size',
                     content: me.$createElement('p', {
                         class: 'biz-confirm-desc'
-                    }, `${this.$t('确定要删除Ingress')}【${ingress.name}】？`),
+                    }, `${this.$t('确定要删除Ingress')}【${ingress.cluster_name} / ${ingress.namespace} / ${ingress.name}】？`),
                     confirmFn () {
                         me.deleteIngress(ingress)
                     }
