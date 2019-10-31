@@ -30,7 +30,7 @@ cryptography==2.1.4
 python-dateutil==2.6.1
 PyYAML==3.12
 django-extensions==2.0.7
-werkzeug==0.14.1
+werkzeug==0.15.3
 Pillow==5.1.0
 dataclasses==0.6
 django-yamlfield==1.0.3
