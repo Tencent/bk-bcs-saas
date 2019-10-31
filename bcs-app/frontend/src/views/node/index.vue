@@ -18,9 +18,26 @@
                         <button class="bk-button bk-default" @click="showSetLabel">
                             <span>{{$t('设置标签')}}</span>
                         </button>
-                        <button class="bk-button bk-default copy-ip-btn" @click="copyIp">
+                        <!-- <button class="bk-button bk-default copy-ip-btn" @click="copyIp">
                             <span>{{$t('复制IP')}}</span>
-                        </button>
+                        </button> -->
+                        <bk-dropdown-menu :align="'left'" ref="copyIpDropdownMenu" class="copy-ip-dropdown">
+                            <a href="javascript:void(0);" slot="dropdown-trigger" class="bk-text-button copy-ip-btn">
+                                <span class="label">{{$t('复制IP')}}</span>
+                                <i class="bk-icon icon-angle-down dropdown-menu-angle-down"></i>
+                            </a>
+                            <ul class="bk-dropdown-list" slot="dropdown-content">
+                                <li>
+                                    <a href="javascript:void(0)" @click="copyIp('selected')" class="selected" :class="!checkedNodeList.length ? 'disabled' : ''">{{$t('复制所选IP')}}</a>
+                                </li>
+                                <li>
+                                    <a href="javascript:void(0)" @click="copyIp('cur-page')" class="cur-page">{{$t('复制当前页IP')}}</a>
+                                </li>
+                                <li>
+                                    <a href="javascript:void(0)" @click="copyIp('all')" class="all">{{$t('复制所有IP')}}</a>
+                                </li>
+                            </ul>
+                        </bk-dropdown-menu>
                     </div>
                     <div class="right">
                         <bk-dropdown-menu :align="'left'" :trigger="'click'" ref="toggleFilterDropdownMenu">
@@ -641,13 +658,13 @@
             }
         },
         async created () {
-            this.clipboardInstance = new Clipboard('.copy-ip-btn')
-            this.clipboardInstance.on('success', e => {
-                this.$bkMessage({
-                    theme: 'success',
-                    message: '复制成功'
-                })
-            })
+            // this.clipboardInstance = new Clipboard('.copy-ip-btn')
+            // this.clipboardInstance.on('success', e => {
+            //     this.$bkMessage({
+            //         theme: 'success',
+            //         message: '复制成功'
+            //     })
+            // })
 
             this.pageConf.curPage = 1
             this.pageLoading = true
@@ -1112,25 +1129,37 @@
 
             /**
              * 复制 IP
+             *
+             * @param {string} idx 复制的标识
              */
-            copyIp () {
-                if (!this.checkedNodeList.length) {
-                    this.bkMessageInstance && this.bkMessageInstance.close()
-                    this.bkMessageInstance = this.$bkMessage({
-                        theme: 'error',
-                        message: this.$t('请选择节点')
-                    })
-                    return
-                }
+            copyIp (idx) {
+                this.$refs.copyIpDropdownMenu && this.$refs.copyIpDropdownMenu.hide()
 
-                this.clipboardInstance = new Clipboard('.copy-ip-btn', {
-                    text: trigger => this.checkedNodeList.map(checkedNode => checkedNode.inner_ip).join('\n')
-                })
+                let successMsg = ''
+                // 复制所选 ip
+                if (idx === 'selected') {
+                    this.clipboardInstance = new Clipboard('.copy-ip-dropdown .selected', {
+                        text: trigger => this.checkedNodeList.map(checkedNode => checkedNode.inner_ip).join('\n')
+                    })
+                    successMsg = this.$t('复制 {len} 个IP成功', { len: this.checkedNodeList.length })
+                } else if (idx === 'cur-page') {
+                    // 复制当前页 IP
+                    this.clipboardInstance = new Clipboard('.copy-ip-dropdown .cur-page', {
+                        text: trigger => this.curPageData.map(checkedNode => checkedNode.inner_ip).join('\n')
+                    })
+                    successMsg = this.$t('复制当前页IP成功')
+                } else if (idx === 'all') {
+                    // 复制所有 IP
+                    this.clipboardInstance = new Clipboard('.copy-ip-dropdown .all', {
+                        text: trigger => this.nodeList.map(checkedNode => checkedNode.inner_ip).join('\n')
+                    })
+                    successMsg = this.$t('复制所有IP成功')
+                }
                 this.clipboardInstance.on('success', e => {
                     this.bkMessageInstance && this.bkMessageInstance.close()
                     this.bkMessageInstance = this.$bkMessage({
                         theme: 'success',
-                        message: `复制 ${this.checkedNodeList.length} 个IP成功`
+                        message: successMsg
                     })
                 })
             },
