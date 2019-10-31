@@ -28,7 +28,7 @@ gunicorn==19.7.1
 PyJWT==1.5.3
 cryptography==2.1.4
 python-dateutil==2.6.1
-PyYAML==3.12
+PyYAML==5.1
 django-extensions==2.0.7
 werkzeug==0.14.1
 Pillow==5.1.0
