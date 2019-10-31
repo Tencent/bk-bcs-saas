@@ -104,7 +104,6 @@
             border-radius: 2px;
             cursor: pointer;
             outline: none;
-
         }
 
         #reconnect button:hover {
@@ -133,36 +132,28 @@
 
     <script>
         var session_url = "{% raw session_url %}"
-
         Terminal.applyAddon(attach);
         Terminal.applyAddon(fit);
         Terminal.applyAddon(winptyCompat);
         Terminal.applyAddon(webLinks);
         Terminal.applyAddon(fullscreen)
-
         var term = new Terminal({
             "fontFamily": "Courier New, courier-new, courier, monospace",
         });
         term.open(document.getElementById('terminal-container'));
-
         term.winptyCompatInit();
         term.webLinksInit()
         term.fit();
         // term.toggleFullScreen();
-
         term.on('resize', function (size) {
             set_pty_size(size, ws)
         });
-
         function set_pty_size(size, ws) {
             data = size.rows + ',' + size.cols
-
             // RESIZE_CHANNEL = 4
             ws.send('4' + data);
-
             console.log('set_pty_size: ' + data)
         }
-
         term.attachCustomKeyEventHandler(function (e) {
             if (e.altKey && (e.code == 'KeyW')) {
                 event.preventDefault();
@@ -190,15 +181,12 @@
                 return false;
             }
         })
-
         // var isWindows = ['Windows', 'Win16', 'Win32', 'WinCE'].indexOf(navigator.platform) >= 0;
-
         // if (isWindows) {
         //    $(window).keydown(function (event) {
         //        console.log(event.keyCode); event.preventDefault();
         //    });
         // }
-
         function get_session_id() {
             term.write('\x1b[32mLaunching BCS Console...\x1b[m');
             $.getJSON(session_url, function (result) {
@@ -213,22 +201,18 @@
                 term.write("\x1b[31mLaunch Error: " + jqxhr.responseJSON.message + "\x1b[m\r\n");
             })
         }
-
         window.onresize = function (event) {
             term.fit();
         };
-
         function ws_connect(ws_url) {
             // 初始化就指定rows & cols
             ws_url = ws_url + '&rows=' + term.rows + '&cols=' + term.cols
             ws = new WebSocket(ws_url);
-
             // term handler
             term.on('data', function (data) {
                 // STDIN_CHANNEL = 0
                 ws.send('0' + data);
             });
-
             ws.onmessage = function (e) {
                 obj = JSON.parse(e.data);
                 if (obj.type == "exit_message") {
@@ -237,20 +221,20 @@
                     term.write(obj.data);
                 }
             };
-
             // websocket handler
             ws.onopen = function () {
                 term.reset();
                 term.focus();
             };
-
             ws.onclose = function (e) {
                 $("#disconnected").show();
             }
         }
-
         get_session_id()
 
+        function focusTerminal() {
+            term.focus();
+        }
     </script>
 </body>
 
