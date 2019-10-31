@@ -12,7 +12,7 @@ python-logstash==0.4.6
 dogpile.cache==0.6.4
 
 six==1.11.0
-requests==2.18.4
+requests==2.20.0
 arrow==0.10.0
 django-cors-headers==2.1.0
 
