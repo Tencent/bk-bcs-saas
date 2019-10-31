@@ -1963,6 +1963,12 @@ div.jsoneditor {
             margin: 12px 10px 0 0 !important;
         }
     }
+
+    &.max-size {
+        .bk-dialog-style {
+            width: 630px;
+        }
+    }
 }
 
 .biz-node-re-initialization-dialog {
