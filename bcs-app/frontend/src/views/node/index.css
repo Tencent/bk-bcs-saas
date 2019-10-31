@@ -41,6 +41,53 @@
                 cursor: not-allowed !important;
             }
         }
+
+        .copy-ip-dropdown {
+            a.disabled {
+                color: #c3cdd7;
+                cursor: not-allowed;
+                &:hover {
+                    background: inherit;
+                }
+            }
+        }
+
+        .copy-ip-btn {
+            width: 92px;
+            padding-left: 15px;
+            border: 1px solid #c3cdd7;
+            height: 38px;
+            line-height: 36px;
+            display: inline-block;
+            outline: none;
+            cursor: pointer;
+            white-space: nowrap;
+            -webkit-appearance: none;
+            vertical-align: middle;
+            font-size: 14px;
+            background: #fff;
+            border-radius: 2px 0 0 2px;
+            box-sizing: border-box;
+            color: #737987;
+            text-decoration: none;
+            transition: background-color ease 0.3s;
+            .label {
+                display: inline-block;
+                /* width: 55px; */
+                text-align: left;
+                @mixin ellipsis 85px;
+            }
+            .bk-icon {
+                color: #c3cdd7;
+                margin-left: 0;
+                margin-right: 0;
+                right: 8px;
+                font-weight: 700;
+                font-size: 10px;
+                top: 14px;
+                position: absolute;
+            }
+        }
     }
 
     .right {
