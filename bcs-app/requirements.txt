@@ -1,5 +1,5 @@
 Django==1.11.23
-djangorestframework==3.6.4
+djangorestframework==3.9.1
 pytz==2017.2
 # Use lower version of PyMySQL to connect to GCS MySQL successfully
 PyMySQL==0.6.7
