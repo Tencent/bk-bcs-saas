@@ -31,7 +31,7 @@ python-dateutil==2.6.1
 PyYAML==3.12
 django-extensions==2.0.7
 werkzeug==0.14.1
-Pillow==5.1.0
+Pillow==6.2.0
 dataclasses==0.6
 django-yamlfield==1.0.3
 Jinja2==2.10
