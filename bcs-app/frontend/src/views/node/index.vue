@@ -18,9 +18,6 @@
                         <button class="bk-button bk-default" @click="showSetLabel">
                             <span>{{$t('设置标签')}}</span>
                         </button>
-                        <!-- <button class="bk-button bk-default copy-ip-btn" @click="copyIp">
-                            <span>{{$t('复制IP')}}</span>
-                        </button> -->
                         <bk-dropdown-menu :align="'left'" ref="copyIpDropdownMenu" class="copy-ip-dropdown">
                             <a href="javascript:void(0);" slot="dropdown-trigger" class="bk-text-button copy-ip-btn">
                                 <span class="label">{{$t('复制IP')}}</span>
@@ -658,14 +655,6 @@
             }
         },
         async created () {
-            // this.clipboardInstance = new Clipboard('.copy-ip-btn')
-            // this.clipboardInstance.on('success', e => {
-            //     this.$bkMessage({
-            //         theme: 'success',
-            //         message: '复制成功'
-            //     })
-            // })
-
             this.pageConf.curPage = 1
             this.pageLoading = true
             await this.fetchData()
