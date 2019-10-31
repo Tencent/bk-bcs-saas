@@ -127,26 +127,21 @@
 <body style="background-color: #000;">
     <div id="app">
         <input type="text" id="short-focus" style="opacity: 0; position: absolute; z-index: 0;" @keyup="handleInput" />
-        <bk-tab addable :active.sync="active" :closable="closable" @add-panel="showDropdown" @close-panel="closePanel"
-            @tab-change="handleTabChange" v-bk-clickoutside="handleClick">
+        <bk-tab addable :active.sync="active" :closable="closable" @add-panel="showDropdown" @close-panel="closePanel" @tab-change="handleTabChange" v-bk-clickoutside="handleClick">
             <bk-tab-panel v-for="(panel, index) in panels" v-bind="panel" :key="index">
                 <template slot="label">
                     <i class="panel-count">$[index + 1]</i>
                     <span class="panel-name">$[panel.label]</span>
                 </template>
-                <iframe @click="handleClick" :src="panel.url" class="console-iframe"
-                    :style="{width: `${winWidth - 40}px`, height: `${winHeight - 100}px`}"></iframe>
+                <iframe @click="handleClick" :src="panel.url" :id="panel.name" :name="panel.name" class="console-iframe" :style="{width: `${winWidth - 40}px`, height: `${winHeight - 100}px`}"></iframe>
             </bk-tab-panel>
         </bk-tab>
         <div class="mask" v-show="isDropdownShow"></div>
-        <div class="bk-dropdown-menu" :style="{left: `${dropdownLeft}px`, opacity: (isDropdownShow ? 1 : 0)}" v-cloak
-            v-show="isDropdownShow">
+        <div class="bk-dropdown-menu" :style="{left: `${dropdownLeft}px`, opacity: (isDropdownShow ? 1 : 0)}" v-cloak v-show="isDropdownShow">
             <div class="bk-dropdown-content right-align is-show" v-cloak>
                 <ul class="bk-dropdown-list">
                     <li>
-                        <a href="javascript:;" v-cloak :class="{selected: index === selectIndex}"
-                            @click.stop.prevent="addTerminal(cluster)"
-                            v-for="(cluster, index) of clusterList">$[cluster.name]</a>
+                        <a href="javascript:;" v-cloak :class="{selected: index === selectIndex}" @click.stop.prevent="addTerminal(cluster)" v-for="(cluster, index) of clusterList">$[cluster.name]</a>
                     </li>
                 </ul>
             </div>
@@ -184,23 +179,18 @@
                 init() {
                     this.winWidth = $(window).width()
                     this.winHeight = $(window).height()
-
                     $(window).resize(function () {
                         this.winWidth = $(window).width()
                         this.winHeight = $(window).height()
-
                     })
-
                     // const params = this.parseUrlQuery()
                     const url = window.location.href
                     const reg = /projects\/([\w\d]*)\/mgr\/#cluster=([\w\d-]*)/
                     const matcher = url.match(reg)
-
                     if (matcher) {
                         this.projectId = matcher[1]
                         this.watchMessage()
                         this.watchShortcut()
-
                         const cluster_url = '{{ settings.DEVOPS_BCS_API_URL }}/api/projects/{{ project_id }}/clusters?limit=1000'
                         self = this
                         $.getJSON(cluster_url, function (result) {
@@ -222,6 +212,9 @@
                     })
                     if (panel) {
                         window.location.hash = `cluster=${panel.clusterId}`
+                        this.$nextTick(() => {
+                            document.getElementById(panel.name).contentWindow.focusTerminal()
+                        })
                     }
                 },
                 handleInput(event) {
@@ -253,7 +246,6 @@
                     let key = ''
                     let value = ''
                     let paraString = url.substring(url.indexOf('?') + 1, url.length).split('&')
-
                     for (const i in paraString) {
                         keyvalue = paraString[i].split('=')
                         key = keyvalue[0]
@@ -269,11 +261,9 @@
                     let clusterName = 'default'
                     const siteUrl = data.siteUrl
                     const url = `{{ settings.DEVOPS_BCS_API_URL }}/web_console/projects/{{ project_id }}/clusters/${clusterId}/?source=mgr`
-
                     const tabKeys = self.panels.map(item => {
                         return item.name
                     })
-
                     this.clusterList.forEach(item => {
                         if (item.cluster_id === clusterId) {
                             clusterName = item.name
@@ -368,7 +358,6 @@
                 }
             }
         })
-
     </script>
 </body>
 
