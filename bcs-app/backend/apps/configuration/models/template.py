@@ -18,13 +18,18 @@ from django.db.utils import IntegrityError
 from rest_framework.exceptions import ValidationError
 
 from backend.apps.metric.models import Metric
+from backend.apps.configuration import constants
 from backend.apps.application.constants import K8S_KIND, MESOS_KIND
-from backend.apps.configuration.constants import TemplateCategory, K8sResourceName, MesosResourceName
 from backend.apps.instance.constants import LOG_CONFIG_MAP_SUFFIX, APPLICATION_ID_SEPARATOR, INGRESS_ID_SEPARATOR
 from .base import BaseModel, POD_RES_LIST, logger, get_default_version, COPY_TEMPLATE
 from .manager import TemplateManager, ShowVersionManager, VersionedEntityManager
 from .utils import get_model_class_by_resource_name, get_secret_name_by_certid, MODULE_DICT
 from . import k8s, mesos
+
+TemplateCategory = constants.TemplateCategory
+TemplateEditMode = constants.TemplateEditMode
+K8sResourceName = constants.K8sResourceName
+MesosResourceName = constants.MesosResourceName
 
 
 def get_template_by_project_and_id(project_id, template_id):
@@ -47,11 +52,15 @@ class Template(BaseModel):
     name = models.CharField("名称", max_length=255)
     desc = models.CharField("描述", max_length=100, help_text="最多不超过50个字符")
     category = models.CharField(
-        "类型", max_length=10, choices=TemplateCategory.get_choices(), default=TemplateCategory.CUSTOM.value)
+        "类型", max_length=10, choices=TemplateCategory.get_choices(),
+        default=TemplateCategory.CUSTOM.value)
     draft = models.TextField("草稿", default='')
     draft_time = models.DateTimeField("草稿更新时间", blank=True, null=True)
     draft_updator = models.CharField("草稿更新者", max_length=32, default='')
     draft_version = models.IntegerField("草稿对应的版本", default=0)
+
+    edit_mode = models.CharField("编辑模式", max_length=16, choices=TemplateEditMode.get_choices(),
+                                 default=TemplateEditMode.PageForm.value)
 
     is_locked = models.BooleanField("是否加锁", default=False)
     locker = models.CharField("加锁者", max_length=32, default='', blank=True, null=True)
@@ -345,6 +354,17 @@ class ShowVersion(BaseModel):
         except Exception:
             return []
 
+    def update_real_version_id(self, real_version_id, **kwargs):
+        update_params = {
+            'real_version_id': real_version_id
+        }
+        history = self.get_history()
+        history.append(real_version_id)
+        update_params['history'] = history
+        update_params.update(kwargs)
+        self.__dict__.update(update_params)
+        self.save()
+
     class Meta:
         index_together = ("is_deleted", "template_id")
         unique_together = ("template_id", "name")
@@ -371,7 +391,6 @@ class VersionedEntity(BaseModel):
         return f'<{self.version}/{self.template_id}/{self.last_version_id}>'
 
     def save(self, *args, **kwargs):
-        # 捕获名称重复异常
         if isinstance(self.entity, dict):
             self.entity = json.dumps(self.entity)
         super().save(*args, **kwargs)
@@ -534,10 +553,10 @@ class VersionedEntity(BaseModel):
         return pod_resource_map
 
     @classmethod
-    def update_for_new_ventity(cls, ventity_id, resource_name, resource_id, new_resource_id, **kwargs):
+    def update_for_new_ventity(cls, version_id, resource_name, resource_id, new_resource_id, **kwargs):
         """更新版本资源
         """
-        ventity = cls.objects.get(id=ventity_id)
+        ventity = cls.objects.get(id=version_id)
         resource_id_list = ventity.get_resource_id_list(resource_name)
         try:
             resource_id_list.remove(resource_id)  # resource_id is string type
@@ -558,8 +577,8 @@ class VersionedEntity(BaseModel):
         return new_version_entity
 
     @classmethod
-    def update_for_delete_ventity(cls, ventity_id, resource_name, resource_id, **kwargs):
-        ventity = cls.objects.get(id=ventity_id)
+    def update_for_delete_ventity(cls, version_id, resource_name, resource_id, **kwargs):
+        ventity = cls.objects.get(id=version_id)
         resource_id_list = ventity.get_resource_id_list(resource_name)
         if resource_id in resource_id_list:
             resource_id_list.remove(resource_id)
@@ -604,11 +623,11 @@ class VersionedEntity(BaseModel):
         return apps[0]
 
     @classmethod
-    def get_k8s_service_by_statefulset_id(cls, ventity_id, sts_id):
+    def get_k8s_service_by_statefulset_id(cls, version_id, sts_id):
         try:
-            ventity = cls.objects.get(id=ventity_id)
+            ventity = cls.objects.get(id=version_id)
         except Exception:
-            raise ValidationError(f"模板版本(version_id:{ventity_id})不存在")
+            raise ValidationError(f"模板版本(version_id:{version_id})不存在")
         try:
             statefulset = k8s.K8sStatefulSet.objects.get(id=sts_id)
         except Exception:
@@ -621,7 +640,7 @@ class VersionedEntity(BaseModel):
             if svc:
                 return svc
 
-        raise ValidationError(f"模板版本(version_id:{ventity_id})使用了StatefulSet, 但未关联任何Service")
+        raise ValidationError(f"模板版本(version_id:{version_id})使用了StatefulSet, 但未关联任何Service")
 
     @classmethod
     def get_related_apps_by_service(cls, versioned_entity_id, service_id):

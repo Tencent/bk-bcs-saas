@@ -11,16 +11,9 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-from rest_framework.exceptions import ValidationError
-
 from backend.accounts import bcs_perm
 from .serializers_new import VentityWithTemplateSLZ
-
-
-def validate_template_locked(template, username):
-    locker = template.locker
-    if template.is_locked and locker != username:
-        raise ValidationError(f"{locker}正在操作，您如需操作请联系{locker}解锁")
+from .utils import validate_template_locked
 
 
 class TemplatePermission:

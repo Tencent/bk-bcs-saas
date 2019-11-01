@@ -19,14 +19,17 @@ import logging
 import re
 from collections import Counter
 
-from backend.apps.configuration.constants import NUM_VAR_ERROR_MSG, VARIABLE_PATTERN
-from backend.apps.configuration.models import CATE_SHOW_NAME, MODULE_DICT, ShowVersion, Template, VersionedEntity
-from backend.apps.constants import ClusterType, ProjectKind
-from backend.utils import cache
-from backend.utils.exceptions import ResNotFoundError
 from rest_framework.exceptions import ValidationError
 
 from .constants import RESOURCE_NAMES
+from backend.apps.configuration.constants import NUM_VAR_ERROR_MSG, VARIABLE_PATTERN
+from backend.apps.configuration.serializers_new import TemplateSLZ, CreateTemplateSLZ
+from backend.apps.configuration.models import CATE_SHOW_NAME, MODULE_DICT, ShowVersion, Template, VersionedEntity
+from backend.apps.constants import ProjectKind
+from backend.utils import cache
+from backend.utils.exceptions import ResNotFoundError
+from backend.accounts import bcs_perm
+from backend.activity_log import client
 
 logger = logging.getLogger(__name__)
 
@@ -40,18 +43,6 @@ def to_bcs_res_name(project_kind, origin_name):
     if project_kind == ProjectKind.K8S.value:
         return f'K8s{origin_name}'
     return origin_name.lower()
-
-
-# TODO mark refactor 由to_bcs_res_name替代
-def get_real_category(project_kind, category):
-    if category not in CATE_SHOW_NAME.values():
-        return category
-    project_kind_name = ClusterType.get(project_kind)
-    if project_kind_name == 'Kubernetes':
-        category = 'K8s%s' % category
-    elif project_kind_name == 'Mesos':
-        category = category.lower()
-    return category
 
 
 @cache.region.cache_on_arguments(expiration_time=60)
@@ -161,3 +152,81 @@ def check_var_by_config(config):
 def validate_resource_name(resource_name):
     if resource_name not in RESOURCE_NAMES:
         raise ResNotFoundError(f"资源{resource_name}不存在")
+
+
+def validate_template_locked(template, username):
+    locker = template.locker
+    if template.is_locked and locker != username:
+        raise ValidationError(f"{locker}正在操作，您如需操作请联系{locker}解锁")
+
+
+def create_template(username, project_id, tpl_args):
+    if not tpl_args:
+        raise ValidationError("请先创建模板集")
+
+    tpl_args['project_id'] = project_id
+    serializer = CreateTemplateSLZ(data=tpl_args)
+    serializer.is_valid(raise_exception=True)
+    template = serializer.save(creator=username)
+    # 记录操作日志
+    client.ContextActivityLogClient(
+        project_id=project_id,
+        user=username,
+        resource_type='template',
+        resource=tpl_args['name'],
+        resource_id=template.id,
+        extra=json.dumps(tpl_args),
+        description="创建模板集"
+    ).log_add()
+    return template
+
+
+def update_template(username, template, tpl_args):
+    serializer = TemplateSLZ(template, data=tpl_args)
+    serializer.is_valid(raise_exception=True)
+    template = serializer.save(updator=username)
+    # 记录操作日志
+    client.ContextActivityLogClient(
+        project_id=template.project_id,
+        user=username,
+        resource_type="template",
+        resource=template.name,
+        resource_id=template.id,
+        extra=json.dumps(serializer.data),
+        description="更新模板集"
+    ).log_modify()
+    return template
+
+
+def create_template_with_perm_check(request, project_id, tpl_args):
+    # 验证用户是否有创建的权限
+    perm = bcs_perm.Templates(request, project_id, bcs_perm.NO_RES)
+    # 如果没有权限，会抛出异常
+    perm.can_create(raise_exception=True)
+    template = create_template(request.user.username, project_id, tpl_args)
+    # 注册资源到权限中心
+    perm.register(template.id, tpl_args['name'])
+    return template
+
+
+def mock_create_template_with_perm_check(request, project_id, tpl_args):
+    template = create_template('', project_id, tpl_args)
+    return template
+
+
+def update_template_with_perm_check(request, template, tpl_args):
+    validate_template_locked(template, request.user.username)
+    # 验证用户是否有编辑权限
+    perm = bcs_perm.Templates(request, template.project_id, template.id, template.name)
+    perm.can_edit(raise_exception=True)
+    template = update_template(request.user.username, template, tpl_args)
+    if template.name != tpl_args.get('name'):
+        perm.update_name(template.name)
+    return template
+
+
+def mock_update_template_with_perm_check(request, template, tpl_args):
+    updator = ''
+    validate_template_locked(template, updator)
+    template = update_template(updator, template, tpl_args)
+    return template

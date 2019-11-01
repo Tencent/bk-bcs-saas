@@ -18,6 +18,7 @@ from backend.apps.configuration.mesos.urls import urlpatterns as mesos_patterns
 from backend.apps.configuration.showversion.urls import urlpatterns as sversion_patterns
 from backend.apps.configuration.instance.urls import urlpatterns as inst_patterns
 from backend.apps.configuration.namespace.urls import urlpatterns as ns_patterns
+from backend.apps.configuration.yaml_mode.urls import urlpatterns as yaml_patterns
 from . import views
 
 urlpatterns = [
@@ -64,3 +65,5 @@ urlpatterns += ns_patterns
 urlpatterns += k8s_patterns
 
 urlpatterns += inst_patterns
+
+urlpatterns += yaml_patterns

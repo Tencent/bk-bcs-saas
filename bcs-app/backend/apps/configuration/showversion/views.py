@@ -61,16 +61,8 @@ class ShowVersionViewSet(viewsets.ViewSet, TemplatePermission):
         else:
             show_version = models.ShowVersion.objects.get(id=show_version_id,
                                                           template_id=template.id)
-            show_version.name = show_version_name
-            show_version.real_version_id = real_version_id
-            show_version.updator = username
-
-            history = show_version.get_history()
-            history.append(real_version_id)
-            show_version.history = history
-
-            show_version.save()
-
+            show_version.update_real_version_id(real_version_id, updator=username)
+        
         del create_data['template']
         client.ContextActivityLogClient(
             project_id=create_data['project_id'],

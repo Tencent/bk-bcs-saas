@@ -37,7 +37,7 @@ LOGGING = get_logging_config(LOG_LEVEL)
 
 APP_ID = 'bk_bcs_app'
 # 设置你的APP_TOKEN
-APP_TOKEN = ''
+APP_TOKEN = os.environ.get('APP_TOKEN', '')
 # 设置搭建的社区版域名
 BK_PAAS_HOST = os.environ.get('BK_PAAS_HOST', '')
 SESSION_COOKIE_DOMAIN = '.' + parse.urlparse(BK_PAAS_HOST).netloc.split(':')[0]
@@ -49,7 +49,6 @@ CORS_ORIGIN_REGEX_WHITELIST = (
 )
 
 PAAS_ENV = 'local'
-
 
 # 容器服务地址
 DEVOPS_HOST = os.environ.get('DEV_DEVOPS_HOST', '')
@@ -73,7 +72,6 @@ BK_IAM_HOST = os.environ.get('BKAPP_IAM_HOST')
 # 权限中心接口, 和IAM地址保持一致
 PAAS_PERM_HOST = BK_IAM_HOST
 PAAS_AUTH_HOST = BK_IAM_HOST
-APP_TOKEN = os.environ.get('APP_TOKEN', '')
 
 APIGW_HOST = BK_PAAS_INNER_HOST
 

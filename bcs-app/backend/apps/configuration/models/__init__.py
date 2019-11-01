@@ -19,3 +19,4 @@ from .k8s import K8sDeployment, K8sConfigMap, K8sSecret, K8sDaemonSet, K8sJob, K
 from .utils import get_model_class_by_resource_name, get_pod_related_service, get_service_related_statefulset, \
     get_application_related_resource, get_secret_name_by_certid, get_pod_qsets_by_tag, get_k8s_container_ports, \
     MODULE_DICT
+from .resfile import ResourceFile

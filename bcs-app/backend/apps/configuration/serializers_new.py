@@ -18,12 +18,13 @@ from django.utils import timezone
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
+from .constants import RESOURCE_NAMES, MesosResourceName
 from backend.utils.exceptions import ResNotFoundError
 from backend.apps.configuration import models
+from backend.apps.configuration.constants import TemplateEditMode
 from backend.apps.configuration.k8s import serializers as kserializers
 from backend.apps.configuration.mesos import serializers as mserializers
-from django.core.exceptions import ObjectDoesNotExist
-from .constants import RESOURCE_NAMES, MesosResourceName
+from backend.accounts import bcs_perm
 
 SLZ_CLASS = [kserializers.K8sDeploymentSLZ, kserializers.K8sDaemonsetSLZ, kserializers.K8sJobSLZ,
              kserializers.K8sStatefulSetSLZ, kserializers.K8sServiceSLZ, kserializers.K8sConfigMapSLZ,
@@ -55,6 +56,18 @@ def can_delete_resource(ventity, resource_name, resource_id):
                                   f"{','.join(related_resource_names)}")
 
 
+class TemplateSLZ(serializers.ModelSerializer):
+    class Meta:
+        model = models.Template
+        fields = (
+            "name",
+            "desc",
+            "updated",
+            "updator",
+        )
+        read_only_fields = ("updated", "updator")
+
+
 class SearchTemplateSLZ(serializers.Serializer):
     search = serializers.CharField(required=False, allow_blank=True)
     limit = serializers.IntegerField(required=True)
@@ -71,10 +84,21 @@ class CreateTemplateSLZ(serializers.ModelSerializer):
     name = serializers.CharField(max_length=30, required=True)
     desc = serializers.CharField(max_length=50, required=False, allow_blank=True)
     project_id = serializers.CharField(max_length=64)
+    edit_mode = serializers.ChoiceField(
+        choices=TemplateEditMode.get_choices(), default=TemplateEditMode.PageForm.value
+    )
 
     class Meta:
         model = models.Template
-        fields = ('name', 'desc', 'project_id')
+        fields = ('name', 'desc', 'project_id', 'edit_mode')
+
+
+class UpdateTemplateSLZ(serializers.Serializer):
+    """更新模板集基本信息
+    """
+    name = serializers.CharField(max_length=30, required=True)
+    desc = serializers.CharField(
+        max_length=50, required=False, allow_blank=True)
 
 
 class TemplateDraftSLZ(serializers.ModelSerializer):
@@ -111,7 +135,7 @@ class ListTemplateSLZ(serializers.ModelSerializer):
     class Meta:
         model = models.Template
         fields = ('id', 'name', 'category', 'desc', 'creator', 'updator', 'created', 'updated',
-                  'logo', 'is_locked', 'locker', 'category_name')
+                  'logo', 'is_locked', 'locker', 'category_name', 'edit_mode')
 
     def to_representation(self, instance):
         data = super().to_representation(instance)
@@ -158,29 +182,4 @@ class VentityWithTemplateSLZ(serializers.Serializer):
         else:
             data['template'] = template
 
-        return data
-
-
-class TemplateResourceSLZ(serializers.Serializer):
-    project_id = serializers.CharField(required=True)
-    version_id = serializers.IntegerField(required=True)
-
-    def validate(self, data):
-        version_id = data['version_id']
-        try:
-            ventity = models.VersionedEntity.objects.get(id=version_id)
-            template = models.Template.objects.get(id=ventity.template_id)
-
-        except ObjectDoesNotExist:
-            raise ResNotFoundError(f"模板集版本(id:{version_id})不存在")
-
-        except Exception as error:
-            logger.exceptions('get template error, %s', error)
-            raise ResNotFoundError(f"模板集版本(id:{version_id})获取失败")
-
-        project_id = data['project_id']
-        if project_id != template.project_id:
-            raise ValidationError(f"模板集版本(id:{version_id})不属于该项目(id:{project_id})")
-
-        data['ventity'] = ventity
         return data

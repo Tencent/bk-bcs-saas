@@ -12,7 +12,6 @@
 # specific language governing permissions and limitations under the License.
 #
 import re
-from collections import OrderedDict
 
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
@@ -23,7 +22,7 @@ from backend.apps.configuration import models
 RE_SHOW_NAME = re.compile(r'^[a-zA-Z0-9-_.]{1,45}$')
 
 
-class ShowVersionCreateSLZ(serializers.Serializer):
+class ShowVersionNameSLZ(serializers.Serializer):
     name = serializers.RegexField(
         RE_SHOW_NAME,
         max_length=45,
@@ -32,6 +31,9 @@ class ShowVersionCreateSLZ(serializers.Serializer):
             'invalid': "请填写1至45个字符（字母、数字、下划线以及 - 或 .）"
         }
     )
+
+
+class ShowVersionCreateSLZ(ShowVersionNameSLZ):
     project_id = serializers.CharField(required=True)
     template_id = serializers.CharField(required=True)
 
@@ -81,9 +83,22 @@ class GetShowVersionSLZ(serializers.Serializer):
         try:
             data['show_version'] = models.ShowVersion.objects.get(id=show_version_id, template_id=template_id)
         except models.ShowVersion.DoesNotExist:
-            raise ValidationError(f"版本(id:{show_version_id})不属于该模板(id:{template_id})")
+            raise ValidationError(
+                f'show version(id:{show_version_id}) does not exist or not belong to template(id:{template_id})')
         else:
             return data
+
+
+class GetLatestShowVersionSLZ(serializers.Serializer):
+    template_id = serializers.CharField(required=True)
+    project_id = serializers.CharField(required=True)
+
+    def validate(self, data):
+        template = models.get_template_by_project_and_id(data['project_id'], data['template_id'])
+        data['template'] = template
+        data['show_version'] = models.ShowVersion.objects.get_latest_by_template(template.id)
+        data['show_version_id'] = data['show_version'].id
+        return data
 
 
 class ResourceConfigSLZ(serializers.Serializer):

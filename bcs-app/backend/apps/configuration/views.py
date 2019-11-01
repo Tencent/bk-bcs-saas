@@ -25,10 +25,10 @@ from rest_framework.renderers import BrowsableAPIRenderer
 from backend.accounts import bcs_perm
 from backend.apps.configuration.models import Template, VersionedEntity, get_default_version, \
     get_model_class_by_resource_name, get_template_by_project_and_id
-from backend.apps.configuration.serializers_new import SearchTemplateSLZ, TemplateDraftSLZ, \
-    ListTemplateSLZ, VentityWithTemplateSLZ, get_slz_class_by_resource_name, can_delete_resource
-from backend.apps.configuration.serializers import ResourceSLZ, ResourceRequstSLZ, TemplateSLZ, TemplateUpdateSLZ, \
-    get_tempate_info, is_tempalte_instance, TemplateCreateSLZ
+from backend.apps.configuration.serializers_new import SearchTemplateSLZ, TemplateDraftSLZ, UpdateTemplateSLZ, \
+    TemplateSLZ, ListTemplateSLZ, VentityWithTemplateSLZ, get_slz_class_by_resource_name, can_delete_resource
+from backend.apps.configuration.serializers import ResourceSLZ, ResourceRequstSLZ, TemplateCreateSLZ, \
+    get_tempate_info, is_tempalte_instance
 from backend.apps.configuration.utils import validate_resource_name, create_template_with_perm_check
 from backend.apps.instance.utils import check_tempalte_available, validate_template_id
 from backend.utils.renderers import BKAPIRenderer
@@ -381,7 +381,7 @@ class SingleTempalteView(generics.RetrieveUpdateDestroyAPIView):
             }
             raise ValidationError(detail=detail)
 
-        self.slz = TemplateUpdateSLZ(data=request.data)
+        self.slz = UpdateTemplateSLZ(data=request.data)
         self.slz.is_valid(raise_exception=True)
         return super(SingleTempalteView, self).update(self.slz)
 
