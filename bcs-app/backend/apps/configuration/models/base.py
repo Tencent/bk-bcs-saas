@@ -44,7 +44,6 @@ class BaseModel(models.Model):
         abstract = True
 
     def delete(self, *args, **kwargs):
-        print('wathsdfasdfasdfasdfasdfasdf')
         self.is_deleted = True
         self.deleted_time = timezone.now()
         self.save(update_fields=['is_deleted', 'deleted_time'])
