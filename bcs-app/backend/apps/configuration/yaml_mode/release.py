@@ -22,40 +22,28 @@ from rest_framework.exceptions import ParseError
 from backend.bcs_k8s.app import bcs_info_injector
 
 
-# TODO use resources module function
-def get_namespace_info(namespace_id):
-    return {
-        'cluster_id': 'BCS-K8S-25001',
-        'namespace': 'test',
-        'namespace_id': namespace_id
-    }
-
-
 @dataclass
-class ManifestsData:
+class ReleaseData:
     project_id: str
-    namespace_id: int
+    namespace_info: dict
     show_version: OrderedDict
     template_files: list
 
 
-class ManifestsRenderer:
-    def __init__(self, user, raw_manifests, **extra_inject_fields):
+class ReleaseDataProcessor:
+    def __init__(self, user, raw_release_data):
         self.access_token = user.token.access_token
         self.username = user.username
 
-        self.project_id = raw_manifests.project_id
-        self.namespace_id = raw_manifests.namespace_id
-        self.show_version = raw_manifests.show_version
-        self.template_files = raw_manifests.template_files
-        self.namespace_info = get_namespace_info(self.namespace_id)
-
-        self.extra_inject_fields = extra_inject_fields
+        self.project_id = raw_release_data.project_id
+        self.namespace_info = raw_release_data.namespace_info
+        self.show_version = raw_release_data.show_version
+        self.template_files = raw_release_data.template_files
 
     def _parse_yaml(self, yaml_content):
         try:
             yaml = YAML()
-            resources = list(yaml.load_all(yaml_content.encode('utf-8')))
+            resources = list(yaml.load_all(yaml_content))
         except Exception as e:
             raise ParseError(f'Parse manifest failed: \n{e}\n\nManifest content:\n{yaml_content}')
         else:
@@ -69,7 +57,7 @@ class ManifestsRenderer:
         except Exception as e:
             raise ParseError(f'join manifest failed: {e}')
         else:
-            print(s.getvalue())
+            # print(s.getvalue())
             return s.getvalue()
 
     def _render_with_variables(self, raw_content):
@@ -84,9 +72,9 @@ class ManifestsRenderer:
         resources = self._parse_yaml(yaml_content)
         # resources = bcs_info_injector.parse_manifest(yaml_content)
         context = {
-            "creator": self.username,
-            "updator": self.username,
-            "version": self.show_version.name
+            'creator': self.username,
+            'updator': self.username,
+            'version': self.show_version.name
         }
         manager = bcs_info_injector.InjectManager(
             configs=inject_configs,
@@ -104,7 +92,7 @@ class ManifestsRenderer:
             access_token=self.access_token,
             project_id=self.project_id,
             cluster_id=self.namespace_info['cluster_id'],
-            namespace_id=self.namespace_id,
+            namespace_id=self.namespace_info['namespace_id'],
             namespace=self.namespace_info['namespace'],
             creator=self.username,
             updator=self.username,
@@ -115,14 +103,14 @@ class ManifestsRenderer:
         )
         return configs
 
-    def formalize(self, raw_content, inject_configs):
+    def _inject(self, raw_content, inject_configs):
         content = self._render_with_variables(raw_content)
         content = self._inject_bcs_info(content, inject_configs)
         return content
 
-    def render(self):
+    def release_data(self):
         inject_configs = self._get_inject_configs()
         for res_files in self.template_files:
             for f in res_files['files']:
-                f['content'] = self.formalize(f['content'], inject_configs)
-        return ManifestsData(self.project_id, self.namespace_id, self.show_version, self.template_files)
+                f['content'] = self._inject(f['content'], inject_configs)
+        return ReleaseData(self.project_id, self.namespace_info, self.show_version, self.template_files)

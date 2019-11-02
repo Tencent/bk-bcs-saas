@@ -18,7 +18,7 @@ from backend.apps.configuration import models
 
 def get_resource_file(res_name, res_file_ids, *file_fields):
     resource_file = {'resource_name': res_name}
-    resource_file['files'] = models.ResourceFile.objects.filter(id__in=res_file_ids).values(*file_fields)
+    resource_file['files'] = list(models.ResourceFile.objects.filter(id__in=res_file_ids).values(*file_fields))
     return resource_file
 
 

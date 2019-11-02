@@ -146,7 +146,7 @@ class PreviewTemplateFileSLZ(TemplateFileSLZ):
     files = serializers.ListField(child=PreviewResourceFileSLZ(), allow_empty=False)
 
 
-class PreviewTemplateFilesSLZ(serializers.Serializer):
+class TemplateReleaseSLZ(serializers.Serializer):
     show_version = GetShowVersionSLZ()
     namespace_id = serializers.IntegerField()
     template_files = serializers.ListField(child=PreviewTemplateFileSLZ(), allow_empty=False)

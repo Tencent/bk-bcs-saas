@@ -28,7 +28,7 @@ urlpatterns = [
         views.YamlTemplateViewSet.as_view({'get': 'get_template_by_show_version'})),
 
     url(r'^api/projects/(?P<project_id>\w{32})/configuration/yaml_templates/(?P<template_id>\d+)/'
-        r'show_versions/(?P<show_version_id>\d+)/resources/$',
-        views.TemplateResourceViewSet.as_view({'post': 'preview_or_apply'})),
+        r'show_versions/(?P<show_version_id>\d+)/releases/$',
+        views.TemplateReleaseViewSet.as_view({'post': 'preview_or_apply'})),
 
 ]

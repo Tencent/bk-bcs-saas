@@ -11,40 +11,60 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-from backend.apps.instance import models
+import contextlib
+
+from backend.utils.client import make_kubectl_client
+from backend.utils.error_codes import error_codes
+from backend.bcs_k8s.kubectl.exceptions import KubectlExecutionError
 
 
 class DeployController:
-    def __init__(self, manifests):
-        self.manifests = manifests
+    def __init__(self, access_token, release_data):
+        self.access_token = access_token
+        self.release_data = release_data
+        self.namespace = release_data.namespace_info['namespace']
+
+    @contextlib.contextmanager
+    def make_kubectl_client(self):
+        with make_kubectl_client(
+                project_id=self.release_data.project_id,
+                cluster_id=self.release_data.namespace_info['cluster_id'],
+                access_token=self.access_token) as (client, err):
+            yield client, err
+
+    def _update_or_create_version_instance(self, operation):
+        # TODO adaptor model VersionInstance and InstanceConfig
+        pass
+
+    def _to_manifests(self):
+        template_files = self.release_data.template_files
+        manifest_list = []
+        for res_file in template_files:
+            manifest_list += [f['content'] for f in res_file['files']]
+        return '---\n'.join(manifest_list)
+
+    def _run_with_kubectl(self, operation):
+        print(self._to_manifests())
+        # with self.make_kubectl_client() as (client, err):
+        #     if err is not None:
+        #         raise error_codes.APIError(f'make kubectl client failed: {err}')
+        #
+        #     self._update_or_create_version_instance(operation)
+        #
+        #     manifests = self._to_manifests()
+        #     try:
+        #         if operation == 'apply':
+        #             client.ensure_namespace(self.namespace)
+        #             client.apply(manifests, self.namespace)
+        #
+        #         elif operation == 'delete':
+        #             client.ensure_namespace(self.namespace)
+        #             client.delete(manifests, self.namespace)
+        #     except KubectlExecutionError as e:
+        #         raise error_codes.APIError(f'kubectl {operation} failed: {e}')
 
     def apply(self):
-        models.VersionInstance.objects.create()
-
-        # class VersionInstance(BaseModel):
-        #     """版本实例化信息
-        #     instance_entity 字段内容如下：表名：记录ID
-        #     {
-        #         'application': 'ApplicationID1,ApplicationID2,ApplicationID3',
-        #         'service': 'ServiceID1,ServiceID2',
-        #         ...
-        #     }
-        #     from backend.apps.configuration.models import MODULE_DICT
-        #     MODULE_DICT 记录 `表名` 和  `model` 的对应关系，并且所有的 `model` 都定义了 `get_name` 方法来查看名称
-        #     """
-        #     version_id = models.IntegerField(u"关联的VersionedEntity ID")
-        #     instance_entity = models.TextField(u"需要实例化的资源", help_text=u"json格式数据")
-        #     is_start = models.BooleanField(
-        #         default=False, help_text=u"false:生成配置文件；true:生成配置文件，调用bsc api实例化配置信息")
-        #     # add by 应用更新操作
-        #     ns_id = models.IntegerField(u"命名空间ID")
-        #     template_id = models.IntegerField(u"关联的模板 ID", help_text=u"该字段只在db中查看使用")
-        #     history = models.TextField(u"历史变更数据", help_text=u"以json格式存储")
-        #     is_bcs_success = models.BooleanField(u"调用BCS API 是否成功", default=True)
-        #     # 添加用户可见版本
-        #     show_version_id = models.IntegerField(u"用户可见版本ID", default=0)
-        #     show_version_name = models.CharField(
-        #         u"用户可见版本Name", max_length=255, default='')
+        self._run_with_kubectl('apply')
 
     def delete(self):
-        pass
+        self._run_with_kubectl('delete')
