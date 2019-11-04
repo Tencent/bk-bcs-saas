@@ -37,6 +37,7 @@ from backend.utils.response import APIResult
 from backend.activity_log import client
 from backend.apps.constants import ProjectKind
 from backend.apps.configuration.namespace.serializers import CreateNamespaceSLZ, UpdateNSVariableSLZ
+from backend.apps.whitelist_bk import can_sync_namespace
 
 logger = logging.getLogger(__name__)
 
@@ -296,7 +297,8 @@ class NamespaceView(NamespaceBase, viewsets.ViewSet):
         else:
             results = sorted(results, key=lambda x: x['id'], reverse=True)
 
-        return APIResult(results, '取Namespace成功', permissions={'create': can_create})
+        permissions = {'create': can_create, 'sync_namespace': can_sync_namespace(project_id)}
+        return APIResult(results, '取Namespace成功', permissions=permissions)
 
     def delete_secret_for_mesos(self, access_token, project_id, cluster_id, ns_name):
         client = MesosClient(access_token, project_id, cluster_id, env=None)
