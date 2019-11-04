@@ -79,9 +79,7 @@ class CreateTemplateSLZ(YamlTemplateSLZ):
             'project_id': project_id,
             'edit_mode': TemplateEditMode.YAML.value
         }
-        # template = get_template_by_project_and_id(project_id, template_id=1)
-        # template = utils.create_template_with_perm_check(request, project_id, serializer.validated_data)
-        template = utils.mock_create_template_with_perm_check(request, project_id, desc_args)
+        template = utils.create_template_with_perm_check(request, project_id, desc_args)
         files2res.create_resources(template, validated_data['show_version'], validated_data['template_files'])
         return template
 
@@ -100,8 +98,7 @@ class UpdateTemplateSLZ(YamlTemplateSLZ):
             'name': validated_data['name'],
             'desc': validated_data.get('desc', ''),
         }
-        template = utils.mock_update_template_with_perm_check(request, template, desc_args)
-        # template = utils.update_template_with_perm_check(request, template, desc_args)
+        template = utils.update_template_with_perm_check(request, template, desc_args)
         if validated_data.get('show_version'):
             files2res.update_resources(
                 template, validated_data['show_version'], validated_data.get('template_files')

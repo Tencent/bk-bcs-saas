@@ -140,12 +140,12 @@ class BcsInfoProvider:
         }
         return data
 
-    def provide_pod_labels(self):
-        labels = self.provide_labels()
+    def provide_pod_labels(self, source_type='helm'):
+        labels = self.provide_labels(source_type)
         labels.pop("io.tencent.paas.version")
         return labels
 
-    def provide_labels(self):
+    def provide_labels(self, source_type='helm'):
         """
             io.tencent.paas.source_type: helm/template  # 来源
             io.tencent.paas.version: test1              # 版本号（应用页面显示用）
@@ -165,23 +165,26 @@ class BcsInfoProvider:
             io.tencent.bcs.controller.name  # 应用名称, metadata.name 中的值
         """
         labels = {
-            "io.tencent.paas.source_type": "helm",  # 来源
+            "io.tencent.paas.source_type": source_type,  # 来源
             # 通过getter方法设置，可以保证应用更新时，版本号得到正确的更新
             "io.tencent.paas.version": chart_version_getter,  # 版本号（应用页面显示用）
             "io.tencent.paas.projectid": self.project_id,  # 项目ID
 
             "io.tencent.bkdata.baseall.dataid": self.bkdataid,  # 基础性能采集，数据平台统一给的固定值
-            "io.tencent.bkdata.container.stdlog.dataid": self.bkdata_container_stdlog_dataid,  # 标准日志采集dataid （参考后面使用统一的方法获取）# noqa
+            "io.tencent.bkdata.container.stdlog.dataid": self.bkdata_container_stdlog_dataid,
+            # 标准日志采集dataid （参考后面使用统一的方法获取）# noqa
 
             "io.tencent.bcs.app.appid": self.cc_app_id,  # 项目对应的cc业务ID
             "io_tencent_bcs_cluster": self.cluster_id,  # 集群ID
             "io.tencent.bcs.clusterid": self.cluster_id,  # 集群ID（兼容lol老数据）
             "io.tencent.bcs.namespace": self.namespace,  # 命名空间
-            "io.tencent.bcs.kind": "Kubernetes",      # Kubernetes/Mesos 编排服务类型（参考后面使用统一的方法获取）
+            "io.tencent.bcs.kind": "Kubernetes",  # Kubernetes/Mesos 编排服务类型（参考后面使用统一的方法获取）
 
             "io.tencent.bcs.monitor.level": self.monitor_level,  # 监控需要的重要级别，默认为 general
-            "io.tencent.bcs.controller.type":  resource_kind_getter,  # 配置文件类型，Deployment/DaemonSet/Job/StatefulSet, it will be injected with value from danymic getter  # noqa
-            "io.tencent.bcs.controller.name":  resource_name_getter,  # 应用名称, metadata.name 中的值, it will be injected with injector with value from danymic getter  # noqa
+            "io.tencent.bcs.controller.type": resource_kind_getter,
+            # 配置文件类型，Deployment/DaemonSet/Job/StatefulSet, it will be injected with value from danymic getter  # noqa
+            "io.tencent.bcs.controller.name": resource_name_getter,
+            # 应用名称, metadata.name 中的值, it will be injected with injector with value from danymic getter  # noqa
         }
         return labels
 

@@ -17,20 +17,17 @@ from rest_framework.renderers import BrowsableAPIRenderer
 
 from . import serializers
 from .deployer import DeployController
-from .manifest import ManifestsRenderer, ManifestsData
+from .release import ReleaseData, ReleaseDataProcessor
 from backend.apps.configuration.mixins import TemplatePermission
 from backend.apps.configuration.models import get_template_by_project_and_id
 from backend.apps.configuration.showversion.serializers import GetShowVersionSLZ, GetLatestShowVersionSLZ
+from backend.components import paas_cc
+from backend.utils.error_codes import error_codes
 from backend.utils.renderers import BKAPIRenderer
 
 
-class YamlViewSet(viewsets.ViewSet):
+class YamlTemplateViewSet(viewsets.ViewSet, TemplatePermission):
     renderer_classes = (BKAPIRenderer, BrowsableAPIRenderer)
-    permission_classes = ()
-    authentication_classes = ()
-
-
-class YamlTemplateViewSet(YamlViewSet, TemplatePermission):
 
     def _template_data(self, request, **kwargs):
         template_data = request.data or {}
@@ -85,7 +82,7 @@ class YamlTemplateViewSet(YamlViewSet, TemplatePermission):
         validated_data = serializer.validated_data
 
         template = validated_data['template']
-        # self.can_view_template(request, template)
+        self.can_view_template(request, template)
 
         with_file_content = request.query_params.get('with_file_content')
         with_file_content = False if with_file_content == 'false' else True
@@ -101,7 +98,7 @@ class YamlTemplateViewSet(YamlViewSet, TemplatePermission):
         validated_data = serializer.validated_data
 
         template = validated_data['template']
-        # self.can_view_template(request, template)
+        self.can_view_template(request, template)
 
         serializer = serializers.GetTemplateFilesSLZ(
             validated_data, context={'with_file_content': True}
@@ -109,7 +106,8 @@ class YamlTemplateViewSet(YamlViewSet, TemplatePermission):
         return Response(serializer.data)
 
 
-class TemplateResourceViewSet(YamlViewSet, TemplatePermission):
+class TemplateReleaseViewSet(viewsets.ViewSet, TemplatePermission):
+    renderer_classes = (BKAPIRenderer, BrowsableAPIRenderer)
 
     def _request_data(self, request, project_id, template_id, show_version_id):
         request_data = request.data or {}
@@ -121,15 +119,25 @@ class TemplateResourceViewSet(YamlViewSet, TemplatePermission):
         request_data['show_version'] = show_version
         return request_data
 
-    def _raw_manifests(self, project_id, initial_data):
+    # TODO use resources module function
+    def _get_namespace_info(self, access_token, project_id, namespace_id):
+        resp = paas_cc.get_namespace(access_token, project_id, namespace_id)
+        if resp.get('code') != 0:
+            raise error_codes.ComponentError(f"get namespace(id:{namespace_id}) info error: {resp.get('message')}")
+        return resp.get('data')
+
+    def _raw_release_data(self, project_id, initial_data):
         show_version = initial_data['show_version']
-        raw_manifests = ManifestsData(
+        namespace_info = self._get_namespace_info(
+            self.request.user.token.access_token, project_id, initial_data['namespace_id']
+        )
+        raw_release_data = ReleaseData(
             project_id=project_id,
-            namespace_id=initial_data['namespace_id'],
+            namespace_info=namespace_info,
             show_version=show_version['show_version'],
             template_files=initial_data['template_files']
         )
-        return raw_manifests
+        return raw_release_data
 
     def preview_or_apply(self, request, project_id, template_id, show_version_id):
         """
@@ -143,20 +151,24 @@ class TemplateResourceViewSet(YamlViewSet, TemplatePermission):
         }
         """
         data = self._request_data(request, project_id, template_id, show_version_id)
-        serializer = serializers.PreviewTemplateFilesSLZ(data=data)
+        serializer = serializers.TemplateReleaseSLZ(data=data)
         serializer.is_valid(raise_exception=True)
         validated_data = serializer.validated_data
 
-        user = request.user
-        from backend.utils import FancyDict
-        user = FancyDict({'username': '', 'token': FancyDict({'access_token': '$#ab$ffff3d#'})})
+        template = validated_data['show_version']['template']
+        self.can_use_template(request, template)
 
-        renderer = ManifestsRenderer(user=user, raw_manifests=self._raw_manifests(project_id, validated_data))
-        manifests = renderer.render()
+        processor = ReleaseDataProcessor(
+            user=self.request.user, raw_release_data=self._raw_release_data(request, project_id, validated_data)
+        )
+        release_data = processor.release_data()
 
         if validated_data['is_preview']:
-            return Response(manifests.template_files)
+            return Response(release_data.template_files)
 
-        controller = DeployController(manifests)
-        resp = controller.apply()
-        return Response({})
+        controller = DeployController(
+            access_token=self.request.user.token.access_token,
+            release_data=release_data
+        )
+        controller.apply()
+        return Response()

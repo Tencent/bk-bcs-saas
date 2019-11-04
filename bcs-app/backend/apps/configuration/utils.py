@@ -209,11 +209,6 @@ def create_template_with_perm_check(request, project_id, tpl_args):
     return template
 
 
-def mock_create_template_with_perm_check(request, project_id, tpl_args):
-    template = create_template('', project_id, tpl_args)
-    return template
-
-
 def update_template_with_perm_check(request, template, tpl_args):
     validate_template_locked(template, request.user.username)
     # 验证用户是否有编辑权限
@@ -222,11 +217,4 @@ def update_template_with_perm_check(request, template, tpl_args):
     template = update_template(request.user.username, template, tpl_args)
     if template.name != tpl_args.get('name'):
         perm.update_name(template.name)
-    return template
-
-
-def mock_update_template_with_perm_check(request, template, tpl_args):
-    updator = ''
-    validate_template_locked(template, updator)
-    template = update_template(updator, template, tpl_args)
     return template

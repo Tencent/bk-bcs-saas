@@ -19,41 +19,40 @@ from backend.apps.configuration import models
 from backend.apps.configuration.constants import FileAction
 
 
-def save_res_files(updator, resource_name, res_files):
+def save_res_files(updator, template_id, resource_name, res_files):
     add_res_file_ids, remove_res_file_ids = [], []
     for f in res_files:
-        if f['action'] == FileAction.CREATE.value:
-            res_file_obj = models.ResourceFile.objects.create(
-                name=f['name'], resource_name=resource_name, content=f['content'], creator=updator
-            )
-            add_res_file_ids.append(str(res_file_obj.id))
+        if f['action'] == FileAction.UNCHANGE.value:
+            continue
+        if f['action'] == FileAction.DELETE.value:
+            remove_res_file_ids.append(f['id'])
+            continue
 
-        elif f['action'] == FileAction.UPDATE.value:
+        if f['action'] == FileAction.UPDATE.value:
             remove_res_file_ids.append(f['id'])
 
-            res_file_obj = models.ResourceFile.objects.create(
-                name=f['name'], resource_name=resource_name, content=f['content'], creator=updator
-            )
-            add_res_file_ids.append(str(res_file_obj.id))
-
-        elif f['action'] == FileAction.DELETE.value:
-            remove_res_file_ids.append(f['id'])
+        # UPDATE or CREATE action will create ResourceFile
+        res_file_obj = models.ResourceFile.objects.create(
+            name=f['name'], resource_name=resource_name, content=f['content'],
+            creator=updator, template_id=template_id
+        )
+        add_res_file_ids.append(str(res_file_obj.id))
 
     return add_res_file_ids, remove_res_file_ids
 
 
-def create_entity(creator, template_files):
+def create_entity(creator, template_id, template_files):
     entity = {}
     for res_files in template_files:
         resource_name = res_files['resource_name']
-        add_res_file_ids, _ = save_res_files(creator, resource_name, res_files['files'])
+        add_res_file_ids, _ = save_res_files(creator, template_id, resource_name, res_files['files'])
         entity[resource_name] = ','.join(add_res_file_ids)
     return entity
 
 
 def create_resources(template, show_version, template_files):
     creator = template.creator
-    entity = create_entity(creator, template_files)
+    entity = create_entity(creator, template.id, template_files)
     ventity = models.VersionedEntity.objects.create(
         template_id=template.id, version=models.get_default_version(), entity=entity, creator=creator
     )
@@ -64,13 +63,13 @@ def create_resources(template, show_version, template_files):
     )
 
 
-def update_entity(updator, entity, template_files):
+def update_entity(updator, template_id, entity, template_files):
     if not template_files:
         return entity
 
     for res_files in template_files:
         resource_name = res_files['resource_name']
-        add_res_file_ids, remove_res_file_ids = save_res_files(updator, resource_name, res_files['files'])
+        add_res_file_ids, remove_res_file_ids = save_res_files(updator, template_id, resource_name, res_files['files'])
         if resource_name not in entity:
             entity[resource_name] = ','.join(add_res_file_ids)
             continue
@@ -98,7 +97,7 @@ def update_resources(template, show_version, template_files):
             f'show version(id:{show_version_id}) does not exist or not belong to template(id:{template_id})')
 
     ventity = models.VersionedEntity.objects.get(id=old_show_version.real_version_id)
-    entity = update_entity(updator, ventity.get_entity(), template_files)
+    entity = update_entity(updator, template_id, ventity.get_entity(), template_files)
     ventity = models.VersionedEntity.objects.create(
         template_id=template_id, version=models.get_default_version(), entity=entity, creator=updator
     )

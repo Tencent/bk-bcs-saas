@@ -32,8 +32,8 @@ class DeployController:
                 access_token=self.access_token) as (client, err):
             yield client, err
 
-    def _update_or_create_version_instance(self, operation):
-        # TODO adaptor model VersionInstance and InstanceConfig
+    def _create_version_instance(self):
+        # TODO adaptor InstanceConfig
         pass
 
     def _to_manifests(self):
@@ -44,24 +44,21 @@ class DeployController:
         return '---\n'.join(manifest_list)
 
     def _run_with_kubectl(self, operation):
-        print(self._to_manifests())
-        # with self.make_kubectl_client() as (client, err):
-        #     if err is not None:
-        #         raise error_codes.APIError(f'make kubectl client failed: {err}')
-        #
-        #     self._update_or_create_version_instance(operation)
-        #
-        #     manifests = self._to_manifests()
-        #     try:
-        #         if operation == 'apply':
-        #             client.ensure_namespace(self.namespace)
-        #             client.apply(manifests, self.namespace)
-        #
-        #         elif operation == 'delete':
-        #             client.ensure_namespace(self.namespace)
-        #             client.delete(manifests, self.namespace)
-        #     except KubectlExecutionError as e:
-        #         raise error_codes.APIError(f'kubectl {operation} failed: {e}')
+        with self.make_kubectl_client() as (client, err):
+            if err is not None:
+                raise error_codes.APIError(f'make kubectl client failed: {err}')
+
+            manifests = self._to_manifests()
+            try:
+                if operation == 'apply':
+                    client.ensure_namespace(self.namespace)
+                    client.apply(manifests, self.namespace)
+
+                elif operation == 'delete':
+                    client.ensure_namespace(self.namespace)
+                    client.delete(manifests, self.namespace)
+            except KubectlExecutionError as e:
+                raise error_codes.APIError(f'kubectl {operation} failed: {e}')
 
     def apply(self):
         self._run_with_kubectl('apply')
