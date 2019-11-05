@@ -110,7 +110,7 @@ class TemplateNamespace(BaseAPI):
             category = to_bcs_res_name(project_kind, category)
 
         if category != 'ALL' and category not in MODULE_DICT:
-            raise error_codes.CheckFailed.f(u"category: %s 不存在" % category)
+            raise error_codes.CheckFailed(f'category: {category} does not exist')
         # 获取被占用的ns，没有处于删除中和已删除
         ns_id_list = self.get_active_ns(
             muster_id, show_version_name, category, res_name)
@@ -213,7 +213,7 @@ class DeleteTemplateInstance(BaseAPI):
         category = to_bcs_res_name(project_kind, category)
 
         if category not in MODULE_DICT:
-            raise error_codes.CheckFailed.f(u"category: %s 不存在!" % category)
+            raise error_codes.CheckFailed(f'category: {category} does not exist')
         # 获取要删除的实例的信息
         inst_info = self.get_instance_info(ns_id_list, [res_name], category=category)
         # 获取项目信息

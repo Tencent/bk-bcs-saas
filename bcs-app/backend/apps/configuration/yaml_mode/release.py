@@ -57,7 +57,6 @@ class ReleaseDataProcessor:
         except Exception as e:
             raise ParseError(f'join manifest failed: {e}')
         else:
-            # print(s.getvalue())
             return s.getvalue()
 
     def _render_with_variables(self, raw_content):

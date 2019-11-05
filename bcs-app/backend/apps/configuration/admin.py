@@ -13,7 +13,8 @@
 #
 from django.contrib import admin
 from .models import (Template, Application, Deplpyment, Service, ConfigMap, Secret, VersionedEntity, ShowVersion,
-                     K8sDeployment, K8sService, K8sConfigMap, K8sSecret, K8sDaemonSet, K8sJob, K8sStatefulSet)
+                     K8sDeployment, K8sService, K8sConfigMap, K8sSecret, K8sDaemonSet, K8sJob, K8sStatefulSet,
+                     ResourceFile)
 
 
 class ShowVersionAdmin(admin.ModelAdmin):
@@ -91,6 +92,11 @@ class K8sStatefulSetAdmin(admin.ModelAdmin):
     search_fields = ('id', 'name', 'service_tag')
 
 
+class ResourceFileAdmin(admin.ModelAdmin):
+    list_display = ('id', 'name', 'template_id')
+    search_fields = ('id', 'name', 'template_id')
+
+
 admin.site.register(VersionedEntity, VersionedEntityAdmin)
 admin.site.register(ShowVersion, ShowVersionAdmin)
 
@@ -108,3 +114,5 @@ admin.site.register(K8sDaemonSet, K8sDaemonSetAdmin)
 admin.site.register(K8sJob, K8sJobAdmin)
 admin.site.register(K8sService, K8sServiceAdmin)
 admin.site.register(K8sStatefulSet, K8sStatefulSetAdmin)
+
+admin.site.register(ResourceFile, ResourceFileAdmin)

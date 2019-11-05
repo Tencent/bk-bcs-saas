@@ -123,7 +123,7 @@ class TemplateReleaseViewSet(viewsets.ViewSet, TemplatePermission):
     def _get_namespace_info(self, access_token, project_id, namespace_id):
         resp = paas_cc.get_namespace(access_token, project_id, namespace_id)
         if resp.get('code') != 0:
-            raise error_codes.ComponentError(f"get namespace(id:{namespace_id}) info error: {resp.get('message')}")
+            raise error_codes.APIError(f"get namespace(id:{namespace_id}) info error: {resp.get('message')}")
         return resp.get('data')
 
     def _raw_release_data(self, project_id, initial_data):
@@ -159,7 +159,7 @@ class TemplateReleaseViewSet(viewsets.ViewSet, TemplatePermission):
         self.can_use_template(request, template)
 
         processor = ReleaseDataProcessor(
-            user=self.request.user, raw_release_data=self._raw_release_data(request, project_id, validated_data)
+            user=self.request.user, raw_release_data=self._raw_release_data(project_id, validated_data)
         )
         release_data = processor.release_data()
 
