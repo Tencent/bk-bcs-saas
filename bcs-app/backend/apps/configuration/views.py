@@ -25,8 +25,7 @@ from rest_framework.renderers import BrowsableAPIRenderer
 from backend.accounts import bcs_perm
 from backend.apps.configuration.models import Template, VersionedEntity, get_default_version, \
     get_model_class_by_resource_name, get_template_by_project_and_id
-from backend.apps.configuration.serializers_new import SearchTemplateSLZ, TemplateDraftSLZ, UpdateTemplateSLZ, \
-    TemplateSLZ, ListTemplateSLZ, VentityWithTemplateSLZ, get_slz_class_by_resource_name, can_delete_resource
+from backend.apps.configuration import serializers_new
 from backend.apps.configuration.serializers import ResourceSLZ, ResourceRequstSLZ, TemplateCreateSLZ, \
     get_tempate_info, is_tempalte_instance
 from backend.apps.configuration.utils import validate_resource_name, create_template_with_perm_check
@@ -54,7 +53,7 @@ class TemplatesView(APIView):
         return self.queryset.filter(**params)
 
     def get(self, request, project_id):
-        serializer = SearchTemplateSLZ(data=request.query_params)
+        serializer = serializers_new.SearchTemplateSLZ(data=request.query_params)
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
 
@@ -67,7 +66,7 @@ class TemplatesView(APIView):
         limit, offset = data['limit'], data['offset']
         templates = templates[offset:limit + offset]
 
-        serializer = ListTemplateSLZ(templates, many=True, context={'kind': kind})
+        serializer = serializers_new.ListTemplateSLZ(templates, many=True, context={'kind': kind})
         template_list = serializer.data
 
         # 初始化模板权限模板
@@ -100,7 +99,7 @@ class CreateTemplateDraftView(APIView, TemplatePermission):
 
         self.can_edit_template(request, template)
 
-        serializer = TemplateDraftSLZ(template, data=request.data, context={'template_id': template.id})
+        serializer = serializers_new.TemplateDraftSLZ(template, data=request.data, context={'template_id': template.id})
         serializer.is_valid(raise_exception=True)
         serializer.save(draft_updator=request.user.username)
 
@@ -173,7 +172,7 @@ class CreateAppResourceView(APIView, TemplatePermission):
             'resource_id': 0,
             'project_id': project_id
         })
-        serializer_class = get_slz_class_by_resource_name(resource_name)
+        serializer_class = serializers_new.get_slz_class_by_resource_name(resource_name)
         serializer = serializer_class(data=data)
         serializer.is_valid(raise_exception=True)
         validated_data = serializer.validated_data
@@ -199,7 +198,7 @@ class UpdateDestroyAppResourceView(APIView, TemplatePermission):
         """
         validate_resource_name(resource_name)
 
-        serializer = VentityWithTemplateSLZ(data=self.kwargs)
+        serializer = serializers_new.VentityWithTemplateSLZ(data=self.kwargs)
         serializer.is_valid(raise_exception=True)
         validated_data = serializer.validated_data
 
@@ -214,7 +213,7 @@ class UpdateDestroyAppResourceView(APIView, TemplatePermission):
             'project_id': project_id
         })
 
-        serializer_class = get_slz_class_by_resource_name(resource_name)
+        serializer_class = serializers_new.get_slz_class_by_resource_name(resource_name)
         serializer = serializer_class(data=data)
         serializer.is_valid(raise_exception=True)
 
@@ -242,7 +241,7 @@ class UpdateDestroyAppResourceView(APIView, TemplatePermission):
     def delete(self, request, project_id, version_id, resource_name, resource_id):
         validate_resource_name(resource_name)
 
-        serializer = VentityWithTemplateSLZ(data=self.kwargs)
+        serializer = serializers_new.VentityWithTemplateSLZ(data=self.kwargs)
         serializer.is_valid(raise_exception=True)
         validated_data = serializer.validated_data
 
@@ -251,7 +250,7 @@ class UpdateDestroyAppResourceView(APIView, TemplatePermission):
         self.can_edit_template(request, template)
 
         # 关联关系检查
-        can_delete_resource(ventity, resource_name, resource_id)
+        serializers_new.can_delete_resource(ventity, resource_name, resource_id)
 
         new_ventity = VersionedEntity.update_for_delete_ventity(
             ventity.id, resource_name, resource_id,
@@ -325,7 +324,7 @@ class TempalteResourceView(generics.RetrieveAPIView):
 
 # TODO refactor
 class SingleTempalteView(generics.RetrieveUpdateDestroyAPIView):
-    serializer_class = TemplateSLZ
+    serializer_class = serializers_new.TemplateSLZ
     renderer_classes = (BKAPIRenderer, BrowsableAPIRenderer)
 
     def get_queryset(self):
@@ -381,7 +380,7 @@ class SingleTempalteView(generics.RetrieveUpdateDestroyAPIView):
             }
             raise ValidationError(detail=detail)
 
-        self.slz = UpdateTemplateSLZ(data=request.data)
+        self.slz = serializers_new.UpdateTemplateSLZ(data=request.data)
         self.slz.is_valid(raise_exception=True)
         return super(SingleTempalteView, self).update(self.slz)
 
