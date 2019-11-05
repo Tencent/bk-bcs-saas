@@ -12,11 +12,13 @@
 package apis
 
 import (
+	"errors"
+	"strings"
+
+	"bcs_cc/confcenter/tasks"
 	"bcs_cc/logging"
 	"bcs_cc/storage/models"
 	"bcs_cc/utils"
-	"errors"
-	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/mitchellh/mapstructure"
@@ -51,6 +53,9 @@ func NodeList(c *gin.Context) {
 		utils.DBErrorResponse(c, err)
 		return
 	}
+	// add a task, search nodes of cluster by bcs api, and add/update node record
+	go tasks.SyncNodes(projectID, clusterID)
+
 	utils.OKJSONResponse(c, map[string]interface{}{"count": count, "results": nodeList})
 }
 
