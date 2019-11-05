@@ -80,9 +80,8 @@ def join_manifest(resources_list):
 
 
 def inject_configs(access_token, project_id, cluster_id, namespace_id, namespace,
-                   creator, updator, created_at, updated_at,
-                   version, ignore_empty_access_token=False, extra_inject_source=None):
-
+                   creator, updator, created_at, updated_at, version, ignore_empty_access_token=False,
+                   extra_inject_source=None, source_type='helm'):
     if extra_inject_source is None:
         extra_inject_source = dict()
 
@@ -109,11 +108,11 @@ def inject_configs(access_token, project_id, cluster_id, namespace_id, namespace
     # resouce may not have annotations field
     bcs_annotations = {"annotations": bcs_annotations}
 
-    bcs_labels = provider.provide_labels()
+    bcs_labels = provider.provide_labels(source_type)
     bcs_labels = {"labels": bcs_labels}
 
     bcs_pod_labels = {
-        "labels": provider.provide_pod_labels()
+        "labels": provider.provide_pod_labels(source_type)
     }
     # Some pod may has no env config, so we shouldn't add `env` to path,
     # Add it to be injected data, make sure it will merge to pod's env anyway.
@@ -170,7 +169,6 @@ def inject_configs(access_token, project_id, cluster_id, namespace_id, namespace
 def inject_bcs_info(access_token, project_id, cluster_id, namespace_id, namespace, creator,
                     updator, created_at, updated_at, resources, version, ignore_empty_access_token=False,
                     extra_inject_source=None):
-
     configs = inject_configs(
         access_token=access_token,
         project_id=project_id,

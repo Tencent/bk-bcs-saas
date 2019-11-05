@@ -48,6 +48,30 @@ class TemplateCategory(ChoicesEnum):
     )
 
 
+class TemplateEditMode(ChoicesEnum):
+    PageForm = 'page_form'
+    YAML = 'yaml'
+
+    _choices_labels = (
+        (PageForm, "PageForm"),
+        (YAML, "YAML")
+    )
+
+
+class FileAction(ChoicesEnum):
+    CREATE = 'create'
+    UPDATE = 'update'
+    DELETE = 'delete'
+    UNCHANGE = 'unchange'
+
+    _choices_labels = (
+        (CREATE, 'create'),
+        (UPDATE, 'update'),
+        (DELETE, 'delete'),
+        (UNCHANGE, 'unchange')
+    )
+
+
 # TODO mark refactor 考虑用起来
 class K8sResourceName(ChoicesEnum):
     K8sDeployment = 'K8sDeployment'
@@ -88,4 +112,28 @@ class MesosResourceName(ChoicesEnum):
         (configmap, 'configmap'),
         (secret, 'secret'),
         (hpa, 'hpa')
+    )
+
+
+class FileResourceName(ChoicesEnum):
+    Deployment = 'Deployment'
+    DaemonSet = 'DaemonSet'
+    Job = 'Job'
+    StatefulSet = 'StatefulSet'
+    Service = 'Service'
+    ConfigMap = 'ConfigMap'
+    Secret = 'Secret'
+    Ingress = 'Ingress'
+    HPA = 'HPA'
+
+    _choices_labels = (
+        (Deployment, 'Deployment'),
+        (DaemonSet, 'DaemonSet'),
+        (Job, 'Job'),
+        (StatefulSet, 'StatefulSet'),
+        (Service, 'Service'),
+        (ConfigMap, 'ConfigMap'),
+        (Secret, 'Secret'),
+        (Ingress, 'Ingress'),
+        (HPA, 'HPA'),
     )

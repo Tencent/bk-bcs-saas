@@ -17,10 +17,10 @@ from functools import reduce
 import arrow
 
 from django.conf import settings
-from django.core.cache import cache
 from enum import Enum
 
 import logging
+
 logger = logging.getLogger(__name__)
 MOSAIC_REG = re.compile(r"(?<=\d{3})(\d{4})(?=\d{4})")
 
@@ -38,6 +38,10 @@ class ChoicesEnum(Enum):
         if isinstance(value, Enum):
             value = value.value
         return dict(cls.get_choices()).get(value, value)
+
+    @classmethod
+    def choice_values(cls):
+        return [item[1] for item in cls.get_choices()]
 
 
 def get_client_ip(request):

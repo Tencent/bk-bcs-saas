@@ -24,7 +24,7 @@ from backend.components import paas_cc
 from backend.utils.errcodes import ErrorCode
 from backend.apps.application.base_views import BaseAPI, error_codes
 from backend.apps.configuration.models import Template, VersionedEntity
-from backend.apps.configuration.utils import get_real_category
+from backend.apps.configuration.utils import to_bcs_res_name
 from backend.apps.instance.models import VersionInstance, InstanceConfig, MetricConfig
 from backend.apps.application import constants as app_constants
 from backend.apps import constants
@@ -107,10 +107,10 @@ class TemplateNamespace(BaseAPI):
         # 前端的category转换为后台需要的类型
         if category != 'ALL':
             project_kind = request.project.kind
-            category = get_real_category(project_kind, category)
+            category = to_bcs_res_name(project_kind, category)
 
         if category != 'ALL' and category not in MODULE_DICT:
-            raise error_codes.CheckFailed.f(u"category: %s 不存在" % category)
+            raise error_codes.CheckFailed(f'category: {category} does not exist')
         # 获取被占用的ns，没有处于删除中和已删除
         ns_id_list = self.get_active_ns(
             muster_id, show_version_name, category, res_name)
@@ -210,10 +210,10 @@ class DeleteTemplateInstance(BaseAPI):
             raise error_codes.CheckFailed.f(u"参数不能为空!")
 
         project_kind = request.project.kind
-        category = get_real_category(project_kind, category)
+        category = to_bcs_res_name(project_kind, category)
 
         if category not in MODULE_DICT:
-            raise error_codes.CheckFailed.f(u"category: %s 不存在!" % category)
+            raise error_codes.CheckFailed(f'category: {category} does not exist')
         # 获取要删除的实例的信息
         inst_info = self.get_instance_info(ns_id_list, [res_name], category=category)
         # 获取项目信息

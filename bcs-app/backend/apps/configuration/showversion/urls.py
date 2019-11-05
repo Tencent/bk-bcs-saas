@@ -29,4 +29,8 @@ urlpatterns = [
         r'(?P<show_version_id>\-?\d+)/$',
         views.ShowVersionViewSet.as_view({'get': 'get_resource_config', 'delete': 'delete_show_version'})),
 
+    # TODO replace "api/configuration/(?P<project_id>\w{32})/show/versions/(?P<template_id>\d+)/$"
+    url(r'^api/projects/(?P<project_id>\w{32})/configuration/templates/(?P<template_id>\d+)/show_versions/$',
+        views.ShowVersionViewSet.as_view({'get': 'list_show_versions'})),
+
 ]

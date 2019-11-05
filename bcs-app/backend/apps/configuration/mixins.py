@@ -11,16 +11,9 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-from rest_framework.exceptions import ValidationError
-
 from backend.accounts import bcs_perm
-from .serializers_new import TemplateResourceSLZ
-
-
-def validate_template_locked(template, username):
-    locker = template.locker
-    if template.is_locked and locker != username:
-        raise ValidationError(f"{locker}正在操作，您如需操作请联系{locker}解锁")
+from .serializers_new import VentityWithTemplateSLZ
+from .utils import validate_template_locked
 
 
 class TemplatePermission:
@@ -48,6 +41,6 @@ class TemplatePermission:
 class GetVersionedEntity:
     def get_versioned_entity(self, project_id, version_id):
         data = {'project_id': project_id, 'version_id': version_id}
-        serializer = TemplateResourceSLZ(data=data)
+        serializer = VentityWithTemplateSLZ(data=data)
         serializer.is_valid(raise_exception=True)
         return serializer.validated_data['ventity']

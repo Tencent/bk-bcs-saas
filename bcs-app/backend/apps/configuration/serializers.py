@@ -19,7 +19,6 @@ from django.utils import timezone
 from django.conf import settings
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
-from rest_framework.validators import UniqueTogetherValidator
 from jsonschema import ValidationError as JsonValidationError, SchemaError, validate as json_validate
 
 from backend.apps.instance.constants import InsState
@@ -28,7 +27,7 @@ from .models import (Template, VersionedEntity, Application, get_app_resource, S
 from .constants_bak import APPLICATION_SCHEMA, DEPLPYMENT_SCHNEA, SERVICE_SCHEM, CONFIGMAP_SCHEM, SECRET_SCHEM
 from .constants_k8s import (K8S_SECRET_SCHEM, K8S_CONFIGMAP_SCHEM, K8S_SERVICE_SCHEM, K8S_DEPLPYMENT_SCHNEA,
                             K8S_DAEMONSET_SCHNEA, K8S_JOB_SCHNEA, K8S_STATEFULSET_SCHNEA, AFFINITY_SCHNEA)
-from backend.apps.configuration.utils import get_real_category, check_var_by_config
+from backend.apps.configuration.utils import to_bcs_res_name, check_var_by_config
 from backend.apps.instance.models import VersionInstance, InstanceConfig
 from backend.accounts import bcs_perm
 from backend.apps.configuration.k8s import constants as constants_k8s
@@ -161,47 +160,6 @@ def get_tempate_info(tem, kind):
     return data
 
 
-class TemplateSLZ(serializers.ModelSerializer):
-    """模板集， 返回模板列表数据
-    """
-    category_name = serializers.CharField(
-        source='get_category_display', read_only=True)
-    logo = serializers.CharField(source='get_log_url', read_only=True)
-    permissions = serializers.SerializerMethodField()
-
-    def get_permissions(self, obj):
-        request = self.context.get('request')
-        perm = bcs_perm.Templates(request, obj.project_id, obj.id, obj.name)
-        data = {
-            'id': obj.id,
-            'name': obj.name
-        }
-        data_list = perm.hook_perms([data])
-        permissions = data_list[0].get('permissions')
-        return permissions
-
-    class Meta:
-        model = Template
-        fields = (
-            "id",
-            "name",
-            "category",
-            "desc",
-            "category_name",
-            "logo",
-            "latest_version",
-            "latest_version_id",
-            "creator",
-            "created",
-            "updated",
-            "updator",
-            "latest_show_version",
-            "latest_show_version_id",
-            "permissions"
-        )
-        read_only_fields = ("creator", "created", "updated", "updator", "permissions")
-
-
 class ResourceSLZ(serializers.ModelSerializer):
     """模板集版本中的资源信息
     """
@@ -239,7 +197,7 @@ class ResourceRequstSLZ(serializers.Serializer):
 
     def validate_category(self, category):
         project_kind = self.context.get('project_kind')
-        return get_real_category(project_kind, category)
+        return to_bcs_res_name(project_kind, category)
 
 
 class TemplateCreateSLZ(serializers.Serializer):
@@ -259,14 +217,6 @@ class TemplateCreateSLZ(serializers.Serializer):
             }
             raise ValidationError(detail=detail)
         return data
-
-
-class TemplateUpdateSLZ(serializers.Serializer):
-    """更新模板集基本信息
-    """
-    name = serializers.CharField(max_length=30, required=True)
-    desc = serializers.CharField(
-        max_length=50, required=False, allow_blank=True)
 
 
 class ServiceCreateOrUpdateSLZ(serializers.Serializer):
