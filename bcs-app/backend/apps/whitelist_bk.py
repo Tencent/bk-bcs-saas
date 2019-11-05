@@ -18,7 +18,7 @@ def enabled_hpa_feature(cluster_id_list: list) -> bool:
     return True
 
 
-def can_sync_namespace(project_id: str) -> bool:
+def enabled_sync_namespace(project_id: str) -> bool:
     """是否允许同步通过非平台创建的命名空间
     """
     return True
