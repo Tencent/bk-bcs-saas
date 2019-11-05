@@ -11,6 +11,8 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
+from collections import OrderedDict
+
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
@@ -107,15 +109,13 @@ class UpdateTemplateSLZ(YamlTemplateSLZ):
 
 
 class GetTemplateFilesSLZ(serializers.Serializer):
-    show_version_id = serializers.IntegerField()
-    show_version_name = serializers.SerializerMethodField()
+    show_version = serializers.SerializerMethodField()
     template_files = serializers.SerializerMethodField()
-    version_id = serializers.SerializerMethodField()
     name = serializers.SerializerMethodField()
     desc = serializers.SerializerMethodField()
 
-    def get_show_version_name(self, obj):
-        return obj['show_version'].name
+    def get_show_version(self, obj):
+        return OrderedDict({'name': obj['show_version'].name, 'show_version_id': obj['show_version'].id})
 
     def get_template_files(self, obj):
         version_id = obj['show_version'].real_version_id
@@ -123,9 +123,6 @@ class GetTemplateFilesSLZ(serializers.Serializer):
             return res2files.get_template_files(version_id, 'id', 'name', 'content')
         else:
             return res2files.get_template_files(version_id, 'id', 'name')
-
-    def get_version_id(self, obj):
-        return obj['show_version'].real_version_id
 
     def get_name(self, obj):
         return obj['template'].name
