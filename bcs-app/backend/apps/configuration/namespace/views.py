@@ -298,6 +298,7 @@ class NamespaceView(NamespaceBase, viewsets.ViewSet):
             results = sorted(results, key=lambda x: x['id'], reverse=True)
 
         permissions = {'create': can_create, 'sync_namespace': enabled_sync_namespace(project_id)}
+
         return APIResult(results, '取Namespace成功', permissions=permissions)
 
     def delete_secret_for_mesos(self, access_token, project_id, cluster_id, ns_name):
