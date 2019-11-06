@@ -12,50 +12,85 @@
 package tasks
 
 import (
-	"bcs_cc/config"
-	"encoding/json"
 	"fmt"
-	"paas-configcenter/logging"
-	"paas-configcenter/utils"
-	"time"
+
+	"bcs_cc/components/auth"
+	"bcs_cc/components/bcs"
+	"bcs_cc/config"
+	"bcs_cc/logging"
+	"bcs_cc/storage/models"
 )
 
-// get access token by
-func getAccessToken(confBase *config.Configurations) (string, error) {
-	reqURL := fmt.Sprintf("%s%s", confBase.AuthConf.Host, confBase.AuthConf.AuthTokenPath)
-	reqData := map[string]interface{}{"id_provider": "client", "grant_type": "authorization_code"}
-	// reqDataJSON, _ := json.Marshal(reqData)
-	headers := map[string]string{
-		"Content-Type":    "application/json",
-		"X-BK-APP-CODE":   confBase.CCAppCode,
-		"X-BK-APP-SECRET": confBase.CCAppSecret,
+var (
+	clusterNormalStatus = "normal"
+	mesosClusterType    = "mesos"
+)
+
+func getClusterInfo(projectID string, clusterID string) (clusterList []map[string]string, clusterType string) {
+	if clusterID == "" {
+		clusterData, err := models.FetchPrivateClusterByProjectID(projectID)
+		if err != nil {
+			logging.Error("get cluster by project error, %v", err)
+			return
+		}
+		for _, info := range clusterData {
+			if info.Status == clusterNormalStatus {
+				// 因为项目下只能有一种容器编排类型
+				clusterType = info.Type
+				clusterList = append(clusterList, map[string]string{
+					"cluster_id": info.ClusterID, "env": info.Environment, "type": info.Type})
+			}
+		}
+	} else {
+		clusterRecord := models.Cluster{ProjectID: projectID, ClusterID: clusterID}
+		if err := clusterRecord.RetriveRecord(); err != nil {
+			logging.Error("get cluster by cluster id error, %v", err)
+			return
+		}
+		if clusterRecord.Status == clusterNormalStatus {
+			clusterType = clusterRecord.Type
+			clusterList = append(clusterList, map[string]string{
+				"cluster_id": clusterRecord.ClusterID, "env": clusterRecord.Environment, "type": clusterRecord.Type})
+		}
 	}
-	// compose the request
-	req := utils.GoReq{
-		Method:  "POST",
-		URL:     reqURL,
-		Params:  "",
-		Data:    reqData,
-		Header:  headers,
-		Timeout: time.Duration(10),
+
+	return clusterList, clusterType
+}
+
+func getNormalIPListForMesos(clusterIDList []map[string]string) (normalIPList []string) {
+	for _, info := range clusterIDList {
+		fmt.Println(info)
 	}
-	body, err := utils.RequestClient(req, confBase.AuthConf.Proxy)
-	if err != nil {
-		return "", err
+}
+
+func getNormalIPListForK8s(clusterIDList []map[string]string) {
+	for _, info := range clusterIDList {
+		fmt.Println(info)
 	}
-	var accessTokenRespInst accessTokenResponse
-	if err := json.Unmarshal([]byte(body), &accessTokenRespInst); err != nil {
-		logging.Error("parse the access token data error，url: %v, body: %v, detail: %v", reqURL, body, err)
-		return "", err
-	}
-	return accessTokenRespInst.Data.AccessToken, nil
 }
 
 // SyncNodes : sync node info, and add/update node db record
 func SyncNodes(projectID string, clusterID string) {
-	conf := config.GlobalConfigurations
-	if !conf.EnableSyncNodes {
+	if !config.GlobalConfigurations.EnableSyncNodes {
 		return
 	}
+	// get access token, in order to request bcs api
+	accessToken, err := auth.GetAccessToken()
+	if err != nil {
+		logging.Error("get access token error, %v", err)
+		return
+	}
+	// compose cluster id list, cluster id maybe not exist
+	// when cluster id is not exist, query cluster id from project id
+	clusterList, clusterType := getClusterInfo(projectID, clusterID)
+	fmt.Println(clusterList, clusterType)
+	if len(clusterList) == 0 {
+		return
+	}
+	if clusterType == mesosClusterType {
+		ipResource := getNormalIPListForMesos(clusterList)
+	} else {
 
+	}
+	fmt.Println(bcs.MesosIPResource("BCS-MESOS-10038", "stag", accessToken))
 }

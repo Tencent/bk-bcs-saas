@@ -101,6 +101,8 @@ type Configurations struct {
 	RunENV string `yaml:"run_env"`
 
 	EnableSyncNodes bool `yaml:"enable_sync_nodes"`
+
+	BCSConf *BCSConf `yaml:"bcsconf"`
 }
 
 // Init : init all configurations
@@ -147,6 +149,9 @@ func (c *Configurations) Init() error {
 	c.RunENV = RunENV
 
 	c.EnableSyncNodes = EnableSyncNodes
+
+	c.BCSConf = &BCSConf{}
+	c.BCSConf.Init()
 
 	return nil
 }
