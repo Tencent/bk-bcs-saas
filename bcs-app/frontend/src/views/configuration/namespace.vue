@@ -19,7 +19,7 @@
                             <i class="bk-icon icon-plus"></i>
                             <span>{{$t('新建')}}</span>
                         </button>
-                        <bk-tooltip v-if="showSyncBtn" :content="$t('同步非导航侧【命名空间】页面创建的命名空间数据')" placement="top">
+                        <bk-tooltip v-if="showSyncBtn" :content="$t('同步非本页面创建的命名空间数据')" placement="top">
                             <button class="bk-button" @click.stop.prevent="syncNamespace">
                                 <span>{{$t('同步命名空间')}}</span>
                             </button>
