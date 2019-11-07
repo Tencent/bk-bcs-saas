@@ -16,6 +16,7 @@ import (
 	"strings"
 
 	"bcs_cc/confcenter/tasks"
+	"bcs_cc/config"
 	"bcs_cc/logging"
 	"bcs_cc/storage/models"
 	"bcs_cc/utils"
@@ -47,14 +48,17 @@ func NodeList(c *gin.Context) {
 		Limit:         data.Limit,
 		Offset:        data.Offset,
 		ExcludeStatus: nodeFilterStatus,
+		DesireAllData: data.DesireAllData,
 	}
 	nodeList, count, err := filter.NodeList()
 	if err != nil {
 		utils.DBErrorResponse(c, err)
 		return
 	}
-	// add a task, search nodes of cluster by bcs api, and add/update node record
-	go tasks.SyncNodes(projectID, clusterID)
+	// add a task, search online nodes of cluster by bcs api, and add/update node record
+	if config.GlobalConfigurations.EnableSyncNodes {
+		go tasks.SyncNodes(projectID, clusterID)
+	}
 
 	utils.OKJSONResponse(c, map[string]interface{}{"count": count, "results": nodeList})
 }

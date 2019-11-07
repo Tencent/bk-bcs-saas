@@ -21,19 +21,10 @@ import (
 	"bcs_cc/utils"
 )
 
-var (
-	bcsError = fmt.Errorf("request bcs error")
-
-	bcsAPIEnv = map[string]string{
-		"stag":  "uat",
-		"debug": "debug",
-		"prod":  "prod",
-	}
-)
-
 // agent info, include ip, etc,
 type agentInfo struct {
-	IP string `json:"ip"`
+	IP       string `json:"ip"`
+	Disabled bool   `json:"disabled"`
 }
 
 // reserve metric info for mesos
@@ -56,9 +47,8 @@ type bcsResponse struct {
 // MesosIPResource : get mesos resource info, in order to add or update node record
 func MesosIPResource(clusterID string, env string, accessToken string) ([]map[string]string, error) {
 	confBase := config.GlobalConfigurations
-	reqURL := fmt.Sprintf("%s/%s%s", confBase.APIGWConf.Host, bcsAPIEnv[env], confBase.BCSConf.MesosResourcePath)
+	reqURL := fmt.Sprintf("%s/%s%s", confBase.APIGWConf.Host, env, confBase.BCSConf.MesosResourcePath)
 	params := fmt.Sprintf("access_token=%s", accessToken)
-	fmt.Println(reqURL)
 	// compose the request
 	req := utils.GoReq{
 		Method:  "GET",
@@ -75,17 +65,21 @@ func MesosIPResource(clusterID string, env string, accessToken string) ([]map[st
 	}
 	var bcsResp bcsResponse
 	if err := json.Unmarshal([]byte(body), &bcsResp); err != nil {
-		logging.Error("parse bcs response error, detial: %v", err)
+		logging.Error("parse bcs response error, cluster_id: %s, detial: %v", clusterID, err)
 		return nil, err
 	}
 	if bcsResp.Code != 0 {
-		logging.Error("bcs api response error， url: %v, detail: %v", reqURL, bcsResp.Message)
-		return nil, bcsError
+		logging.Error("bcs api response error，cluster_id: %s, url: %v, detail: %v", clusterID, reqURL, bcsResp.Message)
+		return nil, fmt.Errorf("request bcs error")
 	}
 	var nodeList []map[string]string
 	// mesos status is normal if ip in agent
 	for _, agent := range bcsResp.Data.Agents {
-		nodeList = append(nodeList, map[string]string{"ip": agent.IP, "status": "normal"})
+		status := utils.Normal
+		if agent.Disabled {
+			status = utils.ToRemoved
+		}
+		nodeList = append(nodeList, map[string]string{"ip": agent.IP, "status": status})
 	}
 
 	return nodeList, nil

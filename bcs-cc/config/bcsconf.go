@@ -13,8 +13,12 @@ package config
 
 // BCSConf : bcs conf
 type BCSConf struct {
-	Hosts             map[string]string `yaml:"hosts"`
-	MesosResourcePath string            `yaml:"mesos_resource_path"`
+	Hosts                   map[string]string `yaml:"hosts"`
+	MesosResourcePath       string            `yaml:"mesos_resource_path"`
+	K8sQueryClusterIDPath   string            `yaml:"k8s_query_cluster_id_path"`
+	K8sQueryCredentialsPath string            `yaml:"k8s_query_credentials_path"`
+	K8sQueryNodesPath       string            `yaml:"k8s_query_nodes_path"`
+	Authorization           string            `yaml:"authorization"`
 }
 
 // Init : init default redis config
@@ -22,5 +26,9 @@ func (c *BCSConf) Init() error {
 	// only for development
 	c.Hosts = map[string]string{}
 	c.MesosResourcePath = ""
+	c.K8sQueryClusterIDPath = ""
+	c.K8sQueryCredentialsPath = ""
+	c.K8sQueryNodesPath = ""
+	c.Authorization = ""
 	return nil
 }
