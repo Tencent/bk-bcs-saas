@@ -94,7 +94,6 @@ def compose_request(access_token, username):
 
 
 @shared_task
-# def create_ns_flow(access_token, project_id, project_code, project_kind, cluster_id, ns_list, creator):
 def create_ns_flow(ns_params):
     ns_list = ns_params['add_ns_list']
     if not ns_list:
