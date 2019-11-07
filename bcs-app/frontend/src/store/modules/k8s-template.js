@@ -1807,6 +1807,56 @@ export default {
          */
         bindServiceForStatefulset (context, { projectId, versionId, statefulsetId, data }) {
             return http.put(`${DEVOPS_BCS_API_URL}/api/configuration/projects/${projectId}/versions/${versionId}/K8sStatefulSet/${statefulsetId}/service-tag/`, data, { cancelWhenRouteChange: false })
+        },
+
+        /**
+         * 创建yaml模板资源
+         *
+         * @param {Object} context store 上下文对象
+         * @param {Object} 请求参数，包括projectId及发到接口数据
+         */
+        createYamlTemplate (context, { projectId, data }) {
+            return http.post(`${DEVOPS_BCS_API_URL}/api/projects/${projectId}/configuration/yaml_templates/`, data)
+        },
+
+        /**
+         * 更新yaml模板资源
+         *
+         * @param {Object} context store 上下文对象
+         * @param {Object} 请求参数，包括projectId及发到接口数据
+         */
+        updateYamlTemplate (context, { projectId, templateId, data }) {
+            return http.put(`${DEVOPS_BCS_API_URL}/api/projects/${projectId}/configuration/yaml_templates/${templateId}/`, data)
+        },
+
+        /**
+         * 获取yaml模板资源
+         *
+         * @param {Object} context store 上下文对象
+         * @param {Object} 请求参数，包括projectId、templaetId
+         */
+        getYamlTemplateDetail (context, { projectId, templateId }) {
+            return http.get(`${DEVOPS_BCS_API_URL}/api/projects/${projectId}/configuration/yaml_templates/${templateId}/`)
+        },
+
+        /**
+         * 获取yaml模板资源
+         *
+         * @param {Object} context store 上下文对象
+         * @param {Object} 请求参数，包括projectId、templaetId
+         */
+        getYamlTemplateDetailByVersion (context, { projectId, templateId, versionId, withFileContent = true }) {
+            return http.get(`${DEVOPS_BCS_API_URL}/api/projects/${projectId}/configuration/yaml_templates/${templateId}/show_versions/${versionId}/?with_file_content=${withFileContent}`)
+        },
+
+        /**
+         * 获取yaml模板 release, 用于实例化时作preview效果
+         *
+         * @param {Object} context store 上下文对象
+         * @param {Object} 请求参数，包括projectId、templaetId
+         */
+        createYamlTemplateReleases (context, { projectId, templateId, versionId, data }) {
+            return http.post(`${DEVOPS_BCS_API_URL}/api/projects/${projectId}/configuration/yaml_templates/${templateId}/show_versions/${versionId}/releases/`, data)
         }
     }
 }
