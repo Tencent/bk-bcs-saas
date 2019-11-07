@@ -21,5 +21,6 @@ urlpatterns = [
 
     url(r'^api/configuration/(?P<project_id>\w{32})/namespace/(?P<namespace_id>\d+)/$',
         views.NamespaceView.as_view({'put': 'update', 'delete': 'delete'})),
-
+    url(r'^api/projects/(?P<project_id>\w{32})/configuration/namespaces/sync/$',
+        views.NamespaceView.as_view({'post': 'sync_namespace'})),
 ]

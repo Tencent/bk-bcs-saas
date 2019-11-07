@@ -20,6 +20,7 @@ from django.conf import settings
 from rest_framework import response, serializers, viewsets
 from rest_framework.exceptions import ValidationError
 
+from .tasks import sync_namespace as sync_ns_task
 from .resources import Namespace
 from backend.accounts import bcs_perm
 from backend.apps import constants
@@ -30,11 +31,13 @@ from backend.apps.variable.models import NameSpaceVariable
 from backend.components import paas_cc
 from backend.components.bcs.k8s import K8SClient
 from backend.components.bcs.mesos import MesosClient
+from backend.utils.errcodes import ErrorCode
 from backend.utils.error_codes import error_codes
 from backend.utils.response import APIResult
 from backend.activity_log import client
 from backend.apps.constants import ProjectKind
 from backend.apps.configuration.namespace.serializers import CreateNamespaceSLZ, UpdateNSVariableSLZ
+from backend.apps.whitelist_bk import enabled_sync_namespace
 
 logger = logging.getLogger(__name__)
 
@@ -294,7 +297,9 @@ class NamespaceView(NamespaceBase, viewsets.ViewSet):
         else:
             results = sorted(results, key=lambda x: x['id'], reverse=True)
 
-        return APIResult(results, '取Namespace成功', permissions={'create': can_create})
+        permissions = {'create': can_create, 'sync_namespace': enabled_sync_namespace(project_id)}
+
+        return APIResult(results, 'success', permissions=permissions)
 
     def delete_secret_for_mesos(self, access_token, project_id, cluster_id, ns_name):
         client = MesosClient(access_token, project_id, cluster_id, env=None)
@@ -421,3 +426,27 @@ class NamespaceView(NamespaceBase, viewsets.ViewSet):
         perm.delete()
 
         return response.Response(resp)
+
+    def sync_namespace(self, request, project_id):
+        """同步命名空间
+        用来同步线上和本地存储的数据，并进行secret等的处理，保证数据一致
+        """
+        resp = paas_cc.get_all_clusters(request.user.token.access_token, project_id, desire_all_data=1)
+        if resp.get('code') != ErrorCode.NoError:
+            raise error_codes.APIError(f'get cluster error {resp.get("message")}')
+        data = resp.get('data') or {}
+        results = data.get('results')
+        if not results:
+            raise error_codes.ResNotFoundError(f'not found cluster in project: {project_id}')
+
+        cluster_id_list = [info['cluster_id'] for info in results]
+        # 触发后台任务进行同步数据
+        sync_ns_task.delay(
+            request.user.token.access_token,
+            project_id,
+            request.project.project_code,
+            request.project.kind,
+            cluster_id_list,
+            request.user.username
+        )
+        return response.Response({'code': 0, 'message': 'task is running'})

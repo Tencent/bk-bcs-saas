@@ -16,3 +16,9 @@ def enabled_hpa_feature(cluster_id_list: list) -> bool:
     """HPA按集群做白名单控制
     """
     return True
+
+
+def enabled_sync_namespace(project_id: str) -> bool:
+    """是否允许非导航【命名空间】页面创建的命名空间数据
+    """
+    return True

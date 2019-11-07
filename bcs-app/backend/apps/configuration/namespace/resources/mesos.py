@@ -11,14 +11,64 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
+import base64
 import logging
 
+from django.conf import settings
+
+from backend.components import paas_cc
 from backend.components.bcs.mesos import MesosClient
 from backend.utils.error_codes import error_codes
 from backend.utils.errcodes import ErrorCode
+from backend.apps.depot.api import get_jfrog_account
+from backend.apps.instance.constants import MESOS_IMAGE_SECRET
 
 logger = logging.getLogger(__name__)
 
 
 def delete(access_token, project_id, cluster_id, ns_name):
     pass
+
+
+def get_namespace(access_token, project_id, cluster_id):
+    """
+    NOTE: mesos没有命名空间的概念，这样命名空间被应用等占用才会查询到命名空间
+    """
+    client = MesosClient(access_token, project_id, cluster_id, env=None)
+    resp = client.get_used_namespace()
+    if resp.get('code') != ErrorCode.NoError:
+        raise error_codes.APIError(f'get namespace error, {resp.get("message")}')
+
+    return resp.get('data') or []
+
+
+def create_imagepullsecret(access_token, project_id, project_code, cluster_id, namespace):
+    # get dept domain
+    dept_domain = paas_cc.get_jfrog_domain(access_token, project_id, cluster_id)
+    # 判断是否为研发仓库，正式环境分为：研发仓库、生产仓库，这2个仓库的账号要分开申请
+    is_bk_dept = True if dept_domain.startswith(settings.BK_JFROG_ACCOUNT_DOMAIN) else False
+    dept_account = get_jfrog_account(access_token, project_code, project_id, is_bk_dept)
+    # get user or pwd by dept account
+    user = dept_account.get('user', '')
+    pwd = dept_account.get('password', '')
+    # compose config
+    secret_config = {
+        "kind": "secret",
+        "metadata": {
+            "name": MESOS_IMAGE_SECRET,
+            "namespace": namespace
+        },
+        "datas": {
+            "user": {
+                "content": base64.b64encode(user.encode(encoding="utf-8")).decode()
+            },
+            "pwd": {
+                "content": base64.b64encode(pwd.encode(encoding="utf-8")).decode()
+            }
+        },
+        "apiVersion": "v4"
+    }
+    client = MesosClient(access_token, project_id, cluster_id, env=None)
+    resp = client.create_secret(namespace, secret_config)
+    if (resp.get('code') != ErrorCode.NoError) and ('already exists' not in resp.get('message', '')):
+        raise error_codes.APIError(f'create secret error, result.get("message")')
