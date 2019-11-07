@@ -299,7 +299,7 @@ class NamespaceView(NamespaceBase, viewsets.ViewSet):
 
         permissions = {'create': can_create, 'sync_namespace': enabled_sync_namespace(project_id)}
 
-        return APIResult(results, '取Namespace成功', permissions=permissions)
+        return APIResult(results, 'success', permissions=permissions)
 
     def delete_secret_for_mesos(self, access_token, project_id, cluster_id, ns_name):
         client = MesosClient(access_token, project_id, cluster_id, env=None)
@@ -437,7 +437,7 @@ class NamespaceView(NamespaceBase, viewsets.ViewSet):
         data = resp.get('data') or {}
         results = data.get('results')
         if not results:
-            raise error_codes.ResNotFoundError('not found cluster in project')
+            raise error_codes.ResNotFoundError(f'not found cluster in project: {project_id}')
 
         cluster_id_list = [info['cluster_id'] for info in results]
         # 触发后台任务进行同步数据

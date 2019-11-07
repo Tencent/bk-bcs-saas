@@ -27,28 +27,6 @@ from backend.utils import FancyDict
 
 logger = logging.getLogger(__name__)
 
-# 后续可能使用，先只注释
-# def get_username(access_token):
-#     user = paas_auth.get_user_by_access_token(access_token)
-#     username = user.get('user_id')
-#     # TODO: 如果后续有轮训任务，查询不到具体用户，是否使用项目创建者
-#     if not username:
-#         return 'anonymous'
-#     return username
-
-
-# def get_project(access_token, project_id):
-#     """获取project信息
-#     单独通过接口获取的目的是因为，如果后续有主动轮训时，方便适配
-#     """
-#     resp = paas_cc.get_project(access_token, project_id)
-#     if resp.get('code') != ErrorCode.NoError:
-#         raise error_codes.APIError(f'get project error, {resp.get("message")}')
-#     data = resp.get('data') or {}
-#     if not data:
-#         raise error_codes.APIError(f'get project error, not found project info')
-#     return data
-
 
 def get_namespaces_by_bcs(access_token, project_id, project_kind, cluster_id):
     ns_client = resources.Namespace(access_token, project_id, project_kind)
@@ -116,27 +94,36 @@ def compose_request(access_token, username):
 
 
 @shared_task
-def create_ns_flow(access_token, project_id, project_code, project_kind, cluster_id, ns_list, creator):
+# def create_ns_flow(access_token, project_id, project_code, project_kind, cluster_id, ns_list, creator):
+def create_ns_flow(ns_params):
+    ns_list = ns_params['add_ns_list']
     if not ns_list:
         return
+    access_token = ns_params['access_token']
+    project_id = ns_params['project_id']
+    creator = ns_params['username']
+    cluster_id = ns_params['cluster_id']
     request = compose_request(access_token, creator)
     for ns_name in ns_list:
-        ns_client = resources.Namespace(access_token, project_id, project_kind)
-        ns_client.create_secret(project_code, cluster_id, ns_name)
+        ns_client = resources.Namespace(access_token, project_id, ns_params['project_kind'])
+        ns_client.create_imagepullsecret(ns_params['project_code'], cluster_id, ns_name)
         ns_info = create_cc_namespace(access_token, project_id, cluster_id, ns_name, creator)
         register_auth(request, project_id, cluster_id, ns_info['id'], ns_name)
 
 
 @shared_task
-def delete_ns_flow(access_token, project_id, project_kind, cluster_id, ns_id_map, ns_list, username):
+def delete_ns_flow(ns_params):
     # 因为mesos下的命名空间在被实例化后的资源占用后，才能查询到数据, 所以针对mesos不考虑删除的问题
-    if (project_kind == ProjectKind.MESOS.value) or (not ns_list):
+    ns_list = ns_params['delete_ns_list']
+    if (ns_params['project_kind'] == ProjectKind.MESOS.value) or (not ns_list):
         return
-    request = compose_request(access_token, username)
+    access_token = ns_params['access_token']
+    project_id = ns_params['project_id']
+    request = compose_request(access_token, ns_params['username'])
     for ns_name in ns_list:
-        ns_id = ns_id_map[ns_name]
+        ns_id = ns_params['ns_id_map'][ns_name]
         delete_auth(request, project_id, ns_id)
-        delete_cc_namespace(access_token, project_id, cluster_id, ns_id)
+        delete_cc_namespace(access_token, project_id, ns_params['cluster_id'], ns_id)
 
 
 @shared_task
@@ -156,16 +143,22 @@ def sync_namespace(access_token, project_id, project_code, project_kind, cluster
         cc_ns_list = ns_id_map.keys()
 
         # 只在线上存在的命名空间，需要进行创建操作
-        only_bcs_ns_list = list(set(bcs_ns_list) - set(cc_ns_list))
+        add_ns_list = list(set(bcs_ns_list) - set(cc_ns_list))
         # create cc namespace record, create secret and register auth
-        create_ns_flow.delay(
-            access_token, project_id, project_code, project_kind, cluster_id, only_bcs_ns_list, username
-        )
+        ns_params = {
+            'access_token': access_token,
+            'project_id': project_id,
+            'project_code': project_code,
+            'project_kind': project_kind,
+            'cluster_id': cluster_id,
+            'username': username,
+        }
+        create_ns_params = {'add_ns_list': add_ns_list, **ns_params}
+        create_ns_flow.delay(create_ns_params)
 
         # 只在bcs cc上存在的命名空间，需要进行删除操作
         # NOTE: 删除只针对k8s，因为mesos的命名空间只有在实例化资源后，才会查询到
-        only_cc_ns = list(set(cc_ns_list) - set(bcs_ns_list))
+        delete_ns_list = list(set(cc_ns_list) - set(bcs_ns_list))
         # delete cc namespace record and delete auth, when project_kind is k8s
-        delete_ns_flow.delay(
-            access_token, project_id, project_kind, cluster_id, ns_id_map, only_cc_ns, username
-        )
+        delete_ns_params = {'ns_id_map': ns_id_map, 'delete_ns_list': delete_ns_list, **ns_params}
+        delete_ns_flow.delay(delete_ns_params)

@@ -19,6 +19,6 @@ def enabled_hpa_feature(cluster_id_list: list) -> bool:
 
 
 def enabled_sync_namespace(project_id: str) -> bool:
-    """ 是否允许同步通过非平台创建的命名空间
+    """是否允许非导航【命名空间】页面创建的命名空间数据
     """
     return True

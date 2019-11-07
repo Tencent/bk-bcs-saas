@@ -42,15 +42,15 @@ def get_namespace(access_token, project_id, cluster_id):
     return resp.get('data') or []
 
 
-def create_secret(access_token, project_id, project_code, cluster_id, namespace):
-    # get jfrog domain
-    jfrog_domain = paas_cc.get_jfrog_domain(access_token, project_id, cluster_id)
+def create_imagepullsecret(access_token, project_id, project_code, cluster_id, namespace):
+    # get dept domain
+    dept_domain = paas_cc.get_jfrog_domain(access_token, project_id, cluster_id)
     # 判断是否为研发仓库，正式环境分为：研发仓库、生产仓库，这2个仓库的账号要分开申请
-    is_bk_jfrog = True if jfrog_domain.startswith(settings.BK_JFROG_ACCOUNT_DOMAIN) else False
-    jfrog_account = get_jfrog_account(access_token, project_code, project_id, is_bk_jfrog)
-    # get user or pwd by jfrog account
-    user = jfrog_account.get('user', '')
-    pwd = jfrog_account.get('password', '')
+    is_bk_dept = True if dept_domain.startswith(settings.BK_JFROG_ACCOUNT_DOMAIN) else False
+    dept_account = get_jfrog_account(access_token, project_code, project_id, is_bk_dept)
+    # get user or pwd by dept account
+    user = dept_account.get('user', '')
+    pwd = dept_account.get('password', '')
     # compose config
     secret_config = {
         "kind": "secret",

@@ -55,16 +55,16 @@ def get_namespace(access_token, project_id, cluster_id):
     return namespace_list
 
 
-def create_jforg_account(access_token, project_id, project_code, cluster_id):
+def create_dept_account(access_token, project_id, project_code, cluster_id):
     domain_list = paas_cc.get_jfrog_domain_list(access_token, project_id, cluster_id)
     if not domain_list:
-        raise error_codes.APIError('get jfrog domain error, domain is empty')
+        raise error_codes.APIError('get dept domain error, domain is empty')
     domain_list = set(domain_list)
     # get user auth by project
-    jfrog_account = get_jfrog_account(access_token, project_code, project_id)
-    user_pwd = f'{jfrog_account.get("user")}:{jfrog_account.get("password")}'
+    dept_account = get_jfrog_account(access_token, project_code, project_id)
+    user_pwd = f'{dept_account.get("user")}:{dept_account.get("password")}'
     user_auth = {'auth': base64.b64encode(user_pwd.encode(encoding='utf-8')).decode()}
-    # compose many jfrog account auth
+    # compose many dept account auth
     auth_dict = {}
     for _d in domain_list:
         if _d.startswith(settings.BK_JFROG_ACCOUNT_DOMAIN):
@@ -76,11 +76,11 @@ def create_jforg_account(access_token, project_id, project_code, cluster_id):
     return auth_dict
 
 
-def create_secret(access_token, project_id, project_code, cluster_id, namespace):
+def create_imagepullsecret(access_token, project_id, project_code, cluster_id, namespace):
     """先和先前逻辑保持一致
     """
-    jfrog_auth = {'auths': create_jforg_account(access_token, project_id, project_code, cluster_id)}
-    auth_bytes = bytes(json.dumps(jfrog_auth), 'utf-8')
+    dept_auth = {'auths': create_dept_account(access_token, project_id, project_code, cluster_id)}
+    auth_bytes = bytes(json.dumps(dept_auth), 'utf-8')
     secret_config = {
         "apiVersion": "v1",
         "kind": "Secret",
