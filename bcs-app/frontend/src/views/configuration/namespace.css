@@ -17,6 +17,19 @@
         .is-disabled {
             cursor: not-allowed !important;
         }
+        .bk-button {
+            .bk-icon {
+                top: -1px;
+            }
+        }
+    }
+
+    .right {
+        .biz-search-input {
+            input {
+                padding-right: 30px;
+            }
+        }
     }
 }
 
@@ -26,16 +39,6 @@
     line-height: 60px;
     font-size: 16px;
     margin-left: 20px;
-}
-
-.biz-panel-header {
-    .right {
-        .biz-search-input {
-            input {
-                padding-right: 30px;
-            }
-        }
-    }
 }
 
 .biz-namespace-table {
