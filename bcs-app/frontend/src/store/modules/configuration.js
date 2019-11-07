@@ -613,6 +613,24 @@ export default {
                 params,
                 config
             )
+        },
+
+        /**
+         * 同步命名空间
+         *
+         * @param {Object} context store 上下文对象
+         * @param {Object} params 参数
+         *
+         * @return {Promise} promise 对象
+         */
+        syncNamespace (context, params, config = {}) {
+            const { projectId } = params
+            delete params.projectId
+            return http.post(
+                `${DEVOPS_BCS_API_URL}/api/projects/${projectId}/configuration/namespaces/sync/`,
+                params,
+                config
+            )
         }
     }
 }

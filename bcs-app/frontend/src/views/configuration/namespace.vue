@@ -19,6 +19,11 @@
                             <i class="bk-icon icon-plus"></i>
                             <span>{{$t('新建')}}</span>
                         </button>
+                        <bk-tooltip v-if="showSyncBtn" :content="$t('同步非导航侧【命名空间】页面创建的命名空间数据')" placement="top">
+                            <button class="bk-button" @click.stop.prevent="syncNamespace">
+                                <span>{{$t('同步命名空间')}}</span>
+                            </button>
+                        </bk-tooltip>
                         <span class="biz-tip ml10" style="vertical-align: middle;">{{$t('命名空间创建后不可更改')}}</span>
                     </div>
                     <div class="right">
@@ -414,7 +419,8 @@
                     title: '',
                     closeIcon: false,
                     ns: {}
-                }
+                },
+                showSyncBtn: false
             }
         },
         computed: {
@@ -460,6 +466,35 @@
             this.getClusters()
         },
         methods: {
+            /**
+             * 同步命名空间
+             */
+            async syncNamespace () {
+                try {
+                    await this.$store.dispatch('configuration/syncNamespace', {
+                        projectId: this.projectId
+                    })
+
+                    const me = this
+                    this.bkMessageInstance && this.bkMessageInstance.close()
+                    this.bkMessageInstance = this.$bkMessage({
+                        theme: 'success',
+                        message: this.$t('同步命名空间成功'),
+                        delay: 1000,
+                        onClose: () => {
+                            me.refresh()
+                        }
+                    })
+                } catch (e) {
+                    catchErrorHandler(e, this)
+                } finally {
+                    // 晚消失是为了防止整个页面loading和表格数据loading效果叠加产生闪动
+                    setTimeout(() => {
+                        this.isInitLoading = false
+                    }, 200)
+                }
+            },
+
             /**
              * 刷新列表
              */
@@ -529,6 +564,8 @@
                         projectId: this.projectId
                     })
                     this.permissions = JSON.parse(JSON.stringify(res.permissions || {}))
+
+                    this.showSyncBtn = this.permissions.sync_namespace
 
                     const list = []
                     res.data.forEach(item => {
