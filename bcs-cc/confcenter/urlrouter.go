@@ -110,7 +110,7 @@ func URLConf(engine *gin.Engine) {
 	}
 
 	node := engine.Group("/projects/:project_id/clusters/:cluster_id")
-	// node.Use(JWTTokenMiddleware())
+	node.Use(JWTTokenMiddleware())
 	{
 		node.GET("/nodes/", apis.NodeList)
 		node.POST("/nodes/", apis.CreateNode)
