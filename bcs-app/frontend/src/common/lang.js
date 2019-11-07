@@ -512,7 +512,7 @@ export default {
     '模板实例化操作即平台通过用户配置的模板，生成对应的资源yaml文件，并将它们下发到指定集群的命名空间下。资源创建成功后，可在"应用"和"网络"中查看资源实例详情。': ['Template instantiation means that the platform generates the corresponding resource yaml files through the user-configured templates and sends them to the namespace of the specified cluster. After the resource is created successfully, you can view the resource instance details in Application and Network.'],
     '同步命名空间': ['Sync Namespace'],
     '同步非本页面创建的命名空间数据': ['Synchronize namespace not created by this page'],
-    '同步命名空间成功': ['Sync Namespace Success'],
+    '同步命名空间任务已经启动，请稍后刷新': ['The sync namespace task has started, please refresh later'],
     '类型': ['Type'],
     // 变量的使用 $t('test', { vari1: 1, vari2: 2 })
     'test': ['{vari1} ---english--- {vari2}']

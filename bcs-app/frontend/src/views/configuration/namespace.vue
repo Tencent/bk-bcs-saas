@@ -475,15 +475,15 @@
                         projectId: this.projectId
                     })
 
-                    const me = this
+                    // const me = this
                     this.bkMessageInstance && this.bkMessageInstance.close()
                     this.bkMessageInstance = this.$bkMessage({
                         theme: 'success',
-                        message: this.$t('同步命名空间成功'),
-                        delay: 1000,
-                        onClose: () => {
-                            me.refresh()
-                        }
+                        message: this.$t('同步命名空间任务已经启动，请稍后刷新'),
+                        delay: 1000
+                        // onClose: () => {
+                        //     me.refresh()
+                        // }
                     })
                 } catch (e) {
                     catchErrorHandler(e, this)
