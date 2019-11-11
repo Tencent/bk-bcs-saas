@@ -1857,6 +1857,16 @@ export default {
          */
         createYamlTemplateReleases (context, { projectId, templateId, versionId, data }) {
             return http.post(`${DEVOPS_BCS_API_URL}/api/projects/${projectId}/configuration/yaml_templates/${templateId}/show_versions/${versionId}/releases/`, data)
+        },
+
+        /**
+         * 获取yaml模板支持的资源
+         *
+         * @param {Object} context store 上下文对象
+         * @param {Object} 请求参数，projectId
+         */
+        getYamlResources (context, { projectId }) {
+            return http.get(`${DEVOPS_BCS_API_URL}/api/projects/${projectId}/configuration/yaml_templates/initial_templates/`)
         }
     }
 }
