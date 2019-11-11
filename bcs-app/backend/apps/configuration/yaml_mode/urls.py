@@ -31,4 +31,11 @@ urlpatterns = [
         r'show_versions/(?P<show_version_id>\d+)/releases/$',
         views.TemplateReleaseViewSet.as_view({'post': 'preview_or_apply'})),
 
+    # url(r'^api/projects/(?P<project_id>\w{32})/configuration/yaml_templates/(?P<template_id>\d+)/'
+    #     r'released_show_versions/$',
+    #     views.TemplateReleaseViewSet.as_view({'get': 'get_released_show_versions'})),
+
+    url(r'^api/projects/(?P<project_id>\w{32})/configuration/yaml_templates/initial_templates/$',
+        views.InitialTemplatesViewSet.as_view({'get': 'get_initial_templates'}))
+
 ]

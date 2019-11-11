@@ -123,17 +123,18 @@ class Template(BaseModel):
     def get_containers(self, project_kind, show_version):
         """容器名称和容器镜像
         """
-        # 模板集有版本
-        if show_version:
-            try:
-                ventity = VersionedEntity.objects.get(id=show_version.real_version_id)
-            except VersionedEntity.DoesNotExist:
-                return []
-            else:
-                return ventity.get_containers(project_kind)
+        if self.edit_mode != TemplateEditMode.PageForm.value:
+            return []
 
         # 只有草稿的情况
-        return self.get_containers_from_draft(project_kind)
+        if not show_version:
+            return self.get_containers_from_draft(project_kind)
+
+        try:
+            ventity = VersionedEntity.objects.get(id=show_version.real_version_id)
+            return ventity.get_containers(project_kind)
+        except VersionedEntity.DoesNotExist:
+            return []
 
     @property
     def log_url(self):

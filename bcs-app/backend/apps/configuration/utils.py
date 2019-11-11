@@ -22,7 +22,7 @@ from collections import Counter
 from rest_framework.exceptions import ValidationError
 
 from .constants import RESOURCE_NAMES
-from backend.apps.configuration.constants import NUM_VAR_ERROR_MSG, VARIABLE_PATTERN
+from backend.apps.configuration.constants import NUM_VAR_ERROR_MSG, VARIABLE_PATTERN, TemplateEditMode
 from backend.apps.configuration.serializers_new import TemplateSLZ, CreateTemplateSLZ
 from backend.apps.configuration.models import CATE_SHOW_NAME, MODULE_DICT, ShowVersion, Template, VersionedEntity
 from backend.apps.constants import ProjectKind
@@ -48,7 +48,9 @@ def to_bcs_res_name(project_kind, origin_name):
 @cache.region.cache_on_arguments(expiration_time=60)
 def get_all_template_info_by_project(project_id):
     # 获取项目下所有的模板信息
-    temps = Template.objects.filter(project_id=project_id).values('id', 'name')
+    # 暂时不支持YAML模板查询
+    temps = Template.objects.filter(project_id=project_id,
+                                    edit_mode=TemplateEditMode.PageForm.value).values('id', 'name')
     tem_dict = {tem['id']: tem['name'] for tem in temps}
     tem_ids = tem_dict.keys()
 
@@ -90,7 +92,9 @@ def get_all_template_info_by_project(project_id):
 
 # TODO refactor
 def get_all_template_config(project_id):
-    tem_ids = Template.objects.filter(project_id=project_id).values_list('id', flat=True)
+    # 暂时不支持YAML模板查询
+    tem_ids = Template.objects.filter(project_id=project_id,
+                                      edit_mode=TemplateEditMode.PageForm.value).values_list('id', flat=True)
     tem_ids = list(tem_ids)
     real_version_ids = ShowVersion.objects.filter(template_id__in=tem_ids).values_list('real_version_id', flat=True)
     real_version_ids = list(real_version_ids)

@@ -22,15 +22,11 @@ from rest_framework.exceptions import ValidationError
 from jsonschema import ValidationError as JsonValidationError, SchemaError, validate as json_validate
 
 from backend.apps.instance.constants import InsState
-from .models import (Template, VersionedEntity, Application, get_app_resource, ShowVersion, K8sIngress,
-                     MODULE_DICT, POD_RES_LIST, K8sService, K8sStatefulSet, CATE_SHOW_NAME)
-from .constants_bak import APPLICATION_SCHEMA, DEPLPYMENT_SCHNEA, SERVICE_SCHEM, CONFIGMAP_SCHEM, SECRET_SCHEM
-from .constants_k8s import (K8S_SECRET_SCHEM, K8S_CONFIGMAP_SCHEM, K8S_SERVICE_SCHEM, K8S_DEPLPYMENT_SCHNEA,
-                            K8S_DAEMONSET_SCHNEA, K8S_JOB_SCHNEA, K8S_STATEFULSET_SCHNEA, AFFINITY_SCHNEA)
+from .models import Template, VersionedEntity, get_app_resource, ShowVersion, POD_RES_LIST, CATE_SHOW_NAME
+from .constants_bak import SERVICE_SCHEM, CONFIGMAP_SCHEM, SECRET_SCHEM
+from .constants_k8s import K8S_SECRET_SCHEM, K8S_CONFIGMAP_SCHEM, K8S_SERVICE_SCHEM
 from backend.apps.configuration.utils import to_bcs_res_name, check_var_by_config
 from backend.apps.instance.models import VersionInstance, InstanceConfig
-from backend.accounts import bcs_perm
-from backend.apps.configuration.k8s import constants as constants_k8s
 
 logger = logging.getLogger(__name__)
 
@@ -151,7 +147,7 @@ def get_tempate_info(tem, kind):
         "containers": tem.get_containers(kind, lasetest_ver),
         "is_locked": tem.is_locked,
         "locker": tem.locker,
-
+        "edit_mode": tem.edit_mode,
         "latest_version": latest_version,
         "latest_version_id": latest_version_id,
         "latest_show_version": latest_show_version,

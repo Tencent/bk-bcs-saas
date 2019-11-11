@@ -16,13 +16,11 @@ import json
 import logging
 import re
 
-import six
 import yaml
 import jsonschema
 from backend.utils.sanitizer import clean_html
 from Crypto.PublicKey import RSA
 from django.conf import settings
-from django.core.validators import RegexValidator
 from django.utils import timezone
 from rest_framework import fields, serializers
 

@@ -117,23 +117,23 @@ class MesosResourceName(ChoicesEnum):
 
 class FileResourceName(ChoicesEnum):
     Deployment = 'Deployment'
-    DaemonSet = 'DaemonSet'
-    Job = 'Job'
-    StatefulSet = 'StatefulSet'
     Service = 'Service'
     ConfigMap = 'ConfigMap'
     Secret = 'Secret'
     Ingress = 'Ingress'
+    StatefulSet = 'StatefulSet'
+    DaemonSet = 'DaemonSet'
+    Job = 'Job'
     HPA = 'HPA'
 
     _choices_labels = (
         (Deployment, 'Deployment'),
-        (DaemonSet, 'DaemonSet'),
-        (Job, 'Job'),
-        (StatefulSet, 'StatefulSet'),
         (Service, 'Service'),
         (ConfigMap, 'ConfigMap'),
         (Secret, 'Secret'),
         (Ingress, 'Ingress'),
+        (StatefulSet, 'StatefulSet'),
+        (DaemonSet, 'DaemonSet'),
+        (Job, 'Job'),
         (HPA, 'HPA'),
     )
