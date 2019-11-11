@@ -15,7 +15,7 @@ from rest_framework import viewsets
 from rest_framework.response import Response
 from rest_framework.renderers import BrowsableAPIRenderer
 
-from . import serializers
+from . import serializers, init_tpls
 from .deployer import DeployController
 from .release import ReleaseData, ReleaseDataProcessor
 from backend.apps.configuration.mixins import TemplatePermission
@@ -24,6 +24,13 @@ from backend.apps.configuration.showversion.serializers import GetShowVersionSLZ
 from backend.components import paas_cc
 from backend.utils.error_codes import error_codes
 from backend.utils.renderers import BKAPIRenderer
+
+
+class InitialTemplatesViewSet(viewsets.ViewSet):
+    renderer_classes = (BKAPIRenderer, BrowsableAPIRenderer)
+
+    def get_initial_templates(self, request, project_id):
+        return Response(init_tpls.get_initial_templates())
 
 
 class YamlTemplateViewSet(viewsets.ViewSet, TemplatePermission):
@@ -143,7 +150,7 @@ class TemplateReleaseViewSet(viewsets.ViewSet, TemplatePermission):
         """
         request.data = {
             'is_preview': True,
-            'namespace': 'test',
+            'namespace_id': 'test',
             'template_files': [{
                 'resource_name': 'Deployment',
                 'files': [{'name': 'nginx.yaml', 'id': 3}]

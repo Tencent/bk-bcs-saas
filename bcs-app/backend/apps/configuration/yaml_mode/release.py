@@ -11,15 +11,18 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
+import json
 import datetime
 from io import StringIO
 from collections import OrderedDict
 
+import jinja2
 from ruamel.yaml import YAML
 from dataclasses import dataclass
 from rest_framework.exceptions import ParseError
 
 from backend.bcs_k8s.app import bcs_info_injector
+from backend.bcs_k8s.helm import bcs_variable
 
 
 @dataclass
@@ -47,7 +50,8 @@ class ReleaseDataProcessor:
         except Exception as e:
             raise ParseError(f'Parse manifest failed: \n{e}\n\nManifest content:\n{yaml_content}')
         else:
-            return resources
+            # ordereddict to dict
+            return json.loads(json.dumps(resources))
 
     def _join_manifest(self, resources):
         try:
@@ -59,17 +63,30 @@ class ReleaseDataProcessor:
         else:
             return s.getvalue()
 
-    def _render_with_variables(self, raw_content):
-        return raw_content
+    def _get_bcs_variables(self):
+        sys_variables = bcs_variable.collect_system_variable(
+            access_token=self.access_token,
+            project_id=self.project_id,
+            namespace_id=self.namespace_info['id']
+        )
+        bcs_variables = bcs_variable.get_namespace_variables(self.project_id, self.namespace_info['id'])
+        sys_variables.update(bcs_variables)
+        return sys_variables
+
+    def _render_with_variables(self, raw_content, bcs_variables):
+        t = jinja2.Template(raw_content)
+        return t.render(bcs_variables)
 
     def _set_namespace(self, resources):
-        for res_manifest in resources:
-            metadata = res_manifest['metadata']
-            metadata['namespace'] = self.namespace_info['namespace']
+        try:
+            for res_manifest in resources:
+                metadata = res_manifest['metadata']
+                metadata['namespace'] = self.namespace_info['name']
+        except Exception:
+            raise ParseError('set namespace failed: no valid metadata in manifest')
 
     def _inject_bcs_info(self, yaml_content, inject_configs):
         resources = self._parse_yaml(yaml_content)
-        # resources = bcs_info_injector.parse_manifest(yaml_content)
         context = {
             'creator': self.username,
             'updator': self.username,
@@ -83,7 +100,6 @@ class ReleaseDataProcessor:
         resources = manager.do_inject()
         self._set_namespace(resources)
         return self._join_manifest(resources)
-        # return bcs_info_injector.join_manifest(resources)
 
     def _get_inject_configs(self):
         now = datetime.datetime.now()
@@ -91,8 +107,8 @@ class ReleaseDataProcessor:
             access_token=self.access_token,
             project_id=self.project_id,
             cluster_id=self.namespace_info['cluster_id'],
-            namespace_id=self.namespace_info['namespace_id'],
-            namespace=self.namespace_info['namespace'],
+            namespace_id=self.namespace_info['id'],
+            namespace=self.namespace_info['name'],
             creator=self.username,
             updator=self.username,
             created_at=now,
@@ -102,14 +118,16 @@ class ReleaseDataProcessor:
         )
         return configs
 
-    def _inject(self, raw_content, inject_configs):
-        content = self._render_with_variables(raw_content)
+    def _inject(self, raw_content, inject_configs, bcs_variables):
+        content = self._render_with_variables(raw_content, bcs_variables)
         content = self._inject_bcs_info(content, inject_configs)
         return content
 
     def release_data(self):
         inject_configs = self._get_inject_configs()
+        bcs_variables = self._get_bcs_variables()
+
         for res_files in self.template_files:
             for f in res_files['files']:
-                f['content'] = self._inject(f['content'], inject_configs)
+                f['content'] = self._inject(f['content'], inject_configs, bcs_variables)
         return ReleaseData(self.project_id, self.namespace_info, self.show_version, self.template_files)

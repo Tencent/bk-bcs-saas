@@ -15,14 +15,13 @@ import contextlib
 
 from backend.utils.client import make_kubectl_client
 from backend.utils.error_codes import error_codes
-from backend.bcs_k8s.kubectl.exceptions import KubectlExecutionError
 
 
 class DeployController:
     def __init__(self, access_token, release_data):
         self.access_token = access_token
         self.release_data = release_data
-        self.namespace = release_data.namespace_info['namespace']
+        self.namespace = release_data.namespace_info['name']
 
     @contextlib.contextmanager
     def make_kubectl_client(self):
@@ -32,10 +31,6 @@ class DeployController:
                 access_token=self.access_token) as (client, err):
             yield client, err
 
-    def _create_version_instance(self):
-        # TODO adaptor InstanceConfig
-        pass
-
     def _to_manifests(self):
         template_files = self.release_data.template_files
         manifest_list = []
@@ -44,6 +39,7 @@ class DeployController:
         return '---\n'.join(manifest_list)
 
     def _run_with_kubectl(self, operation):
+        err_msg = ''
         with self.make_kubectl_client() as (client, err):
             if err is not None:
                 raise error_codes.APIError(f'make kubectl client failed: {err}')
@@ -57,8 +53,11 @@ class DeployController:
                 elif operation == 'delete':
                     client.ensure_namespace(self.namespace)
                     client.delete(manifests, self.namespace)
-            except KubectlExecutionError as e:
-                raise error_codes.APIError(f'kubectl {operation} failed: {e}')
+            except Exception as e:
+                err_msg = f'kubectl {operation} failed: {e}'
+
+        if err_msg:
+            raise error_codes.APIError(err_msg)
 
     def apply(self):
         self._run_with_kubectl('apply')

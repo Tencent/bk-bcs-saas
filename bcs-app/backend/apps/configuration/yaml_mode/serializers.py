@@ -28,6 +28,13 @@ class ResourceFileSLZ(serializers.Serializer):
     id = serializers.CharField(required=False)
     action = serializers.ChoiceField(choices=FileAction.get_choices())
 
+    def validate_id(self, id):
+        try:
+            assert int(id) > 0, f'file id {id} must be positive integer'
+        except Exception as e:
+            raise ValidationError(f'file id {id} error: {e}')
+        return id
+
 
 class TemplateFileSLZ(serializers.Serializer):
     resource_name = serializers.ChoiceField(choices=FileResourceName.get_choices())

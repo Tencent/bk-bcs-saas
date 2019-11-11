@@ -21,16 +21,12 @@ from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 from jsonschema import ValidationError as JsonValidationError, SchemaError, validate as json_validate
 
+from . import models
+from .constants_bak import SERVICE_SCHEM, CONFIGMAP_SCHEM, SECRET_SCHEM
+from .constants_k8s import K8S_SECRET_SCHEM, K8S_CONFIGMAP_SCHEM, K8S_SERVICE_SCHEM
 from backend.apps.instance.constants import InsState
-from .models import (Template, VersionedEntity, Application, get_app_resource, ShowVersion, K8sIngress,
-                     MODULE_DICT, POD_RES_LIST, K8sService, K8sStatefulSet, CATE_SHOW_NAME)
-from .constants_bak import APPLICATION_SCHEMA, DEPLPYMENT_SCHNEA, SERVICE_SCHEM, CONFIGMAP_SCHEM, SECRET_SCHEM
-from .constants_k8s import (K8S_SECRET_SCHEM, K8S_CONFIGMAP_SCHEM, K8S_SERVICE_SCHEM, K8S_DEPLPYMENT_SCHNEA,
-                            K8S_DAEMONSET_SCHNEA, K8S_JOB_SCHNEA, K8S_STATEFULSET_SCHNEA, AFFINITY_SCHNEA)
 from backend.apps.configuration.utils import to_bcs_res_name, check_var_by_config
 from backend.apps.instance.models import VersionInstance, InstanceConfig
-from backend.accounts import bcs_perm
-from backend.apps.configuration.k8s import constants as constants_k8s
 
 logger = logging.getLogger(__name__)
 
@@ -45,10 +41,10 @@ def check_resource_name(resource_name, data, name):
 
     if ('item_id' in data or 'resource_id' in data) and 'project_id' in data:
         if 'item_id' in data:
-            result = Template.check_resource_name(
+            result = models.Template.check_resource_name(
                 data['project_id'], resource_name, data['item_id'], name, data['version_id'])
         else:
-            result = Template.check_resource_name(
+            result = models.Template.check_resource_name(
                 data['project_id'], resource_name, data['resource_id'], name, data['version_id'])
         if not result:
             raise ValidationError(
@@ -67,7 +63,7 @@ def check_app_id(data, data_app_id):
     req_app_id_list = data_app_id.split(',')
 
     try:
-        version_entity = VersionedEntity.objects.get(id=data['version_id'])
+        version_entity = models.VersionedEntity.objects.get(id=data['version_id'])
     except Exception:
         raise ValidationError(u"模板集版本(id:%s)不存在" % data['version_id'])
 
@@ -119,7 +115,7 @@ def filter_instance_resource_by_version(data, version_id):
 def get_tempate_info(tem, kind):
     """获取模板的基本信息（模板&模板列表）,不再使用 TemplateSLZ
     """
-    lasetest_ver = ShowVersion.objects.filter(
+    lasetest_ver = models.ShowVersion.objects.filter(
         template_id=tem.id).order_by('-updated').first()
     if lasetest_ver:
         latest_show_version = lasetest_ver.name
@@ -151,7 +147,7 @@ def get_tempate_info(tem, kind):
         "containers": tem.get_containers(kind, lasetest_ver),
         "is_locked": tem.is_locked,
         "locker": tem.locker,
-
+        "edit_mode": tem.edit_mode,
         "latest_version": latest_version,
         "latest_version_id": latest_version_id,
         "latest_show_version": latest_show_version,
@@ -168,7 +164,7 @@ class ResourceSLZ(serializers.ModelSerializer):
         source='get_lb_services', read_only=True)
 
     class Meta:
-        model = VersionedEntity
+        model = models.VersionedEntity
         fields = (
             "data",
             "lb_services",
@@ -179,12 +175,12 @@ class ResourceSLZ(serializers.ModelSerializer):
         category = self.context.get('category')
         name = self.context.get('tmpl_app_name')
         # 应用-实例化：只显示应用相关的资源
-        if (category in ['deployment', 'application']) or (category in POD_RES_LIST):
+        if (category in ['deployment', 'application']) or (category in models.POD_RES_LIST):
             # 只查询单个应用实例化所需要的资源
-            data = get_app_resource(
+            data = models.get_app_resource(
                 data, category, name, is_related_res=True, version_id=obj.id)
         # 传给前端的资源类型统一
-        new_data = {CATE_SHOW_NAME.get(x, x): data[x] for x in data}
+        new_data = {models.CATE_SHOW_NAME.get(x, x): data[x] for x in data}
         return new_data
 
 
@@ -209,7 +205,7 @@ class TemplateCreateSLZ(serializers.Serializer):
     project_id = serializers.CharField(max_length=64)
 
     def validate(self, data):
-        is_exist = Template.default_objects.filter(
+        is_exist = models.Template.default_objects.filter(
             name=data['name'], project_id=data['project_id']).exists()
         if is_exist:
             detail = {

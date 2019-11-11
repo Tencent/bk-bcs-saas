@@ -167,3 +167,5 @@ bcs-cc/pkg
 bcs-cc/src
 bcs-cc/bin
 /data/
+
+bcs-app/backend/settings/ce/dev_*.py

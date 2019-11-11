@@ -114,6 +114,7 @@ TEMPLATES = [
             os.path.join(BASE_DIR, 'backend/static'),
             os.path.join(BASE_DIR, 'frontend/output'),
             os.path.join(BASE_DIR, 'staticfiles'),
+            os.path.join(BASE_DIR, 'backend/apps/configuration/yaml_mode/manifests')
 
         ],
         'APP_DIRS': True,
