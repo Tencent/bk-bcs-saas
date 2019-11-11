@@ -30,7 +30,7 @@ class ResourceFileSLZ(serializers.Serializer):
 
     def validate_id(self, id):
         try:
-            int(id)
+            assert int(id) > 0, f'file id {id} must be positive integer'
         except Exception as e:
             raise ValidationError(f'file id {id} error: {e}')
         return id

@@ -83,7 +83,7 @@ class ReleaseDataProcessor:
                 metadata = res_manifest['metadata']
                 metadata['namespace'] = self.namespace_info['name']
         except Exception:
-            raise ParseError(f'set namespace failed: no valid metadata in manifest')
+            raise ParseError('set namespace failed: no valid metadata in manifest')
 
     def _inject_bcs_info(self, yaml_content, inject_configs):
         resources = self._parse_yaml(yaml_content)
