@@ -24,7 +24,7 @@ from backend.apps.configuration import utils
 
 class ResourceFileSLZ(serializers.Serializer):
     name = serializers.CharField()
-    content = serializers.CharField()
+    content = serializers.CharField(allow_blank=True)
     id = serializers.CharField(required=False)
     action = serializers.ChoiceField(choices=FileAction.get_choices())
 
@@ -46,6 +46,8 @@ class CreateTemplateFileSLZ(TemplateFileSLZ):
         for f in files:
             if f['action'] != FileAction.CREATE.value:
                 raise ValidationError(f"file {f['name']} action must be {FileAction.CREATE.value}")
+            if not f['content']:
+                raise ValidationError(f"file {f['name']} content cannot be blank")
 
         name_list = [f['name'] for f in files]
         if len(name_list) != len(set(name_list)):
@@ -59,8 +61,10 @@ class UpdateTemplateFileSLZ(TemplateFileSLZ):
         for f in files:
             if f['action'] not in FileAction.choice_values():
                 raise ValidationError(f"file {f['name']} action {f['action']} is invalid")
-            if f['action'] != FileAction.CREATE.value and 'id' not in f:
+            if 'id' not in f and f['action'] != FileAction.CREATE.value:
                 raise ValidationError(f"file {f['name']} miss file id")
+            if not f['content'] and f['action'] != FileAction.DELETE.value:
+                raise ValidationError(f"file {f['name']} content cannot be blank")
 
         name_list = [f['name'] for f in files]
         if len(name_list) != len(set(name_list)):
