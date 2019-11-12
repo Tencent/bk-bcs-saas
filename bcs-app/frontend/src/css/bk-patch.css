@@ -1123,3 +1123,7 @@
         height: calc(100% - 60px);
     }
 }
+
+.bk-tab2 .bk-tab2-head .bk-tab2-nav>.tab2-nav-item {
+    max-width: 220px;
+}
