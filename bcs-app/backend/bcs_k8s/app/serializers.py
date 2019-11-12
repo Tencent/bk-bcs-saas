@@ -683,7 +683,7 @@ class AppReleasePreviewSLZ(AppMixin, serializers.Serializer):
             "notes": notes,
             "difference": difference,
             "chart_version_changed": chart_version_changed,
-            "old_content": preview_parse(content, instance.namespace)
+            "old_content": content_old
         }
 
     class Meta:
