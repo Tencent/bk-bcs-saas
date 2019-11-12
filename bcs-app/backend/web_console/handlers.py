@@ -34,7 +34,7 @@ class IndexPageHandler(tornado.web.RequestHandler):
     """首页处理
     """
 
-    def get_browser_locale(self, default=None):
+    def get_user_locale(self):
         bk_lang = self.get_cookie(settings.LANGUAGE_COOKIE_NAME)
         try:
             lang_code = get_supported_language_variant(bk_lang)
