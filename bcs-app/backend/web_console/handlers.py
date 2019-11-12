@@ -18,15 +18,14 @@ import arrow
 import tornado.web
 import tornado.websocket
 from django.conf import settings
+from django.utils.translation.trans_real import get_supported_language_variant
+from tornado import locale
 from tornado.ioloop import IOLoop, PeriodicCallback
 
-from backend.web_console import constants
+from backend.web_console import bcs_client, constants, utils
 from backend.web_console.auth import authenticated
-
 from backend.web_console.pod_life_cycle import PodLifeCycle
 from backend.web_console.utils import clean_bash_escape, get_auditor
-from backend.web_console import bcs_client
-from backend.web_console import utils
 
 logger = logging.getLogger(__name__)
 
@@ -34,6 +33,14 @@ logger = logging.getLogger(__name__)
 class IndexPageHandler(tornado.web.RequestHandler):
     """首页处理
     """
+
+    def get_browser_locale(self, default=None):
+        bk_lang = self.get_cookie(settings.LANGUAGE_COOKIE_NAME)
+        try:
+            lang_code = get_supported_language_variant(bk_lang)
+            return locale.get(lang_code)
+        except LookupError:
+            return locale.get(settings.LANGUAGE_CODE)
 
     def get(self, project_id, cluster_id):
         session_url = f'{settings.DEVOPS_BCS_API_URL}/api/projects/{project_id}/clusters/{cluster_id}/web_console/session/'  # noqa

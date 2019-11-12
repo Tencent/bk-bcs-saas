@@ -33,6 +33,7 @@ class Application(tornado.web.Application):
 def main():
     _setup_logging(verbose=True)
     ws_app = Application()
+    tornado.locale.load_gettext_translations(settings.LOCALE_PATHS[0], domain='django')
     server = tornado.httpserver.HTTPServer(ws_app)
     server.listen(settings.WEB_CONSOLE_PORT)
     pod_life_cycle = PodLifeCycle()
