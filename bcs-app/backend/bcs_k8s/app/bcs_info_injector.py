@@ -104,7 +104,7 @@ def inject_configs(access_token, project_id, cluster_id, namespace_id, namespace
         ignore_empty_access_token=True
     )
 
-    bcs_annotations = provider.provide_annotations()
+    bcs_annotations = provider.provide_annotations(source_type)
     # resouce may not have annotations field
     bcs_annotations = {"annotations": bcs_annotations}
 
