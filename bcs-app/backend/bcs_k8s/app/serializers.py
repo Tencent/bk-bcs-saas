@@ -672,18 +672,18 @@ class AppReleasePreviewSLZ(AppMixin, serializers.Serializer):
         )
 
         # compute diff
-        content_old = instance.release.content
-        if not content_old:
-            content_old, _ = instance.render_app(
+        old_content = instance.release.content
+        if not old_content:
+            old_content, _ = instance.render_app(
                 username=self.context["request"].user.username,
                 access_token=self.access_token)
-        difference = simple_diff(content_old, content, instance.namespace)
+        difference = simple_diff(old_content, content, instance.namespace)
         return {
             "content": preview_parse(content, instance.namespace),
             "notes": notes,
             "difference": difference,
             "chart_version_changed": chart_version_changed,
-            "old_content": content_old
+            "old_content": old_content
         }
 
     class Meta:
