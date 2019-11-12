@@ -12,49 +12,50 @@
 # specific language governing permissions and limitations under the License.
 #
 from django.conf import settings
+from django.utils.translation import ugettext as _
 
 ActivityTypes = dict(
-    add='创建',
-    modify='更新',
-    rollback='回滚',
-    delete='删除',
-    begin='开始',
-    end='结束',
-    start='启动',
-    pause='暂停',
-    carryon='继续',
-    stop='停止',
-    restart='重启',
+    add=_('创建'),
+    modify=_('更新'),
+    rollback=_('回滚'),
+    delete=_('删除'),
+    begin=_('开始'),
+    end=_('结束'),
+    start=_('启动'),
+    pause=_('暂停'),
+    carryon=_('继续'),
+    stop=_('停止'),
+    restart=_('重启'),
 )
 ActivityTypeChoices = {v: k for k, v in ActivityTypes.items()}
 
 ActivityStatus = dict(
-    completed='完成',
-    error='错误',
-    succeed='成功',
-    failed='失败',
+    completed=_('完成'),
+    error=_('错误'),
+    succeed=_('成功'),
+    failed=_('失败'),
 )
 ActivityStatusChoices = {v: k for k, v in ActivityStatus.items()}
 
 
 ResourceTypes = dict(
-    project='项目',
-    cluster='集群',
-    node='节点',
-    namespace='命名空间',
-    template='模板集',
-    instance='应用',
+    project=_('项目'),
+    cluster=_('集群'),
+    node=_('节点'),
+    namespace=_('命名空间'),
+    template=_('模板集'),
+    instance=_('应用'),
 
-    service='Service',
-    ingress='Ingress',
-    lb='LoadBalance',
-    configmap='Configmap',
-    secret='Secret',
+    service=_('Service'),
+    ingress=_('Ingress'),
+    lb=_('LoadBalance'),
+    configmap=_('Configmap'),
+    secret=_('Secret'),
 
-    metric='Metric',
-    web_console='WebConsole',
-    helm_app='Helm',
-    hpa='HPA',
+    metric=_('Metric'),
+    web_console=_('WebConsole'),
+    helm_app=_('Helm'),
+    hpa=_('HPA'),
 )
 
 ResourceTypeChoices = {v: k for k, v in ResourceTypes.items()}
