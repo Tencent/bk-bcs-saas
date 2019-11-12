@@ -124,9 +124,9 @@
     <div id="disconnected" style="display:none">
         <div class="blur"></div>
         <div id="reconnect">
-            <h2>连接已经断开</h2>
-            <p id="exit_message">BCS Console 网络断开，请检查网络{{ settings.COMMON_EXCEPTION_MSG }}</p>
-            <button onclick="location.reload()">重新加载 &#x27f3;</button>
+            <h2>{{ _("连接已经断开") }}</h2>
+            <p id="exit_message">{{ _("BCS Console 网络断开，请检查网络") }}{{ settings.COMMON_EXCEPTION_MSG }}</p>
+            <button onclick="location.reload()">{{ _("重新加载") }} &#x27f3;</button>
         </div>
     </div>
 

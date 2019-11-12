@@ -151,7 +151,7 @@ else:
 IS_USE_BCS_TLS = True
 
 # CELERY 配置
-IS_USE_CELERY = True
+IS_USE_CELERY = False
 # 本地使用Redis做broker
 BROKER_URL_DEV = REDIS_URL
 

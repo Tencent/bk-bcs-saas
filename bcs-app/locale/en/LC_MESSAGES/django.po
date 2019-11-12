@@ -1,0 +1,148 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2019-11-12 19:43+0800\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: backend/bcs_k8s/authtoken/authentication.py:32
+msgid "Invalid token header. No credentials provided."
+msgstr ""
+
+#: backend/bcs_k8s/authtoken/authentication.py:35
+msgid "Invalid token header. Token string should not contain spaces."
+msgstr ""
+
+#: backend/bcs_k8s/authtoken/authentication.py:41
+msgid ""
+"Invalid token header. Token string should not contain invalid characters."
+msgstr ""
+
+#: backend/bcs_k8s/authtoken/authentication.py:48
+msgid "Invalid token header. Token string not reisted."
+msgstr ""
+
+#: backend/bcs_k8s/authtoken/models.py:33
+msgid "Key"
+msgstr ""
+
+#: backend/bcs_k8s/authtoken/models.py:34
+msgid "Created"
+msgstr ""
+
+#: backend/bcs_k8s/authtoken/models.py:39
+msgid "Maintainers"
+msgstr ""
+
+#: backend/bcs_k8s/authtoken/models.py:40
+msgid "Name"
+msgstr ""
+
+#: backend/bcs_k8s/authtoken/models.py:41
+msgid "Description"
+msgstr ""
+
+#: backend/bcs_k8s/authtoken/models.py:44
+msgid "Kind"
+msgstr ""
+
+#: backend/utils/error_codes.py:131
+msgid "请求失败"
+msgstr ""
+
+#: backend/utils/error_codes.py:132
+msgid "该项目没有使用蓝鲸容器服务"
+msgstr ""
+
+#: backend/utils/error_codes.py:133
+msgid "参数不正确"
+msgstr ""
+
+#: backend/utils/error_codes.py:134
+msgid "第三方接口调用失败"
+msgstr ""
+
+#: backend/utils/error_codes.py:135
+msgid "json格式错误"
+msgstr ""
+
+#: backend/utils/error_codes.py:136
+msgid "参数缺失"
+msgstr ""
+
+#: backend/utils/error_codes.py:137
+msgid "校验失败"
+msgstr ""
+
+#: backend/utils/error_codes.py:140
+msgid "集群未注册"
+msgstr ""
+
+#: backend/utils/error_codes.py:141
+msgid "集群下没有节点"
+msgstr ""
+
+#: backend/utils/error_codes.py:144
+msgid "功能正在建设中"
+msgstr ""
+
+#: backend/utils/error_codes.py:147
+msgid "用户未登录或登录态失效，请使用登录链接重新登录"
+msgstr ""
+
+#: backend/utils/error_codes.py:150
+msgid "没有使用权限"
+msgstr ""
+
+#: backend/utils/error_codes.py:152
+msgid "权限校验失败"
+msgstr ""
+
+#: backend/utils/error_codes.py:155
+msgid "资源未找到"
+msgstr ""
+
+#: backend/utils/error_codes.py:161
+msgid "配置{}错误"
+msgstr ""
+
+#: backend/utils/error_codes.py:163
+msgid "权限中心接口调用失败:"
+msgstr ""
+
+#: backend/utils/error_codes.py:165
+msgid "仓库接口调用失败:"
+msgstr ""
+
+#: backend/utils/error_codes.py:167
+msgid "消息管理CMSI接口调用失败:"
+msgstr ""
+
+#: backend/utils/error_codes.py:169
+msgid "蓝鲸登录平台接口调用失败:"
+msgstr ""
+
+#: backend/web_console/templates/index.html:127
+#: backend/web_console/templates/mgr.html:332
+msgid "连接已经断开"
+msgstr "Connection Losted"
+
+#: backend/web_console/templates/index.html:128
+msgid "BCS Console 网络断开，请检查网络"
+msgstr ""
+
+#: backend/web_console/templates/index.html:129
+msgid "重新加载"
+msgstr "Reload"
