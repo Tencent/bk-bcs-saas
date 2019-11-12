@@ -18,6 +18,7 @@ import arrow
 import tornado.web
 import tornado.websocket
 from django.conf import settings
+from django.utils import translation
 from django.utils.translation.trans_real import get_supported_language_variant
 from tornado import locale
 from tornado.ioloop import IOLoop, PeriodicCallback
@@ -29,18 +30,23 @@ from backend.web_console.utils import clean_bash_escape, get_auditor
 
 logger = logging.getLogger(__name__)
 
-
-class IndexPageHandler(tornado.web.RequestHandler):
-    """首页处理
+class LocaleHandlerMixin:
+    """国际化Mixin
     """
 
     def get_user_locale(self):
         bk_lang = self.get_cookie(settings.LANGUAGE_COOKIE_NAME)
         try:
             lang_code = get_supported_language_variant(bk_lang)
-            return locale.get(lang_code)
         except LookupError:
-            return locale.get(settings.LANGUAGE_CODE)
+            lang_code = settings.LANGUAGE_CODE
+        translation.activate(lang_code)
+        return locale.get(lang_code)
+
+
+class IndexPageHandler(LocaleHandlerMixin, tornado.web.RequestHandler):
+    """首页处理
+    """
 
     def get(self, project_id, cluster_id):
         session_url = f'{settings.DEVOPS_BCS_API_URL}/api/projects/{project_id}/clusters/{cluster_id}/web_console/session/'  # noqa
@@ -56,7 +62,7 @@ class IndexPageHandler(tornado.web.RequestHandler):
             'cluster_id': cluster_id}
         self.render('templates/index.html', **data)
 
-class MgrHandler(tornado.web.RequestHandler):
+class MgrHandler(LocaleHandlerMixin, tornado.web.RequestHandler):
     """管理页
     """
 
@@ -65,7 +71,7 @@ class MgrHandler(tornado.web.RequestHandler):
         self.render('templates/mgr.html', **data)
 
 
-class BCSWebSocketHandler(tornado.websocket.WebSocketHandler):
+class BCSWebSocketHandler(LocaleHandlerMixin, tornado.websocket.WebSocketHandler):
     """WebSocket处理
     """
 

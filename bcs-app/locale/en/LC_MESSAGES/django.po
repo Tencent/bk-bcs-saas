@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-11-12 19:43+0800\n"
+"POT-Creation-Date: 2019-11-12 21:02+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -16,6 +16,130 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+
+#: backend/activity_log/constants.py:18
+msgid "创建"
+msgstr ""
+
+#: backend/activity_log/constants.py:19
+msgid "更新"
+msgstr ""
+
+#: backend/activity_log/constants.py:20
+msgid "回滚"
+msgstr ""
+
+#: backend/activity_log/constants.py:21
+msgid "删除"
+msgstr ""
+
+#: backend/activity_log/constants.py:22
+msgid "开始"
+msgstr ""
+
+#: backend/activity_log/constants.py:23
+msgid "结束"
+msgstr ""
+
+#: backend/activity_log/constants.py:24
+msgid "启动"
+msgstr ""
+
+#: backend/activity_log/constants.py:25
+msgid "暂停"
+msgstr ""
+
+#: backend/activity_log/constants.py:26
+msgid "继续"
+msgstr ""
+
+#: backend/activity_log/constants.py:27
+msgid "停止"
+msgstr ""
+
+#: backend/activity_log/constants.py:28
+msgid "重启"
+msgstr ""
+
+#: backend/activity_log/constants.py:33
+msgid "完成"
+msgstr ""
+
+#: backend/activity_log/constants.py:34
+msgid "错误"
+msgstr ""
+
+#: backend/activity_log/constants.py:35
+msgid "成功"
+msgstr ""
+
+#: backend/activity_log/constants.py:36
+msgid "失败"
+msgstr ""
+
+#: backend/activity_log/constants.py:42
+msgid "项目"
+msgstr ""
+
+#: backend/activity_log/constants.py:43
+msgid "集群"
+msgstr ""
+
+#: backend/activity_log/constants.py:44
+msgid "节点"
+msgstr ""
+
+#: backend/activity_log/constants.py:45
+msgid "命名空间"
+msgstr ""
+
+#: backend/activity_log/constants.py:46
+msgid "模板集"
+msgstr ""
+
+#: backend/activity_log/constants.py:47
+msgid "应用"
+msgstr ""
+
+#: backend/activity_log/constants.py:49
+msgid "Service"
+msgstr ""
+
+#: backend/activity_log/constants.py:50
+msgid "Ingress"
+msgstr ""
+
+#: backend/activity_log/constants.py:51
+msgid "LoadBalance"
+msgstr ""
+
+#: backend/activity_log/constants.py:52
+msgid "Configmap"
+msgstr ""
+
+#: backend/activity_log/constants.py:53
+msgid "Secret"
+msgstr ""
+
+#: backend/activity_log/constants.py:55
+msgid "Metric"
+msgstr ""
+
+#: backend/activity_log/constants.py:56
+msgid "WebConsole"
+msgstr ""
+
+#: backend/activity_log/constants.py:57
+msgid "Helm"
+msgstr ""
+
+#: backend/activity_log/constants.py:58
+msgid "HPA"
+msgstr ""
+
+#: backend/activity_log/views/activity_log.py:68
+msgid "获取操作审计元数据成功"
+msgstr ""
 
 #: backend/bcs_k8s/authtoken/authentication.py:32
 msgid "Invalid token header. No credentials provided."
@@ -56,6 +180,14 @@ msgstr ""
 
 #: backend/bcs_k8s/authtoken/models.py:44
 msgid "Kind"
+msgstr ""
+
+#: backend/settings/base.py:176
+msgid "中文"
+msgstr ""
+
+#: backend/settings/base.py:177
+msgid "English"
 msgstr ""
 
 #: backend/utils/error_codes.py:131
@@ -133,6 +265,20 @@ msgstr ""
 #: backend/utils/error_codes.py:169
 msgid "蓝鲸登录平台接口调用失败:"
 msgstr ""
+
+#: backend/web_console/constant_bk.py:23
+msgid "支持常用Bash快捷键; Windows下Ctrl-W为关闭窗口快捷键, 请使用Alt-W代替"
+msgstr ""
+"Support common Bash shortcuts; Ctrl-W under Windows is the shortcut to close "
+"the window, please use Alt-W instead"
+
+#: backend/web_console/constant_bk.py:28
+msgid ""
+"支持常用Bash快捷键; Windows下Ctrl-W为关闭窗口快捷键, 请使用Alt-W代替; 使用"
+"Alt-Num切换Tab"
+msgstr ""
+"Support common Bash shortcuts; Ctrl-W in Windows is to close the window "
+"shortcut, please use Alt-W instead; use Alt-Num to switch Tab"
 
 #: backend/web_console/templates/index.html:127
 #: backend/web_console/templates/mgr.html:332
