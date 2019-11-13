@@ -19,6 +19,7 @@ import tornado.web
 import tornado.websocket
 from django.conf import settings
 from django.utils import translation
+from django.utils.translation import ugettext as _
 from django.utils.translation.trans_real import get_supported_language_variant
 from tornado import locale
 from tornado.ioloop import IOLoop, PeriodicCallback
@@ -129,7 +130,7 @@ class BCSWebSocketHandler(LocaleHandlerMixin, tornado.websocket.WebSocketHandler
         else:
             if message == '\r':
                 if self.exit_buffer.lstrip().startswith(self.exit_command):
-                    self.write_message({'data': "BCS Console 主动退出", 'type': "exit_message"})
+                    self.write_message({'data': _("BCS Console 主动退出"), 'type': "exit_message"})
                 self.exit_buffer == ''
             else:
                 self.exit_buffer += message
@@ -176,7 +177,7 @@ class BCSWebSocketHandler(LocaleHandlerMixin, tornado.websocket.WebSocketHandler
         """
         # 下发提示消息
         tick_timeout_min = constants.TICK_TIMEOUT // 60
-        self.write_message({'data': f"BCS Console 已经{tick_timeout_min}分钟无操作", 'type': "exit_message"})
+        self.write_message({'data': f'{_("BCS Console 已经")}{tick_timeout_min}{_("分钟无操作")}', 'type': "exit_message"})
         # 服务端退出bash, exit
         self.send_exit()
 

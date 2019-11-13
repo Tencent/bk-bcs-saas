@@ -15,6 +15,7 @@ import logging
 
 from django.conf import settings
 from django.utils import timezone
+from django.utils.translation import ugettext as _
 
 from backend.activity_log import client as activity_client
 from backend.apps.application import constants as application_constants
@@ -203,7 +204,7 @@ def delete_mesos_hpa(request, project_id, cluster_id, namespace, namespace_id, n
     result = client.delete_hpa(namespace, name)
 
     if result.get('code') != 0:
-        raise DeleteHPAError('删除HPA资源失败')
+        raise DeleteHPAError(_('删除HPA资源失败'))
 
     # 删除成功则更新状态
     InstanceConfig.objects.filter(namespace=namespace_id, category=MesosResourceName.hpa.value, name=name).update(
@@ -226,10 +227,10 @@ def delete_k8s_hpa(request, project_id, cluster_id, namespace, namespace_id, nam
             pass
         else:
             logger.info('delete hpa error, %s', error)
-            raise DeleteHPAError('删除HPA资源失败')
+            raise DeleteHPAError(_('删除HPA资源失败'))
     except Exception as error:
         logger.error('delete hpa error, %s', error)
-        raise DeleteHPAError('删除HPA资源失败')
+        raise DeleteHPAError(_('删除HPA资源失败'))
 
     # 删除成功则更新状态
     InstanceConfig.objects.filter(namespace=namespace_id, category=K8sResourceName.K8sHPA.value, name=name).update(

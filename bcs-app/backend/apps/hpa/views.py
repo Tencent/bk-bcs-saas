@@ -15,6 +15,7 @@ import json
 import logging
 
 from django.utils import timezone
+from django.utils.translation import ugettext as _
 from rest_framework import views, viewsets
 from rest_framework.renderers import BrowsableAPIRenderer
 from rest_framework.response import Response
@@ -22,6 +23,7 @@ from rest_framework.response import Response
 from backend.accounts import bcs_perm
 from backend.apps.application import constants as application_constants
 from backend.apps.application.base_views import BaseAPI
+from backend.apps.configuration.constants import K8sResourceName
 from backend.apps.constants import ALL_LIMIT, ProjectKind
 from backend.apps.hpa import constants, utils
 from backend.apps.instance import constants as instance_constants
@@ -31,7 +33,6 @@ from backend.components import paas_cc
 from backend.utils.error_codes import error_codes
 from backend.utils.renderers import BKAPIRenderer
 from backend.utils.response import BKAPIResponse
-from backend.apps.configuration.constants import K8sResourceName
 
 logger = logging.getLogger(__name__)
 
@@ -74,11 +75,11 @@ class HPA(viewsets.ViewSet, BaseAPI, ResourceOperate):
         try:
             utils.delete_hpa(request, project_id, cluster_id, ns_name, namespace_id, name)
         except utils.DeleteHPAError as error:
-            message = f'删除HPA:{name}失败[命名空间:{ns_name}], {error}'
+            message = f'{_("删除HPA")}:{name}{_("失败")}, [{_("命名空间")}:{ns_name}], {error}'
             utils.activity_log(project_id, username, name, message, False)
             raise error_codes.APIError(message)
 
-        message = f'删除HPA:{name}成功[命名空间:{ns_name}]'
+        message = f'{_("删除HPA")}:{name}{_("成功")}, [{_("命名空间")}:{ns_name}]'
         utils.activity_log(project_id, username, name, message, True)
 
         return Response({})
@@ -108,12 +109,12 @@ class HPA(viewsets.ViewSet, BaseAPI, ResourceOperate):
             except utils.DeleteHPAError as error:
                 failed_list.append({
                     'name': name,
-                    'desc': f'{name}[命名空间:{ns_name}]:{error}'
+                    'desc': f'{name}[{_("命名空间")}:{ns_name}]:{error}'
                 })
             else:
                 success_list.append({
                     'name': name,
-                    'desc': f'{name}[命名空间:{ns_name}]'
+                    'desc': f'{name}[{_("命名空间")}:{ns_name}]'
                 })
 
         # 添加操作审计
@@ -122,7 +123,7 @@ class HPA(viewsets.ViewSet, BaseAPI, ResourceOperate):
             desc_list = [_s.get('desc') for _s in success_list]
 
             desc_list_msg = ";".join(desc_list)
-            message = f"以下HPA删除成功:{desc_list_msg}"
+            message = f'{_("以下HPA删除成功")}:{desc_list_msg}'
 
             utils.activity_log(project_id, username, ';'.join(name_list), message, True)
 
@@ -131,7 +132,7 @@ class HPA(viewsets.ViewSet, BaseAPI, ResourceOperate):
             desc_list = [_s.get('desc') for _s in failed_list]
 
             desc_list_msg = ";".join(desc_list)
-            message = f"以下HPA删除失败:{desc_list_msg}"
+            message = f'{_("以下HPA删除失败")}:{desc_list_msg}'
 
             utils.activity_log(project_id, username, ';'.join(name_list), message, False)
 
