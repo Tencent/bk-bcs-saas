@@ -16,7 +16,7 @@
 import re
 from collections import OrderedDict
 
-from django.utils.translation import ugettext as _
+from django.utils.translation import ugettext_lazy as _
 
 GUIDE_MESSAGE = [
     'Guide: https://docs.bk.tencent.com/bcs/',
