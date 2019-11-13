@@ -1826,7 +1826,9 @@ export default {
          * @param {Object} 请求参数，包括projectId及发到接口数据
          */
         updateYamlTemplate (context, { projectId, templateId, data }) {
-            return http.put(`${DEVOPS_BCS_API_URL}/api/projects/${projectId}/configuration/yaml_templates/${templateId}/`, data)
+            return http.put(`${DEVOPS_BCS_API_URL}/api/projects/${projectId}/configuration/yaml_templates/${templateId}/`, data, {
+                cancelWhenRouteChange: false
+            })
         },
 
         /**

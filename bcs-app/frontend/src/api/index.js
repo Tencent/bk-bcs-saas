@@ -228,7 +228,7 @@ function handleReject (error, config) {
                 const val = Object.prototype.toString.call(message[key]) === '[object Array]'
                     ? message[key].join(';')
                     : message[key]
-                msg.push(key + '：' + val)
+                msg.push(key + '：' + JSON.stringify(val))
             }
             message = msg.join(';')
         } else if (Object.prototype.toString.call(message) === '[object Array]') {
