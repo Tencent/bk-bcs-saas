@@ -1,6 +1,6 @@
 .PHONY: compilemessages
 compilemessages:
-	django-admin compilemessages --settings=backend.settings.ce.dev
+	python manage.py compilemessages --settings=backend.settings.ce.dev
 
 .PHONY: makemessages
 makemessages:
