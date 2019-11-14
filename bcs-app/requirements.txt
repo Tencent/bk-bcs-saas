@@ -52,3 +52,5 @@ django-celery==3.2.1
 
 natsort==5.4.1
 raven==6.0.0
+
+openpyxl==3.0.0

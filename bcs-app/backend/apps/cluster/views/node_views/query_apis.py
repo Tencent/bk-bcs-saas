@@ -11,14 +11,20 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
+from io import BytesIO
 
+from openpyxl import Workbook
 from rest_framework import response, viewsets
 from rest_framework.renderers import BrowsableAPIRenderer
+from django.http import HttpResponse
 
 from backend.utils.renderers import BKAPIRenderer
-from backend.apps.cluster.models import NodeLabel
+from backend.apps.cluster.models import NodeLabel, NodeStatus
 from backend.apps.cluster import serializers as node_serializers
 from backend.apps.cluster import constants as node_constants
+from backend.components import paas_cc
+from backend.utils.errcodes import ErrorCode
+from backend.utils.error_codes import error_codes
 
 
 class QueryNodeBase:
@@ -71,3 +77,51 @@ class QueryNodeLabelKeys(QueryNodeBase, viewsets.ViewSet):
         labels_queryset = self.get_queryset(project_id, params['cluster_id'])
         values = self.compose_data(labels_queryset, key_name=params['key_name'])
         return response.Response(values)
+
+
+class ExportNodes(viewsets.ViewSet):
+    STATUS_MAP_NAME = {
+        NodeStatus.Normal: "Ready",
+        NodeStatus.ToRemoved: "SchedulingDisabled",
+        NodeStatus.Removable: "SchedulingDisabled",
+        NodeStatus.Initializing: "Initializing",
+        NodeStatus.InitialFailed: "InitilFailed",
+        NodeStatus.Removing: "Removing",
+        NodeStatus.RemoveFailed: "RemoveFailed"
+    }
+
+    def get_nodes(self, request, project_id):
+        cluster_id = request.query_params.get('cluster_id')
+        resp = paas_cc.get_node_list(request.user.token.access_token, project_id, cluster_id)
+        if resp.get('code') != ErrorCode.NoError:
+            raise error_codes.APIError(f'get node error, {resp.get("message")}')
+        data = resp.get('data') or {}
+        results = data.get('results') or []
+        return [
+            [node['cluster_id'], node['inner_ip'], self.STATUS_MAP_NAME.get(node['status'])]
+            for node in results if node['status'] != NodeStatus.Removable
+        ]
+
+    def export(self, request, project_id):
+        # get node list
+        nodes = self.get_nodes(request, project_id)
+        # create workbook
+        wb = Workbook()
+        ws = wb.active
+        ws.title = 'nodes'
+        # add sheet
+        headers = ["Cluster ID", "Inner IP", "Status"]
+        ws.append(headers)
+        for node in nodes:
+            ws.append(node)
+        # output
+        buffer = BytesIO()
+        wb.save(buffer)
+        response = HttpResponse(
+            content=buffer.getvalue(),
+            content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        )
+        # add username in filename
+        response['Content-Disposition'] = f'attachment; filename=export-node-{request.user.username}.xlsx'
+
+        return response

@@ -155,7 +155,12 @@ urlpatterns += [
     url(
         r'^api/projects/(?P<project_id>[\w\-]+)/cluster_type_versions/$',
         views.ClusterVersionViewSet.as_view({'get': 'versions'})
+    ),
+    url(
+        r'^api/projects/(?P<project_id>[\w\-]+)/nodes/export/$',
+        views.ExportNodes.as_view({'get': 'export'})
     )
+
 ]
 
 # operation api

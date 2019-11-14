@@ -36,7 +36,7 @@ from .metrics import (  # noqa
 )
 
 from .node_views.query_apis import (
-    QueryNodeLabelKeys,
+    QueryNodeLabelKeys, ExportNodes
 )
 
 from .node_views.operation_apis import (
