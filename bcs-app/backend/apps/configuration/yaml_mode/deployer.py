@@ -14,6 +14,8 @@
 import json
 import contextlib
 
+from kubernetes.client.rest import ApiException
+
 from backend.utils.client import make_kubectl_client
 from backend.utils.error_codes import error_codes
 from backend.activity_log import client
@@ -71,7 +73,9 @@ class DeployController:
         err_msg = ''
         with self.make_kubectl_client() as (client, err):
             if err is not None:
-                raise error_codes.APIError(f'make kubectl client failed: {err}')
+                if isinstance(err, ApiException):
+                    err = f'Code: {err.status}, Reason: {err.reason}'
+                raise error_codes.APIError(f'make client failed: {err}')
 
             manifests = self._to_manifests()
             try:
@@ -83,7 +87,7 @@ class DeployController:
                     client.ensure_namespace(self.namespace)
                     client.delete(manifests, self.namespace)
             except Exception as e:
-                err_msg = f'kubectl {operation} failed: {e}'
+                err_msg = f'client {operation} failed: {e}'
 
         if err_msg:
             self._log_activity('failed', err_msg)
