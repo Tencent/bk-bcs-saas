@@ -70,5 +70,5 @@ def create_imagepullsecret(access_token, project_id, project_code, cluster_id, n
     }
     client = MesosClient(access_token, project_id, cluster_id, env=None)
     resp = client.create_secret(namespace, secret_config)
-    if (resp.get('code') != ErrorCode.NoError) and ('already exists' not in resp.get('message', '')):
+    if (resp.get('code') != ErrorCode.NoError) and ('already exist' not in resp.get('message', '')):
         raise error_codes.APIError(f'create secret error, result.get("message")')

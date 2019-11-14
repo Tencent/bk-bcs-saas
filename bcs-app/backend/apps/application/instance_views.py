@@ -109,7 +109,7 @@ class BaseTaskgroupCls(InstanceAPI):
         return cluster_id, namespace, [name], category
 
     def common_handler(self, request, project_id, instance_id, project_kind, field=None):
-        if str(instance_id) == "0":
+        if not self._from_template(instance_id):
             return self.common_handler_for_client(request, project_id)
         return self.common_handler_for_platform(
             request, project_id, instance_id, project_kind, field=field
@@ -402,7 +402,7 @@ class QueryTaskgroupInfo(BaseTaskgroupCls):
         cluster_id, namespace, rc_names, category = self.common_handler(
             request, project_id, instance_id, project_kind)
         rolling_strategy = {}
-        if str(instance_id) != "0":
+        if self._from_template(instance_id):
             # 获取instnace info
             inst_info = self.get_instance_info(instance_id)
             curr_inst = inst_info[0]
@@ -535,7 +535,7 @@ class GetInstanceLabels(InstanceAPI):
     def get(self, request, project_id, instance_id, instance_name):
         """获取instance 信息
         """
-        if str(instance_id) == "0":
+        if not self._from_template(instance_id):
             cluster_id, namespace, name, category = self.get_instance_resource(request, project_id)
             project_kind = request.project.kind
             # 请求storage获取时间
@@ -586,7 +586,7 @@ class GetInstanceAnnotations(InstanceAPI):
     def get(self, request, project_id, instance_id, instance_name):
         """获取注解信息
         """
-        if str(instance_id) == "0":
+        if not self._from_template(instance_id):
             cluster_id, namespace, name, category = self.get_instance_resource(request, project_id)
             project_kind = request.project.kind
             # 请求storage获取时间
@@ -702,7 +702,7 @@ class GetInstanceInfo(InstanceAPI):
         """获取instance信息
         """
         # 获取instance info
-        if str(instance_id) == "0":
+        if not self._from_template(instance_id):
             cluster_id, namespace, name, category = self.get_instance_resource(request, project_id)
             # 获取kind
             project_kind = self.project_kind(request)
@@ -784,7 +784,7 @@ class ReschedulerTaskgroup(InstanceAPI):
             })
         # 获取kind
         project_kind = self.project_kind(request)
-        if str(instance_id) == "0":
+        if not self._from_template(instance_id):
             cluster_id, namespace_name, instance_name, category = \
                 self.get_instance_resource(request, project_id)
         else:
@@ -889,7 +889,7 @@ class TaskgroupEvents(InstanceAPI):
             })
         offset = int(offset)
         limit = int(limit)
-        if str(instance_id) == "0":
+        if not self._from_template(instance_id):
             cluster_id, inst_namespace, inst_name, category = self.get_instance_resource(request, project_id)
         else:
             # 通过instance id获取instance信息
@@ -1029,7 +1029,7 @@ class ContainerInfo(InstanceAPI):
         flag, project_kind = self.get_project_kind(request, project_id)
         if not flag:
             return project_kind
-        if str(instance_id) == "0":
+        if not self._from_template(instance_id):
             cluster_id, namespace, instance_name, category = self.get_instance_resource(request, project_id)
         else:
             # 获取instance info
@@ -1142,7 +1142,7 @@ class K8sContainerInfo(InstanceAPI):
         flag, project_kind = self.get_project_kind(request, project_id)
         if not flag:
             return project_kind
-        if str(instance_id) == "0":
+        if not self._from_template(instance_id):
             cluster_id, namespace, name, category = self.get_instance_resource(request, project_id)
         else:
             # 获取instance info
@@ -1226,7 +1226,7 @@ class InstanceConfigInfo(InstanceAPI):
     def get(self, request, project_id, instance_id):
         # 获取项目类型
         project_kind = self.project_kind(request)
-        if str(instance_id) == "0":
+        if not self._from_template(instance_id):
             return APIResponse({"data": self.get_online_app_conf(request, project_id, project_kind)})
         try:
             instance_info = self.get_instance_info(instance_id)
@@ -1801,7 +1801,7 @@ class GetInstanceVersionConf(UpdateInstanceNew, UpdateVersionConfig, InstanceAPI
         """获取当前实例的版本配置信息
         """
         project_kind = self.project_kind(request)
-        if str(inst_id) == "0":
+        if not self._from_template(inst_id):
             json_conf = self.get_online_app_conf(request, project_id, project_kind)
             return APIResponse({
                 "data": {

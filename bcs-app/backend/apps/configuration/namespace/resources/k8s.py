@@ -47,11 +47,11 @@ def get_namespace(access_token, project_id, cluster_id):
     namespace_list = []
     # 过滤掉 系统命名空间和平台占用命名空间
     # TODO: 命名空间是否有状态不为Active的场景
-    K8S_SYS_NAMESPACE.extend(K8S_PLAT_NAMESPACE)
     for info in data:
-        if info['resourceName'] in K8S_SYS_NAMESPACE:
+        resource_name = info['resourceName']
+        if resource_name in K8S_SYS_NAMESPACE or resource_name in K8S_PLAT_NAMESPACE:
             continue
-        namespace_list.append(info['resourceName'])
+        namespace_list.append(resource_name)
     return namespace_list
 
 
@@ -96,5 +96,5 @@ def create_imagepullsecret(access_token, project_id, project_code, cluster_id, n
     #
     client = K8SClient(access_token, project_id, cluster_id, env=None)
     resp = client.create_secret(namespace, secret_config)
-    if (resp.get('code') != ErrorCode.NoError) and ('already exists' not in resp.get('message', '')):
+    if (resp.get('code') != ErrorCode.NoError) and ('already exist' not in resp.get('message', '')):
         raise error_codes.APIError(f'create secret error, {resp.get("message")}')

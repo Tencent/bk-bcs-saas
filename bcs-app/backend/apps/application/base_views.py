@@ -1031,6 +1031,15 @@ class InstanceAPI(BaseAPI):
         ns_name_id_map = self.get_namespace_name_id(request, project_id)
         ns_id = ns_name_id_map.get(data['namespace'])
         # check perm
-        self.can_use_instance(request, project_id, ns_id, )
+        self.can_use_instance(request, project_id, ns_id)
 
         return data['cluster_id'], data['namespace'], data['name'], data['category']
+
+    def _from_template(self, instance_id):
+        """判断是否来源于表单模式的模板集
+        现阶段，只有表单模式的模板集会写入instance configure表，生成instance id；
+        针对非表单模式，没有具体的id，统一使用0标识
+        """
+        if str(instance_id) == "0":
+            return False
+        return True
