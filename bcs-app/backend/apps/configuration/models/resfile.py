@@ -18,9 +18,11 @@ from django.db import models
 from .base import BaseModel
 from backend.apps.configuration.constants import FileResourceName
 
+IMAGES_PATTEN = re.compile('image:(.*)')
+
 
 def find_containers(content):
-    images = re.findall('image:(.*)', content)
+    images = IMAGES_PATTEN.findall(content)
     return [{'name': 'container', 'image': image.strip()} for image in images]
 
 
