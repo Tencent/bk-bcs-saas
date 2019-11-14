@@ -21,7 +21,7 @@ from backend.apps.configuration.constants import FileResourceName
 
 def find_containers(content):
     images = re.findall('image:(.*)', content)
-    return [{'name': 'container', 'image': image.strip(' ')} for image in images]
+    return [{'name': 'container', 'image': image.strip()} for image in images]
 
 
 class ResourceFile(BaseModel):
