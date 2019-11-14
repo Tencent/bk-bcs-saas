@@ -24,7 +24,7 @@ from backend.apps.instance.constants import LOG_CONFIG_MAP_SUFFIX, APPLICATION_I
 from .base import BaseModel, POD_RES_LIST, logger, get_default_version, COPY_TEMPLATE
 from .manager import TemplateManager, ShowVersionManager, VersionedEntityManager
 from .utils import get_model_class_by_resource_name, get_secret_name_by_certid, MODULE_DICT
-from . import k8s, mesos
+from . import k8s, mesos, resfile
 
 TemplateCategory = constants.TemplateCategory
 TemplateEditMode = constants.TemplateEditMode
@@ -123,18 +123,19 @@ class Template(BaseModel):
     def get_containers(self, project_kind, show_version):
         """容器名称和容器镜像
         """
-        if self.edit_mode != TemplateEditMode.PageForm.value:
-            return []
-
         # 只有草稿的情况
         if not show_version:
             return self.get_containers_from_draft(project_kind)
 
         try:
             ventity = VersionedEntity.objects.get(id=show_version.real_version_id)
-            return ventity.get_containers(project_kind)
         except VersionedEntity.DoesNotExist:
             return []
+
+        if self.edit_mode == TemplateEditMode.PageForm.value:
+            return ventity.get_containers(project_kind)
+        else:
+            return ventity.get_containers_from_yaml()
 
     @property
     def log_url(self):
@@ -366,6 +367,10 @@ class ShowVersion(BaseModel):
         self.__dict__.update(update_params)
         self.save()
 
+    @property
+    def related_template(self):
+        return Template.objects.get(id=self.template_id)
+
     class Meta:
         index_together = ("is_deleted", "template_id")
         unique_together = ("template_id", "name")
@@ -517,6 +522,23 @@ class VersionedEntity(BaseModel):
         for app in app_qsets:
             containers.extend(app.get_containers())
         return containers
+
+    def get_containers_from_yaml(self):
+        entity = self.get_entity()
+        if not entity:
+            return []
+
+        container_list = []
+        for resource_name in constants.RESOURCES_WITH_POD:
+            resource_id_list = self._get_resource_id_list(entity, resource_name)
+            if not resource_id_list:
+                continue
+
+            resource_qsets = resfile.ResourceFile.objects.filter(id__in=resource_id_list)
+            for robj in resource_qsets:
+                container_list.extend(resfile.find_containers(robj.content))
+
+        return container_list
 
     def get_containers(self, app_kind):
         if app_kind == K8S_KIND:

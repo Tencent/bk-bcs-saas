@@ -11,6 +11,8 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
+import json
+
 from rest_framework import viewsets
 from rest_framework.response import Response
 from rest_framework.renderers import BrowsableAPIRenderer
@@ -174,8 +176,9 @@ class TemplateReleaseViewSet(viewsets.ViewSet, TemplatePermission):
             return Response(release_data.template_files)
 
         controller = DeployController(
-            access_token=self.request.user.token.access_token,
+            user=self.request.user,
             release_data=release_data
         )
+
         controller.apply()
         return Response()

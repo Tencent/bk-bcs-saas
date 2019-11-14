@@ -11,10 +11,19 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
+import re
+
 from django.db import models
 
 from .base import BaseModel
 from backend.apps.configuration.constants import FileResourceName
+
+IMAGES_PATTEN = re.compile('image:(.*)')
+
+
+def find_containers(content):
+    images = IMAGES_PATTEN.findall(content)
+    return [{'name': 'container', 'image': image.strip()} for image in images]
 
 
 class ResourceFile(BaseModel):
