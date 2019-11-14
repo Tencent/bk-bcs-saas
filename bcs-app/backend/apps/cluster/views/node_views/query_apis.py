@@ -81,13 +81,13 @@ class QueryNodeLabelKeys(QueryNodeBase, viewsets.ViewSet):
 
 class ExportNodes(viewsets.ViewSet):
     STATUS_MAP_NAME = {
-        NodeStatus.Normal: "正常",
-        NodeStatus.ToRemoved: "停止调度",
-        NodeStatus.Removable: "停止调度",
-        NodeStatus.Initializing: "初始化中",
-        NodeStatus.InitialFailed: "初始化失败",
-        NodeStatus.Removing: "移除中",
-        NodeStatus.RemoveFailed: "移除失败"
+        NodeStatus.Normal: "Ready",
+        NodeStatus.ToRemoved: "SchedulingDisabled",
+        NodeStatus.Removable: "SchedulingDisabled",
+        NodeStatus.Initializing: "Initializing",
+        NodeStatus.InitialFailed: "InitilFailed",
+        NodeStatus.Removing: "Removing",
+        NodeStatus.RemoveFailed: "RemoveFailed"
     }
 
     def get_nodes(self, request, project_id):
