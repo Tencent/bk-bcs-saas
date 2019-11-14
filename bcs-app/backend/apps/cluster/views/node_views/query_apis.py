@@ -110,7 +110,7 @@ class ExportNodes(viewsets.ViewSet):
         ws = wb.active
         ws.title = 'nodes'
         # add sheet
-        headers = ["集群ID", "内网IP", "状态"]
+        headers = ["Cluster ID", "Inner IP", "Status"]
         ws.append(headers)
         for node in nodes:
             ws.append(node)
@@ -121,7 +121,7 @@ class ExportNodes(viewsets.ViewSet):
             content=buffer.getvalue(),
             content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
         )
-        # 文件命中添加用户标识
+        # add username in filename
         response['Content-Disposition'] = f'attachment; filename=export-node-{request.user.username}.xlsx'
 
         return response
