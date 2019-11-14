@@ -11,17 +11,46 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
+import json
 import contextlib
 
 from backend.utils.client import make_kubectl_client
 from backend.utils.error_codes import error_codes
+from backend.activity_log import client
 
 
 class DeployController:
-    def __init__(self, access_token, release_data):
-        self.access_token = access_token
+    def __init__(self, user, release_data):
+        self.access_token = user.token.access_token
+        self.username = user.username
+
         self.release_data = release_data
         self.namespace = release_data.namespace_info['name']
+
+    def _log_activity(self, status, msg=''):
+        show_version = self.release_data.show_version
+        template = show_version.related_template
+
+        if status == 'succeed':
+            description = f'deploy template [{template.name}] in ns [{self.namespace}] success'
+        else:
+            description = f'deploy template [{template.name}] in ns [{self.namespace}] failed: {msg}'
+
+        extra = {}
+        for res_file in self.release_data.template_files:
+            files_ids = [str(f['id']) for f in res_file['files']]
+            extra[res_file['resource_name']] = ','.join(files_ids)
+
+        log_params = {
+            'project_id': self.release_data.project_id,
+            'user': self.username,
+            'resource_type': 'template',
+            'resource': template.name,
+            'resource_id': template.id,
+            'extra': json.dumps(extra),
+            'description': description
+        }
+        client.ContextActivityLogClient(**log_params).log_add(activity_status=status)
 
     @contextlib.contextmanager
     def make_kubectl_client(self):
@@ -57,7 +86,10 @@ class DeployController:
                 err_msg = f'kubectl {operation} failed: {e}'
 
         if err_msg:
+            self._log_activity('failed', err_msg)
             raise error_codes.APIError(err_msg)
+
+        self._log_activity('succeed')
 
     def apply(self):
         self._run_with_kubectl('apply')

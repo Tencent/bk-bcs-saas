@@ -124,6 +124,8 @@ class GetTemplateFilesSLZ(serializers.Serializer):
     template_files = serializers.SerializerMethodField()
     name = serializers.SerializerMethodField()
     desc = serializers.SerializerMethodField()
+    locker = serializers.SerializerMethodField()
+    is_locked = serializers.SerializerMethodField()
 
     def get_show_version(self, obj):
         return OrderedDict({'name': obj['show_version'].name, 'show_version_id': obj['show_version'].id})
@@ -140,6 +142,12 @@ class GetTemplateFilesSLZ(serializers.Serializer):
 
     def get_desc(self, obj):
         return obj['template'].desc
+
+    def get_locker(self, obj):
+        return obj['template'].locker
+
+    def get_is_locked(self, obj):
+        return obj['template'].is_locked
 
 
 class PreviewResourceFileSLZ(serializers.Serializer):

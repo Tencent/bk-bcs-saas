@@ -277,13 +277,13 @@ CATE_ABBR_NAME = {
     "secret": "srt",
     'hpa': 'hpa',
     # k8s 相关资源
-    "K8sDeployment": "dep",
+    "K8sDeployment": "deploy",
     "K8sService": "svc",
     "K8sConfigMap": "cm",
-    "K8sSecret": "srt",
+    "K8sSecret": "secret",
     "K8sDaemonSet": "ds",
     "K8sJob": "job",
     "K8sStatefulSet": "sts",
-    "K8sIngress": "Ing",
+    "K8sIngress": "ing",
     "K8sHPA": "hpa"
 }
