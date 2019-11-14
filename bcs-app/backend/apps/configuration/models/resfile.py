@@ -23,7 +23,13 @@ IMAGES_PATTEN = re.compile('image:(.*)')
 
 def find_containers(content):
     images = IMAGES_PATTEN.findall(content)
-    return [{'name': 'container', 'image': image.strip()} for image in images]
+    containers = []
+    for image in images:
+        # remove comment
+        if '#' in image:
+            image = image.split('#')[0].strip()
+        containers.append({'name': 'container', 'image': image})
+    return containers
 
 
 class ResourceFile(BaseModel):
