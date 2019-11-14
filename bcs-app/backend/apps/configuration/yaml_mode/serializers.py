@@ -171,7 +171,7 @@ class TemplateReleaseSLZ(serializers.Serializer):
         template_files = []
         for res_file in data['template_files']:
             res_file_ids = [f['id'] for f in res_file['files']]
-            res_file = res2files.get_resource_file(res_file['resource_name'], res_file_ids, 'name', 'content')
+            res_file = res2files.get_resource_file(res_file['resource_name'], res_file_ids, 'id', 'name', 'content')
             template_files.append(res_file)
         data['template_files'] = template_files
 
