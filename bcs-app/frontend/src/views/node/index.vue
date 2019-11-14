@@ -18,6 +18,9 @@
                         <button class="bk-button bk-default" @click="showSetLabel">
                             <span>{{$t('设置标签')}}</span>
                         </button>
+                        <button class="bk-button bk-default" @click="exportNode">
+                            <span>{{$t('导出')}}</span>
+                        </button>
                         <bk-dropdown-menu :align="'left'" ref="copyIpDropdownMenu" class="copy-ip-dropdown">
                             <a href="javascript:void(0);" slot="dropdown-trigger" class="bk-text-button copy-ip-btn">
                                 <span class="label">{{$t('复制IP')}}</span>
@@ -610,6 +613,7 @@
                 timer: null,
                 clusterList: [],
                 curSelectedClusterName: 'all',
+                curSelectedClusterId: 'all',
                 alreadySelectedNums: 0,
                 searchParams: [],
                 clipboardInstance: null
@@ -686,6 +690,7 @@
                     this.$refs.toggleFilterDropdownMenu && this.$refs.toggleFilterDropdownMenu.hide()
                 }, 0)
                 this.curSelectedClusterName = cluster.name
+                this.curSelectedClusterId = cluster.cluster_id
                 this.pageConf.curPage = 1
                 this.searchNodeList()
             },
@@ -911,6 +916,7 @@
             async refresh () {
                 this.showLoading = true
                 this.curSelectedClusterName = 'all'
+                this.curSelectedClusterId = 'all'
                 this.clearSearchParams()
                 await this.fetchData()
             },
@@ -1463,6 +1469,18 @@
                         inner_ip: node.inner_ip
                     }
                 })
+            },
+
+            /**
+             * 节点导出
+             */
+            async exportNode () {
+                const link = document.createElement('a')
+                link.style.display = 'none'
+                link.href = `${DEVOPS_BCS_API_URL}/api/projects/${this.projectId}/nodes/export/?cluster_id=`
+                    + `${this.curSelectedClusterId === 'all' ? '' : this.curSelectedClusterId}`
+                document.body.appendChild(link)
+                link.click()
             }
         }
     }

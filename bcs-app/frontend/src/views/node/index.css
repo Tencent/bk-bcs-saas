@@ -40,6 +40,9 @@
             &.is-disabled {
                 cursor: not-allowed !important;
             }
+            & + .bk-button {
+                margin-left: 0;
+            }
         }
 
         .copy-ip-dropdown {
@@ -521,7 +524,7 @@
     }
 
     .biz-searcher-wrapper {
-        width: 510px;
+        width: 440px;
         position: absolute;
         right: 94px;
     }
@@ -532,7 +535,7 @@
             width: 320px;
 
             .bk-dropdown-menu {
-                right: 463px;
+                right: 393px;
             }
         }
     }

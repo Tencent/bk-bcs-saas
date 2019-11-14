@@ -514,6 +514,7 @@ export default {
     '同步非本页面创建的命名空间数据': ['Synchronize namespace not created by this page'],
     '同步命名空间任务已经启动，请稍后刷新': ['The sync namespace task has started, please refresh later'],
     '类型': ['Type'],
+    '导出': ['Export'],
     // 变量的使用 $t('test', { vari1: 1, vari2: 2 })
     'test': ['{vari1} ---english--- {vari2}']
 }
