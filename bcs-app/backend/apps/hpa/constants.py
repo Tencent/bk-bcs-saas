@@ -12,18 +12,20 @@
 # specific language governing permissions and limitations under the License.
 #
 
+from django.utils.translation import ugettext_lazy as _
+
 # metric server 支持的 metric
 HPA_METRICS = [
     {
         'type': 'Resource',
         'name': 'cpu',
-        'description': "CPU使用率",
+        'description': _("CPU使用率"),
         "target_unit": '%',
     },
     {
         'type': 'Resource',
         'name': 'memory',
-        'description': "内存使用率",
+        'description': _("内存使用率"),
         "target_unit": '%',
     },
 ]

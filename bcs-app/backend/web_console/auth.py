@@ -17,7 +17,7 @@ from functools import wraps
 import tornado.web
 from backend.components.utils import http_get
 from django.conf import settings
-
+from django.utils.translation import ugettext as _
 from .session import session_mgr
 
 logger = logging.getLogger(__name__)
@@ -30,7 +30,7 @@ def authenticated(view_func):
     def _wrapped_view(self, *args, **kwargs):
         session_id = self.get_argument("session_id", None)
         if not session_id:
-            raise tornado.web.HTTPError(401, log_message="session_id为空")
+            raise tornado.web.HTTPError(401, log_message=_("session_id为空"))
 
         project_id = kwargs['project_id']
         cluster_id = kwargs['cluster_id']
@@ -38,7 +38,7 @@ def authenticated(view_func):
 
         ctx = session.get(session_id)
         if not ctx:
-            raise tornado.web.HTTPError(401, log_message="获取ctx为空, session_id不正确或者已经过期")
+            raise tornado.web.HTTPError(401, log_message=_("获取ctx为空, session_id不正确或者已经过期"))
 
         kwargs['context'] = ctx
 

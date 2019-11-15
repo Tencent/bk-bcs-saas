@@ -71,6 +71,8 @@ def hello_message(source=None):
     messages.append(console)
     messages.append('#' * width)
     for guide in guide_message:
+        # i18n 需要立即变成字符串
+        guide = str(guide)
         messages.append('#' + guide + (width - zh_length(guide) - 2) * ' ' + '#')
     messages.append('#' * width)
     return '\r\n'.join(messages) + '\r\n'

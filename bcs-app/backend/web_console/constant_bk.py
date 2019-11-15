@@ -16,14 +16,16 @@
 import re
 from collections import OrderedDict
 
+from django.utils.translation import ugettext_lazy as _
+
 GUIDE_MESSAGE = [
     'Guide: https://docs.bk.tencent.com/bcs/',
-    '支持常用Bash快捷键; Windows下Ctrl-W为关闭窗口快捷键, 请使用Alt-W代替',
+    _('支持常用Bash快捷键; Windows下Ctrl-W为关闭窗口快捷键, 请使用Alt-W代替'),
 ]
 
 MGR_GUIDE_MESSAGE = [
     'Guide: https://docs.bk.tencent.com/bcs/',
-    '支持常用Bash快捷键; Windows下Ctrl-W为关闭窗口快捷键, 请使用Alt-W代替; 使用Alt-Num切换Tab',
+    _('支持常用Bash快捷键; Windows下Ctrl-W为关闭窗口快捷键, 请使用Alt-W代替; 使用Alt-Num切换Tab'),
 ]
 
 # pod版本

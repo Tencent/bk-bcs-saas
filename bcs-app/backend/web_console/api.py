@@ -14,6 +14,7 @@
 """web_console暴露给其他服务使用的模块
 """
 from backend.components.bcs.k8s import K8SClient
+from django.utils.translation import ugettext as _
 
 from .constants import WebConsoleMode
 from .pod_life_cycle import K8SClient as _k8s_client
@@ -27,14 +28,14 @@ def exec_command(access_token: str, project_id: str, cluster_id: str, container_
     client = K8SClient(access_token, project_id, cluster_id, None)
     _context = utils.get_k8s_context(client, container_id)
     if not _context:
-        raise ValueError("container_id不正确或者容器不是运行状态")
+        raise ValueError(_("container_id不正确或者容器不是运行状态"))
 
     context.update(_context)
 
     try:
         bcs_context = utils.get_k8s_cluster_context(client, project_id, cluster_id)
     except Exception as error:
-        raise ValueError(f"获取集群信息失败, {error}")
+        raise ValueError(f'{_("获取集群信息失败, ")}{error}')
 
     bcs_context = utils.get_k8s_admin_context(client, bcs_context, WebConsoleMode.INTERNEL.value)
     bcs_context['user_pod_name'] = context['pod_name']

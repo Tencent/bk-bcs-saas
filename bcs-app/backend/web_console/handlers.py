@@ -18,20 +18,34 @@ import arrow
 import tornado.web
 import tornado.websocket
 from django.conf import settings
+from django.utils import translation
+from django.utils.translation import ugettext as _
+from django.utils.translation.trans_real import get_supported_language_variant
+from tornado import locale
 from tornado.ioloop import IOLoop, PeriodicCallback
 
-from backend.web_console import constants
+from backend.web_console import bcs_client, constants, utils
 from backend.web_console.auth import authenticated
-
 from backend.web_console.pod_life_cycle import PodLifeCycle
 from backend.web_console.utils import clean_bash_escape, get_auditor
-from backend.web_console import bcs_client
-from backend.web_console import utils
 
 logger = logging.getLogger(__name__)
 
+class LocaleHandlerMixin:
+    """国际化Mixin
+    """
 
-class IndexPageHandler(tornado.web.RequestHandler):
+    def get_user_locale(self):
+        bk_lang = self.get_cookie(settings.LANGUAGE_COOKIE_NAME)
+        try:
+            lang_code = get_supported_language_variant(bk_lang)
+        except LookupError:
+            lang_code = settings.LANGUAGE_CODE
+        translation.activate(lang_code)
+        return locale.get(lang_code)
+
+
+class IndexPageHandler(LocaleHandlerMixin, tornado.web.RequestHandler):
     """首页处理
     """
 
@@ -49,7 +63,7 @@ class IndexPageHandler(tornado.web.RequestHandler):
             'cluster_id': cluster_id}
         self.render('templates/index.html', **data)
 
-class MgrHandler(tornado.web.RequestHandler):
+class MgrHandler(LocaleHandlerMixin, tornado.web.RequestHandler):
     """管理页
     """
 
@@ -58,7 +72,7 @@ class MgrHandler(tornado.web.RequestHandler):
         self.render('templates/mgr.html', **data)
 
 
-class BCSWebSocketHandler(tornado.websocket.WebSocketHandler):
+class BCSWebSocketHandler(LocaleHandlerMixin, tornado.websocket.WebSocketHandler):
     """WebSocket处理
     """
 
@@ -116,7 +130,7 @@ class BCSWebSocketHandler(tornado.websocket.WebSocketHandler):
         else:
             if message == '\r':
                 if self.exit_buffer.lstrip().startswith(self.exit_command):
-                    self.write_message({'data': "BCS Console 主动退出", 'type': "exit_message"})
+                    self.write_message({'data': _("BCS Console 主动退出"), 'type': "exit_message"})
                 self.exit_buffer == ''
             else:
                 self.exit_buffer += message
@@ -163,7 +177,7 @@ class BCSWebSocketHandler(tornado.websocket.WebSocketHandler):
         """
         # 下发提示消息
         tick_timeout_min = constants.TICK_TIMEOUT // 60
-        self.write_message({'data': f"BCS Console 已经{tick_timeout_min}分钟无操作", 'type': "exit_message"})
+        self.write_message({'data': f'{_("BCS Console 已经")}{tick_timeout_min}{_("分钟无操作")}', 'type': "exit_message"})
         # 服务端退出bash, exit
         self.send_exit()
 

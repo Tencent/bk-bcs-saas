@@ -12,6 +12,7 @@
 # specific language governing permissions and limitations under the License.
 #
 import arrow
+from django.utils.translation import ugettext as _
 from rest_framework import generics, views
 from rest_framework.renderers import BrowsableAPIRenderer
 from rest_framework.response import Response
@@ -64,4 +65,4 @@ class MetaDataView(views.APIView):
     def get(self, request):
         """获取操作审计元数据
         """
-        return BKAPIResponse(constants.MetaMap, message='获取操作审计元数据成功')
+        return BKAPIResponse(constants.MetaMap, message=_('获取操作审计元数据成功'))
