@@ -146,7 +146,7 @@
                             <div class="left">
                                 <label class="bk-label label">名称：<span class="red">*</span></label>
                                 <div class="bk-form-content">
-                                    <input type="text" v-model="createParams.name" class="bk-form-input text-input-half" placeholder="请输入" maxlength="32" />
+                                    <input type="text" v-model="createParams.name" class="bk-form-input text-input-half" placeholder="请输入" maxlength="253" />
                                 </div>
                             </div>
                             <div class="right">
