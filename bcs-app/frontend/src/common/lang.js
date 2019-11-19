@@ -544,7 +544,6 @@ export default {
     '申请，': ['apply, '],
     '查看帮助': ['view help'],
     '您当前的项目': ['Your current project '],
-    '没有启用蓝鲸部署服务，如需开启使用，请联系': ['Blue whale deployment service is not enabled, please contact if you need to open it'],
     '资源': ['Resource'],
     '需要的权限': ['Required permissions'],
     '去申请': ['Apply'],
