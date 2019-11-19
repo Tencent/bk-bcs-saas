@@ -12,7 +12,9 @@
 # specific language governing permissions and limitations under the License.
 #
 import logging
+
 from django.db import models
+from django.utils.translation import ugettext as _
 
 logger = logging.getLogger(__name__)
 
@@ -23,21 +25,21 @@ class ProjectDataInfo(models.Model):
 
     @note: 此Model数据需采用 save 方法保存，因需要触发signals处理关联数据
     """
-    cc_biz_id = models.IntegerField('业务ID', blank=True, default=0)
-    project_id = models.CharField(u"项目ID", max_length=32, unique=True)
-    data_project_id = models.IntegerField(u"数据平台上申请的项目ID", null=True, blank=True)
+    cc_biz_id = models.IntegerField(_('业务ID'), blank=True, default=0)
+    project_id = models.CharField(_("项目ID"), max_length=32, unique=True)
+    data_project_id = models.IntegerField(_("数据平台上申请的项目ID"), null=True, blank=True)
     # 标准日志采集
-    standard_data_id = models.IntegerField(u"标准日志采集的dataid", null=True, blank=True)
-    standard_data_name = models.CharField(u"标准日志采集源数据", max_length=255, null=True, blank=True,
-                                          help_text='变更后，会同步更新paas_monitor/log中ES-Index配置')
-    standard_flow_id = models.IntegerField(u"标准日志采集DataFlow ID", null=True, blank=True)
-    standard_flow_task_id = models.IntegerField(u"标准日志采集DataFlow 任务ID", null=True, blank=True)
+    standard_data_id = models.IntegerField(_("标准日志采集的dataid"), null=True, blank=True)
+    standard_data_name = models.CharField(_("标准日志采集源数据"), max_length=255, null=True, blank=True,
+                                          help_text=_('变更后，会同步更新paas_monitor/log中ES-Index配置'))
+    standard_flow_id = models.IntegerField(_("标准日志采集DataFlow ID"), null=True, blank=True)
+    standard_flow_task_id = models.IntegerField(_("标准日志采集DataFlow 任务ID"), null=True, blank=True)
 
-    non_standard_data_id = models.IntegerField(u"非标准日志采集的dataid", null=True, blank=True)
-    non_standard_data_name = models.CharField(u"非标准日志采集源数据", max_length=255, null=True, blank=True,
-                                              help_text='变更后，会同步更新paas_monitor/log中ES-Index配置')
-    non_standard_flow_id = models.IntegerField(u"非标准日志采集DataFlow ID", null=True, blank=True)
-    non_standard_flow_task_id = models.IntegerField(u"非标准日志采集DataFlow 任务ID", null=True, blank=True)
+    non_standard_data_id = models.IntegerField(_("非标准日志采集的dataid"), null=True, blank=True)
+    non_standard_data_name = models.CharField(_("非标准日志采集源数据"), max_length=255, null=True, blank=True,
+                                              help_text=_('变更后，会同步更新paas_monitor/log中ES-Index配置'))
+    non_standard_flow_id = models.IntegerField(_("非标准日志采集DataFlow ID"), null=True, blank=True)
+    non_standard_flow_task_id = models.IntegerField(_("非标准日志采集DataFlow 任务ID"), null=True, blank=True)
 
     def _get_result_table_id(self, data_name, flow_task_id):
         # 如果 DataFlow 任务ID 为空，后端存储实际不可用，不需要创建日志流

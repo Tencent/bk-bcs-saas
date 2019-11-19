@@ -18,6 +18,7 @@ import arrow
 
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
+from django.utils.translation import ugettext as _
 
 from backend.apps import constants
 from backend.apps.cluster.models import (
@@ -84,7 +85,7 @@ class CreateClusterSLZ(serializers.Serializer):
     def validate_master_ips(self, value):
         # 现阶段k8s和mesos的master数量最大限制为5个
         if len(value) % 2 == 0 or len(value) > 5:
-            raise ValidationError("集群Master节点数量必须为不大于5的奇数")
+            raise ValidationError(_("集群Master节点数量必须为不大于5的奇数"))
         # 可能有多IP的节点，只取第一个即可
         ip_list = [info.split(',')[0] for info in value if info]
         resp = paas_cc.get_project_nodes(
@@ -93,7 +94,7 @@ class CreateClusterSLZ(serializers.Serializer):
         # 检查是否被占用
         intersection = set(resp.keys()) & set(ip_list)
         if intersection:
-            raise ValidationError("IP: %s已经被占用，请重新选择节点" % (','.join(intersection)))
+            raise ValidationError(f"IP: {(','.join(intersection))}{_('已经被占用，请重新选择节点')}")
         return ip_list
 
     def validate_name(self, value):
@@ -101,7 +102,7 @@ class CreateClusterSLZ(serializers.Serializer):
             self.context['access_token'], self.context['project_id'], value
         )
         if resp.get('data', {}).get('count'):
-            raise ValidationError("集群名称已经存在，请修改后重试")
+            raise ValidationError(_("集群名称已经存在，请修改后重试"))
         return value
 
 
@@ -152,7 +153,7 @@ class NodeLabelParamsSLZ(serializers.Serializer):
 
     def validate_node_id_list(self, val):
         if not val:
-            raise ValidationError("节点ID不能为空")
+            raise ValidationError(_("节点ID不能为空"))
         return val
 
 

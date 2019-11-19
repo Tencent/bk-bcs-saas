@@ -20,6 +20,7 @@ import uuid
 from django.db import models
 from django.conf import settings
 from django.utils import timezone
+from django.utils.translation import ugettext as _
 
 
 class BaseTSModel(models.Model):
@@ -33,8 +34,8 @@ class BaseTSModel(models.Model):
 class BaseModel(models.Model):
     """Model with 'created' and 'updated' fields.
     """
-    creator = models.CharField(u"创建者", max_length=32)
-    updator = models.CharField(u"修改着", max_length=32)
+    creator = models.CharField(_("创建者"), max_length=32)
+    updator = models.CharField(_("修改着"), max_length=32)
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
     is_deleted = models.BooleanField(default=False)

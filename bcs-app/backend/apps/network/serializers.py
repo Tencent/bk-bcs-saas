@@ -15,6 +15,7 @@ import re
 
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
+from django.utils.translation import ugettext as _
 
 from backend.apps.network.models import K8SLoadBlance
 from backend.utils.error_codes import error_codes
@@ -28,14 +29,14 @@ class BatchResourceSLZ(serializers.Serializer):
 
     def validate_data(self, data):
         if not isinstance(data, list):
-            raise ValidationError(u"数据格式必须为数组")
+            raise ValidationError(_("数据格式必须为数组"))
         for _d in data:
             if not _d.get('cluster_id'):
-                raise ValidationError(u"cluster_id 必填")
+                raise ValidationError(_("cluster_id 必填"))
             if not _d.get('namespace'):
-                raise ValidationError(u"namespace 必填")
+                raise ValidationError(_("namespace 必填"))
             if not _d.get('name'):
-                raise ValidationError(u"name 必填")
+                raise ValidationError(_("name 必填"))
         return data
 
 
@@ -56,7 +57,7 @@ class NginxIngressSLZ(serializers.ModelSerializer):
         for info in type_list:
             protocol_port_list.extend(info.split(":"))
         if "http" not in protocol_port_list and "https" not in protocol_port_list:
-            raise ValidationError("参数【protocol_type】至少包含http或https，请确认后重试!")
+            raise ValidationError(_("参数【protocol_type】至少包含http或https，请确认后重试!"))
         return value
 
     class Meta:
@@ -91,7 +92,7 @@ class LoadBalancesSLZ(serializers.Serializer):
         max_length=256,
         required=True,
         error_messages={
-            'invalid': u'名称格式错误，只能包含：小写字母、数字、连字符(-)，首字母必须是字母，长度小于256个字符'
+            'invalid': _('名称格式错误，只能包含：小写字母、数字、连字符(-)，首字母必须是字母，长度小于256个字符')
         }
     )
     cluster_id = serializers.CharField(required=True)
@@ -129,7 +130,7 @@ class LoadBalancesSLZ(serializers.Serializer):
         if not ip_list:
             return instance
         if len(ip_list) != instance:
-            raise error_codes.CheckFailed.f("参数[ip_list]和[instance]必须相同")
+            raise error_codes.CheckFailed(_("参数[ip_list]和[instance]必须相同"))
         return instance
 
 
@@ -139,7 +140,7 @@ class UpdateLoadBalancesSLZ(LoadBalancesSLZ):
 
     def validate(self, data):
         if not data:
-            raise ValidationError("参数不能全部为空")
+            raise ValidationError(_("参数不能全部为空"))
         return data
 
 

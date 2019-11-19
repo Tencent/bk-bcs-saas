@@ -22,6 +22,7 @@ from rest_framework import generics, views, viewsets
 from rest_framework.response import Response
 from rest_framework.exceptions import ValidationError
 from rest_framework.renderers import BrowsableAPIRenderer
+from django.utils.translation import ugettext as _
 
 from backend.accounts import bcs_perm
 from backend.activity_log import client
@@ -73,7 +74,7 @@ class ListCreateVariableView(generics.ListCreateAPIView):
             resource=instance.name,
             resource_id=instance.id,
             extra=json.dumps(serializer.data),
-            description="新增变量"
+            description=_("新增变量")
         ).log_add()
 
     def post(self, request, project_id):
@@ -123,7 +124,7 @@ class RetrieveUpdateVariableView(FinalizeResponseMixin, generics.RetrieveUpdateD
             resource=instance.name,
             resource_id=instance.id,
             extra=json.dumps(serializer.data),
-            description="更新变量"
+            description=_("更新变量")
         ).log_modify()
 
     # TODO mark refactor 改成put方法, 需要前端同步调整
@@ -144,14 +145,14 @@ class ResourceVariableView(FinalizeResponseMixin, views.APIView):
         try:
             met = Metric.objects.get(id=metric_id)
         except Exception:
-            raise ValidationError(u"Metric[id:%s]:不存在" % metric_id)
+            raise ValidationError(f"Metric[id:{metric_id}]:{_('不存在')}")
         api_json = met.to_api_json()
         if resourse_type == 'application':
             try:
                 application = MODULE_DICT.get(
                     resourse_type).objects.get(id=application_id)
             except Exception:
-                raise ValidationError(u"应用[id:%s]:不存在" % application_id)
+                raise ValidationError(f"{_('应用')}[id:{application_id}]:{_('不存在')}")
             app_config = application.get_config()
             app_config_new = handel_custom_network_mode(app_config)
             app_spec = app_config_new.get('spec', {}).get(
@@ -171,7 +172,7 @@ class ResourceVariableView(FinalizeResponseMixin, views.APIView):
         slz_data = self.slz.data
 
         if 'instance_entity' not in slz_data:
-            raise ValidationError(u"请选择要实例化的模板")
+            raise ValidationError(_("请选择要实例化的模板"))
         instance_entity = slz_data['instance_entity']
 
         lb_services = []
@@ -274,7 +275,7 @@ class VariableOverView(viewsets.ViewSet):
                 resource_type="variable",
                 resource=','.join(name_list),
                 resource_id=json.dumps(del_id_list),
-                description=u"删除变量"
+                description=_("删除变量")
         ).log_delete():
             for _s in query_sets:
                 # 删除后KEY添加 [deleted]前缀
@@ -455,8 +456,7 @@ class ClusterVariableView(viewsets.ViewSet):
         if not_exist_vars:
             not_exist_show_msg = ['%s[id:%s]' %
                                   (i['key'], i['id']) for i in not_exist_vars]
-            msg = u"以下变量不存在:%s" % ";".join(
-                not_exist_show_msg)
+            msg = f"{_('以下变量不存在')}:{';'.join(not_exist_show_msg)}"
         return Response({
             "code": 0,
             "message": msg,

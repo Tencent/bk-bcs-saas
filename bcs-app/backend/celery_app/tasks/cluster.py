@@ -19,6 +19,7 @@ import json
 from datetime import timedelta, datetime
 
 from django.conf import settings
+from django.utils.translation import ugettext as _
 
 from celery import shared_task
 
@@ -85,7 +86,7 @@ def bke_log_save(log, log_type, status, message=""):
         err_msg = "SUCCESS"
     log.log = json.dumps({
         "status": status,
-        "node_tasks": [{"name": "1.安装BKE Agent", "state": err_msg}]
+        "node_tasks": [{"name": _("1.安装BKE Agent"), "state": err_msg}]
     })
     log.save()
     update_node_cluster_check_status(log, log_type, status=status)
@@ -235,14 +236,14 @@ def polling_task(log_type, log_pk):
         initial_oper_list = [INITIAL_CHECK, INITIALIZE, SO_INITIAL, REINSTALL]
         if log_type == "ClusterInstallLog":
             if log.oper_type in initial_oper_list:
-                prefix_msg = "初始化集群失败"
+                prefix_msg = _("初始化集群失败")
             else:
-                prefix_msg = "删除集群失败"
+                prefix_msg = _("删除集群失败")
         else:
             if log.oper_type in initial_oper_list:
-                prefix_msg = "初始化节点失败"
+                prefix_msg = _("初始化节点失败")
             else:
-                prefix_msg = "删除节点失败"
+                prefix_msg = _("删除节点失败")
         push_sentry(log, prefix_msg)
     if (log_type == "NodeUpdateLog") and (log.status == models.CommonStatus.Normal) \
             and (log.oper_type not in [models.NodeOperType.NodeRemove]) and ('K8S' in log.cluster_id):
@@ -406,7 +407,7 @@ def exec_bcs_task(old_log, request=None):
         # TODO: 怎样保证写入不成功时，可以再次写入
         if result.get("code") != ErrorCode.NoError:
             return
-        push_sentry(new_log, "初始化集群失败")
+        push_sentry(new_log, _("初始化集群失败"))
         return
 
     data = rsp.get("data") or {}
@@ -429,7 +430,7 @@ def node_ip_status(log, project_id, cluster_id, node_info):
     # 记录错误信息到log
     log.log = json.dumps({
         "status": models.CommonStatus.InitialFailed,
-        "node_tasks": [{"name": "", "state": "调用BCS接口失败"}]
+        "node_tasks": [{"name": "", "state": _("调用BCS接口失败")}]
     })
     log.save()
     # 更改任务状态
@@ -496,7 +497,7 @@ def node_exec_bcs_task(old_log, request=None):
 
     if rsp.get("code") != ErrorCode.NoError:
         node_ip_status(new_log, new_log.project_id, new_log.cluster_id, node_info)
-        push_sentry(new_log, "节点初始化失败")
+        push_sentry(new_log, _("节点初始化失败"))
         return
 
     data = rsp.get("data") or {}
@@ -623,7 +624,7 @@ def polling_initial_task(log_type, log_pk):
             return
     model.objects.filter(pk=log_pk).update(is_polling=False)
     if log.status in [models.CommonStatus.InitialCheckFailed]:
-        push_sentry(log, "前置检查失败")
+        push_sentry(log, _("前置检查失败"))
         # 更改node或集群状态
         update_node_cluster_check_status(log, log_type)
         return
@@ -661,7 +662,7 @@ def _polling_so_initial_once(model, log):
             {
                 "state": settings.SO_ERROR_MSG
                 % (";".join(failed_ip_list), log.task_id),
-                "name": "1.SO实例化失败"
+                "name": _("1.SO实例化失败")
             }
         ]
         log_status = models.CommonStatus.SoInitialFailed
@@ -669,7 +670,7 @@ def _polling_so_initial_once(model, log):
         node_tasks = [
             {
                 "state": status,
-                "name": "1.SO初始化完成"
+                "name": _("1.SO初始化完成")
             }
         ]
     log.log = json.dumps({
@@ -709,7 +710,7 @@ def polling_so_init(old_log, log_pk=None, log_type=None):
             continue
     # model.objects.filter(pk=log_pk).update(is_polling=False)
     if log.status in [models.CommonStatus.SoInitialFailed]:
-        push_sentry(log, "SO初始化失败")
+        push_sentry(log, _("SO初始化失败"))
         # 更改node或集群状态
         update_node_cluster_check_status(log, log_type, status=log.status)
         return
@@ -761,7 +762,7 @@ def so_init(old_log, request=None):
         new_log.status = models.CommonStatus.SoInitialFailed
         new_log.log = json.dumps({
             "state": "FAILURE",
-            "node_tasks": [{"state": "FAILURE", "name": "1.SO初始化失败: %s" % resp.get("message")}]
+            "node_tasks": [{"state": "FAILURE", "name": f"{_('1.SO初始化失败')}: {resp.get('message')}"}]
         })
         new_log.save()
         update_node_cluster_check_status(
@@ -792,7 +793,7 @@ def func_handler(func, name, log, *args):
         update_cluster_status(log)
         log.save()
         return False
-    save_record_log(log, "SUCCESS", name, u"操作成功", record_status)
+    save_record_log(log, "SUCCESS", name, _("操作成功"), record_status)
     return True
 
 
@@ -808,13 +809,13 @@ def delete_handler(log):
     # cc_app_id = params["cc_app_id"]
     host_ips = params["host_ips"]
     operator = log.operator
-    if not func_handler(cc.host_standard_property, u"2.修改主机备注", log, operator, host_ips):
+    if not func_handler(cc.host_standard_property, _("2.修改主机备注"), log, operator, host_ips):
         return
-    if not func_handler(cc.remove_host_lock, u"3.释放主机锁", log, operator, host_ips):
+    if not func_handler(cc.remove_host_lock, _("3.释放主机锁"), log, operator, host_ips):
         return
     # 删除集群
     if not func_handler(
-            paas_cc.delete_cluster, u"4.移除集群", log, log.token, log.project_id, log.cluster_id):
+            paas_cc.delete_cluster, _("4.移除集群"), log, log.token, log.project_id, log.cluster_id):
         return
     log.status = models.CommonStatus.Normal
     log.save()
@@ -851,7 +852,7 @@ def update_cluster_status(log, status=models.CommonStatus.RemoveFailed):
     )
     if resp.get("code") != ErrorCode.NoError:
         log.status = models.CommonStatus.RemoveFailed
-        save_record_log(log, "FAILURE", "更新集群状态", resp.get("message"), models.CommonStatus.RemoveFailed)
+        save_record_log(log, "FAILURE", _("更新集群状态"), resp.get("message"), models.CommonStatus.RemoveFailed)
         log.save()
 
 
@@ -918,7 +919,7 @@ def delete_cluster_task(log_type, log_pk):
         if datetime.now() > end_time:
             break
         try:
-            log, is_terminaled = _polling_host_module_once(log, u"1.修改主机模块")
+            log, is_terminaled = _polling_host_module_once(log, _("1.修改主机模块"))
         except Exception as err:
             logger.exception(err)
     if is_terminaled:
@@ -926,7 +927,7 @@ def delete_cluster_task(log_type, log_pk):
     # 执行任务
     delete_handler(log)
     if log.status != models.CommonStatus.Normal:
-        push_sentry(log, "删除集群失败")
+        push_sentry(log, _("删除集群失败"))
 
 
 def common_model_handler(log_type, log_pk, task_id_flag=False):
@@ -995,7 +996,7 @@ def get_pod_taskgroup_info(log):
             "state": "remove_failed",
             "node_tasks": [{
                 "state": "FAILURE",
-                "name": "获取项目信息失败"
+                "name": _("获取项目信息失败")
             }]
         })
     if kind == "k8s":
@@ -1014,7 +1015,7 @@ def get_pod_taskgroup_info(log):
             "state": "normal",
             "node_tasks": [{
                 "state": "SUCCESS",
-                "name": "POD/TASKGROUP重新调度成功!"
+                "name": _("POD/TASKGROUP重新调度成功!")
             }]
         })
         log.save()
@@ -1037,7 +1038,7 @@ def force_delete_node(log_type, log_pk):
                 "state": "remove_failed",
                 "node_tasks": [{
                     "state": "FAILURE",
-                    "name": "POD/TASKGROUP重新调度超时,请手动处理!"
+                    "name": _("POD/TASKGROUP重新调度超时,请手动处理!")
                 }]
             })
             return None, None

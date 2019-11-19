@@ -12,6 +12,7 @@
 # specific language governing permissions and limitations under the License.
 #
 from django.utils.crypto import get_random_string
+from django.utils.translation import ugettext as _
 
 from backend.utils.error_codes import error_codes
 from backend.apps.datalog.models import ProjectDataInfo
@@ -37,17 +38,19 @@ def create_data_project(username, project_id, cc_app_id, english_name):
     standard_data_name = f'{DataType.SLOG.value}_{english_name}'
     res1, standard_data_id = deploy_plan(username, cc_app_id, standard_data_name, DataType.SLOG.value)
     if not res1:
-        notify_manager(u"申请标准日志采集dataid[业务ID:%s,项目名:%s]失败,原因:%s,请关注" % (
-            cc_app_id, english_name, standard_data_id))
-        raise error_codes.APIError.f("申请标准日志采集dataid失败:%s" % standard_data_id)
+        notify_manager(
+            f"{_('申请标准日志采集')}dataid[{_('业务')}ID:{cc_app_id},{_('项目名')}:{english_name}]"
+            f"{_('失败')},{_('原因')}:{standard_data_id},{_('请关注')}")
+        raise error_codes.APIError(f"{_('申请标准日志采集')}dataid{_('失败')}:{standard_data_id}")
 
     # 申请非标准日志采集 dataid
     non_standard_data_name = f'{DataType.CLOG.value}_{english_name}'
     res2, non_standard_data_id = deploy_plan(username, cc_app_id, non_standard_data_name, DataType.CLOG.value)
     if not res2:
-        notify_manager(u"申请非标准日志采集dataid[业务ID:%s,项目名:%s]失败,原因:%s,请关注" % (
-            cc_app_id, english_name, non_standard_data_id))
-        raise error_codes.APIError.f("申请非标准日志采集dataid失败:%s" % non_standard_data_id)
+        notify_manager(
+            f"{_('申请非标准日志采集')}dataid[{_('业务')}ID:{cc_app_id},{_('项目名')}:{english_name}]"
+            f"{_('失败')},{_('原因')}:{non_standard_data_id},{_('请关注')}")
+        raise error_codes.APIError(f"{_('申请标准日志采集')}dataid{_('失败')}:{non_standard_data_id}")
 
     # 数据平台 V3 API 没有project_id的概念，给一个默认的值
     project.data_project_id = 1
@@ -68,12 +71,12 @@ def create_and_start_standard_data_flow(username, project_id, cc_app_id):
     """
     # 数据平台功能没有开启，则直接返回
     if not IS_DATA_OPEN:
-        return True, u"数据平台功能暂未开启"
+        return True, _("数据平台功能暂未开启")
 
     try:
         project = ProjectDataInfo.objects.get(project_id=project_id)
     except Exception:
-        return False, u"请先在数据平台创建项目信息"
+        return False, _("请先在数据平台创建项目信息")
     # db 中已经有任务信息，则说明已经创建/启动了任务，不需要再重复启动
     if project.standard_flow_id and project.standard_flow_task_id:
         return project.standard_flow_id
@@ -83,21 +86,21 @@ def create_and_start_standard_data_flow(username, project_id, cc_app_id):
         # 创建清洗配置
         res, flow_id = setup_clean(username, cc_app_id, project.standard_data_id, DataType.SLOG.value)
         if not res:
-            notify_manager(u"启动标准日志采集清洗任务失败[%s],原因:%s,请关注" % (project_id, flow_id))
-            return False, u"启动标准日志采集清洗任务失败:%s" % flow_id
+            notify_manager(f"{_('启动标准日志采集清洗任务失败')}[{project_id}],{_('原因')}:{flow_id},{_('请关注')}")
+            return False, f"{_('启动标准日志采集清洗任务失败')}:{flow_id}"
     else:
         flow_id = project.standard_flow_id
 
     # 启动分发任务
     res2, flow_task_id = setup_shipper(project.standard_data_id, flow_id, DataType.SLOG.value)
     if not res2:
-        notify_manager(u"启动标准日志采集分发任务失败[%s],原因:%s,请关注" % (project_id, flow_task_id))
-        return False, u"启动标准日志采集分发任务失败:%s" % flow_task_id
+        notify_manager(f"{_('启动标准日志采集分发任务失败')}[{project_id}],{_('原因')}:{flow_task_id},{_('请关注')}")
+        return False, f"{_('启动标准日志采集分发任务失败')}:{flow_task_id}"
     # 将任务相关的id保存到db中，下次初始化集群则可以直接查询状态
     project.standard_flow_id = flow_id
     project.standard_flow_task_id = flow_task_id
     project.save()
-    return True, u"启动标准日志采集任务成功"
+    return True, _("启动标准日志采集任务成功")
 
 
 def create_and_start_non_standard_data_flow(username, project_id, cc_app_id):
@@ -108,12 +111,12 @@ def create_and_start_non_standard_data_flow(username, project_id, cc_app_id):
     """
     # 数据平台功能没有开启，则直接返回
     if not IS_DATA_OPEN:
-        return True, u"数据平台功能暂未开启"
+        return True, _("数据平台功能暂未开启")
 
     try:
         project = ProjectDataInfo.objects.get(project_id=project_id)
     except Exception:
-        return False, u"请先在数据平台创建项目信息"
+        return False, _("请先在数据平台创建项目信息")
     # db 中已经有任务信息，则说明已经创建/启动了任务，不需要再重复启动
     if project.non_standard_flow_id and project.non_standard_flow_task_id:
         return project.non_standard_flow_id
@@ -123,21 +126,21 @@ def create_and_start_non_standard_data_flow(username, project_id, cc_app_id):
         # 创建清洗配置
         res, flow_id = setup_clean(username, cc_app_id, project.non_standard_data_id, DataType.CLOG.value)
         if not res:
-            notify_manager(u"创建非标准日志采集清洗任务失败[%s],原因:%s,请关注" % (project_id, flow_id))
-            return False, u"创建非标准日志采集清洗任务失败:%s" % flow_id
+            notify_manager(f"{_('创建非标准日志采集清洗任务失败')}[{project_id}],{_('原因')}:{flow_id},{_('请关注')}")
+            return False, f"{_('创建非标准日志采集清洗任务失败')}:{flow_id}"
     else:
         flow_id = project.non_standard_flow_id
 
     # 启动任务
     res2, flow_task_id = setup_shipper(project.non_standard_data_id, flow_id, DataType.CLOG.value)
     if not res2:
-        notify_manager(u"启动非标准日志采集分发任务失败[%s],原因:%s,请关注" % (project_id, flow_task_id))
-        return False, u"启动非标准日志采集分发任务失败:%s" % flow_task_id
+        notify_manager(f"{_('启动非标准日志采集分发任务失败')}[{project_id}],{_('原因')}:{flow_task_id},{_('请关注')}")
+        return False, f"{_('启动非标准日志采集分发任务失败')}:{flow_task_id}"
     # 将任务相关的id保存到db中，下次初始化集群则可以直接查询状态
     project.non_standard_flow_id = flow_id
     project.non_standard_flow_task_id = flow_task_id
     project.save()
-    return True, u"启动非标准日志采集任务成功"
+    return True, _("启动非标准日志采集任务成功")
 
 
 def create_prometheus_data_flow(username, project_id, cc_app_id, english_name, dataset):
@@ -145,26 +148,29 @@ def create_prometheus_data_flow(username, project_id, cc_app_id, english_name, d
     """
     # 数据平台功能没有开启，则直接返回
     if not IS_DATA_OPEN:
-        return True, u"数据平台功能暂未开启"
+        return True, _("数据平台功能暂未开启")
 
     # 1. 提交接入部署计划,获取dataid
     is_ok, data_id = deploy_plan(username, cc_app_id, dataset, DataType.METRIC.value)
     if not is_ok:
-        notify_manager(u"申请Prometheus Metric dataid[业务ID:%s,项目名:%s]失败,原因:%s,请关注" % (
-            cc_app_id, english_name, data_id))
-        return False, "申请Prometheus Metric dataid:%s" % data_id
+        notify_manager(
+            f"{_('申请')}Prometheus Metric dataid[{_('业务')}ID:{cc_app_id},{_('项目名')}:{english_name}]"
+            f"{_('失败')},{_('原因')}:{data_id},{_('请关注')}")
+        return False, f"{_('申请')}Prometheus Metric dataid:{data_id}"
 
     # 2. 创建清洗配置,并启动清洗任务
     res, result_table_id = setup_clean(username, cc_app_id, data_id, DataType.METRIC.value)
     if not res:
-        notify_manager(u"创建Prometheus Metric清洗任务失败[%s],原因:%s,请关注" % (english_name, result_table_id))
-        return False, u"创建Prometheus Metric清洗任务失败:%s" % result_table_id
+        notify_manager(
+            f"{_('创建')}Prometheus Metric{_('清洗任务失败')}[{english_name}],"
+            f"{_('原因')}:{result_table_id},{_('请关注')}")
+        return False, f"{_('创建')}Prometheus Metric{_('清洗任务失败')}:{result_table_id}"
 
     # 3. 创建分发存储，并启动对应的分发任务
     res2, msg = setup_shipper(data_id, result_table_id, DataType.METRIC.value)
     if not res2:
-        notify_manager(u"启动非标准日志采集分发任务失败[%s],原因:%s,请关注" % (project_id, msg))
-        return False, u"启动非标准日志采集分发任务失败:%s" % msg
+        notify_manager(f"{_('启动非标准日志采集分发任务失败')}[{project_id}],{_('原因')}:{'msg'},{_('请关注')}")
+        return False, f"{_('启动非标准日志采集分发任务失败')}:{msg}"
     return True, data_id
 
 

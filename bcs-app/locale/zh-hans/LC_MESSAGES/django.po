@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-11-13 10:38+0800\n"
+"POT-Creation-Date: 2019-11-19 15:17+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -141,6 +141,484 @@ msgstr ""
 msgid "获取操作审计元数据成功"
 msgstr ""
 
+#: backend/apps/application/all_views/k8s_views.py:206
+#: backend/apps/application/all_views/k8s_views.py:277
+#: backend/apps/application/all_views/mesos_views.py:227
+#: backend/apps/application/all_views/mesos_views.py:336
+#: backend/apps/application/all_views/mesos_views.py:377
+msgid "请求失败，已通知管理员!"
+msgstr ""
+
+#: backend/apps/application/all_views/k8s_views.py:208
+msgid "请点击查看详情"
+msgstr ""
+
+#: backend/apps/application/all_views/views.py:158
+#: backend/apps/application/all_views/views.py:225
+msgid "类型不正确"
+msgstr ""
+
+#: backend/apps/application/all_views/views.py:192
+msgid "查询命名空间为空"
+msgstr ""
+
+#: backend/apps/application/all_views/views.py:203
+msgid "命名空间不属于当前项目或集群"
+msgstr ""
+
+#: backend/apps/application/base/base.py:42
+#: backend/apps/application/base_views.py:95
+msgid "项目类型必须为k8s/mesos, 请确认后重试!"
+msgstr ""
+
+#: backend/apps/application/base/base.py:51
+#: backend/apps/application/base_views.py:67
+msgid "参数[name]、[namespace]、[category]不能为空"
+msgstr ""
+
+#: backend/apps/application/base/base.py:87
+#: backend/apps/application/base/base.py:160
+msgid "应用类型不能为空"
+msgstr ""
+
+#: backend/apps/application/base/base.py:98
+msgid "集群类型不正确，请确认后重试!"
+msgstr ""
+
+#: backend/apps/application/base/base.py:101
+msgid "应用状态不正确，请确认后重试!"
+msgstr ""
+
+#: backend/apps/application/base/base.py:163
+msgid "类型不正确，请确认"
+msgstr ""
+
+#: backend/apps/application/base_views.py:51
+msgid "记录不存在"
+msgstr ""
+
+#: backend/apps/application/base_views.py:52
+msgid "解析异常"
+msgstr ""
+
+#: backend/apps/application/base_views.py:53
+msgid "DB操作异常"
+msgstr ""
+
+#: backend/apps/application/base_views.py:75
+msgid "没有查询到相应的记录"
+msgstr ""
+
+#: backend/apps/application/base_views.py:86
+msgid "Instance config解析异常"
+msgstr ""
+
+#: backend/apps/application/base_views.py:106
+#: backend/apps/application/base_views.py:595
+#: backend/apps/application/base_views.py:622
+#: backend/apps/application/base_views.py:649
+#: backend/apps/application/base_views.py:669
+#: backend/apps/application/base_views.py:696
+#: backend/apps/application/base_views.py:722
+#: backend/apps/application/base_views.py:748
+#: backend/apps/application/base_views.py:762
+msgid "请求出现异常!"
+msgstr ""
+
+#: backend/apps/application/base_views.py:111
+msgid "该项目编排类型不正确!"
+msgstr ""
+
+#: backend/apps/application/base_views.py:202
+msgid "查询记录为空!"
+msgstr ""
+
+#: backend/apps/application/base_views.py:215
+msgid "没有查询到命名空间对应的集群ID"
+msgstr ""
+
+#: backend/apps/application/base_views.py:234
+#: backend/apps/application/base_views.py:268
+msgid "查询出现异常"
+msgstr ""
+
+#: backend/apps/application/base_views.py:391
+#: backend/apps/application/base_views.py:397
+msgid "删除成功"
+msgstr ""
+
+#: backend/apps/application/base_views.py:598
+#: backend/apps/application/base_views.py:625
+#: backend/apps/application/base_views.py:652
+msgid "更新成功!"
+msgstr ""
+
+#: backend/apps/application/base_views.py:672
+msgid "取消更新成功!"
+msgstr ""
+
+#: backend/apps/application/base_views.py:699
+msgid "暂停更新成功!"
+msgstr ""
+
+#: backend/apps/application/base_views.py:725
+msgid "重启更新成功!"
+msgstr ""
+
+#: backend/apps/application/base_views.py:751
+msgid "重新调度成功!"
+msgstr ""
+
+#: backend/apps/application/base_views.py:848
+msgid "获取资源失败，请联系蓝鲸管理员解决"
+msgstr ""
+
+#: backend/apps/application/base_views.py:862
+msgid "没有足够的CPU资源，请添加node或释放资源!"
+msgstr ""
+
+#: backend/apps/application/base_views.py:864
+msgid "没有足够的内存资源，请添加node或释放资源!"
+msgstr ""
+
+#: backend/apps/application/base_views.py:951
+msgid "没有查询到模板集信息"
+msgstr ""
+
+#: backend/apps/application/base_views.py:979
+#: backend/apps/application/base_views.py:998
+msgid "获取应用线上配置异常，请联系管理员处理!"
+msgstr ""
+
+#: backend/apps/cluster/constants.py:129
+msgid "- 调用初始化接口失败"
+msgstr ""
+
+#: backend/apps/cluster/constants.py:134 backend/apps/projects/constants.py:72
+msgid "正常"
+msgstr ""
+
+#: backend/apps/cluster/constants.py:135
+msgid "前置检查中"
+msgstr ""
+
+#: backend/apps/cluster/constants.py:136
+#: backend/celery_app/tasks/cluster.py:627
+msgid "前置检查失败"
+msgstr ""
+
+#: backend/apps/cluster/constants.py:137
+msgid "SO初始化中"
+msgstr ""
+
+#: backend/apps/cluster/constants.py:138
+#: backend/celery_app/tasks/cluster.py:713
+msgid "SO初始化失败"
+msgstr ""
+
+#: backend/apps/cluster/constants.py:139
+msgid "初始化中"
+msgstr ""
+
+#: backend/apps/cluster/constants.py:140
+msgid "初始化失败"
+msgstr ""
+
+#: backend/apps/cluster/constants.py:141
+msgid "删除中"
+msgstr ""
+
+#: backend/apps/cluster/constants.py:142
+msgid "删除失败"
+msgstr ""
+
+#: backend/apps/cluster/constants.py:143
+msgid "已删除"
+msgstr ""
+
+#: backend/apps/cluster/models.py:146
+msgid "初始化集群"
+msgstr ""
+
+#: backend/apps/cluster/models.py:147
+msgid "重新初始化集群"
+msgstr ""
+
+#: backend/apps/cluster/models.py:148 backend/apps/cluster/models.py:191
+msgid "前置检查"
+msgstr ""
+
+#: backend/apps/cluster/models.py:149 backend/apps/cluster/models.py:151
+msgid "删除集群"
+msgstr ""
+
+#: backend/apps/cluster/models.py:150 backend/apps/cluster/models.py:192
+msgid "SO 机器初始化"
+msgstr ""
+
+#: backend/apps/cluster/models.py:188
+msgid "初始化节点"
+msgstr ""
+
+#: backend/apps/cluster/models.py:189
+msgid "重新初始化节点"
+msgstr ""
+
+#: backend/apps/cluster/models.py:190 backend/apps/cluster/models.py:194
+msgid "删除节点"
+msgstr ""
+
+#: backend/apps/cluster/models.py:193
+msgid "安装BKE"
+msgstr ""
+
+#: backend/apps/cluster/models.py:195
+msgid "绑定LB"
+msgstr ""
+
+#: backend/apps/cluster/models.py:196
+msgid "初始化环境"
+msgstr ""
+
+#: backend/apps/cluster/models.py:253 backend/apps/datalog/models.py:29
+#: backend/apps/network/models.py:21 backend/apps/projects/models.py:55
+#: backend/apps/ticket/models.py:32 backend/apps/variable/models.py:43
+msgid "项目ID"
+msgstr ""
+
+#: backend/apps/cluster/models.py:254 backend/apps/network/models.py:22
+#: backend/apps/variable/models.py:100
+msgid "集群ID"
+msgstr ""
+
+#: backend/apps/cluster/node_tasks.py:144
+#: backend/apps/cluster/node_tasks.py:161
+msgid "调度结束!"
+msgstr ""
+
+#: backend/apps/cluster/serializers.py:88
+msgid "集群Master节点数量必须为不大于5的奇数"
+msgstr ""
+
+#: backend/apps/cluster/serializers.py:105
+msgid "集群名称已经存在，请修改后重试"
+msgstr ""
+
+#: backend/apps/cluster/serializers.py:156
+msgid "节点ID不能为空"
+msgstr ""
+
+#: backend/apps/cluster/utils.py:82
+msgid "没有查询到集群所属环境"
+msgstr ""
+
+#: backend/apps/configuration/constants.py:24
+#: backend/apps/configuration/constants_bak.py:40
+msgid "只能包含字母、数字和下划线，且以字母开头"
+msgstr ""
+
+#: backend/apps/configuration/constants.py:41
+msgid "系统"
+msgstr ""
+
+#: backend/apps/configuration/constants.py:42
+#: backend/apps/variable/constants.py:39
+msgid "自定义"
+msgstr ""
+
+#: backend/apps/configuration/init_data.py:33
+msgid "示例模板集"
+msgstr ""
+
+#: backend/apps/configuration/init_data.py:34
+msgid ""
+"这是一款开源的吃豆游戏的配置模板集，您可以通过这个示例来熟悉微服务架构下系统"
+"的配置、发布、变更过程"
+msgstr ""
+
+#: backend/apps/configuration/serializers.py:58
+msgid "请先创建 Application ，再创建 Deplpyment"
+msgstr ""
+
+#: backend/apps/configuration/serializers.py:61
+msgid "请选择关联的 Application"
+msgstr ""
+
+#: backend/apps/configuration/serializers.py:132
+#: backend/apps/configuration/serializers_new.py:146
+msgid "草稿"
+msgstr ""
+
+#: backend/apps/configuration/serializers.py:269
+msgid "关联应用的权重之和不为100%"
+msgstr ""
+
+#: backend/apps/configuration/serializers.py:272
+msgid "关联应用参数格式错误"
+msgstr ""
+
+#: backend/apps/configuration/serializers.py:294
+msgid ""
+"ConfigMap 名称格式错误，只能包含：小写字母、数字、连字符(-)，首字母必须是字"
+"母，长度小于256个字符"
+msgstr ""
+
+#: backend/apps/configuration/serializers.py:329
+msgid ""
+"Secret 名称格式错误，只能包含：小写字母、数字、连字符(-)，首字母必须是字母，"
+"长度小于256个字符"
+msgstr ""
+
+#: backend/apps/configuration/serializers.py:350
+msgid ""
+"名称格式错误，以小写字母或数字开头，只能包含：小写字母、数字、连字符(-)、点"
+"(.)"
+msgstr ""
+
+#: backend/apps/configuration/serializers.py:357
+msgid "请先创建 Deplpyment ，再创建 Service"
+msgstr ""
+
+#: backend/apps/configuration/serializers.py:360
+msgid "请选择关联的 Deplpyment"
+msgstr ""
+
+#: backend/apps/configuration/serializers.py:423
+msgid "关联Deployment参数格式错误"
+msgstr ""
+
+#: backend/apps/configuration/utils.py:170
+msgid "请先创建模板集"
+msgstr ""
+
+#: backend/apps/configuration/utils.py:184
+msgid "创建模板集"
+msgstr ""
+
+#: backend/apps/configuration/utils.py:201
+#: backend/apps/configuration/views.py:355
+msgid "更新模板集"
+msgstr ""
+
+#: backend/apps/configuration/utils_ns.py:50
+msgid "创建失败，namespace名称已经在其他项目存在"
+msgstr ""
+
+#: backend/apps/configuration/utils_ns.py:59
+msgid "命名空间[default]注册成功"
+msgstr ""
+
+#: backend/apps/configuration/views.py:116
+msgid "保存草稿"
+msgstr ""
+
+#: backend/apps/configuration/views.py:276
+msgid "加锁模板集"
+msgstr ""
+
+#: backend/apps/configuration/views.py:293
+msgid "解锁模板集"
+msgstr ""
+
+#: backend/apps/configuration/views.py:428
+msgid "模板集已经被实例化过，不能被删除"
+msgstr ""
+
+#: backend/apps/configuration/views.py:438
+msgid "删除模板集"
+msgstr ""
+
+#: backend/apps/configuration/views.py:486
+msgid "要复制的模板集不存在"
+msgstr ""
+
+#: backend/apps/configuration/views.py:503
+msgid "复制模板集"
+msgstr ""
+
+#: backend/apps/datalog/data_collect.py:72
+#: backend/apps/datalog/data_collect.py:112
+#: backend/apps/datalog/data_collect.py:149
+msgid "数据平台功能暂未开启"
+msgstr ""
+
+#: backend/apps/datalog/data_collect.py:77
+#: backend/apps/datalog/data_collect.py:117
+msgid "请先在数据平台创建项目信息"
+msgstr ""
+
+#: backend/apps/datalog/data_collect.py:101
+msgid "启动标准日志采集任务成功"
+msgstr ""
+
+#: backend/apps/datalog/data_collect.py:141
+msgid "启动非标准日志采集任务成功"
+msgstr ""
+
+#: backend/apps/datalog/models.py:28
+msgid "业务ID"
+msgstr ""
+
+#: backend/apps/datalog/models.py:30
+msgid "数据平台上申请的项目ID"
+msgstr ""
+
+#: backend/apps/datalog/models.py:32
+msgid "标准日志采集的dataid"
+msgstr ""
+
+#: backend/apps/datalog/models.py:33
+msgid "标准日志采集源数据"
+msgstr ""
+
+#: backend/apps/datalog/models.py:34 backend/apps/datalog/models.py:40
+msgid "变更后，会同步更新paas_monitor/log中ES-Index配置"
+msgstr ""
+
+#: backend/apps/datalog/models.py:35
+msgid "标准日志采集DataFlow ID"
+msgstr ""
+
+#: backend/apps/datalog/models.py:36
+msgid "标准日志采集DataFlow 任务ID"
+msgstr ""
+
+#: backend/apps/datalog/models.py:38
+msgid "非标准日志采集的dataid"
+msgstr ""
+
+#: backend/apps/datalog/models.py:39
+msgid "非标准日志采集源数据"
+msgstr ""
+
+#: backend/apps/datalog/models.py:41
+msgid "非标准日志采集DataFlow ID"
+msgstr ""
+
+#: backend/apps/datalog/models.py:42
+msgid "非标准日志采集DataFlow 任务ID"
+msgstr ""
+
+#: backend/apps/depot/api.py:59 backend/apps/depot/api.py:66
+msgid "上传镜像功能正在建设中"
+msgstr ""
+
+#: backend/apps/depot/models.py:23
+msgid "用户"
+msgstr ""
+
+#: backend/apps/depot/models.py:24
+msgid "镜像标识"
+msgstr ""
+
+#: backend/apps/depot/models.py:25
+msgid "镜像所属仓库,为空则表示为公共仓库"
+msgstr ""
+
+#: backend/apps/depot/models.py:26
+msgid "收藏时间"
+msgstr ""
+
 #: backend/apps/hpa/constants.py:22
 msgid "CPU使用率"
 msgstr ""
@@ -152,6 +630,551 @@ msgstr ""
 #: backend/apps/hpa/utils.py:207 backend/apps/hpa/utils.py:230
 #: backend/apps/hpa/utils.py:233
 msgid "删除HPA资源失败"
+msgstr ""
+
+#: backend/apps/instance/constants.py:430 backend/utils/error_codes.py:131
+msgid "请求失败"
+msgstr ""
+
+#: backend/apps/instance/constants.py:432
+msgid "请求异常"
+msgstr ""
+
+#: backend/apps/instance/constants.py:433
+msgid "回滚失败"
+msgstr ""
+
+#: backend/apps/instance/constants.py:434
+msgid "回滚异常"
+msgstr ""
+
+#: backend/apps/instance/constants.py:461
+msgid "未实例化"
+msgstr ""
+
+#: backend/apps/instance/constants.py:462
+msgid "实例化失败"
+msgstr ""
+
+#: backend/apps/instance/constants.py:463
+msgid "实例化成功"
+msgstr ""
+
+#: backend/apps/instance/constants.py:464
+msgid "更新实例失败"
+msgstr ""
+
+#: backend/apps/instance/constants.py:465
+msgid "更新实例成功"
+msgstr ""
+
+#: backend/apps/instance/constants.py:466
+msgid "实例已经删除"
+msgstr ""
+
+#: backend/apps/instance/constants.py:467
+msgid "Metric配置已经删除"
+msgstr ""
+
+#: backend/apps/instance/constants.py:468
+msgid "Metric配置更新"
+msgstr ""
+
+#: backend/apps/instance/generator.py:175
+msgid "配置文件格式错误"
+msgstr ""
+
+#: backend/apps/instance/generator.py:329
+#, python-brace-format
+msgid "Ingres使用11[{ingress_name}]"
+msgstr ""
+
+#: backend/apps/instance/models.py:40
+msgid "关联的VersionedEntity ID"
+msgstr ""
+
+#: backend/apps/instance/models.py:41
+msgid "需要实例化的资源"
+msgstr ""
+
+#: backend/apps/instance/models.py:41 backend/apps/instance/models.py:104
+#: backend/apps/instance/models.py:139
+msgid "json格式数据"
+msgstr ""
+
+#: backend/apps/instance/models.py:43
+msgid "false:生成配置文件；true:生成配置文件，调用bsc api实例化配置信息"
+msgstr ""
+
+#: backend/apps/instance/models.py:45 backend/apps/instance/models.py:50
+#: backend/apps/instance/models.py:101 backend/apps/instance/models.py:136
+#: backend/apps/variable/models.py:200
+msgid "命名空间ID"
+msgstr ""
+
+#: backend/apps/instance/models.py:46
+msgid "关联的模板 ID"
+msgstr ""
+
+#: backend/apps/instance/models.py:46
+msgid "该字段只在db中查看使用"
+msgstr ""
+
+#: backend/apps/instance/models.py:47
+msgid "历史变更数据"
+msgstr ""
+
+#: backend/apps/instance/models.py:47
+msgid "以json格式存储"
+msgstr ""
+
+#: backend/apps/instance/models.py:48 backend/apps/instance/models.py:105
+#: backend/apps/instance/models.py:140
+msgid "调用BCS API 是否成功"
+msgstr ""
+
+#: backend/apps/instance/models.py:50
+msgid "该字段已经废弃"
+msgstr ""
+
+#: backend/apps/instance/models.py:52
+msgid "用户可见版本ID"
+msgstr ""
+
+#: backend/apps/instance/models.py:54
+msgid "用户可见版本Name"
+msgstr ""
+
+#: backend/apps/instance/models.py:100 backend/apps/instance/models.py:135
+#: backend/apps/instance/models.py:183
+msgid "关联的 VersionInstance ID"
+msgstr ""
+
+#: backend/apps/instance/models.py:103 backend/apps/instance/models.py:138
+#: backend/apps/instance/models.py:185
+msgid "资源类型"
+msgstr ""
+
+#: backend/apps/instance/models.py:104 backend/apps/instance/models.py:139
+msgid "配置文件"
+msgstr ""
+
+#: backend/apps/instance/models.py:107
+msgid "操作类型"
+msgstr ""
+
+#: backend/apps/instance/models.py:108
+msgid "任务状态"
+msgstr ""
+
+#: backend/apps/instance/models.py:115 backend/apps/instance/models.py:146
+msgid "实例化状态"
+msgstr ""
+
+#: backend/apps/instance/models.py:117 backend/apps/instance/models.py:141
+#: backend/apps/network/models.py:24 backend/apps/projects/models.py:80
+#: backend/apps/ticket/models.py:34 backend/apps/variable/models.py:45
+msgid "名称"
+msgstr ""
+
+#: backend/apps/instance/models.py:119
+msgid "滚动升级前的配置"
+msgstr ""
+
+#: backend/apps/instance/models.py:119
+msgid "json格式"
+msgstr ""
+
+#: backend/apps/instance/models.py:121 backend/apps/instance/models.py:148
+msgid "变量"
+msgstr ""
+
+#: backend/apps/instance/models.py:144
+msgid "关联ID"
+msgstr ""
+
+#: backend/apps/instance/models.py:184
+msgid "资源ID"
+msgstr ""
+
+#: backend/apps/instance/models.py:187
+msgid "消息类型"
+msgstr ""
+
+#: backend/apps/instance/models.py:188
+msgid "消息"
+msgstr ""
+
+#: backend/apps/instance/models.py:190
+msgid "返回快照"
+msgstr ""
+
+#: backend/apps/instance/utils.py:61 backend/apps/instance/utils.py:83
+msgid "请选择项目"
+msgstr ""
+
+#: backend/apps/instance/utils.py:63
+msgid "请选择模板集"
+msgstr ""
+
+#: backend/apps/instance/utils.py:85
+msgid "请选择模板版本"
+msgstr ""
+
+#: backend/apps/network/constants.py:20
+msgid "未创建"
+msgstr ""
+
+#: backend/apps/network/constants.py:21
+msgid "已创建"
+msgstr ""
+
+#: backend/apps/network/constants.py:22
+msgid "已停止"
+msgstr ""
+
+#: backend/apps/network/constants.py:23
+msgid "停止中"
+msgstr ""
+
+#: backend/apps/network/models.py:31
+msgid "协议类型"
+msgstr ""
+
+#: backend/apps/network/models.py:33
+msgid "可以用来存储整个配置信息"
+msgstr ""
+
+#: backend/apps/network/models.py:44
+msgid "兼容历史数据,用以存储dict类型数据"
+msgstr ""
+
+#: backend/apps/network/models.py:45
+msgid "状态"
+msgstr ""
+
+#: backend/apps/network/models.py:46
+msgid "命名空间名称"
+msgstr ""
+
+#: backend/apps/network/serializers.py:32
+msgid "数据格式必须为数组"
+msgstr ""
+
+#: backend/apps/network/serializers.py:35
+msgid "cluster_id 必填"
+msgstr ""
+
+#: backend/apps/network/serializers.py:37
+msgid "namespace 必填"
+msgstr ""
+
+#: backend/apps/network/serializers.py:39
+msgid "name 必填"
+msgstr ""
+
+#: backend/apps/network/serializers.py:60
+msgid "参数【protocol_type】至少包含http或https，请确认后重试!"
+msgstr ""
+
+#: backend/apps/network/serializers.py:95
+msgid ""
+"名称格式错误，只能包含：小写字母、数字、连字符(-)，首字母必须是字母，长度小于"
+"256个字符"
+msgstr ""
+
+#: backend/apps/network/serializers.py:133
+msgid "参数[ip_list]和[instance]必须相同"
+msgstr ""
+
+#: backend/apps/network/serializers.py:143
+msgid "参数不能全部为空"
+msgstr ""
+
+#: backend/apps/network/utils.py:65 backend/apps/network/utils.py:70
+msgid "获取zk信息出错"
+msgstr ""
+
+#: backend/apps/network/utils.py:85
+msgid "命名空间中的调度约束信息出错"
+msgstr ""
+
+#: backend/apps/network/utils.py:94
+msgid "命名空间中的IP集信息出错"
+msgstr ""
+
+#: backend/apps/network/utils.py:164
+msgid "配置文件中有未替换的变量"
+msgstr ""
+
+#: backend/apps/projects/constants.py:53
+msgid "容器服务"
+msgstr ""
+
+#: backend/apps/projects/constants.py:53 backend/apps/projects/constants.py:57
+msgid "仓库管理"
+msgstr ""
+
+#: backend/apps/projects/constants.py:53
+msgid "项目管理"
+msgstr ""
+
+#: backend/apps/projects/constants.py:56
+msgid "prod环境拉取"
+msgstr ""
+
+#: backend/apps/projects/constants.py:56
+msgid "prod环境推送"
+msgstr ""
+
+#: backend/apps/projects/constants.py:56
+msgid "test环境拉取"
+msgstr ""
+
+#: backend/apps/projects/constants.py:56
+msgid "test环境推送"
+msgstr ""
+
+#: backend/apps/projects/constants.py:56
+msgid "dev环境拉取"
+msgstr ""
+
+#: backend/apps/projects/constants.py:56
+msgid "dev环境推送"
+msgstr ""
+
+#: backend/apps/projects/constants.py:57
+msgid "集群管理"
+msgstr ""
+
+#: backend/apps/projects/constants.py:57
+msgid "节点管理"
+msgstr ""
+
+#: backend/apps/projects/constants.py:57
+msgid "应用管理"
+msgstr ""
+
+#: backend/apps/projects/constants.py:57
+msgid "网络管理"
+msgstr ""
+
+#: backend/apps/projects/constants.py:57
+msgid "资源管理"
+msgstr ""
+
+#: backend/apps/projects/constants.py:73
+msgid "在职"
+msgstr ""
+
+#: backend/apps/projects/constants.py:74
+msgid "已离职"
+msgstr ""
+
+#: backend/apps/projects/constants.py:75
+msgid "试用"
+msgstr ""
+
+#: backend/apps/projects/constants.py:76 backend/apps/projects/constants.py:77
+msgid "待入职"
+msgstr ""
+
+#: backend/apps/projects/models.py:56
+msgid "数据平台DataID"
+msgstr ""
+
+#: backend/apps/projects/models.py:63
+msgid "功能code"
+msgstr ""
+
+#: backend/apps/projects/models.py:64
+msgid "功能名称"
+msgstr ""
+
+#: backend/apps/projects/models.py:65
+msgid "是否开启该功能"
+msgstr ""
+
+#: backend/apps/projects/models.py:65
+msgid "控制功能是否对外开放，若选择，则该功能将对外开放"
+msgstr ""
+
+#: backend/apps/projects/models.py:66
+msgid "功能测试白名单"
+msgstr ""
+
+#: backend/apps/projects/models.py:66
+msgid "白名单，英文分号【;】隔开"
+msgstr ""
+
+#: backend/apps/projects/models.py:72 backend/apps/projects/models.py:73
+msgid "平台功能控制器"
+msgstr ""
+
+#: backend/apps/projects/models.py:79
+msgid "标识"
+msgstr ""
+
+#: backend/apps/projects/models.py:81 backend/apps/variable/models.py:102
+#: backend/apps/variable/models.py:202
+msgid "值"
+msgstr ""
+
+#: backend/apps/projects/models.py:84 backend/apps/projects/models.py:85
+msgid "平台配置"
+msgstr ""
+
+#: backend/apps/projects/views.py:149
+msgid "请确认有项目管理员权限，并且项目下无集群"
+msgstr ""
+
+#: backend/apps/projects/views.py:166
+msgid "更新项目成功"
+msgstr ""
+
+#: backend/apps/ticket/models.py:35 backend/apps/ticket/models.py:36
+msgid "证书内容"
+msgstr ""
+
+#: backend/apps/ticket/serializers.py:48
+msgid ""
+"证书名称只能包含：英文大小写、数字、下划线和英文句号，最大长度为64个字符"
+msgstr ""
+
+#: backend/apps/ticket/serializers.py:68
+msgid "容器服务TLS服务未开放"
+msgstr ""
+
+#: backend/apps/variable/constants.py:27
+msgid "全局变量"
+msgstr ""
+
+#: backend/apps/variable/constants.py:28
+msgid "集群变量"
+msgstr ""
+
+#: backend/apps/variable/constants.py:29
+msgid "命名空间变量"
+msgstr ""
+
+#: backend/apps/variable/constants.py:38
+msgid "系统内置"
+msgstr ""
+
+#: backend/apps/variable/models.py:43
+msgid "0:表示对所有项目生效"
+msgstr ""
+
+#: backend/apps/variable/models.py:47
+msgid "默认值"
+msgstr ""
+
+#: backend/apps/variable/models.py:47
+msgid "以{'value':'默认值'}格式存储默认值,可以存储字符串和数字"
+msgstr ""
+
+#: backend/apps/variable/models.py:48
+msgid "说明"
+msgstr ""
+
+#: backend/apps/variable/models.py:49
+msgid "类型"
+msgstr ""
+
+#: backend/apps/variable/models.py:51
+msgid "作用范围"
+msgstr ""
+
+#: backend/apps/variable/models.py:99 backend/apps/variable/models.py:199
+msgid "变量ID"
+msgstr ""
+
+#: backend/apps/variable/models.py:102 backend/apps/variable/models.py:202
+msgid "以{'value':'值'}格式存储默认值,可以存储字符串和数字"
+msgstr ""
+
+#: backend/apps/variable/serializers.py:71
+msgid "KEY 只能包含字母、数字和下划线，且以字母开头，最大长度为64个字符"
+msgstr ""
+
+#: backend/apps/variable/serializers.py:86
+msgid "default字段非字典类型"
+msgstr ""
+
+#: backend/apps/variable/serializers.py:88
+msgid "default字段没有以value作为键值"
+msgstr ""
+
+#: backend/apps/variable/serializers.py:117
+msgid "系统内置变量不允许操作"
+msgstr ""
+
+#: backend/apps/variable/views.py:77
+msgid "新增变量"
+msgstr ""
+
+#: backend/apps/variable/views.py:127
+msgid "更新变量"
+msgstr ""
+
+#: backend/apps/variable/views.py:175
+msgid "请选择要实例化的模板"
+msgstr ""
+
+#: backend/apps/variable/views.py:278
+msgid "删除变量"
+msgstr ""
+
+#: backend/apps/verfy/serializers.py:39 backend/apps/verfy/serializers.py:60
+msgid "【resource_code】不能为空"
+msgstr ""
+
+#: backend/apps/verfy/serializers.py:41 backend/apps/verfy/serializers.py:62
+msgid "【resource_name】不能为空"
+msgstr ""
+
+#: backend/apps/verfy/views.py:65 backend/apps/verfy/views.py:102
+msgid "resource_code不合法"
+msgstr ""
+
+#: backend/apps/verfy/views.py:77 backend/apps/verfy/views.py:119
+msgid "验证权限成功"
+msgstr ""
+
+#: backend/bcs_k8s/app/models.py:49 backend/utils/models.py:37
+msgid "创建者"
+msgstr ""
+
+#: backend/bcs_k8s/app/models.py:50
+msgid "更新者"
+msgstr ""
+
+#: backend/bcs_k8s/app/models.py:179
+msgid "Helm Release部署中，请稍后再试！"
+msgstr ""
+
+#: backend/bcs_k8s/app/utils.py:275
+msgid "未找到资源，可能未部署成功，请在Helm Release列表也查看失败原因."
+msgstr ""
+
+#: backend/bcs_k8s/app/views.py:129 backend/bcs_k8s/app/views.py:133
+msgid "Helm操作超时，请重试!"
+msgstr ""
+
+#: backend/bcs_k8s/app/views.py:165 backend/utils/error_codes.py:140
+msgid "集群未注册"
+msgstr ""
+
+#: backend/bcs_k8s/app/views.py:170
+msgid "集群证书未上报"
+msgstr ""
+
+#: backend/bcs_k8s/app/views.py:599
+msgid "集群下没有Node节点，无法启用，请先添加"
+msgstr ""
+
+#: backend/bcs_k8s/app/views.py:765
+msgid "后台接口异常，根据项目ID获取项目英文名失败！"
 msgstr ""
 
 #: backend/bcs_k8s/authtoken/authentication.py:32
@@ -195,16 +1218,119 @@ msgstr ""
 msgid "Kind"
 msgstr ""
 
-#: backend/settings/base.py:176
-msgid "中文"
+#: backend/bcs_k8s/authtoken/serializers.py:69
+msgid "输入的key与当前key不匹配"
+msgstr ""
+
+#: backend/bcs_k8s/helm/management/commands/add_public_chart.py:31
+msgid "获取access_token失败"
+msgstr ""
+
+#: backend/celery_app/tasks/application.py:144
+msgid "实例化失败，已通知管理员!"
+msgstr ""
+
+#: backend/celery_app/tasks/cluster.py:89
+msgid "1.安装BKE Agent"
+msgstr ""
+
+#: backend/celery_app/tasks/cluster.py:239
+#: backend/celery_app/tasks/cluster.py:410
+msgid "初始化集群失败"
+msgstr ""
+
+#: backend/celery_app/tasks/cluster.py:241
+#: backend/celery_app/tasks/cluster.py:930
+msgid "删除集群失败"
+msgstr ""
+
+#: backend/celery_app/tasks/cluster.py:244
+msgid "初始化节点失败"
+msgstr ""
+
+#: backend/celery_app/tasks/cluster.py:246
+msgid "删除节点失败"
+msgstr ""
+
+#: backend/celery_app/tasks/cluster.py:433
+msgid "调用BCS接口失败"
+msgstr ""
+
+#: backend/celery_app/tasks/cluster.py:500
+msgid "节点初始化失败"
+msgstr ""
+
+#: backend/celery_app/tasks/cluster.py:665
+msgid "1.SO实例化失败"
+msgstr ""
+
+#: backend/celery_app/tasks/cluster.py:673
+msgid "1.SO初始化完成"
+msgstr ""
+
+#: backend/celery_app/tasks/cluster.py:796
+msgid "操作成功"
+msgstr ""
+
+#: backend/celery_app/tasks/cluster.py:812
+msgid "2.修改主机备注"
+msgstr ""
+
+#: backend/celery_app/tasks/cluster.py:814
+msgid "3.释放主机锁"
+msgstr ""
+
+#: backend/celery_app/tasks/cluster.py:818
+msgid "4.移除集群"
+msgstr ""
+
+#: backend/celery_app/tasks/cluster.py:855
+msgid "更新集群状态"
+msgstr ""
+
+#: backend/celery_app/tasks/cluster.py:922
+msgid "1.修改主机模块"
+msgstr ""
+
+#: backend/celery_app/tasks/cluster.py:999
+msgid "获取项目信息失败"
+msgstr ""
+
+#: backend/celery_app/tasks/cluster.py:1018
+msgid "POD/TASKGROUP重新调度成功!"
+msgstr ""
+
+#: backend/celery_app/tasks/cluster.py:1041
+msgid "POD/TASKGROUP重新调度超时,请手动处理!"
+msgstr ""
+
+#: backend/components/bcs/k8s.py:145 backend/components/bcs/k8s.py:160
+#: backend/components/bcs/k8s.py:379 backend/components/bcs/k8s.py:394
+msgid "没有查询到IP对应的hostname"
+msgstr ""
+
+#: backend/components/cc.py:150 backend/utils/cc.py:30
+msgid "该项目关联的业务不正确，请确认后重试"
+msgstr ""
+
+#: backend/components/cc.py:154 backend/utils/cc.py:34
+msgid "查询项目信息为空"
+msgstr ""
+
+#: backend/components/paas_cc.py:244 backend/components/paas_cc.py:277
+msgid "查询项目下node节点失败，已经通知管理员，请稍后!"
+msgstr ""
+
+#: backend/components/paas_cc.py:249 backend/components/paas_cc.py:291
+msgid "查询项目下master节点失败，已经通知管理员，请稍后!"
 msgstr ""
 
 #: backend/settings/base.py:177
-msgid "English"
+msgid "中文"
 msgstr ""
 
-#: backend/utils/error_codes.py:131
-msgid "请求失败"
+#: backend/settings/base.py:178
+msgid "English"
 msgstr ""
 
 #: backend/utils/error_codes.py:132
@@ -231,10 +1357,6 @@ msgstr ""
 msgid "校验失败"
 msgstr ""
 
-#: backend/utils/error_codes.py:140
-msgid "集群未注册"
-msgstr ""
-
 #: backend/utils/error_codes.py:141
 msgid "集群下没有节点"
 msgstr ""
@@ -255,7 +1377,7 @@ msgstr ""
 msgid "权限校验失败"
 msgstr ""
 
-#: backend/utils/error_codes.py:155
+#: backend/utils/error_codes.py:155 backend/utils/views.py:104
 msgid "资源未找到"
 msgstr ""
 
@@ -277,6 +1399,23 @@ msgstr ""
 
 #: backend/utils/error_codes.py:169
 msgid "蓝鲸登录平台接口调用失败:"
+msgstr ""
+
+#: backend/utils/exceptions.py:64
+msgid "第三方请求失败"
+msgstr ""
+
+#: backend/utils/models.py:38
+msgid "修改着"
+msgstr ""
+
+#: backend/utils/response.py:32 backend/utils/response.py:60
+#: backend/utils/response.py:73 backend/utils/response.py:84
+msgid "data必须是list或者dict类型"
+msgstr ""
+
+#: backend/utils/views.py:49
+msgid "参数格式错误"
 msgstr ""
 
 #: backend/web_console/api.py:31

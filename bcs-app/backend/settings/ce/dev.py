@@ -18,9 +18,9 @@ import redis
 
 DATABASES['default'] = {
     'ENGINE': 'django.db.backends.mysql',
-    'NAME': 'bcs-app',
+    'NAME': 'paas-backend',
     'USER': 'root',
-    'PASSWORD': os.environ.get('DB_PASSWORD', ''),
+    'PASSWORD': os.environ.get('DB_PASSWORD', '157632'),
     'HOST': os.environ.get('DB_HOST', '127.0.0.1'),
     'PORT': '3306',
     'OPTIONS': {

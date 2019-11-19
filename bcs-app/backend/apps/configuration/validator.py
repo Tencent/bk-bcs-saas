@@ -15,6 +15,7 @@ import json
 
 from jsonschema import ValidationError as JsonValidationError, SchemaError, validate as json_validate
 from rest_framework.exceptions import ValidationError
+from django.utils.translation import ugettext as _
 
 from backend.apps.configuration.constants import KEY_PATTERN, REAL_NUM_VAR_PATTERN, NUM_VAR_ERROR_MSG
 from backend.apps.configuration.models import get_model_class_by_resource_name, VersionedEntity
@@ -58,11 +59,11 @@ def validate_variable_inconfig(config):
     search_keys = set(search_list)
     for ikey in search_keys:
         if not REAL_NUM_VAR_PATTERN.match(ikey):
-            raise ValidationError(f"变量[{ikey}]不合法，{NUM_VAR_ERROR_MSG}")
+            raise ValidationError(f"{_('变量')}[{ikey}]{_('不合法')}，{NUM_VAR_ERROR_MSG}")
 
 
 def validate_res_config(config, resource_name, schema):
-    err_prefix = f"{resource_name} 配置信息格式错误"
+    err_prefix = f"{resource_name} {_('配置信息格式错误')}"
     try:
         json_validate(config, schema)
     except JsonValidationError as e:
@@ -81,4 +82,4 @@ def validate_name_duplicate(data):
     name = data['name']
     is_duplicate = is_name_duplicate(resource_name, resource_id, name, version_id)
     if is_duplicate:
-        raise ValidationError(f"{resource_name}名称:{name}已经在项目模板中被占用,请重新填写")
+        raise ValidationError(f"{resource_name}{_('名称')}:{name}{_('已经在项目模板中被占用,请重新填写')}")

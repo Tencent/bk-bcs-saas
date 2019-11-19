@@ -13,6 +13,7 @@
 #
 from django.db import models
 from django.utils import timezone
+from django.utils.translation import ugettext as _
 
 from backend.apps.projects.constants import StaffInfoStatus
 from backend.utils.models import BaseModel
@@ -51,34 +52,34 @@ class ProjectUser(models.Model):
 
 
 class DataID(BaseModel):
-    project_id = models.CharField(u"项目ID", max_length=32)
-    data_id = models.IntegerField("数据平台DataID")
+    project_id = models.CharField(_("项目ID"), max_length=32)
+    data_id = models.IntegerField(_("数据平台DataID"))
 
 
 class FunctionController(BaseModel):
     """
     功能开启控制器
     """
-    func_code = models.CharField(u"功能code", max_length=64, unique=True)
-    func_name = models.CharField(u"功能名称", max_length=64)
-    enabled = models.BooleanField(u"是否开启该功能", help_text=u"控制功能是否对外开放，若选择，则该功能将对外开放", default=False)
-    wlist = models.TextField(u"功能测试白名单", blank=True, null=True, help_text=u"白名单，英文分号【;】隔开")
+    func_code = models.CharField(_("功能code"), max_length=64, unique=True)
+    func_name = models.CharField(_("功能名称"), max_length=64)
+    enabled = models.BooleanField(_("是否开启该功能"), help_text=_("控制功能是否对外开放，若选择，则该功能将对外开放"), default=False)
+    wlist = models.TextField(_("功能测试白名单"), blank=True, null=True, help_text=_("白名单，英文分号【;】隔开"))
 
     def __str__(self):
         return self.func_name
 
     class Meta:
-        verbose_name = '平台功能控制器'
-        verbose_name_plural = '平台功能控制器'
+        verbose_name = _('平台功能控制器')
+        verbose_name_plural = _('平台功能控制器')
 
 
 class Conf(BaseModel):
     """平台配置
     """
-    key = models.CharField(u"标识", max_length=64, unique=True)
-    name = models.CharField(u"名称", max_length=128)
-    value = models.TextField(u"值")
+    key = models.CharField(_("标识"), max_length=64, unique=True)
+    name = models.CharField(_("名称"), max_length=128)
+    value = models.TextField(_("值"))
 
     class Meta:
-        verbose_name = "平台配置"
-        verbose_name_plural = "平台配置"
+        verbose_name = _("平台配置")
+        verbose_name_plural = _("平台配置")

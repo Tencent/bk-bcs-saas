@@ -18,6 +18,7 @@ from django.utils.crypto import get_random_string
 from django.db import models
 from rest_framework.serializers import ValidationError
 from django.db.models import Max
+from django.utils.translation import ugettext as _
 
 from backend.bcs_k8s.helm.constants import TEMPORARY_APP_ID
 from backend.bcs_k8s.helm.models import ChartVersionSnapshot, ChartRelease
@@ -55,6 +56,13 @@ class AppManager(models.Manager):
             unique_ns=unique_ns,
             sys_variables=sys_variables,
         ))
+        desc = "create Helm App, chart [{chart_name}:{template_id}], cluster[{cluster_id}], namespace[{namespace}]"
+        desc = desc.format(
+            template_id=chart_version.id,
+            chart_name=chart_version.chart.name,
+            namespace=namespace,
+            cluster_id=cluster_id,
+        )
         logger_client = client.UserActivityLogClient(
             project_id=project_id,
             user=creator,
@@ -63,12 +71,7 @@ class AppManager(models.Manager):
             resource=chart_version.name,
             resource_id=chart_version.id,
             extra=extra,
-            description="创建Helm App, 实例化模板集[{chart_name}:{template_id}], 集群[{cluster_id}], 命名空间[{namespace}]".format(
-                template_id=chart_version.id,
-                chart_name=chart_version.chart.name,
-                namespace=namespace,
-                cluster_id=cluster_id,
-            )
+            description=desc
         )
         logger_client.log(activity_status="busy")
         return logger_client

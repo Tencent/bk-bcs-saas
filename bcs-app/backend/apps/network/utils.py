@@ -19,6 +19,7 @@ import json
 
 from django.conf import settings
 from rest_framework.exceptions import ValidationError
+from django.utils.translation import ugettext as _
 
 from backend.components.bcs import mesos
 from backend.components import paas_cc
@@ -61,12 +62,12 @@ def handle_lb(username, access_token, project_id, lb_info, cc_app_id):
     zk_res = paas_cc.get_zk_config(access_token, project_id, cluster_id)
     if zk_res.get("code") != ErrorCode.NoError:
         logger.err('获取zk信息出错,%s' % zk_res)
-        raise error_codes.APIError.f(u"获取zk信息出错")
+        raise error_codes.APIError(_("获取zk信息出错"))
     try:
         zk_data = zk_res.get("data", [])[0]
     except Exception:
         logger.err('获取zk信息出错,%s' % zk_res)
-        raise error_codes.APIError.f(u"获取zk信息出错")
+        raise error_codes.APIError(_("获取zk信息出错"))
     bcs_zookeeper = zk_data.get('bcs_zookeeper')
     zookeeper = zk_data.get('zookeeper')
 
@@ -81,7 +82,7 @@ def handle_lb(username, access_token, project_id, lb_info, cc_app_id):
         intersection_item = json.loads(lb_info.get("data"))
     except Exception:
         logger.exception("命名空间中的调度约束信息出错")
-        raise error_codes.JsonFormatError.f("命名空间中的调度约束信息出错")
+        raise error_codes.JsonFormatError(_("命名空间中的调度约束信息出错"))
     new_intersection_item = handle_intersection_item(intersection_item)
     constraint = {"IntersectionItem": new_intersection_item}
 
@@ -90,7 +91,7 @@ def handle_lb(username, access_token, project_id, lb_info, cc_app_id):
         ip_list = json.loads(lb_info.get('ip_list'))
     except Exception:
         logger.exception("命名空间中的IP集信息出错")
-        raise error_codes.JsonFormatError.f("命名空间中的IP集信息出错")
+        raise error_codes.JsonFormatError(_("命名空间中的IP集信息出错"))
     labels = {}
     for i, ip in enumerate(ip_list):
         _key = "io.tencent.bcs.netsvc.requestip.%s" % i
@@ -160,7 +161,7 @@ def handle_lb(username, access_token, project_id, lb_info, cc_app_id):
     except Exception:
         logger.exception(
             u"LoadBalance配置文件变量替换错误\nconfig:%s\ncontext:%s" % (lb_config, context))
-        raise ValidationError(u"配置文件中有未替换的变量")
+        raise ValidationError(_("配置文件中有未替换的变量"))
 
     config_profile = json.loads(config_profile)
     # 调用bcs api 创建
@@ -169,8 +170,7 @@ def handle_lb(username, access_token, project_id, lb_info, cc_app_id):
     result = client.create_deployment(ns_name, config_profile)
     if not result.get('result'):
         error_msg = result.get('message', '')
-        logger.error(u"命名空间[%s]下创建LoadBalance[%s]出错:%s" %
-                     (ns_name, lb_name, error_msg))
+        logger.error(f"{_('命名空间')}[{ns_name}]{_('下创建LoadBalance')}[{lb_name}]{_('出错')}:{error_msg}")
         return False, error_msg
     return True, ''
 
@@ -207,7 +207,7 @@ def get_lb_status(access_token, project_id, lb_name, cluster_id, ns_name, field=
     except Exception:
         status_dict = {
             'deployment_status': "",
-            'deployment_status_message': u"查询不到deployment[%s]的状态" % lb_name
+            'deployment_status_message': f"{_('查询不到deployment')}[{lb_name}]{_('的状态')}"
         }
         return False, status_dict
 
@@ -230,9 +230,9 @@ def get_lb_status(access_token, project_id, lb_name, cluster_id, ns_name, field=
         return False, status_dict
     resp_data = resp.get("data", [])
     if not resp_data:
-        logger.error(u"查询不到loadbalance[%s]的状态:%s" % (lb_name, resp_data))
+        logger.error("查询不到loadbalance[%s]的状态:%s" % (lb_name, resp_data))
         status_dict['application_status'] = ''
-        status_dict['application_status_message'] = u"查询不到application[%s]的状态" % app_name
+        status_dict['application_status_message'] = f"{_('查询不到')}application[{app_name}]{_('的状态')}"
         return False, status_dict
 
     status = resp_data[0].get('data', {}).get('status')
@@ -240,7 +240,7 @@ def get_lb_status(access_token, project_id, lb_name, cluster_id, ns_name, field=
     status_dict['application_status_message'] = resp_data[0].get(
         'data', {}).get('message')
     if status in UNNORMAL_STATUS:
-        logger.error(u"loadbalance[%s]的状态不正常:%s" % (lb_name, resp_data))
+        logger.error(f"loadbalance[{lb_name}]{_('的状态不正常')}:{resp_data}")
         return False, status_dict
     return True, status_dict
 

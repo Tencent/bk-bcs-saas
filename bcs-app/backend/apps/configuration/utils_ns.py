@@ -14,6 +14,8 @@
 """
 命名空间相关的方法
 """
+from django.utils.translation import ugettext as _
+
 from backend.components import paas_cc
 from backend.components.bcs.k8s import K8SClient
 from backend.apps.configuration.namespace.views import NamespaceBase
@@ -45,7 +47,7 @@ def register_default_ns(access_token, username, project_id, project_code, cluste
         data['env_type'])
     if result.get('code') != 0:
         if 'Duplicate entry' in result.get('message', ''):
-            message = "创建失败，namespace名称已经在其他项目存在"
+            message = _("创建失败，namespace名称已经在其他项目存在")
         else:
             message = result.get('message', '')
         return False, message
@@ -54,4 +56,4 @@ def register_default_ns(access_token, username, project_id, project_code, cluste
     request = RequestClass(username=username, access_token=access_token, project_code=project_code)
     perm = bcs_perm.Namespace(request, project_id, bcs_perm.NO_RES, data['cluster_id'])
     perm.register(str(result['data']['id']), result['data']['name'])
-    return True, "命名空间[default]注册成功"
+    return True, _("命名空间[default]注册成功")

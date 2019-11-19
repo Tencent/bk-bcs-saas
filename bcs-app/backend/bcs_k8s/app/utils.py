@@ -21,6 +21,7 @@ from urllib.parse import urlparse
 from ruamel.yaml import YAML
 from ruamel.yaml.compat import StringIO
 from ruamel.yaml.compat import ordereddict
+from django.utils.translation import ugettext as _
 
 from backend.bcs_k8s.helm.utils.util import fix_rancher_value_by_type, EmptyVaue
 from backend.utils.client import make_dashboard_ctl_client
@@ -271,7 +272,7 @@ def collect_resource_status(base_url, kubeconfig, app, project_code):
     def status_sumary(status, app):
         if not status and not app.transitioning_result:
             return {
-                "messages": "未找到资源，可能未部署成功，请在Helm Release列表也查看失败原因.",
+                "messages": _("未找到资源，可能未部署成功，请在Helm Release列表也查看失败原因."),
                 "is_normal": False,
                 "desired_pods": "-",
                 "ready_pods": "-",

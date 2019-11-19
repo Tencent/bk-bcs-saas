@@ -14,15 +14,16 @@
 
 from django.db import models
 from django.db.models import Count
+from django.utils.translation import ugettext as _
 
 
 class ImageCollection(models.Model):
     """用户收藏的镜像信息
     """
-    user = models.CharField(help_text=u"用户", max_length=64, db_index=True)
-    image_repo = models.CharField(help_text=u"镜像标识", max_length=512)
-    image_project = models.CharField(help_text=u"镜像所属仓库,为空则表示为公共仓库", max_length=32, default='', null=True, blank=True)
-    create_time = models.DateTimeField(help_text=u"收藏时间")
+    user = models.CharField(help_text=_("用户"), max_length=64, db_index=True)
+    image_repo = models.CharField(help_text=_("镜像标识"), max_length=512)
+    image_project = models.CharField(help_text=_("镜像所属仓库,为空则表示为公共仓库"), max_length=32, default='', null=True, blank=True)
+    create_time = models.DateTimeField(help_text=_("收藏时间"))
 
     @classmethod
     def get_collect_nums(cls, image_repo_list):

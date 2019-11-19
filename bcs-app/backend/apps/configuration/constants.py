@@ -14,13 +14,14 @@
 import re
 
 from backend.utils.basic import ChoicesEnum
+from django.utils.translation import ugettext as _
 
 # 变量的格式
 VARIABLE_PATTERN = "[A-Za-z][A-Za-z0-9_]"
 # 填写数字的地方，可以填写变量
 NUM_VAR_PATTERN = "^{{%s*}}$" % VARIABLE_PATTERN
 # 需要与 backend/apps/variable/serializers.py 中的说明保持一致
-NUM_VAR_ERROR_MSG = "只能包含字母、数字和下划线，且以字母开头"
+NUM_VAR_ERROR_MSG = _("只能包含字母、数字和下划线，且以字母开头")
 # 文件目录正则
 FILE_DIR_PATTERN = "^((?!\.{\$)[\w\d\-\.\/~{}\$]+)+$"
 
@@ -37,8 +38,8 @@ class TemplateCategory(ChoicesEnum):
     CUSTOM = 'custom'
 
     _choices_labels = (
-        (SYSTEM, "系统"),
-        (CUSTOM, "自定义")
+        (SYSTEM, _("系统")),
+        (CUSTOM, _("自定义"))
     )
 
 

@@ -17,6 +17,7 @@ import logging
 import json
 
 from django.db import models
+from django.utils.translation import ugettext as _
 
 from backend.apps.configuration.models import BaseModel
 from .constants import VariableScope, VariableCategory, ALL_PROJECTS
@@ -39,15 +40,15 @@ class VariableManager(models.Manager):
 
 
 class Variable(BaseModel):
-    project_id = models.CharField("项目ID", max_length=32, help_text="0:表示对所有项目生效")
+    project_id = models.CharField(_("项目ID"), max_length=32, help_text=_("0:表示对所有项目生效"))
     key = models.CharField("KEY", max_length=255)
-    name = models.CharField("名称", max_length=255)
+    name = models.CharField(_("名称"), max_length=255)
     # TODO mark refactor default使用JSONField会更合适，暂时保留TextField
-    default = models.TextField("默认值", help_text="以{'value':'默认值'}格式存储默认值,可以存储字符串和数字")
-    desc = models.TextField("说明", blank=True, null=True)
-    category = models.CharField("类型", max_length=16, choices=VariableCategory.get_choices(),
+    default = models.TextField(_("默认值"), help_text=_("以{'value':'默认值'}格式存储默认值,可以存储字符串和数字"))
+    desc = models.TextField(_("说明"), blank=True, null=True)
+    category = models.CharField(_("类型"), max_length=16, choices=VariableCategory.get_choices(),
                                 default=VariableCategory.CUSTOM.value)
-    scope = models.CharField("作用范围", max_length=16, choices=VariableScope.get_choices())
+    scope = models.CharField(_("作用范围"), max_length=16, choices=VariableScope.get_choices())
 
     objects = VariableManager()
     default_objects = models.Manager()
@@ -95,10 +96,10 @@ class Variable(BaseModel):
 class ClusterVariable(BaseModel):
     """集群变量
     """
-    var_id = models.IntegerField(u"变量ID")
-    cluster_id = models.CharField(u"集群ID", max_length=64)
+    var_id = models.IntegerField(_("变量ID"))
+    cluster_id = models.CharField(_("集群ID"), max_length=64)
     data = models.TextField(
-        u"值", help_text=u"以{'value':'值'}格式存储默认值,可以存储字符串和数字")
+        _("值"), help_text=_("以{'value':'值'}格式存储默认值,可以存储字符串和数字"))
 
     class Meta:
         ordering = ('-id',)
@@ -117,7 +118,7 @@ class ClusterVariable(BaseModel):
         try:
             data = json.loads(self.data)
         except Exception:
-            logger.exception(u"变量值格式错误")
+            logger.exception("变量值格式错误")
             return None
         return data.get('value')
 
@@ -195,10 +196,10 @@ class ClusterVariable(BaseModel):
 class NameSpaceVariable(BaseModel):
     """命名空间变量
     """
-    var_id = models.IntegerField(u"变量ID")
-    ns_id = models.IntegerField(u"命名空间ID")
+    var_id = models.IntegerField(_("变量ID"))
+    ns_id = models.IntegerField(_("命名空间ID"))
     data = models.TextField(
-        u"值", help_text=u"以{'value':'值'}格式存储默认值,可以存储字符串和数字")
+        _("值"), help_text=_("以{'value':'值'}格式存储默认值,可以存储字符串和数字"))
 
     class Meta:
         ordering = ('-id',)
@@ -217,7 +218,7 @@ class NameSpaceVariable(BaseModel):
         try:
             data = json.loads(self.data)
         except Exception:
-            logger.exception(u"变量值格式错误")
+            logger.exception("变量值格式错误")
             return None
         return data.get('value')
 

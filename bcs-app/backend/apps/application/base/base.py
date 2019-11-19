@@ -16,6 +16,7 @@ import logging
 
 from rest_framework import views
 from django.conf import settings
+from django.utils.translation import ugettext as _
 
 from backend.apps.application import constants
 from backend.utils.error_codes import error_codes
@@ -38,7 +39,7 @@ class BaseAPI(views.APIView):
         """
         kind = request.project.get("kind")
         if kind not in [constants.K8S_KIND, constants.MESOS_KIND]:
-            raise error_codes.CheckFailed.f("项目类型必须为k8s/mesos, 请确认后重试!")
+            raise error_codes.CheckFailed(_("项目类型必须为k8s/mesos, 请确认后重试!"))
         return kind
 
     def get_params(self, request):
@@ -47,7 +48,7 @@ class BaseAPI(views.APIView):
         namespace = request.GET.get("namespace")
         category = request.GET.get("category")
         if not (name and namespace and category):
-            raise error_codes.CheckFailed.f("参数[name]、[namespace]、[category]不能为空")
+            raise error_codes.CheckFailed(_("参数[name]、[namespace]、[category]不能为空"))
         return name, namespace, category
 
     def get_project_cluster_info(self, request, project_id):
@@ -83,7 +84,7 @@ class BaseAPI(views.APIView):
         if project_kind == constants.K8S_KIND:
             category = request.GET.get("category")
             if not category:
-                raise error_codes.CheckFailed.f("应用类型不能为空", replace=True)
+                raise error_codes.CheckFailed(_("应用类型不能为空"))
         return category
 
 
@@ -94,10 +95,10 @@ class BaseMetric(views.APIView):
         """
         cluster_type = request.GET.get("cluster_type")
         if not cluster_type or cluster_type not in constants.CLUSTER_TYPE:
-            raise error_codes.CheckFailed.f("集群类型不正确，请确认后重试!")
+            raise error_codes.CheckFailed(_("集群类型不正确，请确认后重试!"))
         app_status = request.GET.get("app_status")
         if app_status and app_status not in constants.APP_STATUS:
-            raise error_codes.CheckFailed.f("应用状态不正确，请确认后重试!")
+            raise error_codes.CheckFailed(_("应用状态不正确，请确认后重试!"))
         tmpl_set_id = request.GET.get("muster_id")
         app_id = request.GET.get("app_id")
         ns_id = request.GET.get("ns_id")
@@ -156,10 +157,10 @@ class BaseMetric(views.APIView):
         category = request.GET.get("category")
         if kind == constants.K8S_KIND:
             if not category:
-                raise error_codes.CheckFailed.f("应用类型不能为空")
+                raise error_codes.CheckFailed(_("应用类型不能为空"))
             else:
                 if category not in constants.CATEGORY_MAP:
-                    raise error_codes.CheckFailed.f("类型不正确，请确认")
+                    raise error_codes.CheckFailed(_("类型不正确，请确认"))
                 category = [constants.CATEGORY_MAP[category]]
         else:
             category = constants.MESOS_APPLICATION_TYPE

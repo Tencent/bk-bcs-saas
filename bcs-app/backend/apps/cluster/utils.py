@@ -16,6 +16,8 @@ from datetime import datetime
 
 from django.conf import settings
 from django.core.paginator import Paginator
+from django.utils.translation import ugettext as _
+
 from backend.utils.error_codes import error_codes
 
 DEFAULT_PAGE_LIMIT = 5
@@ -77,7 +79,7 @@ def cluster_env_transfer(env_name, b2f=True):
     else:
         transfer_name = settings.CLUSTER_ENV.get(env_name)
     if not transfer_name:
-        raise error_codes.APIError.f("没有查询到集群所属环境")
+        raise error_codes.APIError(_("没有查询到集群所属环境"))
     return transfer_name
 
 

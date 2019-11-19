@@ -14,6 +14,7 @@
 import json
 import logging
 from django.conf import settings
+from django.utils.translation import ugettext as _
 
 from backend.components.utils import http_get, http_post, http_put, http_patch, http_delete
 from backend.utils.errcodes import ErrorCode
@@ -240,12 +241,12 @@ def get_all_nodes(access_token):
 def get_project_all_nodes(access_token, project_id):
     node_list_info = get_all_nodes(access_token)
     if node_list_info.get('code') != ErrorCode.NoError:
-        raise error_codes.APIError.f("查询项目下node节点失败，已经通知管理员，请稍后!")
+        raise error_codes.APIError(_("查询项目下node节点失败，已经通知管理员，请稍后!"))
     else:
         data = node_list_info.get('data') or []
     master_list_info = get_all_masters(access_token)
     if master_list_info.get('code') != ErrorCode.NoError:
-        raise error_codes.APIError.f("查询项目下master节点失败，已经通知管理员，请稍后!")
+        raise error_codes.APIError(_("查询项目下master节点失败，已经通知管理员，请稍后!"))
     data.extend(master_list_info.get('data') or [])
     return data
 
@@ -273,7 +274,7 @@ def get_project_nodes(access_token, project_id, is_master=False):
                 ]
             )
     else:
-        raise error_codes.APIError.f(u"查询项目下node节点失败，已经通知管理员，请稍后!")
+        raise error_codes.APIError(_("查询项目下node节点失败，已经通知管理员，请稍后!"))
     # 获取master
     master_list_info = get_all_masters(access_token)
     if master_list_info["code"] == ErrorCode.NoError:
@@ -287,7 +288,7 @@ def get_project_nodes(access_token, project_id, is_master=False):
                 ]
             )
     else:
-        raise error_codes.APIError.f("查询项目下master节点失败，已经通知管理员，请稍后!")
+        raise error_codes.APIError(_("查询项目下master节点失败，已经通知管理员，请稍后!"))
     return {
         info["inner_ip"]: True
         for info in data

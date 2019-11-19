@@ -11,6 +11,8 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
+from django.utils.translation import ugettext as _
+
 from backend.utils.basic import ChoicesEnum
 
 # default node count
@@ -124,18 +126,18 @@ K8S_SKIP_NS_LIST = ['kube-system', 'thanos', 'web-console']
 # 调用接口异常的消息
 BCS_OPS_ERROR_INFO = {
     'state': 'FAILURE',
-    'node_tasks': [{'state': 'FAILURE', 'name': "- 调用初始化接口失败"}]
+    'node_tasks': [{'state': 'FAILURE', 'name': _("- 调用初始化接口失败")}]
 }
 
 # 状态映射
 class ClusterStatusName(ChoicesEnum):
-    normal = "正常"
-    initial_checking = "前置检查中"
-    check_failed = "前置检查失败"
-    so_initializing = "SO初始化中"
-    so_init_failed = "SO初始化失败"
-    initializing = "初始化中"
-    initial_failed = "初始化失败"
-    removing = "删除中"
-    remove_failed = "删除失败"
-    removed = "已删除"
+    normal = _("正常")
+    initial_checking = _("前置检查中")
+    check_failed = _("前置检查失败")
+    so_initializing = _("SO初始化中")
+    so_init_failed = _("SO初始化失败")
+    initializing = _("初始化中")
+    initial_failed = _("初始化失败")
+    removing = _("删除中")
+    remove_failed = _("删除失败")
+    removed = _("已删除")

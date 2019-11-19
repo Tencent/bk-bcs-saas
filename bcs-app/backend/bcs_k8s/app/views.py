@@ -34,6 +34,7 @@ from django.http import HttpResponse
 from django.db import IntegrityError
 from jinja2 import Template
 from django.template.loader import render_to_string
+from django.utils.translation import ugettext as _
 
 from .models import App
 from .serializers import (
@@ -125,11 +126,11 @@ class AppView(ActionSerializerMixin, AppViewBase):
                 App.objects.filter(id=item["id"]).update(
                     transitioning_on=False,
                     transitioning_result=False,
-                    transitioning_message="Helm操作超时，请重试!",
+                    transitioning_message=_("Helm操作超时，请重试!"),
                 )
                 item["transitioning_result"] = False
                 item["transitioning_on"] = False
-                item["transitioning_message"] = "Helm操作超时，请重试!"
+                item["transitioning_message"] = _("Helm操作超时，请重试!")
 
             item["chart"] = item.pop("chart__id")
             item["created"] = item["created"].astimezone().strftime(datetime_format)
@@ -161,12 +162,12 @@ class AppView(ActionSerializerMixin, AppViewBase):
         except BCSClusterNotFound:
             return Response(data={
                 "code": 40031,
-                "message": "集群未注册",
+                "message": _("集群未注册"),
             })
         except BCSClusterCredentialsNotFound:
             return Response(data={
                 "code": 40031,
-                "message": "集群证书未上报",
+                "message": _("集群证书未上报"),
             })
 
     def destroy(self, request, *args, **kwargs):
@@ -595,7 +596,7 @@ class ClusterHelmInitView(ClusterImporterView):
         if not nodes_info["data"]["results"]:
             return Response(data={
                 "code": 40032,
-                "message": "集群下没有Node节点，无法启用，请先添加"
+                "message": _("集群下没有Node节点，无法启用，请先添加")
             })
         data = helm_init(self.access_token, project_id, cluster_id, self.bcs_agent_namespace)
 
@@ -761,7 +762,7 @@ class AppStatusView(AppMixin, AccessTokenMixin, viewsets.ReadOnlyModelViewSet, P
                 )
                 return Response({
                     "code": 500,
-                    "message": "后台接口异常，根据项目ID获取项目英文名失败！"
+                    "message": _("后台接口异常，根据项目ID获取项目英文名失败！")
                 })
 
             cache.set(project_code_cache_key, resp, 60 * 15)
@@ -961,9 +962,9 @@ class ContainerRegistryDomainView(AccessTokenMixin, ProjectMixin, viewsets.ViewS
             expr="{{ .Values.__BCS__.SYS_JFROG_DOMAIN }}",
             link=settings.HELM_DOC_TRICKS
         )
-        note = ("集群：{cluster_name}({cluster_id}) 的容器仓库域名为: {jfrog_domain}, "
-                "可在Chart直接引用 `{expr}` "
-                "更加方便, [详细说明]({link})").format(**context)
+        note = f"{_('集群')}：{context['cluster_name']}({context['cluster_id']}){_('的容器仓库域名为')}: "
+        f"{context['jfrog_domain']}, {_('可在Chart直接引用')} `{context['expr']}` "
+        f"{_('更加方便, [详细说明]')}({context['link']})"
         context["note"] = note
         return Response(data=context)
 

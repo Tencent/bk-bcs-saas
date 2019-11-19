@@ -17,6 +17,7 @@ import re
 
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
+from django.utils.translation import ugettext as _
 
 from backend.apps.variable.models import Variable
 from backend.apps.instance.serializers import InstanceNamespaceSLZ
@@ -67,7 +68,7 @@ class VariableSLZ(serializers.ModelSerializer):
         max_length=64,
         required=True,
         error_messages={
-            'invalid': "KEY 只能包含字母、数字和下划线，且以字母开头，最大长度为64个字符"
+            'invalid': _("KEY 只能包含字母、数字和下划线，且以字母开头，最大长度为64个字符")
         }
     )
     default = serializers.JSONField(required=False)
@@ -82,14 +83,14 @@ class VariableSLZ(serializers.ModelSerializer):
 
     def validate_default(self, default):
         if not isinstance(default, dict):
-            raise ValidationError("default字段非字典类型")
+            raise ValidationError(_("default字段非字典类型"))
         if 'value' not in default:
-            raise ValidationError("default字段没有以value作为键值")
+            raise ValidationError(_("default字段没有以value作为键值"))
         return default
 
     def validate_key(self, key):
         if key in SYS_KEYS:
-            raise ValidationError("KEY[%s]为系统变量名，不允许添加" % key)
+            raise ValidationError(f"KEY[{key}]{_('为系统变量名，不允许添加')}")
         return key
 
     def to_representation(self, instance):
@@ -102,7 +103,7 @@ class CreateVariableSLZ(VariableSLZ):
         exists = Variable.objects.filter(key=validated_data['key'], project_id=validated_data['project_id']).exists()
         if exists:
             detail = {
-                'field': ["变量KEY[%s]已经存在" % validated_data['key']]
+                'field': [f"{_('变量')}KEY[validated_data['key']]{_('已经存在')}"]
             }
             raise ValidationError(detail=detail)
 
@@ -113,14 +114,14 @@ class CreateVariableSLZ(VariableSLZ):
 class UpdateVariableSLZ(VariableSLZ):
     def update(self, instance, validated_data):
         if instance.category == VariableCategory.SYSTEM.value:
-            raise ValidationError("系统内置变量不允许操作")
+            raise ValidationError(_("系统内置变量不允许操作"))
 
         old_key = instance.key
         new_key = validated_data.get('key')
 
         if new_key != old_key:
             if get_variable_quote_num(old_key, validated_data.get('project_id')) > 0:
-                raise ValidationError("KEY[%s]已经被引用，不能修改KEY" % old_key)
+                raise ValidationError(f"KEY[{old_key}]{_('已经被引用，不能修改KEY')}")
 
         instance.key = new_key
         instance.scope = validated_data.get('scope')

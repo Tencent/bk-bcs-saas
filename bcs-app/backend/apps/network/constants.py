@@ -12,12 +12,15 @@
 # specific language governing permissions and limitations under the License.
 #
 
+from django.utils.translation import ugettext as _
+
+
 LB_DEFAULT_STATUS = "notCreated"
 LB_STATUS_DICT = {
-    LB_DEFAULT_STATUS: u"未创建",
-    "created": u"已创建",
-    "deleted": u"已停止",
-    "before_deleting": u"停止中",
+    LB_DEFAULT_STATUS: _("未创建"),
+    "created": _("已创建"),
+    "deleted": _("已停止"),
+    "before_deleting": _("停止中"),
 }
 
 # K8S lb default name

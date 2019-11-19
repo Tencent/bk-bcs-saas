@@ -17,7 +17,7 @@
 import copy
 
 from django.conf import settings
-
+from django.utils.translation import ugettext as _
 
 from backend.apps.application.all_views import k8s_views, mesos_views
 from backend.apps.application.base_views import BaseAPI, error_codes
@@ -155,7 +155,7 @@ class GetProjectNamespace(BaseNamespaceMetric):
         if project_kind == 1:
             category = request.GET.get("category")
             if not category or category not in CATEGORY_MAP.keys():
-                raise error_codes.CheckFailed.f("类型不正确")
+                raise error_codes.CheckFailed(_("类型不正确"))
             client = k8s_views.GetNamespace()
             ns_app, ns_inst_error_count, create_error, all_ns_inst_count = client.get(
                 request, ns_id_list, category, ns_map, project_id,
@@ -189,7 +189,7 @@ class GetInstances(BaseNamespaceMetric):
             raise error_codes.APIError.f(resp.get("message"))
         data = resp.get("data") or {}
         if not data.get("results"):
-            raise error_codes.APIError.f("查询命名空间为空")
+            raise error_codes.APIError(_("查询命名空间为空"))
         ns_list = data["results"]
         cluster_id = None
         ns_name = None
@@ -200,7 +200,7 @@ class GetInstances(BaseNamespaceMetric):
                 cluster_id = info["cluster_id"]
                 ns_name = info["name"]
             if str(cluster_env_map.get(info["cluster_id"], {}).get("cluster_env")) != str(cluster_type):
-                raise error_codes.CheckFailed.f("命名空间不属于当前项目或集群")
+                raise error_codes.CheckFailed(_("命名空间不属于当前项目或集群"))
         return cluster_id, ns_name
 
     def get(self, request, project_id, ns_id):
@@ -222,7 +222,7 @@ class GetInstances(BaseNamespaceMetric):
         if project_kind == 1:
             category = request.GET.get("category")
             if not category or category not in CATEGORY_MAP.keys():
-                raise error_codes.CheckFailed.f("类型不正确")
+                raise error_codes.CheckFailed(_("类型不正确"))
             client = k8s_views.GetInstances()
             ret_data = client.get(
                 request, project_id, ns_id, category,

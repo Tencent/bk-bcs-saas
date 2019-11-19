@@ -12,24 +12,25 @@
 # specific language governing permissions and limitations under the License.
 #
 from django.db import models
+from django.utils.translation import ugettext as _
 
 from backend.utils.models import BaseModel
 
 
 class BaseLoadBalance(BaseModel):
-    project_id = models.CharField("项目ID", max_length=32)
-    cluster_id = models.CharField("集群ID", max_length=32)
+    project_id = models.CharField(_("项目ID"), max_length=32)
+    cluster_id = models.CharField(_("集群ID"), max_length=32)
     namespace_id = models.IntegerField()
-    name = models.CharField("名称", max_length=32)
+    name = models.CharField(_("名称"), max_length=32)
 
     class Meta:
         abstract = True
 
 
 class K8SLoadBlance(BaseLoadBalance):
-    protocol_type = models.CharField("协议类型", max_length=32, default="https;http")
+    protocol_type = models.CharField(_("协议类型"), max_length=32, default="https;http")
     ip_info = models.TextField()
-    detail = models.TextField(help_text="可以用来存储整个配置信息")
+    detail = models.TextField(help_text=_("可以用来存储整个配置信息"))
 
     class Meta:
         db_table = "k8s_load_blance"
@@ -40,9 +41,9 @@ class MesosLoadBlance(BaseLoadBalance):
     linked_namespace_ids = models.TextField(null=True, blank=True)
     ip_list = models.TextField()
     data = models.TextField()
-    data_dict = models.TextField(help_text="兼容历史数据,用以存储dict类型数据")
-    status = models.CharField("状态", max_length=16, null=True, blank=True)
-    namespace = models.CharField("命名空间名称", max_length=32, null=True, blank=True)
+    data_dict = models.TextField(help_text=_("兼容历史数据,用以存储dict类型数据"))
+    status = models.CharField(_("状态"), max_length=16, null=True, blank=True)
+    namespace = models.CharField(_("命名空间名称"), max_length=32, null=True, blank=True)
 
     class Meta:
         db_table = "mesos_load_blance"

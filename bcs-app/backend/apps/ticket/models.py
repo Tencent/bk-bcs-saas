@@ -14,6 +14,7 @@
 from django.db import models
 
 from backend.utils.models import BaseModel
+from django.utils.translation import ugettext as _
 
 
 class TlsCertManager(models.Manager):
@@ -28,11 +29,11 @@ class TlsCert(BaseModel):
     """
     tls 证书
     """
-    project_id = models.CharField("项目ID", max_length=32)
+    project_id = models.CharField(_("项目ID"), max_length=32)
     # 证书名称不能为空，只支持英文大小写、数字、下划线和英文句号
-    name = models.CharField("名称", max_length=128)
-    cert = models.TextField("证书内容", blank=True, null=True)
-    key = models.TextField("证书内容", blank=True, null=True)
+    name = models.CharField(_("名称"), max_length=128)
+    cert = models.TextField(_("证书内容"), blank=True, null=True)
+    key = models.TextField(_("证书内容"), blank=True, null=True)
 
     objects = TlsCertManager()
     default_objects = models.Manager()

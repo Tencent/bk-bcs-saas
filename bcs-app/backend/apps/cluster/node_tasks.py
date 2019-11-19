@@ -14,6 +14,7 @@
 import json
 
 from celery import shared_task
+from django.utils.translation import ugettext as _
 
 from backend.components.bcs import k8s, mesos
 from backend.utils.errcodes import ErrorCode
@@ -140,7 +141,7 @@ def reschedule_pod_taskgroup(access_token, project_id, data, kind, log):
                 if resp.get("code") != ErrorCode.NoError:
                     update_log_info(log, models.CommonStatus.ScheduleFailed, resp.get("message"))
                     return False
-    update_log_info(log, models.CommonStatus.Normal, "调度结束!")
+    update_log_info(log, models.CommonStatus.Normal, _("调度结束!"))
     return True
 
 
@@ -157,6 +158,6 @@ def update_log_info(log, status, message):
         log.status = models.CommonStatus.ScheduleFailed
         log.log = json.dumps({
             "state": "SUCCESS",
-            "node_tasks": [{"state": "SUCCESS", "name": "调度结束!"}]
+            "node_tasks": [{"state": "SUCCESS", "name": _("调度结束!")}]
         })
     log.save()

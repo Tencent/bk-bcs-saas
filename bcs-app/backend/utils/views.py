@@ -26,6 +26,7 @@ from rest_framework.exceptions import (AuthenticationFailed, MethodNotAllowed,
 from rest_framework.response import Response
 from rest_framework.views import exception_handler
 from rest_framework.renderers import BrowsableAPIRenderer
+from django.utils.translation import ugettext as _
 
 from backend.utils import exceptions as backend_exceptions
 from backend.utils.error_codes import APIError
@@ -45,7 +46,7 @@ def one_line_error(detail):
             else:
                 return '%s: %s' % (field, errmsg[0])
     except Exception:
-        return '参数格式错误'
+        return _('参数格式错误')
 
 
 def custom_exception_handler(exc, context):
@@ -100,7 +101,7 @@ def custom_exception_handler(exc, context):
     elif isinstance(exc, Http404):
         data = {
             'code': 404,
-            'message': '资源未找到',
+            'message': _('资源未找到'),
             'data': None
         }
         set_rollback()
@@ -127,7 +128,7 @@ def custom_exception_handler(exc, context):
 
         data = {
             'code': 500,
-            'message': f"数据请求失败，请稍后再试{settings.COMMON_EXCEPTION_MSG}",
+            'message': f"{_('数据请求失败，请稍后再试')}{settings.COMMON_EXCEPTION_MSG}",
             'data': None
         }
         return Response(data)

@@ -20,6 +20,7 @@ from django.db import transaction
 from django.utils import timezone
 from django.conf import settings
 from rest_framework.exceptions import ValidationError
+from django.utils.translation import ugettext as _
 
 from backend.apps.application.constants import FUNC_MAP
 from backend.apps.configuration.constants import K8sResourceName, MesosResourceName
@@ -50,26 +51,26 @@ def check_tempalte_available(tem, username):
     locker = tem.locker
     # 加锁者为当前用户，则可以操作;否则不可以操作
     if locker != username:
-        raise ValidationError(f"{locker}正在操作，您如需操作请联系{locker}解锁")
+        raise ValidationError(f"{locker}{_('正在操作')}，{_('您如需操作请联系')}{locker}{_('解锁')}")
     return True
 
 
 # TODO mark refactor
 def validate_template_id(project_id, template_id, is_return_tempalte=False):
     if not project_id:
-        raise ValidationError(u"请选择项目")
+        raise ValidationError(_("请选择项目"))
     if not template_id:
-        raise ValidationError(u"请选择模板集")
+        raise ValidationError(_("请选择模板集"))
 
     try:
         template = Template.objects.get(id=template_id)
         real_project_id = template.project_id
     except Exception:
-        raise ValidationError(u"模板集(id:%s)不存在" % template_id)
+        raise ValidationError(f"{_('模板集')}(id:{template_id}){_('不存在')}")
 
     if project_id != real_project_id:
         raise ValidationError(
-            u"模板集(id:%s)不属于该项目(id:%s)" % (template_id, project_id))
+            f"{_('模板集')}(id:{template_id}){_('不属于该项目')}(id:{project_id})")
     if is_return_tempalte:
         return template
     return True
@@ -79,9 +80,9 @@ def validate_template_id(project_id, template_id, is_return_tempalte=False):
 def validate_version_id(project_id, version_id, is_version_entity_retrun=False,
                         show_version_id=None, is_return_all=False):
     if not project_id:
-        raise ValidationError(u"请选择项目")
+        raise ValidationError(_("请选择项目"))
     if not version_id:
-        raise ValidationError(u"请选择模板版本")
+        raise ValidationError(_("请选择模板版本"))
 
     try:
         version_entity = VersionedEntity.objects.get(id=version_id)
@@ -89,10 +90,10 @@ def validate_version_id(project_id, version_id, is_version_entity_retrun=False,
         template = Template.objects.get(id=template_id)
         real_project_id = template.project_id
     except Exception:
-        raise ValidationError(u"模板集版本(id:%s)不存在" % version_id)
+        raise ValidationError(f"{_('模板集版本')}(id:{version_id}){_('不存在')}")
     if project_id != real_project_id:
         raise ValidationError(
-            u"模板集版本(id:%s)不属于该项目(id:%s)" % (version_id, project_id))
+            f"{_('模板集版本')}(id:{version_id}){_('不属于该项目')}(id:{project_id})")
     # 验证用户可见版本号
     if show_version_id:
         is_show_version_id = ShowVersion.objects.filter(
@@ -100,7 +101,7 @@ def validate_version_id(project_id, version_id, is_version_entity_retrun=False,
             real_version_id=version_id,
             template_id=template_id).exists()
         if not is_show_version_id:
-            raise ValidationError(u"模板集[%s]内容已经被更新,请刷新页面后重试" % template.name)
+            raise ValidationError(f"{_('模板集')}[{template.name}]{_('内容已经被更新,请刷新页面后重试')}")
 
     if is_return_all:
         return template, version_entity
@@ -140,9 +141,9 @@ def validate_lb_info_by_version_id(access_token, project_id, version_entity, ns_
         access_token, project_id, limit=ALL_LIMIT)
     namespace = namespace.get('data', {}).get('results') or []
     namespace_dict = {str(i['id']): i['name'] for i in namespace}
-    err_list = [u"命名空间[%s]:%s" %
+    err_list = ["namespace[%s]:%s" %
                 (namespace_dict.get(_e['ns_id']), _e['service']) for _e in err_list]
-    err_msg = u"请选择 service 关联的 LoadBalance : %s" % " ".join(err_list)
+    err_msg = f"{_('请选择')} service {_('关联的')} LoadBalance : {' '.join(err_list)}"
     return False, err_list, err_msg
 
 
@@ -158,7 +159,7 @@ def validate_ns_by_tempalte_id(template_id, ns_list, access_token, project_id, i
     cluster_id_list = list(set([i['cluster_id'] for i in namespace]))
     if K8sResourceName.K8sHPA.value in instance_entity or MesosResourceName.hpa.value in instance_entity:
         if not enabled_hpa_feature(cluster_id_list):
-            raise error_codes.APIError(f"当前实例化包含HPA资源，{settings.GRAYSCALE_FEATURE_MSG}")
+            raise error_codes.APIError(f"{_('当前实例化包含HPA资源')}，{settings.GRAYSCALE_FEATURE_MSG}")
 
     # 查看模板下已经实例化过的 ns
     exist_instance_id = VersionInstance.objects.filter(
@@ -227,7 +228,7 @@ def validate_instance_entity(req_instance_entity, tem_instance_entity):
             for _data in req_instance_entity[_cate]:
                 if _data['id'] not in tem_instance_entity[_cate]:
                     raise ValidationError(
-                        u"%s[%s]不在当前选择的模板中" % (_cate, _data['name']))
+                        f"{_cate}[{_data['name']}]{_('不在当前选择的模板中')}")
             instance_entity[_cate] = [_i['id']
                                       for _i in req_instance_entity[_cate]]
     return instance_entity
@@ -240,8 +241,7 @@ def get_ns_variable(access_token, project_id, namespace_id):
     # 获取命名空间的信息
     resp = paas_cc.get_namespace(access_token, project_id, namespace_id)
     if resp.get('code') != 0:
-        raise ValidationError(u"查询命名空间的信息出错(namespace_id:%s):%s" % (
-            namespace_id, resp.get('message')))
+        raise ValidationError(f"{_('查询命名空间的信息出错')}(namespace_id:{namespace_id}):{resp.get('message')}")
     data = resp.get('data')
     cluster_id = data.get('cluster_id')
     context['SYS_CLUSTER_ID'] = cluster_id

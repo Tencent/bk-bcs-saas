@@ -16,6 +16,8 @@ import logging
 import copy
 from datetime import datetime
 
+from django.utils.translation import ugettext as _
+
 from backend.apps.instance.models import (
     VersionInstance, InstanceConfig, InstanceEvent, MetricConfig
 )
@@ -222,7 +224,7 @@ class GetInstances(object):
                 "create_at": info.created,
                 "update_at": info.updated,
                 "backend_status": backend_status,
-                "backend_status_message": u"请求失败，已通知管理员!",
+                "backend_status_message": _("请求失败，已通知管理员!"),
                 "application_status": "Deploying",
                 "deployment_status": "Deploying",
                 "application_status_message": "",
@@ -331,7 +333,7 @@ class GetInstances(object):
                 "name": metadata.get("name"),
                 "namespace": metadata.get("namespace"),
                 "backend_status": "BackendNormal",
-                "backend_status_message": "请求失败，已通知管理员!",
+                "backend_status_message": _("请求失败，已通知管理员!"),
                 "category": category,
                 "application_status": data.get("status"),
                 "application_status_message": data.get("message"),
@@ -372,7 +374,7 @@ class GetInstances(object):
             annotations = metadata.get('annotations') or {}
             ret_data[key_name] = {
                 "backend_status": "BackendNormal",
-                "backend_status_message": "请求失败，已通知管理员!",
+                "backend_status_message": _("请求失败，已通知管理员!"),
                 "category": category,
                 "deployment_status": data.get("status"),
                 "deployemnt_status_message": data.get("message"),

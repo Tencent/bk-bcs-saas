@@ -14,6 +14,7 @@
 import re
 
 from django.conf import settings
+from django.utils.translation import ugettext as _
 
 from backend.components.utils import http_post
 from backend.utils.errcodes import ErrorCode
@@ -146,11 +147,11 @@ def get_application_staff(username, bk_biz_id, fields=None):
         fields = ['bk_biz_developer', 'bk_biz_maintainer', 'bk_biz_tester', 'bk_biz_productor']
     resp = get_application_with_page(username, fields=fields, condition={'bk_biz_id': bk_biz_id})
     if resp.get('code') != ErrorCode.NoError:
-        raise error_codes.CheckFailed.f('该项目关联的业务不正确，请确认后重试', replace=True)
+        raise error_codes.CheckFailed(_('该项目关联的业务不正确，请确认后重试'))
     data = resp.get('data') or {}
     info = data.get('info') or []
     if not info:
-        raise error_codes.CheckFailed.f('查询项目信息为空', replace=True)
+        raise error_codes.CheckFailed(_('查询项目信息为空'))
     return info[0]
 
 
@@ -206,7 +207,7 @@ def check_ips(bk_biz_id, username, req_ip_list):
     """
     all_ip_info = get_cc_hosts(bk_biz_id, username)
     if not all_ip_info.get('result'):
-        raise error_codes.APIError.f("用户[%s]没有权限使用主机" % username)
+        raise error_codes.APIError(f"{_('用户')}[{username}]{_('没有权限使用主机')}")
     perm_ip_list = []
     for info in all_ip_info.get('data') or []:
         inner_ip = info.get('bk_host_innerip', '')
@@ -215,7 +216,7 @@ def check_ips(bk_biz_id, username, req_ip_list):
 
     diff_ip_list = set(req_ip_list) - set(perm_ip_list)
     if diff_ip_list:
-        raise error_codes.CheckFailed.f("当前用户没有权限操作ip: %s" % ",".join(diff_ip_list))
+        raise error_codes.CheckFailed(f"{_('当前用户没有权限操作ip')}: {','.join(diff_ip_list)}")
 
 
 def get_application_host(username, bk_biz_id, inner_ip, bk_supplier_account=None):

@@ -15,6 +15,7 @@ from urllib.parse import urlparse
 
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError, PermissionDenied
+from django.utils.translation import ugettext as _
 
 from .models import Token, make_random_key
 
@@ -65,7 +66,7 @@ class TokenUpdateSLZ(serializers.ModelSerializer):
     def update(self, instance, validated_data):
         """ 更新key """
         if instance.key != validated_data["key"]:
-            raise PermissionDenied("输入的key与当前key不匹配")
+            raise PermissionDenied(_("输入的key与当前key不匹配"))
 
         instance.key = make_random_key()
         instance.save()

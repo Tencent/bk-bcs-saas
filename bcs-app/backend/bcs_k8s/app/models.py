@@ -20,6 +20,7 @@ from picklefield.fields import PickledObjectField
 from jsonfield import JSONField
 from rest_framework.exceptions import ValidationError
 from django.utils import timezone
+from django.utils.translation import ugettext as _
 
 from backend.activity_log.client import get_log_client_by_activity_log_id
 from backend.bcs_k8s.helm.models import (Chart, ChartRelease)
@@ -45,8 +46,8 @@ class App(models.Model):
         ("delete", "Delete"),
     )
 
-    creator = models.CharField("创建者", max_length=32)
-    updator = models.CharField("更新者", max_length=32)
+    creator = models.CharField(_("创建者"), max_length=32)
+    updator = models.CharField(_("更新者"), max_length=32)
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
 
@@ -175,7 +176,7 @@ class App(models.Model):
                 updated=timezone.now(),
                 version=self.release.chartVersionSnapshot.version
         ):
-            raise ValidationError(detail="Helm Release部署中，请稍后再试！")
+            raise ValidationError(detail=_("Helm Release部署中，请稍后再试！"))
 
         """
         self.save(
@@ -213,7 +214,7 @@ class App(models.Model):
             resource=self.name,
             resource_id=self.id,
             extra=extra,
-            description=u"Helm App[{app_name}:{app_id}] 升级, 集群[{cluster_id}], 命名空间[{namespace}]".format(
+            description="Helm App[{app_name}:{app_id}] upgrade, cluster[{cluster_id}], namespace[{namespace}]".format(
                 app_id=self.id,
                 app_name=self.name,
                 namespace=self.namespace,
@@ -331,7 +332,7 @@ class App(models.Model):
             resource=self.name,
             resource_id=self.id,
             extra=extra,
-            description="Helm App[{app_name}:{app_id}] 回滚, 集群[{cluster_id}], 命名空间[{namespace}]".format(
+            description="Helm App[{app_name}:{app_id}] rollback, cluster[{cluster_id}], namespace[{namespace}]".format(
                 app_id=self.id,
                 app_name=self.name,
                 namespace=self.namespace,
@@ -422,7 +423,7 @@ class App(models.Model):
             resource=self.name,
             resource_id=self.id,
             extra=extra,
-            description=u"Helm App[{app_name}:{app_id}] 删除, 集群[{cluster_id}], 命名空间[{namespace}]".format(
+            description="Helm App[{app_name}:{app_id}] delete, cluster[{cluster_id}], namespace[{namespace}]".format(
                 app_id=self.id,
                 app_name=self.name,
                 namespace=self.namespace,
