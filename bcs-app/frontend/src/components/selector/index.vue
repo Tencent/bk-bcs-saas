@@ -107,7 +107,7 @@
                     </template>
                     <li class="bk-selector-list-item" v-if="!isLoading && localList.length === 0">
                         <div class="text no-search-result">
-                            {{ list.length ? searchEmptyText : emptyText}}
+                            {{ list.length ? (searchEmptyText || $t('无匹配数据')) : (emptyText || $t('暂无数据'))}}
                         </div>
                     </li>
                 </ul>
@@ -258,11 +258,11 @@
             },
             emptyText: {
                 type: String,
-                default: '暂无数据'
+                default: ''
             },
             searchEmptyText: {
                 type: String,
-                default: '无匹配数据'
+                default: ''
             }
         },
         data () {
