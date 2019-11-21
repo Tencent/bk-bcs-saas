@@ -16,10 +16,10 @@
 import json
 import logging
 
+from django.conf import settings
 from django.db import transaction
 from django.utils import timezone
-from django.conf import settings
-from rest_framework.exceptions import ValidationError
+from django.utils.translation import ugettext_lazy as _
 
 from backend.apps.application.constants import FUNC_MAP
 from backend.apps.configuration.constants import K8sResourceName, MesosResourceName
@@ -36,6 +36,7 @@ from backend.components.bcs.k8s import K8SClient
 from backend.components.bcs.mesos import MesosClient
 from backend.utils.errcodes import ErrorCode
 from backend.utils.error_codes import error_codes
+from rest_framework.exceptions import ValidationError
 
 logger = logging.getLogger(__name__)
 
@@ -154,12 +155,6 @@ def validate_ns_by_tempalte_id(template_id, ns_list, access_token, project_id, i
     namespace = namespace.get('data', {}).get('results') or []
     namespace_dict = {str(i['id']): i['name'] for i in namespace}
 
-    # hpa白名单控制
-    cluster_id_list = list(set([i['cluster_id'] for i in namespace]))
-    if K8sResourceName.K8sHPA.value in instance_entity or MesosResourceName.hpa.value in instance_entity:
-        if not enabled_hpa_feature(cluster_id_list):
-            raise error_codes.APIError(f"当前实例化包含HPA资源，{settings.GRAYSCALE_FEATURE_MSG}")
-
     # 查看模板下已经实例化过的 ns
     exist_instance_id = VersionInstance.objects.filter(
         template_id=template_id, is_deleted=False).values_list('id', flat=True)
@@ -181,6 +176,13 @@ def validate_ns_by_tempalte_id(template_id, ns_list, access_token, project_id, i
     new_ns_list = [str(_i) for _i in ns_list]
     # 列表的交集
     intersection_list = list(set(exist_ns).intersection(set(new_ns_list)))
+
+    # hpa白名单控制
+    cluster_id_list = list(set([i['cluster_id'] for i in namespace if i['id'] in new_ns_list]))
+    if K8sResourceName.K8sHPA.value in instance_entity or MesosResourceName.hpa.value in instance_entity:
+        if not enabled_hpa_feature(cluster_id_list):
+            raise error_codes.APIError(_("当前实例化包含HPA资源，{}").format(settings.GRAYSCALE_FEATURE_MSG))
+
     if not intersection_list:
         return True, [], namespace_dict
 
