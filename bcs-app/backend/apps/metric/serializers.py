@@ -19,7 +19,7 @@ from rest_framework import serializers
 from backend.apps.metric.models import Metric
 from rest_framework.exceptions import ValidationError
 
-NAME_PATTERN = re.compile(r'^[a-zA-Z]+\w*$')
+NAME_PATTERN = re.compile(r'^[a-z0-9]([-_a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*$')
 
 
 def validate_http_body(body):
@@ -110,7 +110,7 @@ class UpdateMetricSLZ(serializers.Serializer):
 
 
 class CreateMetricSLZ(UpdateMetricSLZ):
-    name = serializers.CharField(max_length=28, min_length=3)
+    name = serializers.CharField(max_length=253, min_length=3)
 
     def validate_name(self, name):
         count = Metric.objects.filter(project_id=self.context['project_id'], name=name).count()
@@ -118,5 +118,5 @@ class CreateMetricSLZ(UpdateMetricSLZ):
             raise ValidationError("name已经存在")
 
         if not NAME_PATTERN.match(name):
-            raise ValidationError("名称由英文字母、下划线或数字组成，且不可以数字开头")
+            raise ValidationError("名称由英文字母、下划线、中划线或数字组成，且不可以数字开头")
         return name
