@@ -20,6 +20,7 @@ from django.conf import settings
 from django.db import transaction
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
+from rest_framework.exceptions import ValidationError
 
 from backend.apps.application.constants import FUNC_MAP
 from backend.apps.configuration.constants import K8sResourceName, MesosResourceName
@@ -36,7 +37,6 @@ from backend.components.bcs.k8s import K8SClient
 from backend.components.bcs.mesos import MesosClient
 from backend.utils.errcodes import ErrorCode
 from backend.utils.error_codes import error_codes
-from rest_framework.exceptions import ValidationError
 
 logger = logging.getLogger(__name__)
 
