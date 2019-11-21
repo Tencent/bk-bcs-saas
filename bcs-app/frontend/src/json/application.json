@@ -116,7 +116,6 @@
                                     "consecutiveFailures": 0,
                                     "gracePeriodSeconds": 10,
                                     "command": {
-                                        "portName": "",
                                         "value": ""
                                     },
                                     "http": {

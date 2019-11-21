@@ -144,8 +144,10 @@
                 this.$emit('change', this.list, obj)
             },
             valueChange () {
-                const obj = this.getKeyObject(true)
-                this.$emit('change', this.list, obj)
+                this.$nextTick(() => {
+                    const obj = this.getKeyObject(true)
+                    this.$emit('change', this.list, obj)
+                })
             },
             pasteKey (item, event) {
                 const cache = item.key
