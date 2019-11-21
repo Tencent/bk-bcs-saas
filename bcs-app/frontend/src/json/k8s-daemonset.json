@@ -8,13 +8,7 @@
         "kind": "DaemonSet",
         "monitorLevel": "general",
         "webCache": {
-            "volumes": [
-                {
-                    "type": "emptyDir",
-                    "name": "",
-                    "source": ""
-                }
-            ],
+            "volumes": [],
             "isUserConstraint": false,
             "remarkListCache": [
                 {
@@ -89,14 +83,7 @@
                                     }
                                 ]
                             },
-                            "volumeMounts": [
-                                {
-                                    "name": "", 
-                                    "mountPath": "", 
-                                    "subPath": "",
-                                    "readOnly": false
-                                }
-                            ], 
+                            "volumeMounts": [], 
                             "image": "", 
                             "imagePullPolicy": "IfNotPresent", 
                             "ports": [], 
@@ -191,14 +178,7 @@
                                     }
                                 ]
                             },
-                            "volumeMounts": [
-                                {
-                                    "name": "", 
-                                    "mountPath": "",
-                                    "subPath": "", 
-                                    "readOnly": false
-                                }
-                            ], 
+                            "volumeMounts": [], 
                             "image": "", 
                             "imagePullPolicy": "IfNotPresent", 
                             "ports": [], 
