@@ -118,5 +118,5 @@ class CreateMetricSLZ(UpdateMetricSLZ):
             raise ValidationError("name已经存在")
 
         if not NAME_PATTERN.match(name):
-            raise ValidationError("名称由英文字母、下划线、破折线或数字组成，且不可以数字开头")
+            raise ValidationError("名称由英文字母、下划线、中划线或数字组成，且不可以数字开头")
         return name
