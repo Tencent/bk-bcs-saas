@@ -39,7 +39,7 @@
                     </template>
                     <template v-else>
                         <div class="dialog-action">
-                            <bk-tooltip content="请确认以上内容，才可操作" placement="top">
+                            <bk-tooltip :content="$t('请确认以上内容，才可操作')" placement="top">
                                 <a href="javascript:void(0)" class="bk-button bk-primary bk-button-large dialog-btn disabled">{{confirmBtnTextRender}}</a>
                             </bk-tooltip>
                             <a href="javascript:void(0)" class="bk-button bk-default bk-button-large dialog-btn" @click="cancel" style="margin-left: 10px;">{{cancelBtnTextRender}}</a>

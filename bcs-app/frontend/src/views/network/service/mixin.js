@@ -36,7 +36,7 @@ export default {
 
             results.length && results.unshift({
                 id: '',
-                name: '全部集群'
+                name: this.$t('全部集群')
             })
 
             return results
@@ -205,7 +205,7 @@ export default {
                 clsName: 'biz-remove-dialog',
                 content: this.$createElement('p', {
                     class: 'biz-confirm-desc'
-                }, `确定要删除Service【${service.resourceName}】？`),
+                }, `${this.$t('确定要删除Service')}【${service.resourceName}】？`),
                 async confirmFn () {
                     self.deleteService(service)
                 }
@@ -232,7 +232,7 @@ export default {
 
                 this.$bkMessage({
                     theme: 'success',
-                    message: '删除成功！'
+                    message: this.$t('删除成功')
                 })
                 this.initPageConf()
                 this.getServiceList()

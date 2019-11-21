@@ -13,8 +13,8 @@
             <div style="margin: -20px;" v-bkloading="{ isLoading: ccHostLoading }">
                 <div class="biz-cluster-create-table-header">
                     <div class="left" style="height: 60px;">
-                        选择服务器
-                        <span class="remain-tip" v-if="remainCount">已选择{{remainCount}}个节点</span>
+                        {{$t('选择服务器')}}
+                        <span class="remain-tip" v-if="remainCount">{{$t('已选择{remainCount}个节点', { remainCount: remainCount })}}</span>
                     </div>
                 </div>
                 <div style="min-height: 443px;">
@@ -26,10 +26,10 @@
                                         <input type="checkbox" name="check-all-host" v-model="isCheckCurPageAll" @click="toggleCheckCurPage">
                                     </label>
                                 </th>
-                                <th style="width: 160px;">主机名/IP</th>
-                                <th style="width: 220px;">状态</th>
-                                <th style="width: 120px;">容器数量</th>
-                                <th style="width: 200px;">配置</th>
+                                <th style="width: 160px;">{{$t('主机名/IP')}}</th>
+                                <th style="width: 220px;">{{$t('状态')}}</th>
+                                <th style="width: 120px;">{{$t('容器数量')}}</th>
+                                <th style="width: 200px;">{{$t('配置')}}</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -58,7 +58,7 @@
                                 <tr>
                                     <td colspan="7" style="top: 0;">
                                         <div class="bk-message-box no-data">
-                                            <p class="message empty-message">您在当前业务下没有主机资源，请联系业务运维</p>
+                                            <p class="message empty-message">{{$t('您在当前业务下没有主机资源，请联系业务运维')}}</p>
                                         </div>
                                     </td>
                                 </tr>
@@ -81,10 +81,10 @@
                 <div style="float: right;">
                     <button type="button" class="bk-dialog-btn bk-dialog-btn-confirm bk-btn-primary"
                         @click="chooseServer">
-                        确定
+                        {{$t('确定')}}
                     </button>
                     <button type="button" class="bk-dialog-btn bk-dialog-btn-cancel" @click="hiseChooseServer">
-                        取消
+                        {{$t('取消')}}
                     </button>
                 </div>
             </div>
@@ -174,25 +174,25 @@
              */
             getHostStatus (status) {
                 const statusMap = {
-                    'normal': '正常',
-                    'unnormal': '不正常',
-                    'not_ready': '不正常',
-                    'removable': '不可调度',
-                    'to_removed': '不可调度',
-                    'initial_failed': '初始化失败',
-                    'so_init_failed': '初始化失败',
-                    'check_failed': '初始化失败',
-                    'bke_failed': '初始化失败',
-                    'schedule_failed': '初始化失败',
-                    'delete_failed': '删除失败',
-                    'remove_failed': '删除失败',
-                    'initializing': '初始化中',
-                    'so_initializing': '初始化中',
-                    'initial_checking': '初始化中',
-                    'uninitialized': '初始化中',
-                    'removing': '删除中'
+                    'normal': this.$t('正常'),
+                    'unnormal': this.$t('不正常'),
+                    'not_ready': this.$t('不正常'),
+                    'removable': this.$t('不可调度'),
+                    'to_removed': this.$t('不可调度'),
+                    'initial_failed': this.$t('初始化失败'),
+                    'so_init_failed': this.$t('初始化失败'),
+                    'check_failed': this.$t('初始化失败'),
+                    'bke_failed': this.$t('初始化失败'),
+                    'schedule_failed': this.$t('初始化失败'),
+                    'delete_failed': this.$t('删除失败'),
+                    'remove_failed': this.$t('删除失败'),
+                    'initializing': this.$t('初始化中'),
+                    'so_initializing': this.$t('初始化中'),
+                    'initial_checking': this.$t('初始化中'),
+                    'uninitialized': this.$t('初始化中'),
+                    'removing': this.$t('删除中')
                 }
-                return statusMap[status] || '不正常'
+                return statusMap[status] || this.$t('不正常')
             },
 
             /**
@@ -230,7 +230,7 @@
                 if (!len) {
                     this.$bkMessage({
                         theme: 'error',
-                        message: '请选择服务器'
+                        message: this.$t('请选择服务器')
                     })
                     return
                 }

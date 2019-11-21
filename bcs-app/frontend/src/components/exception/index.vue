@@ -47,22 +47,22 @@
             switch (this.type) {
                 case '403':
                     image = img403
-                    message = 'Sorry，您的权限不足！'
+                    message = this.$t('Sorry，您的权限不足！')
                     break
 
                 case '404':
                     image = img404
-                    message = '页面找不到了！'
+                    message = this.$t('页面找不到了！')
                     break
 
                 case '500':
                     image = img500
-                    message = '服务器维护中，请稍后重试!'
+                    message = this.$t('服务器维护中，请稍后重试!')
                     break
 
                 case 'building':
                     image = imgBuilding
-                    message = '功能正在建设中···'
+                    message = this.$t('功能正在建设中···')
                     break
             }
 

@@ -115,7 +115,7 @@
                                 </template>
                                 <template v-else>
                                     <tr style="background: none;">
-                                        <td colspan="8">
+                                        <td colspan="9">
                                             <div class="biz-app-list">
                                                 <div class="bk-message-box">
                                                     <p class="message empty-message" v-if="!isInitLoading">{{$t('无数据')}}</p>
