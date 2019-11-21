@@ -108,7 +108,7 @@ def slz_mesos_hpa_info(hpa, project_code, cluster_name, cluster_env, cluster_id)
         if not deployment_name:
             continue
 
-        deployment_link = f'{settings.DEVOPS_HOST}/console/bcs/{project_code}/app/mesos/{deployment_name}/{namespace}/deployment'  # noqa
+        deployment_link = f'{settings.DEVOPS_HOST}/console/bcs/{project_code}/app/mesos/{deployment_name}/{namespace}/deployment?cluster_id={cluster_id}'  # noqa
 
         current_metrics = get_mesos_current_metrics(_config)
         data = {
@@ -148,7 +148,7 @@ def slz_k8s_hpa_info(hpa, project_code, cluster_name, cluster_env, cluster_id):
         namespace = _config['metadata']['namespace']
         deployment_name = _config['spec']['scaleTargetRef']['name']
 
-        deployment_link = f'{settings.DEVOPS_HOST}/console/bcs/{project_code}/app/deployments/{deployment_name}/{namespace}/deployment'  # noqa
+        deployment_link = f'{settings.DEVOPS_HOST}/console/bcs/{project_code}/app/deployments/{deployment_name}/{namespace}/deployment?cluster_id={cluster_id}'  # noqa
         current_metrics = get_k8s_current_metrics(_config)
         data = {
             'cluster_name': cluster_name,
