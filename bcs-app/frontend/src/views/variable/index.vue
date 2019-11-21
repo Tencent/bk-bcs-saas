@@ -39,15 +39,14 @@
                                             <input type="checkbox" v-else name="check-all-user" disabled="disabled" />
                                         </label>
                                     </th>
-                                    <th style="width: 170px;">
+                                    <th style="width: 200px;">
                                         {{$t('变量名称')}}
                                     </th>
                                     <th>KEY</th>
+                                    <th>{{$t('默认值')}}</th>
                                     <th style="width: 110px;">{{$t('类型')}}</th>
-                                    <th style="width: 100px;">{{$t('默认值')}}</th>
                                     <th style="width: 130px;">{{$t('作用范围')}}</th>
-                                    <th style="width: 100px;">{{$t('引用处')}}</th>
-                                    <th style="width: 220px; "><span class="ml15">{{$t('操作')}}</span></th>
+                                    <th style="width: 250px; "><span>{{$t('操作')}}</span></th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -68,34 +67,33 @@
                                                 </span>
                                             </bk-tooltip>
                                         </td>
-                                        <td>{{variable.category_name}}</td>
                                         <td>
                                             <bk-tooltip :content="variable.default.value" placement="top">
                                                 <span class="var-value">{{variable.default.value}}</span>
                                             </bk-tooltip>
                                         </td>
+                                        <td>{{variable.category_name}}</td>
                                         <td>{{variable.scope_name}}</td>
                                         <td>
-                                            <a href="javascript:void(0);" class="bk-text-button" @click="getQuoteDetail(variable)">{{variable.quote_num}}</a></td>
-                                        <td>
-                                            <a href="javascript:void(0);" class="ml15 bk-text-button" @click="batchUpdate(variable)" v-show="variable.category !== 'sys' && (variable.scope === 'namespace' || variable.scope === 'cluster')">{{$t('批量更新')}}</a>
+                                            <a href="javascript:void(0);" class="bk-text-button" @click="getQuoteDetail(variable)">{{$t('查看引用')}}</a>
+                                            <a href="javascript:void(0);" class="ml5 bk-text-button" @click="batchUpdate(variable)" v-show="variable.category !== 'sys' && (variable.scope === 'namespace' || variable.scope === 'cluster')">{{$t('批量更新')}}</a>
 
                                             <template v-if="variable.category === 'sys'">
                                                 <bk-tooltip :content="$t('系统内置变量，不能编辑')" placement="left">
-                                                    <a href="javascript:void(0);" class="bk-text-button is-disabled ml15">{{$t('编辑')}}</a>
+                                                    <a href="javascript:void(0);" class="bk-text-button is-disabled ml5">{{$t('编辑')}}</a>
                                                 </bk-tooltip>
                                             </template>
                                             <template v-else>
-                                                <a href="javascript:void(0);" class=" ml15 bk-text-button" @click="editVar(variable)">{{$t('编辑')}}</a>
+                                                <a href="javascript:void(0);" class=" ml5 bk-text-button" @click="editVar(variable)">{{$t('编辑')}}</a>
                                             </template>
 
                                             <template v-if="variable.category === 'sys'">
                                                 <bk-tooltip :content="variable.category === 'sys' ? $t('系统内置变量') : $t('已经被引用，不能删除')" placement="left">
-                                                    <a href="javascript:void(0);" class="ml15 bk-text-button is-disabled">{{$t('删除')}}</a>
+                                                    <a href="javascript:void(0);" class="ml5 bk-text-button is-disabled">{{$t('删除')}}</a>
                                                 </bk-tooltip>
                                             </template>
                                             <template v-else>
-                                                <a href="javascript:void(0);" class="ml15 bk-text-button" @click="removeVar(variable)">{{$t('删除')}}</a>
+                                                <a href="javascript:void(0);" class="ml5 bk-text-button" @click="removeVar(variable)">{{$t('删除')}}</a>
                                             </template>
                                         </td>
                                     </tr>
