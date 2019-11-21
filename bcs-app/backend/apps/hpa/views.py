@@ -67,6 +67,23 @@ class HPA(viewsets.ViewSet, BaseAPI, ResourceOperate):
 
         return Response(k8s_hpa_list)
 
+    def check_namespace_use_perm(self, request, project_id, namespace_list):
+        """检查是否有命名空间的使用权限
+        """
+        access_token = request.user.token.access_token
+
+        # 根据 namespace  查询 ns_id
+        namespace_res = paas_cc.get_namespace_list(
+            access_token, project_id, limit=ALL_LIMIT)
+        namespace_data = namespace_res.get('data', {}).get('results') or []
+        namespace_dict = {i['name']: i['id'] for i in namespace_data}
+        for namespace in namespace_list:
+            namespace_id = namespace_dict.get(namespace)
+            # 检查是否有命名空间的使用权限
+            perm = bcs_perm.Namespace(request, project_id, namespace_id)
+            perm.can_use(raise_exception=True)
+        return namespace_dict
+
     def delete(self, request, project_id, cluster_id, ns_name, name):
         username = request.user.username
         namespace_dict = self.check_namespace_use_perm(request, project_id, [ns_name])
