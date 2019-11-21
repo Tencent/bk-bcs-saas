@@ -188,7 +188,7 @@ def get_cluster_hpa_list(request, project_id, cluster_id, cluster_env, cluster_n
         else:
             client = k8s.K8SClient(access_token, project_id, cluster_id, env=cluster_env)
             hpa = client.list_hpa(namespace).get('items') or []
-            hpa_list = slz_mesos_hpa_info(hpa, project_code, cluster_name, cluster_env, cluster_id)
+            hpa_list = slz_k8s_hpa_info(hpa, project_code, cluster_name, cluster_env, cluster_id)
     except Exception as error:
         logger.error('get hpa list error, %s', error)
 

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-11-13 10:38+0800\n"
+"POT-Creation-Date: 2019-11-21 19:54+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -154,6 +154,10 @@ msgstr "Memory usage"
 msgid "删除HPA资源失败"
 msgstr "Failed to delete HPA resources"
 
+#: backend/apps/instance/utils.py:184
+msgid "当前实例化包含HPA资源，{}"
+msgstr "The current instantiation contains HPA resources, {}"
+
 #: backend/bcs_k8s/authtoken/authentication.py:32
 msgid "Invalid token header. No credentials provided."
 msgstr ""
@@ -195,11 +199,11 @@ msgstr ""
 msgid "Kind"
 msgstr ""
 
-#: backend/settings/base.py:176
+#: backend/settings/base.py:177
 msgid "中文"
 msgstr ""
 
-#: backend/settings/base.py:177
+#: backend/settings/base.py:178
 msgid "English"
 msgstr ""
 
@@ -294,8 +298,8 @@ msgstr "Get ctx is empty, session_id is incorrect or has expired"
 #: backend/web_console/constant_bk.py:23
 msgid "支持常用Bash快捷键; Windows下Ctrl-W为关闭窗口快捷键, 请使用Alt-W代替"
 msgstr ""
-"Support common Bash shortcuts; Ctrl-W under Windows is the shortcut to close, "
-"please use Alt-W instead"
+"Support common Bash shortcuts; Ctrl-W under Windows is the shortcut to "
+"close, please use Alt-W instead"
 
 #: backend/web_console/constant_bk.py:28
 msgid ""
