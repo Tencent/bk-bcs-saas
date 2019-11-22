@@ -16,7 +16,10 @@
 使用 Mako 模板做变量替换
 """
 import copy
+
 from django.conf import settings
+from django.utils.translation import ugettext as _
+
 from backend.utils.basic import ChoicesEnum
 
 MESOS_MODULE_NAME = 'mesos'
@@ -424,11 +427,11 @@ class EventType(ChoicesEnum):
     ROLLBACK_ERROR = 4
 
     _choices_labels = (
-        (REQ_FAILED, "请求失败"),
+        (REQ_FAILED, _("请求失败")),
 
-        (REQ_ERROR, "请求异常"),  # 这个现在应该无法记录
-        (ROLLBACK_FAILED, "回滚失败"),
-        (ROLLBACK_ERROR, "回滚异常"),  # 这个现在应该无法记录
+        (REQ_ERROR, _("请求异常")),  # 这个现在应该无法记录
+        (ROLLBACK_FAILED, _("回滚失败")),
+        (ROLLBACK_ERROR, _("回滚异常")),  # 这个现在应该无法记录
     )
 
 
@@ -455,14 +458,14 @@ class InsState(ChoicesEnum):
     METRIC_UPDATED = 12
 
     _choices_labels = (
-        (NO_INS, "未实例化"),
-        (INS_FAILED, "实例化失败"),
-        (INS_SUCCESS, "实例化成功"),
-        (UPDATE_FAILED, "更新实例失败"),
-        (UPDATE_SUCCESS, "更新实例成功"),
-        (INS_DELETED, "实例已经删除"),
-        (METRIC_DELETED, "Metric配置已经删除"),
-        (METRIC_UPDATED, "Metric配置更新"),
+        (NO_INS, _("未实例化")),
+        (INS_FAILED, _("实例化失败")),
+        (INS_SUCCESS, _("实例化成功")),
+        (UPDATE_FAILED, _("更新实例失败")),
+        (UPDATE_SUCCESS, _("更新实例成功")),
+        (INS_DELETED, _("实例已经删除")),
+        (METRIC_DELETED, _("Metric配置已经删除")),
+        (METRIC_UPDATED, _("Metric配置更新")),
     )
 
 

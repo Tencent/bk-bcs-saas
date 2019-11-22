@@ -17,6 +17,8 @@
 TODO
 1. RES_NAME_PATTERN/PORT_NAME_PATTERN 验证变量的情况
 """
+from django.utils.translation import ugettext as _
+
 
 # 资源名称 & 端口名称
 # RES_NAME_PATTERN = "^[a-z{]{1}[a-z0-9-{}]{0,254}$"
@@ -35,7 +37,7 @@ VARIABLE_PATTERN = "[A-Za-z][A-Za-z0-9_]"
 # 填写数字的地方，可以填写变量
 NUM_VAR_PATTERN = "^{{%s*}}$" % VARIABLE_PATTERN
 # 需要与 backend/apps/variable/serializers.py 中的说明保持一致
-NUM_VAR_ERROR_MSG = u"只能包含字母、数字和下划线，且以字母开头"
+NUM_VAR_ERROR_MSG = _("只能包含字母、数字和下划线，且以字母开头")
 # 文件目录正则
 # FILE_DIR_PATTERN = "((?!\.)[\w\d\-\.\/~]+)+$"
 FILE_DIR_PATTERN = "^((?!\.{\$)[\w\d\-\.\/~{}\$]+)+$"

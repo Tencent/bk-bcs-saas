@@ -20,6 +20,7 @@ import yaml
 
 from rest_framework import views
 from django.conf import settings
+from django.utils.translation import ugettext as _
 
 from backend.components.bcs import mesos, bcs_common_api
 from backend.utils.errcodes import ErrorCode
@@ -47,9 +48,9 @@ DEFAULT_RESPONSE = {"code": 0}
 DEFAULT_ERROR_CODE = ErrorCode.UnknownError
 
 error_codes.add_codes([
-    ErrorCodeCls("RecordNotFound", u"记录不存在", 404),
-    ErrorCodeCls("JSONParseError", u"解析异常", 400),
-    ErrorCodeCls("DBOperError", u"DB操作异常", 400),
+    ErrorCodeCls("RecordNotFound", _("记录不存在"), 404),
+    ErrorCodeCls("JSONParseError", _("解析异常"), 400),
+    ErrorCodeCls("DBOperError", _("DB操作异常"), 400),
 ])
 
 # 模板集删除时, 需要一起删除的资源
@@ -63,7 +64,7 @@ class BaseAPI(views.APIView):
         namespace = request.GET.get("namespace")
         category = request.GET.get("category")
         if not (name and namespace and category):
-            raise error_codes.CheckFailed.f("参数[name]、[namespace]、[category]不能为空")
+            raise error_codes.CheckFailed(_("参数[name]、[namespace]、[category]不能为空"))
         return name, namespace, category
 
     def get_instance_info(self, id):
@@ -71,7 +72,7 @@ class BaseAPI(views.APIView):
         """
         inst_info = InstanceConfig.objects.filter(id=id, is_deleted=False)
         if not inst_info:
-            raise error_codes.CheckFailed.f(u"没有查询到相应的记录")
+            raise error_codes.CheckFailed(_("没有查询到相应的记录"))
         return inst_info
 
     def get_common_instance_conf(self, info):
@@ -82,7 +83,7 @@ class BaseAPI(views.APIView):
         except Exception as error:
             logger.error(u"解析instance config异常，id为 %s, 详情: %s" %
                          (info.id, error))
-            raise error_codes.JSONParseError.f(u"Instance config解析异常")
+            raise error_codes.JSONParseError(_("Instance config解析异常"))
         return conf
 
     def project_kind(self, request):
@@ -91,7 +92,7 @@ class BaseAPI(views.APIView):
         """
         kind = request.project.get("kind")
         if kind not in [1, 2]:
-            raise error_codes.CheckFailed.f("项目类型必须为k8s/mesos, 请确认后重试!")
+            raise error_codes.CheckFailed(_("项目类型必须为k8s/mesos, 请确认后重试!"))
         return kind
 
     def get_project_kind(self, request, project_id):
@@ -102,12 +103,12 @@ class BaseAPI(views.APIView):
         if project_info.get("code") != ErrorCode.NoError:
             return False, APIResponse({
                 "code": project_info.get("code", DEFAULT_ERROR_CODE),
-                "message": u"请求出现异常!"
+                "message": _("请求出现异常!")
             })
         if project_info.get("data", {}).get("kind") not in constants.PROJECT_KIND_LIST:
             return False, APIResponse({
                 "code": ErrorCode.UserError,
-                "message": u"该项目编排类型不正确!",
+                "message": _("该项目编排类型不正确!"),
                 "data": None
             })
         return True, project_info["data"]["kind"]
@@ -198,7 +199,7 @@ class BaseAPI(views.APIView):
         if not resp.get("data"):
             return False, APIResponse({
                 "code": 400,
-                "message": u"查询记录为空!"
+                "message": _("查询记录为空!")
             })
 
         return True, resp["data"]
@@ -211,7 +212,7 @@ class BaseAPI(views.APIView):
         for info in (all_ns_info.get("results") or []):
             if info["name"] == ns_name:
                 return info["cluster_id"]
-        raise error_codes.CheckFailed.f("没有查询到命名空间对应的集群ID")
+        raise error_codes.CheckFailed(_("没有查询到命名空间对应的集群ID"))
 
     def get_k8s_rs_info(self, request, project_id, cluster_id, ns_name, resource_name):
         """获取k8s deployment副本信息
@@ -230,7 +231,7 @@ class BaseAPI(views.APIView):
         })
         if resp.get("code") != 0:
             raise error_codes.APIError.f(
-                resp.get("message") or "查询出现异常",
+                resp.get("message") or _("查询出现异常"),
                 replace=True
             )
         data = resp.get("data") or []
@@ -264,7 +265,7 @@ class BaseAPI(views.APIView):
         )
         if resp.get("code") != 0:
             raise error_codes.APIError.f(
-                resp.get("message") or "查询出现异常",
+                resp.get("message") or _("查询出现异常"),
                 replace=True
             )
 
@@ -387,13 +388,13 @@ class BaseAPI(views.APIView):
                 )
             return APIResponse({
                 "code": ErrorCode.NoError,
-                "message": u"删除成功"
+                "message": _("删除成功")
             })
         curr_msg = resp.get("message")
         if "not found" in curr_msg or "node does not exist" in curr_msg:
             return APIResponse({
                 "code": ErrorCode.NoError,
-                "message": "删除成功"
+                "message": _("删除成功")
             })
         if resp.get("code") != ErrorCode.NoError:
             return APIResponse({
@@ -591,10 +592,10 @@ class BaseAPI(views.APIView):
         if resp.get("code") != ErrorCode.NoError:
             return False, APIResponse({
                 "code": resp.get("code", DEFAULT_ERROR_CODE),
-                "message": resp.get("message", u"请求出现异常!")
+                "message": resp.get("message", _("请求出现异常!"))
             })
         return True, APIResponse({
-            "message": u"更新成功!"
+            "message": _("更新成功!")
         })
 
     def scale_instance(self, request, project_id, cluster_id, ns, app_name, instance_num, kind=2, category=None, data=None): # noqa
@@ -618,10 +619,10 @@ class BaseAPI(views.APIView):
         if resp.get("code") != ErrorCode.NoError:
             return APIResponse({
                 "code": resp.get("code", DEFAULT_ERROR_CODE),
-                "message": resp.get("message", u"请求出现异常!")
+                "message": resp.get("message", _("请求出现异常!"))
             })
         return APIResponse({
-            "message": u"更新成功!"
+            "message": _("更新成功!")
         })
 
     def update_deployment(
@@ -645,10 +646,10 @@ class BaseAPI(views.APIView):
         if resp.get("code") != ErrorCode.NoError:
             return APIResponse({
                 "code": resp.get("code", DEFAULT_ERROR_CODE),
-                "message": resp.get("message", u"请求出现异常!")
+                "message": resp.get("message", _("请求出现异常!"))
             })
         return APIResponse({
-            "message": u"更新成功!"
+            "message": _("更新成功!")
         })
 
     def cancel_update_deployment(self, request, project_id, cluster_id, ns, deployment_name, kind=2):
@@ -665,10 +666,10 @@ class BaseAPI(views.APIView):
         if resp.get("code") != ErrorCode.NoError:
             return APIResponse({
                 "code": resp.get("code", DEFAULT_ERROR_CODE),
-                "message": resp.get("message", u"请求出现异常!")
+                "message": resp.get("message", _("请求出现异常!"))
             })
         return APIResponse({
-            "message": u"取消更新成功!"
+            "message": _("取消更新成功!")
         })
 
     def pause_update_deployment(self, request, project_id, cluster_id, ns, deployment_name, kind=1, category=None):
@@ -692,10 +693,10 @@ class BaseAPI(views.APIView):
         if resp.get("code") != ErrorCode.NoError:
             return APIResponse({
                 "code": resp.get("code", DEFAULT_ERROR_CODE),
-                "message": resp.get("message", u"请求出现异常!")
+                "message": resp.get("message", _("请求出现异常!"))
             })
         return APIResponse({
-            "message": u"暂停更新成功!"
+            "message": _("暂停更新成功!")
         })
 
     def resume_update_deployment(self, request, project_id, cluster_id, ns, deployment_name, kind=2, category=None):
@@ -718,10 +719,10 @@ class BaseAPI(views.APIView):
         if resp.get("code") != ErrorCode.NoError:
             return APIResponse({
                 "code": resp.get("code", DEFAULT_ERROR_CODE),
-                "message": resp.get("message", u"请求出现异常!")
+                "message": resp.get("message", _("请求出现异常!"))
             })
         return APIResponse({
-            "message": u"重启更新成功!"
+            "message": _("重启更新成功!")
         })
 
     def rescheduler_taskgroup(self, request, project_id, cluster_id, ns,
@@ -744,10 +745,10 @@ class BaseAPI(views.APIView):
         if resp.get("code") != ErrorCode.NoError:
             return APIResponse({
                 "code": resp.get("code", DEFAULT_ERROR_CODE),
-                "message": resp.get("message", u"请求出现异常!")
+                "message": resp.get("message", _("请求出现异常!"))
             })
         return APIResponse({
-            "message": u"重新调度成功!"
+            "message": _("重新调度成功!")
         })
 
     def query_events(self, request, project_id, cluster_id, params):
@@ -758,7 +759,7 @@ class BaseAPI(views.APIView):
         if resp.get("code") != ErrorCode.NoError:
             return APIResponse({
                 "code": resp.get("code", DEFAULT_ERROR_CODE),
-                "message": resp.get("message", u"请求出现异常!")
+                "message": resp.get("message", _("请求出现异常!"))
             })
         return APIResponse({
             "data": {
@@ -844,7 +845,7 @@ class BaseAPI(views.APIView):
         if int(req_instance_num) > pre_instance_num:
             result = paas_cc.get_cluster(request.user.token.access_token, project_id, cluster_id)
             if result.get("code") != 0:
-                raise error_codes.APIError.f(u"获取资源失败，请联系蓝鲸管理员解决")
+                raise error_codes.APIError(_("获取资源失败，请联系蓝鲸管理员解决"))
 
             data = result.get('data') or {}
             remain_cpu = data.get('remain_cpu') or 0
@@ -858,9 +859,9 @@ class BaseAPI(views.APIView):
                 mem_require += float(info["resources"]["limits"]["memory"])
             diff_instance_num = int(req_instance_num) - pre_instance_num
             if remain_cpu < (diff_instance_num * cpu_require):
-                raise error_codes.CheckFailed.f(u"没有足够的CPU资源，请添加node或释放资源!")
+                raise error_codes.CheckFailed(_("没有足够的CPU资源，请添加node或释放资源!"))
             if remain_mem < (diff_instance_num * mem_require):
-                raise error_codes.CheckFailed.f(u"没有足够的内存资源，请添加node或释放资源!")
+                raise error_codes.CheckFailed(_("没有足够的内存资源，请添加node或释放资源!"))
 
     def event_log_record(self, inst_id, conf_inst_id, category, err_msg, resp_snap, username):
         """记录事件
@@ -947,7 +948,7 @@ class BaseAPI(views.APIView):
         if source_type == "模板集":
             muster_info = Template.objects.filter(id=muster_id, is_deleted=False).first()
             if not muster_info:
-                raise error_codes.CheckFailed.f("没有查询到模板集信息", replace=True)
+                raise error_codes.CheckFailed(_("没有查询到模板集信息"))
             # 继承模板集的权限
             tmpl_perm = bcs_perm.Templates(
                 request, project_id, muster_id, resource_name=muster_info.name
@@ -975,7 +976,7 @@ class BaseAPI(views.APIView):
             curr_func = FUNC_MAP[category] % "get"
             resp = getattr(client, curr_func)({"name": name, "namespace": namespace})
             if resp.get("code") != 0:
-                raise error_codes.APIError.f(resp.get("message", "获取应用线上配置异常，请联系管理员处理!"))
+                raise error_codes.APIError.f(resp.get("message", _("获取应用线上配置异常，请联系管理员处理!")))
             data = resp.get("data") or []
             if not data:
                 return {}
@@ -994,7 +995,7 @@ class BaseAPI(views.APIView):
                 name, namespace, category
             )
             if resp.get("code") != ErrorCode.NoError:
-                raise error_codes.APIError.f(resp.get("message", "获取应用线上配置异常，请联系管理员处理!"))
+                raise error_codes.APIError.f(resp.get("message", _("获取应用线上配置异常，请联系管理员处理!")))
             conf = resp.get('data') or {}
         return conf
 

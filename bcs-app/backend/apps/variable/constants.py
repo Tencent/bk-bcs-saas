@@ -11,6 +11,8 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
+from django.utils.translation import ugettext as _
+
 from backend.utils.basic import ChoicesEnum
 
 ALL_PROJECTS = 0
@@ -22,9 +24,9 @@ class VariableScope(ChoicesEnum):
     NAMESPACE = 'namespace'
 
     _choices_labels = (
-        (GLOBAL, "全局变量"),
-        (CLUSTER, "集群变量"),
-        (NAMESPACE, "命名空间变量"),
+        (GLOBAL, _("全局变量")),
+        (CLUSTER, _("集群变量")),
+        (NAMESPACE, _("命名空间变量")),
     )
 
 
@@ -33,6 +35,6 @@ class VariableCategory(ChoicesEnum):
     CUSTOM = 'custom'
 
     _choices_labels = (
-        (SYSTEM, "系统内置"),
-        (CUSTOM, "自定义")
+        (SYSTEM, _("系统内置")),
+        (CUSTOM, _("自定义"))
     )

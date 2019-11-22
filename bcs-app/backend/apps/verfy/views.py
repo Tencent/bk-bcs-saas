@@ -14,6 +14,7 @@
 import logging
 
 from rest_framework import viewsets
+from django.utils.translation import ugettext as _
 
 from backend.accounts import bcs_perm
 from backend.apps.verfy import constants, serializers
@@ -61,7 +62,7 @@ class Perm(viewsets.ViewSet):
                 resource_code,
                 resource_name)
         except (AttributeError, TypeError):
-            raise APIError("resource_code不合法")
+            raise APIError(_("resource_code不合法"))
 
         handler = getattr(perm, 'can_%s' % data['policy_code'])
         if handler:
@@ -73,7 +74,7 @@ class Perm(viewsets.ViewSet):
                 else:
                     raise VerifyAuthPermErrorWithNoRaise(error.args[0], error.args[1])
 
-        return APIResult({}, "验证权限成功")
+        return APIResult({}, _("验证权限成功"))
 
     def verify_multi(self, request):
         """权限判断接口，前端使用, 批量接口
@@ -98,7 +99,7 @@ class Perm(viewsets.ViewSet):
                     resource_code,
                     resource_name)
             except (AttributeError, TypeError):
-                raise APIError("resource_code不合法")
+                raise APIError(_("resource_code不合法"))
 
             handler = getattr(perm, 'can_%s' % res['policy_code'])
             try:
@@ -115,4 +116,4 @@ class Perm(viewsets.ViewSet):
         elif operator == constants.PermMultiOperator.OR.value and len(data['resource_list']) == len(err_data):
             raise VerifyAuthPermError(msg, err_data)
 
-        return APIResult({}, "验证权限成功")
+        return APIResult({}, _("验证权限成功"))

@@ -16,7 +16,9 @@
 """
 import json
 import logging
+
 from django.db import models
+from django.utils.translation import ugettext as _
 
 from backend.apps.configuration.models import BaseModel, VersionedEntity, Template
 from backend.apps.instance.constants import EventType, InsState
@@ -35,21 +37,21 @@ class VersionInstance(BaseModel):
     from backend.apps.configuration.models import MODULE_DICT
     MODULE_DICT 记录 `表名` 和  `model` 的对应关系，并且所有的 `model` 都定义了 `get_name` 方法来查看名称
     """
-    version_id = models.IntegerField(u"关联的VersionedEntity ID")
-    instance_entity = models.TextField(u"需要实例化的资源", help_text=u"json格式数据")
+    version_id = models.IntegerField(_("关联的VersionedEntity ID"))
+    instance_entity = models.TextField(_("需要实例化的资源"), help_text=_("json格式数据"))
     is_start = models.BooleanField(
-        default=False, help_text=u"false:生成配置文件；true:生成配置文件，调用bsc api实例化配置信息")
+        default=False, help_text=_("false:生成配置文件；true:生成配置文件，调用bsc api实例化配置信息"))
     # add by 应用更新操作
-    ns_id = models.IntegerField(u"命名空间ID")
-    template_id = models.IntegerField(u"关联的模板 ID", help_text=u"该字段只在db中查看使用")
-    history = models.TextField(u"历史变更数据", help_text=u"以json格式存储")
-    is_bcs_success = models.BooleanField(u"调用BCS API 是否成功", default=True)
+    ns_id = models.IntegerField(_("命名空间ID"))
+    template_id = models.IntegerField(_("关联的模板 ID"), help_text=_("该字段只在db中查看使用"))
+    history = models.TextField(_("历史变更数据"), help_text=_("以json格式存储"))
+    is_bcs_success = models.BooleanField(_("调用BCS API 是否成功"), default=True)
     # TODEL
-    namespaces = models.TextField(u"命名空间ID", help_text=u"该字段已经废弃")
+    namespaces = models.TextField(_("命名空间ID"), help_text=_("该字段已经废弃"))
     # 添加用户可见版本
-    show_version_id = models.IntegerField(u"用户可见版本ID", default=0)
+    show_version_id = models.IntegerField(_("用户可见版本ID"), default=0)
     show_version_name = models.CharField(
-        u"用户可见版本Name", max_length=255, default='')
+        _("用户可见版本Name"), max_length=255, default='')
 
     @property
     def get_entity(self):
@@ -95,28 +97,28 @@ class InstanceConfig(BaseModel):
         ('K8sStatefulSet', u"K8sStatefulSet"),
         ('K8sIngress', 'K8sIngress'),
     )
-    instance_id = models.IntegerField(u"关联的 VersionInstance ID", db_index=True)
-    namespace = models.CharField(u"命名空间ID", max_length=32)
+    instance_id = models.IntegerField(_("关联的 VersionInstance ID"), db_index=True)
+    namespace = models.CharField(_("命名空间ID"), max_length=32)
     category = models.CharField(
-        u"资源类型", max_length=32, choices=category_choice)
-    config = models.TextField(u"配置文件", help_text='json格式数据')
-    is_bcs_success = models.BooleanField(u"调用BCS API 是否成功", default=True)
+        _("资源类型"), max_length=32, choices=category_choice)
+    config = models.TextField(_("配置文件"), help_text=_('json格式数据'))
+    is_bcs_success = models.BooleanField(_("调用BCS API 是否成功"), default=True)
     # 添加操作类型及状态，用于轮训任务记录
-    oper_type = models.CharField(u"操作类型", max_length=16, default="create")
-    status = models.CharField(u"任务状态", max_length=16, default="Running")
+    oper_type = models.CharField(_("操作类型"), max_length=16, default="create")
+    status = models.CharField(_("任务状态"), max_length=16, default="Running")
 
     # 实例化状态，解决appliation, deployment is_bcs_success为False，状态不一致问题
     # 0，未实例化
     # 1, 已实例化，但是实例化失败，需要再应用页面显示
     # 2, 已实例化，且实例化成功
     ins_state = models.IntegerField(
-        "实例化状态", default=InsState.NO_INS.value, choices=InsState.get_choices())
+        _("实例化状态"), default=InsState.NO_INS.value, choices=InsState.get_choices())
 
-    name = models.CharField(u"名称", max_length=255, default='')
+    name = models.CharField(_("名称"), max_length=255, default='')
     # 添加一个字段用于记录滚动升级前的配置信息
-    last_config = models.TextField("滚动升级前的配置", default='', help_text='json格式')
+    last_config = models.TextField(_("滚动升级前的配置"), default='', help_text=_('json格式'))
     # 保存变量信息
-    variables = models.TextField(u"变量", default='{}')
+    variables = models.TextField(_("变量"), default='{}')
 
     def save(self, *args, **kwargs):
         # 保存时,name字段单独保存
@@ -130,20 +132,20 @@ class MetricConfig(BaseModel):
     category_choice = (
         ('metric', u"Metric"),
     )
-    instance_id = models.IntegerField(u"关联的 VersionInstance ID")
-    namespace = models.CharField(u"命名空间ID", max_length=32)
+    instance_id = models.IntegerField(_("关联的 VersionInstance ID"))
+    namespace = models.CharField(_("命名空间ID"), max_length=32)
     category = models.CharField(
-        u"资源类型", max_length=32, choices=category_choice)
-    config = models.TextField(u"配置文件", help_text='json格式数据')
-    is_bcs_success = models.BooleanField(u"调用BCS API 是否成功", default=True)
-    name = models.CharField(u"名称", max_length=32, default='')
+        _("资源类型"), max_length=32, choices=category_choice)
+    config = models.TextField(_("配置文件"), help_text=_('json格式数据'))
+    is_bcs_success = models.BooleanField(_("调用BCS API 是否成功"), default=True)
+    name = models.CharField(_("名称"), max_length=32, default='')
 
     # 关联ID, 没有取名metric_id
-    ref_id = models.IntegerField("关联ID", null=True, default=None)
+    ref_id = models.IntegerField(_("关联ID"), null=True, default=None)
     ins_state = models.IntegerField(
-        "实例化状态", default=InsState.NO_INS.value, choices=InsState.get_choices())
+        _("实例化状态"), default=InsState.NO_INS.value, choices=InsState.get_choices())
     # 保存变量信息
-    variables = models.TextField(u"变量", default='{}')
+    variables = models.TextField(_("变量"), default='{}')
 
     def save(self, *args, **kwargs):
         # 保存时,name字段单独保存
@@ -178,14 +180,14 @@ class InstanceEvent(BaseModel):
     )
 
     # 实例化的ID instance_versioninstance
-    instance_id = models.IntegerField("关联的 VersionInstance ID")
-    instance_config_id = models.IntegerField("资源ID")  # 对应InstanceConfig中的ID
-    category = models.CharField("资源类型", max_length=32, choices=category_choice)
+    instance_id = models.IntegerField(_("关联的 VersionInstance ID"))
+    instance_config_id = models.IntegerField(_("资源ID"))  # 对应InstanceConfig中的ID
+    category = models.CharField(_("资源类型"), max_length=32, choices=category_choice)
 
-    msg_type = models.IntegerField("消息类型", choices=EventType.get_choices())
-    msg = models.TextField("消息")
+    msg_type = models.IntegerField(_("消息类型"), choices=EventType.get_choices())
+    msg = models.TextField(_("消息"))
 
-    resp_snapshot = models.TextField("返回快照")
+    resp_snapshot = models.TextField(_("返回快照"))
 
     @classmethod
     def log(cls, instance_config_id, category, msg_type, result, context):

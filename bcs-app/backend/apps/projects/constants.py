@@ -12,6 +12,8 @@
 # specific language governing permissions and limitations under the License.
 #
 from enum import Enum
+from django.utils.translation import ugettext as _
+
 from backend.utils.basic import ChoicesEnum
 
 # 管理员标示
@@ -48,11 +50,11 @@ class PolicyEffect(Enum):
     DISABLED = 2
 
 
-PolicyLabelOrdering = ["容器服务", "仓库管理", "项目管理"]
+PolicyLabelOrdering = [_("容器服务"), _("仓库管理"), _("项目管理")]
 
 PolicyOrdering = {
-    'jfrog': ["prod环境拉取", "prod环境推送", "test环境拉取", "test环境推送", "dev环境拉取", "dev环境推送"],
-    'paas_backend': ["集群管理", "节点管理", "应用管理", "网络管理", "仓库管理", "资源管理"],
+    'jfrog': [_("prod环境拉取"), _("prod环境推送"), _("test环境拉取"), _("test环境推送"), _("dev环境拉取"), _("dev环境推送")],
+    'paas_backend': [_("集群管理"), _("节点管理"), _("应用管理"), _("网络管理"), _("仓库管理"), _("资源管理")],
     'apigw': []
 }
 
@@ -67,10 +69,10 @@ class StaffInfoStatus(ChoicesEnum):
     NOT_ENTRY = 9
 
     _choices_labels = (
-        (NORMAL, "正常"),
-        (INCUMBENCY, "在职"),  # 现在都返回显示正常
-        (RESIGN, "已离职"),
-        (TRIAL, "试用"),
-        (WAITING_ENTRY, "待入职"),
-        (NOT_ENTRY, "待入职")
+        (NORMAL, _("正常")),
+        (INCUMBENCY, _("在职")),  # 现在都返回显示正常
+        (RESIGN, _("已离职")),
+        (TRIAL, _("试用")),
+        (WAITING_ENTRY, _("待入职")),
+        (NOT_ENTRY, _("待入职"))
     )

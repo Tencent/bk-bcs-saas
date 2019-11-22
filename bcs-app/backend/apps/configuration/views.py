@@ -21,6 +21,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.exceptions import ValidationError
 from rest_framework.renderers import BrowsableAPIRenderer
+from django.utils.translation import ugettext as _
 
 from backend.accounts import bcs_perm
 from backend.apps.configuration.models import Template, VersionedEntity, get_default_version, \
@@ -112,7 +113,7 @@ class CreateTemplateDraftView(APIView, TemplatePermission):
             resource=template.name,
             resource_id=template.id,
             extra=json.dumps(validated_data),
-            description="保存草稿"
+            description=_("保存草稿")
         ).log_modify()
 
         return Response({
@@ -272,7 +273,7 @@ class LockTemplateView(viewsets.ViewSet, TemplatePermission):
                 resource_type="template",
                 resource=template.name,
                 resource_id=template_id,
-                description="加锁模板集"
+                description=_("加锁模板集")
         ).log_add():
             template.is_locked = True
             template.locker = request.user.username
@@ -289,7 +290,7 @@ class LockTemplateView(viewsets.ViewSet, TemplatePermission):
                 resource_type="template",
                 resource=template.name,
                 resource_id=template_id,
-                description="解锁模板集"
+                description=_("解锁模板集")
         ).log_delete():
             template.is_locked = False
             template.locker = ''
@@ -351,7 +352,7 @@ class SingleTempalteView(generics.RetrieveUpdateDestroyAPIView):
             resource=instance.name,
             resource_id=instance.id,
             extra=json.dumps(serializer.data),
-            description=u"更新模板集"
+            description=_("更新模板集")
         ).log_modify()
         # 同步模板集名称到权限中心
         self.perm.update_name(instance.name)
@@ -376,7 +377,11 @@ class SingleTempalteView(generics.RetrieveUpdateDestroyAPIView):
             name=new_template_name, project_id=project_id).exists()
         if is_exist:
             detail = {
-                'field': [u"模板集名称[%s]已经存在" % new_template_name]
+                'field': ['{prefix_msg}[{tmpl_name}]{suffix_msg}'.format(
+                    prefix_msg=_("模板集名称"),
+                    tmpl_name=new_template_name,
+                    suffix_msg=_("已经存在")
+                )]
             }
             raise ValidationError(detail=detail)
 
@@ -424,7 +429,7 @@ class SingleTempalteView(generics.RetrieveUpdateDestroyAPIView):
         if exist_version:
             return Response({
                 "code": 400,
-                "message": "模板集已经被实例化过，不能被删除",
+                "message": _("模板集已经被实例化过，不能被删除"),
                 "data": {}
             })
         instance = self.get_queryset().first()
@@ -434,7 +439,7 @@ class SingleTempalteView(generics.RetrieveUpdateDestroyAPIView):
                 resource_type="template",
                 resource=instance.name,
                 resource_id=instance.id,
-                description=u"删除模板集"
+                description=_("删除模板集")
         ).log_delete():
             # 删除后名称添加 [deleted]前缀
             _del_prefix = '[deleted_%s]' % int(time.time())
@@ -475,14 +480,18 @@ class SingleTempalteView(generics.RetrieveUpdateDestroyAPIView):
             name=new_template_name, project_id=project_id).exists()
         if is_exist:
             detail = {
-                'field': [u"模板集名称[%s]已经存在" % new_template_name]
+                'field': ['{prefix_msg}[{tmpl_name}]{suffix_msg}'.format(
+                    prefix_msg=_("模板集名称"),
+                    tmpl_name=new_template_name,
+                    suffix_msg=_("已经存在")
+                )]
             }
             raise ValidationError(detail=detail)
         # 验证 old模板集id 是否正确
         old_tems = self.get_queryset()
         if not old_tems.exists():
             detail = {
-                'field': [u"要复制的模板集不存在"]
+                'field': [_("要复制的模板集不存在")]
             }
             raise ValidationError(detail=detail)
         old_tem = old_tems.first()
@@ -499,7 +508,7 @@ class SingleTempalteView(generics.RetrieveUpdateDestroyAPIView):
             resource_type="template",
             resource=new_template_name,
             resource_id=template_id,
-            description=u"复制模板集"
+            description=_("复制模板集")
         ).log_add()
         return Response({
             "code": 0,

@@ -13,6 +13,8 @@
 #
 import logging
 
+from django.utils.translation import ugettext as _
+
 from backend.components import cc
 from backend.apps.depot.api import create_project_path_by_api
 from backend.apps.configuration.init_data import init_template
@@ -55,6 +57,7 @@ def update_bcs_service_for_project(request, project_id, data):
     )
     # helm handler
     BaseDriver(expected_kind).driver.backend_create_helm_info(project_id)
-
-    notify_manager.delay(
-        f"用户[{request.user.username}]在项目[{request.project.project_name}]下启用了容器服务，请关注")
+    notify_manager.delay('{prefix_msg}[{username}]{project}{project_name}{suffix_msg}'.format(
+        prefix_msg=_("用户"), username=request.user.username, project=_("在项目"),
+        project_name=request.project.project_name, suffix_msg=_("下启用了容器服务，请关注")
+    ))

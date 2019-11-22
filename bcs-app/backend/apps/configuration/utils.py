@@ -20,6 +20,7 @@ import re
 from collections import Counter
 
 from rest_framework.exceptions import ValidationError
+from django.utils.translation import ugettext as _
 
 from .constants import RESOURCE_NAMES
 from backend.apps.configuration.constants import NUM_VAR_ERROR_MSG, VARIABLE_PATTERN, TemplateEditMode
@@ -149,24 +150,30 @@ def check_var_by_config(config):
     search_keys = set(search_list)
     for _key in search_keys:
         if not REAL_NUM_VAR_PATTERN.match(_key):
-            raise ValidationError(u"变量[%s]不合法，%s" % (_key, NUM_VAR_ERROR_MSG))
+            raise ValidationError('{prefix_msg}[{key}]{suffix_msg}, {e}'.format(
+                prefix_msg=_("变量"), key=_key, suffix_msg=_("不合法"), e=NUM_VAR_ERROR_MSG
+            ))
     return list(search_keys)
 
 
 def validate_resource_name(resource_name):
     if resource_name not in RESOURCE_NAMES:
-        raise ResNotFoundError(f"资源{resource_name}不存在")
+        raise ResNotFoundError('{prefix_msg}{resource_name}{suffix_msg}'.format(
+            prefix_msg=_("资源"), resource_name=resource_name, suffix_msg=_("不存在")
+        ))
 
 
 def validate_template_locked(template, username):
     locker = template.locker
     if template.is_locked and locker != username:
-        raise ValidationError(f"{locker}正在操作，您如需操作请联系{locker}解锁")
+        raise ValidationError('{locker}{prefix_msg}{locker}{suffix_msg}'.format(
+            locker=locker, prefix_msg=_("正在操作，您如需操作请联系"), suffix_msg=_("解锁")
+        ))
 
 
 def create_template(username, project_id, tpl_args):
     if not tpl_args:
-        raise ValidationError("请先创建模板集")
+        raise ValidationError(_("请先创建模板集"))
 
     tpl_args['project_id'] = project_id
     serializer = CreateTemplateSLZ(data=tpl_args)
@@ -180,7 +187,7 @@ def create_template(username, project_id, tpl_args):
         resource=tpl_args['name'],
         resource_id=template.id,
         extra=json.dumps(tpl_args),
-        description="创建模板集"
+        description=_("创建模板集")
     ).log_add()
     return template
 
@@ -197,7 +204,7 @@ def update_template(username, template, tpl_args):
         resource=template.name,
         resource_id=template.id,
         extra=json.dumps(serializer.data),
-        description="更新模板集"
+        description=_("更新模板集")
     ).log_modify()
     return template
 

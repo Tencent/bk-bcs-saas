@@ -13,6 +13,7 @@
 #
 from celery import shared_task
 from django.conf import settings
+from django.utils.translation import ugettext as _
 
 from backend.components.op import notify_project_to_op
 from backend.utils.send_msg import send_message
@@ -27,8 +28,8 @@ def notify_project_to_op_task(access_token, data):
     resp = notify_project_to_op(access_token, data)
     if resp.get("code") == DEFAULT_OP_SUCCESS_CODE:
         return
-    title = f"【{settings.PLAT_SHOW_NAME}】项目信息变更通知失败"
-    message = "异常信息: %s" % (resp.get("message") or "调用OP系统接口失败!")
+    title = f"[{settings.PLAT_SHOW_NAME}]{_('项目信息变更通知失败')}"
+    message = f"{_('异常信息')}: {resp.get('message')}"
 
     send_message(DEFAULT_OP_MAINTAINERS, title + message, title=None, send_way='wx')
     send_message(DEFAULT_OP_MAINTAINERS, message, title=title, send_way='rtx')

@@ -16,6 +16,7 @@ import re
 from django.conf import settings
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
+from django.utils.translation import ugettext as _
 
 from backend.apps.ticket.models import TlsCert
 
@@ -44,7 +45,7 @@ class TlsCertSlZ(serializers.Serializer):
         max_length=64,
         required=True,
         error_messages={
-            'invalid': '证书名称只能包含：英文大小写、数字、下划线和英文句号，最大长度为64个字符'
+            'invalid': _('证书名称只能包含：英文大小写、数字、下划线和英文句号，最大长度为64个字符')
         }
     )
     cert = serializers.CharField(required=True)
@@ -58,12 +59,12 @@ class TlsCertSlZ(serializers.Serializer):
 
         is_exist = groups.filter(name=name, project_id=self.context['project_id']).exists()
         if is_exist:
-            raise ValidationError(f'证书名称[{name}]已经存在')
+            raise ValidationError('{}[{}]{}'.format(_("证书名称"), name, _("已经存在")))
 
         return name
 
     def validate(self, data):
         if not settings.IS_USE_BCS_TLS:
-            raise ValidationError('容器服务TLS服务未开放')
+            raise ValidationError(_('容器服务TLS服务未开放'))
 
         return data

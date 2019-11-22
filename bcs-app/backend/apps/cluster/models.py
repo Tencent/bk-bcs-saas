@@ -13,7 +13,9 @@
 #
 import json
 import logging
+
 from django.db import models
+from django.utils.translation import ugettext as _
 
 from backend.apps.configuration.models import BaseModel
 
@@ -141,12 +143,12 @@ class GcloudPollingTask(models.Model):
 
 class ClusterInstallLog(GcloudPollingTask):
     OPER_TYPE = (
-        ("initialize", "初始化集群"),
-        ("reinstall", "重新初始化集群"),
-        ("initial_check", "前置检查"),
-        ("removing", "删除集群"),
-        ("so_initial", "SO 机器初始化"),
-        ("remove", "删除集群"),
+        ("initialize", _("初始化集群")),
+        ("reinstall", _("重新初始化集群")),
+        ("initial_check", _("前置检查")),
+        ("removing", _("删除集群")),
+        ("so_initial", _("SO 机器初始化")),
+        ("remove", _("删除集群")),
     )
     status = models.CharField(max_length=32, null=True, blank=True)
     oper_type = models.CharField(max_length=16, choices=OPER_TYPE, default="initialize")
@@ -183,15 +185,15 @@ class ClusterInstallLog(GcloudPollingTask):
 
 class NodeUpdateLog(GcloudPollingTask):
     OPER_TYPE = (
-        ("initialize", "初始化节点"),
-        ("reinstall", "重新初始化节点"),
-        ("removing", "删除节点"),
-        ("initial_check", "前置检查"),
-        ("so_initial", "SO 机器初始化"),
-        ("bke_install", "安装BKE"),
-        ("remove", "删除节点"),
-        ('bind_lb', "绑定LB"),
-        ('init_env', "初始化环境")
+        ("initialize", _("初始化节点")),
+        ("reinstall", _("重新初始化节点")),
+        ("removing", _("删除节点")),
+        ("initial_check", _("前置检查")),
+        ("so_initial", _("SO 机器初始化")),
+        ("bke_install", _("安装BKE")),
+        ("remove", _("删除节点")),
+        ('bind_lb', _("绑定LB")),
+        ('init_env', _("初始化环境"))
     )
     # node_id = models.CharField(max_length=32)
     node_id = models.TextField()
@@ -248,8 +250,8 @@ def log_factory(log_type):
 
 
 class NodeLabel(BaseModel):
-    project_id = models.CharField("项目ID", max_length=32)
-    cluster_id = models.CharField("集群ID", max_length=32)
+    project_id = models.CharField(_("项目ID"), max_length=32)
+    cluster_id = models.CharField(_("集群ID"), max_length=32)
     node_id = models.IntegerField()
     labels = models.TextField()
 

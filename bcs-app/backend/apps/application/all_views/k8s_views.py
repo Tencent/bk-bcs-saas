@@ -16,6 +16,8 @@ import logging
 import copy
 from datetime import datetime
 
+from django.utils.translation import ugettext as _
+
 from backend.apps.instance.models import (
     VersionInstance, InstanceConfig, InstanceEvent, MetricConfig
 )
@@ -201,9 +203,9 @@ class GetInstances(object):
                 "create_at": info.created,
                 "update_at": info.updated,
                 "backend_status": backend_status,
-                "backend_status_message": u"请求失败，已通知管理员!",
+                "backend_status_message": _("请求失败，已通知管理员!"),
                 "status": "Unready",
-                "status_message": "请点击查看详情",
+                "status_message": _("请点击查看详情"),
                 "creator": info.creator,
                 "category": REVERSE_CATEGORY_MAP[info.category],
                 "oper_type": info.oper_type,
@@ -272,7 +274,7 @@ class GetInstances(object):
             annotations = getitems(info, ['data', 'metadata', 'annotations'], default={})
             ret_data[curr_key] = {
                 'backend_status': 'BackendNormal',
-                'backend_status_message': '请求失败，已通知管理员!',
+                'backend_status_message': _('请求失败，已通知管理员!'),
                 'category': resource_name,
                 'pod_count': f'{available}/{replicas}',
                 'build_instance': available,

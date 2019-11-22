@@ -18,6 +18,7 @@ from datetime import datetime, timedelta
 
 from django.conf import settings
 from celery import shared_task
+from django.utils.translation import ugettext as _
 
 from backend.components.bcs import mesos, k8s
 from backend.utils.errcodes import ErrorCode
@@ -140,8 +141,8 @@ def application_polling_task(
         update_instance_record_status(info, "rebuild", status="Error", is_bcs_success=False)
         # 记录失败事件
         conf_instance_id = conf.get("metadata", {}).get("labels", {}).get("io.tencent.paas.instanceid")
-        err_msg = resp.get("message") or u"实例化失败，已通知管理员!"
-        logger.error(u"实例化失败, 实例ID: %s, 详细:%s" % (inst_id, err_msg))
+        err_msg = resp.get("message") or _("实例化失败，已通知管理员!")
+        logger.error("实例化失败, 实例ID: %s, 详细:%s" % (inst_id, err_msg))
         try:
             InstanceEvent(
                 instance_config_id=inst_id,

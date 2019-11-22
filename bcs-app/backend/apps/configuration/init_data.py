@@ -18,6 +18,7 @@ import logging
 from django.utils import timezone
 from django.db import transaction
 from celery import shared_task
+from django.utils.translation import ugettext as _
 
 from backend.apps.constants import ClusterType
 from backend.accounts import bcs_perm
@@ -29,8 +30,8 @@ from backend.utils.basic import RequestClass
 
 logger = logging.getLogger(__name__)
 
-TEMPLATE_NAME = "示例模板集"
-TEMPLATE_DESC = "这是一款开源的吃豆游戏的配置模板集，您可以通过这个示例来熟悉微服务架构下系统的配置、发布、变更过程"
+TEMPLATE_NAME = _("示例模板集")
+TEMPLATE_DESC = _("这是一款开源的吃豆游戏的配置模板集，您可以通过这个示例来熟悉微服务架构下系统的配置、发布、变更过程")
 
 
 def _delete_old_init_templates(template_qsets, project_id, project_code, access_token, username):

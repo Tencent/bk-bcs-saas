@@ -16,6 +16,7 @@ from typing import Union
 from django.http import JsonResponse
 from rest_framework.response import Response
 from dataclasses import dataclass
+from django.utils.translation import ugettext as _
 
 from backend.utils.local import local
 
@@ -28,7 +29,7 @@ class APIResult(JsonResponse):
     """
 
     def __init__(self, data, message='', permissions=None):
-        assert isinstance(data, (list, dict)), "data必须是list或者dict类型"
+        assert isinstance(data, (list, dict)), _("data必须是list或者dict类型")
 
         result = {
             'code': 0,
@@ -56,7 +57,7 @@ class APIForbiddenResult(JsonResponse):
     """
 
     def __init__(self, data, message=''):
-        assert isinstance(data, (list, dict)), "data必须是list或者dict类型"
+        assert isinstance(data, (list, dict)), _("data必须是list或者dict类型")
 
         result = {'code': 403, 'data': data, 'message': message}
         return super(APIForbiddenResult, self).__init__(result)
@@ -69,7 +70,7 @@ class ResNotFoundResult(JsonResponse):
     """
 
     def __init__(self, data, message=''):
-        assert isinstance(data, (list, dict)), "data必须是list或者dict类型"
+        assert isinstance(data, (list, dict)), _("data必须是list或者dict类型")
 
         result = {'code': 404, 'data': data, 'message': message}
         return super(ResNotFoundResult, self).__init__(result)
@@ -80,7 +81,7 @@ class BKAPIResponse(Response):
     """
 
     def __init__(self, data: Union[list, dict], message: str = '', permissions: Union[None, dict] = None):
-        assert isinstance(data, (list, dict)), "data必须是list或者dict类型"
+        assert isinstance(data, (list, dict)), _("data必须是list或者dict类型")
         self.message = message
         self.permissions = permissions
 

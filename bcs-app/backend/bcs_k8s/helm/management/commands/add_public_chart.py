@@ -16,6 +16,7 @@
 """
 
 from django.core.management.base import BaseCommand
+from django.utils.translation import ugettext as _
 
 from backend.accounts import bcs_perm
 from backend.components import paas_cc
@@ -27,7 +28,7 @@ class Command(BaseCommand):
     def get_client_access_token(self):
         access_token = bcs_perm.get_access_token().get('access_token')
         if not access_token:
-            self.stdout.write("获取access_token失败")
+            self.stdout.write(_("获取access_token失败"))
             return
         return access_token
 
@@ -58,4 +59,4 @@ class Command(BaseCommand):
             for project_id in project_id_list:
                 repo_provider.add_platform_public_repos(project_id)
         except Exception as err:
-            self.stdout.write("创建项目公共chart失败，详细信息: %s" % err)
+            self.stdout.write(f"{_('创建项目公共chart失败，详细信息')}: {err}")

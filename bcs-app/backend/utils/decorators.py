@@ -19,6 +19,7 @@ from functools import wraps
 import six
 from django.utils.encoding import force_str
 from requests.models import Response
+from django.utils.translation import ugettext as _
 
 from backend.utils.exceptions import ComponentError
 
@@ -51,7 +52,7 @@ def requests_curl_log(resp, st):
     """记录requests curl log
     """
     if not isinstance(resp, Response):
-        raise ValueError("返回值【%s】必须是Respose对象" % resp)
+        raise ValueError(f"{_('返回值')}【{resp}】{_('必须是Respose对象')}")
 
     # 添加日志信息
     curl_req = "REQ: curl -X {method} '{url}'".format(method=resp.request.method, url=resp.request.url)
@@ -106,7 +107,7 @@ def response(f=None):
                 elif isinstance(resp, six.string_types):
                     content = resp
                 else:
-                    raise ValueError(u"返回值【%s】必须是字符串或者Respose对象" % resp)
+                    raise ValueError(f"{_('返回值')}【{resp}】{_('必须是字符串或者Respose对象')}")
 
                 # 解析格式
                 err_msg = kwargs.get('err_msg', None)

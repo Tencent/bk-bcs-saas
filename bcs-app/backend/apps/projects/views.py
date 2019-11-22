@@ -18,6 +18,7 @@ from rest_framework import viewsets
 from rest_framework.renderers import BrowsableAPIRenderer
 from rest_framework.response import Response
 from django.conf import settings
+from django.utils.translation import ugettext as _
 
 from backend.activity_log import client
 from backend.apps import constants as app_constants
@@ -145,7 +146,7 @@ class Projects(viewsets.ViewSet):
         """更新项目信息
         """
         if not self.can_edit(request, project_id):
-            raise error_codes.CheckFailed("请确认有项目管理员权限，并且项目下无集群", replace=True)
+            raise error_codes.CheckFailed(_("请确认有项目管理员权限，并且项目下无集群"))
         data = self.validate_update_project_data(request)
         access_token = request.user.token.access_token
         data['updator'] = request.user.username
@@ -157,12 +158,12 @@ class Projects(viewsets.ViewSet):
             resource_type='project',
             resource=request.project.project_name,
             resource_id=project_id,
-            description="更新项目: %s" % request.project.project_name,
+            description='{}: {}'.format(_("更新项目"), request.project.project_name)
         )
         project = paas_cc.update_project_new(access_token, project_id, data)
         if project.get('code') != 0:
             ual_client.log_modify(activity_status='failed')
-            raise error_codes.APIError(project.get('message', "更新项目成功"))
+            raise error_codes.APIError(project.get('message', _("更新项目成功")))
         ual_client.log_modify(activity_status='succeed')
         project_data = project.get('data')
         if project_data:

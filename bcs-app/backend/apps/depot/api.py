@@ -14,6 +14,8 @@
 import base64
 import logging
 
+from django.utils.translation import ugettext as _
+
 from backend.utils.error_codes import error_codes, bk_error_codes
 from backend.components.enterprise.harbor import HarborClient
 
@@ -30,7 +32,8 @@ def get_jfrog_account(access_token, project_code, project_id, is_bk=False):
 
     # api调用失败
     if resp.get('code') != 0:
-        error_message = ('%s, %s' % (bk_error_codes.DepotError("创建项目仓库账号失败"), resp.get('message', '')))
+        message = bk_error_codes.DepotError(_("创建项目仓库账号失败"))
+        error_message = f'{message}, {resp.get("message", "")}'
         logger.error(error_message)
         raise error_codes.ComponentError(error_message)
 
@@ -54,14 +57,14 @@ def upload_image_api(request, project_id, image_data):
     上传镜像
     TODO: API 暂未提供该功能
     """
-    raise error_codes.NotOpen("上传镜像功能正在建设中")
+    raise error_codes.NotOpen(_("上传镜像功能正在建设中"))
 
 
 def get_upload_status_api(request, project_id, task_id):
     """查询上传状态
     TODO: API 暂未提供该功能
     """
-    raise error_codes.NotOpen("上传镜像功能正在建设中")
+    raise error_codes.NotOpen(_("上传镜像功能正在建设中"))
 
 
 def trans_paging_query(query):

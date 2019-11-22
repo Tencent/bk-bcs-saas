@@ -20,6 +20,7 @@ from django.conf import settings
 from django.utils.functional import cached_property
 from kubernetes import client
 from kubernetes.client.rest import ApiException
+from django.utils.translation import ugettext as _
 
 from backend.components.bcs import BCSClientBase
 from backend.components.utils import http_delete, http_get, http_patch, http_post, http_put
@@ -141,7 +142,7 @@ class K8SClient(BCSClientBase):
         """
         ip_data = self.get_hostname_by_ip(ips=[ip])
         if not ip_data or not ip_data.get(ip):
-            return {"code": ErrorCode.UnknownError, "message": u"没有查询到IP对应的hostname"}
+            return {"code": ErrorCode.UnknownError, "message": _("没有查询到IP对应的hostname")}
         url = '{host}/nodes/{name}'.format(
             host=self.scheduler_host, name=ip_data[ip]
         )
@@ -156,7 +157,7 @@ class K8SClient(BCSClientBase):
         """
         ip_data = self.get_hostname_by_ip(ips=[ip])
         if not ip_data:
-            return {"code": ErrorCode.UnknownError, "message": u"没有查询到IP对应的hostname"}
+            return {"code": ErrorCode.UnknownError, "message": _("没有查询到IP对应的hostname")}
         url = '{host}/nodes/{name}'.format(
             host=self.scheduler_host, name=ip_data[ip]
         )
@@ -375,7 +376,7 @@ class K8SClient(BCSClientBase):
         """
         ip_data = self.get_hostname_by_ip(ips=[ip])
         if not ip_data or not ip_data.get(ip):
-            return {"code": ErrorCode.UnknownError, "message": u"没有查询到IP对应的hostname"}
+            return {"code": ErrorCode.UnknownError, "message": _("没有查询到IP对应的hostname")}
         url = '{host}/nodes/{name}'.format(
             host=self.scheduler_host, name=ip_data[ip]
         )
@@ -390,7 +391,7 @@ class K8SClient(BCSClientBase):
         """
         ip_data = self.get_hostname_by_ip(ips=[ip])
         if not ip_data or not ip_data.get(ip):
-            return {"code": ErrorCode.UnknownError, "message": u"没有查询到IP对应的hostname"}
+            return {"code": ErrorCode.UnknownError, "message": _("没有查询到IP对应的hostname")}
         url = '{host}/nodes/{name}'.format(
             host=self.scheduler_host, name=ip_data[ip]
         )
