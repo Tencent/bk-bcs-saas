@@ -14,7 +14,7 @@
 from backend.apps.instance.resources import BCSResource
 from backend.apps.instance.resources import utils
 
-SUPPORTED_HEALTH_CHECKS = ['HTTP', 'REMOTE_HTTP', 'TCP', 'REMOTE_TCP']
+SUPPORTED_HEALTH_CHECKS = ['HTTP', 'REMOTE_HTTP', 'TCP', 'REMOTE_TCP', 'COMMAND']
 
 
 class Pod(BCSResource):

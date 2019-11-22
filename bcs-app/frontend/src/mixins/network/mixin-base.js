@@ -134,7 +134,7 @@ export default {
 
                 this.$bkMessage({
                     theme: 'success',
-                    message: '删除成功！'
+                    message: this.$t('删除成功')
                 })
                 this.initPageConf()
                 this.getServiceList()

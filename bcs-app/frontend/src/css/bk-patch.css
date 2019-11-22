@@ -1071,7 +1071,7 @@
 
 .bk-tooltip-inner {
     white-space: normal;
-    word-break: break-all;
+    word-break: normal;
     word-wrap: break-word;
 }
 

@@ -867,6 +867,7 @@ msgstr "Memory usage"
 msgid "删除HPA资源失败"
 msgstr "Failed to delete HPA resources"
 
+<<<<<<< HEAD
 #: backend/apps/instance/constants.py:430 backend/utils/error_codes.py:131
 msgid "请求失败"
 msgstr "Request failed"
@@ -1565,6 +1566,11 @@ msgstr "Can be referenced directly in Chart"
 msgid "更加方便, [详细说明]"
 msgstr "More convenient, [detailed]"
 
+
+#: backend/apps/instance/utils.py:184
+msgid "当前实例化包含HPA资源，{}"
+msgstr "The current instantiation contains HPA resources, {}"
+
 #: backend/bcs_k8s/authtoken/authentication.py:32
 msgid "Invalid token header. No credentials provided."
 msgstr "Invalid token header. No credentials provided."
@@ -1704,6 +1710,7 @@ msgstr ""
 "The business associated with this project is incorrect. Please confirm and "
 "try again"
 
+<<<<<<< HEAD
 #: backend/components/cc.py:154 backend/utils/cc.py:34
 msgid "查询项目信息为空"
 msgstr "Query project information is empty"
