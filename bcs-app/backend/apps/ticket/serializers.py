@@ -59,7 +59,7 @@ class TlsCertSlZ(serializers.Serializer):
 
         is_exist = groups.filter(name=name, project_id=self.context['project_id']).exists()
         if is_exist:
-            raise ValidationError(f'{_("证书名称")}[{name}]{_("已经存在")}')
+            raise ValidationError('{}[{}]{}'.format(_("证书名称"), name, _("已经存在")))
 
         return name
 

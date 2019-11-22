@@ -48,7 +48,12 @@ def check_resource_name(resource_name, data, name):
             result = models.Template.check_resource_name(
                 data['project_id'], resource_name, data['resource_id'], name, data['version_id'])
         if not result:
-            raise ValidationError(f"{resource_name}{_('名称')}:{name}{_('已经在项目模板中被占用,请重新填写')}")
+            raise ValidationError('{resource_name}{prefix_msg}:{name}{suffix_msg}'.format(
+                resource_name=resource_name,
+                prefix_msg=_("名称"),
+                name=name,
+                suffix_msg=_("已经在项目模板中被占用,请重新填写")
+            ))
     return data
 
 
@@ -65,14 +70,21 @@ def check_app_id(data, data_app_id):
     try:
         version_entity = models.VersionedEntity.objects.get(id=data['version_id'])
     except Exception:
-        raise ValidationError(f"{_('模板集版本')}(id:{data['version_id']}){_('不存在')}")
+        raise ValidationError('{prefix_msg}id:{version_id}{suffix_msg}'.format(
+            prefix_msg=_("模板集版本"),
+            version_id=data['version_id'],
+            suffix_msg=_("不存在")
+        ))
 
     app_list = version_entity.get_mesos_apps()
     app_id_list = [app.get('app_id') for app in app_list]
 
     if not set(req_app_id_list).issubset(set(app_id_list)):
-        raise ValidationError(
-            f"{_('关联的')} Application (app_id: {data_app_id}) {_('不合法')}")
+        raise ValidationError('{prefix_msg}Application (app_id:{data_app_id}){suffix_msg}'.format(
+            prefix_msg=_("关联的"),
+            version_id=data_app_id,
+            suffix_msg=_("不合法")
+        ))
     return data
 
 
@@ -209,7 +221,11 @@ class TemplateCreateSLZ(serializers.Serializer):
             name=data['name'], project_id=data['project_id']).exists()
         if is_exist:
             detail = {
-                'field': [f"{_('模板集名称')}[{data['name']}]{_('已经存在')}"]
+                'field': ["{prefix_msg}[{name}]{suffix_msg}".format(
+                    prefix_msg=_("模板集名称"),
+                    name=data['name'],
+                    suffix_msg=_("已经存在")
+                )]
             }
             raise ValidationError(detail=detail)
         return data
@@ -244,9 +260,13 @@ class ServiceCreateOrUpdateSLZ(serializers.Serializer):
             try:
                 json_validate(config, SERVICE_SCHEM)
             except JsonValidationError as e:
-                raise ValidationError(f"Service {_('配置信息格式错误')}:{e.message}")
+                raise ValidationError('Service {prefix_msg}{e}'.format(
+                    prefix_msg=_("配置信息格式错误"), e=e.message
+                ))
             except SchemaError as e:
-                raise ValidationError(f"Service {_('配置信息格式错误')}:{e}")
+                raise ValidationError('Service {prefix_msg}{e}'.format(
+                    prefix_msg=_("配置信息格式错误"), e=e
+                ))
 
         return json.dumps(config)
 
@@ -291,15 +311,19 @@ class ConfigMapCreateOrUpdateSLZ(serializers.Serializer):
         name = config.get('metadata', {}).get('name') or ""
         if not RE_NAME.match(name):
             raise ValidationError(
-                _("ConfigMap 名称格式错误，只能包含：小写字母、数字、连字符(-)，首字母必须是字母，长度小于256个字符"))
+                _("ConfigMap 名称格式错误，只能包含：小写字母、数字、中划线(-)，首字母必须是字母，长度小于256个字符"))
 
         if settings.IS_TEMPLATE_VALIDATE:
             try:
                 json_validate(config, CONFIGMAP_SCHEM)
             except JsonValidationError as e:
-                raise ValidationError(f"ConfigMap {_('配置信息格式错误')}:{e.message}")
+                raise ValidationError('ConfigMap {prefix_msg}{e}'.format(
+                    prefix_msg=_("配置信息格式错误"), e=e.message
+                ))
             except SchemaError as e:
-                raise ValidationError(f"ConfigMap {_('配置信息格式错误')}:{e}")
+                raise ValidationError('ConfigMap {prefix_msg}{e}'.format(
+                    prefix_msg=_("配置信息格式错误"), e=e
+                ))
 
         return json.dumps(config)
 
@@ -326,15 +350,19 @@ class SecretCreateOrUpdateSLZ(serializers.Serializer):
         name = config.get('metadata', {}).get('name') or ""
         if not RE_NAME.match(name):
             raise ValidationError(
-                _("Secret 名称格式错误，只能包含：小写字母、数字、连字符(-)，首字母必须是字母，长度小于256个字符"))
+                _("Secret 名称格式错误，只能包含：小写字母、数字、中划线(-)，首字母必须是字母，长度小于256个字符"))
 
         if settings.IS_TEMPLATE_VALIDATE:
             try:
                 json_validate(config, SECRET_SCHEM)
             except JsonValidationError as e:
-                raise ValidationError(f"Secret {_('配置信息格式错误')}:{e.message}")
+                raise ValidationError('Secret {prefix_msg}{e}'.format(
+                    prefix_msg=_("配置信息格式错误"), e=e.message
+                ))
             except SchemaError as e:
-                raise ValidationError(f"Secret {_('配置信息格式错误')}:{e}")
+                raise ValidationError('Secret {prefix_msg}{e}'.format(
+                    prefix_msg=_("配置信息格式错误"), e=e
+                ))
 
         return json.dumps(config)
 
@@ -347,7 +375,7 @@ class SecretCreateOrUpdateSLZ(serializers.Serializer):
 # ############################## k8s 相关资源
 K8S_RENAME = re.compile(
     r'^[a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*$')
-K8S_NAME_ERROR_MSG = _("名称格式错误，以小写字母或数字开头，只能包含：小写字母、数字、连字符(-)、点(.)")
+K8S_NAME_ERROR_MSG = _("名称格式错误，以小写字母或数字开头，只能包含：小写字母、数字、中划线(-)、点(.)")
 
 
 def check_k8s_deployment_id(data, deploy_tag_list):
@@ -392,9 +420,13 @@ class K8sServiceCreateOrUpdateSLZ(serializers.Serializer):
             try:
                 json_validate(config, K8S_SERVICE_SCHEM)
             except JsonValidationError as e:
-                raise ValidationError(f"Service {_('配置信息格式错误')}:{e.message}")
+                raise ValidationError('Service {prefix_msg}{e}'.format(
+                    prefix_msg=_("配置信息格式错误"), e=e.message
+                ))
             except SchemaError as e:
-                raise ValidationError(f"Service {_('配置信息格式错误')}:{e}")
+                raise ValidationError('Service {prefix_msg}{e}'.format(
+                    prefix_msg=_("配置信息格式错误"), e=e
+                ))
 
         return json.dumps(config)
 
@@ -446,9 +478,13 @@ class K8sConfigMapCreateOrUpdateSLZ(serializers.Serializer):
             try:
                 json_validate(config, K8S_CONFIGMAP_SCHEM)
             except JsonValidationError as e:
-                raise ValidationError(f"ConfigMap {_('配置信息格式错误')}:{e.message}")
+                raise ValidationError('ConfigMap {prefix_msg}{e}'.format(
+                    prefix_msg=_("配置信息格式错误"), e=e.message
+                ))
             except SchemaError as e:
-                raise ValidationError(f"ConfigMap {_('配置信息格式错误')}:{e}")
+                raise ValidationError('ConfigMap {prefix_msg}{e}'.format(
+                    prefix_msg=_("配置信息格式错误"), e=e
+                ))
 
         return json.dumps(config)
 
@@ -479,9 +515,13 @@ class K8sSecretCreateOrUpdateSLZ(serializers.Serializer):
             try:
                 json_validate(config, K8S_SECRET_SCHEM)
             except JsonValidationError as e:
-                raise ValidationError(f"Secret {_('配置信息格式错误')}:{e.message}")
+                raise ValidationError('Secret {prefix_msg}{e}'.format(
+                    prefix_msg=_("配置信息格式错误"), e=e.message
+                ))
             except SchemaError as e:
-                raise ValidationError(f"Secret {_('配置信息格式错误')}:{e}")
+                raise ValidationError('Secret {prefix_msg}{e}'.format(
+                    prefix_msg=_("配置信息格式错误"), e=e
+                ))
 
         return json.dumps(config)
 

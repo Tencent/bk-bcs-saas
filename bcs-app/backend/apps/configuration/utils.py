@@ -150,19 +150,25 @@ def check_var_by_config(config):
     search_keys = set(search_list)
     for _key in search_keys:
         if not REAL_NUM_VAR_PATTERN.match(_key):
-            raise ValidationError(f"{_('变量')}[{_key}]{_('不合法')}, {NUM_VAR_ERROR_MSG}")
+            raise ValidationError('{prefix_msg}[{key}]{suffix_msg}, {e}'.format(
+                prefix_msg=_("变量"), key=_key, suffix_msg=_("不合法"), e=NUM_VAR_ERROR_MSG
+            ))
     return list(search_keys)
 
 
 def validate_resource_name(resource_name):
     if resource_name not in RESOURCE_NAMES:
-        raise ResNotFoundError(f"{_('资源')}{resource_name}{_('不存在')}")
+        raise ResNotFoundError('{prefix_msg}{resource_name}{suffix_msg}'.format(
+            prefix_msg=_("资源"), resource_name=resource_name, suffix_msg=_("不存在")
+        ))
 
 
 def validate_template_locked(template, username):
     locker = template.locker
     if template.is_locked and locker != username:
-        raise ValidationError(f"{locker}{_('正在操作，您如需操作请联系')}{locker}{_('解锁')}")
+        raise ValidationError('{locker}{prefix_msg}{locker}{suffix_msg}'.format(
+            locker=locker, prefix_msg=_("正在操作，您如需操作请联系"), suffix_msg=_("解锁")
+        ))
 
 
 def create_template(username, project_id, tpl_args):

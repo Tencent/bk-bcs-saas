@@ -94,8 +94,9 @@ class CreateClusterSLZ(serializers.Serializer):
         # 检查是否被占用
         intersection = set(resp.keys()) & set(ip_list)
         if intersection:
-            raise ValidationError(f"IP: {(','.join(intersection))}{_('已经被占用，请重新选择节点')}")
-        return ip_list
+            raise ValidationError('IP: {ip_list}{suffix_msg}'.format(
+                ip_list=','.join(intersection), suffix_msg=_('已经被占用，请重新选择节点')
+            ))
 
     def validate_name(self, value):
         resp = paas_cc.verify_cluster_exist(
@@ -276,7 +277,7 @@ class MetricsSLZBase(serializers.Serializer):
             data['end_at'] = now
         # start_at must be less than end_at
         if data['end_at'] <= data['start_at']:
-            raise ValidationError('param[start_at] must be less than [end_at]')
+            raise ValidationError(_('param[start_at] must be less than [end_at]'))
         return data
 
 

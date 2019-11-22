@@ -377,7 +377,11 @@ class SingleTempalteView(generics.RetrieveUpdateDestroyAPIView):
             name=new_template_name, project_id=project_id).exists()
         if is_exist:
             detail = {
-                'field': [f"{_('模板集名称')}[{new_template_name}]{_('已经存在')}"]
+                'field': ['{prefix_msg}[{tmpl_name}]{suffix_msg}'.format(
+                    prefix_msg=_("模板集名称"),
+                    tmpl_name=new_template_name,
+                    suffix_msg=_("已经存在")
+                )]
             }
             raise ValidationError(detail=detail)
 
@@ -476,7 +480,11 @@ class SingleTempalteView(generics.RetrieveUpdateDestroyAPIView):
             name=new_template_name, project_id=project_id).exists()
         if is_exist:
             detail = {
-                'field': [f"{_('模板集名称')}[{new_template_name}]{_('已经存在')}"]
+                'field': ['{prefix_msg}[{tmpl_name}]{suffix_msg}'.format(
+                    prefix_msg=_("模板集名称"),
+                    tmpl_name=new_template_name,
+                    suffix_msg=_("已经存在")
+                )]
             }
             raise ValidationError(detail=detail)
         # 验证 old模板集id 是否正确

@@ -154,7 +154,12 @@ class ProfileGenerator:
             self.resource = MODULE_DICT.get(
                 self.resource_name).objects.get(id=self.resource_id)
         except Exception:
-            raise ValidationError(f"{_('参数')} {self.resource_name}(id:{self.resource_id}){_('不存在')}")
+            raise ValidationError('{prefix_msg}{res_name}(id:{res_id}){suffix_msg}'.format(
+                prefix_msg=_("参数"),
+                res_name=self.resource_name,
+                res_id=self.resource_id,
+                suffix_msg=_("不存在")
+            ))
         self.resource_show_name = self.resource.name
         orgin_db_config = self.resource.config
         # 将用户输入的配置文件内容中的变量替换, 预览时不替换由前端替换
@@ -165,7 +170,7 @@ class ProfileGenerator:
                     orgin_db_config, variable_dict)
             except Exception as e:
                 logger.exception(f"配置文件变量替换出错\nconfig:{orgin_db_config}\ncontext:{variable_dict}")
-                raise ValidationError(f"{_('配置文件中变量异常')}[{e}]")
+                raise ValidationError('{}[{}]'.format(_("配置文件中变量异常"), e))
 
         # 将用户的配置文件内容转成 json
         try:
@@ -193,7 +198,9 @@ class ProfileGenerator:
         resp = paas_cc.get_namespace(
             self.access_token, self.project_id, self.namespace_id)
         if resp.get('code') != 0:
-            raise ValidationError(f"{_('查询命名空间的信息出错')}(namespace_id:{self.namespace_id}):{resp.get('message')}")
+            raise ValidationError('{}(namespace_id:{}):{}'.format(
+                _("查询命名空间的信息出错"), self.namespace_id, resp.get('message')
+            ))
         data = resp.get('data')
         self.context['SYS_CLUSTER_ID'] = data.get('cluster_id')
         self.context['SYS_NAMESPACE'] = data.get('name')
@@ -223,8 +230,10 @@ class ProfileGenerator:
             if volume.get('type') != 'configMap':
                 continue
             if volume.get('is_exist') and namespace != volume.get('namespace'):
-                raise ValidationError(
-                    f"{_('实例化检查错误')}: {_('命名空间')}({namespace}){_('下无法关联')}configmap({volume.get('source')})")
+                raise ValidationError('{prefix_msg}: {ns}({ns_name}){msg}configmap{source}'.format(
+                    prefix_msg=_("实例化检查错误"), ns=_("命名空间"), ns_name=namespace,
+                    msg=_("下无法关联"), source=volume.get('source')
+                ))
 
     def get_config_profile(self):
         resource_config = self.get_resource_config()
@@ -242,7 +251,7 @@ class ProfileGenerator:
         except Exception as e:
             logger.exception(u"配置文件变量替换出错\nconfig:%s\ncontext:%s" %
                              (new_config, self.context))
-            raise ValidationError(f"{_('配置文件中变量异常')}[{e}]")
+            raise ValidationError('{}[{}]'.format(_("配置文件中变量异常"), e))
 
         config_profile = self.format_config_profile(config_profile)
         return config_profile
@@ -325,15 +334,28 @@ class ProfileGenerator:
                 crt_content = tls_cert.cert
                 key_content = tls_cert.key
             except Exception:
-                # raise ValidationError(f"Ingress[{ingress_name}]{_('中使用的')} TLS {_('证书')}(id:{cert_id}){_('不存在')}")
-                raise ValidationError(_(f"Ingres使用11[{ingress_name}]"))
+                raise ValidationError('Ingress{ingress_name}{prefix_msg} TLS {cert}(id:{cert_id}){suffix_msg}'.format(
+                    ingress_name=ingress_name,
+                    prefix_msg=_("中使用的"),
+                    cert=_("证书"),
+                    cert_id=cert_id,
+                    suffix_msg=_("不存在")
+                ))
         else:
             try:
                 client = TicketClient(self.project_id, project_code)
                 crt_content = client.get_tls_crt_content(cert_id)
                 key_content = client.get_tls_key_content(cert_id)
             except Exception as e:
-                raise ValidationError(f"Ingress[{ingress_name}]{_('中使用的')} TLS {_('证书')}(id:{cert_id}){_('异常')}:{e}")
+                message = 'Ingress{ingress_name}{prefix_msg} TLS {cert}(id:{cert_id}){suffix_msg}:{e}'.format(
+                    ingress_name=ingress_name,
+                    prefix_msg=_("中使用的"),
+                    cert=_("证书"),
+                    cert_id=cert_id,
+                    suffix_msg=_("异常"),
+                    e=e
+                )
+                raise ValidationError(message)
 
         srt_config = {
             "data": {
@@ -751,7 +773,7 @@ class MetricProfileGenerator(ProfileGenerator):
         try:
             met = Metric.objects.get(id=metric_id)
         except Exception:
-            raise ValidationError(f"{_('Metric')}[id:{metric_id}]:{_('不存在')}")
+            raise ValidationError('Metric[id:{}]:{}'.format(metric_id, _("不存在")))
         self.resource_show_name = met.name
         api_json = met.to_api_json()
         api_json['namespace'] = self.context['SYS_NAMESPACE']
@@ -768,7 +790,7 @@ class MetricProfileGenerator(ProfileGenerator):
             application = MODULE_DICT.get(
                 resourse_type).objects.get(id=application_id)
         except Exception:
-            raise ValidationError(f"{_('应用')}[id:{application_id}]:{_('不存在')}")
+            raise ValidationError('{}[id:{}]:{}'.format(_("应用"), application_id, _("不存在")))
         if resourse_type == 'application':
             app_config = application.get_config()
             app_config_new = handel_custom_network_mode(app_config)
@@ -968,7 +990,7 @@ def handel_service_db_config(db_config, service_app_list, app_weight, lb_name, v
             ports.remove(_p)
         else:
             _p['servicePort'] = handle_number_var(
-                _p['servicePort'], f"Service[{db_config['metadata']['name']}]{_('服务端口')}", is_preview, is_validate)
+                _p['servicePort'], f"Service[{db_config['metadata']['name']}]service port", is_preview, is_validate)
             remove_key(_p, "targetPort")
             # 端口名称 和 协议 根据 id 从 Application 中获取
             _id = _p.get('id')
@@ -1012,7 +1034,7 @@ def get_bcs_context(access_token, project_id):
     context = {}
     project = paas_cc.get_project(access_token, project_id)
     if project.get('code') != 0:
-        raise ValidationError(f"{_('查询项目信息出错')}(project_id:{project_id}):{project.get('message')}")
+        raise ValidationError('{}(project_id:{}):{}'.format(_("查询项目信息出错"), project_id, project.get('message')))
     project = project.get('data') or {}
     context['SYS_CC_APP_ID'] = project.get('cc_app_id')
     # TODO  以下变量未初始化到变量表中

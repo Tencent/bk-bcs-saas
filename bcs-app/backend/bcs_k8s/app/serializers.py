@@ -142,7 +142,7 @@ class NamespaceInfoField(serializers.RelatedField):
 class AppSLZ(AppBaseSLZ):
     name = serializers.RegexField(
         RESOURCE_NAME_REGEX,
-        error_messages={"invalid": f"{_('不符合k8s资源名规范, 只能由小写字母数字或者-组成，正则')}：{RESOURCE_NAME_REGEX}"}
+        error_messages={"invalid": '{}:{}'.format(_("不符合k8s资源名规范, 只能由小写字母数字或者-组成，正则"), RESOURCE_NAME_REGEX)}
     )
     namespace_info = NamespaceInfoField(write_only=True, label="Namespace")
     chart_version = serializers.PrimaryKeyRelatedField(queryset=ChartVersion.objects.all(), write_only=True)

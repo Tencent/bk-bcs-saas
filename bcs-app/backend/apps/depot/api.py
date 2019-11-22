@@ -32,7 +32,8 @@ def get_jfrog_account(access_token, project_code, project_id, is_bk=False):
 
     # api调用失败
     if resp.get('code') != 0:
-        error_message = f'{bk_error_codes.DepotError(_("创建项目仓库账号失败"))}, {resp.get("message", "")}'
+        message = bk_error_codes.DepotError(_("创建项目仓库账号失败"))
+        error_message = f'{message}, {resp.get("message", "")}'
         logger.error(error_message)
         raise error_codes.ComponentError(error_message)
 

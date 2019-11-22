@@ -92,7 +92,7 @@ class LoadBalancesSLZ(serializers.Serializer):
         max_length=256,
         required=True,
         error_messages={
-            'invalid': _('名称格式错误，只能包含：小写字母、数字、连字符(-)，首字母必须是字母，长度小于256个字符')
+            'invalid': _('名称格式错误，只能包含：小写字母、数字、中划线(-)，首字母必须是字母，长度小于256个字符')
         }
     )
     cluster_id = serializers.CharField(required=True)

@@ -90,7 +90,7 @@ class VariableSLZ(serializers.ModelSerializer):
 
     def validate_key(self, key):
         if key in SYS_KEYS:
-            raise ValidationError(f"KEY[{key}]{_('为系统变量名，不允许添加')}")
+            raise ValidationError('KEY[{}]{}'.format(key, _("为系统变量名，不允许添加")))
         return key
 
     def to_representation(self, instance):
@@ -103,7 +103,7 @@ class CreateVariableSLZ(VariableSLZ):
         exists = Variable.objects.filter(key=validated_data['key'], project_id=validated_data['project_id']).exists()
         if exists:
             detail = {
-                'field': [f"{_('变量')}KEY[validated_data['key']]{_('已经存在')}"]
+                'field': ['{}KEY{}{}'.format(_("变量"), validated_data['key'], _("已经存在"))]
             }
             raise ValidationError(detail=detail)
 
@@ -121,7 +121,7 @@ class UpdateVariableSLZ(VariableSLZ):
 
         if new_key != old_key:
             if get_variable_quote_num(old_key, validated_data.get('project_id')) > 0:
-                raise ValidationError(f"KEY[{old_key}]{_('已经被引用，不能修改KEY')}")
+                raise ValidationError('KEY{}{}'.format(old_key, _("已经被引用，不能修改KEY")))
 
         instance.key = new_key
         instance.scope = validated_data.get('scope')

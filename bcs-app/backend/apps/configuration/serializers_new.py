@@ -46,15 +46,23 @@ def can_delete_resource(ventity, resource_name, resource_id):
     if resource_name in models.POD_RES_LIST:
         pod_res_name, related_svc_names = models.get_pod_related_service(ventity, resource_name, resource_id)
         if related_svc_names:
-            raise ValidationError(f"{resource_name}[{pod_res_name}] {_('被以下资源关联，不能被删除')}: "
-                                  f"{','.join(related_svc_names)}")
+            raise ValidationError('{resource_name}[{pod_res_name}]{msg}:{svc_names}'.format(
+                resource_name=resource_name,
+                pod_res_name=pod_res_name,
+                msg=_("被以下资源关联，不能删除"),
+                svc_names=','.join(related_svc_names)
+            ))
 
     # 删除 Application 时，需要先判断 Deployment 和 service 的依赖关系
     if resource_name == MesosResourceName.application.value:
         app_name, related_resource_names = models.get_application_related_resource(ventity, resource_id)
         if related_resource_names:
-            raise ValidationError(f"{resource_name}[{app_name}] {_('被以下资源关联，不能删除')}: "
-                                  f"{','.join(related_resource_names)}")
+            raise ValidationError('{resource_name}[{app_name}]{msg}:{related_names}'.format(
+                resource_name=resource_name,
+                app_name=app_name,
+                msg=_("被以下资源关联，不能删除"),
+                related_names=','.join(related_resource_names)
+            ))
 
 
 class TemplateSLZ(serializers.ModelSerializer):
@@ -117,7 +125,12 @@ class TemplateDraftSLZ(serializers.ModelSerializer):
             try:
                 models.VersionedEntity.objects.get(id=real_version_id, template_id=template_id)
             except models.VersionedEntity.DoesNotExist:
-                raise ValidationError(f"{_('模板集版本')}(id:{real_version_id}){_('不属于该模板')}(id:{template_id})")
+                raise ValidationError('{prefix_msg}id:{real_version_id}{suffix_msg}id:{tmpl_id}'.format(
+                    prefix_msg=_("模板集版本"),
+                    real_version_id=real_version_id,
+                    suffix_msg=_("不属于该模板"),
+                    tmpl_id=template_id
+                ))
         return data
 
     def update(self, instance, validated_data):
@@ -171,7 +184,11 @@ class VentityWithTemplateSLZ(serializers.Serializer):
         try:
             ventity = models.VersionedEntity.objects.get(id=version_id)
         except models.VersionedEntity.DoesNotExist:
-            raise ResNotFoundError(f"{_('模板集版本')}(id:{version_id}){_('不存在')}")
+            raise ResNotFoundError('{prefix_msg}id:{version_id}{suffix_msg}'.format(
+                prefix_msg=_("模板集版本"),
+                version_id=version_id,
+                suffix_msg=_("不存在")
+            ))
         else:
             data['ventity'] = ventity
 
@@ -179,7 +196,12 @@ class VentityWithTemplateSLZ(serializers.Serializer):
         try:
             template = models.get_template_by_project_and_id(project_id, ventity.template_id)
         except ValidationError:
-            raise ValidationError(f"{_('模板集版本')}(id:{version_id}){_('不属于该项目')}(id:{project_id})")
+            raise ValidationError('{prefix_msg}id:{version_id}{suffix_msg}id:{project_id}'.format(
+                prefix_msg=_("模板集版本"),
+                version_id=version_id,
+                suffix_msg=_("不属于该项目"),
+                project_id=project_id
+            ))
         else:
             data['template'] = template
 

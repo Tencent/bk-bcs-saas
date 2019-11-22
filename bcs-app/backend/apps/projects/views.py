@@ -158,7 +158,7 @@ class Projects(viewsets.ViewSet):
             resource_type='project',
             resource=request.project.project_name,
             resource_id=project_id,
-            description=f"{_('更新项目')}: {request.project.project_name}"
+            description='{}: {}'.format(_("更新项目"), request.project.project_name)
         )
         project = paas_cc.update_project_new(access_token, project_id, data)
         if project.get('code') != 0:

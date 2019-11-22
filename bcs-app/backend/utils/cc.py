@@ -107,7 +107,9 @@ def check_ips(bk_biz_id, username, req_ip_list):
     """
     all_ip_info = get_cc_hosts(bk_biz_id, username)
     if not all_ip_info.get('result'):
-        raise error_codes.APIError(f"{_('用户')}[{username}]{_('没有权限使用主机')}")
+        raise error_codes.APIError('{prefix_msg}{username}{suffix_msg}'.format(
+            prefix_msg=_("用户"), username=username, suffix_msg=_("没有权限使用主机")
+        ))
     perm_ip_list = []
     for info in all_ip_info.get('data') or []:
         inner_ip = info.get('bk_host_innerip', '')
@@ -116,4 +118,6 @@ def check_ips(bk_biz_id, username, req_ip_list):
 
     diff_ip_list = set(req_ip_list) - set(perm_ip_list)
     if diff_ip_list:
-        raise error_codes.CheckFailed(f"{_('当前用户没有权限操作')}ip: {','.join(diff_ip_list)}")
+        raise error_codes.CheckFailed('{prefix_msg}ip:{ip_list}'.format(
+            prefix_msg=_("当前用户没有权限操作"), ip_list=','.join(diff_ip_list)
+        ))

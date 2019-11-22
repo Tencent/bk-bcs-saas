@@ -170,7 +170,7 @@ def handle_lb(username, access_token, project_id, lb_info, cc_app_id):
     result = client.create_deployment(ns_name, config_profile)
     if not result.get('result'):
         error_msg = result.get('message', '')
-        logger.error(f"{_('命名空间')}[{ns_name}]{_('下创建LoadBalance')}[{lb_name}]{_('出错')}:{error_msg}")
+        logger.error(f"命名空间[{ns_name}]下创建LoadBalance[{lb_name}]出错:{error_msg}")
         return False, error_msg
     return True, ''
 
@@ -207,7 +207,7 @@ def get_lb_status(access_token, project_id, lb_name, cluster_id, ns_name, field=
     except Exception:
         status_dict = {
             'deployment_status': "",
-            'deployment_status_message': f"{_('查询不到deployment')}[{lb_name}]{_('的状态')}"
+            'deployment_status_message': '{}[{}]{}'.format(_("查询不到deployment"), lb_name, _("的状态"))
         }
         return False, status_dict
 
@@ -232,7 +232,7 @@ def get_lb_status(access_token, project_id, lb_name, cluster_id, ns_name, field=
     if not resp_data:
         logger.error("查询不到loadbalance[%s]的状态:%s" % (lb_name, resp_data))
         status_dict['application_status'] = ''
-        status_dict['application_status_message'] = f"{_('查询不到')}application[{app_name}]{_('的状态')}"
+        status_dict['application_status_message'] = '{}application[{}]{}'.format(_("查询不到"), app_name, _("的状态"))
         return False, status_dict
 
     status = resp_data[0].get('data', {}).get('status')
@@ -240,7 +240,7 @@ def get_lb_status(access_token, project_id, lb_name, cluster_id, ns_name, field=
     status_dict['application_status_message'] = resp_data[0].get(
         'data', {}).get('message')
     if status in UNNORMAL_STATUS:
-        logger.error(f"loadbalance[{lb_name}]{_('的状态不正常')}:{resp_data}")
+        logger.error(f"loadbalance[{lb_name}]的状态不正常:{resp_data}")
         return False, status_dict
     return True, status_dict
 

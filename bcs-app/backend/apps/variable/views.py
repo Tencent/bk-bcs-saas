@@ -145,14 +145,14 @@ class ResourceVariableView(FinalizeResponseMixin, views.APIView):
         try:
             met = Metric.objects.get(id=metric_id)
         except Exception:
-            raise ValidationError(f"Metric[id:{metric_id}]:{_('不存在')}")
+            raise ValidationError('Metric[id:{}]:{}'.format(metric_id, _("不存在")))
         api_json = met.to_api_json()
         if resourse_type == 'application':
             try:
                 application = MODULE_DICT.get(
                     resourse_type).objects.get(id=application_id)
             except Exception:
-                raise ValidationError(f"{_('应用')}[id:{application_id}]:{_('不存在')}")
+                raise ValidationError('{}[id:{}]:{}'.format(_("应用"), application_id, _("不存在")))
             app_config = application.get_config()
             app_config_new = handel_custom_network_mode(app_config)
             app_spec = app_config_new.get('spec', {}).get(

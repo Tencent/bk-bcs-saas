@@ -35,7 +35,7 @@ def exec_command(access_token: str, project_id: str, cluster_id: str, container_
     try:
         bcs_context = utils.get_k8s_cluster_context(client, project_id, cluster_id)
     except Exception as error:
-        raise ValueError(f'{_("获取集群信息失败, ")}{error}')
+        raise ValueError('{prefix_msg},{e}'.format(prefix_msg=_("获取集群信息失败"), e=error))
 
     bcs_context = utils.get_k8s_admin_context(client, bcs_context, WebConsoleMode.INTERNEL.value)
     bcs_context['user_pod_name'] = context['pod_name']

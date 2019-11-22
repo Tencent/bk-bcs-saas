@@ -38,19 +38,39 @@ def create_data_project(username, project_id, cc_app_id, english_name):
     standard_data_name = f'{DataType.SLOG.value}_{english_name}'
     res1, standard_data_id = deploy_plan(username, cc_app_id, standard_data_name, DataType.SLOG.value)
     if not res1:
-        notify_manager(
-            f"{_('申请标准日志采集')}dataid[{_('业务')}ID:{cc_app_id},{_('项目名')}:{english_name}]"
-            f"{_('失败')},{_('原因')}:{standard_data_id},{_('请关注')}")
-        raise error_codes.APIError(f"{_('申请标准日志采集')}dataid{_('失败')}:{standard_data_id}")
+        message = '''{prefix_msg}dataid{biz}ID:{cc_app_id},{project}:{english_name}{fail},
+        {reason}:{standard_data_id},{suffix_msg}'''.format(
+            prefix_msg=_("申请标准日志采集"),
+            biz=_("业务"),
+            cc_app_id=cc_app_id,
+            project=_("项目名"),
+            english_name=english_name,
+            fail=_("失败"),
+            reason=_("原因"),
+            standard_data_id=standard_data_id,
+            suffix_msg=_("失败")
+        )
+        notify_manager(message)
+        raise error_codes.APIError('{}dataid{}:{}'.format(_("申请标准日志采集"), _("失败"), standard_data_id))
 
     # 申请非标准日志采集 dataid
     non_standard_data_name = f'{DataType.CLOG.value}_{english_name}'
     res2, non_standard_data_id = deploy_plan(username, cc_app_id, non_standard_data_name, DataType.CLOG.value)
     if not res2:
-        notify_manager(
-            f"{_('申请非标准日志采集')}dataid[{_('业务')}ID:{cc_app_id},{_('项目名')}:{english_name}]"
-            f"{_('失败')},{_('原因')}:{non_standard_data_id},{_('请关注')}")
-        raise error_codes.APIError(f"{_('申请标准日志采集')}dataid{_('失败')}:{non_standard_data_id}")
+        message = '''{prefix_msg}dataid{biz}ID:{cc_app_id},{project}:{english_name}{fail},
+        {reason}:{standard_data_id},{suffix_msg}'''.format(
+            prefix_msg=_("申请非标准日志采集"),
+            biz=_("业务"),
+            cc_app_id=cc_app_id,
+            project=_("项目名"),
+            english_name=english_name,
+            fail=_("失败"),
+            reason=_("原因"),
+            standard_data_id=standard_data_id,
+            suffix_msg=_("请关注")
+        )
+        notify_manager(message)
+        raise error_codes.APIError('{}dataid{}:{}'.format(_("申请非标准日志采集"), _("失败"), standard_data_id))
 
     # 数据平台 V3 API 没有project_id的概念，给一个默认的值
     project.data_project_id = 1
@@ -86,16 +106,30 @@ def create_and_start_standard_data_flow(username, project_id, cc_app_id):
         # 创建清洗配置
         res, flow_id = setup_clean(username, cc_app_id, project.standard_data_id, DataType.SLOG.value)
         if not res:
-            notify_manager(f"{_('启动标准日志采集清洗任务失败')}[{project_id}],{_('原因')}:{flow_id},{_('请关注')}")
-            return False, f"{_('启动标准日志采集清洗任务失败')}:{flow_id}"
+            message = '{prefix_msg}[{project_id}],{reason}:{flow_id},{suffix_msg}'.format(
+                prefix_msg=_("启动标准日志采集清洗任务失败"),
+                project_id=project_id,
+                reason=_("原因"),
+                flow_id=flow_id,
+                suffix_msg=_("请关注")
+            )
+            notify_manager(message)
+            return False, '{}:{}'.format(_("启动标准日志采集清洗任务失败"), flow_id)
     else:
         flow_id = project.standard_flow_id
 
     # 启动分发任务
     res2, flow_task_id = setup_shipper(project.standard_data_id, flow_id, DataType.SLOG.value)
     if not res2:
-        notify_manager(f"{_('启动标准日志采集分发任务失败')}[{project_id}],{_('原因')}:{flow_task_id},{_('请关注')}")
-        return False, f"{_('启动标准日志采集分发任务失败')}:{flow_task_id}"
+        message = '{prefix_msg}[{project_id}],{reason}:{flow_task_id},{suffix_msg}'.format(
+            prefix_msg=_("启动标准日志采集分发任务失败"),
+            project_id=project_id,
+            reason=_("原因"),
+            flow_task_id=flow_task_id,
+            suffix_msg=_("请关注")
+        )
+        notify_manager(message)
+        return False, '{}:{}'.format(_("启动标准日志采集清洗任务失败"), flow_task_id)
     # 将任务相关的id保存到db中，下次初始化集群则可以直接查询状态
     project.standard_flow_id = flow_id
     project.standard_flow_task_id = flow_task_id
@@ -126,16 +160,30 @@ def create_and_start_non_standard_data_flow(username, project_id, cc_app_id):
         # 创建清洗配置
         res, flow_id = setup_clean(username, cc_app_id, project.non_standard_data_id, DataType.CLOG.value)
         if not res:
-            notify_manager(f"{_('创建非标准日志采集清洗任务失败')}[{project_id}],{_('原因')}:{flow_id},{_('请关注')}")
-            return False, f"{_('创建非标准日志采集清洗任务失败')}:{flow_id}"
+            message = '{prefix_msg}[{project_id}],{reason}:{flow_id},{suffix_msg}'.format(
+                prefix_msg=_("创建非标准日志采集清洗任务失败"),
+                project_id=project_id,
+                reason=_("原因"),
+                flow_id=flow_id,
+                suffix_msg=_("请关注")
+            )
+            notify_manager(message)
+            return False, '{}:{}'.format(_("创建非标准日志采集清洗任务失败"), flow_id)
     else:
         flow_id = project.non_standard_flow_id
 
     # 启动任务
     res2, flow_task_id = setup_shipper(project.non_standard_data_id, flow_id, DataType.CLOG.value)
     if not res2:
-        notify_manager(f"{_('启动非标准日志采集分发任务失败')}[{project_id}],{_('原因')}:{flow_task_id},{_('请关注')}")
-        return False, f"{_('启动非标准日志采集分发任务失败')}:{flow_task_id}"
+        message = '{prefix_msg}[{project_id}],{reason}:{flow_task_id},{suffix_msg}'.format(
+            prefix_msg=_("启动非标准日志采集分发任务失败"),
+            project_id=project_id,
+            reason=_("原因"),
+            flow_task_id=flow_task_id,
+            suffix_msg=_("请关注")
+        )
+        notify_manager(message)
+        return False, '{}:{}'.format(_("创建非标准日志采集清洗任务失败"), flow_task_id)
     # 将任务相关的id保存到db中，下次初始化集群则可以直接查询状态
     project.non_standard_flow_id = flow_id
     project.non_standard_flow_task_id = flow_task_id
@@ -153,24 +201,48 @@ def create_prometheus_data_flow(username, project_id, cc_app_id, english_name, d
     # 1. 提交接入部署计划,获取dataid
     is_ok, data_id = deploy_plan(username, cc_app_id, dataset, DataType.METRIC.value)
     if not is_ok:
-        notify_manager(
-            f"{_('申请')}Prometheus Metric dataid[{_('业务')}ID:{cc_app_id},{_('项目名')}:{english_name}]"
-            f"{_('失败')},{_('原因')}:{data_id},{_('请关注')}")
-        return False, f"{_('申请')}Prometheus Metric dataid:{data_id}"
+        message = '''{prefix_msg}Prometheus Metric dataid[{biz}ID:{cc_app_id},{project}:{english_name}]{fail},
+        {reason}:{data_id},{suffix_msg}'''.format(
+            prefix_msg=_("申请标准日志采集"),
+            biz=_("业务"),
+            cc_app_id=cc_app_id,
+            project=_("项目名"),
+            english_name=english_name,
+            fail=_("失败"),
+            reason=_("原因"),
+            data_id=data_id,
+            suffix_msg=_("失败")
+        )
+        notify_manager(message)
+        return False, '{}Prometheus Metric dataid:{}'.format(_("申请"), data_id)
 
     # 2. 创建清洗配置,并启动清洗任务
     res, result_table_id = setup_clean(username, cc_app_id, data_id, DataType.METRIC.value)
     if not res:
-        notify_manager(
-            f"{_('创建')}Prometheus Metric{_('清洗任务失败')}[{english_name}],"
-            f"{_('原因')}:{result_table_id},{_('请关注')}")
-        return False, f"{_('创建')}Prometheus Metric{_('清洗任务失败')}:{result_table_id}"
+        notify_manager('''{prefix_msg}Prometheus Metric{clean_task}[{english_name}],
+        {reason}:{table_id},{suffix_msg}'''.format(
+            prefix_msg=_("创建"),
+            clean_task=_("清洗任务失败"),
+            english_name=english_name,
+            reason=_("原因"),
+            table_id=result_table_id,
+            suffix_msg=_("请关注")
+        ))
+
+        return False, '{}Prometheus Metric{}:{}'.format(_("创建"), _("清洗任务失败"), result_table_id)
 
     # 3. 创建分发存储，并启动对应的分发任务
     res2, msg = setup_shipper(data_id, result_table_id, DataType.METRIC.value)
     if not res2:
-        notify_manager(f"{_('启动非标准日志采集分发任务失败')}[{project_id}],{_('原因')}:{'msg'},{_('请关注')}")
-        return False, f"{_('启动非标准日志采集分发任务失败')}:{msg}"
+        message = '{prefix_msg}[{project_id}],{reason}:{msg},{suffix_msg}'.format(
+            prefix_msg=_("启动非标准日志采集分发任务失败"),
+            project_id=project_id,
+            reason=_("原因"),
+            msg=msg,
+            suffix_msg=_("请关注")
+        )
+        notify_manager(message)
+        return False, '{}:{}'.format(_("启动非标准日志采集分发任务失败"), msg)
     return True, data_id
 
 
