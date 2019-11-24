@@ -19,6 +19,7 @@ from itertools import groupby
 from django.conf import settings
 from rest_framework import response, serializers, viewsets
 from rest_framework.exceptions import ValidationError
+from django.utils.translation import ugettext as _
 
 from .tasks import sync_namespace as sync_ns_task
 from .resources import Namespace
@@ -59,14 +60,14 @@ class NamespaceBase:
         res_msg = result.get('message') or ''
         is_already_exists = res_msg.endswith("already exists")
         if result.get('code') != 0 and not is_already_exists:
-            raise error_codes.ComponentError.f(
-                "创建Namespace失败，%s, 请联系管理员解决" % result.get('message'))
+            raise error_codes.ComponentError(
+                _("创建Namespace失败，{}").format(result.get('message')))
 
     def delete_ns_by_bcs(self, client, name):
         result = client.delete_namespace(name)
         if result.get('code') != 0:
             raise error_codes.ComponentError.f(
-                "创建Namespace失败，%s, 请联系管理员解决" % result.get('message'))
+                _("创建Namespace失败，{}").format(result.get('message')))
 
     def create_jforg_secret(self, client, access_token, project_id, project_code, data):
         try:
@@ -113,7 +114,7 @@ class NamespaceBase:
         except Exception as e:
             self.delete_ns_by_bcs(client, data['name'])
             logger.exception(u"获取项目仓库账号信息失败:%s" % e)
-            raise ValidationError(u"获取项目仓库账号信息失败，请联系管理员解决")
+            raise ValidationError(_("获取项目仓库账号信息失败，请联系管理员解决"))
 
         # 通过错误消息判断 包含仓库信息的secret 是否已经存在，已经存在则直接进行下一步
         res_msg = result.get('message') or ''
@@ -122,7 +123,7 @@ class NamespaceBase:
         if result.get('code') != 0 and not is_already_exists:
             self.delete_ns_by_bcs(client, data['name'])
             raise error_codes.ComponentError.f(
-                "创建registry secret失败，%s, 请联系管理员解决" % result.get('message'))
+                _("创建registry secret失败，{}, 请联系管理员解决").format(result.get('message')))
 
     def init_namespace_by_bcs(self, access_token, project_id, project_code, data):
         """ k8s 的集群需要创建 Namespace 和 jfrog Sercret
@@ -190,7 +191,7 @@ class NamespaceBase:
         if result.get('code') != 0:
             client.delete_secret(ns_name, MESOS_IMAGE_SECRET)
             raise error_codes.ComponentError.f(
-                "创建registry secret失败，%s, 请联系管理员解决" % result.get('message'))
+                _("创建registry secret失败，{}, 请联系管理员解决").format(result.get('message')))
 
 
 class NamespaceView(NamespaceBase, viewsets.ViewSet):
@@ -293,7 +294,7 @@ class NamespaceView(NamespaceBase, viewsets.ViewSet):
                     r_ns_list = r.get('results') or []
                     r_ns = r_ns_list[0] if r_ns_list else {}
                     r['environment'] = r_ns.get('environment', '')
-                    r['environment_name'] = "正式" if r['environment'] == 'prod' else "测试"
+                    r['environment_name'] = _("正式") if r['environment'] == 'prod' else _("测试")
         else:
             results = sorted(results, key=lambda x: x['id'], reverse=True)
 
@@ -333,7 +334,7 @@ class NamespaceView(NamespaceBase, viewsets.ViewSet):
             if ClusterType.get(project_kind) != 'Kubernetes':
                 self.delete_secret_for_mesos(access_token, project_id, cluster_id, ns_name)
             if 'Duplicate entry' in result.get('message', ''):
-                message = "创建失败，namespace名称已经在其他项目存在"
+                message = _("创建失败，namespace名称已经在其他项目存在")
             else:
                 message = result.get('message', '')
             return response.Response({'code': result['code'], 'data': None, 'message': message})
@@ -349,7 +350,7 @@ class NamespaceView(NamespaceBase, viewsets.ViewSet):
                 ns_id, data['ns_vars'])
             if not_exist_vars:
                 not_exist_show_msg = [f'{i["key"]}[id:{i["id"]}]' for i in not_exist_vars]
-                result['message'] = f"以下变量不存在:{';'.join(not_exist_show_msg)}"
+                result['message'] = _("以下变量不存在:{}").format(';'.join(not_exist_show_msg))
             result['data']['ns_vars'] = NameSpaceVariable.get_ns_vars(
                 ns_id, project_id)
         return result
@@ -371,7 +372,7 @@ class NamespaceView(NamespaceBase, viewsets.ViewSet):
         perm.can_create(raise_exception=is_validate_perm)
 
         data = serializer.data
-        description = f'集群: {cluster_id}, 创建命名空间: 命名空间[{data["name"]}]'
+        description = _('集群: {}, 创建命名空间: 命名空间[{}]').format(cluster_id, data["name"])
         with client.ContextActivityLogClient(
                 project_id=project_id,
                 user=request.user.username,
@@ -393,7 +394,7 @@ class NamespaceView(NamespaceBase, viewsets.ViewSet):
         serializer.is_valid(raise_exception=True)
         data = serializer.data
 
-        result = {'code': 0, 'data': data, 'message': u"更新成功"}
+        result = {'code': 0, 'data': data, 'message': _("更新成功")}
         # 更新成功后需要保存变量信息
         if data.get('ns_vars'):
             res, not_exist_vars = NameSpaceVariable.batch_save(
@@ -401,8 +402,7 @@ class NamespaceView(NamespaceBase, viewsets.ViewSet):
             if not_exist_vars:
                 not_exist_show_msg = ['%s[id:%s]' %
                                       (i['key'], i['id']) for i in not_exist_vars]
-                result['message'] = u"以下变量不存在:%s" % ";".join(
-                    not_exist_show_msg)
+                result['message'] = _("以下变量不存在:{}").format(";".join(not_exist_show_msg))
             result['data']['ns_vars'] = NameSpaceVariable.get_ns_vars(
                 namespace_id, project_id)
         return response.Response(result)

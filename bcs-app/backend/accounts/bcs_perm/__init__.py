@@ -19,6 +19,8 @@ bcs_perm_handler 调用这个函数的地方需要再次确认
 """
 import abc
 
+from django.utils.translation import ugettext as _
+
 from backend.components import paas_cc
 from backend.components.enterprise.iam import BKIAMClient
 from backend.components.enterprise.iam import get_access_token as get_access_token_by_iam
@@ -48,12 +50,12 @@ class PermissionMeta(object):
     POLICY_LIST = ['create', 'delete', 'view', 'edit', 'use']
 
     CMD_NAME = {
-        'delete': "删除",
-        'create': "创建",
-        'use': "使用",
-        'edit': "编辑",
-        'view': "查看",
-        'list': "列表"
+        'delete': _("删除"),
+        'create': _("创建"),
+        'use': _("使用"),
+        'edit': _("编辑"),
+        'view': _("查看"),
+        'list': _("列表")
     }
 
     def __init__(self, request, project_id, resource_id, resource_name=None):
@@ -64,7 +66,7 @@ class PermissionMeta(object):
         self.resource_name = resource_name
         self.resource_code = str(resource_id)
 
-        self.err_msg = "请联系管理员添加权限"
+        self.err_msg = _("请联系管理员添加权限")
 
         project_code = request.project.english_name
         self.iam_client = BKIAMClient(project_code)
@@ -178,9 +180,9 @@ class PermissionMeta(object):
                 cmd_name=cmd_name)
         else:
             if self.resource_name:
-                msg_format = "您没有{res_type_name}【{res_name}】的{cmd_name}权限"
+                msg_format = _("您没有{}[{}]的{}权限").format(self.RES_TYPE_NAME, self.resource_name, cmd_name)
             else:
-                msg_format = "您没有{res_type_name}的{cmd_name}权限"
+                msg_format = _("您没有{}的{}权限").format(self.RES_TYPE_NAME, cmd_name)
             msg = msg_format.format(
                 res_type_name=self.RES_TYPE_NAME,
                 res_name=self.resource_name,
@@ -215,7 +217,7 @@ class PermissionMeta(object):
             self.resource_id,
             resource_name)
         if ret.get('code') != 0 and raise_exception is True:
-            error_message = ('%s, %s' % (bk_error_codes.IAMError(("权限中心更新资源接口调用失败")), ret.get('message', '')))
+            error_message = ('%s, %s' % (bk_error_codes.IAMError(_("权限中心更新资源接口调用失败")), ret.get('message', '')))
             raise error_codes.APIError(error_message)
         return ret
 
@@ -538,7 +540,7 @@ class Namespace(PermissionMeta):
 
     def hook_base_perms(self, ns_list, ns_id_flag='id', cluster_id_flag='cluster_id', ns_name_flag='name', **filter_parms):  # noqa
         default_perms = {perm: True for perm in self.POLICY_LIST}
-        default_msg = {self.get_msg_key(p): '' if p == 'view' else '没有集群使用权限' for p in self.POLICY_LIST}
+        default_msg = {self.get_msg_key(p): '' if p == 'view' else _('没有集群使用权限') for p in self.POLICY_LIST}
 
         default_perms.update({'create': True, 'view': True, 'use': True, 'delete': True})
         ns_list = ns_list or []
@@ -627,7 +629,7 @@ class Templates(PermissionMeta):
     """
     # 资源类型
     RESOURCE_TYPE = 'templates'
-    RES_TYPE_NAME = '模板集'
+    RES_TYPE_NAME = _('模板集')
 
     # 功能列表
     POLICY_LIST = ['create', 'delete', 'view', 'edit', 'use']

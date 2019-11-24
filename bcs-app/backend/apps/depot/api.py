@@ -171,7 +171,7 @@ def create_project_path_by_api(access_token, project_id, project_code):
     resp = client.create_peoject_path()
     # api调用失败
     if resp.get('code') != 0:
-        error_message = ('%s, %s' % (bk_error_codes.DepotError("创建项目仓库路径失败"), resp.get('message', '')))
+        error_message = ('%s, %s' % (bk_error_codes.DepotError(_("创建项目仓库路径失败")), resp.get('message', '')))
         logger.error(error_message)
         raise error_codes.ComponentError(error_message)
     return True

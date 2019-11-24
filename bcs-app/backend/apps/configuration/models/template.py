@@ -16,6 +16,7 @@ import json
 from django.db import models
 from django.db.utils import IntegrityError
 from rest_framework.exceptions import ValidationError
+from django.utils.translation import ugettext as _
 
 from backend.apps.metric.models import Metric
 from backend.apps.configuration import constants
@@ -36,10 +37,10 @@ def get_template_by_project_and_id(project_id, template_id):
     try:
         template = Template.objects.get(id=template_id)
     except Template.DoesNotExist:
-        raise ValidationError(f"模板集(id:{template_id})不存在")
+        raise ValidationError(_("模板集(id:{})不存在").format(template_id))
 
     if project_id != template.project_id:
-        raise ValidationError(f"模板集(id:{template_id})不属于该项目(id:{project_id})")
+        raise ValidationError(_("模板集(id:{})不属于该项目(id:{})").format(template_id, project_id))
 
     return template
 
@@ -80,7 +81,7 @@ class Template(BaseModel):
         except IntegrityError:
             # TODO mark refactor use ValidationError not properly
             detail = {
-                'field': [f"模板集名称{self.name}已经存在,请重新填写"]
+                'field': [_("模板集名称{}已经存在,请重新填写").format(self.name)]
             }
             raise ValidationError(detail=detail)
 
@@ -345,7 +346,7 @@ class ShowVersion(BaseModel):
         except IntegrityError:
             # TODO mark refactor use ValidationError not properly
             detail = {
-                '版本': [f"版本号[{self.name}]已经存在,请重新填写"]
+                '版本': [_("版本号[{}]已经存在,请重新填写").format(self.name)]
             }
             raise ValidationError(detail=detail)
 
@@ -625,24 +626,21 @@ class VersionedEntity(BaseModel):
         try:
             ver_entity = cls.objects.get(id=versioned_entity_id)
         except Exception:
-            raise ValidationError(u"模板版本(version_id:%s)不存在" %
-                                  versioned_entity_id)
+            raise ValidationError(_("模板版本(version_id:{})不存在").format(versioned_entity_id))
         try:
             deployment = mesos.Deplpyment.objects.get(id=deployment_id)
         except Exception:
-            raise ValidationError(u"Deplpyment(id:%s)不存在" % deployment_id)
+            raise ValidationError(_("Deplpyment(id:{})不存在").format(deployment_id))
 
         entity = ver_entity.get_entity()
         apps = entity.get('application') if entity else None
         if not apps:
-            raise ValidationError(
-                u"模板版本(version_id:%s)下没有可以关联的Application" % versioned_entity_id)
+            raise ValidationError(_("模板版本(version_id:{})下没有可以关联的Application").format(versioned_entity_id))
         app_id_list = apps.split(',')
         apps = mesos.Application.objects.filter(
             id__in=app_id_list, app_id=deployment.app_id)
         if not apps:
-            raise ValidationError(
-                u"Deplpyment(id:%s)没有关联的Application" % deployment_id)
+            raise ValidationError(_("Deplpyment(id:{})没有关联的Application").format(deployment_id))
         return apps[0]
 
     @classmethod
@@ -650,11 +648,11 @@ class VersionedEntity(BaseModel):
         try:
             ventity = cls.objects.get(id=version_id)
         except Exception:
-            raise ValidationError(f"模板版本(version_id:{version_id})不存在")
+            raise ValidationError(_("模板版本(version_id:{})不存在").format(version_id))
         try:
             statefulset = k8s.K8sStatefulSet.objects.get(id=sts_id)
         except Exception:
-            raise ValidationError(f"StatefulSet(id:{sts_id})不存在")
+            raise ValidationError(_("StatefulSet(id:{})不存在").format(sts_id))
 
         svc_id_list = ventity.get_resource_id_list(K8sResourceName.K8sService.value)
 
@@ -663,7 +661,7 @@ class VersionedEntity(BaseModel):
             if svc:
                 return svc
 
-        raise ValidationError(f"模板版本(version_id:{version_id})使用了StatefulSet, 但未关联任何Service")
+        raise ValidationError(_("模板版本(version_id:{})使用了StatefulSet, 但未关联任何Service").format(version_id))
 
     @classmethod
     def get_related_apps_by_service(cls, versioned_entity_id, service_id):
@@ -672,8 +670,7 @@ class VersionedEntity(BaseModel):
         try:
             ver_entity = cls.objects.get(id=versioned_entity_id)
         except Exception:
-            raise ValidationError(u"模板版本(version_id:%s)不存在" %
-                                  versioned_entity_id)
+            raise ValidationError(_("模板版本(version_id:{})不存在").format(versioned_entity_id))
         entity = ver_entity.get_entity()
         application_ids = entity.get('application') if entity else None
         application_id_list = application_ids.split(
@@ -682,7 +679,7 @@ class VersionedEntity(BaseModel):
         try:
             service = mesos.Service.objects.get(id=service_id)
         except Exception:
-            raise ValidationError(u"Service(id:%s)不存在" % service_id)
+            raise ValidationError(_("Service(id:{})不存在").format(service_id))
         app_id_list = service.get_app_id_list()
 
         apps = mesos.Application.objects.filter(

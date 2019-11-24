@@ -16,6 +16,7 @@ import logging
 
 from rest_framework import viewsets
 from backend.apps.resource.views import ResourceOperate
+from django.utils.translation import ugettext as _
 
 from backend.apps.application.base_views import BaseAPI
 from backend.apps.constants import ClusterType
@@ -41,7 +42,7 @@ class IngressResource(viewsets.ViewSet, BaseAPI, ResourceOperate):
 
         if resp.get("code") != ErrorCode.NoError:
             logger.error(u"bcs_api error: %s" % resp.get("message", ""))
-            return resp.get("code", ErrorCode.UnknownError), resp.get("message", u"请求出现异常!")
+            return resp.get("code", ErrorCode.UnknownError), resp.get("message", _("请求出现异常!"))
         data = resp.get("data") or []
         return 0, data
 
@@ -52,7 +53,7 @@ class IngressResource(viewsets.ViewSet, BaseAPI, ResourceOperate):
         project_kind_name = ClusterType.get(project_kind)
 
         if project_kind_name != 'Kubernetes':
-            raise error_codes.CheckFailed.f("K8S项目才有Ingress", replace=True)
+            raise error_codes.CheckFailed(_("K8S项目才有Ingress"))
 
         cluster_dicts = self.get_project_cluster_info(request, project_id)
         cluster_data = cluster_dicts.get('results', {}) or {}

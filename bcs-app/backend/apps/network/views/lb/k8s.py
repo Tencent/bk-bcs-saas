@@ -18,6 +18,7 @@ from datetime import datetime
 from django.db import transaction
 from rest_framework import viewsets
 from rest_framework.response import Response
+from django.utils.translation import ugettext as _
 
 from backend.activity_log import client as log_client
 from backend.accounts import bcs_perm
@@ -57,7 +58,7 @@ class NginxIngressBase(AccessTokenMixin, ProjectMixin, viewsets.ModelViewSet):
     def chart_info(self):
         chart = Chart.objects.filter(name=K8S_LB_NAME).order_by('defaultChartVersion')
         if not chart:
-            raise error_codes.CheckFailed.f("Chart不存在", replace=True)
+            raise error_codes.CheckFailed(_("Chart不存在"))
         return chart[0]
 
     @property
@@ -73,10 +74,10 @@ class NginxIngressBase(AccessTokenMixin, ProjectMixin, viewsets.ModelViewSet):
         node_list = paas_cc.get_node_list(
             request.user.token.access_token, project_id, cluster_id)
         if node_list.get("code") != 0:
-            raise error_codes.APIError.f("查询节点失败，请联系管理员处理!", replace=True)
+            raise error_codes.APIError(_("查询节点失败，请联系管理员处理!"))
         results = node_list.get("data", {}).get("results", [])
         if not results:
-            raise error_codes.APIError.f("当前集群下没有节点信息!", replace=True)
+            raise error_codes.APIError(_("当前集群下没有节点信息!"))
         # compose id: ip
         node_id_ip = {
             info["id"]: info["inner_ip"]
@@ -96,7 +97,7 @@ class NginxIngressBase(AccessTokenMixin, ProjectMixin, viewsets.ModelViewSet):
             exist_labels["$patch"] = "replace"
             resp = client.create_node_labels(ip, exist_labels)
             if resp.get("code") != 0:
-                raise error_codes.APIError.f("节点打标签异常,请联系管理员处理!", replace=True)
+                raise error_codes.APIError(_("节点打标签异常,请联系管理员处理!"))
 
     def node_label(self, request, data, with_bcs=True):
         """节点打标签
@@ -140,7 +141,7 @@ class NginxIngressBase(AccessTokenMixin, ProjectMixin, viewsets.ModelViewSet):
     def get_k8s_lb_info(self, app_id):
         k8s_lbs = K8SLoadBlance.objects.filter(id=app_id, is_deleted=False)
         if not k8s_lbs:
-            raise error_codes.CheckFailed.f("没有查询到LB版本信息", replace=True)
+            raise error_codes.CheckFailed(_("没有查询到LB版本信息"))
         return k8s_lbs[0]
 
     def get_node_labels(self, node_id_list):
@@ -168,10 +169,10 @@ class NginxIngressBase(AccessTokenMixin, ProjectMixin, viewsets.ModelViewSet):
     def get_node_info(self, access_token, project_id, cluster_id):
         node_list = paas_cc.get_node_list(access_token, project_id, cluster_id)
         if node_list.get("code") != 0:
-            raise error_codes.APIError.f("查询节点失败，请联系管理员处理!")
+            raise error_codes.APIError(_("查询节点失败，请联系管理员处理!"))
         results = node_list.get("data", {}).get("results", [])
         if not results:
-            raise error_codes.APIError.f("当前集群下没有节点信息!")
+            raise error_codes.APIError(_("当前集群下没有节点信息!"))
 
         return {info["id"]: info for info in results}
 
@@ -187,7 +188,7 @@ class NginxIngressBase(AccessTokenMixin, ProjectMixin, viewsets.ModelViewSet):
         # diff
         diff = set(existed_node_id_list) & set(node_id_list)
         if diff:
-            raise error_codes.CheckFailed.f("不允许独享节点分属不同的LB，请检查后重试")
+            raise error_codes.CheckFailed(_("不允许独享节点分属不同的LB，请检查后重试"))
 
     def get_all_namespace(self, access_token, project_id):
         resp = paas_cc.get_namespace_list(access_token, project_id, desire_all_data=True)
@@ -251,7 +252,7 @@ class NginxIngressListCreateViewSet(NginxIngressBase):
         """
         if K8SLoadBlance.objects.filter(
                 cluster_id=cluster_id, namespace_id=namespace_id, name=K8S_LB_NAME).exists():
-            raise error_codes.CheckFailed.f("命名空间已经被占用，请选择其他命名空间", replace=True)
+            raise error_codes.CheckFailed(_("命名空间已经被占用，请选择其他命名空间"))
 
     def create(self, request, project_id):
         """针对nginx的实例化，主要有下面几步:
@@ -308,10 +309,10 @@ class NginxIngressListCreateViewSet(NginxIngressBase):
         if helm_app_info:
             if helm_app_info.transitioning_result:
                 user_log.log_add(activity_status="succeed")
-                return APIResponse({"message": "创建成功!"})
+                return APIResponse({"message": _("创建成功!")})
             else:
                 user_log.log_add(activity_status="failed")
-                raise error_codes.CheckFailed.f("创建失败，请查看实例详情!", replace=True)
+                raise error_codes.CheckFailed(_("创建失败，请查看实例详情!"))
         else:
             # 5. 如果失败删除k8s lb实例
             K8SLoadBlance.objects.filter(
@@ -319,7 +320,7 @@ class NginxIngressListCreateViewSet(NginxIngressBase):
             ).delete()
 
         user_log.log_add(activity_status="failed")
-        raise error_codes.CheckFailed.f("创建失败，已通知管理员处理!", replace=True)
+        raise error_codes.CheckFailed(_("创建失败，已通知管理员处理!"))
 
 
 @with_code_wrapper
@@ -330,7 +331,7 @@ class NginxIngressRetrieveUpdateViewSet(NginxIngressBase):
     def retrieve(self, request, project_id, pk):
         details = self.queryset.filter(id=pk, project_id=project_id, is_deleted=False).values()
         if not details:
-            raise error_codes.CheckFailed.f("没有查询到实例信息，请联系管理员处理", replace=True)
+            raise error_codes.CheckFailed(_("没有查询到实例信息，请联系管理员处理"))
         data = details[0]
 
         perm = bcs_perm.Namespace(request, project_id, data["namespace_id"])
@@ -449,7 +450,7 @@ class NginxIngressRetrieveUpdateViewSet(NginxIngressBase):
         self.update_lb_conf(lb_conf, data["ip_info"], data["protocol_type"], request.user.username)
         app_instance = self.get_k8s_bcs_app(lb_conf.namespace_id, self.chart_info)
         if not app_instance:
-            return APIResponse({"code": 400, "message": "没有查询到应用信息"})
+            return APIResponse({"code": 400, "message": _("没有查询到应用信息")})
 
         data["namespace_id"] = lb_conf.namespace_id
         namespace_info = self.get_ns_info(request, data["namespace_id"])
@@ -505,7 +506,7 @@ class NginxIngressRetrieveUpdateViewSet(NginxIngressBase):
         # 删除helm
         app_instance = self.get_k8s_bcs_app(lb_conf.namespace_id, self.chart_info)
         if not app_instance:
-            return APIResponse({"message": "删除成功"})
+            return APIResponse({"message": _("删除成功")})
 
         user_log = log_client.ContextActivityLogClient(
             project_id=project_id,
@@ -523,7 +524,7 @@ class NginxIngressRetrieveUpdateViewSet(NginxIngressBase):
         #     user_log.log_delete(activity_status="failed")
         #     return APIResponse({"code": 400, "message": app_instance.transitioning_message})
         user_log.log_delete(activity_status="succeed")
-        return APIResponse({"message": "任务下发成功!"})
+        return APIResponse({"message": _("任务下发成功!")})
 
 
 class NginxIngressListNamespceViewSet(NginxIngressBase):

@@ -807,12 +807,12 @@ def delete_handler(log):
         logger.error("parse the log[%s] params error", log.pk)
         return
     # cc_app_id = params["cc_app_id"]
-    host_ips = params["host_ips"]
-    operator = log.operator
-    if not func_handler(cc.host_standard_property, _("2.修改主机备注"), log, operator, host_ips):
-        return
-    if not func_handler(cc.remove_host_lock, _("3.释放主机锁"), log, operator, host_ips):
-        return
+    # host_ips = params["host_ips"]
+    # operator = log.operator
+    # if not func_handler(cc.host_standard_property, _("2.修改主机备注"), log, operator, host_ips):
+        # return
+    # if not func_handler(cc.remove_host_lock, _("3.释放主机锁"), log, operator, host_ips):
+        # return
     # 删除集群
     if not func_handler(
             paas_cc.delete_cluster, _("4.移除集群"), log, log.token, log.project_id, log.cluster_id):
@@ -926,8 +926,8 @@ def delete_cluster_task(log_type, log_pk):
         return
     # 执行任务
     delete_handler(log)
-    if log.status != models.CommonStatus.Normal:
-        push_sentry(log, _("删除集群失败"))
+    # if log.status != models.CommonStatus.Normal:
+    #     push_sentry(log, _("删除集群失败"))
 
 
 def common_model_handler(log_type, log_pk, task_id_flag=False):

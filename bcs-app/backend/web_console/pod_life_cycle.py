@@ -231,13 +231,13 @@ def wait_user_pod_ready(ctx, name):
             logger.error("get user pod name error: %s", error)
             # 异常情况最多等待7秒
             if total_sleep > error_wait_timeout:
-                raise PodLifeError(f'{_("申请pod资源失败，请稍后再试")}{settings.COMMON_EXCEPTION_MSG}')
+                raise PodLifeError(_("申请pod资源失败，请稍后再试{}").format(settings.COMMON_EXCEPTION_MSG))
 
         time.sleep(sleep_time)
         total_sleep += sleep_time
         logger.info("wait pod ready, %s, sleep, %s, total_sleep, %s", name, sleep_time, total_sleep)
 
-    raise PodLifeError(f'{_("申请pod资源超时，请稍后再试")}{settings.COMMON_EXCEPTION_MSG}')
+    raise PodLifeError(_("申请pod资源超时，请稍后再试{}").format(settings.COMMON_EXCEPTION_MSG))
 
 
 def ensure_namespace(ctx):
@@ -296,7 +296,7 @@ def ensure_pod(ctx):
     try:
         pod = k8s_client.v1.read_namespaced_pod(name, namespace=constants.NAMESPACE)
         if pod.status.phase != 'Running':
-            raise PodLifeError(f'{_("pod不是Running状态，请稍后再试")}{settings.COMMON_EXCEPTION_MSG}')
+            raise PodLifeError(_("pod不是Running状态，请稍后再试{}").format(settings.COMMON_EXCEPTION_MSG))
         return pod
     except ApiException as error:
         # 不存在，则创建
@@ -314,7 +314,7 @@ def ensure_pod(ctx):
                     pod_life_cycle = PodLifeCycle()
                     pod_life_cycle.heartbeat(name)
                     return pod
-                raise PodLifeError(f'{_("申请pod失败或不是Running状态，请稍后再试")}{settings.COMMON_EXCEPTION_MSG}')
+                raise PodLifeError(_("申请pod失败或不是Running状态，请稍后再试{}").format(settings.COMMON_EXCEPTION_MSG))
             except ApiException as error:
                 raise error
         raise error

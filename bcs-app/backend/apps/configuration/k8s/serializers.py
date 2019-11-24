@@ -14,6 +14,7 @@
 from django.conf import settings
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
+from django.utils.translation import ugettext as _
 
 from backend.apps.configuration.constants import K8sResourceName
 from backend.apps.configuration.validator import validate_variable_inconfig, get_name_from_config, \
@@ -61,7 +62,7 @@ class K8sPodUnitSLZ(BCSResourceSLZ):
         try:
             validate_pod_selector(config)
         except ValidationError as e:
-            raise ValidationError(f"{short_name}[{name}]中选择器{e}")
+            raise ValidationError(_("{}[{}]中选择器{}").format(short_name, name, e))
 
         # 校验配置信息中的变量名是否规范
         validate_variable_inconfig(config)
@@ -151,16 +152,16 @@ class K8sServiceSLZ(BCSResourceSLZ):
         if not deploy_tag_list:
             deploy_tag_list = []
         if not isinstance(deploy_tag_list, list):
-            raise ValidationError("Service模板: 关联应用参数格式错误")
+            raise ValidationError(_("Service模板: 关联应用参数格式错误"))
         return deploy_tag_list
 
     def validate(self, data):
         # 目前仅支持配置了selector的Service的创建, 因此需要校验deploy_tag_list字段
         if not data.get('version_id'):
-            raise ValidationError("请先创建 Deployment/StatefulSet/Daemonset，再创建 Service")
+            raise ValidationError(_("请先创建 Deployment/StatefulSet/Daemonset，再创建 Service"))
 
         if not data.get('deploy_tag_list'):
-            raise ValidationError(f"Service模板中{data.get('name')}: 请选择关联的 Deployment/StatefulSet/Daemonset")
+            raise ValidationError(_("Service模板中{}: 请选择关联的 Deployment/StatefulSet/Daemonset").format(data.get('name')))
 
         config = data['config']
         if not data.get('namespace_id') and not data.get('instance_id'):

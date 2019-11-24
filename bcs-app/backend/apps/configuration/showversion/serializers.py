@@ -15,6 +15,7 @@ import re
 
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
+from django.utils.translation import ugettext as _
 
 from backend.utils.exceptions import ResNotFoundError
 from backend.apps.configuration import models
@@ -45,13 +46,13 @@ class ShowVersionWithEntitySLZ(ShowVersionCreateSLZ):
     def validate(self, data):
         real_version_id = data['real_version_id']
         if real_version_id <= 0:
-            raise ValidationError("请先填写模板内容，再保存")
+            raise ValidationError(_("请先填写模板内容，再保存"))
 
         template_id = data['template_id']
         try:
             models.VersionedEntity.objects.get(id=real_version_id, template_id=template_id)
         except models.VersionedEntity.DoesNotExist:
-            raise ValidationError(f"模板集版本(id:{real_version_id})不属于该模板(id:{template_id})")
+            raise ValidationError(_("模板集版本(id:{})不属于该模板(id:{})").format(real_version_id, template_id))
 
         template = models.get_template_by_project_and_id(data['project_id'], template_id)
         data['template'] = template
@@ -134,7 +135,7 @@ class ResourceConfigSLZ(serializers.Serializer):
             try:
                 ventity = models.VersionedEntity.objects.get(id=real_version_id)
             except models.VersionedEntity.DoesNotExist:
-                raise ResNotFoundError(f"模板集版本(id:{real_version_id})不存在")
+                raise ResNotFoundError(_("模板集版本(id:{})不存在").format(real_version_id))
 
         if ventity:
             config['version'] = ventity.id

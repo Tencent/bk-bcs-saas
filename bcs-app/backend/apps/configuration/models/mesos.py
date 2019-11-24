@@ -15,6 +15,7 @@ import time
 import json
 
 from django.db import models
+from django.utils.translation import ugettext as _
 
 from .mixins import MConfigMapAndSecretMixin, PodMixin, ResourceMixin
 from .base import BaseModel, logger
@@ -107,7 +108,7 @@ class Application(MesosResource, PodMixin):
         try:
             old_app = cls.objects.get(id=old_id)
         except cls.DoesNotExist:
-            raise cls.DoesNotExist(f"{cls.__name__} Id ({old_id}) 不存在")
+            raise cls.DoesNotExist(_("{} Id ({}) 不存在").format(cls.__name__, old_id))
         # 需要与保留其他资源的关联关系，所以更新后的记录 app_id 要与原来的记录保持一致
         kwargs['app_id'] = old_app.app_id
         return super().perform_update(old_id, **kwargs)

@@ -14,6 +14,7 @@
 from rest_framework import viewsets
 from rest_framework.response import Response
 from rest_framework.renderers import BrowsableAPIRenderer
+from django.utils.translation import ugettext as _
 
 from backend.utils.error_codes import error_codes
 from backend.apps.application.constants import MESOS_KIND
@@ -43,7 +44,7 @@ class ApplicationView(viewsets.ViewSet, GetVersionedEntity):
 
         app_ids = request.GET.get('app_ids')
         if not app_ids:
-            raise error_codes.ValidateError("请选择关联的应用")
+            raise error_codes.ValidateError(_("请选择关联的应用"))
 
         app_id_list = app_ids.split(',')
         ports = ventity.get_version_ports(app_id_list)
@@ -59,7 +60,7 @@ class ApplicationView(viewsets.ViewSet, GetVersionedEntity):
             ports = svc.get_ports_config()
             for p in ports:
                 if str(p.get('id')) == str(port_id):
-                    raise error_codes.APIError(f"端口在 Service[{svc.name}] 中已经被关联,不能删除")
+                    raise error_codes.APIError(_("端口在 Service[{}] 中已经被关联,不能删除").format(svc.name))
         return Response({})
 
     def list_configmaps(self, request, project_id, version_id):

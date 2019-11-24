@@ -13,6 +13,8 @@
 #
 import re
 
+from django.utils.translation import ugettext as _
+
 from backend.utils.error_codes import error_codes
 from backend.apps.configuration.constants import NUM_VAR_PATTERN
 
@@ -44,5 +46,5 @@ def handle_number_var(var, name, is_preview, is_validate=True):
         var = int(var)
     except Exception:
         if is_validate:
-            raise error_codes.ValidateError(f"{name} 的值[{var}]不是一个有效数字")
+            raise error_codes.ValidateError(_("{} 的值[{}]不是一个有效数字").format(name, var))
     return var

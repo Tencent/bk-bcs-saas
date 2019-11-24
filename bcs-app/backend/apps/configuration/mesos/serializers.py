@@ -16,6 +16,7 @@ import re
 from django.conf import settings
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
+from django.utils.translation import ugettext as _
 
 from backend.apps.configuration.validator import validate_variable_inconfig, validate_res_config
 from backend.apps.configuration.k8s.serializers import BCSResourceSLZ
@@ -24,7 +25,7 @@ from .validator import MESOS_NAME_REGEX, get_config_schema, validate_mesos_res_n
     validate_res_duplicate, validate_port_duplicate_in_ventity
 
 NAME_REGEX = re.compile(r'^[a-z]{1}[a-z0-9-]{0,254}$')
-NAME_ERROR_MSG = "名称格式错误，只能包含：小写字母、数字、连字符(-)，首字母必须是字母，长度小于256个字符"
+NAME_ERROR_MSG = _("名称格式错误，只能包含：小写字母、数字、连字符(-)，首字母必须是字母，长度小于256个字符")
 
 
 class ApplicationSLZ(BCSResourceSLZ):
@@ -59,11 +60,11 @@ class ApplicationSLZ(BCSResourceSLZ):
         try:
             self._validate_volume_duplicate(containers)
         except ValidationError as e:
-            raise ValidationError(f"挂载名:{e},请重新填写")
+            raise ValidationError(_("挂载名:{},请重新填写").format(e))
         try:
             self._validate_port_duplicate(containers)
         except ValidationError as e:
-            raise ValidationError(f"端口名称:{e},请重新填写")
+            raise ValidationError(_("端口名称:{},请重新填写").format(e))
 
         if data.get('version_id'):
             validate_port_duplicate_in_ventity(containers, data.get('resource_id'), data['version_id'])
@@ -78,7 +79,7 @@ class DeploymentSLZ(BCSResourceSLZ):
         max_length=256,
         required=True,
         error_messages={
-            'invalid': "Deployment 名称格式错误，只能包含：小写字母、数字、连字符(-)，首字母必须是字母，长度小于256个字符"
+            'invalid': _("Deployment 名称格式错误，只能包含：小写字母、数字、连字符(-)，首字母必须是字母，长度小于256个字符")
         }
     )
 
@@ -95,10 +96,10 @@ class DeploymentSLZ(BCSResourceSLZ):
 
     def validate(self, data):
         if not data.get('version_id'):
-            raise ValidationError("请先创建 Application，再创建 Deployment")
+            raise ValidationError(_("请先创建 Application，再创建 Deployment"))
 
         if not data.get('app_id'):
-            raise ValidationError(f"Deployment模板中{data.get('name')}: 请选择关联的 Application")
+            raise ValidationError(_("Deployment模板中{}: 请选择关联的 Application").format(data.get('name')))
 
         data = super().validate(data)
 
@@ -121,16 +122,16 @@ class ServiceSLZ(BCSResourceSLZ):
     def validate_app_id(self, app_id):
         # 将app_id转换成list
         if not app_id:
-            raise ValidationError("Service模板: 请选择关联的 Application")
+            raise ValidationError(_("Service模板: 请选择关联的 Application"))
 
         if isinstance(app_id, list):
             return app_id
         elif isinstance(app_id, dict):
             if sum(app_id.values()) != 100:
-                raise ValidationError("关联应用的权重之和不为100%")
+                raise ValidationError(_("关联应用的权重之和不为100%"))
             return app_id
         else:
-            raise ValidationError("关联应用参数格式错误")
+            raise ValidationError(_("关联应用参数格式错误"))
 
     def _validate_config(self, data):
         config = data['config']

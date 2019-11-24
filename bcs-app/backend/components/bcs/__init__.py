@@ -15,6 +15,7 @@ import json
 
 from django.conf import settings
 from django.utils.functional import cached_property
+from django.utils.translation import ugettext as _
 
 from backend.components import paas_cc
 from backend.utils import cache, exceptions
@@ -51,10 +52,10 @@ class BCSClientBase:
 
         # 初始化时就检查参数
         if not project_id:
-            raise ValueError("project_id不能为空")
+            raise ValueError(_("project_id不能为空"))
 
         if not cluster_id and not env:
-            raise ValueError("cluster_id, env不能同时为空")
+            raise ValueError(_("cluster_id, env不能同时为空"))
 
     @cached_property
     def api_host(self):

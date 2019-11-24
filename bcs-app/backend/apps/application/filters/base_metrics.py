@@ -12,6 +12,7 @@
 # specific language governing permissions and limitations under the License.
 #
 import json
+from django.utils.translation import ugettext as _
 
 from backend.apps.application.base_views import BaseAPI, error_codes
 from backend.apps.configuration.models import Template
@@ -31,7 +32,7 @@ class BaseMetricAPI(BaseAPI):
             name_id_map = self.get_namespace_name_id(request, project_id)
             ns_id = name_id_map.get(ns_name)
             if not ns_id:
-                raise error_codes.CheckFailed.f("命名空间: %s 不存在" % ns_name)
+                raise error_codes.CheckFailed(_("命名空间: {} 不存在").format(ns_name))
             return ns_id
         else:
             return None
@@ -51,7 +52,7 @@ class BaseMetricAPI(BaseAPI):
                 category_list = self.get_category(request, request.project['kind'])
                 insts = insts.filter(category__in=category_list)
             if not insts:
-                raise error_codes.CheckFailed.f("应用: %s不存在" % app_name)
+                raise error_codes.CheckFailed(_("应用: {} 不存在").format(app_name))
             return insts[0].id
         return None
 
@@ -61,10 +62,10 @@ class BaseMetricAPI(BaseAPI):
         category = request.GET.get("category")
         if kind == 1:
             if not category:
-                raise error_codes.CheckFailed.f("应用类型不能为空")
+                raise error_codes.CheckFailed(_("应用类型不能为空"))
             else:
                 if category not in CATEGORY_MAP:
-                    raise error_codes.CheckFailed.f("类型不正确，请确认")
+                    raise error_codes.CheckFailed(_("类型不正确，请确认"))
                 category = [CATEGORY_MAP[category]]
         else:
             category = ["application", "deployment"]
@@ -82,7 +83,7 @@ class BaseMusterMetric(BaseMetricAPI):
             musters = Template.objects.filter(project_id=project_id, is_deleted=False)
             musters = musters.filter(name=muster_name)
             if not musters:
-                raise error_codes.CheckFailed.f("模板集: %s不存在" % muster_name)
+                raise error_codes.CheckFailed(_("模板集: {} 不存在").format(muster_name))
             return musters[0].id
         else:
             return None
@@ -92,10 +93,10 @@ class BaseMusterMetric(BaseMetricAPI):
         """
         cluster_type = request.GET.get("cluster_type")
         if not cluster_type or cluster_type not in CLUSTER_TYPE:
-            raise error_codes.CheckFailed.f("集群类型不正确，请确认")
+            raise error_codes.CheckFailed(_("集群类型不正确，请确认"))
         app_status = request.GET.get("app_status")
         if app_status and app_status not in APP_STATUS:
-            raise error_codes.CheckFailed.f("应用状态不正确，请确认")
+            raise error_codes.CheckFailed(_("应用状态不正确，请确认"))
         muster_id = self.get_muster_id(
             project_id, request.GET.get("muster_id"), request.GET.get("muster_name"))
         app_id = self.get_app_id(
@@ -168,10 +169,10 @@ class BaseNamespaceMetric(BaseMetricAPI):
         """
         cluster_type = request.GET.get("cluster_type")
         if not cluster_type or cluster_type not in CLUSTER_TYPE:
-            raise error_codes.CheckFailed.f("集群类型不正确，请确认")
+            raise error_codes.CheckFailed(_("集群类型不正确，请确认"))
         app_status = request.GET.get("app_status")
         if app_status and app_status not in APP_STATUS:
-            raise error_codes.CheckFailed.f("应用状态不正确，请确认")
+            raise error_codes.CheckFailed(_("应用状态不正确，请确认"))
         app_id = self.get_app_id(
             request, project_id, request.GET.get("app_id"), request.GET.get("app_name"))
         ns_id = self.get_namespace_id(
@@ -183,5 +184,5 @@ class BaseNamespaceMetric(BaseMetricAPI):
         """
         inst_info = InstanceConfig.objects.filter(id=inst_id, is_deleted=False)
         if not inst_info:
-            raise error_codes.CheckFailed.f("实例不存在，请确认!")
+            raise error_codes.CheckFailed(_("实例不存在，请确认!"))
         return inst_info[0].name

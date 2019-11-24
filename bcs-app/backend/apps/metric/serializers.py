@@ -16,6 +16,8 @@ import re
 from urllib.parse import urlparse
 
 from rest_framework import serializers
+from django.utils.translation import ugettext as _
+
 from backend.apps.metric.models import Metric
 from rest_framework.exceptions import ValidationError
 
@@ -28,17 +30,17 @@ def validate_http_body(body):
     try:
         body = json.loads(body)
     except Exception:
-        raise ValidationError("GET方式，http_body必须是json数据")
+        raise ValidationError(_("GET方式，http_body必须是json数据"))
 
     if not isinstance(body, dict):
-        raise ValidationError("GET方式，http_body必须是字典类型")
+        raise ValidationError(_("GET方式，http_body必须是字典类型"))
 
     for k, v in body.items():
         if isinstance(k, (tuple, list, dict)) or isinstance(v, (tuple, list, dict)):
-            raise ValidationError("GET方式，http_body键和值必须是数字或者字符串类型")
+            raise ValidationError(_("GET方式，http_body键和值必须是数字或者字符串类型"))
 
         if not k or not v:
-            raise ValidationError("GET方式，http_body键和值不能为空")
+            raise ValidationError(_("GET方式，http_body键和值不能为空"))
 
 
 class UpdateMetricSLZ(serializers.Serializer):
@@ -56,23 +58,23 @@ class UpdateMetricSLZ(serializers.Serializer):
     def validate_name(self, name):
         count = Metric.objects.filter(project_id=self.context['project_id'], name=name).count()
         if count > 0:
-            raise ValidationError("name已经存在")
+            raise ValidationError(_("name已经存在"))
 
         if not NAME_PATTERN.match(name):
-            raise ValidationError("名称由英文字母、下划线或数字组成，且不可以数字开头")
+            raise ValidationError(_("名称由英文字母、下划线或数字组成，且不可以数字开头"))
         return name
 
     def validate_uri(self, uri):
         parse = urlparse(uri)
         if parse.scheme or parse.netloc:
-            raise ValidationError("uri不需要填写协议和域名")
+            raise ValidationError(_("uri不需要填写协议和域名"))
         if uri[0] != '/':
-            raise ValidationError("uri必须是绝对路径")
+            raise ValidationError(_("uri必须是绝对路径"))
         return uri
 
     def validate_port(self, port):
         if port < 1 or port > 65535:
-            raise ValidationError("port必须在1-65535之间")
+            raise ValidationError(_("port必须在1-65535之间"))
         return port
 
     def validate_http_headers(self, http_headers):
@@ -93,7 +95,7 @@ class UpdateMetricSLZ(serializers.Serializer):
             return ''
         if metric_type in ['prometheus']:
             return metric_type
-        raise ValidationError("metric_type 只能为空或者为'prometheus'")
+        raise ValidationError(_("metric_type 只能为空或者为'prometheus'"))
 
     def validate_const_labels(self, const_labels):
         if not const_labels:
@@ -102,7 +104,7 @@ class UpdateMetricSLZ(serializers.Serializer):
 
     def validate(self, data):
         if not data:
-            raise ValidationError("参数不能为空")
+            raise ValidationError(_("参数不能为空"))
 
         if data.get('http_body') and data['http_method'] == 'GET':
             validate_http_body(data['http_body'])
@@ -115,8 +117,8 @@ class CreateMetricSLZ(UpdateMetricSLZ):
     def validate_name(self, name):
         count = Metric.objects.filter(project_id=self.context['project_id'], name=name).count()
         if count > 0:
-            raise ValidationError("name已经存在")
+            raise ValidationError(_("name已经存在"))
 
         if not NAME_PATTERN.match(name):
-            raise ValidationError("名称由英文字母、下划线、中划线或数字组成，且不可以数字开头")
+            raise ValidationError(_("名称由英文字母、下划线、中划线或数字组成，且不可以数字开头"))
         return name

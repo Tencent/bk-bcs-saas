@@ -19,6 +19,7 @@ from itertools import groupby
 from datetime import datetime
 
 from django.db.models import Q
+from django.utils.translation import ugettext as _
 
 from backend.components import paas_cc
 from backend.utils.errcodes import ErrorCode
@@ -121,8 +122,8 @@ class TemplateNamespace(BaseAPI):
         results = filter(lambda x: x["id"] in ns_id_list, results)
         results = [{'name': k,
                     'cluster_name': cluster_env_map.get(k, {}).get('cluster_name', k),
-                    'environment_name': "正式" if cluster_env_map.get(k, {}).get(
-                        'cluster_env_str', '') == 'prod' else "测试",
+                    'environment_name': _("正式") if cluster_env_map.get(k, {}).get(
+                        'cluster_env_str', '') == 'prod' else _("测试"),
                     'results': sorted(
                         list(v), key=lambda x: x['id'], reverse=True)}
                    for k, v in groupby(sorted(results, key=lambda x: x[group_by]),
@@ -151,7 +152,7 @@ class DeleteTemplateInstance(BaseAPI):
         """
         muster_name_list = Template.objects.filter(id=muster_id).values("name")
         if not muster_name_list:
-            raise error_codes.CheckFailed.f(u"模板集ID: %s不存在" % muster_id)
+            raise error_codes.CheckFailed(_("模板集ID: {} 不存在").format(muster_id))
         return muster_name_list[0]["name"]
 
     def get_template_name(self, template_id, category):
@@ -160,15 +161,15 @@ class DeleteTemplateInstance(BaseAPI):
         info = MODULE_DICT[category].objects.filter(
             id=template_id).values("name")
         if not info:
-            raise error_codes.CheckFailed.f(u"模板ID: %s不存在" % template_id)
+            raise error_codes.CheckFailed(_("模板ID: {} 不存在").format(template_id))
         return info[0]["name"]
 
     def check_project_muster(self, project_id, muster_id):
         """判断项目和集群
         """
         if not Template.objects.filter(project_id=project_id, id=muster_id).exists():
-            raise error_codes.CheckFailed.f(
-                u"项目:%s,模板集: %s 不存在!" % (project_id, muster_id))
+            raise error_codes.CheckFailed(
+                _("项目:{},模板集: {} 不存在!").format(project_id, muster_id))
 
     def get_instance_info(self, ns_id_list, name, category=None):
         """获取实例信息
@@ -207,7 +208,7 @@ class DeleteTemplateInstance(BaseAPI):
         ns_id_list = data.get("namespace_list")
         category = data.get("category")
         if not (ns_id_list and category):
-            raise error_codes.CheckFailed.f(u"参数不能为空!")
+            raise error_codes.CheckFailed(_("参数不能为空!"))
 
         project_kind = request.project.kind
         category = to_bcs_res_name(project_kind, category)
@@ -232,7 +233,7 @@ class DeleteTemplateInstance(BaseAPI):
                 "res_name": res_name,
                 "category": category
             }),
-            description=u"删除模板集实例"
+            description=_("删除模板集实例")
         ).log_delete():
             return self.delete_handler(request, inst_info, project_id, project_kind)
 
@@ -242,7 +243,7 @@ class DeleteTemplateInstance(BaseAPI):
         ns_id_list = data.get("namespace_list")
         id_list = data.get("id_list")
         if not (ns_id_list and id_list):
-            raise error_codes.CheckFailed.f(u"参数不能为空!")
+            raise error_codes.CheckFailed(_("参数不能为空!"))
         # 获取项目信息
         flag, project_kind = self.get_project_kind(request, project_id)
         if not flag:
@@ -267,7 +268,7 @@ class DeleteTemplateInstance(BaseAPI):
                 "show_version_name": show_version_name,
                 "tmpl_category_name_map": tmpl_category_name_map
             }),
-            description=u"删除模板集实例"
+            description=_("删除模板集实例")
         ).log_delete():
             resp = self.delete_handler(
                 request, inst_info, project_id, project_kind)
@@ -310,7 +311,7 @@ class DeleteTemplateInstance(BaseAPI):
                 category=info["info"].category, kind=project_kind, inst_id_list=[info["info"].id]
             )
             if resp.data.get("code") != ErrorCode.NoError:
-                logger.error(u"删除实例ID: %s 失败, 详情: %s" %
+                logger.error("删除实例ID: %s 失败, 详情: %s" %
                              (inst_id, resp.data.get("message")))
                 oper_error_inst.append("%s::%s: %s" % (
                     info["namespace"], info["instance_name"], resp.data.get("message")))
@@ -334,10 +335,10 @@ class DeleteTemplateInstance(BaseAPI):
         if oper_error_inst:
             return APIResponse({
                 "code": 400,
-                "message": u"存在删除失败情况，(命名空间:实例名称)详情: %s" % (";".join(oper_error_inst))
+                "message": _("存在删除失败情况，(命名空间:实例名称)详情: {}").format(";".join(oper_error_inst))
             })
         return APIResponse({
-            "message": u"操作成功!"
+            "message": _("操作成功!")
         })
 
     def delete(self, request, project_id, muster_id):

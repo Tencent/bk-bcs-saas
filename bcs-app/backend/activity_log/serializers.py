@@ -13,11 +13,17 @@
 #
 import arrow
 from rest_framework import serializers
+from django.utils.translation import ugettext as _
 
 from backend.activity_log.models import UserActivityLog
 
 
 class ActivityLogSLZ(serializers.ModelSerializer):
+    description = serializers.SerializerMethodField()
+
+    def get_description(self, obj):
+        return _(obj.description)
+
     class Meta:
         model = UserActivityLog
         fields = (

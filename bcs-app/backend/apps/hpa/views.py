@@ -92,11 +92,11 @@ class HPA(viewsets.ViewSet, BaseAPI, ResourceOperate):
         try:
             utils.delete_hpa(request, project_id, cluster_id, ns_name, namespace_id, name)
         except utils.DeleteHPAError as error:
-            message = f'{_("删除HPA")}:{name}{_("失败")}, [{_("命名空间")}:{ns_name}], {error}'
+            message = "删除HPA:{}失败, [命名空间:{}], {}".format(name, ns_name, error)
             utils.activity_log(project_id, username, name, message, False)
             raise error_codes.APIError(message)
 
-        message = f'{_("删除HPA")}:{name}{_("成功")}, [{_("命名空间")}:{ns_name}]'
+        message = "删除HPA:{}成功, [命名空间:{}]".format(name, ns_name)
         utils.activity_log(project_id, username, name, message, True)
 
         return Response({})
@@ -126,12 +126,12 @@ class HPA(viewsets.ViewSet, BaseAPI, ResourceOperate):
             except utils.DeleteHPAError as error:
                 failed_list.append({
                     'name': name,
-                    'desc': f'{name}[{_("命名空间")}:{ns_name}]:{error}'
+                    'desc': "{}[命名空间:{}]:{}".format(name, ns_name, error)
                 })
             else:
                 success_list.append({
                     'name': name,
-                    'desc': f'{name}[{_("命名空间")}:{ns_name}]'
+                    'desc': "{}[命名空间:{}]".format(name, ns_name)
                 })
 
         # 添加操作审计
@@ -140,7 +140,7 @@ class HPA(viewsets.ViewSet, BaseAPI, ResourceOperate):
             desc_list = [_s.get('desc') for _s in success_list]
 
             desc_list_msg = ";".join(desc_list)
-            message = f'{_("以下HPA删除成功")}:{desc_list_msg}'
+            message = "以下HPA删除成功:{}".format(desc_list_msg)
 
             utils.activity_log(project_id, username, ';'.join(name_list), message, True)
 
@@ -149,7 +149,7 @@ class HPA(viewsets.ViewSet, BaseAPI, ResourceOperate):
             desc_list = [_s.get('desc') for _s in failed_list]
 
             desc_list_msg = ";".join(desc_list)
-            message = f'{_("以下HPA删除失败")}:{desc_list_msg}'
+            message = "以下HPA删除失败:{}".format(desc_list_msg)
 
             utils.activity_log(project_id, username, ';'.join(name_list), message, False)
 

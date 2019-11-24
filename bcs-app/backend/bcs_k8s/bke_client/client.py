@@ -87,7 +87,7 @@ class BCSClusterClient:
         if bcs_cluster_data.get('code_name') == constants.CLUSTER_EXIST_CODE_NAME:
             bcs_cluster_data = self.get_bcs_cluster(bcs_api_client)
         if bcs_cluster_data.get('code_name') == constants.CLUSTER_NOT_FOUND_CODE_NAME:
-            return APIException(f"{_('集群注册失败, bcs server 数据不一致')}，{json.dumps(bcs_cluster_data)}")
+            return APIException("集群注册失败, bcs server 数据不一致，{}".format(json.dumps(bcs_cluster_data)))
 
         # 防止被后面被register token返回值覆盖
         bcs_cluster_data['bcs_cluster_id'] = bcs_cluster_data['id']
@@ -118,7 +118,7 @@ class BCSClusterClient:
         credentials_data = bcs_api_client.get_client_credentials(bcs_cluster_data['bcs_cluster_id'])
         if credentials_data.get('code_name') == constants.CREDENTIALS_NOT_FOUND_CODE_NAME:
             raise BCSClusterCredentialsNotFound(
-                f"{_('bcs-agent还没有上报apiserver信息,请检查集群')}[{self.cluster_id}]{_('中的kube-system/bcs-agent日志否正常！')}")
+                "bcs-agent还没有上报apiserver信息,请检查集群')}[{}]中的kube-system/bcs-agent日志否正常".format(self.cluster_id))
         # 添加 identifier 信息，web-console使用
         credentials_data['identifier'] = bcs_cluster_data['identifier']
         return credentials_data

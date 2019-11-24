@@ -23,6 +23,7 @@ import json
 from rest_framework.response import Response
 from rest_framework.exceptions import ValidationError
 from rest_framework import viewsets
+from django.utils.translation import ugettext as _
 
 from backend.accounts import bcs_perm
 from backend.utils.errcodes import ErrorCode
@@ -124,7 +125,7 @@ class ResourceOperate(object):
             if namespace in constants.K8S_SYS_NAMESPACE:
                 return {
                     "code": 400,
-                    "message": u"不允许操作系统命名空间[%s]" % ','.join(constants.K8S_SYS_NAMESPACE),
+                    "message": _("不允许操作系统命名空间[{}]").format(','.join(constants.K8S_SYS_NAMESPACE)),
                 }
             client = k8s.K8SClient(
                 access_token, project_id, cluster_id, env=None)
@@ -180,7 +181,7 @@ class ResourceOperate(object):
         message = resp.get('message', '')
         is_delete_before = True if 'node does not exist' in message or 'not found' in message else False
         if is_delete_before:
-            message = u"%s[命名空间:%s]已经被删除，请手动刷新数据" % (name, namespace)
+            message = _("{}[命名空间:{}]已经被删除，请手动刷新数据").format(name, namespace)
         return Response({
             "code": resp.get("code"),
             "message": message,
@@ -227,7 +228,7 @@ class ResourceOperate(object):
                 })
             else:
                 if is_delete_before:
-                    message = u'已经被删除，请手动刷新数据'
+                    message = _('已经被删除，请手动刷新数据')
                 desc = self.desc.format(
                     cluster_id=cluster_id, namespace=namespace, resource_name=self.category, name=name)
                 failed_list.append({
@@ -240,7 +241,7 @@ class ResourceOperate(object):
         if success_list:
             name_list = [_s.get('name') for _s in success_list]
             desc_list = [_s.get('desc') for _s in success_list]
-            message = u"以下%s删除成功:%s" % (self.category, ";".join(desc_list))
+            message = _("以下{}删除成功:{}").format(self.category, ";".join(desc_list))
             activity_client.ContextActivityLogClient(
                 project_id=project_id,
                 user=username,
@@ -256,7 +257,7 @@ class ResourceOperate(object):
             desc_list = [_s.get('desc') for _s in failed_list]
 
             code = 4004
-            message = u"以下%s删除失败:%s" % (self.category, ";".join(desc_list))
+            message = _("以下{}删除失败:{}").format(self.category, ";".join(desc_list))
             activity_client.ContextActivityLogClient(
                 project_id=project_id,
                 user=username,
@@ -288,7 +289,7 @@ class ResourceOperate(object):
             if namespace in constants.K8S_SYS_NAMESPACE:
                 return Response({
                     "code": 400,
-                    "message": u"不允许操作系统命名空间[%s]" % ','.join(constants.K8S_SYS_NAMESPACE),
+                    "message": _("不允许操作系统命名空间[{}]").format(','.join(constants.K8S_SYS_NAMESPACE)),
                     "data": {}
                 })
             # k8s 相关数据
@@ -338,7 +339,7 @@ class ResourceOperate(object):
         except Exception:
             logger.exception(u"配置文件变量替换出错\nconfig:%s\ncontext:%s" %
                              (resource_config, context))
-            raise ValidationError(u"配置文件中有未替换的变量")
+            raise ValidationError(_("配置文件中有未替换的变量"))
 
         config_profile = generator.format_config_profile(config_profile)
 
@@ -399,14 +400,14 @@ class ResourceOperate(object):
             resource=service_name,
             resource_id=_instance_config.id,
             extra=json.dumps(configuration),
-            description=u"更新%s[%s]命名空间[%s]" % (
+            description=_("更新{}[{}]命名空间[{}]").format(
                 self.category, service_name, namespace)
         ).log_modify(activity_status="failed" if failed else "succeed")
 
         if failed:
             return Response({
                 "code": 400,
-                "message": "%s[%s]在命名空间[%s]更新失败，请联系集群管理员解决" % (self.category, service_name, namespace),
+                "message": _("{}[{}]在命名空间[{}]更新失败，请联系集群管理员解决").format(self.category, service_name, namespace),
                 "data": {}
             })
         return Response({
@@ -454,18 +455,18 @@ class ResourceOperate(object):
                 # 处理 k8s 的系统命名空间的数据
                 if _s['namespace'] in constants.K8S_SYS_NAMESPACE:
                     _s['can_update'] = _s['can_delete'] = False
-                    _s['can_update_msg'] = _s['can_delete_msg'] = u"不允许操作系统命名空间"
+                    _s['can_update_msg'] = _s['can_delete_msg'] = _("不允许操作系统命名空间")
                     continue
 
                 # 处理平台集群和命名空间下的数据
                 if _s['namespace'] in constants.K8S_PLAT_NAMESPACE and cluster_id in constants.K8S_PLAT_CLUSTER_ID:
                     _s['can_update'] = _s['can_delete'] = False
-                    _s['can_update_msg'] = _s['can_delete_msg'] = u"不允许操作平台命名空间"
+                    _s['can_update_msg'] = _s['can_delete_msg'] = _("不允许操作平台命名空间")
                     continue
 
                 if _s['namespace'] in constants.K8S_COMPONENT_NAMESPACE:
                     _s['can_update'] = _s['can_delete'] = False
-                    _s['can_update_msg'] = _s['can_delete_msg'] = u"不允许操作平台命名空间"
+                    _s['can_update_msg'] = _s['can_delete_msg'] = _("不允许操作平台命名空间")
                     continue
 
             # 处理创建命名空间时生成的default-token-xxx
@@ -483,7 +484,7 @@ class ResourceOperate(object):
             is_mesos_image_sercret = True if (s_cate == 'secret' and _s['name'] == MESOS_IMAGE_SECRET) else False
             if is_k8s_image_sercret or is_mesos_image_sercret or is_namespace_default_token:
                 _s['can_update'] = _s['can_delete'] = False
-                _s['can_update_msg'] = _s['can_delete_msg'] = u"不允许操作系统数据"
+                _s['can_update_msg'] = _s['can_delete_msg'] = _("不允许操作系统数据")
                 continue
 
             if template_id:
@@ -496,7 +497,7 @@ class ResourceOperate(object):
             else:
                 # 非模板集创建，可以删除但是不可以更新
                 _s['can_update'] = False
-                _s['can_update_msg'] = u"不是由模板实例化生成，无法更新"
+                _s['can_update_msg'] = _("不是由模板实例化生成，无法更新")
 
             _s['instance_id'] = instance_id
 
@@ -555,7 +556,7 @@ class ConfigMaps(viewsets.ViewSet, BaseAPI, ResourceOperate):
 
         if resp.get("code") != ErrorCode.NoError:
             logger.error(u"bcs_api error: %s" % resp.get("message", ""))
-            return resp.get("code", DEFAULT_ERROR_CODE), resp.get("message", u"请求出现异常!")
+            return resp.get("code", DEFAULT_ERROR_CODE), resp.get("message", _("请求出现异常!"))
         data = resp.get("data") or []
         # data = data_handler(resp.get("data") or [], project_kind)
         return 0, data
@@ -565,7 +566,7 @@ class ConfigMaps(viewsets.ViewSet, BaseAPI, ResourceOperate):
         # 获取kind
         project_kind = request.project.kind
         if project_kind not in [info[0] for info in constants.ProjectKind.get_choices()]:
-            raise error_codes.CheckFailed.f("项目编排类型不正确", replace=True)
+            raise error_codes.CheckFailed(_("项目编排类型不正确"))
 
         cluster_dicts = self.get_project_cluster_info(request, project_id)
         cluster_data = cluster_dicts.get('results', {}) or {}
@@ -682,7 +683,7 @@ class Secrets(viewsets.ViewSet, BaseAPI, ResourceOperate):
 
         if resp.get("code") != ErrorCode.NoError:
             logger.error(u"bcs_api error: %s" % resp.get("message", ""))
-            return resp.get("code", DEFAULT_ERROR_CODE), resp.get("message", u"请求出现异常!")
+            return resp.get("code", DEFAULT_ERROR_CODE), resp.get("message", _("请求出现异常!"))
         data = resp.get("data") or []
         # data = data_handler(resp.get("data") or [], project_kind)
         return 0, data
@@ -782,7 +783,7 @@ class Endpoints(BaseAPI):
         if resp.get("code") != ErrorCode.NoError:
             return APIResponse({
                 "code": resp.get("code", DEFAULT_ERROR_CODE),
-                "message": resp.get("message", u"请求出现异常!")
+                "message": resp.get("message", _("请求出现异常!"))
             })
 
         return APIResponse({

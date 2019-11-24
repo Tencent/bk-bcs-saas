@@ -26,6 +26,7 @@ from datetime import datetime
 from collections import OrderedDict
 
 from django.db.models import Q
+from django.utils.translation import ugettext as _
 
 from backend.components import paas_cc
 from backend.apps.application.utils import APIResponse, image_handler
@@ -177,7 +178,7 @@ class GetProjectMuster(BaseMusterMetric):
         else:
             category = request.GET.get("category")
             if not category:
-                raise error_codes.CheckFailed.f("分类不能为空", replace=True)
+                raise error_codes.CheckFailed(_("分类不能为空"))
             k8s_view_client = k8s_views.K8SMuster()
             ret_data = k8s_view_client.get(
                 request, project_id, all_muster_list,
@@ -217,7 +218,7 @@ class GetMusterTemplate(BaseMusterMetric):
         """检测项目和模板的关系
         """
         if not Template.objects.filter(project_id=project_id, id=muster_id).exists():
-            raise error_codes.RecordNotFound.f(u"模板集不属于项目!")
+            raise error_codes.RecordNotFound(_("模板集不属于项目!"))
 
     def get_tmpl_info(self, muster_id, category=None):
         """通过模板集获取模板
@@ -619,7 +620,7 @@ class GetMusterTemplate(BaseMusterMetric):
         else:
             category = request.GET.get("category")
             if not category or category not in k8s_views.CATEGORY_MAP:
-                raise error_codes.CheckFailed.f("分类不正确", replace=True)
+                raise error_codes.CheckFailed(_("分类不正确"))
             # 根据模板集获取所有模板
             version_id_map_list = self.get_tmpl_info(muster_id, category=category)
             k8s_view_client = k8s_views.GetMusterTemplate()
@@ -749,7 +750,7 @@ class AppInstance(BaseMusterMetric):
                 "create_at": info.created,
                 "update_at": info.updated,
                 "backend_status": backend_status,
-                "backend_status_message": inst_id_event_map.get(info.id) or u"请求失败，已通知管理员!",
+                "backend_status_message": inst_id_event_map.get(info.id),
                 "creator": info.creator,
                 "oper_type": info.oper_type,
                 "oper_type_flag": oper_type_flag,
@@ -781,7 +782,7 @@ class AppInstance(BaseMusterMetric):
             else:
                 item.update({
                     "status": "Unready",
-                    "status_message": "请点击查看详情",
+                    "status_message": _("请点击查看详情"),
                     "pod_count": "0/0",
                     "category": k8s_views.REVERSE_CATEGORY_MAP[info.category],
                 })
@@ -818,7 +819,7 @@ class AppInstance(BaseMusterMetric):
         """针对deployment组装请求taskgroup信息
         """
         ret_data = {}
-        for _, info in instance_info.items():
+        for __, info in instance_info.items():
             # TODO: 后续重构时，注意匹配字段
             app_name_list = deploy_app_info.get((info['cluster_id'], info["namespace"], info["name"]), [])
             if not app_name_list:
@@ -972,7 +973,7 @@ class AppInstance(BaseMusterMetric):
             category = k8s_views.CATEGORY_MAP[category]
         info = MODULE_DICT[category].objects.filter(id=template_id, is_deleted=False)
         if not info:
-            raise error_codes.RecordNotFound.f("没有查询到记录!")
+            raise error_codes.RecordNotFound(_("没有查询到记录!"))
         name = info[0].name
         # 过滤整个模板表
         # 针对application获取整个表
@@ -1022,7 +1023,7 @@ class AppInstance(BaseMusterMetric):
         if not category:
             return APIResponse({
                 "code": 400,
-                "message": u"参数[category]不能为空",
+                "message": _("参数[category]不能为空"),
             })
         # 获取项目信息
         project_kind = self.project_kind(request)
@@ -1095,7 +1096,7 @@ class CreateInstance(BaseAPI):
             conf = json.loads(info.config)
         except Exception as error:
             logger.error(u"解析instance config异常，id为 %s, 详情: %s" % (info.id, error))
-            raise error_codes.JSONParseError.f(u"Instance config解析异常")
+            raise error_codes.JSONParseError(_("Instance config解析异常"))
         return conf
 
     def update_inst_property(self, resp, curr_inst, request):
@@ -1122,7 +1123,7 @@ class CreateInstance(BaseAPI):
         if curr_inst.is_bcs_success:
             return APIResponse({
                 "code": 400,
-                "message": u"实例已经创建，请勿重复操作!"
+                "message": _("实例已经创建，请勿重复操作!")
             })
         conf = self.get_instance_conf(curr_inst)
         metadata = conf.get("metadata", {})
@@ -1145,7 +1146,7 @@ class CreateInstance(BaseAPI):
                 resource=metadata.get("name"),
                 resource_id=instance_id,
                 extra=json.dumps({"config": conf}),
-                description=u"重试应用实例化"
+                description=_("重试应用实例化")
             ).log_add():
                 resp = self.create_instance(
                     request, project_id, cluster_id, namespace, conf,
@@ -1171,9 +1172,7 @@ class UpdateInstanceNew(InstanceAPI):
         """
         info = InstanceConfig.objects.filter(id=instance_id)
         if not info:
-            raise error_codes.CheckFailed.f(
-                "没有查询到实例信息", replace=True
-            )
+            raise error_codes.CheckFailed(_("没有查询到实例信息"))
         return info[0]
 
     def get_tmpl_ids(self, version_id, category):
@@ -1181,7 +1180,7 @@ class UpdateInstanceNew(InstanceAPI):
         """
         info = VersionedEntity.objects.filter(id=version_id)
         if not info:
-            raise error_codes.CheckFailed.f("没有查询到相应的版本信息", replace=True)
+            raise error_codes.CheckFailed(_("没有查询到相应的版本信息"))
         curr_info = info[0]
         entity = json.loads(curr_info.entity)
         return entity.get(category)
@@ -1192,7 +1191,7 @@ class UpdateInstanceNew(InstanceAPI):
         id_list = ids.split(",")
         tmpl_info = MODULE_DICT[category].objects.filter(id__in=id_list, name=name)
         if not tmpl_info:
-            raise error_codes.CheckFailed.f("没有查询到模板信息", replace=True)
+            raise error_codes.CheckFailed(_("没有查询到模板信息"))
         return {category: [tmpl_info[0].id]}
 
     def generate_ns_config_info(self, request, ns_id, inst_entity, params, is_save=True):
@@ -1221,7 +1220,7 @@ class UpdateInstanceNew(InstanceAPI):
         """
         info = ShowVersion.objects.filter(id=version_id)
         if not info:
-            raise error_codes.CheckFailed.f("没有查询展示版本信息", replace=True)
+            raise error_codes.CheckFailed(_("没有查询展示版本信息"))
         return info[0]
 
     def update_conf_version(
@@ -1261,25 +1260,25 @@ class UpdateInstanceNew(InstanceAPI):
             )
         except Exception as error:
             logger.error(u"更新配置出现异常, 实例ID: %s, 详情: %s" % (inst_id, error))
-            raise error_codes.DBOperError.f(u"更新实例配置异常!")
+            raise error_codes.DBOperError(_("更新实例配置异常!"))
 
     def get_params(self, request):
         """获取参数
         """
         version_id = request.GET.get("version_id")
         if not version_id:
-            raise error_codes.CheckFailed.f("升级的版本信息不能为空", replace=True)
+            raise error_codes.CheckFailed(_("升级的版本信息不能为空"))
         instance_num = request.GET.get("instance_num")
         category = request.GET.get("category")
         if category not in ["job", "daemonset"] and (not instance_num or not str(instance_num).isdigit()):
-            raise error_codes.CheckFailed.f("实例数量必须为正数")
+            raise error_codes.CheckFailed(_("实例数量必须为正数"))
         # 获取环境变量，如果有未赋值的，则认为参数不正确
         data = dict(request.data)
         variables = data.get("variable") or {}
         if variables:
             for key, val in variables.items():
                 if not val:
-                    raise error_codes.CheckFailed.f("环境变量 %s 对应的值不能为空" % key)
+                    raise error_codes.CheckFailed(_("环境变量 {} 对应的值不能为空").format(key))
         return version_id, instance_num, variables
 
     def generate_conf(
@@ -1306,7 +1305,7 @@ class UpdateInstanceNew(InstanceAPI):
         try:
             instance_num = int(instance_num)
         except Exception:
-            raise error_codes.CheckFailed.f("实例数 %s 不是整数" % instance_num)
+            raise error_codes.CheckFailed(_("实例数 {} 不是整数").format(instance_num))
 
         # 针对k8s和mesos分开处理replica和instance
         if kind == 1:
@@ -1322,7 +1321,7 @@ class UpdateInstanceNew(InstanceAPI):
         old_item = ((old_conf.get("spec") or {}).get("selector") or {}).get("matchLabels") or {}
         new_item = ((new_conf.get("spec") or {}).get("selector") or {}).get("matchLabels") or {}
         if old_item != new_item:
-            raise error_codes.CheckFailed.f("Selector不一致不能进行更新，请确认!", replace=True)
+            raise error_codes.CheckFailed(_("Selector不一致不能进行更新，请确认!"))
 
     def update_instance(self, request, project_id, project_kind, cluster_id,
                         name, instance_id, namespace, category, conf):
@@ -1346,10 +1345,10 @@ class UpdateInstanceNew(InstanceAPI):
         """
         cluster_id, namespace, name, category = self.get_instance_resource(request, project_id)
         if category == "job":
-            raise error_codes.CheckFailed.f("JOB类型不允许滚动升级")
+            raise error_codes.CheckFailed(_("JOB类型不允许滚动升级"))
         conf = dict(request.data).get("conf")
         if not conf:
-            raise error_codes.CheckFailed.f("参数【conf】不能为空!")
+            raise error_codes.CheckFailed(_("参数【conf】不能为空!"))
         conf = json.loads(conf)
         resp = self.update_instance(
             request, project_id, project_kind, cluster_id,
@@ -1370,7 +1369,7 @@ class UpdateInstanceNew(InstanceAPI):
 
         category = inst_info.category
         if category == "K8sJob":
-            raise error_codes.CheckFailed.f("JOB类型不允许滚动升级")
+            raise error_codes.CheckFailed(_("JOB类型不允许滚动升级"))
         inst_name = inst_info.name
         # 获取namespace
         inst_conf = json.loads(inst_info.config)
@@ -1430,14 +1429,14 @@ class UpdateApplication(UpdateInstanceNew):
         """
         version_id = request.GET.get("version_id")
         if not version_id:
-            raise error_codes.CheckFailed.f("升级的版本信息不能为空", replace=True)
+            raise error_codes.CheckFailed(_("升级的版本信息不能为空"))
         # 获取环境变量，如果有未赋值的，则认为参数不正确
         data = dict(request.data)
         variables = data.get("variable") or {}
         if variables:
             for key, val in variables.items():
                 if not val:
-                    raise error_codes.CheckFailed.f("环境变量 %s 对应的值不能为空" % key)
+                    raise error_codes.CheckFailed(_("环境变量 {} 对应的值不能为空").format(key))
         return version_id, variables
 
     def put(self, request, project_id, instance_id):
@@ -1450,7 +1449,7 @@ class UpdateApplication(UpdateInstanceNew):
 
         category = inst_info.category
         if category != APPLICATION_CATEGORY:
-            raise error_codes.CheckFailed.f("更新的实例必须为application类型，请确认!")
+            raise error_codes.CheckFailed(_("更新的实例必须为application类型，请确认!"))
         inst_name = inst_info.name
         # 获取namespace
         inst_conf = json.loads(inst_info.config)
@@ -1481,7 +1480,7 @@ class UpdateApplication(UpdateInstanceNew):
             resource=inst_name,
             resource_id=instance_id,
             extra=json.dumps({"namespace": inst_info.namespace}),
-            description=u"应用滚动升级"
+            description=_("应用滚动升级")
         ).log_modify():
             mesos_client = mesos.MesosClient(
                 request.user.token.access_token,
@@ -1556,7 +1555,7 @@ class ScaleInstance(InstanceAPI):
             resource=name,
             resource_id=instance_id,
             extra=json.dumps({"config": conf, "namespace": namespace}),
-            description="应用扩缩容"
+            description=_("应用扩缩容")
         ).log_modify():
             resp = self.scale_instance(
                 request, project_id, cluster_id, namespace, name,
@@ -1587,12 +1586,12 @@ class ScaleInstance(InstanceAPI):
         if not instance_num and instance_num != 0:
             return APIResponse({
                 "code": 400,
-                "message": u"参数[instance_num]不能为空"
+                "message": _("参数[instance_num]不能为空")
             })
         if not str(instance_num).isdigit():
             return APIResponse({
                 "code": 400,
-                "message": u"参数[instance_num]必须为整数"
+                "message": _("参数[instance_num]必须为整数")
             })
         project_kind = self.project_kind(request)
         # 针对非模板的操作
@@ -1677,7 +1676,7 @@ class CancelUpdateInstance(BaseAPI):
             )
         except Exception as error:
             logger.error(u"更新配置出现异常, 实例ID: %s, 详情: %s" % (inst_id, error))
-            raise error_codes.DBOperError.f(u"更新实例配置异常!")
+            raise error_codes.DBOperError(_("更新实例配置异常!"))
 
     def put(self, request, project_id, instance_id, instance_name):
         """取消更新
@@ -1708,7 +1707,7 @@ class CancelUpdateInstance(BaseAPI):
             resource=name,
             resource_id=instance_id,
             extra=json.dumps({"config": conf, "namespace": "namespace"}),
-            description=u"应用取消滚动升级"
+            description=_("应用取消滚动升级")
         ).log_modify():
             if project_kind == 2:
                 resp = self.cancel_update_deployment(
@@ -1748,7 +1747,7 @@ class RollbackApplication(CancelUpdateInstance):
         curr_inst = inst_info[0]
 
         if curr_inst.category != APPLICATION_CATEGORY:
-            raise error_codes.CheckFailed.f("实例类型必须为application, 请确认!")
+            raise error_codes.CheckFailed(_("实例类型必须为application, 请确认!"))
         conf = self.get_common_instance_conf(curr_inst)
         metadata = conf.get("metadata", {})
         labels = metadata.get("labels", {})
@@ -1765,7 +1764,7 @@ class RollbackApplication(CancelUpdateInstance):
             resource=name,
             resource_id=instance_id,
             extra=json.dumps({"config": conf, "namespace": "namespace"}),
-            description=u"应用取消滚动升级"
+            description=_("应用取消滚动升级")
         ).log_modify():
             last_config = json.loads(curr_inst.last_config)
             mesos_client = mesos.MesosClient(
@@ -1798,7 +1797,7 @@ class PauseUpdateInstance(InstanceAPI):
             resource=name,
             resource_id=instance_id,
             extra=json.dumps({"config": conf, "namespace": namespace}),
-            description="应用暂停更新"
+            description=_("应用暂停更新")
         ).log_modify():
             resp = self.pause_update_deployment(
                 request, project_id, cluster_id, namespace,
@@ -1855,7 +1854,7 @@ class ResumeUpdateInstance(InstanceAPI):
             resource=name,
             resource_id=instance_id,
             extra=json.dumps({"config": conf, "namespace": namespace}),
-            description="应用恢复滚动升级"
+            description=_("应用恢复滚动升级")
         ).log_modify():
             resp = self.resume_update_deployment(
                 request, project_id, cluster_id, namespace,
@@ -1897,7 +1896,7 @@ class ResumeUpdateInstance(InstanceAPI):
             resource=name,
             resource_id=instance_id,
             extra=json.dumps({"config": conf, "namespace": namespace}),
-            description=u"应用恢复滚动升级"
+            description=_("应用恢复滚动升级")
         ).log_modify():
             resp = self.resume_update_deployment(
                 request, project_id, cluster_id, namespace,
@@ -1943,12 +1942,12 @@ class DeleteInstance(InstanceAPI):
             if inst_info[0].is_deleted:
                 return APIResponse({
                     "code": 400,
-                    "message": u"实例已经删除，请勿重复操作!"
+                    "message": _("实例已经删除，请勿重复操作!")
                 })
             if inst_info[0].oper_type == "delete":
                 return APIResponse({
                     "code": 400,
-                    "message": u"已执行删除，请勿重复操作!"
+                    "message": _("已执行删除，请勿重复操作!")
                 })
         # 如果实例化时，如果失败的话，直接标记为删除
         curr_inst = inst_info[0]
@@ -1969,7 +1968,7 @@ class DeleteInstance(InstanceAPI):
             resource=name,
             resource_id=instance_id,
             extra=json.dumps({"config": conf, "namespace": namespace}),
-            description=u"应用删除操作"
+            description=_("应用删除操作")
         ).log_delete():
             resp = self.delete_instance(
                 request, project_id, cluster_id, namespace,
@@ -1998,7 +1997,7 @@ class ReCreateInstance(InstanceAPI):
         )
         logger.error("curr_error: %s" % resp.data)
         if resp.data.get("code") != ErrorCode.NoError:
-            raise error_codes.APIError.f(resp.data.get("message"))
+            raise error_codes.APIError(resp.data.get("message"))
 
         return resp
 
@@ -2062,7 +2061,7 @@ class ReCreateInstance(InstanceAPI):
             resource=name,
             resource_id=instance_id,
             extra=json.dumps({"config": conf, "namespace": namespace}),
-            description="应用重新创建"
+            description=_("应用重新创建")
         ).log_add():
             # if exist_inst:
             self.delete_instance_oper(
@@ -2089,5 +2088,5 @@ class ReCreateInstance(InstanceAPI):
                 username=request.user.username, conf=conf
             )
         return APIResponse({
-            "message": u"下发任务成功",
+            "message": _("下发任务成功"),
         })

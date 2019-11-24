@@ -19,6 +19,7 @@ from datetime import datetime
 from django.conf import settings
 from rest_framework.response import Response
 from rest_framework.renderers import BrowsableAPIRenderer
+from django.utils.translation import ugettext as _
 
 from .configs import k8s, mesos
 from backend.components import paas_cc, cc
@@ -173,7 +174,7 @@ class BaseCluster:
         data = task_info.get('data') or {}
         task_id = data.get('task_id')
         if not task_id:
-            raise error_codes.APIError(f"获取初始化任务ID异常，返回任务ID为{task_id}，请联系管理员处理")
+            raise error_codes.APIError(_("获取初始化任务ID异常，返回任务ID为{}，请联系管理员处理").format(task_id))
         log.set_task_id(task_id)
         self.save_task_url(log, data)
         return log
@@ -207,7 +208,7 @@ class CreateCluster(BaseCluster):
         # 获取绑定的CMDB业务ID
         self.cc_app_id = self.project_info.get('cc_app_id')
         if not self.cc_app_id:
-            raise error_codes.CheckFailed("当前项目没有绑定业务，不允许操作容器服务")
+            raise error_codes.CheckFailed(_("当前项目没有绑定业务，不允许操作容器服务"))
         # NOTE: 选择第一个master节点作为中控机IP
         self.control_ip = self.data['master_ips'][:1]
         # 检查是否有权限操作IP
@@ -224,10 +225,10 @@ class CreateCluster(BaseCluster):
         area_info_data = area_info.get('data') or {}
         area_list = area_info_data.get('results') or []
         if not area_list:
-            raise error_codes.APIError("获取区域配置信息为空，请确认后重试")
+            raise error_codes.APIError(_("获取区域配置信息为空，请确认后重试"))
         data = area_list[0]
         if not data:
-            raise error_codes.CheckFailed("获取区域配置为空，请确认后重试")
+            raise error_codes.CheckFailed(_("获取区域配置为空，请确认后重试"))
         return data
 
     def create_cc_set_module(self, cluster):
@@ -256,7 +257,7 @@ class CreateCluster(BaseCluster):
         set_modules = cc.search_set_module(self.username, self.cc_app_id, self.set_id)
         if set_modules.get('code') != ErrorCode.NoError:
             self.delete_cluster(cluster['cluster_id'])
-            raise error_codes.APIError(set_modules.get('message', "查询集群下模块信息失败"))
+            raise error_codes.APIError(set_modules.get('message', _("查询集群下模块信息失败")))
         set_module_dict = {
             info['bk_module_name']: info['bk_module_id']
             for info in set_modules.get('data', {}).get('info', [])
@@ -277,7 +278,7 @@ class CreateCluster(BaseCluster):
             module_info = cc.cc_module_instance(self.username, self.cc_app_id, self.set_id, module_name)
             if module_info.get('code') != ErrorCode.NoError:
                 self.delete_cluster(cluster['cluster_id'])
-                raise error_codes.APIError(module_info.get('message', "创建配置中心集群模块失败"))
+                raise error_codes.APIError(module_info.get('message', _("创建配置中心集群模块失败")))
             all_module_id_list.append(module_info.get('data', {}).get('bk_module_id'))
         return all_module_id_list
 
@@ -296,7 +297,7 @@ class CreateCluster(BaseCluster):
             raise error_codes.APIError(base_cluster_config.get('message'))
         config = json.loads(base_cluster_config.get('data', {}).get('configure', '{}'))
         if not config:
-            raise error_codes.CheckFailed("获取集群基本配置失败")
+            raise error_codes.CheckFailed(_("获取集群基本配置失败"))
         config['version'] = version
         self.config = config
 
@@ -329,7 +330,7 @@ class CreateCluster(BaseCluster):
         ).log_add() as ual:
             resp = paas_cc.create_cluster(self.access_token, self.project_id, cluster_data)
             if resp.get('code') != ErrorCode.NoError or not resp.get('data'):
-                raise error_codes.APIError(resp.get('message', "创建集群失败"))
+                raise error_codes.APIError(resp.get('message', _("创建集群失败")))
             cluster_info = resp.get('data')
             module_id_list = self.create_cc_set_module(cluster_info)
 
@@ -362,7 +363,7 @@ class ReinstallCluster(BaseCluster):
         except Exception as error:
             logger.error('%s, %s' % (bk_error_codes.ConfigError.code, "获取token出现异常,详情:%s" % error))
         if not resp.get('allowed'):
-            raise error_codes.CheckFailed("已经触发操作，请勿重复操作")
+            raise error_codes.CheckFailed(_("已经触发操作，请勿重复操作"))
 
     def get_cluster_info(self):
         cluster_info = paas_cc.get_cluster(
@@ -371,7 +372,7 @@ class ReinstallCluster(BaseCluster):
         if cluster_info.get('code') != ErrorCode.NoError:
             raise error_codes.APIError(cluster_info.get('message'))
         if not cluster_info.get('data'):
-            raise error_codes.APIError("查询集群: %s 对应的信息为空" % self.cluster_id)
+            raise error_codes.APIError(_("查询集群: {} 对应的信息为空").format(self.cluster_id))
         return cluster_info
 
     def get_cluster_last_log(self):
@@ -379,7 +380,7 @@ class ReinstallCluster(BaseCluster):
             project_id=self.project_id, cluster_id=self.cluster_id,
         ).last()
         if not log:
-            raise error_codes.CheckFailed("没有查询对应的任务日志")
+            raise error_codes.CheckFailed(_("没有查询对应的任务日志"))
         return log
 
     def check_cluster_perm(self):
@@ -393,7 +394,7 @@ class ReinstallCluster(BaseCluster):
         cluster_info = self.get_cluster_info()
         data = cluster_info.get('data', {})
         if data.get('status') in [CommonStatus.Initializing, CommonStatus.Removing]:
-            raise error_codes.CheckFailed("集群正在操作中，请勿重复操作")
+            raise error_codes.CheckFailed(_("集群正在操作中，请勿重复操作"))
         # 获取任务日志
         log = self.get_cluster_last_log()
         # 更新集群状态，使其处于执行中状态
@@ -545,7 +546,7 @@ class DeleteCluster(BaseCluster):
         data = task_info.get('data') or {}
         task_id = data.get('task_id')
         if not task_id:
-            raise error_codes.APIError(f"获取标准运维任务ID失败，返回任务ID为{task_id}，请联系管理员处理")
+            raise error_codes.APIError(_("获取标准运维任务ID失败，返回任务ID为{}，请联系管理员处理").format(task_id))
         log.set_task_id(task_id)
         self.save_task_url(log, data)
         return log

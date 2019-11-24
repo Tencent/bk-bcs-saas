@@ -33,6 +33,7 @@ from rest_framework import viewsets
 from rest_framework.response import Response
 from rest_framework.exceptions import ValidationError
 from rest_framework.renderers import BrowsableAPIRenderer
+from django.utils.translation import ugettext as _
 
 from backend.apps.instance.constants import InsState
 from backend.accounts import bcs_perm
@@ -261,7 +262,7 @@ class VersionInstanceView(viewsets.ViewSet):
                 continue
 
             if category not in MODULE_DICT:
-                raise error_codes.CheckFailed.f("类型只能为%s" % ";".join(MODULE_DICT.keys()))
+                raise error_codes.CheckFailed(_("类型只能为{}").format(";".join(MODULE_DICT.keys())))
             tmpl_name = MODULE_DICT[category].objects.filter(id__in=tmpl_id_list).values_list("name", flat=True)
             if category in all_tmpl_name_dict:
                 all_tmpl_name_dict[category].extend(list(tmpl_name))
@@ -320,7 +321,7 @@ class VersionInstanceView(viewsets.ViewSet):
         if not res:
             return Response({
                 "code": 400,
-                "message": "以下命名空间已经实例化过，不能再实例化\n%s" % "\n".join(ns_name_list),
+                "message": _("以下命名空间已经实例化过，不能再实例化\n{}").format("\n".join(ns_name_list)),
                 "data": ns_name_list
             })
 
@@ -352,7 +353,7 @@ class VersionInstanceView(viewsets.ViewSet):
                 resource=temp_name,
                 resource_id=self.template_id,
                 extra=json.dumps(self.instance_entity),
-                description=u"实例化模板集[%s]命名空间[%s]" % (temp_name, i['ns_name'])
+                description=_("实例化模板集[{}]命名空间[{}]").format(temp_name, i['ns_name'])
             ).log_add(activity_status="succeed")
 
         failed_ns_name_list = []
@@ -366,12 +367,12 @@ class VersionInstanceView(viewsets.ViewSet):
             )
         for i in result['failed']:
             if i['res_type']:
-                description = "实例化模板集[%s]命名空间[%s]，在实例化%s时失败，错误消息：%s" % (
+                description = _("实例化模板集[{}]命名空间[{}]，在实例化{}时失败，错误消息：{}").format(
                     temp_name, i['ns_name'], i['res_type'], i['err_msg'])
                 failed_ns_name_list.append(
-                    "%s(实例化%s时)" % (i['ns_name'], i['res_type']))
+                    _("{}(实例化{}时)").format(i['ns_name'], i['res_type']))
             else:
-                description = "实例化模板集[%s]命名空间[%s]失败，错误消息：%s" % (
+                description = _("实例化模板集[{}]命名空间[{}]失败，错误消息：{}").format(
                     temp_name, i['ns_name'], i['err_msg'])
                 failed_ns_name_list.append(i['ns_name'])
                 if i.get('show_err_msg'):
@@ -391,8 +392,8 @@ class VersionInstanceView(viewsets.ViewSet):
             if is_show_failed_msg:
                 msg = '\n'.join(failed_msg)
             else:
-                msg = "以下命名空间实例化失败，\n%s，请联系集群管理员解决" % "\n".join(
-                    failed_ns_name_list)
+                msg = _("以下命名空间实例化失败，\n{}，请联系集群管理员解决").format("\n".join(
+                    failed_ns_name_list))
             if failed_ns_name_list:
                 return Response({
                     "code": 400,
@@ -425,7 +426,7 @@ class InstanceNameSpaceView(viewsets.ViewSet):
         slz_data = self.slz.data
 
         if 'instance_entity' not in slz_data:
-            raise ValidationError(u"请选择要实例化的模板")
+            raise ValidationError(_("请选择要实例化的模板"))
         instance_entity = slz_data['instance_entity']
 
         # 根据template_id 查询已经被实例化过的 ns
