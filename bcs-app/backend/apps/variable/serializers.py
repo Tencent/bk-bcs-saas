@@ -123,6 +123,12 @@ class UpdateVariableSLZ(VariableSLZ):
             if get_variable_quote_num(old_key, validated_data.get('project_id')) > 0:
                 raise ValidationError('KEY{}{}'.format(old_key, _("已经被引用，不能修改KEY")))
 
+            if Variable.objects.filter(key=new_key, project_id=validated_data['project_id']).exists():
+                detail = {
+                    'field': ['{}KEY{}{}'.format(_("变量"), validated_data['key'], _("已经存在"))]
+                }
+                raise ValidationError(detail=detail)
+
         instance.key = new_key
         instance.scope = validated_data.get('scope')
         instance.name = validated_data.get('name')
