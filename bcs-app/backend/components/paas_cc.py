@@ -119,9 +119,9 @@ def get_cluster_snapshot(access_token, project_id, cluster_id):
     return http_get(url, params=params)
 
 
-def get_area_list(access_token):
+def get_area_list(access_token, source=''):
     url = f'{CC_HOST}/areas/'
-    params = {"access_token": access_token}
+    params = {"access_token": access_token, "source": source}
     return http_get(url, params=params)
 
 
