@@ -18,6 +18,7 @@ import logging
 
 from rest_framework import response, viewsets
 from rest_framework.renderers import BrowsableAPIRenderer
+from django.utils.translation import ugettext as _
 
 from backend.activity_log import client
 from backend.components import paas_cc, data as data_api
@@ -696,19 +697,19 @@ class NodeLabelQueryCreateViewSet(NodeBase, NodeLabelBase, viewsets.ViewSet):
         node_ids = request.GET.get("node_ids")
         cluster_id = request.GET.get("cluster_id")
         if not node_ids:
-            raise error_codes.CheckFailed.f("节点信息不存在，请确认后重试!")
+            raise error_codes.CheckFailed(_("节点信息不存在，请确认后重试!"))
         # 以半角逗号分隔
         node_id_list = [int(node_id) for node_id in node_ids.split(",") if str(node_id).isdigit()]
         # 判断节点属于项目
         all_nodes = self.get_node_list(request, project_id, cluster_id).get('results') or []
         if not all_nodes:
-            raise error_codes.APIError.f("当前项目下没有节点!")
+            raise error_codes.APIError(_("当前项目下没有节点!"))
         all_node_id_list = [info["id"] for info in all_nodes]
         diff_node_id_list = set(node_id_list) - set(all_node_id_list)
         if diff_node_id_list:
             return response.Response({
                 "code": ErrorCode.UserError,
-                "message": u"节点ID [%s] 不属于当前项目，请确认" % ",".join(diff_node_id_list)
+                "message": _("节点ID [{}] 不属于当前项目，请确认").format(",".join(diff_node_id_list))
             })
 
         node_label_list = self.get_labels_by_node(request, project_id, node_id_list)
@@ -754,21 +755,21 @@ class NodeLabelQueryCreateViewSet(NodeBase, NodeLabelBase, viewsets.ViewSet):
             return
         for key, val in node_label_info.items():
             if key in DEFAULT_SYSTEM_LABEL_KEYS:
-                raise error_codes.APIError.f("[%s]为系统默认key，禁止使用，请确认" % key, replace=True)
+                raise error_codes.APIError(_("[{}]为系统默认key，禁止使用，请确认").format(key))
             # 针对key的限制
             if key.count("/") == 1:
                 split_list = key.split("/")
                 if not prefix_part_regex.match(split_list[0]):
-                    raise error_codes.APIError.f("键[%s]不符合规范，请参考帮助文档!" % key, replace=True)
+                    raise error_codes.APIError(_("键[{}]不符合规范，请参考帮助文档!").format(key))
                 if not name_part_regex.match(split_list[-1]):
-                    raise error_codes.APIError.f("键[%s]不符合规范，请参考帮助文档!" % key, replace=True)
+                    raise error_codes.APIError(_("键[{}]不符合规范，请参考帮助文档!").format(key))
             else:
                 if not name_part_regex.match(key):
-                    raise error_codes.APIError.f("键[%s]不符合规范，请参考帮助文档!" % key, replace=True)
+                    raise error_codes.APIError(_("键[{}]不符合规范，请参考帮助文档!").format(key))
             # 针对val的校验
             if val != DEFAULT_MIX_VALUE and not val_regex.match(val):
-                raise error_codes.APIError.f(
-                    "键[%s]对应的值[%s]不符合规范，请参考帮助文档!" % (key, val), replace=True)
+                raise error_codes.APIError(
+                    _("键[{}]对应的值[{}]不符合规范，请参考帮助文档!").format(key, val))
 
     def get_label_operation(self, exist_node_labels, post_data, node_id_list, all_node_id_ip_map):
         """获取节点标签，并且和数据库中作对比，识别到添加、删除、更新操作对应的key:value
@@ -866,7 +867,7 @@ class NodeLabelQueryCreateViewSet(NodeBase, NodeLabelBase, viewsets.ViewSet):
             # 写入操作
             k8s_resp = client.create_node_labels(info["ip"], online_labels)
             if k8s_resp.get("code") != ErrorCode.NoError:
-                raise error_codes.APIError(k8s_resp.get("message") or "创建节点标签异常，已通知管理员")
+                raise error_codes.APIError(k8s_resp.get("message"))
 
     def create_node_label_via_mesos(self, request, project_id, label_operation_map):
         """Mesos打tag
@@ -942,17 +943,17 @@ class NodeLabelQueryCreateViewSet(NodeBase, NodeLabelBase, viewsets.ViewSet):
         # NOTE: 节点为正常状态时，才允许设置标签
         project_node_info = self.get_node_list(request, project_id, None).get('results') or []
         if not project_node_info:
-            raise error_codes.APIError.f("当前项目下节点为空，请确认")
+            raise error_codes.APIError(_("当前项目下节点为空，请确认"))
         all_node_id_list = []
         all_node_id_ip_map = {}
         for info in project_node_info:
             all_node_id_list.append(info["id"])
             all_node_id_ip_map[info["id"]] = {"inner_ip": info["inner_ip"], "cluster_id": info["cluster_id"]}
             if info['id'] in node_id_list and info['status'] != CommonStatus.Normal:
-                raise error_codes.CheckFailed.f("节点不是正常状态时，不允许设置标签", replace=True)
+                raise error_codes.CheckFailed(_("节点不是正常状态时，不允许设置标签"))
         diff_node_id_list = set(node_id_list) - set(all_node_id_list)
         if diff_node_id_list:
-            raise error_codes.CheckFailed.f("节点ID [%s] 不属于当前项目，请确认" % (",".join(diff_node_id_list)))
+            raise error_codes.CheckFailed(_("节点ID [{}] 不属于当前项目，请确认").format(",".join(diff_node_id_list)))
         # 校验权限
         self.check_perm(request, project_id, all_node_id_ip_map, node_id_list)
         # 匹配数据
@@ -975,11 +976,11 @@ class NodeLabelQueryCreateViewSet(NodeBase, NodeLabelBase, viewsets.ViewSet):
             resource=str(node_id_list),
             resource_id=str(node_id_list),
             extra=json.dumps(node_label_info),
-            description="节点打标签"
+            description=_("节点打标签")
         ).log_add(activity_status="succeed")
         return response.Response({
             "code": 0,
-            "message": "创建成功!"
+            "message": _("创建成功!")
         })
 
 

@@ -11,6 +11,8 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
+from django.utils.translation import ugettext as _
+
 from backend.utils.basic import ChoicesEnum
 
 
@@ -123,12 +125,12 @@ MESOS_APPLICATION_TYPE = ["application", "deployment"]
 
 # SOURCE TYPE MAP
 SOURCE_TYPE_MAP = {
-    "template": "模板集",
-    "helm": "Helm模板",
-    "other": "Client"
+    "template": _("模板集"),
+    "helm": _("Helm模板"),
+    "other": _("Client")
 }
 
-NOT_TMPL_SOURCE_TYPE = "非模板集"
+NOT_TMPL_SOURCE_TYPE = _("非模板集")
 
 # instance not from template
 NOT_TMPL_IDENTIFICATION = "0"
@@ -140,9 +142,9 @@ class SourceType(ChoicesEnum):
     OTHER = 'other'
 
     _choices_labels = (
-        ('template', "模板集"),
-        ('helm', "Helm模板"),
-        ('other', 'Client')
+        ('template', _("模板集")),
+        ('helm', _("Helm模板")),
+        ('other', _('Client'))
     )
 
 

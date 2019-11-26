@@ -71,10 +71,10 @@ def validate_template_id(project_id, template_id, is_return_tempalte=False):
         template = Template.objects.get(id=template_id)
         real_project_id = template.project_id
     except Exception:
-        raise ValidationError('{}(id:{}){}'.format(_("模板集"), template_id, _("不存在")))
+        raise ValidationError(_("模板集(id:{})不存在").format(template_id))
 
     if project_id != real_project_id:
-        raise ValidationError('{}(id:{}){}'.format(_("模板集"), template_id, _("不属于该项目")))
+        raise ValidationError(_("模板集(id:{})不属于该项目").format(template_id))
     if is_return_tempalte:
         return template
     return True
@@ -146,7 +146,7 @@ def validate_lb_info_by_version_id(access_token, project_id, version_entity, ns_
     namespace_dict = {str(i['id']): i['name'] for i in namespace}
     err_list = ["namespace[%s]:%s" %
                 (namespace_dict.get(_e['ns_id']), _e['service']) for _e in err_list]
-    err_msg = '{} service {} LoadBalance: {}'.format(_("请选择"), _("关联的"), ' '.join(err_list))
+    err_msg = _('请选择 service 关联的 LoadBalance: {}').format(' '.join(err_list))
     return False, err_list, err_msg
 
 
@@ -157,12 +157,6 @@ def validate_ns_by_tempalte_id(template_id, ns_list, access_token, project_id, i
         access_token, project_id, limit=ALL_LIMIT)
     namespace = namespace.get('data', {}).get('results') or []
     namespace_dict = {str(i['id']): i['name'] for i in namespace}
-
-    # hpa白名单控制
-    cluster_id_list = list(set([i['cluster_id'] for i in namespace]))
-    if K8sResourceName.K8sHPA.value in instance_entity or MesosResourceName.hpa.value in instance_entity:
-        if not enabled_hpa_feature(cluster_id_list):
-            raise error_codes.APIError('{}, {}'.format(_("当前实例化包含HPA资源"), settings.GRAYSCALE_FEATURE_MSG))
 
     # 查看模板下已经实例化过的 ns
     exist_instance_id = VersionInstance.objects.filter(
@@ -237,7 +231,7 @@ def validate_instance_entity(req_instance_entity, tem_instance_entity):
         for _cate in req_instance_entity:
             for _data in req_instance_entity[_cate]:
                 if _data['id'] not in tem_instance_entity[_cate]:
-                    raise ValidationError('{}[{}]{}'.format(_cate, _data['name']), _("不在当前选择的模板中"))
+                    raise ValidationError(_('{}[{}]不在当前选择的模板中').format(_cate, _data['name']))
             instance_entity[_cate] = [_i['id']
                                       for _i in req_instance_entity[_cate]]
     return instance_entity

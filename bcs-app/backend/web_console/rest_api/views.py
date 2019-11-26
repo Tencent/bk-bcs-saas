@@ -20,6 +20,7 @@ from urllib.parse import urlparse
 from django.conf import settings
 from rest_framework import views
 from rest_framework.renderers import BrowsableAPIRenderer
+from django.utils.translation import ugettext as _
 
 from backend.accounts import bcs_perm
 from backend.apps.constants import ProjectKind
@@ -55,12 +56,14 @@ class WebConsoleSession(views.APIView):
             bcs_context = utils.get_k8s_cluster_context(client, project_id, cluster_id)
         except Exception as error:
             logger.exception("get access cluster context failed: %s", error)
-            message = f"获取集群{self.cluster_name}【{cluster_id}】WebConsole 信息失败"
+            message = _("获取集群{}【{}】WebConsole 信息失败").format(self.cluster_name, cluster_id)
             # 记录操作日志
             utils.activity_log(project_id, self.cluster_name, request.user.username, False, message)
             # 返回前端消息
             raise error_codes.APIError(
-                f"{message}，请检查 Deployment【kube-system/bcs-agent】是否正常{settings.COMMON_EXCEPTION_MSG}")
+                _("{}，请检查 Deployment【kube-system/bcs-agent】是否正常{}").format(
+                    message, settings.COMMON_EXCEPTION_MSG
+                ))
 
         # kubectl版本区别
         kubectld_version = get_kubectld_version(client.version)
@@ -96,7 +99,7 @@ class WebConsoleSession(views.APIView):
             except Exception as error:
                 logger.exception("kubetctl apply error: %s", error)
                 utils.activity_log(project_id, self.cluster_name, request.user.username, False, "申请pod资源失败")
-                raise error_codes.APIError(f"申请pod资源失败，请稍后再试{settings.COMMON_EXCEPTION_MSG}")
+                raise error_codes.APIError(_("申请pod资源失败，请稍后再试{}").format(settings.COMMON_EXCEPTION_MSG))
 
             bcs_context['user_pod_name'] = pod.metadata.name
 
@@ -122,7 +125,8 @@ class WebConsoleSession(views.APIView):
             utils.activity_log(
                 project_id, self.cluster_name, request.user.username, False, f'连接{context["user_pod_name"]}失败')
 
-            raise error_codes.APIError(f'连接 {context["user_pod_name"]} 失败，请检查容器状态是否正常{settings.COMMON_EXCEPTION_MSG}')
+            raise error_codes.APIError(_('连接 {} 失败，请检查容器状态是否正常{}').format(
+                context["user_pod_name"], settings.COMMON_EXCEPTION_MSG))
         context['exec_id'] = exec_id
         context['mode'] = mesos.ContainerDirectClient.MODE
 
@@ -142,7 +146,7 @@ class WebConsoleSession(views.APIView):
         try:
             perm.can_use(raise_exception=True)
         except Exception as error:
-            utils.activity_log(project_id, cluster_id, request.user.username, False, "集群不正确或没有集群使用权限")
+            utils.activity_log(project_id, cluster_id, request.user.username, False, _("集群不正确或没有集群使用权限"))
             raise error
 
         # resource_name字段长度限制32位
@@ -182,4 +186,4 @@ class WebConsoleSession(views.APIView):
         }
         utils.activity_log(project_id, self.cluster_name, request.user.username, True)
 
-        return BKAPIResponse(data, message="获取session成功")
+        return BKAPIResponse(data, message=_("获取session成功"))

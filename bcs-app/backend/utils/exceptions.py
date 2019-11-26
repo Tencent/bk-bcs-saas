@@ -62,7 +62,7 @@ class ComponentError(APIError):
     # 状态是400 + x
     code = 4001
     msg_prefix = _("第三方请求失败")
-    msg_in_prod = f"{_('数据请求失败，请稍后再试')}{settings.COMMON_EXCEPTION_MSG}"
+    msg_in_prod = _("数据请求失败，请稍后再试{}").format(settings.COMMON_EXCEPTION_MSG)
 
     def __str__(self):
         # 正式环境不需要提示后端信息

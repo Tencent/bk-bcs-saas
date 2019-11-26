@@ -15,6 +15,7 @@ import time
 import json
 
 from django.db import models
+from django.utils.translation import ugettext as _
 
 from .base import BaseModel, logger
 from .mixins import ResourceMixin, ConfigMapAndSecretMixin, PodMixin
@@ -87,7 +88,7 @@ class K8sPodResource(K8sResource):
         try:
             resource = cls.objects.get(id=old_id)
         except cls.DoesNotExist:
-            raise cls.DoesNotExist(f"{cls.__name__} Id ({old_id}) 不存在")
+            raise cls.DoesNotExist(_("{} Id ({}) 不存在").format(cls.__name__, old_id))
         # 需要与保留其他资源的关联关系，所以更新后的记录 deploy_tag 要与原来的记录保持一致
         deploy_tag = resource.deploy_tag
         if not deploy_tag:
@@ -183,7 +184,7 @@ class K8sService(K8sResource, ResourceMixin):
         try:
             resource = cls.objects.get(id=old_id)
         except cls.DoesNotExist:
-            raise cls.DoesNotExist(f"{cls.__name__} Id ({old_id}) 不存在")
+            raise cls.DoesNotExist(_("{} Id ({}) 不存在").format(cls.__name__, old_id))
 
         kwargs['service_tag'] = resource.service_tag
         return super().perform_update(old_id, **kwargs)

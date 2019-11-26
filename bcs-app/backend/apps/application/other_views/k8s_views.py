@@ -19,6 +19,7 @@ import logging
 import json
 import base64
 from datetime import datetime
+from django.utils.translation import ugettext as _
 
 from backend.apps.instance.models import (
     VersionInstance, InstanceConfig, InstanceEvent, MetricConfig
@@ -118,7 +119,7 @@ class K8SMuster(object):
     def get(self, request, project_id, all_muster_list, muster_id_list, category,
             cluster_type, app_status, app_name, ns_id, cluster_env_map):
         if category not in CATEGORY_MAP:
-            raise error_codes.CheckFailed.f("类型不正确，请确认")
+            raise error_codes.CheckFailed(_("类型不正确，请确认"))
         # 获取模板ID和名称的对应关系
         muster_id_name_map = {
             info["id"]: info["name"]

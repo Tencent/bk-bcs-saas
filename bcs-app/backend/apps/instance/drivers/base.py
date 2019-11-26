@@ -14,6 +14,8 @@
 import logging
 import math
 
+from django.utils.translation import ugettext as _
+
 from backend.apps.constants import NodeStatus
 from backend.apps.instance.models import InstanceConfig, VersionInstance, InstanceEvent, MetricConfig
 from backend.components import paas_cc
@@ -150,13 +152,13 @@ class SchedulerBase(object):
         result = paas_cc.get_node_list(
             self.access_token, self.project_id, cluster_id)
         if result.get('code') != 0:
-            raise ClusterNotReady("获取状态失败，请联系蓝鲸管理员解决")
+            raise ClusterNotReady(_("获取状态失败，请联系蓝鲸管理员解决"))
 
         data = result['data']['results'] or []
         normal_nodes = [i for i in data
                         if i['status'] == NodeStatus.NORMAL.value]
         if len(normal_nodes) == 0:
-            raise ClusterNotReady("没有可用节点，请添加或启用节点")
+            raise ClusterNotReady(_("没有可用节点，请添加或启用节点"))
 
     def instantiation(self, is_update=False):
         """实例化
@@ -173,8 +175,7 @@ class SchedulerBase(object):
             except ClusterNotReady as error:
                 logger.warning(
                     "bcs_instantiation failed, cluster not ready %s", error)
-                raise APIError('初始化失败，%s绑定的集群(%s) %s' %
-                               (ns_name, cluster_id, error))
+                raise APIError(_('初始化失败，{}绑定的集群({}) {}').format(ns_name, cluster_id, error))
 
         for ns_id, config in self.configuration.items():
             instance_id = [i for i in config.values(

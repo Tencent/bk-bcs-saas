@@ -12,6 +12,7 @@
 # specific language governing permissions and limitations under the License.
 #
 import json
+from django.utils.translation import ugettext as _
 
 from backend.apps.application.utils import APIResponse
 from backend.apps.application.base_views import BaseAPI, error_codes
@@ -86,14 +87,14 @@ class BaseFilter(BaseAPI):
         """
         cluster_type = request.GET.get("cluster_type")
         if not cluster_type:
-            raise error_codes.CheckFailed.f("集群类型不正确，请确认")
+            raise error_codes.CheckFailed(_("集群类型不正确，请确认"))
         category = request.GET.get("category")
         if kind == 1:
             if not category:
-                raise error_codes.CheckFailed.f("应用类型不能为空")
+                raise error_codes.CheckFailed(_("应用类型不能为空"))
             else:
                 if category not in CATEGORY_MAP:
-                    raise error_codes.CheckFailed.f("类型不正确，请确认")
+                    raise error_codes.CheckFailed(_("类型不正确，请确认"))
                 category = [CATEGORY_MAP[category]]
         else:
             category = ["application", "deployment"]

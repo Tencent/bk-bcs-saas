@@ -18,6 +18,7 @@ from rest_framework import viewsets
 from rest_framework.response import Response
 from rest_framework.renderers import BrowsableAPIRenderer
 from rest_framework.exceptions import ValidationError
+from django.utils.translation import ugettext as _
 
 from backend.activity_log import client
 from backend.apps.configuration import models
@@ -178,7 +179,7 @@ class ShowVersionViewSet(viewsets.ViewSet, TemplatePermission):
                 resource=template.name,
                 resource_id=template.id,
                 extra='',
-                description="删除草稿"
+                description=_("删除草稿")
             ).log_modify()
         else:
             show_version = models.ShowVersion.objects.get(template_id=template.id, id=show_version_id)
@@ -192,7 +193,7 @@ class ShowVersionViewSet(viewsets.ViewSet, TemplatePermission):
                 resource=template.name,
                 resource_id=template.id,
                 extra=show_version_id,
-                description=f"删除版本[{version_name}]"
+                description=_("删除版本[{}]").format(version_name)
             ).log_modify()
 
     def delete_show_version(self, request, project_id, template_id, show_version_id):
@@ -200,7 +201,7 @@ class ShowVersionViewSet(viewsets.ViewSet, TemplatePermission):
         # 已经实例化过的版本不能被删除
         has_instance = has_instance_of_show_version(template.id, show_version_id)
         if has_instance:
-            raise ValidationError("该版本已经被实例化过，不能被删除")
+            raise ValidationError(_("该版本已经被实例化过，不能被删除"))
 
         self.can_edit_template(request, template)
 

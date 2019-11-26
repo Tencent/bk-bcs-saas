@@ -21,6 +21,7 @@ from rest_framework import serializers, viewsets
 from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 from rest_framework.renderers import BrowsableAPIRenderer
+from django.utils.translation import ugettext as _
 
 from backend.utils.renderers import BKAPIRenderer
 from backend.accounts import bcs_perm
@@ -81,7 +82,7 @@ class Services(viewsets.ViewSet, BaseAPI):
 
         if resp.get("code") != ErrorCode.NoError:
             logger.error(u"bcs_api error: %s" % resp.get("message", ""))
-            return resp.get("code", DEFAULT_ERROR_CODE), resp.get("message", u"请求出现异常!")
+            return resp.get("code", DEFAULT_ERROR_CODE), resp.get("message", _("请求出现异常!"))
 
         return ErrorCode.NoError, resp.get("data", [])
 
@@ -116,7 +117,7 @@ class Services(viewsets.ViewSet, BaseAPI):
         if not resp_data:
             return APIResponse({
                 "code": 400,
-                "message": u"查询不到 Service[%s] 的信息" % name
+                "message": _("查询不到 Service[{}] 的信息").format(name)
             })
         s_data = resp_data[0].get('data', {})
         labels = s_data.get('metadata', {}).get('labels') or {}
@@ -147,7 +148,7 @@ class Services(viewsets.ViewSet, BaseAPI):
         except Exception:
             return APIResponse({
                 "code": 400,
-                "message": u"模板集[id:%s]没有可用的版本，无法更新service" % template_id
+                "message": _("模板集[id:{}]没有可用的版本，无法更新service").format(template_id)
             })
 
         entity = version_entity.get_entity()
@@ -321,12 +322,12 @@ class Services(viewsets.ViewSet, BaseAPI):
                 # 处理 k8s 的系统命名空间的数据
                 if project_kind == 1 and _s['namespace'] in skip_namespace_list:
                     _s['can_update'] = _s['can_delete'] = False
-                    _s['can_update_msg'] = _s['can_delete_msg'] = u"不允许操作系统命名空间"
+                    _s['can_update_msg'] = _s['can_delete_msg'] = _("不允许操作系统命名空间")
                     continue
 
                 # 非模板集创建，可以删除但是不可以更新
                 _s['can_update'] = False
-                _s['can_update_msg'] = u"所属模板集不存在，无法操作"
+                _s['can_update_msg'] = _("所属模板集不存在，无法操作")
                 if template_id and template_id in all_template_id_list:
                     _s['can_update'] = True
                     _s['can_update_msg'] = ''
@@ -362,7 +363,7 @@ class Services(viewsets.ViewSet, BaseAPI):
             if namespace in constants.K8S_SYS_NAMESPACE:
                 return {
                     "code": 400,
-                    "message": u"不允许操作系统命名空间[%s]" % ','.join(constants.K8S_SYS_NAMESPACE),
+                    "message": _("不允许操作系统命名空间[{}]").format(','.join(constants.K8S_SYS_NAMESPACE)),
                 }
             client = k8s.K8SClient(
                 access_token, project_id, cluster_id, env=None)
@@ -412,7 +413,7 @@ class Services(viewsets.ViewSet, BaseAPI):
             resource=name,
             resource_id=0,
             extra=json.dumps({}),
-            description=u"删除Service[%s]命名空间[%s]" % (
+            description=_("删除Service[{}]命名空间[{}]").format(
                 name, namespace)
         ).log_modify(activity_status="succeed" if resp.get("code") == ErrorCode.NoError else "failed")
 
@@ -420,7 +421,7 @@ class Services(viewsets.ViewSet, BaseAPI):
         message = resp.get('message', '')
         is_delete_before = True if 'node does not exist' in message or 'not found' in message else False
         if is_delete_before:
-            message = u"%s[命名空间:%s]已经被删除，请手动刷新数据" % (name, namespace)
+            message = _("{}[命名空间:{}]已经被删除，请手动刷新数据").format(name, namespace)
         return Response({
             "code": resp.get("code"),
             "message": message,
@@ -462,14 +463,14 @@ class Services(viewsets.ViewSet, BaseAPI):
             if (resp.get("code") == ErrorCode.NoError):
                 success_list.append({
                     'name': name,
-                    'desc': u'%s[命名空间:%s]' % (name, namespace),
+                    'desc': _('{}[命名空间:{}]').format(name, namespace),
                 })
             else:
                 if is_delete_before:
-                    message = u'已经被删除，请手动刷新数据'
+                    message = _('已经被删除，请手动刷新数据')
                 failed_list.append({
                     'name': name,
-                    'desc': u'%s[命名空间:%s]:%s' % (name, namespace, message),
+                    'desc': _('{}][命名空间:{}]:{}').format(name, namespace, message),
                 })
         code = 0
         message = ''
@@ -477,7 +478,7 @@ class Services(viewsets.ViewSet, BaseAPI):
         if success_list:
             name_list = [_s.get('name') for _s in success_list]
             desc_list = [_s.get('desc') for _s in success_list]
-            message = u"以下service删除成功:%s" % ";".join(desc_list)
+            message = _("以下service删除成功:{}").format(";".join(desc_list))
             activity_client.ContextActivityLogClient(
                 project_id=project_id,
                 user=username,
@@ -493,7 +494,7 @@ class Services(viewsets.ViewSet, BaseAPI):
             desc_list = [_s.get('desc') for _s in failed_list]
 
             code = 4004
-            message = u"以下service删除失败:%s" % ";".join(desc_list)
+            message = _("以下service删除失败:{}").format(";".join(desc_list))
             activity_client.ContextActivityLogClient(
                 project_id=project_id,
                 user=username,
@@ -527,7 +528,7 @@ class Services(viewsets.ViewSet, BaseAPI):
             if namespace in constants.K8S_SYS_NAMESPACE:
                 return Response({
                     "code": 400,
-                    "message": u"不允许操作系统命名空间[%s]" % ','.join(constants.K8S_SYS_NAMESPACE),
+                    "message": _("不允许操作系统命名空间[{}]").format(','.join(constants.K8S_SYS_NAMESPACE)),
                     "data": {}
                 })
             # k8s 相关数据
@@ -610,7 +611,7 @@ class Services(viewsets.ViewSet, BaseAPI):
         except Exception:
             logger.exception(u"配置文件变量替换出错\nconfig:%s\ncontext:%s" %
                              (resource_config, context))
-            raise ValidationError(u"配置文件中有未替换的变量")
+            raise ValidationError(_("配置文件中有未替换的变量"))
 
         service_name = config.get('metadata', {}).get('name')
         _config_content = {
@@ -669,14 +670,14 @@ class Services(viewsets.ViewSet, BaseAPI):
             resource=service_name,
             resource_id=_instance_config.id,
             extra=json.dumps(configuration),
-            description=u"更新Service[%s]命名空间[%s]" % (
+            description=_("更新Service[{}]命名空间[{}]").format(
                 service_name, namespace)
         ).log_modify(activity_status="failed" if failed else "succeed")
 
         if failed:
             return Response({
                 "code": 400,
-                "message": "Service[%s]在命名空间[%s]更新失败，请联系集群管理员解决" % (service_name, namespace),
+                "message": _("Service[{}]在命名空间[{}]更新失败，请联系集群管理员解决").format(service_name, namespace),
                 "data": {}
             })
         return Response({

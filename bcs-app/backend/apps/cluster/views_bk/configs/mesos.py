@@ -18,6 +18,8 @@ import json
 import time
 import base64
 
+from django.utils.translation import ugettext as _
+
 from backend.components import paas_cc
 from backend.utils.errcodes import ErrorCode
 from backend.utils.error_codes import error_codes
@@ -59,7 +61,7 @@ class NodeConfig(BaseConfig):
             raise error_codes.APIError.f(cluster_node_info.get('message'))
         ip_info_list = cluster_node_info.get('data', {}).get('results', [])
         if not ip_info_list:
-            raise error_codes.APIError.f("获取集群节点为空，请确认后重试")
+            raise error_codes.APIError(_("获取集群节点为空，请确认后重试"))
         return [
             info['inner_ip']
             for info in ip_info_list

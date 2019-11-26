@@ -28,8 +28,8 @@ def notify_project_to_op_task(access_token, data):
     resp = notify_project_to_op(access_token, data)
     if resp.get("code") == DEFAULT_OP_SUCCESS_CODE:
         return
-    title = f"[{settings.PLAT_SHOW_NAME}]{_('项目信息变更通知失败')}"
-    message = f"{_('异常信息')}: {resp.get('message')}"
+    title = f"[{settings.PLAT_SHOW_NAME}]项目信息变更通知失败"
+    message = f"异常信息: {resp.get('message')}"
 
     send_message(DEFAULT_OP_MAINTAINERS, title + message, title=None, send_way='wx')
     send_message(DEFAULT_OP_MAINTAINERS, message, title=title, send_way='rtx')

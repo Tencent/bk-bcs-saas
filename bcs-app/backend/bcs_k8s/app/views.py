@@ -962,11 +962,10 @@ class ContainerRegistryDomainView(AccessTokenMixin, ProjectMixin, viewsets.ViewS
             expr="{{ .Values.__BCS__.SYS_JFROG_DOMAIN }}",
             link=settings.HELM_DOC_TRICKS
         )
-        note = '{pre_msg}: {cluster}({cluster_id}){dept_key}:{dept_domain},{chart} {expr} {suf_msg} {link}'.format(
-            pre_msg=_("集群"), cluster=context['cluster_name'], cluster_id=context['cluster_id'],
-            dept_key=_("的容器仓库域名为"), dept_domain=context['jfrog_domain'],
-            chart=_("可在Chart直接引用"), expr=repr(context['expr']), suf_msg=_("更加方便, [详细说明]"),
-            link=context['link']
+        note = _('''集群: {cluster}({cluster_id})的容器仓库域名为:{dept_domain},
+        可在Chart直接引用 {expr} 更加方便, [详细说明]({link})''').format(
+            cluster=context['cluster_name'], cluster_id=context['cluster_id'], dept_domain=context['jfrog_domain'],
+            expr=context['expr'], link=context['link']
         )
         context["note"] = note
         return Response(data=context)

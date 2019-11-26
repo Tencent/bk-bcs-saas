@@ -17,6 +17,7 @@ from django.conf import settings
 from rest_framework import viewsets
 from rest_framework.renderers import BrowsableAPIRenderer
 from rest_framework.response import Response
+from django.utils.translation import ugettext as _
 
 from backend.accounts import bcs_perm
 from backend.apps.configuration.models import POD_RES_LIST
@@ -59,14 +60,14 @@ class Metric(viewsets.ViewSet):
         # 返回是否有创建权限
         can_create = perm.can_create(raise_exception=False)
 
-        return BKAPIResponse(data, message='获取metric列表成功', permissions={'create': can_create})
+        return BKAPIResponse(data, message=_('获取metric列表成功'), permissions={'create': can_create})
 
     def create(self, request, project_id):
         """创建metric
         """
         cc_app_id = request.project.get('cc_app_id')
         if not cc_app_id:
-            raise error_codes.APIError('必须绑定业务')
+            raise error_codes.APIError(_('必须绑定业务'))
 
         serializer = serializers.CreateMetricSLZ(
             data=request.data, context={'request': request, 'project_id': project_id})
@@ -87,7 +88,7 @@ class Metric(viewsets.ViewSet):
             err_msg = data_id
         else:
             is_ok, data_id = apply_dataid_by_metric(cc_app_id, dataset, request.user.username)
-            err_msg = '申请data_id失败'
+            err_msg = _('申请data_id失败')
 
         if not is_ok:
             raise error_codes.APIError(err_msg)
@@ -104,7 +105,7 @@ class Metric(viewsets.ViewSet):
         # 创建资源
         perm.register(ref.id, ref.name)
 
-        return BKAPIResponse({'metric_id': ref.pk}, message='创建metric成功')
+        return BKAPIResponse({'metric_id': ref.pk}, message=_('创建metric成功'))
 
 
 class MetricDetail(viewsets.ViewSet):
@@ -117,13 +118,13 @@ class MetricDetail(viewsets.ViewSet):
         """
         ref = MetricModel.objects.filter(project_id=project_id, pk=metric_id).first()
         if not ref:
-            raise error_codes.ResNotFoundError('metric不存在')
+            raise error_codes.ResNotFoundError(_('metric不存在'))
 
         # 校验权限
         perm = bcs_perm.Metric(request, project_id, metric_id, ref.name)
         perm.can_use(raise_exception=True)
 
-        return BKAPIResponse(ref.to_json(), message='获取metric成功')
+        return BKAPIResponse(ref.to_json(), message=_('获取metric成功'))
 
     def put(self, request, project_id, metric_id):
         """更新put
@@ -135,11 +136,11 @@ class MetricDetail(viewsets.ViewSet):
         queryset = MetricModel.objects.filter(project_id=project_id, pk=metric_id)
         ref = queryset.first()
         if not ref:
-            raise error_codes.ResNotFoundError('metric不存在')
+            raise error_codes.ResNotFoundError(_('metric不存在'))
 
         # metric_type 不可变，创建是已经申请了dataid，编辑时不能编辑dataid的属性
         if ref.metric_type != serializer.data.get('metric_type', ''):
-            raise error_codes.APIError('Metric 类型不可更改')
+            raise error_codes.APIError(_('Metric 类型不可更改'))
 
         # 校验权限
         perm = bcs_perm.Metric(request, project_id, metric_id, ref.name)
@@ -157,14 +158,14 @@ class MetricDetail(viewsets.ViewSet):
             request.project['kind'], metric_id
         )
 
-        return BKAPIResponse({}, message='修改metric成功')
+        return BKAPIResponse({}, message=_('修改metric成功'))
 
     def get_metric_info(self, project_id, metric_id):
         """获取metric信息
         """
         resource = MetricModel.objects.filter(project_id=project_id, pk=metric_id).first()
         if not resource:
-            raise error_codes.ResNotFoundError('metric 不存在')
+            raise error_codes.ResNotFoundError(_('metric 不存在'))
 
         return resource
 
@@ -194,7 +195,7 @@ class MetricDetail(viewsets.ViewSet):
             ref.soft_delete()
             perm.delete()
 
-        return BKAPIResponse({}, message='删除metric成功')
+        return BKAPIResponse({}, message=_('删除metric成功'))
 
     def recreate(self, request, project_id, metric_id):
         """重新创建
@@ -208,11 +209,11 @@ class MetricDetail(viewsets.ViewSet):
         perm.can_create(raise_exception=True)
         # 状态校验
         if ref.status != PAUSE:
-            raise error_codes.APIError('metric不为暂停状态，不允许操作!')
+            raise error_codes.APIError(_('metric不为暂停状态，不允许操作!'))
         else:
             ref.update_status('normal')
         if not request.project['cc_app_id']:
-            raise error_codes.APIError('项目没有绑定业务，不允许操作!')
+            raise error_codes.APIError(_('项目没有绑定业务，不允许操作!'))
 
         # 重新下发配置
         tasks.set_metric.delay(
@@ -220,7 +221,7 @@ class MetricDetail(viewsets.ViewSet):
             metric_id, ns_id_list=request.data.get('ns_id_list', [])
         )
 
-        return BKAPIResponse({'metric_id': ref.pk}, message='创建metric成功')
+        return BKAPIResponse({'metric_id': ref.pk}, message=_('创建metric成功'))
 
 
 class MetricIns(viewsets.ViewSet):
@@ -231,7 +232,7 @@ class MetricIns(viewsets.ViewSet):
         """
         ref = MetricModel.objects.filter(project_id=project_id, pk=metric_id).first()
         if not ref:
-            raise error_codes.ResNotFoundError('metric不存在')
+            raise error_codes.ResNotFoundError(_('metric不存在'))
 
         metric_name = ref.name
 

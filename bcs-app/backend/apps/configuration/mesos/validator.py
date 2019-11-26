@@ -15,13 +15,14 @@ import json
 import re
 
 from rest_framework.exceptions import ValidationError
+from django.utils.translation import ugettext as _
 
 from backend.apps.configuration import models
 from backend.apps.configuration.constants import MesosResourceName
 from .constants import CONFIG_SCHEMA_MAP
 
 MESOS_NAME_REGEX = re.compile(r'^[a-z]{1}[a-z0-9-]{0,254}$')
-MESOS_NAME_ERROR_MSG = "名称格式错误，只能包含：小写字母、数字、连字符(-)，首字母必须是字母，长度小于256个字符"
+MESOS_NAME_ERROR_MSG = _("名称格式错误，只能包含：小写字母、数字、连字符(-)，首字母必须是字母，长度小于256个字符")
 
 
 def get_config_schema(resource_name):
@@ -55,7 +56,7 @@ def validate_res_duplicate(containers, category):
     err_msg_list = []
     for res_name, container_names in res_containers_map.items():
         if len(res_containers_map[res_name]) > 1:
-            err_msg_list.append(f"{res_name}: 在容器 {','.join(container_names)} 中重复")
+            err_msg_list.append(_("{res_name}: 在容器 {} 中重复").format(','.join(container_names)))
 
     if err_msg_list:
         raise ValidationError(';'.join(err_msg_list))
@@ -65,12 +66,12 @@ def validate_app_in_ventity(app_id_list, version_id):
     try:
         ventity = models.VersionedEntity.objects.get(id=version_id)
     except models.VersionedEntity.DoesNotExist:
-        raise ValidationError(f"模板集版本(id:{version_id})不存在")
+        raise ValidationError(_("模板集版本(id:{})不存在").format(version_id))
 
     app_list = ventity.get_mesos_apps()
     validated_app_list = [app.get('app_id') for app in app_list]
     if not set(app_id_list).issubset(set(validated_app_list)):
-        raise ValidationError(f"关联的 Application (app_id: {','.join(app_id_list)}) 不合法")
+        raise ValidationError(_("关联的 Application (app_id: {}) 不合法").format(','.join(app_id_list)))
 
 
 def get_port_info_from_containers(containers):
@@ -115,4 +116,4 @@ def validate_port_duplicate_in_ventity(containers, application_id, version_id):
 
     if duplicate_port_info:
         show_tips = json.dumps(duplicate_port_info, ensure_ascii=False)
-        raise ValidationError(f"以下端口名称已经存在模板集的其他应用中存在:{show_tips[1:-1]}")
+        raise ValidationError(_("以下端口名称已经存在模板集的其他应用中存在:{}").format(show_tips[1:-1]))

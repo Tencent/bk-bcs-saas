@@ -177,7 +177,7 @@ class BCSWebSocketHandler(LocaleHandlerMixin, tornado.websocket.WebSocketHandler
         """
         # 下发提示消息
         tick_timeout_min = constants.TICK_TIMEOUT // 60
-        self.write_message({'data': f'{_("BCS Console 已经")}{tick_timeout_min}{_("分钟无操作")}', 'type': "exit_message"})
+        self.write_message({'data': _("BCS Console 已经{}分钟无操作").format(tick_timeout_min), 'type': "exit_message"})
         # 服务端退出bash, exit
         self.send_exit()
 

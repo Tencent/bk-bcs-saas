@@ -13,6 +13,7 @@
 #
 from django.conf import settings
 from rest_framework import serializers
+from django.utils.translation import ugettext as _
 
 from backend.utils.error_codes import error_codes
 
@@ -27,7 +28,7 @@ class MesosWebConsoleSLZ(serializers.Serializer):
             self.context['client'], data['container_id'])
 
         if not context:
-            raise error_codes.APIError("container_id不正确，请检查参数%s" % settings.COMMON_EXCEPTION_MSG)
+            raise error_codes.APIError(_("container_id不正确，请检查参数{}").format(settings.COMMON_EXCEPTION_MSG))
 
         data.update(context)
         return data
@@ -45,7 +46,7 @@ class K8SWebConsoleSLZ(serializers.Serializer):
         # 有container_id才检查
         context = get_k8s_context(self.context['client'], container_id)
         if not context:
-            raise error_codes.APIError("container_id不正确或者容器不是运行状态，请检查参数%s" % settings.COMMON_EXCEPTION_MSG)
+            raise error_codes.APIError(_("container_id不正确或者容器不是运行状态，请检查参数{}").format(settings.COMMON_EXCEPTION_MSG))
 
         data.update(context)
         return data

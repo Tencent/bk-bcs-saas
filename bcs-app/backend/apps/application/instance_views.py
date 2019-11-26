@@ -23,6 +23,7 @@ from django.db.models import Q
 from django.conf import settings
 from rest_framework.response import Response
 from rest_framework.renderers import BrowsableAPIRenderer
+from django.utils.translation import ugettext as _
 
 from backend.components import paas_cc
 from backend.apps.application.utils import APIResponse, image_handler
@@ -579,7 +580,7 @@ class GetInstanceAnnotations(InstanceAPI):
             conf = json.loads(info.config)
         except Exception as error:
             logger.error(u"解析instance config异常，id为 %s, 详情: %s" % (info.id, error))
-            raise error_codes.JSONParseError.f(u"Instance config解析异常")
+            raise error_codes.JSONParseError(_("Instance config解析异常"))
         metadata = conf.get("metadata") or {}
         return metadata.get("annotations") or {}, metadata.get("labels") or {}
 
@@ -631,7 +632,7 @@ class GetInstanceStatus(BaseAPI):
         if not category:
             return APIResponse({
                 "code": 400,
-                "message": u"参数[category]不能为空",
+                "message": _("参数[category]不能为空"),
             })
         # 获取instance info
         inst_info = self.get_instance_info(instance_id)
@@ -685,7 +686,7 @@ class GetInstanceInfo(InstanceAPI):
             conf = json.loads(info.config)
         except Exception as error:
             logger.error(u"解析instance config异常，id为 %s, 详情: %s" % (info.id, error))
-            raise error_codes.JSONParseError.f(u"Instance config解析异常")
+            raise error_codes.JSONParseError(_("Instance config解析异常"))
         return conf
 
     def get_instance_name(self, conf):
@@ -771,7 +772,7 @@ class ReschedulerTaskgroup(InstanceAPI):
             conf = json.loads(info.config)
         except Exception as error:
             logger.error(u"解析instance config异常，id为 %s, 详情: %s" % (info.id, error))
-            raise error_codes.JSONParseError.f(u"Instance config解析异常")
+            raise error_codes.JSONParseError(_("Instance config解析异常"))
         return conf
 
     def put(self, request, project_id, instance_id):
@@ -780,7 +781,7 @@ class ReschedulerTaskgroup(InstanceAPI):
         if not taskgroup:
             return APIResponse({
                 "code": 400,
-                "message": u"参数【taskgroup】不能为空"
+                "message": _("参数【taskgroup】不能为空")
             })
         # 获取kind
         project_kind = self.project_kind(request)
@@ -817,7 +818,7 @@ class TaskgroupEvents(InstanceAPI):
             conf = json.loads(info.config)
         except Exception as error:
             logger.error(u"解析instance config异常，id为 %s, 详情: %s" % (info.id, error))
-            raise error_codes.JSONParseError.f(u"Instance config解析异常")
+            raise error_codes.JSONParseError(_("Instance config解析异常"))
         return conf
 
     def get_rc_name_by_deployment(self, request, project_id, cluster_id, instance_name,
@@ -885,7 +886,7 @@ class TaskgroupEvents(InstanceAPI):
         if not (str(offset).isdigit() and str(limit).isdigit()):
             return APIResponse({
                 "code": 400,
-                "message": u"参数[offset]和[limit]必须为整数!"
+                "message": _("参数[offset]和[limit]必须为整数!")
             })
         offset = int(offset)
         limit = int(limit)
@@ -964,7 +965,7 @@ class ContainerInfo(InstanceAPI):
             conf = json.loads(info.config)
         except Exception as error:
             logger.error(u"解析instance config异常，id为 %s, 详情: %s" % (info.id, error))
-            raise error_codes.JSONParseError.f(u"Instance config解析异常")
+            raise error_codes.JSONParseError(_("Instance config解析异常"))
         return conf
 
     def get_rc_name_by_deployment(self, request, project_id, cluster_id, instance_name,
@@ -1078,7 +1079,7 @@ class K8sContainerInfo(InstanceAPI):
             conf = json.loads(info.config)
         except Exception as error:
             logger.error(u"解析instance config异常，id为 %s, 详情: %s" % (info.id, error))
-            raise error_codes.JSONParseError.f(u"Instance config解析异常")
+            raise error_codes.JSONParseError(_("Instance config解析异常"))
         return conf
 
     def match_container_info(self, container_data):
@@ -1137,7 +1138,7 @@ class K8sContainerInfo(InstanceAPI):
         """
         container_id = request.data.get("container_id")
         if not container_id:
-            raise error_codes.CheckFailed.f("容器ID不能为空")
+            raise error_codes.CheckFailed(_("容器ID不能为空"))
         # 获取kind
         flag, project_kind = self.get_project_kind(request, project_id)
         if not flag:
@@ -1347,14 +1348,14 @@ class GetMetricInfo(BaseAPI):
         if not metrc_info:
             return APIResponse({
                 "data": [],
-                "message": u"没有查询到Metric配置!"
+                "message": _("没有查询到Metric配置!")
             })
         # 解析metric ID
         try:
             metrc_info = json.loads(metrc_info)
         except Exception as error:
             logger.error(u"解析metric出现异常，详情: %s" % (error))
-            raise error_codes.JSONParseError.f(u"解析metric信息出现异常!")
+            raise error_codes.JSONParseError(_("解析metric信息出现异常!"))
         use_metric = metrc_info.get("isMetric")
         ret_data = []
         if not use_metric:
@@ -1367,7 +1368,7 @@ class GetMetricInfo(BaseAPI):
             return APIResponse({
                 "code": ErrorCode.NoError,
                 "data": ret_data,
-                "message": u"应用无Metric信息"
+                "message": _("应用无Metric信息")
             })
         # 通过metric ID获取metric信息
         return APIResponse({
@@ -1568,7 +1569,7 @@ class BatchInstances(BaseAPI):
                 resource=info.get("inst_name"),
                 resource_id=info.get("inst_id"),
                 extra=json.dumps(info),
-                description=u"应用删除操作"
+                description=_("应用删除操作")
             ).log_delete():
                 resp = self.delete_instance(
                     request, project_id, info["cluster_id"], info["namespace"],
@@ -1605,7 +1606,7 @@ class BatchInstances(BaseAPI):
             })
         else:
             return APIResponse({
-                "message": u"删除成功!"
+                "message": _("删除成功!")
             })
 
     def del_for_client(self, request, project_id, project_kind, category_name_list, namespace, enforce):
@@ -1620,7 +1621,7 @@ class BatchInstances(BaseAPI):
             if resp.get("code") != ErrorCode.NoError:
                 err_msg.append(resp.get("message"))
         if not err_msg:
-            raise error_codes.CheckFailed.f("部分删除失败，详情: %s" % (",".join(err_msg)))
+            raise error_codes.CheckFailed(_("部分删除失败，详情: {}").format(",".join(err_msg)))
 
     def delete(self, request, project_id):
         """批量删除实例接口
@@ -1637,14 +1638,14 @@ class BatchInstances(BaseAPI):
             self.del_for_client(request, project_id, project_kind, category_name_list, namespace, enforce)
         inst_id_list = req_data.get("inst_id_list") or []
         if not inst_id_list:
-            return APIResponse({"message": "任务下发成功"})
+            return APIResponse({"message": _("任务下发成功")})
         # 剔除为0的实例
         inst_id_list = [info for info in inst_id_list if info not in ["0", 0]]
         inst_info = InstanceConfig.objects.filter(id__in=inst_id_list, is_deleted=False)
         if not inst_info:
             return APIResponse({
                 "code": 400,
-                "message": u"没有查询到实例信息"
+                "message": _("没有查询到实例信息")
             })
         # 判断已经创建失败的实例，则只更新状态
         need_delete_inst_ids = []
@@ -1683,7 +1684,7 @@ class BatchInstances(BaseAPI):
                 need_delete_inst_ids.append(item)
         if not need_delete_inst_ids:
             return APIResponse({
-                "message": u"删除成功!"
+                "message": _("删除成功!")
             })
         return self.del_oper(request, project_id, need_delete_inst_ids, project_kind, enforce)
 
@@ -1723,7 +1724,7 @@ class GetInstanceVersionConf(UpdateInstanceNew, UpdateVersionConfig, InstanceAPI
         """
         show_version = ShowVersion.objects.filter(id=show_version_id)
         if not show_version:
-            raise error_codes.CheckFailed.f("没有查询到展示版本信息")
+            raise error_codes.CheckFailed(_("没有查询到展示版本信息"))
         return show_version[0]
 
     def get_version_info(self, category, version_id):
@@ -1731,7 +1732,7 @@ class GetInstanceVersionConf(UpdateInstanceNew, UpdateVersionConfig, InstanceAPI
         """
         info = VersionedEntity.objects.filter(id=version_id)
         if not info:
-            raise error_codes.CheckFailed.f("没有查询到展示版本信息")
+            raise error_codes.CheckFailed(_("没有查询到展示版本信息"))
         curr_info = info[0]
         entity = json.loads(curr_info.entity)
         category_id_list = (entity.get(category) or "").split(",")
@@ -1821,7 +1822,7 @@ class GetInstanceVersionConf(UpdateInstanceNew, UpdateVersionConfig, InstanceAPI
             request, project_id, labels.get("io.tencent.paas.templateid"), inst_info.namespace)
         inst_version_info = VersionInstance.objects.filter(id=inst_version_id)
         if not inst_version_info:
-            raise error_codes.APIError.f("没有查询到实例版本")
+            raise error_codes.APIError(_("没有查询到实例版本"))
         show_version_id = request.GET.get("show_version_id")
         app_category_id_list = []
         if show_version_id:
@@ -1842,18 +1843,18 @@ class GetInstanceVersionConf(UpdateInstanceNew, UpdateVersionConfig, InstanceAPI
         all_info = self.get_tmpl_info(category, category_id_list, inst_info.name)
 
         if not all_info:
-            raise error_codes.CheckFailed.f("没有查询到版本信息", replace=True)
+            raise error_codes.CheckFailed(_("没有查询到版本信息"))
         # 通过展示版本获取真正版本
         curr_info = all_info[0]
         version_conf = curr_info.config
         # 针对mesos，需要application关联deployment
         if not app_category_id_list and project_kind == 2:
-            raise error_codes.CheckFailed.f("没有查询到关联的application信息")
+            raise error_codes.CheckFailed(_("没有查询到关联的application信息"))
         if project_kind == 2 and category == DEPLOYMENT_CATEGORY:
             app_info = MODULE_DICT["application"].objects.filter(
                 app_id=curr_info.app_id, id__in=app_category_id_list)
             if not app_info:
-                raise error_codes.CheckFailed.f("没有查询到关联的application信息")
+                raise error_codes.CheckFailed(_("没有查询到关联的application信息"))
             app_config = json.loads(app_info[0].config)
             app_config["spec"]["strategy"] = json.loads(version_conf)["strategy"]
             version_conf = json.dumps(app_config)
@@ -1920,7 +1921,7 @@ class GetInstanceVersions(BaseAPI):
         """
         inst_version_info = VersionInstance.objects.filter(id=inst_version_id)
         if not inst_version_info:
-            raise error_codes.APIError.f("没有查询到实例版本")
+            raise error_codes.APIError(_("没有查询到实例版本"))
         return inst_version_info[0]
 
     def get_show_version_info(self, id_list):
@@ -1930,7 +1931,7 @@ class GetInstanceVersions(BaseAPI):
             real_version_id__in=id_list, is_deleted=False
         ).order_by("-updated")
         if not show_version_info:
-            raise error_codes.APIError.f("没有查询到实例版本")
+            raise error_codes.APIError(_("没有查询到实例版本"))
         ret_data = []
         for info in show_version_info:
             ret_data.append({

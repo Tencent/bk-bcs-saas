@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-11-22 15:24+0800\n"
+"POT-Creation-Date: 2019-11-24 10:25+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,11 +17,67 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
+#: backend/accounts/bcs_perm/__init__.py:53
+#: backend/activity_log/constants.py:21
+msgid "删除"
+msgstr "Delete"
+
+#: backend/accounts/bcs_perm/__init__.py:54
 #: backend/activity_log/constants.py:18
 #: backend/apps/datalog/data_collect.py:224
 #: backend/apps/datalog/data_collect.py:232
 msgid "创建"
 msgstr "Create"
+
+#: backend/accounts/bcs_perm/__init__.py:55
+#, fuzzy
+#| msgid "CPU使用率"
+msgid "使用"
+msgstr "Use"
+
+#: backend/accounts/bcs_perm/__init__.py:56
+msgid "编辑"
+msgstr "Edit"
+
+#: backend/accounts/bcs_perm/__init__.py:57
+msgid "查看"
+msgstr "View"
+
+#: backend/accounts/bcs_perm/__init__.py:58
+msgid "列表"
+msgstr "List"
+
+#: backend/accounts/bcs_perm/__init__.py:69
+msgid "请联系管理员添加权限"
+msgstr "Contact your administrator to add permissions"
+
+#: backend/accounts/bcs_perm/__init__.py:183
+msgid "您没有{}[{}]的{}权限"
+msgstr "You do not have {} permission for {} [{}]"
+
+#: backend/accounts/bcs_perm/__init__.py:185
+msgid "您没有{}的{}权限"
+msgstr "You do not have {} permission for {}"
+
+#: backend/accounts/bcs_perm/__init__.py:220
+#, fuzzy
+#| msgid "权限中心接口调用失败:"
+msgid "权限中心更新资源接口调用失败"
+msgstr "Permission Center failed to update resource interface call"
+
+#: backend/accounts/bcs_perm/__init__.py:543
+#, fuzzy
+#| msgid "没有使用权限"
+msgid "没有集群使用权限"
+msgstr "No cluster permissions"
+
+#: backend/accounts/bcs_perm/__init__.py:632
+#: backend/activity_log/constants.py:46
+#: backend/apps/application/constants.py:128
+#: backend/apps/application/constants.py:145
+#: backend/apps/instance/utils.py:107
+msgid "模板集"
+msgstr "Template set"
 
 #: backend/activity_log/constants.py:19
 msgid "更新"
@@ -30,10 +86,6 @@ msgstr "Update"
 #: backend/activity_log/constants.py:20
 msgid "回滚"
 msgstr "Rollback"
-
-#: backend/activity_log/constants.py:21
-msgid "删除"
-msgstr "Delete"
 
 #: backend/activity_log/constants.py:22
 msgid "开始"
@@ -90,7 +142,7 @@ msgstr "Failure"
 msgid "项目"
 msgstr "Project"
 
-#: backend/activity_log/constants.py:43 backend/bcs_k8s/app/views.py:966
+#: backend/activity_log/constants.py:43
 msgid "集群"
 msgstr "Cluster"
 
@@ -101,11 +153,6 @@ msgstr "Node"
 #: backend/activity_log/constants.py:45 backend/apps/instance/generator.py:234
 msgid "命名空间"
 msgstr "Namespace"
-
-#: backend/activity_log/constants.py:46 backend/apps/instance/utils.py:74
-#: backend/apps/instance/utils.py:77 backend/apps/instance/utils.py:107
-msgid "模板集"
-msgstr "Template set"
 
 #: backend/activity_log/constants.py:47 backend/apps/instance/generator.py:793
 #: backend/apps/variable/views.py:155
@@ -161,6 +208,7 @@ msgid "请求失败，已通知管理员!"
 msgstr "Request failed, administrator notified!"
 
 #: backend/apps/application/all_views/k8s_views.py:208
+#: backend/apps/application/views.py:785
 msgid "请点击查看详情"
 msgstr "Please click to view details"
 
@@ -189,6 +237,8 @@ msgstr "Parameters [name], [namespace], [category] cannot be empty"
 
 #: backend/apps/application/base/base.py:87
 #: backend/apps/application/base/base.py:160
+#: backend/apps/application/filters/base_metrics.py:65
+#: backend/apps/application/filters/views.py:94
 msgid "应用类型不能为空"
 msgstr "Application type cannot be empty"
 
@@ -201,6 +251,9 @@ msgid "应用状态不正确，请确认后重试!"
 msgstr "The application status is incorrect, please confirm and try again!"
 
 #: backend/apps/application/base/base.py:163
+#: backend/apps/application/filters/base_metrics.py:68
+#: backend/apps/application/filters/views.py:97
+#: backend/apps/application/other_views/k8s_views.py:122
 msgid "类型不正确，请确认"
 msgstr "The type is incorrect, please confirm"
 
@@ -221,6 +274,13 @@ msgid "没有查询到相应的记录"
 msgstr "No corresponding records were queried"
 
 #: backend/apps/application/base_views.py:86
+#: backend/apps/application/instance_views.py:583
+#: backend/apps/application/instance_views.py:689
+#: backend/apps/application/instance_views.py:775
+#: backend/apps/application/instance_views.py:821
+#: backend/apps/application/instance_views.py:968
+#: backend/apps/application/instance_views.py:1082
+#: backend/apps/application/views.py:1099
 msgid "Instance config解析异常"
 msgstr "Instance config parsing exception"
 
@@ -233,6 +293,9 @@ msgstr "Instance config parsing exception"
 #: backend/apps/application/base_views.py:722
 #: backend/apps/application/base_views.py:748
 #: backend/apps/application/base_views.py:762
+#: backend/apps/network/views/service.py:85 backend/apps/resource/views.py:559
+#: backend/apps/resource/views.py:686 backend/apps/resource/views.py:786
+#: backend/apps/resource/views_ingress.py:45
 msgid "请求出现异常!"
 msgstr "Request exception!"
 
@@ -255,6 +318,7 @@ msgstr "Query exception"
 
 #: backend/apps/application/base_views.py:391
 #: backend/apps/application/base_views.py:397
+#: backend/apps/network/views/lb/k8s.py:509
 msgid "删除成功"
 msgstr "Delete successfully"
 
@@ -305,6 +369,346 @@ msgid "获取应用线上配置异常，请联系管理员处理!"
 msgstr ""
 "Get the application online configuration exception, please contact the "
 "administrator to deal with!"
+
+#: backend/apps/application/constants.py:129
+#: backend/apps/application/constants.py:146
+msgid "Helm模板"
+msgstr "Helm template"
+
+#: backend/apps/application/constants.py:130
+#: backend/apps/application/constants.py:147
+msgid "Client"
+msgstr "Client"
+
+#: backend/apps/application/constants.py:133
+msgid "非模板集"
+msgstr "Non-template set"
+
+#: backend/apps/application/filters/base_metrics.py:35
+#, fuzzy
+#| msgid "命名空间变量"
+msgid "命名空间: {} 不存在"
+msgstr "Namespace: {} does not exist"
+
+#: backend/apps/application/filters/base_metrics.py:55
+msgid "应用: {} 不存在"
+msgstr "Application: {} does not exist"
+
+#: backend/apps/application/filters/base_metrics.py:86
+msgid "模板集: {} 不存在"
+msgstr "Template set: {} does not exist"
+
+#: backend/apps/application/filters/base_metrics.py:96
+#: backend/apps/application/filters/base_metrics.py:172
+#: backend/apps/application/filters/views.py:90
+#, fuzzy
+#| msgid "类型不正确，请确认"
+msgid "集群类型不正确，请确认"
+msgstr "The cluster type is incorrect, please confirm"
+
+#: backend/apps/application/filters/base_metrics.py:99
+#: backend/apps/application/filters/base_metrics.py:175
+#, fuzzy
+#| msgid "应用状态不正确，请确认后重试!"
+msgid "应用状态不正确，请确认"
+msgstr "Incorrect application status, please confirm"
+
+#: backend/apps/application/filters/base_metrics.py:187
+#, fuzzy
+#| msgid "类型不正确，请确认"
+msgid "实例不存在，请确认!"
+msgstr "The instance does not exist, please confirm!"
+
+#: backend/apps/application/instance_views.py:635
+#: backend/apps/application/views.py:1026
+#, fuzzy
+#| msgid "参数[name]、[namespace]、[category]不能为空"
+msgid "参数[category]不能为空"
+msgstr "Parameter [category] cannot be empty"
+
+#: backend/apps/application/instance_views.py:784
+#, fuzzy
+#| msgid "【resource_code】不能为空"
+msgid "参数【taskgroup】不能为空"
+msgstr "Parameter [taskgroup] cannot be empty"
+
+#: backend/apps/application/instance_views.py:889
+#, fuzzy
+#| msgid "参数[ip_list]和[instance]必须相同"
+msgid "参数[offset]和[limit]必须为整数!"
+msgstr "The parameters [offset] and [limit] must be integers!"
+
+#: backend/apps/application/instance_views.py:1141
+#, fuzzy
+#| msgid "节点ID不能为空"
+msgid "容器ID不能为空"
+msgstr "Container ID cannot be empty"
+
+#: backend/apps/application/instance_views.py:1351
+msgid "没有查询到Metric配置!"
+msgstr "No Metric configuration queried!"
+
+#: backend/apps/application/instance_views.py:1358
+#, fuzzy
+#| msgid "请求出现异常!"
+msgid "解析metric信息出现异常!"
+msgstr "An exception occurred in parsing metric information!"
+
+#: backend/apps/application/instance_views.py:1371
+msgid "应用无Metric信息"
+msgstr "Application without Metric information"
+
+#: backend/apps/application/instance_views.py:1572
+#: backend/apps/application/views.py:1971
+msgid "应用删除操作"
+msgstr "Apply delete operation"
+
+#: backend/apps/application/instance_views.py:1609
+#: backend/apps/application/instance_views.py:1687
+#, fuzzy
+#| msgid "删除成功"
+msgid "删除成功!"
+msgstr "Delete successful!"
+
+#: backend/apps/application/instance_views.py:1624
+msgid "部分删除失败，详情: {}"
+msgstr "Partial deletion failed. Details: {}"
+
+#: backend/apps/application/instance_views.py:1641
+msgid "任务下发成功"
+msgstr "Mission dispatched successfully"
+
+#: backend/apps/application/instance_views.py:1648
+#: backend/apps/application/views.py:1175
+#, fuzzy
+#| msgid "没有查询到模板集信息"
+msgid "没有查询到实例信息"
+msgstr "No instance information queried"
+
+#: backend/apps/application/instance_views.py:1727
+#: backend/apps/application/instance_views.py:1735
+#, fuzzy
+#| msgid "没有查询到模板集信息"
+msgid "没有查询到展示版本信息"
+msgstr "No display version information queried"
+
+#: backend/apps/application/instance_views.py:1825
+#: backend/apps/application/instance_views.py:1924
+#: backend/apps/application/instance_views.py:1934
+#, fuzzy
+#| msgid "没有查询到集群所属环境"
+msgid "没有查询到实例版本"
+msgstr "No instance version queried"
+
+#: backend/apps/application/instance_views.py:1846
+#, fuzzy
+#| msgid "没有查询到模板集信息"
+msgid "没有查询到版本信息"
+msgstr "No version information queried"
+
+#: backend/apps/application/instance_views.py:1852
+#: backend/apps/application/instance_views.py:1857
+msgid "没有查询到关联的application信息"
+msgstr "No associated application information was queried"
+
+#: backend/apps/application/other_views/templates.py:125
+#: backend/apps/configuration/namespace/views.py:297
+#, fuzzy
+#| msgid "正常"
+msgid "正式"
+msgstr "Formal"
+
+#: backend/apps/application/other_views/templates.py:126
+#: backend/apps/configuration/namespace/views.py:297
+msgid "测试"
+msgstr "Testing"
+
+#: backend/apps/application/other_views/templates.py:155
+msgid "模板集ID: {} 不存在"
+msgstr "Template set ID: {} does not exist"
+
+#: backend/apps/application/other_views/templates.py:164
+msgid "模板ID: {} 不存在"
+msgstr "Template ID: {} does not exist"
+
+#: backend/apps/application/other_views/templates.py:172
+msgid "项目:{},模板集: {} 不存在!"
+msgstr "Project: {}, template set: {} does not exist!"
+
+#: backend/apps/application/other_views/templates.py:211
+#: backend/apps/application/other_views/templates.py:246
+#, fuzzy
+#| msgid "参数不能全部为空"
+msgid "参数不能为空!"
+msgstr "Parameter cannot be empty!"
+
+#: backend/apps/application/other_views/templates.py:236
+#: backend/apps/application/other_views/templates.py:271
+#, fuzzy
+#| msgid "删除模板集"
+msgid "删除模板集实例"
+msgstr "Delete template set instance"
+
+#: backend/apps/application/other_views/templates.py:338
+msgid "存在删除失败情况，(命名空间:实例名称)详情: {}"
+msgstr "There is a deletion failure, (namespace: instance name) details: {}"
+
+#: backend/apps/application/other_views/templates.py:341
+#, fuzzy
+#| msgid "操作成功"
+msgid "操作成功!"
+msgstr "Operation successful!"
+
+#: backend/apps/application/views.py:181
+#, fuzzy
+#| msgid "应用类型不能为空"
+msgid "分类不能为空"
+msgstr "Classification cannot be empty"
+
+#: backend/apps/application/views.py:221
+msgid "模板集不属于项目!"
+msgstr "Template set does not belong to the project!"
+
+#: backend/apps/application/views.py:623
+msgid "分类不正确"
+msgstr "Incorrect classification"
+
+#: backend/apps/application/views.py:976
+#, fuzzy
+#| msgid "没有查询到相应的记录"
+msgid "没有查询到记录!"
+msgstr "No records found!"
+
+#: backend/apps/application/views.py:1126
+msgid "实例已经创建，请勿重复操作!"
+msgstr "The instance has been created, do not repeat the operation!"
+
+#: backend/apps/application/views.py:1149
+msgid "重试应用实例化"
+msgstr "Retry application instantiation"
+
+#: backend/apps/application/views.py:1183
+#, fuzzy
+#| msgid "没有查询到相应的记录"
+msgid "没有查询到相应的版本信息"
+msgstr "No version information was queried"
+
+#: backend/apps/application/views.py:1194
+#, fuzzy
+#| msgid "没有查询到模板集信息"
+msgid "没有查询到模板信息"
+msgstr "No template information queried"
+
+#: backend/apps/application/views.py:1223
+#, fuzzy
+#| msgid "没有查询到模板集信息"
+msgid "没有查询展示版本信息"
+msgstr "No query for display version information"
+
+#: backend/apps/application/views.py:1263
+#: backend/apps/application/views.py:1679
+#, fuzzy
+#| msgid "更新实例失败"
+msgid "更新实例配置异常!"
+msgstr "Update instance configuration exception!"
+
+#: backend/apps/application/views.py:1270
+#: backend/apps/application/views.py:1432
+msgid "升级的版本信息不能为空"
+msgstr "Upgraded version information cannot be empty"
+
+#: backend/apps/application/views.py:1274
+msgid "实例数量必须为正数"
+msgstr "Number of instances must be positive"
+
+#: backend/apps/application/views.py:1281
+#: backend/apps/application/views.py:1439
+msgid "环境变量 {} 对应的值不能为空"
+msgstr ""
+"The value corresponding to the environment variable {} cannot be empty"
+
+#: backend/apps/application/views.py:1308
+msgid "实例数 {} 不是整数"
+msgstr "Number of instances {} is not an integer"
+
+#: backend/apps/application/views.py:1324
+msgid "Selector不一致不能进行更新，请确认!"
+msgstr "Selector inconsistency can not be updated, please confirm!"
+
+#: backend/apps/application/views.py:1348
+#: backend/apps/application/views.py:1372
+msgid "JOB类型不允许滚动升级"
+msgstr "Rolling upgrade is not allowed for JOB type"
+
+#: backend/apps/application/views.py:1351
+#, fuzzy
+#| msgid "【resource_code】不能为空"
+msgid "参数【conf】不能为空!"
+msgstr "The parameter [conf] cannot be empty!"
+
+#: backend/apps/application/views.py:1452
+msgid "更新的实例必须为application类型，请确认!"
+msgstr "The updated instance must be of type application, please confirm!"
+
+#: backend/apps/application/views.py:1483
+msgid "应用滚动升级"
+msgstr "Apply rolling upgrades"
+
+#: backend/apps/application/views.py:1558
+msgid "应用扩缩容"
+msgstr "Application expansion capacity"
+
+#: backend/apps/application/views.py:1589
+#, fuzzy
+#| msgid "参数[name]、[namespace]、[category]不能为空"
+msgid "参数[instance_num]不能为空"
+msgstr "Parameter [instance_num] cannot be empty"
+
+#: backend/apps/application/views.py:1594
+#, fuzzy
+#| msgid "参数[ip_list]和[instance]必须相同"
+msgid "参数[instance_num]必须为整数"
+msgstr "Parameter [instance_num] must be an integer"
+
+#: backend/apps/application/views.py:1710
+#: backend/apps/application/views.py:1767
+msgid "应用取消滚动升级"
+msgstr "Apply cancel rolling upgrade"
+
+#: backend/apps/application/views.py:1750
+#, fuzzy
+#| msgid "项目类型必须为k8s/mesos, 请确认后重试!"
+msgid "实例类型必须为application, 请确认!"
+msgstr "The instance type must be application,. Please confirm!"
+
+#: backend/apps/application/views.py:1800
+#, fuzzy
+#| msgid "暂停更新成功!"
+msgid "应用暂停更新"
+msgstr "Apply pause UPDAT"
+
+#: backend/apps/application/views.py:1857
+#: backend/apps/application/views.py:1899
+msgid "应用恢复滚动升级"
+msgstr "Application recovery rolling upgrade"
+
+#: backend/apps/application/views.py:1945
+#, fuzzy
+#| msgid "实例已经删除"
+msgid "实例已经删除，请勿重复操作!"
+msgstr "The instance has been deleted, please do not repeat the operation!"
+
+#: backend/apps/application/views.py:1950
+msgid "已执行删除，请勿重复操作!"
+msgstr "Delete has been performed, do not repeat the operation!"
+
+#: backend/apps/application/views.py:2064
+msgid "应用重新创建"
+msgstr "Apply recreation"
+
+#: backend/apps/application/views.py:2091
+msgid "下发任务成功"
+msgstr "Mission assigned successfully"
 
 #: backend/apps/cluster/constants.py:129
 msgid "- 调用初始化接口失败"
@@ -437,6 +841,192 @@ msgstr "Param[start _ at] must be less than [end_at]"
 msgid "没有查询到集群所属环境"
 msgstr "No query was made to the environment to which the cluster belongs"
 
+#: backend/apps/cluster/views/metric_handler/namespace.py:64
+#, fuzzy
+#| msgid "类型不正确，请确认"
+msgid "项目类型不正确，请重新确认"
+msgstr "The project type is incorrect, please reconfirm"
+
+#: backend/apps/cluster/views/node.py:700
+#, fuzzy
+#| msgid "应用状态不正确，请确认后重试!"
+msgid "节点信息不存在，请确认后重试!"
+msgstr "Node information does not exist, please confirm and try again!"
+
+#: backend/apps/cluster/views/node.py:706
+#, fuzzy
+#| msgid "集群下没有节点"
+msgid "当前项目下没有节点!"
+msgstr "There are no nodes under the current project!"
+
+#: backend/apps/cluster/views/node.py:712
+#: backend/apps/cluster/views/node.py:956
+msgid "节点ID [{}] 不属于当前项目，请确认"
+msgstr "Node ID [{}] does not belong to the current project, please confirm"
+
+#: backend/apps/cluster/views/node.py:758
+msgid "[{}]为系统默认key，禁止使用，请确认"
+msgstr "[{}] is disabled for the system default key, please confirm"
+
+#: backend/apps/cluster/views/node.py:763
+#: backend/apps/cluster/views/node.py:765
+#: backend/apps/cluster/views/node.py:768
+msgid "键[{}]不符合规范，请参考帮助文档!"
+msgstr ""
+"The key [{}] does not conform to the specification, please refer to the help"
+" documentation!"
+
+#: backend/apps/cluster/views/node.py:772
+msgid "键[{}]对应的值[{}]不符合规范，请参考帮助文档!"
+msgstr ""
+"The value [{}] corresponding to the key [{}] does not conform to the "
+"specification, please refer to the help documentation!"
+
+#: backend/apps/cluster/views/node.py:946
+msgid "当前项目下节点为空，请确认"
+msgstr "The node under the current project is empty, please confirm"
+
+#: backend/apps/cluster/views/node.py:953
+msgid "节点不是正常状态时，不允许设置标签"
+msgstr "Labeling is not allowed when the node is not in the normal state"
+
+#: backend/apps/cluster/views/node.py:979
+msgid "节点打标签"
+msgstr "Node tagging"
+
+#: backend/apps/cluster/views/node.py:983
+#: backend/apps/network/views/lb/k8s.py:312
+msgid "创建成功!"
+msgstr "Created successfully!"
+
+#: backend/apps/cluster/views_bk/cluster.py:177
+#, fuzzy
+#| msgid "获取应用线上配置异常，请联系管理员处理!"
+msgid "获取初始化任务ID异常，返回任务ID为{}，请联系管理员处理"
+msgstr ""
+"Get the initialization task ID exception, return task ID is {}, please "
+"contact your administrator to handle"
+
+#: backend/apps/cluster/views_bk/cluster.py:211
+msgid "当前项目没有绑定业务，不允许操作容器服务"
+msgstr ""
+"There is no binding business for the current project, and the operation of "
+"container service is not allowed"
+
+#: backend/apps/cluster/views_bk/cluster.py:228
+#, fuzzy
+#| msgid "应用状态不正确，请确认后重试!"
+msgid "获取区域配置信息为空，请确认后重试"
+msgstr ""
+"Get zone configuration information is empty, please confirm and try again"
+
+#: backend/apps/cluster/views_bk/cluster.py:231
+#, fuzzy
+#| msgid "应用状态不正确，请确认后重试!"
+msgid "获取区域配置为空，请确认后重试"
+msgstr "Get zone configuration is empty, please confirm and try again"
+
+#: backend/apps/cluster/views_bk/cluster.py:260
+#: backend/apps/cluster/views_bk/node.py:203
+#, fuzzy
+#| msgid "获取集群信息失败"
+msgid "查询集群下模块信息失败"
+msgstr "Failed to query module information under cluster"
+
+#: backend/apps/cluster/views_bk/cluster.py:281
+#: backend/apps/cluster/views_bk/node.py:228
+msgid "创建配置中心集群模块失败"
+msgstr "Failed to create configuration center cluster module"
+
+#: backend/apps/cluster/views_bk/cluster.py:300
+#, fuzzy
+#| msgid "获取集群信息失败"
+msgid "获取集群基本配置失败"
+msgstr "Failed to get the basic configuration of the cluster"
+
+#: backend/apps/cluster/views_bk/cluster.py:333
+#, fuzzy
+#| msgid "删除集群失败"
+msgid "创建集群失败"
+msgstr "Failed to create cluster"
+
+#: backend/apps/cluster/views_bk/cluster.py:366
+#: backend/apps/cluster/views_bk/node.py:386
+msgid "已经触发操作，请勿重复操作"
+msgstr "The action has been triggered, do not repeat the action"
+
+#: backend/apps/cluster/views_bk/cluster.py:375
+#, fuzzy
+#| msgid "查询项目信息为空"
+msgid "查询集群: {} 对应的信息为空"
+msgstr "Query cluster: {} the corresponding information is empty"
+
+#: backend/apps/cluster/views_bk/cluster.py:383
+#, fuzzy
+#| msgid "没有查询到相应的记录"
+msgid "没有查询对应的任务日志"
+msgstr "No query for the corresponding task log"
+
+#: backend/apps/cluster/views_bk/cluster.py:397
+msgid "集群正在操作中，请勿重复操作"
+msgstr "The cluster is in operation. Do not repeat the operation."
+
+#: backend/apps/cluster/views_bk/cluster.py:549
+msgid "获取标准运维任务ID失败，返回任务ID为{}，请联系管理员处理"
+msgstr ""
+"Failed to get the standard operation and maintenance task ID. The returned "
+"task ID is {}. Please contact your administrator to handle it."
+
+#: backend/apps/cluster/views_bk/configs/mesos.py:64
+#, fuzzy
+#| msgid "集群类型不正确，请确认后重试!"
+msgid "获取集群节点为空，请确认后重试"
+msgstr "Get that the cluster node is empty, please confirm and try again"
+
+#: backend/apps/cluster/views_bk/node.py:118
+msgid "获取节点初始化配置异常"
+msgstr "Get node initialization configuration exception"
+
+#: backend/apps/cluster/views_bk/node.py:178
+#: backend/apps/cluster/views_bk/node.py:467
+msgid "获取标准运维任务ID失败，返回任务为{}，请联系管理员处理"
+msgstr ""
+"Failed to get the standard operation and maintenance task ID. The returned "
+"task is {}. Please contact your administrator to handle it."
+
+#: backend/apps/cluster/views_bk/node.py:259
+msgid "部分主机已经使用，IP为{}"
+msgstr "Some hosts are already in use, IP is {}"
+
+#: backend/apps/cluster/views_bk/node.py:307
+#, fuzzy
+#| msgid "获取集群信息失败"
+msgid "获取集群信息为空"
+msgstr "Get cluster information is empty"
+
+#: backend/apps/cluster/views_bk/node.py:375
+msgid "没有查询到节点添加记录，请联系管理员处理!"
+msgstr ""
+"No query node to add records, please contact the administrator to deal with!"
+
+#: backend/apps/cluster/views_bk/node.py:399
+msgid "IP: {}正在操作中，请勿重复操作"
+msgstr "IP: {} is in operation, do not repeat the operation"
+
+#: backend/apps/cluster/views_bk/node.py:520
+msgid "当前节点下存在运行容器, 请先清理容器!"
+msgstr ""
+"There is a running container under the current node. Please clean the "
+"container first!"
+
+#: backend/apps/cluster/views_bk/node.py:524
+msgid "当前节点正在删除，请勿重复操作!"
+msgstr "The current node is being deleted, do not repeat the operation!"
+
+#: backend/apps/cluster/views_bk/node.py:533
+msgid "节点必须要先停用，才可以删除，请确认!"
+msgstr "The node must be disabled before it can be deleted. Please confirm!"
+
 #: backend/apps/configuration/constants.py:24
 #: backend/apps/configuration/constants_bak.py:40
 msgid "只能包含字母、数字和下划线，且以字母开头"
@@ -462,6 +1052,291 @@ msgstr ""
 "This is an open source bean eating game configuration template set, you can "
 "use this example to familiarize yourself with the system configuration, "
 "release, change process under the micro-service architecture"
+
+#: backend/apps/configuration/instance/views.py:265
+msgid "类型只能为{}"
+msgstr "Type can only be {}"
+
+#: backend/apps/configuration/instance/views.py:324
+msgid ""
+"以下命名空间已经实例化过，不能再实例化\n"
+"{}"
+msgstr ""
+"The following namespaces have been instantiated and cannot be instantiated "
+"{}"
+
+#: backend/apps/configuration/instance/views.py:356
+msgid "实例化模板集[{}]命名空间[{}]"
+msgstr "Instantiate template set [{}] namespace [{}]"
+
+#: backend/apps/configuration/instance/views.py:373
+msgid "{}(实例化{}时)"
+msgstr "{} (when instantiating {})"
+
+#: backend/apps/configuration/instance/views.py:395
+msgid ""
+"以下命名空间实例化失败，\n"
+"{}，请联系集群管理员解决"
+msgstr ""
+"The following namespace instantiation failed, {}, please contact your "
+"cluster administrator to resolve"
+
+#: backend/apps/configuration/instance/views.py:429
+#: backend/apps/variable/views.py:175
+msgid "请选择要实例化的模板"
+msgstr "Please select a template to instantiate"
+
+#: backend/apps/configuration/instance/views.py:375
+msgid "实例化模板集[{}]命名空间[{}]失败，错误消息：{}"
+msgstr ""
+"Failed to instantiate template set [{}] namespace [{}], error message: {}"
+
+#: backend/apps/configuration/instance/views.py:370
+msgid "实例化模板集[{}]命名空间[{}]，在实例化{}时失败，错误消息：{}"
+msgstr ""
+"Instantiate template set [{}] namespace [{}], failed to instantiate {}, "
+"error message: {}"
+
+#: backend/apps/configuration/k8s/serializers.py:65
+msgid "{}[{}]中选择器{}"
+msgstr "{} [{}] selector {}"
+
+#: backend/apps/configuration/k8s/serializers.py:155
+#, fuzzy
+#| msgid "关联应用参数格式错误"
+msgid "Service模板: 关联应用参数格式错误"
+msgstr "Service template: associated application parameter format error"
+
+#: backend/apps/configuration/k8s/serializers.py:161
+#, fuzzy
+#| msgid "请先创建 Deplpyment ，再创建 Service"
+msgid "请先创建 Deployment/StatefulSet/Daemonset，再创建 Service"
+msgstr ""
+"Please create Deployment/StatefulSet/Daemonset, before creating Service"
+
+#: backend/apps/configuration/k8s/serializers.py:164
+msgid "Service模板中{}: 请选择关联的 Deployment/StatefulSet/Daemonset"
+msgstr ""
+"{} in Service template: please select the associated "
+"Deployment/StatefulSet/Daemonset"
+
+#: backend/apps/configuration/k8s/validator.py:25
+#, fuzzy
+#| msgid "名称格式错误，以小写字母或数字开头，只能包含：小写字母、数字、中划线(-)、点(.)"
+msgid "名称格式错误，以小写字母或数字开头，只能包含：小写字母、数字、连字符(-)、点(.)"
+msgstr ""
+"The name is malformed, starts with a lowercase letter or number, and can "
+"only contain: lowercase letters, numbers, hyphens (-), dot (.)"
+
+#: backend/apps/configuration/k8s/validator.py:47
+msgid "[{}]不在用户填写的标签中"
+msgstr "[{}] is not in the label filled in by the user"
+
+#: backend/apps/configuration/k8s/validator.py:66
+#, fuzzy
+#| msgid "请先创建 Deplpyment ，再创建 Service"
+msgid "请先创建 Service ，再创建 StatefulSet"
+msgstr "Please create Service before creating StatefulSet"
+
+#: backend/apps/configuration/k8s/validator.py:70
+msgid "StatefulSet模板中，请选择关联的 Service"
+msgstr "In the StatefulSet template, select the associated Service"
+
+#: backend/apps/configuration/k8s/validator.py:75
+#: backend/apps/configuration/mesos/validator.py:69
+#: backend/apps/configuration/showversion/serializers.py:138
+#, fuzzy
+#| msgid "模板集版本"
+msgid "模板集版本(id:{})不存在"
+msgstr "Template set version (id: {}) does not exist"
+
+#: backend/apps/configuration/k8s/validator.py:81
+msgid "关联的 Service (service_tag: {}) 不合法"
+msgstr "The associated Service (service_tag: {}) is illegal"
+
+#: backend/apps/configuration/k8s/views.py:93
+#: backend/apps/configuration/mesos/views.py:47
+#, fuzzy
+#| msgid "请选择关联的 Deplpyment"
+msgid "请选择关联的应用"
+msgstr "Please select the associated application"
+
+#: backend/apps/configuration/k8s/views.py:134
+#: backend/apps/configuration/mesos/views.py:63
+msgid "端口在 Service[{}] 中已经被关联,不能删除"
+msgstr "The port is already associated in Service [{}] and cannot be deleted"
+
+#: backend/apps/configuration/mesos/serializers.py:28
+#: backend/apps/configuration/mesos/validator.py:25
+#, fuzzy
+#| msgid "名称格式错误，只能包含：小写字母、数字、中划线(-)，首字母必须是字母，长度小于256个字符"
+msgid "名称格式错误，只能包含：小写字母、数字、连字符(-)，首字母必须是字母，长度小于256个字符"
+msgstr ""
+"The name is in the wrong format and can only contain lowercase letters, "
+"numbers, hyphens (-), the first letter must be a letter, and the length is "
+"less than 256 characters"
+
+#: backend/apps/configuration/mesos/serializers.py:63
+msgid "挂载名:{},请重新填写"
+msgstr "Mount name: {}, please fill in again"
+
+#: backend/apps/configuration/mesos/serializers.py:67
+msgid "端口名称:{},请重新填写"
+msgstr "Port name: {}, please fill in again"
+
+#: backend/apps/configuration/mesos/serializers.py:82
+#, fuzzy
+#| msgid "Secret 名称格式错误，只能包含：小写字母、数字、中划线(-)，首字母必须是字母，长度小于256个字符"
+msgid "Deployment 名称格式错误，只能包含：小写字母、数字、连字符(-)，首字母必须是字母，长度小于256个字符"
+msgstr ""
+"The Deployment name is in the wrong format and can only contain lowercase "
+"letters, numbers, and hyphens (-). The first letter must be a letter and the"
+" length is less than 256 characters"
+
+#: backend/apps/configuration/mesos/serializers.py:99
+#, fuzzy
+#| msgid "请先创建 Application ，再创建 Deplpyment"
+msgid "请先创建 Application，再创建 Deployment"
+msgstr "Please create Application, before creating Deployment"
+
+#: backend/apps/configuration/mesos/serializers.py:102
+#, fuzzy
+#| msgid "请选择关联的 Application"
+msgid "Deployment模板中{}: 请选择关联的 Application"
+msgstr "{} in Deployment template: please select the associated Application"
+
+#: backend/apps/configuration/mesos/serializers.py:125
+#, fuzzy
+#| msgid "请选择关联的 Application"
+msgid "Service模板: 请选择关联的 Application"
+msgstr "Service template: please select the associated Application"
+
+#: backend/apps/configuration/mesos/serializers.py:131
+#: backend/apps/configuration/serializers.py:289
+msgid "关联应用的权重之和不为100%"
+msgstr "The sum of the weights of the associated application is not 100%"
+
+#: backend/apps/configuration/mesos/serializers.py:134
+#: backend/apps/configuration/serializers.py:292
+msgid "关联应用参数格式错误"
+msgstr "Associated application parameter format error"
+
+#: backend/apps/configuration/mesos/validator.py:59
+msgid "{res_name}: 在容器 {} 中重复"
+msgstr "{res_name}: repeat in container {}"
+
+#: backend/apps/configuration/mesos/validator.py:74
+msgid "关联的 Application (app_id: {}) 不合法"
+msgstr "The associated Application (app_id: {}) is illegal"
+
+#: backend/apps/configuration/mesos/validator.py:119
+msgid "以下端口名称已经存在模板集的其他应用中存在:{}"
+msgstr ""
+"The following port names already exist in other applications of the template"
+" set: {}"
+
+#: backend/apps/configuration/models/k8s.py:91
+#: backend/apps/configuration/models/k8s.py:187
+#: backend/apps/configuration/models/mesos.py:111
+msgid "{} Id ({}) 不存在"
+msgstr "{} Id ({}) does not exist"
+
+#: backend/apps/configuration/models/template.py:40
+#: backend/apps/instance/utils.py:74
+msgid "模板集(id:{})不存在"
+msgstr "Template set (id: {}) does not exist"
+
+#: backend/apps/configuration/models/template.py:43
+#, fuzzy
+#| msgid "不属于该项目"
+msgid "模板集(id:{})不属于该项目(id:{})"
+msgstr "Template set (id: {}) does not belong to the project (id: {})"
+
+#: backend/apps/configuration/models/template.py:84
+#, fuzzy
+#| msgid "集群名称已经存在，请修改后重试"
+msgid "模板集名称{}已经存在,请重新填写"
+msgstr "Template set name {} already exists, please fill in again"
+
+#: backend/apps/configuration/models/template.py:349
+msgid "版本号[{}]已经存在,请重新填写"
+msgstr "Version number [{}] already exists, please fill in again"
+
+#: backend/apps/configuration/models/template.py:629
+#: backend/apps/configuration/models/template.py:651
+#: backend/apps/configuration/models/template.py:673
+msgid "模板版本(version_id:{})不存在"
+msgstr "Template version (version_id: {}) does not exist"
+
+#: backend/apps/configuration/models/template.py:633
+msgid "Deplpyment(id:{})不存在"
+msgstr "Deplpyment (id: {}) does not exist"
+
+#: backend/apps/configuration/models/template.py:638
+msgid "模板版本(version_id:{})下没有可以关联的Application"
+msgstr ""
+"There is no Application to associate with under the template version "
+"(version_id: {})"
+
+#: backend/apps/configuration/models/template.py:643
+msgid "Deplpyment(id:{})没有关联的Application"
+msgstr "Deplpyment (id: {}) No associated Application"
+
+#: backend/apps/configuration/models/template.py:655
+msgid "StatefulSet(id:{})不存在"
+msgstr "StatefulSet (id: {}) does not exist"
+
+#: backend/apps/configuration/models/template.py:664
+msgid "模板版本(version_id:{})使用了StatefulSet, 但未关联任何Service"
+msgstr ""
+"The template version (version_id: {}) uses StatefulSet, but is not "
+"associated with any Service"
+
+#: backend/apps/configuration/models/template.py:682
+msgid "Service(id:{})不存在"
+msgstr "Service (id: {}) does not exist"
+
+#: backend/apps/configuration/namespace/views.py:64
+#: backend/apps/configuration/namespace/views.py:70
+msgid "创建Namespace失败，{}"
+msgstr "Failed to create Namespace, {}"
+
+#: backend/apps/configuration/namespace/views.py:117
+#, fuzzy
+#| msgid "获取资源失败，请联系蓝鲸管理员解决"
+msgid "获取项目仓库账号信息失败，请联系管理员解决"
+msgstr ""
+"Failed to obtain the account information of the project warehouse, please "
+"contact the administrator to solve the problem."
+
+#: backend/apps/configuration/namespace/views.py:126
+#: backend/apps/configuration/namespace/views.py:194
+#, fuzzy
+#| msgid "获取资源失败，请联系蓝鲸管理员解决"
+msgid "创建registry secret失败，{}, 请联系管理员解决"
+msgstr ""
+"Failed to create registry secret, {}, please contact your administrator to "
+"resolve"
+
+#: backend/apps/configuration/namespace/views.py:337
+#: backend/apps/configuration/utils_ns.py:50
+msgid "创建失败，namespace名称已经在其他项目存在"
+msgstr "Creation failed, namespace name already exists in other projects"
+
+#: backend/apps/configuration/namespace/views.py:353
+#: backend/apps/configuration/namespace/views.py:405
+msgid "以下变量不存在:{}"
+msgstr "The following variables do not exist: {}"
+
+#: backend/apps/configuration/namespace/views.py:375
+msgid "集群: {}, 创建命名空间: 命名空间[{}]"
+msgstr "Cluster: {}, create namespace: namespace [{}]"
+
+#: backend/apps/configuration/namespace/views.py:397
+#, fuzzy
+#| msgid "更新成功!"
+msgid "更新成功"
+msgstr "Update successful"
 
 #: backend/apps/configuration/serializers.py:53
 #: backend/apps/configuration/validator.py:89
@@ -498,14 +1373,12 @@ msgstr "Template set version"
 #: backend/apps/instance/generator.py:161
 #: backend/apps/instance/generator.py:342
 #: backend/apps/instance/generator.py:776
-#: backend/apps/instance/generator.py:793 backend/apps/instance/utils.py:74
-#: backend/apps/instance/utils.py:97 backend/apps/variable/views.py:148
-#: backend/apps/variable/views.py:155
+#: backend/apps/instance/generator.py:793 backend/apps/instance/utils.py:97
+#: backend/apps/variable/views.py:148 backend/apps/variable/views.py:155
 msgid "不存在"
 msgstr "Does not exist"
 
 #: backend/apps/configuration/serializers.py:84
-#: backend/apps/instance/utils.py:149
 msgid "关联的"
 msgstr "Associated"
 
@@ -550,14 +1423,6 @@ msgstr "Already exists."
 msgid "配置信息格式错误"
 msgstr "Configuration information format error"
 
-#: backend/apps/configuration/serializers.py:289
-msgid "关联应用的权重之和不为100%"
-msgstr "The sum of the weights of the associated application is not 100%"
-
-#: backend/apps/configuration/serializers.py:292
-msgid "关联应用参数格式错误"
-msgstr "Associated application parameter format error"
-
 #: backend/apps/configuration/serializers.py:314
 msgid "ConfigMap 名称格式错误，只能包含：小写字母、数字、中划线(-)，首字母必须是字母，长度小于256个字符"
 msgstr ""
@@ -600,9 +1465,32 @@ msgid "不属于该模板"
 msgstr "Does not belong to the template"
 
 #: backend/apps/configuration/serializers_new.py:202
-#: backend/apps/instance/utils.py:77 backend/apps/instance/utils.py:99
+#: backend/apps/instance/utils.py:99
 msgid "不属于该项目"
 msgstr "Does not belong to the project"
+
+#: backend/apps/configuration/showversion/serializers.py:49
+msgid "请先填写模板内容，再保存"
+msgstr "Please fill in the contents of the template before saving"
+
+#: backend/apps/configuration/showversion/serializers.py:55
+msgid "模板集版本(id:{})不属于该模板(id:{})"
+msgstr ""
+"Template set version (id: {}) does not belong to the template (id: {})"
+
+#: backend/apps/configuration/showversion/views.py:182
+msgid "删除草稿"
+msgstr "Delete draft"
+
+#: backend/apps/configuration/showversion/views.py:196
+msgid "删除版本[{}]"
+msgstr "Delete version [{}]"
+
+#: backend/apps/configuration/showversion/views.py:204
+#, fuzzy
+#| msgid "模板集已经被实例化过，不能被删除"
+msgid "该版本已经被实例化过，不能被删除"
+msgstr "The version has been instantiated and cannot be deleted"
 
 #: backend/apps/configuration/utils.py:154
 #: backend/apps/configuration/validator.py:63
@@ -635,10 +1523,6 @@ msgstr "Create template set"
 #: backend/apps/configuration/views.py:355
 msgid "更新模板集"
 msgstr "Update template set"
-
-#: backend/apps/configuration/utils_ns.py:50
-msgid "创建失败，namespace名称已经在其他项目存在"
-msgstr "Creation failed, namespace name already exists in other projects"
 
 #: backend/apps/configuration/utils_ns.py:59
 msgid "命名空间[default]注册成功"
@@ -821,8 +1705,13 @@ msgstr "Failed to create project warehouse account"
 msgid "上传镜像功能正在建设中"
 msgstr "Upload image function is under construction"
 
+#: backend/apps/depot/api.py:174
+#, fuzzy
+#| msgid "创建项目仓库账号失败"
+msgid "创建项目仓库路径失败"
+msgstr "Failed to create project warehouse path"
+
 #: backend/apps/depot/models.py:23 backend/apps/projects/utils.py:61
-#: backend/components/cc.py:211 backend/utils/cc.py:111
 msgid "用户"
 msgstr "User"
 
@@ -901,6 +1790,189 @@ msgstr "Metric configuration has been deleted"
 msgid "Metric配置更新"
 msgstr "Metric configuration UPDAT"
 
+#: backend/apps/instance/drivers/base.py:155
+#, fuzzy
+#| msgid "获取资源失败，请联系蓝鲸管理员解决"
+msgid "获取状态失败，请联系蓝鲸管理员解决"
+msgstr ""
+"Failed to get status, please contact blue whale administrator to resolve"
+
+#: backend/apps/instance/drivers/base.py:161
+msgid "没有可用节点，请添加或启用节点"
+msgstr "No nodes are available, please add or enable nodes"
+
+#: backend/apps/instance/drivers/base.py:178
+msgid "初始化失败，{}绑定的集群({}) {}"
+msgstr "Initialization failed, {} bound cluster ({}) {}"
+
+#: backend/apps/instance/drivers/k8s.py:41
+#: backend/apps/instance/drivers/k8s.py:53
+#: backend/apps/instance/drivers/k8s.py:70
+#: backend/apps/instance/drivers/k8s.py:82
+#: backend/apps/instance/drivers/k8s.py:101
+#: backend/apps/instance/drivers/k8s.py:113
+#: backend/apps/instance/drivers/k8s.py:132
+#: backend/apps/instance/drivers/k8s.py:144
+#: backend/apps/instance/drivers/k8s.py:163
+#: backend/apps/instance/drivers/k8s.py:175
+#: backend/apps/instance/drivers/k8s.py:192
+#: backend/apps/instance/drivers/k8s.py:204
+#: backend/apps/instance/drivers/k8s.py:221
+#: backend/apps/instance/drivers/k8s.py:233
+#: backend/apps/instance/drivers/k8s.py:250
+#: backend/apps/instance/drivers/k8s.py:262
+#, fuzzy
+#| msgid "配置文件格式错误"
+msgid "配置文件格式错误:{}"
+msgstr "Configuration file format error: {}"
+
+#: backend/apps/instance/drivers/k8s.py:43
+#, fuzzy
+#| msgid "获取资源失败，请联系蓝鲸管理员解决"
+msgid "创建K8sDeployment失败，{}, 请联系管理员解决"
+msgstr ""
+"Failed to create K8sDeployment, {}, please contact your administrator to "
+"resolve"
+
+#: backend/apps/instance/drivers/k8s.py:55
+#, fuzzy
+#| msgid "获取资源失败，请联系蓝鲸管理员解决"
+msgid "更新K8sDeployment失败，{}, 请联系管理员解决"
+msgstr ""
+"Failed to update K8sDeployment, {}, please contact your administrator to "
+"resolve"
+
+#: backend/apps/instance/drivers/k8s.py:72
+#, fuzzy
+#| msgid "获取资源失败，请联系蓝鲸管理员解决"
+msgid "创建K8sService失败，{}, 请联系管理员解决"
+msgstr ""
+"Failed to create K8sService, {}, please contact your administrator to "
+"resolve"
+
+#: backend/apps/instance/drivers/k8s.py:84
+#, fuzzy
+#| msgid "获取资源失败，请联系蓝鲸管理员解决"
+msgid "更新K8sService失败，{}, 请联系管理员解决"
+msgstr ""
+"Failed to update K8sService, {}, please contact your administrator to "
+"resolve"
+
+#: backend/apps/instance/drivers/k8s.py:103
+#, fuzzy
+#| msgid "获取资源失败，请联系蓝鲸管理员解决"
+msgid "创建K8sConfigMap失败，{}, 请联系管理员解决"
+msgstr ""
+"Failed to create K8sConfigMap, {}, please contact your administrator to "
+"resolve"
+
+#: backend/apps/instance/drivers/k8s.py:115
+#, fuzzy
+#| msgid "获取资源失败，请联系蓝鲸管理员解决"
+msgid "更新K8sConfigMap失败，{}, 请联系管理员解决"
+msgstr ""
+"Failed to update K8sConfigMap, {}, please contact your administrator to "
+"resolve"
+
+#: backend/apps/instance/drivers/k8s.py:134
+#: backend/apps/instance/drivers/k8s.py:146
+#, fuzzy
+#| msgid "获取资源失败，请联系蓝鲸管理员解决"
+msgid "创建K8sSecret失败，{}, 请联系管理员解决"
+msgstr ""
+"Failed to create K8sSecret, {}, please contact your administrator to resolve"
+
+#: backend/apps/instance/drivers/k8s.py:165
+#, fuzzy
+#| msgid "获取资源失败，请联系蓝鲸管理员解决"
+msgid "创建K8sDaemonSet失败，{}, 请联系管理员解决"
+msgstr ""
+"Failed to create K8sDaemonSet, {}, please contact your administrator to "
+"resolve"
+
+#: backend/apps/instance/drivers/k8s.py:177
+#, fuzzy
+#| msgid "获取资源失败，请联系蓝鲸管理员解决"
+msgid "更新K8sDaemonSet失败，{}, 请联系管理员解决"
+msgstr ""
+"Failed to update K8sDaemonSet, {}, please contact your administrator to "
+"resolve"
+
+#: backend/apps/instance/drivers/k8s.py:194
+#, fuzzy
+#| msgid "获取资源失败，请联系蓝鲸管理员解决"
+msgid "创建K8sJob失败，{}, 请联系管理员解决"
+msgstr ""
+"Failed to create K8sJob, {}, please contact your administrator to resolve"
+
+#: backend/apps/instance/drivers/k8s.py:206
+#, fuzzy
+#| msgid "获取资源失败，请联系蓝鲸管理员解决"
+msgid "更新K8sJob失败，{}, 请联系管理员解决"
+msgstr ""
+"Failed to update K8sJob, {}, please contact your administrator to resolve"
+
+#: backend/apps/instance/drivers/k8s.py:223
+#, fuzzy
+#| msgid "获取资源失败，请联系蓝鲸管理员解决"
+msgid "创建K8sStatefulSet失败，{}, 请联系管理员解决"
+msgstr ""
+"Failed to create K8sStatefulSet, {}, please contact your administrator to "
+"resolve"
+
+#: backend/apps/instance/drivers/k8s.py:235
+#, fuzzy
+#| msgid "获取资源失败，请联系蓝鲸管理员解决"
+msgid "更新K8sStatefulSet失败，{}, 请联系管理员解决"
+msgstr ""
+"Failed to update K8sStatefulSet, {}, please contact your administrator to "
+"resolve"
+
+#: backend/apps/instance/drivers/k8s.py:252
+#, fuzzy
+#| msgid "获取资源失败，请联系蓝鲸管理员解决"
+msgid "创建K8sIngress失败，{}, 请联系管理员解决"
+msgstr ""
+"Failed to create K8sIngress, {}, please contact your administrator to "
+"resolve"
+
+#: backend/apps/instance/drivers/k8s.py:264
+#, fuzzy
+#| msgid "获取资源失败，请联系蓝鲸管理员解决"
+msgid "更新K8sIngress失败，{}, 请联系管理员解决"
+msgstr ""
+"Failed to update K8sIngress, {}, please contact your administrator to "
+"resolve"
+
+#: backend/apps/instance/drivers/mesos.py:142
+#, fuzzy
+#| msgid "获取资源失败，请联系蓝鲸管理员解决"
+msgid "更新application失败，{}, 请联系管理员解决"
+msgstr ""
+"Failed to update application, {}, please contact your administrator to "
+"resolve"
+
+#: backend/apps/instance/drivers/mesos.py:181
+#, fuzzy
+#| msgid "获取资源失败，请联系蓝鲸管理员解决"
+msgid "更新service失败，{}, 请联系管理员解决"
+msgstr ""
+"Failed to update service, {}, please contact your administrator to resolve"
+
+#: backend/apps/instance/drivers/mesos.py:210
+#, fuzzy
+#| msgid "获取资源失败，请联系蓝鲸管理员解决"
+msgid "更新configmap失败，{}, 请联系管理员解决"
+msgstr ""
+"Failed to update configmap, {}, please contact your administrator to resolve"
+
+#: backend/apps/instance/drivers/mesos.py:235
+#, fuzzy
+#| msgid "获取资源失败，请联系蓝鲸管理员解决"
+msgid "更新secret失败，{}, 请联系管理员解决"
+msgstr ""
+"Failed to update secret, {}, please contact your administrator to resolve"
+
 #: backend/apps/instance/generator.py:158
 msgid "参数"
 msgstr "Parameter"
@@ -914,7 +1986,7 @@ msgstr "Variable exception in configuration file"
 msgid "配置文件格式错误"
 msgstr "Configuration file format error"
 
-#: backend/apps/instance/generator.py:202 backend/apps/instance/utils.py:246
+#: backend/apps/instance/generator.py:202 backend/apps/instance/utils.py:247
 msgid "查询命名空间的信息出错"
 msgstr "Error querying namespace information"
 
@@ -1056,6 +2128,10 @@ msgstr "Message"
 msgid "返回快照"
 msgstr "Return to snapshot"
 
+#: backend/apps/instance/resources/utils.py:49
+msgid "{} 的值[{}]不是一个有效数字"
+msgstr "The value of {} [{}] is not a valid number"
+
 #: backend/apps/instance/utils.py:56
 msgid "正在操作"
 msgstr "In operation"
@@ -1072,6 +2148,12 @@ msgstr "Please select an item"
 msgid "请选择模板集"
 msgstr "Please select a template set"
 
+#: backend/apps/instance/utils.py:77
+#, fuzzy
+#| msgid "不属于该项目"
+msgid "模板集(id:{})不属于该项目"
+msgstr "Template set (id: {}) does not belong to the project"
+
 #: backend/apps/instance/utils.py:89
 msgid "请选择模板版本"
 msgstr "Please select a template version"
@@ -1081,16 +2163,128 @@ msgid "内容已经被更新,请刷新页面后重试"
 msgstr "The content has been updated. Please refresh the page and try again"
 
 #: backend/apps/instance/utils.py:149
-msgid "请选择"
-msgstr "Please select"
+#, fuzzy
+#| msgid "请选择关联的 Application"
+msgid "请选择 service 关联的 LoadBalance: {}"
+msgstr "Please select the LoadBalance: associated with service {}"
 
-#: backend/apps/instance/utils.py:165
-msgid "当前实例化包含HPA资源"
-msgstr "The current instantiation contains HPA resources"
+#: backend/apps/instance/utils.py:187
+msgid "当前实例化包含HPA资源，{}"
+msgstr "The current instantiation contains HPA resources, {}"
 
-#: backend/apps/instance/utils.py:233
-msgid "不在当前选择的模板中"
-msgstr "Not in the currently selected template"
+#: backend/apps/instance/utils.py:234
+#, fuzzy
+#| msgid "不在当前选择的模板中"
+msgid "{}[{}]不在当前选择的模板中"
+msgstr "{} [{}] is not in the currently selected template"
+
+#: backend/apps/metric/serializers.py:33
+msgid "GET方式，http_body必须是json数据"
+msgstr "GET mode, http_body must be json data"
+
+#: backend/apps/metric/serializers.py:36
+msgid "GET方式，http_body必须是字典类型"
+msgstr "GET mode, http_body must be of dictionary type"
+
+#: backend/apps/metric/serializers.py:40
+msgid "GET方式，http_body键和值必须是数字或者字符串类型"
+msgstr ""
+"In GET mode, the http_ body key and value must be a number or string type"
+
+#: backend/apps/metric/serializers.py:43
+msgid "GET方式，http_body键和值不能为空"
+msgstr "GET mode, http_ body key and value cannot be empty"
+
+#: backend/apps/metric/serializers.py:61
+#: backend/apps/metric/serializers.py:120
+#, fuzzy
+#| msgid "已经存在"
+msgid "name已经存在"
+msgstr "Name already exists"
+
+#: backend/apps/metric/serializers.py:64
+msgid "名称由英文字母、下划线或数字组成，且不可以数字开头"
+msgstr ""
+"A name consists of letters, underscores, or numbers and cannot begin with a "
+"number"
+
+#: backend/apps/metric/serializers.py:70
+msgid "uri不需要填写协议和域名"
+msgstr "Uri does not need to fill in the agreement and domain name"
+
+#: backend/apps/metric/serializers.py:72
+msgid "uri必须是绝对路径"
+msgstr "Uri must be an absolute path"
+
+#: backend/apps/metric/serializers.py:77
+msgid "port必须在1-65535之间"
+msgstr "Port must be between 1 and 65535"
+
+#: backend/apps/metric/serializers.py:98
+msgid "metric_type 只能为空或者为'prometheus'"
+msgstr "Metric_type can only be empty or 'prometheus'"
+
+#: backend/apps/metric/serializers.py:107
+#, fuzzy
+#| msgid "参数不能全部为空"
+msgid "参数不能为空"
+msgstr "Parameter cannot be empty"
+
+#: backend/apps/metric/serializers.py:123
+msgid "名称由英文字母、下划线、中划线或数字组成，且不可以数字开头"
+msgstr ""
+"A name consists of letters, underscores, or numbers, and cannot begin with a"
+" number"
+
+#: backend/apps/metric/views.py:63
+msgid "获取metric列表成功"
+msgstr "Metric list obtained successfully"
+
+#: backend/apps/metric/views.py:70
+msgid "必须绑定业务"
+msgstr "Business must be bound"
+
+#: backend/apps/metric/views.py:91
+msgid "申请data_id失败"
+msgstr "Failed to apply for data_id"
+
+#: backend/apps/metric/views.py:108 backend/apps/metric/views.py:224
+msgid "创建metric成功"
+msgstr "Metric created successfully"
+
+#: backend/apps/metric/views.py:121 backend/apps/metric/views.py:139
+#: backend/apps/metric/views.py:235
+msgid "metric不存在"
+msgstr "Metric does not exist"
+
+#: backend/apps/metric/views.py:127
+msgid "获取metric成功"
+msgstr "Get metric successful"
+
+#: backend/apps/metric/views.py:143
+msgid "Metric 类型不可更改"
+msgstr "Metric type cannot be changed"
+
+#: backend/apps/metric/views.py:161
+msgid "修改metric成功"
+msgstr "Metric modified successfully"
+
+#: backend/apps/metric/views.py:168
+msgid "metric 不存在"
+msgstr "Metric does not exist"
+
+#: backend/apps/metric/views.py:198
+msgid "删除metric成功"
+msgstr "Metric deleted successfully"
+
+#: backend/apps/metric/views.py:212
+msgid "metric不为暂停状态，不允许操作!"
+msgstr "Metric is not paused and operation is not allowed!"
+
+#: backend/apps/metric/views.py:216
+msgid "项目没有绑定业务，不允许操作!"
+msgstr ""
+"The project is not bound to the business and is not allowed to operate!"
 
 #: backend/apps/network/constants.py:20
 msgid "未创建"
@@ -1177,7 +2371,8 @@ msgstr "Error in scheduling constraint information in namespace"
 msgid "命名空间中的IP集信息出错"
 msgstr "Error in IP set information in namespace"
 
-#: backend/apps/network/utils.py:164
+#: backend/apps/network/utils.py:164 backend/apps/network/views/service.py:614
+#: backend/apps/resource/views.py:342
 msgid "配置文件中有未替换的变量"
 msgstr "There are unreplaced variables in the configuration file"
 
@@ -1192,6 +2387,212 @@ msgstr "State of"
 #: backend/apps/network/utils.py:235
 msgid "查询不到"
 msgstr "Not available for query"
+
+#: backend/apps/network/views/lb/k8s.py:61
+msgid "Chart不存在"
+msgstr "Chart does not exist"
+
+#: backend/apps/network/views/lb/k8s.py:77
+#: backend/apps/network/views/lb/k8s.py:172
+#, fuzzy
+#| msgid "获取资源失败，请联系蓝鲸管理员解决"
+msgid "查询节点失败，请联系管理员处理!"
+msgstr ""
+"The query node failed, please contact the administrator to deal with it!"
+
+#: backend/apps/network/views/lb/k8s.py:80
+#: backend/apps/network/views/lb/k8s.py:175
+#, fuzzy
+#| msgid "集群下没有节点"
+msgid "当前集群下没有节点信息!"
+msgstr "There is no node information under the current cluster!"
+
+#: backend/apps/network/views/lb/k8s.py:100
+#, fuzzy
+#| msgid "获取应用线上配置异常，请联系管理员处理!"
+msgid "节点打标签异常,请联系管理员处理!"
+msgstr ""
+"Node labeling exception, please contact the administrator to deal with!"
+
+#: backend/apps/network/views/lb/k8s.py:144
+#, fuzzy
+#| msgid "没有查询到模板集信息"
+msgid "没有查询到LB版本信息"
+msgstr "No LB version information queried"
+
+#: backend/apps/network/views/lb/k8s.py:191
+msgid "不允许独享节点分属不同的LB，请检查后重试"
+msgstr ""
+"Exclusive nodes are not allowed to belong to different LB,. Please check and"
+" try again"
+
+#: backend/apps/network/views/lb/k8s.py:255
+msgid "命名空间已经被占用，请选择其他命名空间"
+msgstr ""
+"The namespace is already occupied, please select a different namespace"
+
+#: backend/apps/network/views/lb/k8s.py:315
+msgid "创建失败，请查看实例详情!"
+msgstr "Creation failed, please check the instance details!"
+
+#: backend/apps/network/views/lb/k8s.py:323
+#, fuzzy
+#| msgid "实例化失败，已通知管理员!"
+msgid "创建失败，已通知管理员处理!"
+msgstr ""
+"The creation failed and the administrator has been notified to handle it!"
+
+#: backend/apps/network/views/lb/k8s.py:334
+msgid "没有查询到实例信息，请联系管理员处理"
+msgstr ""
+"No instance information was queried, please contact your administrator to "
+"handle"
+
+#: backend/apps/network/views/lb/k8s.py:453
+#, fuzzy
+#| msgid "没有查询到模板集信息"
+msgid "没有查询到应用信息"
+msgstr "No application information queried"
+
+#: backend/apps/network/views/lb/k8s.py:527
+msgid "任务下发成功!"
+msgstr "Mission successful!"
+
+#: backend/apps/network/views/lb/mesos.py:296
+#, fuzzy
+#| msgid "LoadBalance"
+msgid "创建LoadBalance"
+msgstr "Create LoadBalance"
+
+#: backend/apps/network/views/lb/mesos.py:319
+#, fuzzy
+#| msgid "记录不存在"
+msgid "记录不存在!"
+msgstr "The record doesn't exist!"
+
+#: backend/apps/network/views/lb/mesos.py:352
+#, fuzzy
+#| msgid "LoadBalance"
+msgid "更新LoadBalance"
+msgstr "Update LoadBalance"
+
+#: backend/apps/network/views/lb/mesos.py:375
+msgid "LoadBalance[id:{}]不存在"
+msgstr "LoadBalance [id: {}] does not exist"
+
+#: backend/apps/network/views/lb/mesos.py:381
+msgid "LoadBalance[id:{}]已经被删除"
+msgstr "LoadBalance [id: {}] has been deleted"
+
+#: backend/apps/network/views/lb/mesos.py:402
+msgid "LoadBalance[id:{}]还未创建"
+msgstr "LoadBalance [id: {}] has not yet been created"
+
+#: backend/apps/network/views/lb/mesos.py:409
+msgid "不能被删除"
+msgstr "Cannot be deleted"
+
+#: backend/apps/network/views/lb/mesos.py:409
+msgid "不能被重复创建"
+msgstr "Cannot be created repeatedly"
+
+#: backend/apps/network/views/lb/mesos.py:412
+msgid "LoadBalance[{}]已经在后台创建，{}"
+msgstr "LoadBalance [{}] has been created in the background, {}"
+
+#: backend/apps/network/views/lb/mesos.py:439
+#, fuzzy
+#| msgid "删除成功"
+msgid "LB[{}]删除成功"
+msgstr "LB [{}] deleted successfully"
+
+#: backend/apps/network/views/lb/mesos.py:468
+#, fuzzy
+#| msgid "LoadBalance"
+msgid "启动LoadBalance：{}"
+msgstr "Start LoadBalance: {}"
+
+#: backend/apps/network/views/lb/mesos.py:468
+msgid "已下发配置"
+msgstr "Configuration issued"
+
+#: backend/apps/network/views/lb/mesos.py:521
+#, fuzzy
+#| msgid "LoadBalance"
+msgid "停止LoadBalance：{}"
+msgstr "Stop LoadBalance: {}"
+
+#: backend/apps/network/views/service.py:120
+msgid "查询不到 Service[{}] 的信息"
+msgstr "Unable to query information for Service [{}]"
+
+#: backend/apps/network/views/service.py:151
+msgid "模板集[id:{}]没有可用的版本，无法更新service"
+msgstr ""
+"Template set [id: {}] has no version available and cannot update service"
+
+#: backend/apps/network/views/service.py:325
+#: backend/apps/resource/views.py:458
+msgid "不允许操作系统命名空间"
+msgstr "Operating system namespaces are not allowed"
+
+#: backend/apps/network/views/service.py:330
+msgid "所属模板集不存在，无法操作"
+msgstr ""
+"The template set to which it belongs does not exist and cannot be "
+"manipulated"
+
+#: backend/apps/network/views/service.py:366
+#: backend/apps/network/views/service.py:531
+#: backend/apps/resource/views.py:128 backend/apps/resource/views.py:292
+msgid "不允许操作系统命名空间[{}]"
+msgstr "Operating system namespaces are not allowed [{}]"
+
+#: backend/apps/network/views/service.py:416
+msgid "删除Service[{}]命名空间[{}]"
+msgstr "Delete Service [{}] namespace [{}]"
+
+#: backend/apps/network/views/service.py:424
+#: backend/apps/resource/views.py:184
+msgid "{}[命名空间:{}]已经被删除，请手动刷新数据"
+msgstr "{} [namespace: {}] has been deleted, please refresh the data manually"
+
+#: backend/apps/network/views/service.py:466
+#, fuzzy
+#| msgid "命名空间"
+msgid "{}[命名空间:{}]"
+msgstr "{} [Namespace: {}]"
+
+#: backend/apps/network/views/service.py:470
+#: backend/apps/resource/views.py:231
+msgid "已经被删除，请手动刷新数据"
+msgstr "It has been deleted, please refresh the data manually"
+
+#: backend/apps/network/views/service.py:473
+#, fuzzy
+#| msgid "命名空间"
+msgid "{][命名空间:{}]:{}"
+msgstr "{] [Namespace: {}]: {}"
+
+#: backend/apps/network/views/service.py:497
+#, fuzzy
+#| msgid "删除失败"
+msgid "以下service删除失败:{}"
+msgstr "The following service deletion failed: {}"
+
+#: backend/apps/network/views/service.py:673
+msgid "更新Service[{}]命名空间[{}]"
+msgstr "Update Service [{}] namespace [{}]"
+
+#: backend/apps/network/views/service.py:680
+msgid "Service[{}]在命名空间[{}]更新失败，请联系集群管理员解决"
+msgstr ""
+"Service [{}] failed to update in namespace [{}], please contact your cluster"
+" administrator to resolve it"
+
+#: backend/apps/network/views/service.py:481
+msgid "以下service删除成功:{]}"
+msgstr "The following service was deleted successfully: {]}"
 
 #: backend/apps/projects/constants.py:53
 msgid "容器服务"
@@ -1334,6 +2735,52 @@ msgstr "Update project"
 msgid "更新项目成功"
 msgstr "Update project successful"
 
+#: backend/apps/resource/views.py:244
+#, fuzzy
+#| msgid "删除成功"
+msgid "以下{}删除成功:{}"
+msgstr "The following {} was deleted successfully: {}"
+
+#: backend/apps/resource/views.py:260
+#, fuzzy
+#| msgid "删除失败"
+msgid "以下{}删除失败:{}"
+msgstr "The following {} deletion failed: {}"
+
+#: backend/apps/resource/views.py:403
+#, fuzzy
+#| msgid "命名空间"
+msgid "更新{}[{}]命名空间[{}]"
+msgstr "Update {} [{}] namespace [{}]"
+
+#: backend/apps/resource/views.py:410
+msgid "{}[{}]在命名空间[{}]更新失败，请联系集群管理员解决"
+msgstr ""
+"{} [{}] failed to update in namespace [{}], please contact your cluster "
+"administrator to resolve"
+
+#: backend/apps/resource/views.py:464 backend/apps/resource/views.py:469
+msgid "不允许操作平台命名空间"
+msgstr "Operating platform namespaces are not allowed"
+
+#: backend/apps/resource/views.py:487
+msgid "不允许操作系统数据"
+msgstr "Operating system data is not allowed"
+
+#: backend/apps/resource/views.py:500
+msgid "不是由模板实例化生成，无法更新"
+msgstr "Is not generated by template instantiation and cannot be updated"
+
+#: backend/apps/resource/views.py:569
+#, fuzzy
+#| msgid "该项目编排类型不正确!"
+msgid "项目编排类型不正确"
+msgstr "Incorrect project scheduling type"
+
+#: backend/apps/resource/views_ingress.py:56
+msgid "K8S项目才有Ingress"
+msgstr "Ingress is only available for the K8S project"
+
 #: backend/apps/ticket/models.py:35 backend/apps/ticket/models.py:36
 msgid "证书内容"
 msgstr "Certificate content"
@@ -1438,10 +2885,6 @@ msgstr "New variable"
 msgid "更新变量"
 msgstr "Update variable"
 
-#: backend/apps/variable/views.py:175
-msgid "请选择要实例化的模板"
-msgstr "Please select a template to instantiate"
-
 #: backend/apps/variable/views.py:278
 msgid "删除变量"
 msgstr "Delete variable"
@@ -1509,21 +2952,15 @@ msgstr ""
 "Background interface exception, failed to get the English name of the "
 "project according to the project ID!"
 
-#: backend/bcs_k8s/app/views.py:967
-msgid "的容器仓库域名为"
-msgstr "The container warehouse domain name is"
-
-#: backend/bcs_k8s/app/views.py:968
-msgid "可在Chart直接引用"
-msgstr "Can be referenced directly in Chart"
-
-#: backend/bcs_k8s/app/views.py:968
-msgid "更加方便, [详细说明]"
-msgstr "More convenient, [detailed]"
-
-#: backend/apps/instance/utils.py:184
-msgid "当前实例化包含HPA资源，{}"
+#: backend/bcs_k8s/app/views.py:965
+#, python-brace-format
+msgid ""
+"集群: {cluster}({cluster_id})的容器仓库域名为:{dept_domain},\n"
+"        可在Chart直接引用 {expr} 更加方便, [详细说明]({link})"
 msgstr ""
+"Cluster: {cluster} ({cluster_id}) the container warehouse domain name is: "
+"{dept_domain}. It is more convenient to reference {expr} directly in Chart. "
+"[details] ({link})"
 
 #: backend/bcs_k8s/authtoken/authentication.py:32
 msgid "Invalid token header. No credentials provided."
@@ -1589,7 +3026,6 @@ msgid "初始化集群失败"
 msgstr "Failed to initialize cluster"
 
 #: backend/celery_app/tasks/cluster.py:241
-#: backend/celery_app/tasks/cluster.py:930
 msgid "删除集群失败"
 msgstr "Failed to delete cluster"
 
@@ -1621,14 +3057,6 @@ msgstr "1.SO initialization complete"
 msgid "操作成功"
 msgstr "Operation successful"
 
-#: backend/celery_app/tasks/cluster.py:812
-msgid "2.修改主机备注"
-msgstr "2. Modify Host not"
-
-#: backend/celery_app/tasks/cluster.py:814
-msgid "3.释放主机锁"
-msgstr "3. Release host lock"
-
 #: backend/celery_app/tasks/cluster.py:818
 msgid "4.移除集群"
 msgstr "4. Remove Cluster"
@@ -1653,6 +3081,16 @@ msgstr "POD/TASKGROUP rescheduled successfully!"
 msgid "POD/TASKGROUP重新调度超时,请手动处理!"
 msgstr "POD/TASKGROUP rescheduling timeout, please handle it manually!"
 
+#: backend/components/bcs/__init__.py:55
+#, fuzzy
+#| msgid "【resource_code】不能为空"
+msgid "project_id不能为空"
+msgstr "Project_id cannot be empty"
+
+#: backend/components/bcs/__init__.py:58
+msgid "cluster_id, env不能同时为空"
+msgstr "Cluster_id, env cannot be empty at the same time"
+
 #: backend/components/bcs/k8s.py:145 backend/components/bcs/k8s.py:160
 #: backend/components/bcs/k8s.py:379 backend/components/bcs/k8s.py:394
 msgid "没有查询到IP对应的hostname"
@@ -1664,16 +3102,17 @@ msgstr ""
 "The business associated with this project is incorrect. Please confirm and "
 "try again"
 
-<<<<<<< HEAD
 #: backend/components/cc.py:154 backend/utils/cc.py:34
 msgid "查询项目信息为空"
 msgstr "Query project information is empty"
 
-#: backend/components/cc.py:211 backend/utils/cc.py:111
-msgid "没有权限使用主机"
-msgstr "No permission to use the host"
+#: backend/components/cc.py:210 backend/utils/cc.py:110
+#, fuzzy, python-brace-format
+#| msgid "没有权限使用主机"
+msgid "用户{username}没有权限使用主机"
+msgstr "User {username} does not have permission to use the host"
 
-#: backend/components/cc.py:222
+#: backend/components/cc.py:220
 msgid "当前用户没有权限操作ip"
 msgstr "The current user does not have permission to operate ip"
 
@@ -1697,9 +3136,19 @@ msgstr "Chinese"
 msgid "English"
 msgstr "English"
 
-#: backend/utils/cc.py:122
-msgid "当前用户没有权限操作"
-msgstr "The current user does not have permission to operate"
+#: backend/utils/cc.py:119
+#, fuzzy, python-brace-format
+#| msgid "当前用户没有权限操作ip"
+msgid "当前用户没有权限操作ip:{ip_list}"
+msgstr "The current user does not have permission to operate ip: {ip_list}"
+
+#: backend/utils/decorators.py:55
+msgid "返回值[{}]必须是Respose对象"
+msgstr "The return value [{}] must be a Respose object"
+
+#: backend/utils/decorators.py:110
+msgid "返回值[{}]必须是字符串或者Respose对象"
+msgstr "The return value [{}] must be a string or a Respose object"
 
 #: backend/utils/error_codes.py:132
 msgid "该项目没有使用蓝鲸容器服务"
@@ -1775,6 +3224,10 @@ msgstr "Blue whale login platform interface call failed:"
 msgid "第三方请求失败"
 msgstr "Third party request failed"
 
+#: backend/utils/exceptions.py:65
+msgid "数据请求失败，请稍后再试{}"
+msgstr "The data request failed. Please try again later {}"
+
 #: backend/utils/models.py:38
 msgid "修改着"
 msgstr "Modify"
@@ -1788,13 +3241,19 @@ msgstr "Data must be of type list or dict"
 msgid "参数格式错误"
 msgstr "Parameter format error"
 
+#: backend/utils/views.py:131
+msgid "数据请求失败，请稍后再试,{}"
+msgstr "The data request failed. Please try again later, {}"
+
 #: backend/web_console/api.py:31
 msgid "container_id不正确或者容器不是运行状态"
 msgstr "The container_id is incorrect or the container is not running"
 
 #: backend/web_console/api.py:38
-msgid "获取集群信息失败"
-msgstr "Failed to get cluster information"
+#, fuzzy
+#| msgid "获取集群信息失败"
+msgid "获取集群信息失败,{}"
+msgstr "Failed to get cluster information, {}"
 
 #: backend/web_console/auth.py:33
 msgid "session_id为空"
@@ -1820,6 +3279,66 @@ msgstr ""
 msgid "BCS Console 主动退出"
 msgstr "BCS Console active exit"
 
+#: backend/web_console/handlers.py:180
+msgid "BCS Console 已经{}分钟无操作"
+msgstr "BCS Console has no operation for {} minutes"
+
+#: backend/web_console/pod_life_cycle.py:234
+#: backend/web_console/rest_api/views.py:102
+msgid "申请pod资源失败，请稍后再试{}"
+msgstr "Failed to apply for pod resource. Please try again later {}"
+
+#: backend/web_console/pod_life_cycle.py:240
+msgid "申请pod资源超时，请稍后再试{}"
+msgstr "Request pod resource timeout, please try again later {}"
+
+#: backend/web_console/pod_life_cycle.py:299
+msgid "pod不是Running状态，请稍后再试{}"
+msgstr "Pod is not in Running state. Please try again later {}"
+
+#: backend/web_console/pod_life_cycle.py:317
+msgid "申请pod失败或不是Running状态，请稍后再试{}"
+msgstr ""
+"Failed to apply for pod or is not in Running status. Please try again later "
+"{}"
+
+#: backend/web_console/rest_api/serializers.py:31
+msgid "container_id不正确，请检查参数{}"
+msgstr "Container_id is incorrect, please check parameter {}"
+
+#: backend/web_console/rest_api/serializers.py:49
+#, fuzzy
+#| msgid "container_id不正确或者容器不是运行状态"
+msgid "container_id不正确或者容器不是运行状态，请检查参数{}"
+msgstr ""
+"The container_id is incorrect or the container is not running. Check the "
+"parameter {}"
+
+#: backend/web_console/rest_api/views.py:59
+#, fuzzy
+#| msgid "获取集群信息失败"
+msgid "获取集群{}【{}】WebConsole 信息失败"
+msgstr "Failed to get cluster {} [{}] WebConsole information"
+
+#: backend/web_console/rest_api/views.py:64
+msgid "{}，请检查 Deployment【kube-system/bcs-agent】是否正常{}"
+msgstr "{}, check that Deployment [kube-system/bcs-agent] is normal {}"
+
+#: backend/web_console/rest_api/views.py:128
+msgid "连接 {} 失败，请检查容器状态是否正常{}"
+msgstr "Connection {} failed. Check that the container status is normal {}"
+
+#: backend/web_console/rest_api/views.py:149
+#, fuzzy
+#| msgid "没有使用权限"
+msgid "集群不正确或没有集群使用权限"
+msgstr ""
+"The cluster is incorrect or does not have permission to use the cluster"
+
+#: backend/web_console/rest_api/views.py:189
+msgid "获取session成功"
+msgstr "Get session successful"
+
 #: backend/web_console/templates/index.html:127
 #: backend/web_console/templates/mgr.html:332
 msgid "连接已经断开"
@@ -1832,3 +3351,27 @@ msgstr "The BCS Console network is down, please check the network"
 #: backend/web_console/templates/index.html:129
 msgid "重新加载"
 msgstr "Reload"
+
+#~ msgid "2.修改主机备注"
+#~ msgstr "2. Modify Host not"
+
+#~ msgid "3.释放主机锁"
+#~ msgstr "3. Release host lock"
+
+#~ msgid "请选择"
+#~ msgstr "Please select"
+
+#~ msgid "当前实例化包含HPA资源"
+#~ msgstr "The current instantiation contains HPA resources"
+
+#~ msgid "的容器仓库域名为"
+#~ msgstr "The container warehouse domain name is"
+
+#~ msgid "可在Chart直接引用"
+#~ msgstr "Can be referenced directly in Chart"
+
+#~ msgid "更加方便, [详细说明]"
+#~ msgstr "More convenient, [detailed]"
+
+#~ msgid "当前用户没有权限操作"
+#~ msgstr "The current user does not have permission to operate"

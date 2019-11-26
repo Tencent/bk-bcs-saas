@@ -20,6 +20,7 @@ from itertools import groupby
 from rest_framework import serializers, viewsets
 from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
+from django.utils.translation import ugettext as _
 
 from backend.accounts import bcs_perm
 from backend.utils.errcodes import ErrorCode
@@ -292,7 +293,7 @@ class LoadBalances(viewsets.ViewSet, BaseAPI):
             resource_type="lb",
             resource_id=data["cluster_id"],
             resource=data['name'],
-            description=u"创建LoadBalance",
+            description=_("创建LoadBalance"),
             extra=json.dumps(data),
         ).log_add() as ual_client:
             MesosLoadBlance.objects.create(
@@ -315,7 +316,7 @@ class LoadBalances(viewsets.ViewSet, BaseAPI):
         access_token = request.user.token.access_token
         data_list = self.get_project_lb(project_id, lb_id=lb_id)
         if not data_list:
-            raise error_codes.CheckFailed.f("记录不存在!", replace=True)
+            raise error_codes.CheckFailed(_("记录不存在!"), replace=True)
         data = data_list[0]
         ip_list = json.loads(data.get('ip_list', '[]'))
         cluster_id = data.get('cluster_id')
@@ -348,7 +349,7 @@ class LoadBalances(viewsets.ViewSet, BaseAPI):
             resource_type="lb",
             resource=data['name'],
             resource_id=data['cluster_id'],
-            description=u"更新LoadBalance",
+            description=_("更新LoadBalance"),
             extra=json.dumps(data),
         ).log_modify() as ual_client:
             MesosLoadBlance.objects.filter(id=lb_id).update(
@@ -371,13 +372,13 @@ class LoadBalances(viewsets.ViewSet, BaseAPI):
         if not data:
             return False, {
                 "code": 0,
-                "message": "LoadBalance[id:%s]不存在" % lb_id
+                "message": _("LoadBalance[id:{}]不存在").format(lb_id)
             }
         merge_data = self.merge_data(data, {})
         if not merge_data:
             return False, {
                 "code": 0,
-                "message": "LoadBalance[id:%s]已经被删除" % lb_id,
+                "message": _("LoadBalance[id:{}]已经被删除").format(lb_id),
                 "data": merge_data
             }
         self.lb_data = merge_data[0]
@@ -398,17 +399,17 @@ class LoadBalances(viewsets.ViewSet, BaseAPI):
             if cur_status in [LB_DEFAULT_STATUS, 'deleted']:
                 return False, {
                     "code": 0,
-                    "message": "LoadBalance[id:%s]还未创建" % lb_id,
+                    "message": _("LoadBalance[id:{}]还未创建").format(lb_id),
                     "data": []
                 }
             return True, {}
         # 创建、删除操作
         if cur_status not in [LB_DEFAULT_STATUS, 'deleted']:
             lb_name = self.lb_data.get('name')
-            msg = "不能被删除" if type == 'delete' else "不能被重复创建"
+            msg = _("不能被删除") if type == 'delete' else _("不能被重复创建")
             return False, {
                 "code": 400,
-                "message": "LoadBalance[%s]已经在后台创建，%s" % (lb_name, msg),
+                "message": _("LoadBalance[{}]已经在后台创建，{}").format(lb_name, msg),
                 "data": []
             }
         return True, {}
@@ -435,7 +436,7 @@ class LoadBalances(viewsets.ViewSet, BaseAPI):
             )
             ual_client.update_log(
                 activity_status='succeed',
-                description=u"LB[%s]删除成功" % lb_id,
+                description=_("LB[{}]删除成功").format(lb_id),
             )
         return Response({
             "code": 0,
@@ -464,7 +465,7 @@ class LoadBalances(viewsets.ViewSet, BaseAPI):
                 username, access_token, project_id, self.lb_data, cc_app_id)
             ual_client.update_log(
                 activity_status='succeed' if result else 'failed',
-                description=u"启动LoadBalance：%s" % error_msg or "已下发配置",
+                description=_("启动LoadBalance：{}").format(error_msg or _("已下发配置")),
             )
         if result:
             # 创建成功则更新配置中心的lb状态
@@ -517,7 +518,7 @@ class LoadBalances(viewsets.ViewSet, BaseAPI):
                 access_token, project_id, cluster_id, namespace, lb_name, lb_id, enforce=enforce)
             ual_client.update_log(
                 activity_status='succeed' if resust.get('result') else 'failed',
-                description=u"停止LoadBalance：%s" % resust.get('message'),
+                description=_("停止LoadBalance：{}").format(resust.get('message')),
             )
         return Response(resust)
 

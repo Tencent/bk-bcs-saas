@@ -16,6 +16,7 @@ import logging
 from datetime import datetime
 
 from rest_framework.response import Response
+from django.utils.translation import ugettext as _
 
 from .configs import k8s, mesos
 from backend.apps.cluster import serializers, constants
@@ -114,7 +115,7 @@ class BaseNode(object):
             logger.error('Get node config error, detail: %s', err)
             # 更新下节点状态
             self.update_nodes(self.ip_list, status=CommonStatus.Removed)
-            raise error_codes.CheckFailed("获取节点初始化配置异常")
+            raise error_codes.CheckFailed(_("获取节点初始化配置异常"))
 
     def save_task_url(self, log, data):
         log_params = log.log_params
@@ -174,7 +175,7 @@ class BaseNode(object):
         data = task_info.get('data') or {}
         task_id = data.get('task_id')
         if not task_id:
-            raise error_codes.APIError(f"获取标准运维任务ID失败，返回任务为{task_id}，请联系管理员处理")
+            raise error_codes.APIError(_("获取标准运维任务ID失败，返回任务为{}，请联系管理员处理").format(task_id))
         log.set_task_id(task_id)
         # record the task url by params
         self.save_task_url(log, data)
@@ -199,7 +200,7 @@ class BaseNode(object):
         self.set_id = int(params['set_id'])
         set_modules = cc.search_set_module(self.username, self.cc_app_id, int(self.set_id))
         if set_modules.get('code') != ErrorCode.NoError:
-            raise error_codes.APIError(set_modules.get('message', "查询集群下模块信息失败"))
+            raise error_codes.APIError(set_modules.get('message', _("查询集群下模块信息失败")))
         set_module_dict = {
             info['bk_module_name']: info['bk_module_id']
             for info in set_modules.get('data', {}).get('info', [])
@@ -224,7 +225,7 @@ class BaseNode(object):
             module_name = '{set_name}-{suffix_name}'.format(set_name=set_name, suffix_name=suffix_name)
             module_info = cc.cc_module_instance(self.username, self.cc_app_id, self.set_id, module_name)
             if module_info.get('code') != ErrorCode.NoError:
-                raise error_codes.APIError(module_info.get('message', "创建配置中心集群模块失败"))
+                raise error_codes.APIError(module_info.get('message', _("创建配置中心集群模块失败")))
             all_module_id_list.append(module_info.get('data', {}).get('bk_module_id'))
         return all_module_id_list
 
@@ -255,7 +256,7 @@ class CreateNode(BaseNode):
         ]
         intersection = set(project_node_list) & set(self.ip_list)
         if intersection:
-            raise error_codes.CheckFailed("部分主机已经使用，IP为%s" % ','.join(intersection))
+            raise error_codes.CheckFailed(_("部分主机已经使用，IP为{}").format(','.join(intersection)))
 
     def get_node_list(self):
         cluster_node_info = paas_cc.get_node_list(
@@ -303,7 +304,7 @@ class CreateNode(BaseNode):
     def get_cluster_info(self):
         resp = paas_cc.get_cluster(self.access_token, self.project_id, self.cluster_id)
         if resp.get('code') != ErrorCode.NoError or not resp.get('data'):
-            raise error_codes.APIError(resp.get('message', "获取集群信息为空"))
+            raise error_codes.APIError(resp.get('message', _("获取集群信息为空")))
         return resp['data']
 
     def create(self):
@@ -371,7 +372,7 @@ class ReinstallNode(BaseNode):
             node_id__contains='[%s]' % self.node_id
         ).last()
         if not log:
-            raise error_codes.APIError("没有查询到节点添加记录，请联系管理员处理!")
+            raise error_codes.APIError(_("没有查询到节点添加记录，请联系管理员处理!"))
         return log
 
     def ratelimit(self):
@@ -382,7 +383,7 @@ class ReinstallNode(BaseNode):
         except Exception as error:
             logger.error('%s, %s' % (bk_error_codes.ConfigError.code, "获取token出现异常,详情:%s", error))
         if not resp.get('allowed'):
-            raise error_codes.CheckFailed("已经触发操作，请勿重复操作")
+            raise error_codes.CheckFailed(_("已经触发操作，请勿重复操作"))
 
     def reinstall(self):
         self.ratelimit()
@@ -395,7 +396,7 @@ class ReinstallNode(BaseNode):
         params = json.loads(log.params)
         # 校验权限
         if node_info.get('status') not in [NodeStatus.Removed, NodeStatus.InitialFailed]:
-            raise error_codes.CheckFailed("IP: %s正在操作中，请勿重复操作" % node_ip)
+            raise error_codes.CheckFailed(_("IP: {}正在操作中，请勿重复操作").format(node_ip))
         with client.ContextActivityLogClient(
             project_id=self.project_id,
             user=self.username,
@@ -463,7 +464,7 @@ class DeleteNodeBase(BaseNode):
         data = task_info.get('data') or {}
         task_id = data.get('task_id')
         if not task_id:
-            raise error_codes.APIError(f"获取标准运维任务ID失败，返回任务为{task_id}，请联系管理员处理")
+            raise error_codes.APIError(_("获取标准运维任务ID失败，返回任务为{}，请联系管理员处理").format(task_id))
         log.set_task_id(task_id)
         self.save_task_url(log, data)
         return log
@@ -516,11 +517,11 @@ class DeleteNode(DeleteNodeBase):
         """
         container_count = getattr(self, '%s_container_num' % self.kind_name)()
         if container_count:
-            raise error_codes.CheckFailed("当前节点下存在运行容器, 请先清理容器!")
+            raise error_codes.CheckFailed(_("当前节点下存在运行容器, 请先清理容器!"))
 
     def check_host_removing(self, node_info):
         if node_info.get('status') in [NodeStatus.Removing, CommonStatus.Scheduling]:
-            raise error_codes.CheckFailed("当前节点正在删除，请勿重复操作!")
+            raise error_codes.CheckFailed(_("当前节点正在删除，请勿重复操作!"))
 
     def check_host_stop_scheduler(self, node_info):
         status = [
@@ -529,7 +530,7 @@ class DeleteNode(DeleteNodeBase):
             NodeStatus.InitialFailed
         ]
         if node_info.get("status") not in status:
-            raise error_codes.CheckFailed("节点必须要先停用，才可以删除，请确认!")
+            raise error_codes.CheckFailed(_("节点必须要先停用，才可以删除，请确认!"))
 
     def delete_node_via_bcs(self):
         node_info = {self.node_ip: '[%s]' % self.node_id}

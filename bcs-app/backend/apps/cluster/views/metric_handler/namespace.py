@@ -13,6 +13,8 @@
 #
 import logging
 
+from django.utils.translation import ugettext as _
+
 from backend.apps import constants
 from backend.apps.configuration.models import Template
 from backend.apps.instance.constants import InsState
@@ -59,7 +61,7 @@ def get_used_namespace_via_bcs(request, project_id, cluster_id, all_namespace_li
     """
     kind = request.project["kind"]
     if kind not in [1, 2]:
-        raise error_codes.CheckFailed.f("项目类型不正确，请重新确认")
+        raise error_codes.CheckFailed(_("项目类型不正确，请重新确认"))
     if kind == 1:
         bcs_name, kind_name = "k8s", "K8S"
     else:
