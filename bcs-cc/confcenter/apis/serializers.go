@@ -45,7 +45,6 @@ type createAreaJSON struct {
 	Description   string `json:"description"`
 	Configuration string `binding:"required" json:"configuration"`
 	ChineseName   string `binding:"required" json:"chinese_name"`
-	Source        string `json:"source"`
 }
 
 // update area params
@@ -54,7 +53,6 @@ type updateAreaJSON struct {
 	Description   *string `json:"description"`
 	Configuration *string `json:"configuration"`
 	ChineseName   *string `json:"chinese_name"`
-	Source        *string `json:"source"`
 }
 
 /* areas end */

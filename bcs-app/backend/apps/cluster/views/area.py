@@ -21,6 +21,7 @@ from backend.components import paas_cc
 from backend.utils.errcodes import ErrorCode
 from backend.utils.error_codes import error_codes
 from backend.utils.renderers import BKAPIRenderer
+from backend.apps.cluster.views.utils import get_areas
 
 
 class AreaListViewSet(viewsets.ViewSet):
@@ -29,11 +30,7 @@ class AreaListViewSet(viewsets.ViewSet):
     def list(self, request, project_id):
         """get the area list
         """
-        area_resp = paas_cc.get_area_list(request.user.token.access_token)
-        if area_resp.get('code') != ErrorCode.NoError:
-            raise error_codes.APIError(area_resp.get('message'))
-
-        return Response(area_resp.get('data') or {})
+        return Response(get_areas(request))
 
 
 class AreaInfoViewSet(viewsets.ViewSet):

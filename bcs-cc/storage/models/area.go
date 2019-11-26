@@ -30,15 +30,12 @@ type Area struct {
 	Description   string `json:"description" sql:"size:128"`
 	Configuration string `json:"configuration" sql:"type:text"`
 	ChineseName   string `json:"chinese_name" gorm:"size:64"`
-	Source        string `json:"source" gorm:"size:32;default:'BCS'"`
 }
 
 // ListInfo : 获取区域列表
-func ListInfo(source string) (data []Area, count int, err error) {
+func ListInfo() (data []Area, count int, err error) {
 	qs := NewAreaQuerySet(storage.GetDefaultSession().DB)
 	qs = qs.NameNotIn("sh2", "sz2")
-	// filter with source filed
-	qs = qs.CustomSourceEq(source)
 	count, err = qs.Count()
 	if err != nil {
 		return nil, 0, err
@@ -140,7 +137,6 @@ func AreaSLZ(area Area, jsonFormat bool) (map[string]interface{}, error) {
 		"name":         area.Name,
 		"chinese_name": area.ChineseName,
 		"description":  area.Description,
-		"source":       area.Source,
 	}
 	// congigure info is json string or map
 	if jsonFormat {

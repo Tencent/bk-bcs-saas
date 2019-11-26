@@ -23,7 +23,7 @@ import (
 
 // AreaListInfo :
 func AreaListInfo(c *gin.Context) {
-	data, count, err := models.ListInfo(c.Query("source"))
+	data, count, err := models.ListInfo()
 	if err != nil {
 		utils.DBErrorResponse(c, err)
 		return
