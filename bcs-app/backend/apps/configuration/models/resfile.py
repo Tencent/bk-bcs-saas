@@ -27,7 +27,8 @@ def find_containers(content):
     for image in images:
         # remove comment
         if '#' in image:
-            image = image.split('#')[0].strip()
+            image = image.split('#')[0]
+        image = image.strip().strip("'").split('/')[-1]
         containers.append({'name': 'container', 'image': image})
     return containers
 
