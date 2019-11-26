@@ -128,7 +128,7 @@
     <div id="app">
         <input type="text" id="short-focus" style="opacity: 0; position: absolute; z-index: 0;" @keyup="handleInput" />
         <bk-tab addable :active.sync="active" :closable="closable" @add-panel="showDropdown" @close-panel="closePanel" @tab-change="handleTabChange" v-bk-clickoutside="handleClick">
-            <bk-tab-panel v-for="(panel, index) in panels" v-bind="panel" :key="index">
+            <bk-tab-panel v-for="(panel, index) in panels" v-bind="panel" :key="panel.name">
                 <template slot="label">
                     <i class="panel-count">$[index + 1]</i>
                     <span class="panel-name">$[panel.label]</span>
