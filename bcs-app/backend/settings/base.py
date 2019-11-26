@@ -350,6 +350,7 @@ DASHBOARD_CTL_BIN = "/bin/dashboard-ctl"  # default dashboard ctl filename
 KUBECTL_BIN_MAP = {
     "1.8.3": "/bin/kubectl",
     "1.12.3": "/bin/kubectl-v1.12.3",
+    "1.14.9": "/bin/kubectl-v1.14.9"
 }
 KUBECFG = "/root/.kube/config"  # kubectl config path, ex: ~/.kube/config
 BKE_SERVER_HOST = None  # example: http://127.0.0.1:44321
