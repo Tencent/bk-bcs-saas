@@ -711,7 +711,10 @@ export default {
          * @return {Promise} promise 对象
          */
         getPortsByDeployments (context, { projectId, version, apps }) {
-            return http.get(`${DEVOPS_BCS_API_URL}/api/configuration/projects/${projectId}/versions/${version}/K8sContainerPorts/?deploy_tag_list=${JSON.stringify(apps)}`)
+            return http.get(`${DEVOPS_BCS_API_URL}/api/configuration/projects/${projectId}/versions/${version}/K8sContainerPorts/?deploy_tag_list=${JSON.stringify(apps)}`, {}, {
+                requestId: 'getPortsByDeployments',
+                cancelPrevious: true
+            })
         },
 
         /**
@@ -722,7 +725,10 @@ export default {
          * @return {Promise} promise 对象
          */
         getLabelsByDeployments (context, { projectId, version, apps }) {
-            return http.get(`${DEVOPS_BCS_API_URL}/api/configuration/${projectId}/K8sDeployment/labels/${version}/?deploy_tag_list=${JSON.stringify(apps)}`)
+            return http.get(`${DEVOPS_BCS_API_URL}/api/configuration/${projectId}/K8sDeployment/labels/${version}/?deploy_tag_list=${JSON.stringify(apps)}`, {}, {
+                requestId: 'getLabelsByDeployments',
+                cancelPrevious: true
+            })
         },
 
         /**
