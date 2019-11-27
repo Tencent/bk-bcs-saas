@@ -327,7 +327,7 @@ class PromMetricSLZBase(serializers.Serializer):
 class PromMetricSLZ(PromMetricSLZBase):
     res_id = serializers.CharField(required=True)
 
-class PromMetricPodSLZ(PromMetricSLZBase):
+class PromPodMetricSLZ(PromMetricSLZBase):
     """Pod数据查询
     """
     res_id_list = serializers.CharField(required=True)
