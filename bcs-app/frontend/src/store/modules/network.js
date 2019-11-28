@@ -142,10 +142,16 @@ export default {
                 return false
             }
             const projectId = curProject.project_id
-            let url = `${DEVOPS_BCS_API_URL}/api/network/${projectId}/lb/`
-            // k8s
-            if (curProject.kind === PROJECT_K8S) {
-                url = `${DEVOPS_BCS_API_URL}/api/network/${projectId}/k8s/lb/`
+            // let url = `${DEVOPS_BCS_API_URL}/api/network/${projectId}/lb/`
+            // // k8s
+            // if (curProject.kind === PROJECT_K8S) {
+            //     url = `${DEVOPS_BCS_API_URL}/api/network/${projectId}/k8s/lb/`
+            // }
+
+            let url = `${DEVOPS_BCS_API_URL}/api/network/${projectId}/k8s/lb/`
+            // mesos
+            if (curProject.kind === PROJECT_MESOS) {
+                url = `${DEVOPS_BCS_API_URL}/api/network/${projectId}/lb/`
             }
 
             return http.get(url).then(res => {
@@ -194,10 +200,16 @@ export default {
                 return false
             }
             const projectId = curProject.project_id
-            let url = `${DEVOPS_BCS_API_URL}/api/network/${projectId}/lbs/?limit=5&offset=0`
-            // k8s
-            if (curProject.kind === PROJECT_K8S) {
-                url = `${DEVOPS_BCS_API_URL}/api/network/${projectId}/k8s/lb/`
+            // let url = `${DEVOPS_BCS_API_URL}/api/network/${projectId}/lbs/?limit=5&offset=0`
+            // // k8s
+            // if (curProject.kind === PROJECT_K8S) {
+            //     url = `${DEVOPS_BCS_API_URL}/api/network/${projectId}/k8s/lb/`
+            // }
+
+            let url = `${DEVOPS_BCS_API_URL}/api/network/${projectId}/k8s/lb/`
+            // mesos
+            if (curProject.kind === PROJECT_MESOS) {
+                url = `${DEVOPS_BCS_API_URL}/api/network/${projectId}/lbs/?limit=5&offset=0`
             }
             return http.get(url).then(res => {
                 // mesos和k8s的接口格式不一样，处理兼容
