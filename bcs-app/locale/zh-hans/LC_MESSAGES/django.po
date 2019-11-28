@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-11-24 10:25+0800\n"
+"POT-Creation-Date: 2019-11-28 18:00+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -24,8 +24,6 @@ msgstr "Delete"
 
 #: backend/accounts/bcs_perm/__init__.py:54
 #: backend/activity_log/constants.py:18
-#: backend/apps/datalog/data_collect.py:224
-#: backend/apps/datalog/data_collect.py:232
 msgid "创建"
 msgstr "Create"
 
@@ -128,13 +126,6 @@ msgid "成功"
 msgstr "Success"
 
 #: backend/activity_log/constants.py:36
-#: backend/apps/datalog/data_collect.py:48
-#: backend/apps/datalog/data_collect.py:51
-#: backend/apps/datalog/data_collect.py:54
-#: backend/apps/datalog/data_collect.py:67
-#: backend/apps/datalog/data_collect.py:73
-#: backend/apps/datalog/data_collect.py:211
-#: backend/apps/datalog/data_collect.py:214
 msgid "失败"
 msgstr "Failure"
 
@@ -155,7 +146,6 @@ msgid "命名空间"
 msgstr "Namespace"
 
 #: backend/activity_log/constants.py:47 backend/apps/instance/generator.py:793
-#: backend/apps/variable/views.py:155
 msgid "应用"
 msgstr "Application"
 
@@ -1069,9 +1059,20 @@ msgstr ""
 msgid "实例化模板集[{}]命名空间[{}]"
 msgstr "Instantiate template set [{}] namespace [{}]"
 
+#: backend/apps/configuration/instance/views.py:370
+msgid "实例化模板集[{}]命名空间[{}]，在实例化{}时失败，错误消息：{}"
+msgstr ""
+"Instantiate template set [{}] namespace [{}], failed to instantiate {}, "
+"error message: {}"
+
 #: backend/apps/configuration/instance/views.py:373
 msgid "{}(实例化{}时)"
 msgstr "{} (when instantiating {})"
+
+#: backend/apps/configuration/instance/views.py:375
+msgid "实例化模板集[{}]命名空间[{}]失败，错误消息：{}"
+msgstr ""
+"Failed to instantiate template set [{}] namespace [{}], error message: {}"
 
 #: backend/apps/configuration/instance/views.py:395
 msgid ""
@@ -1085,17 +1086,6 @@ msgstr ""
 #: backend/apps/variable/views.py:175
 msgid "请选择要实例化的模板"
 msgstr "Please select a template to instantiate"
-
-#: backend/apps/configuration/instance/views.py:375
-msgid "实例化模板集[{}]命名空间[{}]失败，错误消息：{}"
-msgstr ""
-"Failed to instantiate template set [{}] namespace [{}], error message: {}"
-
-#: backend/apps/configuration/instance/views.py:370
-msgid "实例化模板集[{}]命名空间[{}]，在实例化{}时失败，错误消息：{}"
-msgstr ""
-"Instantiate template set [{}] namespace [{}], failed to instantiate {}, "
-"error message: {}"
 
 #: backend/apps/configuration/k8s/serializers.py:65
 msgid "{}[{}]中选择器{}"
@@ -1212,12 +1202,12 @@ msgid "Service模板: 请选择关联的 Application"
 msgstr "Service template: please select the associated Application"
 
 #: backend/apps/configuration/mesos/serializers.py:131
-#: backend/apps/configuration/serializers.py:289
+#: backend/apps/configuration/serializers.py:269
 msgid "关联应用的权重之和不为100%"
 msgstr "The sum of the weights of the associated application is not 100%"
 
 #: backend/apps/configuration/mesos/serializers.py:134
-#: backend/apps/configuration/serializers.py:292
+#: backend/apps/configuration/serializers.py:272
 msgid "关联应用参数格式错误"
 msgstr "Associated application parameter format error"
 
@@ -1325,6 +1315,7 @@ msgstr "Creation failed, namespace name already exists in other projects"
 
 #: backend/apps/configuration/namespace/views.py:353
 #: backend/apps/configuration/namespace/views.py:405
+#: backend/apps/variable/views.py:459
 msgid "以下变量不存在:{}"
 msgstr "The following variables do not exist: {}"
 
@@ -1338,120 +1329,109 @@ msgstr "Cluster: {}, create namespace: namespace [{}]"
 msgid "更新成功"
 msgstr "Update successful"
 
-#: backend/apps/configuration/serializers.py:53
-#: backend/apps/configuration/validator.py:89
-#: backend/apps/instance/models.py:117 backend/apps/instance/models.py:141
-#: backend/apps/network/models.py:24 backend/apps/projects/models.py:80
-#: backend/apps/ticket/models.py:34 backend/apps/variable/models.py:45
-msgid "名称"
-msgstr "Name"
+#: backend/apps/configuration/serializers.py:51
+#: backend/apps/configuration/validator.py:85
+#, fuzzy
+#| msgid "已经在项目模板中被占用,请重新填写"
+msgid "{}名称:{}已经在项目模板中被占用,请重新填写"
+msgstr ""
+"{} name: {} is already occupied in the project template, please fill in "
+"again"
 
-#: backend/apps/configuration/serializers.py:55
-#: backend/apps/configuration/validator.py:90
-msgid "已经在项目模板中被占用,请重新填写"
-msgstr "It is already occupied in the project template. Please fill in again"
-
-#: backend/apps/configuration/serializers.py:63
+#: backend/apps/configuration/serializers.py:59
 msgid "请先创建 Application ，再创建 Deplpyment"
 msgstr "Please create Application before creating Deplpyment"
 
-#: backend/apps/configuration/serializers.py:66
+#: backend/apps/configuration/serializers.py:62
 msgid "请选择关联的 Application"
 msgstr "Please select the associated Application"
 
-#: backend/apps/configuration/serializers.py:74
-#: backend/apps/configuration/serializers_new.py:129
-#: backend/apps/configuration/serializers_new.py:188
-#: backend/apps/configuration/serializers_new.py:200
-#: backend/apps/instance/utils.py:97 backend/apps/instance/utils.py:99
-msgid "模板集版本"
-msgstr "Template set version"
+#: backend/apps/configuration/serializers.py:69
+#, fuzzy
+#| msgid "模板集版本"
+msgid "模板集版本id:{}不存在"
+msgstr "Template set version id: {} does not exist"
 
-#: backend/apps/configuration/serializers.py:76
-#: backend/apps/configuration/serializers_new.py:190
-#: backend/apps/configuration/utils.py:162
-#: backend/apps/instance/generator.py:161
-#: backend/apps/instance/generator.py:342
-#: backend/apps/instance/generator.py:776
-#: backend/apps/instance/generator.py:793 backend/apps/instance/utils.py:97
-#: backend/apps/variable/views.py:148 backend/apps/variable/views.py:155
-msgid "不存在"
-msgstr "Does not exist"
+#: backend/apps/configuration/serializers.py:75
+#, fuzzy
+#| msgid "关联的 Application (app_id: {}) 不合法"
+msgid "关联的Application (app_id:{})不合法"
+msgstr "The associated Application (app_id: {}) is illegal"
 
-#: backend/apps/configuration/serializers.py:84
-msgid "关联的"
-msgstr "Associated"
-
-#: backend/apps/configuration/serializers.py:86
-#: backend/apps/configuration/utils.py:154
-#: backend/apps/configuration/validator.py:63
-msgid "不合法"
-msgstr "Illegal"
-
-#: backend/apps/configuration/serializers.py:144
+#: backend/apps/configuration/serializers.py:132
 #: backend/apps/configuration/serializers_new.py:159
 msgid "草稿"
 msgstr "Draft"
 
-#: backend/apps/configuration/serializers.py:225
-#: backend/apps/configuration/views.py:381
-#: backend/apps/configuration/views.py:484
-msgid "模板集名称"
-msgstr "Template set name"
+#: backend/apps/configuration/serializers.py:212
+#: backend/apps/configuration/views.py:380
+#: backend/apps/configuration/views.py:479
+#, fuzzy
+#| msgid "集群名称已经存在，请修改后重试"
+msgid "模板集名称[{}]已经存在"
+msgstr "Template set name [{}] already exists"
 
-#: backend/apps/configuration/serializers.py:227
-#: backend/apps/configuration/views.py:383
-#: backend/apps/configuration/views.py:486
-#: backend/apps/ticket/serializers.py:62
-#: backend/apps/variable/serializers.py:106
-msgid "已经存在"
-msgstr "Already exists."
+#: backend/apps/configuration/serializers.py:247
+#, fuzzy
+#| msgid "配置信息格式错误"
+msgid "Service 配置信息格式错误 {}"
+msgstr "Service configuration information format error {}"
 
-#: backend/apps/configuration/serializers.py:264
-#: backend/apps/configuration/serializers.py:268
-#: backend/apps/configuration/serializers.py:321
-#: backend/apps/configuration/serializers.py:325
-#: backend/apps/configuration/serializers.py:360
-#: backend/apps/configuration/serializers.py:364
-#: backend/apps/configuration/serializers.py:424
-#: backend/apps/configuration/serializers.py:428
-#: backend/apps/configuration/serializers.py:482
-#: backend/apps/configuration/serializers.py:486
-#: backend/apps/configuration/serializers.py:519
-#: backend/apps/configuration/serializers.py:523
-#: backend/apps/configuration/validator.py:68
-msgid "配置信息格式错误"
-msgstr "Configuration information format error"
+#: backend/apps/configuration/serializers.py:249
+#: backend/apps/configuration/serializers.py:395
+#: backend/apps/configuration/serializers.py:397
+#, fuzzy
+#| msgid "配置信息格式错误"
+msgid "Service 配置信息格式错误{}"
+msgstr "Service configuration information format error {}"
 
-#: backend/apps/configuration/serializers.py:314
+#: backend/apps/configuration/serializers.py:294
 msgid "ConfigMap 名称格式错误，只能包含：小写字母、数字、中划线(-)，首字母必须是字母，长度小于256个字符"
 msgstr ""
 "The ConfigMap name is in the wrong format and can only contain lowercase "
 "letters, numbers, underscores (-), the first letter must be a letter, and "
 "the length is less than 256 characters"
 
-#: backend/apps/configuration/serializers.py:353
+#: backend/apps/configuration/serializers.py:300
+#: backend/apps/configuration/serializers.py:302
+#: backend/apps/configuration/serializers.py:449
+#: backend/apps/configuration/serializers.py:451
+#, fuzzy
+#| msgid "配置信息格式错误"
+msgid "ConfigMap 配置信息格式错误{}"
+msgstr "ConfigMap configuration information format error {}"
+
+#: backend/apps/configuration/serializers.py:329
 msgid "Secret 名称格式错误，只能包含：小写字母、数字、中划线(-)，首字母必须是字母，长度小于256个字符"
 msgstr ""
 "The Secret name is in the wrong format and can only contain lowercase "
 "letters, numbers, underscores (-), the first letter must be a letter, and "
 "the length is less than 256 characters"
 
-#: backend/apps/configuration/serializers.py:378
+#: backend/apps/configuration/serializers.py:335
+#: backend/apps/configuration/serializers.py:337
+#: backend/apps/configuration/serializers.py:482
+#: backend/apps/configuration/serializers.py:484
+#, fuzzy
+#| msgid "配置信息格式错误"
+msgid "Secret 配置信息格式错误{}"
+msgstr "Secret configuration information format error {}"
+
+#: backend/apps/configuration/serializers.py:350
 msgid "名称格式错误，以小写字母或数字开头，只能包含：小写字母、数字、中划线(-)、点(.)"
 msgstr ""
 "The name is malformed, starts with a lowercase letter or number, and can "
 "only contain: lowercase letters, numbers, underscore (-), dot (.)"
 
-#: backend/apps/configuration/serializers.py:385
+#: backend/apps/configuration/serializers.py:357
 msgid "请先创建 Deplpyment ，再创建 Service"
 msgstr "Please create Deplpyment before creating Service"
 
-#: backend/apps/configuration/serializers.py:388
+#: backend/apps/configuration/serializers.py:360
 msgid "请选择关联的 Deplpyment"
 msgstr "Please select the associated Deplpyment"
 
-#: backend/apps/configuration/serializers.py:455
+#: backend/apps/configuration/serializers.py:423
 msgid "关联Deployment参数格式错误"
 msgstr "Associated Deployment parameter format error"
 
@@ -1460,9 +1440,24 @@ msgstr "Associated Deployment parameter format error"
 msgid "被以下资源关联，不能删除"
 msgstr "Associated by the following resources and cannot be deleted"
 
+#: backend/apps/configuration/serializers_new.py:129
+#: backend/apps/configuration/serializers_new.py:188
+#: backend/apps/configuration/serializers_new.py:200
+#: backend/apps/instance/utils.py:97 backend/apps/instance/utils.py:99
+msgid "模板集版本"
+msgstr "Template set version"
+
 #: backend/apps/configuration/serializers_new.py:131
 msgid "不属于该模板"
 msgstr "Does not belong to the template"
+
+#: backend/apps/configuration/serializers_new.py:190
+#: backend/apps/instance/generator.py:161
+#: backend/apps/instance/generator.py:342
+#: backend/apps/instance/generator.py:776
+#: backend/apps/instance/generator.py:793 backend/apps/instance/utils.py:97
+msgid "不存在"
+msgstr "Does not exist"
 
 #: backend/apps/configuration/serializers_new.py:202
 #: backend/apps/instance/utils.py:99
@@ -1492,34 +1487,32 @@ msgstr "Delete version [{}]"
 msgid "该版本已经被实例化过，不能被删除"
 msgstr "The version has been instantiated and cannot be deleted"
 
-#: backend/apps/configuration/utils.py:154
-#: backend/apps/configuration/validator.py:63
-#: backend/apps/instance/models.py:121 backend/apps/instance/models.py:148
-#: backend/apps/variable/serializers.py:106
-msgid "变量"
-msgstr "Variable"
+#: backend/apps/configuration/utils.py:153
+#: backend/apps/configuration/validator.py:62
+msgid "变量[{}]不合法, {}"
+msgstr "The variable [{}] is illegal, {}"
 
-#: backend/apps/configuration/utils.py:162
-msgid "资源"
-msgstr "Resources"
+#: backend/apps/configuration/utils.py:159
+msgid "资源{}不存在"
+msgstr "Resource {} does not exist"
+
+#: backend/apps/configuration/utils.py:165
+#, fuzzy, python-brace-format
+#| msgid "正在操作，您如需操作请联系"
+msgid "{locker}正在操作，您如需操作请联系{locker}解锁"
+msgstr ""
+"{locker} is in operation. If you need to do so, please contact {locker} to "
+"unlock it."
 
 #: backend/apps/configuration/utils.py:170
-msgid "正在操作，您如需操作请联系"
-msgstr "It is in operation. If you want to do so, please contact"
-
-#: backend/apps/configuration/utils.py:170 backend/apps/instance/utils.py:58
-msgid "解锁"
-msgstr "Unlock"
-
-#: backend/apps/configuration/utils.py:176
 msgid "请先创建模板集"
 msgstr "Please create a template set first"
 
-#: backend/apps/configuration/utils.py:190
+#: backend/apps/configuration/utils.py:184
 msgid "创建模板集"
 msgstr "Create template set"
 
-#: backend/apps/configuration/utils.py:207
+#: backend/apps/configuration/utils.py:201
 #: backend/apps/configuration/views.py:355
 msgid "更新模板集"
 msgstr "Update template set"
@@ -1527,6 +1520,10 @@ msgstr "Update template set"
 #: backend/apps/configuration/utils_ns.py:59
 msgid "命名空间[default]注册成功"
 msgstr "Namespace [default] registered successfully"
+
+#: backend/apps/configuration/validator.py:66
+msgid "配置信息格式错误"
+msgstr "Configuration information format error"
 
 #: backend/apps/configuration/views.py:116
 msgid "保存草稿"
@@ -1540,116 +1537,152 @@ msgstr "Locked template set"
 msgid "解锁模板集"
 msgstr "Unlock template set"
 
-#: backend/apps/configuration/views.py:432
+#: backend/apps/configuration/views.py:428
 msgid "模板集已经被实例化过，不能被删除"
 msgstr "The template set has been instantiated and cannot be deleted"
 
-#: backend/apps/configuration/views.py:442
+#: backend/apps/configuration/views.py:438
 msgid "删除模板集"
 msgstr "Delete template set"
 
-#: backend/apps/configuration/views.py:494
+#: backend/apps/configuration/views.py:487
 msgid "要复制的模板集不存在"
 msgstr "The template set to copy does not exist"
 
-#: backend/apps/configuration/views.py:511
+#: backend/apps/configuration/views.py:504
 msgid "复制模板集"
 msgstr "Copy template set"
 
-#: backend/apps/datalog/data_collect.py:43
-#: backend/apps/datalog/data_collect.py:54
-#: backend/apps/datalog/data_collect.py:206
-msgid "申请标准日志采集"
-msgstr "Request standard log collection"
+#: backend/apps/datalog/data_collect.py:41
+#, python-brace-format
+msgid ""
+"申请标准日志采集 dataid, "
+"业务ID:{cc_app_id},项目名:{english_name}失败,原因:{standard_data_id},失败"
+msgstr ""
+"Application for standard log collection dataid, business ID: {cc_app_id}, "
+"project name: {english_name} failed, reason: {standard_data_id}, failed"
 
-#: backend/apps/datalog/data_collect.py:44
-#: backend/apps/datalog/data_collect.py:63
-#: backend/apps/datalog/data_collect.py:207
-msgid "业务"
-msgstr "Business"
+#: backend/apps/datalog/data_collect.py:47
+#, fuzzy
+#| msgid "申请标准日志采集"
+msgid "申请标准日志采集 dataid 失败:{}"
+msgstr "Failed to apply for standard log collection dataid: {}"
 
-#: backend/apps/datalog/data_collect.py:46
-#: backend/apps/datalog/data_collect.py:65
-#: backend/apps/datalog/data_collect.py:209
-msgid "项目名"
-msgstr "Project name"
+#: backend/apps/datalog/data_collect.py:53
+#, python-brace-format
+msgid ""
+"申请非标准日志采集 dataid, "
+"业务ID:{cc_app_id},项目名:{english_name}失败,原因:{standard_data_id},请关注"
+msgstr ""
+"Apply for non-standard log collection dataid, business ID: {cc_app_id}, "
+"project name: {english_name} failed, reason: {standard_data_id}, please pay "
+"attention to"
 
-#: backend/apps/datalog/data_collect.py:49
-#: backend/apps/datalog/data_collect.py:68
-#: backend/apps/datalog/data_collect.py:112
-#: backend/apps/datalog/data_collect.py:127
-#: backend/apps/datalog/data_collect.py:166
-#: backend/apps/datalog/data_collect.py:181
-#: backend/apps/datalog/data_collect.py:212
-#: backend/apps/datalog/data_collect.py:227
-#: backend/apps/datalog/data_collect.py:240
-msgid "原因"
-msgstr "Reason"
+#: backend/apps/datalog/data_collect.py:59
+#, fuzzy
+#| msgid "申请非标准日志采集"
+msgid "申请非标准日志采集dataid失败:{}"
+msgstr "Request for non-standard log collection dataid failed: {}"
 
-#: backend/apps/datalog/data_collect.py:62
-#: backend/apps/datalog/data_collect.py:73
-msgid "申请非标准日志采集"
-msgstr "Request for non-standard log collection"
-
-#: backend/apps/datalog/data_collect.py:70
-#: backend/apps/datalog/data_collect.py:114
-#: backend/apps/datalog/data_collect.py:129
-#: backend/apps/datalog/data_collect.py:168
-#: backend/apps/datalog/data_collect.py:183
-#: backend/apps/datalog/data_collect.py:229
-#: backend/apps/datalog/data_collect.py:242
-msgid "请关注"
-msgstr "Please pay attention."
-
-#: backend/apps/datalog/data_collect.py:94
-#: backend/apps/datalog/data_collect.py:148
-#: backend/apps/datalog/data_collect.py:199
+#: backend/apps/datalog/data_collect.py:80
+#: backend/apps/datalog/data_collect.py:122
+#: backend/apps/datalog/data_collect.py:161
 msgid "数据平台功能暂未开启"
 msgstr "The data platform feature is not enabled for the time being"
 
-#: backend/apps/datalog/data_collect.py:99
-#: backend/apps/datalog/data_collect.py:153
+#: backend/apps/datalog/data_collect.py:85
+#: backend/apps/datalog/data_collect.py:127
 msgid "请先在数据平台创建项目信息"
 msgstr "Please create project information on the data platform first"
 
-#: backend/apps/datalog/data_collect.py:110
-#: backend/apps/datalog/data_collect.py:117
-#: backend/apps/datalog/data_collect.py:132
-msgid "启动标准日志采集清洗任务失败"
-msgstr "Failed to start standard log collection and cleaning task"
+#: backend/apps/datalog/data_collect.py:95
+#, fuzzy
+#| msgid "启动标准日志采集清洗任务失败"
+msgid "启动标准日志采集清洗任务失败[{}],原因:{},请关注"
+msgstr ""
+"Failed to start standard log collection and cleaning task [{}], reason: {}, "
+"please pay attention to"
 
-#: backend/apps/datalog/data_collect.py:125
-msgid "启动标准日志采集分发任务失败"
-msgstr "Failed to start standard log collection and distribution task"
+#: backend/apps/datalog/data_collect.py:97
+#: backend/apps/datalog/data_collect.py:106
+#, fuzzy
+#| msgid "启动标准日志采集清洗任务失败"
+msgid "启动标准日志采集清洗任务失败:{}"
+msgstr "Failed to start standard log collection and cleaning task: {}"
 
-#: backend/apps/datalog/data_collect.py:137
+#: backend/apps/datalog/data_collect.py:104
+#, fuzzy
+#| msgid "启动标准日志采集分发任务失败"
+msgid "启动标准日志采集分发任务失败[{}],原因:{},请关注"
+msgstr ""
+"Failed to start standard log collection and distribution task [{}], reason: "
+"{}, please pay attention to"
+
+#: backend/apps/datalog/data_collect.py:111
 msgid "启动标准日志采集任务成功"
 msgstr "Standard log collection task started successfully"
 
-#: backend/apps/datalog/data_collect.py:164
-#: backend/apps/datalog/data_collect.py:171
-#: backend/apps/datalog/data_collect.py:186
+#: backend/apps/datalog/data_collect.py:137
+#, fuzzy
+#| msgid "创建非标准日志采集清洗任务失败"
+msgid "创建非标准日志采集清洗任务失败[{}],原因:{},请关注"
+msgstr ""
+"Failed to create non-standard log collection and cleaning task [{}], reason:"
+" {}, please pay attention to"
+
+#: backend/apps/datalog/data_collect.py:139
 msgid "创建非标准日志采集清洗任务失败"
 msgstr "Failed to create non-standard log collection cleaning task"
 
-#: backend/apps/datalog/data_collect.py:179
-#: backend/apps/datalog/data_collect.py:238
-#: backend/apps/datalog/data_collect.py:245
-msgid "启动非标准日志采集分发任务失败"
-msgstr "Failed to start non-standard log collection and distribution task"
+#: backend/apps/datalog/data_collect.py:146
+#: backend/apps/datalog/data_collect.py:187
+#, fuzzy
+#| msgid "启动非标准日志采集分发任务失败"
+msgid "启动非标准日志采集分发任务失败[{}],原因:{},请关注"
+msgstr ""
+"Failed to start the non-standard log collection and distribution task [{}], "
+"reason: {}, please pay attention to"
 
-#: backend/apps/datalog/data_collect.py:191
+#: backend/apps/datalog/data_collect.py:148
+#, fuzzy
+#| msgid "创建非标准日志采集清洗任务失败"
+msgid "创建非标准日志采集清洗任务失败:{}"
+msgstr "Failed to create non-standard log collection cleaning task: {}"
+
+#: backend/apps/datalog/data_collect.py:153
 msgid "启动非标准日志采集任务成功"
 msgstr "Non-standard log collection task started successfully"
 
-#: backend/apps/datalog/data_collect.py:217
-msgid "申请"
-msgstr "Application"
+#: backend/apps/datalog/data_collect.py:166
+#, python-brace-format
+msgid ""
+"申请标准日志采集Prometheus Metric "
+"dataid[业务ID:{cc_app_id},项目名:{english_name}]失败,原因:{data_id},失败"
+msgstr ""
+"Application for standard log collection Prometheus Metric dataid [business "
+"ID: {cc_app_id}, project name: {english_name}] failed, reason: {data_id}, "
+"failed"
 
-#: backend/apps/datalog/data_collect.py:225
-#: backend/apps/datalog/data_collect.py:232
-msgid "清洗任务失败"
-msgstr "Cleaning task failed"
+#: backend/apps/datalog/data_collect.py:172
+msgid "申请Prometheus Metric dataid:{}"
+msgstr "Apply for Prometheus Metric dataid: {}"
+
+#: backend/apps/datalog/data_collect.py:177
+#, python-brace-format
+msgid "创建Prometheus Metric清洗任务失败[{english_name}],原因:{table_id}请关注"
+msgstr ""
+"Failed to create Prometheus Metric cleaning task [{english_name}]. Reason: "
+"{table_id} Please pay attention to"
+
+#: backend/apps/datalog/data_collect.py:182
+msgid "创建Prometheus Metric清洗任务失败:{}"
+msgstr "Failed to create Prometheus Metric cleaning task: {}"
+
+#: backend/apps/datalog/data_collect.py:189
+#, fuzzy
+#| msgid "启动非标准日志采集分发任务失败"
+msgid "启动非标准日志采集分发任务失败:{}"
+msgstr "Failed to start non-standard log collection and distribution task: {}"
 
 #: backend/apps/datalog/models.py:28
 msgid "业务ID"
@@ -2100,6 +2133,12 @@ msgstr "Task status"
 msgid "实例化状态"
 msgstr "Instantiated state"
 
+#: backend/apps/instance/models.py:117 backend/apps/instance/models.py:141
+#: backend/apps/network/models.py:24 backend/apps/projects/models.py:80
+#: backend/apps/ticket/models.py:34 backend/apps/variable/models.py:45
+msgid "名称"
+msgstr "Name"
+
 #: backend/apps/instance/models.py:119
 msgid "滚动升级前的配置"
 msgstr "Configuration before rolling upgrade"
@@ -2107,6 +2146,12 @@ msgstr "Configuration before rolling upgrade"
 #: backend/apps/instance/models.py:119
 msgid "json格式"
 msgstr "Json format"
+
+#: backend/apps/instance/models.py:121 backend/apps/instance/models.py:148
+#: backend/apps/variable/serializers.py:106
+#: backend/apps/variable/serializers.py:128
+msgid "变量"
+msgstr "Variable"
 
 #: backend/apps/instance/models.py:144
 msgid "关联ID"
@@ -2139,6 +2184,10 @@ msgstr "In operation"
 #: backend/apps/instance/utils.py:57
 msgid "您如需操作请联系"
 msgstr "If you need to operate, please contact"
+
+#: backend/apps/instance/utils.py:58
+msgid "解锁"
+msgstr "Unlock"
 
 #: backend/apps/instance/utils.py:66 backend/apps/instance/utils.py:87
 msgid "请选择项目"
@@ -2571,8 +2620,14 @@ msgstr "It has been deleted, please refresh the data manually"
 #: backend/apps/network/views/service.py:473
 #, fuzzy
 #| msgid "命名空间"
-msgid "{][命名空间:{}]:{}"
-msgstr "{] [Namespace: {}]: {}"
+msgid "{}][命名空间:{}]:{}"
+msgstr "{}] [Namespace: {}]: {}"
+
+#: backend/apps/network/views/service.py:481
+#, fuzzy
+#| msgid "以下service删除成功:{]}"
+msgid "以下service删除成功:{}"
+msgstr "The following service was deleted successfully: {}"
 
 #: backend/apps/network/views/service.py:497
 #, fuzzy
@@ -2589,10 +2644,6 @@ msgid "Service[{}]在命名空间[{}]更新失败，请联系集群管理员解�
 msgstr ""
 "Service [{}] failed to update in namespace [{}], please contact your cluster"
 " administrator to resolve it"
-
-#: backend/apps/network/views/service.py:481
-msgid "以下service删除成功:{]}"
-msgstr "The following service was deleted successfully: {]}"
 
 #: backend/apps/projects/constants.py:53
 msgid "容器服务"
@@ -2795,6 +2846,12 @@ msgstr ""
 msgid "证书名称"
 msgstr "Certificate name"
 
+#: backend/apps/ticket/serializers.py:62
+#: backend/apps/variable/serializers.py:106
+#: backend/apps/variable/serializers.py:128
+msgid "已经存在"
+msgstr "Already exists."
+
 #: backend/apps/ticket/serializers.py:68
 msgid "容器服务TLS服务未开放"
 msgstr "Container service TLS service is not open"
@@ -2885,6 +2942,18 @@ msgstr "New variable"
 msgid "更新变量"
 msgstr "Update variable"
 
+#: backend/apps/variable/views.py:148
+#, fuzzy
+#| msgid "Service(id:{})不存在"
+msgid "Metric[id:{}]:不存在"
+msgstr "Metric [id: {}]: does not exist"
+
+#: backend/apps/variable/views.py:155
+#, fuzzy
+#| msgid "LoadBalance[id:{}]不存在"
+msgid "应用[id:{}]:不存在"
+msgstr "Application [id: {}]: does not exist"
+
 #: backend/apps/variable/views.py:278
 msgid "删除变量"
 msgstr "Delete variable"
@@ -2918,10 +2987,12 @@ msgid "Helm Release部署中，请稍后再试！"
 msgstr "In Helm Release deployment, please try again later!"
 
 #: backend/bcs_k8s/app/serializers.py:145
-msgid "不符合k8s资源名规范, 只能由小写字母数字或者-组成，正则"
+#, fuzzy
+#| msgid "不符合k8s资源名规范, 只能由小写字母数字或者-组成，正则"
+msgid "不符合k8s资源名规范, 只能由小写字母数字或者-组成，正则:{}"
 msgstr ""
 "Does not conform to the K8s resource name specification, can only consist of"
-" lowercase alphanumeric or -, regular"
+" lowercase alphanumeric or -, regular: {}"
 
 #: backend/bcs_k8s/app/utils.py:275
 msgid "未找到资源，可能未部署成功，请在Helm Release列表也查看失败原因."
@@ -3007,6 +3078,16 @@ msgstr "Kind"
 #: backend/bcs_k8s/authtoken/serializers.py:69
 msgid "输入的key与当前key不匹配"
 msgstr "The key entered does not match the current key"
+
+#: backend/bcs_k8s/bke_client/client.py:90
+msgid "集群注册失败, bcs server 数据不一致，{}"
+msgstr "Cluster registration failed, bcs server data inconsistent, {}"
+
+#: backend/bcs_k8s/bke_client/client.py:121
+msgid "bcs-agent还没有上报apiserver信息,请检查集群')}[{}]中的kube-system/bcs-agent日志否正常"
+msgstr ""
+"Bcs-agent has not reported apiserver information yet. Check that the kube-"
+"system/bcs-agent log in cluster')} [{}] is normal"
 
 #: backend/bcs_k8s/helm/management/commands/add_public_chart.py:31
 msgid "获取access_token失败"
@@ -3112,9 +3193,11 @@ msgstr "Query project information is empty"
 msgid "用户{username}没有权限使用主机"
 msgstr "User {username} does not have permission to use the host"
 
-#: backend/components/cc.py:220
-msgid "当前用户没有权限操作ip"
-msgstr "The current user does not have permission to operate ip"
+#: backend/components/cc.py:219
+#, fuzzy
+#| msgid "当前用户没有权限操作ip"
+msgid "当前用户没有权限操作ip{}"
+msgstr "The current user does not have permission to operate ip {}"
 
 #: backend/components/paas_cc.py:244 backend/components/paas_cc.py:277
 msgid "查询项目下node节点失败，已经通知管理员，请稍后!"
@@ -3351,6 +3434,36 @@ msgstr "The BCS Console network is down, please check the network"
 #: backend/web_console/templates/index.html:129
 msgid "重新加载"
 msgstr "Reload"
+
+#~ msgid "关联的"
+#~ msgstr "Associated"
+
+#~ msgid "不合法"
+#~ msgstr "Illegal"
+
+#~ msgid "模板集名称"
+#~ msgstr "Template set name"
+
+#~ msgid "资源"
+#~ msgstr "Resources"
+
+#~ msgid "业务"
+#~ msgstr "Business"
+
+#~ msgid "项目名"
+#~ msgstr "Project name"
+
+#~ msgid "原因"
+#~ msgstr "Reason"
+
+#~ msgid "请关注"
+#~ msgstr "Please pay attention."
+
+#~ msgid "申请"
+#~ msgstr "Application"
+
+#~ msgid "清洗任务失败"
+#~ msgstr "Cleaning task failed"
 
 #~ msgid "2.修改主机备注"
 #~ msgstr "2. Modify Host not"
