@@ -231,11 +231,18 @@ export default {
          * @return {Promise} promise 对象
          */
         removeLoadBalance (context, { projectId, loadBalanceId, projectKind }, config = {}) {
+            // let url = `${DEVOPS_BCS_API_URL}/api/network/${projectId}/lb/${loadBalanceId}/`
+            // // k8s
+            // if (projectKind && projectKind === PROJECT_K8S) {
+            //     url = `${DEVOPS_BCS_API_URL}/api/network/${projectId}/k8s/lb/${loadBalanceId}/`
+            // }
+
             let url = `${DEVOPS_BCS_API_URL}/api/network/${projectId}/lb/${loadBalanceId}/`
-            // k8s
-            if (projectKind && projectKind === PROJECT_K8S) {
-                url = `${DEVOPS_BCS_API_URL}/api/network/${projectId}/k8s/lb/${loadBalanceId}/`
+            // mesos
+            if (!projectKind || projectKind !== PROJECT_K8S) {
+                url = `${DEVOPS_BCS_API_URL}/api/network/${projectId}/lb/${loadBalanceId}/`
             }
+
             return http.delete(url)
         },
 
@@ -317,11 +324,18 @@ export default {
          * @return {Promise} promise 对象
          */
         updateLoadBalance (context, { projectId, data, loadBalanceId, projectKind }, config = {}) {
-            let url = `${DEVOPS_BCS_API_URL}/api/network/${projectId}/lb/${loadBalanceId}/`
-            // k8s
-            if (projectKind && projectKind === 1) {
-                url = `${DEVOPS_BCS_API_URL}/api/network/${projectId}/k8s/lb/${loadBalanceId}/`
+            // let url = `${DEVOPS_BCS_API_URL}/api/network/${projectId}/lb/${loadBalanceId}/`
+            // // k8s
+            // if (projectKind && projectKind === 1) {
+            //     url = `${DEVOPS_BCS_API_URL}/api/network/${projectId}/k8s/lb/${loadBalanceId}/`
+            // }
+
+            let url = `${DEVOPS_BCS_API_URL}/api/network/${projectId}/k8s/lb/${loadBalanceId}/`
+            // mesos
+            if (!projectKind || projectKind !== PROJECT_K8S) {
+                url = `${DEVOPS_BCS_API_URL}/api/network/${projectId}/lb/${loadBalanceId}/`
             }
+
             return http.put(url, data, config)
         },
 
@@ -348,11 +362,18 @@ export default {
          * @return {Promise} promise 对象
          */
         getLoadBalanceDetail (context, { projectId, loadBalanceId, projectKind }, config = {}) {
-            let url = `${DEVOPS_BCS_API_URL}/api/network/${projectId}/lb/${loadBalanceId}/`
-            // k8s
-            if (projectKind && projectKind === 1) {
-                url = `${DEVOPS_BCS_API_URL}/api/network/${projectId}/k8s/lb/${loadBalanceId}/`
+            // let url = `${DEVOPS_BCS_API_URL}/api/network/${projectId}/lb/${loadBalanceId}/`
+            // // k8s
+            // if (projectKind && projectKind === 1) {
+            //     url = `${DEVOPS_BCS_API_URL}/api/network/${projectId}/k8s/lb/${loadBalanceId}/`
+            // }
+
+            let url = `${DEVOPS_BCS_API_URL}/api/network/${projectId}/k8s/lb/${loadBalanceId}/`
+            // mesos
+            if (!projectKind || projectKind !== PROJECT_K8S) {
+                url = `${DEVOPS_BCS_API_URL}/api/network/${projectId}/lb/${loadBalanceId}/`
             }
+
             return http.get(url, {}, config)
         },
 
