@@ -238,9 +238,8 @@ export default {
             // }
 
             let url = `${DEVOPS_BCS_API_URL}/api/network/${projectId}/lb/${loadBalanceId}/`
-            // mesos
-            if (!projectKind || projectKind !== PROJECT_K8S) {
-                url = `${DEVOPS_BCS_API_URL}/api/network/${projectId}/lb/${loadBalanceId}/`
+            if (!projectKind || projectKind !== PROJECT_MESOS) {
+                url = `${DEVOPS_BCS_API_URL}/api/network/${projectId}/k8s/lb/${loadBalanceId}/`
             }
 
             return http.delete(url)
@@ -330,10 +329,9 @@ export default {
             //     url = `${DEVOPS_BCS_API_URL}/api/network/${projectId}/k8s/lb/${loadBalanceId}/`
             // }
 
-            let url = `${DEVOPS_BCS_API_URL}/api/network/${projectId}/k8s/lb/${loadBalanceId}/`
-            // mesos
-            if (!projectKind || projectKind !== PROJECT_K8S) {
-                url = `${DEVOPS_BCS_API_URL}/api/network/${projectId}/lb/${loadBalanceId}/`
+            let url = `${DEVOPS_BCS_API_URL}/api/network/${projectId}/lb/${loadBalanceId}/`
+            if (!projectKind || projectKind !== PROJECT_MESOS) {
+                url = `${DEVOPS_BCS_API_URL}/api/network/${projectId}/k8s/lb/${loadBalanceId}/`
             }
 
             return http.put(url, data, config)
@@ -368,10 +366,9 @@ export default {
             //     url = `${DEVOPS_BCS_API_URL}/api/network/${projectId}/k8s/lb/${loadBalanceId}/`
             // }
 
-            let url = `${DEVOPS_BCS_API_URL}/api/network/${projectId}/k8s/lb/${loadBalanceId}/`
-            // mesos
-            if (!projectKind || projectKind !== PROJECT_K8S) {
-                url = `${DEVOPS_BCS_API_URL}/api/network/${projectId}/lb/${loadBalanceId}/`
+            let url = `${DEVOPS_BCS_API_URL}/api/network/${projectId}/lb/${loadBalanceId}/`
+            if (!projectKind || projectKind !== PROJECT_MESOS) {
+                url = `${DEVOPS_BCS_API_URL}/api/network/${projectId}/k8s/lb/${loadBalanceId}/`
             }
 
             return http.get(url, {}, config)
