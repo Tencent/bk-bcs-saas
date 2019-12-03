@@ -59,9 +59,7 @@ def validate_variable_inconfig(config):
     search_keys = set(search_list)
     for ikey in search_keys:
         if not REAL_NUM_VAR_PATTERN.match(ikey):
-            raise ValidationError('{prefix_msg}[{key}]{suffix_msg}, {e}'.format(
-                prefix_msg=_("变量"), key=ikey, suffix_msg=_("不合法"), e=NUM_VAR_ERROR_MSG
-            ))
+            raise ValidationError(_('变量[{}]不合法, {}').format(ikey, NUM_VAR_ERROR_MSG))
 
 
 def validate_res_config(config, resource_name, schema):
@@ -84,9 +82,4 @@ def validate_name_duplicate(data):
     name = data['name']
     is_duplicate = is_name_duplicate(resource_name, resource_id, name, version_id)
     if is_duplicate:
-        raise ValidationError('{resource_name}{prefix_msg}:{name}{suffix_msg}'.format(
-            resource_name=resource_name,
-            prefix_msg=_("名称"),
-            suffix_msg=_("已经在项目模板中被占用,请重新填写"),
-            name=name
-        ))
+        raise ValidationError(_('{}名称:{}已经在项目模板中被占用,请重新填写').format(resource_name, name))

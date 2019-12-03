@@ -145,14 +145,14 @@ class ResourceVariableView(FinalizeResponseMixin, views.APIView):
         try:
             met = Metric.objects.get(id=metric_id)
         except Exception:
-            raise ValidationError('Metric[id:{}]:{}'.format(metric_id, _("不存在")))
+            raise ValidationError(_('Metric[id:{}]:不存在').format(metric_id))
         api_json = met.to_api_json()
         if resourse_type == 'application':
             try:
                 application = MODULE_DICT.get(
                     resourse_type).objects.get(id=application_id)
             except Exception:
-                raise ValidationError('{}[id:{}]:{}'.format(_("应用"), application_id, _("不存在")))
+                raise ValidationError(_('应用[id:{}]:不存在').format(application_id))
             app_config = application.get_config()
             app_config_new = handel_custom_network_mode(app_config)
             app_spec = app_config_new.get('spec', {}).get(
@@ -456,7 +456,7 @@ class ClusterVariableView(viewsets.ViewSet):
         if not_exist_vars:
             not_exist_show_msg = ['%s[id:%s]' %
                                   (i['key'], i['id']) for i in not_exist_vars]
-            msg = f"{_('以下变量不存在')}:{';'.join(not_exist_show_msg)}"
+            msg = _('以下变量不存在:{}').format(';'.join(not_exist_show_msg))
         return Response({
             "code": 0,
             "message": msg,
