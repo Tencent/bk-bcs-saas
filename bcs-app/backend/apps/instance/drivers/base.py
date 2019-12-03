@@ -150,9 +150,6 @@ class SchedulerBase(object):
         """实例化
         """
         instantiation_result = {'success': [], 'failed': []}
-        for ns_id, config in self.configuration.items():
-            ns_name = [i for i in config.values(
-            )][0][0]['context']['SYS_NAMESPACE']
 
         for ns_id, config in self.configuration.items():
             instance_id = [i for i in config.values(
