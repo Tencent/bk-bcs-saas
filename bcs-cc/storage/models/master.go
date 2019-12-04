@@ -168,3 +168,10 @@ func ReplaceMaster(replaceInnerIPList []string, NewMasterInfo []ManagerMaster) e
 	tx.Commit()
 	return nil
 }
+
+// DeleteRecord : delete a record
+func (master *ManagerMaster) DeleteRecord() error {
+	qs := NewManagerMasterQuerySet(storage.GetDefaultSession().DB)
+	qs = qs.ProjectIDEqWithNull(master.ProjectID).ClusterIDEq(master.ClusterID)
+	return qs.InnerIPEq(master.InnerIP).DeleteUnscoped()
+}

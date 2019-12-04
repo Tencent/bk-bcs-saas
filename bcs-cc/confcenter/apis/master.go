@@ -14,6 +14,7 @@ package apis
 import (
 	"bcs_cc/storage/models"
 	"bcs_cc/utils"
+	"fmt"
 
 	"github.com/gin-gonic/gin"
 	"github.com/mitchellh/mapstructure"
@@ -194,6 +195,28 @@ func BatchCreateMaster(c *gin.Context) {
 		return
 	}
 	utils.OKJSONResponseWithMessage(c, nil, "create success")
+}
+
+// DeleteMaster : delete one master record
+func DeleteMaster(c *gin.Context) {
+	// get project id and cluster id
+	projectID, clusterID, err := getProjectIDClusterIDFromContext(c)
+	if err != nil {
+		utils.BadReqJSONResponse(c, err)
+		return
+	}
+	innerIP := c.Query("inner_ip")
+	if innerIP == "" {
+		utils.BadReqJSONResponse(c, fmt.Errorf("params[inner_ip] must exist"))
+		return
+	}
+	// delete record, whether or not exist
+	masterInfo := models.ManagerMaster{ProjectID: projectID, ClusterID: clusterID, InnerIP: innerIP}
+	if err := masterInfo.DeleteRecord(); err != nil {
+		utils.DBErrorResponse(c, err)
+		return
+	}
+	utils.OKJSONResponseWithMessage(c, nil, "delete success")
 }
 
 func composeMasterInfo(projectID string, clusterID string, masterListInfo []createMasterData) (batchMasterInfo []models.ManagerMaster, err error) {
