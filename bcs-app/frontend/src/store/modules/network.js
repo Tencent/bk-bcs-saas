@@ -238,7 +238,7 @@ export default {
             // }
 
             let url = `${DEVOPS_BCS_API_URL}/api/network/${projectId}/lb/${loadBalanceId}/`
-            if (!projectKind || projectKind !== PROJECT_MESOS) {
+            if (projectKind && (projectKind !== PROJECT_MESOS)) {
                 url = `${DEVOPS_BCS_API_URL}/api/network/${projectId}/k8s/lb/${loadBalanceId}/`
             }
 
@@ -330,7 +330,7 @@ export default {
             // }
 
             let url = `${DEVOPS_BCS_API_URL}/api/network/${projectId}/lb/${loadBalanceId}/`
-            if (!projectKind || projectKind !== PROJECT_MESOS) {
+            if (projectKind && (projectKind !== PROJECT_MESOS)) {
                 url = `${DEVOPS_BCS_API_URL}/api/network/${projectId}/k8s/lb/${loadBalanceId}/`
             }
 
@@ -367,7 +367,7 @@ export default {
             // }
 
             let url = `${DEVOPS_BCS_API_URL}/api/network/${projectId}/lb/${loadBalanceId}/`
-            if (!projectKind || projectKind !== PROJECT_MESOS) {
+            if (projectKind && (projectKind !== PROJECT_MESOS)) {
                 url = `${DEVOPS_BCS_API_URL}/api/network/${projectId}/k8s/lb/${loadBalanceId}/`
             }
 
