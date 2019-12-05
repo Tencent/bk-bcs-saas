@@ -147,7 +147,7 @@ export default {
         updateCloudLoadBalanceInList (state, data) {
             const results = []
             for (let item of state.cloudLoadBalanceList) {
-                if (item.id === 2) {
+                if (item.id === data.id) {
                     item = data
                 }
                 results.push(item)
