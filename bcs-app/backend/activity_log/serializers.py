@@ -22,7 +22,10 @@ class ActivityLogSLZ(serializers.ModelSerializer):
     description = serializers.SerializerMethodField()
 
     def get_description(self, obj):
-        return _(obj.description)
+        description = obj.description
+        if description:
+            return _(obj.description)
+        return description
 
     class Meta:
         model = UserActivityLog
