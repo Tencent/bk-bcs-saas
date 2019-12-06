@@ -15,7 +15,7 @@
 """
 import logging
 
-from django.utils.translation import ugettext as _
+from django.utils.translation import ugettext_lazy as _
 
 from backend.components.bcs.k8s import K8SClient
 from backend.apps.instance.drivers.base import SchedulerBase

@@ -18,7 +18,7 @@ import subprocess
 from django.conf import settings
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError, ParseError
-from django.utils.translation import ugettext as _
+from django.utils.translation import ugettext_lazy as _
 
 from backend.utils.error_codes import error_codes
 from backend.components import paas_cc

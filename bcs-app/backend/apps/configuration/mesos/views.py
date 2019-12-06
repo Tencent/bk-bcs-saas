@@ -14,7 +14,7 @@
 from rest_framework import viewsets
 from rest_framework.response import Response
 from rest_framework.renderers import BrowsableAPIRenderer
-from django.utils.translation import ugettext as _
+from django.utils.translation import ugettext_lazy as _
 
 from backend.utils.error_codes import error_codes
 from backend.apps.application.constants import MESOS_KIND

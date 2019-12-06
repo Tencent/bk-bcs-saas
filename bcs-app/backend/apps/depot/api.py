@@ -14,7 +14,7 @@
 import base64
 import logging
 
-from django.utils.translation import ugettext as _
+from django.utils.translation import ugettext_lazy as _
 
 from backend.utils.error_codes import error_codes, bk_error_codes
 from backend.components.enterprise.harbor import HarborClient

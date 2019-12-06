@@ -18,7 +18,7 @@ from rest_framework import viewsets
 from rest_framework.response import Response
 from rest_framework.renderers import BrowsableAPIRenderer
 from rest_framework.exceptions import ValidationError
-from django.utils.translation import ugettext as _
+from django.utils.translation import ugettext_lazy as _
 
 from backend.activity_log import client
 from backend.apps.configuration import models

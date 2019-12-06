@@ -16,7 +16,7 @@ from typing import Union
 from django.http import JsonResponse
 from rest_framework.response import Response
 from dataclasses import dataclass
-from django.utils.translation import ugettext as _
+from django.utils.translation import ugettext_lazy as _
 
 from backend.utils.local import local
 

@@ -18,7 +18,7 @@ import logging
 
 from rest_framework import response, viewsets
 from rest_framework.renderers import BrowsableAPIRenderer
-from django.utils.translation import ugettext as _
+from django.utils.translation import ugettext_lazy as _
 
 from backend.activity_log import client
 from backend.components import paas_cc, data as data_api

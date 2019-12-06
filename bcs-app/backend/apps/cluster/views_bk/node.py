@@ -16,7 +16,7 @@ import logging
 from datetime import datetime
 
 from rest_framework.response import Response
-from django.utils.translation import ugettext as _
+from django.utils.translation import ugettext_lazy as _
 
 from .configs import k8s, mesos
 from backend.apps.cluster import serializers, constants

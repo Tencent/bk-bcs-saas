@@ -32,7 +32,7 @@ from collections import OrderedDict
 
 from rest_framework.exceptions import ValidationError
 from django.conf import settings
-from django.utils.translation import ugettext as _
+from django.utils.translation import ugettext_lazy as _
 
 from backend.components import paas_cc
 from backend.components.ticket import TicketClient

@@ -13,7 +13,7 @@
 #
 import re
 
-from django.utils.translation import ugettext as _
+from django.utils.translation import ugettext_lazy as _
 
 from backend.components import cc as cmdb
 from backend.utils.errcodes import ErrorCode

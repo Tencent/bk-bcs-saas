@@ -12,7 +12,7 @@
 # specific language governing permissions and limitations under the License.
 #
 from django.utils.crypto import get_random_string
-from django.utils.translation import ugettext as _
+from django.utils.translation import ugettext_lazy as _
 
 from backend.utils.error_codes import error_codes
 from backend.apps.datalog.models import ProjectDataInfo

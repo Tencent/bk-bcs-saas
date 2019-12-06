@@ -15,7 +15,7 @@ import json
 
 from django.conf import settings
 from django.utils.functional import cached_property
-from django.utils.translation import ugettext as _
+from django.utils.translation import ugettext_lazy as _
 
 from backend.components import paas_cc
 from backend.utils import cache, exceptions

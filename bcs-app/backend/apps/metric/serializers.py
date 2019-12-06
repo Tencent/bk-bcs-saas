@@ -16,7 +16,7 @@ import re
 from urllib.parse import urlparse
 
 from rest_framework import serializers
-from django.utils.translation import ugettext as _
+from django.utils.translation import ugettext_lazy as _
 
 from backend.apps.metric.models import Metric
 from rest_framework.exceptions import ValidationError

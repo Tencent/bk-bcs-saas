@@ -18,7 +18,7 @@ from datetime import datetime
 from django.db import transaction
 from rest_framework import viewsets
 from rest_framework.response import Response
-from django.utils.translation import ugettext as _
+from django.utils.translation import ugettext_lazy as _
 
 from backend.activity_log import client as log_client
 from backend.accounts import bcs_perm

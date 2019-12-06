@@ -18,7 +18,7 @@ import json
 import time
 import base64
 
-from django.utils.translation import ugettext as _
+from django.utils.translation import ugettext_lazy as _
 
 from backend.components import paas_cc
 from backend.utils.errcodes import ErrorCode

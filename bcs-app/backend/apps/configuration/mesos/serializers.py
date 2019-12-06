@@ -16,7 +16,7 @@ import re
 from django.conf import settings
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
-from django.utils.translation import ugettext as _
+from django.utils.translation import ugettext_lazy as _
 
 from backend.apps.configuration.validator import validate_variable_inconfig, validate_res_config
 from backend.apps.configuration.k8s.serializers import BCSResourceSLZ

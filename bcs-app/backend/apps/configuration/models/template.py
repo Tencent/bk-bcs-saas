@@ -16,7 +16,7 @@ import json
 from django.db import models
 from django.db.utils import IntegrityError
 from rest_framework.exceptions import ValidationError
-from django.utils.translation import ugettext as _
+from django.utils.translation import ugettext_lazy as _
 
 from backend.apps.metric.models import Metric
 from backend.apps.configuration import constants

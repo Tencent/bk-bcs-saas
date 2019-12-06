@@ -26,7 +26,7 @@ from datetime import datetime
 from collections import OrderedDict
 
 from django.db.models import Q
-from django.utils.translation import ugettext as _
+from django.utils.translation import ugettext_lazy as _
 
 from backend.components import paas_cc
 from backend.apps.application.utils import APIResponse, image_handler

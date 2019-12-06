@@ -26,7 +26,7 @@ from rest_framework.exceptions import (AuthenticationFailed, MethodNotAllowed,
 from rest_framework.response import Response
 from rest_framework.views import exception_handler
 from rest_framework.renderers import BrowsableAPIRenderer
-from django.utils.translation import ugettext as _
+from django.utils.translation import ugettext_lazy as _
 
 from backend.utils import exceptions as backend_exceptions
 from backend.utils.error_codes import APIError

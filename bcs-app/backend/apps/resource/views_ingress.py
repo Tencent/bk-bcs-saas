@@ -16,7 +16,7 @@ import logging
 
 from rest_framework import viewsets
 from backend.apps.resource.views import ResourceOperate
-from django.utils.translation import ugettext as _
+from django.utils.translation import ugettext_lazy as _
 
 from backend.apps.application.base_views import BaseAPI
 from backend.apps.constants import ClusterType

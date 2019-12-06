@@ -18,7 +18,7 @@ from django.utils.crypto import get_random_string
 from django.db import models
 from rest_framework.serializers import ValidationError
 from django.db.models import Max
-from django.utils.translation import ugettext as _
+from django.utils.translation import ugettext_lazy as _
 
 from backend.bcs_k8s.helm.constants import TEMPORARY_APP_ID
 from backend.bcs_k8s.helm.models import ChartVersionSnapshot, ChartRelease

@@ -20,7 +20,7 @@ from urllib.parse import urlparse
 from django.conf import settings
 from rest_framework import views
 from rest_framework.renderers import BrowsableAPIRenderer
-from django.utils.translation import ugettext as _
+from django.utils.translation import ugettext_lazy as _
 
 from backend.accounts import bcs_perm
 from backend.apps.constants import ProjectKind

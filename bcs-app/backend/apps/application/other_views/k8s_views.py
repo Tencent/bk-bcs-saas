@@ -19,7 +19,7 @@ import logging
 import json
 import base64
 from datetime import datetime
-from django.utils.translation import ugettext as _
+from django.utils.translation import ugettext_lazy as _
 
 from backend.apps.instance.models import (
     VersionInstance, InstanceConfig, InstanceEvent, MetricConfig

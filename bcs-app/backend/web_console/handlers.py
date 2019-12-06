@@ -19,7 +19,7 @@ import tornado.web
 import tornado.websocket
 from django.conf import settings
 from django.utils import translation
-from django.utils.translation import ugettext as _
+from django.utils.translation import ugettext_lazy as _
 from django.utils.translation.trans_real import get_supported_language_variant
 from tornado import locale
 from tornado.ioloop import IOLoop, PeriodicCallback

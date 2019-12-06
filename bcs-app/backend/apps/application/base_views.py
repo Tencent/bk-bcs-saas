@@ -20,7 +20,7 @@ import yaml
 
 from rest_framework import views
 from django.conf import settings
-from django.utils.translation import ugettext as _
+from django.utils.translation import ugettext_lazy as _
 
 from backend.components.bcs import mesos, bcs_common_api
 from backend.utils.errcodes import ErrorCode

@@ -18,7 +18,7 @@ from datetime import datetime, timedelta
 
 from django.conf import settings
 from celery import shared_task
-from django.utils.translation import ugettext as _
+from django.utils.translation import ugettext_lazy as _
 
 from backend.components.bcs import mesos, k8s
 from backend.utils.errcodes import ErrorCode

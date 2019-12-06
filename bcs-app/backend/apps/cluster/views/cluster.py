@@ -17,6 +17,7 @@ import logging
 from django.conf import settings
 from rest_framework import viewsets, response, serializers
 from rest_framework.renderers import BrowsableAPIRenderer
+from django.utils.translation import ugettext_lazy as _
 
 from backend.components import paas_cc, cc
 from backend.utils.errcodes import ErrorCode
@@ -340,7 +341,7 @@ class ClusterInfo(ClusterPermBase, ClusterBase, viewsets.ViewSet):
         cluster['chinese_status_name'] = ClusterStatusName[status].value
         # get area info
         area_info = self.get_area(request, cluster.get('area_id'))
-        cluster['area_name'] = area_info.get('chinese_name')
+        cluster['area_name'] = _(area_info.get('chinese_name'))
         # get master count
         cluster['master_count'] = self.get_master_count(request, project_id, cluster_id)
         # get node count

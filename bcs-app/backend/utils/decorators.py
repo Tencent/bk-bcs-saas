@@ -19,7 +19,7 @@ from functools import wraps
 import six
 from django.utils.encoding import force_str
 from requests.models import Response
-from django.utils.translation import ugettext as _
+from django.utils.translation import ugettext_lazy as _
 
 from backend.utils.exceptions import ComponentError
 

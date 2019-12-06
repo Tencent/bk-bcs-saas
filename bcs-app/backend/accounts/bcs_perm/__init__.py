@@ -19,7 +19,7 @@ bcs_perm_handler 调用这个函数的地方需要再次确认
 """
 import abc
 
-from django.utils.translation import ugettext as _
+from django.utils.translation import ugettext_lazy as _
 
 from backend.components import paas_cc
 from backend.components.enterprise.iam import BKIAMClient

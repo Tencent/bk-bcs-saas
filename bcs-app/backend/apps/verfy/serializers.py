@@ -16,7 +16,7 @@ import logging
 from django.conf import settings
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
-from django.utils.translation import ugettext as _
+from django.utils.translation import ugettext_lazy as _
 
 from backend.accounts import bcs_perm
 from backend.apps.verfy import constants

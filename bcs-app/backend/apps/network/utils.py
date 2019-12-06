@@ -19,7 +19,7 @@ import json
 
 from django.conf import settings
 from rest_framework.exceptions import ValidationError
-from django.utils.translation import ugettext as _
+from django.utils.translation import ugettext_lazy as _
 
 from backend.components.bcs import mesos
 from backend.components import paas_cc

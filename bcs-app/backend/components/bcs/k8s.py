@@ -20,7 +20,7 @@ from django.conf import settings
 from django.utils.functional import cached_property
 from kubernetes import client
 from kubernetes.client.rest import ApiException
-from django.utils.translation import ugettext as _
+from django.utils.translation import ugettext_lazy as _
 
 from backend.components.bcs import BCSClientBase
 from backend.components.utils import http_delete, http_get, http_patch, http_post, http_put
