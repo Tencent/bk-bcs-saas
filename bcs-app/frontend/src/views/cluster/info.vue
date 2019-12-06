@@ -454,7 +454,7 @@
                     this.curClusterName = data.cluster_name || '--'
                     this.curClusterId = data.cluster_id || '--'
                     this.status = data.status || '--'
-                    this.statusName = data.chinese_status_name || '--'
+                    this.statusName = this.isEn ? (data.status || '--') : (data.chinese_status_name || '--')
                     this.ver = data.ver || '--'
                     let masterCount = data.master_count || 0
                     if (masterCount) {
@@ -470,7 +470,9 @@
                     this.updatedTime = data.updated_at ? moment(data.updated_at).format('YYYY-MM-DD HH:mm:ss') : '--'
                     this.description = data.description || '--'
 
-                    this.configInfo = this.isEn ? `${data.total_cpu}core${(data.total_mem).toFixed(0)}GB` : `${data.total_cpu}核${(data.total_mem).toFixed(0)}GB`
+                    this.configInfo = this.isEn
+                        ? `${data.total_cpu}core ${(data.total_mem).toFixed(0)}GB`
+                        : `${data.total_cpu}核 ${(data.total_mem).toFixed(0)}GB`
 
                     this.fetchVariableInfo()
                 } catch (e) {

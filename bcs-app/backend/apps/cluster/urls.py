@@ -170,3 +170,10 @@ urlpatterns += [
         views.DeleteNotReadyNode.as_view({'delete': 'delete'})
     )
 ]
+
+# 导入版本特定urls
+try:
+    from backend.apps.cluster.urls_bk import urlpatterns as urlpatterns_bk
+    urlpatterns += urlpatterns_bk
+except ImportError:
+    pass

@@ -75,6 +75,7 @@ func URLConf(engine *gin.Engine) {
 		master.PUT("/manager_masters/", apis.UpdateMaster)
 		master.POST("/batch_manager_masters/", apis.BatchCreateMaster)
 		master.PUT("/replace_manager_masters/", apis.ReplaceMaster)
+		master.DELETE("/master/", apis.DeleteMaster)
 	}
 
 	cluster := engine.Group("/projects/:project_id/clusters")
