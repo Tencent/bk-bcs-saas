@@ -35,8 +35,8 @@ export default {
     '初始化失败': ['initial failed'],
     '移除失败': ['remove failed'],
     '不可调度': ['Unschedulable'],
-    '不正常': ['unnormal'],
-    '正常': ['normal'],
+    '不正常': ['Unnormal'],
+    '正常': ['Normal'],
     '无数据': ['No Data'],
     '键': ['Key'],
     '值': ['Value'],
@@ -251,11 +251,11 @@ export default {
     '请输入集群描述': ['Please enter the cluster desc'],
     '必填项，不超过128个字符': ['Required, no more than 128 characters'],
     '选择Master：': ['Select Master: '],
-    '已选服务器': ['Selected Server'],
+    '已选服务器': ['Selected Host'],
     '序号': ['No.'],
     '注意事项：': ['Notice: '],
     '服务器将按照系统规则修改主机名': ['Server will modify the host name according to the system rules'],
-    '修改后': ['After modify'],
+    '修改后': ['After Modify'],
     '服务器将安装容器服务相关组件': ['Server will install the container service related components'],
     '请选择奇数个服务器': ['Please select odd number of servers'],
     '移除': ['Delete'],
@@ -314,7 +314,7 @@ export default {
     '多个IP以空格分开，按回车搜索': ['Multiple IPs are separated by spaces, press Enter to search'],
 
     '新建': ['Create'],
-    '命名空间创建后不可更改': ['Cannot be changed after the namespace is created'],
+    '命名空间创建后不可更改': ['Not changed after created'],
     '变量': ['Variable'],
     '设置变量值': ['Set variable value'],
     '所属集群：': ['Cluster：'],
@@ -571,6 +571,7 @@ export default {
     '服务器维护中，请稍后重试!': ['In server maintenance, please try again later!'],
     '功能正在建设中···': ['The function is under construction···'],
     '请确认以上内容，才可操作': ['Please confirm the above to operate'],
+    '启用容器服务': ['Enable BCS'],
     // 变量的使用 $t('test', { vari1: 1, vari2: 2 })
     'test': ['{vari1} ---english--- {vari2}']
 }
