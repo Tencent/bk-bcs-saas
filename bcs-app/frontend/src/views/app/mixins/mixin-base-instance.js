@@ -394,13 +394,9 @@ export default {
                 list.forEach(item => {
                     let diffStr = ''
                     if (item.current_time && item.start_time) {
-                        const timeDiff = moment.duration(
-                            moment(item.current_time, 'YYYY-MM-DD HH:mm:ss').diff(
-                                moment(item.start_time, 'YYYY-MM-DD HH:mm:ss')
-                            )
-                        )
+                        const timeDiff = moment.duration(moment(item.current_time).diff(moment(item.start_time)))
                         const arr = [
-                            timeDiff.get('day'),
+                            moment(item.current_time).diff(moment(item.start_time), 'days'),
                             timeDiff.get('hour'),
                             timeDiff.get('minute'),
                             timeDiff.get('second')
