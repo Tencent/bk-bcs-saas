@@ -92,3 +92,7 @@ ignored = ["bcs_cc", "github.com/golang/glog"]
 [[constraint]]
   name = "github.com/robfig/cron"
   version = "1.1.0"
+
+[[constraint]]
+  name = "gopkg.in/fatih/set.v0"
+  version = "0.2.1"

@@ -13,12 +13,15 @@
 #
 import json
 import re
+import time
 from urllib.parse import urlparse
 
-from rest_framework import serializers
+import arrow
 from django.utils.translation import ugettext_lazy as _
 
+from backend.apps import constants
 from backend.apps.metric.models import Metric
+from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
 NAME_PATTERN = re.compile(r'^[a-z0-9]([-_a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*$')
@@ -122,3 +125,39 @@ class CreateMetricSLZ(UpdateMetricSLZ):
         if not NAME_PATTERN.match(name):
             raise ValidationError(_("名称由英文字母、下划线、中划线或数字组成，且不可以数字开头"))
         return name
+
+
+class PromMetricSLZBase(serializers.Serializer):
+    start_at = serializers.DateTimeField(required=False)
+    end_at = serializers.DateTimeField(required=False)
+
+    def validate(self, data):
+        now = int(time.time())
+        # handle the start_at
+        if 'start_at' in data:
+            data['start_at'] = arrow.get(data['start_at']).timestamp
+        else:
+            # default one hour
+            data['start_at'] = now - constants.METRICS_DEFAULT_TIMEDELTA
+        # handle the end_at
+        if 'end_at' in data:
+            data['end_at'] = arrow.get(data['end_at']).timestamp
+        else:
+            data['end_at'] = now
+        # start_at must be less than end_at
+        if data['end_at'] <= data['start_at']:
+            raise ValidationError(_('param[start_at] must be less than [end_at]'))
+        return data
+
+
+class PromMetricSLZ(PromMetricSLZBase):
+    res_id = serializers.CharField(required=True)
+
+class PromPodMetricSLZ(PromMetricSLZBase):
+    """Pod数据查询
+    """
+    res_id_list = serializers.CharField(required=True)
+
+    def validate_res_id_list(self, res_id_list):
+        res_id_list = res_id_list.split(',')
+        return res_id_list

@@ -29,3 +29,11 @@ const (
 const (
 	ERDUPENTRY = 1062 // Duplicate entry
 )
+
+// node status
+const (
+	ToRemoved  = "to_removed"
+	Removeable = "removable"
+	Normal     = "normal"
+	NotReady   = "not_ready"
+)
