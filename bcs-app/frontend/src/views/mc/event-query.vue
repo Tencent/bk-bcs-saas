@@ -160,15 +160,15 @@
             // 事件对象下拉框 list
             const kindList = [
                 { id: 'all', name: this.$t('全部1') },
-                { id: 'rc', name: 'rc' },
+                { id: 'rc', name: 'Rc' },
                 { id: 'Endpoints', name: 'Endpoints' },
                 { id: 'Pod', name: 'Pod' },
-                { id: 'deployment', name: 'deployment' },
-                { id: 'Node', name: 'node' },
+                { id: 'deployment', name: 'Deployment' },
+                { id: 'Node', name: 'Node' },
                 { id: 'HorizontalPodAutoscaler', name: 'HPA' },
                 { id: 'Service', name: 'Service' },
-                { id: 'task', name: 'task' },
-                { id: 'slaver', name: 'slaver' }
+                { id: 'task', name: 'Task' },
+                { id: 'slaver', name: 'Slaver' }
             ]
             // 事件对象 map
             const kindMap = {}
@@ -191,10 +191,10 @@
             // 组件下拉框 list
             const componentList = [
                 { id: 'all', name: this.$t('全部1') },
-                { id: 'scheduler/controller', name: 'scheduler/controller' },
-                { id: 'controller', name: 'controller' },
-                { id: 'kubelet', name: 'kubelet' },
-                { id: 'scheduler', name: 'scheduler' }
+                { id: 'scheduler/controller', name: 'Scheduler/controller' },
+                { id: 'controller', name: 'Controller' },
+                { id: 'kubelet', name: 'Kubelet' },
+                { id: 'scheduler', name: 'Scheduler' }
             ]
             // 事件级别 map
             const componentMap = {}

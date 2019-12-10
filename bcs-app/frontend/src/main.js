@@ -98,6 +98,10 @@ function loadScriptCallback (e) {
 
     bkMagic.locale.i18n((key, value) => i18n.t(key, value))
 
+    if (store.getters.lang === 'en-US') {
+        document.body.style.fontFamily = 'arial,sans-serif'
+    }
+
     window.bus = bus
     window.mainComponent = new Vue({
         el: '#app',
