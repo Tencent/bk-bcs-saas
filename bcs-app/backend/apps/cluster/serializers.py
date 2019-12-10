@@ -95,6 +95,7 @@ class CreateClusterSLZ(serializers.Serializer):
         intersection = set(resp.keys()) & set(ip_list)
         if intersection:
             raise ValidationError(_('IP: {ip_list}已经被占用，请重新选择节点').format(ip_list=','.join(intersection)))
+
         return ip_list
 
     def validate_name(self, value):

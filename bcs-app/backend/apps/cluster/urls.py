@@ -13,7 +13,6 @@
 #
 from django.conf.urls import url
 from . import views
-from .views import metrics
 
 urlpatterns = [
     url(r'^api/projects/(?P<project_id>[\w\-]+)/clusters/?$',
