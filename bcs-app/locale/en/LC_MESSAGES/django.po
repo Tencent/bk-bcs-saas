@@ -72,8 +72,7 @@ msgstr "No cluster permissions"
 #: backend/accounts/bcs_perm/__init__.py:632
 #: backend/activity_log/constants.py:46
 #: backend/apps/application/constants.py:128
-#: backend/apps/application/constants.py:145
-#: backend/apps/instance/utils.py:107
+#: backend/apps/application/constants.py:145 backend/apps/instance/utils.py:107
 msgid "模板集"
 msgstr "TemplateSet"
 
@@ -616,8 +615,7 @@ msgstr "Number of instances must be positive"
 #: backend/apps/application/views.py:1281
 #: backend/apps/application/views.py:1439
 msgid "环境变量 {} 对应的值不能为空"
-msgstr ""
-"The value corresponding to the environment variable {} cannot be empty"
+msgstr "The value corresponding to the environment variable {} cannot be empty"
 
 #: backend/apps/application/views.py:1308
 msgid "实例数 {} 不是整数"
@@ -871,8 +869,8 @@ msgstr "[{}] is disabled for the system default key, please confirm"
 #: backend/apps/cluster/views/node.py:768
 msgid "键[{}]不符合规范，请参考帮助文档!"
 msgstr ""
-"The key [{}] does not conform to the specification, please refer to the help"
-" documentation!"
+"The key [{}] does not conform to the specification, please refer to the help "
+"documentation!"
 
 #: backend/apps/cluster/views/node.py:772
 msgid "键[{}]对应的值[{}]不符合规范，请参考帮助文档!"
@@ -1047,7 +1045,9 @@ msgid "示例模板集"
 msgstr "Sample template set"
 
 #: backend/apps/configuration/init_data.py:34
-msgid "这是一款开源的吃豆游戏的配置模板集，您可以通过这个示例来熟悉微服务架构下系统的配置、发布、变更过程"
+msgid ""
+"这是一款开源的吃豆游戏的配置模板集，您可以通过这个示例来熟悉微服务架构下系统"
+"的配置、发布、变更过程"
 msgstr ""
 "This is an open source bean eating game configuration template set, you can "
 "use this example to familiarize yourself with the system configuration, "
@@ -1062,8 +1062,7 @@ msgid ""
 "以下命名空间已经实例化过，不能再实例化\n"
 "{}"
 msgstr ""
-"The following namespaces have been instantiated and cannot be instantiated "
-"{}"
+"The following namespaces have been instantiated and cannot be instantiated {}"
 
 #: backend/apps/configuration/instance/views.py:356
 msgid "实例化模板集[{}]命名空间[{}]"
@@ -1117,13 +1116,17 @@ msgstr ""
 #: backend/apps/configuration/k8s/serializers.py:164
 msgid "Service模板中{}: 请选择关联的 Deployment/StatefulSet/Daemonset"
 msgstr ""
-"{} in Service template: please select the associated "
-"Deployment/StatefulSet/Daemonset"
+"{} in Service template: please select the associated Deployment/StatefulSet/"
+"Daemonset"
 
 #: backend/apps/configuration/k8s/validator.py:25
 #, fuzzy
-#| msgid "名称格式错误，以小写字母或数字开头，只能包含：小写字母、数字、中划线(-)、点(.)"
-msgid "名称格式错误，以小写字母或数字开头，只能包含：小写字母、数字、连字符(-)、点(.)"
+#| msgid ""
+#| "名称格式错误，以小写字母或数字开头，只能包含：小写字母、数字、中划线(-)、"
+#| "点(.)"
+msgid ""
+"名称格式错误，以小写字母或数字开头，只能包含：小写字母、数字、连字符(-)、点"
+"(.)"
 msgstr ""
 "The name is malformed, starts with a lowercase letter or number, and can "
 "only contain: lowercase letters, numbers, hyphens (-), dot (.)"
@@ -1169,8 +1172,12 @@ msgstr "The port is already associated in Service [{}] and cannot be deleted"
 #: backend/apps/configuration/mesos/serializers.py:28
 #: backend/apps/configuration/mesos/validator.py:25
 #, fuzzy
-#| msgid "名称格式错误，只能包含：小写字母、数字、中划线(-)，首字母必须是字母，长度小于256个字符"
-msgid "名称格式错误，只能包含：小写字母、数字、连字符(-)，首字母必须是字母，长度小于256个字符"
+#| msgid ""
+#| "名称格式错误，只能包含：小写字母、数字、中划线(-)，首字母必须是字母，长度"
+#| "小于256个字符"
+msgid ""
+"名称格式错误，只能包含：小写字母、数字、连字符(-)，首字母必须是字母，长度小于"
+"256个字符"
 msgstr ""
 "The name is in the wrong format and can only contain lowercase letters, "
 "numbers, hyphens (-), the first letter must be a letter, and the length is "
@@ -1186,12 +1193,16 @@ msgstr "Port name: {}, please fill in again"
 
 #: backend/apps/configuration/mesos/serializers.py:82
 #, fuzzy
-#| msgid "Secret 名称格式错误，只能包含：小写字母、数字、中划线(-)，首字母必须是字母，长度小于256个字符"
-msgid "Deployment 名称格式错误，只能包含：小写字母、数字、连字符(-)，首字母必须是字母，长度小于256个字符"
+#| msgid ""
+#| "Secret 名称格式错误，只能包含：小写字母、数字、中划线(-)，首字母必须是字"
+#| "母，长度小于256个字符"
+msgid ""
+"Deployment 名称格式错误，只能包含：小写字母、数字、连字符(-)，首字母必须是字"
+"母，长度小于256个字符"
 msgstr ""
 "The Deployment name is in the wrong format and can only contain lowercase "
-"letters, numbers, and hyphens (-). The first letter must be a letter and the"
-" length is less than 256 characters"
+"letters, numbers, and hyphens (-). The first letter must be a letter and the "
+"length is less than 256 characters"
 
 #: backend/apps/configuration/mesos/serializers.py:99
 #, fuzzy
@@ -1232,8 +1243,8 @@ msgstr "The associated Application (app_id: {}) is illegal"
 #: backend/apps/configuration/mesos/validator.py:119
 msgid "以下端口名称已经存在模板集的其他应用中存在:{}"
 msgstr ""
-"The following port names already exist in other applications of the template"
-" set: {}"
+"The following port names already exist in other applications of the template "
+"set: {}"
 
 #: backend/apps/configuration/models/k8s.py:91
 #: backend/apps/configuration/models/k8s.py:187
@@ -1380,7 +1391,6 @@ msgstr "Draft"
 #| msgid "集群名称已经存在，请修改后重试"
 msgid "模板集名称[{}]已经存在"
 msgstr "Template set name [{}] already exists"
-
 #: backend/apps/configuration/serializers.py:247
 #, fuzzy
 #| msgid "json格式错误"
@@ -1480,8 +1490,7 @@ msgstr "Please fill in the contents of the template before saving"
 
 #: backend/apps/configuration/showversion/serializers.py:55
 msgid "模板集版本(id:{})不属于该模板(id:{})"
-msgstr ""
-"Template set version (id: {}) does not belong to the template (id: {})"
+msgstr "Template set version (id: {}) does not belong to the template (id: {})"
 
 #: backend/apps/configuration/showversion/views.py:182
 msgid "删除草稿"
@@ -1879,16 +1888,14 @@ msgstr ""
 #| msgid "获取资源失败，请联系蓝鲸管理员解决"
 msgid "创建K8sService失败，{}, 请联系管理员解决"
 msgstr ""
-"Failed to create K8sService, {}, please contact your administrator to "
-"resolve"
+"Failed to create K8sService, {}, please contact your administrator to resolve"
 
 #: backend/apps/instance/drivers/k8s.py:84
 #, fuzzy
 #| msgid "获取资源失败，请联系蓝鲸管理员解决"
 msgid "更新K8sService失败，{}, 请联系管理员解决"
 msgstr ""
-"Failed to update K8sService, {}, please contact your administrator to "
-"resolve"
+"Failed to update K8sService, {}, please contact your administrator to resolve"
 
 #: backend/apps/instance/drivers/k8s.py:103
 #, fuzzy
@@ -1965,16 +1972,14 @@ msgstr ""
 #| msgid "获取资源失败，请联系蓝鲸管理员解决"
 msgid "创建K8sIngress失败，{}, 请联系管理员解决"
 msgstr ""
-"Failed to create K8sIngress, {}, please contact your administrator to "
-"resolve"
+"Failed to create K8sIngress, {}, please contact your administrator to resolve"
 
 #: backend/apps/instance/drivers/k8s.py:264
 #, fuzzy
 #| msgid "获取资源失败，请联系蓝鲸管理员解决"
 msgid "更新K8sIngress失败，{}, 请联系管理员解决"
 msgstr ""
-"Failed to update K8sIngress, {}, please contact your administrator to "
-"resolve"
+"Failed to update K8sIngress, {}, please contact your administrator to resolve"
 
 #: backend/apps/instance/drivers/mesos.py:142
 #, fuzzy
@@ -2255,8 +2260,7 @@ msgstr ""
 msgid "GET方式，http_body键和值不能为空"
 msgstr "GET mode, http_ body key and value cannot be empty"
 
-#: backend/apps/metric/serializers.py:61
-#: backend/apps/metric/serializers.py:120
+#: backend/apps/metric/serializers.py:61 backend/apps/metric/serializers.py:120
 #, fuzzy
 #| msgid "已经存在"
 msgid "name已经存在"
@@ -2293,8 +2297,8 @@ msgstr "Parameter cannot be empty"
 #: backend/apps/metric/serializers.py:123
 msgid "名称由英文字母、下划线、中划线或数字组成，且不可以数字开头"
 msgstr ""
-"A name consists of letters, underscores, or numbers, and cannot begin with a"
-" number"
+"A name consists of letters, underscores, or numbers, and cannot begin with a "
+"number"
 
 #: backend/apps/metric/views.py:63
 msgid "获取metric列表成功"
@@ -2415,7 +2419,9 @@ msgstr ""
 "confirm and try again!"
 
 #: backend/apps/network/serializers.py:95
-msgid "名称格式错误，只能包含：小写字母、数字、中划线(-)，首字母必须是字母，长度小于256个字符"
+msgid ""
+"名称格式错误，只能包含：小写字母、数字、中划线(-)，首字母必须是字母，长度小于"
+"256个字符"
 msgstr ""
 "The name is in the wrong format and can only contain lowercase letters, "
 "numbers, underscores (-), the first letter must be a letter, and the length "
@@ -2493,13 +2499,12 @@ msgstr "No LB version information queried"
 #: backend/apps/network/views/lb/k8s.py:191
 msgid "不允许独享节点分属不同的LB，请检查后重试"
 msgstr ""
-"Exclusive nodes are not allowed to belong to different LB,. Please check and"
-" try again"
+"Exclusive nodes are not allowed to belong to different LB,. Please check and "
+"try again"
 
 #: backend/apps/network/views/lb/k8s.py:255
 msgid "命名空间已经被占用，请选择其他命名空间"
-msgstr ""
-"The namespace is already occupied, please select a different namespace"
+msgstr "The namespace is already occupied, please select a different namespace"
 
 #: backend/apps/network/views/lb/k8s.py:315
 msgid "创建失败，请查看实例详情!"
@@ -2601,20 +2606,18 @@ msgid "模板集[id:{}]没有可用的版本，无法更新service"
 msgstr ""
 "Template set [id: {}] has no version available and cannot update service"
 
-#: backend/apps/network/views/service.py:325
-#: backend/apps/resource/views.py:458
+#: backend/apps/network/views/service.py:325 backend/apps/resource/views.py:458
 msgid "不允许操作系统命名空间"
 msgstr "Operating system namespaces are not allowed"
 
 #: backend/apps/network/views/service.py:330
 msgid "所属模板集不存在，无法操作"
 msgstr ""
-"The template set to which it belongs does not exist and cannot be "
-"manipulated"
+"The template set to which it belongs does not exist and cannot be manipulated"
 
 #: backend/apps/network/views/service.py:366
-#: backend/apps/network/views/service.py:531
-#: backend/apps/resource/views.py:128 backend/apps/resource/views.py:292
+#: backend/apps/network/views/service.py:531 backend/apps/resource/views.py:128
+#: backend/apps/resource/views.py:292
 msgid "不允许操作系统命名空间[{}]"
 msgstr "Operating system namespaces are not allowed [{}]"
 
@@ -2622,8 +2625,7 @@ msgstr "Operating system namespaces are not allowed [{}]"
 msgid "删除Service[{}]命名空间[{}]"
 msgstr "Delete Service [{}] namespace [{}]"
 
-#: backend/apps/network/views/service.py:424
-#: backend/apps/resource/views.py:184
+#: backend/apps/network/views/service.py:424 backend/apps/resource/views.py:184
 msgid "{}[命名空间:{}]已经被删除，请手动刷新数据"
 msgstr "{} [namespace: {}] has been deleted, please refresh the data manually"
 
@@ -2633,8 +2635,7 @@ msgstr "{} [namespace: {}] has been deleted, please refresh the data manually"
 msgid "{}[命名空间:{}]"
 msgstr "{} [Namespace: {}]"
 
-#: backend/apps/network/views/service.py:470
-#: backend/apps/resource/views.py:231
+#: backend/apps/network/views/service.py:470 backend/apps/resource/views.py:231
 msgid "已经被删除，请手动刷新数据"
 msgstr "It has been deleted, please refresh the data manually"
 
@@ -2649,6 +2650,12 @@ msgstr "{}] [Namespace: {}]: {}"
 #| msgid "以下service删除成功:{]}"
 msgid "以下service删除成功:{}"
 msgstr "The following service was deleted successfully: {}"
+
+#: backend/apps/network/views/service.py:481
+#, fuzzy
+#| msgid "以下service删除成功:{]}"
+msgid "以下service删除成功:{}"
+msgstr "The following service was deleted successfully: {]}"
 
 #: backend/apps/network/views/service.py:497
 #, fuzzy
@@ -2798,8 +2805,8 @@ msgstr "Container service is enabled under"
 #: backend/apps/projects/views.py:149
 msgid "请确认有项目管理员权限，并且项目下无集群"
 msgstr ""
-"Please confirm that you have project administrator privileges and that there"
-" is no cluster under the project"
+"Please confirm that you have project administrator privileges and that there "
+"is no cluster under the project"
 
 #: backend/apps/projects/views.py:161
 msgid "更新项目"
@@ -2860,7 +2867,8 @@ msgid "证书内容"
 msgstr "Certificate content"
 
 #: backend/apps/ticket/serializers.py:48
-msgid "证书名称只能包含：英文大小写、数字、下划线和英文句号，最大长度为64个字符"
+msgid ""
+"证书名称只能包含：英文大小写、数字、下划线和英文句号，最大长度为64个字符"
 msgstr ""
 "Certificate name can only contain: English case, number, underscore and "
 "English period, the maximum length is 64 characters"
@@ -3384,7 +3392,9 @@ msgstr ""
 "close, please use Alt-W instead"
 
 #: backend/web_console/constant_bk.py:28
-msgid "支持常用Bash快捷键; Windows下Ctrl-W为关闭窗口快捷键, 请使用Alt-W代替; 使用Alt-Num切换Tab"
+msgid ""
+"支持常用Bash快捷键; Windows下Ctrl-W为关闭窗口快捷键, 请使用Alt-W代替; 使用"
+"Alt-Num切换Tab"
 msgstr ""
 "Support common Bash shortcuts; Ctrl-W in Windows is to close the window "
 "shortcut, please use Alt-W instead; use Alt-Num to switch Tab"
