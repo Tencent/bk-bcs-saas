@@ -172,6 +172,9 @@ def get_node_list(access_token, project_id, cluster_id, params=()):
     else:
         url = f'{CC_HOST}/projects/{project_id}/nodes/'
     params = dict(params)
+    # 默认拉取项目或集群下的所有节点，防止view层出现分页查询问题
+    if 'desire_all_data' not in params:
+        params['desire_all_data'] = 1
     params.update({"access_token": access_token, "cluster_id": cluster_id})
     return http_get(url, params=params)
 
