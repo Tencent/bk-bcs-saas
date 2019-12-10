@@ -211,11 +211,11 @@ func NodeListByCluster(clusterIDList []string, excludeStatus []string) (data []N
 	return data, nil
 }
 
-// UpdateNodeNormalNotReady : update node status, only status in [normal, not_ready]
+// UpdateNodeStatus : update node status, only status in [normal, not_ready, initializing]
 // if ip in nodeIPList, set status as normal, else set not_ready
-func UpdateNodeNormalNotReady(clusterID string, nodeIPList []string) error {
+func UpdateNodeStatus(clusterID string, nodeIPList []string) error {
 	db := storage.GetDefaultSession().DB
-	queryset := NewNodeQuerySet(db).ClusterIDEq(clusterID).StatusIn("normal", "not_ready")
+	queryset := NewNodeQuerySet(db).ClusterIDEq(clusterID).StatusIn("normal", "not_ready", "initializing")
 	normalUpdater := queryset.InnerIPIn(nodeIPList...).GetUpdater()
 	if err := normalUpdater.SetStatus("normal").Update(); err != nil {
 		return err

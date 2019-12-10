@@ -171,7 +171,7 @@ func updateClusterMetric(info models.Cluster, env string, confBase *config.Confi
 	for _, val := range bcsReponseDataInst.Agents {
 		normalNodeList = append(normalNodeList, val.IP)
 	}
-	if err := models.UpdateNodeNormalNotReady(info.ClusterID, normalNodeList); err != nil {
+	if err := models.UpdateNodeStatus(info.ClusterID, normalNodeList); err != nil {
 		logging.Error("update node status error, detail: %v", err)
 	}
 	logging.Info("update cluster %s metric success", info.ClusterID)
