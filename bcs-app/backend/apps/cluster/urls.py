@@ -92,43 +92,6 @@ urlpatterns = [
         name='api.projects.cc_host_info',
     ),
 
-     # 监控信息(New)
-    url(r'^api/projects/(?P<project_id>\w+)/clusters/(?P<cluster_id>[\w\-]+)/metrics/overview/$',
-        metrics.Cluster.as_view({'get': 'overview'})),
-
-    url(r'^api/projects/(?P<project_id>\w+)/clusters/(?P<cluster_id>[\w\-]+)/metrics/cpu/$',
-        metrics.Cluster.as_view({'get': 'cpu_usage'})),
-
-    url(r'^api/projects/(?P<project_id>\w+)/clusters/(?P<cluster_id>[\w\-]+)/metrics/memory/$',
-        metrics.Cluster.as_view({'get': 'memory_usage'})),
-
-    url(r'^api/projects/(?P<project_id>\w+)/clusters/(?P<cluster_id>[\w\-]+)/metrics/disk/$',
-        metrics.Cluster.as_view({'get': 'disk_usage'})),
-
-    url(r'^api/projects/(?P<project_id>\w+)/clusters/(?P<cluster_id>[\w\-]+)/metrics/node/cpu/$',
-        metrics.Node.as_view({'get': 'cpu_usage'})),
-
-    url(r'^api/projects/(?P<project_id>\w+)/clusters/(?P<cluster_id>[\w\-]+)/metrics/node/memory/$',
-        metrics.Node.as_view({'get': 'memory_usage'})),
-
-    url(r'^api/projects/(?P<project_id>\w+)/clusters/(?P<cluster_id>[\w\-]+)/metrics/node/network/$',
-        metrics.Node.as_view({'get': 'network_usage'})),
-
-    url(r'^api/projects/(?P<project_id>\w+)/clusters/(?P<cluster_id>[\w\-]+)/metrics/node/diskio/$',
-        metrics.Node.as_view({'get': 'diskio_usage'})),
-
-    url(r'^api/projects/(?P<project_id>\w+)/clusters/(?P<cluster_id>[\w\-]+)/metrics/container/cpu/$',
-        metrics.Container.as_view({'get': 'cpu_usage'})),
-
-    url(r'^api/projects/(?P<project_id>\w+)/clusters/(?P<cluster_id>[\w\-]+)/metrics/container/memory/$',
-        metrics.Container.as_view({'get': 'memory_usage'})),
-
-    url(r'^api/projects/(?P<project_id>\w+)/clusters/(?P<cluster_id>[\w\-]+)/metrics/container/network/$',
-        metrics.Container.as_view({'get': 'network_usage'})),
-
-    url(r'^api/projects/(?P<project_id>\w+)/clusters/(?P<cluster_id>[\w\-]+)/metrics/container/diskio/$',
-        metrics.Container.as_view({'get': 'diskio_usage'})),
-
     # 监控信息
     url(r'^api/projects/(?P<project_id>\w+)/metrics/cluster/summary/$',
         views.ClusterSummaryMetrics.as_view({'get': 'list'})),
