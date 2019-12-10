@@ -16,7 +16,7 @@
 """
 
 from django.core.management.base import BaseCommand
-from django.utils.translation import ugettext as _
+from django.utils.translation import ugettext_lazy as _
 
 from backend.accounts import bcs_perm
 from backend.components import paas_cc

@@ -20,7 +20,7 @@ from concurrent.futures import ThreadPoolExecutor
 import yaml
 from django.conf import settings
 from django.template.loader import render_to_string
-from django.utils.translation import ugettext as _
+from django.utils.translation import ugettext_lazy as _
 from django.utils.encoding import smart_text
 from kubernetes import client
 from kubernetes.client.rest import ApiException

@@ -20,7 +20,7 @@ from django.conf import settings
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 from jsonschema import ValidationError as JsonValidationError, SchemaError, validate as json_validate
-from django.utils.translation import ugettext as _
+from django.utils.translation import ugettext_lazy as _
 
 from . import models
 from .constants_bak import SERVICE_SCHEM, CONFIGMAP_SCHEM, SECRET_SCHEM

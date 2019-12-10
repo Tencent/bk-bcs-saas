@@ -34,7 +34,7 @@ from django.http import HttpResponse
 from django.db import IntegrityError
 from jinja2 import Template
 from django.template.loader import render_to_string
-from django.utils.translation import ugettext as _
+from django.utils.translation import ugettext_lazy as _
 
 from .models import App
 from .serializers import (

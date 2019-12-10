@@ -16,7 +16,7 @@ import logging
 
 from rest_framework import views
 from django.conf import settings
-from django.utils.translation import ugettext as _
+from django.utils.translation import ugettext_lazy as _
 
 from backend.apps.application import constants
 from backend.utils.error_codes import error_codes

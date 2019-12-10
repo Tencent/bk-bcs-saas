@@ -14,7 +14,7 @@
 """
 命名空间相关的方法
 """
-from django.utils.translation import ugettext as _
+from django.utils.translation import ugettext_lazy as _
 
 from backend.components import paas_cc
 from backend.components.bcs.k8s import K8SClient

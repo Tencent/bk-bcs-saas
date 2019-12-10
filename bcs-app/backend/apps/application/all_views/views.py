@@ -17,7 +17,7 @@
 import copy
 
 from django.conf import settings
-from django.utils.translation import ugettext as _
+from django.utils.translation import ugettext_lazy as _
 
 from backend.apps.application.all_views import k8s_views, mesos_views
 from backend.apps.application.base_views import BaseAPI, error_codes

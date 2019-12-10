@@ -17,7 +17,7 @@
 TODO
 1. RES_NAME_PATTERN/PORT_NAME_PATTERN 验证变量的情况
 """
-from django.utils.translation import ugettext as _
+from django.utils.translation import ugettext_lazy as _
 
 
 # 资源名称 & 端口名称

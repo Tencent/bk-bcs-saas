@@ -19,7 +19,7 @@ from itertools import groupby
 from django.conf import settings
 from rest_framework import response, serializers, viewsets
 from rest_framework.exceptions import ValidationError
-from django.utils.translation import ugettext as _
+from django.utils.translation import ugettext_lazy as _
 
 from .tasks import sync_namespace as sync_ns_task
 from .resources import Namespace

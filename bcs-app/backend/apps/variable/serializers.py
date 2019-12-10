@@ -17,7 +17,7 @@ import re
 
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
-from django.utils.translation import ugettext as _
+from django.utils.translation import ugettext_lazy as _
 
 from backend.apps.variable.models import Variable
 from backend.apps.instance.serializers import InstanceNamespaceSLZ
@@ -42,10 +42,11 @@ class SearchVariableSLZ(serializers.Serializer):
 
 
 class ListVariableSLZ(serializers.ModelSerializer):
-    category_name = serializers.CharField(source='get_category_display')
-    scope_name = serializers.CharField(source='get_scope_display')
     default = serializers.DictField(source='get_default_data')
     quote_num = serializers.SerializerMethodField()
+    name = serializers.SerializerMethodField()
+    category_name = serializers.SerializerMethodField()
+    scope_name = serializers.SerializerMethodField()
 
     class Meta:
         model = Variable
@@ -58,6 +59,15 @@ class ListVariableSLZ(serializers.ModelSerializer):
         if search_type == 'base':
             return 0
         return get_variable_quote_num(obj.key, self.context['project_id'])
+
+    def get_name(self, obj):
+        return _(obj.name)
+
+    def get_category_name(self, obj):
+        return _(obj.get_category_display())
+
+    def get_scope_name(self, obj):
+        return _(obj.get_scope_display())
 
 
 class VariableSLZ(serializers.ModelSerializer):

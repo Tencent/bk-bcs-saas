@@ -17,7 +17,7 @@ from functools import wraps
 import tornado.web
 from backend.components.utils import http_get
 from django.conf import settings
-from django.utils.translation import ugettext as _
+from django.utils.translation import ugettext_lazy as _
 from .session import session_mgr
 
 logger = logging.getLogger(__name__)

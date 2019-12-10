@@ -14,7 +14,7 @@
 import json
 import logging
 from django.conf import settings
-from django.utils.translation import ugettext as _
+from django.utils.translation import ugettext_lazy as _
 
 from backend.components.utils import http_get, http_post, http_put, http_patch, http_delete
 from backend.utils.errcodes import ErrorCode

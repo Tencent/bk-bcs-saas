@@ -15,7 +15,7 @@ import time
 import json
 
 from django.db import models
-from django.utils.translation import ugettext as _
+from django.utils.translation import ugettext_lazy as _
 
 from .mixins import MConfigMapAndSecretMixin, PodMixin, ResourceMixin
 from .base import BaseModel, logger

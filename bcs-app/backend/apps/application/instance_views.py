@@ -23,7 +23,7 @@ from django.db.models import Q
 from django.conf import settings
 from rest_framework.response import Response
 from rest_framework.renderers import BrowsableAPIRenderer
-from django.utils.translation import ugettext as _
+from django.utils.translation import ugettext_lazy as _
 
 from backend.components import paas_cc
 from backend.apps.application.utils import APIResponse, image_handler

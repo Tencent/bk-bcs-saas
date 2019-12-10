@@ -14,7 +14,7 @@
 from django.conf import settings
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
-from django.utils.translation import ugettext as _
+from django.utils.translation import ugettext_lazy as _
 
 from backend.apps.configuration.constants import K8sResourceName
 from backend.apps.configuration.validator import validate_variable_inconfig, get_name_from_config, \

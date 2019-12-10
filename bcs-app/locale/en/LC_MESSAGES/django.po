@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-11-28 18:00+0800\n"
+"POT-Creation-Date: 2019-12-06 11:37+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -817,9 +817,11 @@ msgid "集群Master节点数量必须为不大于5的奇数"
 msgstr ""
 "The number of cluster Master nodes must be an odd number not greater than 5"
 
-#: backend/apps/cluster/serializers.py:98
-msgid "已经被占用，请重新选择节点"
-msgstr "It is already occupied, please reselect the node"
+#: backend/apps/cluster/serializers.py:97
+#, fuzzy, python-brace-format
+#| msgid "已经被占用，请重新选择节点"
+msgid "IP: {ip_list}已经被占用，请重新选择节点"
+msgstr "IP: {ip_list} is already occupied, please reselect the node"
 
 #: backend/apps/cluster/serializers.py:106
 msgid "集群名称已经存在，请修改后重试"
@@ -1555,11 +1557,11 @@ msgstr "The template set has been instantiated and cannot be deleted"
 msgid "删除模板集"
 msgstr "Delete template set"
 
-#: backend/apps/configuration/views.py:487
+#: backend/apps/configuration/views.py:486
 msgid "要复制的模板集不存在"
 msgstr "The template set to copy does not exist"
 
-#: backend/apps/configuration/views.py:504
+#: backend/apps/configuration/views.py:503
 msgid "复制模板集"
 msgstr "Copy template set"
 
@@ -1834,21 +1836,6 @@ msgstr "Metric configuration has been deleted"
 #: backend/apps/instance/constants.py:468
 msgid "Metric配置更新"
 msgstr "Metric configuration UPDAT"
-
-#: backend/apps/instance/drivers/base.py:155
-#, fuzzy
-#| msgid "获取资源失败，请联系蓝鲸管理员解决"
-msgid "获取状态失败，请联系蓝鲸管理员解决"
-msgstr ""
-"Failed to get status, please contact blue whale administrator to resolve"
-
-#: backend/apps/instance/drivers/base.py:161
-msgid "没有可用节点，请添加或启用节点"
-msgstr "No nodes are available, please add or enable nodes"
-
-#: backend/apps/instance/drivers/base.py:178
-msgid "初始化失败，{}绑定的集群({}) {}"
-msgstr "Initialization failed, {} bound cluster ({}) {}"
 
 #: backend/apps/instance/drivers/k8s.py:41
 #: backend/apps/instance/drivers/k8s.py:53
@@ -2172,8 +2159,8 @@ msgid "json格式"
 msgstr "Json format"
 
 #: backend/apps/instance/models.py:121 backend/apps/instance/models.py:148
-#: backend/apps/variable/serializers.py:106
-#: backend/apps/variable/serializers.py:128
+#: backend/apps/variable/serializers.py:117
+#: backend/apps/variable/serializers.py:139
 msgid "变量"
 msgstr "Variable"
 
@@ -2883,8 +2870,8 @@ msgid "证书名称"
 msgstr "Certificate name"
 
 #: backend/apps/ticket/serializers.py:62
-#: backend/apps/variable/serializers.py:106
-#: backend/apps/variable/serializers.py:128
+#: backend/apps/variable/serializers.py:117
+#: backend/apps/variable/serializers.py:139
 msgid "已经存在"
 msgstr "Already exists."
 
@@ -2946,29 +2933,29 @@ msgstr ""
 "Stores default values in {'value':' value'} format, which can store strings "
 "and numbers"
 
-#: backend/apps/variable/serializers.py:71
+#: backend/apps/variable/serializers.py:82
 msgid "KEY 只能包含字母、数字和下划线，且以字母开头，最大长度为64个字符"
 msgstr ""
 "KEY can only contain letters, numbers, and underscores, starting with a "
 "letter and a maximum length of 64 characters"
 
-#: backend/apps/variable/serializers.py:86
+#: backend/apps/variable/serializers.py:97
 msgid "default字段非字典类型"
 msgstr "Default field is not a dictionary type"
 
-#: backend/apps/variable/serializers.py:88
+#: backend/apps/variable/serializers.py:99
 msgid "default字段没有以value作为键值"
 msgstr "The default field does not have value as the key value"
 
-#: backend/apps/variable/serializers.py:93
+#: backend/apps/variable/serializers.py:104
 msgid "为系统变量名，不允许添加"
 msgstr "Is the system variable name and is not allowed to be added"
 
-#: backend/apps/variable/serializers.py:117
+#: backend/apps/variable/serializers.py:128
 msgid "系统内置变量不允许操作"
 msgstr "System built-in variables are not allowed to operate"
 
-#: backend/apps/variable/serializers.py:124
+#: backend/apps/variable/serializers.py:135
 msgid "已经被引用，不能修改KEY"
 msgstr "KEY cannot be modified because it has been referenced"
 
@@ -3478,6 +3465,17 @@ msgstr "BCS Console network is disconnected, please check the network"
 #: backend/web_console/templates/index.html:129
 msgid "重新加载"
 msgstr "Reload"
+
+#, fuzzy
+#~ msgid "获取状态失败，请联系蓝鲸管理员解决"
+#~ msgstr ""
+#~ "Failed to get status, please contact blue whale administrator to resolve"
+
+#~ msgid "没有可用节点，请添加或启用节点"
+#~ msgstr "No nodes are available, please add or enable nodes"
+
+#~ msgid "初始化失败，{}绑定的集群({}) {}"
+#~ msgstr "Initialization failed, {} bound cluster ({}) {}"
 
 #~ msgid "关联的"
 #~ msgstr "Associated"

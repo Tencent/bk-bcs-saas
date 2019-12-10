@@ -17,7 +17,7 @@ import time
 from urllib.parse import urlparse
 
 import arrow
-from django.utils.translation import ugettext as _
+from django.utils.translation import ugettext_lazy as _
 
 from backend.apps import constants
 from backend.apps.metric.models import Metric

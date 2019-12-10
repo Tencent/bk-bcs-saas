@@ -19,7 +19,7 @@ import json
 from datetime import timedelta, datetime
 
 from django.conf import settings
-from django.utils.translation import ugettext as _
+from django.utils.translation import ugettext_lazy as _
 
 from celery import shared_task
 

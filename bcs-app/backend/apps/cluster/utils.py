@@ -16,7 +16,7 @@ from datetime import datetime
 
 from django.conf import settings
 from django.core.paginator import Paginator
-from django.utils.translation import ugettext as _
+from django.utils.translation import ugettext_lazy as _
 
 from backend.utils.error_codes import error_codes
 

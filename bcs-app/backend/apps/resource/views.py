@@ -23,7 +23,7 @@ import json
 from rest_framework.response import Response
 from rest_framework.exceptions import ValidationError
 from rest_framework import viewsets
-from django.utils.translation import ugettext as _
+from django.utils.translation import ugettext_lazy as _
 
 from backend.accounts import bcs_perm
 from backend.utils.errcodes import ErrorCode

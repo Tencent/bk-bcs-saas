@@ -17,7 +17,7 @@ import logging
 import json
 
 from django.db import models
-from django.utils.translation import ugettext as _
+from django.utils.translation import ugettext_lazy as _
 
 from backend.apps.configuration.models import BaseModel
 from .constants import VariableScope, VariableCategory, ALL_PROJECTS

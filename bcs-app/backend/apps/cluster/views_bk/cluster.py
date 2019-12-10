@@ -19,7 +19,7 @@ from datetime import datetime
 from django.conf import settings
 from rest_framework.response import Response
 from rest_framework.renderers import BrowsableAPIRenderer
-from django.utils.translation import ugettext as _
+from django.utils.translation import ugettext_lazy as _
 
 from .configs import k8s, mesos
 from backend.components import paas_cc, cc

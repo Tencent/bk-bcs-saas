@@ -18,7 +18,7 @@ import logging
 from django.utils import timezone
 from django.db import transaction
 from celery import shared_task
-from django.utils.translation import ugettext as _
+from django.utils.translation import ugettext_lazy as _
 
 from backend.apps.constants import ClusterType
 from backend.accounts import bcs_perm
