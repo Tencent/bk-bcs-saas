@@ -16,11 +16,11 @@ from . import views
 
 urlpatterns = [
     url(r'^api/metric/(?P<project_id>\w{32})/$',
-        views.Metric.as_view({'get': 'list', 'post': 'create'})),
+        views.collector.Metric.as_view({'get': 'list', 'post': 'create'})),
 
     url(r'^api/metric/(?P<project_id>\w{32})/(?P<metric_id>\d+)/$',
-        views.MetricDetail.as_view({'get': 'get', 'put': 'put', 'post': 'recreate', 'delete': 'delete'})),
+        views.collector.MetricDetail.as_view({'get': 'get', 'put': 'put', 'post': 'recreate', 'delete': 'delete'})),
 
     url(r'^api/metric/(?P<project_id>\w{32})/instances/(?P<metric_id>\d+)/$',
-        views.MetricIns.as_view({'get': 'get_instance'})),
+        views.collector.MetricIns.as_view({'get': 'get_instance'})),
 ]

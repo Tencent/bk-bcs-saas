@@ -300,38 +300,3 @@ class QueryLabelKeysSLZ(QueryLabelSLZ):
 
 class QueryLabelValuesSLZ(QueryLabelSLZ):
     key_name = serializers.CharField(required=True)
-
-class PromMetricSLZBase(serializers.Serializer):
-    start_at = serializers.DateTimeField(required=False)
-    end_at = serializers.DateTimeField(required=False)
-
-    def validate(self, data):
-        now = int(time.time())
-        # handle the start_at
-        if 'start_at' in data:
-            data['start_at'] = arrow.get(data['start_at']).timestamp
-        else:
-            # default one hour
-            data['start_at'] = now - constants.METRICS_DEFAULT_TIMEDELTA
-        # handle the end_at
-        if 'end_at' in data:
-            data['end_at'] = arrow.get(data['end_at']).timestamp
-        else:
-            data['end_at'] = now
-        # start_at must be less than end_at
-        if data['end_at'] <= data['start_at']:
-            raise ValidationError(_('param[start_at] must be less than [end_at]'))
-        return data
-
-
-class PromMetricSLZ(PromMetricSLZBase):
-    res_id = serializers.CharField(required=True)
-
-class PromPodMetricSLZ(PromMetricSLZBase):
-    """Pod数据查询
-    """
-    res_id_list = serializers.CharField(required=True)
-
-    def validate_res_id_list(self, res_id_list):
-        res_id_list = res_id_list.split(',')
-        return res_id_list
