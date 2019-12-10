@@ -216,9 +216,7 @@ def check_ips(bk_biz_id, username, req_ip_list):
 
     diff_ip_list = set(req_ip_list) - set(perm_ip_list)
     if diff_ip_list:
-        raise error_codes.CheckFailed('{prefix_msg}{ip_list}'.format(
-            prefix_msg=_("当前用户没有权限操作ip"), ip_list=','.join(diff_ip_list)
-        ))
+        raise error_codes.CheckFailed(_('当前用户没有权限操作ip{}').format(','.join(diff_ip_list)))
 
 
 def get_application_host(username, bk_biz_id, inner_ip, bk_supplier_account=None):

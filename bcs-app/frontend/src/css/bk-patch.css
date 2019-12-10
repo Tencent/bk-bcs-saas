@@ -1127,3 +1127,15 @@
 .bk-tab2 .bk-tab2-head .bk-tab2-nav>.tab2-nav-item {
     max-width: 220px;
 }
+
+.english {
+    .bk-form .bk-label {
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+    }
+
+    .biz-search-input .biz-search-btn {
+        top: 8px;
+    }
+}

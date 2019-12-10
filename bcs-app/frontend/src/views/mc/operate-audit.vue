@@ -88,7 +88,7 @@
                                         <td>{{item.user}}</td>
                                         <td>
                                             <bk-tooltip placement="top" :delay="500">
-                                                <div class="description">
+                                                <div class="description vm">
                                                     {{item.description}}
                                                 </div>
                                                 <template slot="content">
