@@ -22,7 +22,7 @@ from backend.utils.renderers import BKAPIRenderer
 from backend.apps.application import constants
 from backend.apps.application import utils
 from backend.apps.application import base_perm_views
-from backend.apps.application.base_views import BaseInstanceView, InstanceAPI
+from backend.apps.application.base_views import BaseInstanceView
 from backend.apps.application import drivers
 from backend.utils.basic import getitems
 from backend.web_console.api import exec_command
@@ -168,37 +168,5 @@ class K8SContainerInfo(BaseInstanceView, viewsets.ViewSet):
             # not raise error, record log
             logger.error('parse the env data error, detial: %s', err)
             data = []
-
-        return response.Response(data)
-
-
-class InstanceConfigViewSet(InstanceAPI, viewsets.ViewSet):
-    renderer_classes = (BKAPIRenderer, BrowsableAPIRenderer)
-
-    def get_config(self, config):
-        try:
-            return json.loads(config)
-        except Exception:
-            return {}
-
-    def get(self, request, project_id, instance_id):
-        # 检查是否是模板集创建以及是否已经更新/滚动升级
-        if not self._from_template(instance_id):
-            raise error_codes.CheckFailed(_("非模板集实例化的应用不允许进行回滚操作"))
-        instance_detail = self.get_instance_info(self, id).first()
-        last_config = self.get_config(instance_detail.last_config)
-        if not last_config:
-            raise error_codes.CheckFailed(_("请确认已经执行过更新或滚动升级"))
-        # 配置是否正常
-        current_config = self.get_config(instance_detail.config)
-        if not current_config:
-            raise error_codes.CheckFailed(_("获取实例配置为空"))
-
-        data = {
-            'current_config': current_config,
-            'current_config_yaml': self.json2yaml(last_config),
-            'last_config': last_config,
-            'last_config_yaml': self.json2yaml(last_config)
-        }
 
         return response.Response(data)

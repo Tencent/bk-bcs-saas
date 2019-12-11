@@ -18,7 +18,7 @@ from . import instance_views
 from backend.apps.application.other_views import templates
 from backend.apps.application.all_views import views as ns_views
 from backend.apps.application.filters import views as filter_views
-from backend.apps.application.common_views import query as common_query
+from backend.apps.application.common_views import query as common_query, operation
 
 urlpatterns = [
     url(
@@ -238,4 +238,13 @@ urlpatterns = [
         r"^api/app/projects/(?P<project_id>[\w\-]+)/all_namespaces/$",
         filter_views.GetAllNamespaces.as_view(),
     ),
+    url(
+        r'^api/projects/(?P<project_id>\w{32})/instances/(?P<instance_id>\d+)/all_configs/$',
+        operation.RollbackPreviousVersion.as_view({'get': 'get'})
+    ),
+    url(
+        r'^api/projects/(?P<project_id>\w{32})/instances/(?P<instance_id>\d+)/rollback/$',
+        operation.RollbackPreviousVersion.as_view({'put': 'update'})
+    )
+
 ]
