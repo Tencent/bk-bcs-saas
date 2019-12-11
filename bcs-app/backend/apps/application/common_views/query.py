@@ -16,7 +16,6 @@ import json
 
 from rest_framework import response, viewsets
 from rest_framework.renderers import BrowsableAPIRenderer
-from django.utils.translation import ugettext_lazy as _
 
 from backend.utils.renderers import BKAPIRenderer
 from backend.apps.application import constants
