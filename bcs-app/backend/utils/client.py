@@ -16,12 +16,15 @@ import logging
 import tempfile
 
 from django.conf import settings
+from django.utils.functional import cached_property
 from rest_framework.exceptions import APIException
+from kubernetes.client.rest import ApiException
 
 from backend.bcs_k8s.bke_client import BCSClusterClient
 from backend.bcs_k8s.kubectl import KubectlClusterClient
 from backend.bcs_k8s.dashboard import DashboardClient
 from backend.components import bcs
+from backend.utils.error_codes import error_codes
 
 logger = logging.getLogger(__name__)
 
@@ -110,3 +113,41 @@ def make_dashboard_ctl_client(kubeconfig):
         dashboard_ctl_bin=settings.DASHBOARD_CTL_BIN,
         kubeconfig=kubeconfig
     )
+
+
+class KubectlClient:
+
+    def __init__(self, access_token, project_id, cluster_id):
+        self.access_token = access_token
+        self.project_id = project_id
+        self.cluster_id = cluster_id
+
+    @cached_property
+    def _client(self):
+        with make_kubectl_client(
+                project_id=self.project_id,
+                cluster_id=self.cluster_id,
+                access_token=self.access_token) as (client, err):
+            if err is not None:
+                if isinstance(err, ApiException):
+                    err = f'Code: {err.status}, Reason: {err.reason}'
+                raise error_codes.ComponentError(f'make client failed: {err}')
+        return client
+
+    def _run_with_kubectl(self, operation, namespace, manifests):
+        client = self._client
+        try:
+            if operation == 'apply':
+                client.ensure_namespace(namespace)
+                client.apply(manifests, namespace)
+            elif operation == 'delete':
+                client.ensure_namespace(namespace)
+                client.delete(manifests, namespace)
+        except Exception as e:
+            raise error_codes.ComponentError(f'client {operation} failed: {e}')
+
+    def apply(self, namespace, manifests):
+        self._run_with_kubectl('apply', namespace, manifests)
+
+    def delete(self, namespace, manifests):
+        self._run_with_kubectl('delete', namespace, manifests)

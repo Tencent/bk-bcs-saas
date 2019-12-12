@@ -21,6 +21,7 @@ from ruamel.yaml import YAML
 from dataclasses import dataclass
 from rest_framework.exceptions import ParseError
 
+from backend.apps.configuration.constants import FileResourceName
 from backend.bcs_k8s.app import bcs_info_injector
 from backend.bcs_k8s.helm import bcs_variable
 
@@ -78,8 +79,16 @@ class ReleaseDataProcessor:
         return t.render(bcs_variables)
 
     def _set_namespace(self, resources):
+        ignore_ns_res = [FileResourceName.ClusterRole.value,
+                         FileResourceName.ClusterRoleBinding.value,
+                         FileResourceName.StorageClass.value,
+                         FileResourceName.PersistentVolume.value]
+
         try:
             for res_manifest in resources:
+                if res_manifest['kind'] in ignore_ns_res:
+                    continue
+
                 metadata = res_manifest['metadata']
                 metadata['namespace'] = self.namespace_info['name']
         except Exception:
