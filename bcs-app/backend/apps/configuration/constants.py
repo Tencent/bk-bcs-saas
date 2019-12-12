@@ -121,6 +121,14 @@ class FileResourceName(ChoicesEnum):
     Job = 'Job'
     HPA = 'HPA'
 
+    ServiceAccount = 'ServiceAccount'
+    ClusterRole = 'ClusterRole'
+    ClusterRoleBinding = 'ClusterRoleBinding'
+    PodDisruptionBudget = 'PodDisruptionBudget'
+    StorageClass = 'StorageClass'
+    PersistentVolume = 'PersistentVolume',
+    PersistentVolumeClaim = 'PersistentVolumeClaim'
+
     _choices_labels = (
         (Deployment, 'Deployment'),
         (Service, 'Service'),
@@ -131,6 +139,13 @@ class FileResourceName(ChoicesEnum):
         (DaemonSet, 'DaemonSet'),
         (Job, 'Job'),
         (HPA, 'HPA'),
+        (ServiceAccount, 'ServiceAccount'),
+        (ClusterRole, 'ClusterRole'),
+        (ClusterRoleBinding, 'ClusterRoleBinding'),
+        (PodDisruptionBudget, 'PodDisruptionBudget'),
+        (StorageClass, 'StorageClass'),
+        (PersistentVolume, 'PersistentVolume'),
+        (PersistentVolumeClaim, 'PersistentVolumeClaim')
     )
 
 
