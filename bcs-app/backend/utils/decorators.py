@@ -15,12 +15,14 @@ import json
 import logging
 import time
 from functools import wraps
+from urllib import parse
 
 import six
 from django.utils.encoding import force_str
-from requests.models import Response
 from django.utils.translation import ugettext_lazy as _
+from requests.models import Response
 
+from backend.apps.constants import SENSITIVE_KEYWORD
 from backend.utils.exceptions import ComponentError
 
 logger = logging.getLogger(__name__)
@@ -32,6 +34,11 @@ FORMAT_FUNC = {
 
 # 最大返回字符数 10KB
 MAX_RESP_TEXT_SIZE = 1024 * 10
+
+# 马赛克
+MOSAIC_CHAR = '*'
+MOSAIC_WORD = MOSAIC_CHAR * 3
+
 
 def curl_log(func):
     """http请求添加curl log
@@ -47,15 +54,26 @@ def curl_log(func):
         return resp
     return _wrapped_func
 
-
-def requests_curl_log(resp, st):
+def requests_curl_log(resp, st, params):
     """记录requests curl log
     """
     if not isinstance(resp, Response):
         raise ValueError(_("返回值[{}]必须是Respose对象").format(resp))
 
+    unsensitive_params = {}
+    # params可能为None
+    params = params or {}
+    for key, value in params.items():
+        if any(key in keyword for keyword in SENSITIVE_KEYWORD['params']):
+            unsensitive_params[key] = MOSAIC_WORD
+        else:
+            unsensitive_params[key] = value
+
+    raw_url = parse.urlparse(resp.request.url)
+    unsensitive_url = raw_url._replace(query=parse.urlencode(unsensitive_params, safe=MOSAIC_CHAR)).geturl()
+
     # 添加日志信息
-    curl_req = "REQ: curl -X {method} '{url}'".format(method=resp.request.method, url=resp.request.url)
+    curl_req = "REQ: curl -X {method} '{url}'".format(method=resp.request.method, url=unsensitive_url)
 
     if resp.request.body:
         curl_req += " -d '{body}'".format(body=force_str(resp.request.body))
@@ -67,6 +85,11 @@ def requests_curl_log(resp, st):
                 continue
             if key == 'Cookie' and value.startswith('x_host_key'):
                 continue
+
+            # 去除明感信息, key保留, 表示鉴权信息有传递
+            if any(key in keyword for keyword in SENSITIVE_KEYWORD['headers']):
+                value = MOSAIC_WORD
+
             curl_req += " -H '{k}: {v}'".format(k=key, v=value)
 
     if len(resp.text) > MAX_RESP_TEXT_SIZE:
@@ -77,18 +100,6 @@ def requests_curl_log(resp, st):
     curl_resp = 'RESP: [%s] %.2fms %s' % (resp.status_code, (time.time() - st) * 1000, resp_text)
 
     logger.info('%s\n \t %s', curl_req, curl_resp)
-
-    # bcs log
-    if 'bcs_api' in resp.request.url:
-        # bcs 返回错误状态吗 或错误消息时记录 error日志
-        if resp.status_code != 200 or resp.text.find('"result":false') >= 0:
-            bcs_req = 'bcs_api error: %s' % curl_req
-            bcs_resp = 'bcs_api error: %s' % curl_resp
-            logger.error('%s\n \t %s', bcs_req, bcs_resp)
-        else:
-            bcs_req = 'bcs_api: %s' % curl_req
-            bcs_resp = 'bcs_api: %s' % curl_resp
-            logger.info('%s\n \t %s', bcs_req, bcs_resp)
 
 
 def response(f=None):
