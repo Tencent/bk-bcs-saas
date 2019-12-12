@@ -40,7 +40,7 @@ class Scheduler(SchedulerBase):
                 raise ConfigError(
                     _("配置文件格式错误:{}").format(result.get('message')))
             raise ComponentError(
-                _("创建K8sDeployment失败，{}, 请联系管理员解决").format(result.get('message')))
+                _("创建K8sDeployment失败，{}").format(result.get('message')))
 
     def handler_update_k8sdeployment(self, ns, cluster_id, spec):
         client = K8SClient(self.access_token,
@@ -52,7 +52,7 @@ class Scheduler(SchedulerBase):
                 raise ConfigError(
                     _("配置文件格式错误:{}").format(result.get('message')))
             raise ComponentError(
-                _("更新K8sDeployment失败，{}, 请联系管理员解决").format(result.get('message')))
+                _("更新K8sDeployment失败，{}").format(result.get('message')))
 
     def rollback_k8sdeployment(self, ns, cluster_id, spec):
         client = K8SClient(self.access_token,
@@ -69,7 +69,7 @@ class Scheduler(SchedulerBase):
                 raise ConfigError(
                     _("配置文件格式错误:{}").format(result.get('message')))
             raise ComponentError(
-                _("创建K8sService失败，{}, 请联系管理员解决").format(result.get('message')))
+                _("创建K8sService失败，{}").format(result.get('message')))
 
     def handler_update_k8sservice(self, ns, cluster_id, spec):
         client = K8SClient(self.access_token,
@@ -81,7 +81,7 @@ class Scheduler(SchedulerBase):
                 raise ConfigError(
                     _("配置文件格式错误:{}").format(result.get('message')))
             raise ComponentError(
-                _("更新K8sService失败，{}, 请联系管理员解决").format(result.get('message')))
+                _("更新K8sService失败，{}").format(result.get('message')))
 
     def rollback_k8sservice(self, ns, cluster_id, spec):
         client = K8SClient(self.access_token,
@@ -100,7 +100,7 @@ class Scheduler(SchedulerBase):
                 raise ConfigError(
                     _("配置文件格式错误:{}").format(result.get('message')))
             raise ComponentError(
-                _("创建K8sConfigMap失败，{}, 请联系管理员解决").format(result.get('message')))
+                _("创建K8sConfigMap失败，{}").format(result.get('message')))
 
     def handler_update_k8sconfigmap(self, ns, cluster_id, spec):
         client = K8SClient(self.access_token,
@@ -112,7 +112,7 @@ class Scheduler(SchedulerBase):
                 raise ConfigError(
                     _("配置文件格式错误:{}").format(result.get('message')))
             raise ComponentError(
-                _("更新K8sConfigMap失败，{}, 请联系管理员解决").format(result.get('message')))
+                _("更新K8sConfigMap失败，{}").format(result.get('message')))
 
     def rollback_k8sconfigmap(self, ns, cluster_id, spec):
         client = K8SClient(self.access_token,
@@ -129,9 +129,9 @@ class Scheduler(SchedulerBase):
         if result.get('code') != 0:
             if result.get('code') == 4001:
                 raise ConfigError(
-                    _("配置文件格式错误:{}".format(result.get('message'))))
+                    _("配置文件格式错误:{}").format(result.get('message')))
             raise ComponentError(
-                _("创建K8sSecret失败，{}, 请联系管理员解决").format(result.get('message')))
+                _("创建K8sSecret失败，{}").format(result.get('message')))
 
     def handler_update_k8ssecret(self, ns, cluster_id, spec):
         client = K8SClient(self.access_token,
@@ -141,9 +141,9 @@ class Scheduler(SchedulerBase):
         if result.get('code') != 0:
             if result.get('code') == 4001:
                 raise ConfigError(
-                    _("配置文件格式错误:{}".format(result.get('message'))))
+                    _("配置文件格式错误:{}").format(result.get('message')))
             raise ComponentError(
-                _("创建K8sSecret失败，{}, 请联系管理员解决").format(result.get('message')))
+                _("创建K8sSecret失败，{}").format(result.get('message')))
 
     def rollback_k8ssecret(self, ns, cluster_id, spec):
         client = K8SClient(self.access_token,
@@ -160,9 +160,9 @@ class Scheduler(SchedulerBase):
         if result.get('code') != 0:
             if result.get('code') == 4001:
                 raise ConfigError(
-                    _("配置文件格式错误:{}".format(result.get('message'))))
+                    _("配置文件格式错误:{}").format(result.get('message')))
             raise ComponentError(
-                _("创建K8sDaemonSet失败，{}, 请联系管理员解决").format(result.get('message')))
+                _("创建K8sDaemonSet失败，{}").format(result.get('message')))
 
     def handler_update_k8sdaemonset(self, ns, cluster_id, spec):
         client = K8SClient(self.access_token,
@@ -172,9 +172,9 @@ class Scheduler(SchedulerBase):
         if result.get('code') != 0:
             if result.get('code') == 4001:
                 raise ConfigError(
-                    _("配置文件格式错误:{}".format(result.get('message'))))
+                    _("配置文件格式错误:{}").format(result.get('message')))
             raise ComponentError(
-                _("更新K8sDaemonSet失败，{}, 请联系管理员解决").format(result.get('message')))
+                _("更新K8sDaemonSet失败，{}").format(result.get('message')))
 
     def rollback_k8sdaemonset(self, ns, cluster_id, spec):
         client = K8SClient(self.access_token,
@@ -189,9 +189,9 @@ class Scheduler(SchedulerBase):
         if result.get('code') != 0:
             if result.get('code') == 4001:
                 raise ConfigError(
-                    _("配置文件格式错误:{}".format(result.get('message'))))
+                    _("配置文件格式错误:{}").format(result.get('message')))
             raise ComponentError(
-                _("创建K8sJob失败，{}, 请联系管理员解决").format(result.get('message')))
+                _("创建K8sJob失败，{}").format(result.get('message')))
 
     def handler_update_k8sjob(self, ns, cluster_id, spec):
         client = K8SClient(self.access_token,
@@ -201,9 +201,9 @@ class Scheduler(SchedulerBase):
         if result.get('code') != 0:
             if result.get('code') == 4001:
                 raise ConfigError(
-                    _("配置文件格式错误:{}".format(result.get('message'))))
+                    _("配置文件格式错误:{}").format(result.get('message')))
             raise ComponentError(
-                _("更新K8sJob失败，{}, 请联系管理员解决").format(result.get('message')))
+                _("更新K8sJob失败，{}").format(result.get('message')))
 
     def rollback_k8sjob(self, ns, cluster_id, spec):
         client = K8SClient(self.access_token,
@@ -218,9 +218,9 @@ class Scheduler(SchedulerBase):
         if result.get('code') != 0:
             if result.get('code') == 4001:
                 raise ConfigError(
-                    _("配置文件格式错误:{}".format(result.get('message'))))
+                    _("配置文件格式错误:{}").format(result.get('message')))
             raise ComponentError(
-                _("创建K8sStatefulSet失败，{}, 请联系管理员解决").format(result.get('message')))
+                _("创建K8sStatefulSet失败，{}").format(result.get('message')))
 
     def handler_update_k8sstatefulset(self, ns, cluster_id, spec):
         client = K8SClient(self.access_token,
@@ -230,9 +230,9 @@ class Scheduler(SchedulerBase):
         if result.get('code') != 0:
             if result.get('code') == 4001:
                 raise ConfigError(
-                    _("配置文件格式错误:{}".format(result.get('message'))))
+                    _("配置文件格式错误:{}").format(result.get('message')))
             raise ComponentError(
-                _("更新K8sStatefulSet失败，{}, 请联系管理员解决").format(result.get('message')))
+                _("更新K8sStatefulSet失败，{}").format(result.get('message')))
 
     def rollback_k8sstatefulset(self, ns, cluster_id, spec):
         client = K8SClient(self.access_token,
@@ -247,9 +247,9 @@ class Scheduler(SchedulerBase):
         if result.get('code') != 0:
             if result.get('code') == 4001:
                 raise ConfigError(
-                    _("配置文件格式错误:{}".format(result.get('message'))))
+                    _("配置文件格式错误:{}").format(result.get('message')))
             raise ComponentError(
-                _("创建K8sIngress失败，{}, 请联系管理员解决").format(result.get('message')))
+                _("创建K8sIngress失败，{}").format(result.get('message')))
 
     def handler_update_k8singress(self, ns, cluster_id, spec):
         client = K8SClient(self.access_token,
@@ -259,9 +259,9 @@ class Scheduler(SchedulerBase):
         if result.get('code') != 0:
             if result.get('code') == 4001:
                 raise ConfigError(
-                    _("配置文件格式错误:{}".format(result.get('message'))))
+                    _("配置文件格式错误:{}").format(result.get('message')))
             raise ComponentError(
-                _("更新K8sIngress失败，{}, 请联系管理员解决").format(result.get('message')))
+                _("更新K8sIngress失败，{}").format(result.get('message')))
 
     def rollback_k8singress(self, ns, cluster_id, spec):
         client = K8SClient(self.access_token,
