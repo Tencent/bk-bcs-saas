@@ -122,8 +122,7 @@ class KubectlClient:
         self.project_id = project_id
         self.cluster_id = cluster_id
 
-    @cached_property
-    def _client(self):
+    def _run_with_kubectl(self, operation, namespace, manifests):
         with make_kubectl_client(
                 project_id=self.project_id,
                 cluster_id=self.cluster_id,
@@ -132,19 +131,16 @@ class KubectlClient:
                 if isinstance(err, ApiException):
                     err = f'Code: {err.status}, Reason: {err.reason}'
                 raise error_codes.ComponentError(f'make client failed: {err}')
-        return client
 
-    def _run_with_kubectl(self, operation, namespace, manifests):
-        client = self._client
-        try:
-            if operation == 'apply':
-                client.ensure_namespace(namespace)
-                client.apply(manifests, namespace)
-            elif operation == 'delete':
-                client.ensure_namespace(namespace)
-                client.delete(manifests, namespace)
-        except Exception as e:
-            raise error_codes.ComponentError(f'client {operation} failed: {e}')
+            try:
+                if operation == 'apply':
+                    client.ensure_namespace(namespace)
+                    client.apply(manifests, namespace)
+                elif operation == 'delete':
+                    client.ensure_namespace(namespace)
+                    client.delete(manifests, namespace)
+            except Exception as e:
+                raise error_codes.ComponentError(f'client {operation} failed: {e}')
 
     def apply(self, namespace, manifests):
         self._run_with_kubectl('apply', namespace, manifests)
