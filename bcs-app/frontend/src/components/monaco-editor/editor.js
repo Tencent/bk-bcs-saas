@@ -2,11 +2,11 @@ import assign from 'nano-assign'
 import monokaiTheme from './theme.json'
 import * as monaco from 'monaco-editor'
 
-self.MonacoEnvironment = {
-    getWorkerUrl (moduleId, label) {
-        return `${window.DEVOPS_BCS_HOST}${window.STATIC_URL}${window.VERSION_STATIC_URL}/editor.worker.js`
-    }
-}
+// self.MonacoEnvironment = {
+//     getWorkerUrl (moduleId, label) {
+//         return `${window.DEVOPS_BCS_HOST}${window.STATIC_URL}${window.VERSION_STATIC_URL}/editor.worker.js`
+//     }
+// }
 
 export default {
     name: 'MonacoEditor',
