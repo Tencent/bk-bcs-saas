@@ -20,6 +20,7 @@ const bundleAnalyzer = require('webpack-bundle-analyzer')
 const LodashModuleReplacementPlugin = require('lodash-webpack-plugin')
 const TerserPlugin = require('terser-webpack-plugin')
 const MiniCssExtractPlugin = require('mini-css-extract-plugin')
+const MonacoEditorPlugin = require('monaco-editor-webpack-plugin')
 
 const config = require('./config')
 const baseWebpackConfig = require('./webpack.base.conf')
@@ -35,7 +36,8 @@ const webpackConfig = merge(baseWebpackConfig, {
     //     warningsFilter: warning => warning.indexOf('Conflicting order between:') > -1
     // },
     entry: {
-        main: './src/main.js'
+        main: './src/main.js',
+        'editor.worker': 'monaco-editor/esm/vs/editor/editor.worker.js'
     },
     output: {
         path: config.build.assetsRoot,
@@ -181,6 +183,16 @@ const webpackConfig = merge(baseWebpackConfig, {
             // 如果打开 vendor 和 manifest 那么需要配置 chunksSortMode 保证引入 script 的顺序
             chunksSortMode: 'dependency',
             staticUrl: config.build.env.staticUrl
+        }),
+
+        new MonacoEditorPlugin({
+            // https://github.com/Microsoft/monaco-editor-webpack-plugin#options
+            // Include a subset of languages support
+            // Some language extensions like typescript are so huge that may impact build performance
+            // e.g. Build full languages support with webpack 4.0 takes over 80 seconds
+            // Languages are loaded on demand at runtime
+            output: 'STATIC/',
+            languages: ['javascript', 'html', 'css', 'json', 'shell', 'yaml']
         }),
 
         new CopyWebpackPlugin([
