@@ -25,7 +25,7 @@ def get_svc_access_info(project_id, cluster_id, manifest):
         }
     }
     """
-    access_info = {}
+    access_info = {'external': {}, 'internal': {}}
     svc_type = getitems(manifest, ['spec', 'type'])
     ports = getitems(manifest, ['spec', 'ports'])
     if svc_type == 'ClusterIP':
