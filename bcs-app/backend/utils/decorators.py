@@ -40,20 +40,6 @@ MOSAIC_CHAR = '*'
 MOSAIC_WORD = MOSAIC_CHAR * 3
 
 
-def curl_log(func):
-    """http请求添加curl log
-    """
-
-    @wraps(func)
-    def _wrapped_func(*args, **kwargs):
-        st = time.time()
-        resp = func(*args, **kwargs)
-
-        requests_curl_log(resp, st)
-
-        return resp
-    return _wrapped_func
-
 def requests_curl_log(resp, st, params):
     """记录requests curl log
     """
