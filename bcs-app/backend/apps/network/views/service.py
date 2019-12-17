@@ -15,24 +15,20 @@ import datetime
 import copy
 import logging
 import json
-from itertools import groupby
 
-from rest_framework import serializers, viewsets
+from rest_framework import viewsets
 from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
-from rest_framework.renderers import BrowsableAPIRenderer
 from django.utils.translation import ugettext_lazy as _
 
-from backend.utils.renderers import BKAPIRenderer
 from backend.accounts import bcs_perm
 from backend.utils.errcodes import ErrorCode
 from backend.apps.application.utils import APIResponse
 from backend.apps.application.base_views import BaseAPI
 from backend.apps.configuration.models import Template, Application, VersionedEntity, Service, ShowVersion, K8sService
-from backend.components import paas_cc
 from backend.components.bcs import k8s, mesos
 from backend.apps import constants
-from backend.apps.network.utils import (handle_lb, get_lb_status, delete_lb_by_bcs, get_namespace_name)
+from backend.apps.network.utils_bk import get_svc_access_info
 from backend.apps.instance.constants import (LABLE_TEMPLATE_ID, LABLE_INSTANCE_ID, SEVICE_SYS_CONFIG,
                                              ANNOTATIONS_CREATOR, ANNOTATIONS_UPDATOR, ANNOTATIONS_CREATE_TIME,
                                              ANNOTATIONS_UPDATE_TIME, ANNOTATIONS_WEB_CACHE, K8S_SEVICE_SYS_CONFIG,
@@ -47,11 +43,7 @@ from backend.apps.instance.models import InstanceConfig
 from backend.utils.exceptions import ComponentError
 from backend.activity_log import client as activity_client
 from backend.apps.application.constants import DELETE_INSTANCE
-from backend.apps.network.serializers import (
-    BatchResourceSLZ, LoadBalancesSLZ, UpdateLoadBalancesSLZ, GetLoadBalanceSLZ
-)
-from backend.apps.network.models import MesosLoadBlance
-from backend.utils.error_codes import error_codes
+from backend.apps.network.serializers import BatchResourceSLZ
 from backend.apps.application.constants import SOURCE_TYPE_MAP
 from backend.apps import utils as app_utils
 from backend.apps.constants import ProjectKind
@@ -253,27 +245,12 @@ class Services(viewsets.ViewSet, BaseAPI):
 
     def get(self, request, project_id):
         """ 获取项目下所有的服务 """
-        # 获取kind
-
-        logger.debug("get project kind: %s" % project_id)
-        project_kind = request.project.kind
-
-        logger.debug("get project clusters: %s" % project_id)
         cluster_dicts = self.get_project_cluster_info(request, project_id)
         cluster_data = cluster_dicts.get('results', {}) or {}
 
+        project_kind = request.project.kind
         params = dict(request.GET.items())
-        params.update({
-            "env": "mesos" if project_kind == MESOS_VALUE else "k8s",
-        })
-
-        data = []
-
-        access_token = request.user.token.access_token
-        cluster = paas_cc.get_all_clusters(
-            access_token, project_id, limit=constants.ALL_LIMIT)
-        cluster = cluster.get('data', {}).get('results') or []
-        cluster = {i['cluster_id']: i['name'] for i in cluster}
+        params['env'] = 'mesos' if project_kind == MESOS_VALUE else 'k8s'
 
         # 获取命名空间的id
         namespace_dict = app_utils.get_ns_id_map(request.user.token.access_token, project_id)
@@ -283,6 +260,7 @@ class Services(viewsets.ViewSet, BaseAPI):
         all_template_id_list = [str(template_id) for template_id in all_template_id_list]
         skip_namespace_list = constants.K8S_SYS_NAMESPACE
         skip_namespace_list.extend(constants.K8S_PLAT_NAMESPACE)
+        data = []
         for cluster_info in cluster_data:
             cluster_id = cluster_info.get('cluster_id')
             if params.get('cluster_id') and params['cluster_id'] != cluster_id:
@@ -320,7 +298,7 @@ class Services(viewsets.ViewSet, BaseAPI):
                 _s['source_type'] = SOURCE_TYPE_MAP.get(source_type)
 
                 # 处理 k8s 的系统命名空间的数据
-                if project_kind == 1 and _s['namespace'] in skip_namespace_list:
+                if project_kind == ProjectKind.K8S.value and _s['namespace'] in skip_namespace_list:
                     _s['can_update'] = _s['can_delete'] = False
                     _s['can_update_msg'] = _s['can_delete_msg'] = _("不允许操作系统命名空间")
                     continue
@@ -331,6 +309,9 @@ class Services(viewsets.ViewSet, BaseAPI):
                 if template_id and template_id in all_template_id_list:
                     _s['can_update'] = True
                     _s['can_update_msg'] = ''
+
+                if project_kind == ProjectKind.K8S.value:
+                    _s['access_info'] = get_svc_access_info(project_id, cluster_id, _config)
 
             data += cluster_services
         # 按时间倒序排列
