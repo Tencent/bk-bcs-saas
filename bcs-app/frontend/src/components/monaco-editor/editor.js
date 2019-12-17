@@ -1,6 +1,7 @@
 import assign from 'nano-assign'
 import monokaiTheme from './theme.json'
-import * as monaco from 'monaco-editor'
+// import * as monaco from 'monaco-editor'
+import * as monaco from 'monaco-editor/esm/vs/editor/editor.main'
 
 self.MonacoEnvironment = {
     getWorkerUrl (moduleId, label) {
