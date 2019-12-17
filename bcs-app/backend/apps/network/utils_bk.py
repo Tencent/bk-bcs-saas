@@ -14,7 +14,11 @@
 from backend.utils.basic import getitems
 
 
-def get_svc_access_info(project_id, cluster_id, manifest):
+def get_svc_extended_routes(project_id):
+    return {}
+
+
+def get_svc_access_info(manifest, extended_routes):
     """
     {
         'external': {

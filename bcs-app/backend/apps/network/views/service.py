@@ -28,7 +28,7 @@ from backend.apps.application.base_views import BaseAPI
 from backend.apps.configuration.models import Template, Application, VersionedEntity, Service, ShowVersion, K8sService
 from backend.components.bcs import k8s, mesos
 from backend.apps import constants
-from backend.apps.network.utils_bk import get_svc_access_info
+from backend.apps.network.utils_bk import get_svc_access_info, get_svc_extended_routes
 from backend.apps.instance.constants import (LABLE_TEMPLATE_ID, LABLE_INSTANCE_ID, SEVICE_SYS_CONFIG,
                                              ANNOTATIONS_CREATOR, ANNOTATIONS_UPDATOR, ANNOTATIONS_CREATE_TIME,
                                              ANNOTATIONS_UPDATE_TIME, ANNOTATIONS_WEB_CACHE, K8S_SEVICE_SYS_CONFIG,
@@ -260,6 +260,8 @@ class Services(viewsets.ViewSet, BaseAPI):
         all_template_id_list = [str(template_id) for template_id in all_template_id_list]
         skip_namespace_list = constants.K8S_SYS_NAMESPACE
         skip_namespace_list.extend(constants.K8S_PLAT_NAMESPACE)
+
+        extended_routes = get_svc_extended_routes(project_id)
         data = []
         for cluster_info in cluster_data:
             cluster_id = cluster_info.get('cluster_id')
@@ -311,7 +313,7 @@ class Services(viewsets.ViewSet, BaseAPI):
                     _s['can_update_msg'] = ''
 
                 if project_kind == ProjectKind.K8S.value:
-                    _s['access_info'] = get_svc_access_info(project_id, cluster_id, _config)
+                    _s['access_info'] = get_svc_access_info(_config, extended_routes)
 
             data += cluster_services
         # 按时间倒序排列
