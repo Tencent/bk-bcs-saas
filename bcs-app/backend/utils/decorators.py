@@ -46,20 +46,20 @@ def requests_curl_log(resp, st, params):
     if not isinstance(resp, Response):
         raise ValueError(_("返回值[{}]必须是Respose对象").format(resp))
 
-    unsensitive_params = {}
-    # params可能为None
+    desensitive_params = {}
+    # params 可能为 None
     params = params or {}
     for key, value in params.items():
-        if any(key in keyword for keyword in SENSITIVE_KEYWORD['params']):
-            unsensitive_params[key] = MOSAIC_WORD
+        if key in SENSITIVE_KEYWORD:
+            desensitive_params[key] = MOSAIC_WORD
         else:
-            unsensitive_params[key] = value
+            desensitive_params[key] = value
 
     raw_url = parse.urlparse(resp.request.url)
-    unsensitive_url = raw_url._replace(query=parse.urlencode(unsensitive_params, safe=MOSAIC_CHAR)).geturl()
+    desensitive_url = raw_url._replace(query=parse.urlencode(desensitive_params, safe=MOSAIC_CHAR)).geturl()
 
     # 添加日志信息
-    curl_req = "REQ: curl -X {method} '{url}'".format(method=resp.request.method, url=unsensitive_url)
+    curl_req = "REQ: curl -X {method} '{url}'".format(method=resp.request.method, url=desensitive_url)
 
     if resp.request.body:
         curl_req += " -d '{body}'".format(body=force_str(resp.request.body))
@@ -72,8 +72,8 @@ def requests_curl_log(resp, st, params):
             if key == 'Cookie' and value.startswith('x_host_key'):
                 continue
 
-            # 去除明感信息, key保留, 表示鉴权信息有传递
-            if any(key in keyword for keyword in SENSITIVE_KEYWORD['headers']):
+            # 去除敏感信息, key保留, 表示鉴权信息有传递
+            if key in SENSITIVE_KEYWORD:
                 value = MOSAIC_WORD
 
             curl_req += " -H '{k}: {v}'".format(k=key, v=value)
