@@ -113,3 +113,6 @@ SKIP_REQUEST_NAMESPACE = ["projects", "projects_pub"]
 
 # all cluster flag
 ALL_CLUSTER_FLAG = 'ALL'
+
+# 敏感单词
+SENSITIVE_KEYWORD = ['access_token', 'bk_app_secret', 'X-BKAPI-AUTHORIZATION']
