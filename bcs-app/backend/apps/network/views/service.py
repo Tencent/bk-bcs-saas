@@ -299,6 +299,8 @@ class Services(viewsets.ViewSet, BaseAPI):
                     source_type = "template" if template_id else "other"
                 _s['source_type'] = SOURCE_TYPE_MAP.get(source_type)
 
+                if project_kind == ProjectKind.K8S.value:
+                    _s['access_info'] = get_svc_access_info(_config, extended_routes)
                 # 处理 k8s 的系统命名空间的数据
                 if project_kind == ProjectKind.K8S.value and _s['namespace'] in skip_namespace_list:
                     _s['can_update'] = _s['can_delete'] = False
@@ -311,9 +313,6 @@ class Services(viewsets.ViewSet, BaseAPI):
                 if template_id and template_id in all_template_id_list:
                     _s['can_update'] = True
                     _s['can_update_msg'] = ''
-
-                if project_kind == ProjectKind.K8S.value:
-                    _s['access_info'] = get_svc_access_info(_config, extended_routes)
 
             data += cluster_services
         # 按时间倒序排列
