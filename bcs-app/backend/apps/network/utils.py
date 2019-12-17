@@ -17,7 +17,6 @@ import copy
 import logging
 import json
 
-from django.conf import settings
 from rest_framework.exceptions import ValidationError
 from django.utils.translation import ugettext_lazy as _
 
@@ -61,12 +60,12 @@ def handle_lb(username, access_token, project_id, lb_info, cc_app_id):
     # 查询zk的信息
     zk_res = paas_cc.get_zk_config(access_token, project_id, cluster_id)
     if zk_res.get("code") != ErrorCode.NoError:
-        logger.err('获取zk信息出错,%s' % zk_res)
+        logger.error('获取zk信息出错,%s', zk_res)
         raise error_codes.APIError(_("获取zk信息出错"))
     try:
         zk_data = zk_res.get("data", [])[0]
     except Exception:
-        logger.err('获取zk信息出错,%s' % zk_res)
+        logger.error('获取zk信息出错,%s', zk_res)
         raise error_codes.APIError(_("获取zk信息出错"))
     bcs_zookeeper = zk_data.get('bcs_zookeeper')
     zookeeper = zk_data.get('zookeeper')

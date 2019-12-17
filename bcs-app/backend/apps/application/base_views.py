@@ -54,7 +54,8 @@ error_codes.add_codes([
 ])
 
 # 模板集删除时, 需要一起删除的资源
-CASCADE_DELETE_RESOURCES = ["service", "secret", "configmap", "K8sSecret", "K8sConfigMap", "K8sService", "K8sIngress", "K8sHPA"]
+CASCADE_DELETE_RESOURCES = ["service", "secret", "configmap", "K8sSecret", "K8sConfigMap", "K8sService", "K8sIngress",
+                            "K8sHPA"]
 
 
 class BaseAPI(views.APIView):
@@ -137,7 +138,7 @@ class BaseAPI(views.APIView):
         """
         resp = paas_cc.get_all_clusters(
             request.user.token.access_token,
-            project_id, limit=1000, offset=0
+            project_id, desire_all_data=1
         )
         if resp.get("code") != ErrorCode.NoError:
             raise error_codes.APIError.f(resp.get("message"))
@@ -574,7 +575,8 @@ class BaseAPI(views.APIView):
             })
         return True, resp["data"]
 
-    def update_instance(self, request, project_id, cluster_id, ns, instance_num, conf, kind=2, category=None, name=None): # noqa
+    def update_instance(self, request, project_id, cluster_id, ns, instance_num, conf, kind=2, category=None,
+                        name=None):  # noqa
         if kind == 2:
             client = MesosClient(
                 request.user.token.access_token,
@@ -598,7 +600,8 @@ class BaseAPI(views.APIView):
             "message": _("更新成功!")
         })
 
-    def scale_instance(self, request, project_id, cluster_id, ns, app_name, instance_num, kind=2, category=None, data=None): # noqa
+    def scale_instance(self, request, project_id, cluster_id, ns, app_name, instance_num, kind=2, category=None,
+                       data=None):  # noqa
         """扩缩容
         """
         if kind == 2:
@@ -899,7 +902,8 @@ class BaseAPI(views.APIView):
             raise error_codes.APIError.f(resp.data.get("message"))
         return resp.get("data")
 
-    def bcs_perm_handler(self, request, project_id, data, filter_use=False, ns_id_flag="namespace_id", ns_name_flag='namespace', tmpl_view=True):  # noqa
+    def bcs_perm_handler(self, request, project_id, data, filter_use=False, ns_id_flag="namespace_id",
+                         ns_name_flag='namespace', tmpl_view=True):  # noqa
         """列表权限处理
         """
         ns_perm_client = bcs_perm.Namespace(request, project_id, bcs_perm.NO_RES)
@@ -912,7 +916,8 @@ class BaseAPI(views.APIView):
                 if info['id'] in ns_ret_data_map:
                     info['permissions'] = info['permissions']
                 else:
-                    info["permissions"] = {"create": False, "delete": False, "view": False, "edit": False, "use": False} # noqa
+                    info["permissions"] = {"create": False, "delete": False, "view": False, "edit": False,
+                                           "use": False}  # noqa
             return data
         # ns_ret_data_map = {(info["namespace"], info["name"]): info["permissions"] for info in ns_ret_instance_list}
         tmpl_perm_client = bcs_perm.Templates(request, project_id, bcs_perm.NO_RES)
