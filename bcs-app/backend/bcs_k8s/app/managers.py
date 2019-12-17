@@ -20,7 +20,7 @@ from rest_framework.serializers import ValidationError
 from django.db.models import Max
 from django.utils.translation import ugettext_lazy as _
 
-from backend.bcs_k8s.helm.constants import TEMPORARY_APP_ID
+from backend.bcs_k8s.helm.constants import TEMPORARY_APP_ID, DEFAULT_VALUES_FILE_NAME
 from backend.bcs_k8s.helm.models import ChartVersionSnapshot, ChartRelease
 from .deployer import AppDeployer
 from backend.activity_log import client
@@ -38,7 +38,7 @@ class AppManager(models.Manager):
 
     def record_initialize_app(self, access_token, project_id, cluster_id, namespace_id, namespace,
                               chart_version, answers, customs, creator, updator, valuefile=None,
-                              name=None, unique_ns=0, sys_variables=None):
+                              name=None, unique_ns=0, sys_variables=None, valuefile_name=DEFAULT_VALUES_FILE_NAME):
         # operation record
         extra = json.dumps(dict(
             access_token=access_token,
@@ -55,6 +55,7 @@ class AppManager(models.Manager):
             updator=updator,
             unique_ns=unique_ns,
             sys_variables=sys_variables,
+            valuefile_name=valuefile_name
         ))
         desc = "create Helm App, chart [{chart_name}:{template_id}], cluster[{cluster_id}], namespace[{namespace}]"
         desc = desc.format(
@@ -78,7 +79,7 @@ class AppManager(models.Manager):
 
     def initialize_app(self, access_token, project_id, cluster_id, namespace_id, namespace,
                        chart_version, answers, customs, creator, updator, valuefile=None, name=None,
-                       unique_ns=0, deploy_options=None, sys_variables=None):
+                       unique_ns=0, deploy_options=None, sys_variables=None, valuefile_name=DEFAULT_VALUES_FILE_NAME):
         # initial app from chart
         # `namespace_id` indicate the id of namespace, and is unique in whole paas-cc, used for filter app.
         # `namespace` is basestring type and can convert by namespace_id ,
@@ -101,6 +102,7 @@ class AppManager(models.Manager):
             updator=updator,
             unique_ns=unique_ns,
             sys_variables=sys_variables,
+            valuefile_name=valuefile_name
         )
         try:
             app = self.initialize_app_core(
@@ -118,7 +120,8 @@ class AppManager(models.Manager):
                 name=name,
                 unique_ns=unique_ns,
                 deploy_options=deploy_options,
-                sys_variables=sys_variables
+                sys_variables=sys_variables,
+                valuefile_name=valuefile_name
             )
         except Exception as e:
             logger.exception("initialize_app_core unexpected error: %s", e)
@@ -137,14 +140,19 @@ class AppManager(models.Manager):
 
     def initialize_app_core(self, access_token, project_id, cluster_id, namespace_id, namespace,
                             chart_version, answers, customs, creator, updator, valuefile=None, name=None,
-                            unique_ns=0, deploy_options=None, sys_variables=None):
+                            unique_ns=0, deploy_options=None, sys_variables=None, valuefile_name=DEFAULT_VALUES_FILE_NAME):
         if not sys_variables:
             sys_variables = {}
 
+        if name is None:
+            name = "{namespace}-{randstr}".format(
+                namespace=namespace,
+                randstr=get_random_string(5)
+            ).lower()
         # initial app from chart
-        if unique_ns == 0 and self.filter(namespace_id=namespace_id, chart=chart_version.chart).exists():
+        if unique_ns == 0 and self.filter(namespace_id=namespace_id, name=name).exists():
             raise ValidationError(
-                "chart %s has been initialized in namespace %s" % (chart_version.chart.name, namespace))
+                "chart name %s has been initialized in namespace %s" % (name, namespace))
 
         customs = customs if customs else list()
         assert isinstance(answers, list), ValidationError("answers can only be list")
@@ -159,13 +167,8 @@ class AppManager(models.Manager):
             customs=customs,
             valuefile=valuefile,
             app_id=TEMPORARY_APP_ID,
+            valuefile_name=valuefile_name
         )
-
-        if name is None:
-            name = "{namespace}-{randstr}".format(
-                namespace=namespace,
-                randstr=get_random_string(5)
-            ).lower()
 
         app = self.create(
             project_id=project_id,

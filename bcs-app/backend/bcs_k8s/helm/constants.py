@@ -36,3 +36,7 @@ class ChartReleaseTypes(ChoicesEnum):
 
 
 RESOURCE_NAME_REGEX = r'^[a-z0-9]([-a-z0-9]*[a-z0-9])?$'
+
+
+# default helm value file name
+DEFAULT_VALUES_FILE_NAME = 'values.yaml'

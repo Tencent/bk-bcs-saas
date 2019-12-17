@@ -33,7 +33,7 @@ from backend.bcs_k8s.diff.diff import simple_diff
 from backend.utils.serializers import YamlField, HelmValueField
 from backend.utils.tempfile import save_to_temporary_dir
 from backend.utils.client import make_kubectl_client, get_bcs_client
-from backend.bcs_k8s.helm.constants import KEEP_TEMPLATE_UNCHANGED, RESOURCE_NAME_REGEX
+from backend.bcs_k8s.helm.constants import KEEP_TEMPLATE_UNCHANGED, RESOURCE_NAME_REGEX, DEFAULT_VALUES_FILE_NAME
 from backend.bcs_k8s.helm.utils.util import merge_rancher_answers
 from backend.bcs_k8s.permissions import check_cluster_perm
 from backend.bcs_k8s.helm.bcs_variable import (
@@ -183,6 +183,8 @@ class AppSLZ(AppBaseSLZ):
             "rows": 10
         }
     )
+    valuefile_name = serializers.CharField(
+        source="get_valuefile_name", write_only=True, default=DEFAULT_VALUES_FILE_NAME)
 
     current_version = serializers.CharField(source="get_current_version", read_only=True)
 
@@ -223,6 +225,7 @@ class AppSLZ(AppBaseSLZ):
             creator=self.request_username,
             updator=self.request_username,
             sys_variables=sys_variables,
+            valuefile_name=validated_data.get('get_valuefile_name')
         )
 
     def validate_name(self, value):
@@ -257,6 +260,7 @@ class AppSLZ(AppBaseSLZ):
             "updator",
             "current_version",
             "id",
+            "valuefile_name",
         )
         read_only_fields = (
             "namespace",
@@ -318,6 +322,7 @@ class AppDetailSLZ(AppBaseSLZ):
             "rows": 10
         }
     )
+    valuefile_name = serializers.CharField(source="get_valuefile_name", read_only=True)
 
     class Meta:
         model = App
@@ -344,6 +349,7 @@ class AppDetailSLZ(AppBaseSLZ):
             "updator",
             "created",
             "updated",
+            "valuefile_name",
         )
 
 
@@ -398,6 +404,8 @@ class AppUpgradeSLZ(AppBaseSLZ):
             "rows": 10
         }
     )
+    valuefile_name = serializers.CharField(
+        source="get_valuefile_name", write_only=True, default=DEFAULT_VALUES_FILE_NAME)
 
     def update(self, instance, validated_data):
         # update sys variable
@@ -414,6 +422,7 @@ class AppUpgradeSLZ(AppBaseSLZ):
             valuefile=validated_data.get("get_valuefile"),
             updator=self.request_username,
             sys_variables=sys_variables,
+            valuefile_name=validated_data.get("get_valuefile_name"),
         )
 
     class Meta:
@@ -433,6 +442,7 @@ class AppUpgradeSLZ(AppBaseSLZ):
             "transitioning_on",
             "transitioning_action",
             "id",
+            "valuefile_name"
         )
         read_only_fields = (
             "name",
@@ -457,7 +467,10 @@ class AppUpgradeSLZ(AppBaseSLZ):
             },
             "upgrade_verion": {
                 "write_only": True
-            }
+            },
+            "valuefile_name": {
+                "write_only": True
+            },
         }
 
 
