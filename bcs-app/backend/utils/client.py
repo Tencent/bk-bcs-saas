@@ -143,7 +143,8 @@ class KubectlClient:
             except Exception as e:
                 err_msg = f'client {operation} failed: {e}'
 
-        raise error_codes.ComponentError(err_msg)
+        if err_msg:
+            raise error_codes.ComponentError(err_msg)
 
     def apply(self, namespace, manifests):
         self._run_with_kubectl('apply', namespace, manifests)
