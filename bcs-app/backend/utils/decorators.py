@@ -64,7 +64,9 @@ def requests_curl_log(resp, st, params):
         raise ValueError(_("返回值[{}]必须是Respose对象").format(resp))
 
     # 添加日志信息
-    curl_req = "REQ: curl -X {method} '{url}'".format(method=resp.request.method, url=get_desensitive_url(resp.request.url))
+    curl_req = "REQ: curl -X {method} '{url}'".format(
+        method=resp.request.method,
+        url=get_desensitive_url(resp.request, params))
 
     if resp.request.body:
         curl_req += " -d '{body}'".format(body=force_str(resp.request.body))
