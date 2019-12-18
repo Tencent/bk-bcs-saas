@@ -578,6 +578,10 @@ export default {
     '其他信息': ['Other Info'],
     '集群内访问': ['Access Internal'],
     '集群外访问': ['Access External'],
+    'CL5路由': ['CL5 Router'],
+    '新建CL5': ['Create CL5'],
+    '业务模块': ['Business Module'],
+    '责任人': ['Responsible Person'],
     // 变量的使用 $t('test', { vari1: 1, vari2: 2 })
     'test': ['{vari1} ---english--- {vari2}']
 }
