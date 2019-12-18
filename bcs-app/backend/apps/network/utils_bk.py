@@ -18,7 +18,7 @@ def get_svc_extended_routes(project_id):
     return {}
 
 
-def get_svc_access_info(manifest, extended_routes):
+def get_svc_access_info(manifest, cluster_id, extended_routes):
     """
     {
         'external': {
