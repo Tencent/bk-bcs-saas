@@ -133,15 +133,16 @@ class KubectlClient:
                     err = f'Code: {err.status}, Reason: {err.reason}'
                 err_msg = f'make client failed: {err}'
 
-            try:
-                if operation == 'apply':
-                    client.ensure_namespace(namespace)
-                    client.apply(manifests, namespace)
-                elif operation == 'delete':
-                    client.ensure_namespace(namespace)
-                    client.delete(manifests, namespace)
-            except Exception as e:
-                err_msg = f'client {operation} failed: {e}'
+            if not err_msg:
+                try:
+                    if operation == 'apply':
+                        client.ensure_namespace(namespace)
+                        client.apply(manifests, namespace)
+                    elif operation == 'delete':
+                        client.ensure_namespace(namespace)
+                        client.delete(manifests, namespace)
+                except Exception as e:
+                    err_msg = f'client {operation} failed: {e}'
 
         if err_msg:
             raise error_codes.ComponentError(err_msg)
