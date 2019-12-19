@@ -90,7 +90,7 @@ export default {
                         const arr = []
                         const val = internal[key]
                         val.forEach(v => {
-                            arr.push(`${key} ${val}`)
+                            arr.push(`${v}`)
                         })
                         accessInternal.push(...arr)
                     })
@@ -107,7 +107,7 @@ export default {
                         const arr = []
                         const val = external[key]
                         val.forEach(v => {
-                            arr.push(`${key} ${val}`)
+                            arr.push(`${key} ${v}`)
                         })
                         accessExternal.push(...arr)
                     })
