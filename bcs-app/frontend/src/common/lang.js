@@ -582,6 +582,10 @@ export default {
     '新建CL5': ['Create CL5'],
     '业务模块': ['Business Module'],
     '责任人': ['Responsible Person'],
+    '请输入业务模块': ['Please Enter Business Module'],
+    '当前功能在灰度中，请联系容器助手下发CL5 controller才能生效': ['Please contact BCS assistant to take effect.'],
+    '请填写业务模块': ['Please Enter Business Module'],
+    'Node节点所属的CMDB三级业务模块ID': ['CMDB Level 3 Business Module ID to which the Node belongs'],
     // 变量的使用 $t('test', { vari1: 1, vari2: 2 })
     'test': ['{vari1} ---english--- {vari2}']
 }

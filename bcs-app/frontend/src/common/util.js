@@ -484,7 +484,7 @@ export function formatDate (date, formatStr = 'YYYY-MM-DD hh:mm:ss') {
  * @return {string} 转换后的值
  */
 export function formatBytes (bytes, decimals) {
-    if (bytes === 0) {
+    if (parseFloat(bytes) === 0) {
         return '0 B'
     }
     const k = 1024

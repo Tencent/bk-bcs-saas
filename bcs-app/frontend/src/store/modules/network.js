@@ -740,6 +740,22 @@ export default {
         removeCloudLoadBalance (context, { projectId, loadBalanceId }, config = {}) {
             const url = `${DEVOPS_BCS_API_URL}/api/projects/${projectId}/network/clbs/${loadBalanceId}/`
             return http.delete(url, {}, config)
+        },
+
+        /**
+         * 创建 CL5 路由
+         *
+         * @param {Object} context store 上下文对象
+         * @param {Object} params 请求参数
+         * @param {Object} config 请求的配置
+         *
+         * @return {Promise} promise 对象
+         */
+        createCl5 (context, params, config = {}) {
+            const projectId = params.projectId
+            delete params.projectId
+            const url = `${DEVOPS_BCS_API_URL}/api/projects/${projectId}/bcs_crd/res_to_crd_ships/`
+            return http.post(url, params, config)
         }
     }
 }
