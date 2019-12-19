@@ -848,6 +848,60 @@ export default {
                 {},
                 config
             )
+        },
+
+        /**
+         * 集群CPU使用率
+         * /api/projects/{project_id}/clusters/{cluster_id}/metrics/cpu_usage/
+         *
+         * @param {Object} context store 上下文对象
+         * @param {Object} params 参数
+         * @param {Object} config 请求的配置
+         *
+         * @return {Promise} promise 对象
+         */
+        clusterCpuUsage (context, { projectId, clusterId }, config = {}) {
+            return http.get(
+                `${DEVOPS_BCS_API_URL}/api/projects/${projectId}/clusters/${clusterId}/metrics/cpu_usage/`,
+                {},
+                config
+            )
+        },
+
+        /**
+         * 集群内存使用率
+         * /api/projects/{project_id}/clusters/{cluster_id}/metrics/memory_usage/
+         *
+         * @param {Object} context store 上下文对象
+         * @param {Object} params 参数
+         * @param {Object} config 请求的配置
+         *
+         * @return {Promise} promise 对象
+         */
+        clusterMemUsage (context, { projectId, clusterId }, config = {}) {
+            return http.get(
+                `${DEVOPS_BCS_API_URL}/api/projects/${projectId}/clusters/${clusterId}/metrics/memory_usage/`,
+                {},
+                config
+            )
+        },
+
+        /**
+         * 集群磁盘使用率
+         * /api/projects/{project_id}/clusters/{cluster_id}/metrics/disk_usage/
+         *
+         * @param {Object} context store 上下文对象
+         * @param {Object} params 参数
+         * @param {Object} config 请求的配置
+         *
+         * @return {Promise} promise 对象
+         */
+        clusterDiskUsage (context, { projectId, clusterId }, config = {}) {
+            return http.get(
+                `${DEVOPS_BCS_API_URL}/api/projects/${projectId}/clusters/${clusterId}/metrics/disk_usage/`,
+                {},
+                config
+            )
         }
     }
 }
