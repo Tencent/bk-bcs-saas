@@ -299,7 +299,7 @@
                 @cancel="batchDialogConfig.isShow = false">
                 <div slot="content">
                     <div class="biz-batch-wrapper">
-                        <p class="batch-title">{{$t('确定要删除以下Configmap？')}}</p>
+                        <p class="batch-title">{{$t('确定要删除以下ConfigMap？')}}</p>
                         <ul class="batch-list">
                             <li v-for="(item, index) of batchDialogConfig.list" :key="index" :title="item">{{item}}</li>
                         </ul>
@@ -402,7 +402,7 @@
                     let data = {}
 
                     if (this.currentView === 'k8sService') {
-                        data = this.curConfigmap.data.data
+                        data = this.curConfigmap.data.data || {}
 
                         const keys = Object.keys(data)
                         keys.forEach(item => {
@@ -412,7 +412,7 @@
                             })
                         })
                     } else {
-                        data = this.curConfigmap.data.datas
+                        data = this.curConfigmap.data.datas || {}
 
                         const keys = Object.keys(data)
                         keys.forEach(item => {
@@ -526,7 +526,7 @@
                 if (!data.length) {
                     this.$bkMessage({
                         theme: 'error',
-                        message: this.$t('请选择要删除的Configmap')
+                        message: this.$t('请选择要删除的ConfigMap')
                     })
                     return false
                 }
@@ -648,7 +648,7 @@
                     clsName: 'biz-remove-dialog max-size',
                     content: me.$createElement('p', {
                         class: 'biz-confirm-desc'
-                    }, `${this.$t('确定要删除Configmap')}【${configmap.cluster_name} / ${configmap.namespace} / ${configmap.name}】？`),
+                    }, `${this.$t('确定要删除ConfigMap')}【${configmap.cluster_name} / ${configmap.namespace} / ${configmap.name}】？`),
                     confirmFn () {
                         me.deleteConfigmap(configmap)
                     }
