@@ -39,6 +39,23 @@ MAX_RESP_TEXT_SIZE = 1024 * 10
 MOSAIC_CHAR = '*'
 MOSAIC_WORD = MOSAIC_CHAR * 3
 
+def get_desensitive_url(request, params):
+    """获取脱敏URL
+    """
+    if not (isinstance(params, dict) and params):
+        return request.url
+
+    desensitive_params = {}
+    for key, value in params.items():
+        if key in SENSITIVE_KEYWORD:
+            desensitive_params[key] = MOSAIC_WORD
+        else:
+            desensitive_params[key] = value
+
+    raw_url = parse.urlparse(request.url)
+    desensitive_url = raw_url._replace(query=parse.urlencode(desensitive_params, safe=MOSAIC_CHAR)).geturl()
+    return desensitive_url
+
 
 def requests_curl_log(resp, st, params):
     """记录requests curl log
@@ -46,20 +63,10 @@ def requests_curl_log(resp, st, params):
     if not isinstance(resp, Response):
         raise ValueError(_("返回值[{}]必须是Respose对象").format(resp))
 
-    desensitive_params = {}
-    # params 可能为 None
-    params = params or {}
-    for key, value in params.items():
-        if key in SENSITIVE_KEYWORD:
-            desensitive_params[key] = MOSAIC_WORD
-        else:
-            desensitive_params[key] = value
-
-    raw_url = parse.urlparse(resp.request.url)
-    desensitive_url = raw_url._replace(query=parse.urlencode(desensitive_params, safe=MOSAIC_CHAR)).geturl()
-
     # 添加日志信息
-    curl_req = "REQ: curl -X {method} '{url}'".format(method=resp.request.method, url=desensitive_url)
+    curl_req = "REQ: curl -X {method} '{url}'".format(
+        method=resp.request.method,
+        url=get_desensitive_url(resp.request, params))
 
     if resp.request.body:
         curl_req += " -d '{body}'".format(body=force_str(resp.request.body))
