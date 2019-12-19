@@ -2,7 +2,8 @@
     <div class="biz-content">
         <div class="biz-top-bar">
             <div class="biz-topbar-title">
-                Configmaps
+                ConfigMaps
+                <span class="biz-tip f12 ml10">{{$t('请通过模板集或Helm创建ConfigMap')}}</span>
             </div>
             <bk-guide></bk-guide>
         </div>
