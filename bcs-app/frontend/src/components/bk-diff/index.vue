@@ -27,7 +27,12 @@
                         /* webpackChunkName: 'hljs' */
                         `highlight.js/lib/languages/${lang}`
                     ).then(langModule => {
-                        hljs.registerLanguage(lang, langModule.default)
+                        hljs.registerLanguage(
+                            lang,
+                            (langModule.default && typeof langModule.default === 'function')
+                                ? langModule.default
+                                : langModule
+                        )
                     })
                 })
 

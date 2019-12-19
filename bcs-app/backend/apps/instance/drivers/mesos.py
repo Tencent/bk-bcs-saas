@@ -139,7 +139,7 @@ class Scheduler(SchedulerBase):
         result = client.update_application(cluster_id, ns, spec)
         if result.get('code') != 0:
             raise error_codes.ComponentError(
-                _("更新application失败，{}, 请联系管理员解决").format(result.get('message')))
+                _("更新application失败，{}").format(result.get('message')))
 
     def handler_deployment(self, ns, cluster_id, spec):
         client = mesos.MesosClient(
@@ -178,7 +178,7 @@ class Scheduler(SchedulerBase):
         result = client.update_service(ns, spec)
         if result.get('code') != 0:
             raise error_codes.ComponentError(
-                _("更新service失败，{}, 请联系管理员解决".format(result.get('message'))))
+                _("更新service失败，{}".format(result.get('message'))))
 
     def rollback_service(self, ns, cluster_id, spec):
         client = mesos.MesosClient(
@@ -207,7 +207,7 @@ class Scheduler(SchedulerBase):
         result = client.update_configmap(ns, spec)
         if result.get('code') != 0:
             raise ComponentError(
-                _("更新configmap失败，{}, 请联系管理员解决".format(result.get('message'))))
+                _("更新configmap失败，{}".format(result.get('message'))))
 
     def rollback_configmap(self, ns, cluster_id, spec):
         name = spec['metadata']['name']
@@ -232,7 +232,7 @@ class Scheduler(SchedulerBase):
         result = client.update_secret(ns, spec)
         if result.get('code') != 0:
             raise ComponentError(
-                _("更新secret失败，{}, 请联系管理员解决").format(result.get('message')))
+                _("更新secret失败，{}").format(result.get('message')))
 
     def rollback_secret(self, ns, cluster_id, spec):
         """删除使用

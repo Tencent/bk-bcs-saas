@@ -14,6 +14,7 @@ const webpack = require('webpack')
 const merge = require('webpack-merge')
 const HtmlWebpackPlugin = require('html-webpack-plugin')
 const FriendlyErrorsPlugin = require('friendly-errors-webpack-plugin')
+const MonacoEditorPlugin = require('monaco-editor-webpack-plugin')
 
 const config = require('./config')
 const baseWebpackConfig = require('./webpack.base.conf')
@@ -69,7 +70,16 @@ const webpackConfig = merge(baseWebpackConfig, {
             inject: true,
             staticUrl: config.dev.env.staticUrl
         }),
-        new FriendlyErrorsPlugin()
+        new FriendlyErrorsPlugin(),
+        new MonacoEditorPlugin({
+            // https://github.com/Microsoft/monaco-editor-webpack-plugin#options
+            // Include a subset of languages support
+            // Some language extensions like typescript are so huge that may impact build performance
+            // e.g. Build full languages support with webpack 4.0 takes over 80 seconds
+            // Languages are loaded on demand at runtime
+            output: 'static',
+            languages: ['javascript', 'html', 'css', 'json', 'shell', 'yaml']
+        })
     ]
 })
 

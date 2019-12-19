@@ -49,7 +49,7 @@ def request_factory(method):
             # 记录日志改进, 404, 500等也会记录
             st = time.time()
             resp = rpool.request(method, url, params=params, data=data, json=json, headers=headers, **kwargs)
-            requests_curl_log(resp, st)
+            requests_curl_log(resp, st, params)
 
             if raise_for_status:
                 resp.raise_for_status()

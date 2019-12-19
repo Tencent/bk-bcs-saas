@@ -936,11 +936,9 @@ msgid "示例模板集"
 msgstr "Sample template set"
 
 #: backend/apps/configuration/init_data.py:34
-msgid ""
-"这是一款开源的吃豆游戏的配置模板集，您可以通过这个示例来熟悉微服务架构下系统"
+msgid "这是一款开源的吃豆游戏的配置模板集，您可以通过这个示例来熟悉微服务架构下系统"
 "的配置、发布、变更过程"
-msgstr ""
-"This is an open source bean eating game configuration template set, you can "
+msgstr "This is an open source bean eating game configuration template set, you can "
 "use this example to familiarize yourself with the system configuration, "
 "release, change process under the micro-service architecture"
 
@@ -949,11 +947,9 @@ msgid "类型只能为{}"
 msgstr "Type can only be {}"
 
 #: backend/apps/configuration/instance/views.py:324
-msgid ""
-"以下命名空间已经实例化过，不能再实例化\n"
+msgid "以下命名空间已经实例化过，不能再实例化\n"
 "{}"
-msgstr ""
-"The following namespaces have been instantiated and cannot be instantiated {}"
+msgstr "The following namespaces have been instantiated and cannot be instantiated {}"
 
 #: backend/apps/configuration/instance/views.py:356
 msgid "实例化模板集[{}]命名空间[{}]"
@@ -971,15 +967,12 @@ msgstr "{} (when instantiating {})"
 
 #: backend/apps/configuration/instance/views.py:375
 msgid "实例化模板集[{}]命名空间[{}]失败，错误消息：{}"
-msgstr ""
-"Failed to instantiate template set [{}] namespace [{}], error message: {}"
+msgstr "Failed to instantiate template set [{}] namespace [{}], error message: {}"
 
 #: backend/apps/configuration/instance/views.py:395
-msgid ""
-"以下命名空间实例化失败，\n"
+msgid "以下命名空间实例化失败，\n"
 "{}，请联系集群管理员解决"
-msgstr ""
-"The following namespace instantiation failed, {}, please contact your "
+msgstr "The following namespace instantiation failed, {}, please contact your "
 "cluster administrator to resolve"
 
 #: backend/apps/configuration/instance/views.py:429
@@ -1007,11 +1000,9 @@ msgstr ""
 "Daemonset"
 
 #: backend/apps/configuration/k8s/validator.py:25
-msgid ""
-"名称格式错误，以小写字母或数字开头，只能包含：小写字母、数字、连字符(-)、点"
+msgid "名称格式错误，以小写字母或数字开头，只能包含：小写字母、数字、连字符(-)、点"
 "(.)"
-msgstr ""
-"The name is malformed, starts with a lowercase letter or number, and can "
+msgstr "The name is malformed, starts with a lowercase letter or number, and can "
 "only contain: lowercase letters, numbers, hyphens (-), dot (.)"
 
 #: backend/apps/configuration/k8s/validator.py:47
@@ -1048,11 +1039,9 @@ msgstr "The port is already associated in Service [{}] and cannot be deleted"
 
 #: backend/apps/configuration/mesos/serializers.py:28
 #: backend/apps/configuration/mesos/validator.py:25
-msgid ""
-"名称格式错误，只能包含：小写字母、数字、连字符(-)，首字母必须是字母，长度小于"
+msgid "名称格式错误，只能包含：小写字母、数字、连字符(-)，首字母必须是字母，长度小于"
 "256个字符"
-msgstr ""
-"The name is in the wrong format and can only contain lowercase letters, "
+msgstr "The name is in the wrong format and can only contain lowercase letters, "
 "numbers, hyphens (-), the first letter must be a letter, and the length is "
 "less than 256 characters"
 
@@ -1065,11 +1054,9 @@ msgid "端口名称:{},请重新填写"
 msgstr "Port name: {}, please fill in again"
 
 #: backend/apps/configuration/mesos/serializers.py:82
-msgid ""
-"Deployment 名称格式错误，只能包含：小写字母、数字、连字符(-)，首字母必须是字"
+msgid "Deployment 名称格式错误，只能包含：小写字母、数字、连字符(-)，首字母必须是字"
 "母，长度小于256个字符"
-msgstr ""
-"The Deployment name is in the wrong format and can only contain lowercase "
+msgstr "The Deployment name is in the wrong format and can only contain lowercase "
 "letters, numbers, and hyphens (-). The first letter must be a letter and the "
 "length is less than 256 characters"
 
@@ -1235,7 +1222,6 @@ msgstr "Draft"
 #: backend/apps/configuration/views.py:479
 msgid "模板集名称[{}]已经存在"
 msgstr "Template set name [{}] already exists"
-
 #: backend/apps/configuration/serializers.py:247
 msgid "Service 配置信息格式错误 {}"
 msgstr "Service configuration information format error {}"
@@ -1247,11 +1233,9 @@ msgid "Service 配置信息格式错误{}"
 msgstr "Service configuration information format error {}"
 
 #: backend/apps/configuration/serializers.py:294
-msgid ""
-"ConfigMap 名称格式错误，只能包含：小写字母、数字、中划线(-)，首字母必须是字"
+msgid "ConfigMap 名称格式错误，只能包含：小写字母、数字、中划线(-)，首字母必须是字"
 "母，长度小于256个字符"
-msgstr ""
-"The ConfigMap name is in the wrong format and can only contain lowercase "
+msgstr "The ConfigMap name is in the wrong format and can only contain lowercase "
 "letters, numbers, underscores (-), the first letter must be a letter, and "
 "the length is less than 256 characters"
 
@@ -1263,11 +1247,9 @@ msgid "ConfigMap 配置信息格式错误{}"
 msgstr "ConfigMap configuration information format error {}"
 
 #: backend/apps/configuration/serializers.py:329
-msgid ""
-"Secret 名称格式错误，只能包含：小写字母、数字、中划线(-)，首字母必须是字母，"
+msgid "Secret 名称格式错误，只能包含：小写字母、数字、中划线(-)，首字母必须是字母，"
 "长度小于256个字符"
-msgstr ""
-"The Secret name is in the wrong format and can only contain lowercase "
+msgstr "The Secret name is in the wrong format and can only contain lowercase "
 "letters, numbers, underscores (-), the first letter must be a letter, and "
 "the length is less than 256 characters"
 
@@ -1279,11 +1261,9 @@ msgid "Secret 配置信息格式错误{}"
 msgstr "Secret configuration information format error {}"
 
 #: backend/apps/configuration/serializers.py:350
-msgid ""
-"名称格式错误，以小写字母或数字开头，只能包含：小写字母、数字、中划线(-)、点"
+msgid "名称格式错误，以小写字母或数字开头，只能包含：小写字母、数字、中划线(-)、点"
 "(.)"
-msgstr ""
-"The name is malformed, starts with a lowercase letter or number, and can "
+msgstr "The name is malformed, starts with a lowercase letter or number, and can "
 "only contain: lowercase letters, numbers, underscore (-), dot (.)"
 
 #: backend/apps/configuration/serializers.py:357
@@ -1414,11 +1394,9 @@ msgstr "Copy template set"
 
 #: backend/apps/datalog/data_collect.py:41
 #, python-brace-format
-msgid ""
-"申请标准日志采集 dataid, 业务ID:{cc_app_id},项目名:{english_name}失败,原因:"
+msgid "申请标准日志采集 dataid, 业务ID:{cc_app_id},项目名:{english_name}失败,原因:"
 "{standard_data_id},失败"
-msgstr ""
-"Application for standard log collection dataid, business ID: {cc_app_id}, "
+msgstr "Application for standard log collection dataid, business ID: {cc_app_id}, "
 "project name: {english_name} failed, reason: {standard_data_id}, failed"
 
 #: backend/apps/datalog/data_collect.py:47
@@ -1427,11 +1405,9 @@ msgstr "Failed to apply for standard log collection dataid: {}"
 
 #: backend/apps/datalog/data_collect.py:53
 #, python-brace-format
-msgid ""
-"申请非标准日志采集 dataid, 业务ID:{cc_app_id},项目名:{english_name}失败,原因:"
+msgid "申请非标准日志采集 dataid, 业务ID:{cc_app_id},项目名:{english_name}失败,原因:"
 "{standard_data_id},请关注"
-msgstr ""
-"Apply for non-standard log collection dataid, business ID: {cc_app_id}, "
+msgstr "Apply for non-standard log collection dataid, business ID: {cc_app_id}, "
 "project name: {english_name} failed, reason: {standard_data_id}, please pay "
 "attention to"
 
@@ -1498,11 +1474,9 @@ msgstr "Non-standard log collection task started successfully"
 
 #: backend/apps/datalog/data_collect.py:166
 #, python-brace-format
-msgid ""
-"申请标准日志采集Prometheus Metric dataid[业务ID:{cc_app_id},项目名:"
+msgid "申请标准日志采集Prometheus Metric dataid[业务ID:{cc_app_id},项目名:"
 "{english_name}]失败,原因:{data_id},失败"
-msgstr ""
-"Application for standard log collection Prometheus Metric dataid [business "
+msgstr "Application for standard log collection Prometheus Metric dataid [business "
 "ID: {cc_app_id}, project name: {english_name}] failed, reason: {data_id}, "
 "failed"
 
@@ -2167,11 +2141,9 @@ msgstr ""
 "confirm and try again!"
 
 #: backend/apps/network/serializers.py:95
-msgid ""
-"名称格式错误，只能包含：小写字母、数字、中划线(-)，首字母必须是字母，长度小于"
+msgid "名称格式错误，只能包含：小写字母、数字、中划线(-)，首字母必须是字母，长度小于"
 "256个字符"
-msgstr ""
-"The name is in the wrong format and can only contain lowercase letters, "
+msgstr "The name is in the wrong format and can only contain lowercase letters, "
 "numbers, underscores (-), the first letter must be a letter, and the length "
 "is less than 256 characters"
 
@@ -2368,6 +2340,10 @@ msgstr "{}] [Namespace: {}]: {}"
 #: backend/apps/network/views/service.py:481
 msgid "以下service删除成功:{}"
 msgstr "The following service was deleted successfully: {}"
+
+#: backend/apps/network/views/service.py:481
+msgid "以下service删除成功:{}"
+msgstr "The following service was deleted successfully: {]}"
 
 #: backend/apps/network/views/service.py:497
 msgid "以下service删除失败:{}"
@@ -2567,10 +2543,8 @@ msgid "证书内容"
 msgstr "Certificate content"
 
 #: backend/apps/ticket/serializers.py:48
-msgid ""
-"证书名称只能包含：英文大小写、数字、下划线和英文句号，最大长度为64个字符"
-msgstr ""
-"Certificate name can only contain: English case, number, underscore and "
+msgid "证书名称只能包含：英文大小写、数字、下划线和英文句号，最大长度为64个字符"
+msgstr "Certificate name can only contain: English case, number, underscore and "
 "English period, the maximum length is 64 characters"
 
 #: backend/apps/ticket/serializers.py:62
@@ -2750,11 +2724,9 @@ msgstr ""
 
 #: backend/bcs_k8s/app/views.py:965
 #, python-brace-format
-msgid ""
-"集群: {cluster}({cluster_id})的容器仓库域名为:{dept_domain},\n"
+msgid "集群: {cluster}({cluster_id})的容器仓库域名为:{dept_domain},\n"
 "        可在Chart直接引用 {expr} 更加方便, [详细说明]({link})"
-msgstr ""
-"Cluster: {cluster} ({cluster_id}) the container warehouse domain name is: "
+msgstr "Cluster: {cluster} ({cluster_id}) the container warehouse domain name is: "
 "{dept_domain}. It is more convenient to reference {expr} directly in Chart. "
 "[details] ({link})"
 
@@ -2767,10 +2739,8 @@ msgid "Invalid token header. Token string should not contain spaces."
 msgstr "Invalid token header. Token string should not contain spaces."
 
 #: backend/bcs_k8s/authtoken/authentication.py:41
-msgid ""
-"Invalid token header. Token string should not contain invalid characters."
-msgstr ""
-"Invalid token header. Token string should not contain invalid characters."
+msgid "Invalid token header. Token string should not contain invalid characters."
+msgstr "Invalid token header. Token string should not contain invalid characters."
 
 #: backend/bcs_k8s/authtoken/authentication.py:48
 msgid "Invalid token header. Token string not reisted."
@@ -2809,11 +2779,9 @@ msgid "集群注册失败, bcs server 数据不一致，{}"
 msgstr "Cluster registration failed, bcs server data inconsistent, {}"
 
 #: backend/bcs_k8s/bke_client/client.py:121
-msgid ""
-"bcs-agent还没有上报apiserver信息,请检查集群')}[{}]中的kube-system/bcs-agent日"
+msgid "bcs-agent还没有上报apiserver信息,请检查集群')}[{}]中的kube-system/bcs-agent日"
 "志否正常"
-msgstr ""
-"Bcs-agent has not reported apiserver information yet. Check that the kube-"
+msgstr "Bcs-agent has not reported apiserver information yet. Check that the kube-"
 "system/bcs-agent log in cluster')} [{}] is normal"
 
 #: backend/bcs_k8s/helm/management/commands/add_public_chart.py:31
@@ -3082,11 +3050,9 @@ msgstr ""
 "close, please use Alt-W instead"
 
 #: backend/web_console/constant_bk.py:28
-msgid ""
-"支持常用Bash快捷键; Windows下Ctrl-W为关闭窗口快捷键, 请使用Alt-W代替; 使用"
+msgid "支持常用Bash快捷键; Windows下Ctrl-W为关闭窗口快捷键, 请使用Alt-W代替; 使用"
 "Alt-Num切换Tab"
-msgstr ""
-"Support common Bash shortcuts; Ctrl-W in Windows is to close the window "
+msgstr "Support common Bash shortcuts; Ctrl-W in Windows is to close the window "
 "shortcut, please use Alt-W instead; use Alt-Num to switch Tab"
 
 #: backend/web_console/handlers.py:133

@@ -828,6 +828,26 @@ export default {
          */
         getTKEConf (context, { projectId }, config = {}) {
             return http.get(`${DEVOPS_BCS_API_URL}/api/projects/${projectId}/tke_conf/`, {}, config)
+        },
+
+        // ------------------------------------------------------------------------------------------------ //
+
+        /**
+         * 集群使用率概览
+         * /api/projects/{project_id}/clusters/{cluster_id}/metrics/overview/
+         *
+         * @param {Object} context store 上下文对象
+         * @param {Object} params 参数
+         * @param {Object} config 请求的配置
+         *
+         * @return {Promise} promise 对象
+         */
+        clusterOverview (context, { projectId, clusterId }, config = {}) {
+            return http.get(
+                `${DEVOPS_BCS_API_URL}/api/projects/${projectId}/clusters/${clusterId}/metrics/overview/`,
+                {},
+                config
+            )
         }
     }
 }
