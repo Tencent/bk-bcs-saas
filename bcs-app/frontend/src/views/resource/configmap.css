@@ -166,4 +166,7 @@
         margin-left: 15px;
         color: #737987;
     }
+    .biz-table-wrapper {
+        overflow-x: auto;
+    }
 }

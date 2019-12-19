@@ -377,7 +377,7 @@
                     let data = {}
 
                     if (this.currentView === 'k8sService') {
-                        data = this.curSecret.data.data
+                        data = this.curSecret.data.data || {}
 
                         const keys = Object.keys(data)
                         keys.forEach(key => {
@@ -387,7 +387,7 @@
                             })
                         })
                     } else {
-                        data = this.curSecret.data.datas
+                        data = this.curSecret.data.datas || {}
 
                         const keys = Object.keys(data)
                         keys.forEach(key => {
