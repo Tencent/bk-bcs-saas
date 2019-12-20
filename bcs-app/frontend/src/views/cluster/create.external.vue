@@ -98,10 +98,10 @@
                                     <i class="bk-checkbox-text">{{$t('服务器将按照系统规则修改主机名')}}</i>
                                     <bk-tooltip placement="right">
                                         <i class="bk-icon icon-question-circle" style="vertical-align: middle; cursor: pointer;"></i>
-                                            <div slot="content" style="min-width: 300px;">
-                                                <p>cluster id: BCS-K8S-40000, master ip: 127.0.0.1</p>
-                                                <p>{{$t('修改后')}}: ip-127-0-0-1-m-bcs-k8s-40000</p>
-                                            </div>
+                                        <div slot="content" style="min-width: 300px;">
+                                            <p>cluster id: BCS-K8S-40000, master ip: 127.0.0.1</p>
+                                            <p>{{$t('修改后')}}: ip-127-0-0-1-m-bcs-k8s-40000</p>
+                                        </div>
                                     </bk-tooltip>
                                 </label>
                             </div>
