@@ -131,6 +131,7 @@ export default {
     '删除中...': ['removing'],
     '内存': ['RAM'],
     '磁盘IO': ['Disk IO'],
+    '磁盘': ['Disk'],
     '前置检查': ['Pre-inspection'],
     '添加中...': ['Adding'],
     '初始化中...': ['initializing'],

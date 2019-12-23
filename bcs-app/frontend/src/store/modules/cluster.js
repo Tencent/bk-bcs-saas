@@ -902,6 +902,25 @@ export default {
                 {},
                 config
             )
+        },
+
+        /**
+         * 集群 节点列表 节点概览
+         * /api/projects/{project_id}/clusters/{cluster_id}/metrics/node/overview/?res_id={ip}
+         *
+         * @param {Object} context store 上下文对象
+         * @param {string} projectId 项目 id
+         * @param {string} nodeId 节点 id 即 ip
+         * @param {Object} config 请求的配置
+         *
+         * @return {Promise} promise 对象
+         */
+        getNodeOverview (context, { projectId, clusterId, nodeIp }, config = {}) {
+            return http.get(
+                `${DEVOPS_BCS_API_URL}/api/projects/${projectId}/clusters/${clusterId}/metrics/node/overview/?res_id=${nodeIp}`,
+                {},
+                config
+            )
         }
     }
 }
