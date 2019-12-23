@@ -65,6 +65,10 @@ class ShowVersionViewSet(viewsets.ViewSet, TemplatePermission):
             show_version.update_real_version_id(real_version_id, updator=username)
 
         del create_data['template']
+        desc = _("更新版本[{}]").format(show_version_name)
+        # show_version_id为 0，标识需要创建一个新的show version
+        if show_version_id == 0:
+            desc = _("新建版本[{}]").format(show_version_name)
         client.ContextActivityLogClient(
             project_id=create_data['project_id'],
             user=username,
@@ -72,7 +76,7 @@ class ShowVersionViewSet(viewsets.ViewSet, TemplatePermission):
             resource=template.name,
             resource_id=template.id,
             extra=json.dumps(create_data),
-            description=f"新建版本[{show_version_name}]" if show_version_id == 0 else f"更新版本[{show_version_name}]"
+            description=desc
         ).log_modify()
 
         return show_version
