@@ -955,6 +955,27 @@ export default {
         },
 
         /**
+         * 应用搜索 模板集名称 数据源
+         * {{host}}/api/app/projects/b37778ec757544868a01e1f01f07037f/all_musters/?cluster_type=2&category=deployment
+         *
+         * @param {Object} context store 上下文对象
+         * @param {Object} params 参数
+         * @param {Object} config 请求的配置
+         *
+         * @return {Promise} promise 对象
+         */
+        getAllMuster4AppSearch (context, params, config = {}) {
+            const projectId = params.projectId
+            const clusterType = params.cluster_type
+            const category = params.category
+            let url = `${DEVOPS_BCS_API_URL}/api/app/projects/${projectId}/all_musters/?cluster_type=${clusterType}`
+            if (category) {
+                url += `&category=${category}`
+            }
+            return http.get(url, {}, config)
+        },
+
+        /**
          * k8s 系统特殊引用方式的环境变量获取
          *
          * @param {Object} context store 上下文对象
