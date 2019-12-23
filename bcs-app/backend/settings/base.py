@@ -224,7 +224,6 @@ REST_FRAMEWORK = {
 # Change default cookie names to avoid conflict
 SESSION_COOKIE_NAME = 'backend_sessionid'
 CSRF_COOKIE_NAME = 'backend_csrftoken'
-LANGUAGE_COOKIE_NAME = 'backend_dj_language'
 # log max bytes：500m
 LOG_MAX_BYTES = 500 * 1024 * 1024
 # log count: 10
