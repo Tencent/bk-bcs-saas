@@ -14,6 +14,7 @@
 from backend.components import paas_cc
 from backend.utils.errcodes import ErrorCode
 from backend.utils.error_codes import error_codes
+from backend.accounts import bcs_perm
 
 
 class Nodes:
@@ -37,3 +38,26 @@ class Nodes:
         if resp.get('code') != ErrorCode.NoError:
             raise error_codes.APIError(resp.get('message'))
         return resp.get('data') or []
+
+    def get_node_list(self, request, project_id, cluster_id):
+        """get cluster node list
+        """
+        resp = paas_cc.get_node_list(
+            request.user.token.access_token, project_id, cluster_id)
+        if resp.get('code') != ErrorCode.NoError:
+            raise error_codes.APIError(f"request cluster node list error, resp.get('message')")
+        data = resp.get('data') or {}
+        return data.get('results') or []
+
+
+class ClusterPerm:
+
+    def can_view_cluster(self, request, project_id, cluster_id):
+        """has view cluster perm
+        """
+        cluster_perm = bcs_perm.Cluster(request, project_id, cluster_id)
+        cluster_perm.can_view(raise_exception=True)
+
+    def can_edit_cluster(self, request, project_id, cluster_id):
+        cluster_perm = bcs_perm.Cluster(request, project_id, cluster_id)
+        return cluster_perm.can_edit(raise_exception=True)

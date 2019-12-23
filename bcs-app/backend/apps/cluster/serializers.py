@@ -299,3 +299,7 @@ class QueryLabelKeysSLZ(QueryLabelSLZ):
 
 class QueryLabelValuesSLZ(QueryLabelSLZ):
     key_name = serializers.CharField(required=True)
+
+
+class BatchReinstallNodesSLZ(serializers.Serializer):
+    node_id_list = serializers.ListField(child=serializers.IntegerField(), required=True)
