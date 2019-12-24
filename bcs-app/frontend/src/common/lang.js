@@ -587,6 +587,8 @@ export default {
     '当前功能在灰度中，请联系容器助手下发CL5 controller才能生效': ['Please contact BCS assistant to take effect.'],
     '请填写业务模块': ['Please Enter Business Module'],
     'Node节点所属的CMDB三级业务模块ID': ['CMDB Level 3 Business Module ID to which the Node belongs'],
+    '入流量': ['Network Receive'],
+    '出流量': ['Network Transmit'],
     // 变量的使用 $t('test', { vari1: 1, vari2: 2 })
     'test': ['{vari1} ---english--- {vari2}']
 }
