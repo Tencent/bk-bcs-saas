@@ -76,24 +76,24 @@
                                         <td>{{variable.scope_name}}</td>
                                         <td>
                                             <a href="javascript:void(0);" class="bk-text-button" @click="getQuoteDetail(variable)">{{$t('查看引用')}}</a>
-                                            <a href="javascript:void(0);" class="ml5 bk-text-button" @click="batchUpdate(variable)" v-show="variable.category !== 'sys' && (variable.scope === 'namespace' || variable.scope === 'cluster')">{{$t('批量更新')}}</a>
+                                            <a href="javascript:void(0);" class="ml10 bk-text-button" @click="batchUpdate(variable)" v-show="variable.category !== 'sys' && (variable.scope === 'namespace' || variable.scope === 'cluster')">{{$t('批量更新')}}</a>
 
                                             <template v-if="variable.category === 'sys'">
                                                 <bk-tooltip :content="$t('系统内置变量，不能编辑')" placement="left">
-                                                    <a href="javascript:void(0);" class="bk-text-button is-disabled ml5">{{$t('编辑')}}</a>
+                                                    <a href="javascript:void(0);" class="bk-text-button is-disabled ml10">{{$t('编辑')}}</a>
                                                 </bk-tooltip>
                                             </template>
                                             <template v-else>
-                                                <a href="javascript:void(0);" class=" ml5 bk-text-button" @click="editVar(variable)">{{$t('编辑')}}</a>
+                                                <a href="javascript:void(0);" class=" ml10 bk-text-button" @click="editVar(variable)">{{$t('编辑')}}</a>
                                             </template>
 
                                             <template v-if="variable.category === 'sys'">
                                                 <bk-tooltip :content="variable.category === 'sys' ? $t('系统内置变量') : $t('已经被引用，不能删除')" placement="left">
-                                                    <a href="javascript:void(0);" class="ml5 bk-text-button is-disabled">{{$t('删除')}}</a>
+                                                    <a href="javascript:void(0);" class="ml10 bk-text-button is-disabled">{{$t('删除')}}</a>
                                                 </bk-tooltip>
                                             </template>
                                             <template v-else>
-                                                <a href="javascript:void(0);" class="ml5 bk-text-button" @click="removeVar(variable)">{{$t('删除')}}</a>
+                                                <a href="javascript:void(0);" class="ml10 bk-text-button" @click="removeVar(variable)">{{$t('删除')}}</a>
                                             </template>
                                         </td>
                                     </tr>
