@@ -82,7 +82,7 @@ export default {
          */
         updateServiceList (state, data) {
             data.forEach(item => {
-                const internal = item.access_info.internal
+                const internal = item.access_info ? item.access_info.internal : {}
                 const internalKeys = Object.keys(internal)
                 const accessInternal = []
                 if (internalKeys.length) {
@@ -99,7 +99,7 @@ export default {
                 }
                 item.accessInternal = accessInternal
 
-                const external = item.access_info.external
+                const external = item.access_info ? item.access_info.external : {}
                 const externalKeys = Object.keys(external)
                 const accessExternal = []
                 if (externalKeys.length) {
