@@ -923,7 +923,13 @@ class HowToPushHelmChartView(AccessTokenMixin, viewsets.GenericViewSet):
                 project_code=str(project_code)
             )
 
-        filename = "backend/bcs_k8s/app/documentation/how-to-push-chart.md"
+        file_prefix = 'backend/bcs_k8s/app/documentation'
+        # 查询不到指定语言key，亦认为是中文
+        if request.COOKIES.get(settings.LANGUAGE_COOKIE_NAME) in [None, settings.LANGUAGE_COOKIE_NAME]:
+            filename = f'{file_prefix}/how-to-push-chart.md'
+        else:
+            filename = f'{file_prefix}/how-to-push-chart-en.md'
+
         with open(os.path.join(settings.STATIC_ROOT.split("staticfiles")[0], filename), "r") as f:
             template = Template(f.read())
 
