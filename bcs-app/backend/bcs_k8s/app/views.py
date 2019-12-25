@@ -924,8 +924,7 @@ class HowToPushHelmChartView(AccessTokenMixin, viewsets.GenericViewSet):
             )
 
         file_prefix = 'backend/bcs_k8s/app/documentation'
-        # 查询不到指定语言key，亦认为是中文
-        if request.COOKIES.get(settings.LANGUAGE_COOKIE_NAME) in [None, settings.LANGUAGE_COOKIE_NAME]:
+        if request.LANGUAGE_CODE == settings.LANGUAGE_CODE:
             filename = f'{file_prefix}/how-to-push-chart.md'
         else:
             filename = f'{file_prefix}/how-to-push-chart-en.md'

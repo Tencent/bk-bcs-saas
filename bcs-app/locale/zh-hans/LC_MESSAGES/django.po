@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-12-19 12:12+0800\n"
+"POT-Creation-Date: 2019-12-25 15:18+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -151,7 +151,7 @@ msgid "Ingress"
 msgstr "Ingress"
 
 #: backend/activity_log/constants.py:51
-msgid "LoadBalance"
+msgid "LoadBalancer"
 msgstr "LoadBalance"
 
 #: backend/activity_log/constants.py:52
@@ -1172,15 +1172,11 @@ msgid "创建Namespace失败，{}"
 msgstr "Failed to create Namespace, {}"
 
 #: backend/apps/configuration/namespace/views.py:117
-#, fuzzy
-#| msgid "获取项目信息失败"
 msgid "获取项目仓库账号信息失败"
 msgstr "Failed to get project information"
 
 #: backend/apps/configuration/namespace/views.py:126
 #: backend/apps/configuration/namespace/views.py:194
-#, fuzzy
-#| msgid "创建Namespace失败，{}"
 msgid "创建registry secret失败，{}"
 msgstr "Failed to create Namespace, {}"
 
@@ -1335,15 +1331,23 @@ msgstr "Please fill in the contents of the template before saving"
 msgid "模板集版本(id:{})不属于该模板(id:{})"
 msgstr "Template set version (id: {}) does not belong to the template (id: {})"
 
-#: backend/apps/configuration/showversion/views.py:182
+#: backend/apps/configuration/showversion/views.py:68
+msgid "更新版本[{}]"
+msgstr "Delete version [{}]"
+
+#: backend/apps/configuration/showversion/views.py:71
+msgid "新建版本[{}]"
+msgstr "Delete version [{}]"
+
+#: backend/apps/configuration/showversion/views.py:186
 msgid "删除草稿"
 msgstr "Delete draft"
 
-#: backend/apps/configuration/showversion/views.py:196
+#: backend/apps/configuration/showversion/views.py:200
 msgid "删除版本[{}]"
 msgstr "Delete version [{}]"
 
-#: backend/apps/configuration/showversion/views.py:204
+#: backend/apps/configuration/showversion/views.py:208
 msgid "该版本已经被实例化过，不能被删除"
 msgstr "The version has been instantiated and cannot be deleted"
 
@@ -1682,41 +1686,29 @@ msgid "配置文件格式错误:{}"
 msgstr "Configuration file format error: {}"
 
 #: backend/apps/instance/drivers/k8s.py:43
-#, fuzzy
-#| msgid "创建Namespace失败，{}"
 msgid "创建K8sDeployment失败，{}"
 msgstr "Failed to create Namespace, {}"
 
 #: backend/apps/instance/drivers/k8s.py:55
-#, fuzzy
-#| msgid "更新K8sDeployment失败，{}, 请联系管理员解决"
 msgid "更新K8sDeployment失败，{}"
 msgstr ""
 "Failed to update K8sDeployment, {}, please contact your administrator to "
 "resolve"
 
 #: backend/apps/instance/drivers/k8s.py:72
-#, fuzzy
-#| msgid "创建Namespace失败，{}"
 msgid "创建K8sService失败，{}"
 msgstr "Failed to create Namespace, {}"
 
 #: backend/apps/instance/drivers/k8s.py:84
-#, fuzzy
-#| msgid "更新K8sService失败，{}, 请联系管理员解决"
 msgid "更新K8sService失败，{}"
 msgstr ""
 "Failed to update K8sService, {}, please contact your administrator to resolve"
 
 #: backend/apps/instance/drivers/k8s.py:103
-#, fuzzy
-#| msgid "创建Namespace失败，{}"
 msgid "创建K8sConfigMap失败，{}"
 msgstr "Failed to create Namespace, {}"
 
 #: backend/apps/instance/drivers/k8s.py:115
-#, fuzzy
-#| msgid "更新K8sConfigMap失败，{}, 请联系管理员解决"
 msgid "更新K8sConfigMap失败，{}"
 msgstr ""
 "Failed to update K8sConfigMap, {}, please contact your administrator to "
@@ -1724,92 +1716,66 @@ msgstr ""
 
 #: backend/apps/instance/drivers/k8s.py:134
 #: backend/apps/instance/drivers/k8s.py:146
-#, fuzzy
-#| msgid "创建Namespace失败，{}"
 msgid "创建K8sSecret失败，{}"
 msgstr "Failed to create Namespace, {}"
 
 #: backend/apps/instance/drivers/k8s.py:165
-#, fuzzy
-#| msgid "创建Namespace失败，{}"
 msgid "创建K8sDaemonSet失败，{}"
 msgstr "Failed to create Namespace, {}"
 
 #: backend/apps/instance/drivers/k8s.py:177
-#, fuzzy
-#| msgid "更新K8sDaemonSet失败，{}, 请联系管理员解决"
 msgid "更新K8sDaemonSet失败，{}"
 msgstr ""
 "Failed to update K8sDaemonSet, {}, please contact your administrator to "
 "resolve"
 
 #: backend/apps/instance/drivers/k8s.py:194
-#, fuzzy
-#| msgid "创建Namespace失败，{}"
 msgid "创建K8sJob失败，{}"
 msgstr "Failed to create Namespace, {}"
 
 #: backend/apps/instance/drivers/k8s.py:206
-#, fuzzy
-#| msgid "更新K8sJob失败，{}, 请联系管理员解决"
 msgid "更新K8sJob失败，{}"
 msgstr ""
 "Failed to update K8sJob, {}, please contact your administrator to resolve"
 
 #: backend/apps/instance/drivers/k8s.py:223
-#, fuzzy
-#| msgid "创建K8sStatefulSet失败，{}, 请联系管理员解决"
 msgid "创建K8sStatefulSet失败，{}"
 msgstr ""
 "Failed to create K8sStatefulSet, {}, please contact your administrator to "
 "resolve"
 
 #: backend/apps/instance/drivers/k8s.py:235
-#, fuzzy
-#| msgid "更新K8sStatefulSet失败，{}, 请联系管理员解决"
 msgid "更新K8sStatefulSet失败，{}"
 msgstr ""
 "Failed to update K8sStatefulSet, {}, please contact your administrator to "
 "resolve"
 
 #: backend/apps/instance/drivers/k8s.py:252
-#, fuzzy
-#| msgid "创建Namespace失败，{}"
 msgid "创建K8sIngress失败，{}"
 msgstr "Failed to create Namespace, {}"
 
 #: backend/apps/instance/drivers/k8s.py:264
-#, fuzzy
-#| msgid "更新K8sIngress失败，{}, 请联系管理员解决"
 msgid "更新K8sIngress失败，{}"
 msgstr ""
 "Failed to update K8sIngress, {}, please contact your administrator to resolve"
 
 #: backend/apps/instance/drivers/mesos.py:142
-#, fuzzy
-#| msgid "更新application失败，{}, 请联系管理员解决"
 msgid "更新application失败，{}"
 msgstr ""
 "Failed to update application, {}, please contact your administrator to "
 "resolve"
 
 #: backend/apps/instance/drivers/mesos.py:181
-#, fuzzy
-#| msgid "更新service失败，{}, 请联系管理员解决"
 msgid "更新service失败，{}"
 msgstr ""
 "Failed to update service, {}, please contact your administrator to resolve"
 
 #: backend/apps/instance/drivers/mesos.py:210
-#, fuzzy
-#| msgid "更新configmap失败，{}, 请联系管理员解决"
 msgid "更新configmap失败，{}"
 msgstr ""
 "Failed to update configmap, {}, please contact your administrator to resolve"
 
 #: backend/apps/instance/drivers/mesos.py:235
-#, fuzzy
-#| msgid "更新secret失败，{}, 请联系管理员解决"
 msgid "更新secret失败，{}"
 msgstr ""
 "Failed to update secret, {}, please contact your administrator to resolve"
@@ -2774,7 +2740,7 @@ msgstr ""
 "Background interface exception, failed to get the English name of the "
 "project according to the project ID!"
 
-#: backend/bcs_k8s/app/views.py:965
+#: backend/bcs_k8s/app/views.py:970
 #, python-brace-format
 msgid ""
 "集群: {cluster}({cluster_id})的容器仓库域名为:{dept_domain},\n"
@@ -2984,11 +2950,11 @@ msgstr "English"
 msgid "当前用户没有权限操作ip:{ip_list}"
 msgstr "The current user does not have permission to operate ip: {ip_list}"
 
-#: backend/utils/decorators.py:47
+#: backend/utils/decorators.py:64
 msgid "返回值[{}]必须是Respose对象"
 msgstr "The return value [{}] must be a Respose object"
 
-#: backend/utils/decorators.py:107
+#: backend/utils/decorators.py:114
 msgid "返回值[{}]必须是字符串或者Respose对象"
 msgstr "The return value [{}] must be a string or a Respose object"
 
@@ -3172,7 +3138,7 @@ msgid "获取session成功"
 msgstr "Get session successful"
 
 #: backend/web_console/templates/index.html:127
-#: backend/web_console/templates/mgr.html:332
+#: backend/web_console/templates/mgr.html:341
 msgid "连接已经断开"
 msgstr "The connection has been disconnected"
 
@@ -3183,6 +3149,10 @@ msgstr "The BCS Console network is down, please check the network"
 #: backend/web_console/templates/index.html:129
 msgid "重新加载"
 msgstr "Reload"
+
+#: backend/web_console/templates/mgr.html:202
+msgid "项目下没有可用集群"
+msgstr ""
 
 #~ msgid "获取项目仓库账号信息失败，请联系管理员解决"
 #~ msgstr ""
