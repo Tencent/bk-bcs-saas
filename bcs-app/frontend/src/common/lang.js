@@ -590,6 +590,8 @@ export default {
     'Node节点所属的CMDB三级业务模块ID': ['CMDB Level 3 Business Module ID to which the Node belongs'],
     '入流量': ['Network Receive'],
     '出流量': ['Network Transmit'],
+    '磁盘写数据': ['Disk Write'],
+    '磁盘读数据': ['Disk Read'],
     // 变量的使用 $t('test', { vari1: 1, vari2: 2 })
     'test': ['{vari1} ---english--- {vari2}']
 }
