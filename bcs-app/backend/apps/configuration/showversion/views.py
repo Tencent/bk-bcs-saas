@@ -50,7 +50,7 @@ class ShowVersionViewSet(viewsets.ViewSet, TemplatePermission):
         real_version_id = create_data['real_version_id']
 
         if show_version_id == 0:
-            show_version, _ = models.ShowVersion.default_objects.update_or_create(
+            show_version, created = models.ShowVersion.default_objects.update_or_create(
                 name=show_version_name, template_id=template.id,
                 defaults={
                     'is_deleted': False, 'deleted_time': None,
