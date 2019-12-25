@@ -74,6 +74,7 @@ export default {
     'CPU使用率': ['CPU Usage'],
     'CPU占集群使用率': ['CPU Usage for cluster'],
     '内存使用率': ['Memory Usage'],
+    '内存使用量': ['Memory Usage'],
     '内存占集群使用率': ['Memory Usage for cluster'],
     '容器requests cpu占集群的使用率': ['Container requests cpu accounted for cluster usage'],
     '容器requests 内存占集群的使用率': ['Container requests memory accounted for cluster usage'],

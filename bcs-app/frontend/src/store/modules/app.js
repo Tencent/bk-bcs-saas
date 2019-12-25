@@ -1002,6 +1002,52 @@ export default {
                 },
                 config
             )
+        },
+
+        // ------------------------------------------------------------------------------------------------ //
+
+        /**
+         * POD CPU使用率
+         * /api/projects/{project_id}/clusters/{cluster_id}/metrics/pod/cpu_usage/?res_id_list={pod_name_list}
+         *
+         * @param {Object} context store 上下文对象
+         * @param {Object} params 参数
+         * @param {Object} config 请求的配置
+         *
+         * @return {Promise} promise 对象
+         */
+        podCpuUsage (context, params, config = {}) {
+            const { projectId, clusterId } = params
+            delete params.projectId
+            delete params.clusterId
+
+            return http.get(
+                `${DEVOPS_BCS_API_URL}/api/projects/${projectId}/clusters/${clusterId}/metrics/pod/cpu_usage/?${json2Query(params)}`,
+                {},
+                config
+            )
+        },
+
+        /**
+         * POD 内存使用量
+         * /api/projects/{project_id}/clusters/{cluster_id}/metrics/pod/memory_usage/?res_id_list={pod_name_list}
+         *
+         * @param {Object} context store 上下文对象
+         * @param {Object} params 参数
+         * @param {Object} config 请求的配置
+         *
+         * @return {Promise} promise 对象
+         */
+        podMemUsage (context, params, config = {}) {
+            const { projectId, clusterId } = params
+            delete params.projectId
+            delete params.clusterId
+
+            return http.get(
+                `${DEVOPS_BCS_API_URL}/api/projects/${projectId}/clusters/${clusterId}/metrics/pod/memory_usage/?${json2Query(params)}`,
+                {},
+                config
+            )
         }
     }
 }
