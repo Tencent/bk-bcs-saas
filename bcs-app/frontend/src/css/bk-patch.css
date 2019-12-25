@@ -1147,11 +1147,13 @@
         top: 8px;
     }
 
-    .bk-text-button,
-    .biz-resource-table .biz-operate {
-        padding-bottom: 1px;
-        &:hover {
-            border-bottom: 1px solid #3c96ff;
+    .bk-table {
+        .bk-text-button,
+        .biz-resource-table .biz-operate {
+            padding-bottom: 1px;
+            &:hover {
+                border-bottom: 1px solid #3c96ff;
+            }
         }
     }
 
