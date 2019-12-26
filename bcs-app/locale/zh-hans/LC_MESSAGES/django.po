@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-12-26 10:16+0800\n"
+"POT-Creation-Date: 2019-12-26 16:28+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -2693,6 +2693,10 @@ msgstr "Resource_code is illegal"
 msgid "验证权限成功"
 msgstr "Authentication permissions successful"
 
+#: backend/bcs_k8s/app/managers.py:154
+msgid "Chart名称: {} 在命名空间: {} 已经存在"
+msgstr "Chart name: {} does not exist in namespace: {}"
+
 #: backend/bcs_k8s/app/models.py:49 backend/utils/models.py:37
 msgid "创建者"
 msgstr "Creator"
@@ -2701,7 +2705,7 @@ msgstr "Creator"
 msgid "更新者"
 msgstr "Updator"
 
-#: backend/bcs_k8s/app/models.py:179
+#: backend/bcs_k8s/app/models.py:182
 msgid "Helm Release部署中，请稍后再试！"
 msgstr "In Helm Release deployment, please try again later!"
 
