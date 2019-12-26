@@ -592,6 +592,9 @@ export default {
     '出流量': ['Network Transmit'],
     '磁盘写数据': ['Disk Write'],
     '磁盘读数据': ['Disk Read'],
+    '阈值': ['Threshold'],
+    '网络使用率': ['Network Usage'],
+    'IO使用率': ['IO Usage'],
     // 变量的使用 $t('test', { vari1: 1, vari2: 2 })
     'test': ['{vari1} ---english--- {vari2}']
 }
