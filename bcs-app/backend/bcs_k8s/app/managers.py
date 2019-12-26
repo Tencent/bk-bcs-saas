@@ -151,8 +151,7 @@ class AppManager(models.Manager):
             ).lower()
         # initial app from chart
         if unique_ns == 0 and self.filter(namespace_id=namespace_id, name=name).exists():
-            raise ValidationError(
-                "chart name %s has been initialized in namespace %s" % (name, namespace))
+            raise ValidationError(_("Chart名称: {} 在命名空间: {} 已经存在").format(name, namespace))
 
         customs = customs if customs else list()
         assert isinstance(answers, list), ValidationError("answers can only be list")
