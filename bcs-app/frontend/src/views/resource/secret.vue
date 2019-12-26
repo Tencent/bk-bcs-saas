@@ -3,6 +3,7 @@
         <div class="biz-top-bar">
             <div class="biz-topbar-title">
                 Secrets
+                <span class="biz-tip f12 ml10">{{$t('请通过模板集或Helm创建Secret')}}</span>
             </div>
             <bk-guide></bk-guide>
         </div>
@@ -376,7 +377,7 @@
                     let data = {}
 
                     if (this.currentView === 'k8sService') {
-                        data = this.curSecret.data.data
+                        data = this.curSecret.data.data || {}
 
                         const keys = Object.keys(data)
                         keys.forEach(key => {
@@ -386,7 +387,7 @@
                             })
                         })
                     } else {
-                        data = this.curSecret.data.datas
+                        data = this.curSecret.data.datas || {}
 
                         const keys = Object.keys(data)
                         keys.forEach(key => {

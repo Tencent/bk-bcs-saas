@@ -7125,7 +7125,7 @@ var get_iso_week = getISOWeek;
  * Returns false if argument is Invalid Date and true otherwise.
  * Invalid Date is a Date, whose time value is NaN.
  *
- * Time value of Date: http://es5.github.io/#x15.9.1.1
+ * Time value of Date: http://es5.github.io
  *
  * @param {Date} date - the date to check
  * @returns {Boolean} the date is valid
@@ -11202,7 +11202,7 @@ var bkTransfer = { render: function render() {
                 } else {
                     this.hasSelectedList = [].concat(toConsumableArray(hasSelectedList));
                 }
-                
+
             }
             if (!this.typeFlag) {
                 this.$emit('change', this.dataList, [].concat(toConsumableArray(this.generalListHandler(this.hasSelectedList))), []);
@@ -11223,7 +11223,7 @@ var bkTransfer = { render: function render() {
                 } else {
                     this.dataList = [].concat(toConsumableArray(dataList));
                 }
-                
+
             }
             if (!this.typeFlag) {
                 this.$emit('change', this.dataList, [].concat(toConsumableArray(this.generalListHandler(this.hasSelectedList))), []);
@@ -13041,8 +13041,8 @@ var enUS = {
     dialog: {
         title: 'This is the title',
         content: 'This is the content',
-        ok: 'OK',
-        cancel: 'CANCEL'
+        ok: 'Confirm',
+        cancel: 'Cancel'
     },
     selector: {
         pleaseselect: 'Please select',
@@ -13051,8 +13051,8 @@ var enUS = {
     },
     infobox: {
         title: 'This is the title',
-        ok: 'OK',
-        cancel: 'CANCEL',
+        ok: 'Confirm',
+        cancel: 'Cancel',
         pleasewait: 'Please wait',
         success: 'Success',
         continue: 'Continue',
@@ -13109,6 +13109,7 @@ var components = {
     bkTab: bkTab$1,
     bkTabpanel: bkTabpanel$1,
     bkTagInput: TagInpute,
+
     bkTimeline: bkTimeline,
     bkTooltip: bkTooltip,
     bkTransfer: bkTransfer,

@@ -128,7 +128,7 @@ def custom_exception_handler(exc, context):
 
         data = {
             'code': 500,
-            'message': _("数据请求失败，请稍后再试,{}").format(settings.COMMON_EXCEPTION_MSG),
+            'message': _("数据请求失败，请稍后再试{}").format(settings.COMMON_EXCEPTION_MSG),
             'data': None
         }
         return Response(data)

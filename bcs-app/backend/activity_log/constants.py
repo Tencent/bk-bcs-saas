@@ -48,7 +48,7 @@ ResourceTypes = dict(
 
     service=_('Service'),
     ingress=_('Ingress'),
-    lb=_('LoadBalance'),
+    lb=_('LoadBalancer'),
     configmap=_('Configmap'),
     secret=_('Secret'),
 

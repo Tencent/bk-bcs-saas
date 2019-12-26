@@ -81,6 +81,41 @@ export default {
          * @param {Object} data data
          */
         updateServiceList (state, data) {
+            data.forEach(item => {
+                const internal = item.access_info ? item.access_info.internal : {}
+                const internalKeys = Object.keys(internal)
+                const accessInternal = []
+                if (internalKeys.length) {
+                    internalKeys.forEach(key => {
+                        const arr = []
+                        const val = internal[key]
+                        val.forEach(v => {
+                            arr.push(`${v}`)
+                        })
+                        accessInternal.push(...arr)
+                    })
+                } else {
+                    accessInternal.push('--')
+                }
+                item.accessInternal = accessInternal
+
+                const external = item.access_info ? item.access_info.external : {}
+                const externalKeys = Object.keys(external)
+                const accessExternal = []
+                if (externalKeys.length) {
+                    externalKeys.forEach(key => {
+                        const arr = []
+                        const val = external[key]
+                        val.forEach(v => {
+                            arr.push(`${key} ${v}`)
+                        })
+                        accessExternal.push(...arr)
+                    })
+                } else {
+                    accessExternal.push('--')
+                }
+                item.accessExternal = accessExternal
+            })
             state.serviceList.splice(0, state.serviceList.length, ...data)
         },
 
@@ -703,9 +738,24 @@ export default {
          * @return {Promise} promise 对象
          */
         removeCloudLoadBalance (context, { projectId, loadBalanceId }, config = {}) {
-            let url = `${DEVOPS_BCS_API_URL}/api/projects/${projectId}/network/clbs/${loadBalanceId}/`
+            const url = `${DEVOPS_BCS_API_URL}/api/projects/${projectId}/network/clbs/${loadBalanceId}/`
             return http.delete(url, {}, config)
-        }
+        },
 
+        /**
+         * 创建 CL5 路由
+         *
+         * @param {Object} context store 上下文对象
+         * @param {Object} params 请求参数
+         * @param {Object} config 请求的配置
+         *
+         * @return {Promise} promise 对象
+         */
+        createCl5 (context, params, config = {}) {
+            const projectId = params.projectId
+            delete params.projectId
+            const url = `${DEVOPS_BCS_API_URL}/api/projects/${projectId}/bcs_crd/res_to_crd_ships/`
+            return http.post(url, params, config)
+        }
     }
 }
