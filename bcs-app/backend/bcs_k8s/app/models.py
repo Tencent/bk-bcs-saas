@@ -24,7 +24,7 @@ from django.utils.translation import ugettext_lazy as _
 
 from backend.activity_log.client import get_log_client_by_activity_log_id
 from backend.bcs_k8s.helm.models import (Chart, ChartRelease)
-from backend.bcs_k8s.helm.constants import KEEP_TEMPLATE_UNCHANGED
+from backend.bcs_k8s.helm.constants import KEEP_TEMPLATE_UNCHANGED, DEFAULT_VALUES_FILE_NAME
 from backend.bcs_k8s.diff.revision import AppRevisionDiffer
 from .managers import AppManager
 from .deployer import AppDeployer
@@ -84,8 +84,8 @@ class App(models.Model):
 
     class Meta:
         db_table = 'bcs_k8s_app'
-        unique_together = (("namespace_id", "chart", "unique_ns"), ("cluster_id", "name", "unique_ns"))
-        index_together = (("namespace_id", "chart", "unique_ns"),)
+        unique_together = (("namespace_id", "name", "unique_ns"),)
+        index_together = (("namespace_id", "name", "unique_ns"),)
 
     @property
     def chart_info(self):
@@ -102,6 +102,9 @@ class App(models.Model):
 
     def get_valuefile(self):
         return self.release.valuefile
+
+    def get_valuefile_name(self):
+        return self.release.valuefile_name
 
     def render_context(self):
         return {
@@ -195,7 +198,7 @@ class App(models.Model):
         self.save(update_fields=["transitioning_result", "transitioning_message", "transitioning_on", "updated"])
 
     def record_upgrade_app(self, chart_version_id, answers, customs, updator, access_token,
-                           valuefile=None, sys_variables=None):
+                           valuefile=None, sys_variables=None, valuefile_name=DEFAULT_VALUES_FILE_NAME):
         # operation record
         extra = json.dumps(dict(
             access_token=access_token,
@@ -205,6 +208,7 @@ class App(models.Model):
             valuefile=valuefile,
             updator=updator,
             sys_variables=sys_variables,
+            valuefile_name=valuefile_name,
         ))
         logger_client = client.UserActivityLogClient(
             project_id=self.project_id,
@@ -259,7 +263,7 @@ class App(models.Model):
 
     def upgrade_app(self, chart_version_id, answers, customs, updator, access_token, valuefile=None,
                     kubeconfig_content=None, ignore_empty_access_token=None, extra_inject_source=None,
-                    sys_variables=None):
+                    sys_variables=None, valuefile_name=DEFAULT_VALUES_FILE_NAME):
         from .tasks import upgrade_app, sync_or_async
 
         # if self.transitioning_on:
@@ -277,23 +281,24 @@ class App(models.Model):
             "kubeconfig_content": kubeconfig_content,
             "ignore_empty_access_token": ignore_empty_access_token,
             "extra_inject_source": extra_inject_source,
-            "sys_variables": sys_variables
+            "sys_variables": sys_variables,
+            "valuefile_name": valuefile_name,
         })
         return self
 
     def upgrade_app_task(self, chart_version_id, answers, customs, updator, access_token, valuefile=None,
                          kubeconfig_content=None, ignore_empty_access_token=None, extra_inject_source=None,
-                         sys_variables=None):
+                         sys_variables=None, valuefile_name=DEFAULT_VALUES_FILE_NAME):
         # make upgrade
         # `chart_version_id` indicate the target chartverion for app,
         # it can also use KEEP_TEMPLATE_UNCHANGED to keep app template unchanged.
 
         # operation record
-        log_client = self.record_upgrade_app(chart_version_id, answers, customs, updator,
-                                             access_token, valuefile, sys_variables)
+        log_client = self.record_upgrade_app(
+            chart_version_id, answers, customs, updator, access_token, valuefile, sys_variables, valuefile_name)
 
         self.release = ChartRelease.objects.make_upgrade_release(
-            self, chart_version_id, answers, customs, valuefile=valuefile)
+            self, chart_version_id, answers, customs, valuefile=valuefile, valuefile_name=valuefile_name)
         self.version = self.release.chartVersionSnapshot.version
         self.updator = updator
         if sys_variables:

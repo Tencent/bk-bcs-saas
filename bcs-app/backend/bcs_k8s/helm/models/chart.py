@@ -20,13 +20,13 @@ from django.utils.crypto import get_random_string
 from jsonfield import JSONField
 from django.conf import settings
 
-from backend.bcs_k8s.diff import parser
-from backend.utils.models import BaseTSModel
-from ..constants import (CHART_RELEASE_SHOT_NAME_LENGTH, ChartReleaseTypes,
-                         KEEP_TEMPLATE_UNCHANGED, TEMPORARY_APP_ID)
+from .. import constants
 from .managers import (ChartManager, ChartVersionManager, ChartVersionSnapshotManager)
 from ..utils.repo import download_template_data, download_icon_data
 from ..utils.util import parse_chart_time, merge_rancher_answers, fix_chart_url
+
+from backend.bcs_k8s.diff import parser
+from backend.utils.models import BaseTSModel
 from backend.bcs_k8s.kubehelm.helm import KubeHelmClient
 from backend.bcs_k8s.helm.bcs_variable import get_namespace_variables, merge_valuefile_with_bcs_variables
 
@@ -267,10 +267,11 @@ class ChartVersionSnapshot(BaseChartVersion):
 
 class ChartReleaseManager(models.Manager):
     def create(self, **kwargs):
-        kwargs["short_name"] = get_random_string(CHART_RELEASE_SHOT_NAME_LENGTH, allowed_chars=ALLOWED_CHARS)
+        kwargs["short_name"] = get_random_string(constants.CHART_RELEASE_SHOT_NAME_LENGTH, allowed_chars=ALLOWED_CHARS)
         return super(ChartReleaseManager, self).create(**kwargs)
 
-    def make_upgrade_release(self, app, chart_version_id, answers, customs, valuefile=""):
+    def make_upgrade_release(self, app, chart_version_id, answers, customs,
+                             valuefile="", valuefile_name=constants.DEFAULT_VALUES_FILE_NAME):
         # make upgrade for app
         # `chart_version_id` indicate the target chartverion for app,
         # it can also use KEEP_TEMPLATE_UNCHANGED to keep app template unchanged.
@@ -279,7 +280,7 @@ class ChartReleaseManager(models.Manager):
         assert isinstance(answers, list)
         assert isinstance(customs, list)
         snapshot = app.release.chartVersionSnapshot
-        if int(chart_version_id) != KEEP_TEMPLATE_UNCHANGED:
+        if int(chart_version_id) != constants.KEEP_TEMPLATE_UNCHANGED:
             # when user choose a new version to upgrade, make sure it has a snapshot,
             # so that it and rollback easily, and it's the base of KEEP_TEMPLATE_UNCHANGED feature
             chart_version = ChartVersion.objects.get(id=chart_version_id)
@@ -293,6 +294,7 @@ class ChartReleaseManager(models.Manager):
             answers=answers,
             customs=customs,
             valuefile=valuefile,
+            valuefile_name=valuefile_name,
         )
         return release
 
@@ -304,8 +306,9 @@ class ChartReleaseManager(models.Manager):
             chartVersionSnapshot=release.chartVersionSnapshot,
             answers=release.answers,
             customs=release.customs,
-            release_type=ChartReleaseTypes.ROLLBACK.value,
+            release_type=constants.ChartReleaseTypes.ROLLBACK.value,
             valuefile=release.valuefile,
+            valuefile_name=release.valuefile_name,
         )
 
 
@@ -325,11 +328,13 @@ class ChartRelease(BaseTSModel):
     answers = JSONField(null=True, default=[])
     customs = JSONField(null=True, default=[])
     valuefile = models.TextField(help_text="yaml format")
+    valuefile_name = models.CharField(
+        max_length=64, default=constants.DEFAULT_VALUES_FILE_NAME, help_text="helm value file name")
 
-    short_name = models.CharField(max_length=CHART_RELEASE_SHOT_NAME_LENGTH)
-    app_id = models.IntegerField("App ID", db_index=True, default=TEMPORARY_APP_ID)
-    release_type = models.CharField(max_length=10, choices=ChartReleaseTypes.get_choices(),
-                                    default=ChartReleaseTypes.RELEASE.value)
+    short_name = models.CharField(max_length=constants.CHART_RELEASE_SHOT_NAME_LENGTH)
+    app_id = models.IntegerField("App ID", db_index=True, default=constants.TEMPORARY_APP_ID)
+    release_type = models.CharField(max_length=10, choices=constants.ChartReleaseTypes.get_choices(),
+                                    default=constants.ChartReleaseTypes.RELEASE.value)
 
     # content generated when a release create
     # used for accelerate status query
@@ -381,7 +386,7 @@ class ChartRelease(BaseTSModel):
 
     @property
     def app(self):
-        if self.app_id == TEMPORARY_APP_ID:
+        if self.app_id == constants.TEMPORARY_APP_ID:
             return None
         else:
             from backend.bcs_k8s.app.models import App
