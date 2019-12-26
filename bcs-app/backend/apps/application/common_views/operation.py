@@ -36,7 +36,8 @@ class RollbackPreviousVersion(InstanceAPI, viewsets.ViewSet):
     def get_config(self, config):
         try:
             return json.loads(config)
-        except Exception:
+        except Exception as err:
+            logger.error("解析实例配置异常，配置: %s，错误详情: %s", config, err)
             return {}
 
     def from_template(self, instance_id):
