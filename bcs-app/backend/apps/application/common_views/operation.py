@@ -85,8 +85,9 @@ class RollbackPreviousVersion(InstanceAPI, viewsets.ViewSet):
         # 更新状态
         instance_detail.oper_type = app_constants.ROLLING_UPDATE_INSTANCE
         instance_detail.is_bcs_success = is_bcs_success
-        instance_detail.save()
         if not is_bcs_success:
+            # 出异常时，保存一次；如果正常，最后保存；减少save次数
+            instance_detail.save()
             raise error_codes.APIError(_("回滚上一版本失败，{}").format(resp.data.get('message')))
         # 更新配置
         instance_last_config = json.loads(instance_detail.last_config)
