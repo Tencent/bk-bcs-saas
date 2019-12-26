@@ -124,6 +124,6 @@ class RollbackPreviousVersion(InstanceAPI, viewsets.ViewSet):
             resource_id=instance_id,
             description=desc
         ).log_modify():
-            self. update_resource(request, project_id, cluster_id, namespace, last_config, instance_detail)
+            self.update_resource(request, project_id, cluster_id, namespace, last_config, instance_detail)
 
         return response.Response()
