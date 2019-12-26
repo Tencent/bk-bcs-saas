@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-12-25 15:18+0800\n"
+"POT-Creation-Date: 2019-12-26 10:16+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -962,8 +962,8 @@ msgstr "Instantiate TemplateSet [{}] namespace [{}]"
 #: backend/apps/configuration/instance/views.py:370
 msgid "实例化模板集[{}]命名空间[{}]，在实例化{}时失败，错误消息：{}"
 msgstr ""
-"Instantiate TemplateSet [{}] namespace [{}], failed to instantiate {}, "
-"error message: {}"
+"Instantiate TemplateSet [{}] namespace [{}], failed to instantiate {}, error "
+"message: {}"
 
 #: backend/apps/configuration/instance/views.py:373
 msgid "{}(实例化{}时)"
@@ -2740,7 +2740,7 @@ msgstr ""
 "Background interface exception, failed to get the English name of the "
 "project according to the project ID!"
 
-#: backend/bcs_k8s/app/views.py:970
+#: backend/bcs_k8s/app/views.py:971
 #, python-brace-format
 msgid ""
 "集群: {cluster}({cluster_id})的容器仓库域名为:{dept_domain},\n"
@@ -2748,7 +2748,7 @@ msgid ""
 msgstr ""
 "Cluster: {cluster} ({cluster_id}) the container warehouse domain name is: "
 "{dept_domain}. It is more convenient to reference {expr} directly in Chart. "
-"[details] ({link})"
+"[details]({link})"
 
 #: backend/bcs_k8s/authtoken/authentication.py:32
 msgid "Invalid token header. No credentials provided."
