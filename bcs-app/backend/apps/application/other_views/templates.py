@@ -19,7 +19,7 @@ from itertools import groupby
 from datetime import datetime
 
 from django.db.models import Q
-from django.utils.translation import ugettext as _
+from django.utils.translation import ugettext_lazy as _
 
 from backend.components import paas_cc
 from backend.utils.errcodes import ErrorCode

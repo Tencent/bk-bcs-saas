@@ -224,7 +224,6 @@ REST_FRAMEWORK = {
 # Change default cookie names to avoid conflict
 SESSION_COOKIE_NAME = 'backend_sessionid'
 CSRF_COOKIE_NAME = 'backend_csrftoken'
-LANGUAGE_COOKIE_NAME = 'backend_dj_language'
 # log max bytes：500m
 LOG_MAX_BYTES = 500 * 1024 * 1024
 # log count: 10
@@ -397,6 +396,10 @@ WEB_CONSOLE_MODE = 'external'
 WEB_CONSOLE_KUBECTLD_IMAGE_PATH = ''
 WEB_CONSOLE_POD_SPEC = {}
 WEB_CONSOLE_PORT = int(os.environ.get('WEB_CONSOLE_PORT', 28800))
+
+# thanos 查询API
+THANOS_HOST = ''
+THANOS_AUTH = None
 
 # 灰度功能提示消息
 GRAYSCALE_FEATURE_MSG = "功能灰度测试中，请联系管理员添加白名单"

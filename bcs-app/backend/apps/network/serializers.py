@@ -15,7 +15,7 @@ import re
 
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
-from django.utils.translation import ugettext as _
+from django.utils.translation import ugettext_lazy as _
 
 from backend.apps.network.models import K8SLoadBlance
 from backend.utils.error_codes import error_codes

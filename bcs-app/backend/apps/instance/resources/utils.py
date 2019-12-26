@@ -13,7 +13,7 @@
 #
 import re
 
-from django.utils.translation import ugettext as _
+from django.utils.translation import ugettext_lazy as _
 
 from backend.utils.error_codes import error_codes
 from backend.apps.configuration.constants import NUM_VAR_PATTERN

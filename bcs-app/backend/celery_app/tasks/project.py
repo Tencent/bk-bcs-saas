@@ -13,7 +13,7 @@
 #
 from celery import shared_task
 from django.conf import settings
-from django.utils.translation import ugettext as _
+from django.utils.translation import ugettext_lazy as _
 
 from backend.components.op import notify_project_to_op
 from backend.utils.send_msg import send_message

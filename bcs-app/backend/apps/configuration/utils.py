@@ -20,7 +20,7 @@ import re
 from collections import Counter
 
 from rest_framework.exceptions import ValidationError
-from django.utils.translation import ugettext as _
+from django.utils.translation import ugettext_lazy as _
 
 from .constants import RESOURCE_NAMES
 from backend.apps.configuration.constants import NUM_VAR_ERROR_MSG, VARIABLE_PATTERN, TemplateEditMode

@@ -18,7 +18,7 @@ from rest_framework import viewsets
 from rest_framework.response import Response
 from rest_framework.renderers import BrowsableAPIRenderer
 from rest_framework.exceptions import ValidationError
-from django.utils.translation import ugettext as _
+from django.utils.translation import ugettext_lazy as _
 
 from backend.activity_log import client
 from backend.apps.configuration import models
@@ -50,7 +50,7 @@ class ShowVersionViewSet(viewsets.ViewSet, TemplatePermission):
         real_version_id = create_data['real_version_id']
 
         if show_version_id == 0:
-            show_version, _ = models.ShowVersion.default_objects.update_or_create(
+            show_version, created = models.ShowVersion.default_objects.update_or_create(
                 name=show_version_name, template_id=template.id,
                 defaults={
                     'is_deleted': False, 'deleted_time': None,
@@ -65,6 +65,10 @@ class ShowVersionViewSet(viewsets.ViewSet, TemplatePermission):
             show_version.update_real_version_id(real_version_id, updator=username)
 
         del create_data['template']
+        desc = _("更新版本[{}]").format(show_version_name)
+        # show_version_id为 0，标识需要创建一个新的show version
+        if show_version_id == 0:
+            desc = _("新建版本[{}]").format(show_version_name)
         client.ContextActivityLogClient(
             project_id=create_data['project_id'],
             user=username,
@@ -72,7 +76,7 @@ class ShowVersionViewSet(viewsets.ViewSet, TemplatePermission):
             resource=template.name,
             resource_id=template.id,
             extra=json.dumps(create_data),
-            description=f"新建版本[{show_version_name}]" if show_version_id == 0 else f"更新版本[{show_version_name}]"
+            description=desc
         ).log_modify()
 
         return show_version

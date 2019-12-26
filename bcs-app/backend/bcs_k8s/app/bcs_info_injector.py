@@ -151,7 +151,7 @@ def inject_configs(access_token, project_id, cluster_id, namespace_id, namespace
         "force_str": True
     }, {
         # pod secrets
-        "matchers": make_kind_matcher_configs(["Deployment", "StatefulSet", "DaemonSet", "ReplicaSet", "Job"]),
+        "matchers": make_kind_matcher_configs(["Deployment", "StatefulSet", "DaemonSet", "ReplicaSet", "Job", "CronJob"]),
         "paths": ["/spec/template/spec"],
         "data": bcs_image_secrets,
         "force_str": True

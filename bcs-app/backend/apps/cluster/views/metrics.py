@@ -32,6 +32,7 @@ from backend.utils.errcodes import ErrorCode
 from backend.utils.error_codes import error_codes
 from backend.utils.funutils import num_transform
 from backend.utils.renderers import BKAPIRenderer
+from backend.apps.cluster import serializers
 
 logger = logging.getLogger(__name__)
 

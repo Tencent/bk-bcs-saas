@@ -194,10 +194,19 @@
                         const cluster_url = '{{ settings.DEVOPS_BCS_API_URL }}/api/projects/{{ project_id }}/clusters?limit=1000'
                         self = this
                         $.getJSON(cluster_url, function (result) {
-                            self.clusterList = result.data.results
-                            self.openTab({
-                                clusterId: matcher[2]
-                            })
+                            if (result.code != 0) {
+                                console.log(result.message)
+                                self.$bkMessage({ theme: 'error', message: result.message, delay: 0 })
+                            } else if (result.data.results.length == 0) {
+                                self.$bkMessage({
+                                    theme: 'error', message: '{{ _("项目下没有可用集群") }}', delay: 0
+                                })
+                            } else {
+                                self.clusterList = result.data.results
+                                self.openTab({
+                                    clusterId: matcher[2]
+                                })
+                            }
                         })
                     }
                 },

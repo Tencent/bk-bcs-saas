@@ -20,7 +20,7 @@ from picklefield.fields import PickledObjectField
 from jsonfield import JSONField
 from rest_framework.exceptions import ValidationError
 from django.utils import timezone
-from django.utils.translation import ugettext as _
+from django.utils.translation import ugettext_lazy as _
 
 from backend.activity_log.client import get_log_client_by_activity_log_id
 from backend.bcs_k8s.helm.models import (Chart, ChartRelease)

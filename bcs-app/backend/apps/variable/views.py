@@ -22,7 +22,7 @@ from rest_framework import generics, views, viewsets
 from rest_framework.response import Response
 from rest_framework.exceptions import ValidationError
 from rest_framework.renderers import BrowsableAPIRenderer
-from django.utils.translation import ugettext as _
+from django.utils.translation import ugettext_lazy as _
 
 from backend.accounts import bcs_perm
 from backend.activity_log import client

@@ -955,6 +955,27 @@ export default {
         },
 
         /**
+         * 应用搜索 模板集名称 数据源
+         * {{host}}/api/app/projects/b37778ec757544868a01e1f01f07037f/all_musters/?cluster_type=2&category=deployment
+         *
+         * @param {Object} context store 上下文对象
+         * @param {Object} params 参数
+         * @param {Object} config 请求的配置
+         *
+         * @return {Promise} promise 对象
+         */
+        getAllMuster4AppSearch (context, params, config = {}) {
+            const projectId = params.projectId
+            const clusterType = params.cluster_type
+            const category = params.category
+            let url = `${DEVOPS_BCS_API_URL}/api/app/projects/${projectId}/all_musters/?cluster_type=${clusterType}`
+            if (category) {
+                url += `&category=${category}`
+            }
+            return http.get(url, {}, config)
+        },
+
+        /**
          * k8s 系统特殊引用方式的环境变量获取
          *
          * @param {Object} context store 上下文对象
@@ -979,6 +1000,184 @@ export default {
                     container_id: containerId,
                     category: params.category
                 },
+                config
+            )
+        },
+
+        // ------------------------------------------------------------------------------------------------ //
+
+        /**
+         * POD CPU使用率
+         * /api/projects/{project_id}/clusters/{cluster_id}/metrics/pod/cpu_usage/?res_id_list={pod_name_list}
+         *
+         * @param {Object} context store 上下文对象
+         * @param {Object} params 参数
+         * @param {Object} config 请求的配置
+         *
+         * @return {Promise} promise 对象
+         */
+        podCpuUsage (context, params, config = {}) {
+            const { projectId, clusterId } = params
+            delete params.projectId
+            delete params.clusterId
+
+            return http.get(
+                `${DEVOPS_BCS_API_URL}/api/projects/${projectId}/clusters/${clusterId}/metrics/pod/cpu_usage/?${json2Query(params)}`,
+                {},
+                config
+            )
+        },
+
+        /**
+         * POD 内存使用量
+         * /api/projects/{project_id}/clusters/{cluster_id}/metrics/pod/memory_usage/?res_id_list={pod_name_list}
+         *
+         * @param {Object} context store 上下文对象
+         * @param {Object} params 参数
+         * @param {Object} config 请求的配置
+         *
+         * @return {Promise} promise 对象
+         */
+        podMemUsage (context, params, config = {}) {
+            const { projectId, clusterId } = params
+            delete params.projectId
+            delete params.clusterId
+
+            return http.get(
+                `${DEVOPS_BCS_API_URL}/api/projects/${projectId}/clusters/${clusterId}/metrics/pod/memory_usage/?${json2Query(params)}`,
+                {},
+                config
+            )
+        },
+
+        /**
+         * 容器CPU使用率
+         * /api/projects/{project_id}/clusters/{cluster_id}/metrics/container/cpu_usage/?res_id_list={container_id_list}
+         *
+         * @param {Object} context store 上下文对象
+         * @param {Object} params 参数
+         * @param {Object} config 请求的配置
+         *
+         * @return {Promise} promise 对象
+         */
+        containerCpuUsage (context, params, config = {}) {
+            const { projectId, clusterId } = params
+            delete params.projectId
+            delete params.clusterId
+
+            return http.get(
+                `${DEVOPS_BCS_API_URL}/api/projects/${projectId}/clusters/${clusterId}/metrics/container/cpu_usage/?${json2Query(params)}`,
+                {},
+                config
+            )
+        },
+
+        /**
+         * 容器内存使用量
+         * /api/projects/{project_id}/clusters/{cluster_id}/metrics/container/memory_usage/?res_id_list={container_id_list}
+         *
+         * @param {Object} context store 上下文对象
+         * @param {Object} params 参数
+         * @param {Object} config 请求的配置
+         *
+         * @return {Promise} promise 对象
+         */
+        containerMemUsage (context, params, config = {}) {
+            const { projectId, clusterId } = params
+            delete params.projectId
+            delete params.clusterId
+
+            return http.get(
+                `${DEVOPS_BCS_API_URL}/api/projects/${projectId}/clusters/${clusterId}/metrics/container/memory_usage/?${json2Query(params)}`,
+                {},
+                config
+            )
+        },
+
+        /**
+         * 容器网路接收
+         * /api/projects/{project_id}/clusters/{cluster_id}/metrics/container/network_receive/?res_id_list={container_id_list}
+         *
+         * @param {Object} context store 上下文对象
+         * @param {Object} params 参数
+         * @param {Object} config 请求的配置
+         *
+         * @return {Promise} promise 对象
+         */
+        containerNetReceive (context, params, config = {}) {
+            const { projectId, clusterId } = params
+            delete params.projectId
+            delete params.clusterId
+
+            return http.get(
+                `${DEVOPS_BCS_API_URL}/api/projects/${projectId}/clusters/${clusterId}/metrics/container/network_receive/?${json2Query(params)}`,
+                {},
+                config
+            )
+        },
+
+        /**
+         * 容器网路发送
+         * /api/projects/{project_id}/clusters/{cluster_id}/metrics/container/network_transmit/?res_id_list={container_id_list}
+         *
+         * @param {Object} context store 上下文对象
+         * @param {Object} params 参数
+         * @param {Object} config 请求的配置
+         *
+         * @return {Promise} promise 对象
+         */
+        containerNetTransmit (context, params, config = {}) {
+            const { projectId, clusterId } = params
+            delete params.projectId
+            delete params.clusterId
+
+            return http.get(
+                `${DEVOPS_BCS_API_URL}/api/projects/${projectId}/clusters/${clusterId}/metrics/container/network_transmit/?${json2Query(params)}`,
+                {},
+                config
+            )
+        },
+
+        /**
+         * 容器磁盘写
+         * /api/projects/{project_id}/clusters/{cluster_id}/metrics/container/disk_write/?res_id_list={container_id_list}
+         *
+         * @param {Object} context store 上下文对象
+         * @param {Object} params 参数
+         * @param {Object} config 请求的配置
+         *
+         * @return {Promise} promise 对象
+         */
+        containerDiskWrite (context, params, config = {}) {
+            const { projectId, clusterId } = params
+            delete params.projectId
+            delete params.clusterId
+
+            return http.get(
+                `${DEVOPS_BCS_API_URL}/api/projects/${projectId}/clusters/${clusterId}/metrics/container/disk_write/?${json2Query(params)}`,
+                {},
+                config
+            )
+        },
+
+        /**
+         * 容器磁盘读
+         * /api/projects/{project_id}/clusters/{cluster_id}/metrics/container/disk_read/?res_id_list={container_id_list}
+         *
+         * @param {Object} context store 上下文对象
+         * @param {Object} params 参数
+         * @param {Object} config 请求的配置
+         *
+         * @return {Promise} promise 对象
+         */
+        containerDiskRead (context, params, config = {}) {
+            const { projectId, clusterId } = params
+            delete params.projectId
+            delete params.clusterId
+
+            return http.get(
+                `${DEVOPS_BCS_API_URL}/api/projects/${projectId}/clusters/${clusterId}/metrics/container/disk_read/?${json2Query(params)}`,
+                {},
                 config
             )
         }

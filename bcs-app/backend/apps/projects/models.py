@@ -13,7 +13,7 @@
 #
 from django.db import models
 from django.utils import timezone
-from django.utils.translation import ugettext as _
+from django.utils.translation import ugettext_lazy as _
 
 from backend.apps.projects.constants import StaffInfoStatus
 from backend.utils.models import BaseModel

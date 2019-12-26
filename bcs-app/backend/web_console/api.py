@@ -14,7 +14,7 @@
 """web_console暴露给其他服务使用的模块
 """
 from backend.components.bcs.k8s import K8SClient
-from django.utils.translation import ugettext as _
+from django.utils.translation import ugettext_lazy as _
 
 from .constants import WebConsoleMode
 from .pod_life_cycle import K8SClient as _k8s_client

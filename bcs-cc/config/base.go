@@ -59,8 +59,11 @@ var DESIGNATEDAPPCODE = ""
 // EnableClusterMetric : update cluster metric info
 var EnableClusterMetric = true
 
-// RunENV: current run env
+// RunENV : current run env
 var RunENV = "prod"
+
+// EnableSyncNodes : enable sync node record
+var EnableSyncNodes = false
 
 // Configurations : manage all configurations
 type Configurations struct {
@@ -96,6 +99,10 @@ type Configurations struct {
 	APIGWConf *APIGWConfInfo `yaml:"apigwconf"`
 
 	RunENV string `yaml:"run_env"`
+
+	EnableSyncNodes bool `yaml:"enable_sync_nodes"`
+
+	BCSConf *BCSConf `yaml:"bcsconf"`
 }
 
 // Init : init all configurations
@@ -140,6 +147,11 @@ func (c *Configurations) Init() error {
 	c.JWTPath = JWTPath
 	c.EnableClusterMetric = EnableClusterMetric
 	c.RunENV = RunENV
+
+	c.EnableSyncNodes = EnableSyncNodes
+
+	c.BCSConf = &BCSConf{}
+	c.BCSConf.Init()
 
 	return nil
 }

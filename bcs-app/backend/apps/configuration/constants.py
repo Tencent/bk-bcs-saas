@@ -14,7 +14,7 @@
 import re
 
 from backend.utils.basic import ChoicesEnum
-from django.utils.translation import ugettext as _
+from django.utils.translation import ugettext_lazy as _
 
 # 变量的格式
 VARIABLE_PATTERN = "[A-Za-z][A-Za-z0-9_]"
@@ -121,6 +121,14 @@ class FileResourceName(ChoicesEnum):
     Job = 'Job'
     HPA = 'HPA'
 
+    ServiceAccount = 'ServiceAccount'
+    ClusterRole = 'ClusterRole'
+    ClusterRoleBinding = 'ClusterRoleBinding'
+    PodDisruptionBudget = 'PodDisruptionBudget'
+    StorageClass = 'StorageClass'
+    PersistentVolume = 'PersistentVolume',
+    PersistentVolumeClaim = 'PersistentVolumeClaim'
+
     _choices_labels = (
         (Deployment, 'Deployment'),
         (Service, 'Service'),
@@ -131,6 +139,13 @@ class FileResourceName(ChoicesEnum):
         (DaemonSet, 'DaemonSet'),
         (Job, 'Job'),
         (HPA, 'HPA'),
+        (ServiceAccount, 'ServiceAccount'),
+        (ClusterRole, 'ClusterRole'),
+        (ClusterRoleBinding, 'ClusterRoleBinding'),
+        (PodDisruptionBudget, 'PodDisruptionBudget'),
+        (StorageClass, 'StorageClass'),
+        (PersistentVolume, 'PersistentVolume'),
+        (PersistentVolumeClaim, 'PersistentVolumeClaim')
     )
 
 

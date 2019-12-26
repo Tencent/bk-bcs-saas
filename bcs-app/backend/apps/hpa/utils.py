@@ -15,7 +15,7 @@ import logging
 
 from django.conf import settings
 from django.utils import timezone
-from django.utils.translation import ugettext as _
+from django.utils.translation import ugettext_lazy as _
 
 from backend.activity_log import client as activity_client
 from backend.apps.application import constants as application_constants

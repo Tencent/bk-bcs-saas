@@ -12,22 +12,21 @@
 # specific language governing permissions and limitations under the License.
 #
 import json
-import contextlib
 
-from kubernetes.client.rest import ApiException
-
-from backend.utils.client import make_kubectl_client
-from backend.utils.error_codes import error_codes
+from backend.utils.client import KubectlClient
 from backend.activity_log import client
 
 
 class DeployController:
     def __init__(self, user, release_data):
-        self.access_token = user.token.access_token
         self.username = user.username
-
         self.release_data = release_data
         self.namespace = release_data.namespace_info['name']
+
+        self.kubectl = KubectlClient(
+            user.token.access_token, release_data.project_id,
+            release_data.namespace_info['cluster_id']
+        )
 
     def _log_activity(self, status, msg=''):
         show_version = self.release_data.show_version
@@ -54,14 +53,6 @@ class DeployController:
         }
         client.ContextActivityLogClient(**log_params).log_add(activity_status=status)
 
-    @contextlib.contextmanager
-    def make_kubectl_client(self):
-        with make_kubectl_client(
-                project_id=self.release_data.project_id,
-                cluster_id=self.release_data.namespace_info['cluster_id'],
-                access_token=self.access_token) as (client, err):
-            yield client, err
-
     def _to_manifests(self):
         template_files = self.release_data.template_files
         manifest_list = []
@@ -70,30 +61,17 @@ class DeployController:
         return '---\n'.join(manifest_list)
 
     def _run_with_kubectl(self, operation):
-        err_msg = ''
-        with self.make_kubectl_client() as (client, err):
-            if err is not None:
-                if isinstance(err, ApiException):
-                    err = f'Code: {err.status}, Reason: {err.reason}'
-                raise error_codes.APIError(f'make client failed: {err}')
-
+        try:
             manifests = self._to_manifests()
-            try:
-                if operation == 'apply':
-                    client.ensure_namespace(self.namespace)
-                    client.apply(manifests, self.namespace)
-
-                elif operation == 'delete':
-                    client.ensure_namespace(self.namespace)
-                    client.delete(manifests, self.namespace)
-            except Exception as e:
-                err_msg = f'client {operation} failed: {e}'
-
-        if err_msg:
-            self._log_activity('failed', err_msg)
-            raise error_codes.APIError(err_msg)
-
-        self._log_activity('succeed')
+            if operation == 'apply':
+                self.kubectl.apply(self.namespace, manifests)
+            elif operation == 'delete':
+                self.kubectl.delete(self.namespace, manifests)
+        except Exception as e:
+            self._log_activity('failed', str(e))
+            raise
+        else:
+            self._log_activity('succeed')
 
     def apply(self):
         self._run_with_kubectl('apply')

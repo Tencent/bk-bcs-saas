@@ -465,6 +465,14 @@
   revision = "788fd78401277ebd861206a03c884797c6ec5541"
 
 [[projects]]
+  digest = "1:5f1d44e13c151d777a80b0d8ca850347530773e73ccce5995a520cdc6947c205"
+  name = "gopkg.in/fatih/set.v0"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "2c768e3c5489976167bfc42b5c7c92ca783f4389"
+  version = "v0.2.1"
+
+[[projects]]
   digest = "1:cbc72c4c4886a918d6ab4b95e347ffe259846260f99ebdd8a198c2331cf2b2e9"
   name = "gopkg.in/go-playground/validator.v8"
   packages = ["."]
@@ -614,6 +622,7 @@
     "gopkg.in/go-playground/validator.v8",
     "gopkg.in/gormigrate.v1",
     "gopkg.in/yaml.v2",
+    "gopkg.in/fatih/set.v0",
   ]
   solver-name = "gps-cdcl"
   solver-version = 1

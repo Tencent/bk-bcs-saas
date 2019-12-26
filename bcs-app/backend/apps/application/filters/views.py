@@ -12,7 +12,7 @@
 # specific language governing permissions and limitations under the License.
 #
 import json
-from django.utils.translation import ugettext as _
+from django.utils.translation import ugettext_lazy as _
 
 from backend.apps.application.utils import APIResponse
 from backend.apps.application.base_views import BaseAPI, error_codes

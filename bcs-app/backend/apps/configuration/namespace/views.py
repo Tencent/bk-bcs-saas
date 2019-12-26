@@ -19,7 +19,7 @@ from itertools import groupby
 from django.conf import settings
 from rest_framework import response, serializers, viewsets
 from rest_framework.exceptions import ValidationError
-from django.utils.translation import ugettext as _
+from django.utils.translation import ugettext_lazy as _
 
 from .tasks import sync_namespace as sync_ns_task
 from .resources import Namespace
@@ -114,7 +114,7 @@ class NamespaceBase:
         except Exception as e:
             self.delete_ns_by_bcs(client, data['name'])
             logger.exception(u"获取项目仓库账号信息失败:%s" % e)
-            raise ValidationError(_("获取项目仓库账号信息失败，请联系管理员解决"))
+            raise ValidationError(_("获取项目仓库账号信息失败"))
 
         # 通过错误消息判断 包含仓库信息的secret 是否已经存在，已经存在则直接进行下一步
         res_msg = result.get('message') or ''
@@ -123,7 +123,7 @@ class NamespaceBase:
         if result.get('code') != 0 and not is_already_exists:
             self.delete_ns_by_bcs(client, data['name'])
             raise error_codes.ComponentError.f(
-                _("创建registry secret失败，{}, 请联系管理员解决").format(result.get('message')))
+                _("创建registry secret失败，{}").format(result.get('message')))
 
     def init_namespace_by_bcs(self, access_token, project_id, project_code, data):
         """ k8s 的集群需要创建 Namespace 和 jfrog Sercret
@@ -191,7 +191,7 @@ class NamespaceBase:
         if result.get('code') != 0:
             client.delete_secret(ns_name, MESOS_IMAGE_SECRET)
             raise error_codes.ComponentError.f(
-                _("创建registry secret失败，{}, 请联系管理员解决").format(result.get('message')))
+                _("创建registry secret失败，{}").format(result.get('message')))
 
 
 class NamespaceView(NamespaceBase, viewsets.ViewSet):

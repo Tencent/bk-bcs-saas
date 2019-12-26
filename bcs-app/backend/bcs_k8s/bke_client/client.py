@@ -19,7 +19,7 @@ import json
 import requests
 from django.conf import settings
 from rest_framework.exceptions import PermissionDenied, APIException
-from django.utils.translation import ugettext as _
+from django.utils.translation import ugettext_lazy as _
 
 from . import constants
 from backend.components import paas_cc, bcs

@@ -16,7 +16,7 @@ import logging
 from datetime import datetime
 
 from rest_framework.response import Response
-from django.utils.translation import ugettext as _
+from django.utils.translation import ugettext_lazy as _
 
 from .configs import k8s, mesos
 from backend.apps.cluster import serializers, constants
@@ -185,50 +185,6 @@ class BaseNode(object):
         perm_client = Cluster(self.request, self.project_id, self.cluster_id)
         perm_client.can_edit(raise_exception=True)
 
-    def create_cc_set_module(self):
-        """创建module
-        注意:
-        1. set在集群时已经创建
-        2. module只有在添加第一个node时，才会创建
-        """
-        cluster_logs = ClusterInstallLog.objects.filter(
-            project_id=self.project_id, cluster_id=self.cluster_id
-        )
-        cluster_log = cluster_logs.last()
-        params = json.loads(cluster_log.params)
-        project_cc_module_info = constants.CC_MODULE_INFO[params['kind_name']]
-        self.set_id = int(params['set_id'])
-        set_modules = cc.search_set_module(self.username, self.cc_app_id, int(self.set_id))
-        if set_modules.get('code') != ErrorCode.NoError:
-            raise error_codes.APIError(set_modules.get('message', _("查询集群下模块信息失败")))
-        set_module_dict = {
-            info['bk_module_name']: info['bk_module_id']
-            for info in set_modules.get('data', {}).get('info', [])
-        }
-        module_suffix_name_list = project_cc_module_info['module_suffix_name']
-        # 不存在的模块，创建一次
-        # all_module_name_list = []
-        all_module_id_list = []
-        set_name = '{kind_name}-{environment_name}-{project_name}-{area_name}-{cluster_id}'.format(
-            kind_name=params['kind_name'], environment_name=params['environment'],
-            project_name=self.project_info['project_name'],
-            area_name=params['area_name'], cluster_id=self.cluster_id
-        )
-        for suffix_name in module_suffix_name_list[1:]:
-            exist = False
-            for name in set_module_dict:
-                if suffix_name in name:
-                    exist = True
-                    all_module_id_list.append(set_module_dict[name])
-            if exist:
-                continue
-            module_name = '{set_name}-{suffix_name}'.format(set_name=set_name, suffix_name=suffix_name)
-            module_info = cc.cc_module_instance(self.username, self.cc_app_id, self.set_id, module_name)
-            if module_info.get('code') != ErrorCode.NoError:
-                raise error_codes.APIError(module_info.get('message', _("创建配置中心集群模块失败")))
-            all_module_id_list.append(module_info.get('data', {}).get('bk_module_id'))
-        return all_module_id_list
-
 
 class CreateNode(BaseNode):
 
@@ -330,7 +286,8 @@ class CreateNode(BaseNode):
         # 获取节点是否需要NAT
         cluster_info = self.get_cluster_info()
         self.need_nat = cluster_info.get('need_nat', True)
-        self.module_id_list = self.create_cc_set_module()
+        # 现阶段平台侧不主动创建CMDB set&module，赋值为空列表
+        self.module_id_list = []
         # 请求ops api
         with client.ContextActivityLogClient(
             project_id=self.project_id,

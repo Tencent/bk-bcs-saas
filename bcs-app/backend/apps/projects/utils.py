@@ -13,7 +13,7 @@
 #
 import logging
 
-from django.utils.translation import ugettext as _
+from django.utils.translation import ugettext_lazy as _
 
 from backend.components import cc
 from backend.apps.depot.api import create_project_path_by_api

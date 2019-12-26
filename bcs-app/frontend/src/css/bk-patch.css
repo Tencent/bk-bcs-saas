@@ -1127,3 +1127,37 @@
 .bk-tab2 .bk-tab2-head .bk-tab2-nav>.tab2-nav-item {
     max-width: 220px;
 }
+
+.english {
+    .bk-form .bk-label {
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+    }
+
+    .bk-form.bk-form-vertical .bk-label {
+        width: auto;
+        text-align: left;
+        position: relative !important;
+        top: auto;
+        transform: translateY(0) !important;
+    }
+
+    .biz-search-input .biz-search-btn {
+        top: 8px;
+    }
+
+    .bk-table {
+        .bk-text-button,
+        .biz-resource-table .biz-operate {
+            padding-bottom: 1px;
+            &:hover {
+                border-bottom: 1px solid #3c96ff;
+            }
+        }
+    }
+
+    .bk-dialog-footer .bk-dialog-outer button {
+        width: 80px;
+    }
+}

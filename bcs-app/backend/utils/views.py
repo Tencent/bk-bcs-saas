@@ -26,7 +26,7 @@ from rest_framework.exceptions import (AuthenticationFailed, MethodNotAllowed,
 from rest_framework.response import Response
 from rest_framework.views import exception_handler
 from rest_framework.renderers import BrowsableAPIRenderer
-from django.utils.translation import ugettext as _
+from django.utils.translation import ugettext_lazy as _
 
 from backend.utils import exceptions as backend_exceptions
 from backend.utils.error_codes import APIError
@@ -128,7 +128,7 @@ def custom_exception_handler(exc, context):
 
         data = {
             'code': 500,
-            'message': _("数据请求失败，请稍后再试,{}").format(settings.COMMON_EXCEPTION_MSG),
+            'message': _("数据请求失败，请稍后再试{}").format(settings.COMMON_EXCEPTION_MSG),
             'data': None
         }
         return Response(data)

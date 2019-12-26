@@ -133,6 +133,7 @@ input:-webkit-autofill, textarea:-webkit-autofill, select:-webkit-autofill {
         align-items: stretch;
         flex: 1;
         padding-bottom: 35px;
+        width: calc(100% - 261px);
         .biz-top-bar {
             height: 60px;
             border-bottom: 1px solid $borderWeightColor;
@@ -2313,6 +2314,9 @@ div.jsoneditor {
             width: 241px;
             min-width: 241px;
             max-width: 241px;
+        }
+        .biz-content {
+            width: calc(100% - 241px);
         }
     }
     .biz-templateset-desc {

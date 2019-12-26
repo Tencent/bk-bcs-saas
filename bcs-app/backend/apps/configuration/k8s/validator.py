@@ -15,7 +15,7 @@ import re
 
 from jsonschema import ValidationError as JsonValidationError, SchemaError, validate as json_validate
 from rest_framework.exceptions import ValidationError
-from django.utils.translation import ugettext as _
+from django.utils.translation import ugettext_lazy as _
 
 from backend.utils.basic import getitems
 from backend.apps.configuration import models

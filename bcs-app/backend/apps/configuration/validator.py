@@ -15,7 +15,7 @@ import json
 
 from jsonschema import ValidationError as JsonValidationError, SchemaError, validate as json_validate
 from rest_framework.exceptions import ValidationError
-from django.utils.translation import ugettext as _
+from django.utils.translation import ugettext_lazy as _
 
 from backend.apps.configuration.constants import KEY_PATTERN, REAL_NUM_VAR_PATTERN, NUM_VAR_ERROR_MSG
 from backend.apps.configuration.models import get_model_class_by_resource_name, VersionedEntity

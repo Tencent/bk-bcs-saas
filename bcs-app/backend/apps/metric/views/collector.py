@@ -31,7 +31,7 @@ from backend.components import paas_cc
 from backend.utils.error_codes import error_codes
 from backend.utils.renderers import BKAPIRenderer
 from backend.utils.response import BKAPIResponse
-from .utils import get_metric_instances
+from backend.apps.metric.utils import get_metric_instances
 
 logger = logging.getLogger(__name__)
 PAUSE = 'pause'

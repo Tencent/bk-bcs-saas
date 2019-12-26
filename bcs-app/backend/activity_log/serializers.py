@@ -13,7 +13,7 @@
 #
 import arrow
 from rest_framework import serializers
-from django.utils.translation import ugettext as _
+from django.utils.translation import ugettext_lazy as _
 
 from backend.activity_log.models import UserActivityLog
 
@@ -22,7 +22,10 @@ class ActivityLogSLZ(serializers.ModelSerializer):
     description = serializers.SerializerMethodField()
 
     def get_description(self, obj):
-        return _(obj.description)
+        description = obj.description
+        if description:
+            return _(obj.description)
+        return description
 
     class Meta:
         model = UserActivityLog

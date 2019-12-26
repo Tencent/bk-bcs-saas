@@ -46,8 +46,9 @@ urlpatterns = [
     # Resource管理
     url(r'^', include('backend.apps.resource.urls', namespace='resource')),
 
-    # metric, pub for now
+    # metric
     url(r'^', include('backend.apps.metric.urls', namespace='metric')),
+    url(r'^api/projects/(?P<project_id>\w{32})/clusters/(?P<cluster_id>\w+)/metrics', include('backend.apps.metric.urls_new')),
 
     # 配置管理
     url(r'^', include('backend.apps.configuration.urls', namespace='configuration')),

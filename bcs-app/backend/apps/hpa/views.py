@@ -15,7 +15,7 @@ import json
 import logging
 
 from django.utils import timezone
-from django.utils.translation import ugettext as _
+from django.utils.translation import ugettext_lazy as _
 from rest_framework import views, viewsets
 from rest_framework.renderers import BrowsableAPIRenderer
 from rest_framework.response import Response

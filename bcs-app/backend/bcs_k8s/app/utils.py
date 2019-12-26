@@ -21,7 +21,7 @@ from urllib.parse import urlparse
 from ruamel.yaml import YAML
 from ruamel.yaml.compat import StringIO
 from ruamel.yaml.compat import ordereddict
-from django.utils.translation import ugettext as _
+from django.utils.translation import ugettext_lazy as _
 
 from backend.bcs_k8s.helm.utils.util import fix_rancher_value_by_type, EmptyVaue
 from backend.utils.client import make_dashboard_ctl_client

@@ -48,7 +48,7 @@ export default function menuConfig (lang) {
         projectImage = 'Private'
         operateAudit = 'Operate Audit'
         eventQuery = 'Event Query'
-        monitor = 'Monitor'
+        monitor = 'Container Monitoring'
         release = 'Release'
         chart = 'Chart'
     }

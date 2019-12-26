@@ -12,7 +12,7 @@
 # specific language governing permissions and limitations under the License.
 #
 import arrow
-from django.utils.translation import ugettext as _
+from django.utils.translation import ugettext_lazy as _
 from rest_framework import generics, views
 from rest_framework.renderers import BrowsableAPIRenderer
 from rest_framework.response import Response

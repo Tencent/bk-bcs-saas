@@ -19,7 +19,7 @@ from datetime import datetime
 from django.conf import settings
 from rest_framework.response import Response
 from rest_framework.renderers import BrowsableAPIRenderer
-from django.utils.translation import ugettext as _
+from django.utils.translation import ugettext_lazy as _
 
 from .configs import k8s, mesos
 from backend.components import paas_cc, cc
@@ -231,57 +231,6 @@ class CreateCluster(BaseCluster):
             raise error_codes.CheckFailed(_("获取区域配置为空，请确认后重试"))
         return data
 
-    def create_cc_set_module(self, cluster):
-        """创建cc集群和模块
-        1. 先检查集群是否存在
-        2. 创建集群
-        3. 创建模块
-        """
-        self.cluster_id = cluster['cluster_id']
-        self.area_name = self.area_info['name']
-        environment = cluster.get('environment')
-        project_cc_module_info = constants.CC_MODULE_INFO[self.kind_name]
-        env_name = project_cc_module_info[environment]
-        set_name = '{kind_name}-{environment_name}-{project_name}-{area_name}-{cluster_id}'.format(
-            kind_name=self.kind_name, environment_name=env_name,
-            project_name=self.project_info['project_name'],
-            area_name=self.area_name, cluster_id=cluster['cluster_id']
-        )
-        self.set_id = cc.get_set_id(self.username, self.cc_app_id, set_name)
-        if not self.set_id:
-            set_info = cc.cc_set_instance(self.username, self.cc_app_id, set_name)
-            if set_info.get('code') != ErrorCode.NoError:
-                self.delete_cluster(cluster['cluster_id'])
-                raise error_codes.APIError(set_info.get('message'))
-            self.set_id = set_info.get('data', {}).get('bk_set_id')
-        set_modules = cc.search_set_module(self.username, self.cc_app_id, self.set_id)
-        if set_modules.get('code') != ErrorCode.NoError:
-            self.delete_cluster(cluster['cluster_id'])
-            raise error_codes.APIError(set_modules.get('message', _("查询集群下模块信息失败")))
-        set_module_dict = {
-            info['bk_module_name']: info['bk_module_id']
-            for info in set_modules.get('data', {}).get('info', [])
-        }
-        module_suffix_name_list = project_cc_module_info['module_suffix_name']
-        # 不存在的模块，创建一次
-        # all_module_name_list = []
-        all_module_id_list = []
-        for suffix_name in module_suffix_name_list[:1]:
-            exist = False
-            for name in set_module_dict:
-                if suffix_name in name:
-                    exist = True
-                    all_module_id_list.append(set_module_dict[name])
-            if exist:
-                continue
-            module_name = '{set_name}-{suffix_name}'.format(set_name=set_name, suffix_name=suffix_name)
-            module_info = cc.cc_module_instance(self.username, self.cc_app_id, self.set_id, module_name)
-            if module_info.get('code') != ErrorCode.NoError:
-                self.delete_cluster(cluster['cluster_id'])
-                raise error_codes.APIError(module_info.get('message', _("创建配置中心集群模块失败")))
-            all_module_id_list.append(module_info.get('data', {}).get('bk_module_id'))
-        return all_module_id_list
-
     def get_cluster_base_config(self, cluster_id, version, environment='prod'):
         params = {
             'ver_id': version,
@@ -332,7 +281,8 @@ class CreateCluster(BaseCluster):
             if resp.get('code') != ErrorCode.NoError or not resp.get('data'):
                 raise error_codes.APIError(resp.get('message', _("创建集群失败")))
             cluster_info = resp.get('data')
-            module_id_list = self.create_cc_set_module(cluster_info)
+            # 现阶段平台侧不主动创建CMDB set&module，赋值为空列表
+            module_id_list = []
 
         ual.update_log(resource_id=cluster_info.get("cluster_id"))
         log = self.create_cluster_via_bcs(cluster_info['cluster_id'], module_id_list)
