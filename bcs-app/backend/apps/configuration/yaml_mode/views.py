@@ -20,6 +20,7 @@ from rest_framework.renderers import BrowsableAPIRenderer
 from . import serializers, init_tpls
 from .deployer import DeployController
 from .release import ReleaseData, ReleaseDataProcessor
+from backend.apps.datalog.utils import create_data_project, create_and_start_standard_data_flow
 from backend.apps.configuration.mixins import TemplatePermission
 from backend.apps.configuration.models import get_template_by_project_and_id
 from backend.apps.configuration.showversion.serializers import GetShowVersionSLZ, GetLatestShowVersionSLZ
@@ -166,6 +167,14 @@ class TemplateReleaseViewSet(viewsets.ViewSet, TemplatePermission):
 
         template = validated_data['show_version']['template']
         self.can_use_template(request, template)
+
+        # 在数据平台创建项目信息
+        username = request.user.username
+        cc_app_id = request.project.cc_app_id
+        english_name = request.project.english_name
+        create_data_project(username, project_id, cc_app_id, english_name)
+        # 创建/启动标准日志采集任务
+        create_and_start_standard_data_flow(username, project_id, cc_app_id)
 
         processor = ReleaseDataProcessor(
             user=self.request.user, raw_release_data=self._raw_release_data(project_id, validated_data)
