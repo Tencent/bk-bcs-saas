@@ -1,8 +1,7 @@
 # SaaS of BlueKing Container Service
-<img src="docs/resource/logo/bcs_en.png" width="250" hegiht="10" align=center />
-
-[![license](https://img.shields.io/badge/license-MIT-blue.svg?style=flat)](https://github.com/Tencent/bk-bcs-saas/blob/master/LICENSE) [![Release Version](https://img.shields.io/badge/release-1.0.x-blue.svg)](https://github.com/Tencent/bk-bcs-saas/releases) [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-blue.svg)](https://github.com/Tencent/bk-bcs-saas/pulls) [![](https://travis-ci.com/Tencent/bk-bcs-saas.svg?token=ypkHQqxUR3Y3ctuD7qFS&branch=master)](https://travis-ci.com/Tencent/bk-bcs-saas)
-
+![](docs/resource/logo/bcs_en.png)
+---
+[![license](https://img.shields.io/badge/license-mit-brightgreen.svg?style=flat)](https://github.com/Tencent/bk-bcs-saas/blob/master/LICENSE) [![Release Version](https://img.shields.io/badge/release-1.0.x-brightgreen.svg)](https://github.com/Tencent/bk-bcs-saas/releases) [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/Tencent/bk-bcs-saas/pulls) [![BK Pipelines Status](https://api.bkdevops.qq.com/process/api/external/pipelines/projects/cc/p-c02db56ac633447eb2e740b3fd0b6d2b/badge?X-DEVOPS-PROJECT-ID=cc)](https://api.bkdevops.qq.com/process/api/external/pipelines/projects/bcs/p-c03c759b697f494ab14e01018eccb052/badge?X-DEVOPS-PROJECT-ID=bcs) [![](https://travis-ci.com/Tencent/bk-bcs-saas.svg?token=ypkHQqxUR3Y3ctuD7qFS&branch=master)](https://travis-ci.com/Tencent/bk-bcs-saas)
 
 
 [(Chinese Documents Available)](README.md)
@@ -32,13 +31,11 @@ The SaaS source code of BCS contains:
 - **WebConsole**：Quickly view cluster state command line tool services.
 - **Helm**：Support for deployment and management tools for K8S applications Helm.
 
-
-
 ## Getting started
 - [Local development and installation guidelines(In Chinese)](/docs/install/dev-install-overview.md)
 - [Replace the installed ce version](https://docs.bk.tencent.com/bk_osed/Open-Bcs.html#open_bcs)
 
-## Release
+## Roadmap
 
 - [Release log](docs/release.md)
 
@@ -48,6 +45,18 @@ The SaaS source code of BCS contains:
 - [Bk club](https://bk.tencent.com/s-mart/community)
 - Contact us, technical exchange QQ group：
 <img src="docs/resource/img/QR-Code.png" width="250" hegiht="250" align=center />
+
+## BlueKing Community
+- [BK-CI](https://github.com/Tencent/bk-ci)：a continuous integration and continuous
+ delivery system that can easily present your R & D process to you.
+- [BK-BCS](https://github.com/Tencent/bk-bcs)：a basic container service platform which provides
+ orchestration and management for micro-service business.
+- [BK-BCS-SaaS](https://github.com/Tencent/bk-bcs-saas)：a SaaS provides users with highly scalable
+, flexible and easy-to-use container products and services.
+- [BK-PaaS](https://github.com/Tencent/bk-PaaS)：an development platform that allows developers to create, develop, deploy and manage SaaS applications easily and quickly.
+- [BK-SOPS](https://github.com/Tencent/bk-sops)：an lightweight scheduling SaaS  for task flow
+ scheduling and execution through a visual graphical interface. 
+- [BK-CMDB](https://github.com/Tencent/bk-cmdb)：an enterprise-level configuration management platform for assets and applications.
 
 ## Contributing
 
