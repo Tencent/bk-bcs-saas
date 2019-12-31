@@ -1,11 +1,10 @@
 # 蓝鲸智云容器管理平台SaaS
-<img src="docs/resource/logo/bcs_zh.png" width="250" hegiht="10" align=center />
+![](docs/resource/logo/bk_bcs.png)
+---
+[![license](https://img.shields.io/badge/license-mit-brightgreen.svg?style=flat)](https://github.com/Tencent/bk-bcs-saas/blob/master/LICENSE) [![Release Version](https://img.shields.io/badge/release-1.0.x-brightgreen.svg)](https://github.com/Tencent/bk-bcs-saas/releases) [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/Tencent/bk-bcs-saas/pulls) [![BK Pipelines Status](https://api.bkdevops.qq.com/process/api/external/pipelines/projects/cc/p-c02db56ac633447eb2e740b3fd0b6d2b/badge?X-DEVOPS-PROJECT-ID=cc)](https://api.bkdevops.qq.com/process/api/external/pipelines/projects/bcs/p-c03c759b697f494ab14e01018eccb052/badge?X-DEVOPS-PROJECT-ID=bcs) [![](https://travis-ci.com/Tencent/bk-bcs-saas.svg?token=ypkHQqxUR3Y3ctuD7qFS&branch=master)](https://travis-ci.com/Tencent/bk-bcs-saas)
 
-[![license](https://img.shields.io/badge/license-MIT-blue.svg?style=flat)](https://github.com/Tencent/bk-bcs-saas/blob/master/LICENSE) [![Release Version](https://img.shields.io/badge/release-1.0.x-blue.svg)](https://github.com/Tencent/bk-bcs-saas/releases) [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-blue.svg)](https://github.com/Tencent/bk-bcs-saas/pulls) [![](https://travis-ci.com/Tencent/bk-bcs-saas.svg?token=ypkHQqxUR3Y3ctuD7qFS&branch=master)](https://travis-ci.com/Tencent/bk-bcs-saas)
 
-
-
-[(English Documents Available)](README_EN.md)
+[(English Documents Available)](readme_en.md)
 
 > **重要提示**: `master` 分支是开发分支，可能处于 *不稳定或者不可用状态* 。请通过[releases](https://github.com/tencent/bk-bcs-saas/releases) 而非 `master` 去获取稳定的软件包
 
@@ -33,6 +32,7 @@
 - **WebConsole**：快捷查看集群状态的命令行工具服务
 - **Helm**：支持K8S应用的部署和管理工具Helm
 
+详细介绍请参考[功能说明](https://docs.bk.tencent.com/bcs/)
 
 
 ## Getting started
@@ -44,9 +44,9 @@
 > 蓝鲸社区版5.1会在后续开放下载，敬请期待
 
 - [本地安装部署指引](/docs/install/dev-install-overview.md)
-- [替换已安装的蓝鲸社区版指引](https://docs.bk.tencent.com/bk_osed/Open-Bcs.html#open_bcs)
+- [用开源版替换社区版](https://docs.bk.tencent.com/bk_osed/Open-Bcs.html#open_bcs)
 
-## Release
+## Roadmap
 
 - [版本日志](docs/release.md)
 
@@ -57,9 +57,15 @@
 - 联系我们，技术交流QQ群：
 <img src="docs/resource/img/QR-Code.png" width="250" hegiht="250" align=center />
 
-## Contributing
+## BlueKing Community
+- [BK-CI](https://github.com/Tencent/bk-ci)：蓝鲸持续集成平台是一个开源的持续集成和持续交付系统，可以轻松将你的研发流程呈现到你面前。
+- [BK-BCS](https://github.com/Tencent/bk-bcs)：蓝鲸容器管理平台是以容器技术为基础，为微服务业务提供编排管理的基础服务平台。
+- [BK-BCS-SaaS](https://github.com/Tencent/bk-bcs-saas)：蓝鲸容器管理平台SaaS基于原生Kubernetes和Mesos自研的两种模式，提供给用户高度可扩展、灵活易用的容器产品服务。
+- [BK-PaaS](https://github.com/Tencent/bk-PaaS)：蓝鲸PaaS平台是一个开放式的开发平台，让开发者可以方便快捷地创建、开发、部署和管理SaaS应用。
+- [BK-SOPS](https://github.com/Tencent/bk-sops)：标准运维（SOPS）是通过可视化的图形界面进行任务流程编排和执行的系统，是蓝鲸体系中一款轻量级的调度编排类SaaS产品。
 
-关于分支/issue及PR, 请查看 [CONTRIBUTING](docs/CONTRIBUTING.md)
+## Contributing
+对于项目感兴趣，想一起贡献并完善项目请参阅[Contributing Guide](docs/CONTRIBUTING.md)。
 
 [腾讯开源激励计划](https://opensource.tencent.com/contribution) 鼓励开发者的参与和贡献，期待你的加入。
 
