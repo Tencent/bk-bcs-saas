@@ -595,7 +595,7 @@ export default {
     '阈值': ['Threshold'],
     '网络使用率': ['Network Usage'],
     'IO使用率': ['IO Usage'],
-    '磁盘总量': ['Disk Total'],
+    '磁盘IO总量': ['DiskIO Total'],
     // 变量的使用 $t('test', { vari1: 1, vari2: 2 })
     'test': ['{vari1} ---english--- {vari2}']
 }
