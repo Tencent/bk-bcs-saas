@@ -1162,3 +1162,11 @@
         width: 80px;
     }
 }
+
+.biz-app-instance-chart-wrapper {
+    .change-pod-wrapper {
+        .bk-selector-list {
+            z-index: 101;
+        }
+    }
+}
