@@ -692,6 +692,7 @@
 .biz-app-list-wrapper {
     .bk-loading {
         margin-top: 107px;
+        background-color: rgb(250, 251, 253) !important;
     }
 }
 

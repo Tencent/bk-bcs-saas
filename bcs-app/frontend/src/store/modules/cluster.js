@@ -1106,6 +1106,26 @@ export default {
                 {},
                 config
             )
+        },
+
+        /**
+         * 集群 节点详情 上方数据，prometheus 获取
+         * /api/projects/{project_id}/clusters/{cluster_id}/metrics/node/info/?res_id={ip}
+         *
+         * @param {Object} context store 上下文对象
+         * @param {string} projectId 项目 id
+         * @param {string} clusterId 集群 id
+         * @param {string} nodeId node id 即 ip
+         * @param {Object} config 请求的配置
+         *
+         * @return {Promise} promise 对象
+         */
+        nodeInfo (context, { projectId, clusterId, nodeId }, config = {}) {
+            return http.get(
+                `${DEVOPS_BCS_API_URL}/api/projects/${projectId}/clusters/${clusterId}/metrics/node/info/?res_id=${nodeId}`,
+                {},
+                config
+            )
         }
     }
 }
