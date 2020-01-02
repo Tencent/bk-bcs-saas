@@ -51,8 +51,7 @@ The SaaS source code of BCS contains:
  delivery system that can easily present your R & D process to you.
 - [BK-BCS](https://github.com/Tencent/bk-bcs)：a basic container service platform which provides
  orchestration and management for micro-service business.
-- [BK-BCS-SaaS](https://github.com/Tencent/bk-bcs-saas)：a SaaS provides users with highly scalable
-, flexible and easy-to-use container products and services.
+- [BK-CMDB](https://github.com/Tencent/bk-cmdb)：BlueKing Configuration Platform (Blue Whale CMDB) is an enterprise-level configuration management platform for assets and applications.
 - [BK-PaaS](https://github.com/Tencent/bk-PaaS)：an development platform that allows developers to create, develop, deploy and manage SaaS applications easily and quickly.
 - [BK-SOPS](https://github.com/Tencent/bk-sops)：an lightweight scheduling SaaS  for task flow
  scheduling and execution through a visual graphical interface. 
