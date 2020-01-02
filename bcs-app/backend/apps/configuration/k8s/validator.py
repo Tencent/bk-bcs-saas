@@ -13,13 +13,12 @@
 #
 import re
 
-from jsonschema import ValidationError as JsonValidationError, SchemaError, validate as json_validate
 from rest_framework.exceptions import ValidationError
 from django.utils.translation import ugettext_lazy as _
 
 from backend.utils.basic import getitems
 from backend.apps.configuration import models
-from .constants import AFFINITY_SCHEMA, CONFIG_SCHEMA_MAP
+from .constants import CONFIG_SCHEMA_MAP
 
 K8S_NAME_REGEX = re.compile(r'^[a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*$')
 K8S_NAME_ERROR_MSG = _("名称格式错误，以小写字母或数字开头，只能包含：小写字母、数字、连字符(-)、点(.)")
@@ -45,19 +44,6 @@ def validate_pod_selector(config):
             invalid_label_list = ['%s:%s' % (x, pod_labels[x]) for x in pod_labels]
             invalid_label_str = "; ".join(invalid_label_list)
             raise ValidationError(_("[{}]不在用户填写的标签中").format(invalid_label_str))
-
-
-def validate_affinity(config):
-    """检查亲和性
-    """
-    affinity = getitems(config, ['spec', 'template', 'spec', 'affinity'], default={})
-    err_prefix = "亲和性约束配置出错"
-    try:
-        json_validate(affinity, AFFINITY_SCHEMA)
-    except JsonValidationError as e:
-        raise ValidationError(f'{err_prefix}:{e.message}')
-    except SchemaError as e:
-        raise ValidationError(f'{err_prefix}:{e}')
 
 
 def validate_service_tag(data):
