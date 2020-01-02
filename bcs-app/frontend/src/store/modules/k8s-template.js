@@ -228,6 +228,10 @@ export default {
                     ]
                 }
 
+                if (!item.config.webCache.hostAliasesCache) {
+                    item.config.hostAliasesCache = []
+                }
+
                 // 解决历史问题
                 if (JSON.stringify(item.config.spec.template.spec.nodeSelector) === '{}') {
                     item.config.webCache.nodeSelectorList = [

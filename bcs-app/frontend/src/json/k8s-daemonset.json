@@ -9,6 +9,7 @@
         "monitorLevel": "general",
         "webCache": {
             "volumes": [],
+            "hostAliasesCache": [],
             "isUserConstraint": false,
             "remarkListCache": [
                 {
