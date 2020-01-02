@@ -11,6 +11,8 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
+from django.utils.translation import ugettext_lazy as _
+
 from backend.components import paas_cc
 from backend.utils.errcodes import ErrorCode
 from backend.utils.error_codes import error_codes
@@ -48,6 +50,17 @@ class Nodes:
             raise error_codes.APIError(f"request cluster node list error, resp.get('message')")
         data = resp.get('data') or {}
         return data.get('results') or []
+
+    def get_cluster_info(self, request, project_id, cluster_id):
+        cluster_resp = paas_cc.get_cluster(
+            request.user.token.access_token, project_id, cluster_id
+        )
+        if cluster_resp.get('code') != ErrorCode.NoError:
+            raise error_codes.APIError(f"request cluster error, {cluster_resp.get('message')}")
+        data = cluster_resp.get('data')
+        if not data:
+            raise error_codes.APIError(_("查询集群信息为空"))
+        return data
 
 
 class ClusterPerm:

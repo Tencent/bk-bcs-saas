@@ -579,3 +579,28 @@ class BatchDeleteNode(DeleteNodeBase):
         log = self.delete_via_bcs(self.request, self.project_id, self.cluster_id, self.kind_name, node_info)
         if not log.is_finished and log.is_polling:
             log.polling_task()
+
+
+class BatchReinstallNodes(BaseNode):
+
+    def __init__(self, request, project_id, cluster_id, cluster_info, node_id_ip_map):
+        self.request = request
+        self.project_id = project_id
+        self.cluster_id = cluster_id
+        self.cluster_info = cluster_info
+        self.node_id_ip_map = node_id_ip_map
+        self.access_token = request.user.token.access_token
+        self.username = request.user.username
+        self.project_info = request.project
+        self.kind_name = constants.ClusterType.get(self.project_info.kind)
+        self.cc_app_id = self.project_info.cc_app_id
+
+    def reinstall(self):
+        self.need_nat = self.cluster_info.get('need_nat', True)
+        # 现阶段平台侧不主动创建CMDB set&module，赋值为空列表
+        self.module_id_list = []
+        self.ip_list = list(self.node_id_ip_map.values())
+        log = self.create_node_via_bcs(
+            [{'inner_ip': ip, 'id': id} for id, ip in self.node_id_ip_map.items()])
+        if not log.is_finished and log.is_polling:
+            log.polling_task()

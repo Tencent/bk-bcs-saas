@@ -13,12 +13,16 @@
 #
 from rest_framework import response, viewsets
 from rest_framework.renderers import BrowsableAPIRenderer
+from django.utils.translation import ugettext_lazy as _
 
 from .base import Nodes, ClusterPerm
 from backend.utils.renderers import BKAPIRenderer
 from backend.utils.error_codes import error_codes
-from backend.apps.cluster.models import CommonStatus
+from backend.utils.errcodes import ErrorCode
+from backend.apps.cluster.models import CommonStatus, NodeUpdateLog
 from backend.apps.cluster import serializers as node_serializers
+from backend.activity_log import client
+from backend.apps.cluster.views_bk import node
 
 NotReadyNodeStatus = ['not_ready', CommonStatus.DeleteFailed]
 
@@ -40,20 +44,12 @@ class DeleteNotReadyNode(Nodes, viewsets.ViewSet):
         return response.Response()
 
 
-class BatchReinstallNodes(ClusterPerm, Nodes, viewsets.viewsets):
+class BatchReinstallNodes(ClusterPerm, Nodes, viewsets.ViewSet):
     renderer_classes = (BKAPIRenderer, BrowsableAPIRenderer)
 
     def get_cluster_nodes(self, request, project_id, cluster_id):
         node_list = self.get_node_list(request, project_id, cluster_id)
-        return {info['id']: info['inner_ip'] for info in node_list}
-
-    def get_initial_failed_status_list(self):
-        pass
-
-    def validated_nodes(self, cluster_nodes, id_list):
-        not_exist_node = set(id_list) - set(cluster_nodes.keys())
-        if not_exist_node:
-            pass
+        return {info['id']: info for info in node_list}
 
     def reinstall_nodes(self, request, project_id, cluster_id):
         """当初始化失败时，允许用户批量重装
@@ -63,9 +59,33 @@ class BatchReinstallNodes(ClusterPerm, Nodes, viewsets.viewsets):
         """
         # 校验集群的编辑权限
         self.can_edit_cluster(request, project_id, cluster_id)
+        # 获取集群下的节点
+        cluster_nodes = self.get_cluster_nodes(request, project_id, cluster_id)
         # 获取请求参数
-        slz = node_serializers.BatchUpdateNodesSLZ(data=request.data)
+        slz = node_serializers.BatchReinstallSLZ(
+            data=request.data, context={'cluster_nodes': cluster_nodes})
         slz.is_valid(raise_exception=True)
-        # req_data = slz.validated_data
-        # 检测节点必须为当前项目下的同一集群
-        # cluster_nodes = self.get_cluster_nodes(request, project_id, cluster_id)
+        req_data = slz.validated_data
+        # 获取集群信息
+        cluster_info = self.get_cluster_info(request, project_id, cluster_id)
+        # 获取节点IP
+        node_id_ip_map = {id: cluster_nodes[id]['inner_ip'] for id in req_data['node_id_list']}
+        # 下发继续初始化流程
+        node_ip_list = node_id_ip_map.values()
+        node_ips = ','.join(node_ip_list)
+        with client.ContextActivityLogClient(
+            project_id=project_id,
+            user=request.user.username,
+            resource_type='node',
+            resource=node_ips[:512],
+            resource_id=','.join([str(id) for id in node_id_ip_map.keys()])[:256],
+            description=_("集群: {}, batch reinstall nodes: {}").format(cluster_id, node_ips)
+        ).log_modify():
+            # 更改节点状态为初始化中
+            self.update_nodes_in_cluster(
+                request.user.token.access_token, project_id, cluster_id, node_ip_list, CommonStatus.Initializing)
+            # 下发流程，触发重试任务
+            node_client = node.BatchReinstallNodes(request, project_id, cluster_id, cluster_info, node_id_ip_map)
+            node_client.reinstall()
+
+        return response.Response()
