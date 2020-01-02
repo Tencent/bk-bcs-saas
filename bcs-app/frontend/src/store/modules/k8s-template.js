@@ -227,9 +227,8 @@ export default {
                         }
                     ]
                 }
-
                 if (!item.config.webCache.hostAliasesCache) {
-                    item.config.hostAliasesCache = []
+                    item.config.webCache.hostAliasesCache = []
                 }
 
                 // 解决历史问题
