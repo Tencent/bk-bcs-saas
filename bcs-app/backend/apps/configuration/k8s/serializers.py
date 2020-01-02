@@ -19,7 +19,7 @@ from django.utils.translation import ugettext_lazy as _
 from backend.apps.configuration.constants import K8sResourceName
 from backend.apps.configuration.validator import validate_variable_inconfig, get_name_from_config, \
     validate_res_config, validate_name_duplicate
-from .validator import get_config_schema, validate_k8s_res_name, validate_pod_selector, validate_affinity
+from .validator import get_config_schema, validate_k8s_res_name, validate_pod_selector
 
 
 class BCSResourceSLZ(serializers.Serializer):
@@ -69,10 +69,6 @@ class K8sPodUnitSLZ(BCSResourceSLZ):
 
         if settings.IS_TEMPLATE_VALIDATE:
             validate_res_config(config, short_name, get_config_schema(resource_name))
-            try:
-                validate_affinity(config)
-            except ValidationError as e:
-                raise ValidationError(f'{short_name} {e}')
 
 
 class K8sDeploymentSLZ(K8sPodUnitSLZ):
