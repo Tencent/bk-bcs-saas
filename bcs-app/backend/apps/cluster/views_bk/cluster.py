@@ -42,6 +42,7 @@ from backend.apps.instance.models import (
 from backend.apps.network.models import K8SLoadBlance, MesosLoadBlance
 from backend.utils.renderers import BKAPIRenderer
 from backend.accounts.bcs_perm import Cluster, Namespace
+from backend.bcs_k8s.app.models import App
 
 logger = logging.getLogger(__name__)
 ACTIVITY_RESOURCE_TYPE = 'cluster'
@@ -453,6 +454,9 @@ class DeleteCluster(BaseCluster):
             project_id=self.project_id, cluster_id=self.cluster_id
         ).update(is_deleted=True, deleted_time=datetime.now())
 
+    def delete_helm_release(self):
+        App.objects.filter(project_id=self.project_id, cluster_id=self.cluster_id).delete()
+
     def get_cluster_master(self):
         cluster_masters = paas_cc.get_master_node_list(
             self.access_token, self.project_id, self.cluster_id
@@ -514,6 +518,7 @@ class DeleteCluster(BaseCluster):
         ns_id_list = self.get_cluster_ns_list()
         self.clean_instance(ns_id_list)
         self.delete_namespaces()
+        self.delete_helm_release()
         # 下发删除任务
         with client.ContextActivityLogClient(
             project_id=self.project_id,
