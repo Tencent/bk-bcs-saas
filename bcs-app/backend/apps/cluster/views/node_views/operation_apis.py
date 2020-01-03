@@ -62,7 +62,7 @@ class BatchReinstallNodes(ClusterPerm, Nodes, viewsets.ViewSet):
         # 获取集群下的节点
         cluster_nodes = self.get_cluster_nodes(request, project_id, cluster_id)
         # 获取请求参数
-        slz = node_serializers.BatchReinstallSLZ(
+        slz = node_serializers.BatchReinstallNodesSLZ(
             data=request.data, context={'cluster_nodes': cluster_nodes})
         slz.is_valid(raise_exception=True)
         req_data = slz.validated_data
