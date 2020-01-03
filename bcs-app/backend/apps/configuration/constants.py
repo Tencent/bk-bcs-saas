@@ -126,7 +126,7 @@ class FileResourceName(ChoicesEnum):
     ClusterRoleBinding = 'ClusterRoleBinding'
     PodDisruptionBudget = 'PodDisruptionBudget'
     StorageClass = 'StorageClass'
-    PersistentVolume = 'PersistentVolume',
+    PersistentVolume = 'PersistentVolume'
     PersistentVolumeClaim = 'PersistentVolumeClaim'
 
     _choices_labels = (
