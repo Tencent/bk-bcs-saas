@@ -12,6 +12,7 @@
 # specific language governing permissions and limitations under the License.
 #
 import json
+import logging
 
 from rest_framework import viewsets
 from rest_framework.response import Response
@@ -28,6 +29,8 @@ from backend.components import paas_cc
 from backend.utils.error_codes import error_codes
 from backend.utils.renderers import BKAPIRenderer
 
+logger = logging.getLogger(__name__)
+
 
 class InitialTemplatesViewSet(viewsets.ViewSet):
     renderer_classes = (BKAPIRenderer, BrowsableAPIRenderer)
@@ -39,10 +42,11 @@ class InitialTemplatesViewSet(viewsets.ViewSet):
 class YamlTemplateViewSet(viewsets.ViewSet, TemplatePermission):
     renderer_classes = (BKAPIRenderer, BrowsableAPIRenderer)
 
-    def _template_data(self, request, **kwargs):
-        template_data = request.data or {}
-        template_data.update(**kwargs)
-        return template_data
+    def _merge_path_params(self, request, **kwargs):
+        request_data = request.data.copy() or {}
+        logger.info(json.dumps(request_data))
+        request_data.update(**kwargs)
+        return request_data
 
     def create_template(self, request, project_id):
         """
@@ -58,7 +62,7 @@ class YamlTemplateViewSet(viewsets.ViewSet, TemplatePermission):
             }]
         }
         """
-        data = self._template_data(request, project_id=project_id)
+        data = self._merge_path_params(request, project_id=project_id)
         serializer = serializers.CreateTemplateSLZ(data=data, context={'request': request})
         serializer.is_valid(raise_exception=True)
         template = serializer.save()
@@ -80,7 +84,7 @@ class YamlTemplateViewSet(viewsets.ViewSet, TemplatePermission):
         }
         """
         template = get_template_by_project_and_id(project_id, template_id)
-        data = self._template_data(request, project_id=project_id)
+        data = self._merge_path_params(request, project_id=project_id)
         serializer = serializers.UpdateTemplateSLZ(template, data=data, context={'request': request})
         serializer.is_valid(raise_exception=True)
         template = serializer.save()

@@ -116,7 +116,7 @@ def init_template(project_id, project_code, project_kind, access_token, username
     # 将模板集注册到权限中心
     request = RequestClass(username=username, access_token=access_token, project_code=project_code)
     perm = bcs_perm.Templates(request, project_id, bcs_perm.NO_RES)
-    perm.register(str(init_template.id), init_template.name)
+    perm.register(str(init_template.id), str(init_template.name))
 
     logger.info(f'init_template [end] project_id: {project_id}, project_kind: {ClusterType.get(project_kind)}')
     return
