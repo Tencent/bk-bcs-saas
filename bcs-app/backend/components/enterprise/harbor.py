@@ -48,20 +48,9 @@ class HarborClient(object):
 
     def handle_error_msg(self, resp):
         """
-        1.code 统一返回 0
-        2.API 返回错误信息时，记录 error 日志，项目统一的日志记录只记录info 日志
+        code 统一返回 0
         """
-        if resp.get('code') != '00':
-            header = self.kwargs.get('headers', '')
-            logger.error(u'''{error_code} curl -X {methord} -d "{data}" -h "{header}" {url}\nresp:{resp}'''.format(
-                error_code=bk_error_codes.DepotError(),
-                methord=self.methord,
-                data=self.query,
-                header=header,
-                url=self.url,
-                resp=resp
-            ))
-        else:
+        if resp.get('code') == '00':
             resp['code'] = 0
         return resp
 
@@ -73,7 +62,7 @@ class HarborClient(object):
         self.query = query_params
         self.url = f'{DEPOT_IMAGE_API_PREFIX}/listImageTags/'
         resp = http_get(self.url, params=self.query, **self.kwargs)
-        self.methord = 'GET'
+        self.method = 'GET'
         self.handle_error_msg(resp)
         # 将tag数据放到 data['tags']中
         tags = resp.get('data') or []
@@ -90,7 +79,7 @@ class HarborClient(object):
         self.query = query_params
         self.url = f'{DEPOT_IMAGE_API_PREFIX}/listPublicImages/'
         resp = http_get(self.url, params=self.query, **self.kwargs)
-        self.methord = 'GET'
+        self.method = 'GET'
         self.handle_error_msg(resp)
         return resp
 
@@ -102,7 +91,7 @@ class HarborClient(object):
         self.query = query_params
         self.url = f'{DEPOT_IMAGE_API_PREFIX}/{self.project_code}/listImages/'
         resp = http_get(self.url, params=self.query, **self.kwargs)
-        self.methord = 'GET'
+        self.method = 'GET'
         self.handle_error_msg(resp)
         return resp
 
@@ -112,15 +101,15 @@ class HarborClient(object):
         """
         self.url = f'{DEPOT_IMAGE_API_PREFIX}/{self.project_code}/createAccount/'
         resp = http_post(self.url, **self.kwargs)
-        self.methord = 'POST'
+        self.method = 'POST'
         self.handle_error_msg(resp)
         return resp
 
-    def create_peoject_path(self):
+    def create_project_path(self):
         """创建项目仓库路径
         """
         self.url = f'{DEPOT_API_PREFIX}/project/{self.project_code}'
         resp = http_post(self.url, **self.kwargs)
-        self.methord = 'POST'
+        self.method = 'POST'
         self.handle_error_msg(resp)
         return resp

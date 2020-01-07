@@ -258,15 +258,16 @@ class AvailableTag(FinalizeResponseMixin, views.APIView):
         if is_pub:
             tag_resp = api.get_pub_image_info(params)
         else:
-            tag_resp = api.get_project_iamge_info(params)
+            tag_resp = api.get_project_image_info(params)
 
         try:
             tag_data = tag_resp.get('data', [])[0].get('tags', [])
+            tag_data.sort(key=lambda item: item['modified'], reverse=True)
+            image_list = [{'value': tag.get('image'), 'text': tag.get(
+                'tag')} for tag in tag_data if tag.get('tag')]
         except Exception:
+            image_list = []
             logger.exception(u"解析镜像(repo:%s)的tag出错" % repo)
-
-        image_list = [{'value': tag.get('image'), 'text': tag.get(
-            'tag')} for tag in tag_data if tag.get('tag')]
 
         return response.Response({
             "code": 0,

@@ -141,7 +141,7 @@ def get_pub_image_info(query):
     return resp
 
 
-def get_project_iamge_info(query):
+def get_project_image_info(query):
     """
     获取项目镜像详情（tag列表信息）
     """
@@ -168,7 +168,7 @@ def create_project_path_by_api(access_token, project_id, project_code):
     }
     """
     client = HarborClient(access_token, project_id, project_code)
-    resp = client.create_peoject_path()
+    resp = client.create_project_path()
     # api调用失败
     if resp.get('code') != 0:
         error_message = ('%s, %s' % (bk_error_codes.DepotError(_("创建项目仓库路径失败")), resp.get('message', '')))
