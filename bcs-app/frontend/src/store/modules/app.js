@@ -1356,6 +1356,48 @@ export default {
                 {},
                 config
             )
+        },
+
+        /**
+         * 应用回滚上一版本获取当前版本和上一版本信息接口
+         *
+         * @param {Object} context store 上下文对象
+         * @param {Object} params 参数
+         * @param {Object} config 请求的配置
+         *
+         * @return {Promise} promise 对象
+         */
+        getInstanceConfig4RollbackPrevious (context, params, config = {}) {
+            const { projectId, instanceId } = params
+            delete params.projectId
+            delete params.instanceId
+
+            return http.get(
+                `${DEVOPS_BCS_API_URL}/api/projects/${projectId}/instances/${instanceId}/all_configs/`,
+                {},
+                config
+            )
+        },
+
+        /**
+         * 应用回滚上一版本
+         *
+         * @param {Object} context store 上下文对象
+         * @param {Object} params 参数
+         * @param {Object} config 请求的配置
+         *
+         * @return {Promise} promise 对象
+         */
+        rollbackPrevious (context, params, config = {}) {
+            const { projectId, instanceId } = params
+            delete params.projectId
+            delete params.instanceId
+
+            return http.put(
+                `${DEVOPS_BCS_API_URL}/api/projects/${projectId}/instances/${instanceId}/rollback/`,
+                params,
+                config
+            )
         }
     }
 }

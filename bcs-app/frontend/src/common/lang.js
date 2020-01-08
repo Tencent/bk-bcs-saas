@@ -596,6 +596,12 @@ export default {
     '网络使用率': ['Network Usage'],
     'IO使用率': ['IO Usage'],
     '磁盘IO总量': ['DiskIO Total'],
+    '回滚上一版本': ['Rollback previous version'],
+    '当前版本配置': ['Current Config'],
+    '上一版本配置': ['Previous Config'],
+    '{instanceName}回滚上一版本': ['{instanceName} rollback previous version'],
+    '确定回滚上一版本【{instanceName}】？': ['Confirm to rollback previous version [{instanceName}]?'],
+    '回滚中...': ['Rollbacking'],
     // 变量的使用 $t('test', { vari1: 1, vari2: 2 })
     'test': ['{vari1} ---english--- {vari2}']
 }
