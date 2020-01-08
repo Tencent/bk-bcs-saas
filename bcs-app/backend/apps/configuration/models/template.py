@@ -929,6 +929,10 @@ class VersionedEntity(BaseModel):
         """
         return self.get_version_all_container(type="port", project_kind=2, **{'req_app_id_list': app_id_list})
 
+    def get_mesos_services(self):
+        svc_id_list = self.get_resource_id_list(MesosResourceName.service.value)
+        return mesos.Service.get_resources_info(svc_id_list)
+
 
 def get_app_resource(instance_entity, category, resources_name, is_related_res=False, version_id=''):
     """获取单个使用实例化时，需要实例化的资源

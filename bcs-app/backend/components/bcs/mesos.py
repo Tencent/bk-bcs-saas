@@ -16,6 +16,7 @@ import logging
 
 from backend.components.bcs import BCSClientBase
 from backend.components.utils import http_delete, http_get, http_post, http_put
+from backend.utils.error_codes import error_codes
 
 STORAGE_PREFIX = "{apigw_host}/v4/storage"
 SCHEDULER_PREFIX = "{apigw_host}/v4/scheduler"
@@ -592,3 +593,42 @@ class MesosClient(BCSClientBase):
             url = f'{self.api_host}/v4/scheduler/mesos/crd/autoscaler'
         result = http_get(url, headers=self.headers)
         return result
+
+    def _handle_customresource_result(self, result):
+        # key `code` 存在时，认为出现了异常
+        if result.get('code'):
+            raise error_codes.APIError(
+                f'create customresource error, code: {result.get("code")}, message: {result.get("message")}')
+        return result
+
+    def create_customresource(self, group, apiversion, namespace, plural, spec):
+        """创建自定义资源
+        group和apiversion对应crd中`apiVersion`
+        plural: 表示类型复数，例如: clbingress, plural值为clbingresses
+        """
+        url = f"{self.scheduler_host}/mesos/customresources/{group}/{apiversion}/namespaces/{namespace}/{plural}"
+        result = http_post(url, json=spec, headers=self.headers)
+        return self._handle_customresource_result(result)
+
+    def get_customresource(self, group, apiversion, namespace, plural, name):
+        url = f"{self.scheduler_host}/mesos/customresources/"
+        "{group}/{apiversion}/namespaces/{namespace}/{plural}/{name}"
+        result = http_get(url, headers=self.headers)
+        return self._handle_customresource_result(result)
+
+    def delete_customresource(self, group, apiversion, namespace, plural, name):
+        url = f"{self.scheduler_host}/mesos/customresources/"
+        "{group}/{apiversion}/namespaces/{namespace}/{plural}/{name}"
+        result = http_delete(url, headers=self.headers)
+        return self._handle_customresource_result(result)
+
+    def update_customresource(self, group, apiversion, namespace, plural, name, spec):
+        url = f"{self.scheduler_host}/mesos/customresources/"
+        "{group}/{apiversion}/namespaces/{namespace}/{plural}/{name}"
+        result = http_put(url, json=spec, headers=self.headers)
+        return self._handle_customresource_result(result)
+
+    def get_customresource_by_cluster(self, group, apiversion, plural):
+        url = f"{self.scheduler_host}/mesos/customresources/{group}/{apiversion}/{plural}/"
+        result = http_get(url, headers=self.headers)
+        return self._handle_customresource_result(result)

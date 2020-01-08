@@ -663,7 +663,24 @@ HPA_SCHNEA = {
     }
 }
 
+INGRESS_SCHNEA = {
+    "type": "object",
+    "required": ["apiVersion", "kind", "metadata", "spec"],
+    "properties": {
+        "apiVersion": {"type": "string", "enum": ["clb.bmsf.tencent.com/v1"]},
+        "kind": {"type": "string", "enum": ["ClbIngress"]},
+        "metadata": {
+            "type": "object",
+            "required": ["name", "labels"],
+            "properties": {
+                "name": {"type": "string", "pattern": RES_NAME_PATTERN},
+                "kind": {"type": "string"},
+            }
+        }
+    }
+}
+
 CONFIG_SCHEMA = [APPLICATION_SCHEMA, DEPLOYMENT_SCHEMA, SERVICE_SCHEMA, CONFIGMAP_SCHEMA,
-                 SECRET_SCHEMA, HPA_SCHNEA]
+                 SECRET_SCHEMA, HPA_SCHNEA, INGRESS_SCHNEA]
 
 CONFIG_SCHEMA_MAP = dict(zip(MRESOURCE_NAMES, CONFIG_SCHEMA))

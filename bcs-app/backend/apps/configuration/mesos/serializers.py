@@ -182,5 +182,10 @@ class ConfigMapSLZ(BCSResourceSLZ):
 class SecretSLZ(ConfigMapSLZ):
     resource_name = serializers.CharField(default=MesosResourceName.secret.value)
 
+
 class HPASLZ(ConfigMapSLZ):
     resource_name = serializers.CharField(default=MesosResourceName.hpa.value)
+
+
+class IngressSLZ(ConfigMapSLZ):
+    resource_name = serializers.CharField(default=MesosResourceName.ingress.value)

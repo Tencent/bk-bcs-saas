@@ -99,6 +99,7 @@ class MesosResourceName(ChoicesEnum):
     configmap = 'configmap'
     secret = 'secret'
     hpa = 'hpa'
+    ingress = 'ingress'
 
     _choices_labels = (
         (application, 'application'),
@@ -106,7 +107,8 @@ class MesosResourceName(ChoicesEnum):
         (service, 'service'),
         (configmap, 'configmap'),
         (secret, 'secret'),
-        (hpa, 'hpa')
+        (hpa, 'hpa'),
+        (ingress, 'ingress')
     )
 
 
