@@ -446,14 +446,10 @@ class Namespace(PermissionMeta):
         )
         return ret
 
-    def delete(self, resource_id, resource_name, cluster_id):
-        if not resource_name:
-            cluster_id, resource_name = self.get_namespace_info(resource_id)
-
-        resource_id = f'cluster:{cluster_id}/namespace:{resource_name}'
+    def delete(self):
         ret = self.iam_client.delete_res(
             self.RESOURCE_TYPE,
-            resource_id
+            self.resource_id
         )
         return ret
 
