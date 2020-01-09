@@ -147,6 +147,7 @@
                 isMax: false,
                 isMin: false,
                 curValue: '',
+                localValue: '',
                 isFocus: false,
                 maxNumber: this.max,
                 minNumber: this.min,
@@ -164,7 +165,9 @@
             value: {
                 immediate: true,
                 handler (value) {
-                    this.changeCurValue(this.isLink)
+                    if (value !== this.localValue) {
+                        this.changeCurValue(this.isLink)
+                    }
                 }
             },
             defaultList: {
@@ -378,6 +381,7 @@
 
                         event.target.value = inputText
                         this.curValue = inputText
+                        this.localValue = val
                         this.$emit('update:value', newVal)
                         this.$emit('input', newVal)
                         this.$emit('item-selected', newVal, selectItem, false)
