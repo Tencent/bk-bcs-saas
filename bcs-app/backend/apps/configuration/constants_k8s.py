@@ -216,7 +216,7 @@ K8S_SERVICE_SCHEM = {
             "type": "object",
             "required": ["type", "clusterIP", "ports"],
             "properties": {
-                "type": {"type": "string", "enum": ["ClusterIP", "NodePort"]},
+                "type": {"type": "string", "enum": ["ClusterIP", "NodePort", "LoadBalancer"]},
                 "clusterIP": {"type": "string"},
                 "ports": {
                     "type": "array",

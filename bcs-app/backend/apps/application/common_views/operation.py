@@ -61,9 +61,9 @@ class RollbackPreviousVersion(InstanceAPI, viewsets.ViewSet):
     def get(self, request, project_id, instance_id):
         # 检查是否是模板集创建
         self.from_template(instance_id)
-        # 校验权限
-        self.can_use_instance(request, project_id, instance_id)
         instance_detail = self.get_instance_info(instance_id).first()
+        # 校验权限
+        self.can_use_instance(request, project_id, instance_detail.namespace)
         # 获取实例的config
         current_config = self.get_current_config(instance_detail)
         last_config = self.get_last_config(instance_detail)
@@ -105,9 +105,9 @@ class RollbackPreviousVersion(InstanceAPI, viewsets.ViewSet):
         """
         # 检查是否来源于模板集
         self.from_template(instance_id)
-        # 校验权限
-        self.can_use_instance(request, project_id, instance_id)
         instance_detail = self.get_instance_info(instance_id).first()
+        # 校验权限
+        self.can_use_instance(request, project_id, instance_detail.namespace)
         # 获取实例的config
         current_config = self.get_current_config(instance_detail)
         last_config = self.get_last_config(instance_detail)
