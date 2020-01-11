@@ -583,10 +583,10 @@ class BatchDeleteNode(DeleteNodeBase):
 
 class BatchReinstallNodes(BaseNode):
 
-    def __init__(self, request, project_id, cluster_id, cluster_info, node_id_ip_map):
+    def __init__(self, request, project_id, cluster_info, node_id_ip_map):
         self.request = request
         self.project_id = project_id
-        self.cluster_id = cluster_id
+        self.cluster_id = cluster_info['cluster_id']
         self.cluster_info = cluster_info
         self.node_id_ip_map = node_id_ip_map
         self.access_token = request.user.token.access_token

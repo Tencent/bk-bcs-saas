@@ -47,7 +47,7 @@ class Nodes:
         resp = paas_cc.get_node_list(
             request.user.token.access_token, project_id, cluster_id)
         if resp.get('code') != ErrorCode.NoError:
-            raise error_codes.APIError(f"request cluster node list error, resp.get('message')")
+            raise error_codes.APIError(_("获取集群节点列表异常，{}").format(resp.get('message')))
         data = resp.get('data') or {}
         return data.get('results') or []
 
@@ -56,7 +56,7 @@ class Nodes:
             request.user.token.access_token, project_id, cluster_id
         )
         if cluster_resp.get('code') != ErrorCode.NoError:
-            raise error_codes.APIError(f"request cluster error, {cluster_resp.get('message')}")
+            raise error_codes.APIError(_("获取集群信息失败，{}").format(cluster_resp.get('message')))
         data = cluster_resp.get('data')
         if not data:
             raise error_codes.APIError(_("查询集群信息为空"))

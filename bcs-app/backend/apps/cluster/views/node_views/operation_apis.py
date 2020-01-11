@@ -85,7 +85,7 @@ class BatchReinstallNodes(ClusterPerm, Nodes, viewsets.ViewSet):
             self.update_nodes_in_cluster(
                 request.user.token.access_token, project_id, cluster_id, node_ip_list, CommonStatus.Initializing)
             # 下发流程，触发重试任务
-            node_client = node.BatchReinstallNodes(request, project_id, cluster_id, cluster_info, node_id_ip_map)
+            node_client = node.BatchReinstallNodes(request, project_id, cluster_info, node_id_ip_map)
             node_client.reinstall()
 
         return response.Response()
