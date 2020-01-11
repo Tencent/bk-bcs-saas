@@ -39,6 +39,7 @@ class SchedulerBase(object):
         'configmap': 2,
         'service': 3,
         'metric': 4,
+        'ingress': 5,
         'deployment': 10,
         'application': 11,
         # k8s 相关资源

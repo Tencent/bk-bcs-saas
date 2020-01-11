@@ -174,6 +174,16 @@ HPA_SYS_CONFIG = {
     }
 }
 
+INGRESS_SYS_CONFIG = {
+    "apiVersion": "clb.bmsf.tencent.com/v1",
+    "kind": "ClbIngress",
+    "metadata": {
+        "namespace": "{{SYS_NAMESPACE}}",
+        "labels": PUBLIC_LABELS,
+        "annotations": PUBLIC_ANNOTATIONS,
+    }
+}
+
 # ############################## k8s 相关资源
 
 # 模板集相关的实例化资源

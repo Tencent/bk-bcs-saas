@@ -601,7 +601,9 @@ class MesosClient(BCSClientBase):
                 f'create customresource error, code: {result.get("code")}, message: {result.get("message")}')
         return result
 
-    def create_customresource(self, group, apiversion, namespace, plural, spec):
+    def create_customresource(
+        self, namespace, spec, group='clb.bmsf.tencent.com', apiversion='v1', plural='clbingresses'
+    ): # noqa
         """创建自定义资源
         group和apiversion对应crd中`apiVersion`
         plural: 表示类型复数，例如: clbingress, plural值为clbingresses
@@ -610,25 +612,28 @@ class MesosClient(BCSClientBase):
         result = http_post(url, json=spec, headers=self.headers)
         return self._handle_customresource_result(result)
 
-    def get_customresource(self, group, apiversion, namespace, plural, name):
-        url = f"{self.scheduler_host}/mesos/customresources/"
-        "{group}/{apiversion}/namespaces/{namespace}/{plural}/{name}"
+    def get_customresource(
+        self, name, namespace, group='clb.bmsf.tencent.com', apiversion='v1', plural='clbingresses'
+    ):
+        url = f"{self.scheduler_host}/mesos/customresources/{group}/{apiversion}/namespaces/{namespace}/{plural}/{name}" # noqa
         result = http_get(url, headers=self.headers)
         return self._handle_customresource_result(result)
 
-    def delete_customresource(self, group, apiversion, namespace, plural, name):
-        url = f"{self.scheduler_host}/mesos/customresources/"
-        "{group}/{apiversion}/namespaces/{namespace}/{plural}/{name}"
+    def delete_customresource(
+        self, name, namespace, group='clb.bmsf.tencent.com', apiversion='v1', plural='clbingresses'
+    ):
+        url = f"{self.scheduler_host}/mesos/customresources/{group}/{apiversion}/namespaces/{namespace}/{plural}/{name}" # noqa
         result = http_delete(url, headers=self.headers)
         return self._handle_customresource_result(result)
 
-    def update_customresource(self, group, apiversion, namespace, plural, name, spec):
-        url = f"{self.scheduler_host}/mesos/customresources/"
-        "{group}/{apiversion}/namespaces/{namespace}/{plural}/{name}"
+    def update_customresource(
+        self, name, namespace, spec, group='clb.bmsf.tencent.com', apiversion='v1', plural='clbingresses'
+    ):
+        url = f"{self.scheduler_host}/mesos/customresources/{group}/{apiversion}/namespaces/{namespace}/{plural}/{name}" # noqa
         result = http_put(url, json=spec, headers=self.headers)
         return self._handle_customresource_result(result)
 
-    def get_customresource_by_cluster(self, group, apiversion, plural):
+    def get_customresource_by_cluster(self, group='clb.bmsf.tencent.com', apiversion='v1', plural='clbingresses'):
         url = f"{self.scheduler_host}/mesos/customresources/{group}/{apiversion}/{plural}/"
         result = http_get(url, headers=self.headers)
         return self._handle_customresource_result(result)

@@ -273,3 +273,16 @@ class Scheduler(SchedulerBase):
         result = client.delete_metrics(namespace=ns, metric_name=name)
         if result.get('code') != 0:
             raise ComponentError(result.get('message', ''))
+
+    def handler_ingress(self, namespace, cluster_id, spec):
+        client = mesos.MesosClient(
+            self.access_token, self.project_id, cluster_id, env=None)
+        client.create_customresource(namespace, spec)
+
+    def rollback_ingress(self, namespace, cluster_id, spec):
+        """回滚metric
+        """
+        client = mesos.MesosClient(
+            self.access_token, self.project_id, cluster_id, env=None)
+        name = spec['metadata']['name']
+        client.delete_customresource(name, namespace)
