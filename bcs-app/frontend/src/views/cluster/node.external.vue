@@ -56,26 +56,24 @@
                                     <i class="bk-icon icon-angle-down dropdown-menu-angle-down"></i>
                                 </a>
                                 <ul class="bk-dropdown-list" slot="dropdown-content">
-                                    <!-- <li>
-                                        <a href="javascript:void(0)" class="disabled" v-if="disableBatchOperate === '1'">{{$t('允许调度')}}</a>
-                                        <a href="javascript:void(0)" v-else @click="batchOperate('1')">{{$t('允许调度')}}</a>
+                                    <li>
+                                        <a class="action" href="javascript:void(0)" @click="batchOperate('1')">{{$t('允许调度')}}</a>
                                     </li>
                                     <li>
-                                        <a href="javascript:void(0)" class="disabled" v-if="disableBatchOperate === '2'">{{$t('停止调度')}}</a>
-                                        <a href="javascript:void(0)" v-else @click="batchOperate('2')">{{$t('停止调度')}}</a>
+                                        <a class="action" href="javascript:void(0)" @click="batchOperate('2')">{{$t('停止调度')}}</a>
                                     </li>
                                     <li>
-                                        <a href="javascript:void(0)" class="disabled" v-if="!allowBatchDelete">删除</a>
-                                        <a href="javascript:void(0)" v-else @click="batchOperate('3')">删除</a>
+                                        <a class="action" href="javascript:void(0)" @click="batchOperate('3')">{{$t('删除')}}</a>
+                                    </li>
+                                    <!-- <li style="position: relative;">
+                                        <a class="action" href="javascript:void(0)" @click="batchOperate('4')" v-if="isBatchReInstall">{{$t('重新添加')}}</a>
+                                        <bk-tooltip v-else :content="'dontAllowBatchMsgdontAllowBatchMsg'" :always="true" :placement="'left'">
+                                            <a href="javascript:void(0)" class="action disabled">{{$t('重新添加')}}</a>
+                                        </bk-tooltip>
                                     </li> -->
                                     <li>
-                                        <a href="javascript:void(0)" @click="batchOperate('1')">{{$t('允许调度')}}</a>
-                                    </li>
-                                    <li>
-                                        <a href="javascript:void(0)" @click="batchOperate('2')">{{$t('停止调度')}}</a>
-                                    </li>
-                                    <li>
-                                        <a href="javascript:void(0)" @click="batchOperate('3')">{{$t('删除')}}</a>
+                                        <a class="action" href="javascript:void(0)" @click="batchOperate('4')" v-if="isBatchReInstall">{{$t('重新添加')}}</a>
+                                        <a href="javascript:void(0)" v-else class="action disabled" :title="$t('所选节点均处于初始化失败状态时才允许此操作')">{{$t('重新添加')}}</a>
                                     </li>
                                 </ul>
                             </bk-dropdown-menu>
