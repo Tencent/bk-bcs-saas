@@ -602,6 +602,11 @@ export default {
     '{instanceName}回滚上一版本': ['{instanceName} rollback previous version'],
     '确定回滚上一版本【{instanceName}】？': ['Confirm to rollback previous version [{instanceName}]?'],
     '回滚中...': ['Rollbacking'],
+    'TKE集群ID': ['TKE Cluster ID'],
+    '集群版本': ['Cluster Version'],
+    'Pod总量': ['Total Pod'],
+    'Service数量上限/集群': ['Maximum number of services'],
+    'Pod数量上限/节点': ['Number of Pods per node'],
     // 变量的使用 $t('test', { vari1: 1, vari2: 2 })
     'test': ['{vari1} ---english--- {vari2}']
 }
