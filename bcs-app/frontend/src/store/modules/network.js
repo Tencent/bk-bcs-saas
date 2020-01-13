@@ -669,6 +669,20 @@ export default {
         },
 
         /**
+         * 查询单个clb 监听器详情
+         *
+         * @param {Object} context store 上下文对象
+         * @param {Object} params 请求参数，包含：projectId, loadBalanceId
+         * @param {Object} config 请求的配置
+         *
+         * @return {Promise} promise 对象
+         */
+        getCloudLoadBalanceListener (context, { projectId, loadBalanceId }, config = {}) {
+            const url = `${DEVOPS_BCS_API_URL}/api/projects/${projectId}/network/clbs/${loadBalanceId}/status/`
+            return http.get(url, {}, config)
+        },
+
+        /**
          * 创建clb controller接口
          *
          * @param {Object} context store 上下文对象
