@@ -1080,14 +1080,25 @@
     .is-show {
         z-index: 1234;
     }
-    .bk-dropdown-list > li > a {
-        &.disabled {
-            color: #c3cdd7;
-            cursor: not-allowed;
-            background-color: inherit;
-            &:hover {
-                color: #c3cdd7;
-                background-color: inherit;
+    .bk-dropdown-list {
+        li {
+            a.action {
+                display: block;
+                line-height: 41px;
+                padding: 0 15px;
+                color: #737987;
+                font-size: 14px;
+                text-decoration: none;
+                white-space: nowrap;
+                &.disabled {
+                    color: #c3cdd7;
+                    cursor: not-allowed;
+                    background-color: inherit;
+                    &:hover {
+                        color: #c3cdd7;
+                        background-color: inherit;
+                    }
+                }
             }
         }
     }

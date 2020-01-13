@@ -412,6 +412,27 @@ export default {
         },
 
         /**
+         * 集群 节点列表 批量 重新添加 操作
+         *
+         * @param {Object} context store 上下文对象
+         * @param {Object} params 参数
+         * @param {Object} config 请求的配置
+         *
+         * @return {Promise} promise 对象
+         */
+        batchNodeReInstall (context, params, config = {}) {
+            const { projectId, clusterId } = params
+            delete params.projectId
+            delete params.clusterId
+
+            return http.post(
+                `${DEVOPS_BCS_API_URL}/api/projects/${projectId}/cluster/${clusterId}/nodes/reinstall/`,
+                params,
+                config
+            )
+        },
+
+        /**
          * 节点列表添加节点
          *
          * @param {Object} context store 上下文对象

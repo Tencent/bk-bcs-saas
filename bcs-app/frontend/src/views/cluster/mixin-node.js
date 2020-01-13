@@ -191,9 +191,11 @@ export default {
                 title: ' ',
                 closeIcon: false,
                 operateType: ''
-            }
-            // disableBatchOperate: '',
-            // allowBatchDelete: true
+            },
+            // 是否允许批量操作 -> 重新添加
+            isBatchReInstall: false,
+            // 允许批量操作 -> 重新添加的状态
+            batchReInstallStatusList: ['initial_failed', 'check_failed', 'so_init_failed', 'schedule_failed', 'bke_failed']
         }
     },
     computed: {
@@ -1642,6 +1644,9 @@ export default {
                 }
                 this.checkedNodes = Object.assign({}, checkedNodes)
                 this.isCheckCurPageAllNode = this.nodeList.every(item => this.checkedNodes[item.id])
+
+                const statusList = Object.keys(this.checkedNodes).map(key => this.checkedNodes[key].status)
+                this.isBatchReInstall = statusList.every(status => this.batchReInstallStatusList.indexOf(status) > -1)
             })
         },
 
@@ -1666,6 +1671,9 @@ export default {
 
                 this.checkedNodes = Object.assign({}, checkedNodes)
                 this.nodeList.splice(0, this.nodeList.length, ...nodeList)
+
+                const statusList = Object.keys(this.checkedNodes).map(key => this.checkedNodes[key].status)
+                this.isBatchReInstall = statusList.every(status => this.batchReInstallStatusList.indexOf(status) > -1)
             })
         },
 
@@ -1681,8 +1689,10 @@ export default {
                 str = this.$t('允许调度')
             } else if (idx === '2') {
                 str = this.$t('停止调度')
-            } else {
+            } else if (idx === '3') {
                 str = this.$t('删除')
+            } else {
+                str = this.$t('重新添加')
             }
             this.batchDialogConf.operateType = idx
             this.batchDialogConf.isShow = true
@@ -1699,22 +1709,26 @@ export default {
         async batchConfirm () {
             this.isUpdating = true
             try {
-                await this.$store.dispatch('cluster/batchNode', {
-                    projectId: this.projectId,
-                    operateType: this.batchDialogConf.operateType,
-                    clusterId: this.clusterId,
-                    idList: Object.keys(this.checkedNodes).map(id => id),
-                    status: this.batchDialogConf.operateType === '1' ? 'normal' : 'to_removed'
-                })
+                if (this.batchDialogConf.operateType === '4') {
+                    await this.$store.dispatch('cluster/batchNodeReInstall', {
+                        projectId: this.projectId,
+                        clusterId: this.clusterId,
+                        node_id_list: Object.keys(this.checkedNodes).map(id => id)
+                    })
+                } else {
+                    await this.$store.dispatch('cluster/batchNode', {
+                        projectId: this.projectId,
+                        operateType: this.batchDialogConf.operateType,
+                        clusterId: this.clusterId,
+                        idList: Object.keys(this.checkedNodes).map(id => id),
+                        status: this.batchDialogConf.operateType === '1' ? 'normal' : 'to_removed'
+                    })
+                }
                 this.refreshWithCurCondition()
 
                 // 删除
                 if (this.batchDialogConf.operateType === '3') {
                     this.resetBatchStatus()
-                } else {
-                    // this.disableBatchOperate = this.batchDialogConf.operateType
-                    // this.allowBatchDelete = this.checkedNodes[Object.keys(this.checkedNodes)[0]]
-                    //     && this.checkedNodes[Object.keys(this.checkedNodes)[0]].status === 'removable'
                 }
             } catch (e) {
                 catchErrorHandler(e, this)

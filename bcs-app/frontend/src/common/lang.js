@@ -607,6 +607,8 @@ export default {
     'Pod总量': ['Total Pod'],
     'Service数量上限/集群': ['Maximum number of services'],
     'Pod数量上限/节点': ['Number of Pods per node'],
+    '重新添加': ['ReInstall'],
+    '所选节点均处于初始化失败状态时才允许此操作': ['Allow this operation only if the selected nodes are in an initialization failure state'],
     // 变量的使用 $t('test', { vari1: 1, vari2: 2 })
     'test': ['{vari1} ---english--- {vari2}']
 }
