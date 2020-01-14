@@ -132,6 +132,24 @@ class BatchUpdateNodesSLZ(UpdateNodeSLZ):
     )
 
 
+class BatchReinstallNodesSLZ(serializers.Serializer):
+    node_id_list = serializers.ListField(
+        child=serializers.IntegerField(),
+        required=True
+    )
+
+    def validate_node_id_list(self, node_id_list):
+        cluster_nodes = self.context['cluster_nodes']
+        # 检查存在
+        if set(node_id_list) - cluster_nodes.keys():
+            raise ValidationError(_("部分节点不属于当前集群，请确认后重试"))
+        # 状态必须为初始化失败
+        for node_id in node_id_list:
+            if cluster_nodes[node_id]['status'] not in cluster_constants.NODE_FAILED_STATUS:
+                raise ValidationError(_("重试节点必须处于初始化失败状态，请确认后重试"))
+        return node_id_list
+
+
 class BatchDeleteNodesSLZ(serializers.Serializer):
     node_id_list = serializers.ListField(
         child=serializers.IntegerField(),

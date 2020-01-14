@@ -122,7 +122,7 @@ class BaseNode(object):
         log_params['task_url'] = data.get('task_url') or ''
         log.set_params(log_params)
 
-    def create_node_via_bcs(self, node_info_list, control_ip=None, config=None, websvr=None): # noqa
+    def create_node_by_bcs(self, node_info_list, control_ip=None, config=None, websvr=None): # noqa
         if not config:
             config = self.get_request_config()
 
@@ -297,7 +297,7 @@ class CreateNode(BaseNode):
         ).log_add():
             # 更新所有节点为初始化中
             node_info_list = self.update_nodes_with_response(self.ip_list)
-            log = self.create_node_via_bcs(node_info_list)
+            log = self.create_node_by_bcs(node_info_list)
             if not log.is_finished and log.is_polling:
                 log.polling_task()
         return Response({})
@@ -367,7 +367,7 @@ class ReinstallNode(BaseNode):
             self.master_ip_list = params['master_ip_list']
             self.module_id_list = params['module_id_list']
             self.ip_list = [node_ip]
-            log = self.create_node_via_bcs(
+            log = self.create_node_by_bcs(
                 [node_info], control_ip=params['control_ip'],
                 config=params['config'], websvr=params['websvr']
             )
@@ -577,5 +577,30 @@ class BatchDeleteNode(DeleteNodeBase):
     def delete_nodes(self):
         node_info = {node['inner_ip']: '[%s]' % node['id'] for node in self.node_list}
         log = self.delete_via_bcs(self.request, self.project_id, self.cluster_id, self.kind_name, node_info)
+        if not log.is_finished and log.is_polling:
+            log.polling_task()
+
+
+class BatchReinstallNodes(BaseNode):
+
+    def __init__(self, request, project_id, cluster_info, node_id_ip_map):
+        self.request = request
+        self.project_id = project_id
+        self.cluster_id = cluster_info['cluster_id']
+        self.cluster_info = cluster_info
+        self.node_id_ip_map = node_id_ip_map
+        self.access_token = request.user.token.access_token
+        self.username = request.user.username
+        self.project_info = request.project
+        self.kind_name = constants.ClusterType.get(self.project_info.kind)
+        self.cc_app_id = self.project_info.cc_app_id
+
+    def reinstall(self):
+        self.need_nat = self.cluster_info.get('need_nat', True)
+        # 现阶段平台侧不主动创建CMDB set&module，赋值为空列表
+        self.module_id_list = []
+        self.ip_list = list(self.node_id_ip_map.values())
+        log = self.create_node_by_bcs(
+            [{'inner_ip': ip, 'id': id} for id, ip in self.node_id_ip_map.items()])
         if not log.is_finished and log.is_polling:
             log.polling_task()
