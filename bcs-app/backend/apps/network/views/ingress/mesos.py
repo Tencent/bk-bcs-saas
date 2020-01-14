@@ -13,9 +13,10 @@
 #
 import json
 import copy
-import datetime
+import arrow
 import logging
 
+from django.utils import timezone
 from rest_framework import viewsets, response
 from rest_framework.exceptions import ValidationError
 from rest_framework.renderers import BrowsableAPIRenderer
@@ -69,6 +70,11 @@ class IngressListViewSet(BaseIngress):
         for cluster_id in cluster_id_list:
             data = network_utils.get_cluster_ingresses(request.user.token.access_token, project_id, cluster_id)
             for info in data:
+                create_time = getitems(info, ['metadata', 'creationTimestamp'])
+                if create_time:
+                    d_time = arrow.get(create_time).datetime
+                    create_time = timezone.localtime(d_time).strftime('%Y-%m-%d %H:%M:%S')
+                update_time = getitems(info, ['metadata', 'annotations', 'io.tencent.paas.updateTime'])
                 namespace_name = getitems(info, ['metadata', 'namespace'], default='')
                 namespace_id = project_namespaces.get((cluster_id, namespace_name), {}).get('id', DEFAULT_NAMESPACE_ID)
                 ingress_list.append({
@@ -80,6 +86,8 @@ class IngressListViewSet(BaseIngress):
                     'config': info,
                     'cluster_name': project_clusters[cluster_id]['name'],
                     'environment': project_clusters[cluster_id]['environment'],
+                    'create_time': create_time,
+                    'update_time': update_time if update_time else create_time
                 })
         if ingress_list:
             # 检查是否用命名空间的使用权限
@@ -140,7 +148,7 @@ class IngressRetrieveOperteViewSet(BaseIngress):
                 request.user.token.access_token, project_id, cluster_id, env=None)
             client.delete_customresource(name, namespace)
         # 删除成功则更新记录
-        now_time = datetime.datetime.now()
+        now_time = timezone.now()
         InstanceConfig.objects.filter(
             namespace=namespace_id, category='ingress', name=name
         ).update(
@@ -175,7 +183,7 @@ class IngressRetrieveOperteViewSet(BaseIngress):
         if instances:
             instances.update(
                 updator=request.user.username,
-                updated=datetime.datetime.now(),
+                updated=timezone.now(),
                 is_bcs_success=True,
                 config=config
             )
