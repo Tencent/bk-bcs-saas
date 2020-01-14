@@ -100,3 +100,11 @@ class DeploymentView(viewsets.ViewSet, GetVersionedEntity):
         """
         ventity = self.get_versioned_entity(project_id, version_id)
         return Response(ventity.get_mesos_deploys())
+
+
+class ServiceView(viewsets.ViewSet, GetVersionedEntity):
+    renderer_classes = (BKAPIRenderer, BrowsableAPIRenderer)
+
+    def list_services(self, request, project_id, version_id):
+        ventity = self.get_versioned_entity(project_id, version_id)
+        return Response(ventity.get_mesos_services())

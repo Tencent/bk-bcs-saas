@@ -14,6 +14,7 @@
 from django.conf.urls import url
 from .views import service
 from .views.lb import k8s, mesos
+from .views.ingress import mesos as mesos_ingress
 
 urlpatterns = [
     # lb：列表/创建 API
@@ -52,4 +53,10 @@ urlpatterns = [
         k8s.NginxIngressListNamespceViewSet.as_view({'get': 'list'})),
     url(r'^api/network/(?P<project_id>\w{32})/k8s/lb/(?P<pk>\d+)/$',
         k8s.NginxIngressRetrieveUpdateViewSet.as_view({'get': 'retrieve', 'put': 'update', 'delete': 'destroy'})),  # noqa
+
+    # mesos ingress相关
+    url(r'^api/projects/(?P<project_id>\w{32})/mesos/ingresses/$',
+        mesos_ingress.IngressListViewSet.as_view({'get': 'list'})),
+    url(r'^api/projects/(?P<project_id>\w{32})/clusters/(?P<cluster_id>[\w\-]+)/namespaces/(?P<namespace>[\w\-]+)/ingresses/(?P<name>[\w\-]+)/$', # noqa
+        mesos_ingress.IngressRetrieveOperteViewSet.as_view({'get': 'retrieve', 'delete': 'delete', 'put': 'update'}))
 ]

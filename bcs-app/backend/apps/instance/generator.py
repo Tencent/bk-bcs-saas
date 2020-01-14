@@ -763,6 +763,21 @@ class HPAProfileGenerator(ProfileGenerator):
     resource_sys_config = instance_constants.HPA_SYS_CONFIG
 
 
+class IngressProfileGenerator(ProfileGenerator):
+    resource_name = 'ingress'
+    resource_sys_config = instance_constants.INGRESS_SYS_CONFIG
+
+    def handle_db_config(self, db_config):
+        """针对ingress下的service配置添加namespace
+        """
+        spec = db_config['spec']
+        for protocol in spec:
+            for info in spec[protocol]:
+                info['namespace'] = self.context['SYS_NAMESPACE']
+        db_config['spec'] = spec
+        return db_config
+
+
 class MetricProfileGenerator(ProfileGenerator):
     resource_name = "metric"
     resource_sys_config = {}
@@ -1639,6 +1654,7 @@ GENERATOR_DICT = {
     "secret": SecretProfileGenerator,
     "metric": MetricProfileGenerator,
     'hpa': HPAProfileGenerator,
+    'ingress': IngressProfileGenerator,
 
     # k8s 相关资源
     "K8sSecret": K8sSecretGenerator,

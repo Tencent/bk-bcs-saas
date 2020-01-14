@@ -278,3 +278,30 @@ def render_helm_values(access_token, project_id, cluster_id, protocol_type, repl
     template = template.replace("__NAMESPACE__", namespace)
 
     return template
+
+
+def get_project_clusters(access_token, project_id):
+    resp = paas_cc.get_all_clusters(access_token, project_id, desire_all_data=1)
+    if resp.get('code') != ErrorCode.NoError:
+        raise error_codes.APIError(_("获取项目下集群信息异常，{}").format(resp.get('message')))
+    return resp['data'].get('results') or []
+
+
+def get_cluster_ingresses(access_token, project_id, cluster_id):
+    client = mesos.MesosClient(access_token, project_id, cluster_id, env=None)
+    result = client.get_custom_resource_by_cluster()
+    return result['items']
+
+
+def get_project_namespaces(access_token, project_id):
+    resp = paas_cc.get_namespace_list(access_token, project_id, desire_all_data=1)
+    if resp.get('code') != ErrorCode.NoError:
+        raise error_codes.APIError(_("获取项目下命名空间信息异常，{}").format(resp.get('message')))
+    return resp['data'].get('results') or []
+
+
+def get_cluster_namespaces(access_token, project_id, cluster_id):
+    resp = paas_cc.get_cluster_namespace_list(access_token, project_id, cluster_id, desire_all_data=1)
+    if resp.get('code') != ErrorCode.NoError:
+        raise error_codes.APIError(_("获取集群下命名空间信息异常，{}").format(resp.get('message')))
+    return resp['data'].get('results') or []

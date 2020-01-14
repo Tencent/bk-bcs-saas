@@ -297,3 +297,21 @@ class Service(MesosResource, ResourceMixin):
         if not config:
             return False
         return config.get('isLinkLoadBalance')
+
+    @classmethod
+    def get_resources_info(cls, resource_id_list):
+        svc_list = []
+        svc_qsets = cls.objects.filter(id__in=resource_id_list)
+        for svc in svc_qsets:
+            svc_info = {
+                'name': svc.name,
+                'port': svc.get_ports_config()
+            }
+            svc_list.append(svc_info)
+        return svc_list
+
+
+class Ingress(MesosResource, MConfigMapAndSecretMixin):
+    """mesos ingress表
+    """
+    pass
