@@ -22,7 +22,7 @@ from rest_framework.exceptions import ValidationError
 from rest_framework.renderers import BrowsableAPIRenderer
 from django.utils.translation import ugettext_lazy as _
 
-from backend.activity_log import log_client
+from backend.activity_log import client as log_client
 from backend.accounts import bcs_perm
 from backend.components.bcs import mesos
 from backend.utils.basic import getitems
