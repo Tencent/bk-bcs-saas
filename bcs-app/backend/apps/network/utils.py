@@ -289,7 +289,7 @@ def get_project_clusters(access_token, project_id):
 
 def get_cluster_ingresses(access_token, project_id, cluster_id):
     client = mesos.MesosClient(access_token, project_id, cluster_id, env=None)
-    result = client.get_customresource_by_cluster()
+    result = client.get_custom_resource_by_cluster()
     return result['items']
 
 

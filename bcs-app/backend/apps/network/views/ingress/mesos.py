@@ -120,7 +120,7 @@ class IngressRetrieveOperteViewSet(BaseIngress):
         self.can_view(request, project_id, cluster_id, namespace_id)
         client = mesos.MesosClient(
             request.user.token.access_token, project_id, cluster_id, env=None)
-        result = client.get_customresource(name, namespace)
+        result = client.get_custom_resource(name, namespace)
         data = {
             'name': name,
             'namespace': namespace,
@@ -146,7 +146,7 @@ class IngressRetrieveOperteViewSet(BaseIngress):
         ).log_delete():
             client = mesos.MesosClient(
                 request.user.token.access_token, project_id, cluster_id, env=None)
-            client.delete_customresource(name, namespace)
+            client.delete_custom_resource(name, namespace)
         # 删除成功则更新记录
         now_time = timezone.now()
         InstanceConfig.objects.filter(
@@ -176,7 +176,7 @@ class IngressRetrieveOperteViewSet(BaseIngress):
         ).log_modify():
             client = mesos.MesosClient(
                 request.user.token.access_token, project_id, cluster_id, env=None)
-            client.update_customresource(name, namespace, config)
+            client.update_custom_resource(name, namespace, config)
         # 集群，命名空间，ingress确定唯一
         instances = InstanceConfig.objects.filter(
             namespace=namespace_id, category='ingress', name=name, is_deleted=False)

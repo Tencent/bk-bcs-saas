@@ -277,7 +277,7 @@ class Scheduler(SchedulerBase):
     def handler_ingress(self, namespace, cluster_id, spec):
         client = mesos.MesosClient(
             self.access_token, self.project_id, cluster_id, env=None)
-        client.create_customresource(namespace, spec)
+        client.create_custom_resource(namespace, spec)
 
     def rollback_ingress(self, namespace, cluster_id, spec):
         """回滚metric
@@ -285,4 +285,4 @@ class Scheduler(SchedulerBase):
         client = mesos.MesosClient(
             self.access_token, self.project_id, cluster_id, env=None)
         name = spec['metadata']['name']
-        client.delete_customresource(name, namespace)
+        client.delete_custom_resource(name, namespace)
