@@ -178,13 +178,12 @@ class IngressRetrieveOperteViewSet(BaseIngress):
                 request.user.token.access_token, project_id, cluster_id, env=None)
             client.update_custom_resource(name, namespace, config)
         # 集群，命名空间，ingress确定唯一
-        instances = InstanceConfig.objects.filter(
-            namespace=namespace_id, category='ingress', name=name, is_deleted=False)
-        if instances:
-            instances.update(
-                updator=request.user.username,
-                updated=timezone.now(),
-                is_bcs_success=True,
-                config=config
-            )
+        InstanceConfig.objects.filter(
+            namespace=namespace_id, category='ingress', name=name, is_deleted=False
+        ).update(
+            updator=request.user.username,
+            updated=timezone.now(),
+            is_bcs_success=True,
+            config=config
+        )
         return response.Response()
