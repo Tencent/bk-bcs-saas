@@ -1,0 +1,28 @@
+{
+	"name": "",
+	"host": "",
+	"path": "/",
+	"serviceName": "",
+	"serviceType": "",
+	"namespace": "",
+	"clbPort": "",
+	"servicePort": "",
+	"sessionTime": 0,
+	"httpsEnabled": false,
+	"lbPolicy": {
+		"strategy": "wrr"
+	},
+	"healthCheck": {
+		"enabled": false,
+		"timeout": 2,
+		"intervalTime": 5,
+		"healthNum": 3,
+		"unHealthNum": 3,
+		"httpCode": 31,
+		"httpCheckPath": "/"
+	},
+	"tls": {
+		"mode": "unidirectional",
+		"certId": ""
+	}
+}

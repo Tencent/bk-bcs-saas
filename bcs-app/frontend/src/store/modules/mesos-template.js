@@ -36,6 +36,7 @@ export default {
         deployments: [],
         services: [],
         secrets: [],
+        ingresss: [],
         HPAs: [],
         configmaps: [],
         versionList: [],
@@ -71,6 +72,7 @@ export default {
             state.deployments.splice(0, state.deployments.length, ...[])
             state.services.splice(0, state.services.length, ...[])
             state.secrets.splice(0, state.secrets.length, ...[])
+            state.ingresss.splice(0, state.ingresss.length, ...[])
             state.HPAs.splice(0, state.HPAs.length, ...[])
             state.configmaps.splice(0, state.configmaps.length, ...[])
 
@@ -282,6 +284,18 @@ export default {
                 state.secrets.splice(0, state.secrets.length)
             }
 
+            if (data.ingress) {
+                data.ingress.forEach(item => {
+                    if (String(item.id).indexOf('local_') > -1) {
+                        item.isEdited = true
+                    } else {
+                        item.isEdited = false
+                    }
+                })
+                state.ingresss.splice(0, state.ingresss.length, ...data.ingress)
+            } else {
+                state.ingresss.splice(0, state.ingresss.length)
+            }
             if (data.hpa) {
                 data.hpa.forEach(item => {
                     if (String(item.id).indexOf('local_') > -1) {
@@ -346,6 +360,15 @@ export default {
             const list = JSON.parse(JSON.stringify(state.secrets))
             state.secrets.splice(0, state.secrets.length, ...list)
         },
+        updateIngressById (state, { ingress, preId }) {
+            for (const item of state.ingresss) {
+                if (item.id === preId) {
+                    item.id = ingress.id
+                }
+            }
+            const list = JSON.parse(JSON.stringify(state.ingresss))
+            state.ingresss.splice(0, state.ingresss.length, ...list)
+        },
         updateHPAById (state, { HPA, preId }) {
             for (const item of state.HPAs) {
                 if (item.id === preId) {
@@ -374,6 +397,9 @@ export default {
         },
         updateSecrets (state, data) {
             state.secrets.splice(0, state.secrets.length, ...data)
+        },
+        updateIngresss (state, data) {
+            state.ingresss.splice(0, state.ingresss.length, ...data)
         },
         updateHPAs (state, data) {
             state.HPAs.splice(0, state.HPAs.length, ...data)
@@ -934,6 +960,54 @@ export default {
         },
 
         /**
+         * 创建Ingress
+         *
+         * @param {Object} context store 上下文对象
+         * @param {Object} params 包括data, version, projectId
+         *
+         * @return {Promise} promise 对象
+         */
+        addIngress (context, { data, version, projectId }) {
+            return http.put(`${DEVOPS_BCS_API_URL}/api/configuration/${projectId}/version/${version}/ingress/0/`, data)
+        },
+
+        /**
+         * 更新Ingress
+         *
+         * @param {Object} context store 上下文对象
+         * @param {Object} params 包括data, version, projectId, ingressId
+         *
+         * @return {Promise} promise 对象
+         */
+        updateIngress (context, { data, version, projectId, ingressId }) {
+            return http.put(`${DEVOPS_BCS_API_URL}/api/configuration/${projectId}/version/${version}/ingress/${ingressId}/`, data)
+        },
+
+        /**
+         * 删除Ingress
+         *
+         * @param {Object} context store 上下文对象
+         * @param {Object} params 包括version, projectId, ingressId
+         *
+         * @return {Promise} promise 对象
+         */
+        removeIngress (context, { ingressId, version, projectId }) {
+            return http.delete(`${DEVOPS_BCS_API_URL}/api/configuration/${projectId}/version/${version}/ingress/${ingressId}/`)
+        },
+
+        /**
+         * 添加第一个Ingress
+         *
+         * @param {Object} context store 上下文对象
+         * @param {Object} params 包括data, templateId, ingressId
+         *
+         * @return {Promise} promise 对象
+         */
+        addFirstIngress (context, { data, templateId, projectId }) {
+            return http.post(`${DEVOPS_BCS_API_URL}/api/configuration/${projectId}/template/${templateId}/ingress/`, data)
+        },
+
+        /**
          * 获取HPA metric类型
          *
          * @param {Object} context store 上下文对象
@@ -1093,6 +1167,18 @@ export default {
          */
         getDeploymentsByVersion (context, { projectId, version }) {
             return http.get(`${DEVOPS_BCS_API_URL}/api/configuration/projects/${projectId}/deployment/${version}/`)
+        },
+
+        /**
+         * 获取对应service list
+         *
+         * @param {Object} context store 上下文对象
+         * @param {Object} params 请求参数
+         *
+         * @return {Promise} promise 对象
+         */
+        getServicesByVersion (context, { projectId, version }) {
+            return http.get(`${DEVOPS_BCS_API_URL}/api/projects/${projectId}/mesos/service/${version}/`)
         }
     }
 }
