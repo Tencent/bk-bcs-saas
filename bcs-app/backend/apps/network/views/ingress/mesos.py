@@ -92,7 +92,7 @@ class IngressListViewSet(BaseIngress):
         if ingress_list:
             # 检查是否用命名空间的使用权限
             perm = bcs_perm.Namespace(request, project_id, bcs_perm.NO_RES)
-            data = perm.hook_perms(data, ns_id_flag='namespace_id', ns_name_flag='namespace')
+            ingress_list = perm.hook_perms(ingress_list, ns_id_flag='namespace_id', ns_name_flag='namespace')
         return response.Response(ingress_list)
 
 
