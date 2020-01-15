@@ -1459,7 +1459,7 @@ div.jsoneditor {
     margin-top: 40px;
     text-align: center;
     min-width: 910px;
-    max-width: 1175px;
+    max-width: 1280px;
 }
 
 .bk-button .bk-icon {
@@ -2351,4 +2351,14 @@ div.jsoneditor {
             }
         }
     }
+}
+
+.biz-configuration-form {
+    width: 100%;
+    min-width: 910px;
+    max-width: 1280px;
+}
+
+.biz-span {
+    max-width: 1280px;
 }

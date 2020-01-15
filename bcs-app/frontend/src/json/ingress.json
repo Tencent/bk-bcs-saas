@@ -1,0 +1,47 @@
+{
+	"config": {
+		"isEdited": false,
+		"apiVersion": "clb.bmsf.tencent.com/v1",
+		"kind": "ClbIngress",
+		"webCache": {
+			"rules": [
+				{
+					"name": "rule-1",
+					"host": "",
+					"path": "/",
+					"serviceName": "",
+					"serviceType": "",
+					"namespace": "",
+					"clbPort": "",
+					"servicePort": "",
+					"sessionTime": 0,
+					"httpsEnabled": false,
+					"lbPolicy": {
+						"strategy": "wrr"
+					},
+					"healthCheck": {
+						"enabled": false,
+						"timeout": 2,
+						"intervalTime": 5,
+						"healthNum": 3,
+						"unHealthNum": 3,
+						"httpCode": 31,
+						"httpCheckPath": "/"
+					},
+					"tls": {
+						"mode": "unidirectional",
+						"certId": ""
+					}
+				}
+			]
+		},
+		"metadata": {
+			"labels": {
+				"io.tencent.bcs.clb.region": "",
+				"bmsf.tencent.com/clbname": ""
+			},
+			"name": ""
+		},
+		"spec": {}
+	}
+}
