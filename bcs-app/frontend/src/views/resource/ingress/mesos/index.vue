@@ -31,6 +31,7 @@
                                     <th style="width: 300px;">{{$t('名称')}}</th>
                                     <th style="width: 300px;">{{$t('所属集群')}}</th>
                                     <th style="width: 300px;">{{$t('命名空间')}}</th>
+                                    <th style="width: 300px;">{{$t('CLB')}}</th>
                                     <th style="width: 300px;">{{$t('更新时间')}}</th>
                                     <th style="width: 100px">{{$t('操作')}}</th>
                                 </tr>
@@ -61,7 +62,10 @@
                                             </bk-tooltip>
                                         </td>
                                         <td>
-                                            {{ingress.namespace}}
+                                            {{ingress.namespace || '--'}}
+                                        </td>
+                                        <td>
+                                            {{ingress.config.metadata.labels['bmsf.tencent.com/clbname'] || '--'}}
                                         </td>
                                         <td>
                                             {{ingress.update_time ? formatDate(ingress.update_time) : '--'}}
@@ -262,7 +266,7 @@
                             </div>
                         </div>
 
-                        <div class="bk-form biz-configuration-form pb15">
+                        <div class="bk-form biz-configuration-form pb15" :key="curRule.name">
                             <div class="biz-span">
                                 <span class="title">{{$t('基础信息')}}</span>
                             </div>
@@ -1311,6 +1315,7 @@
                 const index = rules.length
 
                 rule.name = 'rule-' + (index + 1)
+                rule.namespace = this.curIngress.namespace
                 rules.push(rule)
                 this.setCurRule(rule, index)
             },
