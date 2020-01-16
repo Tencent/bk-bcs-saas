@@ -426,7 +426,7 @@ export default {
             delete params.clusterId
 
             return http.post(
-                `${DEVOPS_BCS_API_URL}/api/projects/${projectId}/cluster/${clusterId}/nodes/reinstall/`,
+                `${DEVOPS_BCS_API_URL}/api/projects/${projectId}/clusters/${clusterId}/nodes/reinstall/`,
                 params,
                 config
             )
