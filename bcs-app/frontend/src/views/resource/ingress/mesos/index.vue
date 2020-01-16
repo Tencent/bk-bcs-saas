@@ -372,7 +372,7 @@
                                                     type="number"
                                                     :placeholder="'30-3600'"
                                                     style="width: 134px;"
-                                                    :min="30"
+                                                    :min="0"
                                                     :max="3600"
                                                     :value.sync="curRule.sessionTime"
                                                     :list="varList">
