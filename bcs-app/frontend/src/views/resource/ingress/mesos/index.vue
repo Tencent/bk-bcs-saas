@@ -446,7 +446,7 @@
                                                                     type="number"
                                                                     style="width: 150px;"
                                                                     :placeholder="'5-300'"
-                                                                    :min="5"
+                                                                    :min="0"
                                                                     :max="300"
                                                                     :value.sync="curRule.healthCheck.intervalTime"
                                                                     :list="varList">
