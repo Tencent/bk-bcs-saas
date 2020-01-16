@@ -330,8 +330,8 @@
                                     </div>
 
                                     <div class="bk-form-inline-item">
-                                        <label class="bk-label" style="width: 135px;">{{$t('路径')}}</label>
-                                        <div class="bk-form-content" style="margin-left: 135px;">
+                                        <label class="bk-label" style="width: 130px;">{{$t('路径')}}</label>
+                                        <div class="bk-form-content" style="margin-left: 130px;">
                                             <bk-input
                                                 style="width: 170px;"
                                                 :placeholder="$t('请输入')"
@@ -368,7 +368,7 @@
                                                     type="number"
                                                     :placeholder="'30-3600'"
                                                     style="width: 134px;"
-                                                    :min="0"
+                                                    :min="30"
                                                     :max="3600"
                                                     :value.sync="curRule.sessionTime"
                                                     :list="varList">
@@ -477,7 +477,7 @@
                                                     </div>
 
                                                     <div class="bk-form-inline-item">
-                                                        <label class="bk-label" style="width: 200px;">不健康阈值：</label>
+                                                        <label class="bk-label" style="width: 200px;">{{$t('不健康阈值')}}：</label>
                                                         <div class="bk-form-content" style="margin-left: 200px;">
                                                             <div class="bk-form-input-group">
                                                                 <bk-input
@@ -574,19 +574,18 @@
                                                         </div>
                                                     </div>
 
-                                                    <div class="bk-form-inline-item">
+                                                    <div class="bk-form-inline-item" v-if="curRule.tls.mode === 'mutual'">
                                                         <label class="bk-label" style="width: 130px;">{{$t('客户端证书ID')}}：</label>
                                                         <div class="bk-form-content" style="margin-left: 130px;">
                                                             <bk-input
                                                                 style="width: 130px;"
                                                                 :placeholder="$t('请输入')"
                                                                 :key="curRule.tls.mode"
-                                                                :disabled="curRule.tls.mode === 'unidirectional'"
                                                                 :value.sync="curRule.tls.certCaId"
                                                                 :list="varList">
                                                             </bk-input>
                                                             <bk-tooltip
-                                                                :content="'客户端证书的 ID，如果 mode=mutual，监听器如果不填写此项则必须上传客户端证书，包括 certClientCaName，certCilentCaContent'"
+                                                                :content="$t('客户端证书的 ID，如果 mode=mutual，监听器如果不填写此项则必须上传客户端证书，包括 certClientCaName，certCilentCaContent')"
                                                                 placement="top">
                                                                 <span class="bk-badge">
                                                                     <i class="bk-icon icon-question"></i>
@@ -603,8 +602,8 @@
                         </div>
                         <div class="biz-span mb50"></div>
                         <div class="ingress-action mt20" style="margin-left: 130px;">
-                            <button class="bk-button bk-primary mr10" style="min-width: 80px;" @click="handleUpdateIngress">更新</button>
-                            <button class="bk-button bk-default" @click="handleCancelUpdate">取消</button>
+                            <button class="bk-button bk-primary mr10" style="min-width: 80px;" @click="handleUpdateIngress">{{$t('更新')}}</button>
+                            <button class="bk-button bk-default" @click="handleCancelUpdate">{{$t('取消')}}</button>
                         </div>
                     </div>
                 </div>
@@ -806,6 +805,7 @@
                         const types = ingress.spec[key]
                         types.forEach(item => {
                             // 将少的字段通过和模板json合并补全
+                            ruleParams.sessionTime = ''
                             const newItem = _.merge({}, ruleParams, item)
                             if (key.toUpperCase() === 'HTTPS') {
                                 newItem.serviceType = 'HTTP'
@@ -1203,7 +1203,7 @@
                 this.initServiceList()
             },
 
-            async handlerRegionSelect (data) {
+            async handlerRegionSelect (data, params, isInitTrigger) {
                 const region = data
                 const projectId = this.projectId
                 try {
@@ -1215,7 +1215,9 @@
                             name: item
                         })
                     })
-                    this.curIngress.config.metadata.labels['bmsf.tencent.com/clbname'] = ''
+                    if (!isInitTrigger) {
+                        this.curIngress.config.metadata.labels['bmsf.tencent.com/clbname'] = ''
+                    }
                 } catch (e) {
                     catchErrorHandler(e, this)
                 }
@@ -1321,7 +1323,7 @@
             checkIngressData (ingress) {
                 const ingressName = ingress.config.metadata.name
                 const nameReg1 = /^[a-z]{1}[a-z0-9-]{0,29}$/
-                let megPrefix = `"${ingressName}"中`
+                let megPrefix = `"${ingressName}"${this.$t('中')}`
 
                 if (ingressName === '') {
                     megPrefix += this.$t('名称：')
@@ -1398,7 +1400,7 @@
                         return false
                     }
 
-                    if (rule.sessionTime < 30 || rule.sessionTime > 3600) {
+                    if (rule.sessionTime && (rule.sessionTime < 30 || rule.sessionTime > 3600)) {
                         this.$bkMessage({
                             theme: 'error',
                             message: megPrefix + this.$t('规则"{name}"的会话保持时间：会话保持时间范围为30-3600', rule),
@@ -1420,6 +1422,10 @@
                 spec.https = []
                 params.config.webCache.rules.forEach(data => {
                     const rule = JSON.parse(JSON.stringify(data))
+
+                    if (rule.sessionTime === '') {
+                        delete rule.sessionTime
+                    }
                     switch (rule.serviceType) {
                         case 'TCP':
                             delete rule.serviceType
@@ -1505,6 +1511,9 @@
                     this.isPageLoading = false
                     catchErrorHandler(e, this)
                 }
+            },
+            handleModeSelect () {
+                this.curRule.tls.certCaId = ''
             }
         }
     }
