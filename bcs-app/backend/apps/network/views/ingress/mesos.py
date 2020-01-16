@@ -93,6 +93,9 @@ class IngressListViewSet(BaseIngress):
             # 检查是否用命名空间的使用权限
             perm = bcs_perm.Namespace(request, project_id, bcs_perm.NO_RES)
             ingress_list = perm.hook_perms(ingress_list, ns_id_flag='namespace_id', ns_name_flag='namespace')
+            # 按照更新时间排序
+            ingress_list.sort(key=lambda info: info['update_time'], reverse=True)
+
         return response.Response(ingress_list)
 
 
