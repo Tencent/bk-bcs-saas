@@ -165,7 +165,7 @@
             value: {
                 immediate: true,
                 handler (value) {
-                    if (value !== this.localValue) {
+                    if (value !== this.localValue || value !== this.curValue) {
                         this.changeCurValue(this.isLink)
                     }
                 }
