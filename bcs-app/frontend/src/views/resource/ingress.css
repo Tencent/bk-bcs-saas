@@ -170,3 +170,45 @@
         color: #737987;
     }
 }
+
+.biz-configuration-form,
+.biz-part-header {
+    width: 100%;
+    min-width: 1000px;
+    max-width: 1000px;
+}
+
+.ingress-block {
+    padding: 20px;
+    border: 1px solid #eee;
+    background: #fefefe;
+    border-radius: 2px;
+    margin-top: 10px;
+    width: 780px;
+
+    .bk-form-content {
+        margin-bottom: 15px;
+
+        &:last-child {
+            margin-bottom: 0;
+        }
+    }
+}
+
+.ingress-switcher-wrapper {
+    display: inline-block;
+    vertical-align: middle;
+}
+
+.biz-part-header {
+    min-width: 800px;
+    max-width: 800px;
+    margin-left: auto;
+    margin-right: auto;
+
+    .bk-button-group {
+        .bk-button {
+            float: left;
+        }
+    }
+}

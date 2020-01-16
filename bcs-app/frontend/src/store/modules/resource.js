@@ -242,6 +242,48 @@ export default {
          */
         updateSelectConfigmap (context, { projectId, namespace, name, clusterId }, config = {}) {
             return http.get(`${DEVOPS_BCS_API_URL}/api/resource/${projectId}/configmaps/?cluster_id=${clusterId}&namespace=${namespace}&name=${name}&decode=1`)
+        },
+
+        /**
+         * 删除单个Ingress
+         *
+         * @param {Object} context store 上下文对象
+         * @param {Object} params 请求参数，包括projectId, clusterId, namespace, name
+         * @param {Object} config 请求的配置
+         *
+         * @return {Promise} promise 对象
+         */
+        deleteMesosIngress (context, { projectId, clusterId, namespace, name }, config = {}) {
+            return http.delete(`${DEVOPS_BCS_API_URL}/api/projects/${projectId}/clusters/${clusterId}/namespaces/${namespace}/ingresses/${name}/`, {}, config)
+        },
+
+        /**
+         * 更新单个Ingress
+         *
+         * @param {Object} context store 上下文对象
+         * @param {Object} params 请求参数，包括projectId, clusterId, namespace, name, data
+         * @param {Object} config 请求的配置
+         *
+         * @return {Promise} promise 对象
+         */
+        updateMesosIngress (context, { projectId, clusterId, namespace, name, data }, config = {}) {
+            return http.put(`${DEVOPS_BCS_API_URL}/api/projects/${projectId}/clusters/${clusterId}/namespaces/${namespace}/ingresses/${name}/`, data, config)
+        },
+
+        /**
+         * 获取Ingress 列表
+         *
+         * @param {Object} context store 上下文对象
+         * @param {String} projectId projectId
+         * @param {Object} config 请求的配置
+         *
+         * @return {Promise} promise 对象
+         */
+        getMesosIngressList (context, projectId, config = {}) {
+            return http.get(`${DEVOPS_BCS_API_URL}/api/projects/${projectId}/mesos/ingresses/`, {}, config).then(res => {
+                context.commit('updateIngressList', res.data)
+                return res
+            })
         }
     }
 }
