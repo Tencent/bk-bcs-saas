@@ -107,7 +107,6 @@
             </template>
 
             <bk-sideslider
-                v-if="curIngress"
                 :quick-close="true"
                 :is-show.sync="ingressSlider.isShow"
                 :title="ingressSlider.title"
@@ -180,7 +179,6 @@
             </bk-sideslider>
 
             <bk-sideslider
-                v-if="curIngress"
                 :is-show.sync="ingressEditSlider.isShow"
                 :title="ingressEditSlider.title"
                 :width="'1020'">
@@ -201,7 +199,7 @@
                                 </div>
                             </div>
 
-                            <div class="bk-form-item">
+                            <div class="bk-form-item" v-if="ingressEditSlider.isShow">
                                 <div class="bk-form-content" style="margin-left: 0;">
                                     <div class="bk-form-inline-item">
                                         <label class="bk-label" style="width: 130px;">{{$t('区域')}}：</label>
@@ -362,13 +360,13 @@
                                         </div>
                                     </div>
 
-                                    <div class="bk-form-inline-item is-required">
+                                    <div class="bk-form-inline-item">
                                         <label class="bk-label" style="width: 130px;">{{$t('会话保持时间')}}：</label>
                                         <div class="bk-form-content" style="margin-left: 130px;">
                                             <div class="bk-form-input-group">
                                                 <bk-input
                                                     type="number"
-                                                    :placeholder="'0或30-3600'"
+                                                    :placeholder="'30-3600'"
                                                     style="width: 134px;"
                                                     :min="0"
                                                     :max="3600"
@@ -551,27 +549,49 @@
                                             <section class="ingress-block" v-if="curRule.httpsEnabled">
                                                 <div class="bk-form-content" style="margin-left: 0;">
                                                     <div class="bk-form-inline-item">
-                                                        <label class="bk-label" style="width: 130px;">{{$t('认证模式')}}：</label>
-                                                        <div class="bk-form-content" style="margin-left: 130px;">
+                                                        <label class="bk-label" style="width: 90px;">{{$t('认证模式')}}：</label>
+                                                        <div class="bk-form-content" style="margin-left: 90px;">
                                                             <bk-selector
-                                                                style="width: 186px;"
+                                                                style="width: 130px;"
                                                                 :placeholder="$t('请选择')"
                                                                 :setting-key="'id'"
                                                                 :selected.sync="curRule.tls.mode"
-                                                                :list="tlsModeList">
+                                                                :list="tlsModeList"
+                                                                @item-selected="handleModeSelect">
                                                             </bk-selector>
                                                         </div>
                                                     </div>
 
                                                     <div class="bk-form-inline-item">
-                                                        <label class="bk-label" style="width: 200px;">{{$t('证书ID')}}：</label>
-                                                        <div class="bk-form-content" style="margin-left: 200px;">
+                                                        <label class="bk-label" style="width: 90px;">{{$t('证书ID')}}：</label>
+                                                        <div class="bk-form-content" style="margin-left: 90px;">
                                                             <bk-input
-                                                                style="width: 186px;"
+                                                                style="width: 130px;"
                                                                 :placeholder="$t('请输入')"
                                                                 :value.sync="curRule.tls.certId"
                                                                 :list="varList">
                                                             </bk-input>
+                                                        </div>
+                                                    </div>
+
+                                                    <div class="bk-form-inline-item">
+                                                        <label class="bk-label" style="width: 130px;">{{$t('客户端证书ID')}}：</label>
+                                                        <div class="bk-form-content" style="margin-left: 130px;">
+                                                            <bk-input
+                                                                style="width: 130px;"
+                                                                :placeholder="$t('请输入')"
+                                                                :key="curRule.tls.mode"
+                                                                :disabled="curRule.tls.mode === 'unidirectional'"
+                                                                :value.sync="curRule.tls.certCaId"
+                                                                :list="varList">
+                                                            </bk-input>
+                                                            <bk-tooltip
+                                                                :content="'客户端证书的 ID，如果 mode=mutual，监听器如果不填写此项则必须上传客户端证书，包括 certClientCaName，certCilentCaContent'"
+                                                                placement="top">
+                                                                <span class="bk-badge">
+                                                                    <i class="bk-icon icon-question"></i>
+                                                                </span>
+                                                            </bk-tooltip>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -768,14 +788,40 @@
             },
             ingressList () {
                 const list = this.$store.state.resource.ingressList
-                list.forEach(item => {
-                    item.isChecked = false
+                list.forEach(ingress => {
+                    const rules = []
+                    let index = 1
+                    ingress.isChecked = false
+                    ingress.config.webCache = {
+                        rules: []
+                    }
                     // 通过client导入的，labels没有区域字段
-                    const labels = item.config.metadata.labels
+                    const labels = ingress.config.metadata.labels
                     if (!labels.hasOwnProperty('io.tencent.bcs.clb.region')) {
                         labels['io.tencent.bcs.clb.region'] = ''
                     }
+
+                    // 将数据扁平化
+                    for (const key in ingress.config.spec) {
+                        const types = ingress.spec[key]
+                        types.forEach(item => {
+                            // 将少的字段通过和模板json合并补全
+                            const newItem = _.merge({}, ruleParams, item)
+                            if (key.toUpperCase() === 'HTTPS') {
+                                newItem.serviceType = 'HTTP'
+                                newItem.httpsEnabled = true
+                            } else {
+                                newItem.serviceType = key.toUpperCase()
+                                newItem.httpsEnabled = false
+                            }
+                            
+                            newItem.name = `rule-${index}`
+                            ingress.config.webCache.rules.push(newItem)
+                            index++
+                        })
+                    }
                 })
+
                 return JSON.parse(JSON.stringify(list))
             },
             varList () {
@@ -805,7 +851,6 @@
         created () {
             this.initPageConf()
             this.getIngressList()
-            this.initServiceList()
         },
         methods: {
             /**
@@ -964,7 +1009,18 @@
              * @param  {object} ingress object
              * @param  {number} index 索引
              */
-            showIngressDetail (ingress, index) {
+            async showIngressDetail (ingress, index) {
+                if (!ingress.permissions.view) {
+                    const params = {
+                        project_id: this.projectId,
+                        policy_code: 'view',
+                        resource_code: ingress.namespace_id,
+                        resource_name: ingress.namespace,
+                        resource_type: 'namespace'
+                    }
+                    await this.$store.dispatch('getResourcePermissions', params)
+                }
+
                 const rules = []
                 const labels = []
 
@@ -1129,47 +1185,22 @@
                 })
             },
 
-            showIngressEditDialog (ingress) {
-                const rules = []
-                let index = 1
-                ingress.config.webCache = {
-                    rules: []
+            async showIngressEditDialog (ingress) {
+                if (!ingress.permissions.edit) {
+                    const params = {
+                        project_id: this.projectId,
+                        policy_code: 'edit',
+                        resource_code: ingress.namespace_id,
+                        resource_name: ingress.namespace,
+                        resource_type: 'namespace'
+                    }
+                    await this.$store.dispatch('getResourcePermissions', params)
                 }
-
-                for (const key in ingress.config.spec) {
-                    const types = ingress.spec[key]
-                    types.forEach(item => {
-                        // item.name = `rule-${index}`
-                        // item.httpsEnabled = false
-                        // item.serviceType = key
-                        // item.host = item.host || ''
-                        // item.path = item.path || ''
-                        // item.healthCheck.
-                        // if (item.tls) {
-                        //     item.httpsEnabled = true
-                        // } else {
-                        //     item.tls = {
-                        //         mode: 'unidirectional',
-                        //         certId: ''
-                        //     }
-                        // }
-                        // 将少的字段通过和模板json合并补全
-                        const newItem = _.merge({}, ruleParams, item)
-                        newItem.serviceType = key.toUpperCase()
-                        console.log('newItem', newItem)
-                        newItem.name = `rule-${index}`
-                        ingress.config.webCache.rules.push(newItem)
-                        index++
-                    })
-                }
-                // 通过client导入的，labels没有区域字段
-                const labels = ingress.config.metadata.labels
-                if (!labels.hasOwnProperty('io.tencent.bcs.clb.region')) {
-                    labels['io.tencent.bcs.clb.region'] = ''
-                }
+  
                 this.curIngress = ingress
                 this.ingressEditSlider.isShow = true
                 this.ingressEditSlider.title = ingress.name
+                this.initServiceList()
             },
 
             async handlerRegionSelect (data) {
@@ -1223,7 +1254,12 @@
             async initServiceList () {
                 const templateId = this.templateId
                 const projectId = this.projectId
-                const version = 8859
+                const version = this.curIngress.config.metadata.labels['io.tencent.bcs.latest.version.id']
+
+                if (!version) {
+                    this.serviceList = []
+                    return false
+                }
 
                 try {
                     const res = await this.$store.dispatch('mesosTemplate/getServicesByVersion', {
@@ -1362,15 +1398,7 @@
                         return false
                     }
 
-                    if (rule.sessionTime === '' || rule.sessionTime === undefined) {
-                        this.$bkMessage({
-                            theme: 'error',
-                            message: megPrefix + this.$t('规则"{name}"的会话保持时间：请输入会话保持时间', rule),
-                            delay: 8000
-                        })
-                        return false
-                    }
-                    if (rule.sessionTime !== 0 && (rule.sessionTime < 30 || rule.sessionTime > 3600)) {
+                    if (rule.sessionTime < 30 || rule.sessionTime > 3600) {
                         this.$bkMessage({
                             theme: 'error',
                             message: megPrefix + this.$t('规则"{name}"的会话保持时间：会话保持时间范围为30-3600', rule),
@@ -1416,12 +1444,15 @@
                             break
 
                         case 'HTTP':
-                            if (!rule.httpsEnabled) {
-                                delete rule.tls
-                            }
                             delete rule.serviceType
-                            delete rule.httpsEnabled
-                            spec.http.push(rule)
+                            if (rule.httpsEnabled) {
+                                delete rule.httpsEnabled
+                                spec.https.push(rule)
+                            } else {
+                                delete rule.httpsEnabled
+                                delete rule.tls
+                                spec.http.push(rule)
+                            }
                             break
 
                         case 'HTTPS':
