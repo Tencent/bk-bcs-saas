@@ -27,6 +27,8 @@
                     'mesosTemplatesetService',
                     'mesosTemplatesetConfigmap',
                     'mesosTemplatesetSecret',
+                    'mesosTemplatesetIngress',
+                    'mesosTemplatesetHPA',
                     'instantiation',
 
                     'k8sTemplatesetDeployment',
