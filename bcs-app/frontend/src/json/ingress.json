@@ -29,7 +29,8 @@
 					},
 					"tls": {
 						"mode": "unidirectional",
-						"certId": ""
+						"certId": "",
+						"certCaId": ""
 					}
 				}
 			]
