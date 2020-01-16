@@ -199,3 +199,16 @@
     display: inline-block;
     vertical-align: middle;
 }
+
+.biz-part-header {
+    min-width: 800px;
+    max-width: 800px;
+    margin-left: auto;
+    margin-right: auto;
+
+    .bk-button-group {
+        .bk-button {
+            float: left;
+        }
+    }
+}

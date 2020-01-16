@@ -11,10 +11,9 @@
 					"path": "/",
 					"serviceName": "",
 					"serviceType": "",
-					"namespace": "",
 					"clbPort": "",
 					"servicePort": "",
-					"sessionTime": 0,
+					"sessionTime": 30,
 					"httpsEnabled": false,
 					"lbPolicy": {
 						"strategy": "wrr"

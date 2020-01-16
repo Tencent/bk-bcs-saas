@@ -183,8 +183,8 @@
                 v-if="curIngress"
                 :is-show.sync="ingressEditSlider.isShow"
                 :title="ingressEditSlider.title"
-                :width="'1000'">
-                <div class="p0" slot="content">
+                :width="'1020'">
+                <div class="p0 pl20" slot="content">
                     <div class="biz-configuration-content" style="position: relative;">
                         <div class="bk-form biz-configuration-form">
                             <div class="bk-form-item is-required">
@@ -203,7 +203,7 @@
 
                             <div class="bk-form-item">
                                 <div class="bk-form-content" style="margin-left: 0;">
-                                    <div class="bk-form-inline-item is-required">
+                                    <div class="bk-form-inline-item">
                                         <label class="bk-label" style="width: 130px;">{{$t('区域')}}：</label>
                                         <div class="bk-form-content" style="margin-left: 130px;">
                                             <bk-selector
@@ -217,15 +217,24 @@
                                         </div>
                                     </div>
 
-                                    <div class="bk-form-inline-item is-required">
+                                    <div class="bk-form-inline-item">
                                         <label class="bk-label" style="width: 176px;">CLB：</label>
                                         <div class="bk-form-content" style="margin-left: 176px;">
-                                            <bk-selector
-                                                style="width: 300px;"
-                                                :placeholder="$t('请选择')"
-                                                :selected.sync="curIngress.config.metadata.labels['bmsf.tencent.com/clbname']"
-                                                :list="clbList">
-                                            </bk-selector>
+                                            <template v-if="clbList.length">
+                                                <bk-selector
+                                                    style="width: 300px;"
+                                                    :placeholder="$t('请选择')"
+                                                    :selected.sync="curIngress.config.metadata.labels['bmsf.tencent.com/clbname']"
+                                                    :list="clbList">
+                                                </bk-selector>
+                                            </template>
+                                            <template v-else>
+                                                <bk-input
+                                                    style="width: 300px;"
+                                                    v-model="curIngress.config.metadata.labels['bmsf.tencent.com/clbname']"
+                                                    :disabled="true">
+                                                </bk-input>
+                                            </template>
                                         </div>
                                     </div>
                                 </div>
@@ -246,17 +255,12 @@
                                         v-if="curIngress.config.webCache.rules.length > 1">
                                     </span>
                                 </div>
-                                <bk-tooltip
-                                    ref="ruleTooltip"
-                                    placement="top"
-                                    :content="$t('添加规则')">
-                                    <button
-                                        type="button"
-                                        class="bk-button bk-default is-outline is-icon"
-                                        @click.stop.prevent="addLocalRule">
-                                        <i class="bk-icon icon-plus"></i>
-                                    </button>
-                                </bk-tooltip>
+                                <button
+                                    type="button"
+                                    class="bk-button bk-default is-outline is-icon"
+                                    @click.stop.prevent="addLocalRule">
+                                    <i class="bk-icon icon-plus"></i>
+                                </button>
                             </div>
                         </div>
 
@@ -580,7 +584,7 @@
                         <div class="biz-span mb50"></div>
                         <div class="ingress-action mt20" style="margin-left: 130px;">
                             <button class="bk-button bk-primary mr10" style="min-width: 80px;" @click="handleUpdateIngress">更新</button>
-                            <button class="bk-button bk-default">取消</button>
+                            <button class="bk-button bk-default" @click="handleCancelUpdate">取消</button>
                         </div>
                     </div>
                 </div>
@@ -608,6 +612,7 @@
 
 <script>
     import { catchErrorHandler, formatDate } from '@open/common/util'
+    import ingressParams from '@open/json/ingress.json'
     import ruleParams from '@open/json/ingress-rule.json'
     import _ from 'lodash'
 
@@ -620,7 +625,7 @@
                 searchKeyword: '',
                 searchScope: '',
                 curPageData: [],
-                curIngress: null,
+                curIngress: ingressParams,
                 pageConf: {
                     total: 1,
                     totalPage: 1,
@@ -765,6 +770,11 @@
                 const list = this.$store.state.resource.ingressList
                 list.forEach(item => {
                     item.isChecked = false
+                    // 通过client导入的，labels没有区域字段
+                    const labels = item.config.metadata.labels
+                    if (!labels.hasOwnProperty('io.tencent.bcs.clb.region')) {
+                        labels['io.tencent.bcs.clb.region'] = ''
+                    }
                 })
                 return JSON.parse(JSON.stringify(list))
             },
@@ -1152,6 +1162,11 @@
                         index++
                     })
                 }
+                // 通过client导入的，labels没有区域字段
+                const labels = ingress.config.metadata.labels
+                if (!labels.hasOwnProperty('io.tencent.bcs.clb.region')) {
+                    labels['io.tencent.bcs.clb.region'] = ''
+                }
                 this.curIngress = ingress
                 this.ingressEditSlider.isShow = true
                 this.ingressEditSlider.title = ingress.name
@@ -1169,6 +1184,7 @@
                             name: item
                         })
                     })
+                    this.curIngress.config.metadata.labels['bmsf.tencent.com/clbname'] = ''
                 } catch (e) {
                     catchErrorHandler(e, this)
                 }
@@ -1240,6 +1256,17 @@
                 }
             },
 
+            removeRule (index) {
+                const rules = this.curIngress.config.webCache.rules
+                rules.splice(index, 1)
+                if (this.curRuleIndex === index) {
+                    this.curRuleIndex = 0
+                } else if (this.curRuleIndex > index) {
+                    this.curRuleIndex = this.curRuleIndex - 1
+                }
+                this.curRule = rules[this.curRuleIndex]
+            },
+
             addLocalRule () {
                 const rule = JSON.parse(JSON.stringify(ruleParams))
                 const rules = this.curIngress.config.webCache.rules
@@ -1248,7 +1275,6 @@
                 rule.name = 'rule-' + (index + 1)
                 rules.push(rule)
                 this.setCurRule(rule, index)
-                this.$refs.ruleTooltip.visible = false
             },
 
             setCurRule (rule, index) {
@@ -1280,14 +1306,14 @@
                     return false
                 }
 
-                if (!ingress.config.metadata.labels['io.tencent.bcs.clb.region']) {
-                    megPrefix += this.$t('区域：')
-                    this.$bkMessage({
-                        theme: 'error',
-                        message: this.$t('请选择区域')
-                    })
-                    return false
-                }
+                // if (!ingress.config.metadata.labels['io.tencent.bcs.clb.region']) {
+                //     megPrefix += this.$t('区域：')
+                //     this.$bkMessage({
+                //         theme: 'error',
+                //         message: this.$t('请选择区域')
+                //     })
+                //     return false
+                // }
 
                 if (!ingress.config.metadata.labels['bmsf.tencent.com/clbname']) {
                     megPrefix += this.$t('CLB')
@@ -1415,6 +1441,10 @@
                     const ingress = this.formatIngressData(this.curIngress)
                     this.updateIngress(ingress)
                 }
+            },
+
+            handleCancelUpdate () {
+                this.ingressEditSlider.isShow = false
             },
 
             async updateIngress (ingress) {
