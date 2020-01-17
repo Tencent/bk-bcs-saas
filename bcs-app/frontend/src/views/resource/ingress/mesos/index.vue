@@ -73,7 +73,6 @@
                                         <td>
                                             <li style="width: 200px;">
                                                 <a @click.stop="showIngressEditDialog(ingress)" class="biz-operate">{{$t('编辑')}}</a>
-                                                <a @click.stop="showIngressDetail(ingress)" class="biz-operate">{{$t('查看')}}</a>
                                                 <a @click.stop="removeIngress(ingress)" class="biz-operate">{{$t('删除')}}</a>
                                             </li>
                                         </td>
@@ -334,7 +333,7 @@
                                     </div>
 
                                     <div class="bk-form-inline-item">
-                                        <label class="bk-label" style="width: 130px;">{{$t('路径')}}</label>
+                                        <label class="bk-label" style="width: 130px;">{{$t('路径')}}：</label>
                                         <div class="bk-form-content" style="margin-left: 130px;">
                                             <bk-input
                                                 style="width: 170px;"
@@ -372,7 +371,7 @@
                                                     type="number"
                                                     :placeholder="'30-3600'"
                                                     style="width: 134px;"
-                                                    :min="0"
+                                                    :min="30"
                                                     :max="3600"
                                                     :value.sync="curRule.sessionTime"
                                                     :list="varList">
@@ -446,7 +445,7 @@
                                                                     type="number"
                                                                     style="width: 150px;"
                                                                     :placeholder="'5-300'"
-                                                                    :min="0"
+                                                                    :min="5"
                                                                     :max="300"
                                                                     :value.sync="curRule.healthCheck.intervalTime"
                                                                     :list="varList">
@@ -589,7 +588,7 @@
                                                                 :list="varList">
                                                             </bk-input>
                                                             <bk-tooltip
-                                                                :content="$t('客户端证书的 ID，如果 mode=mutual，监听器如果不填写此项则必须上传客户端证书，包括 certClientCaName，certCilentCaContent')"
+                                                                :content="$t('如果mode=mutual，客户端证书ID为必填项')"
                                                                 placement="top">
                                                                 <span class="bk-badge">
                                                                     <i class="bk-icon icon-question"></i>
@@ -1359,7 +1358,7 @@
                 // }
 
                 if (!ingress.config.metadata.labels['bmsf.tencent.com/clbname']) {
-                    megPrefix += this.$t('CLB')
+                    megPrefix += 'CLB'
                     this.$bkMessage({
                         theme: 'error',
                         message: this.$t('请选择CLB')
@@ -1409,6 +1408,15 @@
                         this.$bkMessage({
                             theme: 'error',
                             message: megPrefix + this.$t('规则"{name}"的会话保持时间：会话保持时间范围为30-3600', rule),
+                            delay: 8000
+                        })
+                        return false
+                    }
+
+                    if (rule.httpsEnabled && rule.tls.mode === 'mutual' && !rule.tls.certCaId) {
+                        this.$bkMessage({
+                            theme: 'error',
+                            message: megPrefix + this.$t('规则"{name}"的开启Https：如果认证模式为mutual，客户端证书ID为必填项', rule),
                             delay: 8000
                         })
                         return false
