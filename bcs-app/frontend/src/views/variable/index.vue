@@ -136,13 +136,15 @@
                 <table class="bk-table biz-data-table has-table-bordered">
                     <thead>
                         <tr>
-                            <th style="width: 250px;">{{$t('所属')}}{{curBatchVar && curBatchVar.scope === 'namespace' ? $t('命名空间') : $t('集群')}}</th>
+                            <th v-if="curBatchVar && curBatchVar.scope === 'namespace'" style="width: 250px;">{{$t('所属')}}{{$t('集群')}}</th>
+                            <th style="min-width: 200px;">{{$t('所属')}}{{curBatchVar && curBatchVar.scope === 'namespace' ? $t('命名空间') : $t('集群')}}</th>
                             <th>值</th>
                         </tr>
                     </thead>
                     <tbody>
                         <template v-if="batchVarList.length">
                             <tr v-for="(variable, index) in batchVarList" :key="index">
+                                <td v-if="curBatchVar && curBatchVar.scope === 'namespace'">{{variable.cluster_name}}</td>
                                 <td>{{variable.name}}</td>
                                 <td><input type="text" class="bk-form-input" v-model="variable.variable_value"></td>
                             </tr>
