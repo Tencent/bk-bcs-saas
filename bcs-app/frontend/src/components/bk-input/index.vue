@@ -103,7 +103,7 @@
             },
             debounceTimer: {
                 type: Number,
-                default: 100
+                default: 500
             },
             searchKey: {
                 type: String,
