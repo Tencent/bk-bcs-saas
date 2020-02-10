@@ -24,10 +24,10 @@ class KubectlError(KubectlBaseException):
 class KubectlExecutionError(KubectlBaseException):
     """Error when running kubectl command failed
     """
+
     def __init__(self, error_no: int, output: bytes):
         self.error_no = error_no
         self.output = output.decode().strip()
 
     def __str__(self):
-        # Use the first line as a summary
-        return "({}) {}".format(self.error_no, self.output.split("\n")[0])
+        return "({}) {}".format(self.error_no, self.output)
