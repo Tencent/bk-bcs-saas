@@ -624,6 +624,8 @@ class AppReleasePreviewSLZ(AppMixin, serializers.Serializer):
     difference = serializers.JSONField(read_only=True)
     chart_version_changed = serializers.BooleanField(read_only=True)
     old_content = serializers.JSONField(read_only=True)
+    # 方便前端渲染
+    new_content = serializers.JSONField(read_only=True)
 
     def create(self, validated_data):
         """ 应用更新时的预览数据，这个时候目标release还没有创建 """
@@ -697,7 +699,8 @@ class AppReleasePreviewSLZ(AppMixin, serializers.Serializer):
             "notes": notes,
             "difference": difference,
             "chart_version_changed": chart_version_changed,
-            "old_content": old_content
+            "old_content": old_content,
+            "new_content": content
         }
 
     class Meta:
