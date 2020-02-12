@@ -309,7 +309,7 @@
                 let selectItem = null
 
                 for (const item of this.defaultList) {
-                    if (item[this.settingKey] === key) {
+                    if (String(item[this.settingKey]) === String(key)) {
                         selectItem = item
                         selectItem.type = 'normal'
                     }
@@ -329,7 +329,7 @@
                     this.curSelectIndex = -1
                 }
                 this.resultList.forEach((item, index) => {
-                    if (item[this.settingKey] === key) {
+                    if (String(item[this.settingKey]) === String(key)) {
                         item.isSelected = true
                         this.curSelectIndex = index
                     } else {
