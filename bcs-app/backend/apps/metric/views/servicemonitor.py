@@ -75,7 +75,6 @@ class ServiceMonitor(viewsets.ViewSet):
             data.extend(items)
         else:
             cluster_list = self._get_cluster_list(project_id)
-            data = []
             for cluster in cluster_list:
                 cluster_id = cluster["cluster_id"]
                 cluster_env = cluster.get("environment")
