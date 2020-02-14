@@ -36,7 +36,7 @@ class ServiceMonitor(viewsets.ViewSet):
     renderer_classes = (BKAPIRenderer, BrowsableAPIRenderer)
 
     # 不返回给前端的字段
-    filted_metadata = [
+    filtered_metadata = [
         "annotations",
         "selfLink",
         "uid",
@@ -51,7 +51,7 @@ class ServiceMonitor(viewsets.ViewSet):
     def _handle_items(self, cluster_id, data):
         items = data.get("items") or []
         for item in items:
-            item["metadata"] = {k: v for k, v in item["metadata"].items() if k not in self.filted_metadata}
+            item["metadata"] = {k: v for k, v in item["metadata"].items() if k not in self.filtered_metadata}
             item["cluster_id"] = cluster_id
             item["namespace"] = item["metadata"]["namespace"]
             item["name"] = item["metadata"]["name"]
@@ -120,7 +120,7 @@ class ServiceMonitor(viewsets.ViewSet):
             raise error_codes.APIError(result.get("message", ""))
 
         if result.get("metadata"):
-            result["metadata"] = {k: v for k, v in result["metadata"].items() if k not in self.filted_metadata}
+            result["metadata"] = {k: v for k, v in result["metadata"].items() if k not in self.filtered_metadata}
         return Response(result)
 
     def delete(self, request, project_id, cluster_id, namespace, name):
@@ -165,7 +165,7 @@ class ServiceMonitor(viewsets.ViewSet):
 class Targets(viewsets.ViewSet):
     renderer_classes = (BKAPIRenderer, BrowsableAPIRenderer)
 
-    filted_annotation_pattern = re.compile(r"__meta_kubernetes_\w+_annotation")
+    filtered_annotation_pattern = re.compile(r"__meta_kubernetes_\w+_annotation")
 
     def _filter_targets(self, data, namespace, name):
         """servicemonitor通过job名称过滤
@@ -178,7 +178,7 @@ class Targets(viewsets.ViewSet):
             for t in active_targets:
                 if matcher.match(t["discoveredLabels"]["job"]):
                     t["discoveredLabels"] = {
-                        k: v for k, v in t["discoveredLabels"].items() if not self.filted_annotation_pattern.match(k)
+                        k: v for k, v in t["discoveredLabels"].items() if not self.filtered_annotation_pattern.match(k)
                     }
                     res.append(t)
         return res
