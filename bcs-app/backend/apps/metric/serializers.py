@@ -165,6 +165,29 @@ class PromPodMetricSLZ(PromMetricSLZBase):
         return res_id_list
 
 
+class PromContainerMetricSLZ(serializers.PromMetricSLZBase):
+    """容器数据查询
+    """
+
+    res_id_list = serializers.CharField(required=False)
+    pod_name = serializers.CharField(required=False)
+
+    def validate_res_id_list(self, res_id_list):
+        res_id_list = res_id_list.split(",")
+        return res_id_list
+
+    def validate(self, data: dict):
+        data = super().validate(data)
+
+        if not (data.get("res_id_list") or data.get("pod_name")):
+            raise ValidationError(_("res_id_list, pod_name不能同时为空"))
+
+        data.setdefault("pod_name", ".*")
+        data.setdefault("res_id_list", [".*"])
+
+        return data
+
+
 class ServiceMonitorSLZ(serializers.Serializer):
     """ServiceMonitor创建
     """

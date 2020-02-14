@@ -11,6 +11,18 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-from . import collector  # noqa
-from . import performance  # noqa
-from . import servicemonitor  # noqa
+from backend.components import paas_cc
+
+
+class Mixin:
+    def get_node_ip_list(self, request, project_id, cluster_id):
+        node_list = paas_cc.get_node_list(self.request.user.token.access_token, project_id, cluster_id)
+        node_list = node_list.get("data", {}).get("results") or []
+        node_list = [i["inner_ip"] for i in node_list]
+        return node_list
+
+    def get_validated_data(self, request):
+        slz = self.serializer_class(data=request.GET)
+        slz.is_valid(raise_exception=True)
+        data = slz.validated_data
+        return data
