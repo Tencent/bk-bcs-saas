@@ -229,8 +229,10 @@
                         } else {
                             this.curValue = selectItem[this.displayKey]
                         }
-
-                        this.$emit('item-selected', value, selectItem, isTrigger)
+                        // 用户可以配置自动触发，用于实现多个联动
+                        if (isTrigger) {
+                            this.$emit('item-selected', value, selectItem, isTrigger)
+                        }
                     } else {
                         this.curValue = ''
                     }
