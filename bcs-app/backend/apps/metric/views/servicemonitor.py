@@ -85,8 +85,6 @@ class ServiceMonitor(viewsets.ViewSet):
         return Response(data)
 
     def create(self, request, project_id, cluster_id=None):
-        access_token = request.user.token.access_token
-
         slz = self.serializer_class(data=request.data)
         slz.is_valid(raise_exception=True)
         data = slz.validated_data
@@ -105,7 +103,7 @@ class ServiceMonitor(viewsets.ViewSet):
             },
         }
 
-        client = k8s.K8SClient(access_token, project_id, cluster_id, env=None)
+        client = k8s.K8SClient(request.user.token.access_token, project_id, cluster_id, env=None)
         result = client.create_service_monitor(data["namespace"], spec)
         return Response(result)
 
