@@ -48,8 +48,8 @@ class ServiceMonitor(viewsets.ViewSet):
         "clusterName",
     ]
 
-    def _handle_items(self, cluster_id, data):
-        items = data.get("items") or []
+    def _handle_items(self, cluster_id, manifest):
+        items = manifest.get("items") or []
         for item in items:
             item["metadata"] = {k: v for k, v in item["metadata"].items() if k not in self.filtered_metadata}
             item["cluster_id"] = cluster_id
