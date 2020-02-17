@@ -84,7 +84,7 @@ class Node(base.MetricViewMixin, viewsets.ViewSet):
         return response.Response(data)
 
     def info(self, request, project_id, cluster_id):
-        node_ip_map = self.get_node_ip_list(request, project_id, cluster_id)
+        node_ip_map = self.get_node_ip_map(request, project_id, cluster_id)
         data = self.get_validated_data(request)
 
         if data["res_id"] not in node_ip_map:
