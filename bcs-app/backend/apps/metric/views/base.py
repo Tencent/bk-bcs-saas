@@ -14,7 +14,7 @@
 from backend.components import paas_cc
 
 
-class Mixin:
+class MetricViewMixin:
     def get_node_ip_list(self, request, project_id, cluster_id):
         node_list = paas_cc.get_node_list(self.request.user.token.access_token, project_id, cluster_id)
         node_list = node_list.get("data", {}).get("results") or []

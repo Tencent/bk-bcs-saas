@@ -28,7 +28,7 @@ from backend.utils.renderers import BKAPIRenderer
 logger = logging.getLogger(__name__)
 
 
-class Cluster(base.Mixin, viewsets.ViewSet):
+class Cluster(base.MetricViewMixin, viewsets.ViewSet):
     """集群相关metrics数据
     """
 
@@ -58,7 +58,7 @@ class Cluster(base.Mixin, viewsets.ViewSet):
         return response.Response(result)
 
 
-class Node(base.Mixin, viewsets.ViewSet):
+class Node(base.MetricViewMixin, viewsets.ViewSet):
     """节点相关Metrics
     """
 
@@ -140,7 +140,7 @@ class Node(base.Mixin, viewsets.ViewSet):
         return response.Response(result)
 
 
-class Pod(base.Mixin, viewsets.ViewSet):
+class Pod(base.MetricViewMixin, viewsets.ViewSet):
     """Pod相关
     """
 
@@ -170,7 +170,7 @@ class Pod(base.Mixin, viewsets.ViewSet):
         return response.Response(result)
 
 
-class Container(base.Mixin, viewsets.ViewSet):
+class Container(base.MetricViewMixin, viewsets.ViewSet):
     """容器相关Metrics
     """
 
