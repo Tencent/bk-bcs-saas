@@ -165,7 +165,7 @@ class PromPodMetricSLZ(PromMetricSLZBase):
         return res_id_list
 
 
-class PromContainerMetricSLZ(serializers.PromMetricSLZBase):
+class PromContainerMetricSLZ(PromMetricSLZBase):
     """容器数据查询
     """
 
