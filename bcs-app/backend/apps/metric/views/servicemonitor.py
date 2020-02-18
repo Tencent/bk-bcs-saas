@@ -13,8 +13,12 @@
 #
 import logging
 import re
+from urllib import parse
 
+from django.conf import settings
+from django.http import HttpResponseRedirect
 from django.utils.functional import cached_property
+from django.utils.translation import ugettext_lazy as _
 from rest_framework import viewsets
 from rest_framework.renderers import BrowsableAPIRenderer
 from rest_framework.response import Response
@@ -48,38 +52,53 @@ class ServiceMonitor(viewsets.ViewSet):
         "clusterName",
     ]
 
-    def _handle_items(self, cluster_id, manifest):
+    DEFAULT_ENDPOINT_PATH = "/metrics"
+    DEFAULT_ENDPOINT_INTERVAL = "30s"
+
+    def _handle_endpoints(self, endpoints):
+        for endpoint in endpoints:
+            endpoint.setdefault("path", self.DEFAULT_ENDPOINT_PATH)
+            endpoint.setdefault("interval", self.DEFAULT_ENDPOINT_INTERVAL)
+        return endpoints
+
+    def _handle_items(self, cluster_id, cluster_map, manifest):
         items = manifest.get("items") or []
         for item in items:
             item["metadata"] = {k: v for k, v in item["metadata"].items() if k not in self.filtered_metadata}
             item["cluster_id"] = cluster_id
             item["namespace"] = item["metadata"]["namespace"]
             item["name"] = item["metadata"]["name"]
+            item["cluster_name"] = cluster_map[cluster_id]["name"]
+            if isinstance(item["spec"].get("endpoints"), list):
+                item["spec"]["endpoints"] = self._handle_endpoints(item["spec"]["endpoints"])
         return items
 
-    def _get_cluster_list(self, project_id):
+    def _get_cluster_map(self, project_id):
         """获取集群列表
         """
         resp = paas_cc.get_all_clusters(self.request.user.token.access_token, project_id, desire_all_data=1)
         data = resp.get("data") or {}
         cluster_list = data.get("results") or []
-        return cluster_list
+        cluster_map = {i["cluster_id"]: i for i in cluster_list}
+        return cluster_map
 
     def list(self, request, project_id, cluster_id=None):
         access_token = request.user.token.access_token
+        cluster_map = self._get_cluster_map(project_id)
         data = []
 
         if cluster_id:
+            if cluster_id not in cluster_map:
+                raise error_codes.APIError(_("cluster_id not valid"))
             client = k8s.K8SClient(access_token, project_id, cluster_id, env=None)
-            items = self._handle_items(cluster_id, client.list_service_monitor())
+            items = self._handle_items(cluster_id, cluster_map, client.list_service_monitor())
             data.extend(items)
         else:
-            cluster_list = self._get_cluster_list(project_id)
-            for cluster in cluster_list:
+            for cluster in cluster_map.values():
                 cluster_id = cluster["cluster_id"]
                 cluster_env = cluster.get("environment")
                 client = k8s.K8SClient(access_token, project_id, cluster_id, env=cluster_env)
-                items = self._handle_items(cluster_id, client.list_service_monitor())
+                items = self._handle_items(cluster_id, cluster_map, client.list_service_monitor())
                 data.extend(items)
 
         return Response(data)
@@ -180,9 +199,37 @@ class Targets(viewsets.ViewSet):
                     res.append(t)
         return res
 
+    def _filter_jobs(self, data, namespace, name):
+        targets = self._filter_targets(data, namespace, name)
+        jobs = []
+        for target in targets:
+            labels = target.get("labels") or {}
+            job = labels.get("job")
+            if job:
+                jobs.append(job)
+        return jobs
+
     def list(self, request, project_id, cluster_id, namespace, name):
         """获取targets列表
         """
         result = prometheus.get_targets(project_id, cluster_id).get("data") or []
         targets = self._filter_targets(result, namespace, name)
         return Response(targets)
+
+    def graph(self, request, project_id, cluster_id, namespace, name):
+        """获取下面所有targets的job, 跳转到容器监控
+        """
+        result = prometheus.get_targets(project_id, cluster_id).get("data") or []
+        jobs = self._filter_jobs(result, namespace, name)
+
+        if jobs:
+            jobs = "|".join(jobs)
+            expr = f'{{cluster_id="{cluster_id}, job=~"{jobs}"}}'
+        else:
+            expr = f'{{cluster_id="{cluster_id}"}}'
+        params = {"project_id": project_id, "expr": expr}
+        query = parse.urlencode(params)
+
+        redirect_url = f"{settings.DEVOPS_HOST}/console/monitor/{request.project.project_code}/metric?{query}"
+
+        return HttpResponseRedirect(redirect_url)

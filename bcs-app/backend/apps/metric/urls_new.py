@@ -46,6 +46,10 @@ cluster_urlpatterns = [
         r"^servicemonitors/(?P<namespace>[\w-]+)/(?P<name>[\w-]+)/targets/$",
         views.servicemonitor.Targets.as_view({"get": "list"}),
     ),
+    url(
+        r"^servicemonitors/(?P<namespace>[\w-]+)/(?P<name>[\w-]+)/targets/graph/$",
+        views.servicemonitor.Targets.as_view({"get": "graph"}),
+    ),
 ]
 
 metrics_urlpatterns = [
