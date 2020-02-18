@@ -14,25 +14,26 @@
 import json
 import logging
 
+from django.conf import settings
+from django.utils.translation import ugettext_lazy as _
 from rest_framework import viewsets
 from rest_framework.renderers import BrowsableAPIRenderer
 from rest_framework.response import Response
-from django.conf import settings
-from django.utils.translation import ugettext_lazy as _
 
 from backend.activity_log import client
 from backend.apps import constants as app_constants
+from backend.apps.configuration.init_data import init_template
 from backend.apps.projects import serializers
-from backend.components import cc, paas_cc, paas_auth
+from backend.apps.projects.drivers.base import BaseDriver
+from backend.apps.projects.utils import get_app_by_user_role, get_application_name, update_bcs_service_for_project
+from backend.components import cc, paas_auth, paas_cc
 from backend.utils import notify
+from backend.utils.basic import normalize_datetime
+from backend.utils.cache import region
 from backend.utils.errcodes import ErrorCode
 from backend.utils.error_codes import error_codes
+from backend.utils.func_controller import get_func_controller
 from backend.utils.renderers import BKAPIRenderer
-from backend.utils.cache import region
-from backend.apps.configuration.init_data import init_template
-from backend.apps.projects.utils import update_bcs_service_for_project, get_app_by_user_role, get_application_name
-from backend.apps.projects.drivers.base import BaseDriver
-from backend.utils.basic import normalize_datetime
 
 logger = logging.getLogger(__name__)
 
@@ -58,6 +59,19 @@ class Projects(viewsets.ViewSet):
                 return []
         return deploy_type_list
 
+    def _register_function_contoller(self, func_code, project_list):
+        enabled, wlist = get_func_controller(func_code)
+        for project in project_list:
+            if project["project_id"] not in wlist:
+                continue
+            project["func_wlist"].add(func_code)
+
+    def register_function_contoller(self, project_list):
+        """注册功能白名单
+        """
+        for func_code in settings.PROJECT_FUNC_CODES:
+            self._register_function_contoller(func_code, project_list)
+
     def list(self, request):
         """获取项目列表
         """
@@ -65,20 +79,24 @@ class Projects(viewsets.ViewSet):
         access_token = request.user.token.access_token
         # 直接调用配置中心接口去获取信息
         projects = paas_cc.get_auth_project(access_token)
-        if projects.get('code') != ErrorCode.NoError:
-            raise error_codes.APIError(projects.get('message'))
-        data = projects.get('data')
+        if projects.get("code") != ErrorCode.NoError:
+            raise error_codes.APIError(projects.get("message"))
+        data = projects.get("data")
         # 兼容先前，返回array/list
         if not data:
             return Response([])
         # 按数据倒序排序
-        data.sort(key=lambda x: x['created_at'], reverse=True)
+        data.sort(key=lambda x: x["created_at"], reverse=True)
         # 数据处理
         for info in data:
-            info['created_at'], info['updated_at'] = self.normalize_create_update_time(
-                info['created_at'], info['updated_at'])
-            info['project_code'] = info['english_name']
+            info["created_at"], info["updated_at"] = self.normalize_create_update_time(
+                info["created_at"], info["updated_at"]
+            )
+            info["project_code"] = info["english_name"]
             info["deploy_type"] = self.deploy_type_list(info.get("deploy_type"))
+            info["func_wlist"] = set()
+
+        self.register_function_contoller(data)
 
         return Response(data)
 
@@ -86,24 +104,20 @@ class Projects(viewsets.ViewSet):
         """判断项目下是否有集群
         """
         resp = paas_cc.get_all_clusters(request.user.token.access_token, project_id)
-        if resp.get('code') != ErrorCode.NoError:
-            raise error_codes.APIError(resp.get('message'))
+        if resp.get("code") != ErrorCode.NoError:
+            raise error_codes.APIError(resp.get("message"))
         # 存在集群时，不允许修改
-        if resp.get('data', {}).get('count') > 0:
+        if resp.get("data", {}).get("count") > 0:
             return True
         return False
 
     def is_manager(self, request, project_id):
         """判断用户是否为项目管理员
         """
-        resp = paas_auth.get_project_user(
-            request.user.token.access_token,
-            project_id,
-            group_code='Manager'
-        )
-        if resp.get('code') != ErrorCode.NoError:
-            raise error_codes.APIError(resp.get('message'))
-        data = resp.get('data') or []
+        resp = paas_auth.get_project_user(request.user.token.access_token, project_id, group_code="Manager")
+        if resp.get("code") != ErrorCode.NoError:
+            raise error_codes.APIError(resp.get("message"))
+        data = resp.get("data") or []
         if request.user.username in data:
             return True
         return False
@@ -113,8 +127,7 @@ class Projects(viewsets.ViewSet):
         - 项目下有集群，不允许更改项目的调度类型和绑定业务
         - 非管理员权限，不允许修改项目
         """
-        if (self.has_cluster(request, project_id)) or \
-                (not self.is_manager(request, project_id)):
+        if (self.has_cluster(request, project_id)) or (not self.is_manager(request, project_id)):
             return False
         return True
 
@@ -122,14 +135,15 @@ class Projects(viewsets.ViewSet):
         """单个项目信息
         """
         project_resp = paas_cc.get_project(request.user.token.access_token, project_id)
-        if project_resp.get('code') != ErrorCode.NoError:
+        if project_resp.get("code") != ErrorCode.NoError:
             raise error_codes.APIError(f'not found project info, {project_resp.get("message")}')
-        data = project_resp['data']
-        data['created_at'], data['updated_at'] = self.normalize_create_update_time(
-            data['created_at'], data['updated_at'])
+        data = project_resp["data"]
+        data["created_at"], data["updated_at"] = self.normalize_create_update_time(
+            data["created_at"], data["updated_at"]
+        )
         # 添加业务名称
-        data['cc_app_name'] = get_application_name(request)
-        data['can_edit'] = self.can_edit(request, project_id)
+        data["cc_app_name"] = get_application_name(request)
+        data["can_edit"] = self.can_edit(request, project_id)
         return Response(data)
 
     def validate_update_project_data(self, request):
@@ -140,7 +154,7 @@ class Projects(viewsets.ViewSet):
     def invalid_project_cache(self, project_id):
         """当变更项目信息时，详细缓存信息失效
         """
-        region.delete(f'BK_DEVOPS_BCS:HAS_BCS_SERVICE:{project_id}')
+        region.delete(f"BK_DEVOPS_BCS:HAS_BCS_SERVICE:{project_id}")
 
     def update(self, request, project_id):
         """更新项目信息
@@ -149,26 +163,27 @@ class Projects(viewsets.ViewSet):
             raise error_codes.CheckFailed(_("请确认有项目管理员权限，并且项目下无集群"))
         data = self.validate_update_project_data(request)
         access_token = request.user.token.access_token
-        data['updator'] = request.user.username
+        data["updator"] = request.user.username
 
         # 添加操作日志
         ual_client = client.UserActivityLogClient(
             project_id=project_id,
             user=request.user.username,
-            resource_type='project',
+            resource_type="project",
             resource=request.project.project_name,
             resource_id=project_id,
-            description='{}: {}'.format(_("更新项目"), request.project.project_name)
+            description="{}: {}".format(_("更新项目"), request.project.project_name),
         )
         project = paas_cc.update_project_new(access_token, project_id, data)
-        if project.get('code') != 0:
-            ual_client.log_modify(activity_status='failed')
-            raise error_codes.APIError(project.get('message', _("更新项目成功")))
-        ual_client.log_modify(activity_status='succeed')
-        project_data = project.get('data')
+        if project.get("code") != 0:
+            ual_client.log_modify(activity_status="failed")
+            raise error_codes.APIError(project.get("message", _("更新项目成功")))
+        ual_client.log_modify(activity_status="succeed")
+        project_data = project.get("data")
         if project_data:
-            project_data['created_at'], project_data['updated_at'] = self.normalize_create_update_time(
-                project_data['created_at'], project_data['updated_at'])
+            project_data["created_at"], project_data["updated_at"] = self.normalize_create_update_time(
+                project_data["created_at"], project_data["updated_at"]
+            )
 
         # 主动令缓存失效
         self.invalid_project_cache(project_id)
