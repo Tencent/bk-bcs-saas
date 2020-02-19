@@ -164,6 +164,6 @@ export default {
             const projectId = params.projectId
             delete params.projectId
             return http.post(`${DEVOPS_BCS_API_URL}/api/projects/${projectId}/metrics/servicemonitors/`, params, config)
-        }ffffffffq
+        }
     }
 }
