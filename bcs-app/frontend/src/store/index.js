@@ -349,7 +349,7 @@ const store = new Vuex.Store({
          *
          * @return {Promise} promise 对象
          */
-        getCCList (context, params, config = {}) {
+        getCCList (context, params = {}, config = {}) {
             return http.get(`${DEVOPS_BCS_API_URL}/api/cc/`, params, config)
         },
 
