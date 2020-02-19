@@ -164,6 +164,50 @@ export default {
             const projectId = params.projectId
             delete params.projectId
             return http.post(`${DEVOPS_BCS_API_URL}/api/projects/${projectId}/metrics/servicemonitors/`, params, config)
+        },
+
+        /**
+         * 删除 metric
+         *
+         * @param {Object} context store 上下文对象
+         * @param {Object} params 请求参数
+         * @param {Object} config 请求的配置
+         *
+         * @return {Promise} promise 对象
+         */
+        deleteServiceMonitor (context, { projectId, clusterId, namespace, name }, config = {}) {
+            return http.delete(
+                `${DEVOPS_BCS_API_URL}/api/projects/${projectId}/clusters/${clusterId}/`
+                    + `metrics/servicemonitors/${namespace}/${name}/`,
+                {},
+                config
+            )
+        },
+
+        /**
+         * 修改 metric
+         *
+         * @param {Object} context store 上下文对象
+         * @param {Object} params 请求参数
+         * @param {Object} config 请求的配置
+         *
+         * @return {Promise} promise 对象
+         */
+        updateServiceMonitor (context, params, config = {}) {
+            const projectId = params.projectId
+            const clusterId = params.cluster_id
+            const namespace = params.namespace
+            const name = params.name
+            delete params.projectId
+            delete params.cluster_id
+            delete params.namespace
+            delete params.name
+            return http.put(
+                `${DEVOPS_BCS_API_URL}/api/projects/${projectId}/clusters/${clusterId}/`
+                    + `metrics/servicemonitors/${namespace}/${name}/`,
+                params,
+                config
+            )
         }
     }
 }
