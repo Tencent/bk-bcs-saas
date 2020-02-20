@@ -188,6 +188,7 @@ class BCSWebSocketHandler(LocaleHandlerMixin, tornado.websocket.WebSocketHandler
             message = _("BCS Console 已经{}分钟无操作").format(tick_timeout_min)
             self.tick_timeout2client(message)
             logger.info("tick timeout, close session %s, idle time, %.2f", self.user_pod_name, idle_time)
+        logger.info("tick active %s, idle time, %.2f", self.user_pod_name, idle_time)
 
         login_time = now - self.login_ts
         if login_time > constants.LOGIN_TIMEOUT:
@@ -195,7 +196,7 @@ class BCSWebSocketHandler(LocaleHandlerMixin, tornado.websocket.WebSocketHandler
             message = _("BCS Console 使用已经超过{}小时，请重新登录").format(login_timeout)
             self.tick_timeout2client(message)
             logger.info("tick timeout, close session %s, login time, %.2f", self.user_pod_name, login_time)
-        logger.info("tick active %s, idle time, %.2f", self.user_pod_name, idle_time)
+        logger.info("tick active %s, login time, %.2f", self.user_pod_name, login_time)
 
     def heartbeat(self):
         """每秒钟上报心跳
