@@ -22,9 +22,9 @@ from django.conf import settings
 from backend.web_console.constant_bk import *  # noqa
 
 # 输入分行标识
-INPUT_LINE_BREAKER = '\r'
+INPUT_LINE_BREAKER = "\r"
 # 输出分行标识
-OUTPUT_LINE_BREAKER = '\r\n'
+OUTPUT_LINE_BREAKER = "\r\n"
 
 STDIN_CHANNEL = 0
 STDOUT_CHANNEL = 1
@@ -33,10 +33,10 @@ ERROR_CHANNEL = 3
 RESIZE_CHANNEL = 4
 
 # bash 颜色标识
-ANSI_ESCAPE = re.compile(r'\x1B\[[0-?]*[ -/]*[@-~]')
+ANSI_ESCAPE = re.compile(r"\x1B\[[0-?]*[ -/]*[@-~]")
 
 # hello 字符
-HELLO_MESSAGE = 'Welcome To BCS Console'
+HELLO_MESSAGE = "Welcome To BCS Console"
 
 
 # ping/pong时间间隔
@@ -48,21 +48,24 @@ LOCK_SHIFT = -2
 
 # 链接自动断开时间, 30分钟
 TICK_TIMEOUT = 60 * 30
+# 自动登出时间
+LOGIN_TIMEOUT = 60 * 60 * 24
 # 清理POD，4个小时
 USER_POD_EXPIRE_TIME = 3600 * 4
 # Context 过期时间, 12个小时
 USER_CTX_EXPIRE_TIME = 3600 * 12
 
-WEB_CONSOLE_HEARTBEAT_KEY = 'bcs::web_console::heartbeat'
-LABEL_WEB_CONSOLE_CREATE_TIMESTAMP = 'io.tencent.web_console.create_timestamp'
-NAMESPACE = 'web-console'
+WEB_CONSOLE_HEARTBEAT_KEY = "bcs::web_console::heartbeat"
+LABEL_WEB_CONSOLE_CREATE_TIMESTAMP = "io.tencent.web_console.create_timestamp"
+NAMESPACE = "web-console"
 
 # 1080p页面测试得来
 DEFAULT_COLS = 211
 DEFAULT_ROWS = 25
 
+
 class WebConsoleMode(Enum):
     # 用户自己集群
-    INTERNEL = 'internel'
+    INTERNEL = "internel"
     # 平台集群
-    EXTERNAL = 'external'
+    EXTERNAL = "external"
