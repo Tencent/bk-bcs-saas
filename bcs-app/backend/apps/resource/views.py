@@ -54,6 +54,7 @@ from backend.utils.basic import getitems
 from backend.apps import utils as app_utils
 from backend.apps.constants import ProjectKind
 from backend.apps.instance import constants as inst_constants
+from backend.apps.configuration.constants import MesosResourceName
 
 logger = logging.getLogger(__name__)
 DEFAULT_ERROR_CODE = ErrorCode.UnknownError
@@ -483,7 +484,8 @@ class ResourceOperate(object):
                 is_k8s_image_sercret = False
 
             is_mesos_image_sercret = False
-            if s_cate == 'secret' and _s['name'] in [MESOS_IMAGE_SECRET, inst_constants.OLD_MESOS_IMAGE_SECRET]:
+            if s_cate == MesosResourceName.secret.value \
+                    and _s['name'] in [MESOS_IMAGE_SECRET, inst_constants.OLD_MESOS_IMAGE_SECRET]:
                 is_mesos_image_sercret = True
 
             if is_k8s_image_sercret or is_mesos_image_sercret or is_namespace_default_token:
