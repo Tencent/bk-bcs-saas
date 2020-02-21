@@ -102,6 +102,23 @@ def get_namespace_variables(project_id, namespace_id):
     return variable
 
 
+def get_cluster_variables(project_id, cluster_id):
+    pass
+
+
+def get_global_variables(project_id):
+    pass
+
+
+def get_bcs_variables(project_id, cluster_id, namespace_id):
+    """获取变量值
+    - 全局变量
+    - 集群变量，包含默认值或者设置的集群的值
+    - 命名空间变量，包含默认值或者设置的命名空间的值
+    """
+    pass
+
+
 def merge_valuefile_with_bcs_variables(valuefile, bcs_variables, sys_variables):
     if sys_variables:
         bcs_variables.update(**sys_variables)
@@ -113,11 +130,12 @@ def merge_valuefile_with_bcs_variables(valuefile, bcs_variables, sys_variables):
     return yaml_dump(valuefile)
 
 
-def get_valuefile_with_bcs_variable_injected(access_token, project_id, namespace_id, valuefile):
+def get_valuefile_with_bcs_variable_injected(access_token, project_id, namespace_id, valuefile, cluster_id):
     sys_variables = collect_system_variable(
         access_token=access_token,
         project_id=project_id,
         namespace_id=namespace_id)
     bcs_variables = get_namespace_variables(project_id, namespace_id)
+
     valuefile = merge_valuefile_with_bcs_variables(valuefile, bcs_variables, sys_variables)
     return valuefile

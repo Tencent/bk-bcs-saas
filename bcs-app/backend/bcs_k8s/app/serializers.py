@@ -657,7 +657,8 @@ class AppReleasePreviewSLZ(AppMixin, serializers.Serializer):
             access_token=self.context["request"].user.token.access_token,
             project_id=instance.project_id,
             namespace_id=instance.namespace_id,
-            valuefile=validated_data["valuefile"]
+            valuefile=validated_data["valuefile"],
+            cluster_id=instance.cluster_id
         )
         client = KubeHelmClient(helm_bin=settings.HELM_BIN)
         try:
@@ -849,7 +850,8 @@ class AppCreatePreviewSLZ(AppMixin, serializers.Serializer):
             access_token=self.context["request"].user.token.access_token,
             project_id=namespace_info["project_id"],
             namespace_id=namespace_info["id"],
-            valuefile=validated_data["valuefile"]
+            valuefile=validated_data["valuefile"],
+            cluster_id=namespace_info["cluster_id"]
         )
         client = KubeHelmClient(helm_bin=settings.HELM_BIN)
         try:
