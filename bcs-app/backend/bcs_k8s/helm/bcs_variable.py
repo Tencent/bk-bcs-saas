@@ -106,7 +106,7 @@ def get_namespace_variables(project_id, namespace_id):
 def get_cluster_variables(project_id, cluster_id):
     """查询集群下的变量
     """
-    cluster_vars = ClusterVariable.get_cluster_vars(project_id, cluster_id)
+    cluster_vars = ClusterVariable.get_cluster_vars(cluster_id, project_id)
     return {info["key"]: info["value"] for info in cluster_vars}
 
 
