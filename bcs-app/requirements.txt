@@ -4,7 +4,7 @@ pytz==2017.2
 # Use lower version of PyMySQL to connect to GCS MySQL successfully
 PyMySQL==0.6.7
 
-bleach==2.0.0
+bleach==3.1.1
 enum34==1.1.6
 
 redis==2.10.5
