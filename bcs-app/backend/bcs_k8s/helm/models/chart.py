@@ -28,7 +28,7 @@ from ..utils.util import parse_chart_time, merge_rancher_answers, fix_chart_url
 from backend.bcs_k8s.diff import parser
 from backend.utils.models import BaseTSModel
 from backend.bcs_k8s.kubehelm.helm import KubeHelmClient
-from backend.bcs_k8s.helm.bcs_variable import get_namespace_variables, merge_valuefile_with_bcs_variables
+from backend.bcs_k8s.helm.bcs_variable import get_bcs_variables, merge_valuefile_with_bcs_variables
 
 
 logger = logging.getLogger(__name__)
@@ -344,10 +344,10 @@ class ChartRelease(BaseTSModel):
 
     objects = ChartReleaseManager()
 
-    def generate_valuesyaml(self, project_id, namespace_id):
+    def generate_valuesyaml(self, project_id, namespace_id, cluster_id):
         """ valuefile + bcs namespace variables """
         sys_variables = self.app.sys_variables
-        bcs_variables = get_namespace_variables(project_id, namespace_id)
+        bcs_variables = get_bcs_variables(project_id, cluster_id, namespace_id)
         return merge_valuefile_with_bcs_variables(self.valuefile, bcs_variables, sys_variables)
 
     def refresh_structure(self, namespace):
@@ -399,7 +399,7 @@ class ChartRelease(BaseTSModel):
             name=self.app.name,
             namespace=namespace,
             parameters=self.parameters,
-            valuefile=self.generate_valuesyaml(self.app.project_id, self.app.namespace_id)
+            valuefile=self.generate_valuesyaml(self.app.project_id, self.app.namespace_id, self.app.cluster_id)
         )
 
         return content, notes

@@ -15,9 +15,10 @@ import logging
 import json
 
 from backend.apps.datalog.utils import get_data_id_by_project_id
-from backend.apps.variable.models import NameSpaceVariable
+from backend.apps.variable.models import NameSpaceVariable, Variable, ClusterVariable
 from backend.bcs_k8s.app.utils import yaml_dump, yaml_load
 from backend.components import paas_cc
+from backend.apps.variable.constants import VariableScope
 
 logger = logging.getLogger(__name__)
 
@@ -103,20 +104,29 @@ def get_namespace_variables(project_id, namespace_id):
 
 
 def get_cluster_variables(project_id, cluster_id):
-    pass
+    """查询集群下的变量
+    """
+    cluster_vars = ClusterVariable.get_cluster_vars(project_id, cluster_id)
+    return {info["key"]: info["value"] for info in cluster_vars}
 
 
 def get_global_variables(project_id):
-    pass
+    vars = Variable.objects.filter(project_id=project_id, scope=VariableScope.GLOBAL.value)
+    return {info.key: info.default_value for info in vars}
 
 
 def get_bcs_variables(project_id, cluster_id, namespace_id):
     """获取变量值
     - 全局变量
-    - 集群变量，包含默认值或者设置的集群的值
-    - 命名空间变量，包含默认值或者设置的命名空间的值
+    - 集群变量
+    - 命名空间变量
     """
-    pass
+    bcs_vars = get_global_variables(project_id)
+    cluster_vars = get_cluster_variables(project_id, cluster_id)
+    ns_vars = get_namespace_variables(project_id, namespace_id)
+
+    bcs_vars.update(cluster_vars, **ns_vars)
+    return bcs_vars
 
 
 def merge_valuefile_with_bcs_variables(valuefile, bcs_variables, sys_variables):
@@ -135,7 +145,6 @@ def get_valuefile_with_bcs_variable_injected(access_token, project_id, namespace
         access_token=access_token,
         project_id=project_id,
         namespace_id=namespace_id)
-    bcs_variables = get_namespace_variables(project_id, namespace_id)
-
+    bcs_variables = get_bcs_variables(project_id, cluster_id, namespace_id)
     valuefile = merge_valuefile_with_bcs_variables(valuefile, bcs_variables, sys_variables)
     return valuefile
