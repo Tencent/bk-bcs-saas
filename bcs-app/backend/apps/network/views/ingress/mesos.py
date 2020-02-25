@@ -73,7 +73,7 @@ class IngressListViewSet(BaseIngress):
                 data = network_utils.get_cluster_ingresses(request.user.token.access_token, project_id, cluster_id)
             except Exception as err:
                 logger.error(_("获取集群ingress信息异常，{}").format(err))
-                data = []
+                continue
             for info in data:
                 create_time = getitems(info, ['metadata', 'creationTimestamp'])
                 if create_time:
