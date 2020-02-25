@@ -1,16 +1,23 @@
 <template>
     <div class="biz-data-searcher">
         <template v-if="localScopeList.length">
-            <bk-dropdown-menu ref="dropdown" trigger="click" :align="'left'">
-                <button class="bk-button trigger-btn" slot="dropdown-trigger" style="width: 200px;">
-                    <span class="btn-text">{{curScope.name}}</span><i class="bk-icon icon-angle-down"></i>
+            <template v-if="scopeDisabled">
+                <button class="bk-button trigger-btn disabled" style="max-width: 200px;">
+                    <span class="btn-text tc">{{curScope.name}}</span>
                 </button>
-                <ul class="bk-dropdown-list" slot="dropdown-content">
-                    <li class="dropdown-item">
-                        <a href="javascript:;" v-for="scopeItem of localScopeList" :title="scopeItem.name" :key="scopeItem.id" @click="handleSechScope(scopeItem)">{{scopeItem.name}}</a>
-                    </li>
-                </ul>
-            </bk-dropdown-menu>
+            </template>
+            <template v-else>
+                <bk-dropdown-menu ref="dropdown" trigger="click" :align="'left'">
+                    <button class="bk-button trigger-btn" slot="dropdown-trigger" style="width: 200px;">
+                        <span class="btn-text">{{curScope.name}}</span><i class="bk-icon icon-angle-down"></i>
+                    </button>
+                    <ul class="bk-dropdown-list" slot="dropdown-content">
+                        <li class="dropdown-item">
+                            <a href="javascript:;" v-for="scopeItem of localScopeList" :title="scopeItem.name" :key="scopeItem.id" @click="handleSechScope(scopeItem)">{{scopeItem.name}}</a>
+                        </li>
+                    </ul>
+                </bk-dropdown-menu>
+            </template>
         </template>
         <div class="biz-search-input" style="width: 300px;">
             <input
@@ -65,6 +72,10 @@
                 default () {
                     return []
                 }
+            },
+            scopeDisabled: {
+                type: Boolean,
+                default: false
             }
         },
         data () {
@@ -169,6 +180,11 @@
         }
     }
     .trigger-btn {
+        &.disabled {
+            margin-right: -10px;
+            cursor: default;
+            background: #fafafa;
+        }
     }
     .btn-text {
         width: 140px;
