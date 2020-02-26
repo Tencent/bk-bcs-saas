@@ -86,16 +86,16 @@ export default {
         },
 
         /**
-         * 获取namespace 列表
+         * 获取当前集群下的namespace 列表
          *
          * @param {Object} context store 上下文对象
-         * @param {Object} projectId 项目ID
+         * @param {Object} projectId, clusterId
          * @param {Object} config 请求的配置
          *
          * @return {Promise} promise 对象
          */
-        getNameSpaceList (context, projectId, config = {}) {
-            return http.get(`${DEVOPS_BCS_API_URL}/api/configuration/${projectId}/namespace/`, {}, config).then(res => {
+        getNameSpaceListByCluster (context, { projectId, clusterId }, config = {}) {
+            return http.get(`${DEVOPS_BCS_API_URL}/api/configuration/${projectId}/namespace/?cluster_id=${clusterId}`, {}, config).then(res => {
                 context.commit('updateNameSpaceList', res.data)
                 return res
             })
