@@ -38,7 +38,7 @@ def get_application_staff(username, bk_biz_id, fields=None):
 def get_host_by_operator(bk_biz_id, username, bk_supplier_account=None):
     """获取业务下主备负责人为username的机器
     """
-    resp = cmdb.search_host(bk_biz_id, bk_supplier_account=bk_supplier_account)
+    resp = cmdb.search_host(username, bk_biz_id, bk_supplier_account=bk_supplier_account)
     if not resp.get('result'):
         return resp
     data = resp.get('data') or []
