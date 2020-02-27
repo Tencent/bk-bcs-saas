@@ -27,6 +27,7 @@ logger = logging.getLogger(__name__)
 
 
 def delete(access_token, project_id, cluster_id, ns_name):
+    # NOTE: mesos不需要创建和删除namespace接口
     pass
 
 
