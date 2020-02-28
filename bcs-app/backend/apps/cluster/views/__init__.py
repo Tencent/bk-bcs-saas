@@ -18,6 +18,8 @@ from .cluster import (  # noqa
     ClusterInfo, ClusterMasterInfo, ClusterVersionViewSet
 )
 
+from .namespace import NamespaceViewSet
+
 from .node import (  # noqa
     NodeCreateListViewSet,
     NodeGetUpdateDeleteViewSet, NodeInfo,

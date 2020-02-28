@@ -11,19 +11,17 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-import arrow
 import logging
 
 from django.conf import settings
-from rest_framework import viewsets, response, serializers
+from rest_framework import viewsets, response
 from rest_framework.renderers import BrowsableAPIRenderer
 from django.utils.translation import ugettext_lazy as _
 
-from backend.components import paas_cc, cc
+from backend.components import paas_cc
 from backend.utils.errcodes import ErrorCode
 from backend.activity_log import client
 from backend.apps.cluster.models import CommonStatus
-from backend.apps import constants
 from backend.utils.error_codes import error_codes
 from backend.accounts.bcs_perm import Cluster
 from backend.apps.cluster.models import ClusterInstallLog
@@ -119,8 +117,11 @@ class ClusterCreateListViewSet(viewsets.ViewSet):
         """get project cluster list
         """
         cluster_info = self.get_cluster_list(request, project_id)
-        cluster_node_map = self.cluster_has_node(request, project_id)
         cluster_data = cluster_info.get('results') or []
+        if request.query_params.get('simple') == 'true':
+            return response.Response({'clusters': cluster_data})
+
+        cluster_node_map = self.cluster_has_node(request, project_id)
         # add allow delete perm
         for info in cluster_data:
             info['environment'] = cluster_env_transfer(info['environment'])
@@ -237,10 +238,10 @@ class ClusterCreateGetUpdateViewSet(ClusterBase, viewsets.ViewSet):
         data = self.update_data(data, project_id, cluster_id, cluster_perm)
         # update cluster info
         with client.ContextActivityLogClient(
-            project_id=project_id,
-            user=request.user.username,
-            resource_type='cluster',
-            resource_id=cluster_id,
+                project_id=project_id,
+                user=request.user.username,
+                resource_type='cluster',
+                resource_id=cluster_id,
         ).log_modify():
             cluster_info = self.update_cluster(
                 request, project_id, cluster_id, data
