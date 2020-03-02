@@ -16,6 +16,9 @@ import copy
 from dataclasses import dataclass
 import re
 
+from rest_framework.exceptions import ValidationError
+from django.utils.translation import ugettext_lazy as _
+
 from . import dpath
 from backend.utils.basic import getitems
 
@@ -187,7 +190,11 @@ class InjectManager:
     def do_config_inject(self, config, resource):
         for path in config["paths"]:
             for matcher_cfg in config["matchers"]:
-                data = self.filter_env(path, resource, config['data'])
+                try:
+                    data = self.filter_env(path, resource, config['data'])
+                except Exception as err:
+                    logger.error("处理环境变量异常, %s", err)
+                    raise ValidationError(_("请检查配置文件内容是否正确"))
                 matcher = self.make_matcher(matcher_cfg)
                 injector = BaseInjector(
                     matcher=matcher,

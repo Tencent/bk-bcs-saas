@@ -27,6 +27,8 @@ class BaseNamespaceSLZ(serializers.Serializer):
     # k8s同样限制长度为[2, 30]，只是为了前端显示使用
     name = serializers.RegexField(
         r'[a-z0-9]([-a-z0-9]*[a-z0-9])?', min_length=2, max_length=63)
+    # 支持编辑环境变量
+    ns_vars = serializers.JSONField(required=False)
 
     def validate_cluster_id(self, cluster_id):
         access_token = self.context['request'].user.token.access_token
