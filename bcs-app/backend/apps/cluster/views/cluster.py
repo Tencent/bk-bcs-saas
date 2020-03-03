@@ -118,9 +118,6 @@ class ClusterCreateListViewSet(viewsets.ViewSet):
         """
         cluster_info = self.get_cluster_list(request, project_id)
         cluster_data = cluster_info.get('results') or []
-        if request.query_params.get('simple') == 'true':
-            return response.Response({'clusters': cluster_data})
-
         cluster_node_map = self.cluster_has_node(request, project_id)
         # add allow delete perm
         for info in cluster_data:
@@ -149,6 +146,11 @@ class ClusterCreateListViewSet(viewsets.ViewSet):
                 'create': can_create_test or can_create_prod
             }
         })
+
+    def list_clusters(self, request, project_id):
+        cluster_info = self.get_cluster_list(request, project_id)
+        cluster_data = cluster_info.get('results') or []
+        return response.Response({'clusters': cluster_data})
 
     def create(self, request, project_id):
         """create cluster

@@ -18,6 +18,8 @@ urlpatterns = [
     url(r'^api/projects/(?P<project_id>[\w\-]+)/clusters/?$',
         views.ClusterCreateListViewSet.as_view({'get': 'list', 'post': 'create'}),
         name='api.projects.clusters.create'),
+    url(r'^api/projects/(?P<project_id>[\w\-]+)/clusters/simple/$',
+        views.ClusterCreateListViewSet.as_view({'get': 'list_clusters'})),
     url(
         r'^api/projects/(?P<project_id>[\w\-]+)/cluster/(?P<cluster_id>[\w\-]+)/?$',
         views.ClusterCreateGetUpdateViewSet.as_view({
