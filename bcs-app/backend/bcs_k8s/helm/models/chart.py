@@ -183,6 +183,11 @@ class ChartVersion(BaseChartVersion):
     def gen_key(name, version, digest):
         return "{name}-{version}-{digest}".format(name=name, version=version, digest=digest)
 
+    def _update_chart(self, old_digest, current_digest, is_same_content):
+        self.save()
+        changed = (old_digest != current_digest) or (not is_same_content)
+        return changed
+
     def update_from_import_version(self, chart, version, force=False):
         """
         - read from index.yaml
@@ -221,21 +226,20 @@ class ChartVersion(BaseChartVersion):
             self.digest = version.get("digest")
             # donwload the tar.gz and update files and questions
             url = self.urls[0] if self.urls else None
-            if url:
-                ok, files, questions = download_template_data(chart.name, url, auths=self.chart.repository.plain_auths)
-                if ok:
-                    is_same_files = self.files == files
-                    is_same_questions = self.questions == questions
-                    if not is_same_files:
-                        self.files = files
-                    if not is_same_questions:
-                        self.questions = questions
-                    is_same_content = is_same_files and is_same_questions
+            if not url:
+                return self._update_chart(old_digest, current_digest, is_same_content)
+            ok, files, questions = download_template_data(chart.name, url, auths=self.chart.repository.plain_auths)
+            if not ok:
+                return self._update_chart(old_digest, current_digest, is_same_content)
+            is_same_files = self.files == files
+            is_same_questions = self.questions == questions
+            if not is_same_files:
+                self.files = files
+            if not is_same_questions:
+                self.questions = questions
+            is_same_content = is_same_files and is_same_questions
 
-        self.save()
-
-        changed = (old_digest != current_digest) or (not is_same_content)
-        return changed
+        return self._update_chart(old_digest, current_digest, is_same_content)
 
 
 class ChartVersionSnapshot(BaseChartVersion):

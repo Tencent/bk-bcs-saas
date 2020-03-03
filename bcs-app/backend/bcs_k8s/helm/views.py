@@ -28,7 +28,7 @@ from .serializers import (
 from backend.bcs_k8s.authtoken.authentication import TokenAuthentication
 from .providers.repo_provider import add_repo, add_plain_repo
 from .tasks import sync_helm_repo
-from backend.apps.whitelist_bk import enabled_force_sync_repo
+from backend.apps.whitelist_bk import enabled_force_sync_chart_repo
 
 
 logger = logging.getLogger(__name__)
@@ -213,14 +213,15 @@ class RepositorySyncByProjectView(FilterByProjectMixin, viewsets.ViewSet):
         id_name_list = list(Repository.objects.filter(project_id=project_id).values_list("id", "name"))
         # 白名单控制强制同步项目仓库，不强制同步公共仓库
         force_sync_repo = False
-        if enabled_force_sync_repo(project_id):
+        if enabled_force_sync_chart_repo(project_id):
             force_sync_repo = True
 
         for repo_id, repo_name in id_name_list:
             # 如果是公共仓库，不允许强制同步
             if repo_name == 'public-repo':
-                force_sync_repo = False
-            sync_helm_repo(repo_id, force_sync_repo)
+                sync_helm_repo(repo_id, False)
+            else:
+                sync_helm_repo(repo_id, force_sync_repo)
 
         data = {
             "code": 0,

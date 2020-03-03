@@ -24,7 +24,7 @@ def enabled_sync_namespace(project_id: str) -> bool:
     return True
 
 
-def enabled_force_sync_repo(project_id: str) -> bool:
+def enabled_force_sync_chart_repo(project_id: str) -> bool:
     """是否允许强制同步仓库数据
     """
     return False
