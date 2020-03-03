@@ -215,6 +215,8 @@ class ChartVersion(BaseChartVersion):
 
         old_digest = self.digest
         current_digest = version.get("digest")
+        # 标识内容是否变动
+        is_same_content = True
         if force or old_digest != current_digest:
             self.digest = version.get("digest")
             # donwload the tar.gz and update files and questions
@@ -222,12 +224,17 @@ class ChartVersion(BaseChartVersion):
             if url:
                 ok, files, questions = download_template_data(chart.name, url, auths=self.chart.repository.plain_auths)
                 if ok:
-                    self.files = files
-                    self.questions = questions
+                    is_same_files = self.files == files
+                    is_same_questions = self.questions == questions
+                    if not is_same_files:
+                        self.files = files
+                    if not is_same_questions:
+                        self.questions = questions
+                    is_same_content = is_same_files and is_same_questions
 
         self.save()
 
-        changed = old_digest != current_digest
+        changed = (old_digest != current_digest) or (not is_same_content)
         return changed
 
 
