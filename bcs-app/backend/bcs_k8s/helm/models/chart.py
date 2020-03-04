@@ -183,11 +183,6 @@ class ChartVersion(BaseChartVersion):
     def gen_key(name, version, digest):
         return "{name}-{version}-{digest}".format(name=name, version=version, digest=digest)
 
-    def _update_chart(self, old_digest, current_digest, is_same_content):
-        self.save()
-        changed = (old_digest != current_digest) or (not is_same_content)
-        return changed
-
     def update_from_import_version(self, chart, version, force=False):
         """
         - read from index.yaml
@@ -220,26 +215,33 @@ class ChartVersion(BaseChartVersion):
 
         old_digest = self.digest
         current_digest = version.get("digest")
-        # 标识内容是否变动
-        is_same_content = True
-        if force or old_digest != current_digest:
+
+        # 标识是否有变动
+        # 当digest变动时，肯定chart有变动
+        # 当repo server允许版本覆盖时，内容有变动但是digest相同，这时也认为有变动
+        chart_version_changed = old_digest != current_digest
+        if force or chart_version_changed:
             self.digest = version.get("digest")
             # donwload the tar.gz and update files and questions
             url = self.urls[0] if self.urls else None
             if not url:
-                return self._update_chart(old_digest, current_digest, is_same_content)
+                self.save()
+                return chart_version_changed
+
             ok, files, questions = download_template_data(chart.name, url, auths=self.chart.repository.plain_auths)
             if not ok:
-                return self._update_chart(old_digest, current_digest, is_same_content)
-            is_same_files = self.files == files
-            is_same_questions = self.questions == questions
-            if not is_same_files:
-                self.files = files
-            if not is_same_questions:
-                self.questions = questions
-            is_same_content = is_same_files and is_same_questions
+                self.save()
+                return chart_version_changed
 
-        return self._update_chart(old_digest, current_digest, is_same_content)
+            if self.files != files:
+                self.files = files
+                chart_version_changed = True
+            if self.questions != questions:
+                self.questions = questions
+                chart_version_changed = True
+
+        self.save()
+        return chart_version_changed
 
 
 class ChartVersionSnapshot(BaseChartVersion):
