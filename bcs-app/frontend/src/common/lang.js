@@ -609,7 +609,7 @@ export default {
     'Pod数量上限/节点': ['Number of Pods per node'],
     '重新添加': ['ReInstall'],
     '所选节点均处于初始化失败状态时才允许此操作': ['Allow this operation only if the selected nodes are in an initialization failure state'],
-    
+
     '规则"{name}"的Service名称：请选择Service名称': ['Service name for rule "{name}": Please select a service name'],
     '规则"{name}"的协议：请选择协议': ['Protocol for rule "{name}": Please select a protocol'],
     '规则"{name}"的端口：请选择端口': ['Port for rule "{name}": Please select a port'],
@@ -638,6 +638,11 @@ export default {
     '客户端证书ID': ['CertCaId'],
     '客户端证书的 ID，如果 mode=mutual，监听器如果不填写此项则必须上传客户端证书，包括 certClientCaName，certCilentCaContent': ['CertCaId. If mode = mutual, the listener must upload the client certificate if it is not filled in, including certClientCaName, certCilentCaContent'],
     '请通过模板集创建Ingress': ['Please create an Ingress from a TemplateSet'],
+
+    '访问权限': ['Access Mode'],
+    '回收策略': ['Reclaim Policy'],
+    '云盘类型': ['Cloud Type'],
+    '计费模式': ['Billing'],
     // 变量的使用 $t('test', { vari1: 1, vari2: 2 })
     'test': ['{vari1} ---english--- {vari2}']
 }
