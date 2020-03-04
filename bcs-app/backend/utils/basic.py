@@ -41,7 +41,7 @@ class ChoicesEnum(Enum):
 
     @classmethod
     def choice_values(cls):
-        return [item[1] for item in cls.get_choices()]
+        return [item[0] for item in cls.get_choices()]
 
 
 def get_client_ip(request):
