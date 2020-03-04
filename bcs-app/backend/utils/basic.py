@@ -41,6 +41,10 @@ class ChoicesEnum(Enum):
 
     @classmethod
     def choice_values(cls):
+        return [item[0] for item in cls.get_choices()]
+
+    @classmethod
+    def choice_labels(cls):
         return [item[1] for item in cls.get_choices()]
 
 
