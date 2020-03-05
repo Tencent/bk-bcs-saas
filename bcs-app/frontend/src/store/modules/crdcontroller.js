@@ -55,7 +55,7 @@ export default {
         },
 
         /**
-         * 查询crd列表（老）
+         * 查询crd列表 (老)
          *
          * @param {Object} context store 上下文对象
          * @param {Object} projectId, clusterId, crdKind
