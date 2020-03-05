@@ -10,6 +10,7 @@
  */
 
 import http from '@open/api'
+import { json2Query } from '@open/common/util'
 
 export default {
     namespaced: true,
@@ -62,9 +63,9 @@ export default {
          *
          * @return {Promise} promise 对象
          */
-        getCrdInstanceList (context, { projectId, clusterId, crdKind }, config = {}) {
+        getCrdInstanceList (context, { projectId, clusterId, params = {} }, config = {}) {
             context.commit('updateCrdInstanceList', [])
-            const url = `${DEVOPS_BCS_API_URL}/api/projects/${projectId}/bcs_crd/clusters/${clusterId}/crd_instances/?crd_kind=${crdKind}`
+            const url = `${DEVOPS_BCS_API_URL}/api/projects/${projectId}/bcs_crd/clusters/${clusterId}/crd_instances/?${json2Query(params)}`
             return http.get(url, {}, config).then(res => {
                 context.commit('updateCrdInstanceList', res.data)
                 return res
