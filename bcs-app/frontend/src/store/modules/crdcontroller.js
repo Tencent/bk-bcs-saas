@@ -55,7 +55,7 @@ export default {
         },
 
         /**
-         * 查询crd列表
+         * 查询crd列表 (老)
          *
          * @param {Object} context store 上下文对象
          * @param {Object} projectId, clusterId, crdKind
@@ -66,6 +66,24 @@ export default {
         getCrdInstanceList (context, { projectId, clusterId, params = {} }, config = {}) {
             context.commit('updateCrdInstanceList', [])
             const url = `${DEVOPS_BCS_API_URL}/api/projects/${projectId}/bcs_crd/clusters/${clusterId}/crd_instances/?${json2Query(params)}`
+            return http.get(url, {}, config).then(res => {
+                context.commit('updateCrdInstanceList', res.data)
+                return res
+            })
+        },
+
+        /**
+         * 查询crd列表 (新)
+         *
+         * @param {Object} context store 上下文对象
+         * @param {Object} projectId, clusterId, crdKind
+         * @param {Object} config 请求的配置
+         *
+         * @return {Promise} promise 对象
+         */
+        getBcsCrdsList (context, { projectId, params = {} }, config = {}) {
+            context.commit('updateCrdInstanceList', [])
+            const url = `${DEVOPS_BCS_API_URL}/api/projects/${projectId}/bcs_crd/crds/?${json2Query(params)}`
             return http.get(url, {}, config).then(res => {
                 context.commit('updateCrdInstanceList', res.data)
                 return res
