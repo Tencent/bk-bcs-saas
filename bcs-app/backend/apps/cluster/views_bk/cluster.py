@@ -411,9 +411,9 @@ class DeleteCluster(BaseCluster):
             self.update_cluster_status(status=CommonStatus.RemoveFailed)
             raise error_codes.APIError(cluster_ns_info.get('message'))
         data = cluster_ns_info.get('data', {}).get('results') or []
-        # 删除命名空间权限
-        perm_client = Namespace(self.request, self.project_id, None)
-        for __ in data:
+        # 删除命名空间权限记录
+        for info in data:
+            perm_client = Namespace(self.request, self.project_id, info["id"])
             perm_client.delete()
         return [int(info['id']) for info in data]
 
