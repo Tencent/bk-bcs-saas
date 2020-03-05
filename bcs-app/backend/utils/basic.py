@@ -17,7 +17,9 @@ from functools import reduce
 import arrow
 
 from django.conf import settings
+from django.utils import timezone
 from enum import Enum
+
 
 import logging
 
@@ -118,3 +120,9 @@ def get_bcs_component_version(cluster_version, bcs_component_version_info, defau
                 return component_version
 
     return default_version
+
+
+def normalize_time(time):
+    # create_time format: '2019-12-16T09:10:59Z'
+    d_time = arrow.get(time).datetime
+    return timezone.localtime(d_time).strftime(settings.REST_FRAMEWORK['DATETIME_FORMAT'])
