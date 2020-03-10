@@ -309,7 +309,11 @@ export default {
                 delete params.labels
             }
 
-            // return http.post(`/app/cluster?invoke=getNodeListByLabelAndIp&${json2Query(params)}&${projectId}&${clusterId}`, params, config)
+            // return http.post(
+            //     `/app/cluster?invoke=getNodeListByLabelAndIp&${json2Query(params)}&${projectId}&${clusterId}`,
+            //     params,
+            //     config
+            // )
             return http.post(
                 `${DEVOPS_BCS_API_URL}/api/projects/${projectId}/clusters/${clusterId}/nodes/`,
                 params,

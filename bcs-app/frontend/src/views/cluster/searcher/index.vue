@@ -59,6 +59,17 @@
             </ul>
         </div>
 
+        <div class="node-searcher-dropdown-menu show-enter-tip" v-show="showEnterTip">
+            <div class="node-searcher-dropdown-content" :class="showEnterTip ? 'is-show' : ''" :style="{ left: `${searcherDropdownLeft}px` }">
+                <ul class="node-searcher-dropdown-list">
+                    <li>
+                        <i class="bk-icon icon-search"></i>
+                        <div>Press Enter to search</div>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
         <div class="node-searcher-dropdown-menu label-list" v-show="showLabel">
             <div class="node-searcher-dropdown-content" :class="showLabel ? 'is-show' : ''" :style="{ left: `${searcherDropdownLeft}px` }">
                 <ul class="node-searcher-dropdown-list">
@@ -180,7 +191,8 @@
                 inputPlaceholder: '',
                 selectedValues: {},
                 curTmpLabelsValueContainerWidth: 0,
-                maxLeftOffset: 514
+                maxLeftOffset: 514,
+                showEnterTip: false
             }
         },
         watch: {
@@ -254,6 +266,7 @@
                         this.$refs.searchInput.focus()
                         this.showLabel = false
                         this.isListeningInputKeyup = true
+                        this.showEnterTip = true
                     })
                 } else {
                     curSearchParams.key = ''
@@ -485,6 +498,7 @@
                     this.isListeningInputKeyup = false
 
                     this.adjustOffset()
+                    this.showEnterTip = false
                     this.$emit('search')
                 }
             },
@@ -603,6 +617,8 @@
                     this.inputPlaceholder = ''
                     this.curTmpLabelsValueContainerWidth = 0
                     this.selectedValues = Object.assign({}, {})
+
+                    this.showEnterTip = false
                 }
             }
         }
