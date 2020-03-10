@@ -34,15 +34,10 @@ def get_data_id_by_project_id(project_id):
     }
 
 
-def get_standard_data_name(project_id):
+def get_std_log_index(project_id):
     try:
-        project = ProjectDataInfo.objects.get(project_id=project_id)
-    except Exception:
-        return None
-    return project.standard_data_name
-
-
-def get_project_standard_data_info(project_id):
-    """获取项目标准日志输出注册到data的信息
-    """
-    return ProjectDataInfo.objects.filter(project_id=project_id).last()
+        data_info = ProjectDataInfo.objects.get(project_id=project_id)
+    except ProjectDataInfo.DoesNotExist:
+        return ''
+    else:
+        return f'{data_info.cc_biz_id}_etl_{data_info.standard_data_name}_*'
