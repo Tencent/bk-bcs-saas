@@ -70,7 +70,7 @@
                             </template>
                         </span>
                         <span class="refresh-wrapper">
-                            <bk-tooltip class="refresh" :content="$t('刷新')" :delay="500" placement="top">
+                            <bk-tooltip class="refresh" :content="$t('重置')" :transfer="true" :placement="'top-end'">
                                 <button class="bk-button bk-default is-outline is-icon" @click="refresh">
                                     <i class="bk-icon icon-refresh"></i>
                                 </button>
@@ -537,6 +537,7 @@
 </template>
 
 <script>
+    import axios from 'axios'
     import Clipboard from 'clipboard'
     import { catchErrorHandler } from '@open/common/util'
     import LoadingCell from '../cluster/loading-cell'
@@ -1475,12 +1476,41 @@
              * 节点导出
              */
             async exportNode () {
-                const link = document.createElement('a')
-                link.style.display = 'none'
-                link.href = `${DEVOPS_BCS_API_URL}/api/projects/${this.projectId}/nodes/export/?cluster_id=`
-                    + `${this.curSelectedClusterId === 'all' ? '' : this.curSelectedClusterId}`
-                document.body.appendChild(link)
-                link.click()
+                // const link = document.createElement('a')
+                // link.style.display = 'none'
+                // link.href = `${DEVOPS_BCS_API_URL}/api/projects/${this.projectId}/nodes/export/?cluster_id=`
+                //     + `${this.curSelectedClusterId === 'all' ? '' : this.curSelectedClusterId}`
+                // document.body.appendChild(link)
+                // link.click()
+
+                const url = `${DEVOPS_BCS_API_URL}/api/projects/${this.projectId}/nodes/export/`
+
+                const response = await axios({
+                    url: url,
+                    method: 'post',
+                    responseType: 'blob', // 这句话很重要
+                    data: {
+                        cluster_id: this.curSelectedClusterId === 'all' ? '' : this.curSelectedClusterId
+                    }
+                })
+
+                if (response.status !== 200) {
+                    console.log('系统异常，请稍候再试')
+                    return
+                }
+
+                const blob = new Blob([response.data], { type: response.headers['content-type'] })
+                const a = window.document.createElement('a')
+                const downUrl = window.URL.createObjectURL(blob)
+                let filename = 'download.xls'
+                const contentDisposition = response.headers['content-disposition']
+                if (contentDisposition && contentDisposition.indexOf('filename=') !== -1) {
+                    filename = contentDisposition.split('filename=')[1]
+                    a.href = downUrl
+                    a.download = filename || 'download.xls'
+                    a.click()
+                    window.URL.revokeObjectURL(downUrl)
+                }
             }
         }
     }

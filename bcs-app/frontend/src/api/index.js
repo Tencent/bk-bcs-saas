@@ -305,6 +305,6 @@ export function injectCSRFTokenToHeaders () {
     if (CSRFToken !== undefined) {
         axiosInstance.defaults.headers.common['X-CSRFToken'] = CSRFToken
     } else {
-        console.warn('Can not find backend_csrftoken in document.cookie')
+        // console.warn('Can not find backend_csrftoken in document.cookie')
     }
 }

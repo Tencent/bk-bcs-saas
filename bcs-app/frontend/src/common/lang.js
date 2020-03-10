@@ -246,7 +246,7 @@ export default {
     '确定强制删除节点？': ['Confirm want to delete the node?'],
     '确定移除故障节点：{innerIp}？': ['Confirm to remove the failed node: {innerIp}?'],
     '确定移除故障节点？': ['Confirm to remove the failed node'],
-    '确定要对{len}个节点进行{str}操作？': ['Confirm to {str} on {len} nodes?'],
+    '重置': ['Reset'],
     '请输入集群名称': ['Please enter the cluster name'],
     '必填项，不超过64个字符': ['Required, no more than 64 characters'],
     '集群描述：': ['Desc: '],
