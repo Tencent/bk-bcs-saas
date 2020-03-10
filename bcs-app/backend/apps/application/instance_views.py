@@ -182,7 +182,7 @@ class QueryAllTaskgroups(BaseTaskgroupCls):
             request, project_id, instance_id, project_kind)
         # 获取taskagroup或者group
         if project_kind == 2:
-            field = "data.metadata.name,data.status,data.hostIP,data.podIP,data.startTime,data.message", # noqa
+            field = "data.metadata.name,data.status,data.hostIP,data.podIP,data.startTime,data.message",  # noqa
         else:
             field = [
                 "resourceName,createTime",
@@ -265,7 +265,7 @@ class QueryContainersByTaskgroup(BaseTaskgroupCls):
             request, project_id, instance_id, project_kind)
         # 获取taskagroup或者pod
         if project_kind == 2:
-            field = "data.containerStatuses", # noqa
+            field = "data.containerStatuses",  # noqa
         else:
             field = [
                 "data.status.containerStatuses",
@@ -299,7 +299,7 @@ class QueryTaskgroupInfo(BaseTaskgroupCls):
         flag, resp = self.get_application_deploy_info(
             request, project_id, cluster_id, instance_name,
             category=DEPLOYMENT_CATEGORY, project_kind=kind, namespace=ns,
-            field="data.application,data.application_ext,data.metadata.name,data.strategy" # noqa
+            field="data.application,data.application_ext,data.metadata.name,data.strategy"  # noqa
         )
         if not flag:
             raise error_codes.APIError.f(resp.data.get("message"))
@@ -414,7 +414,7 @@ class QueryTaskgroupInfo(BaseTaskgroupCls):
             category = curr_inst.category
         # 获取taskagroup或者group
         if project_kind == 2:
-            field = "data", # noqa
+            field = "data",  # noqa
         else:
             field = [
                 "updateTime",
@@ -496,7 +496,7 @@ class QueryApplicationContainers(BaseTaskgroupCls):
             request, project_id, instance_id, project_kind)
         # 获取taskagroup或者gro
         if project_kind == 2:
-            field = "data.containerStatuses.containerID,data.containerStatuses.name", # noqa
+            field = "data.containerStatuses.containerID,data.containerStatuses.name",  # noqa
         else:
             field = [
                 "data.status.containerStatuses.containerID",
@@ -1188,12 +1188,12 @@ class ContainerLogs(BaseAPI):
         """获取日志
         注意: 获取最新的100条日志
         """
-        standard_data_info = datalog_utils.get_project_standard_data_info(project_id)
+        std_log_index = datalog_utils.get_std_log_index(project_id)
         standard_log = []
-        if standard_data_info:
-            standard_index = f'{standard_data_info.cc_biz_id}_etl_{standard_data_info.standard_data_name}_*'
-            standard_log = data.get_container_logs(container_id=container_id, index=standard_index)
+        if std_log_index:
+            standard_log = data.get_container_logs(container_id=container_id, index=std_log_index)
             standard_log = self.clean_log(standard_log)
+
         # 没有数据则再查询一下默认的index，兼容使用默认dataid实例化的容器
         if not standard_log:
             standard_log = data.get_container_logs(container_id=container_id)
@@ -1215,6 +1215,7 @@ class ContainerLogs(BaseAPI):
 class InstanceConfigInfo(InstanceAPI):
     """获取应用实例配置文件信息
     """
+
     def get_online_app_conf(self, request, project_id, project_kind):
         cluster_id, namespace, name, category = self.get_instance_resource(request, project_id)
         # get the online yaml
@@ -1256,6 +1257,7 @@ class GetVersionList(BaseAPI):
     """
     关于滚动升级，应用名称和命名空间一致就允许升级
     """
+
     def get_tmpl_info(self, name, category):
         """通过名称获取模板信息
         """
@@ -1323,7 +1325,7 @@ class GetVersionList(BaseAPI):
 class GetMetricInfo(BaseAPI):
 
     def get_metric_info(self, metric_id_list):
-        metric_info = Metric.objects.filter(id__in=metric_id_list).\
+        metric_info = Metric.objects.filter(id__in=metric_id_list). \
             order_by("-created").values("name", "port", "uri", "frequency")
 
         return metric_info
@@ -1557,19 +1559,19 @@ class BatchInstances(BaseAPI):
             curr_info = info.pop("info")
             # 针对0/0的情况先查询一次
             if not self.get_category_info(
-                request, project_id, info["cluster_id"], kind, info["inst_name"],
-                info["namespace"], info["category"]
+                    request, project_id, info["cluster_id"], kind, info["inst_name"],
+                    info["namespace"], info["category"]
             ):
                 deleted_id_list.append(info["inst_id"])
                 continue
             with client.ContextActivityLogClient(
-                project_id=project_id,
-                user=request.user.username,
-                resource_type="instance",
-                resource=info.get("inst_name"),
-                resource_id=info.get("inst_id"),
-                extra=json.dumps(info),
-                description=_("应用删除操作")
+                    project_id=project_id,
+                    user=request.user.username,
+                    resource_type="instance",
+                    resource=info.get("inst_name"),
+                    resource_id=info.get("inst_id"),
+                    extra=json.dumps(info),
+                    description=_("应用删除操作")
             ).log_delete():
                 resp = self.delete_instance(
                     request, project_id, info["cluster_id"], info["namespace"],
