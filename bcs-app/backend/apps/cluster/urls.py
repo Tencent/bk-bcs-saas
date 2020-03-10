@@ -172,7 +172,7 @@ urlpatterns += [
     ),
     url(
         r'^api/projects/(?P<project_id>[\w\-]+)/nodes/export/$',
-        views.ExportNodes.as_view({'get': 'export'})
+        views.ExportNodes.as_view({'post': 'export'})
     )
 
 ]
