@@ -101,7 +101,7 @@ class ExportNodes(viewsets.ViewSet):
         results = data.get('results') or []
         node_data = []
         for node in results:
-            if node["status"] == NodeStatus.Removable:
+            if node["status"] == NodeStatus.Removed:
                 continue
             if node_id_list and node["id"] not in node_id_list:
                 continue
