@@ -118,6 +118,20 @@ export default {
         },
 
         /**
+         * 拉取service列表
+         * list_services
+         *
+         * @param {Object} context store 上下文对象
+         * @param {Object} params 请求参数
+         * @param {Object} config 请求的配置
+         *
+         * @return {Promise} promise 对象
+         */
+        listServices (context, { projectId, clusterId }, config = {}) {
+            return http.get(`${DEVOPS_BCS_API_URL}/api/projects/${projectId}/clusters/${clusterId}/metrics/services/`, {}, config)
+        },
+
+        /**
          * 获取当前项目下集群的ServiceMonitor
          * list_service_monitor
          *
@@ -129,6 +143,20 @@ export default {
          */
         listServiceMonitor (context, { projectId, clusterId }, config = {}) {
             return http.get(`${DEVOPS_BCS_API_URL}/api/projects/${projectId}/clusters/${clusterId}/metrics/servicemonitors/`, {}, config)
+        },
+
+        /**
+         * 拉取targets列表
+         * list_targets
+         *
+         * @param {Object} context store 上下文对象
+         * @param {Object} params 请求参数
+         * @param {Object} config 请求的配置
+         *
+         * @return {Promise} promise 对象
+         */
+        listTargets (context, { projectId, clusterId }, config = {}) {
+            return http.get(`${DEVOPS_BCS_API_URL}/api/projects/${projectId}/clusters/${clusterId}/metrics/targets/`, {}, config)
         },
 
         /**
@@ -151,6 +179,25 @@ export default {
         },
 
         /**
+         * 获取当前service_monitor
+         * get_service_monitor_targets
+         *
+         * @param {Object} context store 上下文对象
+         * @param {Object} params 请求参数
+         * @param {Object} config 请求的配置
+         *
+         * @return {Promise} promise 对象
+         */
+        getServiceMonitor (context, { projectId, clusterId, namespace, name }, config = {}) {
+            return http.get(
+                `${DEVOPS_BCS_API_URL}/api/projects/${projectId}/clusters/${clusterId}/`
+                    + `metrics/servicemonitors/${namespace}/${name}/`,
+                {},
+                config
+            )
+        },
+
+        /**
          * 创建service_monitor
          * create_service_monitor
          *
@@ -163,6 +210,7 @@ export default {
         createServiceMonitor (context, params, config = {}) {
             const projectId = params.projectId
             delete params.projectId
+            delete params.displayName
             return http.post(`${DEVOPS_BCS_API_URL}/api/projects/${projectId}/metrics/servicemonitors/`, params, config)
         },
 
@@ -206,6 +254,44 @@ export default {
                 `${DEVOPS_BCS_API_URL}/api/projects/${projectId}/clusters/${clusterId}/`
                     + `metrics/servicemonitors/${namespace}/${name}/`,
                 params,
+                config
+            )
+        },
+
+        /**
+         * 查看是否需要升级版本
+         * get_prometheus_update
+         *
+         * @param {Object} context store 上下文对象
+         * @param {Object} params 请求参数
+         * @param {Object} config 请求的配置
+         *
+         * @return {Promise} promise 对象
+         */
+        getPrometheusUpdate (context, { projectId, clusterId }, config = {}) {
+            return http.get(
+                `${DEVOPS_BCS_API_URL}/api/projects/${projectId}/clusters/${clusterId}/`
+                    + `metrics/prometheus/update/`,
+                {},
+                config
+            )
+        },
+
+        /**
+         * 开始升级版本
+         * get_prometheus_update
+         *
+         * @param {Object} context store 上下文对象
+         * @param {Object} params 请求参数
+         * @param {Object} config 请求的配置
+         *
+         * @return {Promise} promise 对象
+         */
+        startPrometheusUpdate (context, { projectId, clusterId }, config = {}) {
+            return http.put(
+                `${DEVOPS_BCS_API_URL}/api/projects/${projectId}/clusters/${clusterId}/`
+                    + `metrics/prometheus/update/`,
+                {},
                 config
             )
         }

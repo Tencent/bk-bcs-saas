@@ -643,6 +643,9 @@ export default {
     '回收策略': ['Reclaim Policy'],
     '云盘类型': ['Cloud Type'],
     '计费模式': ['Billing'],
+    '升级': ['Upgrade'],
+    '确定要升级新版本': ['Confirm to Upgrade'],
+    '升级大约需要 1~2 分钟，请勿重复提交；升级过程中 Prometheus 服务将会重启，数据无损失': ['Upgrade takes about 1 to 2 minutes and do not repeat submissions; Prometheus service will be restarted without losses'],
     // 变量的使用 $t('test', { vari1: 1, vari2: 2 })
     'test': ['{vari1} ---english--- {vari2}']
 }
