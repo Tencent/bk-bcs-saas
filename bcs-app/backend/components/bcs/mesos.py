@@ -637,3 +637,31 @@ class MesosClient(BCSClientBase):
         url = f'{self.scheduler_host}/mesos/customresources/{group}/{apiversion}/{plural}/'
         result = http_get(url, headers=self.headers)
         return self._handle_custom_resource_result(result)
+
+    def get_cluster_ippool(self):
+        """获取集群ip资源的总览
+        """
+        url = f"{self.storage_host}/query/mesos/dynamic/clusters/{self.cluster_id}/ippoolstatic"
+        resp = http_get(url, headers=self.headers)
+        if resp.get("code"):
+            logger.error("查询ippool失败，%s", resp.get("message"))
+            return {}
+        if not resp.get("data"):
+            logger.error("查询ippool失败，返回数据为空")
+            return {}
+        # 返回的格式为数组，但只有一个值，因此，返回第一个值
+        # 返回字段含义: activeip（当前已使用） +  availableip（剩余可用） + reservedip（当前保留）
+        return resp["data"][0]
+
+    def get_cluster_ippool_detail(self):
+        """获取集群ip资源详情
+        """
+        url = f"{self.storage_host}/query/mesos/dynamic/clusters/{self.cluster_id}/ippoolstaticdetail"
+        resp = http_get(url, headers=self.headers)
+        if resp.get("code"):
+            logger.error("查询ippool详情失败，%s", resp.get("message"))
+            return {}
+        if not resp.get("data"):
+            logger.error("查询ippool详情失败，返回数据为空")
+            return {}
+        return resp["data"][0]
