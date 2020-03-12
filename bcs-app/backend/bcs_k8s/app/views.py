@@ -111,7 +111,7 @@ class AppView(ActionSerializerMixin, AppViewBase):
             qs = qs.filter(cluster_id=cluster_id)
         if namespace:
             if not cluster_id:
-                raise ValidationError(_("命名空间作为过滤参数时，集群ID必须存在"))
+                raise ValidationError(_("命名空间作为过滤参数时，需要提供集群ID"))
             qs = qs.filter(namespace=namespace)
 
         data = list(qs.values(
@@ -257,9 +257,9 @@ class AppNamespaceView(AccessTokenMixin, ProjectMixin, viewsets.ReadOnlyModelVie
         queryset = self.get_queryset()
         if not queryset:
             return Response([])
-        query_cluster_id = request.query_params.get("cluster_id")
-        if query_cluster_id:
-            queryset = [info for info in queryset if info["cluster_id"] == query_cluster_id]
+        cluster_id = request.query_params.get("cluster_id")
+        if cluster_id:
+            queryset = [info for info in queryset if info["cluster_id"] == cluster_id]
 
         cluster_id_name_map = {item["cluster_id"]: item["cluster_name"] for item in queryset}
         # check which namespace has the chart_id initialized
