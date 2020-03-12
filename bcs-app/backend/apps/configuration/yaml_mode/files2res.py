@@ -88,13 +88,13 @@ def update_resources(template, show_version, template_files):
     updator = template.updator
     template_id = template.id
     show_version_name = show_version['name']
-    show_version_id = show_version['show_version_id']
+    old_show_version_id = show_version['old_show_version_id']
 
     try:
-        old_show_version = models.ShowVersion.objects.get(id=show_version_id, template_id=template_id)
+        old_show_version = models.ShowVersion.objects.get(id=old_show_version_id, template_id=template_id)
     except models.ShowVersion.DoesNotExist:
         raise ValidationError(
-            f'show version(id:{show_version_id}) does not exist or not belong to template(id:{template_id})')
+            f'show version(id:{old_show_version_id}) does not exist or not belong to template(id:{template_id})')
 
     ventity = models.VersionedEntity.objects.get(id=old_show_version.real_version_id)
     entity = update_entity(updator, template_id, ventity.get_entity(), template_files)

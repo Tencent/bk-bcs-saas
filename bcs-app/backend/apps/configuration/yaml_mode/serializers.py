@@ -98,7 +98,7 @@ class CreateTemplateSLZ(YamlTemplateSLZ):
 
 
 class UpdateShowVersionSLZ(ShowVersionNameSLZ):
-    show_version_id = serializers.IntegerField()
+    old_show_version_id = serializers.IntegerField()
 
 
 class UpdateTemplateSLZ(YamlTemplateSLZ):
