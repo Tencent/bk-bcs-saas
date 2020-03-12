@@ -54,6 +54,9 @@
                     'helmTplDetail',
                     'helmTplInstance',
                     'helmAppDetail'
+                ],
+                metricRouters: [
+                    'metricManage'
                 ]
             }
         },
@@ -316,6 +319,17 @@
                             needCheckPermission: true
                         },
                         query: this.$route.query || {}
+                    })
+                } else if (this.metricRouters.indexOf(routeName) > -1) {
+                    this.$router.push({
+                        name: 'metricManage',
+                        params: {
+                            projectId: projectId,
+                            projectCode: projectCode,
+                            needCheckPermission: true
+                        },
+                        // 这里去掉 url 参数
+                        query: {}
                     })
                 }
             }
