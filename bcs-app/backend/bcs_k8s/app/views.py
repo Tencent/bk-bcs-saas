@@ -21,6 +21,7 @@ from operator import itemgetter
 from itertools import groupby
 import tempfile
 from django.utils import timezone
+from rest_framework.exceptions import ValidationError
 
 import yaml
 from rest_framework import viewsets
@@ -102,6 +103,17 @@ class AppView(ActionSerializerMixin, AppViewBase):
         """
         project_cluster = self.get_project_cluster(request, project_id)
         qs = self.get_queryset()
+        # 获取过滤参数
+        params = request.query_params
+        cluster_id = params.get('cluster_id')
+        namespace = params.get("namespace")
+        if cluster_id:
+            qs = qs.filter(cluster_id=cluster_id)
+        if namespace:
+            if not cluster_id:
+                raise ValidationError(_("命名空间作为过滤参数时，需要提供集群ID"))
+            qs = qs.filter(namespace=namespace)
+
         data = list(qs.values(
             "name", "id", "cluster_id", "project_id", "namespace", "namespace_id", "version",
             "created", "creator", "chart__id", "transitioning_action", "transitioning_message",
@@ -245,8 +257,11 @@ class AppNamespaceView(AccessTokenMixin, ProjectMixin, viewsets.ReadOnlyModelVie
         queryset = self.get_queryset()
         if not queryset:
             return Response([])
-        cluster_id_name_map = {item["cluster_id"]: item["cluster_name"] for item in queryset}
+        cluster_id = request.query_params.get("cluster_id")
+        if cluster_id:
+            queryset = [info for info in queryset if info["cluster_id"] == cluster_id]
 
+        cluster_id_name_map = {item["cluster_id"]: item["cluster_name"] for item in queryset}
         # check which namespace has the chart_id initialized
         namespace_ids = []
         chart_id = request.query_params.get("chart_id")
