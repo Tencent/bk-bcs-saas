@@ -20,6 +20,7 @@ from rest_framework.exceptions import ValidationError
 from django.utils.translation import ugettext_lazy as _
 
 from . import dpath
+from .constants import RESOURCE_FILEDS, RESOURCE_KINDS_FOR_MONITOR_INJECTOR, POP_KEYS
 from backend.utils.basic import getitems
 
 logger = logging.getLogger(__name__)
@@ -126,6 +127,16 @@ class BaseInjector:
 
         return recursive_wrap(data)
 
+    def pop_fields(self, resource, data):
+        for field, val in data.items():
+            if field not in RESOURCE_FILEDS:
+                continue
+            if resource.get("kind") in RESOURCE_KINDS_FOR_MONITOR_INJECTOR:
+                continue
+            for key in POP_KEYS:
+                val.pop(key, "")
+        return data
+
     def get_inject_data(self, resource, context):
         """ replace all callable value with it's run result
         """
@@ -138,8 +149,11 @@ class BaseInjector:
                 return d(resource, context)
             else:
                 return d
+        # 针对monitor的label和annotations只允许特定类型注入，其它类型需要pop掉字段
+        data_copy = copy.deepcopy(self._data)
+        data = self.pop_fields(resource, data_copy)
 
-        return recursive_replace(self._data)
+        return recursive_replace(data)
 
 
 class InjectManager:
