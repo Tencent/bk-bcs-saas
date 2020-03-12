@@ -755,3 +755,9 @@ url("fonts/iconcool.eot?#iefix") format("embedded-opentype");
 .icon-crd1:before {
 	content: "\f21c";
 }
+.icon-hpa:before {
+	content: "\f28f";
+}
+.icon-log-collection:before {
+	content: "\f290";
+}
