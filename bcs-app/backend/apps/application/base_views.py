@@ -21,6 +21,7 @@ import yaml
 from rest_framework import views
 from django.conf import settings
 from django.utils.translation import ugettext_lazy as _
+from rest_framework.exceptions import ValidationError
 
 from backend.components.bcs import mesos, bcs_common_api
 from backend.utils.errcodes import ErrorCode
@@ -41,6 +42,7 @@ from backend.accounts import bcs_perm
 from backend.apps.configuration.models import Template
 from backend.apps.application.drivers import BCSDriver
 from backend.apps.application.common_views.serializers import BaseNotTemplateInstanceParamsSLZ
+from backend.apps.configuration.constants import K8sResourceName
 
 logger = logging.getLogger(__name__)
 
@@ -1048,4 +1050,10 @@ class InstanceAPI(BaseAPI):
         """
         if str(instance_id) == "0":
             return False
+        return True
+
+    def can_operate(self, resource_kind):
+        # 为避免类型的大小写不一致，采用包含的方式处理
+        if resource_kind.lower() in K8sResourceName.K8sStatefulSet.value.lower():
+            raise ValidationError(_("StatefulSet类型不允许此操作"))
         return True

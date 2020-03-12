@@ -1775,6 +1775,8 @@ class PauseUpdateInstance(InstanceAPI):
 
     def pause_inst(self, request, project_id, project_kind, cluster_id,
                    instance_id, name, namespace, category, conf=None):
+
+        self.can_operate(category)
         with client.ContextActivityLogClient(
             project_id=project_id,
             user=request.user.username,
@@ -1832,6 +1834,7 @@ class ResumeUpdateInstance(InstanceAPI):
 
     def resume_inst(self, request, project_id, project_kind, cluster_id,
                     instance_id, name, namespace, category, conf=None):
+        self.can_operate(category)
         with client.ContextActivityLogClient(
             project_id=project_id,
             user=request.user.username,
