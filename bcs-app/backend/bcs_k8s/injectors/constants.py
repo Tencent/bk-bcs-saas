@@ -15,5 +15,3 @@
 RESOURCE_FILEDS = ["labels", "annotations"]
 
 RESOURCE_KINDS_FOR_MONITOR_INJECTOR = ["Service", "Deployment", "StatefulSet", "Job", "DaemonSet"]
-
-POP_KEYS = ["io.tencent.bcs.controller.name", "io.tencent.bcs.controller.type"]

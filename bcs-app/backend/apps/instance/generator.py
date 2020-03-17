@@ -388,14 +388,14 @@ class ProfileGenerator:
                 metric_lables[_m_key] = _m_name
         return metric_lables
 
-    def inject_labels_for_monitor(self, labels, resource_kind, resource_name):
+    def inject_labels_for_monitor(self, labels, resource_kind, name):
         # labels
         labels["io.tencent.bcs.controller.type"] = resource_kind
-        labels["io.tencent.bcs.controller.name"] = resource_name
+        labels["io.tencent.bcs.controller.name"] = name
 
-    def inject_annotations_for_monitor(self, annotations, resource_kind, resource_name):
+    def inject_annotations_for_monitor(self, annotations, resource_kind, name):
         annotations["io.tencent.bcs.controller.type"] = resource_kind
-        annotations["io.tencent.bcs.controller.name"] = resource_name
+        annotations["io.tencent.bcs.controller.name"] = name
 
 
 def handle_k8s_api_version(config_profile, cluster_id, cluster_version, controller_type):
@@ -1292,12 +1292,6 @@ class K8sDeploymentGenerator(K8sProfileGenerator):
 
         # 1.2.2 添加监控相关
         self.inject_labels_for_monitor(pod_lables, self.get_controller_type(), self.resource_show_name)
-        self.inject_labels_for_monitor(
-            db_config["metadata"]["labels"], self.get_controller_type(), self.resource_show_name)
-        if "annotations" not in db_config['metadata']:
-            db_config["metadata"]["annotations"] = {}
-        self.inject_annotations_for_monitor(
-            db_config["metadata"]["annotations"], self.get_controller_type(), self.resource_show_name)
 
         # 添加关联的metric的label
         metric_lables = self.get_metric_lables(db_config)

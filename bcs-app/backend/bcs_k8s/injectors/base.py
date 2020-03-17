@@ -127,16 +127,6 @@ class BaseInjector:
 
         return recursive_wrap(data)
 
-    def pop_fields(self, resource, data):
-        for field, val in data.items():
-            if field not in RESOURCE_FILEDS:
-                continue
-            if resource.get("kind") in RESOURCE_KINDS_FOR_MONITOR_INJECTOR:
-                continue
-            for key in POP_KEYS:
-                val.pop(key, "")
-        return data
-
     def get_inject_data(self, resource, context):
         """ replace all callable value with it's run result
         """
@@ -149,11 +139,19 @@ class BaseInjector:
                 return d(resource, context)
             else:
                 return d
+
+        if resource.get("kind") in RESOURCE_KINDS_FOR_MONITOR_INJECTOR:
+            return recursive_replace(self._data)
+
         # 针对monitor的label和annotations只允许特定类型注入，其它类型需要pop掉字段
         data_copy = copy.deepcopy(self._data)
-        data = self.pop_fields(resource, data_copy)
+        for field, val in data_copy.items():
+            if field not in RESOURCE_FILEDS:
+                continue
+            for key in ["io.tencent.bcs.controller.name", "io.tencent.bcs.controller.type"]:
+                val.pop(key, "")
 
-        return recursive_replace(data)
+        return recursive_replace(data_copy)
 
 
 class InjectManager:
