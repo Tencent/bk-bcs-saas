@@ -24,7 +24,11 @@ import logging
 import tempfile
 import shutil
 
+from django.conf import settings
+
 from .exceptions import HelmError, HelmExecutionError
+
+from backend.apps.whitelist_bk import enable_helm_v3
 
 logger = logging.getLogger(__name__)
 
@@ -50,10 +54,12 @@ def write_files(temp_dir, files):
 class KubeHelmClient:
     """
     render the templates with values.yaml / answers.yaml
+    NOTE: helm3 和 helm2的命令执行参数不同
     """
 
-    def __init__(self, helm_bin="helm"):
+    def __init__(self, helm_bin="helm", kubeconfig=""):
         self.helm_bin = helm_bin
+        self.kubeconfig = kubeconfig
 
     def _make_answers_to_args(self, answers):
         """
@@ -65,8 +71,29 @@ class KubeHelmClient:
         set_stirng_values = ','.join(["{k}={v}".format(k=k, v=v) for k, v in answers.items() if isinstance(v, str)])
         return ["--set", set_values, "--set-string", set_stirng_values]
 
+    def _get_cmd_args_for_template(self, root_dir, app_name, namespace, cluster_id):
+        if enable_helm_v3(cluster_id):
+            return [
+                settings.HELM3_BIN,
+                "template",
+                app_name,
+                root_dir,
+                "--namespace",
+                namespace
+            ]
+
+        return [
+            settings.HELM_BIN,
+            "template",
+            root_dir,
+            "--name",
+            app_name,
+            "--namespace",
+            namespace,
+        ]
+
     # def template(self, release, namespace: str):
-    def template(self, files, name, namespace: str, parameters: dict, valuefile: str):
+    def template(self, files, name, namespace: str, parameters: dict, valuefile: str, cluster_id=None):
         """
         helm template {dir} --name {name} --namespace {namespace} --set k1=v1,k2=v2,k3=v3 --values filename
         """
@@ -82,15 +109,60 @@ class KubeHelmClient:
             values = self._make_answers_to_args(parameters)
 
             # 3. construct cmd and run
-            base_cmd_args = [
-                self.helm_bin,
-                "template",
-                root_dir,
-                "--name",
-                app_name,
-                "--namespace",
-                namespace,
-            ]
+            base_cmd_args = self._get_cmd_args_for_template(root_dir, app_name, namespace, cluster_id)
+
+            # 4.1 helm template
+            template_cmd_args = base_cmd_args
+            if values:
+                template_cmd_args += values
+
+            if valuefile:
+                FILENAME = "__valuefile__.yaml"
+                valuefile_x = {FILENAME: valuefile}
+                write_files(temp_dir, valuefile_x)
+                valuefile_name = os.path.join(temp_dir, FILENAME)
+                template_cmd_args += ["--values", valuefile_name]
+
+            template_out, _ = self._run_command_with_retry(max_retries=0, cmd_args=template_cmd_args)
+
+            # 4.2 helm template --notes
+            notes_out = ""
+            # not be used currently, comment it for accelerate
+            # notes_cmd_args = base_cmd_args + ["--notes"]
+            # notes_out, _ = self._run_command_with_retry(max_retries=0, cmd_args=notes_cmd_args)
+
+        except Exception as e:
+            logger.exception(
+                ("do helm template fail: namespace={namespace}, name={name}\n"
+                 "parameters={parameters}\nvaluefile={valuefile}\nfiles={files}").format(
+                    namespace=namespace,
+                    name=name,
+                    parameters=parameters,
+                    valuefile=valuefile,
+                    files=files,
+                ))
+            raise e
+        finally:
+            shutil.rmtree(temp_dir)
+
+        return template_out, notes_out
+
+    def install_or_upgrade(self, files, name, namespace, parameters, valuefile):
+        """install
+        """
+        app_name = name or "default"
+
+        temp_dir = tempfile.mkdtemp()
+        valuefile_name = None
+        try:
+            # 1. write template files into fp
+            root_dir = write_files(temp_dir, files)
+
+            # 2. parse answers.yaml to values
+            values = self._make_answers_to_args(parameters)
+
+            # 3. construct cmd and run
+            base_cmd_args = self._get_cmd_args_for_template(root_dir, app_name, namespace)
 
             # 4.1 helm template
             template_cmd_args = base_cmd_args

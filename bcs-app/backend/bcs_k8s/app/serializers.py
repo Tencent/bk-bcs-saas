@@ -660,7 +660,8 @@ class AppReleasePreviewSLZ(AppMixin, serializers.Serializer):
             valuefile=validated_data["valuefile"],
             cluster_id=instance.cluster_id
         )
-        client = KubeHelmClient(helm_bin=settings.HELM_BIN)
+        # 默认为使用helm3 client
+        client = KubeHelmClient(helm_bin=settings.HELM3_BIN)
         try:
             content, notes = client.template(
                 files=files,
@@ -668,6 +669,7 @@ class AppReleasePreviewSLZ(AppMixin, serializers.Serializer):
                 name=instance.name,
                 parameters=parameters,
                 valuefile=valuefile,
+                cluster_id=instance.cluster_id
             )
         except helm_exceptions.HelmBaseException as e:
             raise ParseError(str(e))
@@ -853,7 +855,7 @@ class AppCreatePreviewSLZ(AppMixin, serializers.Serializer):
             valuefile=validated_data["valuefile"],
             cluster_id=namespace_info["cluster_id"]
         )
-        client = KubeHelmClient(helm_bin=settings.HELM_BIN)
+        client = KubeHelmClient(helm_bin=settings.HELM3_BIN)
         try:
             content, notes = client.template(
                 files=validated_data["chart_version"].files,
@@ -861,6 +863,7 @@ class AppCreatePreviewSLZ(AppMixin, serializers.Serializer):
                 name=validated_data.get("name"),
                 parameters=parameters,
                 valuefile=valuefile,
+                cluster_id=namespace_info["cluster_id"]
             )
         except helm_exceptions.HelmBaseException as e:
             raise ParseError(str(e))

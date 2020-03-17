@@ -16,9 +16,11 @@ import contextlib
 import traceback
 from dataclasses import dataclass
 from rest_framework.exceptions import PermissionDenied
+from rest_framework.exceptions import ValidationError
 
 from backend.utils.client import make_kubectl_client, make_kubectl_client_from_kubeconfig
 from backend.bcs_k8s.kubectl.exceptions import KubectlError, KubectlExecutionError
+from backend.apps.whitelist_bk import enable_helm_v3
 
 logger = logging.getLogger(__name__)
 
@@ -42,10 +44,31 @@ class AppDeployer:
             yield client, err
 
     def install_app(self):
-        self.run_with_kubectl("install")
+        self.run_with_client("install")
 
     def uninstall_app(self):
-        self.run_with_kubectl("uninstall")
+        self.run_with_client("uninstall")
+
+    def run_with_client(self, operation):
+        if enable_helm_v3(self.app.cluster_id):
+            self.run_with_helm(operation)
+        else:
+            self.run_with_kubectl(operation)
+
+    def run_with_helm(self, operation):
+        # NOTE: 兼容先前
+        if operation == "install":
+            content, _ = self.app.render_app(
+                access_token=self.access_token,
+                username=self.app.updator,
+                ignore_empty_access_token=self.ignore_empty_access_token,
+                extra_inject_source=self.extra_inject_source
+            )
+        elif operation == "uninstall":
+            content = self.app.release.content
+        else:
+            raise ValidationError("not allow operation")
+        print(content)
 
     def run_with_kubectl(self, operation):
         if operation == "uninstall":
