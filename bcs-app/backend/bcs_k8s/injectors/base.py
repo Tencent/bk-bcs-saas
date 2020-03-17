@@ -20,7 +20,7 @@ from rest_framework.exceptions import ValidationError
 from django.utils.translation import ugettext_lazy as _
 
 from . import dpath
-from .constants import RESOURCE_FILEDS, RESOURCE_KINDS_FOR_MONITOR_INJECTOR, POP_KEYS
+from .constants import RESOURCE_FILEDS, RESOURCE_KINDS_FOR_MONITOR_INJECTOR
 from backend.utils.basic import getitems
 
 logger = logging.getLogger(__name__)
