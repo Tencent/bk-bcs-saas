@@ -582,8 +582,6 @@
                 pageLoading: false,
                 nodeList: [],
                 curPageData: [],
-                curNode: null,
-                curNodeIndex: 0,
                 // for search
                 nodeListTmp: [],
                 pageConf: {
@@ -1341,10 +1339,13 @@
                 }
 
                 const nodeIdList = []
-                if (this.checkedNodeList.length) {
-                    nodeIdList.push(...this.checkedNodeList.map(checkedNode => checkedNode.id))
+
+                if (this.curRowNode) {
+                    nodeIdList.push(this.curRowNode.id)
                 } else {
-                    nodeIdList.push((this.curRowNode || {}).id)
+                    if (this.checkedNodeList.length) {
+                        nodeIdList.push(...this.checkedNodeList.map(checkedNode => checkedNode.id))
+                    }
                 }
 
                 try {
@@ -1353,13 +1354,12 @@
                         projectId: this.projectId,
                         node_id_list: nodeIdList,
                         node_label_info: labelInfo
-                        // cluster_id: this.checkedNodeList.map(checkedNode => checkedNode.cluster_id)[0]
                     })
 
                     this.hideSetLabel()
                     this.checkedNodeList.splice(0, this.checkedNodeList.length, ...[])
                     setTimeout(() => {
-                        this.curRowNode = Object.assign({}, {})
+                        this.curRowNode = null
                         this.fetchData()
                     }, 200)
                 } catch (e) {
@@ -1377,6 +1377,7 @@
              * 设置标签 sideslder 取消按钮
              */
             hideSetLabel () {
+                this.curRowNode = null
                 this.setLabelConf.isShow = false
                 this.labelList.splice(0, this.labelList.length, ...[])
             },
