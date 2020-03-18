@@ -147,58 +147,36 @@ class KubeHelmClient:
 
         return template_out, notes_out
 
-    def install_or_upgrade(self, files, name, namespace, parameters, valuefile):
-        """install
+    def install(self, name, namespace, tmpl_content, chart_name, chart_version, chart_api_version):
+        """install helm release
+        NOTE: 这里需要组装chart格式，才能使用helm install; 必要条件
+        - Chart.yaml
+        - templates/xxx.yaml
+        步骤:
+        - 写临时文件, 用于组装chart结构
+        - 组装命令行参数
+        - 执行命令
         """
-        app_name = name or "default"
-
         temp_dir = tempfile.mkdtemp()
-        valuefile_name = None
         try:
-            # 1. write template files into fp
-            root_dir = write_files(temp_dir, files)
-
-            # 2. parse answers.yaml to values
-            values = self._make_answers_to_args(parameters)
-
-            # 3. construct cmd and run
-            base_cmd_args = self._get_cmd_args_for_template(root_dir, app_name, namespace)
-
-            # 4.1 helm template
-            template_cmd_args = base_cmd_args
-            if values:
-                template_cmd_args += values
-
-            if valuefile:
-                FILENAME = "__valuefile__.yaml"
-                valuefile_x = {FILENAME: valuefile}
-                write_files(temp_dir, valuefile_x)
-                valuefile_name = os.path.join(temp_dir, FILENAME)
-                template_cmd_args += ["--values", valuefile_name]
-
-            template_out, _ = self._run_command_with_retry(max_retries=0, cmd_args=template_cmd_args)
-
-            # 4.2 helm template --notes
-            notes_out = ""
-            # not be used currently, comment it for accelerate
-            # notes_cmd_args = base_cmd_args + ["--notes"]
-            # notes_out, _ = self._run_command_with_retry(max_retries=0, cmd_args=notes_cmd_args)
-
+            root_dir = write_chart_files(temp_dir, tmpl_content, chart_name, chart_version, chart_api_version)
+            install_cmd_args = [
+                settings.HELM3_BIN,
+                "install",
+                name,
+                root_dir,
+                "--namespace",
+                namespace
+            ]
+            cmd_out, cmd_err = self._run_command_with_retry(max_retries=0, cmd_args=install_cmd_args)
         except Exception as e:
             logger.exception(
-                ("do helm template fail: namespace={namespace}, name={name}\n"
-                 "parameters={parameters}\nvaluefile={valuefile}\nfiles={files}").format(
-                    namespace=namespace,
-                    name=name,
-                    parameters=parameters,
-                    valuefile=valuefile,
-                    files=files,
-                ))
+                "install helm chart error: names=%s, namespace=%s, content=%s", name, namespace, tmpl_content)
             raise e
         finally:
             shutil.rmtree(temp_dir)
 
-        return template_out, notes_out
+        return cmd_out, cmd_err
 
     def _run_command_with_retry(self, max_retries=1, *args, **kwargs):
         for i in range(max_retries + 1):
@@ -223,7 +201,12 @@ class KubeHelmClient:
         try:
             logger.info("Calling helm cmd, cmd: (%s)", " ".join(cmd_args))
 
-            proc = subprocess.Popen(cmd_args, shell=False, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            proc = subprocess.Popen(
+                cmd_args, shell=False,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                env={"KUBECONFIG": self.kubeconfig}  # 添加连接集群信息
+            )
             stdout, stderr = proc.communicate()
 
             if proc.returncode != 0:
@@ -235,3 +218,22 @@ class KubeHelmClient:
         except Exception as err:
             logger.exception("Unable to run helm command")
             raise HelmError("run helm command failed: {}".format(err))
+
+
+def write_chart_files(temp_dir, tmpl_content, chart_name, chart_version, chart_api_version):
+    """创建chart结构
+    - Chart.yaml
+    - templates/xxx.yaml
+    """
+    chart_config_path = os.path.join(temp_dir, "Chart.yaml")
+    # 写chart内容
+    with open(chart_config_path, "w") as f:
+        chart_config = f"apiVersion={chart_api_version}\nname={chart_name}\nversion={chart_version}"
+        f.write(chart_config)
+
+    tmpl_content_path = os.path.join(temp_dir, "templates/content.yaml")
+    # 写templates下的内容
+    with open(tmpl_content_path, "w") as f:
+        f.write(tmpl_content)
+
+    return temp_dir

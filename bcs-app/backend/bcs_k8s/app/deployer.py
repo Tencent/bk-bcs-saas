@@ -18,9 +18,10 @@ from dataclasses import dataclass
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.exceptions import ValidationError
 
-from backend.utils.client import make_kubectl_client, make_kubectl_client_from_kubeconfig
+from backend.utils.client import make_kubectl_client, make_kubectl_client_from_kubeconfig, make_kubehelm_client
 from backend.bcs_k8s.kubectl.exceptions import KubectlError, KubectlExecutionError
 from backend.apps.whitelist_bk import enable_helm_v3
+from backend.bcs_k8s.kubehelm.exceptions import HelmExecutionError, HelmError
 
 logger = logging.getLogger(__name__)
 
@@ -43,6 +44,14 @@ class AppDeployer:
                 access_token=self.access_token) as (client, err):
             yield client, err
 
+    @contextlib.contextmanager
+    def make_kubehelm_client(self):
+        with make_kubehelm_client(
+                project_id=self.app.project_id,
+                cluster_id=self.app.cluster_id,
+                access_token=self.access_token) as (client, err):
+            yield client, err
+
     def install_app(self):
         self.run_with_client("install")
 
@@ -51,6 +60,9 @@ class AppDeployer:
 
     def run_with_client(self, operation):
         if enable_helm_v3(self.app.cluster_id):
+            # 标识为使用helm命令
+            self.app.enable_helm = True
+            self.app.save()
             self.run_with_helm(operation)
         else:
             self.run_with_kubectl(operation)
@@ -68,7 +80,63 @@ class AppDeployer:
             content = self.app.release.content
         else:
             raise ValidationError("not allow operation")
-        print(content)
+        # NOTE: 这里获取到的配置为空时，直接返回
+        if not content:
+            return
+        # 获取
+        with self.make_kubehelm_client() as (client, err):
+            if err is not None:
+                transitioning_message = "make helm client failed, %s" % err
+                self.app.set_transitioning(False, transitioning_message)
+                return
+            else:
+                self.run_with_kubehelm_core(
+                    self.app.name,
+                    self.app.namespace,
+                    content,
+                    operation,
+                    client,
+                    chart_name=self.app.chart.name,
+                    chart_version=self.app.version,
+                    chart_api_version="v2"  # 默认chart支持的是v2
+                )
+
+    def run_with_kubehelm_core(self, name, namespace, content, operation,
+                               client, chart_name=None, chart_version=None, chart_api_version="v2"):
+        transitioning_result = True
+        try:
+            if operation == "install":
+                client.install(name, namespace, content, chart_name, chart_version, chart_api_version)
+            elif operation == "uninstall":
+                pass
+        # 异常捕获，使用先前的匹配
+        except HelmExecutionError as e:
+            # TODO: 现阶段针对删除release找不到的情况，认为是正常的
+            if "not found" in e.output and operation == "uninstall":
+                transitioning_result = True
+                transitioning_message = "app success %s" % operation
+            else:
+                transitioning_result = False
+                transitioning_message = (
+                    "helm command execute failed.\n"
+                    "Error code: {error_no}\nOutput:\n{output}").format(
+                    error_no=e.error_no,
+                    output=e.output
+                )
+            logger.warn(transitioning_message)
+        except HelmError as e:
+            transitioning_result = False
+            logger.warn(e.message)
+            transitioning_message = e.message
+        except Exception as e:
+            transitioning_result = False
+            logger.warning(e.message)
+            transitioning_message = self.collect_transitioning_error_message(e)
+        else:
+            transitioning_result = True
+            transitioning_message = "app success %s" % operation
+
+        self.app.set_transitioning(transitioning_result, transitioning_message)
 
     def run_with_kubectl(self, operation):
         if operation == "uninstall":

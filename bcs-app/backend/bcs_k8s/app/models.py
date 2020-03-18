@@ -79,6 +79,8 @@ class App(models.Model):
     # For example platform provided chartmuseum repo for user projects, it's will be many.
     # We give every chartmuseum repo app a indentified unique_ns, and a common forr the others.
     unique_ns = models.IntegerField(default=0)
+    # allow to use helm command
+    enable_helm = models.BooleanField(default=False, help_text="如果为True，允许使用helm命名操作chart/release")
 
     objects = AppManager()
 
