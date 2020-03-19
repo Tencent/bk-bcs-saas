@@ -914,7 +914,7 @@ def handle_volumes(volumes, volume_users, config_map_dict, sercret_dict, templat
             _item_list.append({
                 'type': 'file',
                 'readOnly': False,
-                'user': volume_users.get(f"configmap-{_real_name}", ''),
+                'user': volume_users.get(f"{_type}-{_real_name}", ''),
                 'dataKey': _data_key,
                 'dataKeyAlias': _data_key,
                 'KeyOrPath': mount_path,
@@ -926,7 +926,7 @@ def handle_volumes(volumes, volume_users, config_map_dict, sercret_dict, templat
             _item_list.append({
                 'type': 'file',
                 'readOnly': False,
-                'user': volume_users.get(f"configmap-{_real_name}", ''),
+                'user': volume_users.get(f"{_type}-{_real_name}", ''),
                 'dataKey': _data_key,
                 'KeyOrPath': mount_path,
             })

@@ -126,9 +126,9 @@ class Application(MesosResource, PodMixin):
         volume_users = {}
         for v in volumes:
             if v['type'] == 'configmap':
-                volume_users[f"configmap-{v['name']}"] = 'root'
+                volume_users[f"{v['type']}-{v['name']}"] = 'root'
             elif v['type'] == 'secret':
-                volume_users[f"secret-{v['name']}"] = 'user00'
+                volume_users[f"{v['type']}-{v['name']}"] = 'user00'
 
         if volume_users:
             config['webCache']['volume_users'] = volume_users
