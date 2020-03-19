@@ -115,30 +115,35 @@ class Application(MesosResource, PodMixin):
         kwargs['app_id'] = old_app.app_id
         return super().perform_update(old_id, **kwargs)
 
-    def _set_volume_users(self, config):
-        if config['webCache'].get('volumeUsers'):
-            return
-
-        volumes = getitems(config, ['spec', 'template', 'spec', 'containers', 'volumes'], default=[])
+    def _get_container_volume_users(self, volumes):
         if not volumes:
-            return
+            return {}
 
-        volume_users = {}
+        c_volume_users = {}
         for v in volumes:
             vol = v['volume']
             if v['type'] == 'configmap':
-                volume_users[f"{v['type']}:{v['name']}:{vol['hostPath']}:{vol['mountPath']}"] = 'root'
+                c_volume_users[f"{v['type']}:{v['name']}:{vol['hostPath']}:{vol['mountPath']}"] = 'root'
             elif v['type'] == 'secret':
-                volume_users[f"{v['type']}:{v['name']}:{vol['hostPath']}:{vol['mountPath']}"] = 'user00'
+                c_volume_users[f"{v['type']}:{v['name']}:{vol['hostPath']}:{vol['mountPath']}"] = 'user00'
 
-        if volume_users:
-            config['webCache']['volumeUsers'] = volume_users
+        return c_volume_users
+
+    def _set_default_volume_users(self, config):
+        volume_users = {}
+        containers = getitems(config, ['spec', 'template', 'spec', 'containers'], default=[])
+        for container in containers:
+            volumes = container.get('volumes', [])
+            volume_users[container['name']] = self._get_container_volume_users(volumes)
+
+        config['webCache']['volumeUsers'] = volume_users
 
     def get_res_config(self, is_simple):
         c = super().get_res_config(is_simple)
 
         # 兼容处理configmap和secret挂载卷时，指定账户
-        self._set_volume_users(c)
+        if 'volumeUsers' not in c['webCache']:
+            self._set_default_volume_users(c)
 
         if not is_simple:
             c.update({
