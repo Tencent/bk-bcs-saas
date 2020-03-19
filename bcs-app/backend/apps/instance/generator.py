@@ -388,6 +388,15 @@ class ProfileGenerator:
                 metric_lables[_m_key] = _m_name
         return metric_lables
 
+    def inject_labels_for_monitor(self, labels, resource_kind, name):
+        # labels
+        labels["io.tencent.bcs.controller.type"] = resource_kind
+        labels["io.tencent.bcs.controller.name"] = name
+
+    def inject_annotations_for_monitor(self, annotations, resource_kind, name):
+        annotations["io.tencent.bcs.controller.type"] = resource_kind
+        annotations["io.tencent.bcs.controller.name"] = name
+
 
 def handle_k8s_api_version(config_profile, cluster_id, cluster_version, controller_type):
     # 由功能开关控制是否在配置文件中添加 apiVersion 字段
@@ -582,7 +591,7 @@ class ApplicationProfileGenerator(MesosProfileGenerator):
             volumes = _c.get('volumes')
             config_map_dict = {}
             sercret_dict = {}
-            handle_volumes(volumes, config_map_dict,
+            handle_volumes(volumes, db_config.get('webCache', {}).get('volumeUsers', {}), config_map_dict,
                            sercret_dict, self.template_id)
 
             # 2.5 处理 环境变量
@@ -650,8 +659,11 @@ class ApplicationProfileGenerator(MesosProfileGenerator):
             labels.update(metric_lables)
 
         # 1.3 添加监控的标签
-        labels['io.tencent.bcs.controller.type'] = self.resource_name
-        labels['io.tencent.bcs.controller.name'] = self.resource_show_name
+        self.inject_labels_for_monitor(
+            labels, self.resource_name, self.resource_show_name
+        )
+        self.inject_annotations_for_monitor(
+            db_config["metadata"]["annotations"], self.resource_name, self.resource_show_name)
 
         # 1.4 添加监控需要的重要级别
         labels[LABEL_MONITOR_LEVEL] = db_config.get('monitorLevel', LABEL_MONITOR_LEVEL_DEFAULT)
@@ -701,9 +713,11 @@ class DeploymentProfileGenerator(ProfileGenerator):
         # 将名称修改为模板中 Deployment 的名称
         new_config['metadata']['name'] = self.resource_show_name
         # 添加监控的标签
-        labels = new_config['metadata']['labels']
-        labels['io.tencent.bcs.controller.type'] = self.resource_name
-        labels['io.tencent.bcs.controller.name'] = self.resource_show_name
+        self.inject_labels_for_monitor(
+            new_config['metadata']['labels'], self.resource_name, self.resource_show_name)
+        self.inject_annotations_for_monitor(
+            new_config["metadata"]["annotations"], self.resource_name, self.resource_show_name)
+
         return new_config
 
 
@@ -723,6 +737,12 @@ class ServiceProfileGenerator(ProfileGenerator):
             service_name) or 'external'
         db_config = handel_service_db_config(
             db_config, service_app_list, app_weight, lb_name, self.version_id, self.is_preview, self.is_validate)
+        # 注入monitor需要信息
+        self.inject_labels_for_monitor(
+            db_config["metadata"]["labels"], self.resource_name, self.resource_show_name)
+        self.inject_annotations_for_monitor(
+            db_config["metadata"]["annotations"], self.resource_name, self.resource_show_name)
+
         return db_config
 
 
@@ -869,7 +889,7 @@ def handle_intersection_item(intersection_item):
     return new_intersection_item
 
 
-def handle_volumes(volumes, config_map_dict, sercret_dict, template_id):
+def handle_volumes(volumes, volume_users, config_map_dict, sercret_dict, template_id):
     for _v in range(len(volumes) - 1, -1, -1):
         _v_value = volumes[_v]
         _name = _v_value.get('name')
@@ -894,7 +914,7 @@ def handle_volumes(volumes, config_map_dict, sercret_dict, template_id):
             _item_list.append({
                 'type': 'file',
                 'readOnly': False,
-                'user': 'root',
+                'user': volume_users.get(f"{_type}:{_real_name}:{_data_key}:{mount_path}", ''),
                 'dataKey': _data_key,
                 'dataKeyAlias': _data_key,
                 'KeyOrPath': mount_path,
@@ -906,7 +926,7 @@ def handle_volumes(volumes, config_map_dict, sercret_dict, template_id):
             _item_list.append({
                 'type': 'file',
                 'readOnly': False,
-                'user': 'user00',
+                'user': volume_users.get(f"{_type}:{_real_name}:{_data_key}:{mount_path}", ''),
                 'dataKey': _data_key,
                 'KeyOrPath': mount_path,
             })
@@ -1147,6 +1167,10 @@ class K8sServiceGenerator(K8sProfileGenerator):
         deploy_tag_list = self.resource.get_deploy_tag_list()
         db_config = handel_k8s_service_db_config(
             db_config, deploy_tag_list, self.version_id, is_preview=self.is_preview, is_validate=self.is_validate)
+        self.inject_labels_for_monitor(
+            db_config["metadata"]["labels"], self.get_controller_type(), self.resource_show_name)
+        self.inject_annotations_for_monitor(
+            db_config["metadata"]["annotations"], self.get_controller_type(), self.resource_show_name)
         return db_config
 
 
@@ -1267,8 +1291,7 @@ class K8sDeploymentGenerator(K8sProfileGenerator):
         remove_key(db_config, 'monitorLevel')
 
         # 1.2.2 添加监控相关
-        pod_lables['io.tencent.bcs.controller.type'] = self.get_controller_type()
-        pod_lables['io.tencent.bcs.controller.name'] = self.resource_show_name
+        self.inject_labels_for_monitor(pod_lables, self.get_controller_type(), self.resource_show_name)
 
         # 添加关联的metric的label
         metric_lables = self.get_metric_lables(db_config)

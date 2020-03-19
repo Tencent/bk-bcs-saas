@@ -13,3 +13,4 @@
 #
 from . import collector  # noqa
 from . import performance  # noqa
+from . import servicemonitor  # noqa

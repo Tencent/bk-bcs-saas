@@ -70,7 +70,8 @@ class ReleaseDataProcessor:
             project_id=self.project_id,
             namespace_id=self.namespace_info['id']
         )
-        bcs_variables = bcs_variable.get_namespace_variables(self.project_id, self.namespace_info['id'])
+        bcs_variables = bcs_variable.get_bcs_variables(
+            self.project_id, self.namespace_info["cluster_id"], self.namespace_info["id"])
         sys_variables.update(bcs_variables)
         return sys_variables
 

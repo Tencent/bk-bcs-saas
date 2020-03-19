@@ -118,7 +118,6 @@ class BaseCluster:
             'cluster_id': cluster_id,
             'cluster_name': self.cluster_name,
             'module_id_list': cc_module,
-            'set_id': self.set_id,
             'username': self.username,
             'master_ips': self.data['master_ips'],
             'kind': self.project_info['kind'],
@@ -285,6 +284,8 @@ class CreateCluster(BaseCluster):
             # 现阶段平台侧不主动创建CMDB set&module，赋值为空列表
             module_id_list = []
 
+        # 兼容不创建set后，提取出区域名称
+        self.area_name = self.area_info['name']
         ual.update_log(resource_id=cluster_info.get("cluster_id"))
         log = self.create_cluster_via_bcs(cluster_info['cluster_id'], module_id_list)
         if not log.is_finished and log.is_polling:
@@ -368,7 +369,6 @@ class ReinstallCluster(BaseCluster):
             }
             self.cluster_name = params['cluster_name']
             self.kind_name = params['kind_name']
-            self.set_id = params['set_id']
             self.area_name = params['area_name']
             self.control_ip = params['control_ip']
             websvr = params['websvr']
@@ -411,10 +411,10 @@ class DeleteCluster(BaseCluster):
             self.update_cluster_status(status=CommonStatus.RemoveFailed)
             raise error_codes.APIError(cluster_ns_info.get('message'))
         data = cluster_ns_info.get('data', {}).get('results') or []
-        # 删除集群
-        perm_client = Namespace(self.request, self.project_id, None)
+        # 删除命名空间权限记录
         for info in data:
-            perm_client.delete(None, info['name'], self.cluster_id)
+            perm_client = Namespace(self.request, self.project_id, info["id"])
+            perm_client.delete()
         return [int(info['id']) for info in data]
 
     def delete_namespaces(self):

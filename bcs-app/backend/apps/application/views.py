@@ -18,44 +18,29 @@ buildedInstance: 构建的数量(包含成功和失败Instance)
 instance: 用户希望构建的数量
 runningInstance: 构建成功的数量
 """
-import re
 import json
 import logging
 import copy
 from datetime import datetime
-from collections import OrderedDict
 
-from django.db.models import Q
 from django.utils.translation import ugettext_lazy as _
 
-from backend.components import paas_cc
-from backend.apps.application.utils import APIResponse, image_handler
-from backend.apps.application import serializers
-from backend.apps.configuration.models import (
-    Template, VersionedEntity, Application,
-    Deplpyment, ShowVersion
-)
+from backend.apps.application.utils import APIResponse
+from backend.apps.configuration.models import Template, VersionedEntity, ShowVersion
 from backend.apps.instance.models import (
     VersionInstance, InstanceConfig, InstanceEvent, MetricConfig
 )
-from backend.apps.variable.models import Variable
 from backend.utils.errcodes import ErrorCode
 from backend.apps.application.base_views import BaseAPI, error_codes, InstanceAPI
 from backend.apps.configuration.models import MODULE_DICT
-from backend.apps.instance import constants
 from backend.apps.application import constants as app_constants
 from backend.apps.application import utils
 from backend.activity_log import client
 from backend.apps.instance import utils as inst_utils
-from backend.apps.instance.constants import ANNOTATIONS_WEB_CACHE, InsState
-from backend.apps.metric.models import Metric
+from backend.apps.instance.constants import InsState
 from backend.apps.application.other_views import k8s_views
-from backend.apps.configuration.utils import check_var_by_config
-from backend.apps.application.constants import CATEGORY_MAP, FUNC_MAP
-from backend.apps.datalog.utils import get_standard_data_name
 from backend.apps.datalog.utils import create_data_project, create_and_start_standard_data_flow
-from backend.accounts import bcs_perm
-from backend.components.bcs import mesos, k8s
+from backend.components.bcs import mesos
 from backend.celery_app.tasks.application import update_create_error_record
 from backend.apps.application.filters.base_metrics import BaseMusterMetric
 
@@ -1790,6 +1775,8 @@ class PauseUpdateInstance(InstanceAPI):
 
     def pause_inst(self, request, project_id, project_kind, cluster_id,
                    instance_id, name, namespace, category, conf=None):
+
+        self.can_operate(category)
         with client.ContextActivityLogClient(
             project_id=project_id,
             user=request.user.username,
@@ -1847,6 +1834,7 @@ class ResumeUpdateInstance(InstanceAPI):
 
     def resume_inst(self, request, project_id, project_kind, cluster_id,
                     instance_id, name, namespace, category, conf=None):
+        self.can_operate(category)
         with client.ContextActivityLogClient(
             project_id=project_id,
             user=request.user.username,

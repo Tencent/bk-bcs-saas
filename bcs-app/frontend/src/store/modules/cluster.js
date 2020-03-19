@@ -309,7 +309,11 @@ export default {
                 delete params.labels
             }
 
-            // return http.post(`/app/cluster?invoke=getNodeListByLabelAndIp&${json2Query(params)}&${projectId}&${clusterId}`, params, config)
+            // return http.post(
+            //     `/app/cluster?invoke=getNodeListByLabelAndIp&${json2Query(params)}&${projectId}&${clusterId}`,
+            //     params,
+            //     config
+            // )
             return http.post(
                 `${DEVOPS_BCS_API_URL}/api/projects/${projectId}/clusters/${clusterId}/nodes/`,
                 params,
@@ -849,6 +853,19 @@ export default {
          */
         getTKEConf (context, { projectId }, config = {}) {
             return http.get(`${DEVOPS_BCS_API_URL}/api/projects/${projectId}/tke_conf/`, {}, config)
+        },
+
+        /**
+         * 获取 k8s version 配置信息
+         *
+         * @param {Object} context store 上下文对象
+         * @param {Object} params 参数
+         * @param {Object} config 请求的配置
+         *
+         * @return {Promise} promise 对象
+         */
+        getK8SConf (context, { projectId }, config = {}) {
+            return http.get(`${DEVOPS_BCS_API_URL}/api/projects/${projectId}/cluster_type_versions/`, {}, config)
         },
 
         // ------------------------------------------------------------------------------------------------ //

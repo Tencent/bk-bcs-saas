@@ -47,6 +47,7 @@ from backend.apps.network.serializers import BatchResourceSLZ
 from backend.apps.application.constants import SOURCE_TYPE_MAP
 from backend.apps import utils as app_utils
 from backend.apps.constants import ProjectKind
+from backend.apps.configuration.constants import TemplateEditMode
 
 logger = logging.getLogger(__name__)
 DEFAULT_ERROR_CODE = ErrorCode.UnknownError
@@ -256,7 +257,9 @@ class Services(viewsets.ViewSet, BaseAPI):
         namespace_dict = app_utils.get_ns_id_map(request.user.token.access_token, project_id)
 
         # 项目下的所有模板集id
-        all_template_id_list = Template.objects.filter(project_id=project_id).values_list('id', flat=True)
+        all_template_id_list = Template.objects.filter(
+            project_id=project_id, edit_mode=TemplateEditMode.PageForm.value
+        ).values_list('id', flat=True)
         all_template_id_list = [str(template_id) for template_id in all_template_id_list]
         skip_namespace_list = constants.K8S_SYS_NAMESPACE
         skip_namespace_list.extend(constants.K8S_PLAT_NAMESPACE)

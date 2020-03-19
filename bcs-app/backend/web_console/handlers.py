@@ -31,6 +31,7 @@ from backend.web_console.utils import clean_bash_escape, get_auditor
 
 logger = logging.getLogger(__name__)
 
+
 class LocaleHandlerMixin:
     """国际化Mixin
     """
@@ -50,26 +51,24 @@ class IndexPageHandler(LocaleHandlerMixin, tornado.web.RequestHandler):
     """
 
     def get(self, project_id, cluster_id):
-        session_url = f'{settings.DEVOPS_BCS_API_URL}/api/projects/{project_id}/clusters/{cluster_id}/web_console/session/'  # noqa
+        session_url = f"{settings.DEVOPS_BCS_API_URL}/api/projects/{project_id}/clusters/{cluster_id}/web_console/session/"  # noqa
 
         # mesos集群会带具体信息
         query = self.request.query
         if query:
-            session_url += f'?{query}'
+            session_url += f"?{query}"
 
-        data = {
-            'settings': settings,
-            'session_url': session_url,
-            'cluster_id': cluster_id}
-        self.render('templates/index.html', **data)
+        data = {"settings": settings, "session_url": session_url, "cluster_id": cluster_id}
+        self.render("templates/index.html", **data)
+
 
 class MgrHandler(LocaleHandlerMixin, tornado.web.RequestHandler):
     """管理页
     """
 
     def get(self, project_id):
-        data = {'settings': settings, 'project_id': project_id}
-        self.render('templates/mgr.html', **data)
+        data = {"settings": settings, "project_id": project_id}
+        self.render("templates/mgr.html", **data)
 
 
 class BCSWebSocketHandler(LocaleHandlerMixin, tornado.websocket.WebSocketHandler):
@@ -79,8 +78,9 @@ class BCSWebSocketHandler(LocaleHandlerMixin, tornado.websocket.WebSocketHandler
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.input_record = []
-        self.input_buffer = ''
+        self.input_buffer = ""
         self.last_input_ts = IOLoop.current().time()
+        self.login_ts = IOLoop.current().time()
 
         self.record_callback = None
         self.tick_callback = None
@@ -88,8 +88,8 @@ class BCSWebSocketHandler(LocaleHandlerMixin, tornado.websocket.WebSocketHandler
         self.heartbeat_callback = None
         self.auditor = get_auditor()
         self.pod_life_cycle = PodLifeCycle()
-        self.exit_buffer = ''
-        self.exit_command = 'exit'
+        self.exit_buffer = ""
+        self.exit_command = "exit"
         self.user_pod_name = None
         self.source = None
 
@@ -106,16 +106,16 @@ class BCSWebSocketHandler(LocaleHandlerMixin, tornado.websocket.WebSocketHandler
         self.project_id = project_id
         self.cluster_id = cluster_id
         self.context = context
-        self.user_pod_name = context['user_pod_name']
-        self.source = self.get_argument('source')
+        self.user_pod_name = context["user_pod_name"]
+        self.source = self.get_argument("source")
 
-        rows = self.get_argument('rows')
+        rows = self.get_argument("rows")
         rows = utils.format_term_size(rows, constants.DEFAULT_ROWS)
 
-        cols = self.get_argument('cols')
+        cols = self.get_argument("cols")
         cols = utils.format_term_size(cols, constants.DEFAULT_COLS)
 
-        mode = context.get('mode')
+        mode = context.get("mode")
         self.bcs_client = bcs_client.factory.create(mode, self, context, rows, cols)
 
     def on_message(self, message):
@@ -123,15 +123,15 @@ class BCSWebSocketHandler(LocaleHandlerMixin, tornado.websocket.WebSocketHandler
         channel = int(message[0])
         message = message[1:]
         if channel == constants.RESIZE_CHANNEL:
-            rows, cols = message.split(',')
+            rows, cols = message.split(",")
             rows = int(rows)
             cols = int(rows)
             self.bcs_client.set_pty_size(rows, cols)
         else:
-            if message == '\r':
+            if message == "\r":
                 if self.exit_buffer.lstrip().startswith(self.exit_command):
-                    self.write_message({'data': _("BCS Console 主动退出"), 'type': "exit_message"})
-                self.exit_buffer == ''
+                    self.write_message({"data": _("BCS Console 主动退出"), "type": "exit_message"})
+                self.exit_buffer == ""
             else:
                 self.exit_buffer += message
 
@@ -141,21 +141,21 @@ class BCSWebSocketHandler(LocaleHandlerMixin, tornado.websocket.WebSocketHandler
         self.send_exit()
 
         if self.tick_callback:
-            logger.info('stop tick callback, %s', self.user_pod_name)
+            logger.info("stop tick callback, %s", self.user_pod_name)
             self.tick_callback.stop()
 
         if self.record_callback:
-            logger.info('stop record_callback, %s', self.user_pod_name)
+            logger.info("stop record_callback, %s", self.user_pod_name)
             self.record_callback.stop()
 
         if self.heartbeat_callback:
-            logger.info('stop heartbeat_callback, %s', self.user_pod_name)
+            logger.info("stop heartbeat_callback, %s", self.user_pod_name)
             self.heartbeat_callback.stop()
 
         logger.info("on_close")
 
     def send_exit(self):
-        exit_msg = '\nexit\n'
+        exit_msg = "\nexit\n"
         self.send_message(exit_msg)
 
     def flush_input_record(self):
@@ -168,16 +168,14 @@ class BCSWebSocketHandler(LocaleHandlerMixin, tornado.websocket.WebSocketHandler
     def tick_timeout(self):
         """主动停止掉session
         """
-        self.tick_callback = PeriodicCallback(
-            self.periodic_tick, self.record_interval * 1000)
+        self.tick_callback = PeriodicCallback(self.periodic_tick, self.record_interval * 1000)
         self.tick_callback.start()
 
-    def tick_timeout2client(self):
+    def tick_timeout2client(self, message):
         """客户端退出
         """
         # 下发提示消息
-        tick_timeout_min = constants.TICK_TIMEOUT // 60
-        self.write_message({'data': _("BCS Console 已经{}分钟无操作").format(tick_timeout_min), 'type': "exit_message"})
+        self.write_message({"data": message, "type": "exit_message"})
         # 服务端退出bash, exit
         self.send_exit()
 
@@ -186,15 +184,24 @@ class BCSWebSocketHandler(LocaleHandlerMixin, tornado.websocket.WebSocketHandler
         now = IOLoop.current().time()
         idle_time = now - max(self.bcs_client.last_output_ts, self.last_input_ts)
         if idle_time > constants.TICK_TIMEOUT:
-            self.tick_timeout2client()
-            logger.info('tick timeout, close session %s, idle time, %.2f', self.user_pod_name, idle_time)
-        logger.info('tick active %s, idle time, %.2f', self.user_pod_name, idle_time)
+            tick_timeout_min = constants.TICK_TIMEOUT // 60
+            message = _("BCS Console 已经{}分钟无操作").format(tick_timeout_min)
+            self.tick_timeout2client(message)
+            logger.info("tick timeout, close session %s, idle time, %.2f", self.user_pod_name, idle_time)
+        logger.info("tick active %s, idle time, %.2f", self.user_pod_name, idle_time)
+
+        login_time = now - self.login_ts
+        if login_time > constants.LOGIN_TIMEOUT:
+            login_timeout = constants.LOGIN_TIMEOUT // (60 * 60)
+            message = _("BCS Console 使用已经超过{}小时，请重新登录").format(login_timeout)
+            self.tick_timeout2client(message)
+            logger.info("tick timeout, close session %s, login time, %.2f", self.user_pod_name, login_time)
+        logger.info("tick active %s, login time, %.2f", self.user_pod_name, login_time)
 
     def heartbeat(self):
         """每秒钟上报心跳
         """
-        self.heartbeat_callback = PeriodicCallback(
-            lambda: self.pod_life_cycle.heartbeat(self.user_pod_name), 1000)
+        self.heartbeat_callback = PeriodicCallback(lambda: self.pod_life_cycle.heartbeat(self.user_pod_name), 1000)
         self.heartbeat_callback.start()
 
     def start_record(self):
@@ -212,14 +219,16 @@ class BCSWebSocketHandler(LocaleHandlerMixin, tornado.websocket.WebSocketHandler
             return
 
         # 上报的数据
-        data = {'input_record': '\r\n'.join(input_record),
-                'output_record': '\r\n'.join(output_record),
-                'session_id': self.context['session_id'],
-                'context': self.context,
-                'project_id': self.project_id,
-                'cluster_id': self.cluster_id,
-                'user_pod_name': self.user_pod_name,
-                'username': self.context['username']}
+        data = {
+            "input_record": "\r\n".join(input_record),
+            "output_record": "\r\n".join(output_record),
+            "session_id": self.context["session_id"],
+            "context": self.context,
+            "project_id": self.project_id,
+            "cluster_id": self.cluster_id,
+            "user_pod_name": self.user_pod_name,
+            "username": self.context["username"],
+        }
         self.auditor.emit(data)
         logger.info(data)
 
@@ -234,7 +243,7 @@ class BCSWebSocketHandler(LocaleHandlerMixin, tornado.websocket.WebSocketHandler
             # line_msg = ['command', '']
             line_msg = self.input_buffer.split(constants.INPUT_LINE_BREAKER)
             for i in line_msg[:-1]:
-                record = '%s: %s' % (arrow.now().strftime("%Y-%m-%d %H:%M:%S.%f"), clean_bash_escape(i))
+                record = "%s: %s" % (arrow.now().strftime("%Y-%m-%d %H:%M:%S.%f"), clean_bash_escape(i))
                 logger.debug(record)
                 self.input_record.append(record)
             # empty input_buffer

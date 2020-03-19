@@ -12,22 +12,6 @@
 # specific language governing permissions and limitations under the License.
 #
 
+RESOURCE_FILEDS = ["labels", "annotations"]
 
-class KubectlBaseException(Exception):
-    """Exception for kubectl client"""
-
-
-class KubectlError(KubectlBaseException):
-    """Normal error for kubectl ClusterClient"""
-
-
-class KubectlExecutionError(KubectlBaseException):
-    """Error when running kubectl command failed
-    """
-
-    def __init__(self, error_no: int, output: bytes):
-        self.error_no = error_no
-        self.output = output.decode().strip()
-
-    def __str__(self):
-        return "({}) {}".format(self.error_no, self.output)
+RESOURCE_KINDS_FOR_MONITOR_INJECTOR = ["Service", "Deployment", "StatefulSet", "Job", "DaemonSet"]

@@ -24,7 +24,7 @@ from backend.apps.metric.models import Metric
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
-NAME_PATTERN = re.compile(r'^[a-z0-9]([-_a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*$')
+NAME_PATTERN = re.compile(r"^[a-z0-9]([-_a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*$")
 
 
 def validate_http_body(body):
@@ -59,7 +59,7 @@ class UpdateMetricSLZ(serializers.Serializer):
     timeout = serializers.IntegerField(required=True)
 
     def validate_name(self, name):
-        count = Metric.objects.filter(project_id=self.context['project_id'], name=name).count()
+        count = Metric.objects.filter(project_id=self.context["project_id"], name=name).count()
         if count > 0:
             raise ValidationError(_("name已经存在"))
 
@@ -71,7 +71,7 @@ class UpdateMetricSLZ(serializers.Serializer):
         parse = urlparse(uri)
         if parse.scheme or parse.netloc:
             raise ValidationError(_("uri不需要填写协议和域名"))
-        if uri[0] != '/':
+        if uri[0] != "/":
             raise ValidationError(_("uri必须是绝对路径"))
         return uri
 
@@ -87,7 +87,7 @@ class UpdateMetricSLZ(serializers.Serializer):
 
     def validate_http_body(self, http_body):
         if not http_body:
-            return ''
+            return ""
         else:
             return http_body
 
@@ -95,8 +95,8 @@ class UpdateMetricSLZ(serializers.Serializer):
         """只能为空或者为'prometheus'
         """
         if not metric_type:
-            return ''
-        if metric_type in ['prometheus']:
+            return ""
+        if metric_type in ["prometheus"]:
             return metric_type
         raise ValidationError(_("metric_type 只能为空或者为'prometheus'"))
 
@@ -109,8 +109,8 @@ class UpdateMetricSLZ(serializers.Serializer):
         if not data:
             raise ValidationError(_("参数不能为空"))
 
-        if data.get('http_body') and data['http_method'] == 'GET':
-            validate_http_body(data['http_body'])
+        if data.get("http_body") and data["http_method"] == "GET":
+            validate_http_body(data["http_body"])
         return data
 
 
@@ -118,7 +118,7 @@ class CreateMetricSLZ(UpdateMetricSLZ):
     name = serializers.CharField(max_length=253, min_length=3)
 
     def validate_name(self, name):
-        count = Metric.objects.filter(project_id=self.context['project_id'], name=name).count()
+        count = Metric.objects.filter(project_id=self.context["project_id"], name=name).count()
         if count > 0:
             raise ValidationError(_("name已经存在"))
 
@@ -134,30 +134,81 @@ class PromMetricSLZBase(serializers.Serializer):
     def validate(self, data):
         now = int(time.time())
         # handle the start_at
-        if 'start_at' in data:
-            data['start_at'] = arrow.get(data['start_at']).timestamp
+        if "start_at" in data:
+            data["start_at"] = arrow.get(data["start_at"]).timestamp
         else:
             # default one hour
-            data['start_at'] = now - constants.METRICS_DEFAULT_TIMEDELTA
+            data["start_at"] = now - constants.METRICS_DEFAULT_TIMEDELTA
         # handle the end_at
-        if 'end_at' in data:
-            data['end_at'] = arrow.get(data['end_at']).timestamp
+        if "end_at" in data:
+            data["end_at"] = arrow.get(data["end_at"]).timestamp
         else:
-            data['end_at'] = now
+            data["end_at"] = now
         # start_at must be less than end_at
-        if data['end_at'] <= data['start_at']:
-            raise ValidationError(_('param[start_at] must be less than [end_at]'))
+        if data["end_at"] <= data["start_at"]:
+            raise ValidationError(_("param[start_at] must be less than [end_at]"))
         return data
 
 
 class PromMetricSLZ(PromMetricSLZBase):
     res_id = serializers.CharField(required=True)
 
+
 class PromPodMetricSLZ(PromMetricSLZBase):
     """Pod数据查询
     """
+
     res_id_list = serializers.CharField(required=True)
 
     def validate_res_id_list(self, res_id_list):
-        res_id_list = res_id_list.split(',')
+        res_id_list = res_id_list.split(",")
         return res_id_list
+
+
+class PromContainerMetricSLZ(PromMetricSLZBase):
+    """容器数据查询
+    """
+
+    res_id_list = serializers.CharField(required=False)
+    pod_name = serializers.CharField(required=False)
+
+    def validate_res_id_list(self, res_id_list):
+        res_id_list = res_id_list.split(",")
+        return res_id_list
+
+    def validate(self, data: dict):
+        data = super().validate(data)
+
+        if not (data.get("res_id_list") or data.get("pod_name")):
+            raise ValidationError(_("res_id_list, pod_name不能同时为空"))
+
+        data.setdefault("pod_name", ".*")
+        data.setdefault("res_id_list", [".*"])
+
+        return data
+
+
+class ServiceMonitorSLZ(serializers.Serializer):
+    """ServiceMonitor创建
+    """
+
+    name = serializers.CharField()
+    cluster_id = serializers.CharField()
+    namespace = serializers.CharField()
+    service_name = serializers.CharField()
+    selector = serializers.JSONField()
+    path = serializers.CharField()
+    interval = serializers.IntegerField()
+    scrape_timeout = serializers.IntegerField()
+    sample_limit = serializers.IntegerField()
+
+
+class ServiceMonitorUpdateSLZ(serializers.Serializer):
+    """ServiceMonitor更新
+    """
+
+    path = serializers.CharField()
+    interval = serializers.IntegerField()
+    scrape_timeout = serializers.IntegerField()
+    sample_limit = serializers.IntegerField()
+    selector = serializers.JSONField()

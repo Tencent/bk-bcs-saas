@@ -70,7 +70,7 @@
                             </template>
                         </span>
                         <span class="refresh-wrapper">
-                            <bk-tooltip class="refresh" :content="$t('刷新')" :delay="500" placement="top">
+                            <bk-tooltip class="refresh" :content="$t('重置')" :transfer="true" :placement="'top-end'">
                                 <button class="bk-button bk-default is-outline is-icon" @click="refresh">
                                     <i class="bk-icon icon-refresh"></i>
                                 </button>
@@ -537,6 +537,7 @@
 </template>
 
 <script>
+    import axios from 'axios'
     import Clipboard from 'clipboard'
     import { catchErrorHandler } from '@open/common/util'
     import LoadingCell from '../cluster/loading-cell'
@@ -581,8 +582,6 @@
                 pageLoading: false,
                 nodeList: [],
                 curPageData: [],
-                curNode: null,
-                curNodeIndex: 0,
                 // for search
                 nodeListTmp: [],
                 pageConf: {
@@ -1340,10 +1339,13 @@
                 }
 
                 const nodeIdList = []
-                if (this.checkedNodeList.length) {
-                    nodeIdList.push(...this.checkedNodeList.map(checkedNode => checkedNode.id))
+
+                if (this.curRowNode) {
+                    nodeIdList.push(this.curRowNode.id)
                 } else {
-                    nodeIdList.push((this.curRowNode || {}).id)
+                    if (this.checkedNodeList.length) {
+                        nodeIdList.push(...this.checkedNodeList.map(checkedNode => checkedNode.id))
+                    }
                 }
 
                 try {
@@ -1352,13 +1354,12 @@
                         projectId: this.projectId,
                         node_id_list: nodeIdList,
                         node_label_info: labelInfo
-                        // cluster_id: this.checkedNodeList.map(checkedNode => checkedNode.cluster_id)[0]
                     })
 
                     this.hideSetLabel()
                     this.checkedNodeList.splice(0, this.checkedNodeList.length, ...[])
                     setTimeout(() => {
-                        this.curRowNode = Object.assign({}, {})
+                        this.curRowNode = null
                         this.fetchData()
                     }, 200)
                 } catch (e) {
@@ -1376,6 +1377,7 @@
              * 设置标签 sideslder 取消按钮
              */
             hideSetLabel () {
+                this.curRowNode = null
                 this.setLabelConf.isShow = false
                 this.labelList.splice(0, this.labelList.length, ...[])
             },
@@ -1475,12 +1477,41 @@
              * 节点导出
              */
             async exportNode () {
-                const link = document.createElement('a')
-                link.style.display = 'none'
-                link.href = `${DEVOPS_BCS_API_URL}/api/projects/${this.projectId}/nodes/export/?cluster_id=`
-                    + `${this.curSelectedClusterId === 'all' ? '' : this.curSelectedClusterId}`
-                document.body.appendChild(link)
-                link.click()
+                // const link = document.createElement('a')
+                // link.style.display = 'none'
+                // link.href = `${DEVOPS_BCS_API_URL}/api/projects/${this.projectId}/nodes/export/?cluster_id=`
+                //     + `${this.curSelectedClusterId === 'all' ? '' : this.curSelectedClusterId}`
+                // document.body.appendChild(link)
+                // link.click()
+
+                const url = `${DEVOPS_BCS_API_URL}/api/projects/${this.projectId}/nodes/export/`
+
+                const response = await axios({
+                    url: url,
+                    method: 'post',
+                    responseType: 'blob', // 这句话很重要
+                    data: {
+                        cluster_id: this.curSelectedClusterId === 'all' ? '' : this.curSelectedClusterId
+                    }
+                })
+
+                if (response.status !== 200) {
+                    console.log('系统异常，请稍候再试')
+                    return
+                }
+
+                const blob = new Blob([response.data], { type: response.headers['content-type'] })
+                const a = window.document.createElement('a')
+                const downUrl = window.URL.createObjectURL(blob)
+                let filename = 'download.xls'
+                const contentDisposition = response.headers['content-disposition']
+                if (contentDisposition && contentDisposition.indexOf('filename=') !== -1) {
+                    filename = contentDisposition.split('filename=')[1]
+                    a.href = downUrl
+                    a.download = filename || 'download.xls'
+                    a.click()
+                    window.URL.revokeObjectURL(downUrl)
+                }
             }
         }
     }

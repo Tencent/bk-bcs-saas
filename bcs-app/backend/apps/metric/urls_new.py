@@ -11,45 +11,48 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-from django.conf.urls import url
+from django.conf.urls import url, include
 from . import views
 
+cluster_urlpatterns = [
+    # 监控信息(New)
+    url(r"^overview/$", views.performance.Cluster.as_view({"get": "overview"})),
+    url(r"^cpu_usage/$", views.performance.Cluster.as_view({"get": "cpu_usage"})),
+    url(r"^memory_usage/$", views.performance.Cluster.as_view({"get": "memory_usage"})),
+    url(r"^disk_usage/$", views.performance.Cluster.as_view({"get": "disk_usage"})),
+    url(r"^node/overview/$", views.performance.Node.as_view({"get": "overview"})),
+    url(r"^node/info/$", views.performance.Node.as_view({"get": "info"})),
+    url(r"^node/cpu_usage/$", views.performance.Node.as_view({"get": "cpu_usage"})),
+    url(r"^node/memory_usage/$", views.performance.Node.as_view({"get": "memory_usage"})),
+    url(r"^node/network_receive/$", views.performance.Node.as_view({"get": "network_receive"})),
+    url(r"^node/network_transmit/$", views.performance.Node.as_view({"get": "network_transmit"})),
+    url(r"^node/diskio_usage/$", views.performance.Node.as_view({"get": "diskio_usage"})),
+    url(r"^pod/cpu_usage/$", views.performance.Pod.as_view({"get": "cpu_usage"})),
+    url(r"^pod/memory_usage/$", views.performance.Pod.as_view({"get": "memory_usage"})),
+    url(r"^pod/network_receive/$", views.performance.Pod.as_view({"get": "network_receive"})),
+    url(r"^pod/network_transmit/$", views.performance.Pod.as_view({"get": "network_transmit"})),
+    url(r"^container/cpu_usage/$", views.performance.Container.as_view({"get": "cpu_usage"})),
+    url(r"^container/cpu_limit/$", views.performance.Container.as_view({"get": "cpu_limit"})),
+    url(r"^container/memory_usage/$", views.performance.Container.as_view({"get": "memory_usage"})),
+    url(r"^container/memory_limit/$", views.performance.Container.as_view({"get": "memory_limit"})),
+    url(r"^container/disk_read/$", views.performance.Container.as_view({"get": "disk_read"})),
+    url(r"^container/disk_write/$", views.performance.Container.as_view({"get": "disk_write"})),
+    url(r"^servicemonitors/$", views.servicemonitor.ServiceMonitor.as_view({"get": "list", "post": "create"})),
+    url(
+        r"^servicemonitors/(?P<namespace>[\w-]+)/(?P<name>[\w-]+)/$",
+        views.servicemonitor.ServiceMonitor.as_view({"get": "get", "delete": "delete", "put": "update"}),
+    ),
+    url(
+        r"^servicemonitors/(?P<namespace>[\w-]+)/(?P<name>[\w-]+)/targets/$",
+        views.servicemonitor.Targets.as_view({"get": "list"}),
+    ),
+]
+
+metrics_urlpatterns = [
+    url(r"^servicemonitors/$", views.servicemonitor.ServiceMonitor.as_view({"get": "list", "post": "create"}),),
+]
 
 urlpatterns = [
-    # 监控信息(New)
-    url(r'^overview/$',
-        views.performance.Cluster.as_view({'get': 'overview'})),
-
-    url(r'^cpu/$',
-        views.performance.Cluster.as_view({'get': 'cpu_usage'})),
-
-    url(r'^memory/$',
-        views.performance.Cluster.as_view({'get': 'memory_usage'})),
-
-    url(r'^disk/$',
-        views.performance.Cluster.as_view({'get': 'disk_usage'})),
-
-    url(r'^node/cpu/$',
-        views.performance.Node.as_view({'get': 'cpu_usage'})),
-
-    url(r'^node/memory/$',
-        views.performance.Node.as_view({'get': 'memory_usage'})),
-
-    url(r'^node/network/$',
-        views.performance.Node.as_view({'get': 'network_usage'})),
-
-    url(r'^node/diskio/$',
-        views.performance.Node.as_view({'get': 'diskio_usage'})),
-
-    url(r'^container/cpu/$',
-        views.performance.Container.as_view({'get': 'cpu_usage'})),
-
-    url(r'^container/memory/$',
-        views.performance.Container.as_view({'get': 'memory_usage'})),
-
-    url(r'^container/network/$',
-        views.performance.Container.as_view({'get': 'network_usage'})),
-
-    url(r'^container/diskio/$',
-        views.performance.Container.as_view({'get': 'diskio_usage'})),
+    url(r"^clusters/(?P<cluster_id>[\w-]+)/metrics/", include(cluster_urlpatterns)),
+    url(r"^metrics/", include(metrics_urlpatterns)),
 ]

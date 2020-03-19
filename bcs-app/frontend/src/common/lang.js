@@ -246,7 +246,7 @@ export default {
     '确定强制删除节点？': ['Confirm want to delete the node?'],
     '确定移除故障节点：{innerIp}？': ['Confirm to remove the failed node: {innerIp}?'],
     '确定移除故障节点？': ['Confirm to remove the failed node'],
-    '确定要对{len}个节点进行{str}操作？': ['Confirm to {str} on {len} nodes?'],
+    '重置': ['Reset'],
     '请输入集群名称': ['Please enter the cluster name'],
     '必填项，不超过64个字符': ['Required, no more than 64 characters'],
     '集群描述：': ['Desc: '],
@@ -609,7 +609,7 @@ export default {
     'Pod数量上限/节点': ['Number of Pods per node'],
     '重新添加': ['ReInstall'],
     '所选节点均处于初始化失败状态时才允许此操作': ['Allow this operation only if the selected nodes are in an initialization failure state'],
-    
+
     '规则"{name}"的Service名称：请选择Service名称': ['Service name for rule "{name}": Please select a service name'],
     '规则"{name}"的协议：请选择协议': ['Protocol for rule "{name}": Please select a protocol'],
     '规则"{name}"的端口：请选择端口': ['Port for rule "{name}": Please select a port'],
@@ -638,6 +638,14 @@ export default {
     '客户端证书ID': ['CertCaId'],
     '客户端证书的 ID，如果 mode=mutual，监听器如果不填写此项则必须上传客户端证书，包括 certClientCaName，certCilentCaContent': ['CertCaId. If mode = mutual, the listener must upload the client certificate if it is not filled in, including certClientCaName, certCilentCaContent'],
     '请通过模板集创建Ingress': ['Please create an Ingress from a TemplateSet'],
+
+    '访问权限': ['Access Mode'],
+    '回收策略': ['Reclaim Policy'],
+    '云盘类型': ['Cloud Type'],
+    '计费模式': ['Billing'],
+    '升级': ['Upgrade'],
+    '确定要升级新版本': ['Confirm to Upgrade'],
+    '升级大约需要 1~2 分钟，请勿重复提交；升级过程中 Prometheus 服务将会重启，数据无损失': ['Upgrade takes about 1 to 2 minutes and do not repeat submissions; Prometheus service will be restarted without losses'],
     // 变量的使用 $t('test', { vari1: 1, vari2: 2 })
     'test': ['{vari1} ---english--- {vari2}']
 }

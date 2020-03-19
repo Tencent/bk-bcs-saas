@@ -22,3 +22,9 @@ def enabled_sync_namespace(project_id: str) -> bool:
     """是否允许非导航【命名空间】页面创建的命名空间数据
     """
     return True
+
+
+def enabled_force_sync_chart_repo(project_id: str) -> bool:
+    """是否允许强制同步仓库数据
+    """
+    return False

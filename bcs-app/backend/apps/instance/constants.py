@@ -298,8 +298,9 @@ K8S_ENV_KEY = {
 K8S_IMAGE_SECRET_PRFIX = 'paas.image.registry.'
 
 # mesos 镜像仓库Secret名称
-MESOS_IMAGE_SECRET = 'paas_image_secret'
-
+MESOS_IMAGE_SECRET = 'paas-image-secret'
+# 保留先前，用以secret列表展示时，权限的处理
+OLD_MESOS_IMAGE_SECRET = 'paas_image_secret'
 # 负载均衡的配置文件
 """
 service 中添加:

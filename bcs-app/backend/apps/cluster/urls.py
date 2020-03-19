@@ -18,12 +18,18 @@ urlpatterns = [
     url(r'^api/projects/(?P<project_id>[\w\-]+)/clusters/?$',
         views.ClusterCreateListViewSet.as_view({'get': 'list', 'post': 'create'}),
         name='api.projects.clusters.create'),
+    url(r'^api/projects/(?P<project_id>[\w\-]+)/clusters/simple/$',
+        views.ClusterCreateListViewSet.as_view({'get': 'list_clusters'})),
     url(
         r'^api/projects/(?P<project_id>[\w\-]+)/cluster/(?P<cluster_id>[\w\-]+)/?$',
         views.ClusterCreateGetUpdateViewSet.as_view({
             'get': 'retrieve', 'put': 'update', 'post': 'reinstall'
         }),
         name='api.projects.cluster',
+    ),
+    url(
+        r'^api/projects/(?P<project_id>[\w\-]+)/clusters/(?P<cluster_id>[\w\-]+)/namespaces/$',
+        views.NamespaceViewSet.as_view({'get': 'list_namespaces'}),
     ),
     url(
         r'^api/projects/(?P<project_id>[\w\-]+)/cluster/(?P<cluster_id>[\w\-]+)/opers/$',
@@ -60,7 +66,8 @@ urlpatterns = [
         views.NodeCreateListViewSet.as_view({'post': 'post_node_list'}),
     ),
     url(
-        r'^api/projects/(?P<project_id>[\w\-]+)/cluster/(?P<cluster_id>[\w\-]+)/node/(?P<node_id>[\w\-]+)/logs/?$',  # noqa
+        r'^api/projects/(?P<project_id>[\w\-]+)/cluster/(?P<cluster_id>[\w\-]+)/node/(?P<node_id>[\w\-]+)/logs/?$',
+        # noqa
         views.NodeUpdateLogView.as_view({'get': 'get'}),
         name='api.projects.node_update_log',
     ),
@@ -76,7 +83,8 @@ urlpatterns = [
     ),
 
     url(
-        r'^api/projects/(?P<project_id>[\w\-]+)/cluster/(?P<cluster_id>[\w\-]+)/node/(?P<node_id>[\w\-]+)/failed_delete/?$',  # noqa
+        r'^api/projects/(?P<project_id>[\w\-]+)/cluster/(?P<cluster_id>[\w\-]+)/node/(?P<node_id>[\w\-]+)/failed_delete/?$',
+        # noqa
         views.FailedNodeDeleteViewSet.as_view({'delete': 'delete'})
     ),
     url(
@@ -123,12 +131,14 @@ urlpatterns = [
     url(r'^api/projects/(?P<project_id>\w{32})/node_label_list/$',
         views.NodeLabelListViewSet.as_view({'get': 'list'})),
     url(
-        r'^api/projects/(?P<project_id>[\w\-]+)/clusters/(?P<cluster_id>[\w\-]+)/nodes/(?P<node_id>[\w\-]+)/force_delete/$',  # noqa
+        r'^api/projects/(?P<project_id>[\w\-]+)/clusters/(?P<cluster_id>[\w\-]+)/nodes/(?P<node_id>[\w\-]+)/force_delete/$',
+        # noqa
         views.NodeForceDeleteViewSet.as_view({'delete': 'delete'}),
         name='api.projects.node.force_delete',
     ),
     url(
-        r'^api/projects/(?P<project_id>[\w\-]+)/clusters/(?P<cluster_id>[\w\-]+)/nodes/(?P<node_id>[\w\-]+)/pods/scheduler/$',  # noqa
+        r'^api/projects/(?P<project_id>[\w\-]+)/clusters/(?P<cluster_id>[\w\-]+)/nodes/(?P<node_id>[\w\-]+)/pods/scheduler/$',
+        # noqa
         views.RescheduleNodePods.as_view({'put': 'put'}),
         name='api.projects.node.pod_taskgroup.reschedule',
     )
@@ -162,7 +172,7 @@ urlpatterns += [
     ),
     url(
         r'^api/projects/(?P<project_id>[\w\-]+)/nodes/export/$',
-        views.ExportNodes.as_view({'get': 'export'})
+        views.ExportNodes.as_view({'post': 'export'})
     )
 
 ]
@@ -178,6 +188,7 @@ urlpatterns += [
 # 导入版本特定urls
 try:
     from backend.apps.cluster.urls_bk import urlpatterns as urlpatterns_bk
+
     urlpatterns += urlpatterns_bk
 except ImportError:
     pass

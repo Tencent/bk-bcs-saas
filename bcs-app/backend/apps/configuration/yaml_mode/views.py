@@ -75,7 +75,7 @@ class YamlTemplateViewSet(viewsets.ViewSet, TemplatePermission):
             'desc': '',
             'show_version': {
                 'name': '',
-                'show_version_id': '',
+                'old_show_version_id': '',
             }
             'template_files': [{
                 'resource_name': 'Deployment',
