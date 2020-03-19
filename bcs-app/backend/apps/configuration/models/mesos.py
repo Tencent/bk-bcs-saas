@@ -143,8 +143,8 @@ class Application(MesosResource, PodMixin):
 
         if not is_simple:
             # 兼容处理configmap和secret挂载卷时，指定账户
-            if 'volumeUsers' not in c['webCache']:
-                self._set_default_volume_users(c)
+            if 'volumeUsers' not in c['config']['webCache']:
+                self._set_default_volume_users(c['config'])
 
             c.update({
                 'desc': self.desc,
