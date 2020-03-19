@@ -175,6 +175,23 @@ export default {
                         if (!container.hasOwnProperty('workingDir')) {
                             container.workingDir = ''
                         }
+
+                        // 将挂载卷的用户数据回填
+                        let volumeUsers = {}
+                        if (item.config.webCache.volumeUsers) {
+                            volumeUsers = item.config.webCache.volumeUsers[container.name] || {}
+                        }
+                        container.volumes.forEach(volumeItem => {
+                            if (!volumeItem.volume.user) {
+                                volumeItem.volume.user = ''
+                            }
+                            const userKey = `${volumeItem.type}:${volumeItem.name}:${volumeItem.volume.hostPath}:${volumeItem.volume.mountPath}` 
+                            for (const key in volumeUsers) {
+                                if (key === userKey) {
+                                    volumeItem.volume.user = volumeUsers[key]
+                                }
+                            }
+                        })
                     })
                 })
 
