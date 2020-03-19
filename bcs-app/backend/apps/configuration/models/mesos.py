@@ -141,11 +141,11 @@ class Application(MesosResource, PodMixin):
     def get_res_config(self, is_simple):
         c = super().get_res_config(is_simple)
 
-        # 兼容处理configmap和secret挂载卷时，指定账户
-        if 'volumeUsers' not in c['webCache']:
-            self._set_default_volume_users(c)
-
         if not is_simple:
+            # 兼容处理configmap和secret挂载卷时，指定账户
+            if 'volumeUsers' not in c['webCache']:
+                self._set_default_volume_users(c)
+
             c.update({
                 'desc': self.desc,
                 'app_id': self.app_id
