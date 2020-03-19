@@ -19,6 +19,7 @@ from django.utils.translation import ugettext_lazy as _
 
 from .mixins import MConfigMapAndSecretMixin, PodMixin, ResourceMixin
 from .base import BaseModel, logger
+from backend.utils.basic import getitems
 
 
 class MesosResource(BaseModel):
@@ -83,6 +84,7 @@ class Secret(MesosResource, MConfigMapAndSecretMixin):
     """
     pass
 
+
 class HPA(MesosResource, MConfigMapAndSecretMixin):
     """HPA数据表
     """
@@ -113,8 +115,30 @@ class Application(MesosResource, PodMixin):
         kwargs['app_id'] = old_app.app_id
         return super().perform_update(old_id, **kwargs)
 
+    def _set_volume_users(self, config):
+        if config['webCache'].get('volume_users'):
+            return
+
+        volumes = getitems(config, ['spec', 'template', 'spec', 'containers', 'volumes'], default=[])
+        if not volumes:
+            return
+
+        volume_users = {}
+        for v in volumes:
+            if v['type'] == 'configmap':
+                volume_users[f"configmap-{v['name']}"] = 'root'
+            elif v['type'] == 'secret':
+                volume_users[f"secret-{v['name']}"] = 'user00'
+
+        if volume_users:
+            config['webCache']['volume_users'] = volume_users
+
     def get_res_config(self, is_simple):
         c = super().get_res_config(is_simple)
+
+        # 兼容处理configmap和secret挂载卷时，指定账户
+        self._set_volume_users(c)
+
         if not is_simple:
             c.update({
                 'desc': self.desc,

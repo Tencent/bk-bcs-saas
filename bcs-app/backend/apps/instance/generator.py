@@ -591,7 +591,7 @@ class ApplicationProfileGenerator(MesosProfileGenerator):
             volumes = _c.get('volumes')
             config_map_dict = {}
             sercret_dict = {}
-            handle_volumes(volumes, config_map_dict,
+            handle_volumes(volumes, db_config.get('webCache', {}).get('volume_users', {}), config_map_dict,
                            sercret_dict, self.template_id)
 
             # 2.5 处理 环境变量
@@ -889,7 +889,7 @@ def handle_intersection_item(intersection_item):
     return new_intersection_item
 
 
-def handle_volumes(volumes, config_map_dict, sercret_dict, template_id):
+def handle_volumes(volumes, volume_users, config_map_dict, sercret_dict, template_id):
     for _v in range(len(volumes) - 1, -1, -1):
         _v_value = volumes[_v]
         _name = _v_value.get('name')
@@ -914,7 +914,7 @@ def handle_volumes(volumes, config_map_dict, sercret_dict, template_id):
             _item_list.append({
                 'type': 'file',
                 'readOnly': False,
-                'user': 'root',
+                'user': volume_users.get(f"configmap-{_real_name}", ''),
                 'dataKey': _data_key,
                 'dataKeyAlias': _data_key,
                 'KeyOrPath': mount_path,
@@ -926,7 +926,7 @@ def handle_volumes(volumes, config_map_dict, sercret_dict, template_id):
             _item_list.append({
                 'type': 'file',
                 'readOnly': False,
-                'user': 'user00',
+                'user': volume_users.get(f"configmap-{_real_name}", ''),
                 'dataKey': _data_key,
                 'KeyOrPath': mount_path,
             })
