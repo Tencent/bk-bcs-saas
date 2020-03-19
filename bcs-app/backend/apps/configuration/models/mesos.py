@@ -116,7 +116,7 @@ class Application(MesosResource, PodMixin):
         return super().perform_update(old_id, **kwargs)
 
     def _set_volume_users(self, config):
-        if config['webCache'].get('volume_users'):
+        if config['webCache'].get('volumeUsers'):
             return
 
         volumes = getitems(config, ['spec', 'template', 'spec', 'containers', 'volumes'], default=[])
@@ -132,7 +132,7 @@ class Application(MesosResource, PodMixin):
                 volume_users[f"{v['type']}:{v['name']}:{vol['hostPath']}:{vol['mountPath']}"] = 'user00'
 
         if volume_users:
-            config['webCache']['volume_users'] = volume_users
+            config['webCache']['volumeUsers'] = volume_users
 
     def get_res_config(self, is_simple):
         c = super().get_res_config(is_simple)

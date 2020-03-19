@@ -591,7 +591,7 @@ class ApplicationProfileGenerator(MesosProfileGenerator):
             volumes = _c.get('volumes')
             config_map_dict = {}
             sercret_dict = {}
-            handle_volumes(volumes, db_config.get('webCache', {}).get('volume_users', {}), config_map_dict,
+            handle_volumes(volumes, db_config.get('webCache', {}).get('volumeUsers', {}), config_map_dict,
                            sercret_dict, self.template_id)
 
             # 2.5 处理 环境变量
