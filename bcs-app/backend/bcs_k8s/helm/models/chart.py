@@ -322,6 +322,7 @@ class ChartReleaseManager(models.Manager):
             release_type=constants.ChartReleaseTypes.ROLLBACK.value,
             valuefile=release.valuefile,
             valuefile_name=release.valuefile_name,
+            revision=release.revision
         )
 
 
@@ -354,6 +355,8 @@ class ChartRelease(BaseTSModel):
     content = models.TextField(null=True, default="")
     # list of {"name": "", "kind": ""}
     structure = JSONField(null=True, default=[])
+    # 记录release的revision
+    revision = models.IntegerField(default=0, help_text="用来标识helm release的升级版本")
 
     objects = ChartReleaseManager()
 
@@ -412,7 +415,8 @@ class ChartRelease(BaseTSModel):
             name=self.app.name,
             namespace=namespace,
             parameters=self.parameters,
-            valuefile=self.generate_valuesyaml(self.app.project_id, self.app.namespace_id, self.app.cluster_id)
+            valuefile=self.generate_valuesyaml(self.app.project_id, self.app.namespace_id, self.app.cluster_id),
+            cluster_id=self.app.cluster_id
         )
 
         return content, notes

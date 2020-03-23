@@ -555,6 +555,7 @@ class AppRollbackSelectionsSLZ(serializers.Serializer):
     short_name = serializers.CharField(max_length=64)
     version = serializers.CharField(max_length=64)
     created_at = serializers.DateTimeField(format="%Y-%m-%d %H:%M:%S")
+    revision = serializers.IntegerField()
 
 
 class AppReleaseDiffSLZ(serializers.Serializer):

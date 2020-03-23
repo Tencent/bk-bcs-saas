@@ -147,9 +147,10 @@ class KubeHelmClient:
 
         return template_out, notes_out
 
-    def install(self, name, namespace, tmpl_content, chart_name, chart_version, chart_api_version):
-        """install helm release
-        NOTE: 这里需要组装chart格式，才能使用helm install; 必要条件
+    def install(self, name, namespace, tmpl_content, chart_name, chart_version, chart_values, chart_api_version):
+        """install helm chart
+        NOTE: 这里需要组装chart格式，才能使用helm install
+        必要条件
         - Chart.yaml
         - templates/xxx.yaml
         步骤:
@@ -159,7 +160,8 @@ class KubeHelmClient:
         """
         temp_dir = tempfile.mkdtemp()
         try:
-            root_dir = write_chart_files(temp_dir, tmpl_content, chart_name, chart_version, chart_api_version)
+            root_dir = write_chart_files(
+                temp_dir, tmpl_content, chart_name, chart_version, chart_values, chart_api_version)
             install_cmd_args = [
                 settings.HELM3_BIN,
                 "install",
@@ -171,10 +173,78 @@ class KubeHelmClient:
             cmd_out, cmd_err = self._run_command_with_retry(max_retries=0, cmd_args=install_cmd_args)
         except Exception as e:
             logger.exception(
-                "install helm chart error: names=%s, namespace=%s, content=%s", name, namespace, tmpl_content)
+                "实例化chart失败: name=%s, namespace=%s, content=%s", name, namespace, tmpl_content)
             raise e
         finally:
             shutil.rmtree(temp_dir)
+
+        return cmd_out, cmd_err
+
+    def upgrade(self, name, namespace, tmpl_content, chart_name, chart_version, chart_values, chart_api_version):
+        """upgrade helm release
+        NOTE: 这里需要组装chart格式，才能使用helm upgrade
+        必要条件
+        - Chart.yaml
+        - templates/xxx.yaml
+        步骤:
+        - 写临时文件, 用于组装chart结构
+        - 组装命令行参数
+        - 执行命令
+        """
+        temp_dir = tempfile.mkdtemp()
+        try:
+            root_dir = write_chart_files(
+                temp_dir, tmpl_content, chart_name, chart_version, chart_values, chart_api_version)
+            upgrade_cmd_args = [
+                settings.HELM3_BIN,
+                "upgrade",
+                name,
+                root_dir,
+                "--namespace",
+                namespace
+            ]
+            cmd_out, cmd_err = self._run_command_with_retry(max_retries=0, cmd_args=upgrade_cmd_args)
+        except Exception as e:
+            logger.exception(
+                "升级release失败: name=%s, namespace=%s, content=%s", name, namespace, tmpl_content)
+            raise e
+        finally:
+            shutil.rmtree(temp_dir)
+
+        return cmd_out, cmd_err
+
+    def uninstall(self, name, namespace):
+        """uninstall helm release"""
+        try:
+            uninstall_cmd_args = [
+                settings.HELM3_BIN,
+                "uninstall",
+                name,
+                "--namespace",
+                namespace
+            ]
+            cmd_out, cmd_err = self._run_command_with_retry(max_retries=0, cmd_args=uninstall_cmd_args)
+        except Exception as e:
+            logger.exception("删除release失败: name=%s, namespace=%s", name, namespace)
+            raise e
+
+        return cmd_out, cmd_err
+
+    def rollback(self, name, namespace, revision):
+        """rollback helm release by revision"""
+        try:
+            rollback_cmd_args = [
+                settings.HELM3_BIN,
+                "rollback",
+                name,
+                str(revision),
+                "--namespace",
+                namespace
+            ]
+            cmd_out, cmd_err = self._run_command_with_retry(max_retries=0, cmd_args=rollback_cmd_args)
+        except Exception as e:
+            logger.exception("回滚release失败: name=%s, namespace=%s， revision=%s", name, namespace, revision)
+            raise e
 
         return cmd_out, cmd_err
 
@@ -220,7 +290,7 @@ class KubeHelmClient:
             raise HelmError("run helm command failed: {}".format(err))
 
 
-def write_chart_files(temp_dir, tmpl_content, chart_name, chart_version, chart_api_version):
+def write_chart_files(temp_dir, tmpl_content, chart_name, chart_version, chart_values, chart_api_version):
     """创建chart结构
     - Chart.yaml
     - templates/xxx.yaml
@@ -235,5 +305,10 @@ def write_chart_files(temp_dir, tmpl_content, chart_name, chart_version, chart_a
     # 写templates下的内容
     with open(tmpl_content_path, "w") as f:
         f.write(tmpl_content)
+
+    values_path = os.path.join(temp_dir, "values.yaml")
+    # 写values是可选的，写入的目的主要是因为helm get values，获取线上的相关信息
+    with open(values_path, "w") as f:
+        f.write(chart_values)
 
     return temp_dir
