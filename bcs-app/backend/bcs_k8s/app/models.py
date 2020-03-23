@@ -397,7 +397,7 @@ class App(models.Model):
         return releases
 
     def get_upgrade_version_selections(self):
-        options = list(self.chart.versions.values("id", "version").order_by("-id"))
+        options = list(self.chart.versions.values("id", "version").order_by("-created"))
         release = self.release
         current_version = [{
             "id": KEEP_TEMPLATE_UNCHANGED,
