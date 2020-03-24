@@ -294,7 +294,7 @@ def get_node_metrics_order(metric, app_id, ip, start_at=None, end_at=None, limit
     return data
 
 
-def get_container_logs(container_id=None, index=None):
+def get_container_logs(username, container_id=None, index=None):
     """查询容器日志
     """
     sql_payload = {
