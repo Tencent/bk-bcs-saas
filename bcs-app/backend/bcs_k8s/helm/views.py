@@ -80,7 +80,7 @@ class ChartView(ActionSerializerMixin, viewsets.ModelViewSet):
 
 @with_code_wrapper
 class ChartVersionView(ActionSerializerMixin, viewsets.ModelViewSet):
-    queryset = ChartVersion.objects.all().order_by("-created_at")
+    queryset = ChartVersion.objects.all().order_by("-created")
     serializer_class = ChartVersionSLZ
     pagination_class = LargeResultsSetPagination
     lookup_field = "pk"
