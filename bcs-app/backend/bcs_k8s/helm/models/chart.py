@@ -42,7 +42,7 @@ class Chart(BaseTSModel):
     """
     name = models.CharField(max_length=50)
     repository = models.ForeignKey("Repository")
-    description = models.CharField(max_length=1000)
+    description = models.CharField(max_length=1000, blank=True, null=True, default="")
     defaultChartVersion = models.ForeignKey("ChartVersion", related_name="default_chart_version",
                                             null=True, on_delete=models.SET_NULL)
     # base64, format: [data:{content-type};base64,b64string]
@@ -107,7 +107,7 @@ class BaseChartVersion(BaseTSModel):
     """
     name = models.CharField(max_length=50)
     home = models.CharField(max_length=200, null=True)
-    description = models.CharField(max_length=1000)
+    description = models.CharField(max_length=1000, blank=True, null=True, default="")
     engine = models.CharField(max_length=20)
 
     created = models.DateTimeField()
