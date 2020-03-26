@@ -795,8 +795,12 @@ class VersionedEntity(BaseModel):
             if not item_ids:
                 continue
             item_id_list = item_ids.split(',')
-            item_objects = MODULE_DICT.get(
-                item).objects.filter(id__in=item_id_list)
+
+            try:
+                item_objects = MODULE_DICT.get(item).objects.filter(id__in=item_id_list)
+            except AttributeError:
+                logger.error(f'parse VersionedEntity(id:{self.id}) error: MODULE_DICT has no attribute {item}')
+                raise
 
             # k8s原生ingress需要生成包含证书信息的secret
             if item in ['K8sIngress']:
