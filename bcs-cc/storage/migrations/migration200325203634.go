@@ -27,16 +27,16 @@ func (c *MigrationCommand) HandleMigrate200325203634(db *gorm.DB) error {
 		Extra     string `json:"extra" sql:"type:text"`
 	}
 
-	type BcsServiceConf struct {
+	type BcsServiceConfig struct {
 		Model
-		KindName      string `json:"kind_name" gorm:"size:16"`
-		Environment   string `json:"environment" gorm:"size:16;unique_index:uix_kind_name_environment"`
-		Description   string `json:"description" sql:"size:256"`
-		Configuration string `json:"configuration" sql:"type:text"`
-		Creator       string `json:"creator" gorm:"size:32"`
+		KindName    string `json:"kind_name" gorm:"size:16;unique_index:uix_kind_name_environment"`
+		Environment string `json:"environment" gorm:"size:16;unique_index:uix_kind_name_environment"`
+		Description string `json:"description" sql:"size:256"`
+		Config      string `json:"config" sql:"type:text"`
+		Creator     string `json:"creator" gorm:"size:32"`
 	}
 
-	return db.AutoMigrate(&BcsServiceConf{}).Error
+	return db.AutoMigrate(&BcsServiceConfig{}).Error
 }
 
 // HandleRollback200325203634 : rollback handler for HandleMigrate200325203634

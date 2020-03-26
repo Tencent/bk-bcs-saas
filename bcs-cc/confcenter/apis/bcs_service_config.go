@@ -9,16 +9,14 @@
  * specific language governing permissions and limitations under the License.
  */
 
-package models
+package apis
 
-// BcsServiceConf : 用于存储bcs service层的信息
-//go:generate goqueryset -in ${GOFILE} -out qs_${GOFILE}
-// gen:qs
-type BcsServiceConf struct {
-	Model
-	KindName      string `json:"kind_name" gorm:"size:16"`
-	Environment   string `json:"environment" gorm:"size:16;unique_index:uix_kind_name_environment"`
-	Description   string `json:"description" sql:"size:256"`
-	Configuration string `json:"configuration" sql:"type:text"`
-	Creator       string `json:"creator" gorm:"size:32"`
+import (
+	"github.com/gin-gonic/gin"
+)
+
+// BcsSericeConfig : get bcs service config
+func BcsSericeConfig(c *gin.Context) {
+	kindName := c.Query("kind_name")
+	environment := c.Query("environment")
 }
