@@ -13,11 +13,10 @@ package models
 
 import (
 	"bcs_cc/storage"
-	"fmt"
 )
 
 // BcsServiceConfig : 用于存储bcs service层的信息
-//go:generate /System/Volumes/Data/Users/bellke/Desktop/project/myself/open_source/bcs_cc/bin/goqueryset -in ${GOFILE} -out qs_${GOFILE}
+//go:generate goqueryset -in ${GOFILE} -out qs_${GOFILE}
 // gen:qs
 type BcsServiceConfig struct {
 	Model
@@ -31,6 +30,9 @@ type BcsServiceConfig struct {
 // BcsServiceConfigListInfo :
 func BcsServiceConfigListInfo(environment string, kindName string) (data []BcsServiceConfig, err error) {
 	BcsServiceConfig := NewBcsServiceConfigQuerySet(storage.GetDefaultSession().DB)
-	fmt.Println(BcsServiceConfig)
+	qs := BcsServiceConfig.EnvironmentEq(environment).KindNameEq(kindName)
+	if err := qs.All(&data); err != nil {
+		return nil, err
+	}
 	return data, nil
 }

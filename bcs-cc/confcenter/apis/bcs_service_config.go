@@ -12,6 +12,9 @@
 package apis
 
 import (
+	"bcs_cc/storage/models"
+	"bcs_cc/utils"
+
 	"github.com/gin-gonic/gin"
 )
 
@@ -19,4 +22,10 @@ import (
 func BcsSericeConfig(c *gin.Context) {
 	kindName := c.Query("kind_name")
 	environment := c.Query("environment")
+	data, err := models.BcsServiceConfigListInfo(environment, kindName)
+	if err != nil {
+		utils.DBErrorResponse(c, err)
+		return
+	}
+	utils.OKJSONResponse(c, data)
 }

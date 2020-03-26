@@ -153,9 +153,9 @@ func URLConf(engine *gin.Engine) {
 	{
 		clusterVersionConfig.GET("/", apis.ClusterVersionConfig)
 	}
-	// bcsServiceConf := engine.Group("/bcs_service_conf/")
-	// bcsServiceConf.Use(JWTTokenMiddleware())
-	// {
-	// 	bcsServiceConf.GET("/", apis.ZKConfig)
-	// }
+	bcsServiceConf := engine.Group("/bcs_service_config")
+	bcsServiceConf.Use(JWTTokenMiddleware())
+	{
+		bcsServiceConf.GET("/", apis.BcsSericeConfig)
+	}
 }
