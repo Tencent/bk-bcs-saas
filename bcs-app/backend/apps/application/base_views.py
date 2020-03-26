@@ -245,14 +245,14 @@ class BaseAPI(views.APIView):
 
     def get_k8s_pod_info(
             self, request, project_id, cluster_id, ns_name,
-            resource_name=None, field=None, pod_name=None, owner_ref_kind=None):
+            owner_ref_name=None, field=None, pod_name=None, owner_ref_kind=None):
         client = K8SClient(
             request.user.token.access_token,
             project_id, cluster_id, None
         )
         extra_encode = None
-        if resource_name:
-            extra = {"data.metadata.ownerReferences.name": resource_name}
+        if owner_ref_name:
+            extra = {"data.metadata.ownerReferences.name": owner_ref_name}
             if owner_ref_kind:
                 extra["data.metadata.ownerReferences.kind"] = owner_ref_kind
             extra_encode = base64_encode_params(extra)
@@ -311,7 +311,7 @@ class BaseAPI(views.APIView):
                 rs_name = None
             resp = self.get_k8s_pod_info(
                 request, project_id, cluster_id, ns_name,
-                resource_name=rs_name, field=field, pod_name=pod_name,
+                owner_ref_name=rs_name, field=field, pod_name=pod_name,
                 owner_ref_kind=owner_ref_kind
             )
 
