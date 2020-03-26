@@ -183,3 +183,16 @@ RESOURCE_STATUS_FIELD_LIST = [
     'data.spec.replicas',
     'data.spec.completions'
 ]
+
+# 兼容前端传递参数内容
+OWENER_REFERENCE_MAP = {
+    # NOTE: 针对deployment，ownerreference是ReplicaSet
+    "deployment": "ReplicaSet",
+    "K8sDeployment": "ReplicaSet",
+    "daemonset": "DaemonSet",
+    "K8sDaemonSet": "DaemonSet",
+    "statefulset": "StatefulSet",
+    "K8sStatefulSet": "StatefulSet",
+    "job": "Job",
+    "K8sJob": "Job"
+}
