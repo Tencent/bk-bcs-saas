@@ -1181,3 +1181,9 @@
         }
     }
 }
+
+.bk-selector-search-item > input {
+    &::-webkit-input-placeholder {
+        color: #a6b5ca;
+    }
+}

@@ -15,6 +15,7 @@
                     :display-key="'name'"
                     :selected.sync="searchScope"
                     :list="scopeList"
+                    :search-placeholder="searchPlaceholder || $t('请选择集群')"
                     @item-selected="handleSechScope">
                 </bk-selector>
             </template>
@@ -52,6 +53,10 @@
         },
         props: {
             placeholder: {
+                type: String,
+                default: ''
+            },
+            searchPlaceholder: {
                 type: String,
                 default: ''
             },

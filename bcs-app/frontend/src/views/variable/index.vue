@@ -23,6 +23,7 @@
                             :scope-list="searchScopeList"
                             :search-key.sync="searchKeyword"
                             :search-scope.sync="searchScope"
+                            :search-placeholder="$t('请选择作用范围')"
                             @search="searchVar"
                             @refresh="refresh">
                         </bk-data-searcher>

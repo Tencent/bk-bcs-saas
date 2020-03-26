@@ -10,6 +10,7 @@
  */
 
 import http from '@open/api'
+import { json2Query } from '@open/common/util'
 
 export default {
     namespaced: true,
@@ -494,12 +495,12 @@ export default {
          *
          * @return {Promise} promise 对象
          */
-        getServiceList (context, projectId, config = {}) {
+        getServiceList (context, { projectId, params = {} }, config = {}) {
             // return http.get('/app/network?invoke=getServiceList', {}, config).then(res => {
             //     commit('updateServiceList', res.data.data)
             //     return res
             // })
-            return http.get(`${DEVOPS_BCS_API_URL}/api/network/${projectId}/services/`, {}, config).then(res => {
+            return http.get(`${DEVOPS_BCS_API_URL}/api/network/${projectId}/services/?${json2Query(params)}`, {}, config).then(res => {
                 context.commit('updateServiceList', res.data.data)
                 return res
             })
