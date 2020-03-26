@@ -539,3 +539,14 @@ def get_cluster_versions(access_token, ver_id='', env='', kind=''):
     }
     params = {'ver_id': ver_id, 'environment': env, 'kind': kind}
     return http_get(url, params=params, headers=headers)
+
+
+def get_bcs_service_config(access_token, environment="", kind_name=""):
+    url = f'{CC_HOST}/bcs_service_config/'
+    headers = {
+        "X-BKAPI-AUTHORIZATION": json.dumps({
+            "access_token": access_token
+        })
+    }
+    params = {"environment": environment, "kind_name": kind_name}
+    return http_get(url, params=params, headers=headers)
