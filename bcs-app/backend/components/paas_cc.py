@@ -549,4 +549,9 @@ def get_bcs_service_config(access_token, environment="", kind_name=""):
         })
     }
     params = {"environment": environment, "kind_name": kind_name}
-    return http_get(url, params=params, headers=headers)
+    resp = http_get(url, params=params, headers=headers)
+    if not resp.get("code"):
+        raise error_codes.APIError(_("请求bcs服务配置信息失败，{}").format(resp.get("message")))
+    if not resp.get("data"):
+        raise error_codes.APIError(_("请求bcs服务配置信息失败，返回数据为空"))
+    return resp["data"]
