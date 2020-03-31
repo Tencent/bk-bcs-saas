@@ -16,9 +16,6 @@ from backend.apps.constants import ProjectKind
 from backend.components import paas_cc
 from backend.utils.error_codes import error_codes
 from backend.utils.errcodes import ErrorCode
-from backend.apps.variable.models import NameSpaceVariable
-from backend.apps.instance.models import InstanceConfig
-from backend.bcs_k8s.app.models import App
 
 
 class Namespace:
@@ -37,11 +34,7 @@ class Namespace:
         # get namespace info
         cluster_id, ns_name = ns_data.get('cluster_id'), ns_data.get('name')
 
-        self.client.delete(self.access_token, self.project_id, cluster_id, ns_name)
-        # delete db resource record
-        InstanceConfig.objects.filter(namespace=namespace_id).delete()
-        NameSpaceVariable.objects.filter(ns_id=namespace_id).delete()
-        App.objects.filter(namespace_id=namespace_id).delete()
+        self.client.delete(self.access_token, self.project_id, cluster_id, ns_name, namespace_id)
 
         # delete bcs cc record
         ns_resp = paas_cc.delete_namespace(self.access_token, self.project_id, cluster_id, namespace_id)

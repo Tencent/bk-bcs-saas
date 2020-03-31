@@ -24,11 +24,15 @@ from backend.utils.errcodes import ErrorCode
 from backend.apps.constants import K8S_SYS_NAMESPACE, K8S_PLAT_NAMESPACE
 from backend.apps.depot.api import get_jfrog_account, get_bk_jfrog_auth
 from backend.apps.instance.constants import K8S_IMAGE_SECRET_PRFIX
+from backend.apps.configuration.namespace.resources.utils import delete_k8s_records_for_namespace
 
 logger = logging.getLogger(__name__)
 
 
-def delete(access_token, project_id, cluster_id, ns_name):
+def delete(access_token, project_id, cluster_id, ns_name, namespace_id):
+    # 删除k8s相关记录
+    delete_k8s_records_for_namespace(namespace_id, cluster_id=cluster_id, namespace_name=ns_name)
+
     client = K8SClient(access_token, project_id, cluster_id, env=None)
     resp = client.delete_namespace(ns_name)
     if resp.get('code') == ErrorCode.NoError:
