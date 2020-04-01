@@ -22,6 +22,7 @@ from dataclasses import dataclass
 from rest_framework.exceptions import ParseError
 
 from backend.apps.configuration.constants import FileResourceName
+from backend.apps.configuration.models import ShowVersion
 from backend.bcs_k8s.app import bcs_info_injector
 from backend.bcs_k8s.helm import bcs_variable
 
@@ -30,8 +31,9 @@ from backend.bcs_k8s.helm import bcs_variable
 class ReleaseData:
     project_id: str
     namespace_info: dict
-    show_version: OrderedDict
+    show_version: ShowVersion
     template_files: list
+    template_variables: dict
 
 
 class ReleaseDataProcessor:
@@ -43,6 +45,7 @@ class ReleaseDataProcessor:
         self.namespace_info = raw_release_data.namespace_info
         self.show_version = raw_release_data.show_version
         self.template_files = raw_release_data.template_files
+        self.template_variables = raw_release_data.template_variables
 
     def _parse_yaml(self, yaml_content):
         try:
@@ -136,6 +139,9 @@ class ReleaseDataProcessor:
     def release_data(self):
         inject_configs = self._get_inject_configs()
         bcs_variables = self._get_bcs_variables()
+
+        if self.template_variables:
+            bcs_variables.update(self.template_variables)
 
         for res_files in self.template_files:
             for f in res_files['files']:

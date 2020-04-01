@@ -42,7 +42,7 @@ class InitialTemplatesViewSet(viewsets.ViewSet):
 class YamlTemplateViewSet(viewsets.ViewSet, TemplatePermission):
     renderer_classes = (BKAPIRenderer, BrowsableAPIRenderer)
 
-    def _merge_path_params(self, request, **kwargs):
+    def _request_data(self, request, **kwargs):
         request_data = request.data.copy() or {}
         logger.info(json.dumps(request_data))
         request_data.update(**kwargs)
@@ -62,7 +62,7 @@ class YamlTemplateViewSet(viewsets.ViewSet, TemplatePermission):
             }]
         }
         """
-        data = self._merge_path_params(request, project_id=project_id)
+        data = self._request_data(request, project_id=project_id)
         serializer = serializers.CreateTemplateSLZ(data=data, context={'request': request})
         serializer.is_valid(raise_exception=True)
         template = serializer.save()
@@ -84,7 +84,7 @@ class YamlTemplateViewSet(viewsets.ViewSet, TemplatePermission):
         }
         """
         template = get_template_by_project_and_id(project_id, template_id)
-        data = self._merge_path_params(request, project_id=project_id)
+        data = self._request_data(request, project_id=project_id)
         serializer = serializers.UpdateTemplateSLZ(template, data=data, context={'request': request})
         serializer.is_valid(raise_exception=True)
         template = serializer.save()
@@ -123,14 +123,9 @@ class YamlTemplateViewSet(viewsets.ViewSet, TemplatePermission):
 class TemplateReleaseViewSet(viewsets.ViewSet, TemplatePermission):
     renderer_classes = (BKAPIRenderer, BrowsableAPIRenderer)
 
-    def _request_data(self, request, project_id, template_id, show_version_id):
-        request_data = request.data or {}
-        show_version = {
-            'show_version_id': show_version_id,
-            'template_id': template_id,
-            'project_id': project_id
-        }
-        request_data['show_version'] = show_version
+    def _request_data(self, request, **kwargs):
+        request_data = request.data.copy() or {}
+        request_data['show_version'] = kwargs
         return request_data
 
     # TODO use resources module function
@@ -149,7 +144,8 @@ class TemplateReleaseViewSet(viewsets.ViewSet, TemplatePermission):
             project_id=project_id,
             namespace_info=namespace_info,
             show_version=show_version['show_version'],
-            template_files=initial_data['template_files']
+            template_files=initial_data['template_files'],
+            template_variables=initial_data['template_variables']
         )
         return raw_release_data
 
@@ -161,10 +157,12 @@ class TemplateReleaseViewSet(viewsets.ViewSet, TemplatePermission):
             'template_files': [{
                 'resource_name': 'Deployment',
                 'files': [{'name': 'nginx.yaml', 'id': 3}]
-            }]
+            }],
+            'template_variables': {}
         }
         """
-        data = self._request_data(request, project_id, template_id, show_version_id)
+        data = self._request_data(request, project_id=project_id, template_id=template_id,
+                                  show_version_id=show_version_id)
         serializer = serializers.TemplateReleaseSLZ(data=data)
         serializer.is_valid(raise_exception=True)
         validated_data = serializer.validated_data
