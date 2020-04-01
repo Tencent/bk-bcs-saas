@@ -186,7 +186,7 @@ class BCSClusterClient:
             yield kubectl_client
 
     @contextlib.contextmanager
-    def make_kubehelm_client(self):
+    def make_helm_client(self):
         """组装携带kubeconfig的helm client
         """
         options = self.make_kubectl_options()
@@ -206,11 +206,11 @@ class BCSClusterClient:
         # NOTE: 这里直接使用helm3 client bin
         kube_config = kubectl.KubeConfig(contexts=[context])
         with kube_config.as_tempfile() as filename:
-            kubehelm_client = KubeHelmClient(
+            helm_client = KubeHelmClient(
                 helm_bin=settings.HELM3_BIN,
                 kubeconfig=filename,
             )
-            yield kubehelm_client
+            yield helm_client
 
 
 def get_cluster_proper_kubectl(access_token, project_id, cluster_id):

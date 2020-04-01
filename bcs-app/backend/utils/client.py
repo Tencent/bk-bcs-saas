@@ -155,7 +155,7 @@ class KubectlClient:
 
 
 @contextlib.contextmanager
-def make_kubehelm_client(access_token=None, project_id=None, cluster_id=None):
+def make_helm_client(access_token=None, project_id=None, cluster_id=None):
     """创建连接k8s集群的client
     """
     host = get_bcs_host(access_token, project_id, cluster_id)
@@ -166,10 +166,10 @@ def make_kubehelm_client(access_token=None, project_id=None, cluster_id=None):
             access_token=access_token
         )
         try:
-            with bcs_client.make_kubehelm_client() as kubehelm_client:
-                yield kubehelm_client, None
+            with bcs_client.make_helm_client() as helm_client:
+                yield helm_client, None
         except Exception as e:
-            logger.exception("make kubehelm client failed, %s", e)
+            logger.exception("make helm client failed, %s", e)
             yield None, e
     else:
         yield None, APIException("bcs client host not found")
