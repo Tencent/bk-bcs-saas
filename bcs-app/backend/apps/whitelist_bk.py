@@ -35,9 +35,4 @@ def enabled_force_sync_chart_repo(project_id: str) -> bool:
 def enable_helm_v3(cluster_id: str) -> bool:
     """是否允许集群使用helm3功能
     """
-    func_code = 'HELM_V3'
-    enabled, wlist = get_func_controller(func_code)
-    if enabled or cluster_id in wlist:
-        return True
-
     return False

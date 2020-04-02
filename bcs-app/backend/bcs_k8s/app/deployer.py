@@ -116,14 +116,13 @@ class AppDeployer:
                 transitioning_message = "make helm client failed, %s" % err
                 self.app.set_transitioning(False, transitioning_message)
                 return
-            else:
-                self._run_with_helm(
-                    client,
-                    self.app.name,
-                    self.app.namespace,
-                    content,
-                    operation
-                )
+            self._run_with_helm(
+                client,
+                self.app.name,
+                self.app.namespace,
+                content,
+                operation
+            )
 
     def get_release_revision(self, cmd_out):
         """解析执行命令的返回

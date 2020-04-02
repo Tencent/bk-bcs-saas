@@ -23,6 +23,7 @@ import subprocess
 import logging
 import tempfile
 import shutil
+import json
 import contextlib
 
 from django.conf import settings
@@ -94,7 +95,7 @@ class KubeHelmClient:
         ]
 
     # def template(self, release, namespace: str):
-    def template(self, files, name, namespace: str, parameters: dict, valuefile: str, cluster_id=None):
+    def template(self, files, name, namespace, parameters, valuefile, cluster_id=None):
         """
         helm template {dir} --name {name} --namespace {namespace} --set k1=v1,k2=v2,k3=v3 --values filename
         """
@@ -148,8 +149,7 @@ class KubeHelmClient:
 
         return template_out, notes_out
 
-    def _install_or_upgrade(self, cmd_args, tmpl_content, chart_name,
-                            chart_version, chart_values, chart_api_version, err_msg=""):
+    def _install_or_upgrade(self, cmd_args, tmpl_content, chart_name, chart_version, chart_values, chart_api_version):
         try:
             with write_chart_dir(
                 tmpl_content, chart_name, chart_version, chart_values, chart_api_version
@@ -157,7 +157,7 @@ class KubeHelmClient:
                 cmd_args.append(temp_dir)
                 cmd_out, cmd_err = self._run_command_with_retry(max_retries=0, cmd_args=cmd_args)
         except Exception as e:
-            logger.exception(err_msg)
+            logger.exception("执行helm命令失败，命令参数: %s", json.dumps(cmd_args))
             raise e
 
         return cmd_out, cmd_err
@@ -174,15 +174,13 @@ class KubeHelmClient:
         - 执行命令
         """
         install_cmd_args = [settings.HELM3_BIN, "install", name, "--namespace", namespace]
-        err_msg = f"实例化chart失败: name={name}, namespace={namespace}, content={tmpl_content}"
         return self._install_or_upgrade(
             install_cmd_args,
             tmpl_content,
             chart_name,
             chart_version,
             chart_values,
-            chart_api_version,
-            err_msg=err_msg
+            chart_api_version
         )
 
     def upgrade(self, name, namespace, tmpl_content, chart_name, chart_version, chart_values, chart_api_version):
@@ -197,22 +195,20 @@ class KubeHelmClient:
         - 执行命令
         """
         upgrade_cmd_args = [settings.HELM3_BIN, "upgrade", name, "--namespace", namespace]
-        err_msg = f"升级chart版本失败: name={name}, namespace={namespace}, content={tmpl_content}"
         return self._install_or_upgrade(
             upgrade_cmd_args,
             tmpl_content,
             chart_name,
             chart_version,
             chart_values,
-            chart_api_version,
-            err_msg=err_msg
+            chart_api_version
         )
 
     def _uninstall_or_rollback(self, cmd_args, err_msg=""):
         try:
             cmd_out, cmd_err = self._run_command_with_retry(max_retries=0, cmd_args=cmd_args)
         except Exception as e:
-            logger.exception(err_msg)
+            logger.exception("执行helm命令失败，命令参数: %s", json.dumps(cmd_args))
             raise e
 
         return cmd_out, cmd_err
@@ -220,14 +216,12 @@ class KubeHelmClient:
     def uninstall(self, name, namespace):
         """uninstall helm release"""
         uninstall_cmd_args = [settings.HELM3_BIN, "uninstall", name, "--namespace", namespace]
-        err_msg = f"删除release失败: name={name}, namespace={namespace}"
-        return self._uninstall_or_rollback(uninstall_cmd_args, err_msg=err_msg)
+        return self._uninstall_or_rollback(uninstall_cmd_args)
 
     def rollback(self, name, namespace, revision):
         """rollback helm release by revision"""
         rollback_cmd_args = [settings.HELM3_BIN, "rollback", name, str(revision), "--namespace", namespace]
-        err_msg = f"回滚release失败: name={name}, namespace={namespace}， revision={revision}"
-        return self._uninstall_or_rollback(rollback_cmd_args, err_msg=err_msg)
+        return self._uninstall_or_rollback(rollback_cmd_args)
 
     def _run_command_with_retry(self, max_retries=1, *args, **kwargs):
         for i in range(max_retries + 1):
