@@ -15,7 +15,7 @@
                             :scope-list="searchScopeList"
                             :search-key.sync="searchKeyword"
                             :search-scope.sync="searchScope"
-                            @search="searchIngress"
+                            @search="getIngressList"
                             @refresh="refresh">
                         </bk-data-searcher>
                     </div>
@@ -1083,6 +1083,7 @@
                     cluster_id: this.searchScope
                 }
                 try {
+                    this.isPageLoading = true
                     await this.$store.dispatch('resource/getMesosIngressList', {
                         projectId,
                         params
@@ -1099,6 +1100,7 @@
                 } finally {
                     // 晚消失是为了防止整个页面loading和表格数据loading效果叠加产生闪动
                     setTimeout(() => {
+                        this.isPageLoading = false
                         this.isInitLoading = false
                     }, 200)
                 }
