@@ -204,7 +204,7 @@ class KubeHelmClient:
             chart_api_version
         )
 
-    def _uninstall_or_rollback(self, cmd_args, err_msg=""):
+    def _uninstall_or_rollback(self, cmd_args):
         try:
             cmd_out, cmd_err = self._run_command_with_retry(max_retries=0, cmd_args=cmd_args)
         except Exception as e:

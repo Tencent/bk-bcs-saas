@@ -18,10 +18,11 @@ from dataclasses import dataclass
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.exceptions import ValidationError
 
-from backend.utils.client import make_kubectl_client, make_kubectl_client_from_kubeconfig, make_helm_client
+from backend.utils.client import make_kubectl_client, make_kubectl_client_from_kubeconfig
 from backend.bcs_k8s.kubectl.exceptions import KubectlError, KubectlExecutionError
 from backend.bcs_k8s.kubehelm.exceptions import HelmExecutionError, HelmError
 from backend.utils.basic import ChoicesEnum
+from backend.utils import client as bcs_client
 
 logger = logging.getLogger(__name__)
 
@@ -53,7 +54,7 @@ class AppDeployer:
 
     @contextlib.contextmanager
     def make_helm_client(self):
-        with make_helm_client(
+        with bcs_client.make_helm_client(
                 project_id=self.app.project_id,
                 cluster_id=self.app.cluster_id,
                 access_token=self.access_token) as (client, err):
