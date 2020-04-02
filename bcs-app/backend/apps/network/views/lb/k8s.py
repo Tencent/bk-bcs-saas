@@ -207,11 +207,14 @@ class NginxIngressListCreateViewSet(NginxIngressBase):
 
     def list(self, request, project_id):
         access_token = request.user.token.access_token
-        queryset = self.get_queryset()
+        queryset = self.get_queryset().filter(project_id=project_id)
+        cluster_id = request.query_params.get("cluster_id")
+        if cluster_id:
+            queryset = queryset.filter(cluster_id=cluster_id)
         cluster_id_name_map = self.get_cluster_id_name_map(access_token, project_id)
         ns_id_name_map = self.get_all_namespace(access_token, project_id)
         results = []
-        for info in queryset.filter(project_id=project_id).order_by("-updated").values():
+        for info in queryset.order_by("-updated").values():
             info["cluster_name"] = cluster_id_name_map.get(info["cluster_id"], {}).get("name")
             info["environment"] = cluster_id_name_map.get(info["cluster_id"], {}).get("environment")
             info["namespace_name"] = ns_id_name_map.get(int(info["namespace_id"]), {}).get("name")

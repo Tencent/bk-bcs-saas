@@ -66,8 +66,11 @@ class IngressResource(viewsets.ViewSet, BaseAPI, ResourceOperate):
         params = {}
         access_token = request.user.token.access_token
         data = []
+        query_cluster_id = request.query_params.get("cluster_id")
         for cluster_info in cluster_data:
             cluster_id = cluster_info.get('cluster_id')
+            if query_cluster_id and query_cluster_id != cluster_id:
+                continue
             cluster_env = cluster_info.get('environment')
             code, cluster_data = self.get_ingress_by_cluser_id(
                 request, params, project_id, cluster_id)
