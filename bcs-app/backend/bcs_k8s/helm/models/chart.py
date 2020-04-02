@@ -42,7 +42,7 @@ class Chart(BaseTSModel):
     """
     name = models.CharField(max_length=50)
     repository = models.ForeignKey("Repository")
-    description = models.CharField(max_length=1000)
+    description = models.CharField(max_length=1000, blank=True, null=True, default="")
     defaultChartVersion = models.ForeignKey("ChartVersion", related_name="default_chart_version",
                                             null=True, on_delete=models.SET_NULL)
     # base64, format: [data:{content-type};base64,b64string]
@@ -107,7 +107,7 @@ class BaseChartVersion(BaseTSModel):
     """
     name = models.CharField(max_length=50)
     home = models.CharField(max_length=200, null=True)
-    description = models.CharField(max_length=1000)
+    description = models.CharField(max_length=1000, blank=True, null=True, default="")
     engine = models.CharField(max_length=20)
 
     created = models.DateTimeField()
@@ -322,6 +322,7 @@ class ChartReleaseManager(models.Manager):
             release_type=constants.ChartReleaseTypes.ROLLBACK.value,
             valuefile=release.valuefile,
             valuefile_name=release.valuefile_name,
+            revision=release.revision
         )
 
 
@@ -354,6 +355,8 @@ class ChartRelease(BaseTSModel):
     content = models.TextField(null=True, default="")
     # list of {"name": "", "kind": ""}
     structure = JSONField(null=True, default=[])
+    # 记录release的revision
+    revision = models.IntegerField(default=0, help_text="用来标识helm release的升级版本")
 
     objects = ChartReleaseManager()
 
@@ -412,7 +415,8 @@ class ChartRelease(BaseTSModel):
             name=self.app.name,
             namespace=namespace,
             parameters=self.parameters,
-            valuefile=self.generate_valuesyaml(self.app.project_id, self.app.namespace_id, self.app.cluster_id)
+            valuefile=self.generate_valuesyaml(self.app.project_id, self.app.namespace_id, self.app.cluster_id),
+            cluster_id=self.app.cluster_id
         )
 
         return content, notes

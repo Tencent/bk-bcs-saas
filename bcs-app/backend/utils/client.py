@@ -152,3 +152,24 @@ class KubectlClient:
 
     def delete(self, namespace, manifests):
         self._run_with_kubectl('delete', namespace, manifests)
+
+
+@contextlib.contextmanager
+def make_helm_client(access_token=None, project_id=None, cluster_id=None):
+    """创建连接k8s集群的client
+    """
+    host = get_bcs_host(access_token, project_id, cluster_id)
+    if host:
+        bcs_client = get_bcs_client(
+            project_id=project_id,
+            cluster_id=cluster_id,
+            access_token=access_token
+        )
+        try:
+            with bcs_client.make_helm_client() as helm_client:
+                yield helm_client, None
+        except Exception as e:
+            logger.exception("make helm client failed, %s", e)
+            yield None, e
+    else:
+        yield None, APIException("bcs client host not found")

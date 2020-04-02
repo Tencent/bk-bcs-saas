@@ -344,6 +344,7 @@ REQUEST_ID_HEADER = 'HTTP_X_REQUEST_ID'
 
 # ******************************** Helm Config Begin ********************************
 HELM_BIN = "/bin/helm"  # helm bin filename
+HELM3_BIN = "/bin/helm3"
 KUBECTL_BIN = "/bin/kubectl"  # default kubectl bin filename
 DASHBOARD_CTL_BIN = "/bin/dashboard-ctl"  # default dashboard ctl filename
 KUBECTL_BIN_MAP = {
