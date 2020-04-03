@@ -26,7 +26,7 @@ def get_template_files(version_id, *file_fields):
     try:
         ventity = models.VersionedEntity.objects.get(id=version_id)
     except models.VersionedEntity.DoesNotExist:
-        raise ValidationError(f'template version(id:{version_id}) does not exits')
+        raise ValidationError(f'template version(id:{version_id}) does not exist')
 
     entity = ventity.get_entity()
 

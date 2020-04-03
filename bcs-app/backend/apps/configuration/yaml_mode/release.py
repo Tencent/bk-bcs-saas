@@ -14,7 +14,6 @@
 import json
 import datetime
 from io import StringIO
-from collections import OrderedDict
 
 import jinja2
 from ruamel.yaml import YAML
