@@ -3,7 +3,7 @@
         <div class="biz-top-bar">
             <div class="biz-topbar-title">
                 Secrets
-                <span class="biz-tip f12 ml10">{{$t('请通过模板集或Helm创建Secret')}}</span>
+                <span class="biz-tip f12 ml10">{{currentView === 'mesosService' ? $t('请通过模板集创建Secret') : $t('请通过模板集或Helm创建Secret')}}</span>
             </div>
             <bk-guide></bk-guide>
         </div>

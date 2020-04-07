@@ -1151,10 +1151,8 @@
             initPageConf () {
                 const total = this.ingressList.length
                 this.pageConf.total = total
+                this.pageConf.curPage = 1
                 this.pageConf.totalPage = Math.ceil(total / this.pageConf.pageSize)
-                if (this.pageConf.curPage > this.pageConf.totalPage) {
-                    this.pageConf.curPage = this.pageConf.totalPage
-                }
             },
 
             /**
@@ -1163,9 +1161,6 @@
              */
             reloadCurPage () {
                 this.initPageConf()
-                if (this.pageConf.curPage > this.pageConf.totalPage) {
-                    this.pageConf.curPage = this.pageConf.totalPage
-                }
                 this.curPageData = this.getDataByPage(this.pageConf.curPage)
             },
 
