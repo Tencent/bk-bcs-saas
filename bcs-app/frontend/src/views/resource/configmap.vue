@@ -3,7 +3,7 @@
         <div class="biz-top-bar">
             <div class="biz-topbar-title">
                 ConfigMaps
-                <span class="biz-tip f12 ml10">{{$t('请通过模板集或Helm创建ConfigMap')}}</span>
+                <span class="biz-tip f12 ml10">{{currentView === 'mesosService' ? $t('请通过模板集创建ConfigMap') : $t('请通过模板集或Helm创建ConfigMap')}}</span>
             </div>
             <bk-guide></bk-guide>
         </div>
