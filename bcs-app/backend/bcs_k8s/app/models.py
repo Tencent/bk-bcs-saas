@@ -321,7 +321,7 @@ class App(models.Model):
                 extra_inject_source=extra_inject_source,
             )
             # 如果开启使用helm功能，并且实例化使用helm，则升级也可以使用helm功能
-            if enable_helm_v3(self.cluster_id) and self.enable_helm:
+            if self.enable_helm:
                 app_deployer.upgrade_app_by_helm()
             else:
                 app_deployer.upgrade_app_by_kubectl()
@@ -384,7 +384,7 @@ class App(models.Model):
         try:
             release = ChartRelease.objects.get(id=release_id)
             app_deployer = AppDeployer(app=self, access_token=access_token)
-            if enable_helm_v3(self.cluster_id) and self.enable_helm:
+            if self.enable_helm:
                 # 回滚到先前release对应的revision
                 self.release = release
                 self.save(update_fields=["release"])
@@ -482,7 +482,7 @@ class App(models.Model):
 
         try:
             app_deployer = AppDeployer(app=self, access_token=access_token)
-            if enable_helm_v3(self.cluster_id) and self.enable_helm:
+            if self.enable_helm:
                 app_deployer.uninstall_app_by_helm()
             else:
                 app_deployer.uninstall_app_by_kubectl()
