@@ -488,7 +488,7 @@
                                                 <th style="width: 40px; text-align: center; top: 0; position: relative; padding: 0;">
                                                     <label class="bk-form-checkbox">
                                                         <input type="checkbox" name="check-all-app-instance" v-model="namespace.isAllChecked"
-                                                            v-if="namespace.appList && namespace.appList.length && namespace.appList.filter(item => item.state.islock === true).length === 0 && namespace.appList.filter(app => app.permissions && app.permissions.use).length && namespace.appList.filter(app => app.from_platform !== false).length"
+                                                            v-if="namespace.appList && namespace.appList.length && namespace.appList.filter(item => item.state.islock === true).length === 0 && namespace.appList.filter(app => app.permissions && app.permissions.use).length"
                                                             @click.stop="checkAllNamespace($event, namespace, namespaceIndex, namespaceList)" />
                                                         <input v-else type="checkbox" name="check-all-instance" disabled="disabled" />
                                                     </label>
@@ -517,7 +517,7 @@
                                                     <td style="width: 40px; text-align: center; top: 0; position: relative;">
                                                         <label class="bk-form-checkbox">
                                                             <input type="checkbox" name="check-app-instance"
-                                                                v-if="instance.state.islock === false && instance.permissions.use && instance.from_platform === true"
+                                                                v-if="instance.state.islock === false && instance.permissions.use"
                                                                 v-model="instance.isChecked"
                                                                 @click="checkNamespace(instance, instanceIndex, namespace, namespaceIndex, namespaceList)" />
                                                             <input v-else type="checkbox" name="check-app-instance" disabled="disabled" />
