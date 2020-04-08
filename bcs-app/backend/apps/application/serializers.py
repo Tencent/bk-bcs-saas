@@ -14,6 +14,8 @@
 import re
 
 from rest_framework import serializers
+from rest_framework.exceptions import ValidationError
+from django.utils.translation import ugettext_lazy as _
 
 
 class StringListField(serializers.ListField):
@@ -52,3 +54,26 @@ class UpdateInstanceParams(BaseParams):
     version_id = serializers.IntegerField(label=u"版本ID", required=True)
     version = serializers.CharField(label=u"版本号", required=False)
     show_version_id = serializers.IntegerField(required=True)
+
+
+class DeleteInstanceParams(serializers.Serializer):
+    resource_kind = serializers.CharField(required=False)
+    name_list = serializers.ListField(
+        child=serializers.CharField(required=False),
+        required=False
+    )
+    namespace = serializers.CharField(required=False)
+    cluster_id = serializers.CharField(required=False)
+    inst_id_list = serializers.ListField(
+        child=serializers.IntegerField(required=False),
+        required=False,
+        default=[]
+    )
+
+    def validate(self, data):
+        if not data.get("name_list"):
+            return data
+        if not (data.get("resource_kind") and data.get("namespace") and data.get("cluster_id")):
+            raise ValidationError(
+                _("参数【name_list】存在时，参数【resource_kind】【namespace】【cluster_id】不能为空"))
+        return data

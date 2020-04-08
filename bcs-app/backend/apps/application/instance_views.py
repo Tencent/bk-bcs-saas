@@ -44,6 +44,7 @@ from backend.utils.basic import getitems
 from backend.apps.datalog import utils as datalog_utils
 from backend.utils.renderers import BKAPIRenderer
 from backend.apps.constants import ProjectKind
+from backend.apps.application.serializers import DeleteInstanceParams
 
 logger = logging.getLogger(__name__)
 
@@ -1612,6 +1613,26 @@ class BatchInstances(BaseAPI):
         if not err_msg:
             raise error_codes.CheckFailed(_("部分删除失败，详情: {}").format(",".join(err_msg)))
 
+    def del_by_name_namespace(self, request, project_id, project_kind, enforce, data):
+        """通过name+namespace+cluster_id+resource_kind
+        """
+        err_msg = []
+        for name in data["name_list"]:
+            resp = self.delete_instance(
+                request,
+                project_id,
+                data["cluster_id"],
+                data["namespace"],
+                name,
+                category=data["resource_kind"],
+                kind=project_kind,
+                enforce=enforce
+            )
+            if resp.get("code") != ErrorCode.NoError:
+                err_msg.append(resp.get("message"))
+        if not err_msg:
+            raise error_codes.APIError(_("部分删除失败，详情: {}").format(",".join(err_msg)))
+
     def delete(self, request, project_id):
         """批量删除实例接口
         """
@@ -1621,11 +1642,14 @@ class BatchInstances(BaseAPI):
         flag, project_kind = self.get_project_kind(request, project_id)
         if not flag:
             return project_kind
-        category_name_list = req_data.get("category_name_list") or []
-        namespace = req_data.get("namespace")
-        if category_name_list:
-            self.del_for_client(request, project_id, project_kind, category_name_list, namespace, enforce)
-        inst_id_list = req_data.get("inst_id_list") or []
+        # 获取分类参数
+        slz = DeleteInstanceParams(data=req_data)
+        slz.is_valid(raise_exception=True)
+        slz_data = slz.validated_data
+        # 针对非模板集表单模式创建的需要传递应用名称、命名空间和集群
+        if slz_data.get("name_list"):
+            self.del_by_name_namespace(request, project_id, project_kind, enforce, slz_data)
+        inst_id_list = slz_data.get("inst_id_list")
         if not inst_id_list:
             return APIResponse({"message": _("任务下发成功")})
         # 剔除为0的实例
