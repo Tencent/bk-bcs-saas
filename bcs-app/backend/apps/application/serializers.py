@@ -56,14 +56,27 @@ class UpdateInstanceParams(BaseParams):
     show_version_id = serializers.IntegerField(required=True)
 
 
-class DeleteInstanceParams(serializers.Serializer):
+class ResourceInfoSLZ(serializers.Serializer):
     resource_kind = serializers.CharField(required=False)
-    name_list = serializers.ListField(
-        child=serializers.CharField(required=False),
-        required=False
-    )
+    name = serializers.CharField(required=False)
     namespace = serializers.CharField(required=False)
     cluster_id = serializers.CharField(required=False)
+
+    def validate(self, data):
+        if not data.get("name"):
+            return data
+        if not (data.get("resource_kind") and data.get("namespace") and data.get("cluster_id")):
+            raise ValidationError(
+                _("参数【name】存在时，参数【resource_kind】【namespace】【cluster_id】不能为空"))
+        return data
+
+
+class DeleteInstanceParams(serializers.Serializer):
+    resource_list = serializers.ListField(
+        child=ResourceInfoSLZ(),
+        required=False,
+        default=[]
+    )
     inst_id_list = serializers.ListField(
         child=serializers.IntegerField(required=False),
         required=False,
@@ -71,9 +84,6 @@ class DeleteInstanceParams(serializers.Serializer):
     )
 
     def validate(self, data):
-        if not data.get("name_list"):
-            return data
-        if not (data.get("resource_kind") and data.get("namespace") and data.get("cluster_id")):
-            raise ValidationError(
-                _("参数【name_list】存在时，参数【resource_kind】【namespace】【cluster_id】不能为空"))
+        if not (data.get("resource_list") and data.get("inst_id_list")):
+            raise ValidationError(_("参数【resource_list】和【inst_id_list】不能同时为空"))
         return data

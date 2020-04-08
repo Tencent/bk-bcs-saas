@@ -1617,14 +1617,14 @@ class BatchInstances(BaseAPI):
         """通过name+namespace+cluster_id+resource_kind
         """
         err_msg = []
-        for name in data["name_list"]:
+        for res in data:
             resp = self.delete_instance(
                 request,
                 project_id,
-                data["cluster_id"],
-                data["namespace"],
-                name,
-                category=data["resource_kind"],
+                res["cluster_id"],
+                res["namespace"],
+                res["name"],
+                category=res["resource_kind"],
                 kind=project_kind,
                 enforce=enforce
             )
@@ -1647,8 +1647,8 @@ class BatchInstances(BaseAPI):
         slz.is_valid(raise_exception=True)
         slz_data = slz.validated_data
         # 针对非模板集表单模式创建的需要传递应用名称、命名空间和集群
-        if slz_data.get("name_list"):
-            self.del_by_name_namespace(request, project_id, project_kind, enforce, slz_data)
+        if slz_data.get("resource_list"):
+            self.del_by_name_namespace(request, project_id, project_kind, enforce, slz_data["resource_list"])
         inst_id_list = slz_data.get("inst_id_list")
         if not inst_id_list:
             return APIResponse({"message": _("任务下发成功")})
