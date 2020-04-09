@@ -6,8 +6,6 @@
 #@ source_type = "{{ source_type }}"
 #@ creator = "{{ creator }}"
 #@ updator = "{{ updator }}"
-#@ create_time = "{{ create_time }}"
-#@ update_time = "{{ update_time }}"
 #@ version = "{{ version }}"
 #@ project_id = "{{ project_id }}"
 #@ app_id = "{{ app_id }}"

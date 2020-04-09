@@ -122,8 +122,6 @@ class App(models.Model):
             source_type="helm",
             creator=self.creator,
             updator=username,
-            create_time=self.created.strftime("%Y-%m-%d %H:%M:%S"),
-            update_time=self.updated.strftime("%Y-%m-%d %H:%M:%S"),
             version=self.release.chartVersionSnapshot.version,
             project_id=self.project_id,
             app_id=self.app_id,

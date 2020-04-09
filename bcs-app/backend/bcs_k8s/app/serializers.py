@@ -664,15 +664,12 @@ class AppReleasePreviewSLZ(AppMixin, serializers.Serializer):
         )
 
         now = datetime.datetime.now()
-        now_str = now.strftime("%Y-%m-%d %H:%M:%S")
         username = self.context["request"].user.username
         # 组装注入的参数
         bcs_inject_data = bcs_helm_utils.BCSInjectData(
             source_type="helm",
             creator=username,
             updator=username,
-            create_time=now_str,
-            update_time=now_str,
             version=instance.release.chartVersionSnapshot.version,
             project_id=self.project_id,
             app_id=self.app_id,
@@ -880,7 +877,6 @@ class AppCreatePreviewSLZ(AppMixin, serializers.Serializer):
 
         # inject bcs info
         now = datetime.datetime.now()
-        now_str = now.strftime("%Y-%m-%d %H:%M:%S")
         username = self.context["request"].user.username
 
         # 组装注入的参数
@@ -888,8 +884,6 @@ class AppCreatePreviewSLZ(AppMixin, serializers.Serializer):
             source_type="helm",
             creator=username,
             updator=username,
-            create_time=now_str,
-            update_time=now_str,
             version=validated_data["chart_version"].version,
             project_id=self.project_id,
             app_id=self.app_id,

@@ -27,8 +27,6 @@ class BCSInjectData:
     source_type: str
     creator: str
     updator: str
-    create_time: str
-    update_time: str
     version: str
     project_id: str
     app_id: str
