@@ -71,16 +71,14 @@ class ResourceInfoSLZ(serializers.Serializer):
         return data
 
 
-class DeleteInstanceParams(serializers.Serializer):
+class BatchDeleteResourceSLZ(serializers.Serializer):
     resource_list = serializers.ListField(
         child=ResourceInfoSLZ(),
-        required=False,
-        default=[]
+        required=False
     )
     inst_id_list = serializers.ListField(
         child=serializers.IntegerField(required=False),
-        required=False,
-        default=[]
+        required=False
     )
 
     def validate(self, data):

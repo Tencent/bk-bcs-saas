@@ -44,7 +44,7 @@ from backend.utils.basic import getitems
 from backend.apps.datalog import utils as datalog_utils
 from backend.utils.renderers import BKAPIRenderer
 from backend.apps.constants import ProjectKind
-from backend.apps.application.serializers import DeleteInstanceParams
+from backend.apps.application.serializers import BatchDeleteResourceSLZ
 
 logger = logging.getLogger(__name__)
 
@@ -1613,7 +1613,7 @@ class BatchInstances(BaseAPI):
         if not err_msg:
             raise error_codes.CheckFailed(_("部分删除失败，详情: {}").format(",".join(err_msg)))
 
-    def del_by_name_namespace(self, request, project_id, project_kind, enforce, data):
+    def del_by_name_and_ns(self, request, project_id, project_kind, enforce, data):
         """通过name+namespace+cluster_id+resource_kind
         """
         err_msg = []
@@ -1643,12 +1643,12 @@ class BatchInstances(BaseAPI):
         if not flag:
             return project_kind
         # 获取分类参数
-        slz = DeleteInstanceParams(data=req_data)
+        slz = BatchDeleteResourceSLZ(data=req_data)
         slz.is_valid(raise_exception=True)
         slz_data = slz.validated_data
         # 针对非模板集表单模式创建的需要传递应用名称、命名空间和集群
         if slz_data.get("resource_list"):
-            self.del_by_name_namespace(request, project_id, project_kind, enforce, slz_data["resource_list"])
+            self.del_by_name_and_ns(request, project_id, project_kind, enforce, slz_data["resource_list"])
         inst_id_list = slz_data.get("inst_id_list")
         if not inst_id_list:
             return APIResponse({"message": _("任务下发成功")})
