@@ -693,7 +693,7 @@ class AppReleasePreviewSLZ(AppMixin, serializers.Serializer):
         except helm_exceptions.HelmBaseException:
             # raise ParseError(str(e))
             # NOTE: 现阶段为防止出现未测试到的情况，允许出错时，按照先前流程渲染；后续删除
-            content, notes = _get_output_by_helm_template(
+            content, notes = _template_with_bcs_renderer(
                 client,
                 files,
                 instance.name,
@@ -906,7 +906,7 @@ class AppCreatePreviewSLZ(AppMixin, serializers.Serializer):
         except helm_exceptions.HelmBaseException:
             # raise ParseError(str(e))
             # NOTE: 现阶段为防止出现未测试到的情况，允许出错时，按照先前流程渲染；后续删除
-            content, notes = _get_output_by_helm_template(
+            content, notes = _template_with_bcs_renderer(
                 client,
                 validated_data["chart_version"].files,
                 validated_data.get("name"),
@@ -1167,8 +1167,8 @@ class AppUpgradeByAPISLZ(AppUpgradeSLZ):
         }
 
 
-def _get_output_by_helm_template(client, files, name, namespace, ns_id, parameters, valuefile, cluster_id,
-                                 username, now_time, version, access_token, project_id):
+def _template_with_bcs_renderer(client, files, name, namespace, ns_id, parameters, valuefile, cluster_id,
+                                username, now_time, version, access_token, project_id):
     try:
         content, notes = client.template(
             files=files,
