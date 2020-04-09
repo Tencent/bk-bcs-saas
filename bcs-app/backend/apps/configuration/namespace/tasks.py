@@ -72,7 +72,7 @@ def delete_cc_namespace(access_token, project_id, cluster_id, namespace_id):
 
 def register_auth(request, project_id, cluster_id, ns_id, ns_name):
     perm = bcs_perm.Namespace(request, project_id, bcs_perm.NO_RES, cluster_id)
-    perm.register(ns_id, ns_name)
+    perm.register(ns_id, f'{ns_name}({cluster_id})')
 
 
 def delete_auth(request, project_id, ns_id):
