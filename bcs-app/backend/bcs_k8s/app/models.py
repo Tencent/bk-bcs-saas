@@ -115,8 +115,8 @@ class App(models.Model):
             "version": self.get_current_version()
         }
 
-    def _get_output_with_ytt_renderer(self, username, access_token,
-                                      ignore_empty_access_token=False, extra_inject_source=None):
+    def _template_with_ytt_renderer(self, username, access_token,
+                                    ignore_empty_access_token=False, extra_inject_source=None):
         # 组装注入的参数
         bcs_inject_data = bcs_helm_utils.BCSInjectData(
             source_type="helm",
@@ -147,8 +147,8 @@ class App(models.Model):
             return None, None
         return content, notes
 
-    def _get_output_with_template(self, username, access_token,
-                                  ignore_empty_access_token=False, extra_inject_source=None):
+    def _template_with_bcs_renderer(self, username, access_token,
+                                    ignore_empty_access_token=False, extra_inject_source=None):
         try:
             content, notes = self.release.render(namespace=self.namespace)
             content = str(content, encoding="utf-8")
@@ -204,10 +204,10 @@ class App(models.Model):
 
         extra_inject_source 用于提供无 access_token 时, 提供注入需要的数据，不要用于有 access_token 的情况
         """
-        content, notes = self._get_output_with_ytt_renderer(
+        content, notes = self._template_with_ytt_renderer(
             username, access_token, ignore_empty_access_token=False, extra_inject_source=None)
         if not content:
-            return self._get_output_with_template(
+            return self._template_with_bcs_renderer(
                 username, access_token, ignore_empty_access_token=False, extra_inject_source=None)
         return content, notes
 
