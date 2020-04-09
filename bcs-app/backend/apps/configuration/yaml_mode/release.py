@@ -145,4 +145,5 @@ class ReleaseDataProcessor:
         for res_files in self.template_files:
             for f in res_files['files']:
                 f['content'] = self._inject(f['content'], inject_configs, bcs_variables)
-        return ReleaseData(self.project_id, self.namespace_info, self.show_version, self.template_files)
+        return ReleaseData(self.project_id, self.namespace_info, self.show_version, self.template_files,
+                           self.template_variables)
