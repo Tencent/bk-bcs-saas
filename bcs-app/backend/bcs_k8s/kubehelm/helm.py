@@ -18,6 +18,7 @@ required: helm 2.9.1
 """
 
 import os
+import stat
 import time
 import subprocess
 import logging
@@ -25,14 +26,17 @@ import tempfile
 import shutil
 import json
 import contextlib
+from dataclasses import asdict
 
 from django.conf import settings
+from django.template.loader import render_to_string
 
 from .exceptions import HelmError, HelmExecutionError
-
 from backend.apps.whitelist_bk import enable_helm_v3
 
 logger = logging.getLogger(__name__)
+
+YTT_RENDERER_NAME = "ytt_renderer"
 
 
 def write_files(temp_dir, files):
@@ -146,6 +150,59 @@ class KubeHelmClient:
             raise e
         finally:
             shutil.rmtree(temp_dir)
+
+        return template_out, notes_out
+
+    def template_with_ytt_renderer(self, files, name, namespace, parameters, valuefile, cluster_id, bcs_inject_data):
+        """支持post renderer的helm template，并使用ytt(YAML Templating Tool)注入平台信息
+        命令: helm template release_name chart -n namespace --post-renderer ytt-renderer
+        """
+        try:
+            with write_chart_with_ytt(files, bcs_inject_data) as (temp_dir, ytt_config_dir):
+                # 1. parse answers.yaml to values
+                values = self._make_answers_to_args(parameters)
+
+                # 2. construct cmd and run
+                base_cmd_args = [
+                    settings.HELM3_BIN,
+                    "template",
+                    name,
+                    temp_dir,
+                    "--namespace",
+                    namespace
+                ]
+
+                # 3. helm template command params
+                template_cmd_args = base_cmd_args
+                if values:
+                    template_cmd_args += values
+
+                # 兼容先前逻辑
+                if valuefile:
+                    FILENAME = "__valuefile__.yaml"
+                    valuefile_x = {FILENAME: valuefile}
+                    write_files(temp_dir, valuefile_x)
+                    valuefile_name = os.path.join(temp_dir, FILENAME)
+                    template_cmd_args += ["--values", valuefile_name]
+
+                # 4. add post render params
+                template_cmd_args += ["--post-renderer", f"{ytt_config_dir}/{YTT_RENDERER_NAME}"]
+
+                template_out, _ = self._run_command_with_retry(max_retries=0, cmd_args=template_cmd_args)
+                # NOTE: 现阶段不需要helm notes输出
+                notes_out = ""
+
+        except Exception as e:
+            logger.exception(
+                ("do helm template fail: namespace={namespace}, name={name}\n"
+                 "parameters={parameters}\nvaluefile={valuefile}\nfiles={files}").format(
+                    namespace=namespace,
+                    name=name,
+                    parameters=parameters,
+                    valuefile=valuefile,
+                    files=files,
+                ))
+            raise e
 
         return template_out, notes_out
 
@@ -292,3 +349,46 @@ def write_chart_dir(tmpl_content, chart_name, chart_version, chart_values, chart
             f.write(chart_values)
 
         yield temp_dir
+
+
+@contextlib.contextmanager
+def write_chart_with_ytt(files, bcs_inject_data):
+    """组装helm template功能需要的文件，并且使用ytt注入平台需要的信息
+    主要包含以下两部分
+    - chart部分
+    - ytt配置部分
+    """
+    with tempfile.TemporaryDirectory() as temp_dir:
+        for name, content in files.items():
+            path = os.path.join(temp_dir, name)
+            base_path = os.path.dirname(path)
+            if not os.path.exists(base_path):
+                os.makedirs(base_path)
+
+            with open(path, "w") as f:
+                f.write(content)
+
+        # 获取chart配置的目录
+        chart_dir = temp_dir
+        for name, _ in files.items():
+            parts = name.split("/")
+            if len(parts) > 0:
+                chart_dir = os.path.join(temp_dir, parts[0])
+                break
+
+        # 获取ytt配置的目录
+        ytt_config_dir = os.path.join(temp_dir, "ytt_config")
+        if not os.path.exists(ytt_config_dir):
+            os.makedirs(ytt_config_dir)
+        inject_values_path = os.path.join(ytt_config_dir, "inject_bcs_info.yaml")
+        with open(inject_values_path, "w") as f:
+            f.write(render_to_string("inject_bcs_info.yaml", asdict(bcs_inject_data)))
+        ytt_sh_path = os.path.join(ytt_config_dir, YTT_RENDERER_NAME)
+        with open(ytt_sh_path, "w") as f:
+            # helm post renderer依赖执行命令
+            ytt_sh_content = f"#!/bin/bash\n{settings.YTT_BIN} --ignore-unknown-comments -f - -f {ytt_config_dir}/"
+            f.write(ytt_sh_content)
+        # 确保文件可执行
+        os.chmod(ytt_sh_path, stat.S_IRWXU)
+
+        yield chart_dir, ytt_config_dir

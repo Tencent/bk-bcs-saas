@@ -32,6 +32,7 @@ from backend.activity_log import client
 from . import bcs_info_injector
 from backend.bcs_k8s.kubehelm import exceptions as helm_exceptions
 from backend.apps.whitelist_bk import enable_helm_v3
+from backend.bcs_k8s import utils as bcs_helm_utils
 
 logger = logging.getLogger(__name__)
 
@@ -114,15 +115,40 @@ class App(models.Model):
             "version": self.get_current_version()
         }
 
-    def render_app(self, username, access_token, ignore_empty_access_token=False, extra_inject_source=None):
-        """
-        ignore_empty_access_token 用户支持从远程 API 部署, 这种情况无法提供一个有效的 access_token
-        目前使用场景：
-        1. 为各个项目提供的 chart repo部署
-        2. CI/CD
+    def _template_with_ytt_renderer(self, username, access_token,
+                                    ignore_empty_access_token=False, extra_inject_source=None):
+        # 组装注入的参数
+        bcs_inject_data = bcs_helm_utils.BCSInjectData(
+            source_type="helm",
+            creator=self.creator,
+            updator=username,
+            version=self.release.chartVersionSnapshot.version,
+            project_id=self.project_id,
+            app_id=self.app_id,
+            cluster_id=self.cluster_id,
+            namespace=self.namespace,
+            stdlog_data_id=bcs_helm_utils.get_stdlog_data_id(self.project_id),
+            image_pull_secret=bcs_helm_utils.provide_image_pull_secrets(self.namespace)
+        )
+        try:
+            content, notes = self.release.render(namespace=self.namespace, bcs_inject_data=bcs_inject_data)
+            content = str(content, encoding="utf-8")
+        except helm_exceptions.HelmBaseException as e:
+            message = "helm render failed, {}".format(e)
+            self.set_transitioning(False, message)
+            return None, None
+        except Exception as e:
+            logger.exception("render app failed, {}".format(e))
+            message = "render_app failed, {error}.\n{stack}".format(
+                error=e,
+                stack=traceback.format_exc()
+            )
+            self.set_transitioning(False, message)
+            return None, None
+        return content, notes
 
-        extra_inject_source 用于提供无 access_token 时, 提供注入需要的数据，不要用于有 access_token 的情况
-        """
+    def _template_with_bcs_renderer(self, username, access_token,
+                                    ignore_empty_access_token=False, extra_inject_source=None):
         try:
             content, notes = self.release.render(namespace=self.namespace)
             content = str(content, encoding="utf-8")
@@ -167,6 +193,22 @@ class App(models.Model):
         )
         resources_list = manager.do_inject()
         content = bcs_info_injector.join_manifest(resources_list)
+        return content, notes
+
+    def render_app(self, username, access_token, ignore_empty_access_token=False, extra_inject_source=None):
+        """
+        ignore_empty_access_token 用户支持从远程 API 部署, 这种情况无法提供一个有效的 access_token
+        目前使用场景：
+        1. 为各个项目提供的 chart repo部署
+        2. CI/CD
+
+        extra_inject_source 用于提供无 access_token 时, 提供注入需要的数据，不要用于有 access_token 的情况
+        """
+        content, notes = self._template_with_ytt_renderer(
+            username, access_token, ignore_empty_access_token=False, extra_inject_source=None)
+        if not content:
+            return self._template_with_bcs_renderer(
+                username, access_token, ignore_empty_access_token=False, extra_inject_source=None)
         return content, notes
 
     def reset_transitioning(self, action):
@@ -321,7 +363,7 @@ class App(models.Model):
                 extra_inject_source=extra_inject_source,
             )
             # 如果开启使用helm功能，并且实例化使用helm，则升级也可以使用helm功能
-            if enable_helm_v3(self.cluster_id) and self.enable_helm:
+            if self.enable_helm:
                 app_deployer.upgrade_app_by_helm()
             else:
                 app_deployer.upgrade_app_by_kubectl()
@@ -384,7 +426,7 @@ class App(models.Model):
         try:
             release = ChartRelease.objects.get(id=release_id)
             app_deployer = AppDeployer(app=self, access_token=access_token)
-            if enable_helm_v3(self.cluster_id) and self.enable_helm:
+            if self.enable_helm:
                 # 回滚到先前release对应的revision
                 self.release = release
                 self.save(update_fields=["release"])
@@ -482,7 +524,7 @@ class App(models.Model):
 
         try:
             app_deployer = AppDeployer(app=self, access_token=access_token)
-            if enable_helm_v3(self.cluster_id) and self.enable_helm:
+            if self.enable_helm:
                 app_deployer.uninstall_app_by_helm()
             else:
                 app_deployer.uninstall_app_by_kubectl()
