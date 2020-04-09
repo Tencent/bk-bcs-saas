@@ -33,6 +33,7 @@ from . import bcs_info_injector
 from backend.bcs_k8s.kubehelm import exceptions as helm_exceptions
 from backend.apps.whitelist_bk import enable_helm_v3
 from backend.bcs_k8s import utils as bcs_helm_utils
+from backend.bcs_k8s.app.utils import get_cc_app_id
 
 logger = logging.getLogger(__name__)
 
@@ -117,20 +118,21 @@ class App(models.Model):
 
     def _template_with_ytt_renderer(self, username, access_token,
                                     ignore_empty_access_token=False, extra_inject_source=None):
-        # 组装注入的参数
-        bcs_inject_data = bcs_helm_utils.BCSInjectData(
-            source_type="helm",
-            creator=self.creator,
-            updator=username,
-            version=self.release.chartVersionSnapshot.version,
-            project_id=self.project_id,
-            app_id=self.app_id,
-            cluster_id=self.cluster_id,
-            namespace=self.namespace,
-            stdlog_data_id=bcs_helm_utils.get_stdlog_data_id(self.project_id),
-            image_pull_secret=bcs_helm_utils.provide_image_pull_secrets(self.namespace)
-        )
+
         try:
+            # 组装注入的参数
+            bcs_inject_data = bcs_helm_utils.BCSInjectData(
+                source_type="helm",
+                creator=self.creator,
+                updator=username,
+                version=self.release.chartVersionSnapshot.version,
+                project_id=self.project_id,
+                app_id=get_cc_app_id(access_token, self.project_id),
+                cluster_id=self.cluster_id,
+                namespace=self.namespace,
+                stdlog_data_id=bcs_helm_utils.get_stdlog_data_id(self.project_id),
+                image_pull_secret=bcs_helm_utils.provide_image_pull_secrets(self.namespace)
+            )
             content, notes = self.release.render(namespace=self.namespace, bcs_inject_data=bcs_inject_data)
             content = str(content, encoding="utf-8")
         except helm_exceptions.HelmBaseException as e:
