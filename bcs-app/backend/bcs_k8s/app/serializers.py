@@ -684,7 +684,7 @@ class AppReleasePreviewSLZ(AppMixin, serializers.Serializer):
         # 默认为使用helm3 client
         client = KubeHelmClient(helm_bin=settings.HELM3_BIN)
         try:
-            content, notes = client.template_with_post_renderer(
+            content, notes = client.template_with_ytt_renderer(
                 files=files,
                 namespace=instance.namespace,
                 name=instance.name,
@@ -696,7 +696,7 @@ class AppReleasePreviewSLZ(AppMixin, serializers.Serializer):
         except helm_exceptions.HelmBaseException:
             # raise ParseError(str(e))
             # NOTE: 现阶段为防止出现未测试到的情况，允许出错时，按照先前流程渲染；后续删除
-            content, notes = _get_resp_by_helm_template(
+            content, notes = _get_output_by_helm_template(
                 client,
                 files,
                 instance.name,
@@ -900,7 +900,7 @@ class AppCreatePreviewSLZ(AppMixin, serializers.Serializer):
         )
         client = KubeHelmClient(helm_bin=settings.HELM3_BIN)
         try:
-            content, notes = client.template_with_post_renderer(
+            content, notes = client.template_with_ytt_renderer(
                 files=validated_data["chart_version"].files,
                 namespace=namespace_info["name"],
                 name=validated_data.get("name"),
@@ -912,7 +912,7 @@ class AppCreatePreviewSLZ(AppMixin, serializers.Serializer):
         except helm_exceptions.HelmBaseException:
             # raise ParseError(str(e))
             # NOTE: 现阶段为防止出现未测试到的情况，允许出错时，按照先前流程渲染；后续删除
-            content, notes = _get_resp_by_helm_template(
+            content, notes = _get_output_by_helm_template(
                 client,
                 validated_data["chart_version"].files,
                 validated_data.get("name"),
@@ -1173,8 +1173,8 @@ class AppUpgradeByAPISLZ(AppUpgradeSLZ):
         }
 
 
-def _get_resp_by_helm_template(client, files, name, namespace, ns_id, parameters, valuefile, cluster_id,
-                               username, now_time, version, access_token, project_id):
+def _get_output_by_helm_template(client, files, name, namespace, ns_id, parameters, valuefile, cluster_id,
+                                 username, now_time, version, access_token, project_id):
     try:
         content, notes = client.template(
             files=files,

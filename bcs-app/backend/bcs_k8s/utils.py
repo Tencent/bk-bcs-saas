@@ -49,7 +49,4 @@ def provide_image_pull_secrets(namespace):
     - name: paas.image.registry.namespace_name
     """
     # 固定前缀(backend.apps.instance.constants.K8S_IMAGE_SECRET_PRFIX)+namespace
-    return "{prefix}{namespace_name}".format(
-        prefix=instance_constants.K8S_IMAGE_SECRET_PRFIX,
-        namespace_name=namespace,
-    )
+    return f"{instance_constants.K8S_IMAGE_SECRET_PRFIX}{namespace}"

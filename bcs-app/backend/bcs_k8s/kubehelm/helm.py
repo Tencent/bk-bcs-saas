@@ -153,9 +153,9 @@ class KubeHelmClient:
 
         return template_out, notes_out
 
-    def template_with_post_renderer(self, files, name, namespace, parameters, valuefile, cluster_id, bcs_inject_data):
+    def template_with_ytt_renderer(self, files, name, namespace, parameters, valuefile, cluster_id, bcs_inject_data):
         """支持post renderer的helm template，并使用ytt(YAML Templating Tool)注入平台信息
-        命令: helm template release_name chart -n namespace -- post-renderer ytt-renderer
+        命令: helm template release_name chart -n namespace --post-renderer ytt-renderer
         """
         try:
             with write_chart_with_ytt(files, bcs_inject_data) as (temp_dir, ytt_config_dir):

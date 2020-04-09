@@ -408,16 +408,28 @@ class ChartRelease(BaseTSModel):
             from backend.bcs_k8s.app.models import App
             return App.objects.get(id=self.app_id)
 
-    def render(self, namespace="default"):
+    def render(self, namespace="default", bcs_inject_data=None):
         client = KubeHelmClient(helm_bin=settings.HELM_BIN)
-        content, notes = client.template(
-            files=self.chartVersionSnapshot.files,
-            name=self.app.name,
-            namespace=namespace,
-            parameters=self.parameters,
-            valuefile=self.generate_valuesyaml(self.app.project_id, self.app.namespace_id, self.app.cluster_id),
-            cluster_id=self.app.cluster_id
-        )
+        # 针对rollback的diff，不比对平台注入的信息
+        if not bcs_inject_data:
+            content, notes = client.template(
+                files=self.chartVersionSnapshot.files,
+                name=self.app.name,
+                namespace=namespace,
+                parameters=self.parameters,
+                valuefile=self.generate_valuesyaml(self.app.project_id, self.app.namespace_id, self.app.cluster_id),
+                cluster_id=self.app.cluster_id,
+            )
+        else:
+            content, notes = client.template_with_ytt_renderer(
+                files=self.chartVersionSnapshot.files,
+                name=self.app.name,
+                namespace=namespace,
+                parameters=self.parameters,
+                valuefile=self.generate_valuesyaml(self.app.project_id, self.app.namespace_id, self.app.cluster_id),
+                cluster_id=self.app.cluster_id,
+                bcs_inject_data=bcs_inject_data
+            )
 
         return content, notes
 
