@@ -67,7 +67,7 @@ class ResourceInfoSLZ(serializers.Serializer):
             return data
         if not (data.get("resource_kind") and data.get("namespace") and data.get("cluster_id")):
             raise ValidationError(
-                _("参数【name】存在时，参数【resource_kind】【namespace】【cluster_id】不能为空"))
+                _("参数【name】的值不为空时，参数【resource_kind】【namespace】【cluster_id】的值不能为空"))
         return data
 
 
