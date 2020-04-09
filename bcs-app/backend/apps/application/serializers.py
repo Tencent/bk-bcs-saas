@@ -84,6 +84,6 @@ class DeleteInstanceParams(serializers.Serializer):
     )
 
     def validate(self, data):
-        if not (data.get("resource_list") and data.get("inst_id_list")):
+        if not (data.get("resource_list") or data.get("inst_id_list")):
             raise ValidationError(_("参数【resource_list】和【inst_id_list】不能同时为空"))
         return data
