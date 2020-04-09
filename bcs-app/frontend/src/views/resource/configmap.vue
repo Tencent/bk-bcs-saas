@@ -27,7 +27,7 @@
                             :scope-list="searchScopeList"
                             :search-key.sync="searchKeyword"
                             :search-scope.sync="searchScope"
-                            @search="searchConfigmap"
+                            @search="getConfigmapList"
                             @refresh="refresh">
                         </bk-data-searcher>
                     </div>
@@ -449,11 +449,29 @@
             },
             onlineProjectList () {
                 return this.$store.state.sideMenu.onlineProjectList
+            },
+            isClusterDataReady () {
+                return this.$store.state.cluster.isClusterDataReady
+            }
+        },
+        watch: {
+            isClusterDataReady: {
+                immediate: true,
+                handler (val) {
+                    if (val) {
+                        setTimeout(() => {
+                            if (this.searchScopeList.length) {
+                                this.searchScope = this.searchScopeList[1].id
+                            }
+                            this.getConfigmapList()
+                        }, 1000)
+                    }
+                }
             }
         },
         created () {
             this.initPageConf()
-            this.getConfigmapList()
+            // this.getConfigmapList()
         },
         mounted () {
             this.curProject = this.initCurProject()
@@ -945,12 +963,19 @@
              */
             async getConfigmapList () {
                 const projectId = this.projectId
+                const params = {
+                    cluster_id: this.searchScope
+                }
                 try {
-                    await this.$store.dispatch('resource/getConfigmapList', projectId)
+                    this.isPageLoading = true
+                    await this.$store.dispatch('resource/getConfigmapList', {
+                        projectId,
+                        params
+                    })
                     this.initPageConf()
                     this.curPageData = this.getDataByPage(this.pageConf.curPage)
                     // 如果有搜索关键字，继续显示过滤后的结果
-                    if (this.searchScope || this.searchKeyword) {
+                    if (this.searchKeyword) {
                         this.searchConfigmap()
                     }
                 } catch (e) {
@@ -960,6 +985,7 @@
                 } finally {
                     // 晚消失是为了防止整个页面loading和表格数据loading效果叠加产生闪动
                     setTimeout(() => {
+                        this.isPageLoading = false
                         this.isInitLoading = false
                     }, 200)
                 }
@@ -1016,10 +1042,8 @@
             initPageConf () {
                 const total = this.configmapList.length
                 this.pageConf.total = total
+                this.pageConf.curPage = 1
                 this.pageConf.totalPage = Math.ceil(total / this.pageConf.pageSize)
-                if (this.pageConf.curPage > this.pageConf.totalPage) {
-                    this.pageConf.curPage = this.pageConf.totalPage
-                }
             },
 
             /**

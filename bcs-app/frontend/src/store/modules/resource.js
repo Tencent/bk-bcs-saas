@@ -60,8 +60,8 @@ export default {
          *
          * @return {Promise} promise 对象
          */
-        getConfigmapList (context, projectId, config = {}) {
-            return http.get(`${DEVOPS_BCS_API_URL}/api/resource/${projectId}/configmaps/`, {}, config).then(response => {
+        getConfigmapList (context, { projectId, params }, config = {}) {
+            return http.get(`${DEVOPS_BCS_API_URL}/api/resource/${projectId}/configmaps/?${json2Query(params)}`, {}, config).then(response => {
                 const res = response.data
                 res.data.forEach(item => {
                     if (item.data.metadata.labels) {
@@ -85,8 +85,8 @@ export default {
          *
          * @return {Promise} promise 对象
          */
-        getSecretList (context, projectId, config = {}) {
-            return http.get(`${DEVOPS_BCS_API_URL}/api/resource/${projectId}/secrets/`).then(response => {
+        getSecretList (context, { projectId, params }, config = {}) {
+            return http.get(`${DEVOPS_BCS_API_URL}/api/resource/${projectId}/secrets/?${json2Query(params)}`).then(response => {
                 const res = response.data
                 res.data.forEach(item => {
                     if (item.data.metadata.labels) {
