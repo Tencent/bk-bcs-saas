@@ -17,6 +17,7 @@ import logging
 from backend.components.bcs import BCSClientBase
 from backend.components.utils import http_delete, http_get, http_post, http_put
 from backend.utils.error_codes import error_codes
+from backend.utils.errcodes import ErrorCode
 
 STORAGE_PREFIX = "{apigw_host}/v4/storage"
 SCHEDULER_PREFIX = "{apigw_host}/v4/scheduler"
@@ -643,7 +644,7 @@ class MesosClient(BCSClientBase):
         """
         url = f"{self.storage_host}/query/mesos/dynamic/clusters/{self.cluster_id}/ippoolstatic"
         resp = http_get(url, headers=self.headers)
-        if resp.get("code"):
+        if resp.get("code") != ErrorCode.NoError:
             logger.error("查询ippool失败，%s", resp.get("message"))
             return {}
         if not resp.get("data"):
@@ -658,7 +659,7 @@ class MesosClient(BCSClientBase):
         """
         url = f"{self.storage_host}/query/mesos/dynamic/clusters/{self.cluster_id}/ippoolstaticdetail"
         resp = http_get(url, headers=self.headers)
-        if resp.get("code"):
+        if resp.get("code") != ErrorCode.NoError:
             logger.error("查询ippool详情失败，%s", resp.get("message"))
             return {}
         if not resp.get("data"):
