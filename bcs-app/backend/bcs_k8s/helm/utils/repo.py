@@ -39,7 +39,7 @@ def make_requests_auth(auth):
     raise NotImplementedError(auth["type"])
 
 
-def prepareRepoIndex(url, name, auths):
+def prepareRepoCharts(url, name, auths):
     """
     NOTE: currently not support git
     """
@@ -48,12 +48,12 @@ def prepareRepoIndex(url, name, auths):
 
 
 def _prepareHelmRepoPath(url, name, auths):
-    ok, index, index_hash = _download_index_api(url, auths)
+    ok, charts_info, charts_info_hash = _get_charts_info(url, auths)
     if not ok:
-        logger.error("download index.yaml from url fail! %s", url)
+        logger.error("get chart info from url fail! %s", url)
         return None, None
 
-    return index, index_hash
+    return charts_info, charts_info_hash
 
 
 def _md5(content):
@@ -62,60 +62,31 @@ def _md5(content):
     return h.hexdigest()
 
 
-def _download_index(url, auths):
-    url = url.rstrip("/")
-    index_url = "{url}/index.yaml".format(url=url)
-    if not auths:
-        resp = requests.get(index_url)
-    else:
-        for auth in auths:
-            resp = requests.get(index_url, auth=make_requests_auth(auth))
-            if resp.status_code != 401:
-                break
-
-    if resp.status_code != 200:
-        # just retry once
-        resp = requests.get(index_url)
-        if resp.status_code != 200:
-            logger.error("Download index.yaml fail: [url=%s, status_code=%s]", index_url, resp.status_code)
-            return False, None, None
-
-    content = resp.text
-
-    try:
-        index = yaml.load(content)
-    except Exception as e:
-        logger.exception("load catalog index.yaml fail: %s", str(e))
-        return False, None, None
-
-    index_hash = _md5(content)
-    return True, index, index_hash
-
-
-def _download_index_api(url, auths):
+def _get_charts_info(url, auths):
     url = url.rstrip("/")
     # 更改为直接获取chart list，不解析index.yaml
-    index_url = "{url}/api/charts".format(url=url)
+    req_charts_url = "{url}/api/charts".format(url=url)
     if not auths:
-        resp = requests.get(index_url)
+        resp = requests.get(req_charts_url)
     else:
         for auth in auths:
-            resp = requests.get(index_url, auth=make_requests_auth(auth))
+            resp = requests.get(req_charts_url, auth=make_requests_auth(auth))
             if resp.status_code == 200:
                 break
 
     if resp.status_code != 200:
-        logger.error("Download index.yaml fail: [url=%s, status_code=%s]", index_url, resp.status_code)
+        logger.error("Download chart info fail: [url=%s, status_code=%s]", req_charts_url, resp.status_code)
         return (False, None, None)
 
     try:
-        index = resp.json()
+        chart_info = resp.json()
     except Exception as e:
         logger.exception("load catalog index.yaml fail: %s", str(e))
         return (False, None, None)
 
-    index_hash = _md5(resp.text)
-    return (True, index, index_hash)
+    # 生成MD5，主要是便于后续校验是否变动
+    charts_info_hash = _md5(resp.text)
+    return (True, chart_info, charts_info_hash)
 
 
 def download_icon_data(url, auths):

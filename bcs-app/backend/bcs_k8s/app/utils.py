@@ -407,13 +407,14 @@ def compose_url_with_scheme(url, scheme="http"):
     return '{scheme}://{domain}'.format(scheme=scheme, domain=url_split_info[-1])
 
 
-def get_cc_app_id(access_token, project_id, extra_inject_source=None):
+def get_cc_app_id(access_token, project_id, inject_config_info=None):
+    # 参数inject_config_info中记录了project信息，如果project信息中能获取到cc_app_id，则直接返回
     cc_app_id = ""
-    if extra_inject_source:
-        project_info = extra_inject_source.get("project_info") or {}
-        cc_app_id = str(project_info.get("cc_app_id")) or ""
-    if cc_app_id:
+    if inject_config_info:
+        project_info = inject_config_info.get("project_info") or {}
+        cc_app_id = str(project_info.get("cc_app_id") or "")
+    if cc_app_id or not access_token:
         return cc_app_id
     resp = paas_cc.get_project(access_token, project_id)
     project_info = resp.get("data") or {}
-    return str(project_info.get("cc_app_id")) or ""
+    return str(project_info.get("cc_app_id") or "")

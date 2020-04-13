@@ -20,7 +20,7 @@ from natsort import natsorted
 
 from .models.repo import Repository
 from .models.chart import Chart, ChartVersion
-from .utils.repo import (prepareRepoIndex, InProcessSign)
+from .utils.repo import (prepareRepoCharts, InProcessSign)
 
 logger = logging.getLogger(__name__)
 
@@ -58,28 +58,28 @@ def sync_helm_repo(repo_id, force=False):
     plain_auths = repo.plain_auths
 
     try:
-        index_chart, index_hash = prepareRepoIndex(repo_url, repo_name, plain_auths)
+        charts_info, charts_info_hash = prepareRepoCharts(repo_url, repo_name, plain_auths)
     except Exception as e:
-        logger.exception("prepareRepoIndex fail: repo_url=%s, repo_name=%s, error: %s", repo_url, repo_name, e)
+        logger.exception("prepareRepoCharts fail: repo_url=%s, repo_name=%s, error: %s", repo_url, repo_name, e)
         return
 
-    logger.debug("prepareRepoIndex repo_url=%s, index_chart=%s", repo_url, index_chart)
+    logger.debug("prepareRepoCharts repo_url=%s, index_chart=%s", repo_url, charts_info)
 
     # 如果不存在或者为空，认为同步失败
-    if not index_chart:
+    if not charts_info:
         logger.error("load chart index from repo fail![name=%s, url=%s]", repo_name, repo_url)
         sign.delete()
         return
 
     # if the index_hash is the same as the commit in db
     # 现阶段兼容先前逻辑，仍然比对MD5，判断是否需要更新
-    if not force and index_hash == repo.commit:
+    if not force and charts_info_hash == repo.commit:
         logger.info("the chart index commit [%s] of repo %s not been update since last refresh: %s",
                     repo.commit, repo_id, repo.refreshed_at)
         return
 
     try:
-        _do_helm_repo_charts_update(repo, sign, index_chart, index_hash, force)
+        _do_helm_repo_charts_update(repo, sign, charts_info, charts_info_hash, force)
     except Exception as e:
         logger.exception("_do_helm_repo_charts_update fail, error: %s", e)
         sign.delete()
