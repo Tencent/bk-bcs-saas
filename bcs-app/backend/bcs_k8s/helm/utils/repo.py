@@ -48,7 +48,7 @@ def prepareRepoIndex(url, name, auths):
 
 
 def _prepareHelmRepoPath(url, name, auths):
-    ok, index, index_hash = _download_index(url, auths)
+    ok, index, index_hash = _download_index_api(url, auths)
     if not ok:
         logger.error("download index.yaml from url fail! %s", url)
         return None, None
@@ -90,6 +90,32 @@ def _download_index(url, auths):
 
     index_hash = _md5(content)
     return True, index, index_hash
+
+
+def _download_index_api(url, auths):
+    url = url.rstrip("/")
+    # 更改为直接获取chart list，不解析index.yaml
+    index_url = "{url}/api/charts".format(url=url)
+    if not auths:
+        resp = requests.get(index_url)
+    else:
+        for auth in auths:
+            resp = requests.get(index_url, auth=make_requests_auth(auth))
+            if resp.status_code == 200:
+                break
+
+    if resp.status_code != 200:
+        logger.error("Download index.yaml fail: [url=%s, status_code=%s]", index_url, resp.status_code)
+        return (False, None, None)
+
+    try:
+        index = resp.json()
+    except Exception as e:
+        logger.exception("load catalog index.yaml fail: %s", str(e))
+        return (False, None, None)
+
+    index_hash = _md5(resp.text)
+    return (True, index, index_hash)
 
 
 def download_icon_data(url, auths):

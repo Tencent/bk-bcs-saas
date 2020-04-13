@@ -58,33 +58,28 @@ def sync_helm_repo(repo_id, force=False):
     plain_auths = repo.plain_auths
 
     try:
-        index, index_hash = prepareRepoIndex(repo_url, repo_name, plain_auths)
+        index_chart, index_hash = prepareRepoIndex(repo_url, repo_name, plain_auths)
     except Exception as e:
         logger.exception("prepareRepoIndex fail: repo_url=%s, repo_name=%s, error: %s", repo_url, repo_name, e)
         return
 
-    logger.debug("prepareRepoIndex repo_url=%s, index=%s", repo_url, index)
+    logger.debug("prepareRepoIndex repo_url=%s, index_chart=%s", repo_url, index_chart)
 
-    if not index:
-        logger.error("load index.yaml from repo fail![name=%s, url=%s]", repo_name, repo_url)
+    # 如果不存在或者为空，认为同步失败
+    if not index_chart:
+        logger.error("load chart index from repo fail![name=%s, url=%s]", repo_name, repo_url)
         sign.delete()
         return
 
     # if the index_hash is the same as the commit in db
+    # 现阶段兼容先前逻辑，仍然比对MD5，判断是否需要更新
     if not force and index_hash == repo.commit:
-        logger.info("the index commit [%s] of repo %s not been update since last refresh: %s",
+        logger.info("the chart index commit [%s] of repo %s not been update since last refresh: %s",
                     repo.commit, repo_id, repo.refreshed_at)
         return
 
-    # apiVersion / generated / entries
-    charts = index.get("entries")
-    if not charts:
-        logger.info("the index of repo %s get no field [entries], please check the %s's format",
-                    repo_id, repo_url)
-        return
-
     try:
-        _do_helm_repo_charts_update(repo, sign, charts, index_hash, force)
+        _do_helm_repo_charts_update(repo, sign, index_chart, index_hash, force)
     except Exception as e:
         logger.exception("_do_helm_repo_charts_update fail, error: %s", e)
         sign.delete()
@@ -175,12 +170,19 @@ def _do_helm_repo_charts_update(repo, sign, charts, index_hash, force=False):
             key = ChartVersion.gen_key(name=version.get("name"),
                                        version=version.get("version"),
                                        digest=version.get("digest"))
-            # do add or update
+            # 如果数据库中已经存在记录，并且不是强制同步，则不进行其它信息的变动
             chart_version_id = old_chart_version_key_ids.get(key)
             if chart_version_id:
+                # 记录相关数据供删除使用
                 chart_version = old_chart_versions.get(chart_version_id)
+                current_chart_version_ids.append(chart_version.id)
+                full_chart_versions[chart_version.id] = chart_version
+                if not force:
+                    continue
             else:
                 chart_version = ChartVersion()
+                current_chart_version_ids.append(chart_version.id)
+                full_chart_versions[chart_version.id] = chart_version
 
             # 2.3 do update
             try:
@@ -192,10 +194,8 @@ def _do_helm_repo_charts_update(repo, sign, charts, index_hash, force=False):
             else:
                 chart_changed = chart_changed or version_changed
 
-            current_chart_version_ids.append(chart_version.id)
-            full_chart_versions[chart_version.id] = chart_version
-
             # 2.4 update icon  NOTE: icon just add at the first time
+            # 验证 版本号不变动时，icon，desc不会更新
             icon_url = version.get("icon")
             if not chart.icon and icon_url:
                 chart.update_icon(icon_url)

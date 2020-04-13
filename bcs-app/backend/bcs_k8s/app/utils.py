@@ -407,10 +407,13 @@ def compose_url_with_scheme(url, scheme="http"):
     return '{scheme}://{domain}'.format(scheme=scheme, domain=url_split_info[-1])
 
 
-def get_cc_app_id(access_token, project_id):
+def get_cc_app_id(access_token, project_id, extra_inject_source=None):
+    cc_app_id = ""
+    if extra_inject_source:
+        project_info = extra_inject_source.get("project_info") or {}
+        cc_app_id = str(project_info.get("cc_app_id")) or ""
+    if cc_app_id:
+        return cc_app_id
     resp = paas_cc.get_project(access_token, project_id)
-    if not resp.get("code"):
-        return ""
-
-    data = resp.get('data')
-    return data.get("cc_app_id", "")
+    project_info = resp.get("data") or {}
+    return str(project_info.get("cc_app_id")) or ""
