@@ -25,6 +25,7 @@ import base64
 import tarfile
 
 from backend.utils.cache import rd_client
+from backend.components.utils import http_get
 
 logger = logging.getLogger(__name__)
 
@@ -66,26 +67,20 @@ def _get_charts_info(url, auths):
     url = url.rstrip("/")
     # 更改为直接获取chart list，不解析index.yaml
     req_charts_url = "{url}/api/charts".format(url=url)
-    if not auths:
-        resp = requests.get(req_charts_url)
-    else:
-        for auth in auths:
-            resp = requests.get(req_charts_url, auth=make_requests_auth(auth))
-            if resp.status_code == 200:
-                break
-
-    if resp.status_code != 200:
-        logger.error("Download charts info fail: [url=%s, status_code=%s]", req_charts_url, resp.status_code)
-        return (False, None, None)
-
     try:
-        charts_info = resp.json()
+        if not auths:
+            charts_info = http_get(req_charts_url)
+        else:
+            for auth in auths:
+                charts_info = http_get(req_charts_url, auth=make_requests_auth(auth))
+                if charts_info:
+                    break
     except Exception as e:
-        logger.exception("load charts info fail: %s", str(e))
+        logger.error("get charts info fail: [url=%s], error: %s", req_charts_url, str(e))
         return (False, None, None)
 
     # 生成MD5，主要是便于后续校验是否变动
-    charts_info_hash = _md5(resp.text)
+    charts_info_hash = _md5(str(charts_info))
     return (True, charts_info, charts_info_hash)
 
 
