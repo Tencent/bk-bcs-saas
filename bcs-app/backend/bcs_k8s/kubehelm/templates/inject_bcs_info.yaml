@@ -107,8 +107,7 @@ metadata:
 #@ daemonset = overlay.subset({"kind": "DaemonSet"})
 #@ sts = overlay.subset({"kind": "StatefulSet"})
 #@ job = overlay.subset({"kind": "Job"})
-#@ cron_job = overlay.subset({"kind": "CronJob"})
-#@overlay/match by=overlay.or_op(deployment, daemonset, sts, job, cron_job),expects="0+"
+#@overlay/match by=overlay.or_op(deployment, daemonset, sts, job),expects="0+"
 ---
 spec:
   #@overlay/match missing_ok=True
@@ -165,7 +164,24 @@ spec:
           value: #@ custom_label
       #@overlay/match missing_ok=True
       imagePullSecrets:
+      #@overlay/append
       - name: #@ image_pull_secret
+
+
+#@overlay/match by=overlay.subset({"kind": "CronJob"}),expects="0+"
+---
+spec:
+  #@overlay/match missing_ok=True
+  jobTemplate:
+    #@overlay/match missing_ok=True
+    spec:
+      #@overlay/match missing_ok=True
+      template:
+        #@overlay/match missing_ok=True
+        spec:
+          #@overlay/match missing_ok=True
+          imagePullSecrets:
+          - name: #@ image_pull_secret
 
 #@overlay/match by=overlay.subset({"kind": "Deployment"}),expects="0+"
 ---
