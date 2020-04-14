@@ -63,11 +63,11 @@ def sync_helm_repo(repo_id, force=False):
         logger.exception("prepareRepoCharts fail: repo_url=%s, repo_name=%s, error: %s", repo_url, repo_name, e)
         return
 
-    logger.debug("prepareRepoCharts repo_url=%s, index_chart=%s", repo_url, charts_info)
+    logger.debug("prepareRepoCharts repo_url=%s, charts_info=%s", repo_url, charts_info)
 
     # 如果不存在或者为空，认为同步失败
     if not charts_info:
-        logger.error("load chart index from repo fail![name=%s, url=%s]", repo_name, repo_url)
+        logger.error("load chart info from repo fail![name=%s, url=%s]", repo_name, repo_url)
         sign.delete()
         return
 
