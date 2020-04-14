@@ -652,7 +652,7 @@
                         } else {
                             this.curValue = selectItem[this.displayKey]
                         }
-                    } else if (event.target.value && this.isCustom) {
+                    } else if (this.isCustom) {
                         // 选择模式支持自定义输入
                         if (this.userHasInput) {
                             const newVal = event.target.value
