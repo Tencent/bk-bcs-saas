@@ -35,6 +35,7 @@ from backend.utils.renderers import BKAPIRenderer
 from backend.apps.cluster import serializers as cluster_serializers
 from backend.apps.cluster.views_bk import cluster
 from backend.apps.cluster.views_bk.tools import cmdb
+from backend.components.bcs.mesos import MesosClient
 
 DEFAULT_OPER_USER = settings.DEFAULT_OPER_USER
 
@@ -416,3 +417,13 @@ class ClusterVersionViewSet(viewsets.ViewSet):
         data = [info['version'] for info in resp.get('data') or []]
 
         return response.Response(data)
+
+
+class MesosIPPoolViewSet(viewsets.ViewSet):
+    renderer_classes = (BKAPIRenderer, BrowsableAPIRenderer)
+
+    def get(self, request, project_id, cluster_id):
+        client = MesosClient(request.user.token.access_token, project_id, cluster_id, None)
+        data = client.get_cluster_ippool()
+
+        return response.Response(data.get("data") or {})
