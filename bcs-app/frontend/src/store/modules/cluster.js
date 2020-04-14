@@ -1166,6 +1166,25 @@ export default {
                 {},
                 config
             )
+        },
+
+        /**
+         * mesos 集群 首页获取 ip 数据
+         * /api/projects/{project_id}/clusters/{cluster_id}}/ippools/
+         *
+         * @param {Object} context store 上下文对象
+         * @param {string} projectId 项目 id
+         * @param {string} clusterId 集群 id
+         * @param {Object} config 请求的配置
+         *
+         * @return {Promise} promise 对象
+         */
+        getIpPools (context, { projectId, clusterId }, config = {}) {
+            return http.get(
+                `${DEVOPS_BCS_API_URL}/api/projects/${projectId}/clusters/${clusterId}/ippools/`,
+                {},
+                config
+            )
         }
     }
 }

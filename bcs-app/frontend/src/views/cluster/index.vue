@@ -683,11 +683,28 @@
                 if (!notLoading) {
                     this.showLoading = true
                 }
+
                 try {
                     const res = await this.$store.dispatch('cluster/getClusterList', this.projectId)
                     this.permissions = JSON.parse(JSON.stringify(res.permissions || {}))
 
                     const list = res.data.results || []
+
+                    list.forEach((item, index) => {
+                        this.getClusterIp(item, index)
+                        // item.remain_cpu = 50
+                        // item.total_cpu = 100
+
+                        // item.remain_mem = 20
+                        // item.total_mem = 80
+
+                        // item.remain_disk = 16
+                        // item.total_disk = 97
+
+                        // item.ip_resource_used = 38
+                        // item.ip_resource_total = 65
+                    })
+
                     this.$store.commit('cluster/forceUpdateClusterList', list)
 
                     list.forEach((item, index) => {
@@ -710,6 +727,27 @@
                     catchErrorHandler(e, this)
                 } finally {
                     this.showLoading = false
+                }
+            },
+
+            /**
+             * 获取 mesos 集群 ip 信息
+             *
+             * @param {Object} cluster 集群对象
+             * @param {number} index 集群对象索引
+             */
+            async getClusterIp (cluster, index) {
+                try {
+                    const res = await this.$store.dispatch('cluster/getIpPools', {
+                        projectId: this.projectId,
+                        clusterId: cluster.cluster_id
+                    })
+                    const data = res.data || {}
+                    cluster.ip_resource_total = data.availableip + data.activeip
+                    cluster.ip_resource_used = data.availableip
+                    this.$set(this.clusterList, index, cluster)
+                } catch (e) {
+                    catchErrorHandler(e, this)
                 }
             },
 
