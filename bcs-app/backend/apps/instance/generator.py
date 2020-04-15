@@ -68,6 +68,23 @@ mesos_res_mapping = OrderedDict()
 k8s_res_mapping = OrderedDict()
 
 
+def is_use_bcs_registry(origin_image, bcs_registry_list):
+    bcs_registry_list.append(settings.DEVOPS_ARTIFACTORY_HOST)
+    registry_list = [registry.split(':')[0] for registry in bcs_registry_list]
+    for r in registry_list:
+        if r in origin_image:
+            return True
+    return False
+
+
+def generate_image_str(origin_image, default_registry, bcs_registry_list):
+    if not is_use_bcs_registry(origin_image, bcs_registry_list):
+        return origin_image
+
+    image_url = urlparse(f'//{origin_image}')
+    return f'{default_registry}{image_url.path}'
+
+
 class ProfileGenerator:
     resource_name = None
     resource_sys_config = None
@@ -128,7 +145,9 @@ class ProfileGenerator:
             metric_id = name_list[1]
             resourse_type = name_list[2]
             self.metric_id = metric_id
-            return self.handle_db_config(application_id, metric_id, resourse_type)
+            return self.handle_db_config(
+                {'application_id': application_id, 'metric_id': metric_id, 'resourse_type': resourse_type}
+            )
         # Application 中非标准日志采集时默认的 configmap
         is_non_standard_log = True if str(self.resource_id).find(APPLICATION_ID_SEPARATOR) >= 0 else False
         if self.resource_name in ['configmap', 'K8sConfigMap'] and is_non_standard_log:
@@ -209,6 +228,10 @@ class ProfileGenerator:
         jfrog_domain = paas_cc.get_jfrog_domain(
             self.access_token, self.project_id, self.context['SYS_CLUSTER_ID'])
         self.context['SYS_JFROG_DOMAIN'] = jfrog_domain
+
+        self.context['SYS_IMAGE_REGISTRY_LIST'] = paas_cc.get_image_registry_list(
+            self.access_token, self.context['SYS_CLUSTER_ID']
+        )
 
         bcs_context = get_bcs_context(self.access_token, self.project_id)
         self.context.update(bcs_context)
@@ -538,7 +561,6 @@ class ApplicationProfileGenerator(MesosProfileGenerator):
         is_custom_log_path = False
         containers = db_config.get('spec', {}).get(
             'template', {}).get('spec', {}).get('containers', [])
-        jfrog_domain = self.context['SYS_JFROG_DOMAIN']
         for _c in containers:
             # 命令参数解析
             args_text = _c.get('args_text', '')
@@ -554,13 +576,9 @@ class ApplicationProfileGenerator(MesosProfileGenerator):
             if self.check_image_secret():
                 _c['imagePullUser'] = 'secret::%s||user' % MESOS_IMAGE_SECRET
                 _c['imagePullPasswd'] = 'secret::%s||pwd' % MESOS_IMAGE_SECRET
-            # 2.0 处理镜像地址, 测试环境不处理
-            if (settings.DEPOT_STAG == 'prod') and jfrog_domain:
-                image = _c.get('image')
-                _image_url = '//%s' % image
-                _image_pares = urlparse(_image_url)
-                _image_path = _image_pares.path
-                _c['image'] = '%s%s' % (jfrog_domain, _image_path)
+            _c['image'] = generate_image_str(
+                _c.get('image'), self.context['SYS_JFROG_DOMAIN'], self.context['SYS_IMAGE_REGISTRY_LIST']
+            )
 
             # 2.1 处理 ports 中的字段
             ports = _c.get('ports')
@@ -802,9 +820,13 @@ class MetricProfileGenerator(ProfileGenerator):
     resource_name = "metric"
     resource_sys_config = {}
 
-    def handle_db_config(self, application_id, metric_id, resourse_type='application'):
+    def handle_db_config(self, db_config):
         """组装 metric 的配置文件
         """
+        application_id = db_config.get('application_id')
+        metric_id = db_config.get('metric_id')
+        resourse_type = db_config.get('resourse_type') or 'application'
+
         try:
             met = Metric.objects.get(id=metric_id)
         except Exception:
@@ -1335,20 +1357,16 @@ class K8sDeploymentGenerator(K8sProfileGenerator):
         init_containers = db_config.get('spec', {}).get(
             'template', {}).get('spec', {}).get('initContainers', [])
 
-        jfrog_domain = self.context['SYS_JFROG_DOMAIN']
         log_volumes = []
 
         for con_list in [init_containers, containers]:
             for _c in con_list:
                 remove_key(_c, "imageVersion")
 
-                # 2.0 处理镜像地址, 测试环境不处理
-                if (settings.DEPOT_STAG == 'prod') and jfrog_domain:
-                    image = _c.get('image')
-                    _image_url = '//%s' % image
-                    _image_pares = urlparse(_image_url)
-                    _image_path = _image_pares.path
-                    _c['image'] = '%s%s' % (jfrog_domain, _image_path)
+                _c['image'] = generate_image_str(
+                    _c.get('image'), self.context['SYS_JFROG_DOMAIN'], self.context['SYS_IMAGE_REGISTRY_LIST']
+                )
+
                 # 2.1 启动命令和参数用 shellhex 命令处理为数组
                 args = _c.get('args')
                 args_list = shlex.split(args)

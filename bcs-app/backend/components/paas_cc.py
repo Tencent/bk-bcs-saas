@@ -19,7 +19,7 @@ from django.utils.translation import ugettext_lazy as _
 from backend.components.utils import http_get, http_post, http_put, http_patch, http_delete
 from backend.utils.errcodes import ErrorCode
 from backend.utils.error_codes import error_codes
-from backend.apps import constants
+from backend.utils.basic import getitems
 from backend.apps.cluster.models import CommonStatus
 
 logger = logging.getLogger(__name__)
@@ -430,6 +430,17 @@ def get_jfrog_domain_list(access_token, project_id, cluster_id):
         if configuration.get(key):
             domain_list.append(configuration.get(key))
     return domain_list
+
+
+def get_image_registry_list(access_token, cluster_id):
+    resp = http_get(f'{CC_HOST}/clusters/{cluster_id}/related/areas/info/', params={'access_token': access_token})
+    if resp.get('code') != ErrorCode.NoError:
+        logger.error("get image registry domains error:%s", resp.get('message'))
+        return []
+
+    area_cfg = getitems(resp, ['data', 'configuration'], [])
+    image_registry_keys = ['httpsJfrogRegistry', 'testHttpsJfrogRegistry', 'jfrogRegistry', 'testJfrogRegistry']
+    return [area_cfg[r_key] for r_key in image_registry_keys if area_cfg.get(r_key)]
 
 
 def get_auth_project(access_token):
