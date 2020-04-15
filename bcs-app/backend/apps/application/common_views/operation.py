@@ -16,8 +16,10 @@ import json
 
 from rest_framework import response, viewsets
 from rest_framework.renderers import BrowsableAPIRenderer
+from rest_framework.exceptions import ValidationError
 from django.utils.translation import ugettext_lazy as _
 
+from backend.accounts import bcs_perm
 from backend.activity_log import client
 from backend.utils.basic import getitems
 from backend.utils.renderers import BKAPIRenderer
@@ -26,6 +28,9 @@ from backend.utils.error_codes import error_codes
 from backend.apps.application.base_views import InstanceAPI
 from backend.apps.application import constants as app_constants
 from backend.apps.instance.constants import InsState
+from backend.apps.application.serializers import ReschedulePodsSLZ
+from backend.apps.application.common_views.utils import get_project_namespaces, delete_pods
+from backend.apps.constants import ProjectKind
 
 logger = logging.getLogger(__name__)
 
@@ -127,5 +132,76 @@ class RollbackPreviousVersion(InstanceAPI, viewsets.ViewSet):
             description=desc
         ).log_modify():
             self.update_resource(request, project_id, cluster_id, namespace, last_config, instance_detail)
+
+        return response.Response()
+
+
+class ReschedulePodsViewSet(InstanceAPI, viewsets.ViewSet):
+    renderer_classes = (BKAPIRenderer, BrowsableAPIRenderer)
+
+    def _can_use_namespaces(self, request, project_id, data, ns_name_id_map):
+        for info in data:
+            # 通过集群id和namespace名称确认namespace id，判断是否有namespace权限
+            ns_id = ns_name_id_map.get((info["cluster_id"], info["namespace"]))
+            if not ns_id:
+                raise ValidationError(_("集群:{}下没有查询到namespace:{}").format(info["cluster_id"], info["namespace"]))
+            ns_perm = bcs_perm.Namespace(request, project_id, ns_id)
+            ns_perm.can_use(raise_exception=True)
+
+    def _get_pod_names(self, request, project_id, data):
+        """通过应用名称获取相应的
+        """
+        pod_names = {}
+        for info in data:
+            cluster_id = info["cluster_id"]
+            namespace = info["namespace"]
+            resource_kind = info["resource_kind"]
+            name = info["name"]
+            is_bcs_success, data = self.get_pod_or_taskgroup(
+                request,
+                project_id,
+                cluster_id,
+                field=["resourceName"],  # 这里仅需要得到podname即可
+                app_name=name,
+                ns_name=namespace,
+                category=resource_kind,
+                kind=request.project.kind
+            )
+            if not is_bcs_success:
+                raise error_codes.APIError(_("查询资源POD出现异常"))
+            # data 结构: [{"resourceName": "test1"}, {"resourceName": "test2"}]
+            key = (cluster_id, namespace, name, resource_kind)
+            for info in data:
+                if key in pod_names:
+                    pod_names[key].append(info["resourceName"])
+                else:
+                    pod_names[key] = [info["resourceName"]]
+        return pod_names
+
+    def reschedule_pods(self, request, project_id):
+        """批量重新调度pod，实现deployment等应用的重建
+        NOTE: 这里需要注意，因为前端触发，用户需要在前端展示调用成功后，确定任务都已经下发了
+        因此，这里采用同步操作
+        """
+        # TODO: 先仅允许类型为k8s
+        if request.project.kind == ProjectKind.MESOS.value:
+            raise ValidationError(_("仅允许非mesos类型操作"))
+
+        # 获取请求参数
+        data_slz = ReschedulePodsSLZ(data=request.data)
+        data_slz.is_valid(raise_exception=True)
+        data = data_slz.validated_data["resource_list"]
+
+        access_token = request.user.token.access_token
+        # 判断是否有命名空间权限
+        # 因为操作肯定是同一个项目下的，所以获取项目下的namespace信息，然后判断是否有namespace权限
+        ns_data = get_project_namespaces(access_token, project_id)
+        ns_name_id_map = {(info["cluster_id"], info["name"]): info["id"] for info in ns_data}
+        self._can_use_namespaces(request, project_id, data, ns_name_id_map)
+
+        # 查询应用下面的pod
+        pod_names = self._get_pod_names(request, project_id, data)
+        # 删除pod
+        delete_pods(access_token, project_id, pod_names)
 
         return response.Response()
