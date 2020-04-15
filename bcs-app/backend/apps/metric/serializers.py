@@ -12,19 +12,23 @@
 # specific language governing permissions and limitations under the License.
 #
 import json
+import logging
 import re
 import time
 from urllib.parse import urlparse
 
 import arrow
 from django.utils.translation import ugettext_lazy as _
-
-from backend.apps import constants
-from backend.apps.metric.models import Metric
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
-NAME_PATTERN = re.compile(r"^[a-z0-9]([-_a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*$")
+from backend.apps import constants
+from backend.apps.metric.models import Metric
+
+logger = logging.getLogger(__name__)
+
+NAME_PATTERN = re.compile(r"^[a-z][-a-z0-9]*$")
+NAME_PATTERN_MSG = _("名称由小写英文字母、中划线或数字组成，且不可以数字开头")
 
 
 def validate_http_body(body):
@@ -64,7 +68,7 @@ class UpdateMetricSLZ(serializers.Serializer):
             raise ValidationError(_("name已经存在"))
 
         if not NAME_PATTERN.match(name):
-            raise ValidationError(_("名称由英文字母、下划线或数字组成，且不可以数字开头"))
+            raise ValidationError(NAME_PATTERN_MSG)
         return name
 
     def validate_uri(self, uri):
@@ -123,7 +127,7 @@ class CreateMetricSLZ(UpdateMetricSLZ):
             raise ValidationError(_("name已经存在"))
 
         if not NAME_PATTERN.match(name):
-            raise ValidationError(_("名称由英文字母、下划线、中划线或数字组成，且不可以数字开头"))
+            raise ValidationError(NAME_PATTERN_MSG)
         return name
 
 
@@ -172,9 +176,39 @@ class PromContainerMetricSLZ(PromMetricSLZBase):
     res_id_list = serializers.CharField(required=False)
     pod_name = serializers.CharField(required=False)
 
+    def _get_mesos_pod_name(self, pod_id):
+        """
+        转换示例 2.application-1.bellketest4.10039.1586934929583467102 -> applications-1-2
+        """
+        try:
+            return "{1}-{0}".format(*pod_id.split("."))
+        except Exception as error:
+            logger.error("translate mesos pod_name error: %s, %s", pod_id, error)
+        return pod_id
+
+    def _get_res_id_map(self, res_id_list):
+        res_id_map = {}
+
+        # mesos 做一次转换
+        if self.context["request"].project.kind == constants.ProjectKind.MESOS.value:
+            for res_id in res_id_list:
+                pod_name = self.get_mesos_pod_name(res_id)
+                res_id_map[pod_name] = res_id
+
+            return res_id_map.keys(), res_id_map
+
+        return res_id_list, res_id_map
+
     def validate_res_id_list(self, res_id_list):
         res_id_list = res_id_list.split(",")
         return res_id_list
+
+    def validate_pod_name(self, pod_name):
+        # mesos 做一次转换
+        if self.context["request"].project.kind == constants.ProjectKind.MESOS.value:
+            return self.get_mesos_pod_name(pod_name)
+
+        return pod_name
 
     def validate(self, data: dict):
         data = super().validate(data)
@@ -182,13 +216,44 @@ class PromContainerMetricSLZ(PromMetricSLZBase):
         if not (data.get("res_id_list") or data.get("pod_name")):
             raise ValidationError(_("res_id_list, pod_name不能同时为空"))
 
+        if data.get("res_id_list"):
+            data["res_id_list"], data["res_id_map"] = self._get_res_id_map(data["res_id_list"])
+
         data.setdefault("pod_name", ".*")
+        data.setdefault("res_id_map", {})
         data.setdefault("res_id_list", [".*"])
 
         return data
 
 
-class ServiceMonitorSLZ(serializers.Serializer):
+class ServiceMonitorUpdateSLZ(serializers.Serializer):
+    """ServiceMonitor更新
+    """
+
+    port = serializers.CharField()
+    path = serializers.CharField()
+    interval = serializers.IntegerField()
+    # scrape_timeout = serializers.IntegerField()
+    sample_limit = serializers.IntegerField(min_value=1, max_value=100000)
+    selector = serializers.JSONField()
+
+    def validate_selector(self, selector):
+        if not selector or not isinstance(selector, dict):
+            raise ValidationError("参数不能为空且为字典类型")
+        return selector
+
+    def validate_interval(self, interval):
+        if interval not in [30, 60, 120]:
+            raise ValidationError("参数不合法，只允许【30, 60, 120】")
+        return f"{interval}s"
+
+    def validate_path(self, path):
+        if not path.startswith("/"):
+            raise ValidationError("参数不合法，必须是绝对路径")
+        return path
+
+
+class ServiceMonitorCreateSLZ(ServiceMonitorUpdateSLZ):
     """ServiceMonitor创建
     """
 
@@ -196,19 +261,8 @@ class ServiceMonitorSLZ(serializers.Serializer):
     cluster_id = serializers.CharField()
     namespace = serializers.CharField()
     service_name = serializers.CharField()
-    selector = serializers.JSONField()
-    path = serializers.CharField()
-    interval = serializers.IntegerField()
-    scrape_timeout = serializers.IntegerField()
-    sample_limit = serializers.IntegerField()
 
-
-class ServiceMonitorUpdateSLZ(serializers.Serializer):
-    """ServiceMonitor更新
-    """
-
-    path = serializers.CharField()
-    interval = serializers.IntegerField()
-    scrape_timeout = serializers.IntegerField()
-    sample_limit = serializers.IntegerField()
-    selector = serializers.JSONField()
+    def validate_name(self, name):
+        if not NAME_PATTERN.match(name):
+            raise ValidationError(NAME_PATTERN_MSG)
+        return name
