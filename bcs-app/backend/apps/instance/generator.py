@@ -293,7 +293,7 @@ class ProfileGenerator:
         _item_config = application.get_config()
         containers = getitems(_item_config, ['spec', 'template', 'spec', 'containers'], [])
         init_containers = getitems(_item_config, ['spec', 'template', 'spec', 'initContainers'], [])
-    
+
         log_path_list = []
         for con_list in [init_containers, containers]:
             for _c in con_list:
