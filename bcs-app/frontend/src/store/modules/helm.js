@@ -298,13 +298,13 @@ export default {
          * 获取命名空间列表
          *
          * @param {Object} context store 上下文对象
-         * @param {number} projectId 项目ID
+         * @param {object} 包括：projectId, params
          * @param {Object} config 请求的配置
          *
          * @return {Promise} promise 对象
          */
         getNamespaceList (context, { projectId, params = {} }, config = {}) {
-+           const url = `${DEVOPS_BCS_API_URL}/api/bcs/k8s/configuration/${projectId}/namespaces/?${json2Query(params)}`
+            const url = `${DEVOPS_BCS_API_URL}/api/bcs/k8s/configuration/${projectId}/namespaces/?${json2Query(params)}`
             return http.get(url, {}, config)
         },
 
