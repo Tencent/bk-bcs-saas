@@ -61,6 +61,7 @@ from backend.apps.instance.utils_pub import get_cluster_version
 from backend.apps.ticket.models import TlsCert
 from backend.apps.instance.resources.utils import handle_number_var
 from backend.apps.instance import constants as instance_constants
+from backend.utils.basic import getitems
 
 logger = logging.getLogger(__name__)
 HANDLED_NUM_VAR_PATTERN = re.compile(r"%s}" % NUM_VAR_PATTERN)
@@ -143,10 +144,10 @@ class ProfileGenerator:
             name_list = str(self.resource_id).split(APPLICATION_ID_SEPARATOR)
             application_id = name_list[0]
             metric_id = name_list[1]
-            resourse_type = name_list[2]
+            resource_kind = name_list[2]
             self.metric_id = metric_id
             return self.handle_db_config(
-                {'application_id': application_id, 'metric_id': metric_id, 'resourse_type': resourse_type}
+                {'application_id': application_id, 'metric_id': metric_id, 'resource_kind': resource_kind}
             )
         # Application 中非标准日志采集时默认的 configmap
         is_non_standard_log = True if str(self.resource_id).find(APPLICATION_ID_SEPARATOR) >= 0 else False
@@ -154,9 +155,9 @@ class ProfileGenerator:
             name_list = str(self.resource_id).split(APPLICATION_ID_SEPARATOR)
             application_id = name_list[0]
             container_name = name_list[1]
-            resourse_type = name_list[2]
+            resource_kind = name_list[2]
             log_config = self.handle_application_log_config(
-                application_id, container_name, resourse_type)
+                application_id, container_name, resource_kind)
             return self.handle_db_config(log_config)
         # k8s ingress 生成的 secret
         is_k8s_ingress_srt = True if str(self.resource_id).find(INGRESS_ID_SEPARATOR) >= 0 else False
@@ -279,22 +280,20 @@ class ProfileGenerator:
         config_profile = self.format_config_profile(config_profile)
         return config_profile
 
-    def handle_application_log_config(self, application_id, container_name, resourse_type):
+    def handle_application_log_config(self, application_id, container_name, resource_kind):
         """Application 中非标准日志采集
         """
         # 获取业务的 dataid
         cc_app_id = self.context['SYS_CC_APP_ID']
 
-        application = MODULE_DICT.get(resourse_type).objects.get(id=application_id)
+        application = MODULE_DICT.get(resource_kind).objects.get(id=application_id)
         self.resource_show_name = '%s-%s-%s' % (
             application.name, container_name, LOG_CONFIG_MAP_SUFFIX)
         # 从Application 中获取日志路径
         _item_config = application.get_config()
-        containers = _item_config.get('spec', {}).get(
-            'template', {}).get('spec', {}).get('containers', [])
-        init_containers = _item_config.get('spec', {}).get(
-            'template', {}).get('spec', {}).get('initContainers', [])
-
+        containers = getitems(_item_config, ['spec', 'template', 'spec', 'containers'], [])
+        init_containers = getitems(_item_config, ['spec', 'template', 'spec', 'initContainers'], [])
+    
         log_path_list = []
         for con_list in [init_containers, containers]:
             for _c in con_list:
@@ -559,8 +558,7 @@ class ApplicationProfileGenerator(MesosProfileGenerator):
 
         # 2. 处理 containers 中的字段
         is_custom_log_path = False
-        containers = db_config.get('spec', {}).get(
-            'template', {}).get('spec', {}).get('containers', [])
+        containers = getitems(db_config, ['spec', 'template', 'spec', 'containers'], [])
         for _c in containers:
             # 命令参数解析
             args_text = _c.get('args_text', '')
@@ -574,8 +572,8 @@ class ApplicationProfileGenerator(MesosProfileGenerator):
             remove_key(_c, "imageVersion")
             # 是否添加账号信息
             if self.check_image_secret():
-                _c['imagePullUser'] = 'secret::%s||user' % MESOS_IMAGE_SECRET
-                _c['imagePullPasswd'] = 'secret::%s||pwd' % MESOS_IMAGE_SECRET
+                _c['imagePullUser'] = f'secret::{MESOS_IMAGE_SECRET}||user'
+                _c['imagePullPasswd'] = f'secret::{MESOS_IMAGE_SECRET}||pwd'
             _c['image'] = generate_image_str(
                 _c.get('image'), self.context['SYS_JFROG_DOMAIN'], self.context['SYS_IMAGE_REGISTRY_LIST']
             )
@@ -825,7 +823,7 @@ class MetricProfileGenerator(ProfileGenerator):
         """
         application_id = db_config.get('application_id')
         metric_id = db_config.get('metric_id')
-        resourse_type = db_config.get('resourse_type') or 'application'
+        resource_kind = db_config.get('resource_kind') or 'application'
 
         try:
             met = Metric.objects.get(id=metric_id)
@@ -845,10 +843,10 @@ class MetricProfileGenerator(ProfileGenerator):
 
         try:
             application = MODULE_DICT.get(
-                resourse_type).objects.get(id=application_id)
+                resource_kind).objects.get(id=application_id)
         except Exception:
             raise ValidationError('{}[id:{}]:{}'.format(_("应用"), application_id, _("不存在")))
-        if resourse_type == 'application':
+        if resource_kind == 'application':
             app_config = application.get_config()
             app_config_new = handel_custom_network_mode(app_config)
             app_spec = app_config_new.get('spec', {}).get(
