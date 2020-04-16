@@ -501,7 +501,7 @@ class CCHostListViewSet(NodeBase, NodeHandler, viewsets.ViewSet):
                 'is_used': used_status,
                 # 添加是否docker机类型，docker机不允许使用
                 # 判断条件为，以`D`开头则为docker机
-                "is_docker_type": True if ip_info.get("DeviceClass", "").startswith("D") else False
+                "is_valid": False if ip_info.get("DeviceClass", "").startswith("D") else True
 
             })
             if used_status:
