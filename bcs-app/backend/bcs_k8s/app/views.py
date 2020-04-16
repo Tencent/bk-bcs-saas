@@ -225,7 +225,7 @@ class AppRollbackView(AppViewBase):
 class AppNamespaceView(AccessTokenMixin, ProjectMixin, viewsets.ReadOnlyModelViewSet):
     serializer_class = NamespaceSLZ
 
-    def get_namespaces(self, filter_use_perm):
+    def filter_namespaces(self, filter_use_perm):
 
         result = paas_cc.get_namespace_list(self.access_token, self.project_id, desire_all_data=True)
         results = result["data"]["results"]
@@ -256,7 +256,7 @@ class AppNamespaceView(AccessTokenMixin, ProjectMixin, viewsets.ReadOnlyModelVie
     def list(self, request, project_id):
         # 是否需要过滤使用权限，默认过滤使用权限
         filter_use_perm = request.query_params.get("filter_use_perm", True)
-        ns_list = self.get_namespaces(filter_use_perm)
+        ns_list = self.filter_namespaces(filter_use_perm)
         if not ns_list:
             return Response([])
         cluster_id = request.query_params.get("cluster_id")
