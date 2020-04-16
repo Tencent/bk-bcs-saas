@@ -70,7 +70,7 @@ class NamespaceBase:
             raise error_codes.ComponentError.f(
                 _("创建Namespace失败，{}").format(result.get('message')))
 
-    def create_jforg_secret(self, client, access_token, project_id, project_code, data):
+    def create_jfrog_secret(self, client, access_token, project_id, project_code, data):
         try:
             domain_list = paas_cc.get_jfrog_domain_list(
                 access_token, project_id, data['cluster_id'])
@@ -135,7 +135,7 @@ class NamespaceBase:
         # 创建 ns
         self.create_ns_by_bcs(client, name, data)
         # 创建 jfrog Sercret
-        self.create_jforg_secret(client, access_token,
+        self.create_jfrog_secret(client, access_token,
                                  project_id, project_code, data)
 
     def check_ns_image_secret(self, client, access_token, project_id, cluster_id, ns_name):
