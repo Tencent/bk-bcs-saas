@@ -303,8 +303,8 @@ export default {
          *
          * @return {Promise} promise 对象
          */
-        getNamespaceList (context, projectId, config = {}) {
-            const url = `${DEVOPS_BCS_API_URL}/api/bcs/k8s/configuration/${projectId}/namespaces/`
+        getNamespaceList (context, { projectId, params = {} }, config = {}) {
++           const url = `${DEVOPS_BCS_API_URL}/api/bcs/k8s/configuration/${projectId}/namespaces/?${json2Query(params)}`
             return http.get(url, {}, config)
         },
 
