@@ -29,7 +29,7 @@ from backend.bcs_k8s.diff import parser
 from backend.utils.models import BaseTSModel
 from backend.bcs_k8s.kubehelm.helm import KubeHelmClient
 from backend.bcs_k8s.helm.bcs_variable import get_bcs_variables, merge_valuefile_with_bcs_variables
-
+from backend.utils.basic import normalize_time
 
 logger = logging.getLogger(__name__)
 ALLOWED_CHARS = 'abcdefghijklmnopqrstuvwxyz0123456789'
@@ -194,7 +194,7 @@ class ChartVersion(BaseChartVersion):
         self.home = version.get("home")
         self.description = version.get("description")
         self.engine = version.get("engine", "default")
-        self.created = parse_chart_time(version.get("created"))
+        self.created = normalize_time(version.get("created"))
         maintainers = version.get("maintainers")
         if maintainers:
             self.maintainers = version.get("maintainers")

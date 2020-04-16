@@ -136,16 +136,10 @@ class App(models.Model):
             content, notes = self.release.render(namespace=self.namespace, bcs_inject_data=bcs_inject_data)
             content = str(content, encoding="utf-8")
         except helm_exceptions.HelmBaseException as e:
-            message = "helm render failed, {}".format(e)
-            self.set_transitioning(False, message)
+            logger.error("helm render failed, %s", str(e))
             return None, None
         except Exception as e:
-            logger.exception("render app failed, {}".format(e))
-            message = "render_app failed, {error}.\n{stack}".format(
-                error=e,
-                stack=traceback.format_exc()
-            )
-            self.set_transitioning(False, message)
+            logger.exception("render app failed, %s", str(e))
             return None, None
         return content, notes
 

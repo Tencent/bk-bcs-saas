@@ -409,8 +409,5 @@ def compose_url_with_scheme(url, scheme="http"):
 
 def get_cc_app_id(access_token, project_id):
     resp = paas_cc.get_project(access_token, project_id)
-    if not resp.get("code"):
-        return ""
-
-    data = resp.get('data')
-    return data.get("cc_app_id", "")
+    project_info = resp.get("data") or {}
+    return str(project_info.get("cc_app_id") or "")

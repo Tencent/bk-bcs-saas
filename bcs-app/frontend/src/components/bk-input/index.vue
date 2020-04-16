@@ -87,6 +87,10 @@
                 type: Boolean,
                 default: false
             },
+            isCustom: {
+                type: Boolean,
+                default: false
+            },
             steps: {
                 type: Number,
                 default: 1
@@ -143,7 +147,7 @@
                 curSelectIndex: -1,
                 resultList: this.defaultList || this.list,
                 timer: 0,
-
+                userHasInput: false,
                 isMax: false,
                 isMin: false,
                 curValue: '',
@@ -233,6 +237,9 @@
                         if (isTrigger) {
                             this.$emit('item-selected', value, selectItem, isTrigger)
                         }
+                    } else if (this.isCustom) {
+                        // 如果在选择模式下且允许自定义，在没匹配下拉时直接赋值
+                        this.curValue = this.value
                     } else {
                         this.curValue = ''
                     }
@@ -425,6 +432,9 @@
                 } else {
                     this.inputMode = 'input'
                     this.keyWord = ''
+
+                    // 用于标记用户在当前focus已经更改内容
+                    this.userHasInput = true
                     if (this.defaultList) {
                         this.keyWord = val
                         this.showListPanel(event)
@@ -588,6 +598,10 @@
                     this.isListPanelShow = false
                 }, 200)
             },
+            clearDefaultList () {
+                this.defaultList = []
+                this.isListPanelShow = false
+            },
             focusHandler (event) {
                 if (!this.isSelectMode) {
                     event.target.select()
@@ -630,18 +644,28 @@
                 if (this.type === 'number') {
                     this.curValue = this.value
                 } else if (this.isSelectMode) {
-                    const selectItem = this.getItemByKey(this.value)
+                    const curValue = this.isCustom  && this.userHasInput ? event.target.value : this.value
+                    const selectItem = this.getItemByKey(curValue)
                     if (selectItem) {
                         if (selectItem.type === 'variable') {
                             this.curValue = '{{' + selectItem[this.displayKey] + '}}'
                         } else {
                             this.curValue = selectItem[this.displayKey]
                         }
+                    } else if (this.isCustom) {
+                        // 选择模式支持自定义输入
+                        if (this.userHasInput) {
+                            const newVal = event.target.value
+                            this.curValue = newVal
+                            this.$emit('update:value', newVal)
+                            this.$emit('item-customed', newVal, { '__isCustom': true }, false)
+                        }
                     } else {
                         this.curValue = ''
                     }
                 }
                 this.hideListPanel()
+                this.userHasInput = false
                 this.timer = setTimeout(() => {
                     this.$emit('blur', event)
                 }, 200)
