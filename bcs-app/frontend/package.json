@@ -102,7 +102,7 @@
     "mini-css-extract-plugin": "~0.7.0",
     "mocha": "~6.1.4",
     "moment": "~2.24.0",
-    "npm": "~6.9.0",
+    "npm": "~6.14.4",
     "open": "~6.3.0",
     "optimize-css-assets-webpack-plugin": "~5.0.1",
     "ora": "~3.4.0",
