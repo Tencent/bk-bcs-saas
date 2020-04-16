@@ -226,9 +226,8 @@ class ProfileGenerator:
         self.context['SYS_NAMESPACE'] = data.get('name')
         self.has_image_secret = data.get('has_image_secret')
         # 获取镜像地址
-        jfrog_domain = paas_cc.get_jfrog_domain(
+        self.context['SYS_JFROG_DOMAIN'] = paas_cc.get_jfrog_domain(
             self.access_token, self.project_id, self.context['SYS_CLUSTER_ID'])
-        self.context['SYS_JFROG_DOMAIN'] = jfrog_domain
 
         self.context['SYS_IMAGE_REGISTRY_LIST'] = paas_cc.get_image_registry_list(
             self.access_token, self.context['SYS_CLUSTER_ID']
@@ -1350,10 +1349,8 @@ class K8sDeploymentGenerator(K8sProfileGenerator):
 
         # 2. 处理container 中的数据
         # is_custom_log_path = False
-        containers = db_config.get('spec', {}).get(
-            'template', {}).get('spec', {}).get('containers', [])
-        init_containers = db_config.get('spec', {}).get(
-            'template', {}).get('spec', {}).get('initContainers', [])
+        containers = getitems(db_config, ['spec', 'template', 'spec', 'containers'], [])
+        init_containers = getitems(db_config, ['spec', 'template', 'spec', 'containers', 'initContainers'], [])
 
         log_volumes = []
 
