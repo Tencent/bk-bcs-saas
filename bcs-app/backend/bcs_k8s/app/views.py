@@ -225,7 +225,7 @@ class AppRollbackView(AppViewBase):
 class AppNamespaceView(AccessTokenMixin, ProjectMixin, viewsets.ReadOnlyModelViewSet):
     serializer_class = NamespaceSLZ
 
-    def get_queryset(self):
+    def get_namespaces(self, filter_use_perm):
 
         result = paas_cc.get_namespace_list(self.access_token, self.project_id, desire_all_data=True)
         results = result["data"]["results"]
@@ -250,18 +250,20 @@ class AppNamespaceView(AccessTokenMixin, ProjectMixin, viewsets.ReadOnlyModelVie
                 i['environment'] = None
 
         perm = bcs_perm.Namespace(self.request, self.project_id, bcs_perm.NO_RES)
-        results = perm.hook_perms(results, True)
+        results = perm.hook_perms(results, filter_use=filter_use_perm)
         return results
 
     def list(self, request, project_id):
-        queryset = self.get_queryset()
-        if not queryset:
+        # 是否需要过滤使用权限，默认过滤使用权限
+        filter_use_perm = request.query_params.get("filter_use_perm", True)
+        ns_list = self.get_namespaces(filter_use_perm)
+        if not ns_list:
             return Response([])
         cluster_id = request.query_params.get("cluster_id")
         if cluster_id:
-            queryset = [info for info in queryset if info["cluster_id"] == cluster_id]
+            ns_list = [info for info in ns_list if info["cluster_id"] == cluster_id]
 
-        cluster_id_name_map = {item["cluster_id"]: item["cluster_name"] for item in queryset}
+        cluster_id_name_map = {item["cluster_id"]: item["cluster_name"] for item in ns_list}
         # check which namespace has the chart_id initialized
         namespace_ids = []
         chart_id = request.query_params.get("chart_id")
@@ -270,7 +272,7 @@ class AppNamespaceView(AccessTokenMixin, ProjectMixin, viewsets.ReadOnlyModelVie
                 project_id=self.project_id, chart__id=chart_id
             ).values_list("namespace_id", flat=True))
 
-        serializer = self.serializer_class(queryset, many=True)
+        serializer = self.serializer_class(ns_list, many=True)
         data = serializer.data
         for item in data:
             has_initialized = item["id"] in namespace_ids
