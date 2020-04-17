@@ -64,6 +64,7 @@ from backend.bcs_k8s.dashboard.exceptions import DashboardError, DashboardExecut
 from backend.bcs_k8s.app.utils import compose_url_with_scheme
 from backend.apps.depot.api import get_jfrog_account
 from backend.utils.errcodes import ErrorCode
+from backend.bcs_k8s.app.serializers import FilterNamespacesSLZ
 
 logger = logging.getLogger(__name__)
 
@@ -255,18 +256,20 @@ class AppNamespaceView(AccessTokenMixin, ProjectMixin, viewsets.ReadOnlyModelVie
 
     def list(self, request, project_id):
         # 是否需要过滤使用权限，默认过滤使用权限
-        filter_use_perm = request.query_params.get("filter_use_perm", True)
-        ns_list = self.filter_namespaces(filter_use_perm)
+        slz = FilterNamespacesSLZ(data=request.query_params)
+        slz.is_valid(raise_exception=True)
+        params = slz.validated_data
+        ns_list = self.filter_namespaces(params.get("filter_use_perm"))
         if not ns_list:
             return Response([])
-        cluster_id = request.query_params.get("cluster_id")
+        cluster_id = params.get("cluster_id")
         if cluster_id:
             ns_list = [info for info in ns_list if info["cluster_id"] == cluster_id]
 
         cluster_id_name_map = {item["cluster_id"]: item["cluster_name"] for item in ns_list}
         # check which namespace has the chart_id initialized
         namespace_ids = []
-        chart_id = request.query_params.get("chart_id")
+        chart_id = params.get("chart_id")
         if chart_id:
             namespace_ids = set(App.objects.filter(
                 project_id=self.project_id, chart__id=chart_id
