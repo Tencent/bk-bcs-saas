@@ -147,9 +147,23 @@ class Pod(base.MetricViewMixin, viewsets.ViewSet):
     renderer_classes = (BKAPIRenderer, BrowsableAPIRenderer)
     serializer_class = serializers.PromContainerMetricSLZ
 
+    def _update_result(self, result, res_id_map):
+        """mesos转换pod_name
+        """
+        if not res_id_map:
+            return result
+
+        _result = result.get("result") or []
+        for i in _result:
+            pod_name = i["metric"]["pod_name"]
+            i["metric"]["pod_name"] = res_id_map.get(pod_name, pod_name)
+        result["result"] = _result
+        return result
+
     def cpu_usage(self, request, project_id, cluster_id):
         data = self.get_validated_data(request)
         result = prometheus.get_pod_cpu_usage_range(cluster_id, data["res_id_list"], data["start_at"], data["end_at"])
+        result = self._update_result(result, data["res_id_map"])
         return response.Response(result)
 
     def memory_usage(self, request, project_id, cluster_id):
@@ -157,16 +171,19 @@ class Pod(base.MetricViewMixin, viewsets.ViewSet):
         result = prometheus.get_pod_memory_usage_range(
             cluster_id, data["res_id_list"], data["start_at"], data["end_at"]
         )
+        result = self._update_result(result, data["res_id_map"])
         return response.Response(result)
 
     def network_receive(self, request, project_id, cluster_id):
         data = self.get_validated_data(request)
         result = prometheus.get_pod_network_receive(cluster_id, data["res_id_list"], data["start_at"], data["end_at"])
+        result = self._update_result(result, data["res_id_map"])
         return response.Response(result)
 
     def network_transmit(self, request, project_id, cluster_id):
         data = self.get_validated_data(request)
         result = prometheus.get_pod_network_transmit(cluster_id, data["res_id_list"], data["start_at"], data["end_at"])
+        result = self._update_result(result, data["res_id_map"])
         return response.Response(result)
 
 

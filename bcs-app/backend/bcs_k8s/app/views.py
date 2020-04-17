@@ -255,10 +255,10 @@ class AppNamespaceView(AccessTokenMixin, ProjectMixin, viewsets.ReadOnlyModelVie
         return results
 
     def list(self, request, project_id):
-        # 是否需要过滤使用权限，默认过滤使用权限
         slz = FilterNamespacesSLZ(data=request.query_params)
         slz.is_valid(raise_exception=True)
         params = slz.validated_data
+
         ns_list = self.filter_namespaces(params.get("filter_use_perm"))
         if not ns_list:
             return Response([])
