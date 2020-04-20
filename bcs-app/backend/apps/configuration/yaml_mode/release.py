@@ -133,8 +133,7 @@ class ReleaseDataProcessor:
     def _inject(self, raw_content, inject_configs, bcs_variables):
         try:
             content = self._render_with_variables(raw_content, bcs_variables)
-            content = self._inject_bcs_info(content, inject_configs)
-            return content
+            return self._inject_bcs_info(content, inject_configs)
         except Exception as e:
             raise ParseError(f'render failed: {e}')
 
