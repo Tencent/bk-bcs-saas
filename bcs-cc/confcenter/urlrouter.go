@@ -79,7 +79,7 @@ func URLConf(engine *gin.Engine) {
 	}
 
 	cluster := engine.Group("/projects/:project_id/clusters")
-	cluster.Use(JWTTokenMiddleware())
+	// cluster.Use(JWTTokenMiddleware())
 	{
 		cluster.GET("/", apis.ClusterList)
 		cluster.POST("/", apis.CreateCluster)

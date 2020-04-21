@@ -69,6 +69,10 @@ class ClusterConfig(object):
                 'zk_urls': ','.join(self.area_config["zk_hosts"]),
             }
         )
+        # NOTE: common中支持websvr=，这里websvr是字符串
+        web_svr = self.k8s_config.get("websvr")
+        if web_svr:
+            self.k8s_config["common"]["websvr"] = web_svr[0]
 
     def _get_node_vars(self, master_legal_host):
         zk_urls = ','.join(self.area_config["zk_hosts"])
