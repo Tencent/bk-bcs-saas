@@ -251,9 +251,8 @@ def get_ns_variable(access_token, project_id, namespace_id):
     context['SYS_NAMESPACE'] = data.get('name')
     has_image_secret = data.get('has_image_secret')
     # 获取镜像地址
-    jfrog_domain = paas_cc.get_jfrog_domain(access_token, project_id, context['SYS_CLUSTER_ID'])
-    context['SYS_JFROG_DOMAIN'] = jfrog_domain
-
+    context['SYS_JFROG_DOMAIN'] = paas_cc.get_jfrog_domain(access_token, project_id, context['SYS_CLUSTER_ID'])
+    context['SYS_IMAGE_REGISTRY_LIST'] = paas_cc.get_image_registry_list(access_token, cluster_id)
     bcs_context = get_bcs_context(access_token, project_id)
     context.update(bcs_context)
     # k8s 集群获取集群版本信息

@@ -31,6 +31,9 @@ from .deployer import AppDeployer
 from backend.activity_log import client
 from . import bcs_info_injector
 from backend.bcs_k8s.kubehelm import exceptions as helm_exceptions
+from backend.apps.whitelist_bk import enable_helm_v3
+from backend.bcs_k8s import utils as bcs_helm_utils
+from backend.bcs_k8s.app.utils import get_cc_app_id
 
 logger = logging.getLogger(__name__)
 
@@ -79,6 +82,8 @@ class App(models.Model):
     # For example platform provided chartmuseum repo for user projects, it's will be many.
     # We give every chartmuseum repo app a indentified unique_ns, and a common forr the others.
     unique_ns = models.IntegerField(default=0)
+    # allow to use helm command
+    enable_helm = models.BooleanField(default=False, help_text="如果为True，允许使用helm命名操作chart/release")
 
     objects = AppManager()
 
@@ -111,15 +116,35 @@ class App(models.Model):
             "version": self.get_current_version()
         }
 
-    def render_app(self, username, access_token, ignore_empty_access_token=False, extra_inject_source=None):
-        """
-        ignore_empty_access_token 用户支持从远程 API 部署, 这种情况无法提供一个有效的 access_token
-        目前使用场景：
-        1. 为各个项目提供的 chart repo部署
-        2. CI/CD
+    def _template_with_ytt_renderer(self, username, access_token,
+                                    ignore_empty_access_token=False, extra_inject_source=None):
 
-        extra_inject_source 用于提供无 access_token 时, 提供注入需要的数据，不要用于有 access_token 的情况
-        """
+        try:
+            # 组装注入的参数
+            bcs_inject_data = bcs_helm_utils.BCSInjectData(
+                source_type="helm",
+                creator=self.creator,
+                updator=username,
+                version=self.release.chartVersionSnapshot.version,
+                project_id=self.project_id,
+                app_id=get_cc_app_id(access_token, self.project_id),
+                cluster_id=self.cluster_id,
+                namespace=self.namespace,
+                stdlog_data_id=bcs_helm_utils.get_stdlog_data_id(self.project_id),
+                image_pull_secret=bcs_helm_utils.provide_image_pull_secrets(self.namespace)
+            )
+            content, notes = self.release.render(namespace=self.namespace, bcs_inject_data=bcs_inject_data)
+            content = str(content, encoding="utf-8")
+        except helm_exceptions.HelmBaseException as e:
+            logger.error("helm render failed, %s", str(e))
+            return None, None
+        except Exception as e:
+            logger.exception("render app failed, %s", str(e))
+            return None, None
+        return content, notes
+
+    def _template_with_bcs_renderer(self, username, access_token,
+                                    ignore_empty_access_token=False, extra_inject_source=None):
         try:
             content, notes = self.release.render(namespace=self.namespace)
             content = str(content, encoding="utf-8")
@@ -164,6 +189,22 @@ class App(models.Model):
         )
         resources_list = manager.do_inject()
         content = bcs_info_injector.join_manifest(resources_list)
+        return content, notes
+
+    def render_app(self, username, access_token, ignore_empty_access_token=False, extra_inject_source=None):
+        """
+        ignore_empty_access_token 用户支持从远程 API 部署, 这种情况无法提供一个有效的 access_token
+        目前使用场景：
+        1. 为各个项目提供的 chart repo部署
+        2. CI/CD
+
+        extra_inject_source 用于提供无 access_token 时, 提供注入需要的数据，不要用于有 access_token 的情况
+        """
+        content, notes = self._template_with_ytt_renderer(
+            username, access_token, ignore_empty_access_token=False, extra_inject_source=None)
+        if not content:
+            return self._template_with_bcs_renderer(
+                username, access_token, ignore_empty_access_token=False, extra_inject_source=None)
         return content, notes
 
     def reset_transitioning(self, action):
@@ -248,11 +289,15 @@ class App(models.Model):
     def first_deploy_task(self, access_token, activity_log_id, deploy_options):
         log_client = get_log_client_by_activity_log_id(activity_log_id)
         try:
-            AppDeployer(
-                app=self,
-                access_token=access_token,
-                **deploy_options
-            ).install_app()
+            app_deployer = AppDeployer(app=self, access_token=access_token, **deploy_options)
+            # 启用helm功能，使用helm相关命令
+            if enable_helm_v3(self.cluster_id):
+                # 针对install操作，标识为使用helm命令
+                self.enable_helm = True
+                self.save(update_fields=["enable_helm"])
+                app_deployer.install_app_by_helm()
+            else:
+                app_deployer.install_app_by_kubectl()
         except Exception as e:
             logger.exception("first deploy app with unexpected error: %s", e)
             self.set_transitioning(False, "unexpected error: %s" % e)
@@ -306,13 +351,18 @@ class App(models.Model):
         self.save(update_fields=["release", "updator", "updated", "sys_variables", "version"])
 
         try:
-            AppDeployer(
+            app_deployer = AppDeployer(
                 app=self,
                 access_token=access_token,
                 kubeconfig_content=kubeconfig_content,
                 ignore_empty_access_token=ignore_empty_access_token,
                 extra_inject_source=extra_inject_source,
-            ).install_app()
+            )
+            # 如果开启使用helm功能，并且实例化使用helm，则升级也可以使用helm功能
+            if self.enable_helm:
+                app_deployer.upgrade_app_by_helm()
+            else:
+                app_deployer.upgrade_app_by_kubectl()
         except Exception as e:
             logger.exception("upgrade_task unexpected error: %s" % e)
             self.set_transitioning(False, "unexpected error: %s" % e)
@@ -371,10 +421,18 @@ class App(models.Model):
         )
         try:
             release = ChartRelease.objects.get(id=release_id)
-            self.release = ChartRelease.objects.make_rollback_release(self, release)
-            self.version = self.release.chartVersionSnapshot.version
-            self.save(update_fields=["release"])
-            AppDeployer(app=self, access_token=access_token).install_app()
+            app_deployer = AppDeployer(app=self, access_token=access_token)
+            if self.enable_helm:
+                # 回滚到先前release对应的revision
+                self.release = release
+                self.save(update_fields=["release"])
+                app_deployer.rollback_app_by_helm()
+            else:
+                # kubectl的逻辑不变动
+                self.release = ChartRelease.objects.make_rollback_release(self, release)
+                self.version = self.release.chartVersionSnapshot.version
+                self.save(update_fields=["release"])
+                app_deployer.install_app_by_kubectl()
         except Exception as e:
             logger.exception("rollback_app_task unexpected error: %s", e)
             self.set_transitioning(self, False, "unexpected error: %s" % e)
@@ -386,13 +444,16 @@ class App(models.Model):
             log_client.update_log(activity_status=activity_status)
 
     def get_history_releases(self):
-        releases = list(ChartRelease.objects.filter(app_id=self.id)
-                        .exclude(id=self.release.id).order_by("-id")
-                        .values("id", "chartVersionSnapshot__version", "short_name", "created_at"))
-        releases = [dict(id=item["id"],
-                         short_name=item["short_name"],
-                         version=item["chartVersionSnapshot__version"],
-                         created_at=item["created_at"]
+        # 针对helm upgrade的操作，执行成功时，才会有revision，才允许回滚
+        releases = ChartRelease.objects.filter(app_id=self.id).exclude(id=self.release.id).order_by("-id")
+        if enable_helm_v3(self.cluster_id):
+            releases = releases.exclude(revision=0)
+
+        releases = [dict(id=item.id,
+                         short_name=item.short_name,
+                         version=item.chartVersionSnapshot.version,
+                         created_at=item.created_at,
+                         revision=item.revision
                          ) for item in releases]
         return releases
 
@@ -458,7 +519,11 @@ class App(models.Model):
         log_client = self.record_destroy(username=username, access_token=access_token)
 
         try:
-            AppDeployer(app=self, access_token=access_token).uninstall_app()
+            app_deployer = AppDeployer(app=self, access_token=access_token)
+            if self.enable_helm:
+                app_deployer.uninstall_app_by_helm()
+            else:
+                app_deployer.uninstall_app_by_kubectl()
         except Exception as e:
             logger.exception("destroy_app_task unexpected result: %s", e)
             log_client.update_log(activity_status="failed")

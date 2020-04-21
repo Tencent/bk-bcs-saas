@@ -15,7 +15,8 @@
 from .cluster import (  # noqa
     ClusterCreateListViewSet, ClusterCreateGetUpdateViewSet,
     ClusterInstallLogView, ClusterFilterViewSet, ClusterCheckDeleteViewSet,
-    ClusterInfo, ClusterMasterInfo, ClusterVersionViewSet
+    ClusterInfo, ClusterMasterInfo, ClusterVersionViewSet,
+    MesosIPPoolViewSet
 )
 
 from .namespace import NamespaceViewSet

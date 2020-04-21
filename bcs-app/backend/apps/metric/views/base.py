@@ -28,7 +28,7 @@ class MetricViewMixin:
         return node_ip_map
 
     def get_validated_data(self, request):
-        slz = self.serializer_class(data=request.GET)
+        slz = self.serializer_class(data=request.GET, context={"request": request})
         slz.is_valid(raise_exception=True)
         data = slz.validated_data
         return data

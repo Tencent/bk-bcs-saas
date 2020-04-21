@@ -16,11 +16,22 @@ import contextlib
 import traceback
 from dataclasses import dataclass
 from rest_framework.exceptions import PermissionDenied
+from rest_framework.exceptions import ValidationError
 
 from backend.utils.client import make_kubectl_client, make_kubectl_client_from_kubeconfig
 from backend.bcs_k8s.kubectl.exceptions import KubectlError, KubectlExecutionError
+from backend.bcs_k8s.kubehelm.exceptions import HelmExecutionError, HelmError
+from backend.utils.basic import ChoicesEnum
+from backend.utils import client as bcs_client
 
 logger = logging.getLogger(__name__)
+
+
+class ChartOperations(ChoicesEnum):
+    INSTALL = "install"
+    UPGRADE = "upgrade"
+    UNINSTALL = "uninstall"
+    ROLLBACK = "rollback"
 
 
 @dataclass
@@ -41,11 +52,158 @@ class AppDeployer:
                 access_token=self.access_token) as (client, err):
             yield client, err
 
-    def install_app(self):
-        self.run_with_kubectl("install")
+    @contextlib.contextmanager
+    def make_helm_client(self):
+        with bcs_client.make_helm_client(
+                project_id=self.app.project_id,
+                cluster_id=self.app.cluster_id,
+                access_token=self.access_token) as (client, err):
+            yield client, err
 
-    def uninstall_app(self):
-        self.run_with_kubectl("uninstall")
+    def install_app_by_helm(self):
+        """通过helm实例化"""
+        self.run_with_helm(ChartOperations.INSTALL.value)
+
+    def install_app_by_kubectl(self):
+        """通过kubectl实例化"""
+        self.run_with_kubectl(ChartOperations.INSTALL.value)
+
+    def upgrade_app_by_helm(self):
+        """通过helm升级 app"""
+        self.run_with_helm(ChartOperations.UPGRADE.value)
+
+    def upgrade_app_by_kubectl(self):
+        """通过kubectl升级 app"""
+        self.run_with_kubectl(ChartOperations.INSTALL.value)
+
+    def uninstall_app_by_helm(self):
+        """通过helm删除/卸载 app"""
+        self.run_with_helm(ChartOperations.UNINSTALL.value)
+
+    def uninstall_app_by_kubectl(self):
+        """通过kubectl删除/卸载 app"""
+        self.run_with_kubectl(ChartOperations.UNINSTALL.value)
+
+    def rollback_app_by_helm(self):
+        """通过helm回滚app版本"""
+        self.run_with_helm(ChartOperations.ROLLBACK.value)
+
+    def rollback_app_by_kubectl(self):
+        """通过kubectl回滚app版本"""
+        self.run_with_kubectl(ChartOperations.INSTALL.value)
+
+    def run_with_helm(self, operation):
+        # NOTE: 兼容先前
+        if operation in [ChartOperations.INSTALL.value, ChartOperations.UPGRADE.value]:
+            content = self.app.render_app(
+                access_token=self.access_token,
+                username=self.app.updator,
+                ignore_empty_access_token=self.ignore_empty_access_token,
+                extra_inject_source=self.extra_inject_source
+            )[0]
+        elif operation == ChartOperations.UNINSTALL.value:
+            content = self.app.release.content
+        elif operation == ChartOperations.ROLLBACK.value:
+            content = self.app.release.content
+        else:
+            raise ValidationError("operation not allowed")
+        if not content:
+            return
+        # 保存为release的content
+        self.update_app_release_content(content)
+        # 使用helm执行相应的命令
+        with self.make_helm_client() as (client, err):
+            if err is not None:
+                transitioning_message = "make helm client failed, %s" % err
+                self.app.set_transitioning(False, transitioning_message)
+                return
+            self._run_with_helm(
+                client,
+                self.app.name,
+                self.app.namespace,
+                content,
+                operation
+            )
+
+    def get_release_revision(self, cmd_out):
+        """解析执行命令的返回
+        install和upgrade的返回格式类似:
+        NAME: test-redis
+        LAST DEPLOYED: Thu Mar 17 17:55:48 2020
+        NAMESPACE: default
+        STATUS: deployed
+        REVISION: 1
+        TEST SUITE: None
+        """
+        cmd_out_list = cmd_out.decode().split("\n")
+        for item in cmd_out_list:
+            if "REVISION:" not in item:
+                continue
+            return int(item.split(" ")[-1].strip())
+
+        raise HelmError("parse helm cmd output error")
+
+    def _run_with_helm(self, client, name, namespace, content, operation):
+        transitioning_result = True
+        try:
+            if operation == ChartOperations.INSTALL.value:
+                # 需要解析out，获取revision信息，用于rollback
+                cmd_out = client.install(
+                    name=name,
+                    namespace=namespace,
+                    tmpl_content=content,
+                    chart_name=self.app.chart.name,
+                    chart_version=self.app.version,
+                    chart_values=self.app.release.valuefile,
+                    chart_api_version="v2"
+                )[0]
+                self.app.release.revision = self.get_release_revision(cmd_out)
+                self.app.release.save()
+            elif operation == ChartOperations.UPGRADE.value:
+                cmd_out = client.upgrade(
+                    name=name,
+                    namespace=namespace,
+                    tmpl_content=content,
+                    chart_name=self.app.chart.name,
+                    chart_version=self.app.version,
+                    chart_values=self.app.release.valuefile,
+                    chart_api_version="v2"
+                )[0]
+                self.app.release.revision = self.get_release_revision(cmd_out)
+                self.app.release.save()
+            elif operation == ChartOperations.UNINSTALL.value:
+                client.uninstall(name, namespace)
+            elif operation == ChartOperations.ROLLBACK.value:
+                client.rollback(name, namespace, self.app.release.revision)
+        except HelmExecutionError as e:
+            transitioning_result = False
+            transitioning_message = (
+                "helm command execute failed.\n"
+                "Error code: {error_no}\nOutput:\n{output}").format(
+                error_no=e.error_no,
+                output=e.output
+            )
+            logger.warn(transitioning_message)
+        except HelmError as e:
+            err_msg = str(e)
+            logger.warn(err_msg)
+            # TODO: 现阶段针对删除release找不到的情况，认为是正常的
+            if "not found" in err_msg and operation == ChartOperations.UNINSTALL.value:
+                transitioning_result = True
+                transitioning_message = "app success %s" % operation
+            else:
+                transitioning_result = False
+                transitioning_message = err_msg
+        except Exception as e:
+            err_msg = str(e)
+            transitioning_result = False
+            logger.warning(err_msg)
+            transitioning_message = self.collect_transitioning_error_message(e)
+        else:
+            transitioning_result = True
+            transitioning_message = "app success %s" % operation
+
+        self.app.set_transitioning(transitioning_result, transitioning_message)
 
     def run_with_kubectl(self, operation):
         if operation == "uninstall":
