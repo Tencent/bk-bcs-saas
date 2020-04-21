@@ -17,6 +17,8 @@ NOTE: 现阶段还没有kube agent的相关配置，需要bowei处理下后面�
 """
 import json
 import logging
+import socket
+from urllib.parse import urlparse
 
 from django.conf import settings
 
@@ -57,7 +59,7 @@ class ClusterConfig(object):
 
         return masters, etcdpeers, clusters
 
-    def _get_common_vars(self, cluster_id, masters, etcdpeers, clusters):
+    def _get_common_vars(self, cluster_id, masters, etcdpeers, clusters, cluster_source):
         self.k8s_config['common'].update(
             {
                 'cluster_id': cluster_id,
@@ -69,7 +71,10 @@ class ClusterConfig(object):
                 'zk_urls': ','.join(self.area_config["zk_hosts"]),
             }
         )
-        # NOTE: common中支持websvr=，这里websvr是字符串
+
+        if cluster_source == constants.ClusterSource.BCSPlatform.value:
+            return
+        # NOTE: 针对非bcs平台创建集群，配置中common支持websvr，这里websvr是字符串
         web_svr = self.k8s_config.get("websvr")
         if web_svr:
             self.k8s_config["common"]["websvr"] = web_svr[0]
@@ -100,16 +105,49 @@ class ClusterConfig(object):
     def _get_etcd_vars(self, etcd_legal_host):
         self.k8s_config['etcd'].update({'legal_hosts': etcd_legal_host})
 
-    def get_request_config(self, cluster_id, master_ips, need_nat=True):
+    def _add_kube_agent_vars(self, cluster_id, params):
+        if params.get("cluster_source") == constants.ClusterSource.BCSPlatform.value:
+            return
+        # get bcs agent info
+        bcs_client = BCSClusterClient(
+            host=BCS_SERVER_HOST,
+            access_token=params["access_token"],
+            project_id=params["project_id"],
+            cluster_id=cluster_id
+        )
+        bcs_cluster_info = bcs_client.get_or_register_bcs_cluster()
+        if not bcs_cluster_info.get("result"):
+            err_msg = bcs_cluster_info.get("message", "request bcs agent api error")
+            raise error_codes.APIError(err_msg)
+        bcs_cluster_data = bcs_cluster_info.get("data", {})
+        if not bcs_cluster_data:
+            raise error_codes.APIError("bcs agent api response is null")
+
+        # 通过api server domain, 解析到host ip
+        raw_url = urlparse(BCS_SERVER_HOST)
+        host, port = raw_url.netloc.split(":")
+        # 使用getaddrinfo，是因为后续支持多个ip
+        # getaddrinfo 返回: [(2, 1, 6, '', ('127.0.0.1', 80))]
+        addr_info = socket.getaddrinfo(host, port)
+        api_server_domain = f"{raw_url.scheme}://{addr_info[0][4][0]}:{port}"
+
+        self.k8s_config["bcs.kube_agent"].update({
+            "register_token": bcs_cluster_data["token"],
+            "bcs_api_server": api_server_domain,
+            "register_cluster_id": bcs_cluster_data["bcs_cluster_id"]
+        })
+
+    def get_request_config(self, cluster_id, master_ips, need_nat=True, params=None):
         # 获取master和etcd ip列表
         kube_master_list, etcd_list = self._split_ip_by_role(master_ips)
         # 组装name: ip map
         masters, etcdpeers, clusters = self._get_clusters_vars(cluster_id, kube_master_list, etcd_list)
         # 更新组装参数
-        self._get_common_vars(cluster_id, masters, etcdpeers, clusters)
+        self._get_common_vars(cluster_id, masters, etcdpeers, clusters, params.get("cluster_source"))
         master_legal_host, etcd_legal_host = list(masters.keys()), list(etcdpeers.keys())
         self._get_node_vars(master_legal_host)
         self._get_etcd_vars(etcd_legal_host)
+        self._add_kube_agent_vars(cluster_id, params)
 
         return self.k8s_config
 

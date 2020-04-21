@@ -63,7 +63,7 @@ def base_ops_request(function_name, access_token, project_id, method, json=None,
 
 def create_cluster(
         access_token, project_id, k8s_mesos, cluster_id, master_ip_list,
-        config, cc_module, control_ip, biz_id, username, websvr): # noqa
+        config, cc_module, control_ip, biz_id, username, websvr, platform): # noqa
     """集群初始化流程
     """
     data = {
@@ -76,7 +76,8 @@ def create_cluster(
         'control_ip': control_ip,
         'biz_id': str(biz_id),
         'username': username,
-        'websvr': websvr
+        'websvr': websvr,
+        "platform": platform
     }
     return base_ops_request('create_cluster', access_token, project_id, 'post', json=data)
 

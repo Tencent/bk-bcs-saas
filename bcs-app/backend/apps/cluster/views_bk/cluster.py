@@ -78,7 +78,17 @@ class BaseCluster:
         self.get_cluster_base_config(cluster_id, version=version, environment=environment)
 
         client = kind_type_map[self.kind_name](self.config, self.area_info, cluster_name=self.cluster_name)
-        return client.get_request_config(cluster_id, self.data['master_ips'], need_nat=self.data['need_nat'])
+        params = {
+            "access_token": self.access_token,
+            "project_id": self.project_id,
+            "cluster_source": self.data["cluster_source"]
+        }
+        return client.get_request_config(
+            cluster_id,
+            self.data['master_ips'],
+            need_nat=self.data['need_nat'],
+            params=params
+        )
 
     def save_snapshot(self, cluster_id, config):
         data = {
@@ -95,6 +105,15 @@ class BaseCluster:
         log_params = log.log_params
         log_params['task_url'] = data.get('task_url') or ''
         log.set_params(log_params)
+
+    def get_ops_platform(self, cluster_source):
+        """根据ops限制
+        - 通过bcs创建集群: gcloud_v3
+        - 导入已存在集群: gcloud_v3_contain
+        """
+        if cluster_source == constants.ClusterSource.BCSPlatform.value:
+            return "gcloud_v3"
+        return "gcloud_v3_contain"
 
     def create_cluster_via_bcs(
             self, cluster_id, cc_module, config=None, version='1.12.3', environment='prod', websvr=None):  # noqa
@@ -150,7 +169,8 @@ class BaseCluster:
                 self.kind_name, cluster_id,
                 self.data['master_ips'], config,
                 cc_module, self.control_ip,
-                self.cc_app_id, self.username, websvr
+                self.cc_app_id, self.username, websvr,
+                platform=self.get_ops_platform(self.data["cluster_source"])
             )
         except Exception as err:
             logger.exception('Create cluster error: %s', err)
