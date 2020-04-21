@@ -88,7 +88,7 @@ class ConfigMapBase:
             logger.error('request bcs api error, %s' % configmap_resp.get('message'))
             return []
         data = configmap_resp.get('data') or []
-        skip_namespace_list = constants.K8S_SYS_NAMESPACE
+        skip_namespace_list = list(constants.K8S_SYS_NAMESPACE)
         skip_namespace_list.extend(constants.K8S_COMPONENT_NAMESPACE)
         return [
             {
