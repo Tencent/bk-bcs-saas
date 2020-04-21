@@ -88,8 +88,6 @@ class ConfigMapBase:
             logger.error('request bcs api error, %s' % configmap_resp.get('message'))
             return []
         data = configmap_resp.get('data') or []
-        skip_namespace_list = list(constants.K8S_SYS_NAMESPACE)
-        skip_namespace_list.extend(constants.K8S_COMPONENT_NAMESPACE)
         return [
             {
                 'name': info['resourceName'],
@@ -98,7 +96,7 @@ class ConfigMapBase:
                 'cluster_name': cluster['name']
             }
             for info in data
-            if info['namespace'] not in skip_namespace_list
+            if info['namespace'] not in constants.K8S_SYS_NAMESPACE
         ]
 
 
@@ -462,11 +460,6 @@ class ResourceOperate(object):
 
                 # 处理平台集群和命名空间下的数据
                 if _s['namespace'] in constants.K8S_PLAT_NAMESPACE and cluster_id in constants.K8S_PLAT_CLUSTER_ID:
-                    _s['can_update'] = _s['can_delete'] = False
-                    _s['can_update_msg'] = _s['can_delete_msg'] = _("不允许操作平台命名空间")
-                    continue
-
-                if _s['namespace'] in constants.K8S_COMPONENT_NAMESPACE:
                     _s['can_update'] = _s['can_delete'] = False
                     _s['can_update_msg'] = _s['can_delete_msg'] = _("不允许操作平台命名空间")
                     continue
