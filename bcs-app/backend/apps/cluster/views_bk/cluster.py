@@ -289,6 +289,7 @@ class CreateCluster(BaseCluster):
             {'inner_ip': ip}
             for ip in self.data['master_ips']
         ]
+        cluster_data["source"] = cluster_data["cluster_source"]
         self.cluster_name = self.data['name']
         # 创建set
         with client.ContextActivityLogClient(
