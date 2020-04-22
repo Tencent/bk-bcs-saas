@@ -1350,7 +1350,7 @@ class K8sDeploymentGenerator(K8sProfileGenerator):
         # 2. 处理container 中的数据
         # is_custom_log_path = False
         containers = getitems(db_config, ['spec', 'template', 'spec', 'containers'], [])
-        init_containers = getitems(db_config, ['spec', 'template', 'spec', 'containers', 'initContainers'], [])
+        init_containers = getitems(db_config, ['spec', 'template', 'spec', 'initContainers'], [])
 
         log_volumes = []
 
