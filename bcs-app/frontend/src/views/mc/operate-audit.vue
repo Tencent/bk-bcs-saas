@@ -272,12 +272,12 @@
              */
             async routerChangeHandler () {
                 this.projId = this.$route.params.projectId || '000'
+                await this.getResourceTypes()
                 this.fetchData({
                     projId: this.projId,
                     limit: this.pageConf.pageSize,
                     offset: 0
                 })
-                this.getResourceTypes()
             },
 
             /**
