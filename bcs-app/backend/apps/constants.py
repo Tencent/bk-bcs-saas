@@ -101,10 +101,7 @@ NOTIFY_MANAGER_FUNC_CODE = 'notify_manager'
 NOTIFY_PROJECT_APPROVAL_FUNC_CODE = 'notify_project_approval'
 
 # k8s 中系统的命名空间，不允许用户创建，也不能操作上面的资源 kube-system, kube-public
-K8S_SYS_NAMESPACE = ['kube-system', 'kube-public']
-
-# k8s 组件命名空间, 页面上所有集群下都不可以操作这些命名空间的资源
-K8S_COMPONENT_NAMESPACE = ['thanos']
+K8S_SYS_NAMESPACE = ['kube-system', 'kube-public', 'thanos']
 
 # k8s 平台服务用的命名空间
 K8S_PLAT_NAMESPACE = ['web-console', 'gitlab-ci', 'thanos']
