@@ -123,7 +123,7 @@ def delete_cluster_node(
 
 def delete_cluster(
         access_token, project_id, k8s_mesos, cluster_id, master_ip_list,
-        control_ip, biz_id, username, websvr, config=None): # noqa
+        control_ip, biz_id, username, websvr, config=None, platform=None): # noqa
     """集群删除流程
     """
     data = {
@@ -134,7 +134,8 @@ def delete_cluster(
         'control_ip': control_ip,
         'biz_id': str(biz_id),
         'username': username,
-        'websvr': websvr
+        'websvr': websvr,
+        "platform": platform
     }
     return base_ops_request('delete_cluster', access_token, project_id, 'post', json=data)
 

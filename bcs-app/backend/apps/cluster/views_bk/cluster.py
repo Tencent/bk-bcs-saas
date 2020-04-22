@@ -131,6 +131,7 @@ class BaseCluster:
         config.pop('control_ip', None)
         websvr = config.pop('websvr', []) or websvr
         config.pop('version', None)
+        config.pop("platform", None)
         # 存储参数，便于任务失败重试
         params = {
             'project_id': self.project_id,
@@ -163,6 +164,7 @@ class BaseCluster:
             is_polling=True
         )
 
+        platform = self.get_ops_platform(self.data["cluster_source"])
         try:
             task_info = ops.create_cluster(
                 self.access_token, self.project_id,
@@ -170,7 +172,7 @@ class BaseCluster:
                 self.data['master_ips'], config,
                 cc_module, self.control_ip,
                 self.cc_app_id, self.username, websvr,
-                platform=self.get_ops_platform(self.data["cluster_source"])
+                platform=platform
             )
         except Exception as err:
             logger.exception('Create cluster error: %s', err)
@@ -180,6 +182,7 @@ class BaseCluster:
         config['version'] = kind_version_map[self.kind_name]
         config['control_ip'] = self.control_ip
         config['websvr'] = websvr
+        config["platform"] = platform
         self.save_snapshot(cluster_id, config)
         if task_info.get('code') != ErrorCode.NoError:
             log.set_finish_polling_status(True, False, CommonStatus.InitialFailed)
@@ -386,7 +389,8 @@ class ReinstallCluster(BaseCluster):
                 'need_nat': params['need_nat'],
                 'environment': params['environment'],
                 'cluster_id': self.cluster_id,
-                'name': params['cluster_name']
+                'name': params['cluster_name'],
+                "cluster_source": data.get("source") or constants.ClusterSource.BCSPlatform.value
             }
             self.cluster_name = params['cluster_name']
             self.kind_name = params['kind_name']
@@ -512,7 +516,8 @@ class DeleteCluster(BaseCluster):
         task_info = ops.delete_cluster(
             self.access_token, self.project_id, self.kind_name,
             self.cluster_id, master_ip_list, self.control_ip,
-            self.cc_app_id, self.username, self.websvr, self.config
+            self.cc_app_id, self.username, self.websvr, self.config,
+            platform=self.config.pop("platform", "gcloud_v3")
         )
         if task_info.get('code') != ErrorCode.NoError:
             log.set_finish_polling_status(True, False, CommonStatus.RemoveFailed)
