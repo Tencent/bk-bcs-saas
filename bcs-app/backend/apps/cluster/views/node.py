@@ -41,6 +41,7 @@ from backend.apps.cluster import serializers as node_serializers
 from backend.utils.renderers import BKAPIRenderer
 from backend.apps.cluster.views_bk import node
 from backend.apps.cluster.views_bk.tools import cmdb, gse
+from backend.apps.cluster.views.utils import get_error_msg
 
 logger = logging.getLogger(__name__)
 
@@ -569,17 +570,23 @@ class NodeUpdateLogView(NodeBase, viewsets.ModelViewSet):
     def get_log_data(self, logs, project_id, cluster_id):
         if not logs:
             return {'status': 'none'}
+        latest_log = logs[0]
+        status = self.get_display_status(latest_log.status)
         data = {
             'project_id': project_id,
             'cluster_id': cluster_id,
-            'status': self.get_display_status(logs[0].status),
-            'log': []
+            'status': status,
+            'log': [],
+            "task_url": latest_log.log_params.get("task_url") or "",
+            "error_msg_list": []
         }
         for info in logs:
-            data['task_url'] = info.log_params.get('task_url') or ''
             info.status = self.get_display_status(info.status)
             slz = node_serializers.NodeInstallLogSLZ(instance=info)
             data['log'].append(slz.data)
+        # 异常时，展示错误消息
+        if status == "failed":
+            data["error_msg_list"] = get_error_msg(latest_log.task_id)
         return data
 
     def get(self, request, project_id, cluster_id, node_id):
