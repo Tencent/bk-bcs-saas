@@ -185,7 +185,7 @@ export default {
                             if (!volumeItem.volume.user) {
                                 volumeItem.volume.user = ''
                             }
-                            const userKey = `${volumeItem.type}:${volumeItem.name}:${volumeItem.volume.hostPath}:${volumeItem.volume.mountPath}` 
+                            const userKey = `${volumeItem.type}:${volumeItem.name}:${volumeItem.volume.hostPath}:${volumeItem.volume.mountPath}`
                             for (const key in volumeUsers) {
                                 if (key === userKey) {
                                     volumeItem.volume.user = volumeUsers[key]

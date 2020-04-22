@@ -261,7 +261,6 @@
         }
 
         .content-trigger-wrapper {
-            @mixin clearfix;
             font-size: 14px;
             position: relative;
 
