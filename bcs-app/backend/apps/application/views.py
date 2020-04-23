@@ -1317,12 +1317,15 @@ class UpdateInstanceNew(InstanceAPI):
             resource=name,
             resource_id=instance_id,
             extra=json.dumps({"namespace": namespace}),
-            description="应用滚动升级"
+            description=_("应用滚动升级")
         ).log_modify():
             resp = self.update_deployment(
                 request, project_id, cluster_id, namespace,
                 conf, kind=project_kind, category=category, app_name=name
             )
+            # 为异常时，直接抛出
+            if resp.data.get("code") != ErrorCode.NoError:
+                raise error_codes.APIError(_("应用滚动升级失败，{}").format(resp.data.get("message")))
         return resp
 
     def update_online_app(self, request, project_id, project_kind):
