@@ -570,7 +570,7 @@ class NodeUpdateLogView(NodeBase, viewsets.ModelViewSet):
     def get_node_ip(self, access_token, project_id, cluster_id, node_id):
         resp = paas_cc.get_node(access_token, project_id, node_id, cluster_id=cluster_id)
         if resp.get("code") != ErrorCode.NoError:
-            logger.error("获取节点信息失败, %s", resp.get("message"))
+            logger.error("request paas cc node api error, %s", resp.get("message"))
             return None
         return resp.get("data", {}).get("inner_ip")
 
