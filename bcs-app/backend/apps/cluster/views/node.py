@@ -41,6 +41,7 @@ from backend.apps.cluster import serializers as node_serializers
 from backend.utils.renderers import BKAPIRenderer
 from backend.apps.cluster.views_bk import node
 from backend.apps.cluster.views_bk.tools import cmdb, gse
+from backend.apps.cluster.views.utils import get_error_msg
 
 logger = logging.getLogger(__name__)
 
@@ -566,27 +567,41 @@ class NodeUpdateLogView(NodeBase, viewsets.ModelViewSet):
             cluster_constants.NODE_FAILED_STATUS
         )
 
-    def get_log_data(self, logs, project_id, cluster_id):
+    def get_node_ip(self, access_token, project_id, cluster_id, node_id):
+        resp = paas_cc.get_node(access_token, project_id, node_id, cluster_id=cluster_id)
+        if resp.get("code") != ErrorCode.NoError:
+            logger.error("request paas cc node api error, %s", resp.get("message"))
+            return None
+        return resp.get("data", {}).get("inner_ip")
+
+    def get_log_data(self, request, logs, project_id, cluster_id, node_id):
         if not logs:
             return {'status': 'none'}
+        latest_log = logs[0]
+        status = self.get_display_status(latest_log.status)
         data = {
             'project_id': project_id,
             'cluster_id': cluster_id,
-            'status': self.get_display_status(logs[0].status),
-            'log': []
+            'status': status,
+            'log': [],
+            "task_url": latest_log.log_params.get("task_url") or "",
+            "error_msg_list": []
         }
         for info in logs:
-            data['task_url'] = info.log_params.get('task_url') or ''
             info.status = self.get_display_status(info.status)
             slz = node_serializers.NodeInstallLogSLZ(instance=info)
             data['log'].append(slz.data)
+        # 异常时，展示错误消息
+        if status == "failed":
+            node_ip = self.get_node_ip(request.user.token.access_token, project_id, cluster_id, node_id)
+            data["error_msg_list"] = get_error_msg(cluster_id, node_ip=node_ip)
         return data
 
     def get(self, request, project_id, cluster_id, node_id):
         self.can_view_cluster(request, project_id, cluster_id)
         # get log
         logs = self.get_queryset(project_id, cluster_id, node_id)
-        data = self.get_log_data(logs, project_id, cluster_id)
+        data = self.get_log_data(request, logs, project_id, cluster_id, node_id)
         return response.Response(data)
 
 
