@@ -567,7 +567,14 @@ class NodeUpdateLogView(NodeBase, viewsets.ModelViewSet):
             cluster_constants.NODE_FAILED_STATUS
         )
 
-    def get_log_data(self, logs, project_id, cluster_id):
+    def get_node_ip(self, access_token, project_id, cluster_id, node_id):
+        resp = paas_cc.get_node(access_token, project_id, node_id, cluster_id=cluster_id)
+        if resp.get("code") != ErrorCode.NoError:
+            logger.error("获取节点信息失败, %s", resp.get("message"))
+            return None
+        return resp.get("data", {}).get("inner_ip")
+
+    def get_log_data(self, request, logs, project_id, cluster_id, node_id):
         if not logs:
             return {'status': 'none'}
         latest_log = logs[0]
@@ -586,14 +593,15 @@ class NodeUpdateLogView(NodeBase, viewsets.ModelViewSet):
             data['log'].append(slz.data)
         # 异常时，展示错误消息
         if status == "failed":
-            data["error_msg_list"] = get_error_msg(latest_log.task_id)
+            node_ip = self.get_node_ip(request.user.token.access_token, project_id, cluster_id, node_id)
+            data["error_msg_list"] = get_error_msg(cluster_id, node_ip=node_ip)
         return data
 
     def get(self, request, project_id, cluster_id, node_id):
         self.can_view_cluster(request, project_id, cluster_id)
         # get log
         logs = self.get_queryset(project_id, cluster_id, node_id)
-        data = self.get_log_data(logs, project_id, cluster_id)
+        data = self.get_log_data(request, logs, project_id, cluster_id, node_id)
         return response.Response(data)
 
 

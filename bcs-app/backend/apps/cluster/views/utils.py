@@ -24,5 +24,5 @@ def get_areas(request):
     return areas.get('data') or {}
 
 
-def get_error_msg(task_id):
+def get_error_msg(cluster_id, node_ip=None):
     return []
