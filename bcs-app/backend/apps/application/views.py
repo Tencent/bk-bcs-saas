@@ -1310,19 +1310,25 @@ class UpdateInstanceNew(InstanceAPI):
 
     def update_instance(self, request, project_id, project_kind, cluster_id,
                         name, instance_id, namespace, category, conf):
-        with client.ContextActivityLogClient(
+        log_client = client.ContextActivityLogClient(
             project_id=project_id,
             user=request.user.username,
             resource_type="instance",
             resource=name,
             resource_id=instance_id,
             extra=json.dumps({"namespace": namespace}),
-            description="应用滚动升级"
-        ).log_modify():
-            resp = self.update_deployment(
-                request, project_id, cluster_id, namespace,
-                conf, kind=project_kind, category=category, app_name=name
-            )
+            description=_("应用滚动升级")
+        )
+        resp = self.update_deployment(
+            request, project_id, cluster_id, namespace,
+            conf, kind=project_kind, category=category, app_name=name
+        )
+        # 为异常时，直接抛出
+        if resp.data.get("code") != ErrorCode.NoError:
+            err_msg = resp.data.get("message")
+            log_client.log_modify(activity_status="failed", description=err_msg)
+            raise error_codes.APIError(_("应用滚动升级失败，%s", err_msg))
+        log_client.log_modify(activity_status="succeed")
         return resp
 
     def update_online_app(self, request, project_id, project_kind):
