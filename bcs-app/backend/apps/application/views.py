@@ -1327,7 +1327,7 @@ class UpdateInstanceNew(InstanceAPI):
         if resp.data.get("code") != ErrorCode.NoError:
             err_msg = resp.data.get("message")
             log_client.log_modify(activity_status="failed", description=err_msg)
-            raise error_codes.APIError(_("应用滚动升级失败，%s", err_msg))
+            raise error_codes.APIError(_("应用滚动升级失败，{}").format(err_msg))
         log_client.log_modify(activity_status="succeed")
         return resp
 
