@@ -69,6 +69,9 @@ const K8sCreateStatefulset = () => import(/* webpackChunkName: 'k8sTemplateset' 
 // 添加模板集 - ingress
 const K8sCreateIngress = () => import(/* webpackChunkName: 'k8sTemplateset' */'@open/views/configuration/k8s-create/ingress')
 
+// 添加yaml模板集 - yaml templateset
+const K8sYamlTemplateset = () => import(/* webpackChunkName: 'K8sYamlTemplateset' */'@open/views/configuration/k8s-create/yaml-mode')
+
 const childRoutes = [
     {
         path: ':projectCode/configuration',
@@ -168,6 +171,11 @@ const childRoutes = [
                         path: 'templateset/ingress/:templateId',
                         name: 'k8sTemplatesetIngress',
                         component: K8sCreateIngress
+                    },
+                    {
+                        path: 'yaml-templateset/:templateId',
+                        name: 'K8sYamlTemplateset',
+                        component: K8sYamlTemplateset
                     }
                 ]
             },

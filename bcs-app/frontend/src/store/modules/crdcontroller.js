@@ -49,7 +49,6 @@ export default {
          * @return {Promise} promise 对象
          */
         getCrdControllersByCluster (context, { projectId, clusterId }, config = {}) {
-            console.log('clusterId', clusterId)
             const url = `${DEVOPS_BCS_API_URL}/api/projects/${projectId}/bcs_crd/clusters/${clusterId}/crd_controllers/`
             return http.get(url, {}, config)
         },

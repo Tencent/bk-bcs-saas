@@ -86,7 +86,7 @@ export default {
          * @return {Promise} promise 对象
          */
         checkAppStatus (context, { projectId, appId }, config = {}) {
-            // const url = `/app/helm?invoke=checkAppStatus` // test
+            // const url = `/app/helm?invoke=checkAppStatus`
             const url = `${DEVOPS_BCS_API_URL}/api/bcs/k8s/configuration/${projectId}/apps/${appId}/transitioning/`
             return http.get(url, {}, { cancelWhenRouteChange: true }).then(res => {
                 context.commit('updateApp', res.data)

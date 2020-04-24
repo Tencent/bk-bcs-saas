@@ -2,7 +2,7 @@
     <div class="biz-content">
         <div class="biz-top-bar">
             <div class="biz-config-templateset-title">
-                模板集
+                {{$t('模板集')}}
             </div>
             <bk-guide></bk-guide>
         </div>
@@ -11,17 +11,40 @@
             <template v-if="!isLoading">
                 <div class="biz-panel-header" style="padding: 20px;">
                     <div class="left">
-                        <button class="bk-button bk-primary" @click.stop.prevent="addTemplate">
-                            <i class="bk-icon icon-plus"></i>
-                            <span>添加模板集</span>
-                        </button>
+                        <template v-if="projectKind === PROJECT_MESOS">
+                            <button class="bk-button bk-primary" @click.stop.prevent="addTemplate('mesosTemplatesetApplication')">
+                                <i class="bk-icon icon-plus"></i>
+                                <span>{{$t('添加模板集')}}</span>
+                            </button>
+                        </template>
+                        <template v-else>
+                            <bk-dropdown-menu
+                                @show="dropdownShow"
+                                @hide="dropdownHide"
+                                :key="projectKind"
+                                ref="dropdown">
+                                <button class="bk-button bk-primary" slot="dropdown-trigger">
+                                    <i class="bk-icon icon-plus"></i>
+                                    <span>{{$t('添加模板集')}}</span>
+                                </button>
+                                <ul class="bk-dropdown-list" slot="dropdown-content">
+                                    <li>
+                                        <a href="javascript:;" @click.stop.prevent="addTemplate('k8sTemplatesetDeployment')">{{$t('表单模式')}}</a>
+                                    </li>
+                                    <li>
+                                        <a href="javascript:;" @click="addTemplate('K8sYamlTemplateset')">{{$t('YAML模式')}}</a>
+                                    </li>
+                                </ul>
+                            </bk-dropdown-menu>
+                        </template>
                     </div>
                     <div class="right">
+                        <p class="biz-tpl-desc" v-if="templatesetCount">{{$t('共')}} <strong>{{templatesetCount}}</strong> {{$t('个1')}}</p>
                         <div class="biz-search-input" style="width: 300px;">
                             <input
                                 type="text"
                                 class="bk-form-input"
-                                placeholder="输入关键字，按Enter搜索"
+                                :placeholder="$t('输入关键字，按Enter搜索')"
                                 v-model="searchKeyword"
                                 @keyup.enter="search" />
                             <a href="javascript:void(0)" class="biz-search-btn" v-if="!searchKeyword">
@@ -34,7 +57,7 @@
                     </div>
                 </div>
                 <svg style="display: none;">
-                    <title>模板集默认图标</title>
+                    <title>{{$t('模板集默认图标')}}</title>
                     <symbol id="biz-set-icon" viewBox="0 0 32 32">
                         <path d="M6 3v3h-3v23h23v-3h3v-23h-23zM24 24v3h-19v-19h19v16zM27 24h-1v-18h-18v-1h19v19z"></path>
                         <path d="M13.688 18.313h-6v6h6v-6z"></path>
@@ -48,11 +71,11 @@
                         <thead>
                             <tr>
                                 <!-- <th class="template-logo center">图标</th> -->
-                                <th class="template-name">模板集名称</th>
-                                <th class="template-type">类型</th>
-                                <th class="template-container">容器 / 镜像</th>
+                                <th class="template-name">{{$t('模板集名称')}}</th>
+                                <th class="template-type">{{$t('类型')}}</th>
+                                <th class="template-container">{{$t('容器')}} / {{$t('镜像')}}</th>
                                 <!-- <th style="padding-left: 0;">镜像</th> -->
-                                <th class="template-action">操作</th>
+                                <th class="template-action">{{$t('操作')}}</th>
                             </tr>
                         </thead>
                     </table>
@@ -65,35 +88,26 @@
                                         <td colspan="6">
                                             <table class="biz-inner-table">
                                                 <tr>
-                                                    <!-- <td class="logo">
-                                                        <div class="logo-wrapper">
-                                                            <svg class="biz-set-icon"><use xlink:href="#biz-set-icon"></use></svg>
-                                                        </div>
-                                                    </td> -->
                                                     <td class="data">
                                                         <div class="data-wrapper">
                                                             <a href="javascript:void(0);" class="title" @click.stop.prevent="goTemplateIndex(template)">
                                                                 {{template.name}}
                                                             </a>
 
-                                                            <p class="vertion">最新版本：{{template.latest_show_version || '--'}}</p>
+                                                            <p class="vertion">{{$t('最新版本')}}：{{template.latest_show_version || '--'}}</p>
                                                         </div>
                                                     </td>
                                                     <td class="type">
                                                         <div class="type-wrapper">
-                                                            <strong class="type-name">{{template.category_name}}</strong>
+                                                            <strong class="type-name">{{editMode[template.edit_mode]}}</strong>
                                                         </div>
                                                     </td>
                                                     <td class="service">
                                                         <div class="service-wrapper">
-                                                            <template v-if="template.containers.length">
-                                                                <div :key="serviceIndex" v-for="(service, serviceIndex) in template.containers">
-                                                                    <bk-tooltip :content="service.name || '--'" placement="top">
-                                                                        <span class="biz-text-wrapper">{{service.name || '--'}}</span>
-                                                                    </bk-tooltip>
-                                                                    /
-                                                                    <bk-tooltip :content="service.image || '--'" placement="top">
-                                                                        <span class="biz-text-wrapper">{{service.image || '--'}}</span>
+                                                            <template v-if="template.images.length">
+                                                                <div :key="imageIndex" v-for="(image, imageIndex) in template.images">
+                                                                    <bk-tooltip :content="image || '--'" placement="top">
+                                                                        <span class="biz-text-wrapper" style="min-height: 16px;">{{image || '--'}}</span>
                                                                     </bk-tooltip>
                                                                 </div>
                                                             </template>
@@ -118,38 +132,38 @@
                                                         <div class="operate-wrapper">
                                                             <template v-if="!template.permissions.use">
                                                                 <button class="bk-button bk-default btn" @click="goApplyPermission(template)">
-                                                                    申请使用权限
+                                                                    {{$t('申请使用权限')}}
                                                                 </button>
                                                             </template>
                                                             <template v-else>
                                                                 <template v-if="template.latest_show_version_id === -1">
-                                                                    <bk-tooltip content="模板集为草稿状态，不能实例化" placement="top">
+                                                                    <bk-tooltip :content="$t('模板集为草稿状态，不能实例化')" placement="top">
                                                                         <button class="bk-button bk-default btn" disabled="disabled" style="width: 124px;">
-                                                                            实例化
+                                                                            {{$t('实例化')}}
                                                                         </button>
                                                                     </bk-tooltip>
                                                                 </template>
                                                                 <template v-else>
                                                                     <button class="bk-button bk-default btn" @click="goCreateInstance(template)" style="width: 124px;">
-                                                                        实例化
+                                                                        {{$t('实例化')}}
                                                                     </button>
                                                                 </template>
                                                             </template>
 
-                                                            <bk-dropdown-menu class="dropdown-menu" :align="'left'" ref="dropdown">
+                                                            <bk-dropdown-menu class="dropdown-menu" :align="'right'" ref="dropdown">
                                                                 <button class="bk-button bk-default btn" slot="dropdown-trigger" style="width: 82px; position: relative;">
-                                                                    <span>更多</span>
+                                                                    <span>{{$t('更多')}}</span>
                                                                     <i class="bk-icon icon-angle-down dropdown-menu-angle-down ml0" style="font-size: 10px;"></i>
                                                                 </button>
                                                                 <ul class="bk-dropdown-list" slot="dropdown-content">
-                                                                    <li>
-                                                                        <a href="javascript:void(0)" @click="showCopy(template)">复制模板集</a>
+                                                                    <li v-if="template.edit_mode !== 'yaml'">
+                                                                        <a href="javascript:void(0)" @click="showCopy(template)">{{$t('复制模板集')}}</a>
                                                                     </li>
                                                                     <li>
-                                                                        <a href="javascript:void(0)" @click="removeTemplate(template)">删除模板集</a>
+                                                                        <a href="javascript:void(0)" @click="removeTemplate(template)">{{$t('删除模板集')}}</a>
                                                                     </li>
-                                                                    <li>
-                                                                        <a href="javascript:void(0)" @click="showChooseDialog(template)">删除实例</a>
+                                                                    <li v-if="template.edit_mode !== 'yaml'">
+                                                                        <a href="javascript:void(0)" @click="showChooseDialog(template)">{{$t('删除实例')}}</a>
                                                                     </li>
                                                                 </ul>
                                                             </bk-dropdown-menu>
@@ -164,7 +178,7 @@
                                     <tr>
                                         <td colspan="6">
                                             <div class="biz-guide-box" style="margin: 0 20px;">
-                                                <p class="message empty-message">无数据</p>
+                                                <p class="message empty-message">{{$t('无数据')}}</p>
                                             </div>
                                         </td>
                                     </tr>
@@ -176,7 +190,7 @@
             </template>
             <div class="scroll-loading" v-bkloading="{ isLoading: isScrollLoading }" v-if="isScrollLoading && !isListReload">
             </div>
-            <p class="biz-no-data" v-if="!pageConf.hasNext && templateList.length">全部数据加载完成</p>
+            <p class="biz-no-data" v-if="!pageConf.hasNext && templateList.length">{{$t('全部数据加载完成')}}</p>
         </div>
         <bk-dialog
             :is-show.sync="copyDialogConf.isShow"
@@ -189,10 +203,10 @@
                 <div class="bk-form bk-form-vertical biz-instance-num-form">
                     <div class="bk-form-item">
                         <label class="bk-label">
-                            模板集【{{copyDialogConf.title}}】复制为：
+                            {{$t('模板集')}}【{{copyDialogConf.title}}】{{$t('复制为')}}：
                         </label>
                         <div class="bk-form-content">
-                            <input type="text" class="bk-form-input" maxlength="30" placeholder="新模板集名称" v-model="copyName" />
+                            <input type="text" class="bk-form-input" maxlength="30" :placeholder="$t('新模板集名称')" v-model="copyName" />
                         </div>
                     </div>
                 </div>
@@ -201,19 +215,19 @@
                 <div class="bk-dialog-outer">
                     <template v-if="isCopying">
                         <button type="button" class="bk-dialog-btn bk-dialog-btn-confirm bk-btn-primary disabled">
-                            复制中...
+                            {{$t('复制中...')}}
                         </button>
                         <button type="button" class="bk-dialog-btn bk-dialog-btn-cancel disabled">
-                            取消
+                            {{$t('取消')}}
                         </button>
                     </template>
                     <template v-else>
                         <button type="button" class="bk-dialog-btn bk-dialog-btn-confirm bk-btn-primary"
                             @click="confirmCopyTemplate">
-                            确定
+                            {{$t('确定')}}
                         </button>
                         <button type="button" class="bk-dialog-btn bk-dialog-btn-cancel" @click="hideCopy">
-                            取消
+                            {{$t('取消')}}
                         </button>
                     </template>
                 </div>
@@ -233,12 +247,12 @@
                     <div class="bk-form bk-form-vertical" style="margin-bottom: 20px;">
                         <div class="bk-form-item">
                             <label class="bk-label">
-                                模板集版本
+                                {{$t('模板集版本')}}
                             </label>
                             <div class="bk-form-content">
                                 <div class="bk-dropdown-box" style="width: 240px;" @click="fetchTemplatesetVerList">
                                     <bk-selector
-                                        :placeholder="'请选择'"
+                                        :placeholder="$t('请选择')"
                                         :selected.sync="tplsetVerIndex"
                                         :list="tplsetVerList"
                                         @item-selected="changeTplset"
@@ -250,10 +264,10 @@
                         </div>
                         <div class="bk-form-item">
                             <label class="bk-label">
-                                模板
+                                {{$t('模板')}}
                             </label>
                             <div class="bk-form-content">
-                                <bk-dropdown :placeholder="'请选择'"
+                                <bk-dropdown :placeholder="$t('请选择')"
                                     :selected.sync="tplIndex"
                                     :list="tplList"
                                     @item-selected="changeTpl"
@@ -265,7 +279,7 @@
                     <template v-if="showNamespaceContainer && !candidateNamespaceList.length">
                         <transition name="fadeDown">
                             <div class="content-trigger-wrapper" style="text-align: center;">
-                                没有命名空间数据
+                                {{$t('没有命名空间数据')}}
                             </div>
                         </transition>
                     </template>
@@ -281,8 +295,8 @@
                                             {{item.cluster_name}}
                                         </div>
                                         <div class="checker-inner">
-                                            <a href="javascript:;" class="bk-text-button" @click.stop="selectAll(item, index)">全选</a>
-                                            <a href="javascript:;" class="bk-text-button" @click.stop="selectInvert(item, index)">反选</a>
+                                            <a href="javascript:;" class="bk-text-button" @click.stop="selectAll(item, index)">{{$t('全选')}}</a>
+                                            <a href="javascript:;" class="bk-text-button" @click.stop="selectInvert(item, index)">{{$t('反选')}}</a>
                                         </div>
                                     </div>
                                     <i v-if="item.isOpen" class="bk-icon icon-angle-up trigger active"></i>
@@ -322,19 +336,19 @@
                 <div class="bk-dialog-outer">
                     <template v-if="isDeleting">
                         <button type="button" class="bk-dialog-btn bk-dialog-btn-confirm bk-btn-primary disabled">
-                            删除中...
+                            {{$t('删除中...')}}
                         </button>
                         <button type="button" class="bk-dialog-btn bk-dialog-btn-cancel disabled">
-                            取消
+                            {{$t('取消')}}
                         </button>
                     </template>
                     <template v-else>
                         <button type="button" class="bk-dialog-btn bk-dialog-btn-confirm bk-btn-primary"
                             @click="confirmDelInstance">
-                            提交
+                            {{$t('提交')}}
                         </button>
                         <button type="button" class="bk-dialog-btn bk-dialog-btn-cancel" @click="cancelDelInstance">
-                            取消
+                            {{$t('取消')}}
                         </button>
                     </template>
                 </div>
@@ -350,26 +364,26 @@
             :quick-close="false">
             <div slot="content" style="padding: 0 20px;">
                 <div style="color: #333; font-size: 20px">
-                    模板集【{{delTemplateDialogConf.title}}】版本：
+                    {{$t('模板集')}}【{{delTemplateDialogConf.title}}】{{$t('版本')}}：
                 </div>
                 <ul style="margin: 10px 0; font-size: 14px; color: #333;">
                     <li v-for="(key, index) in Object.keys(delTemplateDialogConf.existVersion)" :key="index">
                         <span>{{key}}：</span>
-                        <span>有{{delTemplateDialogConf.existVersion[key]}}个实例</span>
+                        <span>{{$t('有')}} {{delTemplateDialogConf.existVersion[key]}} {{$t('个实例')}}</span>
                     </li>
                 </ul>
                 <div>
-                    您需要先删除所有实例，再进行模板集删除操作
+                    {{$t('您需要先删除所有实例，再进行模板集删除操作')}}
                 </div>
             </div>
             <template slot="footer">
                 <div class="bk-dialog-outer">
                     <button type="button" style="width: 96px;" class="bk-dialog-btn bk-dialog-btn-confirm bk-btn-primary"
                         @click="delTemplateConfirm">
-                        删除实例
+                        {{$t('删除实例')}}
                     </button>
                     <button type="button" class="bk-dialog-btn bk-dialog-btn-cancel" @click="delTemplateCancel">
-                        取消
+                        {{$t('取消')}}
                     </button>
                 </div>
             </template>
@@ -385,11 +399,16 @@
         mixins: [applyPerm],
         data () {
             return {
+                PROJECT_MESOS: window.PROJECT_MESOS,
                 permissions: {},
                 isLoading: true,
                 searchKeyword: '',
                 templateList: [],
                 templateListCache: [],
+                editMode: {
+                    page_form: this.$t('表单模式'),
+                    yaml: this.$t('YAML模式')
+                },
                 resourceList: [
                     {
                         id: 'application',
@@ -414,6 +433,7 @@
                 ],
                 resourceIndex: -1,
                 pageConf: {
+                    total: 0,
                     totalPage: 1,
                     pageSize: 10,
                     hasNext: true,
@@ -456,7 +476,8 @@
                 },
                 isLoadingTplsetVer: false,
                 isScrollLoading: false,
-                isListReload: false
+                isListReload: false,
+                templatesetCount: 0
             }
         },
         computed: {
@@ -465,6 +486,9 @@
             },
             projectCode () {
                 return this.$route.params.projectCode
+            },
+            projectKind () {
+                return this.$store.state.curProject.kind
             },
             curProject () {
                 return this.$store.state.curProject
@@ -564,7 +588,7 @@
                             clsName: 'biz-remove-dialog',
                             content: me.$createElement('p', {
                                 class: 'biz-confirm-desc'
-                            }, `确定要删除模板集【${template.name}】?`),
+                            }, `${this.$t('确定要删除模板集')}【${template.name}】?`),
                             async confirmFn () {
                                 me.deleteTemplate(template)
                             }
@@ -585,13 +609,6 @@
              * @param {Object} template 当前模板集对象
              */
             async deleteTemplate (template) {
-                const backup = []
-                backup.splice(0, backup.length, ...this.templateList)
-
-                this.isLoading = true
-                this.templateList.splice(0, this.templateList.length, ...[])
-                this.templateListCache.splice(0, this.templateListCache.length, ...[])
-
                 try {
                     await this.$store.dispatch('templateset/removeTemplate', {
                         projectId: this.projectId,
@@ -600,13 +617,15 @@
 
                     this.$bkMessage({
                         theme: 'success',
-                        message: '删除成功！'
+                        message: this.$t('删除成功')
                     })
-                    this.getTemplateList(true)
+                    const updateList = this.templateList.filter(item => {
+                        return item.id !== template.id
+                    })
+                    this.templateList.splice(0, this.templateList.length, ...updateList)
+                    this.templateListCache.splice(0, this.templateListCache.length, ...updateList)
+                    this.pageConf.total = this.pageConf.total - 1
                 } catch (e) {
-                    this.isLoading = false
-                    this.templateList.splice(0, this.templateList.length, ...backup)
-                    this.templateListCache.splice(0, this.templateListCache.length, ...backup)
                     catchErrorHandler(e, this)
                 }
             },
@@ -692,7 +711,7 @@
                 if (!copyName) {
                     me.$bkMessage({
                         theme: 'error',
-                        message: '请填写要复制的名称'
+                        message: this.$t('请填写要复制的名称')
                     })
                     return
                 }
@@ -700,7 +719,7 @@
                 if (copyName.toLowerCase() === me.curCopyTemplate.name.trim().toLowerCase()) {
                     me.$bkMessage({
                         theme: 'error',
-                        message: '复制的名称不能与之前的名称相同'
+                        message: this.$t('复制的名称不能与之前的名称相同')
                     })
                     return
                 }
@@ -708,7 +727,7 @@
                 if (copyName.length > 30) {
                     me.$bkMessage({
                         theme: 'error',
-                        message: '名称不得大于三十个字符'
+                        message: this.$t('名称不得大于30个字符')
                     })
                     return
                 }
@@ -733,7 +752,7 @@
 
                     this.$bkMessage({
                         theme: 'success',
-                        message: '复制成功！'
+                        message: this.$t('复制成功')
                     })
 
                     this.templateList.splice(0, this.templateList.length, ...[])
@@ -781,7 +800,7 @@
                 this.clearCandidateNamespaceStatus()
 
                 // 之前没选择过，那么展开第一个
-                this.delInstanceDialogConf.title = `删除【${template.name}】模板集的实例`
+                this.delInstanceDialogConf.title = `${this.$t('删除')}【${template.name}】${this.$t('模板集的实例')}`
                 this.delInstanceDialogConf.isShow = true
                 this.curDelInstanceTemplate = Object.assign({}, template)
 
@@ -852,18 +871,27 @@
                     await this.$store.dispatch('getResourcePermissions', params)
                 }
 
-                const projectKind = await this.getProjectKind(this.projectId)
-
-                if (projectKind === PROJECT_K8S) {
-                    this.$router.push({
-                        name: 'k8sTemplatesetDeployment',
-                        params: {
-                            projectId: this.projectId,
-                            projectCode: this.projectCode,
-                            templateId: template.id
-                        }
-                    })
-                } else if (projectKind === PROJECT_MESOS) {
+                if (this.projectKind === PROJECT_K8S) {
+                    if (template.edit_mode === 'yaml') {
+                        this.$router.push({
+                            name: 'K8sYamlTemplateset',
+                            params: {
+                                projectId: this.projectId,
+                                projectCode: this.projectCode,
+                                templateId: template.id
+                            }
+                        })
+                    } else {
+                        this.$router.push({
+                            name: 'k8sTemplatesetDeployment',
+                            params: {
+                                projectId: this.projectId,
+                                projectCode: this.projectCode,
+                                templateId: template.id
+                            }
+                        })
+                    }
+                } else if (this.projectKind === PROJECT_MESOS) {
                     this.$router.push({
                         name: 'mesosTemplatesetApplication',
                         params: {
@@ -875,7 +903,7 @@
                 } else {
                     this.$bkMessage({
                         theme: 'error',
-                        message: '获取项目信息失败！'
+                        message: this.$t('获取项目信息失败')
                     })
                 }
             },
@@ -906,7 +934,7 @@
                     if (list.length) {
                         list.unshift({
                             id: 0,
-                            name: '全部'
+                            name: this.$t('全部1')
                         })
                     }
 
@@ -1073,27 +1101,27 @@
                 if (this.tplsetVerIndex === -1) {
                     this.$bkMessage({
                         theme: 'error',
-                        message: '请选择模板集版本'
+                        message: this.$t('请选择模板集版本')
                     })
                     return
                 }
                 if (this.tplIndex === -1) {
                     this.$bkMessage({
                         theme: 'error',
-                        message: '请选择模板'
+                        message: this.$t('请选择模板')
                     })
                     return
                 }
                 if (list.length === 0) {
                     this.$bkMessage({
                         theme: 'error',
-                        message: '请选择命名空间'
+                        message: this.$t('请选择命名空间')
                     })
                     return
                 }
 
                 this.$bkInfo({
-                    title: '确定删除实例？',
+                    title: this.$t('确定删除实例？'),
                     async confirmFn () {
                         me.deleteInstance()
                     }
@@ -1105,7 +1133,8 @@
              */
             async deleteInstance () {
                 const list = Object.keys(this.namespaceListTmp)
-                const projectKind = await this.getProjectKind(this.projectId)
+                // const projectKind = await this.getProjectKind(this.projectId)
+                
                 const params = {
                     projectId: this.projectId,
                     tplMusterId: this.curDelInstanceTemplate.id,
@@ -1147,12 +1176,12 @@
 
                     this.$bkMessage({
                         theme: 'success',
-                        message: '删除成功！'
+                        message: this.$t('删除成功')
                     })
 
                     if (this.tplCategory === 'application' || this.tplCategory === 'deployment' || isRedirect) {
                         this.$router.push({
-                            name: projectKind === 1 ? 'deployments' : 'mesos',
+                            name: this.projectKind === 1 ? 'deployments' : 'mesos',
                             params: {
                                 projectId: this.projectId,
                                 projectCode: this.projectCode,
@@ -1178,6 +1207,7 @@
              * 重置分页配置数据
              */
             resetPageConf () {
+                this.pageConf.total = 0
                 this.pageConf.curPage = 1
                 this.pageConf.pageSize = 10
                 this.pageConf.hasNext = false
@@ -1193,7 +1223,13 @@
 
             // 获取模板集列表搜索参数
             getQueryString () {
-                const offset = (this.pageConf.curPage - 1) * this.pageConf.pageSize
+                // 当前分页offset
+                const curPageOffset = (this.pageConf.curPage - 1) * this.pageConf.pageSize
+                // 当前实际offset
+                const curOffset = this.templateList.length
+                // 由于本地删除，实际offset有可能少于分页offset
+                const offset = Math.min(curPageOffset, curOffset)
+                
                 if (!this.searchKeyword) {
                     return `offset=${offset}&limit=${this.pageConf.pageSize}`
                 } else {
@@ -1201,14 +1237,25 @@
                 }
             },
 
+            getElementTop (element) {
+                let actualTop = element.offsetTop
+                let current = element.offsetParent
+
+                while (current !== null) {
+                    actualTop += current.offsetTop
+                    current = current.offsetParent
+                }
+                return actualTop
+            },
+
             /**
              * 获取模板集列表
              * @params {boolean} isRelaod 是否重新加载数据
              */
             async getTemplateList (isReload) {
+                let lastOffsetTop = 0
                 const projectId = this.projectId
-                const TEMPLATE_ITEM_HEIGHT = 111
-                const SCROLL_PLACEHOLDER_HEIGHT = 60
+                const templatesetDoms = document.querySelectorAll('.biz-inner-table')
 
                 // 清空数据，重置分页配置信息
                 if (isReload) {
@@ -1216,27 +1263,41 @@
                     this.isListReload = true
                     window.scrollTo(0, 0)
                 }
+
+                if (templatesetDoms.length) {
+                    lastOffsetTop = this.getElementTop(templatesetDoms[templatesetDoms.length - 1])
+                }
+
                 try {
                     const queryString = this.getQueryString()
                     const res = await this.$store.dispatch('templateset/getTemplateList', { projectId, queryString })
                     const data = res.data
 
+                    this.templatesetCount = data.count
                     // 清空数据，重置分页配置信息
                     if (isReload) {
                         this.templateList.splice(0, this.templateList.length)
                     }
 
                     data.results.forEach(item => {
+                        const images = []
+                        item.containers.forEach(item => {
+                            const containerImage = `${item.name} / ${item.image}`
+                            if (!images.includes(containerImage)) {
+                                images.push(containerImage)
+                            }
+                        })
+                        item.images = images
                         this.templateList.push(item)
                     })
 
                     this.permissions = res.permissions || {}
                     this.pageConf.hasNext = data.has_next
+                    this.pageConf.total = data.count
+
                     this.$nextTick(() => {
-                        if (!isReload) {
-                            const pageContentHeight = (this.pageConf.pageSize + 1) * TEMPLATE_ITEM_HEIGHT
-                            const scrollTop = document.documentElement.scrollHeight - pageContentHeight * 2 + SCROLL_PLACEHOLDER_HEIGHT
-                            window.scrollTo(0, scrollTop) // 回滚到最上一页数据底部
+                        if (!isReload && lastOffsetTop) {
+                            window.scrollTo(0, lastOffsetTop - 10) // 回滚到最上一页数据底部
                         }
                     })
                 } catch (e) {
@@ -1280,9 +1341,9 @@
             },
 
             /**
-             * 创建模板集
+             * 创建表单模板集
              */
-            async addTemplate () {
+            async addTemplate (type) {
                 if (!this.permissions.create) {
                     const params = {
                         project_id: this.projectId,
@@ -1292,31 +1353,14 @@
                     await this.$store.dispatch('getResourcePermissions', params)
                 }
 
-                const projectKind = await this.getProjectKind(this.projectId)
-                if (projectKind === PROJECT_K8S) {
-                    this.$router.push({
-                        name: 'k8sTemplatesetDeployment',
-                        params: {
-                            projectId: this.projectId,
-                            projectCode: this.projectCode,
-                            templateId: 0
-                        }
-                    })
-                } else if (projectKind === PROJECT_MESOS) {
-                    this.$router.push({
-                        name: 'mesosTemplatesetApplication',
-                        params: {
-                            projectId: this.projectId,
-                            projectCode: this.projectCode,
-                            templateId: 0
-                        }
-                    })
-                } else {
-                    this.$bkMessage({
-                        theme: 'error',
-                        message: '获取项目信息失败！'
-                    })
-                }
+                this.$router.push({
+                    name: type,
+                    params: {
+                        projectId: this.projectId,
+                        projectCode: this.projectCode,
+                        templateId: 0
+                    }
+                })
             }
         }
     }
