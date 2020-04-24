@@ -1378,6 +1378,7 @@
         data () {
             return {
                 isTabChanging: false,
+                renderVersionIndex: 0,
                 curDesc: '',
                 curImageData: {},
                 winHeight: 0,

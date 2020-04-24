@@ -1008,6 +1008,7 @@
 
                 // 没有修改，不处理
                 if (data.name === this.curTemplate.name && data.desc === this.curTemplate.desc) {
+                    console.log('noedit')
                     this.isEditName = false
                     this.isEditDesc = false
                     return false
@@ -1326,17 +1327,17 @@
                         })
                         return false
                     } else if (container.imageName && !container.imageName.startsWith('{{')) {
-                        const matchs = this.imageList.filter(item => {
-                            return item.value === container.imageName
-                        })
-                        if (!matchs.length) {
-                            this.$bkMessage({
-                                theme: 'error',
-                                message: megPrefix + `容器"${container.name}"的镜像及版本配置：原镜像已经删除，请重新选择！`,
-                                delay: 8000
-                            })
-                            return false
-                        }
+                        // const matchs = this.imageList.filter(item => {
+                        //     return item.value === container.imageName
+                        // })
+                        // if (!matchs.length) {
+                        //     this.$bkMessage({
+                        //         theme: 'error',
+                        //         message: megPrefix + this.$t('容器"{name}"的镜像及版本配置：原镜像已经删除，请重新选择', container),
+                        //         delay: 8000
+                        //     })
+                        //     return false
+                        // }
                     }
 
                     // 端口映射检查
