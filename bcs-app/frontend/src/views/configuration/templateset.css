@@ -261,7 +261,6 @@
         }
 
         .content-trigger-wrapper {
-            @mixin clearfix;
             font-size: 14px;
             position: relative;
 
@@ -399,7 +398,7 @@
                 }
 
                 .candidate-namespace-name {
-                    @mixin ellipsis 120px;
+                    @mixin ellipsis 115px;
                     user-select: none;
                     overflow: hidden;
                     text-overflow: ellipsis;
@@ -479,6 +478,19 @@
     margin: 0 20px 20px 20px;
     border: 1px solid #e6e6e6;
     border-top: none;
+}
+
+.biz-tpl-desc {
+    color: #63656E;
+    font-size: 12px;
+    display: inline-block;
+    margin-right: 15px;
+    vertical-align: middle;
+
+    strong {
+        font-weight: bold;
+        color: #3A84FF;
+    }
 }
 
 @media screen and (max-width: $mediaWidth) {
