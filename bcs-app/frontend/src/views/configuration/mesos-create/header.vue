@@ -1008,7 +1008,6 @@
 
                 // 没有修改，不处理
                 if (data.name === this.curTemplate.name && data.desc === this.curTemplate.desc) {
-                    console.log('noedit')
                     this.isEditName = false
                     this.isEditDesc = false
                     return false

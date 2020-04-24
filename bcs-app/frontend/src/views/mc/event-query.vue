@@ -302,7 +302,6 @@
                         this.dropdownClusterList.unshift({ cluster_id: 'all', name: this.$t('全部1') })
                     }
                 } catch (e) {
-                    // console.log(this.bkMessageInstance.isShow)
                     this.bkMessageInstance = this.$bkMessage({
                         theme: 'error',
                         message: e.message || e.data.msg || e.statusText
