@@ -14,10 +14,8 @@
 import re
 import json
 import logging
-import copy
 import time
 from datetime import datetime
-from collections import OrderedDict
 
 from django.db.models import Q
 from django.conf import settings
@@ -27,32 +25,20 @@ from django.utils.translation import ugettext_lazy as _
 
 from backend.components import paas_cc
 from backend.apps.application.utils import APIResponse, image_handler
-from backend.apps.application import serializers
-from backend.apps.configuration.models import (
-    Template, VersionedEntity, Application,
-    Deplpyment, ShowVersion
-)
-from backend.apps.instance.models import (
-    VersionInstance, InstanceConfig, InstanceEvent, MetricConfig
-)
+from backend.apps.configuration.models import VersionedEntity, ShowVersion
+from backend.apps.instance.models import VersionInstance, InstanceConfig, InstanceEvent
 from backend.apps.variable.models import Variable
 from backend.utils.errcodes import ErrorCode
 from backend.apps.application.base_views import BaseAPI, error_codes, InstanceAPI
 from backend.apps.configuration.models import MODULE_DICT
-from backend.apps.instance import constants
 from backend.apps.application import constants as app_constants
 from backend.components import data
 from backend.apps.application import utils
 from backend.activity_log import client
 from backend.apps.instance import utils as inst_utils
-from backend.apps.instance.constants import ANNOTATIONS_WEB_CACHE, InsState
+from backend.apps.instance.constants import ANNOTATIONS_WEB_CACHE
 from backend.apps.metric.models import Metric
-from backend.apps.application.other_views import k8s_views
 from backend.apps.configuration.utils import check_var_by_config
-from backend.apps.application.constants import CATEGORY_MAP, FUNC_MAP
-from backend.accounts import bcs_perm
-from backend.components.bcs import mesos, k8s
-from backend.celery_app.tasks.application import update_create_error_record
 from backend.apps.application.views import UpdateInstanceNew
 from backend.utils.basic import getitems
 from backend.apps.datalog import utils as datalog_utils
@@ -1190,13 +1176,14 @@ class ContainerLogs(BaseAPI):
         """
         std_log_index = datalog_utils.get_std_log_index(project_id)
         standard_log = []
+        username = request.user.username
         if std_log_index:
-            standard_log = data.get_container_logs(container_id=container_id, index=std_log_index)
+            standard_log = data.get_container_logs(username, container_id=container_id, index=std_log_index)
             standard_log = self.clean_log(standard_log)
 
         # 没有数据则再查询一下默认的index，兼容使用默认dataid实例化的容器
         if not standard_log:
-            standard_log = data.get_container_logs(container_id=container_id)
+            standard_log = data.get_container_logs(username, container_id=container_id)
             standard_log = self.clean_log(standard_log)
 
         log_content = []
