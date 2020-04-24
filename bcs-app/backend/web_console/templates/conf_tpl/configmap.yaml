@@ -5,8 +5,13 @@ data:
     apiVersion: v1
     clusters:
     - cluster:
+        {% if service_account_token %}
+        certificate-authority: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+        server: https://kubernetes.default.svc
+        {% else %}
         insecure-skip-tls-verify: true
         server: {{ https_server_address }}
+        {% endif %}
       name: {{ source_cluster_id }}
     contexts:
     - context:
@@ -19,7 +24,11 @@ data:
     users:
     - name: {{ username }}
       user:
+        {% if service_account_token %}
+        token: {{ service_account_token }}
+        {% else %}
         token: {{ user_token }}
+        {% endif %}
 kind: ConfigMap
 metadata:
   name: kube-config-{{ source_cluster_id | lower }}-u{{ username_slug }}
