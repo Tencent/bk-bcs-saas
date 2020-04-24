@@ -70,66 +70,6 @@
             })
         },
         beforeRouteLeave (to, from, next) {
-            // let isEdited = false
-            // this.deployments.forEach(item => {
-            //     if (item.isEdited) {
-            //         isEdited = true
-            //     }
-            // })
-            // this.services.forEach(item => {
-            //     if (item.isEdited) {
-            //         isEdited = true
-            //     }
-            // })
-            // this.configmaps.forEach(item => {
-            //     if (item.isEdited) {
-            //         isEdited = true
-            //     }
-            // })
-            // this.secrets.forEach(item => {
-            //     if (item.isEdited) {
-            //         isEdited = true
-            //     }
-            // })
-            // this.daemonsets.forEach(item => {
-            //     if (item.isEdited) {
-            //         isEdited = true
-            //     }
-            // })
-            // this.jobs.forEach(item => {
-            //     if (item.isEdited) {
-            //         isEdited = true
-            //     }
-            // })
-            // this.statefulsets.forEach(item => {
-            //     if (item.isEdited) {
-            //         isEdited = true
-            //     }
-            // })
-            // this.ingresss.forEach(item => {
-            //     if (item.isEdited) {
-            //         isEdited = true
-            //     }
-            // })
-            
-            // if (!this.isProjectChange && (isEdited || this.$store.state.k8sTemplate.canTemplateBindVersion)) {
-            //     const store = this.$store
-            //     const self = this
-            //     store.commit('updateAllowRouterChange', false)
-            //     this.$bkInfo({
-            //         title: '确认',
-            //         content: '确定要离开？数据未保存，离开后将会丢失.',
-            //         confirmFn () {
-            //             self.clearData()
-            //             store.commit('updateAllowRouterChange', true)
-            //             next(true)
-            //         }
-            //     })
-            //     next(false)
-            // } else {
-            //     this.clearData()
-            //     next(true)
-            // }
             this.clearData()
             next(true)
         },
@@ -200,7 +140,15 @@
         }
     }
 </script>
-<style scoped>
+<style>
+    .biz-template-tip {
+        font-size: 12px;
+        margin-bottom: 10px;
+        color: #979BA5;
+    }
+    .biz-tip {
+        font-size: 12px;
+    }
     .biz-configuration-create-box {
         width: 100%;
     }

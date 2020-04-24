@@ -644,7 +644,7 @@
                 if (this.type === 'number') {
                     this.curValue = this.value
                 } else if (this.isSelectMode) {
-                    const curValue = this.isCustom  && this.userHasInput ? event.target.value : this.value
+                    const curValue = this.isCustom && this.userHasInput ? event.target.value : this.value
                     const selectItem = this.getItemByKey(curValue)
                     if (selectItem) {
                         if (selectItem.type === 'variable') {

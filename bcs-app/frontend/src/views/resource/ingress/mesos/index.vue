@@ -791,7 +791,6 @@
             ingressList () {
                 const list = this.$store.state.resource.ingressList
                 list.forEach(ingress => {
-                    const rules = []
                     let index = 1
                     ingress.isChecked = false
                     ingress.config.webCache = {

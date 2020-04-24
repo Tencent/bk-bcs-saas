@@ -1474,7 +1474,7 @@
             },
 
             /**
-             * 节点导出 tettt
+             * 节点导出
              */
             async exportNode () {
                 // const link = document.createElement('a')
