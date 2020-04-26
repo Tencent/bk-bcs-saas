@@ -81,9 +81,15 @@ module.exports = {
                 use: {
                     loader: 'babel-loader',
                     options: {
-                        include: resolve('src'),
+                        include: [
+                            resolve('src'),
+                            resolve('/node_modules/monaco-editor/esm')
+                        ],
                         cacheDirectory: './webpack_cache/',
-                        exclude: [/node_modules\//, /lib\.bundle\.js/]
+                        exclude: [/node_modules\//, /lib\.bundle\.js/],
+                        plugins: [
+                            'dynamic-import-webpack'
+                        ]
                     }
                 }
             },
