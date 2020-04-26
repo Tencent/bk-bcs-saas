@@ -23,4 +23,6 @@ urlpatterns = [
         views.NamespaceView.as_view({'put': 'update', 'delete': 'delete'})),
     url(r'^api/projects/(?P<project_id>\w{32})/configuration/namespaces/sync/$',
         views.NamespaceView.as_view({'post': 'sync_namespace'})),
+    url(r'^api/projects/(?P<project_id>\w{32})/namespaces/(?P<namespace_id>\d+)/resources/$',
+        views.NamespaceView.as_view({"get": "get_ns_resource_for_mesos"}))
 ]

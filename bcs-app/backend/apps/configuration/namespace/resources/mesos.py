@@ -26,7 +26,7 @@ from backend.apps.instance.constants import MESOS_IMAGE_SECRET
 logger = logging.getLogger(__name__)
 
 
-def delete(access_token, project_id, cluster_id, ns_name):
+def delete(access_token, project_id, cluster_id, ns_name, namespace_id):
     # NOTE: mesos不需要创建和删除namespace接口
     pass
 
