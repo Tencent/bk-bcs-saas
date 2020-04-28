@@ -130,9 +130,9 @@ class BCSWebSocketHandler(LocaleHandlerMixin, tornado.websocket.WebSocketHandler
         else:
             if message == "\r":
                 if self.exit_buffer.lstrip().startswith(self.exit_command):
-                    message = _("BCS Console 主动退出")
+                    message = str(_("BCS Console 主动退出"))
                     self.close_reason = message
-                    self.close(reason=str(message))
+                    self.close(reason=message)
                 self.exit_buffer == ""
             else:
                 self.exit_buffer += message
