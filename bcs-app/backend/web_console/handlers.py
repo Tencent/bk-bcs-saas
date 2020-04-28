@@ -131,6 +131,7 @@ class BCSWebSocketHandler(LocaleHandlerMixin, tornado.websocket.WebSocketHandler
             if message == "\r":
                 if self.exit_buffer.lstrip().startswith(self.exit_command):
                     message = _("BCS Console 主动退出")
+                    self.close_reason = message
                     self.close(reason=str(message))
                 self.exit_buffer == ""
             else:
@@ -151,7 +152,7 @@ class BCSWebSocketHandler(LocaleHandlerMixin, tornado.websocket.WebSocketHandler
             logger.info("stop heartbeat_callback, %s", self.user_pod_name)
             self.heartbeat_callback.stop()
 
-        logger.info("on_close, %s", self.user_pod_name)
+        logger.info("on_close, code: %s, reason: %s, pod: %s", self.close_code, self.close_reason, self.user_pod_name)
 
     def flush_input_record(self):
         """获取输出记录
@@ -172,6 +173,7 @@ class BCSWebSocketHandler(LocaleHandlerMixin, tornado.websocket.WebSocketHandler
         if idle_time > constants.TICK_TIMEOUT:
             tick_timeout_min = constants.TICK_TIMEOUT // 60
             message = _("BCS Console 已经{}分钟无操作").format(tick_timeout_min)
+            self.close_reason = message
             self.close(reason=message)
             logger.info("tick timeout, close session %s, idle time, %.2f", self.user_pod_name, idle_time)
         logger.info("tick active %s, idle time, %.2f", self.user_pod_name, idle_time)
@@ -180,6 +182,7 @@ class BCSWebSocketHandler(LocaleHandlerMixin, tornado.websocket.WebSocketHandler
         if login_time > constants.LOGIN_TIMEOUT:
             login_timeout = constants.LOGIN_TIMEOUT // (60 * 60)
             message = _("BCS Console 使用已经超过{}小时，请重新登录").format(login_timeout)
+            self.close_reason = message
             self.close(reason=message)
             logger.info("tick timeout, close session %s, login time, %.2f", self.user_pod_name, login_time)
         logger.info("tick active %s, login time, %.2f", self.user_pod_name, login_time)
