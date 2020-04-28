@@ -505,39 +505,57 @@
                                         </div>
                                     </div>
                                     <div class="bk-form-item is-required">
-                                        <label class="bk-label" style="width: 105px;">镜像及版本：</label>
+                                        <label class="bk-label" style="width: 105px;">{{$t('镜像及版本')}}：</label>
                                         <div class="bk-form-content" style="margin-left: 105px;">
-                                            <div class="bk-dropdown-box" style="width: 250px;" @click="initImageList">
+                                            <div class="bk-dropdown-box" style="width: 300px;">
                                                 <bk-input
+                                                    style="width: 250px;"
                                                     type="text"
-                                                    placeholder="镜像"
+                                                    :placeholder="$t('镜像')"
                                                     :display-key="'_name'"
                                                     :setting-key="'_id'"
                                                     :search-key="'_name'"
                                                     :value.sync="curContainer.webCache.imageName"
                                                     :list="varList"
                                                     :is-link="true"
+                                                    :is-custom="true"
                                                     :is-select-mode="true"
                                                     :default-list="imageList"
                                                     @item-selected="changeImage(...arguments, curContainer)"
-                                                >
+                                                    @item-customed="handleImageCustom">
                                                 </bk-input>
+                                                <button class="bk-button bk-default is-outline is-icon" v-bktooltips.top="$t('刷新镜像列表')" @click="initImageList">
+                                                    <div class="bk-spin-loading bk-spin-loading-mini bk-spin-loading-default" style="margin-top: -3px;" v-if="isLoadingImageList">
+                                                        <div class="rotate rotate1"></div>
+                                                        <div class="rotate rotate2"></div>
+                                                        <div class="rotate rotate3"></div>
+                                                        <div class="rotate rotate4"></div>
+                                                        <div class="rotate rotate5"></div>
+                                                        <div class="rotate rotate6"></div>
+                                                        <div class="rotate rotate7"></div>
+                                                        <div class="rotate rotate8"></div>
+                                                    </div>
+                                                    <i class="bk-icon icon-refresh" v-else></i>
+                                                </button>
                                             </div>
 
                                             <div class="bk-dropdown-box" style="width: 221px;">
                                                 <bk-input
+                                                    ref="imageVersion"
                                                     type="text"
-                                                    placeholder="版本号"
+                                                    :placeholder="$t('版本号1')"
                                                     :display-key="'_name'"
                                                     :setting-key="'_id'"
                                                     :search-key="'_name'"
+                                                    :key="renderVersionIndex"
                                                     :value.sync="curContainer.imageVersion"
                                                     :list="varList"
                                                     :is-select-mode="true"
+                                                    :is-custom="true"
                                                     :default-list="imageVersionList"
                                                     :disabled="!curContainer.webCache.imageName"
                                                     @item-selected="setImageVersion"
-                                                >
+                                                    @item-customed="handleVersionCustom">
                                                 </bk-input>
                                             </div>
 
@@ -548,7 +566,7 @@
                                                     value="Always"
                                                     v-model="isAlwayCheckImage"
                                                     @click="changeImagePullPolicy">
-                                                <i class="bk-checkbox-text">总是在创建之前拉取镜像</i>
+                                                <i class="bk-checkbox-text">{{$t('总是在创建之前拉取镜像')}}</i>
                                             </label>
                                         </div>
                                     </div>
@@ -1404,6 +1422,7 @@
         data () {
             return {
                 isTabChanging: false,
+                renderVersionIndex: 0,
                 curImageData: {},
                 winHeight: 0,
                 curDesc: '',
@@ -1423,7 +1442,7 @@
                 curApplicationLinkLabels: [],
                 livenessProbeHeaders: [],
                 readinessProbeHeaders: [],
-                isLoadingImageList: true,
+                isLoadingImageList: false,
                 toJsonDialogConf: {
                     isShow: false,
                     title: '',
@@ -2819,7 +2838,7 @@
                 })
                 delete appConfig.spec.template.spec.allContainers
 
-                const yamlStr = yamljs.dump(appConfig)
+                const yamlStr = yamljs.dump(appConfig, { indent: 4 })
                 this.editorConfig.value = yamlStr
                 this.toJsonDialogConf.isShow = true
             },
@@ -2887,6 +2906,7 @@
              */
             async tabResource (type, target) {
                 this.isTabChanging = true
+                await this.$refs.commonHeader.saveTemplate()
                 await this.$refs.commonHeader.autoSaveResource(type)
                 this.$refs.commonTab.goResource(target)
             },
@@ -3411,17 +3431,20 @@
             },
 
             initImageList () {
+                if (this.isLoadingImageList) return false
                 this.isLoadingImageList = true
                 const projectId = this.projectId
                 this.$store.dispatch('k8sTemplate/getImageList', { projectId }).then(res => {
                     const data = res.data
-                    data.forEach(item => {
-                        item._id = item.value
-                        item._name = item.name
-                    })
-                    this.imageList.splice(0, this.imageList.length, ...data)
-                    this.$store.commit('k8sTemplate/updateImageList', this.imageList)
-                    this.isLoadingImageList = false
+                    setTimeout(() => {
+                        data.forEach(item => {
+                            item._id = item.value
+                            item._name = item.name
+                        })
+                        this.imageList.splice(0, this.imageList.length, ...data)
+                        this.$store.commit('k8sTemplate/updateImageList', this.imageList)
+                        this.isLoadingImageList = false
+                    }, 1000)
                 }, res => {
                     const message = res.message
                     this.$bkMessage({
@@ -3448,7 +3471,7 @@
                         })
 
                         this.imageVersionList.splice(0, this.imageVersionList.length, ...data)
-
+                        this.renderVersionIndex++
                         // 非首次关联触发，默认选择第一项或清空
                         if (isInitTrigger) return
 
@@ -3459,8 +3482,11 @@
                             this.curContainer.imageVersion = imageInfo.text
                         } else {
                             this.curContainer.image = ''
+                            this.curContainer.imageVersion = ''
                         }
                     }, res => {
+                        this.curContainer.image = ''
+                        this.curContainer.imageVersion = ''
                         const message = res.message
                         this.$bkMessage({
                             theme: 'error',
@@ -3495,7 +3521,40 @@
                         this.curContainer.imageVersion = value
                         this.curContainer.image = `${DEVOPS_ARTIFACTORY_HOST}/${projectCode}/${imageName}:${value}`
                     }
+                } else if (this.curContainer.webCache.imageName) {
+                    this.curContainer.image = `${this.curContainer.webCache.imageName}:${value}`
+                    console.log('镜像是自定义，版本是变量', this.curContainer.image)
                 }
+            },
+
+            handleImageCustom () {
+                this.$nextTick(() => {
+                    const imageName = this.curContainer.webCache.imageName
+                    const matcher = this.imageList.find(image => image._name === imageName)
+                    this.imageVersionList = []
+                    this.curContainer.imageVersion = ''
+                    this.$refs.imageVersion.clearDefaultList()
+                    if (matcher) {
+                        this.changeImage(matcher._id, matcher)
+                    } else {
+                        this.curImageData = {}
+                    }
+                })
+            },
+
+            handleVersionCustom () {
+                this.$nextTick(() => {
+                    const versionName = this.curContainer.imageVersion
+                    const matcher = this.imageVersionList.find(version => version._name === versionName)
+                    if (matcher) {
+                        this.setImageVersion(matcher._id, matcher)
+                    } else {
+                        const imageName = this.curContainer.webCache.imageName
+                        const version = this.curContainer.imageVersion
+                        this.curContainer.image = `${imageName}:${version}`
+                        console.log('自定义', this.curContainer.image)
+                    }
+                })
             },
 
             addPort () {
