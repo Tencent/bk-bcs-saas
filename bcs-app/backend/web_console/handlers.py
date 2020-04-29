@@ -148,7 +148,7 @@ class BCSWebSocketHandler(LocaleHandlerMixin, tornado.websocket.WebSocketHandler
             self.bcs_client.set_pty_size(rows, cols)
         else:
             # 回车键 \r
-            if message == "\r":
+            if message == constants.INPUT_LINE_BREAKER:
                 if self.is_exit_command(self.exit_buffer):
                     _message = _("BCS Console 主动退出")
                     self.close_reason = _message
