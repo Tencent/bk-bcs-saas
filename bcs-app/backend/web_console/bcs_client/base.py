@@ -26,7 +26,6 @@ logger = logging.getLogger(__name__)
 
 
 class BCSClientBase(abc.ABC):
-
     def __init__(self, url, rows, cols, msg_handler):
         self.init_rows = rows
         self.init_cols = cols
@@ -37,7 +36,7 @@ class BCSClientBase(abc.ABC):
         self.ws = None
 
         self.output_record = []
-        self.output_buffer = ''
+        self.output_buffer = ""
         self.last_output_ts = IOLoop.current().time()
 
     @tornado.gen.coroutine
@@ -53,8 +52,8 @@ class BCSClientBase(abc.ABC):
             self.run()
 
     def post_connected(self):
-        logger.info("connected")
-        self.msg_handler.write_message({'data': hello_message(self.msg_handler.source)})
+        logger.info("bcs client connected: %s", self.msg_handler.user_pod_name)
+        self.msg_handler.write_message({"data": hello_message(self.msg_handler.source)})
         self.msg_handler.start_record()
         self.msg_handler.tick_timeout()
         self.set_pty_size(self.init_rows, self.init_cols)
