@@ -55,7 +55,7 @@ class BCSClientBase(abc.ABC):
             self.run()
 
     def post_connected(self):
-        logger.info("bcs client connected: %s", self.msg_handler.user_pod_name)
+        logger.info("bcs client connected, %s", self.msg_handler.user_pod_name)
         self.msg_handler.write_message({"data": hello_message(self.msg_handler.source)})
         self.msg_handler.start_record()
         self.msg_handler.tick_timeout()
