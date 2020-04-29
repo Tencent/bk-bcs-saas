@@ -133,7 +133,7 @@ class BCSWebSocketHandler(LocaleHandlerMixin, tornado.websocket.WebSocketHandler
                     _message = _("BCS Console 主动退出")
                     self.close_reason = _message
                     self.close(reason=str(_message))
-                self.exit_buffer == ""
+                self.exit_buffer = ""
             else:
                 self.exit_buffer += message
 
