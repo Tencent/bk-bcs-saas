@@ -118,6 +118,25 @@ class BCSWebSocketHandler(LocaleHandlerMixin, tornado.websocket.WebSocketHandler
         mode = context.get("mode")
         self.bcs_client = bcs_client.factory.create(mode, self, context, rows, cols)
 
+    def is_exit_command(self, message):
+        """判断是否主动退出
+        """
+        # 去除空格
+        message = message.strip()
+
+        # 分号表示多个命令执行, 任一一个有exit命令即退出
+        for i in message.split(";"):
+            if self.exit_command == i.strip():
+                return True
+
+        # 空格表示按顺序执行, 第一个是exit命令即退出
+        for i in message.split():
+            if self.exit_command == i.strip():
+                return True
+            break
+
+        return False
+
     def on_message(self, message):
         self.last_input_ts = IOLoop.current().time()
         channel = int(message[0])
@@ -130,7 +149,7 @@ class BCSWebSocketHandler(LocaleHandlerMixin, tornado.websocket.WebSocketHandler
         else:
             # 回车键 \r
             if message == "\r":
-                if self.exit_buffer.lstrip().startswith(self.exit_command):
+                if self.is_exit_command(self.exit_buffer):
                     _message = _("BCS Console 主动退出")
                     self.close_reason = _message
                     self.close(reason=str(_message))
