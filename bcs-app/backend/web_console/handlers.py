@@ -118,6 +118,25 @@ class BCSWebSocketHandler(LocaleHandlerMixin, tornado.websocket.WebSocketHandler
         mode = context.get("mode")
         self.bcs_client = bcs_client.factory.create(mode, self, context, rows, cols)
 
+    def is_exit_command(self, message):
+        """判断是否主动退出
+        """
+        # 去除空格
+        message = message.strip()
+
+        # 分号表示多个命令执行, 任一一个有exit命令即退出
+        for i in message.split(";"):
+            if self.exit_command == i.strip():
+                return True
+
+        # 空格表示按顺序执行, 第一个是exit命令即退出
+        for i in message.split():
+            if self.exit_command == i.strip():
+                return True
+            break
+
+        return False
+
     def on_message(self, message):
         self.last_input_ts = IOLoop.current().time()
         channel = int(message[0])
@@ -128,18 +147,19 @@ class BCSWebSocketHandler(LocaleHandlerMixin, tornado.websocket.WebSocketHandler
             cols = int(rows)
             self.bcs_client.set_pty_size(rows, cols)
         else:
-            if message == "\r":
-                if self.exit_buffer.lstrip().startswith(self.exit_command):
-                    self.write_message({"data": _("BCS Console 主动退出"), "type": "exit_message"})
-                self.exit_buffer == ""
+            # 回车键 \r
+            if message == constants.INPUT_LINE_BREAKER:
+                if self.is_exit_command(self.exit_buffer):
+                    _message = str(_("BCS Console 主动退出"))
+                    self.close_reason = _message
+                    self.close(reason=_message)
+                self.exit_buffer = ""
             else:
                 self.exit_buffer += message
 
             self.send_message(message)
 
     def on_close(self):
-        self.send_exit()
-
         if self.tick_callback:
             logger.info("stop tick callback, %s", self.user_pod_name)
             self.tick_callback.stop()
@@ -152,11 +172,7 @@ class BCSWebSocketHandler(LocaleHandlerMixin, tornado.websocket.WebSocketHandler
             logger.info("stop heartbeat_callback, %s", self.user_pod_name)
             self.heartbeat_callback.stop()
 
-        logger.info("on_close")
-
-    def send_exit(self):
-        exit_msg = "\nexit\n"
-        self.send_message(exit_msg)
+        logger.info("on_close, code: %s, reason: %s, pod: %s", self.close_code, self.close_reason, self.user_pod_name)
 
     def flush_input_record(self):
         """获取输出记录
@@ -171,22 +187,14 @@ class BCSWebSocketHandler(LocaleHandlerMixin, tornado.websocket.WebSocketHandler
         self.tick_callback = PeriodicCallback(self.periodic_tick, self.record_interval * 1000)
         self.tick_callback.start()
 
-    def tick_timeout2client(self, message):
-        """客户端退出
-        """
-        # 下发提示消息
-        self.write_message({"data": message, "type": "exit_message"})
-        # 服务端退出bash, exit
-        self.send_exit()
-
     def periodic_tick(self):
-
         now = IOLoop.current().time()
         idle_time = now - max(self.bcs_client.last_output_ts, self.last_input_ts)
         if idle_time > constants.TICK_TIMEOUT:
             tick_timeout_min = constants.TICK_TIMEOUT // 60
             message = _("BCS Console 已经{}分钟无操作").format(tick_timeout_min)
-            self.tick_timeout2client(message)
+            self.close_reason = message
+            self.close(reason=message)
             logger.info("tick timeout, close session %s, idle time, %.2f", self.user_pod_name, idle_time)
         logger.info("tick active %s, idle time, %.2f", self.user_pod_name, idle_time)
 
@@ -194,7 +202,8 @@ class BCSWebSocketHandler(LocaleHandlerMixin, tornado.websocket.WebSocketHandler
         if login_time > constants.LOGIN_TIMEOUT:
             login_timeout = constants.LOGIN_TIMEOUT // (60 * 60)
             message = _("BCS Console 使用已经超过{}小时，请重新登录").format(login_timeout)
-            self.tick_timeout2client(message)
+            self.close_reason = message
+            self.close(reason=message)
             logger.info("tick timeout, close session %s, login time, %.2f", self.user_pod_name, login_time)
         logger.info("tick active %s, login time, %.2f", self.user_pod_name, login_time)
 
