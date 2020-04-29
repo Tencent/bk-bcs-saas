@@ -103,6 +103,8 @@ class BCSClientBase(abc.ABC):
 
                 # 不同类型, 子类继承处理 message
                 msg = self.handle_message(msg)
+                if not msg:
+                    continue
 
                 try:
                     msg = smart_text(msg)

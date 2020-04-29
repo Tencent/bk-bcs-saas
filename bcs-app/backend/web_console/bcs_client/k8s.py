@@ -52,7 +52,7 @@ class K8SClientBase(BCSClientBase):
         message = chr(constants.RESIZE_CHANNEL) + message
         self.ws.write_message(message)
 
-    def handle_message(message):
+    def handle_message(self, message):
         """消息处理
         """
         # 登入业务容器会cat或者curl下二进制的文件，utf-8解码失败后，使用latin1解码
