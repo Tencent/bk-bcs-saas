@@ -18,6 +18,7 @@ import logging
 
 from rest_framework import response, viewsets
 from rest_framework.renderers import BrowsableAPIRenderer
+from rest_framework.exceptions import ValidationError
 from django.utils.translation import ugettext_lazy as _
 
 from backend.activity_log import client
@@ -1070,14 +1071,11 @@ class NodeLabelListViewSet(NodeBase, NodeLabelBase, viewsets.ViewSet):
 class RescheduleNodePods(NodeBase, viewsets.ViewSet):
     renderer_classes = (BKAPIRenderer, BrowsableAPIRenderer)
 
-    def check_stop_scheduler(self, node_info):
+    def is_not_scheduled(self, node_info):
+        # NOTE: 需要注意，mesos not ready 状态需要list/watch功能上线后，支持
         if node_info.get('status') not in [
-                NodeStatus.ToRemoved, NodeStatus.Removable, NodeStatus.RemoveFailed]:
-            raise error_codes.CheckFailed('node must stop schedule')
-
-    def check_scheduling(self, node_info):
-        if node_info.get('status') in [CommonStatus.Scheduling, CommonStatus.Removing]:
-            raise error_codes.CheckFailed('node must stop schedule')
+                NodeStatus.ToRemoved, NodeStatus.Removable, NodeStatus.NotReady]:
+            raise ValidationError(_("节点必须为不可调度状态，请点击【停止调度】按钮！"))
 
     def reschedule_pods_taskgroups(self, request, project_id, cluster_id, node_info):
         project_kind = self.request.project['kind']
@@ -1094,12 +1092,11 @@ class RescheduleNodePods(NodeBase, viewsets.ViewSet):
         """
         self.can_edit_cluster(request, project_id, cluster_id)
         node_info = self.get_node_by_id(request, project_id, cluster_id, node_id)
-        # node must be not scheduler
-        self.check_stop_scheduler(node_info)
-        self.check_scheduling(node_info)
-        project_name = request.project['project_name']
-        inner_ip = node_info['inner_ip']
-        log_desc = f'project: {project_name}, cluster: {cluster_id}, node: {inner_ip}, reschedule pods'
+        # 检查节点状态，节点必须处于停止调度状态
+        self.is_not_scheduled(node_info)
+        project_name = request.project.project_name
+        inner_ip = node_info["inner_ip"]
+        log_desc = f"project: {project_name}, cluster: {cluster_id}, node: {inner_ip}, reschedule pods"
         with client.ContextActivityLogClient(
             project_id=project_id,
             user=request.user.username,

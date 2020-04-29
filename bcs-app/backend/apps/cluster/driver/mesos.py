@@ -45,11 +45,11 @@ class MesosDriver:
                 host_container_map[host_ip] = container_count
         return host_container_map
 
-    def get_unit_info(self, inner_ip, fields):
+    def get_unit_info(self, inner_ip, fields, raise_exception=True):
         """get the resource unit info
         """
         resp = self.client.get_taskgroup(inner_ip, fields=fields)
-        if resp.get('code') != ErrorCode.NoError:
+        if resp.get('code') != ErrorCode.NoError and raise_exception:
             raise error_codes.APIError(resp.get('message'))
         return resp
 
@@ -89,12 +89,12 @@ class MesosDriver:
         if node_resp.get('code') != ErrorCode.NoError:
             raise error_codes.APIError(node_resp.get('message'))
 
-    def get_host_unit_list(self, ip):
+    def get_host_unit_list(self, ip, raise_exception=True):
         """get exist pods on the node
         """
-        unit_list = {}
+        unit_list = []
         fields = 'namespace,resourceName,data.rcname'
-        resp = self.get_unit_info([ip], fields)
+        resp = self.get_unit_info([ip], fields, raise_exception=raise_exception)
         for i in resp.get('data') or []:
             unit_list.append({
                 'namespace': i.get('namespace'),
@@ -103,15 +103,15 @@ class MesosDriver:
             })
         return unit_list
 
-    def reschedule_pod(self, pod_info):
+    def reschedule_pod(self, pod_info, raise_exception=True):
         resp = self.client.rescheduler_mesos_taskgroup(
             pod_info['namespace'], pod_info['app_name'], pod_info['taskgroup_name'])
-        if resp.get('code') != ErrorCode.NoError:
+        if resp.get('code') != ErrorCode.NoError and raise_exception:
             raise error_codes.APIError(resp.get('message'))
         return resp
 
-    def reschedule_host_pods(self, ip):
-        unit_list = self.get_host_unit_list(ip)
+    def reschedule_host_pods(self, ip, raise_exception=True):
+        unit_list = self.get_host_unit_list(ip, raise_exception=raise_exception)
         for info in unit_list:
-            self.reschedule_pod(info)
+            self.reschedule_pod(info, raise_exception=raise_exception)
         return

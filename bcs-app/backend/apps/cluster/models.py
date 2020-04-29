@@ -75,6 +75,7 @@ class NodeStatus:
     Removed = "removed"
     BkeInstall = "bke_installing"
     BkeFailed = "bke_failed"
+    NotReady = "not_ready"
 
 
 class GcloudPollingTask(models.Model):
