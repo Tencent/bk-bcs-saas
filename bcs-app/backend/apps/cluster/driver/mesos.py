@@ -49,8 +49,11 @@ class MesosDriver:
         """get the resource unit info
         """
         resp = self.client.get_taskgroup(inner_ip, fields=fields)
-        if resp.get('code') != ErrorCode.NoError and raise_exception:
-            raise error_codes.APIError(resp.get('message'))
+        if resp.get('code') != ErrorCode.NoError:
+            logger.error("request taskgroup api error, %s", resp.get("message"))
+            if raise_exception:
+                raise error_codes.APIError(resp.get('message'))
+
         return resp
 
     def get_host_container_count(self, host_ips):
@@ -106,8 +109,11 @@ class MesosDriver:
     def reschedule_pod(self, pod_info, raise_exception=True):
         resp = self.client.rescheduler_mesos_taskgroup(
             pod_info['namespace'], pod_info['app_name'], pod_info['taskgroup_name'])
-        if resp.get('code') != ErrorCode.NoError and raise_exception:
-            raise error_codes.APIError(resp.get('message'))
+        if resp.get('code') != ErrorCode.NoError:
+            logger.error("request rescheduler taskgroup api error, %s", resp.get("message"))
+            if raise_exception:
+                raise error_codes.APIError(resp.get('message'))
+
         return resp
 
     def reschedule_host_pods(self, ip, raise_exception=True):
