@@ -1080,7 +1080,7 @@ class RescheduleNodePods(NodeBase, viewsets.ViewSet):
     def reschedule_pods_taskgroups(self, request, project_id, cluster_id, node_info):
         project_kind = self.request.project['kind']
         driver = BaseDriver(project_kind).driver(request, project_id, cluster_id)
-        driver.reschedule_host_pods(node_info['inner_ip'])
+        driver.reschedule_host_pods(node_info['inner_ip'], raise_exception=False)
 
     def put(self, request, project_id, cluster_id, node_id):
         """重新调度节点上的POD or Taskgroup
