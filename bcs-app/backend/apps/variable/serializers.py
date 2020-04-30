@@ -11,19 +11,21 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-import json
-import logging
 import re
+import logging
 
+from django.utils.functional import cached_property
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 from django.utils.translation import ugettext_lazy as _
 
+from .utils import get_variable_quote_num
+from .constants import VariableScope, VariableCategory
 from backend.apps.variable.models import Variable
 from backend.apps.instance.serializers import InstanceNamespaceSLZ
 from backend.apps.configuration.constants import VARIABLE_PATTERN
-from .utils import get_variable_quote_num
-from .constants import VariableScope, VariableCategory
+from backend.resources.cluster.utils import get_clusters
+from backend.resources.namespace.utils import get_namespaces
 
 logger = logging.getLogger(__name__)
 
@@ -171,3 +173,59 @@ class ClusterVariableSLZ(serializers.Serializer):
 
 class NsVariableSLZ(serializers.Serializer):
     ns_vars = serializers.JSONField(required=True)
+
+
+class VariableItemSLZ(serializers.Serializer):
+    name = serializers.CharField(max_length=256, required=True)
+    key = serializers.RegexField(
+        RE_KEY,
+        max_length=64,
+        required=True,
+        error_messages={
+            'invalid': _("KEY 只能包含字母、数字和下划线，且以字母开头，最大长度为64个字符")
+        }
+    )
+    value = serializers.CharField(required=True)
+    desc = serializers.CharField(default='')
+    cluster_vars = serializers.ListField(child=serializers.JSONField(), required=False)
+    ns_vars = serializers.ListField(child=serializers.JSONField(), required=False)
+
+
+class ImportVariableSLZ(serializers.Serializer):
+    variables = serializers.ListField(child=VariableItemSLZ(), min_length=1)
+
+    @cached_property
+    def clusters(self):
+        data = get_clusters(self.context['access_token'], self.context['project_id'])
+        return [c['cluster_id'] for c in data]
+
+    @cached_property
+    def namespaces(self):
+        data = get_namespaces(self.context['access_token'], self.context['project_id'])
+        return {n['name']: n['id'] for n in data}
+
+    def _validate_cluster_var(self, var):
+        for c in var['cluster_vars']:
+            if 'value' not in c:
+                raise ValidationError(_("集群变量中, 集群ID({})的value未设置").format(c.get('cluster_id')))
+            if c.get('cluster_id') not in self.clusters:
+                raise ValidationError(_("集群变量中, 集群ID({})不存在").format(c.get('cluster_id')))
+
+    def _validate_ns_var(self, var):
+        for n in var['ns_vars']:
+            ns = n.get('namespace')
+            if 'value' not in n:
+                raise ValidationError(_("命名空间变量中, 命名空间({})的value未设置").format(ns))
+
+            ns_id = self.namespaces.get(ns)
+            if not ns_id:
+                raise ValidationError(_("命名空间变量中, 命名空间({})不存在").format(ns))
+            n['ns_id'] = ns_id
+
+    def validate(self, data):
+        for var in data['variables']:
+            if 'cluster_vars' in var:
+                self._validate_cluster_var(var)
+            if 'ns_vars' in var:
+                self._validate_ns_var(var)
+        return data

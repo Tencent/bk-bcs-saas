@@ -22,7 +22,7 @@ urlpatterns = [
 
     # 变量：批量删除 API
     url(r'^api/configuration/(?P<project_id>\w{32})/variables/batch/$',
-        views.VariableOverView.as_view({"delete": "batch_delete"})),
+        views.VariableOverView.as_view({"delete": "batch_delete", "post": "batch_import"})),
 
     # 变量：查询／修改 API
     url(r'^api/configuration/(?P<project_id>\w{32})/variable/(?P<pk>\d+)/$',
