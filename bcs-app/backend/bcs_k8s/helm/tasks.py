@@ -85,8 +85,18 @@ def sync_helm_repo(repo_id, force=False):
         sign.delete()
 
 
-def _update_default_chart_version(chart, latest_chart_version):
-    if chart.defaultChartVersion.version == latest_chart_version.version:
+def _update_default_chart_version(chart, full_chart_versions):
+    """更新chart对应的默认版本信息
+    """
+    if not full_chart_versions:
+        return
+    # 以created逆序，目的是防止不同仓库可能导致不一致
+    all_versions = list(full_chart_versions.values())
+    all_versions.sort(key=lambda info: info.created, reverse=True)
+
+    # 如果latest_chart_version和先前的版本一致，则无需更新
+    latest_chart_version = all_versions[0]
+    if chart.defaultChartVersion and (chart.defaultChartVersion.version == latest_chart_version.version):
         return
     chart.defaultChartVersion = latest_chart_version
     chart.description = latest_chart_version.description
@@ -199,8 +209,8 @@ def _do_helm_repo_charts_update(repo, sign, charts, index_hash, force=False):
         _sync_delete_chart_versions(chart, old_chart_versions, full_chart_versions, to_delete_ids)
 
         # 更新chart默认版本为最新推送的chart版本
-        # 因为已经排序，第一个就是最新推送的版本
-        _update_default_chart_version(chart, list(full_chart_versions.values())[0])
+        # 为防止出现仓库不同时，chart返回排序问题，现调整为以created逆序排列
+        _update_default_chart_version(chart, full_chart_versions)
 
     # sync chart
     _sync_delete_charts(charts, old_charts)
