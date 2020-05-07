@@ -18,15 +18,8 @@ from django.utils.translation import ugettext_lazy as _
 from .constants import VariableScope, VariableCategory
 from .models import Variable, NameSpaceVariable, ClusterVariable
 
-SCOPES = {
-    'ns_vars': VariableScope.NAMESPACE.value,
-    'cluster_vars': VariableScope.CLUSTER.value,
-    'global_vars': VariableScope.GLOBAL.value
-}
 
-
-def _import_var(username, project_id, var, scope_key):
-    scope_vars = var.pop(scope_key, None)
+def _import_var(username, project_id, var):
     try:
         vobj = Variable.objects.get(project_id=project_id, key=var['key'])
     except Variable.DoesNotExist:
@@ -34,36 +27,38 @@ def _import_var(username, project_id, var, scope_key):
             'project_id': project_id,
             'default': json.dumps({'value': var['value']}),
             'category': VariableCategory.CUSTOM.value,
-            'scope': SCOPES[scope_key],
+            'scope': var['scope'],
             'creator': username,
             'updator': username
         })
         del var['value']
         vobj = Variable.objects.create(**var)
     else:
-        if vobj.scope != SCOPES[scope_key]:
+        if vobj.scope != var['scope']:
             raise Exception(_("不能更改原有变量key({})的作用范围({})").format(vobj.key, vobj.scope))
         vobj.name = var['name']
         vobj.default = json.dumps({'value': var['value']})
         vobj.desc = var['desc']
         vobj.updator = username
         vobj.save()
-    return vobj, scope_vars
+    return vobj
 
 
 def _import_global_var(username, project_id, var):
-    _import_var(username, project_id, var, 'global_vars')
+    _import_var(username, project_id, var)
 
 
 def _import_ns_var(username, project_id, var):
-    vobj, ns_vars = _import_var(username, project_id, var, 'ns_vars')
+    ns_vars = var.pop('vars', [])
+    vobj = _import_var(username, project_id, var)
     NameSpaceVariable.batch_save_by_var_id(
         vobj, var_dict={v['ns_id']: v.get('value') for v in ns_vars}
     )
 
 
 def _import_cluster_var(username, project_id, var):
-    vobj, cluster_vars = _import_var(username, project_id, var, 'cluster_vars')
+    cluster_vars = var.pop('vars', [])
+    vobj = _import_var(username, project_id, var)
     ClusterVariable.batch_save_by_var_id(
         vobj, var_dict={v['cluster_id']: v['value'] for v in cluster_vars}
     )
@@ -71,10 +66,10 @@ def _import_cluster_var(username, project_id, var):
 
 def import_vars(username, project_id, vars):
     for v in vars:
-        if 'cluster_vars' in v:
+        if v['scope'] == VariableScope.CLUSTER.value:
             _import_cluster_var(username, project_id, v)
             continue
-        if 'ns_vars' in v:
+        if v['scope'] == VariableScope.NAMESPACE:
             _import_ns_var(username, project_id, v)
             continue
         _import_global_var(username, project_id, v)

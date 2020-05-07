@@ -187,8 +187,8 @@ class VariableItemSLZ(serializers.Serializer):
     )
     value = serializers.CharField(required=True)
     desc = serializers.CharField(default='')
-    cluster_vars = serializers.ListField(child=serializers.JSONField(), required=False)
-    ns_vars = serializers.ListField(child=serializers.JSONField(), required=False)
+    scope = serializers.ChoiceField(choices=VariableScope.get_choices(), required=True)
+    vars = serializers.ListField(child=serializers.JSONField(), required=False)
 
 
 class ImportVariableSLZ(serializers.Serializer):
@@ -202,30 +202,32 @@ class ImportVariableSLZ(serializers.Serializer):
     @cached_property
     def namespaces(self):
         data = get_namespaces(self.context['access_token'], self.context['project_id'])
-        return {n['name']: n['id'] for n in data}
+        return {f"{n['cluster_id']}/{n['name']}": n['id'] for n in data}
 
     def _validate_cluster_var(self, var):
-        for c in var['cluster_vars']:
-            if 'value' not in c:
-                raise ValidationError(_("集群变量中, 集群ID({})的value未设置").format(c.get('cluster_id')))
-            if c.get('cluster_id') not in self.clusters:
-                raise ValidationError(_("集群变量中, 集群ID({})不存在").format(c.get('cluster_id')))
+        for c_var in var['vars']:
+            cluster_id = c_var.get('cluster_id')
+            if cluster_id not in self.clusters:
+                raise ValidationError(_("集群变量中, 集群ID({})不存在").format(cluster_id))
+            if 'value' not in c_var:
+                raise ValidationError(_("集群变量中, 集群ID({})的value未设置").format(cluster_id))
 
     def _validate_ns_var(self, var):
-        for n in var['ns_vars']:
-            ns = n.get('namespace')
-            if 'value' not in n:
-                raise ValidationError(_("命名空间变量中, 命名空间({})的value未设置").format(ns))
-
-            ns_id = self.namespaces.get(ns)
+        for n_var in var['vars']:
+            namespace = f"{n_var.get('cluster_id')}/{n_var.get('namespace')}"
+            ns_id = self.namespaces.get(namespace)
             if not ns_id:
-                raise ValidationError(_("命名空间变量中, 命名空间({})不存在").format(ns))
-            n['ns_id'] = ns_id
+                raise ValidationError(_("命名空间变量中, 命名空间({})不存在").format(namespace))
+
+            if 'value' not in n_var:
+                raise ValidationError(_("命名空间变量中, 命名空间({})的value未设置").format(namespace))
+
+            n_var['ns_id'] = ns_id
 
     def validate(self, data):
         for var in data['variables']:
-            if 'cluster_vars' in var:
+            if data['scope'] == VariableScope.CLUSTER.value:
                 self._validate_cluster_var(var)
-            if 'ns_vars' in var:
+            if data['scope'] == VariableScope.NAMESPACE.value:
                 self._validate_ns_var(var)
         return data
