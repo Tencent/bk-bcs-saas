@@ -90,7 +90,7 @@ def _update_default_chart_version(chart, full_chart_versions):
     """
     if not full_chart_versions:
         return
-    # 以created逆序，目的是防止不同仓库可能导致不一致
+    # 以created逆序
     all_versions = list(full_chart_versions.values())
     all_versions.sort(key=lambda info: info.created, reverse=True)
 
@@ -209,7 +209,6 @@ def _do_helm_repo_charts_update(repo, sign, charts, index_hash, force=False):
         _sync_delete_chart_versions(chart, old_chart_versions, full_chart_versions, to_delete_ids)
 
         # 更新chart默认版本为最新推送的chart版本
-        # 为防止出现仓库不同时，chart返回排序问题，现调整为以created逆序排列
         _update_default_chart_version(chart, full_chart_versions)
 
     # sync chart
