@@ -69,7 +69,7 @@ def import_vars(username, project_id, vars):
         if v['scope'] == VariableScope.CLUSTER.value:
             _import_cluster_var(username, project_id, v)
             continue
-        if v['scope'] == VariableScope.NAMESPACE:
+        if v['scope'] == VariableScope.NAMESPACE.value:
             _import_ns_var(username, project_id, v)
             continue
         _import_global_var(username, project_id, v)

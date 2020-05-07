@@ -226,8 +226,8 @@ class ImportVariableSLZ(serializers.Serializer):
 
     def validate(self, data):
         for var in data['variables']:
-            if data['scope'] == VariableScope.CLUSTER.value:
+            if var['scope'] == VariableScope.CLUSTER.value:
                 self._validate_cluster_var(var)
-            if data['scope'] == VariableScope.NAMESPACE.value:
+            if var['scope'] == VariableScope.NAMESPACE.value:
                 self._validate_ns_var(var)
         return data
