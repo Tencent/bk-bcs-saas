@@ -39,11 +39,6 @@ class MesosClientBase(BCSClientBase):
         self.api_client = api_client
         self.connect()
 
-    def write_message(self, message):
-        """写入消息
-        """
-        self.ws.write_message(message)
-
     @run_on_executor
     def set_pty_size(self, rows: int, cols: int):
         """设置长宽高
@@ -51,62 +46,25 @@ class MesosClientBase(BCSClientBase):
         try:
             self.api_client.resize_container_exec(self.host_ip, self.exec_id, rows, cols)
         except Exception as error:
-            logger.error('mesos set_pty_size error, %s', error)
-
-    @tornado.gen.coroutine
-    def run(self):
-        while True:
-            msg = yield self.ws.read_message()
-            if msg is None:
-                logger.info("mesos client connection closed")
-                self.msg_handler.close()
-                break
-
-            if self.msg_handler.stream.closed():
-                logger.info("mesos msg_handler connection closed")
-                self.ws.close()
-                break
-
-            try:
-                self.last_output_ts = IOLoop.current().time()
-
-                try:
-                    msg = smart_text(msg)
-                except Exception:
-                    msg = smart_text(msg, 'latin1')
-
-                self.output_buffer += msg
-
-                if constants.OUTPUT_LINE_BREAKER in self.output_buffer:
-                    line_msg = self.output_buffer.split(constants.OUTPUT_LINE_BREAKER)
-                    for i in line_msg[:-1]:
-                        record = '%s: %s' % (arrow.now().strftime("%Y-%m-%d %H:%M:%S.%f"), utils.clean_bash_escape(i))
-                        self.output_record.append(record)
-                    # 前面多行已经赋值到record, 最后一行可能剩余未换行的数据
-                    self.output_buffer = line_msg[-1]
-
-                self.msg_handler.write_message({'data': msg})
-            except Exception as e:
-                logger.exception(e)
-                self.ws.close()
+            logger.error("mesos set_pty_size error, %s", error)
 
 
 class ContainerDirectClient(MesosClientBase):
-    MODE = 'mesos_container_direct'
+    MODE = "mesos_container_direct"
 
     @classmethod
     def create_client(cls, msg_handler, context, rows, cols):
         """获取mesos client
         """
-        host = urlparse(context['server_address'])
-        if host.scheme == 'https':
-            scheme = 'wss'
+        host = urlparse(context["server_address"])
+        if host.scheme == "https":
+            scheme = "wss"
         else:
-            scheme = 'ws'
+            scheme = "ws"
 
         bcs_address = host._replace(scheme=scheme).geturl()
 
         ws_url = f'{bcs_address}/bcsapi/v1/webconsole/start_exec?host_ip={context["host_ip"]}&exec_id={context["exec_id"]}'  # noqa
-        api_client = MesosClient(**context['client_context'])
+        api_client = MesosClient(**context["client_context"])
         client = cls(ws_url, rows, cols, msg_handler, context["host_ip"], context["exec_id"], api_client)
         return client
