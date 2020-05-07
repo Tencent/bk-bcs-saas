@@ -20,6 +20,7 @@ export default {
         // 当前项目下的集群列表，全局 store 中只会存在一个 clusterList，因为每个涉及到集群的模块都是和 projectId 有关的
         // 所以每次改变项目 projectId 的时候，这里的 clusterList 会重新获取
         clusterList: [],
+        isClusterDataReady: false,
         // 集群 id map，主要用于验证 clusterId 是否合法
         // clusterIdMap: {},
         // 当前的这个集群，如果是从集群首页进入到之后的页面那么这个是有值的，之后可以直接获取不需要再发请求
@@ -36,6 +37,7 @@ export default {
          */
         forceUpdateClusterList (state, list) {
             state.clusterList.splice(0, state.clusterList.length, ...list)
+            state.isClusterDataReady = true
         },
 
         /**
@@ -1161,6 +1163,25 @@ export default {
         nodeInfo (context, { projectId, clusterId, nodeId }, config = {}) {
             return http.get(
                 `${DEVOPS_BCS_API_URL}/api/projects/${projectId}/clusters/${clusterId}/metrics/node/info/?res_id=${nodeId}`,
+                {},
+                config
+            )
+        },
+
+        /**
+         * mesos 集群 首页获取 ip 数据
+         * /api/projects/{project_id}/clusters/{cluster_id}}/ippools/
+         *
+         * @param {Object} context store 上下文对象
+         * @param {string} projectId 项目 id
+         * @param {string} clusterId 集群 id
+         * @param {Object} config 请求的配置
+         *
+         * @return {Promise} promise 对象
+         */
+        getIpPools (context, { projectId, clusterId }, config = {}) {
+            return http.get(
+                `${DEVOPS_BCS_API_URL}/api/projects/${projectId}/clusters/${clusterId}/ippools/`,
                 {},
                 config
             )

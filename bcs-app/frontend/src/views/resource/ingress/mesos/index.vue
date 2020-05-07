@@ -15,7 +15,7 @@
                             :scope-list="searchScopeList"
                             :search-key.sync="searchKeyword"
                             :search-scope.sync="searchScope"
-                            @search="searchIngress"
+                            @search="getIngressList"
                             @refresh="refresh">
                         </bk-data-searcher>
                     </div>
@@ -791,7 +791,6 @@
             ingressList () {
                 const list = this.$store.state.resource.ingressList
                 list.forEach(ingress => {
-                    const rules = []
                     let index = 1
                     ingress.isChecked = false
                     ingress.config.webCache = {
@@ -843,17 +842,33 @@
                     return service.name === serviceName
                 })
                 return matchItem || emptyObj
+            },
+            isClusterDataReady () {
+                return this.$store.state.cluster.isClusterDataReady
             }
         },
         watch: {
             curIngress () {
                 this.curRuleIndex = 0
                 this.curRule = this.curIngress.config.webCache.rules[0]
+            },
+            isClusterDataReady: {
+                immediate: true,
+                handler (val) {
+                    if (val) {
+                        setTimeout(() => {
+                            if (this.searchScopeList.length) {
+                                this.searchScope = this.searchScopeList[1].id
+                            }
+                            this.getIngressList()
+                        }, 1000)
+                    }
+                }
             }
         },
         created () {
             this.initPageConf()
-            this.getIngressList()
+            // this.getIngressList()
         },
         methods: {
             /**
@@ -1063,12 +1078,20 @@
              */
             async getIngressList () {
                 const projectId = this.projectId
+                const params = {
+                    cluster_id: this.searchScope
+                }
                 try {
-                    await this.$store.dispatch('resource/getMesosIngressList', projectId)
+                    this.isPageLoading = true
+                    await this.$store.dispatch('resource/getMesosIngressList', {
+                        projectId,
+                        params
+                    })
                     this.initPageConf()
                     this.curPageData = this.getDataByPage(this.pageConf.curPage)
+
                     // 如果有搜索关键字，继续显示过滤后的结果
-                    if (this.searchScope || this.searchKeyword) {
+                    if (this.searchKeyword) {
                         this.searchIngress()
                     }
                 } catch (e) {
@@ -1076,6 +1099,7 @@
                 } finally {
                     // 晚消失是为了防止整个页面loading和表格数据loading效果叠加产生闪动
                     setTimeout(() => {
+                        this.isPageLoading = false
                         this.isInitLoading = false
                     }, 200)
                 }
@@ -1126,10 +1150,8 @@
             initPageConf () {
                 const total = this.ingressList.length
                 this.pageConf.total = total
+                this.pageConf.curPage = 1
                 this.pageConf.totalPage = Math.ceil(total / this.pageConf.pageSize)
-                if (this.pageConf.curPage > this.pageConf.totalPage) {
-                    this.pageConf.curPage = this.pageConf.totalPage
-                }
             },
 
             /**
@@ -1138,9 +1160,6 @@
              */
             reloadCurPage () {
                 this.initPageConf()
-                if (this.pageConf.curPage > this.pageConf.totalPage) {
-                    this.pageConf.curPage = this.pageConf.totalPage
-                }
                 this.curPageData = this.getDataByPage(this.pageConf.curPage)
             },
 

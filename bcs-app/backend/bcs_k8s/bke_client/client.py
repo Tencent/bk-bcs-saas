@@ -26,6 +26,7 @@ from backend.components import paas_cc, bcs
 from backend.components.utils import http_post
 from backend.bcs_k8s import kubectl
 from backend.bcs_k8s.utils import get_kubectl_version
+from backend.bcs_k8s.kubehelm.helm import KubeHelmClient
 
 logger = logging.getLogger(__name__)
 
@@ -183,6 +184,33 @@ class BCSClusterClient:
                 **options
             )
             yield kubectl_client
+
+    @contextlib.contextmanager
+    def make_helm_client(self):
+        """组装携带kubeconfig的helm client
+        """
+        options = self.make_kubectl_options()
+        cluster = kubectl.Cluster(
+            name=self.cluster_id,
+            cert=options.pop('client-certificate'),
+            server=options.pop('server'),
+        )
+        user = kubectl.User(
+            name=constants.BCS_USER_NAME,
+            token=options['token'])
+        context = kubectl.Context(
+            name=constants.BCS_USER_NAME,
+            user=user,
+            cluster=cluster
+        )
+        # NOTE: 这里直接使用helm3 client bin
+        kube_config = kubectl.KubeConfig(contexts=[context])
+        with kube_config.as_tempfile() as filename:
+            helm_client = KubeHelmClient(
+                helm_bin=settings.HELM3_BIN,
+                kubeconfig=filename,
+            )
+            yield helm_client
 
 
 def get_cluster_proper_kubectl(access_token, project_id, cluster_id):

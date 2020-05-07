@@ -24,6 +24,8 @@ from rest_framework.exceptions import ValidationError
 from rest_framework.renderers import BrowsableAPIRenderer
 from django.utils.translation import ugettext_lazy as _
 
+from . import serializers
+from .import_vars import import_vars
 from backend.accounts import bcs_perm
 from backend.activity_log import client
 from backend.utils.views import FinalizeResponseMixin
@@ -41,7 +43,6 @@ from backend.apps import constants
 from backend.apps.metric.models import Metric
 from backend.utils.renderers import BKAPIRenderer
 from backend.apps.instance.generator import handel_custom_network_mode
-from . import serializers
 
 
 class ListCreateVariableView(generics.ListCreateAPIView):
@@ -253,6 +254,7 @@ class ResourceVariableView(FinalizeResponseMixin, views.APIView):
 
 
 class VariableOverView(viewsets.ViewSet):
+    renderer_classes = (BKAPIRenderer, BrowsableAPIRenderer)
 
     @transaction.atomic
     def batch_delete(self, request, project_id):
@@ -338,6 +340,25 @@ class VariableOverView(viewsets.ViewSet):
                 'project_code': request.project.english_name,
             }
         })
+
+    def batch_import(self, request, project_id):
+        try:
+            variables = json.loads(request.data.get('variables'))
+        except Exception as e:
+            raise ValidationError(str(e))
+
+        serializer = serializers.ImportVariableSLZ(
+            data={'variables': variables},
+            context={'project_id': project_id, 'access_token': request.user.token.access_token}
+        )
+        serializer.is_valid(raise_exception=True)
+        validated_data = serializer.validated_data
+
+        try:
+            import_vars(request.user.username, project_id, validated_data['variables'])
+        except Exception as e:
+            raise error_codes.APIError(str(e))
+        return Response()
 
 
 class NameSpaceVariableView(viewsets.ViewSet):

@@ -14,7 +14,6 @@
 import json
 import datetime
 from io import StringIO
-from collections import OrderedDict
 
 import jinja2
 from ruamel.yaml import YAML
@@ -22,6 +21,7 @@ from dataclasses import dataclass
 from rest_framework.exceptions import ParseError
 
 from backend.apps.configuration.constants import FileResourceName
+from backend.apps.configuration.models import ShowVersion
 from backend.bcs_k8s.app import bcs_info_injector
 from backend.bcs_k8s.helm import bcs_variable
 
@@ -30,8 +30,9 @@ from backend.bcs_k8s.helm import bcs_variable
 class ReleaseData:
     project_id: str
     namespace_info: dict
-    show_version: OrderedDict
+    show_version: ShowVersion
     template_files: list
+    template_variables: dict
 
 
 class ReleaseDataProcessor:
@@ -43,6 +44,7 @@ class ReleaseDataProcessor:
         self.namespace_info = raw_release_data.namespace_info
         self.show_version = raw_release_data.show_version
         self.template_files = raw_release_data.template_files
+        self.template_variables = raw_release_data.template_variables
 
     def _parse_yaml(self, yaml_content):
         try:
@@ -129,15 +131,21 @@ class ReleaseDataProcessor:
         return configs
 
     def _inject(self, raw_content, inject_configs, bcs_variables):
-        content = self._render_with_variables(raw_content, bcs_variables)
-        content = self._inject_bcs_info(content, inject_configs)
-        return content
+        try:
+            content = self._render_with_variables(raw_content, bcs_variables)
+            return self._inject_bcs_info(content, inject_configs)
+        except Exception as e:
+            raise ParseError(f'inject failed: {e}')
 
     def release_data(self):
         inject_configs = self._get_inject_configs()
         bcs_variables = self._get_bcs_variables()
 
+        if self.template_variables:
+            bcs_variables.update(self.template_variables)
+
         for res_files in self.template_files:
             for f in res_files['files']:
                 f['content'] = self._inject(f['content'], inject_configs, bcs_variables)
-        return ReleaseData(self.project_id, self.namespace_info, self.show_version, self.template_files)
+        return ReleaseData(self.project_id, self.namespace_info, self.show_version, self.template_files,
+                           self.template_variables)

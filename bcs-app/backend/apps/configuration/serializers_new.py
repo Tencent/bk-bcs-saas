@@ -25,7 +25,6 @@ from backend.apps.configuration import models
 from backend.apps.configuration.constants import TemplateEditMode
 from backend.apps.configuration.k8s import serializers as kserializers
 from backend.apps.configuration.mesos import serializers as mserializers
-from backend.accounts import bcs_perm
 
 SLZ_CLASS = [kserializers.K8sDeploymentSLZ, kserializers.K8sDaemonsetSLZ, kserializers.K8sJobSLZ,
              kserializers.K8sStatefulSetSLZ, kserializers.K8sServiceSLZ, kserializers.K8sConfigMapSLZ,

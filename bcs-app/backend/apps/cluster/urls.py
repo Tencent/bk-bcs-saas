@@ -141,7 +141,9 @@ urlpatterns = [
         # noqa
         views.RescheduleNodePods.as_view({'put': 'put'}),
         name='api.projects.node.pod_taskgroup.reschedule',
-    )
+    ),
+    url(r"^api/projects/(?P<project_id>[\w\-]+)/clusters/(?P<cluster_id>[\w\-]+)/ippools/$",
+        views.MesosIPPoolViewSet.as_view({"get": "get"}))
 ]
 
 # batch operation

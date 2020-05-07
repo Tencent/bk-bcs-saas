@@ -15,6 +15,7 @@
                     :display-key="'name'"
                     :selected.sync="searchScope"
                     :list="scopeList"
+                    :search-placeholder="searchPlaceholder || $t('请选择集群')"
                     @item-selected="handleSechScope">
                 </bk-selector>
             </template>
@@ -52,6 +53,10 @@
         },
         props: {
             placeholder: {
+                type: String,
+                default: ''
+            },
+            searchPlaceholder: {
                 type: String,
                 default: ''
             },
@@ -126,9 +131,7 @@
                     // 在初始化时，如果已经有值，选中
                     if (this.searchScope) {
                         this.curScope = this.localScopeList.find(item => item.id === this.searchScope)
-                    }
-                    // 否则以第一项默认选中
-                    else {
+                    } else {
                         this.curScope = this.localScopeList[0]
                         this.$emit('update:searchScope', this.curScope.id)
                     }

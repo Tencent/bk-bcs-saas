@@ -763,7 +763,7 @@ export default {
 
                 const list = []
                 instanceList.forEach(item => {
-                    if (namespace.prepareDeleteInstances.indexOf(item.id) > -1) {
+                    if (namespace.prepareDeleteInstances.find(n => n.name === item.name)) {
                         item.isChecked = true
                     }
                     // k8s
@@ -2846,7 +2846,7 @@ export default {
         },
 
         /**
-         * 多选框全选中，for batch delete
+         * 模板集视图，多选框全选中，for batch delete
          *
          * @param {Object} e 事件对象
          * @param {Object} tpl 当前点击的模板对象
@@ -2875,7 +2875,7 @@ export default {
         },
 
         /**
-         * 多选框选中，for batch delete
+         * 模板集视图，多选框选中，for batch delete
          *
          * @param {Object} instance 当前实例
          * @param {number} instanceIndex 当前实例的索引
@@ -2910,7 +2910,7 @@ export default {
         },
 
         /**
-         * 批量删除
+         * 模板集视图，批量删除
          *
          * @param {Object} tpl 当前点击的模板对象
          * @param {number} index 当前点击的模板对象的索引
@@ -3006,9 +3006,10 @@ export default {
             prepareDeleteInstances.splice(0, 0, ...[])
 
             appList.forEach(item => {
-                if (item.permissions.use && item.from_platform) {
+                // if (item.permissions.use && item.from_platform) {
+                if (item.permissions.use) {
                     item.isChecked = checked
-                    checked && prepareDeleteInstances.push(item.id)
+                    checked && prepareDeleteInstances.push(item)
                 }
             })
 
@@ -3027,20 +3028,21 @@ export default {
          * @param {Array} namespaceList 当前命名空间数组
          */
         checkNamespace (instance, instanceIndex, namespace, namespaceIndex, namespaceList) {
-            const id = instance.id
+            const name = instance.name
             const prepareDeleteInstances = []
             prepareDeleteInstances.splice(0, 0, ...namespace.prepareDeleteInstances)
 
-            const prepareDeleteInstanceIndex = prepareDeleteInstances.indexOf(id)
+            const prepareDeleteInstanceIndex = prepareDeleteInstances.findIndex(n => n.name === name)
             // 存在，说明这一次的点击是未选中
             if (prepareDeleteInstanceIndex > -1) {
                 prepareDeleteInstances.splice(prepareDeleteInstanceIndex, 1)
             } else {
-                prepareDeleteInstances.push(id)
+                prepareDeleteInstances.push(instance)
             }
 
             const allLength = namespace.appList.length
-            const invalidLength = namespace.appList.filter(inst => !inst.permissions.use || !inst.from_platform).length
+            // const invalidLength = namespace.appList.filter(inst => !inst.permissions.use || !inst.from_platform).length
+            const invalidLength = namespace.appList.filter(inst => !inst.permissions.use).length
 
             if (prepareDeleteInstances.length === allLength - invalidLength) {
                 namespace.isAllChecked = true
@@ -3082,9 +3084,22 @@ export default {
                         item.state.lock()
                     })
                     try {
+                        const resourceList = []
+                        namespace.prepareDeleteInstances.forEach(n => {
+                            if (n.id === 0) {
+                                resourceList.push({
+                                    resource_kind: n.category,
+                                    name: n.name,
+                                    namespace: namespace.name,
+                                    cluster_id: namespace.cluster_id
+                                })
+                            }
+                        })
+
                         await me.$store.dispatch('app/batchDeleteInstance', {
                             projectId: me.projectId,
-                            inst_id_list: namespace.prepareDeleteInstances
+                            inst_id_list: namespace.prepareDeleteInstances.filter(n => n.id !== 0).map(n => n.id),
+                            resource_list: resourceList
                         })
                         namespace.appList.forEach(item => {
                             item.isChecked = false

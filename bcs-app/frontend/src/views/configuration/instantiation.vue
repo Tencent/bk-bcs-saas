@@ -3,19 +3,19 @@
         <div class="biz-top-bar">
             <div class="biz-configuration-instantiation-title">
                 <i class="bk-icon icon-arrows-left back" @click="goTemplateset(false)"></i>
-                <span @click="refreshCurRouter">模板实例化</span>
+                <span @click="refreshCurRouter">{{$t('模板实例化')}}</span>
             </div>
             <bk-guide></bk-guide>
         </div>
-        <div class="biz-content-wrapper">
+        <div class="biz-content-wrapper pt0">
             <app-exception v-if="exceptionCode" :type="exceptionCode.code" :text="exceptionCode.msg"></app-exception>
             <div v-else class="biz-configuration-instantiation-wrapper" v-bkloading="{ isLoading: createInstanceLoading }">
-                <div class="tip" v-if="curProject.kind === PROJECT_MESOS"><i class="bk-icon icon-info-circle-shape"></i>{{$t('模板实例化操作即平台通过用户配置的模板，生成对应的资源json文件，并将它们下发到指定集群的命名空间下。资源创建成功后，可在"应用"和"网络"中查看资源实例详情。')}}</div>
-                <div class="tip" v-else><i class="bk-icon icon-info-circle-shape"></i>{{$t('模板实例化操作即平台通过用户配置的模板，生成对应的资源yaml文件，并将它们下发到指定集群的命名空间下。资源创建成功后，可在"应用"和"网络"中查看资源实例详情。')}}</div>
+                <div class="biz-tip mt20 mb15" v-if="curProject.kind === PROJECT_MESOS">{{$t('模板实例化操作即平台通过用户配置的模板，生成对应的资源json文件，并将它们下发到指定集群的命名空间下。资源创建成功后，可在"应用"和"网络"中查看资源实例详情。')}}</div>
+                <div class="biz-tip mt20 mb15" v-else>{{$t('模板实例化操作即平台通过用户配置的模板，生成对应的资源YAML文件，并将它们下发到指定集群的命名空间下。资源创建成功后，可在"应用"和"网络"中查看资源实例详情。')}}</div>
                 <div class="biz-configuration-instantiation-header">
                     <div class="left">
                         <svg style="display: none;">
-                            <title>模板集默认图标</title>
+                            <title>{{$t('模板集默认图标')}}</title>
                             <symbol id="biz-set-icon" viewBox="0 0 32 32">
                                 <path d="M6 3v3h-3v23h23v-3h3v-23h-23zM24 24v3h-19v-19h19v16zM27 24h-1v-18h-18v-1h19v19z"></path>
                                 <path d="M13.688 18.313h-6v6h6v-6z"></path>
@@ -26,10 +26,10 @@
                         <div class="info">
                             <svg class="logo"><use xlink:href="#biz-set-icon"></use></svg>
                             <div class="title" :title="curTemplate.name">{{curTemplate.name || '--'}}</div>
-                            <div class="creater" :title="curTemplate.creator">创建人：{{curTemplate.creator || '--'}}</div>
+                            <div class="creater" :title="curTemplate.creator">{{$t('创建人')}}：{{curTemplate.creator || '--'}}</div>
                         </div>
                         <div class="desc" :title="curTemplate.desc">
-                            <span>简介：</span>
+                            <span>{{$t('简介')}}：</span>
                             {{curTemplate.desc || '--'}}
                         </div>
                     </div>
@@ -37,18 +37,18 @@
                         <div class="top">
                             <div class="inner">
                                 <div class="inner-item">
-                                    <label class="title">模板集版本</label>
-                                    <bk-selector :placeholder="'请选择'"
+                                    <label class="title">{{$t('模板集版本')}}</label>
+                                    <bk-selector :placeholder="$t('请选择')"
                                         :selected.sync="tplsetVerIndex"
                                         :list="tplsetVerList"
                                         :setting-key="'show_version_id'"
                                         @item-selected="changeTplset">
                                     </bk-selector>
-                                    <label class="tip">创建后启动实例</label>
+                                    <label class="tip">{{$t('创建后启动实例')}}</label>
                                 </div>
                                 <div class="inner-item">
-                                    <label class="title">模板</label>
-                                    <bk-selector :placeholder="'请选择要实例化的模板'"
+                                    <label class="title">{{$t('模板')}}</label>
+                                    <bk-selector :placeholder="$t('请选择要实例化的模板')"
                                         :searchable="true"
                                         :selected.sync="tplIndex"
                                         :setting-key="'settingKey'"
@@ -57,10 +57,10 @@
                                         @item-selected="multiSelect">
                                     </bk-selector>
                                     <a href="javascript:void(0);" class="bk-text-button select-all-tpl is-disabled" v-if="tplList.length === 0">
-                                        全选模板
+                                        {{$t('全选模板')}}
                                     </a>
                                     <a href="javascript:void(0);" class="bk-text-button select-all-tpl" v-else @click="selectAllTpl">
-                                        {{isSelectAllTpl ? '清空全选' : '全选模板'}}
+                                        {{isSelectAllTpl ? $t('清空全选') : $t('全选模板')}}
                                     </a>
                                 </div>
                             </div>
@@ -68,7 +68,7 @@
                         <div class="bottom">
                             <div class="inner">
                                 <bk-button type="default" @click="showChooseDialog">
-                                    选择运行的集群及命名空间
+                                    {{$t('选择运行的集群及命名空间')}}
                                 </bk-button>
                                 <div class="selected-namespace-wrapper biz-configuration-instantiation-dialog">
                                     <div class="content-inner m0 pl0 pb0">
@@ -122,7 +122,7 @@
                                             </label>
                                             <div class="form-item-inner">
                                                 <bk-selector
-                                                    :placeholder="'请选择'"
+                                                    :placeholder="$t('请选择')"
                                                     :ext-cls="'dropdown'"
                                                     :selected.sync="lbSelectData[previewNs.name][lb[0].key]"
                                                     :list="lb[0].value"
@@ -138,7 +138,7 @@
                                             </label>
                                             <div class="form-item-inner">
                                                 <bk-selector
-                                                    :placeholder="'请选择'"
+                                                    :placeholder="$t('请选择')"
                                                     :ext-cls="'dropdown'"
                                                     :selected.sync="lbSelectData[previewNs.name][lb[1].key]"
                                                     :list="lb[1].value"
@@ -149,10 +149,10 @@
                                             </div>
                                         </div>
                                     </div>
-                                    <template v-if="previewNs.variableList && previewNs.variableList.length">
+                                    <template v-if="previewNs.variableList && previewNs.variableList.length && !isYamlMode">
                                         <div class="form-item">
                                             <label class="form-label">
-                                                变量：
+                                                {{$t('变量')}}：
                                             </label>
                                             <div class="form-item-inner">
                                                 <div class="biz-key-value-item" v-for="(variable, index) in previewNs.variableList" :key="index">
@@ -166,13 +166,13 @@
                                     </template>
                                     <div class="form-item" v-if="previewList.length">
                                         <label class="form-label">
-                                            预览：
+                                            {{$t('预览')}}：
                                         </label>
                                         <div class="form-item-inner" style="width: 900px">
                                             <bk-tab :type="'fill'" :size="'small'" :active-name="previewList[0].name" :key="previewList.length" @tab-changed="tabChange">
-                                                <bk-tabpanel :key="index" :name="item.name" :title="item.name" :tag="item.tag" v-for="(item, index) in previewList">
+                                                <bk-tabpanel :key="index" :name="item.name" :title="item.title" :tag="item.tag" v-for="(item, index) in previewList">
                                                     <div class="biz-code-wrapper">
-                                                        <div class="build-code-fullscreen" title="全屏"
+                                                        <div class="build-code-fullscreen" :title="$t('全屏')"
                                                             @click="setFullScreen(index)">
                                                             <i class="bk-icon icon-full-screen"></i>
                                                         </div>
@@ -203,11 +203,11 @@
                     </div>
                 </transition>
                 <div class="create-wrapper">
-                    <bk-button type="primary" title="创建" @click="createInstance">
-                        创建
+                    <bk-button type="primary" :title="$t('创建')" @click="createInstance">
+                        {{$t('创建')}}
                     </bk-button>
-                    <bk-button type="default" title="取消" @click="goTemplateset(true)">
-                        取消
+                    <bk-button type="default" :title="$t('取消')" @click="goTemplateset(true)">
+                        {{$t('取消')}}
                     </bk-button>
                 </div>
             </div>
@@ -218,31 +218,32 @@
             :width="dialogConf.width"
             :title="dialogConf.title"
             :close-icon="dialogConf.closeIcon"
-            :confirm="'提交'"
+            :confirm="$t('提交')"
+            :cancel="$t('取消')"
             :ext-cls="'biz-configuration-instantiation-dialog'"
             :quick-close="false"
             @confirm="confirmSelect"
             @cancel="dialogConf.isShow = false">
             <template slot="content">
-                <div class="content-inner" v-bkloading="{ isLoading: dialogConf.loading }">
+                <div class="content-inner" style="max-height: 420px; overflow: auto;" v-bkloading="{ isLoading: dialogConf.loading }">
                     <div class="namespace-types">
-                        <span class="bk-outline"><i class="bk-icon icon-circle-shape"></i>未实例化过</span>
-                        <span class="bk-default"><i class="bk-icon icon-circle-shape"></i>已实例化过</span>
+                        <span class="bk-outline"><i class="bk-icon icon-circle-shape"></i>{{$t('未实例化过')}}</span>
+                        <span class="bk-default"><i class="bk-icon icon-circle-shape"></i>{{$t('已实例化过')}}</span>
                     </div>
                     <div :key="index" class="content-trigger-wrapper" :class="item.isOpen ? 'open' : ''" v-for="(item, index) in candidateNamespaceList">
                         <div class="content-trigger" @click="triggerHandler(item, index)">
-                            <div class="left-area">
+                            <div class="left-area" style="border-right: none;">
                                 <div class="label">
                                     <span class="biz-text-wrapper" style="max-width: 300px;">{{item.name}}</span>
-                                    <span class="choose-num">已经选择 {{item.results.filter(ns => ns.isChoose).length}} 个</span>
+                                    <span class="choose-num">{{$t('已经选择')}} {{item.results.filter(ns => ns.isChoose).length}} {{$t('个1')}}</span>
                                 </div>
-                                <div class="checker-inner">
-                                    <a href="javascript:;" class="bk-text-button" @click.stop="selectAll(item, index)">全选</a>
-                                    <a href="javascript:;" class="bk-text-button" @click.stop="selectInvert(item, index)">反选</a>
+                                <div class="checker-inner" v-if="!isYamlMode">
+                                    <a href="javascript:;" class="bk-text-button" @click.stop="selectAll(item, index)">{{$t('全选')}}</a>
+                                    <a href="javascript:;" class="bk-text-button" @click.stop="selectInvert(item, index)">{{$t('反选')}}</a>
                                 </div>
                             </div>
-                            <i v-if="item.isOpen" class="bk-icon icon-angle-up trigger active"></i>
-                            <i v-else class="bk-icon icon-angle-down trigger"></i>
+                            <i v-if="item.isOpen" class="bk-icon icon-angle-up trigger active" style="border-left: 1px solid #eee;"></i>
+                            <i v-else class="bk-icon icon-angle-down trigger" style="border-left: 1px solid #eee;"></i>
                         </div>
                         <div class="biz-namespace-wrapper" v-if="item.results.length" :style="{ display: item.isOpen ? '' : 'none' }">
                             <div class="namespace-inner">
@@ -273,22 +274,22 @@
                                             <img src="@open/images/plus.svg" class="add-btn" />
                                         </div>
                                         <template slot="content">
-                                            <div class="title">新增命名空间</div>
-                                            <input type="text" ref="addNamespaceInputNode" placeholder="输入名称" class="bk-form-input ns-name" v-model="namespaceName" v-if="dialogConf.loading" disabled />
-                                            <input type="text" ref="addNamespaceInputNode" placeholder="输入名称" class="bk-form-input ns-name" v-model="namespaceName" v-else />
+                                            <div class="title">{{$t('新增命名空间')}}</div>
+                                            <input type="text" ref="addNamespaceInputNode" :placeholder="$t('输入名称')" class="bk-form-input ns-name" v-model="namespaceName" v-if="dialogConf.loading" disabled />
+                                            <input type="text" ref="addNamespaceInputNode" :placeholder="$t('输入名称')" class="bk-form-input ns-name" v-model="namespaceName" v-else />
                                             <a href="javascript:;" class="bk-text-button link disabled" v-if="dialogConf.loading">
-                                                更多设置
+                                                {{$t('更多设置')}}
                                                 <img src="@open/images/link-disabled.svg" />
                                             </a>
                                             <a href="javascript:;" class="bk-text-button link" @click="goNamespace" v-else>
-                                                更多设置
+                                                {{$t('更多设置')}}
                                                 <img src="@open/images/link.svg" />
                                             </a>
                                             <div class="operate">
-                                                <a href="javascript:;" class="bk-text-button disabled" v-if="dialogConf.loading">保存</a>
-                                                <a href="javascript:;" class="bk-text-button" v-else @click="addNamespace(item, index)">保存</a>
-                                                <a href="javascript:;" class="bk-text-button disabled" v-if="dialogConf.loading" @click="cancelNamespace">取消</a>
-                                                <a href="javascript:;" class="bk-text-button" v-else @click="cancelNamespace">取消</a>
+                                                <a href="javascript:;" class="bk-text-button disabled" v-if="dialogConf.loading">{{$t('保存')}}</a>
+                                                <a href="javascript:;" class="bk-text-button" v-else @click="addNamespace(item, index)">{{$t('保存')}}</a>
+                                                <a href="javascript:;" class="bk-text-button disabled" v-if="dialogConf.loading" @click="cancelNamespace">{{$t('取消')}}</a>
+                                                <a href="javascript:;" class="bk-text-button" v-else @click="cancelNamespace">{{$t('取消')}}</a>
                                             </div>
                                         </template>
                                     </bk-tooltip>
@@ -308,23 +309,23 @@
             @cancel="goNamespaceDialogConf.isShow = false">
             <template slot="content">
                 <div style="text-align: center; padding-bottom: 15px;">
-                    您没有可用的命名空间，请创建或申请已有命名空间使用
+                    {{$t('您没有可用的命名空间，请创建或申请已有命名空间使用')}}
                 </div>
             </template>
             <template slot="footer">
                 <div class="bk-dialog-outer">
                     <button type="button" class="bk-dialog-btn bk-dialog-btn-confirm bk-btn-primary"
                         @click="goNamespace" style="width: 110px;">
-                        创建或申请
+                        {{$t('创建或申请')}}
                     </button>
                     <button type="button" class="bk-dialog-btn bk-dialog-btn-cancel" @click="hideNamesapceDialog">
-                        取消
+                        {{$t('取消')}}
                     </button>
                 </div>
             </template>
         </bk-dialog>
 
-        <div title="关闭全屏" @click="cancelFullScreen" class="biz-configuration-instantiation-cancel-fullscreen"
+        <div :title="$t('关闭全屏')" @click="cancelFullScreen" class="biz-configuration-instantiation-cancel-fullscreen"
             v-if="editorConfig.fullScreen">
             <i class="bk-icon icon-close"></i>
         </div>
@@ -371,6 +372,8 @@
                 tplList: [],
                 // 存放给的是模板的 id 集合
                 tplIndex: [],
+                // 存放选择的yaml模板资源
+                yamlTplResource: [],
                 tplsetVerList: [],
                 // 存放给的是模板集的 show_version_id
                 tplsetVerIndex: -1,
@@ -380,7 +383,7 @@
                     isShow: false,
                     width: 912,
                     // width: 895,
-                    title: '选择运行的集群及命名空间',
+                    title: this.$t('选择运行的集群及命名空间'),
                     closeIcon: false,
                     loading: false
                 },
@@ -427,7 +430,7 @@
                 goNamespaceDialogConf: {
                     isShow: false,
                     width: 500,
-                    title: '没有命名空间',
+                    title: this.$t('没有命名空间'),
                     closeIcon: true,
                     hasFooter: false,
                     hasHeader: false
@@ -470,6 +473,9 @@
                     return this.curTemplateTmp
                 }
             },
+            isYamlMode () {
+                return this.curTemplate.edit_mode === 'yaml'
+            },
             onlineProjectList () {
                 return this.$store.state.sideMenu.onlineProjectList
             },
@@ -493,7 +499,7 @@
                     }
                 }
                 // k8s
-                if (this.curProject.kind === 1) {
+                if (this.curProject.kind === PROJECT_K8S) {
                     this.editorConfig.lang = 'yaml'
                 } else { // mesos
                     this.editorConfig.lang = 'json'
@@ -614,45 +620,31 @@
                             show_version_name: item.show_version_name
                         })
                     })
+
+                    // 如果带上版本ID，则默认选中相应版本
                     if (this.curShowVersionId) {
                         this.tplsetVerIndex = this.curShowVersionId
+
+                        // 根据已经选中的版本来查找资源列表
+                        this.tplsetVerList.forEach((item, index) => {
+                            if (item.show_version_id === this.tplsetVerIndex) {
+                                this.changeTplset(item.show_version_id, item)
+                            }
+                        })
                     }
                 } catch (e) {
                     catchErrorHandler(e, this)
                 }
             },
 
-            /**
-             * 切换模板集下拉框，获取模板下拉框的数据
-             *
-             * @param {number} settingKey setting-key
-             * @param {Object} data 当前下拉框数据
-             */
-            async changeTplset (settingKey, data) {
-                this.tplIndex.splice(0, this.tplIndex.length, ...[])
-                this.tplList.splice(0, this.tplList.length, ...[])
-                this.tplsetVerId = data.id + '-' + data.show_version_id
-
-                this.clearCandidateNamespaceStatus()
-                this.clearNamespaceStatus()
-
-                this.previewTitle = ''
-                this.previewNs = Object.assign({}, {})
-                this.previewList.splice(0, this.previewList.length, ...[])
-                this.editorConfig.editors.splice(0, this.editorConfig.editors.length, ...[])
-                this.editorConfig.values.splice(0, this.editorConfig.values.length, ...[])
-                this.previewShow = false
-
-                // 清空已经选择的 namespace
-                this.selectedNamespaceList.splice(0, this.selectedNamespaceList.length, ...[])
-                this.selectedNamespaceCluster = {}
-
+            async setFormTemplateList (settingKey, data) {
                 try {
-                    const res = await this.$store.dispatch('configuration/getTemplateListById', {
+                    const action = 'configuration/getTemplateListById'
+                    const params = {
                         projectId: this.projectId,
                         tplVerId: data.id
-                    })
-
+                    }
+                    const res = await this.$store.dispatch(action, params)
                     const tplList = []
                     const tplIndex = []
                     const tplData = res.data.data || {}
@@ -680,7 +672,97 @@
                     this.tplIndex.splice(0, this.tplIndex.length, ...tplIndex)
                     this.tplList.splice(0, this.tplList.length, ...tplList)
                     this.instanceEntity = Object.assign({}, tplData)
+                } catch (e) {
+                    console.error(e)
+                    this.bkMessageInstance && this.bkMessageInstance.close()
+                    this.bkMessageInstance = this.$bkMessage({
+                        theme: 'error',
+                        message: e.message || e.data.msg || e.statusText
+                    })
+                }
+            },
 
+            async setYamlTemplateList (settingKey, data) {
+                try {
+                    const action = 'k8sTemplate/getYamlTemplateDetailByVersion'
+                    const params = {
+                        projectId: this.projectId,
+                        templateId: this.templateId,
+                        versionId: data.show_version_id,
+                        withFileContent: false
+                    }
+                    const res = await this.$store.dispatch(action, params)
+                    const tplList = []
+                    const tplIndex = []
+                    const yamlTplResource = []
+                    const tplData = res.data.data || {}
+                    res.data.template_files.forEach(resource => {
+                        const key = resource.resource_name
+                        const obj = {
+                            name: key,
+                            children: []
+                        }
+
+                        resource.files.forEach(file => {
+                            obj.children.push({
+                                id: file.id,
+                                settingKey: key + '-' + file.id + '-' + settingKey,
+                                name: file.name,
+                                type: key
+                            })
+                        })
+
+                        tplList.push(obj)
+                    })
+                    
+                    this.sortTplType(tplList, 'name')
+
+                    this.tplIndex.splice(0, this.tplIndex.length, ...tplIndex)
+                    this.yamlTplResource.splice(0, this.yamlTplResource.length, ...yamlTplResource)
+                    this.tplList.splice(0, this.tplList.length, ...tplList)
+                    this.instanceEntity = Object.assign({}, tplData)
+                } catch (e) {
+                    console.error(e)
+                    this.bkMessageInstance && this.bkMessageInstance.close()
+                    this.bkMessageInstance = this.$bkMessage({
+                        theme: 'error',
+                        message: e.message || e.data.msg || e.statusText
+                    })
+                }
+            },
+
+            /**
+             * 切换模板集下拉框，获取模板下拉框的数据
+             *
+             * @param {number} settingKey setting-key
+             * @param {Object} data 当前下拉框数据
+             */
+            async changeTplset (settingKey, data) {
+                this.tplIndex.splice(0, this.tplIndex.length, ...[])
+                this.yamlTplResource.splice(0, this.yamlTplResource.length, ...[])
+                this.tplList.splice(0, this.tplList.length, ...[])
+                this.tplsetVerId = data.id + '-' + data.show_version_id
+                this.clearCandidateNamespaceStatus()
+                this.clearNamespaceStatus()
+
+                this.previewTitle = ''
+                this.previewNs = Object.assign({}, {})
+                this.previewList.splice(0, this.previewList.length, ...[])
+                this.editorConfig.editors.splice(0, this.editorConfig.editors.length, ...[])
+                this.editorConfig.values.splice(0, this.editorConfig.values.length, ...[])
+                this.previewShow = false
+
+                // 清空已经选择的 namespace
+                this.selectedNamespaceList.splice(0, this.selectedNamespaceList.length, ...[])
+                this.selectedNamespaceCluster = {}
+
+                // 表单模式的模板集和yaml模式的模板集作区分
+                try {
+                    if (this.isYamlMode) {
+                        await this.setYamlTemplateList(settingKey, data)
+                    } else {
+                        await this.setFormTemplateList(settingKey, data)
+                    }
                     this.isSelectAllTpl = false
                 } catch (e) {
                     console.error(e)
@@ -709,7 +791,7 @@
                         name: item.name
                     })
                 })
-
+                
                 let count = 0
                 this.tplList.forEach(item => {
                     count += (item.children || []).length
@@ -729,7 +811,28 @@
 
                 // 清空已经选择的 namespace
                 this.selectedNamespaceList.splice(0, this.selectedNamespaceList.length, ...[])
+                this.yamlTplResource.splice(0, this.yamlTplResource.length, ...[])
                 this.selectedNamespaceCluster = {}
+
+                // yaml模式
+                if (this.isYamlMode) {
+                    data.forEach(item => {
+                        let resource = this.yamlTplResource.find(resource => resource.resource_name === item.type)
+
+                        if (!resource) {
+                            resource = {
+                                resource_name: item.type,
+                                files: []
+                            }
+                            this.yamlTplResource.push(resource)
+                        }
+
+                        resource.files.push({
+                            id: item.id,
+                            name: item.name
+                        })
+                    })
+                }
             },
 
             /**
@@ -739,15 +842,22 @@
                 if (this.isSelectAllTpl) {
                     this.isSelectAllTpl = false
                     this.tplIndex = [...[]]
+                    this.yamlTplResource = [...[]]
                     this.instanceEntity = Object.assign({}, {})
                     return
                 }
 
                 const ret = {}
                 const tplIndex = []
+                const yamlTplResource = []
                 this.tplList.forEach(item => {
                     if (!ret[item.name]) {
                         ret[item.name] = []
+                    }
+
+                    const yamlResource = {
+                        resource_name: item.name,
+                        files: []
                     }
                     item.children.forEach(child => {
                         ret[item.name].push({
@@ -755,10 +865,16 @@
                             name: child.name
                         })
                         tplIndex.push(child.settingKey)
+                        yamlResource.files.push({
+                            id: child.id,
+                            name: child.name
+                        })
                     })
+                    yamlTplResource.push(yamlResource)
                 })
 
                 this.tplIndex = [...tplIndex]
+                this.yamlTplResource = [...yamlTplResource]
                 this.instanceEntity = Object.assign({}, ret)
 
                 this.clearCandidateNamespaceStatus()
@@ -795,7 +911,7 @@
                             if (existList.indexOf(String(ns.id)) > -1) {
                                 const message = existNamespaceList[ns.id].join(', ')
                                 ns.isExist = true
-                                ns.message = `命名空间【${ns.name}】下存在${message.replace(/K8s/ig, '')}类型的同名实例, 无法再次实例化`
+                                ns.message = `${this.$t('命名空间')}【${ns.name}】${this.$t('下存在')} ${message.replace(/K8s/ig, '')}${this.$t('类型的同名实例')}, ${this.$t('无法再次实例化')}`
                             } else {
                                 ns.isExist = false
                             }
@@ -829,7 +945,7 @@
                     this.bkMessageInstance && this.bkMessageInstance.close()
                     this.bkMessageInstance = this.$bkMessage({
                         theme: 'error',
-                        message: '请选择模板集版本'
+                        message: this.$t('请选择模板集版本')
                     })
                     return
                 }
@@ -838,7 +954,7 @@
                     this.bkMessageInstance && this.bkMessageInstance.close()
                     this.bkMessageInstance = this.$bkMessage({
                         theme: 'error',
-                        message: '请选择要实例化的模板'
+                        message: this.$t('请选择要实例化的模板')
                     })
                     return
                 }
@@ -950,8 +1066,21 @@
              * @param {number} i 当前点击的这个 namespace 在 item.results 的索引
              */
             selectNamespaceInDialog (index, namespace, i) {
+                // yaml模式先单选
+                if (this.isYamlMode) {
+                    this.candidateNamespaceList.forEach(cluster => {
+                        cluster.results.forEach(namespace => {
+                            if (namespace.isChoose) {
+                                namespace.isChoose = false
+                            }
+                        })
+                    })
+                    this.namespaceListTmp = {}
+                }
                 namespace.isChoose = !namespace.isChoose
+
                 this.$set(this.candidateNamespaceList[index].results, i, namespace)
+
                 if (this.namespaceListTmp[`${namespace.env_type}_${namespace.id}`]) {
                     delete this.namespaceListTmp[`${namespace.env_type}_${namespace.id}`]
                 } else {
@@ -1020,7 +1149,7 @@
                     this.bkMessageInstance && this.bkMessageInstance.close()
                     this.bkMessageInstance = this.$bkMessage({
                         theme: 'error',
-                        message: '请选择命名空间'
+                        message: this.$t('请选择命名空间')
                     })
                     return
                 }
@@ -1102,31 +1231,28 @@
                 }
             },
 
-            /**
-             * 点击已选择的 namespace
-             *
-             * @param {Object} ns 当前点击的 namespace 对象
-             * @param {number} index 当前点击的 namespace 对象的索引
-             */
-            async previewNamespace (ns, index, forceSelect) {
+            checkParams () {
                 if (this.tplsetVerId === -1) {
                     this.bkMessageInstance && this.bkMessageInstance.close()
                     this.bkMessageInstance = this.$bkMessage({
                         theme: 'error',
-                        message: '请选择模板集版本'
+                        message: this.$t('请选择模板集版本')
                     })
-                    return
+                    return false
                 }
 
                 if (!this.tplIndex.length) {
                     this.bkMessageInstance && this.bkMessageInstance.close()
                     this.bkMessageInstance = this.$bkMessage({
                         theme: 'error',
-                        message: '请选择要实例化的模板'
+                        message: this.$t('请选择要实例化的模板')
                     })
-                    return
+                    return false
                 }
+                return true
+            },
 
+            resetNamespacePreview () {
                 this.previewList.splice(0, this.previewList.length, ...[])
                 this.previewNs = Object.assign({}, {})
                 this.editorConfig.editors.splice(0, this.editorConfig.editors.length, ...[])
@@ -1135,6 +1261,112 @@
                 this.previewLoading = true
                 this.previewShow = true
 
+                this.previewErrorMessage = ''
+            },
+
+            previewNamespace (ns, index, forceSelect) {
+                if (this.isYamlMode) {
+                    this.previewNamespaceByYaml(ns, index)
+                } else {
+                    this.previewNamespaceByForm(ns, index, forceSelect)
+                }
+            },
+
+            /**
+             * 点击已选择的 namespace，查看yaml模式的
+             *
+             * @param {Object} ns 当前点击的 namespace 对象
+             * @param {number} index 当前点击的 namespace 对象的索引
+             */
+            async previewNamespaceByYaml (ns, index) {
+                if (!this.checkParams()) return false
+
+                this.resetNamespacePreview(ns)
+                this.clearNamespaceStatus()
+                
+                ns.isSelected = !ns.isSelected
+                this.$set(this.selectedNamespaceList, index, ns)
+
+                try {
+                    const res = await this.$store.dispatch('k8sTemplate/createYamlTemplateReleases', {
+                        projectId: this.projectId,
+                        templateId: this.templateId,
+                        versionId: this.tplsetVerIndex,
+                        data: {
+                            is_preview: true,
+                            namespace_id: ns.id,
+                            template_files: this.yamlTplResource
+                        }
+                    })
+                    const list = []
+
+                    // 标签，仅用于yaml模式
+                    const tags = {
+                        Deployment: 'deploy',
+                        StatefulSet: 'sts',
+                        DaemonSet: 'ds',
+                        Ingress: 'ing',
+                        Job: 'job',
+                        Service: 'svc',
+                        ConfigMap: 'cm',
+                        Secret: 'secret',
+                        HPA: 'hpa',
+                        StorageClass: 'sc',
+                        ServiceAccount: 'sa',
+                        PodDisruptionBudget: 'pdb',
+                        PersistentVolumeClaim: 'pvc',
+                        PersistentVolume: 'pv',
+                        ClusterRoleBinding: 'clusterrolebinding',
+                        ClusterRole: 'clusterrole'
+                    }
+                    res.data.forEach(resource => {
+                        const key = resource.resource_name
+                        resource.files.forEach(file => {
+                            list.push({
+                                name: `${key}:${file.name}`, // 防止不同资源名称相同冲突
+                                title: file.name,
+                                tag: tags[key] || key,
+                                content: file.content,
+                                originalContent: file.content
+                            })
+                        })
+                    })
+
+                    this.previewTitle = `${ns.cluster_name} / ${ns.name} ${this.$t('的详细配置')}`
+                    this.previewNs = Object.assign({}, ns)
+
+                    this.sortTplType(list, 'tag', true)
+
+                    this.previewList.splice(0, this.previewList.length, ...list)
+                    this.previewList.forEach((preview, index) => {
+                        this.editorConfig.values[index] = preview.content
+                    })
+                    setTimeout(() => {
+                        // 这里触发一次 change 为了让初始值也显示
+                        this.variableValChange()
+                        this.editorConfig.editors[0] && this.editorConfig.editors[0].resize(true)
+                        this.editorConfig.editors[0] && this.editorConfig.editors[0].gotoLine(0, 0, true)
+                    }, 100)
+                } catch (e) {
+                    console.error('error: ' + e)
+                    const errorMsg = e.message || e.data.msg || e.statusText
+                    this.previewErrorMessage = errorMsg
+                } finally {
+                    this.previewLoading = false
+                }
+            },
+
+            /**
+             * 点击已选择的 namespace，查看form模式的
+             *
+             * @param {Object} ns 当前点击的 namespace 对象
+             * @param {number} index 当前点击的 namespace 对象的索引
+             */
+            async previewNamespaceByForm (ns, index, forceSelect) {
+                if (!this.checkParams()) return false
+                
+                this.resetNamespacePreview()
+                this.clearNamespaceStatus()
                 const variableInfo = {
                     [`${ns.id}`]: {}
                 }
@@ -1142,10 +1374,8 @@
                     variableInfo[`${ns.id}`][variable.key] = variable.value
                 })
 
-                this.clearNamespaceStatus()
                 ns.isSelected = !ns.isSelected
                 this.$set(this.selectedNamespaceList, index, ns)
-                this.previewErrorMessage = ''
 
                 try {
                     if (this.lbServiceList.length) {
@@ -1158,7 +1388,7 @@
 
                         // 当前这个 ns 没有 lb 信息，不需要展示变量了，也不能 preview 和提交
                         if (!lbData.length) {
-                            this.previewTitle = `${ns.cluster_name} / ${ns.name}的详细配置`
+                            this.previewTitle = `${ns.cluster_name} / ${ns.name} ${this.$t('的详细配置')}`
                             this.previewNs = Object.assign({}, ns)
                             if (this.invalidNsList.indexOf(ns.name) < 0) {
                                 this.invalidNsList.splice(0, this.invalidNsList.length, ...[].concat(ns.name))
@@ -1204,7 +1434,7 @@
                         this.lbServiceListInPage.splice(0, this.lbServiceListInPage.length, ...lbServiceListInPage)
                         this.lbServiceListInPageTmp = Object.assign({}, lbServiceListInPageTmp)
 
-                        this.previewTitle = `${ns.cluster_name} / ${ns.name}的详细配置`
+                        this.previewTitle = `${ns.cluster_name} / ${ns.name} ${this.$t('的详细配置')}`
                         this.previewNs = Object.assign({}, ns)
 
                         if (!this.checkCurNamespacePreview(ns)) {
@@ -1237,13 +1467,14 @@
                                 const content = JSON.stringify(item.config, null, 4)
                                 list.push({
                                     name: `${key}:${item.name}`, // 防止不同资源名称相同冲突
+                                    title: item.name,
                                     tag: key,
                                     content: content,
                                     originalContent: content
                                 })
                             })
                         })
-                        this.previewTitle = `${ns.cluster_name} / ${ns.name}的详细配置`
+                        this.previewTitle = `${ns.cluster_name} / ${ns.name} ${this.$t('的详细配置')}`
                         this.previewNs = Object.assign({}, ns)
 
                         this.sortTplType(list, 'tag', true)
@@ -1262,7 +1493,7 @@
                         }, 100)
                     }
                 } catch (e) {
-                    console.error(e)
+                    console.error('error: ' + e)
                     const errorMsg = e.message || e.data.msg || e.statusText
                     // this.bkMessageInstance && this.bkMessageInstance.close()
                     // this.bkMessageInstance = this.$bkMessage({
@@ -1275,6 +1506,9 @@
                 }
             },
 
+            /**
+             * 解析 json
+             */
             analysisJSON (data, originalData, path, keyMap) {
                 if (toString.call(data) === '[object Array]') {
                     data.forEach((item, index) => {
@@ -1475,6 +1709,7 @@
                             list.push({
                                 tag: key,
                                 name: item.name,
+                                title: item.name,
                                 content: content,
                                 originalContent: content
                             })
@@ -1540,12 +1775,20 @@
             /**
              * 创建模板实例化
              */
-            async createInstance () {
+            createInstance () {
+                if (this.isYamlMode) {
+                    this.createInstanceByYaml()
+                } else {
+                    this.createInstanceByForm()
+                }
+            },
+
+            checkInstanceParams () {
                 if (this.tplsetVerId === -1) {
                     this.bkMessageInstance && this.bkMessageInstance.close()
                     this.bkMessageInstance = this.$bkMessage({
                         theme: 'error',
-                        message: '请选择模板集版本'
+                        message: this.$t('请选择模板集版本')
                     })
                     return
                 }
@@ -1554,7 +1797,7 @@
                     this.bkMessageInstance && this.bkMessageInstance.close()
                     this.bkMessageInstance = this.$bkMessage({
                         theme: 'error',
-                        message: '请选择要实例化的模板'
+                        message: this.$t('请选择要实例化的模板')
                     })
                     return
                 }
@@ -1563,16 +1806,79 @@
                     this.bkMessageInstance && this.bkMessageInstance.close()
                     this.bkMessageInstance = this.$bkMessage({
                         theme: 'error',
-                        message: '请选择命名空间'
+                        message: this.$t('请选择命名空间')
                     })
                     return
                 }
 
+                return true
+            },
+
+            /**
+             * 创建yaml模式模板实例化
+             */
+            async createInstanceByYaml () {
+                if (!this.checkInstanceParams()) return false
+                const me = this
+                const ns = me.selectedNamespaceList[0]
+                me.$bkInfo({
+                    title: '',
+                    content: me.$createElement('p', me.$t('请注意：命名空间{name}下的同名资源将会被覆盖更新，确认创建？', { name: ns.name })),
+                    async confirmFn () {
+                        me.createInstanceLoading = true
+                        try {
+                            await me.$store.dispatch('k8sTemplate/createYamlTemplateReleases', {
+                                projectId: me.projectId,
+                                templateId: me.templateId,
+                                versionId: me.tplsetVerIndex,
+                                data: {
+                                    is_preview: false,
+                                    namespace_id: ns.id,
+                                    template_files: me.yamlTplResource
+                                }
+                            })
+
+                            // 1、如果仅包含测试环境，跳转到应用列表页默认搜索测试环境集群
+                            // 2、如果仅包含正式环境，跳转到应用列表页默认搜索正式环境集群
+                            // 3、如果包含测试环境和正式环境，则按目前逻辑，默认搜索测试环境集群
+                            // 只要有一个不是 prod 环境就应该是测试，否则全部都是 prod 就应该是正式
+                            const hasNoProd = !!me.selectedNamespaceList.filter(
+                                item => item.environment !== 'prod'
+                            )[0]
+                            me.$router.push({
+                                name: me.curProject.kind === PROJECT_MESOS ? 'mesos' : 'deployments',
+                                params: {
+                                    isProdCluster: !hasNoProd,
+                                    projectId: me.projectId,
+                                    projectCode: me.projectCode,
+                                    tplsetId: me.templateId
+                                }
+                            })
+                        } catch (e) {
+                            me.bkMessageInstance && me.bkMessageInstance.close()
+                            me.bkMessageInstance = me.$bkMessage({
+                                theme: 'error',
+                                delay: 20000,
+                                hasCloseIcon: true,
+                                message: e.message || e.data.msg || e.statusText
+                            })
+                        } finally {
+                            me.createInstanceLoading = false
+                        }
+                    }
+                })
+            },
+
+            /**
+             * 创建form模式模板实例化
+             */
+            async createInstanceByForm () {
+                if (!this.checkInstanceParams()) return false
+
                 if (this.invalidNsList.length) {
                     this.$bkMessage({
                         theme: 'error',
-                        message: `命令空间[${this.invalidNsList.join(',')}]没有相关联的LoadBalance，`
-                            + `请先到网络 -> LoadBalance页面关联`
+                        message: `${this.$t('命令空间')} [${this.invalidNsList.join(',')}] ${this.$t('没有相关联的 LoadBalance，请先到 网络 -> LoadBalance 页面关联')}`
                     })
                     return
                 }
@@ -1645,7 +1951,7 @@
                 const me = this
                 me.$bkInfo({
                     title: '',
-                    content: me.$createElement('p', '确定要进行创建操作？'),
+                    content: me.$createElement('p', this.$t('确定要进行创建操作？')),
                     async confirmFn () {
                         me.createInstanceLoading = true
                         try {
@@ -1703,7 +2009,7 @@
                         if (serviceObj[k] === -1) {
                             this.$bkMessage({
                                 theme: 'error',
-                                message: `请选择${key}命名空间的${k}`
+                                message: this.$t('请选择{key}命名空间的{k}')
                             })
                             outloop = false
                             ret = false
@@ -1725,13 +2031,27 @@
                     const h = me.$createElement
                     me.$bkInfo({
                         title: '',
-                        content: h('p', `确定要取消实例化操作？`),
+                        content: h('p', this.$t('确定要取消实例化操作？')),
                         async confirmFn () {
-                            window.history.go(-1)
+                            // window.history.go(-1)
+                            this.$router.push({
+                                name: 'templateset',
+                                params: {
+                                    projectId: this.projectId,
+                                    projectCode: this.projectCode
+                                }
+                            })
                         }
                     })
                 } else {
                     window.history.go(-1)
+                    // this.$router.push({
+                    //     name: 'templateset',
+                    //     params: {
+                    //         projectId: this.projectId,
+                    //         projectCode: this.projectCode
+                    //     }
+                    // })
                 }
             },
 

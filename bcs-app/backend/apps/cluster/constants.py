@@ -67,7 +67,8 @@ CCHostKeyMappings = {
     'cluster_name': 'cluster_name',
     'cluster_id': 'cluster_id',
     'is_used': 'is_used',
-    'bk_cloud_id': 'bk_cloud_id'
+    'bk_cloud_id': 'bk_cloud_id',
+    "is_valid": "is_valid",
 }
 
 # 节点默认标签

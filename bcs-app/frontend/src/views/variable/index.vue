@@ -4,7 +4,9 @@
             <div class="biz-var-title">
                 {{$t('变量管理')}}
             </div>
-            <bk-guide></bk-guide>
+            <bk-guide>
+                <a class="bk-text-button" href="javascript: void(0);" @click="handleShowVarExample">{{$t('如何从文件导入变量？')}}</a>
+            </bk-guide>
         </div>
         <div class="biz-content-wrapper" style="margin: 0; padding: 0;" v-bkloading="{ isLoading: isLoading, opacity: 0.1 }">
             <template v-if="!isLoading">
@@ -14,6 +16,12 @@
                             <i class="bk-icon icon-plus"></i>
                             <span>{{$t('新增变量')}}</span>
                         </button>
+                        
+                        <button class="bk-button bk-default import-btn">
+                            <span>{{$t('文件导入')}}</span>
+                            <input ref="fileInput" type="file" name="upload" class="file-input" @change="handleFileInput">
+                        </button>
+
                         <button class="bk-button bk-default" @click.stop.prevent="removeVars">
                             <span>{{$t('批量删除')}}</span>
                         </button>
@@ -23,6 +31,7 @@
                             :scope-list="searchScopeList"
                             :search-key.sync="searchKeyword"
                             :search-scope.sync="searchScope"
+                            :search-placeholder="$t('请选择作用范围')"
                             @search="searchVar"
                             @refresh="refresh">
                         </bk-data-searcher>
@@ -127,6 +136,31 @@
                 </div>
             </template>
         </div>
+
+        <bk-sideslider
+            :is-show.sync="exampleConf.isShow"
+            :title="exampleConf.title"
+            :width="exampleConf.width"
+            :quick-close="true">
+            <div slot="content" style="position: relative;">
+                <div class="biz-log-box" :style="{ height: `${winHeight - 200}px` }">
+                    <ace
+                        :value="editorConfig.content"
+                        :width="editorConfig.width"
+                        :height="editorConfig.height"
+                        :lang="editorConfig.lang"
+                        :read-only="editorConfig.readOnly"
+                        :full-screen="editorConfig.fullScreen">
+                    </ace>
+                </div>
+                <div class="example-desc">
+                    <p>. 按上面的模板创建你的json文件，选择“文件导入”操作</p>
+                    <p>. scope值含义，global表示全局变量，cluster表示集群变量，namespace表示命名空间变量</p>
+                    <p>. cluster和namespace变量需要提供vars关键字，cluster变量的vars需要包含集群ID cluster_id和变量值 value</p>
+                    <p>. namespace变量的vars需要包含集群ID cluster_id、命名空间名称 namespace 和变量值 value</p>
+                </div>
+            </div>
+        </bk-sideslider>
 
         <bk-sideslider
             :is-show.sync="batchUpdateConf.isShow"
@@ -336,8 +370,13 @@
 
 <script>
     import { catchErrorHandler } from '@open/common/util'
+    import ace from '@open/components/ace-editor'
+    import exampleData from './variable.json'
 
     export default {
+        components: {
+            ace
+        },
         data () {
             return {
                 varScoped: {
@@ -345,8 +384,24 @@
                     namespace: this.$t('命名空间变量'),
                     cluster: this.$t('集群变量')
                 },
+                exampleConf: {
+                    width: 800,
+                    isShow: false,
+                    title: '如何从文件导入变量？'
+                },
+                editorConfig: {
+                    width: '100%',
+                    height: '100%',
+                    lang: 'json',
+                    readOnly: false,
+                    fullScreen: false,
+                    content:  JSON.stringify(exampleData, null, 4),
+                    editor: null
+                },
+                winHeight: 0,
                 curProjectData: null,
                 isQuoteLoading: true,
+                importContent: '',
                 curAllSelectedData: [],
                 curQuotePageData: [],
                 quoteList: [],
@@ -437,6 +492,7 @@
             }
         },
         mounted () {
+            this.winHeight = window.innerHeight
             this.getDataByPage()
         },
         methods: {
@@ -446,6 +502,8 @@
             refresh () {
                 this.pageConf.curPage = 1
                 this.isPageLoading = true
+                this.searchKeyword = ''
+                this.searchScope = ''
                 this.getDataByPage()
             },
 
@@ -1058,6 +1116,46 @@
 
             hideQuoteDialog () {
                 this.quoteDialogConf.isShow = false
+            },
+
+            handleFileInput () {
+                const fileInput = this.$refs.fileInput
+                const self = this
+                if (fileInput.files && fileInput.files.length) {
+                    const file = fileInput.files[0]
+                    if (window.FileReader) {
+                        const reader = new FileReader()
+                        reader.onloadend = function (event) {
+                            if (event.target.readyState === FileReader.DONE) {
+                                console.log(event.target.result)
+                                self.importContent = event.target.result
+                                self.$store.dispatch('variable/importVars', {
+                                    projectId: self.projectId,
+                                    data: {
+                                        variables: event.target.result
+                                    }
+                                }).then(() => {
+                                    self.$bkMessage({
+                                        theme: 'success',
+                                        message: '批量导入成功'
+                                    })
+                                    self.refresh()
+                                }).catch((e) => {
+                                    self.$bkMessage({
+                                        theme: 'error',
+                                        message: e.message
+                                    })
+                                    self.refresh()
+                                })
+                            }
+                        }
+                        reader.readAsText(file)
+                    }
+                }
+            },
+
+            handleShowVarExample () {
+                this.exampleConf.isShow = true
             }
         }
     }

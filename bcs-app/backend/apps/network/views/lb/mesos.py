@@ -148,12 +148,14 @@ class LoadBalances(viewsets.ViewSet, BaseAPI):
             merge_data = perm.hook_perms(request, project_id, merge_data)
         return merge_data
 
-    def get_project_lb(self, project_id, lb_id=None):
+    def get_project_lb(self, project_id, lb_id=None, cluster_id=None):
         """获取mesos下的所有LB
         """
         lb_info = MesosLoadBlance.objects.filter(
             is_deleted=False, project_id=project_id
         ).order_by('-updated')
+        if cluster_id:
+            lb_info = lb_info.filter(cluster_id=cluster_id)
         if lb_id:
             lb_info = lb_info.filter(id=lb_id)
         return lb_info.values(
@@ -184,7 +186,7 @@ class LoadBalances(viewsets.ViewSet, BaseAPI):
         cluster_names, cluster_envs = self.get_cluster_names_and_envs(access_token, project_id)
         namespace = self.get_namespace_id_name(access_token, project_id)
 
-        data = self.get_project_lb(project_id)
+        data = self.get_project_lb(project_id, cluster_id=request.query_params.get("cluster_id"))
         data = [n for n in data if n.get('id')]
         merge_data = self.merge_data(data, namespace)
 

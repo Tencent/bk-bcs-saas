@@ -215,11 +215,7 @@
             });
             ws.onmessage = function (e) {
                 obj = JSON.parse(e.data);
-                if (obj.type == "exit_message") {
-                    $('#exit_message').text(obj.data)
-                } else {
-                    term.write(obj.data);
-                }
+                term.write(obj.data);
             };
             // websocket handler
             ws.onopen = function () {
@@ -227,6 +223,10 @@
                 term.focus();
             };
             ws.onclose = function (e) {
+                console.log("web_console on close: ", e)
+                if (e.reason != "") {
+                    $('#exit_message').text(e.reason)
+                }
                 $("#disconnected").show();
             }
         }

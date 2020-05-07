@@ -3,7 +3,7 @@
         <div class="biz-top-bar">
             <div class="biz-topbar-title">
                 Secrets
-                <span class="biz-tip f12 ml10">{{$t('请通过模板集或Helm创建Secret')}}</span>
+                <span class="biz-tip f12 ml10">{{currentView === 'mesosService' ? $t('请通过模板集创建Secret') : $t('请通过模板集或Helm创建Secret')}}</span>
             </div>
             <bk-guide></bk-guide>
         </div>
@@ -27,7 +27,7 @@
                             :scope-list="searchScopeList"
                             :search-key.sync="searchKeyword"
                             :search-scope.sync="searchScope"
-                            @search="searchSecret"
+                            @search="getSecretList"
                             @refresh="refresh">
                         </bk-data-searcher>
                     </div>
@@ -424,10 +424,28 @@
             },
             onlineProjectList () {
                 return this.$store.state.sideMenu.onlineProjectList
+            },
+            isClusterDataReady () {
+                return this.$store.state.cluster.isClusterDataReady
+            }
+        },
+        watch: {
+            isClusterDataReady: {
+                immediate: true,
+                handler (val) {
+                    if (val) {
+                        setTimeout(() => {
+                            if (this.searchScopeList.length) {
+                                this.searchScope = this.searchScopeList[1].id
+                            }
+                            this.getSecretList()
+                        }, 1000)
+                    }
+                }
             }
         },
         created () {
-            this.getSecretList()
+            // this.getSecretList()
         },
         mounted () {
             this.curProject = this.initCurProject()
@@ -918,14 +936,20 @@
              */
             async getSecretList () {
                 const projectId = this.projectId
-
+                const params = {
+                    cluster_id: this.searchScope
+                }
                 try {
-                    await this.$store.dispatch('resource/getSecretList', projectId)
+                    this.isPageLoading = true
+                    await this.$store.dispatch('resource/getSecretList', {
+                        projectId,
+                        params
+                    })
 
                     this.initPageConf()
                     this.curPageData = this.getDataByPage(this.pageConf.curPage)
                     // 如果有搜索关键字，继续显示过滤后的结果
-                    if (this.searchScope || this.searchKeyword) {
+                    if (this.searchKeyword) {
                         this.searchSecret()
                     }
                 } catch (e) {
@@ -935,6 +959,7 @@
                 } finally {
                     // 晚消失是为了防止整个页面loading和表格数据loading效果叠加产生闪动
                     setTimeout(() => {
+                        this.isPageLoading = false
                         this.isInitLoading = false
                     }, 200)
                 }
@@ -982,10 +1007,8 @@
             initPageConf () {
                 const total = this.secretList.length
                 this.pageConf.total = total
+                this.pageConf.curPage = 1
                 this.pageConf.totalPage = Math.ceil(total / this.pageConf.pageSize)
-                if (this.pageConf.curPage > this.pageConf.totalPage) {
-                    this.pageConf.curPage = this.pageConf.totalPage
-                }
             },
 
             /**

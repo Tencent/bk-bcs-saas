@@ -38,7 +38,7 @@
                     @click="$event.stopPropagation()"
                     v-if="searchable">
                     <i class="bk-icon icon-search"></i>
-                    <input type="text" v-model="condition" @input="inputFn" ref="searchNode">
+                    <input type="text" v-model="condition" @input="inputFn" ref="searchNode" :placeholder="searchPlaceholder">
                 </div>
                 <ul>
                     <template v-if="localList.length !== 0">
@@ -261,6 +261,10 @@
                 default: ''
             },
             searchEmptyText: {
+                type: String,
+                default: ''
+            },
+            searchPlaceholder: {
                 type: String,
                 default: ''
             }

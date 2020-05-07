@@ -92,6 +92,9 @@ export default {
                 {},
                 config
             )
+        },
+        importVars (context, { projectId, data }, config = {}) {
+            return http.post(`${DEVOPS_BCS_API_URL}/api/configuration/${projectId}/variables/batch/`, data, config)
         }
     }
 }
