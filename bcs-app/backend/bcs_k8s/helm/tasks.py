@@ -90,7 +90,7 @@ def _update_default_chart_version(chart, full_chart_versions):
     """
     if not full_chart_versions:
         return
-    # 以created逆序，目的是防止不同仓库可能导致不一致
+    # 以created逆序
     all_versions = list(full_chart_versions.values())
     all_versions.sort(key=lambda info: info.created, reverse=True)
 
