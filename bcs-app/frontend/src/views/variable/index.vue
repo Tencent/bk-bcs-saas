@@ -179,7 +179,7 @@
                         <template v-if="batchVarList.length">
                             <tr v-for="(variable, index) in batchVarList" :key="index">
                                 <td v-if="curBatchVar && curBatchVar.scope === 'namespace'">{{variable.cluster_name}}</td>
-                                <td>{{variable.name}}</td>
+                                <td><p style="max-width: 160px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" :title="variable.name">{{variable.name}}</p></td>
                                 <td><input type="text" class="bk-form-input" v-model="variable.variable_value"></td>
                             </tr>
                         </template>
@@ -1145,7 +1145,6 @@
                                         theme: 'error',
                                         message: e.message
                                     })
-                                    self.refresh()
                                 })
                             }
                         }
