@@ -1580,7 +1580,7 @@ class BatchInstances(BaseAPI):
                         "category": info["category"]
                     })
                     error_message.append(
-                        "%s: %s" % (info["name"], resp.data.get("message", u"请求接口出现异常, 已通知管理员"))
+                        "%s: %s" % (info.get("inst_name"), resp.data.get("message"))
                     )
         self.save_inst_event(error_resp)
         # 如果存在0/0的情况
