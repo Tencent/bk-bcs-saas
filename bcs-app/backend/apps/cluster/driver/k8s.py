@@ -49,12 +49,15 @@ class K8SDriver:
                 host_container_map[host_ip] = container_count
         return host_container_map
 
-    def get_unit_info(self, inner_ip_list, field):
+    def get_unit_info(self, inner_ip_list, field, raise_exception=True):
         """get unit info by inner_ip and field
         """
         resp = self.client.get_pod(host_ips=inner_ip_list, field=field)
         if resp.get('code') != ErrorCode.NoError:
-            raise error_codes.APIError(resp.get('message'))
+            logger.error("request pod api error, %s", resp.get("message"))
+            if raise_exception:
+                raise error_codes.APIError(resp.get('message'))
+
         return resp
 
     def get_host_container_count(self, host_ips):
@@ -111,12 +114,12 @@ class K8SDriver:
         if node_resp.get('code') != ErrorCode.NoError:
             raise error_codes.APIError(node_resp.get('message'))
 
-    def get_host_unit_list(self, ip):
+    def get_host_unit_list(self, ip, raise_exception=True):
         """get exist pods on the node
         """
         unit_list = []
         fields = 'namespace,resourceName,clusterId'
-        resp = self.get_unit_info([ip], fields)
+        resp = self.get_unit_info([ip], fields, raise_exception=raise_exception)
         for i in resp.get('data') or []:
             namespace = i.get('namespace')
             if namespace in cluster_constants.K8S_SKIP_NS_LIST:
@@ -127,14 +130,17 @@ class K8SDriver:
             })
         return unit_list
 
-    def reschedule_pod(self, pod_info):
+    def reschedule_pod(self, pod_info, raise_exception=True):
         resp = self.client.delete_pod(pod_info['namespace'], pod_info['pod_name'])
         if resp.get('code') != ErrorCode.NoError:
-            raise error_codes.APIError(resp.get('message'))
+            logger.error("request delete pod api error, %s", resp.get("message"))
+            if raise_exception:
+                raise error_codes.APIError(resp.get('message'))
+
         return resp
 
-    def reschedule_host_pods(self, ip):
-        unit_list = self.get_host_unit_list(ip)
+    def reschedule_host_pods(self, ip, raise_exception=True):
+        unit_list = self.get_host_unit_list(ip, raise_exception=raise_exception)
         for info in unit_list:
-            self.reschedule_pod(info)
+            self.reschedule_pod(info, raise_exception=raise_exception)
         return
