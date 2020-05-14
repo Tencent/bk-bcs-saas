@@ -1071,7 +1071,7 @@ class NodeLabelListViewSet(NodeBase, NodeLabelBase, viewsets.ViewSet):
 class RescheduleNodePods(NodeBase, viewsets.ViewSet):
     renderer_classes = (BKAPIRenderer, BrowsableAPIRenderer)
 
-    def is_not_scheduled(self, node_info):
+    def validate_node_status(self, node_info):
         # NOTE: 需要注意，mesos not ready 状态需要list/watch功能上线后，支持
         if node_info.get('status') not in [
                 NodeStatus.ToRemoved, NodeStatus.Removable, NodeStatus.NotReady]:
@@ -1093,7 +1093,7 @@ class RescheduleNodePods(NodeBase, viewsets.ViewSet):
         self.can_edit_cluster(request, project_id, cluster_id)
         node_info = self.get_node_by_id(request, project_id, cluster_id, node_id)
         # 检查节点状态，节点必须处于停止调度状态
-        self.is_not_scheduled(node_info)
+        self.validate_node_status(node_info)
         project_name = request.project.project_name
         inner_ip = node_info["inner_ip"]
         log_desc = f"project: {project_name}, cluster: {cluster_id}, node: {inner_ip}, reschedule pods"
