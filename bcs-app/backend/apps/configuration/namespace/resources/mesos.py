@@ -37,6 +37,7 @@ def delete(access_token, project_id, cluster_id, ns_name, namespace_id):
         if resp.get("code") == ErrorCode.NoError:
             continue
         msg = resp.get("message") or ""
+        # TODO: 现阶段只能通过message判断secret不存在，并且忽略不存在的情况
         if ("not found" in msg) or ("not exist" in msg):
             continue
         raise error_codes.APIError(_("删除secret异常，{}").format(msg))
