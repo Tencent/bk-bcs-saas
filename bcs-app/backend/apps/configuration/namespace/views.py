@@ -20,6 +20,7 @@ from django.conf import settings
 from rest_framework import response, serializers, viewsets
 from rest_framework.exceptions import ValidationError
 from django.utils.translation import ugettext_lazy as _
+from rest_framework.renderers import BrowsableAPIRenderer
 
 from .tasks import sync_namespace as sync_ns_task
 from .resources import Namespace
@@ -40,6 +41,8 @@ from backend.apps.constants import ProjectKind
 from backend.apps.configuration.namespace.serializers import CreateNamespaceSLZ, UpdateNSVariableSLZ
 from backend.apps.whitelist_bk import enabled_sync_namespace
 from backend.apps.configuration.constants import MesosResourceName
+from backend.utils.renderers import BKAPIRenderer
+from backend.resources.namespace.utils import get_namespace_by_id
 
 logger = logging.getLogger(__name__)
 
@@ -197,19 +200,14 @@ class NamespaceBase:
 
 
 class NamespaceView(NamespaceBase, viewsets.ViewSet):
-
-    def _get_namespace_info(self, access_token, project_id, namespace_id):
-        resp = paas_cc.get_namespace(access_token, project_id, namespace_id)
-        if resp.get('code') != ErrorCode.NoError:
-            raise error_codes.APIError(_("获取命名空间信息失败，{}").format(resp.get('message', '')))
-        return resp
+    renderer_classes = (BKAPIRenderer, BrowsableAPIRenderer)
 
     def get_ns(self, request, project_id, namespace_id):
         """获取单个命名空间的信息
         """
         access_token = request.user.token.access_token
-        resp = self._get_namespace_info(access_token, project_id, namespace_id)
-        return response.Response(resp)
+        ns_info = get_namespace_by_id(access_token, project_id, namespace_id)
+        return response.Response(ns_info)
 
     def list(self, request, project_id):
         """命名空间列表
@@ -428,14 +426,14 @@ class NamespaceView(NamespaceBase, viewsets.ViewSet):
             res_names[res] = [info["resourceName"] for info in data if info.get("resourceName")]
         return res_names
 
-    def _get_resource_for_mesos(self, request, project_id, namespace_id):
+    def _get_resources(self, request, project_id, namespace_id):
         access_token = request.user.token.access_token
         # 查询namespace
-        resp = self._get_namespace_info(access_token, project_id, namespace_id)
-        client = MesosClient(access_token, project_id, resp["data"]["cluster_id"], env=None)
+        ns_info = get_namespace_by_id(access_token, project_id, namespace_id)
+        client = MesosClient(access_token, project_id, ns_info["cluster_id"], env=None)
         # 根据类型查询资源，如果有接口调用失败，先忽略
         res_names = {}
-        ns_name = resp["data"]["name"]
+        ns_name = ns_info["name"]
         # 请求bcs api，获取数据
         deployment_resp = client.get_deployment(namespace=ns_name)
         application_resp = client.get_mesos_app_instances(namespace=ns_name)
@@ -453,7 +451,7 @@ class NamespaceView(NamespaceBase, viewsets.ViewSet):
         res_names = self._compose_res_names(res_data)
         return res_names
 
-    def get_ns_resource_for_mesos(self, request, project_id, namespace_id):
+    def get_ns_resources(self, request, project_id, namespace_id):
         """针对mesos检查命名空间下的资源，主要包含
         - deployment
         - application
@@ -461,15 +459,17 @@ class NamespaceView(NamespaceBase, viewsets.ViewSet):
         - service
         - secret
         """
-        res_names = self._get_resource_for_mesos(request, project_id, namespace_id)
-        return response.Response({'code': 0, 'data': res_names})
+        if request.project.kind != ProjectKind.MESOS.value:
+            raise ValidationError(_("仅支持mesos类型"))
+        res_names = self._get_resources(request, project_id, namespace_id)
+        return response.Response(res_names)
 
     def delete(self, request, project_id, namespace_id, is_validate_perm=True):
         access_token = request.user.token.access_token
 
         # 针对mesos，需要删除完对应的资源才允许操作
         if request.project.kind == ProjectKind.MESOS.value:
-            res_names = self._get_resource_for_mesos(request, project_id, namespace_id)
+            res_names = self._get_resources(request, project_id, namespace_id)
             if [name for name_list in res_names.values() for name in name_list]:
                 raise error_codes.CheckFailed(_("请先删除命名空间下的资源"))
 
