@@ -7,16 +7,17 @@
                 </button>
             </template>
             <template v-else>
-                <bk-dropdown-menu ref="dropdown" trigger="click" :align="'left'">
-                    <button class="bk-button trigger-btn" slot="dropdown-trigger" style="width: 200px;">
-                        <span class="btn-text">{{curScope.name}}</span><i class="bk-icon icon-angle-down"></i>
-                    </button>
-                    <ul class="bk-dropdown-list" slot="dropdown-content">
-                        <li class="dropdown-item">
-                            <a href="javascript:;" v-for="scopeItem of localScopeList" :title="scopeItem.name" :key="scopeItem.id" @click="handleSechScope(scopeItem)">{{scopeItem.name}}</a>
-                        </li>
-                    </ul>
-                </bk-dropdown-menu>
+                <bk-selector
+                    style="width: 220px; float: left; position: relative; right: -1px; z-index: 1;"
+                    :placeholder="$t('请选择')"
+                    :searchable="true"
+                    :setting-key="'id'"
+                    :display-key="'name'"
+                    :selected.sync="searchScope"
+                    :list="scopeList"
+                    :search-placeholder="searchPlaceholder || $t('请选择集群')"
+                    @item-selected="handleSechScope">
+                </bk-selector>
             </template>
         </template>
         <div class="biz-search-input" style="width: 300px;">
@@ -55,6 +56,10 @@
                 type: String,
                 default: ''
             },
+            searchPlaceholder: {
+                type: String,
+                default: ''
+            },
             searchKey: {
                 type: String,
                 default: ''
@@ -76,6 +81,10 @@
             scopeDisabled: {
                 type: Boolean,
                 default: false
+            },
+            searchable: {
+                type: Boolean,
+                default: true
             }
         },
         data () {
@@ -88,7 +97,8 @@
                     id: '',
                     name: this.$t('全部集群')
                 },
-                placeholderRender: ''
+                placeholderRender: '',
+                keyword: ''
             }
         },
         watch: {
@@ -110,18 +120,22 @@
             this.placeholderRender = this.placeholder || this.$t('输入关键字，按Enter搜索')
         },
         methods: {
-            handleSechScope (data) {
+            handleSechScope (index, data) {
                 this.curScope = data
-                this.$refs.dropdown.hide()
                 this.$emit('update:searchScope', this.curScope.id)
                 this.handleSearch()
             },
             initLocalScopeList () {
                 this.localScopeList = JSON.parse(JSON.stringify(this.scopeList))
                 if (this.localScopeList.length) {
-                    this.curScope = this.localScopeList[0]
+                    // 在初始化时，如果已经有值，选中
+                    if (this.searchScope) {
+                        this.curScope = this.localScopeList.find(item => item.id === this.searchScope)
+                    } else {
+                        this.curScope = this.localScopeList[0]
+                        this.$emit('update:searchScope', this.curScope.id)
+                    }
                 }
-                this.$emit('update:searchScope', this.curScope.id)
             },
             handleSearch () {
                 this.isTriggerSearch = true

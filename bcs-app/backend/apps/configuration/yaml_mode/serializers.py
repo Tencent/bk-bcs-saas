@@ -98,7 +98,7 @@ class CreateTemplateSLZ(YamlTemplateSLZ):
 
 
 class UpdateShowVersionSLZ(ShowVersionNameSLZ):
-    show_version_id = serializers.IntegerField()
+    old_show_version_id = serializers.IntegerField()
 
 
 class UpdateTemplateSLZ(YamlTemplateSLZ):
@@ -164,6 +164,7 @@ class TemplateReleaseSLZ(serializers.Serializer):
     namespace_id = serializers.IntegerField()
     template_files = serializers.ListField(child=PreviewTemplateFileSLZ(), allow_empty=False)
     is_preview = serializers.BooleanField()
+    template_variables = serializers.JSONField(default={})
 
     def to_internal_value(self, data):
         data = super().to_internal_value(data)

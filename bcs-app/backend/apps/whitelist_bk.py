@@ -11,6 +11,8 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
+from backend.utils.func_controller import get_func_controller
+
 
 def enabled_hpa_feature(cluster_id_list: list) -> bool:
     """HPA按集群做白名单控制
@@ -22,3 +24,15 @@ def enabled_sync_namespace(project_id: str) -> bool:
     """是否允许非导航【命名空间】页面创建的命名空间数据
     """
     return True
+
+
+def enabled_force_sync_chart_repo(project_id: str) -> bool:
+    """是否允许强制同步仓库数据
+    """
+    return False
+
+
+def enable_helm_v3(cluster_id: str) -> bool:
+    """是否允许集群使用helm3功能
+    """
+    return False

@@ -357,6 +357,15 @@ export default {
                     } else {
                         item.isEdited = false
                     }
+                    // 兼容处理
+                    if (!item.config.spec.tls) {
+                        item.config.spec.tls = [
+                            {
+                                hosts: '',
+                                certId: ''
+                            }
+                        ]
+                    }
                     item.config.spec.tls.forEach(computer => {
                         if (typeof computer.hosts === 'object') {
                             computer.hosts = computer.hosts.join(',')

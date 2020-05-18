@@ -28,6 +28,7 @@ from backend.utils.client import make_dashboard_ctl_client
 from backend.bcs_k8s.diff import parser
 
 from backend.bcs_k8s.dashboard.exceptions import DashboardExecutionError
+from backend.components import paas_cc
 
 
 yaml.reader.Reader.NON_PRINTABLE = re.compile(
@@ -404,3 +405,9 @@ def compose_url_with_scheme(url, scheme="http"):
     """
     url_split_info = url.split('//')
     return '{scheme}://{domain}'.format(scheme=scheme, domain=url_split_info[-1])
+
+
+def get_cc_app_id(access_token, project_id):
+    resp = paas_cc.get_project(access_token, project_id)
+    project_info = resp.get("data") or {}
+    return str(project_info.get("cc_app_id") or "")

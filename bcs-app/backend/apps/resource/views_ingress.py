@@ -66,6 +66,11 @@ class IngressResource(viewsets.ViewSet, BaseAPI, ResourceOperate):
         params = {}
         access_token = request.user.token.access_token
         data = []
+        # 如果请求参数中cluster_id存在，根据cluster_id过滤集群信息
+        query_cluster_id = request.query_params.get("cluster_id")
+        if query_cluster_id:
+            cluster_data = [info for info in cluster_data if query_cluster_id == info.get('cluster_id')]
+
         for cluster_info in cluster_data:
             cluster_id = cluster_info.get('cluster_id')
             cluster_env = cluster_info.get('environment')

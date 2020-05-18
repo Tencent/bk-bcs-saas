@@ -10,6 +10,7 @@
  */
 
 import http from '@open/api'
+import { json2Query } from '@open/common/util'
 
 export default {
     namespaced: true,
@@ -101,8 +102,8 @@ export default {
          *
          * @return {Promise} promise 对象
          */
-        getAppList (context, projectId, config = {}) {
-            const url = `${DEVOPS_BCS_API_URL}/api/bcs/k8s/configuration/${projectId}/apps/?limit=10000000&offset=0`
+        getAppList (context, { projectId, params }, config = {}) {
+            const url = `${DEVOPS_BCS_API_URL}/api/bcs/k8s/configuration/${projectId}/apps/?${json2Query(params)}`
             return http.get(url, {}, config).then(res => {
                 context.commit('updateAppList', res.data)
                 return res
@@ -297,13 +298,13 @@ export default {
          * 获取命名空间列表
          *
          * @param {Object} context store 上下文对象
-         * @param {number} projectId 项目ID
+         * @param {object} 包括：projectId, params
          * @param {Object} config 请求的配置
          *
          * @return {Promise} promise 对象
          */
-        getNamespaceList (context, projectId, config = {}) {
-            const url = `${DEVOPS_BCS_API_URL}/api/bcs/k8s/configuration/${projectId}/namespaces/`
+        getNamespaceList (context, { projectId, params = {} }, config = {}) {
+            const url = `${DEVOPS_BCS_API_URL}/api/bcs/k8s/configuration/${projectId}/namespaces/?${json2Query(params)}`
             return http.get(url, {}, config)
         },
 

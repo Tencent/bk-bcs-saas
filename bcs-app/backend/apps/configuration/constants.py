@@ -131,6 +131,8 @@ class FileResourceName(ChoicesEnum):
     PersistentVolume = 'PersistentVolume'
     PersistentVolumeClaim = 'PersistentVolumeClaim'
 
+    CustomManifest = 'CustomManifest'
+
     _choices_labels = (
         (Deployment, 'Deployment'),
         (Service, 'Service'),
@@ -147,7 +149,8 @@ class FileResourceName(ChoicesEnum):
         (PodDisruptionBudget, 'PodDisruptionBudget'),
         (StorageClass, 'StorageClass'),
         (PersistentVolume, 'PersistentVolume'),
-        (PersistentVolumeClaim, 'PersistentVolumeClaim')
+        (PersistentVolumeClaim, 'PersistentVolumeClaim'),
+        (CustomManifest, 'CustomManifest')
     )
 
 

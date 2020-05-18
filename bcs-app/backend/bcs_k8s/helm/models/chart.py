@@ -28,8 +28,8 @@ from ..utils.util import parse_chart_time, merge_rancher_answers, fix_chart_url
 from backend.bcs_k8s.diff import parser
 from backend.utils.models import BaseTSModel
 from backend.bcs_k8s.kubehelm.helm import KubeHelmClient
-from backend.bcs_k8s.helm.bcs_variable import get_namespace_variables, merge_valuefile_with_bcs_variables
-
+from backend.bcs_k8s.helm.bcs_variable import get_bcs_variables, merge_valuefile_with_bcs_variables
+from backend.utils.basic import normalize_time
 
 logger = logging.getLogger(__name__)
 ALLOWED_CHARS = 'abcdefghijklmnopqrstuvwxyz0123456789'
@@ -42,7 +42,7 @@ class Chart(BaseTSModel):
     """
     name = models.CharField(max_length=50)
     repository = models.ForeignKey("Repository")
-    description = models.CharField(max_length=1000)
+    description = models.CharField(max_length=1000, blank=True, null=True, default="")
     defaultChartVersion = models.ForeignKey("ChartVersion", related_name="default_chart_version",
                                             null=True, on_delete=models.SET_NULL)
     # base64, format: [data:{content-type};base64,b64string]
@@ -107,7 +107,7 @@ class BaseChartVersion(BaseTSModel):
     """
     name = models.CharField(max_length=50)
     home = models.CharField(max_length=200, null=True)
-    description = models.CharField(max_length=1000)
+    description = models.CharField(max_length=1000, blank=True, null=True, default="")
     engine = models.CharField(max_length=20)
 
     created = models.DateTimeField()
@@ -194,7 +194,7 @@ class ChartVersion(BaseChartVersion):
         self.home = version.get("home")
         self.description = version.get("description")
         self.engine = version.get("engine", "default")
-        self.created = parse_chart_time(version.get("created"))
+        self.created = normalize_time(version.get("created"))
         maintainers = version.get("maintainers")
         if maintainers:
             self.maintainers = version.get("maintainers")
@@ -215,20 +215,33 @@ class ChartVersion(BaseChartVersion):
 
         old_digest = self.digest
         current_digest = version.get("digest")
-        if force or old_digest != current_digest:
+
+        # 标识是否有变动
+        # 当digest变动时，肯定chart有变动
+        # 当repo server允许版本覆盖时，内容有变动但是digest相同，这时也认为有变动
+        chart_version_changed = old_digest != current_digest
+        if force or chart_version_changed:
             self.digest = version.get("digest")
             # donwload the tar.gz and update files and questions
             url = self.urls[0] if self.urls else None
-            if url:
-                ok, files, questions = download_template_data(chart.name, url, auths=self.chart.repository.plain_auths)
-                if ok:
-                    self.files = files
-                    self.questions = questions
+            if not url:
+                self.save()
+                return chart_version_changed
+
+            ok, files, questions = download_template_data(chart.name, url, auths=self.chart.repository.plain_auths)
+            if not ok:
+                self.save()
+                return chart_version_changed
+
+            if self.files != files:
+                self.files = files
+                chart_version_changed = True
+            if self.questions != questions:
+                self.questions = questions
+                chart_version_changed = True
 
         self.save()
-
-        changed = old_digest != current_digest
-        return changed
+        return chart_version_changed
 
 
 class ChartVersionSnapshot(BaseChartVersion):
@@ -309,6 +322,7 @@ class ChartReleaseManager(models.Manager):
             release_type=constants.ChartReleaseTypes.ROLLBACK.value,
             valuefile=release.valuefile,
             valuefile_name=release.valuefile_name,
+            revision=release.revision
         )
 
 
@@ -341,13 +355,15 @@ class ChartRelease(BaseTSModel):
     content = models.TextField(null=True, default="")
     # list of {"name": "", "kind": ""}
     structure = JSONField(null=True, default=[])
+    # 记录release的revision
+    revision = models.IntegerField(default=0, help_text="用来标识helm release的升级版本")
 
     objects = ChartReleaseManager()
 
-    def generate_valuesyaml(self, project_id, namespace_id):
+    def generate_valuesyaml(self, project_id, namespace_id, cluster_id):
         """ valuefile + bcs namespace variables """
         sys_variables = self.app.sys_variables
-        bcs_variables = get_namespace_variables(project_id, namespace_id)
+        bcs_variables = get_bcs_variables(project_id, cluster_id, namespace_id)
         return merge_valuefile_with_bcs_variables(self.valuefile, bcs_variables, sys_variables)
 
     def refresh_structure(self, namespace):
@@ -392,15 +408,28 @@ class ChartRelease(BaseTSModel):
             from backend.bcs_k8s.app.models import App
             return App.objects.get(id=self.app_id)
 
-    def render(self, namespace="default"):
+    def render(self, namespace="default", bcs_inject_data=None):
         client = KubeHelmClient(helm_bin=settings.HELM_BIN)
-        content, notes = client.template(
-            files=self.chartVersionSnapshot.files,
-            name=self.app.name,
-            namespace=namespace,
-            parameters=self.parameters,
-            valuefile=self.generate_valuesyaml(self.app.project_id, self.app.namespace_id)
-        )
+        # 针对rollback的diff，不比对平台注入的信息
+        if not bcs_inject_data:
+            content, notes = client.template(
+                files=self.chartVersionSnapshot.files,
+                name=self.app.name,
+                namespace=namespace,
+                parameters=self.parameters,
+                valuefile=self.generate_valuesyaml(self.app.project_id, self.app.namespace_id, self.app.cluster_id),
+                cluster_id=self.app.cluster_id,
+            )
+        else:
+            content, notes = client.template_with_ytt_renderer(
+                files=self.chartVersionSnapshot.files,
+                name=self.app.name,
+                namespace=namespace,
+                parameters=self.parameters,
+                valuefile=self.generate_valuesyaml(self.app.project_id, self.app.namespace_id, self.app.cluster_id),
+                cluster_id=self.app.cluster_id,
+                bcs_inject_data=bcs_inject_data
+            )
 
         return content, notes
 

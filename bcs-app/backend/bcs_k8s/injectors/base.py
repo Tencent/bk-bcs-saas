@@ -16,7 +16,11 @@ import copy
 from dataclasses import dataclass
 import re
 
+from rest_framework.exceptions import ValidationError
+from django.utils.translation import ugettext_lazy as _
+
 from . import dpath
+from .constants import RESOURCE_FILEDS, RESOURCE_KINDS_FOR_MONITOR_INJECTOR
 from backend.utils.basic import getitems
 
 logger = logging.getLogger(__name__)
@@ -136,7 +140,18 @@ class BaseInjector:
             else:
                 return d
 
-        return recursive_replace(self._data)
+        if resource.get("kind") in RESOURCE_KINDS_FOR_MONITOR_INJECTOR:
+            return recursive_replace(self._data)
+
+        # 针对monitor的label和annotations只允许特定类型注入，其它类型需要pop掉字段
+        data_copy = copy.deepcopy(self._data)
+        for field, val in data_copy.items():
+            if field not in RESOURCE_FILEDS:
+                continue
+            for key in ["io.tencent.bcs.controller.name", "io.tencent.bcs.controller.type"]:
+                val.pop(key, "")
+
+        return recursive_replace(data_copy)
 
 
 class InjectManager:
@@ -187,7 +202,11 @@ class InjectManager:
     def do_config_inject(self, config, resource):
         for path in config["paths"]:
             for matcher_cfg in config["matchers"]:
-                data = self.filter_env(path, resource, config['data'])
+                try:
+                    data = self.filter_env(path, resource, config['data'])
+                except Exception as err:
+                    logger.error("处理环境变量异常, %s", err)
+                    raise ValidationError(_("请检查配置文件内容是否正确"))
                 matcher = self.make_matcher(matcher_cfg)
                 injector = BaseInjector(
                     matcher=matcher,

@@ -10,6 +10,7 @@
  */
 
 import http from '@open/api'
+import { json2Query } from '@open/common/util'
 
 export default {
     namespaced: true,
@@ -48,13 +49,12 @@ export default {
          * @return {Promise} promise 对象
          */
         getCrdControllersByCluster (context, { projectId, clusterId }, config = {}) {
-            console.log('clusterId', clusterId)
             const url = `${DEVOPS_BCS_API_URL}/api/projects/${projectId}/bcs_crd/clusters/${clusterId}/crd_controllers/`
             return http.get(url, {}, config)
         },
 
         /**
-         * 查询crd列表
+         * 查询crd列表 (老)
          *
          * @param {Object} context store 上下文对象
          * @param {Object} projectId, clusterId, crdKind
@@ -62,9 +62,27 @@ export default {
          *
          * @return {Promise} promise 对象
          */
-        getCrdInstanceList (context, { projectId, clusterId, crdKind }, config = {}) {
+        getCrdInstanceList (context, { projectId, clusterId, params = {} }, config = {}) {
             context.commit('updateCrdInstanceList', [])
-            const url = `${DEVOPS_BCS_API_URL}/api/projects/${projectId}/bcs_crd/clusters/${clusterId}/crd_instances/?crd_kind=${crdKind}`
+            const url = `${DEVOPS_BCS_API_URL}/api/projects/${projectId}/bcs_crd/clusters/${clusterId}/crd_instances/?${json2Query(params)}`
+            return http.get(url, {}, config).then(res => {
+                context.commit('updateCrdInstanceList', res.data)
+                return res
+            })
+        },
+
+        /**
+         * 查询crd列表 (新)
+         *
+         * @param {Object} context store 上下文对象
+         * @param {Object} projectId, clusterId, crdKind
+         * @param {Object} config 请求的配置
+         *
+         * @return {Promise} promise 对象
+         */
+        getBcsCrdsList (context, { projectId, params = {} }, config = {}) {
+            context.commit('updateCrdInstanceList', [])
+            const url = `${DEVOPS_BCS_API_URL}/api/projects/${projectId}/bcs_crd/crds/?${json2Query(params)}`
             return http.get(url, {}, config).then(res => {
                 context.commit('updateCrdInstanceList', res.data)
                 return res
@@ -86,16 +104,16 @@ export default {
         },
 
         /**
-         * 获取namespace 列表
+         * 获取当前集群下的namespace 列表
          *
          * @param {Object} context store 上下文对象
-         * @param {Object} projectId 项目ID
+         * @param {Object} projectId, clusterId
          * @param {Object} config 请求的配置
          *
          * @return {Promise} promise 对象
          */
-        getNameSpaceList (context, projectId, config = {}) {
-            return http.get(`${DEVOPS_BCS_API_URL}/api/configuration/${projectId}/namespace/`, {}, config).then(res => {
+        getNameSpaceListByCluster (context, { projectId, clusterId }, config = {}) {
+            return http.get(`${DEVOPS_BCS_API_URL}/api/configuration/${projectId}/namespace/?cluster_id=${clusterId}`, {}, config).then(res => {
                 context.commit('updateNameSpaceList', res.data)
                 return res
             })

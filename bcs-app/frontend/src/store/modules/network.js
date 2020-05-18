@@ -10,6 +10,7 @@
  */
 
 import http from '@open/api'
+import { json2Query } from '@open/common/util'
 
 export default {
     namespaced: true,
@@ -200,21 +201,21 @@ export default {
          *
          * @return {Promise} promise 对象
          */
-        getLoadBalanceList (context, curProject, config = {}) {
-            if (!curProject) {
+        getLoadBalanceList (context, { project, params }, config = {}) {
+            if (!project) {
                 return false
             }
-            const projectId = curProject.project_id
+            const projectId = project.project_id
             // let url = `${DEVOPS_BCS_API_URL}/api/network/${projectId}/lb/`
             // // k8s
-            // if (curProject.kind === PROJECT_K8S) {
+            // if (project.kind === PROJECT_K8S) {
             //     url = `${DEVOPS_BCS_API_URL}/api/network/${projectId}/k8s/lb/`
             // }
 
-            let url = `${DEVOPS_BCS_API_URL}/api/network/${projectId}/k8s/lb/`
+            let url = `${DEVOPS_BCS_API_URL}/api/network/${projectId}/k8s/lb/?${json2Query(params)}`
             // mesos
-            if (curProject.kind === PROJECT_MESOS) {
-                url = `${DEVOPS_BCS_API_URL}/api/network/${projectId}/lb/`
+            if (project.kind === PROJECT_MESOS) {
+                url = `${DEVOPS_BCS_API_URL}/api/network/${projectId}/lb/?${json2Query(params)}`
             }
 
             return http.get(url).then(res => {
@@ -258,21 +259,21 @@ export default {
          *
          * @return {Promise} promise 对象
          */
-        getLoadBalanceListByPage (context, curProject, config = {}) {
-            if (!curProject) {
+        getLoadBalanceListByPage (context, { project, params }, config = {}) {
+            if (!project) {
                 return false
             }
-            const projectId = curProject.project_id
+            const projectId = project.project_id
             // let url = `${DEVOPS_BCS_API_URL}/api/network/${projectId}/lbs/?limit=5&offset=0`
             // // k8s
-            // if (curProject.kind === PROJECT_K8S) {
+            // if (project.kind === PROJECT_K8S) {
             //     url = `${DEVOPS_BCS_API_URL}/api/network/${projectId}/k8s/lb/`
             // }
 
-            let url = `${DEVOPS_BCS_API_URL}/api/network/${projectId}/k8s/lb/`
+            let url = `${DEVOPS_BCS_API_URL}/api/network/${projectId}/k8s/lb/?${json2Query(params)}`
             // mesos
-            if (curProject.kind === PROJECT_MESOS) {
-                url = `${DEVOPS_BCS_API_URL}/api/network/${projectId}/lbs/?limit=5&offset=0`
+            if (project.kind === PROJECT_MESOS) {
+                url = `${DEVOPS_BCS_API_URL}/api/network/${projectId}/lbs/?${json2Query(params)}`
             }
             return http.get(url).then(res => {
                 // mesos和k8s的接口格式不一样，处理兼容
@@ -494,12 +495,12 @@ export default {
          *
          * @return {Promise} promise 对象
          */
-        getServiceList (context, projectId, config = {}) {
+        getServiceList (context, { projectId, params = {} }, config = {}) {
             // return http.get('/app/network?invoke=getServiceList', {}, config).then(res => {
             //     commit('updateServiceList', res.data.data)
             //     return res
             // })
-            return http.get(`${DEVOPS_BCS_API_URL}/api/network/${projectId}/services/`, {}, config).then(res => {
+            return http.get(`${DEVOPS_BCS_API_URL}/api/network/${projectId}/services/?${json2Query(params)}`, {}, config).then(res => {
                 context.commit('updateServiceList', res.data.data)
                 return res
             })
@@ -641,9 +642,9 @@ export default {
          *
          * @return {Promise} promise 对象
          */
-        getCloudLoadBalanceList (context, { projectId }, config = {}) {
+        getCloudLoadBalanceList (context, { projectId, params }, config = {}) {
             // const url = '/app/network?invoke=getCloudLoadBalanceList'
-            const url = `${DEVOPS_BCS_API_URL}/api/projects/${projectId}/network/clbs/`
+            const url = `${DEVOPS_BCS_API_URL}/api/projects/${projectId}/network/clbs/?${json2Query(params)}`
             return http.get(url, {}, config).then(res => {
                 context.commit('updateCloudLoadBalanceList', res.data)
                 return res

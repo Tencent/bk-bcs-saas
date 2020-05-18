@@ -118,8 +118,8 @@ TEMPLATES = [
             os.path.join(BASE_DIR, 'backend/static'),
             os.path.join(BASE_DIR, 'frontend/output'),
             os.path.join(BASE_DIR, 'staticfiles'),
-            os.path.join(BASE_DIR, 'backend/apps/configuration/yaml_mode/manifests')
-
+            os.path.join(BASE_DIR, 'backend/apps/configuration/yaml_mode/manifests'),
+            os.path.join(BASE_DIR, "backend/bcs_k8s/kubehelm/templates")
         ],
         'APP_DIRS': True,
         'OPTIONS': {
@@ -206,7 +206,7 @@ REST_FRAMEWORK = {
         'rest_framework.permissions.IsAuthenticated',
     ),
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
-    'PAGE_SIZE': 20,
+    'PAGE_SIZE': 10000,
     'TEST_REQUEST_DEFAULT_FORMAT': 'json',
     'DEFAULT_AUTHENTICATION_CLASSES': (
         # 'rest_framework.authentication.BasicAuthentication',
@@ -344,6 +344,8 @@ REQUEST_ID_HEADER = 'HTTP_X_REQUEST_ID'
 
 # ******************************** Helm Config Begin ********************************
 HELM_BIN = "/bin/helm"  # helm bin filename
+HELM3_BIN = "/bin/helm3"
+YTT_BIN = "/bin/ytt"
 KUBECTL_BIN = "/bin/kubectl"  # default kubectl bin filename
 DASHBOARD_CTL_BIN = "/bin/dashboard-ctl"  # default dashboard ctl filename
 KUBECTL_BIN_MAP = {

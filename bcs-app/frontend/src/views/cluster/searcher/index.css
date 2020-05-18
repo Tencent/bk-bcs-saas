@@ -142,6 +142,28 @@
                 }
             }
         }
+
+        &.show-enter-tip {
+            .node-searcher-dropdown-content {
+                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+                .icon-search {
+                    color: #737987;
+                    left: 0;
+                    top: 1px;
+                    height: 30px;
+                    line-height: 30px;
+                    display: inline-block;
+                    width: 30px;
+                    font-size: 12px;
+                    font-weight: 700;
+                }
+                div {
+                    width: 190px;
+                    font-size: 14px;
+                    padding: 5px 5px 5px 30px;
+                }
+            }
+        }
     }
 
     .search-params-wrapper {

@@ -91,16 +91,22 @@ class ExportNodes(viewsets.ViewSet):
     }
 
     def get_nodes(self, request, project_id):
-        cluster_id = request.query_params.get('cluster_id')
+        req_data = request.data
+        cluster_id = req_data.get("cluster_id")
+        node_id_list = req_data.get("node_id_list")
         resp = paas_cc.get_node_list(request.user.token.access_token, project_id, cluster_id)
         if resp.get('code') != ErrorCode.NoError:
             raise error_codes.APIError(f'get node error, {resp.get("message")}')
         data = resp.get('data') or {}
         results = data.get('results') or []
-        return [
-            [node['cluster_id'], node['inner_ip'], self.STATUS_MAP_NAME.get(node['status'])]
-            for node in results if node['status'] != NodeStatus.Removable
-        ]
+        node_data = []
+        for node in results:
+            if node["status"] == NodeStatus.Removed:
+                continue
+            if node_id_list and node["id"] not in node_id_list:
+                continue
+            node_data.append([node["cluster_id"], node["inner_ip"], self.STATUS_MAP_NAME.get(node["status"])])
+        return node_data
 
     def export(self, request, project_id):
         # get node list

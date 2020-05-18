@@ -28,6 +28,7 @@ from .serializers import (
 from backend.bcs_k8s.authtoken.authentication import TokenAuthentication
 from .providers.repo_provider import add_repo, add_plain_repo
 from .tasks import sync_helm_repo
+from backend.apps.whitelist_bk import enabled_force_sync_chart_repo
 
 
 logger = logging.getLogger(__name__)
@@ -79,7 +80,7 @@ class ChartView(ActionSerializerMixin, viewsets.ModelViewSet):
 
 @with_code_wrapper
 class ChartVersionView(ActionSerializerMixin, viewsets.ModelViewSet):
-    queryset = ChartVersion.objects.all().order_by("-created_at")
+    queryset = ChartVersion.objects.all().order_by("-created")
     serializer_class = ChartVersionSLZ
     pagination_class = LargeResultsSetPagination
     lookup_field = "pk"
@@ -209,13 +210,22 @@ class RepositorySyncByProjectView(FilterByProjectMixin, viewsets.ViewSet):
     def create(self, request, project_id, *args, **kwargs):
         """Sync Chart Repository
         """
-        id_list = list(Repository.objects.filter(project_id=project_id).values_list("id", flat=True))
-        for repo_id in id_list:
-            sync_helm_repo(repo_id, False)
+        id_name_list = list(Repository.objects.filter(project_id=project_id).values_list("id", "name"))
+        # 白名单控制强制同步项目仓库，不强制同步公共仓库
+        force_sync_repo = False
+        if enabled_force_sync_chart_repo(project_id):
+            force_sync_repo = True
+
+        for repo_id, repo_name in id_name_list:
+            # 如果是公共仓库，不允许强制同步
+            if repo_name == 'public-repo':
+                sync_helm_repo(repo_id, False)
+            else:
+                sync_helm_repo(repo_id, force_sync_repo)
 
         data = {
             "code": 0,
-            "message": "success sync %s repositories" % len(id_list)
+            "message": "success sync %s repositories" % len(id_name_list)
         }
 
         return Response(

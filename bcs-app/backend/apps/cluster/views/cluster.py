@@ -11,19 +11,17 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-import arrow
 import logging
 
 from django.conf import settings
-from rest_framework import viewsets, response, serializers
+from rest_framework import viewsets, response
 from rest_framework.renderers import BrowsableAPIRenderer
 from django.utils.translation import ugettext_lazy as _
 
-from backend.components import paas_cc, cc
+from backend.components import paas_cc
 from backend.utils.errcodes import ErrorCode
 from backend.activity_log import client
 from backend.apps.cluster.models import CommonStatus
-from backend.apps import constants
 from backend.utils.error_codes import error_codes
 from backend.accounts.bcs_perm import Cluster
 from backend.apps.cluster.models import ClusterInstallLog
@@ -37,6 +35,7 @@ from backend.utils.renderers import BKAPIRenderer
 from backend.apps.cluster import serializers as cluster_serializers
 from backend.apps.cluster.views_bk import cluster
 from backend.apps.cluster.views_bk.tools import cmdb
+from backend.components.bcs.mesos import MesosClient
 
 DEFAULT_OPER_USER = settings.DEFAULT_OPER_USER
 
@@ -119,8 +118,8 @@ class ClusterCreateListViewSet(viewsets.ViewSet):
         """get project cluster list
         """
         cluster_info = self.get_cluster_list(request, project_id)
-        cluster_node_map = self.cluster_has_node(request, project_id)
         cluster_data = cluster_info.get('results') or []
+        cluster_node_map = self.cluster_has_node(request, project_id)
         # add allow delete perm
         for info in cluster_data:
             info['environment'] = cluster_env_transfer(info['environment'])
@@ -148,6 +147,11 @@ class ClusterCreateListViewSet(viewsets.ViewSet):
                 'create': can_create_test or can_create_prod
             }
         })
+
+    def list_clusters(self, request, project_id):
+        cluster_info = self.get_cluster_list(request, project_id)
+        cluster_data = cluster_info.get('results') or []
+        return response.Response({'clusters': cluster_data})
 
     def create(self, request, project_id):
         """create cluster
@@ -237,10 +241,10 @@ class ClusterCreateGetUpdateViewSet(ClusterBase, viewsets.ViewSet):
         data = self.update_data(data, project_id, cluster_id, cluster_perm)
         # update cluster info
         with client.ContextActivityLogClient(
-            project_id=project_id,
-            user=request.user.username,
-            resource_type='cluster',
-            resource_id=cluster_id,
+                project_id=project_id,
+                user=request.user.username,
+                resource_type='cluster',
+                resource_id=cluster_id,
         ).log_modify():
             cluster_info = self.update_cluster(
                 request, project_id, cluster_id, data
@@ -413,3 +417,13 @@ class ClusterVersionViewSet(viewsets.ViewSet):
         data = [info['version'] for info in resp.get('data') or []]
 
         return response.Response(data)
+
+
+class MesosIPPoolViewSet(viewsets.ViewSet):
+    renderer_classes = (BKAPIRenderer, BrowsableAPIRenderer)
+
+    def get(self, request, project_id, cluster_id):
+        client = MesosClient(request.user.token.access_token, project_id, cluster_id, None)
+        data = client.get_cluster_ippool()
+
+        return response.Response(data.get("data") or {})

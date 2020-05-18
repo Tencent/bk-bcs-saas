@@ -21,6 +21,7 @@ import yaml
 from rest_framework import views
 from django.conf import settings
 from django.utils.translation import ugettext_lazy as _
+from rest_framework.exceptions import ValidationError
 
 from backend.components.bcs import mesos, bcs_common_api
 from backend.utils.errcodes import ErrorCode
@@ -34,13 +35,14 @@ from backend.components.bcs.k8s import K8SClient
 from backend.components.bcs.bcs_common_api import BCSClient
 from backend.apps.instance.models import InstanceEvent
 from backend.apps.instance.constants import EventType, InsState
-from backend.apps.application.constants import FUNC_MAP, NOT_TMPL_SOURCE_TYPE
+from backend.apps.application.constants import FUNC_MAP, NOT_TMPL_SOURCE_TYPE, OWENER_REFERENCE_MAP
 from backend.celery_app.tasks.application import delete_instance_task
 from backend.apps.application.utils import cluster_env
 from backend.accounts import bcs_perm
 from backend.apps.configuration.models import Template
 from backend.apps.application.drivers import BCSDriver
 from backend.apps.application.common_views.serializers import BaseNotTemplateInstanceParamsSLZ
+from backend.apps.configuration.constants import K8sResourceName
 
 logger = logging.getLogger(__name__)
 
@@ -242,14 +244,17 @@ class BaseAPI(views.APIView):
         return all_name
 
     def get_k8s_pod_info(
-            self, request, project_id, cluster_id, ns_name, category_name=None, field=None, pod_name=None):
+            self, request, project_id, cluster_id, ns_name,
+            owner_ref_name=None, field=None, pod_name=None, owner_ref_kind=None):
         client = K8SClient(
             request.user.token.access_token,
             project_id, cluster_id, None
         )
         extra_encode = None
-        if category_name:
-            extra = {"data.metadata.ownerReferences.name": category_name}
+        if owner_ref_name:
+            extra = {"data.metadata.ownerReferences.name": owner_ref_name}
+            if owner_ref_kind:
+                extra["data.metadata.ownerReferences.kind"] = owner_ref_kind
             extra_encode = base64_encode_params(extra)
         field_list = field or [
             "resourceName,createTime",
@@ -288,6 +293,8 @@ class BaseAPI(views.APIView):
                 namespace=ns_name,
             )
         else:
+            # 添加owner reference的kind属性，用来过滤pod关联的deployment/sts等类型
+            owner_ref_kind = OWENER_REFERENCE_MAP.get(category)
             if taskgroup_name:
                 pod_name = taskgroup_name
                 rs_name = None
@@ -304,7 +311,8 @@ class BaseAPI(views.APIView):
                 rs_name = None
             resp = self.get_k8s_pod_info(
                 request, project_id, cluster_id, ns_name,
-                category_name=rs_name, field=field, pod_name=pod_name
+                owner_ref_name=rs_name, field=field, pod_name=pod_name,
+                owner_ref_kind=owner_ref_kind
             )
 
         if resp.get("code") != ErrorCode.NoError:
@@ -1048,4 +1056,10 @@ class InstanceAPI(BaseAPI):
         """
         if str(instance_id) == "0":
             return False
+        return True
+
+    def can_operate(self, resource_kind):
+        # 为避免类型的大小写不一致，采用包含的方式处理
+        if resource_kind.lower() in K8sResourceName.K8sStatefulSet.value.lower():
+            raise ValidationError(_("StatefulSet类型不允许此操作"))
         return True

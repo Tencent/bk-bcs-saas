@@ -48,6 +48,7 @@ class NamespaceBase:
     """命名空间操作的基本方法
     其他地方也要用到，所以提取为单独的类
     """
+
     def create_ns_by_bcs(self, client, name, data):
         ns_config = {
             "apiVersion": "v1",
@@ -70,7 +71,7 @@ class NamespaceBase:
             raise error_codes.ComponentError.f(
                 _("创建Namespace失败，{}").format(result.get('message')))
 
-    def create_jforg_secret(self, client, access_token, project_id, project_code, data):
+    def create_jfrog_secret(self, client, access_token, project_id, project_code, data):
         try:
             domain_list = paas_cc.get_jfrog_domain_list(
                 access_token, project_id, data['cluster_id'])
@@ -135,7 +136,7 @@ class NamespaceBase:
         # 创建 ns
         self.create_ns_by_bcs(client, name, data)
         # 创建 jfrog Sercret
-        self.create_jforg_secret(client, access_token,
+        self.create_jfrog_secret(client, access_token,
                                  project_id, project_code, data)
 
     def check_ns_image_secret(self, client, access_token, project_id, cluster_id, ns_name):
@@ -316,22 +317,23 @@ class NamespaceView(NamespaceBase, viewsets.ViewSet):
         access_token = request.user.token.access_token
         project_kind = request.project.kind
         project_code = request.project.english_name
+        ns_name = data['name']
+        cluster_id = data['cluster_id']
+
         if ClusterType.get(project_kind) == 'Kubernetes':
             # k8s 集群需要调用 bcs api 初始化数据
             self.init_namespace_by_bcs(
                 access_token, project_id, project_code, data)
             has_image_secret = None
         else:
-            ns_name = data['name']
-            cluster_id = data['cluster_id']
             self.init_mesos_ns_by_bcs(access_token, project_id, project_code, cluster_id, ns_name)
             has_image_secret = True
 
         result = paas_cc.create_namespace(
             access_token,
             project_id,
-            data['cluster_id'],
-            data['name'],
+            cluster_id,
+            ns_name,
             None,  # description 现在没有用到
             request.user.username,
             data['env_type'],
@@ -346,7 +348,7 @@ class NamespaceView(NamespaceBase, viewsets.ViewSet):
             return response.Response({'code': result['code'], 'data': None, 'message': message})
         else:
             # 注册资源到权限中心
-            perm.register(result['data']['id'], result['data']['name'])
+            perm.register(result['data']['id'], f'{ns_name}({cluster_id})')
 
         # 创建成功后需要保存变量信息
         result_data = result.get('data')

@@ -42,6 +42,7 @@ from backend.bcs_k8s.helm.bcs_variable import (
 from .deployer import AppDeployer
 from . import bcs_info_injector
 from . import utils
+from backend.bcs_k8s import utils as bcs_helm_utils
 
 
 def preview_parse(manifest, namespace):
@@ -555,6 +556,7 @@ class AppRollbackSelectionsSLZ(serializers.Serializer):
     short_name = serializers.CharField(max_length=64)
     version = serializers.CharField(max_length=64)
     created_at = serializers.DateTimeField(format="%Y-%m-%d %H:%M:%S")
+    revision = serializers.IntegerField()
 
 
 class AppReleaseDiffSLZ(serializers.Serializer):
@@ -657,35 +659,54 @@ class AppReleasePreviewSLZ(AppMixin, serializers.Serializer):
             access_token=self.context["request"].user.token.access_token,
             project_id=instance.project_id,
             namespace_id=instance.namespace_id,
-            valuefile=validated_data["valuefile"]
+            valuefile=validated_data["valuefile"],
+            cluster_id=instance.cluster_id
         )
-        client = KubeHelmClient(helm_bin=settings.HELM_BIN)
+
+        now = datetime.datetime.now()
+        username = self.context["request"].user.username
+        # 组装注入的参数
+        bcs_inject_data = bcs_helm_utils.BCSInjectData(
+            source_type="helm",
+            creator=username,
+            updator=username,
+            version=instance.release.chartVersionSnapshot.version,
+            project_id=self.project_id,
+            app_id=self.context["request"].project.cc_app_id,
+            cluster_id=instance.cluster_id,
+            namespace=instance.namespace,
+            stdlog_data_id=bcs_helm_utils.get_stdlog_data_id(self.project_id),
+            image_pull_secret=bcs_helm_utils.provide_image_pull_secrets(instance.namespace)
+        )
+        # 默认为使用helm3 client
+        client = KubeHelmClient(helm_bin=settings.HELM3_BIN)
         try:
-            content, notes = client.template(
+            content, notes = client.template_with_ytt_renderer(
                 files=files,
                 namespace=instance.namespace,
                 name=instance.name,
                 parameters=parameters,
                 valuefile=valuefile,
+                cluster_id=instance.cluster_id,
+                bcs_inject_data=bcs_inject_data
             )
-        except helm_exceptions.HelmBaseException as e:
-            raise ParseError(str(e))
-
-        # inject bcs info
-        now = datetime.datetime.now()
-        content = bcs_info_injector.inject_bcs_info(
-            access_token=self.access_token,
-            project_id=instance.project_id,
-            cluster_id=instance.cluster_id,
-            namespace_id=instance.namespace_id,
-            namespace=instance.namespace,
-            creator=instance.creator,
-            updator=self.context["request"].user.username,
-            created_at=instance.created,
-            updated_at=now,
-            resources=content,
-            version=instance.release.chartVersionSnapshot.version,
-        )
+        except helm_exceptions.HelmBaseException:
+            # raise ParseError(str(e))
+            # NOTE: 现阶段为防止出现未测试到的情况，允许出错时，按照先前流程渲染；后续删除
+            content, notes = _template_with_bcs_renderer(
+                client,
+                files,
+                instance.name,
+                instance.namespace,
+                instance.namespace_id,
+                parameters,
+                valuefile,
+                instance.cluster_id,
+                username, now,
+                instance.release.chartVersionSnapshot.version,
+                self.access_token,
+                instance.project_id
+            )
 
         # compute diff
         old_content = instance.release.content
@@ -835,10 +856,11 @@ class AppCreatePreviewSLZ(AppMixin, serializers.Serializer):
         """ 生成应用的预览数据，这个时候应用没有创建，release也没有创建 """
         namespace_info = self.get_ns_info_by_id(validated_data["namespace_info"])
 
+        cluster_id = namespace_info["cluster_id"]
         check_cluster_perm(
             user=self.context["request"].user,
             project_id=namespace_info["project_id"],
-            cluster_id=namespace_info["cluster_id"],
+            cluster_id=cluster_id,
             request=self.context["request"]
         )
 
@@ -849,36 +871,57 @@ class AppCreatePreviewSLZ(AppMixin, serializers.Serializer):
             access_token=self.context["request"].user.token.access_token,
             project_id=namespace_info["project_id"],
             namespace_id=namespace_info["id"],
-            valuefile=validated_data["valuefile"]
+            valuefile=validated_data["valuefile"],
+            cluster_id=cluster_id
         )
-        client = KubeHelmClient(helm_bin=settings.HELM_BIN)
+
+        # inject bcs info
+        now = datetime.datetime.now()
+        username = self.context["request"].user.username
+
+        # 组装注入的参数
+        bcs_inject_data = bcs_helm_utils.BCSInjectData(
+            source_type="helm",
+            creator=username,
+            updator=username,
+            version=validated_data["chart_version"].version,
+            project_id=self.project_id,
+            app_id=self.context["request"].project.cc_app_id,
+            cluster_id=cluster_id,
+            namespace=namespace_info["name"],
+            stdlog_data_id=bcs_helm_utils.get_stdlog_data_id(self.project_id),
+            image_pull_secret=bcs_helm_utils.provide_image_pull_secrets(namespace_info["name"])
+        )
+        client = KubeHelmClient(helm_bin=settings.HELM3_BIN)
         try:
-            content, notes = client.template(
+            content, notes = client.template_with_ytt_renderer(
                 files=validated_data["chart_version"].files,
                 namespace=namespace_info["name"],
                 name=validated_data.get("name"),
                 parameters=parameters,
                 valuefile=valuefile,
+                cluster_id=cluster_id,
+                bcs_inject_data=bcs_inject_data
             )
-        except helm_exceptions.HelmBaseException as e:
-            raise ParseError(str(e))
+        except helm_exceptions.HelmBaseException:
+            # raise ParseError(str(e))
+            # NOTE: 现阶段为防止出现未测试到的情况，允许出错时，按照先前流程渲染；后续删除
+            content, notes = _template_with_bcs_renderer(
+                client,
+                validated_data["chart_version"].files,
+                validated_data.get("name"),
+                namespace_info["name"],
+                namespace_info["id"],
+                parameters,
+                valuefile,
+                cluster_id,
+                username,
+                now,
+                validated_data["chart_version"].version,
+                self.access_token,
+                self.project_id
+            )
 
-        # inject bcs info
-        now = datetime.datetime.now()
-        username = self.context["request"].user.username
-        content = bcs_info_injector.inject_bcs_info(
-            access_token=self.access_token,
-            project_id=self.project_id,
-            cluster_id=namespace_info["cluster_id"],
-            namespace_id=namespace_info["id"],
-            namespace=namespace_info["name"],
-            creator=username,
-            updator=username,
-            created_at=now,
-            updated_at=now,
-            resources=content,
-            version=validated_data["chart_version"].version
-        )
         return {
             "content": preview_parse(content, namespace_info["name"]),
             "notes": notes
@@ -1122,3 +1165,39 @@ class AppUpgradeByAPISLZ(AppUpgradeSLZ):
                 "write_only": True
             },
         }
+
+
+def _template_with_bcs_renderer(client, files, name, namespace, ns_id, parameters, valuefile, cluster_id,
+                                username, now_time, version, access_token, project_id):
+    try:
+        content, notes = client.template(
+            files=files,
+            namespace=name,
+            name=name,
+            parameters=parameters,
+            valuefile=valuefile,
+            cluster_id=cluster_id
+        )
+    except helm_exceptions.HelmBaseException as e:
+        raise ParseError(str(e))
+
+    content = bcs_info_injector.inject_bcs_info(
+        access_token=access_token,
+        project_id=project_id,
+        cluster_id=cluster_id,
+        namespace_id=ns_id,
+        namespace=namespace,
+        creator=username,
+        updator=username,
+        created_at=now_time,
+        updated_at=now_time,
+        resources=content,
+        version=version
+    )
+    return content, notes
+
+
+class FilterNamespacesSLZ(serializers.Serializer):
+    filter_use_perm = serializers.BooleanField(default=True)
+    cluster_id = serializers.CharField(required=False)
+    chart_id = serializers.IntegerField(required=False)

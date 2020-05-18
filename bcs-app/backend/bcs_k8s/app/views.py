@@ -21,6 +21,7 @@ from operator import itemgetter
 from itertools import groupby
 import tempfile
 from django.utils import timezone
+from rest_framework.exceptions import ValidationError
 
 import yaml
 from rest_framework import viewsets
@@ -63,6 +64,7 @@ from backend.bcs_k8s.dashboard.exceptions import DashboardError, DashboardExecut
 from backend.bcs_k8s.app.utils import compose_url_with_scheme
 from backend.apps.depot.api import get_jfrog_account
 from backend.utils.errcodes import ErrorCode
+from backend.bcs_k8s.app.serializers import FilterNamespacesSLZ
 
 logger = logging.getLogger(__name__)
 
@@ -102,6 +104,17 @@ class AppView(ActionSerializerMixin, AppViewBase):
         """
         project_cluster = self.get_project_cluster(request, project_id)
         qs = self.get_queryset()
+        # 获取过滤参数
+        params = request.query_params
+        cluster_id = params.get('cluster_id')
+        namespace = params.get("namespace")
+        if cluster_id:
+            qs = qs.filter(cluster_id=cluster_id)
+        if namespace:
+            if not cluster_id:
+                raise ValidationError(_("命名空间作为过滤参数时，需要提供集群ID"))
+            qs = qs.filter(namespace=namespace)
+
         data = list(qs.values(
             "name", "id", "cluster_id", "project_id", "namespace", "namespace_id", "version",
             "created", "creator", "chart__id", "transitioning_action", "transitioning_message",
@@ -213,7 +226,7 @@ class AppRollbackView(AppViewBase):
 class AppNamespaceView(AccessTokenMixin, ProjectMixin, viewsets.ReadOnlyModelViewSet):
     serializer_class = NamespaceSLZ
 
-    def get_queryset(self):
+    def filter_namespaces(self, filter_use_perm):
 
         result = paas_cc.get_namespace_list(self.access_token, self.project_id, desire_all_data=True)
         results = result["data"]["results"]
@@ -238,24 +251,31 @@ class AppNamespaceView(AccessTokenMixin, ProjectMixin, viewsets.ReadOnlyModelVie
                 i['environment'] = None
 
         perm = bcs_perm.Namespace(self.request, self.project_id, bcs_perm.NO_RES)
-        results = perm.hook_perms(results, True)
+        results = perm.hook_perms(results, filter_use=filter_use_perm)
         return results
 
     def list(self, request, project_id):
-        queryset = self.get_queryset()
-        if not queryset:
-            return Response([])
-        cluster_id_name_map = {item["cluster_id"]: item["cluster_name"] for item in queryset}
+        slz = FilterNamespacesSLZ(data=request.query_params)
+        slz.is_valid(raise_exception=True)
+        params = slz.validated_data
 
+        ns_list = self.filter_namespaces(params.get("filter_use_perm"))
+        if not ns_list:
+            return Response([])
+        cluster_id = params.get("cluster_id")
+        if cluster_id:
+            ns_list = [info for info in ns_list if info["cluster_id"] == cluster_id]
+
+        cluster_id_name_map = {item["cluster_id"]: item["cluster_name"] for item in ns_list}
         # check which namespace has the chart_id initialized
         namespace_ids = []
-        chart_id = request.query_params.get("chart_id")
+        chart_id = params.get("chart_id")
         if chart_id:
             namespace_ids = set(App.objects.filter(
                 project_id=self.project_id, chart__id=chart_id
             ).values_list("namespace_id", flat=True))
 
-        serializer = self.serializer_class(queryset, many=True)
+        serializer = self.serializer_class(ns_list, many=True)
         data = serializer.data
         for item in data:
             has_initialized = item["id"] in namespace_ids

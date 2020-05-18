@@ -19,6 +19,7 @@ from django.utils.translation import ugettext_lazy as _
 
 from .mixins import MConfigMapAndSecretMixin, PodMixin, ResourceMixin
 from .base import BaseModel, logger
+from backend.utils.basic import getitems
 
 
 class MesosResource(BaseModel):
@@ -83,6 +84,7 @@ class Secret(MesosResource, MConfigMapAndSecretMixin):
     """
     pass
 
+
 class HPA(MesosResource, MConfigMapAndSecretMixin):
     """HPA数据表
     """
@@ -113,9 +115,37 @@ class Application(MesosResource, PodMixin):
         kwargs['app_id'] = old_app.app_id
         return super().perform_update(old_id, **kwargs)
 
+    def _get_container_volume_users(self, volumes):
+        if not volumes:
+            return {}
+
+        c_volume_users = {}
+        for v in volumes:
+            vol = v['volume']
+            if v['type'] == 'configmap':
+                c_volume_users[f"{v['type']}:{v['name']}:{vol['hostPath']}:{vol['mountPath']}"] = 'root'
+            elif v['type'] == 'secret':
+                c_volume_users[f"{v['type']}:{v['name']}:{vol['hostPath']}:{vol['mountPath']}"] = 'user00'
+
+        return c_volume_users
+
+    def _set_default_volume_users(self, config):
+        volume_users = {}
+        containers = getitems(config, ['spec', 'template', 'spec', 'containers'], default=[])
+        for container in containers:
+            volumes = container.get('volumes', [])
+            volume_users[container['name']] = self._get_container_volume_users(volumes)
+
+        config['webCache']['volumeUsers'] = volume_users
+
     def get_res_config(self, is_simple):
         c = super().get_res_config(is_simple)
+
         if not is_simple:
+            # 兼容处理configmap和secret挂载卷时，指定账户
+            if 'volumeUsers' not in c['config']['webCache']:
+                self._set_default_volume_users(c['config'])
+
             c.update({
                 'desc': self.desc,
                 'app_id': self.app_id

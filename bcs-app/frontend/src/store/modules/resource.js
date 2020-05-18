@@ -10,6 +10,7 @@
  */
 
 import http from '@open/api'
+import { json2Query } from '@open/common/util'
 
 export default {
     namespaced: true,
@@ -59,8 +60,8 @@ export default {
          *
          * @return {Promise} promise 对象
          */
-        getConfigmapList (context, projectId, config = {}) {
-            return http.get(`${DEVOPS_BCS_API_URL}/api/resource/${projectId}/configmaps/`, {}, config).then(response => {
+        getConfigmapList (context, { projectId, params }, config = {}) {
+            return http.get(`${DEVOPS_BCS_API_URL}/api/resource/${projectId}/configmaps/?${json2Query(params)}`, {}, config).then(response => {
                 const res = response.data
                 res.data.forEach(item => {
                     if (item.data.metadata.labels) {
@@ -84,8 +85,8 @@ export default {
          *
          * @return {Promise} promise 对象
          */
-        getSecretList (context, projectId, config = {}) {
-            return http.get(`${DEVOPS_BCS_API_URL}/api/resource/${projectId}/secrets/`).then(response => {
+        getSecretList (context, { projectId, params }, config = {}) {
+            return http.get(`${DEVOPS_BCS_API_URL}/api/resource/${projectId}/secrets/?${json2Query(params)}`).then(response => {
                 const res = response.data
                 res.data.forEach(item => {
                     if (item.data.metadata.labels) {
@@ -101,9 +102,9 @@ export default {
         },
 
         // 获取Ingress 列表
-        getIngressList (context, projectId, config = {}) {
+        getIngressList (context, { projectId, params }, config = {}) {
             // return http.get('/app/resource?invoke=getIngressList', {}, config).then(response => {
-            return http.get(`${DEVOPS_BCS_API_URL}/api/resource/${projectId}/ingresses/`, {}, config).then(response => {
+            return http.get(`${DEVOPS_BCS_API_URL}/api/resource/${projectId}/ingresses/?${json2Query(params)}`, {}, config).then(response => {
                 const res = response.data
                 res.data.forEach(item => {
                     item.labels = []
@@ -279,8 +280,8 @@ export default {
          *
          * @return {Promise} promise 对象
          */
-        getMesosIngressList (context, projectId, config = {}) {
-            return http.get(`${DEVOPS_BCS_API_URL}/api/projects/${projectId}/mesos/ingresses/`, {}, config).then(res => {
+        getMesosIngressList (context, { projectId, params }, config = {}) {
+            return http.get(`${DEVOPS_BCS_API_URL}/api/projects/${projectId}/mesos/ingresses/?${json2Query(params)}`, {}, config).then(res => {
                 context.commit('updateIngressList', res.data)
                 return res
             })
