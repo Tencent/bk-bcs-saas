@@ -571,8 +571,8 @@ class ApplicationProfileGenerator(MesosProfileGenerator):
             remove_key(_c, "imageVersion")
             # 是否添加账号信息
             if self.check_image_secret():
-                _c['imagePullUser'] = f'secret::{MESOS_IMAGE_SECRET}||user'
-                _c['imagePullPasswd'] = f'secret::{MESOS_IMAGE_SECRET}||pwd'
+                _c['imagePullUser'] = _c.get('imagePullUser') or f'secret::{MESOS_IMAGE_SECRET}||user'
+                _c['imagePullPasswd'] = _c.get('imagePullPasswd') or f'secret::{MESOS_IMAGE_SECRET}||pwd'
             _c['image'] = generate_image_str(
                 _c.get('image'), self.context['SYS_JFROG_DOMAIN'], self.context['SYS_IMAGE_REGISTRY_LIST']
             )
@@ -1329,10 +1329,11 @@ class K8sDeploymentGenerator(K8sProfileGenerator):
             remove_key(pod_tem['metadata'], 'annotations')
 
         # 1.3 添加镜像的账号的 Secret
-        pod_spec['imagePullSecrets'] = [
-            {'name': "%s%s" % (K8S_IMAGE_SECRET_PRFIX,
-                               self.context['SYS_NAMESPACE'])}
-        ]
+        image_pull_secrets = getitems(db_config, ['spec', 'template', 'spec', 'imagePullSecrets'], [])
+        image_pull_secrets.append({
+            'name': f"{K8S_IMAGE_SECRET_PRFIX}{self.context['SYS_NAMESPACE']}"
+        })
+        pod_spec['imagePullSecrets'] = image_pull_secrets
 
         # 1.4 处理数字类型
         pod_spec['terminationGracePeriodSeconds'] = handle_number_var(
