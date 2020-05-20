@@ -27,7 +27,7 @@ from backend.apps.instance.constants import MESOS_IMAGE_SECRET, OLD_MESOS_IMAGE_
 logger = logging.getLogger(__name__)
 
 
-def delete(access_token, project_id, cluster_id, ns_name, namespace_id):
+def delete(access_token, project_id, cluster_id, ns_name):
     # 删除平台创建的secret，用于拉取image
     # TODO: 后续多次使用时，可以放置到resources中
     client = MesosClient(access_token, project_id, cluster_id, env=None)
