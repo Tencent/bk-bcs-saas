@@ -351,10 +351,11 @@
             :is-show.sync="delMesosNamespaceDialogConf.isShow"
             :width="delMesosNamespaceDialogConf.width"
             :close-icon="delMesosNamespaceDialogConf.closeIcon"
-            :ext-cls="'biz-namespace-del-dialog'"
+            :ext-cls="'biz-namespace-mesos-del-dialog'"
             :has-header="false"
             :has-footer="!delMesosNamespaceDialogConf.list.length"
-            :quick-close="false">
+            :quick-close="false"
+            @cancel="delMesosNamespaceCancel">
             <div slot="content" style="padding: 0 20px;">
                 <div class="title">
                     {{$t('删除命名空间')}}
@@ -475,7 +476,7 @@
                     isShow: false,
                     width: 650,
                     title: '',
-                    closeIcon: false,
+                    closeIcon: true,
                     ns: {},
                     loading: false,
                     list: []
