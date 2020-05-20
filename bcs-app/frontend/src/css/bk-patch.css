@@ -1187,3 +1187,11 @@
         color: #a6b5ca;
     }
 }
+
+.biz-namespace-mesos-del-dialog {
+    .bk-dialog-tool {
+        position: absolute;
+        top: 0;
+        right: 0;
+    }
+}

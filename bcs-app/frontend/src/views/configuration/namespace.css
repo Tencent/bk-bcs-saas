@@ -241,7 +241,8 @@
     }
 }
 
-.biz-namespace-del-dialog {
+.biz-namespace-del-dialog,
+.biz-namespace-mesos-del-dialog {
     .title {
         color: #333;
         font-size: 20px;
