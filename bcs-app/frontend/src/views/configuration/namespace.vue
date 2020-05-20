@@ -353,7 +353,7 @@
             :close-icon="delMesosNamespaceDialogConf.closeIcon"
             :ext-cls="'biz-namespace-mesos-del-dialog'"
             :has-header="false"
-            :has-footer="!delMesosNamespaceDialogConf.list.length"
+            :has-footer="delMesosNamespaceDialogConf.hasFooter"
             :quick-close="false"
             @cancel="delMesosNamespaceCancel">
             <div slot="content" style="padding: 0 20px;">
@@ -385,7 +385,7 @@
                 </div>
             </div>
             <template slot="footer">
-                <div class="bk-dialog-outer">
+                <div class="bk-dialog-outer" v-if="!delMesosNamespaceDialogConf.list.length">
                     <button type="button" class="bk-dialog-btn bk-dialog-btn-confirm bk-btn-primary"
                         @click="delMesosNamespaceConfirm">
                         {{$t('删除')}}
@@ -394,6 +394,7 @@
                         {{$t('取消')}}
                     </button>
                 </div>
+                <div class="bk-dialog-outer" v-else></div>
             </template>
         </bk-dialog>
     </div>
@@ -479,7 +480,8 @@
                     closeIcon: true,
                     ns: {},
                     loading: false,
-                    list: []
+                    list: [],
+                    hasFooter: false
                 }
             }
         },
@@ -1072,6 +1074,7 @@
                         }
                     })
                     this.delMesosNamespaceDialogConf.list.splice(0, this.delMesosNamespaceDialogConf.list.length, ...list)
+                    this.delMesosNamespaceDialogConf.hasFooter = !this.delMesosNamespaceDialogConf.list.length
 
                     setTimeout(() => {
                         this.delMesosNamespaceDialogConf.loading = false
@@ -1160,6 +1163,7 @@
                 setTimeout(() => {
                     this.delMesosNamespaceDialogConf.ns = Object.assign({}, {})
                     this.delMesosNamespaceDialogConf.list.splice(0, this.delMesosNamespaceDialogConf.list.length, ...[])
+                    this.delMesosNamespaceDialogConf.hasFooter = false
                 }, 300)
             },
 
