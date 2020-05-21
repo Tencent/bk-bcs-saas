@@ -672,7 +672,7 @@
                     this.timer = setTimeout(() => {
                         this.$emit('blur', event)
                     }, 200)
-                }, 300)
+                }, 0)
             },
             initSelectorPosition (currentTarget) {
                 if (currentTarget) {
