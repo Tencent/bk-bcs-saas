@@ -9,7 +9,7 @@
                         :style="{ width: `${keyInputWidth}px` }"
                         :value.sync="keyItem.key"
                         :list="varList"
-                        :disabled="(keyItem.disabled && !keyItem.linkMessage) || dataKey"
+                        :disabled="!!((keyItem.disabled && !keyItem.linkMessage) || dataKey)"
                         @input="valueChange"
                         @paste="pasteKey(keyItem, $event)">
                     </bk-input>
@@ -21,7 +21,7 @@
                         :placeholder="keyPlaceholder || $t('键')"
                         :style="{ width: `${keyInputWidth}px` }"
                         v-model="keyItem.key"
-                        :disabled="(keyItem.disabled && !keyItem.linkMessage) || dataKey"
+                        :disabled="!!((keyItem.disabled && !keyItem.linkMessage) || dataKey)"
                         @paste="pasteKey(keyItem, $event)"
                         @input="valueChange"
                     />

@@ -139,10 +139,33 @@
     text-overflow: ellipsis;
 }
 
-.bk-form-textarea.key-box {
-    max-height: 60px;
+.key-box-wrapper {
+    width: 320px;
+    position: relative;
+    padding-right: 20px;
+
+    .expand-btn {
+        position: absolute;
+        right: 0px;
+        bottom: 4px;
+        font-size: 12px;
+        color: #3c96ff;
+    }
+}
+
+.key-box {
+    width: 300px;
+    overflow: hidden;
+    white-space: nowrap;
     min-height: auto;
+    text-overflow: ellipsis;
     padding: 6px;
+    word-break: break-all;
+
+    &.expanded {
+        overflow: visible;
+        white-space: normal;
+    }
 }
 
 .bk-label {

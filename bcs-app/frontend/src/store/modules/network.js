@@ -769,7 +769,7 @@ export default {
         createCl5 (context, params, config = {}) {
             const projectId = params.projectId
             delete params.projectId
-            const url = `${DEVOPS_BCS_API_URL}/api/projects/${projectId}/bcs_crd/res_to_crd_ships/`
+            const url = `${DEVOPS_BCS_API_URL}/api/projects/${projectId}/bcs_crd/crds/`
             return http.post(url, params, config)
         }
     }
