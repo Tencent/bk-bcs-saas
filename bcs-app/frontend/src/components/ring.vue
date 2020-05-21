@@ -110,7 +110,7 @@
                     let curNum = this.realPercent
                     let change
                     this.timer = setInterval(() => {
-                        if (parseInt(curNum.toFixed(0), 10) !== parseInt(curTarget.toFixed(0), 10)) {
+                        if (parseInt(parseFloat(curNum).toFixed(0), 10) !== parseInt(parseFloat(curTarget).toFixed(0), 10)) {
                             if (curNum < curTarget) {
                                 change = ++curNum
                             } else if (curNum > curTarget) {
