@@ -154,10 +154,10 @@
                     </ace>
                 </div>
                 <div class="example-desc">
-                    <p>. 按上面的模板创建你的json文件，选择“文件导入”操作</p>
-                    <p>. scope值含义，global表示全局变量，cluster表示集群变量，namespace表示命名空间变量</p>
-                    <p>. cluster和namespace变量需要提供vars关键字，cluster变量的vars需要包含集群ID cluster_id和变量值 value</p>
-                    <p>. namespace变量的vars需要包含集群ID cluster_id、命名空间名称 namespace 和变量值 value</p>
+                    <p>. {{$t('按上面的模板创建你的json文件，选择“文件导入”操作')}}</p>
+                    <p>. {{$t('scope值含义，global表示全局变量，cluster表示集群变量，namespace表示命名空间变量')}}</p>
+                    <p>. {{$t('cluster和namespace变量需要提供vars关键字，cluster变量的vars需要包含集群ID cluster_id和变量值 value')}}</p>
+                    <p>. {{$t('namespace变量的vars需要包含集群ID cluster_id、命名空间名称 namespace 和变量值 value')}}</p>
                 </div>
             </div>
         </bk-sideslider>
@@ -387,7 +387,7 @@
                 exampleConf: {
                     width: 800,
                     isShow: false,
-                    title: '如何从文件导入变量？'
+                    title: this.$t('如何从文件导入变量？')
                 },
                 editorConfig: {
                     width: '100%',
@@ -1137,7 +1137,7 @@
                                 }).then(() => {
                                     self.$bkMessage({
                                         theme: 'success',
-                                        message: '批量导入成功'
+                                        message: this.$t('批量导入成功')
                                     })
                                     self.refresh()
                                 }).catch((e) => {

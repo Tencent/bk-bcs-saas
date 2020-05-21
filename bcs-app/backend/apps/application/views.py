@@ -325,7 +325,7 @@ class GetMusterTemplate(BaseMusterMetric):
         ret_data = {}
         for cluster_id, val in cluster_ns_inst.items():
             if val.get("deployment"):
-                flag, resp = self.get_application_deploy_info(
+                flag, resp = self.get_app_deploy_with_post(
                     request, project_id, cluster_id, ",".join(set(val["deployment"]["inst_list"])),
                     category=DEPLOYMENT_CATEGORY, project_kind=kind,
                     namespace=",".join(set(val["deployment"]["ns_list"])),
@@ -372,7 +372,7 @@ class GetMusterTemplate(BaseMusterMetric):
         for cluster_id, info in cluster_ns_inst.items():
             if not info.get("application"):
                 continue
-            flag, resp = self.get_application_deploy_status(
+            flag, resp = self.get_app_deploy_with_post(
                 request, project_id, cluster_id, ",".join(set(info["application"]["inst_list"])),
                 category=APPLICATION_CATEGORY, project_kind=kind,
                 namespace=",".join(set(info["application"]["ns_list"]))
@@ -393,7 +393,7 @@ class GetMusterTemplate(BaseMusterMetric):
         for cluster_id, info in cluster_ns_inst.items():
             if not info.get("deployment"):
                 continue
-            flag, resp = self.get_application_deploy_status(
+            flag, resp = self.get_app_deploy_with_post(
                 request, project_id, cluster_id, ",".join(set(info["deployment"]["inst_list"])),
                 category=DEPLOYMENT_CATEGORY, project_kind=kind,
                 namespace=",".join(set(info["deployment"]["ns_list"]))
@@ -822,7 +822,7 @@ class AppInstance(BaseMusterMetric):
         """
         ret_data = {}
         for cluster_id, info in query_info.items():
-            flag, resp = self.get_application_deploy_info(
+            flag, resp = self.get_app_deploy_with_post(
                 request, project_id, cluster_id, "",
                 category=DEPLOYMENT_CATEGORY, project_kind=kind,
                 field="data.application,data.application_ext,data.metadata"

@@ -241,7 +241,8 @@
     }
 }
 
-.biz-namespace-del-dialog {
+.biz-namespace-del-dialog,
+.biz-namespace-mesos-del-dialog {
     .title {
         color: #333;
         font-size: 20px;
@@ -251,5 +252,35 @@
         font-size: 14px;
         color: #333;
         font-weight: 700;
+    }
+    .res-list-container {
+        margin-top: 10px;
+        .res-list-key {
+            margin-bottom: 5px;
+            color: #333;
+        }
+    }
+    .res-list {
+        overflow: auto;
+        max-height: 200px;
+        li {
+            border: 1px solid #e5e5e5;
+            background: rgba(250, 251, 253, 1);
+            border-radius: 2px;
+            height: 26px;
+            line-height: 26px;
+            padding: 0 10px;
+            display: inline-block;
+            margin: 0 6px 6px 0;
+            float: left;
+            font-size: 13px;
+            color: rgba(99, 101, 110, 1);
+            font-weight: normal;
+            display: inline-block;
+            max-width: ;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
     }
 }

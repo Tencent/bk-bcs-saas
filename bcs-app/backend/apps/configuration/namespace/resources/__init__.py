@@ -26,7 +26,7 @@ class Namespace:
     def __init__(self, access_token, project_id, project_kind):
         self.access_token = access_token
         self.project_id = project_id
-        self.client = k8s if project_kind == ProjectKind.K8S.value else mesos
+        self.client = mesos if project_kind == ProjectKind.MESOS.value else k8s
 
     def delete(self, namespace_id):
         # namespace exist

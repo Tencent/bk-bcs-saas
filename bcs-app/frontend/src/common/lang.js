@@ -1172,6 +1172,14 @@ export default {
     '升级': ['Upgrade'],
     '确定要升级新版本': ['Confirm to Upgrade'],
     '升级大约需要 1~2 分钟，请勿重复提交；升级过程中 Prometheus 服务将会重启，数据无损失': ['Upgrade takes about 1 to 2 minutes and do not repeat submissions; Prometheus service will be restarted without losses'],
+
+    '按上面的模板创建你的json文件，选择“文件导入”操作': ['Create your json file according to the above template, select "file import" operation'],
+    'scope值含义，global表示全局变量，cluster表示集群变量，namespace表示命名空间变量': ['The meaning of scope value, global means global variable, cluster means cluster variable, and namespace means namespace variable'],
+    'cluster和namespace变量需要提供vars关键字，cluster变量的vars需要包含集群ID cluster_id和变量值 value': ['The cluster and namespace variables need to provide the vars keyword, and the vars of the cluster variable need to contain the cluster ID cluster_id and the variable value'],
+    'namespace变量的vars需要包含集群ID cluster_id、命名空间名称 namespace 和变量值 value': ['The vars of the namespace variable need to contain the cluster ID cluster_id, the namespace name namespace and the variable value'],
+    '如何从文件导入变量？': ['How to import variables from a file?'],
+    '批量导入成功': ['Batch import succeeded'],
+    '命名空间包含以下资源，请先删除资源，然后再删除命名空间': ['The namespace contains the following resources. Please delete the resource before deleting the namespace'],
     // 变量的使用 $t('test', { vari1: 1, vari2: 2 })
     'test': ['{vari1} ---english--- {vari2}']
 }

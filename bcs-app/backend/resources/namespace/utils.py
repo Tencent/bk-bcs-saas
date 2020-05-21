@@ -21,3 +21,18 @@ def get_namespaces(access_token, project_id):
     if resp.get('code') != ErrorCode.NoError:
         raise error_codes.APIError(f"get namespace error, {resp.get('message')}")
     return resp.get('data', {}).get('results', [])
+
+
+def get_namespace_by_id(access_token, project_id, namespace_id):
+    resp = paas_cc.get_namespace(access_token, project_id, namespace_id)
+    if resp.get('code') != ErrorCode.NoError:
+        raise error_codes.APIError(f"get namespace error, {resp.get('message')}")
+    return resp.get("data") or {}
+
+
+def get_namespaces_by_cluster_id(access_token, project_id, cluster_id):
+    resp = paas_cc.get_cluster_namespace_list(access_token, project_id, cluster_id, desire_all_data=True)
+    if resp.get('code') != ErrorCode.NoError:
+        raise error_codes.APIError(f"get namespace error, {resp.get('message')}")
+
+    return resp.get('data', {}).get('results', [])
