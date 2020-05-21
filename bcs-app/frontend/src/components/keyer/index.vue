@@ -6,10 +6,10 @@
                     <bk-input
                         type="text"
                         :placeholder="keyPlaceholder || $t('键')"
-                        style="width: 240px;"
+                        :style="{ width: `${keyInputWidth}px` }"
                         :value.sync="keyItem.key"
                         :list="varList"
-                        :disabled="keyItem.disabled && !keyItem.linkMessage"
+                        :disabled="(keyItem.disabled && !keyItem.linkMessage) || dataKey"
                         @input="valueChange"
                         @paste="pasteKey(keyItem, $event)">
                     </bk-input>
@@ -19,8 +19,9 @@
                         type="text"
                         class="bk-form-input"
                         :placeholder="keyPlaceholder || $t('键')"
+                        :style="{ width: `${keyInputWidth}px` }"
                         v-model="keyItem.key"
-                        :disabled="keyItem.disabled && !keyItem.linkMessage"
+                        :disabled="(keyItem.disabled && !keyItem.linkMessage) || dataKey"
                         @paste="pasteKey(keyItem, $event)"
                         @input="valueChange"
                     />
@@ -32,7 +33,7 @@
                     <bk-input
                         type="text"
                         :placeholder="valuePlaceholder || $t('值')"
-                        style="width: 240px;"
+                        :style="{ width: `${valueInputWidth}px` }"
                         :value.sync="keyItem.value"
                         :list="varList"
                         :disabled="keyItem.disabled && !keyItem.linkMessage"
@@ -45,6 +46,7 @@
                         type="text"
                         class="bk-form-input"
                         :placeholder="valuePlaceholder || $t('值')"
+                        :style="{ width: `${valueInputWidth}px` }"
                         v-model="keyItem.value"
                         @input="valueChange"
                         :disabled="keyItem.disabled && !keyItem.linkMessage"
@@ -106,6 +108,18 @@
             addToSelectorStr: {
                 type: String,
                 default: ''
+            },
+            dataKey: {
+                type: String,
+                default: ''
+            },
+            keyInputWidth: {
+                type: Number,
+                default: 240
+            },
+            valueInputWidth: {
+                type: Number,
+                default: 240
             }
         },
         data () {
@@ -128,7 +142,7 @@
         methods: {
             addKey () {
                 const params = {
-                    key: '',
+                    key: this.dataKey || '',
                     value: ''
                 }
                 if (this.isLinkToSelector) {
