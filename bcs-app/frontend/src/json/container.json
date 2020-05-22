@@ -5,8 +5,10 @@
     "args_text": "",
     "args": [],
     "workingDir": "",
-    "parameters": [
-    ],
+    "parameters": [],
+    "isAddImageSecrets": false,
+    "imagePullUser": "",
+    "imagePullPasswd": "",
     "logPathList": [],
     "parameter_list": [
         {
