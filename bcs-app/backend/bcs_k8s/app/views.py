@@ -880,10 +880,7 @@ class HowToPushHelmChartView(AccessTokenMixin, viewsets.GenericViewSet):
 
         base_url = request.build_absolute_uri()
         base_url = base_url.split("bcs/k8s")[0]
-        if not settings.HELM_HAS_ABILITY_SUPPLY_CHART_REPO_SERVICE:
-            repo_url = repo_info["url"]
-        else:
-            repo_url = f"http://{settings.PLATFORM_REPO_DOMAIN}/{settings.HELM_REPO_ENV}/{project_code}"
+        repo_url = repo_info["url"]
 
         context = {
             "project_id": project_id,
@@ -897,12 +894,6 @@ class HowToPushHelmChartView(AccessTokenMixin, viewsets.GenericViewSet):
             "helm_push_parameters": "",
             "rumpetroll_demo_url": settings.RUMPETROLL_DEMO_DOWNLOAD_URL
         }
-
-        if settings.HELM_HAS_ABILITY_SUPPLY_CHART_REPO_SERVICE:
-            context["helm_push_parameters"] = "--context-path=/{helm_env}/{project_code}".format(
-                helm_env=settings.HELM_REPO_ENV,
-                project_code=str(project_code)
-            )
 
         file_prefix = 'backend/bcs_k8s/app/documentation'
 
