@@ -159,6 +159,14 @@ export default {
                     }
 
                     item.config.spec.template.spec.containers.forEach(container => {
+                        // 增加镜像凭证，兼容旧数据
+                        if (container.imagePullUser && container.imagePullPasswd) {
+                            container.isAddImageSecrets = true
+                        } else {
+                            container.isAddImageSecrets = false
+                            container.imagePullUser = ''
+                            container.imagePullPasswd = ''
+                        }
                         if (!container.logListCache) {
                             container.logListCache = [
                                 {
