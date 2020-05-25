@@ -20,6 +20,7 @@ from django.conf import settings
 from rest_framework import response, serializers, viewsets
 from rest_framework.exceptions import ValidationError
 from django.utils.translation import ugettext_lazy as _
+from rest_framework.renderers import BrowsableAPIRenderer
 
 from .tasks import sync_namespace as sync_ns_task
 from .resources import Namespace
@@ -27,7 +28,7 @@ from backend.accounts import bcs_perm
 from backend.apps import constants
 from backend.apps.constants import K8S_SYS_NAMESPACE, ClusterType
 from backend.apps.depot.api import get_jfrog_account, get_bk_jfrog_auth
-from backend.apps.instance.constants import K8S_IMAGE_SECRET_PRFIX, MESOS_IMAGE_SECRET
+from backend.apps.instance.constants import K8S_IMAGE_SECRET_PRFIX, MESOS_IMAGE_SECRET, OLD_MESOS_IMAGE_SECRET
 from backend.apps.variable.models import NameSpaceVariable
 from backend.components import paas_cc
 from backend.components.bcs.k8s import K8SClient
@@ -39,6 +40,9 @@ from backend.activity_log import client
 from backend.apps.constants import ProjectKind
 from backend.apps.configuration.namespace.serializers import CreateNamespaceSLZ, UpdateNSVariableSLZ
 from backend.apps.whitelist_bk import enabled_sync_namespace
+from backend.apps.configuration.constants import MesosResourceName
+from backend.utils.renderers import BKAPIRenderer
+from backend.resources.namespace.utils import get_namespace_by_id
 
 logger = logging.getLogger(__name__)
 
@@ -70,7 +74,7 @@ class NamespaceBase:
             raise error_codes.ComponentError.f(
                 _("创建Namespace失败，{}").format(result.get('message')))
 
-    def create_jforg_secret(self, client, access_token, project_id, project_code, data):
+    def create_jfrog_secret(self, client, access_token, project_id, project_code, data):
         try:
             domain_list = paas_cc.get_jfrog_domain_list(
                 access_token, project_id, data['cluster_id'])
@@ -135,7 +139,7 @@ class NamespaceBase:
         # 创建 ns
         self.create_ns_by_bcs(client, name, data)
         # 创建 jfrog Sercret
-        self.create_jforg_secret(client, access_token,
+        self.create_jfrog_secret(client, access_token,
                                  project_id, project_code, data)
 
     def check_ns_image_secret(self, client, access_token, project_id, cluster_id, ns_name):
@@ -196,14 +200,14 @@ class NamespaceBase:
 
 
 class NamespaceView(NamespaceBase, viewsets.ViewSet):
+    renderer_classes = (BKAPIRenderer, BrowsableAPIRenderer)
+
     def get_ns(self, request, project_id, namespace_id):
         """获取单个命名空间的信息
         """
         access_token = request.user.token.access_token
-        result = paas_cc.get_namespace(access_token, project_id, namespace_id)
-        if result.get('code') != 0:
-            raise error_codes.APIError.f(result.get('message', ''))
-        return response.Response(result)
+        ns_info = get_namespace_by_id(access_token, project_id, namespace_id)
+        return response.Response(ns_info)
 
     def list(self, request, project_id):
         """命名空间列表
@@ -409,12 +413,65 @@ class NamespaceView(NamespaceBase, viewsets.ViewSet):
                 namespace_id, project_id)
         return response.Response(result)
 
-    def delete(self, request, project_id, namespace_id, is_validate_perm=True):
-        # NOTE: open mesos delete namespace, when mesos api ready
-        if request.project.kind == ProjectKind.MESOS.value:
-            raise error_codes.NotOpen('mesos api not ready')
+    def _compose_res_names(self, res_data):
+        res_names = {}
+        # 针对secret忽略平台创建的secret，单独处理
+        secret_data = res_data.pop(MesosResourceName.secret.value, [])
+        res_names[MesosResourceName.secret.value] = [
+            info["resourceName"]
+            for info in secret_data
+            if info.get("resourceName") and info["resourceName"] not in [MESOS_IMAGE_SECRET, OLD_MESOS_IMAGE_SECRET]]
 
+        for res, data in res_data.items():
+            res_names[res] = [info["resourceName"] for info in data if info.get("resourceName")]
+        return res_names
+
+    def _get_resources(self, request, project_id, namespace_id):
         access_token = request.user.token.access_token
+        # 查询namespace
+        ns_info = get_namespace_by_id(access_token, project_id, namespace_id)
+        client = MesosClient(access_token, project_id, ns_info["cluster_id"], env=None)
+        # 根据类型查询资源，如果有接口调用失败，先忽略
+        res_names = {}
+        ns_name = ns_info["name"]
+        # 请求bcs api，获取数据
+        deployment_resp = client.get_deployment(namespace=ns_name)
+        application_resp = client.get_mesos_app_instances(namespace=ns_name)
+        configmap_resp = client.get_configmaps(params={"namespace": ns_name})
+        service_resp = client.get_services(params={"namespace": ns_name})
+        secret_resp = client.get_secrets(params={"namespace": ns_name})
+
+        res_data = {
+            MesosResourceName.deployment.value: deployment_resp["data"],
+            MesosResourceName.application.value: application_resp["data"],
+            MesosResourceName.configmap.value: configmap_resp["data"],
+            MesosResourceName.service.value: service_resp["data"],
+            MesosResourceName.secret.value: secret_resp["data"]
+        }
+        res_names = self._compose_res_names(res_data)
+        return res_names
+
+    def get_ns_resources(self, request, project_id, namespace_id):
+        """针对mesos检查命名空间下的资源，主要包含
+        - deployment
+        - application
+        - configmap
+        - service
+        - secret
+        """
+        if request.project.kind != ProjectKind.MESOS.value:
+            raise ValidationError(_("仅支持mesos类型"))
+        res_names = self._get_resources(request, project_id, namespace_id)
+        return response.Response(res_names)
+
+    def delete(self, request, project_id, namespace_id, is_validate_perm=True):
+        access_token = request.user.token.access_token
+
+        # 针对mesos，需要删除完对应的资源才允许操作
+        if request.project.kind == ProjectKind.MESOS.value:
+            res_names = self._get_resources(request, project_id, namespace_id)
+            if [name for name_list in res_names.values() for name in name_list]:
+                raise error_codes.CheckFailed(_("请先删除命名空间下的资源"))
 
         # perm
         perm = bcs_perm.Namespace(request, project_id, namespace_id)

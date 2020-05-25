@@ -61,11 +61,29 @@ from backend.apps.instance.utils_pub import get_cluster_version
 from backend.apps.ticket.models import TlsCert
 from backend.apps.instance.resources.utils import handle_number_var
 from backend.apps.instance import constants as instance_constants
+from backend.utils.basic import getitems
 
 logger = logging.getLogger(__name__)
 HANDLED_NUM_VAR_PATTERN = re.compile(r"%s}" % NUM_VAR_PATTERN)
 mesos_res_mapping = OrderedDict()
 k8s_res_mapping = OrderedDict()
+
+
+def is_use_bcs_registry(origin_image, bcs_registry_list):
+    bcs_registry_list.append(settings.DEVOPS_ARTIFACTORY_HOST)
+    registry_list = [registry.split(':')[0] for registry in bcs_registry_list]
+    for r in registry_list:
+        if r in origin_image:
+            return True
+    return False
+
+
+def generate_image_str(origin_image, default_registry, bcs_registry_list):
+    if not is_use_bcs_registry(origin_image, bcs_registry_list):
+        return origin_image
+
+    image_url = urlparse(f'//{origin_image}')
+    return f'{default_registry}{image_url.path}'
 
 
 class ProfileGenerator:
@@ -126,18 +144,20 @@ class ProfileGenerator:
             name_list = str(self.resource_id).split(APPLICATION_ID_SEPARATOR)
             application_id = name_list[0]
             metric_id = name_list[1]
-            resourse_type = name_list[2]
+            resource_kind = name_list[2]
             self.metric_id = metric_id
-            return self.handle_db_config(application_id, metric_id, resourse_type)
+            return self.handle_db_config(
+                {'application_id': application_id, 'metric_id': metric_id, 'resource_kind': resource_kind}
+            )
         # Application 中非标准日志采集时默认的 configmap
         is_non_standard_log = True if str(self.resource_id).find(APPLICATION_ID_SEPARATOR) >= 0 else False
         if self.resource_name in ['configmap', 'K8sConfigMap'] and is_non_standard_log:
             name_list = str(self.resource_id).split(APPLICATION_ID_SEPARATOR)
             application_id = name_list[0]
             container_name = name_list[1]
-            resourse_type = name_list[2]
+            resource_kind = name_list[2]
             log_config = self.handle_application_log_config(
-                application_id, container_name, resourse_type)
+                application_id, container_name, resource_kind)
             return self.handle_db_config(log_config)
         # k8s ingress 生成的 secret
         is_k8s_ingress_srt = True if str(self.resource_id).find(INGRESS_ID_SEPARATOR) >= 0 else False
@@ -206,9 +226,12 @@ class ProfileGenerator:
         self.context['SYS_NAMESPACE'] = data.get('name')
         self.has_image_secret = data.get('has_image_secret')
         # 获取镜像地址
-        jfrog_domain = paas_cc.get_jfrog_domain(
+        self.context['SYS_JFROG_DOMAIN'] = paas_cc.get_jfrog_domain(
             self.access_token, self.project_id, self.context['SYS_CLUSTER_ID'])
-        self.context['SYS_JFROG_DOMAIN'] = jfrog_domain
+
+        self.context['SYS_IMAGE_REGISTRY_LIST'] = paas_cc.get_image_registry_list(
+            self.access_token, self.context['SYS_CLUSTER_ID']
+        )
 
         bcs_context = get_bcs_context(self.access_token, self.project_id)
         self.context.update(bcs_context)
@@ -256,21 +279,19 @@ class ProfileGenerator:
         config_profile = self.format_config_profile(config_profile)
         return config_profile
 
-    def handle_application_log_config(self, application_id, container_name, resourse_type):
+    def handle_application_log_config(self, application_id, container_name, resource_kind):
         """Application 中非标准日志采集
         """
         # 获取业务的 dataid
         cc_app_id = self.context['SYS_CC_APP_ID']
 
-        application = MODULE_DICT.get(resourse_type).objects.get(id=application_id)
+        application = MODULE_DICT.get(resource_kind).objects.get(id=application_id)
         self.resource_show_name = '%s-%s-%s' % (
             application.name, container_name, LOG_CONFIG_MAP_SUFFIX)
         # 从Application 中获取日志路径
         _item_config = application.get_config()
-        containers = _item_config.get('spec', {}).get(
-            'template', {}).get('spec', {}).get('containers', [])
-        init_containers = _item_config.get('spec', {}).get(
-            'template', {}).get('spec', {}).get('initContainers', [])
+        containers = getitems(_item_config, ['spec', 'template', 'spec', 'containers'], [])
+        init_containers = getitems(_item_config, ['spec', 'template', 'spec', 'initContainers'], [])
 
         log_path_list = []
         for con_list in [init_containers, containers]:
@@ -536,9 +557,7 @@ class ApplicationProfileGenerator(MesosProfileGenerator):
 
         # 2. 处理 containers 中的字段
         is_custom_log_path = False
-        containers = db_config.get('spec', {}).get(
-            'template', {}).get('spec', {}).get('containers', [])
-        jfrog_domain = self.context['SYS_JFROG_DOMAIN']
+        containers = getitems(db_config, ['spec', 'template', 'spec', 'containers'], [])
         for _c in containers:
             # 命令参数解析
             args_text = _c.get('args_text', '')
@@ -552,15 +571,11 @@ class ApplicationProfileGenerator(MesosProfileGenerator):
             remove_key(_c, "imageVersion")
             # 是否添加账号信息
             if self.check_image_secret():
-                _c['imagePullUser'] = 'secret::%s||user' % MESOS_IMAGE_SECRET
-                _c['imagePullPasswd'] = 'secret::%s||pwd' % MESOS_IMAGE_SECRET
-            # 2.0 处理镜像地址, 测试环境不处理
-            if (settings.DEPOT_STAG == 'prod') and jfrog_domain:
-                image = _c.get('image')
-                _image_url = '//%s' % image
-                _image_pares = urlparse(_image_url)
-                _image_path = _image_pares.path
-                _c['image'] = '%s%s' % (jfrog_domain, _image_path)
+                _c['imagePullUser'] = _c.get('imagePullUser') or f'secret::{MESOS_IMAGE_SECRET}||user'
+                _c['imagePullPasswd'] = _c.get('imagePullPasswd') or f'secret::{MESOS_IMAGE_SECRET}||pwd'
+            _c['image'] = generate_image_str(
+                _c.get('image'), self.context['SYS_JFROG_DOMAIN'], self.context['SYS_IMAGE_REGISTRY_LIST']
+            )
 
             # 2.1 处理 ports 中的字段
             ports = _c.get('ports')
@@ -802,9 +817,13 @@ class MetricProfileGenerator(ProfileGenerator):
     resource_name = "metric"
     resource_sys_config = {}
 
-    def handle_db_config(self, application_id, metric_id, resourse_type='application'):
+    def handle_db_config(self, db_config):
         """组装 metric 的配置文件
         """
+        application_id = db_config.get('application_id')
+        metric_id = db_config.get('metric_id')
+        resource_kind = db_config.get('resource_kind') or 'application'
+
         try:
             met = Metric.objects.get(id=metric_id)
         except Exception:
@@ -823,10 +842,10 @@ class MetricProfileGenerator(ProfileGenerator):
 
         try:
             application = MODULE_DICT.get(
-                resourse_type).objects.get(id=application_id)
+                resource_kind).objects.get(id=application_id)
         except Exception:
             raise ValidationError('{}[id:{}]:{}'.format(_("应用"), application_id, _("不存在")))
-        if resourse_type == 'application':
+        if resource_kind == 'application':
             app_config = application.get_config()
             app_config_new = handel_custom_network_mode(app_config)
             app_spec = app_config_new.get('spec', {}).get(
@@ -1310,10 +1329,11 @@ class K8sDeploymentGenerator(K8sProfileGenerator):
             remove_key(pod_tem['metadata'], 'annotations')
 
         # 1.3 添加镜像的账号的 Secret
-        pod_spec['imagePullSecrets'] = [
-            {'name': "%s%s" % (K8S_IMAGE_SECRET_PRFIX,
-                               self.context['SYS_NAMESPACE'])}
-        ]
+        image_pull_secrets = getitems(db_config, ['spec', 'template', 'spec', 'imagePullSecrets'], [])
+        image_pull_secrets.append({
+            'name': f"{K8S_IMAGE_SECRET_PRFIX}{self.context['SYS_NAMESPACE']}"
+        })
+        pod_spec['imagePullSecrets'] = image_pull_secrets
 
         # 1.4 处理数字类型
         pod_spec['terminationGracePeriodSeconds'] = handle_number_var(
@@ -1330,25 +1350,19 @@ class K8sDeploymentGenerator(K8sProfileGenerator):
 
         # 2. 处理container 中的数据
         # is_custom_log_path = False
-        containers = db_config.get('spec', {}).get(
-            'template', {}).get('spec', {}).get('containers', [])
-        init_containers = db_config.get('spec', {}).get(
-            'template', {}).get('spec', {}).get('initContainers', [])
+        containers = getitems(db_config, ['spec', 'template', 'spec', 'containers'], [])
+        init_containers = getitems(db_config, ['spec', 'template', 'spec', 'initContainers'], [])
 
-        jfrog_domain = self.context['SYS_JFROG_DOMAIN']
         log_volumes = []
 
         for con_list in [init_containers, containers]:
             for _c in con_list:
                 remove_key(_c, "imageVersion")
 
-                # 2.0 处理镜像地址, 测试环境不处理
-                if (settings.DEPOT_STAG == 'prod') and jfrog_domain:
-                    image = _c.get('image')
-                    _image_url = '//%s' % image
-                    _image_pares = urlparse(_image_url)
-                    _image_path = _image_pares.path
-                    _c['image'] = '%s%s' % (jfrog_domain, _image_path)
+                _c['image'] = generate_image_str(
+                    _c.get('image'), self.context['SYS_JFROG_DOMAIN'], self.context['SYS_IMAGE_REGISTRY_LIST']
+                )
+
                 # 2.1 启动命令和参数用 shellhex 命令处理为数组
                 args = _c.get('args')
                 args_list = shlex.split(args)

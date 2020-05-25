@@ -5,5 +5,7 @@ static/
 webpack_cache/
 src/components/diff/diffview.js
 src/components/diff/index.vue
+src/components/ace-editor
+src/components/bk-diff
 src/components/bk-magic/bk-magic-vue.js
 src/components/bk-magic/bk-magic-vue.min.js

@@ -163,8 +163,15 @@
                                 <tr v-for="(item, index) in curSecretKeyList" :key="index">
                                     <td>{{item.key}}</td>
                                     <td>
-                                        <textarea v-if="isShowKeyValue" readonly :title="item.value" class="bk-form-textarea  key-box" v-model="item.value"></textarea>
-                                        <span v-else>******</span>
+                                        <div class="key-box-wrapper">
+                                            <template v-if="isShowKeyValue">
+                                                <div :class="['key-box', { 'expanded': item.isExpanded }]">{{item.value}}</div>
+                                                <a href="javascript: void(0);" class="expand-btn" v-if="item.value.length > 40" @click="item.isExpanded = !item.isExpanded">{{item.isExpanded ? $t('收起') : $t('展开')}}</a>
+                                            </template>
+                                            <template v-else>
+                                                ******
+                                            </template>
+                                        </div>
                                     </td>
                                 </tr>
                             </template>
@@ -336,7 +343,8 @@
                 currentView: 'k8sService',
                 isBatchRemoving: false,
                 curSelectedData: [],
-                alreadySelectedNums: 0
+                alreadySelectedNums: 0,
+                curSecretKeyList: []
             }
         },
         computed: {
@@ -370,38 +378,6 @@
                     item.isChecked = false
                 })
                 return JSON.parse(JSON.stringify(list))
-            },
-            curSecretKeyList () {
-                if (this.curSecret) {
-                    const results = []
-                    let data = {}
-
-                    if (this.currentView === 'k8sService') {
-                        data = this.curSecret.data.data || {}
-
-                        const keys = Object.keys(data)
-                        keys.forEach(key => {
-                            results.push({
-                                key: key,
-                                value: data[key]
-                            })
-                        })
-                    } else {
-                        data = this.curSecret.data.datas || {}
-
-                        const keys = Object.keys(data)
-                        keys.forEach(key => {
-                            results.push({
-                                key: key,
-                                value: data[key].content
-                            })
-                        })
-                    }
-                    
-                    return results
-                } else {
-                    return []
-                }
             },
             varList () {
                 return this.$store.state.variable.varList
@@ -925,6 +901,42 @@
                 this.secretSlider.title = secret.resourceName
                 this.curSecret = secret
                 this.secretSlider.isShow = true
+                this.updateSecretList()
+            },
+
+            updateSecretList () {
+                if (this.curSecret) {
+                    const results = []
+                    let data = {}
+
+                    if (this.currentView === 'k8sService') {
+                        data = this.curSecret.data.data || {}
+
+                        const keys = Object.keys(data)
+                        keys.forEach(key => {
+                            results.push({
+                                isExpanded: false,
+                                key: key,
+                                value: data[key]
+                            })
+                        })
+                    } else {
+                        data = this.curSecret.data.datas || {}
+
+                        const keys = Object.keys(data)
+                        keys.forEach(key => {
+                            results.push({
+                                isExpanded: false,
+                                key: key,
+                                value: data[key].content
+                            })
+                        })
+                    }
+                    
+                    this.curSecretKeyList = results
+                } else {
+                    this.curSecretKeyList = []
+                }
             },
 
             showKeyValue () {

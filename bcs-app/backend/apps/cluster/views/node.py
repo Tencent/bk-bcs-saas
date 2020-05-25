@@ -18,6 +18,7 @@ import logging
 
 from rest_framework import response, viewsets
 from rest_framework.renderers import BrowsableAPIRenderer
+from rest_framework.exceptions import ValidationError
 from django.utils.translation import ugettext_lazy as _
 
 from backend.activity_log import client
@@ -41,6 +42,7 @@ from backend.apps.cluster import serializers as node_serializers
 from backend.utils.renderers import BKAPIRenderer
 from backend.apps.cluster.views_bk import node
 from backend.apps.cluster.views_bk.tools import cmdb, gse
+from backend.apps.cluster.views.utils import get_error_msg
 
 logger = logging.getLogger(__name__)
 
@@ -498,7 +500,11 @@ class CCHostListViewSet(NodeBase, NodeHandler, viewsets.ViewSet):
                 'project_name': project_name,
                 'cluster_name': cluster_name,
                 'cluster_id': cluster_id,
-                'is_used': used_status
+                'is_used': used_status,
+                # 添加是否docker机类型，docker机不允许使用
+                # 判断条件为，以`D`开头则为docker机
+                "is_valid": False if ip_info.get("DeviceClass", "").startswith("D") else True
+
             })
             if used_status:
                 used_node_list.append(ip_info)
@@ -562,27 +568,41 @@ class NodeUpdateLogView(NodeBase, viewsets.ModelViewSet):
             cluster_constants.NODE_FAILED_STATUS
         )
 
-    def get_log_data(self, logs, project_id, cluster_id):
+    def get_node_ip(self, access_token, project_id, cluster_id, node_id):
+        resp = paas_cc.get_node(access_token, project_id, node_id, cluster_id=cluster_id)
+        if resp.get("code") != ErrorCode.NoError:
+            logger.error("request paas cc node api error, %s", resp.get("message"))
+            return None
+        return resp.get("data", {}).get("inner_ip")
+
+    def get_log_data(self, request, logs, project_id, cluster_id, node_id):
         if not logs:
             return {'status': 'none'}
+        latest_log = logs[0]
+        status = self.get_display_status(latest_log.status)
         data = {
             'project_id': project_id,
             'cluster_id': cluster_id,
-            'status': self.get_display_status(logs[0].status),
-            'log': []
+            'status': status,
+            'log': [],
+            "task_url": latest_log.log_params.get("task_url") or "",
+            "error_msg_list": []
         }
         for info in logs:
-            data['task_url'] = info.log_params.get('task_url') or ''
             info.status = self.get_display_status(info.status)
             slz = node_serializers.NodeInstallLogSLZ(instance=info)
             data['log'].append(slz.data)
+        # 异常时，展示错误消息
+        if status == "failed":
+            node_ip = self.get_node_ip(request.user.token.access_token, project_id, cluster_id, node_id)
+            data["error_msg_list"] = get_error_msg(cluster_id, node_ip=node_ip)
         return data
 
     def get(self, request, project_id, cluster_id, node_id):
         self.can_view_cluster(request, project_id, cluster_id)
         # get log
         logs = self.get_queryset(project_id, cluster_id, node_id)
-        data = self.get_log_data(logs, project_id, cluster_id)
+        data = self.get_log_data(request, logs, project_id, cluster_id, node_id)
         return response.Response(data)
 
 
@@ -1051,19 +1071,16 @@ class NodeLabelListViewSet(NodeBase, NodeLabelBase, viewsets.ViewSet):
 class RescheduleNodePods(NodeBase, viewsets.ViewSet):
     renderer_classes = (BKAPIRenderer, BrowsableAPIRenderer)
 
-    def check_stop_scheduler(self, node_info):
+    def validate_node_status(self, node_info):
+        # NOTE: 需要注意，mesos not ready 状态需要list/watch功能上线后，支持
         if node_info.get('status') not in [
-                NodeStatus.ToRemoved, NodeStatus.Removable, NodeStatus.RemoveFailed]:
-            raise error_codes.CheckFailed('node must stop schedule')
-
-    def check_scheduling(self, node_info):
-        if node_info.get('status') in [CommonStatus.Scheduling, CommonStatus.Removing]:
-            raise error_codes.CheckFailed('node must stop schedule')
+                NodeStatus.ToRemoved, NodeStatus.Removable, NodeStatus.NotReady]:
+            raise ValidationError(_("节点必须为不可调度状态，请点击【停止调度】按钮！"))
 
     def reschedule_pods_taskgroups(self, request, project_id, cluster_id, node_info):
         project_kind = self.request.project['kind']
         driver = BaseDriver(project_kind).driver(request, project_id, cluster_id)
-        driver.reschedule_host_pods(node_info['inner_ip'])
+        driver.reschedule_host_pods(node_info['inner_ip'], raise_exception=False)
 
     def put(self, request, project_id, cluster_id, node_id):
         """重新调度节点上的POD or Taskgroup
@@ -1075,12 +1092,11 @@ class RescheduleNodePods(NodeBase, viewsets.ViewSet):
         """
         self.can_edit_cluster(request, project_id, cluster_id)
         node_info = self.get_node_by_id(request, project_id, cluster_id, node_id)
-        # node must be not scheduler
-        self.check_stop_scheduler(node_info)
-        self.check_scheduling(node_info)
-        project_name = request.project['project_name']
-        inner_ip = node_info['inner_ip']
-        log_desc = f'project: {project_name}, cluster: {cluster_id}, node: {inner_ip}, reschedule pods'
+        # 检查节点状态，节点必须处于停止调度状态
+        self.validate_node_status(node_info)
+        project_name = request.project.project_name
+        inner_ip = node_info["inner_ip"]
+        log_desc = f"project: {project_name}, cluster: {cluster_id}, node: {inner_ip}, reschedule pods"
         with client.ContextActivityLogClient(
             project_id=project_id,
             user=request.user.username,

@@ -1,0 +1,146 @@
+@import '@open/css/mixins/scroller.css';
+@import '@open/css/mixins/ellipsis.css';
+
+.biz-templateset-action {
+    font-size: 22px;
+    color: #737987;
+    float: right;
+    margin: 12px 20px 0 0;
+
+    >a {
+        display: inline-block;
+        color: #737987;
+        margin-right: 5px;
+
+        &:hover {
+            color: #3c96ff;
+        }
+
+        &.is-disabled {
+            color: #ccc;
+            cursor: not-allowed;
+        }
+    }
+
+}
+
+.biz-lock-box {
+    width: 100%;
+    position: absolute;
+    top: 60px;
+    left: 0;
+    text-align: left;
+
+    .lock-wrapper {
+        background-color: #F0F8FF;
+        border: 1px solid #A3C5FD;
+        border-radius: 2px;
+        height: 36px;
+        line-height: 36px;
+        font-size: 12px;
+        color: #63656E;
+        padding: 0 12px;
+        margin: 20px;
+
+        &.warning {
+            border-color: #FFB848;
+            background-color: #FFF4E2;
+
+            .bk-icon {
+                color: #FFB848;
+            }
+        }
+    }
+
+    .bk-icon {
+        color: #3A84FF;
+        font-size: 14px;
+        margin-right: 3px;
+    }
+
+    .desc {
+        font-weight: normal;
+        color: #63656E;
+    }
+
+    .action {
+        float: right;
+    }
+}
+
+.biz-data-table {
+    border: 1px solid #dde4eb;
+    margin-bottom: 25px;
+}
+
+.biz-data-table>thead>tr>th {
+    background: #fafbfd;
+}
+
+.biz-data-table>thead>tr>th,
+.biz-data-table>thead>tr>td,
+.biz-data-table>tbody>tr>th,
+.biz-data-table>tbody>tr>td {
+    height: 42px;
+    padding: 10px 20px;
+}
+
+.version-box {
+    text-align: left;
+    padding: 5px 15px;
+
+    .title {
+        text-align: left;
+        font-size: 14px;
+        margin: 0;
+        font-weight: bold;
+        color: #737987;
+        margin-bottom: 10px;
+    }
+
+    .active {
+        color: #c3cdd7;
+    }
+
+    ul {
+        border: 1px solid #dde4eb;
+        border-radius: 2px;
+        background: #fafbfd;
+        margin-top: 2px;
+        padding: 10px;
+        @mixin scroller;
+    }
+
+    .empty {
+        line-height: 200px;
+        color: #737987;
+        font-size: 14px;
+        text-align: center;
+
+        .name {
+            max-width: 100px;
+            line-height: 1;
+            @mixin ellipsis;
+            display: inline-block;
+        }
+    }
+
+    .create {
+        font-size: 14px;
+        color: #3c96ff;
+        margin: 15px;
+    }
+
+    .item {
+        line-height: 40px;
+        padding: 0 15px;
+        cursor: pointer;
+        color: #737987;
+        font-size: 14px;
+        position: relative;
+
+        .bk-icon {
+            display: none;
+        }
+    }
+}

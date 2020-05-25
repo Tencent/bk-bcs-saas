@@ -1195,3 +1195,9 @@ def _template_with_bcs_renderer(client, files, name, namespace, ns_id, parameter
         version=version
     )
     return content, notes
+
+
+class FilterNamespacesSLZ(serializers.Serializer):
+    filter_use_perm = serializers.BooleanField(default=True)
+    cluster_id = serializers.CharField(required=False)
+    chart_id = serializers.IntegerField(required=False)

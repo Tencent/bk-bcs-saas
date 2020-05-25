@@ -261,7 +261,7 @@ class Services(viewsets.ViewSet, BaseAPI):
             project_id=project_id, edit_mode=TemplateEditMode.PageForm.value
         ).values_list('id', flat=True)
         all_template_id_list = [str(template_id) for template_id in all_template_id_list]
-        skip_namespace_list = constants.K8S_SYS_NAMESPACE
+        skip_namespace_list = list(constants.K8S_SYS_NAMESPACE)
         skip_namespace_list.extend(constants.K8S_PLAT_NAMESPACE)
 
         extended_routes = {}

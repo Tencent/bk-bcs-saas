@@ -396,42 +396,62 @@
                                     </div>
                                 </div>
                                 <div class="bk-form-item is-required">
-                                    <label class="bk-label" style="width: 105px;">镜像及版本：</label>
+                                    <label class="bk-label" style="width: 105px;">{{$t('镜像及版本')}}：</label>
                                     <div class="bk-form-content" style="margin-left: 105px;">
-                                        <div class="bk-dropdown-box" style="width: 255px;" @click="initImageList">
+                                        <div class="bk-dropdown-box" style="width: 305px;">
                                             <bk-input
+                                                style="width: 250px;"
                                                 type="text"
-                                                placeholder="镜像"
+                                                :placeholder="$t('镜像')"
                                                 :display-key="'_name'"
                                                 :setting-key="'_id'"
                                                 :search-key="'_name'"
                                                 :value.sync="curContainer.imageName"
                                                 :list="varList"
                                                 :is-link="true"
+                                                :is-custom="true"
                                                 :is-select-mode="true"
                                                 :default-list="imageList"
-                                                @item-selected="changeImage(...arguments, curContainer)">
+                                                @item-selected="changeImage(...arguments, curContainer)"
+                                                @item-customed="handleImageCustom">
                                             </bk-input>
+                                            <button class="bk-button bk-default is-outline is-icon" v-bktooltips.top="$t('刷新镜像列表')" @click="initImageList">
+                                                <div class="bk-spin-loading bk-spin-loading-mini bk-spin-loading-default" style="margin-top: -3px;" v-if="isLoadingImageList">
+                                                    <div class="rotate rotate1"></div>
+                                                    <div class="rotate rotate2"></div>
+                                                    <div class="rotate rotate3"></div>
+                                                    <div class="rotate rotate4"></div>
+                                                    <div class="rotate rotate5"></div>
+                                                    <div class="rotate rotate6"></div>
+                                                    <div class="rotate rotate7"></div>
+                                                    <div class="rotate rotate8"></div>
+                                                </div>
+                                                <i class="bk-icon icon-refresh" v-else></i>
+                                            </button>
                                         </div>
                                         <div class="bk-dropdown-box" style="width: 221px;">
                                             <bk-input
+                                                ref="imageVersion"
                                                 type="text"
-                                                placeholder="版本号"
+                                                :placeholder="$t('版本号1')"
                                                 :display-key="'_name'"
                                                 :setting-key="'_id'"
                                                 :search-key="'_name'"
                                                 :value.sync="curContainer.imageVersion"
                                                 :list="varList"
                                                 :is-select-mode="true"
+                                                :is-custom="true"
+                                                :key="renderVersionIndex"
                                                 :default-list="imageVersionList"
                                                 :disabled="!curContainer.imageName"
-                                                @item-selected="setImageVersion">
+                                                @item-selected="setImageVersion"
+                                                @item-customed="handleVersionCustom">
                                             </bk-input>
                                         </div>
 
                                         <label class="bk-form-checkbox" style="margin-left: 10px;">
                                             <input type="checkbox" name="image-get" value="Always" v-model="isAlwayCheckImage" @click="changeImagePullPolicy">
-                                            <i class="bk-checkbox-text">总是在创建之前拉取镜像</i>
+                                            <i class="bk-checkbox-text">{{$t('总是在创建之前拉取镜像')}}</i>
                                         </label>
                                     </div>
                                 </div>
@@ -1135,6 +1155,7 @@
         data () {
             return {
                 isTabChanging: false,
+                renderVersionIndex: 0,
                 imagePublish: '',
                 curImageData: {},
                 winHeight: 0,
@@ -1151,7 +1172,7 @@
                 isEditDesc: false,
                 appParamKeys: [],
                 keyList: [],
-                isLoadingImageList: true,
+                isLoadingImageList: false,
                 applicationJsonCache: null,
                 toJsonDialogConf: {
                     isShow: false,
@@ -3112,8 +3133,41 @@
                         this.curContainer.imageVersion = value
                         this.curContainer.image = `${DEVOPS_ARTIFACTORY_HOST}/${projectCode}/${imageName}:${value}`
                     }
+                } else if (this.curContainer.imageName) {
+                    this.curContainer.image = `${this.curContainer.imageName}:${value}`
+                    console.log('镜像是自定义，版本是变量', this.curContainer.image)
                 }
             },
+            handleImageCustom () {
+                this.$nextTick(() => {
+                    const imageName = this.curContainer.imageName
+                    const matcher = this.imageList.find(image => image._name === imageName)
+                    this.imageVersionList = []
+                    this.curContainer.imageVersion = ''
+                    this.$refs.imageVersion.clearDefaultList()
+                    if (matcher) {
+                        this.changeImage(matcher._id, matcher)
+                    } else {
+                        this.curImageData = {}
+                    }
+                })
+            },
+
+            handleVersionCustom () {
+                this.$nextTick(() => {
+                    const versionName = this.curContainer.imageVersion
+                    const matcher = this.imageVersionList.find(version => version._name === versionName)
+                    if (matcher) {
+                        this.setImageVersion(matcher._id, matcher)
+                    } else {
+                        const imageName = this.curContainer.imageName
+                        const version = this.curContainer.imageVersion
+                        this.curContainer.image = `${imageName}:${version}`
+                        console.log('自定义', this.curContainer.image)
+                    }
+                })
+            },
+
             changeImage (value, data, isInitTrigger) {
                 const projectId = this.projectId
                 const imageId = data.value
@@ -3128,6 +3182,7 @@
                             item._name = item.text
                         })
                         this.imageVersionList.splice(0, this.imageVersionList.length, ...data)
+                        this.renderVersionIndex++
                         // 非首次关联触发，默认选择第一项或清空
                         if (isInitTrigger) return
 

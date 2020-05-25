@@ -86,20 +86,20 @@ def sync_helm_repo(repo_id, force=False):
 
 
 def _update_default_chart_version(chart, full_chart_versions):
-    # sort all chart version by field `version` return the latest one
-    # ['1.0.1', '1.0.3', '1.0.2'] => '1.0.3'
-    # if not versions, don't save chart
+    """更新chart对应的默认版本信息
+    """
     if not full_chart_versions:
         return
+    # 以created逆序
+    all_versions = list(full_chart_versions.values())
+    all_versions.sort(key=lambda info: info.created, reverse=True)
 
-    all_versions = [(cv.version, cv) for cv in full_chart_versions.values()]
-    # sort reference: https://semver.org/lang/zh-CN/
-    # https://stackoverflow.com/questions/2574080/sorting-a-list-of-dot-separated-numbers-like-software-versions
-    all_versions = natsorted(all_versions, key=lambda x: x[0])
-    _, cv = all_versions[-1]
-
-    chart.defaultChartVersion = cv
-    chart.description = cv.description
+    # 如果latest_chart_version和先前的版本一致，则无需更新
+    latest_chart_version = all_versions[0]
+    if chart.defaultChartVersion and (chart.defaultChartVersion.version == latest_chart_version.version):
+        return
+    chart.defaultChartVersion = latest_chart_version
+    chart.description = latest_chart_version.description
     chart.save()
 
 
@@ -208,7 +208,7 @@ def _do_helm_repo_charts_update(repo, sign, charts, index_hash, force=False):
         to_delete_ids = set(old_chart_versions.keys()) - set(current_chart_version_ids)
         _sync_delete_chart_versions(chart, old_chart_versions, full_chart_versions, to_delete_ids)
 
-        # update chart.DefaultChartVersion if the target cv been deleted
+        # 更新chart默认版本为最新推送的chart版本
         _update_default_chart_version(chart, full_chart_versions)
 
     # sync chart

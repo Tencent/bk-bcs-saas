@@ -15,19 +15,32 @@ import base64
 import logging
 
 from django.conf import settings
+from django.utils.translation import ugettext_lazy as _
 
 from backend.components import paas_cc
 from backend.components.bcs.mesos import MesosClient
 from backend.utils.error_codes import error_codes
 from backend.utils.errcodes import ErrorCode
 from backend.apps.depot.api import get_jfrog_account
-from backend.apps.instance.constants import MESOS_IMAGE_SECRET
+from backend.apps.instance.constants import MESOS_IMAGE_SECRET, OLD_MESOS_IMAGE_SECRET
 
 logger = logging.getLogger(__name__)
 
 
 def delete(access_token, project_id, cluster_id, ns_name):
-    pass
+    # 删除平台创建的secret，用于拉取image
+    # TODO: 后续多次使用时，可以放置到resources中
+    client = MesosClient(access_token, project_id, cluster_id, env=None)
+    # 兼容ZK和etcd存储的不同的secret名称
+    for secret_name in [MESOS_IMAGE_SECRET, OLD_MESOS_IMAGE_SECRET]:
+        resp = client.delete_secret(ns_name, secret_name)
+        if resp.get("code") == ErrorCode.NoError:
+            continue
+        msg = resp.get("message") or ""
+        # TODO: 现阶段只能通过message判断secret不存在，并且忽略不存在的情况
+        if ("not found" in msg) or ("not exist" in msg):
+            continue
+        raise error_codes.APIError(_("删除secret异常，{}").format(msg))
 
 
 def get_namespace(access_token, project_id, cluster_id):

@@ -74,10 +74,12 @@ class UserActivityLogClient(object):
             yield self
         except Exception as err:
             activity_status = "error"
-            if not self.update_log(activity_status=activity_status):
+            description = str(err)
+            if not self.update_log(activity_status=activity_status, description=description):
                 self.log_note(
                     user="system",
                     activity_status=activity_status,
+                    description=description
                 )
             raise err
 

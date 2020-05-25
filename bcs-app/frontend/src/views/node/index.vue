@@ -1340,7 +1340,7 @@
 
                 const nodeIdList = []
 
-                if (this.curRowNode) {
+                if (this.curRowNode && Object.keys(this.curRowNode).length) {
                     nodeIdList.push(this.curRowNode.id)
                 } else {
                     if (this.checkedNodeList.length) {
