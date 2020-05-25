@@ -17,17 +17,14 @@ from django.utils.translation import ugettext_lazy as _
 from backend.components import paas_cc, bcs
 from backend.utils.errcodes import ErrorCode
 from backend.utils.error_codes import error_codes
+from backend.resources.namespace.utils import get_namespaces
 
 
 def get_project_namespaces(access_token, project_id):
-    resp = paas_cc.get_namespace_list(access_token, project_id, desire_all_data=True)
-    if resp.get("code") != ErrorCode.NoError:
-        raise error_codes.APIError(_("获取项目下命名空间失败，{}").format(resp.get("message")))
-    data = resp.get("data") or {}
-    results = data.get("results") or {}
-    if not results:
+    namespace_list = get_namespaces(access_token, project_id)
+    if not namespace_list:
         raise error_codes.APIError(_("获取项目命名空间信息为空"))
-    return results
+    return namespace_list
 
 
 def delete_pods(access_token, project_id, pod_names):

@@ -148,11 +148,11 @@ class ReschedulePodsViewSet(InstanceAPI, viewsets.ViewSet):
             ns_perm = bcs_perm.Namespace(request, project_id, ns_id)
             ns_perm.can_use(raise_exception=True)
 
-    def _get_pod_names(self, request, project_id, data):
+    def _get_pod_names(self, request, project_id, resource_list):
         """通过应用名称获取相应的
         """
         pod_names = {}
-        for info in data:
+        for info in resource_list:
             cluster_id = info["cluster_id"]
             namespace = info["namespace"]
             resource_kind = info["resource_kind"]
