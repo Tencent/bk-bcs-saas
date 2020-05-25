@@ -247,7 +247,7 @@ urlpatterns = [
         operation.RollbackPreviousVersion.as_view({'put': 'update'})
     ),
     url(
-        r'^api/projects/(?P<project_id>\w{32})/resources/recreate/$',
+        r'^api/projects/(?P<project_id>\w{32})/pods/reschedule/$',
         operation.ReschedulePodsViewSet.as_view({'put': 'reschedule_pods'})
     )
 ]
