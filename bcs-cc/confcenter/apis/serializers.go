@@ -231,7 +231,7 @@ type createClusterDataJSON struct {
 	NeedNAT         bool               `json:"need_nat"`
 	NotNeedNAT      bool               `json:"not_need_nat"`
 	ExtraClusterID  string             `json:"extra_cluster_id"`
-	Source          string             `json:"source"`
+	State           string             `json:"state"`
 }
 
 /* cluster end*/

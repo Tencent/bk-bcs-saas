@@ -144,11 +144,11 @@ class ClusterStatusName(ChoicesEnum):
     removed = _("已删除")
 
 
-class ClusterSource(ChoicesEnum):
-    BCSPlatform = "bcs_platform"
-    Other = "other"
+class ClusterState(ChoicesEnum):
+    BCSNew = "bcs_new"
+    Existing = "existing"
 
     _choices_labels = (
-        (BCSPlatform, "bcs_platform"),
-        (Other, "other")
+        (BCSNew, "bcs_new"),
+        (Existing, "existing")
     )

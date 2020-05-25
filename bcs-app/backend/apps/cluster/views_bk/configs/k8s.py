@@ -59,7 +59,7 @@ class ClusterConfig(object):
 
         return masters, etcdpeers, clusters
 
-    def _get_common_vars(self, cluster_id, masters, etcdpeers, clusters, cluster_source):
+    def _get_common_vars(self, cluster_id, masters, etcdpeers, clusters, cluster_state):
         self.k8s_config['common'].update(
             {
                 'cluster_id': cluster_id,
@@ -72,7 +72,7 @@ class ClusterConfig(object):
             }
         )
 
-        if cluster_source == constants.ClusterSource.BCSPlatform.value:
+        if cluster_state == constants.ClusterState.BCSNew.value:
             return
         # NOTE: 针对非bcs平台创建集群，配置中common支持websvr，这里websvr是字符串
         web_svr = self.k8s_config.get("websvr")
@@ -105,8 +105,8 @@ class ClusterConfig(object):
     def _get_etcd_vars(self, etcd_legal_host):
         self.k8s_config['etcd'].update({'legal_hosts': etcd_legal_host})
 
-    def _add_kube_agent_vars(self, cluster_id, params):
-        if params.get("cluster_source") == constants.ClusterSource.BCSPlatform.value:
+    def _add_kube_agent_config(self, cluster_id, params):
+        if params.get("cluster_state") == constants.ClusterState.BCSNew.value:
             return
         # get bcs agent info
         bcs_client = BCSClusterClient(
@@ -137,17 +137,17 @@ class ClusterConfig(object):
             "register_cluster_id": bcs_cluster_data["bcs_cluster_id"]
         })
 
-    def get_request_config(self, cluster_id, master_ips, need_nat=True, params=None):
+    def get_request_config(self, cluster_id, master_ips, need_nat=True, **kwargs):
         # 获取master和etcd ip列表
         kube_master_list, etcd_list = self._split_ip_by_role(master_ips)
         # 组装name: ip map
         masters, etcdpeers, clusters = self._get_clusters_vars(cluster_id, kube_master_list, etcd_list)
         # 更新组装参数
-        self._get_common_vars(cluster_id, masters, etcdpeers, clusters, params.get("cluster_source"))
+        self._get_common_vars(cluster_id, masters, etcdpeers, clusters, kwargs.get("cluster_state"))
         master_legal_host, etcd_legal_host = list(masters.keys()), list(etcdpeers.keys())
         self._get_node_vars(master_legal_host)
         self._get_etcd_vars(etcd_legal_host)
-        self._add_kube_agent_vars(cluster_id, params)
+        self._add_kube_agent_config(cluster_id, kwargs)
 
         return self.k8s_config
 

@@ -78,16 +78,16 @@ class BaseCluster:
         self.get_cluster_base_config(cluster_id, version=version, environment=environment)
 
         client = kind_type_map[self.kind_name](self.config, self.area_info, cluster_name=self.cluster_name)
-        params = {
+        kwargs = {
             "access_token": self.access_token,
             "project_id": self.project_id,
-            "cluster_source": self.data["cluster_source"]
+            "cluster_state": self.data["cluster_state"]
         }
         return client.get_request_config(
             cluster_id,
             self.data['master_ips'],
             need_nat=self.data['need_nat'],
-            params=params
+            **kwargs
         )
 
     def save_snapshot(self, cluster_id, config):
@@ -106,12 +106,12 @@ class BaseCluster:
         log_params['task_url'] = data.get('task_url') or ''
         log.set_params(log_params)
 
-    def get_ops_platform(self, cluster_source):
-        """根据ops限制
+    def get_ops_backend(self, cluster_state):
+        """根据集群state获取ops对应的backend
         - 通过bcs创建集群: gcloud_v3
         - 导入已存在集群: gcloud_v3_contain
         """
-        if cluster_source == constants.ClusterSource.BCSPlatform.value:
+        if cluster_state == constants.ClusterState.BCSNew.value:
             return "gcloud_v3"
         return "gcloud_v3_contain"
 
@@ -164,7 +164,7 @@ class BaseCluster:
             is_polling=True
         )
 
-        platform = self.get_ops_platform(self.data["cluster_source"])
+        platform = self.get_ops_backend(self.data["cluster_state"])
         try:
             task_info = ops.create_cluster(
                 self.access_token, self.project_id,
@@ -292,7 +292,7 @@ class CreateCluster(BaseCluster):
             {'inner_ip': ip}
             for ip in self.data['master_ips']
         ]
-        cluster_data["source"] = cluster_data["cluster_source"]
+        cluster_data["state"] = cluster_data["cluster_state"]
         self.cluster_name = self.data['name']
         # 创建set
         with client.ContextActivityLogClient(
@@ -390,7 +390,7 @@ class ReinstallCluster(BaseCluster):
                 'environment': params['environment'],
                 'cluster_id': self.cluster_id,
                 'name': params['cluster_name'],
-                "cluster_source": data.get("source") or constants.ClusterSource.BCSPlatform.value
+                "cluster_state": data.get("state") or constants.ClusterState.BCSNew.value
             }
             self.cluster_name = params['cluster_name']
             self.kind_name = params['kind_name']
