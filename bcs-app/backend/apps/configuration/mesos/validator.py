@@ -56,7 +56,7 @@ def validate_res_duplicate(containers, category):
     err_msg_list = []
     for res_name, container_names in res_containers_map.items():
         if len(res_containers_map[res_name]) > 1:
-            err_msg_list.append(_("{res_name}: 在容器 {} 中重复").format(','.join(container_names)))
+            err_msg_list.append(_("{}: 在容器 {} 中重复").format(res_name, ','.join(container_names)))
 
     if err_msg_list:
         raise ValidationError(';'.join(err_msg_list))

@@ -2040,7 +2040,6 @@ div.jsoneditor {
         }
 
         .content-trigger-wrapper {
-            @mixin clearfix;
             font-size: 14px;
             position: relative;
 
@@ -2092,6 +2091,7 @@ div.jsoneditor {
                 line-height: 40px;
                 text-align: center;
                 right: 0;
+                border-left: 1px solid #eee;
 
                 &.active {
                     color: $primaryColor;
@@ -2254,7 +2254,7 @@ div.jsoneditor {
                 }
 
                 .candidate-namespace-name {
-                    @mixin ellipsis 120px;
+                    @mixin ellipsis 115px;
                     user-select: none;
                     overflow: hidden;
                     text-overflow: ellipsis;
@@ -2276,7 +2276,7 @@ div.jsoneditor {
         }
 
         .left-area {
-            width: 782px;
+            width: 775px;
             padding: 0 15px;
             border-right: 1px solid $borderWeightColor;
             height: 40px;

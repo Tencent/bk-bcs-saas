@@ -962,7 +962,7 @@
                 })
 
                 this.HPAs.forEach(async (HPA) => {
-                    const result = await this.formatHPAsData(HPA)
+                    const result = await this.formatHPAData(HPA)
                     HPAs.push(result)
                 })
 
@@ -976,7 +976,7 @@
                         K8sJob: jobs,
                         K8sStatefulSet: statefulsets,
                         K8sIngress: ingresss,
-                        k8sHPAs: HPAs
+                        K8sHPA: HPAs
                     }
                 }
 
@@ -1303,15 +1303,15 @@
                 if (data.name === this.curTemplate.name && data.desc === this.curTemplate.desc) {
                     this.isEditName = false
                     this.isEditDesc = false
-                    return false
+                    return true
                 }
 
-                if (templateId) {
+                if (templateId && String(templateId) !== '0') {
                     try {
-                        const res = await this.$store.dispatch('k8sTemplate/updateTemplate', { projectId, templateId, data })
-                        const datas = res.data
-                        this.curTemplate = datas
-                        this.$store.commit('k8sTemplate/updateCurTemplate', datas)
+                        await this.$store.dispatch('k8sTemplate/updateTemplate', { projectId, templateId, data })
+                        // const params = res.data
+                        // this.curTemplate = params
+                        this.$store.commit('k8sTemplate/updateCurTemplate', data)
                         this.isEditName = false
                         this.isEditDesc = false
 
@@ -1336,6 +1336,7 @@
                     this.isEditName = false
                     this.isEditDesc = false
                 }
+                return true
             },
             reloadTemplateLockStatus () {
                 const templateId = this.curTemplateId
@@ -1371,23 +1372,26 @@
                     this.isTemplateLoading = false
                     callback(data)
                 } else if (this.curTemplateId === 0 || this.curTemplateId === '0') {
-                    const templateParams = {
-                        id: 0,
-                        name: '模板集_' + (+new Date()),
-                        desc: '模板集描述',
-                        is_locked: false,
-                        locker: '',
-                        permissions: {
-                            create: true,
-                            delete: true,
-                            list: true,
-                            view: true,
-                            edit: true,
-                            use: true
+                    if (!this.curTemplate.name) {
+                        const templateParams = {
+                            id: 0,
+                            name: this.$t('模板集_') + (+new Date()),
+                            desc: this.$t('模板集描述'),
+                            is_locked: false,
+                            locker: '',
+                            permissions: {
+                                create: true,
+                                delete: true,
+                                list: true,
+                                view: true,
+                                edit: true,
+                                use: true
+                            }
                         }
+                        this.$store.commit('k8sTemplate/updateCurTemplate', templateParams)
                     }
+                    
                     this.isTemplateLoading = false
-                    this.$store.commit('k8sTemplate/updateCurTemplate', templateParams)
                     this.initResources(callback)
                 } else {
                     const templateId = this.curTemplateId
@@ -1498,7 +1502,7 @@
                 const instance = application.config.spec.replicas
                 const nameReg1 = /^[a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*$/
                 // const nameReg2 = /^[a-zA-Z]{1}[a-zA-Z0-9-_]{0,29}$/
-                const pathReg = /\/((?!\.)[\w\d\-./~]+)+/
+                const pathReg = /\/((?!\.)[\w\d\-./~]+)*/
                 const portNameReg = /^[a-z]{1}[a-z0-9-]{0,255}$/
                 const volumeNameReg = /^[a-zA-Z]{1}[a-zA-Z0-9-]{0,253}$/
                 const chineseReg = /[\u4e00-\u9fa5]+/
@@ -1744,17 +1748,17 @@
                         })
                         return false
                     } else if (container.webCache.imageName && !container.webCache.imageName.startsWith('{{')) {
-                        const matchs = this.imageList.filter(item => {
-                            return item.value === container.webCache.imageName
-                        })
-                        if (!matchs.length) {
-                            this.$bkMessage({
-                                theme: 'error',
-                                message: megPrefix + `容器"${container.name}"的镜像及版本配置：原镜像已经删除，请重新选择！`,
-                                delay: 8000
-                            })
-                            return false
-                        }
+                        // const matchs = this.imageList.filter(item => {
+                        //     return item.value === container.webCache.imageName
+                        // })
+                        // if (!matchs.length) {
+                        //     this.$bkMessage({
+                        //         theme: 'error',
+                        //         message: megPrefix + this.$t('容器"{name}"的镜像及版本配置：原镜像已经删除，请重新选择', container),
+                        //         delay: 8000
+                        //     })
+                        //     return false
+                        // }
                     }
 
                     // 端口映射检查
@@ -3779,150 +3783,5 @@
 </script>
 
 <style scoped lang="postcss">
-    @import '../../../css/mixins/scroller.css';
-    @import '../../../css/mixins/ellipsis.css';
-
-    .biz-templateset-action {
-        font-size: 22px;
-        color: #737987;
-        float: right;
-        margin: 12px 20px 0 0;
-
-        >a {
-            display: inline-block;
-            color: #737987;
-            margin-right: 5px;
-
-            &:hover {
-                color: #3c96ff;
-            }
-
-            &.is-disabled {
-                color: #ccc;
-                cursor: not-allowed;
-            }
-        }
-
-    }
-
-    .biz-lock-box {
-        width: 100%;
-        position: absolute;
-        top: 60px;
-        left: 0;
-        text-align: left;
-
-        .lock-wrapper {
-            background-color: #F0F8FF;
-            border: 1px solid #A3C5FD;
-            border-radius: 2px;
-            height: 36px;
-            line-height: 36px;
-            font-size: 12px;
-            color: #63656E;
-            padding: 0 12px;
-            margin: 20px;
-
-            &.warning {
-                border-color: #FFB848;
-                background-color: #FFF4E2;
-
-                .bk-icon {
-                    color: #FFB848;
-                }
-            }
-        }
-
-        .bk-icon {
-            color: #3A84FF;
-            font-size: 14px;
-            margin-right: 3px;
-        }
-
-        .desc {
-            font-weight: normal;
-            color: #63656E;
-        }
-
-        .action {
-            float: right;
-        }
-    }
-
-    .biz-data-table {
-        border: 1px solid #dde4eb;
-        margin-bottom: 25px;
-    }
-
-    .biz-data-table>thead>tr>th {
-        background: #fafbfd;
-    }
-
-    .biz-data-table>thead>tr>th,
-    .biz-data-table>thead>tr>td,
-    .biz-data-table>tbody>tr>th,
-    .biz-data-table>tbody>tr>td {
-        height: 42px;
-        padding: 10px 20px;
-    }
-
-    .version-box {
-        text-align: left;
-        padding: 5px 15px;
-
-        .title {
-            text-align: left;
-            font-size: 14px;
-            margin: 0;
-            font-weight: bold;
-            color: #737987;
-            margin-bottom: 10px;
-        }
-
-        .active {
-            color: #c3cdd7;
-        }
-
-        ul {
-            border: 1px solid #dde4eb;
-            border-radius: 2px;
-            background: #fafbfd;
-            margin-top: 2px;
-            padding: 10px;
-            @mixin scroller;
-        }
-
-        .empty {
-            line-height: 200px;
-            color: #737987;
-            font-size: 14px;
-            text-align: center;
-
-            .name {
-                max-width: 100px;
-                line-height: 1;
-                @mixin ellipsis;
-                display: inline-block;
-            }
-        }
-
-        .create {
-            font-size: 14px;
-            color: #3c96ff;
-            margin: 15px;
-        }
-
-        .item {
-            line-height: 40px;
-            padding: 0 15px;
-            cursor: pointer;
-            color: #737987;
-            font-size: 14px;
-            position: relative;
-
-            .bk-icon {
-                display: none;
-            }
-        }
-    }
+    @import './header.css';
 </style>

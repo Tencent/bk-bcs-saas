@@ -63,6 +63,7 @@
                     "hostNetwork": 0, 
                     "dnsPolicy": "ClusterFirst",
                     "volumes": [],
+                    "imagePullSecrets": [],
                     "allContainers": [
                         {
                             "name": "",

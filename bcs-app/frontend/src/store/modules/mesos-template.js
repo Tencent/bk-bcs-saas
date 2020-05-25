@@ -159,6 +159,14 @@ export default {
                     }
 
                     item.config.spec.template.spec.containers.forEach(container => {
+                        // 增加镜像凭证，兼容旧数据
+                        if (container.imagePullUser && container.imagePullPasswd) {
+                            container.isAddImageSecrets = true
+                        } else {
+                            container.isAddImageSecrets = false
+                            container.imagePullUser = ''
+                            container.imagePullPasswd = ''
+                        }
                         if (!container.logListCache) {
                             container.logListCache = [
                                 {
@@ -185,7 +193,7 @@ export default {
                             if (!volumeItem.volume.user) {
                                 volumeItem.volume.user = ''
                             }
-                            const userKey = `${volumeItem.type}:${volumeItem.name}:${volumeItem.volume.hostPath}:${volumeItem.volume.mountPath}` 
+                            const userKey = `${volumeItem.type}:${volumeItem.name}:${volumeItem.volume.hostPath}:${volumeItem.volume.mountPath}`
                             for (const key in volumeUsers) {
                                 if (key === userKey) {
                                     volumeItem.volume.user = volumeUsers[key]

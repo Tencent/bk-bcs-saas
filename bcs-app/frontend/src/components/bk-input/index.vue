@@ -169,7 +169,8 @@
             value: {
                 immediate: true,
                 handler (value) {
-                    if (value !== this.localValue || value !== this.curValue) {
+                    // localValue用于保存上次选择值，这里加判断防止重复触发
+                    if (!value || value !== this.localValue) {
                         this.changeCurValue(this.isLink)
                     }
                 }
@@ -226,7 +227,7 @@
                 const value = this.value + ''
                 // 如果是选择模式，从列表项匹配
                 if (this.isSelectMode) {
-                    const selectItem = this.getItemByKey(this.value)
+                    const selectItem = this.getItem(this.value, this.settingKey)
                     if (selectItem) {
                         if (selectItem.type === 'variable') {
                             this.curValue = '{{' + selectItem[this.displayKey] + '}}'
@@ -314,18 +315,17 @@
 
                 this.setScrollTop()
             },
-            getItemByKey (key) {
+            getItem (key, name) {
                 let selectItem = null
-
                 for (const item of this.defaultList) {
-                    if (String(item[this.settingKey]) === String(key)) {
+                    if (String(item[name]) === String(key)) {
                         selectItem = item
                         selectItem.type = 'normal'
                     }
                 }
 
                 for (const item of this.list) {
-                    if (`{{${item[this.settingKey]}}}` === key) {
+                    if (`{{${item[name]}}}` === key) {
                         selectItem = item
                         selectItem.type = 'variable'
                     }
@@ -641,34 +641,41 @@
                 this.$emit('focus', event)
             },
             blurHandler (event) {
-                if (this.type === 'number') {
-                    this.curValue = this.value
-                } else if (this.isSelectMode) {
-                    const curValue = this.isCustom  && this.userHasInput ? event.target.value : this.value
-                    const selectItem = this.getItemByKey(curValue)
-                    if (selectItem) {
-                        if (selectItem.type === 'variable') {
-                            this.curValue = '{{' + selectItem[this.displayKey] + '}}'
-                        } else {
-                            this.curValue = selectItem[this.displayKey]
-                        }
-                    } else if (this.isCustom) {
-                        // 选择模式支持自定义输入
-                        if (this.userHasInput) {
-                            const newVal = event.target.value
-                            this.curValue = newVal
+                // 增加一个定时器来解决选择时事件顺序问题，先触发选择事件再触发失焦点事件
+                setTimeout(() => {
+                    if (this.type === 'number') {
+                        this.curValue = this.value
+                    } else if (this.isSelectMode) {
+                        const curValue = this.isCustom && this.userHasInput ? event.target.value : this.value
+                        const selectItem = this.getItem(curValue, this.displayKey)
+                        // 如果匹配，自动选中
+                        if (selectItem) {
+                            if (selectItem.type === 'variable') {
+                                this.curValue = '{{' + selectItem[this.displayKey] + '}}'
+                            } else {
+                                this.curValue = selectItem[this.displayKey]
+                            }
+                            const newVal = selectItem[this.settingKey]
                             this.$emit('update:value', newVal)
-                            this.$emit('item-customed', newVal, { '__isCustom': true }, false)
+                            this.$emit('item-selected', newVal, selectItem, false)
+                        } else if (this.isCustom) {
+                            // 选择模式支持自定义输入
+                            if (this.userHasInput) {
+                                const newVal = event.target.value
+                                this.curValue = newVal
+                                this.$emit('update:value', newVal)
+                                this.$emit('item-customed', newVal, { '__isCustom': true }, false)
+                            }
+                        } else {
+                            this.curValue = ''
                         }
-                    } else {
-                        this.curValue = ''
                     }
-                }
-                this.hideListPanel()
-                this.userHasInput = false
-                this.timer = setTimeout(() => {
-                    this.$emit('blur', event)
-                }, 200)
+                    this.hideListPanel()
+                    this.userHasInput = false
+                    this.timer = setTimeout(() => {
+                        this.$emit('blur', event)
+                    }, 200)
+                }, 0)
             },
             initSelectorPosition (currentTarget) {
                 if (currentTarget) {

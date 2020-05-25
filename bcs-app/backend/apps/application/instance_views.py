@@ -1580,7 +1580,7 @@ class BatchInstances(BaseAPI):
                         "category": info["category"]
                     })
                     error_message.append(
-                        "%s: %s" % (info["name"], resp.data.get("message", u"请求接口出现异常, 已通知管理员"))
+                        "%s: %s" % (info.get("inst_name"), resp.data.get("message"))
                     )
         self.save_inst_event(error_resp)
         # 如果存在0/0的情况
@@ -1900,11 +1900,16 @@ class GetInstanceVersionConf(UpdateInstanceNew, UpdateVersionConfig, InstanceAPI
                         info["value"] = pre_instance_num
 
         if show_version_id:
-            config_profile = json.loads(version_conf)
             show_version_info = self.get_show_version_info(show_version_id)
             ids = self.get_tmpl_ids(show_version_info.real_version_id, category)
             tmpl_entity = self.get_tmpl_entity(category, ids, inst_info.name)
-            variables_dict_info = {info["key"]: info["value"] or pre_instance_num for info in variables}
+            variables_dict_info = {}
+            # 当key为实例数量的key时，如果当前实例数量为0或空，则需要设置为滚动升级前的实例数量
+            for info in variables:
+                value = info["value"]
+                if info["key"] == instance_num_key:
+                    value = value or pre_instance_num
+                variables_dict_info[info["key"]] = value
             # 渲染最终配置
             config_profile = self.generate_conf(
                 request, project_id, inst_info, show_version_info, inst_info.namespace,
