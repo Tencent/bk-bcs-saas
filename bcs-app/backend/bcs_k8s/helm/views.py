@@ -17,6 +17,9 @@ from rest_framework import viewsets, status
 from rest_framework.response import Response
 from rest_framework.pagination import PageNumberPagination
 from django.conf import settings
+from rest_framework.renderers import BrowsableAPIRenderer
+from rest_framework.exceptions import ValidationError
+from django.utils.translation import ugettext_lazy as _
 
 from backend.utils.error_codes import error_codes
 from backend.utils.views import ActionSerializerMixin, FilterByProjectMixin, with_code_wrapper
@@ -29,7 +32,9 @@ from backend.bcs_k8s.authtoken.authentication import TokenAuthentication
 from .providers.repo_provider import add_repo, add_plain_repo
 from .tasks import sync_helm_repo
 from backend.apps.whitelist_bk import enabled_force_sync_chart_repo
-
+from backend.utils.renderers import BKAPIRenderer
+from backend.bcs_k8s.app.models import App
+from backend.components.helm_chart import delete_chart_version
 
 logger = logging.getLogger(__name__)
 
@@ -263,3 +268,68 @@ class PlainChartMuseumProviderCreateView(FilterByProjectMixin, viewsets.ViewSet)
             status=status.HTTP_200_OK,
             data=RepoSLZ(new_chart_repo).data
         )
+
+
+class ChartVersionViewSet(viewsets.ViewSet):
+    renderer_classes = (BKAPIRenderer, BrowsableAPIRenderer)
+
+    def get_chart_versions(self, chart_id, version_id):
+        if version_id:
+            version_info = ChartVersion.objects.filter(id=version_id)
+        else:
+            version_info = ChartVersion.objects.filter(chart__id=chart_id)
+        if not version_info:
+            raise ValidationError(_("没有查询到chart对应的版本信息"))
+        return version_info
+
+    def get_release_queryset(self, request, chart_id, version_id):
+        # 获取chart version
+        version_info = self.get_chart_versions(chart_id, version_id)
+        # 因为是同一个chart，所以通过第一个version信息获取
+        chart = version_info[0].chart
+        version_list = [info.version for info in version_info]
+        # 根据version和chart_name, 过滤相应的release
+        return App.objects.filter(version__in=version_list, chart=chart)
+
+    def release_list(self, request, project_id, chart_id):
+        """查询chart下的release
+        如果有传递version id，则查询version id对应的信息
+        """
+        # version id
+        version_id = request.query_params.get("version_id")
+        release_qs = self.get_release_queryset(request, chart_id, version_id)
+        data = release_qs.values(
+            "id", "name", "cluster_id", "namespace", "namespace_id"
+        )
+
+        return Response(data)
+
+    def delete(self, request, project_id, chart_id):
+        """删除chart或指定的chart版本
+        """
+        version_id = request.query_params.get("version_id")
+        release_qs = self.get_release_queryset(request, chart_id, version_id)
+        # 如果release不为空，则不能进行删除
+        if release_qs.exists():
+            raise ValidationError(_("chart下存在release，请先删除release"))
+        # 如果指定version id，则只删除指定的version，否则删除所有version及chart
+        version_info = self.get_chart_versions(chart_id, version_id)
+        for info in version_info:
+            repo_info = info.chart.repository
+            auth = repo_info.plain_auths
+            # 如果auth为空，则赋值为空
+            if not auth:
+                username = pwd = ""
+            else:
+                credentials = auth[0]["credentials"]
+                username = credentials["username"]
+                pwd = credentials["password"]
+            # 删除repo中chart版本记录
+            delete_chart_version(repo_info.url, info.chart.name, info.version, username, pwd)
+            # 删除db中记录
+            info.delete()
+        # 如果chart下没有版本了，则删除chart
+        if not ChartVersion.objects.filter(chart__id=chart_id).exists():
+            Chart.objects.filter(id=chart_id).delete()
+
+        return Response()
