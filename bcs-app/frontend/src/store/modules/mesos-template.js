@@ -184,6 +184,12 @@ export default {
                             container.workingDir = ''
                         }
 
+                        // 兼容自定义镜像
+                        if (!container.hasOwnProperty('isImageCustomed')) {
+                            // 以DEVOPS_ARTIFACTORY_HOST开头都是通过下拉配置，包括变量形式，否则是自定义
+                            container.isImageCustomed = !container.image.startsWith(`${DEVOPS_ARTIFACTORY_HOST}`)
+                        }
+
                         // 将挂载卷的用户数据回填
                         let volumeUsers = {}
                         if (item.config.webCache.volumeUsers) {
