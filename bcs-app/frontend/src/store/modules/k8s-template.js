@@ -272,6 +272,12 @@ export default {
                         container.webCache.containerType = 'container'
                     }
 
+                    // 兼容自定义镜像
+                    if (container.webCache && !container.webCache.hasOwnProperty('isImageCustomed')) {
+                        // 以DEVOPS_ARTIFACTORY_HOST开头都是通过下拉配置，包括变量形式，否则是自定义
+                        container.webCache.isImageCustomed = !container.image.startsWith(`${DEVOPS_ARTIFACTORY_HOST}`)
+                    }
+
                     // 命令下的workingDir兼容
                     if (!container.hasOwnProperty('workingDir')) {
                         container.workingDir = ''

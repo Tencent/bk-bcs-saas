@@ -55,6 +55,7 @@ type Cluster struct {
 	CapacityUpdatedAt *time.Time `json:"capacity_updated_at"`
 	NotNeedNAT        bool       `json:"not_need_nat" gorm:"default:false"`
 	ExtraClusterID    string     `json:"extra_cluster_id" gorm:"size:64"`
+	State             string     `json:"state" gorm:"size:16;default:'bcs_new'"`
 }
 
 // ClusterFilterParams :

@@ -72,6 +72,10 @@ class NodeLabelUpdateSLZ(serializers.ModelSerializer):
 
 
 class CreateClusterSLZ(serializers.Serializer):
+    cluster_state = serializers.ChoiceField(
+        choices=cluster_constants.ClusterState.get_choices(),
+        default=cluster_constants.ClusterState.BCSNew.value
+    )
     name = serializers.CharField(max_length=64)
     description = serializers.CharField(required=False, default="")
     area_id = serializers.IntegerField(required=False, default=1)

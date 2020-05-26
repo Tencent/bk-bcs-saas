@@ -78,7 +78,17 @@ class BaseCluster:
         self.get_cluster_base_config(cluster_id, version=version, environment=environment)
 
         client = kind_type_map[self.kind_name](self.config, self.area_info, cluster_name=self.cluster_name)
-        return client.get_request_config(cluster_id, self.data['master_ips'], need_nat=self.data['need_nat'])
+        kwargs = {
+            "access_token": self.access_token,
+            "project_id": self.project_id,
+            "cluster_state": self.data["cluster_state"]
+        }
+        return client.get_request_config(
+            cluster_id,
+            self.data['master_ips'],
+            need_nat=self.data['need_nat'],
+            **kwargs
+        )
 
     def save_snapshot(self, cluster_id, config):
         data = {
@@ -96,6 +106,15 @@ class BaseCluster:
         log_params['task_url'] = data.get('task_url') or ''
         log.set_params(log_params)
 
+    def get_ops_backend(self, cluster_state):
+        """根据集群state获取ops对应的backend
+        - 通过bcs创建集群: gcloud_v3
+        - 导入已存在集群: gcloud_v3_contain
+        """
+        if cluster_state == constants.ClusterState.BCSNew.value:
+            return "gcloud_v3"
+        return "gcloud_v3_contain"
+
     def create_cluster_via_bcs(
             self, cluster_id, cc_module, config=None, version='1.12.3', environment='prod', websvr=None):  # noqa
         """调用bcs接口创建集群
@@ -112,6 +131,7 @@ class BaseCluster:
         config.pop('control_ip', None)
         websvr = config.pop('websvr', []) or websvr
         config.pop('version', None)
+        config.pop("platform", None)
         # 存储参数，便于任务失败重试
         params = {
             'project_id': self.project_id,
@@ -144,13 +164,15 @@ class BaseCluster:
             is_polling=True
         )
 
+        platform = self.get_ops_backend(self.data["cluster_state"])
         try:
             task_info = ops.create_cluster(
                 self.access_token, self.project_id,
                 self.kind_name, cluster_id,
                 self.data['master_ips'], config,
                 cc_module, self.control_ip,
-                self.cc_app_id, self.username, websvr
+                self.cc_app_id, self.username, websvr,
+                platform=platform
             )
         except Exception as err:
             logger.exception('Create cluster error: %s', err)
@@ -160,6 +182,7 @@ class BaseCluster:
         config['version'] = kind_version_map[self.kind_name]
         config['control_ip'] = self.control_ip
         config['websvr'] = websvr
+        config["platform"] = platform
         self.save_snapshot(cluster_id, config)
         if task_info.get('code') != ErrorCode.NoError:
             log.set_finish_polling_status(True, False, CommonStatus.InitialFailed)
@@ -269,6 +292,7 @@ class CreateCluster(BaseCluster):
             {'inner_ip': ip}
             for ip in self.data['master_ips']
         ]
+        cluster_data["state"] = cluster_data["cluster_state"]
         self.cluster_name = self.data['name']
         # 创建set
         with client.ContextActivityLogClient(
@@ -365,7 +389,8 @@ class ReinstallCluster(BaseCluster):
                 'need_nat': params['need_nat'],
                 'environment': params['environment'],
                 'cluster_id': self.cluster_id,
-                'name': params['cluster_name']
+                'name': params['cluster_name'],
+                "cluster_state": data.get("state") or constants.ClusterState.BCSNew.value
             }
             self.cluster_name = params['cluster_name']
             self.kind_name = params['kind_name']
@@ -491,7 +516,8 @@ class DeleteCluster(BaseCluster):
         task_info = ops.delete_cluster(
             self.access_token, self.project_id, self.kind_name,
             self.cluster_id, master_ip_list, self.control_ip,
-            self.cc_app_id, self.username, self.websvr, self.config
+            self.cc_app_id, self.username, self.websvr, self.config,
+            platform=self.config.pop("platform", "gcloud_v3")
         )
         if task_info.get('code') != ErrorCode.NoError:
             log.set_finish_polling_status(True, False, CommonStatus.RemoveFailed)
