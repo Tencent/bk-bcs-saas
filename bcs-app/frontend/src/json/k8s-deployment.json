@@ -75,6 +75,7 @@
                                 "containerType": "container",
                                 "livenessProbeType": "HTTP",
                                 "readinessProbeType": "HTTP",
+                                "isImageCustomed": false,
                                 "logListCache": [
                                     {
                                         "value": ""
@@ -170,6 +171,7 @@
                                 "containerType": "container",
                                 "livenessProbeType": "HTTP",
                                 "readinessProbeType": "HTTP",
+                                "isImageCustomed": false,
                                 "logListCache": [
                                     {
                                         "value": ""

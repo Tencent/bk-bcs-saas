@@ -8,6 +8,7 @@
         "args_text": "",
         "livenessProbeType": "HTTP",
         "readinessProbeType": "HTTP",
+        "isImageCustomed": false,
         "logListCache": [
             {
                 "value": ""
