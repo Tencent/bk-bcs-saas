@@ -1398,6 +1398,24 @@ export default {
                 params,
                 config
             )
+        },
+
+        /**
+         * 批量重建
+         *
+         * @param {Object} context store 上下文对象
+         * @param {string} projectId 项目 id
+         * @param {string} clusterId 集群 id
+         * @param {Object} config 请求的配置
+         *
+         * @return {Promise} promise 对象
+         */
+        batchRebuild (context, { projectId, data }, config = {}) {
+            return http.put(
+                `${DEVOPS_BCS_API_URL}/api/projects/${projectId}/pods/reschedule/`,
+                data,
+                config
+            )
         }
     }
 }
