@@ -28,6 +28,7 @@
     ],
     "imageName": "",
     "imageVersion": "",
+    "isImageCustomed": false,
     "image": "",
     "imagePullPolicy": "Always",
     "privileged": false,
