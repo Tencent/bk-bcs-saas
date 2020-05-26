@@ -105,6 +105,7 @@
                             "imageName": "",
                             "imageVersion": "",
                             "image": "",
+                            "isImageCustomed": false,
                             "imagePullPolicy": "Always",
                             "privileged": false,
                             "ports": [
