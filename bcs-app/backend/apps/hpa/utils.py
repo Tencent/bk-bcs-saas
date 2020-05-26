@@ -54,37 +54,31 @@ def get_mesos_current_metrics(instance):
     return current_metrics
 
 
+def get_metric_name_value(metric, field):
+    """获取metrics名称, 值
+    """
+    metric_type = metric["type"]
+    # CPU/MEM 等系统类型
+    if metric_type == "Resource":
+        name = metric["resource"]["name"]
+        metric_value = metric["resource"][field]["averageUtilization"]
+    else:
+        # Pod等自定义类型
+        name = metric[metric_type.lower()]["metric"]["name"]
+        metric_value = metric[metric_type.lower()][field]["averageValue"]
+    return name, metric_value
+
+
 def get_k8s_current_metrics(instance):
     """获取当前监控值
     """
     current_metrics = {}
     for metric in instance["spec"].get("metrics") or []:
-        metric_type = metric["type"]
-        # CPU/MEM 等系统类型
-        if metric_type == "Resource":
-            name = metric["resource"]["name"]
-            target = metric["resource"]["target"]["averageUtilization"]
-        else:
-            # Pod等自定义类型
-            name = metric[metric_type.lower()]["metric"]["name"]
-            target = metric[metric_type.lower()]["target"]["averageValue"]
+        name, target = get_metric_name_value(metric, field="target")
         current_metrics[name] = {"target": target, "current": None}
 
-    _current_metrics = instance["status"].get("currentMetrics") or []
-    if not _current_metrics:
-        return current_metrics
-
-    for metric in _current_metrics:
-        metric_type = metric["type"]
-        # CPU/MEM 等系统类型
-        if metric_type == "Resource":
-            name = metric["resource"]["name"]
-            current = metric["resource"]["current"]["averageUtilization"]
-        else:
-            # Pod等自定义类型
-            name = metric[metric_type.lower()]["metric"]["name"]
-            current = metric[metric_type.lower()]["current"]["averageValue"]
-
+    for metric in instance["status"].get("currentMetrics") or []:
+        name, current = get_metric_name_value(metric, field="current")
         current_metrics[name]["current"] = current
 
     return current_metrics
