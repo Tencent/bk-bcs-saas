@@ -142,3 +142,13 @@ class ClusterStatusName(ChoicesEnum):
     removing = _("删除中")
     remove_failed = _("删除失败")
     removed = _("已删除")
+
+
+class ClusterState(ChoicesEnum):
+    BCSNew = "bcs_new"
+    Existing = "existing"
+
+    _choices_labels = (
+        (BCSNew, "bcs_new"),
+        (Existing, "existing")
+    )
