@@ -17,19 +17,25 @@
             <app-exception v-if="exceptionCode" :type="exceptionCode.code" :text="exceptionCode.msg"></app-exception>
             <div v-else class="biz-cluster-create-form-wrapper">
                 <template v-if="clusterClassify !== 'public'">
-                    <!-- <div class="form-item">
-                        <label>NAT检查：<span class="red">*</span></label>
+                    <div class="form-item bk-form-item" :class="isEn ? 'en' : ''">
+                        <label>{{$t('集群分类')}}：<span class="red">*</span></label>
                         <div class="form-item-inner">
                             <label class="bk-form-radio">
-                                <input type="radio" value="true" name="cluster-nat-radio" v-model="needNat" :disabled="isK8sProject">
-                                <i class="bk-radio-text">是</i>
+                                <input type="radio" value="bcs_new" name="cluster-nat-radio" v-model="clusterState">
+                                <i class="bk-radio-text">{{$t('新建集群')}}</i>
                             </label>
-                            <label class="bk-form-radio">
-                                <input type="radio" value="false" name="cluster-nat-radio" v-model="needNat" :disabled="isK8sProject">
-                                <i class="bk-radio-text">否</i>
+                            <label class="bk-form-radio" style="width: 110px;">
+                                <input type="radio" value="existing" name="cluster-nat-radio" v-model="clusterState">
+                                <i class="bk-radio-text">{{$t('导入集群')}}</i>
+                                <bk-tooltip placement="top">
+                                    <i class="bk-icon icon-question-circle" style="vertical-align: middle; cursor: pointer;"></i>
+                                    <div slot="content">
+                                        {{$t('导入已经存在的集群')}}
+                                    </div>
+                                </bk-tooltip>
                             </label>
                         </div>
-                    </div> -->
+                    </div>
                     <div class="form-item bk-form-item" :class="isEn ? 'en' : ''">
                         <label>{{$t('名称：')}}<span class="red">*</span></label>
                         <div class="form-item-inner">
@@ -393,7 +399,8 @@
                 },
                 curProject: {},
                 isK8sProject: false,
-                ccApplicationName: ''
+                ccApplicationName: '',
+                clusterState: 'bcs_new'
             }
         },
         computed: {
@@ -758,11 +765,6 @@
             },
 
             async saveCluster () {
-                const h = this.$createElement
-                this.$bkLoading({
-                    title: h('span', this.$t('下发集群配置中，请稍候...'))
-                })
-
                 const params = {
                     name: this.name,
                     environment: this.clusterType,
@@ -770,10 +772,16 @@
                     master_ips: [],
                     need_nat: this.needNat,
                     description: this.description,
-                    projectId: this.projectId
+                    projectId: this.projectId,
+                    cluster_state: this.clusterState
                 }
                 this.hostList.forEach(item => {
                     params.master_ips.push(item.inner_ip)
+                })
+
+                const h = this.$createElement
+                this.$bkLoading({
+                    title: h('span', this.$t('下发集群配置中，请稍候...'))
                 })
 
                 try {
