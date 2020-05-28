@@ -43,57 +43,53 @@
                         <div class="chart-box top">
                             <div class="info">
                                 <div class="left">
-                                    {{$t('CPU占集群使用率')}}
-                                    <bk-tooltip placement="top" :content="$t('容器requests cpu占集群的使用率')">
-                                        <span style="font-size: 12px;cursor: pointer;vertical-align: text-top;">
-                                            <i class="bk-icon icon-info-circle"></i>
-                                        </span>
-                                    </bk-tooltip>
+                                    {{$t('CPU使用率')}}
                                 </div>
-                                <div class="right" v-if="cpuUsagePercent === $t('无数据')">
-                                    <div><span>{{$t('无数据')}}</span></div>
-                                </div>
-                                <div class="right" v-else>
+                                <div class="right">
                                     <div><span>{{cpuUsagePercent}}</span><sup>%</sup></div>
-                                    <div class="cpu"><span>{{cpuUsage}} of {{cpuTotal}} Shares</span></div>
+                                    <div class="cpu"><span>{{cpuUsage}} of {{cpuTotal}}</span></div>
                                 </div>
                             </div>
-                            <chart :options="cpuLine" ref="cpuLine" auto-resize></chart>
+                            <cluster-overview-chart
+                                :result-type="cpuChartResultType"
+                                :show-loading="cpuChartLoading"
+                                :chart-type="'cpu'"
+                                :data="cpuChartData">
+                            </cluster-overview-chart>
                         </div>
 
                         <div class="chart-box top">
                             <div class="info">
                                 <div class="left">
-                                    {{$t('内存占集群使用率')}}
-                                    <bk-tooltip placement="top" :content="$t('容器requests 内存占集群的使用率')">
-                                        <span style="font-size: 12px;cursor: pointer;vertical-align: text-top;">
-                                            <i class="bk-icon icon-info-circle"></i>
-                                        </span>
-                                    </bk-tooltip>
+                                    {{$t('内存使用率')}}
                                 </div>
-                                <div class="right" v-if="memUsagePercent === $t('无数据')">
-                                    <div><span>{{$t('无数据')}}</span></div>
-                                </div>
-                                <div class="right" v-else>
+                                <div class="right">
                                     <div><span>{{memUsagePercent}}</span><sup>%</sup></div>
-                                    <div class="memory"><span>{{memUsage}}GB of {{memTotal}} GB</span></div>
+                                    <div class="memory"><span>{{memUsage}} of {{memTotal}}</span></div>
                                 </div>
                             </div>
-                            <chart :options="memLine" ref="memLine" auto-resize></chart>
+                            <cluster-overview-chart
+                                :result-type="memChartResultType"
+                                :show-loading="memChartLoading"
+                                :chart-type="'mem'"
+                                :data="memChartData">
+                            </cluster-overview-chart>
                         </div>
 
                         <div class="chart-box top">
                             <div class="info">
                                 <div class="left">{{$t('磁盘使用率')}}</div>
-                                <div class="right" v-if="diskUsagePercent === $t('无数据')">
-                                    <div><span>{{$t('无数据')}}</span></div>
-                                </div>
-                                <div class="right" v-else>
+                                <div class="right">
                                     <div><span>{{diskUsagePercent}}</span><sup>%</sup></div>
-                                    <div class="disk"><span>{{diskUsage}}GB of {{diskTotal}} GB</span></div>
+                                    <div class="disk"><span>{{diskUsage}} of {{diskTotal}}</span></div>
                                 </div>
                             </div>
-                            <chart :options="diskLine" ref="diskLine" auto-resize></chart>
+                            <cluster-overview-chart
+                                :result-type="diskChartResultType"
+                                :show-loading="diskChartLoading"
+                                :chart-type="'disk'"
+                                :data="diskChartData">
+                            </cluster-overview-chart>
                         </div>
                     </div>
 
@@ -149,6 +145,32 @@
                                 </div>
                             </Ring>
                         </div>
+
+                        <div class="chart-box bottom">
+                            <div class="info">
+                                <div class="left">{{$t('集群IP')}}</div>
+                                <div class="right">
+                                    <div>
+                                        <i class="bk-icon icon-circle"></i>
+                                        <span>{{$t('可用')}}</span>
+                                        <span>{{ipTotal}}</span>
+                                    </div>
+                                    <div>
+                                        <i class="bk-icon icon-circle"></i>
+                                        <span>{{$t('已使用')}}</span>
+                                        <span>{{ipUsed}}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <Ring :percent="ipPercent" :size="210" :text="'none'"
+                                :stroke-width="10" :fill-width="10" :fill-color="'#3ede78'"
+                                :percent-change-handler="percentChangeHandler('ip')"
+                                :ext-cls="'biz-cluster-ring'">
+                                <div slot="text" class="ring-text-inner">
+                                    <div class="number">{{ipPercentStr}}</div>
+                                </div>
+                            </Ring>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -157,18 +179,15 @@
 </template>
 
 <script>
-    import ECharts from 'vue-echarts/components/ECharts.vue'
-    import 'echarts/lib/chart/line'
-    import 'echarts/lib/component/tooltip'
-
-    import { overview } from '@open/common/chart-option'
     import Ring from '@open/components/ring'
-    import { catchErrorHandler } from '@open/common/util'
+    import { catchErrorHandler, formatBytes } from '@open/common/util'
+
+    import ClusterOverviewChart from './cluster-overview-chart'
 
     export default {
         components: {
             Ring,
-            chart: ECharts
+            ClusterOverviewChart
         },
         data () {
             return {
@@ -184,13 +203,11 @@
                 ipPercentStr: 0,
                 ipUsed: '',
                 ipTotal: '',
-                cpuLine: overview.cpu,
-                memLine: overview.memory,
-                diskLine: overview.disk,
                 bkMessageInstance: null,
                 curClusterInPage: {},
                 exceptionCode: null,
                 showLoading: false,
+
                 cpuUsagePercent: 0,
                 cpuUsage: 0,
                 cpuTotal: 0,
@@ -200,7 +217,15 @@
                 diskUsagePercent: 0,
                 diskUsage: 0,
                 diskTotal: 0,
-                testTimer: null
+                cpuChartData: [],
+                cpuChartLoading: true,
+                cpuChartResultType: 'matrix',
+                memChartData: [],
+                memChartLoading: true,
+                memChartResultType: 'matrix',
+                diskChartData: [],
+                diskChartLoading: true,
+                diskChartResultType: 'matrix'
             }
         },
         computed: {
@@ -219,22 +244,74 @@
             },
             isEn () {
                 return this.$store.state.isEn
+            },
+            curProject () {
+                return this.$store.state.curProject
             }
         },
-        created () {
+        async created () {
             if (!this.curCluster || Object.keys(this.curCluster).length <= 0) {
                 if (this.projectId && this.clusterId) {
-                    this.fetchData()
+                    this.fetchClusterData()
                 }
             } else {
+                await this.fetchClusterOverview()
                 this.fetchClusterMetrics()
                 setTimeout(this.prepareChartData, 0)
             }
         },
         destroyed () {
-            this.testTimer && clearInterval(this.testTimer)
         },
         methods: {
+            /**
+             * 集群使用率概览
+             */
+            async fetchClusterOverview () {
+                try {
+                    const res = await this.$store.dispatch('cluster/clusterOverview', {
+                        projectId: this.curCluster.project_id,
+                        clusterId: this.curCluster.cluster_id
+                    })
+                    const data = res.data || {}
+                    const cpu = data.cpu_usage || {}
+                    this.cpuUsage = parseFloat(cpu.used).toFixed(2)
+                    this.cpuTotal = parseFloat(cpu.total).toFixed(2)
+                    this.cpuUsagePercent = this.conversionPercentUsed(cpu.used, cpu.total)
+
+                    const mem = data.mem_usage || {}
+                    this.memUsage = formatBytes(mem.used_bytes)
+                    this.memTotal = formatBytes(mem.total_bytes)
+                    this.memUsagePercent = this.conversionPercentUsed(mem.used_bytes, mem.total_bytes)
+
+                    const disk = data.disk_usage || {}
+                    this.diskUsage = formatBytes(disk.used_bytes)
+                    this.diskTotal = formatBytes(disk.total_bytes)
+                    this.diskUsagePercent = this.conversionPercentUsed(disk.used_bytes, disk.total_bytes)
+                } catch (e) {
+                    catchErrorHandler(e, this)
+                }
+            },
+
+            /**
+             * 转换百分比
+             *
+             * @param {number} used 使用量
+             * @param {number} total 总量
+             *
+             * @return {number} 百分比数字
+             */
+            conversionPercentUsed (used, total) {
+                if (!total || parseFloat(total) === 0) {
+                    return 0
+                }
+
+                let ret = parseFloat(used) / parseFloat(total) * 100
+                if (ret !== 0 && ret !== 100) {
+                    ret = ret.toFixed(2)
+                }
+                return ret
+            },
+
             /**
              * 转换百分比
              *
@@ -251,9 +328,9 @@
             },
 
             /**
-             * 获取数据
+             * 获取集群数据
              */
-            async fetchData () {
+            async fetchClusterData () {
                 this.showLoading = true
                 try {
                     const res = await this.$store.dispatch('cluster/getCluster', {
@@ -262,6 +339,7 @@
                     })
 
                     this.$store.commit('cluster/forceUpdateCurCluster', res.data)
+                    await this.fetchClusterOverview()
                     this.fetchClusterMetrics()
                     setTimeout(this.prepareChartData, 0)
                 } catch (e) {
@@ -305,154 +383,42 @@
              * 构建图表数据
              */
             async prepareChartData () {
-                const memRef = this.$refs.memLine
-                const diskRef = this.$refs.diskLine
-                const cpuRef = this.$refs.cpuLine
                 try {
-                    cpuRef && cpuRef.showLoading({
-                        text: this.$t('正在加载中...'),
-                        color: '#30d878',
-                        maskColor: 'rgba(255, 255, 255, 0.8)'
-                    })
-                    memRef && memRef.showLoading({
-                        text: this.$t('正在加载中...'),
-                        color: '#30d878',
-                        maskColor: 'rgba(255, 255, 255, 0.8)'
-                    })
-                    diskRef && diskRef.showLoading({
-                        text: this.$t('正在加载中...'),
-                        color: '#30d878',
-                        maskColor: 'rgba(255, 255, 255, 0.8)'
-                    })
+                    this.cpuChartLoading = true
+                    this.memChartLoading = true
+                    const promises = [
+                        this.$store.dispatch('cluster/clusterCpuUsage', {
+                            projectId: this.curCluster.project_id, // 这里用 this.curCluster 来获取是为了使计算属性生效
+                            clusterId: this.curCluster.cluster_id
+                        }),
+                        this.$store.dispatch('cluster/clusterMemUsage', {
+                            projectId: this.curCluster.project_id, // 这里用 this.curCluster 来获取是为了使计算属性生效
+                            clusterId: this.curCluster.cluster_id
+                        }),
+                        this.$store.dispatch('cluster/clusterDiskUsage', {
+                            projectId: this.curCluster.project_id, // 这里用 this.curCluster 来获取是为了使计算属性生效
+                            clusterId: this.curCluster.cluster_id
+                        })
+                    ]
 
-                    const res = await this.$store.dispatch('cluster/getClusterOverview', {
-                        projectId: this.curCluster.project_id, // 这里用 this.curCluster 来获取是为了使计算属性生效
-                        clusterId: this.curCluster.cluster_id
-                    })
+                    const res = await Promise.all(promises)
+                    // Promise.all 返回的顺序与 promises 数组的顺序是一致的
+                    // 如果为空，那么在 res.data.result 这里就是空数组
+                    // 如果不是空数组，那么 res.data.result 里的任何都是有数据的，所以不判断里面的了
+                    this.cpuChartData.splice(0, this.cpuChartData.length, ...(res[0].data.result || []))
+                    this.cpuChartResultType = res[0].data.resultType
+                    this.cpuChartLoading = false
 
-                    this.renderCpuChart(res.data.cpu || [])
-                    this.renderChart('mem', memRef, res.data.mem || [])
-                    this.renderChart('disk', diskRef, res.data.disk || [])
+                    this.memChartData.splice(0, this.memChartData.length, ...(res[1].data.result || []))
+                    this.memChartResultType = res[1].data.resultType
+                    this.memChartLoading = false
+
+                    this.diskChartData.splice(0, this.diskChartData.length, ...(res[2].data.result || []))
+                    this.diskChartResultType = res[2].data.resultType
+                    this.diskChartLoading = false
                 } catch (e) {
                     catchErrorHandler(e, this)
                 }
-            },
-
-            /**
-             * 渲染图表
-             *
-             * @param {Array} list 数据
-             */
-            renderCpuChart (list) {
-                const ref = this.$refs.cpuLine
-                if (!ref) {
-                    return
-                }
-
-                let chartData = []
-                let emptyData = []
-
-                if (!list.length) {
-                    this.cpuUsagePercent = this.$t('无数据')
-                    this.cpuUsage = this.$t('无数据')
-                    this.cpuTotal = this.$t('无数据')
-
-                    chartData = [{
-                        value: [+new Date(), 0, this.$t('无数据')]
-                    }]
-                    emptyData = [0]
-                } else {
-                    const data = list.length ? list : [{ time: +new Date(), remain_cpu: 0, total_cpu: 0 }]
-                    const lastData = data[data.length - 1]
-                    this.cpuUsagePercent = this.conversionPercent(lastData.remain_cpu, lastData.total_cpu)
-                    this.cpuUsage = ((lastData.total_cpu || 0) - (lastData.remain_cpu || 0)).toFixed(2)
-                    this.cpuTotal = (lastData.total_cpu || 0).toFixed(2)
-
-                    data.forEach(item => {
-                        chartData.push({
-                            value: [item.time, this.conversionPercent(item.remain_cpu, item.total_cpu)]
-                        })
-                        emptyData.push(0)
-                    })
-                }
-
-                // 先设置 emptyData，再切换数据，这样的话，图表是从中间往两边展开，效果会好一些
-                ref.mergeOptions({
-                    series: [
-                        {
-                            data: emptyData
-                        }
-                    ]
-                })
-                ref.mergeOptions({
-                    series: [
-                        {
-                            data: chartData
-                        }
-                    ]
-                })
-                ref.hideLoading()
-            },
-
-            /**
-             * 渲染图表
-             *
-             * @param {string} idx 标识 cpu, mem, disk
-             * @param {Object} ref 标识 cpu, mem, disk ref
-             * @param {Array} list 数据
-             */
-            renderChart (idx, ref, list) {
-                if (!ref) {
-                    return
-                }
-
-                let chartData = []
-                let emptyData = []
-
-                if (!list.length) {
-                    this[`${idx}UsagePercent`] = this.$t('无数据')
-                    this[`${idx}Usage`] = this.$t('无数据')
-                    this[`${idx}Total`] = this.$t('无数据')
-
-                    chartData = [{
-                        value: [+new Date(), 0, this.$t('无数据')]
-                    }]
-                    emptyData = [0]
-                } else {
-                    const data = list.length ? list : [{ time: +new Date(), [`remain_${idx}`]: 0, [`total_${idx}`]: 0 }]
-                    const lastData = data[data.length - 1]
-                    this[`${idx}UsagePercent`] = this.conversionPercent(lastData[`remain_${idx}`], lastData[`total_${idx}`])
-                    this[`${idx}Usage`] = (
-                        ((lastData[`total_${idx}`] || 0) - (lastData[`remain_${idx}`] || 0))
-                    ).toFixed(2)
-                    this[`${idx}Total`] = ((lastData[`total_${idx}`] || 0)).toFixed(2)
-
-                    chartData = []
-                    emptyData = []
-                    data.forEach(item => {
-                        chartData.push({
-                            value: [item.time, item[`total_${idx}`] - item[`remain_${idx}`]]
-                        })
-                        emptyData.push(0)
-                    })
-                }
-
-                // 先设置 emptyData，再切换数据，这样的话，图表是从中间往两边展开，效果会好一些
-                ref.mergeOptions({
-                    series: [
-                        {
-                            data: emptyData
-                        }
-                    ]
-                })
-                ref.mergeOptions({
-                    series: [
-                        {
-                            data: chartData
-                        }
-                    ]
-                })
-                ref.hideLoading()
             },
 
             /**
@@ -581,8 +547,8 @@
     }
 </script>
 <style scoped lang="postcss">
-    @import '../../css/variable.css';
-    @import '../../css/mixins/clearfix.css';
+    @import '@open/css/variable.css';
+    @import '@open/css/mixins/clearfix.css';
 
     .biz-cluster-overview {
         padding: 20px;
@@ -788,5 +754,4 @@
             height: 250px;
         }
     }
-
 </style>
