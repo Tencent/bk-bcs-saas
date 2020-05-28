@@ -9,6 +9,7 @@
  * specific language governing permissions and limitations under the License.
  */
 
+import axios from 'axios'
 import { catchErrorHandler } from '@open/common/util'
 
 export default {
@@ -57,6 +58,7 @@ export default {
                 totalPage: 1,
                 pageSize: 10,
                 curPage: 1,
+                allCount: 0,
                 show: true
             },
             deleteNodeNoticeList: [
@@ -126,6 +128,11 @@ export default {
             curPageData: [],
             // 当前页是否全选中
             isCheckCurPageAll: false,
+            // 添加节点弹层 全选模式
+            // page 为全选当页，all 为全选所有页，为空表示没有全选
+            checkAllMode: '',
+            // 当前选择的 checkAllMode
+            curCheckAllMode: '',
             // 是否正在创建节点
             isCreating: false,
             // 弹层选择 master 节点，已经选择了多少个
@@ -190,7 +197,9 @@ export default {
                 width: 400,
                 title: ' ',
                 closeIcon: false,
-                operateType: ''
+                operateType: '',
+                len: 0,
+                operate: ''
             },
             // 是否允许批量操作 -> 重新添加
             isBatchReInstall: false,
@@ -231,24 +240,6 @@ export default {
             }
             this.allowBatch = true
             this.dontAllowBatchMsg = ''
-            // const firstStatus = obj[arr[0]].status
-            // for (let i = 0; i < len; i++) {
-            //     const item = obj[arr[i]]
-            //     if (item.status !== firstStatus) {
-            //         this.allowBatch = false
-            //         this.dontAllowBatchMsg = '请选择状态相同的节点'
-            //         return
-            //     }
-            // }
-            // this.allowBatch = true
-            // this.dontAllowBatchMsg = ''
-            // if (obj[Object.keys(obj)[0]].status === 'to_removed') {
-            //     this.disableBatchOperate = '2'
-            // } else if (obj[Object.keys(obj)[0]].status === 'normal') {
-            //     this.disableBatchOperate = '1'
-            // }
-
-            // this.allowBatchDelete = obj[Object.keys(obj)[0]].status === 'removable'
         }
     },
     beforeDestroy () {
@@ -265,7 +256,7 @@ export default {
 
         if (!this.curCluster || Object.keys(this.curCluster).length <= 0) {
             if (this.projectId && this.clusterId) {
-                this.fetchData()
+                this.fetchClusterData()
             }
         } else {
             const params = {
@@ -305,7 +296,7 @@ export default {
         /**
          * 获取当前集群数据
          */
-        async fetchData () {
+        async fetchClusterData () {
             this.isPageLoading = true
             try {
                 const res = await this.$store.dispatch('cluster/getCluster', {
@@ -317,7 +308,8 @@ export default {
 
                 const params = {
                     limit: this.nodeListPageConf.pageSize,
-                    offset: 0
+                    offset: 0,
+                    with_containers: '1'
                 }
                 if (this.$route.query.inner_ip) {
                     params.ip = this.$route.query.inner_ip
@@ -360,6 +352,7 @@ export default {
                     projectId: this.projectId,
                     clusterId: this.curCluster.cluster_id // 这里用 this.curCluster 来获取是为了使计算属性生效
                 }, params))
+
                 this.permissions = JSON.parse(JSON.stringify(res.permissions || {}))
 
                 const list = res.data.results || []
@@ -392,7 +385,8 @@ export default {
                         if (this.nodeSummaryMap[item.id]) {
                             item.cpuMetric = this.nodeSummaryMap[item.id].cpuMetric
                             item.memMetric = this.nodeSummaryMap[item.id].memMetric
-                            item.ioMetric = this.nodeSummaryMap[item.id].ioMetric
+                            item.diskMetric = this.nodeSummaryMap[item.id].diskMetric
+                            item.diskioMetric = this.nodeSummaryMap[item.id].diskioMetric
                         }
                     })
                 }
@@ -480,28 +474,6 @@ export default {
         },
 
         /**
-         * nodeList 搜索
-         *
-         * @param {Array} searchKey 搜索词
-         */
-        searchNodeList1 (searchKey) {
-            this.sortIdx = ''
-            this.release()
-            this.nodeListPageConf.curPage = 1
-
-            const ip = []
-            searchKey.forEach(item => {
-                ip.push(item)
-            })
-            this.getNodeList({
-                ip: ip.join(','),
-                limit: this.nodeListPageConf.pageSize,
-                offset: 0,
-                with_containers: '1'
-            })
-        },
-
-        /**
          * 获取 searcher 的参数
          *
          * @return {Object} 参数
@@ -534,6 +506,8 @@ export default {
             this.release()
             this.nodeListPageConf.curPage = 1
 
+            this.checkedNodes = Object.assign({}, {})
+
             const searchParams = this.getSearchParams()
 
             this.getNodeList({
@@ -560,20 +534,35 @@ export default {
          * @param {number} index 当前节点索引
          */
         async getNodeSummary (cur, index) {
+            const kind = this.curProject.kind
             try {
-                const res = await this.$store.dispatch('cluster/getNodeSummary', {
-                    projectId: cur.project_id,
-                    nodeId: cur.inner_ip
-                })
+                const res = kind !== 2
+                    ? await this.$store.dispatch('cluster/getNodeOverview', {
+                        projectId: cur.project_id,
+                        clusterId: cur.cluster_id,
+                        nodeIp: cur.inner_ip
+                    })
+                    : await this.$store.dispatch('cluster/getNodeSummary', {
+                        projectId: cur.project_id,
+                        nodeId: cur.inner_ip
+                    })
 
-                cur.cpuMetric = res.data.cpu
-                cur.memMetric = res.data.mem
-                cur.ioMetric = res.data.io
+                if (kind !== 2) {
+                    cur.cpuMetric = parseFloat(res.data.cpu_usage).toFixed(2)
+                    cur.memMetric = parseFloat(res.data.memory_usage).toFixed(2)
+                    cur.diskMetric = parseFloat(res.data.disk_usage).toFixed(2)
+                    cur.diskioMetric = parseFloat(res.data.diskio_usage).toFixed(2)
+                } else {
+                    cur.cpuMetric = res.data.cpu
+                    cur.memMetric = res.data.mem
+                    cur.diskMetric = res.data.io
+                }
 
                 this.nodeSummaryMap[cur.id] = {
                     cpuMetric: cur.cpuMetric,
                     memMetric: cur.memMetric,
-                    ioMetric: cur.ioMetric
+                    diskMetric: cur.diskMetric,
+                    diskioMetric: cur.diskioMetric
                 }
 
                 this.$set(this.nodeList, index, cur)
@@ -656,6 +645,7 @@ export default {
 
             this.remainCount = 0
             this.pageConf.curPage = 1
+            this.pageConf.allCount = 0
             this.dialogConf.isShow = true
             this.candidateHostList.splice(0, this.candidateHostList.length, ...[])
             this.hostListCache = Object.assign({}, {})
@@ -674,6 +664,7 @@ export default {
          */
         closeDialog () {
             this.dialogConf.isShow = false
+            this.checkAllMode = ''
         },
 
         /**
@@ -701,13 +692,21 @@ export default {
                     this.pageConf.curPage = 1
                 }
                 this.pageConf.show = true
+                this.pageConf.allCount = count
 
                 const list = res.data.results || []
-                list.forEach(item => {
-                    if (this.hostListCache[`${item.inner_ip}-${item.asset_id}`]) {
+
+                if (this.checkAllMode === 'all') {
+                    list.forEach(item => {
                         item.isChecked = true
-                    }
-                })
+                    })
+                } else {
+                    list.forEach(item => {
+                        if (this.hostListCache[`${item.inner_ip}-${item.asset_id}`]) {
+                            item.isChecked = true
+                        }
+                    })
+                }
 
                 this.candidateHostList.splice(0, this.candidateHostList.length, ...list)
                 this.selectHost(this.candidateHostList)
@@ -740,11 +739,31 @@ export default {
             this.$nextTick(() => {
                 const isChecked = this.isCheckCurPageAll
                 this.candidateHostList.forEach(host => {
-                    if (!host.is_used && String(host.agent) === '1') {
+                    if (!host.is_used && String(host.agent) === '1' && host.is_valid) {
                         host.isChecked = isChecked
                     }
                 })
                 this.selectHost()
+            })
+        },
+
+        /**
+         * 弹层表格全选
+         *
+         * @param {string} idx 全选当前页还是全选所有页的标识。page 为全选当前页，all 为全选所有页面
+         */
+        checkAll (idx) {
+            // 说明当前选中的是已经选中的那个，这时需要取消
+            if (this.checkAllMode === idx) {
+                this.isCheckCurPageAll = false
+            } else {
+                this.isCheckCurPageAll = true
+            }
+            this.curCheckAllMode = idx
+            this.toogleCheckCurPage()
+
+            this.$nextTick(() => {
+                this.$refs.pageSelectDropdownMenu && this.$refs.pageSelectDropdownMenu.hide()
             })
         },
 
@@ -757,15 +776,45 @@ export default {
             }
 
             this.$nextTick(() => {
-                const illegalLen = hosts.filter(host => host.is_used || String(host.agent) !== '1').length
+                const illegalLen = hosts.filter(host => host.is_used || String(host.agent) !== '1' || !host.is_valid).length
                 const selectedHosts = hosts.filter(host =>
-                    host.isChecked === true && !host.is_used && String(host.agent) === '1'
+                    host.isChecked === true && !host.is_used && String(host.agent) === '1' && host.is_valid
                 )
 
                 if (selectedHosts.length === hosts.length - illegalLen && hosts.length !== illegalLen) {
                     this.isCheckCurPageAll = true
+                    if (this.curCheckAllMode) {
+                        // checkAllMode 变化之前是 all，那么变化之后，需要把 hostListCache 清空一下
+                        if (this.checkAllMode === 'all') {
+                            this.hostListCache = Object.assign({}, {})
+                        }
+                        this.checkAllMode = this.curCheckAllMode
+                        this.curCheckAllMode = ''
+                    } else {
+                        if (this.checkAllMode === 'fromall') {
+                            this.checkAllMode = 'all'
+                        } else if (this.checkAllMode === 'frompage') {
+                            this.checkAllMode = 'page'
+                        }
+                    }
                 } else {
                     this.isCheckCurPageAll = false
+                    if (this.curCheckAllMode) {
+                        // 说明当前选中的是已经选中的那个，这时需要取消
+                        if (this.checkAllMode === this.curCheckAllMode) {
+                            this.checkAllMode = ''
+                            this.hostListCache = Object.assign({}, {})
+                        } else {
+                            this.checkAllMode = this.curCheckAllMode
+                        }
+                        this.curCheckAllMode = ''
+                    } else {
+                        if (this.checkAllMode === 'all') {
+                            this.checkAllMode = 'fromall'
+                        } else if (this.checkAllMode === 'page') {
+                            this.checkAllMode = 'frompage'
+                        }
+                    }
                 }
 
                 // 清除 hostListCache
@@ -778,7 +827,12 @@ export default {
                     this.hostListCache[`${item.inner_ip}-${item.asset_id}`] = item
                 })
 
-                this.remainCount = Object.keys(this.hostListCache).length
+                // this.remainCount = Object.keys(this.hostListCache).length
+                if (this.checkAllMode === 'all') {
+                    this.remainCount = this.pageConf.allCount
+                } else {
+                    this.remainCount = Object.keys(this.hostListCache).length
+                }
             })
         },
 
@@ -829,25 +883,36 @@ export default {
          * 选择服务器弹层保存节点
          */
         async saveNode () {
-            const list = Object.keys(this.hostListCache)
-
-            const data = []
-            list.forEach(key => {
-                data.push(this.hostListCache[key])
-            })
-
-            this.hostList.splice(0, this.hostList.length, ...data)
-
             const params = {
                 ip: [],
                 projectId: this.projectId,
-                clusterId: this.clusterId
+                clusterId: this.clusterId,
+                is_select_all: false
             }
-            this.hostList.forEach(item => {
-                params.ip.push(item.inner_ip)
-            })
+            if (this.checkAllMode === 'all') {
+                params.is_select_all = true
+                params.ip = this.ccSearchKeys
+            } else {
+                const list = Object.keys(this.hostListCache)
 
-            // this.ccHostLoading = true
+                const data = []
+                list.forEach(key => {
+                    data.push(this.hostListCache[key])
+                })
+
+                this.hostList.splice(0, this.hostList.length, ...data)
+
+                this.hostList.forEach(item => {
+                    params.ip.push(item.inner_ip)
+                })
+            }
+
+            // alert('打开控制台查看参数')
+            // console.warn(params)
+            // console.warn('\n')
+            // console.warn('JSON.stringify: \n')
+            // console.warn(JSON.stringify(params))
+
             this.isCreating = true
             this.$refs.nodeNoticeDialog.hide()
             try {
@@ -863,7 +928,6 @@ export default {
             } catch (e) {
                 catchErrorHandler(e, this)
             } finally {
-                // this.ccHostLoading = false
                 this.isCreating = false
             }
         },
@@ -887,7 +951,9 @@ export default {
 
             this.reInitializationDialogConf.isShow = true
             this.reInitializationDialogConf.title = ' '
-            this.reInitializationDialogConf.content = `确认要重新初始化节点【${node.inner_ip}】？`
+            this.reInitializationDialogConf.content = this.$t(`确认要重新初始化节点【{innerIp}】？`, {
+                innerIp: node.inner_ip
+            })
 
             this.curNode = Object.assign({}, node)
             this.curNodeIndex = index
@@ -1229,7 +1295,7 @@ export default {
                     nodeId: node.id
                 })
 
-                const { status, log = [] } = res.data
+                const { status, log = [], error_msg_list: errorMsgList = [] } = res.data
 
                 // 最终的状态
                 // running / failed / success
@@ -1237,6 +1303,7 @@ export default {
 
                 const tasks = []
                 log.forEach(operation => {
+                    operation.errorMsgList = errorMsgList
                     tasks.push(operation)
                 })
                 this.logList.splice(0, this.logList.length, ...tasks)
@@ -1573,9 +1640,9 @@ export default {
             this.schedulerDialogConf.title = ' '
             this.schedulerDialogConf.content = this.isEn
                 ? 'Confirm that you want to migrate the '
-                    + `${this.curProject.kind === 1 ? 'Pod' : 'taskgroup'} on node【${node.inner_ip}】?`
+                    + `${(this.curProject.kind === PROJECT_K8S || this.curProject.kind === PROJECT_TKE) ? 'Pod' : 'taskgroup'} on node【${node.inner_ip}】?`
                 : `确认要对节点【${node.inner_ip}】上的`
-                    + `${this.curProject.kind === 1 ? 'Pod' : 'taskgroup'}进行迁移？`
+                    + `${(this.curProject.kind === PROJECT_K8S || this.curProject.kind === PROJECT_TKE) ? 'Pod' : 'taskgroup'}进行迁移？`
 
             this.curNode = Object.assign({}, node)
             this.curNodeIndex = index
@@ -1587,12 +1654,12 @@ export default {
         async schedulerConfirm () {
             this.isUpdating = true
             try {
-                await this.$store.dispatch('cluster/schedulerNode', {
+                const res = await this.$store.dispatch('cluster/schedulerNode', {
                     projectId: this.curNode.project_id,
                     clusterId: this.curNode.cluster_id,
                     nodeId: this.curNode.id
                 })
-                // this.curNode.status = res.data.status
+                this.curNode.status = res.data.status
                 this.$set(this.nodeList, this.curNodeIndex, this.curNode)
                 this.$set(this.nodeListTmp, this.curNodeIndex, this.curNode)
 
@@ -1697,10 +1764,8 @@ export default {
             this.batchDialogConf.operateType = idx
             this.batchDialogConf.isShow = true
             this.batchDialogConf.title = ' '
-            this.batchDialogConf.content = this.$t('确定要对{len}个节点进行{str}操作？', {
-                len: len,
-                str: str
-            })
+            this.batchDialogConf.len = len
+            this.batchDialogConf.operate = str
         },
 
         /**
@@ -1747,8 +1812,9 @@ export default {
             this.refreshWithCurCondition()
             setTimeout(() => {
                 this.batchDialogConf.title = ' '
-                this.batchDialogConf.content = ''
                 this.batchDialogConf.operateType = ''
+                this.batchDialogConf.len = 0
+                this.batchDialogConf.operate = ''
             }, 200)
         },
 
@@ -1765,6 +1831,47 @@ export default {
             this.nodeList.splice(0, this.nodeList.length, ...nodeList)
             this.isCheckCurPageAllNode = false
             // this.allowBatchDelete = true
+        },
+
+        /**
+         * 节点导出
+         */
+        async exportNode () {
+            // const link = document.createElement('a')
+            // link.style.display = 'none'
+            // link.href = `${DEVOPS_BCS_API_URL}/api/projects/${this.projectId}/nodes/export/?cluster_id=${this.clusterId}`
+            // document.body.appendChild(link)
+            // link.click()
+
+            const url = `${DEVOPS_BCS_API_URL}/api/projects/${this.projectId}/nodes/export/`
+
+            const response = await axios({
+                url: url,
+                method: 'post',
+                responseType: 'blob', // 这句话很重要
+                data: {
+                    cluster_id: this.clusterId,
+                    node_id_list: Object.keys(this.checkedNodes).map(item => parseInt(item, 10))
+                }
+            })
+
+            if (response.status !== 200) {
+                console.log('系统异常，请稍候再试')
+                return
+            }
+
+            const blob = new Blob([response.data], { type: response.headers['content-type'] })
+            const a = window.document.createElement('a')
+            const downUrl = window.URL.createObjectURL(blob)
+            let filename = 'download.xls'
+            const contentDisposition = response.headers['content-disposition']
+            if (contentDisposition && contentDisposition.indexOf('filename=') !== -1) {
+                filename = contentDisposition.split('filename=')[1]
+                a.href = downUrl
+                a.download = filename || 'download.xls'
+                a.click()
+                window.URL.revokeObjectURL(downUrl)
+            }
         },
 
         /**

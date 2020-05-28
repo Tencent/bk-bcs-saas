@@ -31,6 +31,7 @@ module.exports = {
         DEVOPS_ARTIFACTORY_HOST: true,
         PROJECT_MESOS: true,
         PROJECT_K8S: true,
+        PROJECT_TKE: true,
         SENTRY_URL: true,
         SITE_URL: true,
         BK_IAM_APP_URL: true
