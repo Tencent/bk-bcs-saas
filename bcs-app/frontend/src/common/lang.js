@@ -1186,6 +1186,7 @@ export default {
     '新建集群': ['Create Cluster'],
     '导入集群': ['Import Cluster'],
     '导入已经存在的集群': ['Import an existing cluster'],
+    '剩余': ['Surplus'],
     // 变量的使用 $t('test', { vari1: 1, vari2: 2 })
     'test': ['{vari1} ---english--- {vari2}']
 }

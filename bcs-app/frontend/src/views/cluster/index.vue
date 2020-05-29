@@ -236,11 +236,13 @@
                                     <div class="progress-header">
                                         <span class="title">{{$t('集群IP')}}</span>
                                         <span class="percent">
-                                            {{cluster.ip_resource_total === 0 ? 0 : `${cluster.ip_resource_used} / ${cluster.ip_resource_total}`}}
+                                            <!-- cluster.allip = data.activeip + data.availableip + data.reservedip -->
+                                            <!-- activeip/activeip + availableip + reservedip （剩余 availableip） -->
+                                            {{cluster.allip === 0 ? 0 : `${cluster.activeip} / ${cluster.allip}（${$t('剩余')}${cluster.availableip}）`}}
                                         </span>
                                     </div>
                                     <div class="progress">
-                                        <div class="progress-bar warning" :style="{ width: `${cluster.ip_resource_total === 0 ? 0 : conversionPercent(cluster.ip_resource_total - cluster.ip_resource_used, cluster.ip_resource_total)}%` }"></div>
+                                        <div class="progress-bar warning" :style="{ width: `${cluster.allip === 0 ? 0 : conversionPercent(cluster.activeip, cluster.allip, true)}%` }"></div>
                                     </div>
                                 </div>
                             </div>
@@ -548,12 +550,12 @@
              *
              * @return {number} 百分比数字
              */
-            conversionPercent (remain, total) {
+            conversionPercent (remain, total, isReverse) {
                 if (!total || total === 0) {
                     return 0
                 }
 
-                let ret = (total - remain) / total * 100
+                let ret = (isReverse ? remain : (total - remain)) / total * 100
                 if (ret !== 0 && ret !== 100) {
                     ret = ret.toFixed(2)
                 }
@@ -692,6 +694,10 @@
                     const list = res.data.results || []
 
                     list.forEach((item, index) => {
+                        item.activeip = 0
+                        item.availableip = 0
+                        item.reservedip = 0
+                        item.allip = 0
                         this.getClusterIp(item, index)
                         // item.remain_cpu = 50
                         // item.total_cpu = 100
@@ -744,8 +750,14 @@
                         clusterId: cluster.cluster_id
                     })
                     const data = res.data || {}
-                    cluster.ip_resource_total = data.availableip + data.activeip
-                    cluster.ip_resource_used = data.availableip
+
+                    cluster.activeip = data.activeip || 0
+                    cluster.availableip = data.availableip || 0
+                    cluster.reservedip = data.reservedip || 0
+                    cluster.allip = cluster.activeip + cluster.availableip + cluster.reservedip
+
+                    cluster.ip_resource_total = cluster.availableip + cluster.activeip
+                    cluster.ip_resource_used = cluster.availableip
                     this.$set(this.clusterList, index, cluster)
                 } catch (e) {
                     catchErrorHandler(e, this)
