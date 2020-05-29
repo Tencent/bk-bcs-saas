@@ -14,409 +14,485 @@
 """普罗米修斯接口封装
 """
 import logging
+import time
 
 import arrow
 from django.conf import settings
 
-from backend.components.utils import http_get
+from backend.components.utils import http_get, http_post
 from backend.utils.basic import normalize_metric
 
 logger = logging.getLogger(__name__)
 
+# thanos鉴权, 格式如 ('admin', 'admin')
+AUTH = getattr(settings, "THANOS_AUTH", None)
 
-def query_range(query, start, end, step):
+
+def query_range(query, start, end, step, project_id=None):
     """范围请求API
     """
-    url = '{host}/api/v1/query_range'.format(host=settings.THANOS_HOST)
-    params = {'query': query, 'start': start, 'end': end, 'step': step}
-    logger.info('prometheus query_range: %s', query)
-    resp = http_get(url, params=params, timeout=10)
+    url = f"{settings.THANOS_HOST}/api/v1/query_range"
+    data = {"query": query, "start": start, "end": end, "step": step}
+    headers = {"X-Tenant-Project-Id": project_id}
+    logger.info("prometheus query_range: %s", data)
+    resp = http_post(url, data=data, timeout=120, auth=AUTH, headers=headers, raise_for_status=False)
     return resp
 
 
-def query(_query):
+def query(_query, time=None, project_id=None):
     """查询API
     """
-    url = '{host}/api/v1/query'.format(host=settings.THANOS_HOST)
-    params = {'query': _query}
-    logger.info('prometheus query: %s', query)
-    resp = http_get(url, params=params, timeout=10)
+    url = f"{settings.THANOS_HOST}/api/v1/query"
+    data = {"query": _query, "time": time}
+    headers = {"X-Tenant-Project-Id": project_id}
+    logger.info("prometheus query: %s", data)
+    resp = http_post(url, data=data, timeout=120, auth=AUTH, headers=headers, raise_for_status=False)
     return resp
 
 
-def get_node_cpu_usage(ip, start, end):
-    """获取CPU总使用率
-    start, end单位为毫秒，和数据平台保持一致
+def get_series(match, start, end, project_id=None):
+    """查询series, Querying metadata
     """
-    start = start // 1000
-    end = end // 1000
-    step = (end - start) // 60
-    porm_query = f'avg by (instance) (sum by (cpu,instance) (irate(node_cpu{{job="node-exporter", mode!="idle", instance=~"{ ip }:9100"}}[2m])))'  # noqa
-    resp = query_range(porm_query, start, end, step)
-    if resp.get('status') != 'success':
-        return []
+    url = f"{settings.THANOS_HOST}/api/v1/series"
+    headers = {"X-Tenant-Project-Id": project_id}
+    data = {"match[]": match, "start": start, "end": end}
+    logger.info("prometheus series: %s", data)
+    resp = http_post(url, data=data, timeout=120, auth=AUTH, headers=headers, raise_for_status=False)
+    return resp
 
-    if not resp['data']['result']:
-        return []
 
-    data = []
-    for i in resp['data']['result'][0]['values']:
-        data.append({
-            'time': i[0] * 1000,
-            'usage': normalize_metric(float(i[1]) * 100)})
+def get_targets(project_id, cluster_id, dedup=True):
+    """获取集群的targets
+    """
+    url = "{host}/api/v1/targets".format(host=settings.THANOS_HOST)
+    # 同时限制项目ID，集群ID，防止越权
+    headers = {"X-Tenant-Project-Id": project_id, "X-Tenant-Cluster-Id": cluster_id}
+    params = {"dedup": dedup, "state": "active"}
+    resp = http_get(url, params=params, headers=headers, timeout=30, auth=AUTH)
+    return resp
+
+
+def get_first_value(prom_resp, fill_zero=True):
+    """获取返回的第一个值
+    """
+    data = prom_resp.get("data") or {}
+    result = data.get("result") or []
+    if not result:
+        if fill_zero:
+            # 返回0字符串, 和promtheus保存一致
+            return "0"
+        return None
+
+    value = result[0]["value"]
+    if not value:
+        if fill_zero:
+            return "0"
+        return None
+
+    return value[1]
+
+
+def get_cluster_cpu_usage(cluster_id, node_ip_list):
+    """获取集群nodeCPU使用率
+    """
+    node_ip_list = "|".join(f"{ip}:9100" for ip in node_ip_list)
+    cpu_used_prom_query = f"""
+        sum(irate(node_cpu_seconds_total{{cluster_id="{cluster_id}", job="node-exporter", mode!="idle", instance=~"{node_ip_list}"}}[2m]))
+    """  # noqa
+
+    cpu_count_prom_query = f"""
+       sum(count without(cpu, mode) (node_cpu_seconds_total{{cluster_id="{cluster_id}", job="node-exporter", mode="idle", instance=~"{node_ip_list}"}}))
+    """  # noqa
+
+    data = {"used": get_first_value(query(cpu_used_prom_query)), "total": get_first_value(query(cpu_count_prom_query))}
     return data
 
 
-def get_node_memory_usage(ip, start, end):
-    """获取CPU总使用率
-    start, end单位为毫秒，和数据平台保持一致
+def get_cluster_cpu_usage_range(cluster_id, node_ip_list):
+    """获取集群nodeCPU使用率
     """
-    start = start // 1000
-    end = end // 1000
-    step = (end - start) // 60
-    porm_query = f'node_memory_MemTotal{{job="node-exporter", instance=~"{ ip }:9100"}}'
-    total = query_range(porm_query, start, end, step)
-    if total.get('status') != 'success':
-        return []
+    end = time.time()
+    start = end - 3600
+    step = 60
 
-    porm_query = f"""
-        node_memory_MemTotal{{job="node-exporter", instance=~"{ ip }:9100"}} -
-        node_memory_MemFree{{job="node-exporter", instance=~"{ ip }:9100"}} -
-        node_memory_Buffers{{job="node-exporter", instance=~"{ ip }:9100"}} -
-        node_memory_Cached{{job="node-exporter", instance=~"{ ip }:9100"}}"""
-    usage = query_range(porm_query, start, end, step)
-    if usage.get('status') != 'success':
-        return []
+    node_ip_list = "|".join(f"{ip}:9100" for ip in node_ip_list)
+    prom_query = f"""
+        sum(irate(node_cpu_seconds_total{{cluster_id="{cluster_id}", job="node-exporter", mode!="idle", instance=~"{node_ip_list}"}}[2m])) /
+        sum(count without(cpu, mode) (node_cpu_seconds_total{{cluster_id="{cluster_id}", job="node-exporter", mode="idle", instance=~"{node_ip_list}"}})) *
+        100"""  # noqa
 
-    if not total['data']['result'] or not usage['data']['result']:
-        return []
+    resp = query_range(prom_query, start, end, step)
+    return resp.get("data") or {}
 
-    data = []
-    total_dict = dict(total['data']['result'][0]['values'])
-    usage_dict = dict(usage['data']['result'][0]['values'])
-    for k, v in total_dict.items():
-        data.append({
-            'time': k * 1000,
-            'total': normalize_metric(total_dict.get(k, 0)),
-            'used': normalize_metric(usage_dict.get(k, 0))
-        })
+
+def get_cluster_memory_usage(cluster_id, node_ip_list):
+    """获取集群nodeCPU使用率
+    """
+    node_ip_list = "|".join(f"{ip}:9100" for ip in node_ip_list)
+    memory_total_prom_query = f"""
+        sum(node_memory_MemTotal_bytes{{cluster_id="{cluster_id}", job="node-exporter", instance=~"{ node_ip_list }"}})
+    """
+
+    memory_used_prom_query = f"""
+        (sum(node_memory_MemTotal_bytes{{cluster_id="{cluster_id}", job="node-exporter", instance=~"{ node_ip_list }"}}) -
+        sum(node_memory_MemFree_bytes{{cluster_id="{cluster_id}", job="node-exporter", instance=~"{ node_ip_list }"}}) -
+        sum(node_memory_Buffers_bytes{{cluster_id="{cluster_id}", job="node-exporter", instance=~"{ node_ip_list }"}}) -
+        sum(node_memory_Cached_bytes{{cluster_id="{cluster_id}", job="node-exporter", instance=~"{ node_ip_list }"}}))
+    """  # noqa
+
+    data = {
+        "used_bytes": get_first_value(query(memory_used_prom_query)),
+        "total_bytes": get_first_value(query(memory_total_prom_query)),
+    }
     return data
 
 
-def get_node_network_usage(ip, start, end):
-    """获取网络数据
-    start, end单位为毫秒，和数据平台保持一致
-    数据单位KB/s
+def get_cluster_memory_usage_range(cluster_id, node_ip_list):
+    """获取集群nodeCPU使用率
     """
-    start = start // 1000
-    end = end // 1000
-    step = (end - start) // 60
-    porm_query = f'max by (instance) (rate(node_network_receive_bytes{{job="node-exporter", instance=~"{ ip }:9100"}}[5m]))'  # noqa
-    receive = query_range(porm_query, start, end, step)
-    if receive.get('status') != 'success':
-        return []
+    end = time.time()
+    start = end - 3600
+    step = 60
 
-    porm_query = f'max by (instance) (rate(node_network_transmit_bytes{{job="node-exporter", instance=~"{ ip }:9100"}}[5m]))'  # noqa
-    transmit = query_range(porm_query, start, end, step)
-    if transmit.get('status') != 'success':
-        return []
+    node_ip_list = "|".join(f"{ip}:9100" for ip in node_ip_list)
+    prom_query = f"""
+        (sum(node_memory_MemTotal_bytes{{cluster_id="{cluster_id}", job="node-exporter", instance=~"{ node_ip_list }"}}) -
+        sum(node_memory_MemFree_bytes{{cluster_id="{cluster_id}", job="node-exporter", instance=~"{ node_ip_list }"}}) -
+        sum(node_memory_Buffers_bytes{{cluster_id="{cluster_id}", job="node-exporter", instance=~"{ node_ip_list }"}}) -
+        sum(node_memory_Cached_bytes{{cluster_id="{cluster_id}", job="node-exporter", instance=~"{ node_ip_list }"}})) /
+        sum(node_memory_MemTotal_bytes{{cluster_id="{cluster_id}", job="node-exporter", instance=~"{ node_ip_list }"}}) *
+        100
+    """  # noqa
 
-    if not receive['data']['result'] or not transmit['data']['result']:
-        return []
+    resp = query_range(prom_query, start, end, step)
+    return resp.get("data") or {}
 
-    data = []
-    receive_dict = dict(receive['data']['result'][0]['values'])
-    transmit_dict = dict(transmit['data']['result'][0]['values'])
-    for k, v in receive_dict.items():
-        data.append({
-            'time': k * 1000,
-            'speedRecv': normalize_metric(float(receive_dict.get(k, 0)) / 1024),
-            'speedSent': normalize_metric(float(transmit_dict.get(k, 0)) / 1024)
-        })
+
+def get_cluster_disk_usage(cluster_id, node_ip_list):
+    """获取集群nodeCPU使用率
+    """
+    node_ip_list = "|".join(f"{ip}:9100" for ip in node_ip_list)
+
+    disk_total_prom_query = f"""
+        sum(node_filesystem_size_bytes{{cluster_id="{cluster_id}", job="node-exporter", instance=~"{node_ip_list}", fstype=~"ext[234]|btrfs|xfs|zfs"}})
+    """  # noqa
+
+    disk_used_prom_query = f"""
+        sum(node_filesystem_size_bytes{{cluster_id="{cluster_id}", job="node-exporter", instance=~"{node_ip_list}", fstype=~"ext[234]|btrfs|xfs|zfs"}}) -
+        sum(node_filesystem_free_bytes{{cluster_id="{cluster_id}", job="node-exporter", instance=~"{node_ip_list}", fstype=~"ext[234]|btrfs|xfs|zfs"}})
+    """  # noqa
+
+    data = {
+        "used_bytes": get_first_value(query(disk_used_prom_query)),
+        "total_bytes": get_first_value(query(disk_total_prom_query)),
+    }
     return data
 
 
-def get_node_diskio_usage(ip, start, end):
-    """获取磁盘IO数据
-    start, end单位为毫秒，和数据平台保持一致
-    数据单位KB/s
-    """
-    start = start // 1000
-    end = end // 1000
-    step = (end - start) // 60
-    porm_query = f'max by (instance) (rate(node_disk_bytes_read{{job="node-exporter", instance=~"{ ip }:.*"}}[5m]))'
-    read = query_range(porm_query, start, end, step)
-    if read.get('status') != 'success':
-        return []
-
-    porm_query = f'max by (instance) (rate(node_disk_bytes_written{{job="node-exporter", instance=~"{ ip }:.*"}}[5m]))'
-    written = query_range(porm_query, start, end, step)
-    if written.get('status') != 'success':
-        return []
-
-    if not read['data']['result'] or not written['data']['result']:
-        return []
-
-    read_dict = dict(read['data']['result'][0]['values'])
-    written_dict = dict(written['data']['result'][0]['values'])
-    data = []
-    for k, v in read_dict.items():
-        data.append({
-            'time': k * 1000,
-            'rkb_s': normalize_metric(float(read_dict.get(k, 0)) / 1024),
-            'wkb_s': normalize_metric(float(written_dict.get(k, 0)) / 1024)
-        })
-    return data
-
-
-def get_node_disk_io_utils(ip, start, end):
-    start = start // 1000
-    end = end // 1000
-    step = (end - start) // 60
-    porm_query = f'max by (instance) (rate(node_disk_io_time_seconds_total{{job="node-exporter", instance=~"{ ip }:9100"}}[5m]) * 100)'  # noqa
-    io_utils = query_range(porm_query, start, end, step)
-    if io_utils.get('status') != 'success':
-        return []
-
-    if not io_utils['data']['result']:
-        return []
-
-    data = []
-
-    for i in io_utils['data']['result'][0]['values']:
-        data.append({
-            'time': i[0] * 1000,
-            'usage': normalize_metric(i[1])})
-
-    return data
-
-
-def get_container_cpu_usage(docker_id, start, end):
-    """获取CPU总使用率
-    start, end单位为毫秒，和数据平台保持一致
-    """
-    start = start // 1000
-    end = end // 1000
-    step = (end - start) // 60
-    if isinstance(docker_id, list):
-        docker_id_list = '|'.join('.*%s.*' % i for i in docker_id)
-    else:
-        docker_id_list = '.*%s.*' % docker_id
-
-    porm_query = f'sum by (id, name) (rate(container_cpu_usage_seconds_total{{id=~"{ docker_id_list }"}}[1m]))'
-    resp = query_range(porm_query, start, end, step)
-    if resp.get('status') != 'success':
-        return []
-
-    if not resp['data']['result']:
-        return []
-
-    data = []
-    for res in resp['data']['result']:
-        _data = res['metric']
-        _data['container_name'] = res['metric']['name']
-        metrics = []
-        for i in res['values']:
-            metrics.append({
-                'time': i[0] * 1000,
-                'container_name': res['metric']['name'],
-                'usage': normalize_metric(float(i[1]) * 100)})
-        _data['metrics'] = metrics
-        data.append(_data)
-
-    # 单个直接返回metrics的值
-    if isinstance(docker_id, list):
-        return data
-    else:
-        return data[0]['metrics']
-
-
-def get_container_memory_usage(docker_id, start, end):
-    """获取CPU总使用率
-    start, end单位为毫秒，和数据平台保持一致
-    """
-    start = start // 1000
-    end = end // 1000
-    step = (end - start) // 60
-    if isinstance(docker_id, list):
-        docker_id_list = '|'.join('.*%s.*' % i for i in docker_id)
-    else:
-        docker_id_list = '.*%s.*' % docker_id
-
-    porm_query = f'container_memory_usage_bytes{{id=~"{ docker_id_list }"}}'
-    total = query_range(porm_query, start, end, step)
-    if total.get('status') != 'success':
-        return []
-
-    if not total['data']['result']:
-        return []
-
-    data = []
-
-    for res in total['data']['result']:
-        _data = res['metric']
-        _data['container_name'] = res['metric']['name']
-        metrics = []
-        for i in res['values']:
-            metrics.append({
-                'time': i[0] * 1000,
-                'rss_pct': 0,
-                'container_name': res['metric']['name'],
-                'used': normalize_metric(float(i[1]) / 1024 / 1024),
-                'unit': 'MB'})
-
-        _data['metrics'] = metrics
-        data.append(_data)
-
-    # 单个直接返回metrics的值
-    if isinstance(docker_id, list):
-        return data
-    else:
-        return data[0]['metrics']
-
-
-def get_container_network_usage(docker_id, start, end):
-    """获取网络数据
-    start, end单位为毫秒，和数据平台保持一致
-    """
-    start = start // 1000
-    end = end // 1000
-    step = (end - start) // 60
-    porm_query = f'sum by (id, name) (rate(container_network_receive_bytes_total{{id=~".*{ docker_id }.*"}}[1m]))'
-    receive = query_range(porm_query, start, end, step)
-    if receive.get('status') != 'success':
-        return []
-
-    porm_query = f'sum by (id, name) (rate(container_network_transmit_bytes_total{{id=~".*{ docker_id }.*"}}[1m]))'
-    transmit = query_range(porm_query, start, end, step)
-    if transmit.get('status') != 'success':
-        return []
-
-    if not receive['data']['result'] or not transmit['data']['result']:
-        return []
-
-    data = []
-    metric = receive['data']['result'][0]['metric']
-    receive_dict = dict(receive['data']['result'][0]['values'])
-    transmit_dict = dict(transmit['data']['result'][0]['values'])
-    for k, v in receive_dict.items():
-        data.append({
-            'time': k * 1000,
-            'container_name': metric['name'],
-            'rxbytes': normalize_metric(receive_dict.get(k, 0)),
-            'txbytes': normalize_metric(transmit_dict.get(k, 0))
-        })
-    return data
-
-
-def get_container_diskio_usage(docker_id, start, end):
-    """获取磁盘IO数据
-    start, end单位为毫秒，和数据平台保持一致
-    """
-    start = start // 1000
-    end = end // 1000
-    step = (end - start) // 60
-    porm_query = f'sum by (id, name) (rate(container_fs_reads_bytes_total{{id=~".*{ docker_id }.*"}}[1m]))'
-    read = query_range(porm_query, start, end, step)
-    if read.get('status') != 'success':
-        return []
-
-    porm_query = f'sum by (id, name) (rate(container_fs_writes_bytes_total{{id=~".*{ docker_id }.*"}}[1m]))'
-    writes = query_range(porm_query, start, end, step)
-    if writes.get('status') != 'success':
-        return []
-
-    if not read['data']['result'] or not writes['data']['result']:
-        return []
-
-    data = []
-    metric = read['data']['result'][0]['metric']
-    read_dict = dict(read['data']['result'][0]['values'])
-    writes_dict = dict(writes['data']['result'][0]['values'])
-    for k, v in read_dict.items():
-        data.append({
-            'time': k * 1000,
-            'used_pct': 0,  # 兼容字段
-            'container_name': metric['name'],
-            'read_bytes': normalize_metric(read_dict.get(k, 0)),  # 转化为Bytes
-            'write_bytes': normalize_metric(writes_dict.get(k, 0))  # 转化为Bytes
-        })
-    return data
-
-
-def get_cluster_disk_usage(cluster_list: list, start: int, end: int) -> tuple:
+def get_cluster_disk_usage_range(cluster_id, node_ip_list):
     """获取k8s集群磁盘使用率
     """
-    start = start // 1000
-    end = end // 1000
+    end = time.time()
+    start = end - 3600
+    step = 60
+
+    node_ip_list = "|".join(f"{ip}:9100" for ip in node_ip_list)
+
+    prom_query = f"""
+        (sum(node_filesystem_size_bytes{{cluster_id="{cluster_id}", job="node-exporter", instance=~"{node_ip_list}", fstype=~"ext[234]|btrfs|xfs|zfs"}}) -
+        sum(node_filesystem_free_bytes{{cluster_id="{cluster_id}", job="node-exporter", instance=~"{node_ip_list}", fstype=~"ext[234]|btrfs|xfs|zfs"}})) /
+        sum(node_filesystem_size_bytes{{cluster_id="{cluster_id}", job="node-exporter", instance=~"{node_ip_list}", fstype=~"ext[234]|btrfs|xfs|zfs"}}) *
+        100
+    """  # noqa
+
+    resp = query_range(prom_query, start, end, step)
+    return resp.get("data") or {}
+
+
+def get_node_info(cluster_id, ip):
+    prom_query = f"""
+        cadvisor_version_info{{cluster_id="{cluster_id}", instance=~"{ip}:\\\\d+"}} or
+        node_uname_info{{cluster_id="{cluster_id}", job="node-exporter", instance=~"{ip}:\\\\d+"}} or
+        label_replace(sum by (instance) (count without(cpu, mode) (node_cpu_seconds_total{{cluster_id="{cluster_id}", job="node-exporter", mode="idle", instance=~"{ip}:\\\\d+"}})), "metric_name", "cpu_count", "instance", ".*") or
+        label_replace(sum by (instance) (node_memory_MemTotal_bytes{{cluster_id="{cluster_id}", job="node-exporter", instance=~"{ip}:\\\\d+"}}), "metric_name", "memory", "instance", ".*") or
+        label_replace(sum by (instance) (node_filesystem_size_bytes{{cluster_id="{cluster_id}", job="node-exporter", instance=~"{ip}:\\\\d+", fstype=~"ext[234]|btrfs|xfs|zfs"}}), "metric_name", "disk", "instance", ".*")
+    """  # noqa
+
+    resp = query(prom_query)
+    return resp.get("data") or {}
+
+
+def get_node_cpu_usage(cluster_id, ip):
+    """获取CPU总使用率
+    """
+    prom_query = f"""
+        sum(irate(node_cpu_seconds_total{{cluster_id="{cluster_id}", job="node-exporter", mode!="idle", instance="{ip}:9100"}}[2m])) /
+        sum(count without(cpu, mode) (node_cpu_seconds_total{{cluster_id="{cluster_id}", job="node-exporter", mode="idle", instance="{ip}:9100"}})) *
+        100"""  # noqa
+
+    resp = query(prom_query)
+    value = get_first_value(resp)
+    return value
+
+
+def get_node_cpu_usage_range(cluster_id, ip, start, end):
+    """获取CPU总使用率
+    start, end单位为毫秒，和数据平台保持一致
+    """
     step = (end - start) // 60
-    cluster_id = '|'.join(cluster_list)
 
-    #  为空直接返回
-    if not cluster_list:
-        return ({}, {})
+    prom_query = f"""
+        sum(irate(node_cpu_seconds_total{{cluster_id="{cluster_id}", job="node-exporter", mode!="idle", instance="{ip}:9100"}}[2m])) /
+        sum(count without(cpu, mode) (node_cpu_seconds_total{{cluster_id="{cluster_id}", job="node-exporter", mode="idle", instance="{ip}:9100"}})) *
+        100"""  # noqa
 
-    porm_query = f'sum(node_filesystem_free_bytes{{device!="rootfs", device!="tmpfs", cluster_id=~"{ cluster_id }"}}) by (cluster_id)'  # noqa
-
-    free_result = query_range(porm_query, start, end, step)
-    if free_result.get('status') != 'success' or not free_result['data']['result']:
-        free = {}
-    else:
-        free = {i['metric']['cluster_id']: i['values'] for i in free_result['data']['result']}
-
-    porm_query = f'sum(node_filesystem_size_bytes{{device!="rootfs", device!="tmpfs", cluster_id=~"{ cluster_id }"}}) by (cluster_id)'  # noqa
-    total_result = query_range(porm_query, start, end, step)
-    if total_result.get('status') != 'success' or not total_result['data']['result']:
-        total = {}
-    else:
-        total = {i['metric']['cluster_id']: i['values'] for i in total_result['data']['result']}
-
-    return (total, free)
+    resp = query_range(prom_query, start, end, step)
+    return resp.get("data") or {}
 
 
-def fixed_disk_usage(cluster_data):
-    """k8s磁盘使用率
-    单位是 GB
+def get_node_memory_usage(cluster_id, ip):
+    """获取节点内存使用率
     """
-    end = arrow.now().timestamp * 1000
-    start = end - 15 * 60 * 1000
-    cluster_list = [i['cluster_id'] for i in cluster_data]
-    total, free = get_cluster_disk_usage(cluster_list, start, end)
+    node_ip_list = f"{ip}:9100"
+    prom_query = f"""
+        (sum(node_memory_MemTotal_bytes{{cluster_id="{cluster_id}", job="node-exporter", instance=~"{ node_ip_list }"}}) -
+        sum(node_memory_MemFree_bytes{{cluster_id="{cluster_id}", job="node-exporter", instance=~"{ node_ip_list }"}}) -
+        sum(node_memory_Buffers_bytes{{cluster_id="{cluster_id}", job="node-exporter", instance=~"{ node_ip_list }"}}) -
+        sum(node_memory_Cached_bytes{{cluster_id="{cluster_id}", job="node-exporter", instance=~"{ node_ip_list }"}})) /
+        sum(node_memory_MemTotal_bytes{{cluster_id="{cluster_id}", job="node-exporter", instance=~"{ node_ip_list }"}}) *
+        100
+    """  # noqa
 
-    for cluster in cluster_data:
-        total_dist = total.get(cluster['cluster_id']) or []
-        total_dist = total_dist[-1][1] if total_dist else 0
-        total_disk = normalize_metric(float(total_dist) / (1024 * 1024 * 1024))
-
-        free_dist = free.get(cluster['cluster_id']) or []
-        free_dist = free_dist[-1][1] if free_dist else 0
-        free_disk = normalize_metric(float(free_dist) / (1024 * 1024 * 1024))
-
-        cluster['total_disk'] = total_disk
-        cluster['remain_disk'] = free_disk
-
-    return cluster_data
+    resp = query(prom_query)
+    value = get_first_value(resp)
+    return value
 
 
-def fixed_disk_usage_history(cluster_id):
-    """k8s磁盘使用率
-    单位是 GB
+def get_node_memory_usage_range(cluster_id, ip, start, end):
+    """获取CPU总使用率
+    start, end单位为毫秒，和数据平台保持一致
     """
-    end = arrow.now().timestamp * 1000
-    start = end - 60 * 60 * 1000
-    cluster_list = [cluster_id]
-    total, free = get_cluster_disk_usage(cluster_list, start, end)
+    step = (end - start) // 60
 
-    total_dist = total.get(cluster_id) or []
-    free_dist = free.get(cluster_id) or []
+    node_ip_list = f"{ip}:9100"
+    prom_query = f"""
+        (sum(node_memory_MemTotal_bytes{{cluster_id="{cluster_id}", job="node-exporter", instance=~"{ node_ip_list }"}}) -
+        sum(node_memory_MemFree_bytes{{cluster_id="{cluster_id}", job="node-exporter", instance=~"{ node_ip_list }"}}) -
+        sum(node_memory_Buffers_bytes{{cluster_id="{cluster_id}", job="node-exporter", instance=~"{ node_ip_list }"}}) -
+        sum(node_memory_Cached_bytes{{cluster_id="{cluster_id}", job="node-exporter", instance=~"{ node_ip_list }"}})) /
+        sum(node_memory_MemTotal_bytes{{cluster_id="{cluster_id}", job="node-exporter", instance=~"{ node_ip_list }"}}) *
+        100
+    """  # noqa
 
-    total_dict = dict(total_dist)
-    free_dict = dict(free_dist)
-    data = []
-    for k, v in total_dict.items():
-        data.append({
-            'time': k * 1000,
-            'total_disk': normalize_metric(float(total_dict.get(k, 0)) / (1024 * 1024 * 1024)),
-            'remain_disk': normalize_metric(float(free_dict.get(k, 0)) / (1024 * 1024 * 1024))
-        })
-    return data
+    resp = query_range(prom_query, start, end, step)
+    return resp.get("data") or {}
+
+
+def get_node_disk_usage(cluster_id, ip):
+    node_ip_list = f"{ip}:9100"
+
+    prom_query = f"""
+        (sum(node_filesystem_size_bytes{{cluster_id="{cluster_id}", job="node-exporter", instance=~"{node_ip_list}", fstype=~"ext[234]|btrfs|xfs|zfs"}}) -
+        sum(node_filesystem_free_bytes{{cluster_id="{cluster_id}", job="node-exporter", instance=~"{node_ip_list}", fstype=~"ext[234]|btrfs|xfs|zfs"}})) /
+        sum(node_filesystem_size_bytes{{cluster_id="{cluster_id}", job="node-exporter", instance=~"{node_ip_list}", fstype=~"ext[234]|btrfs|xfs|zfs"}}) *
+        100
+    """  # noqa
+
+    value = get_first_value(query(prom_query))
+    return value
+
+
+def get_node_network_receive(cluster_id, ip, start, end):
+    """获取网络数据
+    start, end单位为毫秒，和数据平台保持一致
+    数据单位KB/s
+    """
+    step = (end - start) // 60
+    prom_query = f"""
+        max(rate(node_network_receive_bytes_total{{cluster_id="{cluster_id}",job="node-exporter", instance=~"{ ip }:9100"}}[5m]))
+        """  # noqa
+    resp = query_range(prom_query, start, end, step)
+    return resp.get("data") or {}
+
+
+def get_node_network_transmit(cluster_id, ip, start, end):
+    step = (end - start) // 60
+    prom_query = f"""
+        max(rate(node_network_transmit_bytes_total{{cluster_id="{cluster_id}",job="node-exporter", instance=~"{ ip }:9100"}}[5m]))
+        """  # noqa
+    resp = query_range(prom_query, start, end, step)
+    return resp.get("data") or {}
+
+
+def get_node_diskio_usage(cluster_id, ip):
+    """获取当前磁盘IO
+    """
+    prom_query = f"""
+        max(rate(node_disk_io_time_seconds_total{{cluster_id="{cluster_id}", job="node-exporter", instance=~"{ ip }:9100"}}[2m]) * 100)
+        """  # noqa
+
+    value = get_first_value(query(prom_query))
+    return value
+
+
+def get_node_diskio_usage_range(cluster_id, ip, start, end):
+    """获取磁盘IO数据
+    start, end单位为毫秒，和数据平台保持一致
+    数据单位KB/s
+    """
+    step = (end - start) // 60
+    prom_query = f"""
+        max(rate(node_disk_io_time_seconds_total{{cluster_id="{cluster_id}", job="node-exporter", instance=~"{ ip }:9100"}}[2m]) * 100)
+        """  # noqa
+
+    resp = query_range(prom_query, start, end, step)
+    return resp.get("data") or {}
+
+
+def get_pod_cpu_usage_range(cluster_id, namespace, pod_name_list, start, end):
+    """获取CPU总使用率
+    start, end单位为毫秒，和数据平台保持一致
+    """
+    step = (end - start) // 60
+    pod_name_list = "|".join(pod_name_list)
+
+    porm_query = f"""
+        sum by (pod_name) (rate(container_cpu_usage_seconds_total{{cluster_id="{cluster_id}", namespace=~"{ namespace }",
+        pod_name=~"{ pod_name_list }", container_name!="", container_name!="POD"}}[1m])) * 100
+        """  # noqa
+    resp = query_range(porm_query, start, end, step)
+
+    return resp.get("data") or {}
+
+
+def get_pod_memory_usage_range(cluster_id, namespace, pod_name_list, start, end):
+    """获取CPU总使用率
+    start, end单位为毫秒，和数据平台保持一致
+    """
+    step = (end - start) // 60
+    pod_name_list = "|".join(pod_name_list)
+
+    porm_query = f"""
+        sum by (pod_name) (container_memory_usage_bytes{{cluster_id="{cluster_id}", namespace=~"{ namespace }", pod_name=~"{ pod_name_list }",
+        container_name!="", container_name!="POD"}})
+        """  # noqa
+    resp = query_range(porm_query, start, end, step)
+
+    return resp.get("data") or {}
+
+
+def get_pod_network_receive(cluster_id, namespace, pod_name_list, start, end):
+    """获取网络数据
+    start, end单位为毫秒，和数据平台保持一致
+    """
+    step = (end - start) // 60
+    pod_name_list = "|".join(pod_name_list)
+
+    prom_query = f"""
+        sum by(pod_name) (rate(container_network_receive_bytes_total{{cluster_id="{cluster_id}", namespace=~"{ namespace }", pod_name=~"{ pod_name_list }"}}[1m]))
+        """  # noqa
+
+    resp = query_range(prom_query, start, end, step)
+    return resp.get("data") or {}
+
+
+def get_pod_network_transmit(cluster_id, namespace, pod_name_list, start, end):
+    step = (end - start) // 60
+    pod_name_list = "|".join(pod_name_list)
+
+    prom_query = f"""
+        sum by(pod_name) (rate(container_network_transmit_bytes_total{{cluster_id="{cluster_id}",  namespace=~"{ namespace }", pod_name=~"{ pod_name_list }"}}[1m]))
+        """  # noqa
+
+    resp = query_range(prom_query, start, end, step)
+    return resp.get("data") or {}
+
+
+def get_container_cpu_usage_range(cluster_id, namespace, pod_name, container_id_list, start, end):
+    """获取CPU总使用率
+    start, end单位为毫秒，和数据平台保持一致
+    """
+    step = (end - start) // 60
+    container_id_list = "|".join(f".*{i}" for i in container_id_list)
+
+    prom_query = f"""
+        sum by(container_name) (rate(container_cpu_usage_seconds_total{{cluster_id="{cluster_id}", namespace=~"{ namespace }", pod_name=~"{pod_name}",
+        container_name!="", container_name!="POD", BcsNetworkContainer!="true", id=~"{ container_id_list }"}}[1m])) * 100
+        """  # noqa
+
+    resp = query_range(prom_query, start, end, step)
+    return resp.get("data") or {}
+
+
+def get_container_cpu_limit(cluster_id, namespace, pod_name, container_id_list):
+    """获取CPU总使用率
+    start, end单位为毫秒，和数据平台保持一致
+    """
+
+    container_id_list = "|".join(f".*{i}" for i in container_id_list)
+
+    prom_query = f"""
+        max by(container_name) (container_spec_cpu_quota{{cluster_id="{cluster_id}", namespace=~"{ namespace }", pod_name=~"{pod_name}",
+        container_name!="", container_name!="POD", BcsNetworkContainer!="true", id=~"{ container_id_list }"}})
+        """  # noqa
+
+    resp = query(prom_query)
+    return resp.get("data") or {}
+
+
+def get_container_memory_usage_range(cluster_id, namespace, pod_name, container_id_list, start, end):
+    """获取CPU总使用率
+    start, end单位为毫秒，和数据平台保持一致
+    """
+    step = (end - start) // 60
+    container_id_list = "|".join(f".*{i}" for i in container_id_list)
+
+    prom_query = f"""
+        sum by(container_name) (container_memory_usage_bytes{{cluster_id="{cluster_id}", namespace=~"{ namespace }",pod_name=~"{pod_name}",
+        container_name!="", container_name!="POD", BcsNetworkContainer!="true", id=~"{ container_id_list }"}})
+        """  # noqa
+
+    resp = query_range(prom_query, start, end, step)
+    return resp.get("data") or {}
+
+
+def get_container_memory_limit(cluster_id, namespace, pod_name, container_id_list):
+    """获取CPU总使用率
+    start, end单位为毫秒，和数据平台保持一致
+    """
+
+    container_id_list = "|".join(f".*{i}" for i in container_id_list)
+
+    prom_query = f"""
+        max by(container_name) (container_spec_memory_limit_bytes{{cluster_id="{cluster_id}", namespace=~"{ namespace }", pod_name=~"{pod_name}",
+        container_name!="", container_name!="POD", BcsNetworkContainer!="true", id=~"{ container_id_list }"}}) > 0
+        """  # noqa
+
+    resp = query(prom_query)
+    return resp.get("data") or {}
+
+
+def get_container_disk_read(cluster_id, namespace, pod_name, container_id_list, start, end):
+    step = (end - start) // 60
+    container_id_list = "|".join(f".*{i}" for i in container_id_list)
+
+    prom_query = f"""
+        sum by(container_name) (container_fs_reads_bytes_total{{cluster_id="{cluster_id}", namespace=~"{ namespace }", pod_name=~"{pod_name}",
+        container_name!="", container_name!="POD", BcsNetworkContainer!="true", id=~"{container_id_list}"}})
+        """  # noqa
+
+    resp = query_range(prom_query, start, end, step)
+    return resp.get("data") or {}
+
+
+def get_container_disk_write(cluster_id, namespace, pod_name, container_id_list, start, end):
+    step = (end - start) // 60
+    container_id_list = "|".join(f".*{i}" for i in container_id_list)
+
+    prom_query = f"""
+        sum by(container_name) (container_fs_writes_bytes_total{{cluster_id="{cluster_id}", namespace=~"{ namespace }", pod_name=~"{pod_name}",
+        container_name!="", container_name!="POD", BcsNetworkContainer!="true", id=~"{container_id_list}"}})
+        """  # noqa
+
+    resp = query_range(prom_query, start, end, step)
+    return resp.get("data") or {}
