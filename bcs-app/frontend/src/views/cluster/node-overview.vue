@@ -17,20 +17,20 @@
                 <div class="biz-cluster-node-overview-header">
                     <div class="header-item">
                         <div class="key-label">IP：</div>
-                        <bk-tooltip :content="nodeInfo.innerIP" placement="bottom">
-                            <div class="value-label">{{nodeInfo.innerIP}}</div>
+                        <bk-tooltip :content="nodeId" placement="bottom">
+                            <div class="value-label">{{nodeId}}</div>
                         </bk-tooltip>
                     </div>
                     <div class="header-item">
                         <div class="key-label">CPU：</div>
-                        <bk-tooltip :content="nodeInfo.cpu" placement="bottom">
-                            <div class="value-label">{{nodeInfo.cpu}}</div>
+                        <bk-tooltip :content="nodeInfo.cpu_count" placement="bottom">
+                            <div class="value-label">{{nodeInfo.cpu_count}}</div>
                         </bk-tooltip>
                     </div>
                     <div class="header-item">
                         <div class="key-label">{{$t('内存：')}}</div>
-                        <bk-tooltip :content="nodeInfo.mem" placement="bottom">
-                            <div class="value-label">{{nodeInfo.mem}}</div>
+                        <bk-tooltip :content="nodeInfo.memory" placement="bottom">
+                            <div class="value-label">{{nodeInfo.memory}}</div>
                         </bk-tooltip>
                     </div>
                     <div class="header-item">
@@ -47,14 +47,20 @@
                     </div>
                     <div class="header-item">
                         <div class="key-label">{{$t('内核：')}}</div>
-                        <bk-tooltip :content="nodeInfo.kernel" placement="bottom">
-                            <div class="value-label">{{nodeInfo.kernel}}</div>
+                        <bk-tooltip :content="nodeInfo.release" placement="bottom">
+                            <div class="value-label">{{nodeInfo.release}}</div>
+                        </bk-tooltip>
+                    </div>
+                    <div class="header-item">
+                        <div class="key-label">Docker：</div>
+                        <bk-tooltip :content="nodeInfo.dockerVersion" placement="bottom">
+                            <div class="value-label">{{nodeInfo.dockerVersion}}</div>
                         </bk-tooltip>
                     </div>
                     <div class="header-item">
                         <div class="key-label">{{$t('操作系统：')}}</div>
-                        <bk-tooltip :content="nodeInfo.os" placement="bottom">
-                            <div class="value-label">{{nodeInfo.os}}</div>
+                        <bk-tooltip :content="nodeInfo.sysname" placement="bottom">
+                            <div class="value-label">{{nodeInfo.sysname}}</div>
                         </bk-tooltip>
                     </div>
                 </div>
@@ -62,7 +68,9 @@
                     <div class="biz-cluster-node-overview-chart">
                         <div class="part top-left">
                             <div class="info">
-                                <div class="left">CPU</div>
+                                <!-- <div class="left" v-if="REGION === 'ieod'">{{$t('CPU使用率')}}</div>
+                                <div class="left" v-else>CPU</div> -->
+                                <div class="left">{{$t('CPU使用率')}}</div>
                                 <div class="right">
                                     <bk-dropdown-menu :align="'right'" ref="cpuDropdown">
                                         <div style="cursor: pointer;" slot="dropdown-trigger">
@@ -85,11 +93,14 @@
                                     </bk-dropdown-menu>
                                 </div>
                             </div>
-                            <chart :options="cpuLine" ref="cpuLine1" auto-resize></chart>
+                            <!-- <chart :options="curProject.kind !== 2 ? cpuChartOptsK8S : cpuLine" ref="cpuLine1" auto-resize></chart> -->
+                            <chart :options="cpuChartOptsK8S" ref="cpuLine1" auto-resize></chart>
                         </div>
                         <div class="part top-right">
                             <div class="info">
-                                <div class="left">{{$t('内存')}}</div>
+                                <!-- <div class="left" v-if="REGION === 'ieod'">{{$t('内存使用率')}}</div>
+                                <div class="left" v-else>{{$t('内存')}}</div> -->
+                                <div class="left">{{$t('内存使用率')}}</div>
                                 <div class="right">
                                     <bk-dropdown-menu :align="'right'" ref="memoryDropdown">
                                         <div style="cursor: pointer;" slot="dropdown-trigger">
@@ -112,7 +123,8 @@
                                     </bk-dropdown-menu>
                                 </div>
                             </div>
-                            <chart :options="memoryLine" ref="memoryLine1" auto-resize></chart>
+                            <!-- <chart :options="curProject.kind !== 2 ? memChartOptsK8S : memoryLine" ref="memoryLine1" auto-resize></chart> -->
+                            <chart :options="memChartOptsK8S" ref="memoryLine1" auto-resize></chart>
                         </div>
                     </div>
                     <div class="biz-cluster-node-overview-chart">
@@ -141,11 +153,14 @@
                                     </bk-dropdown-menu>
                                 </div>
                             </div>
-                            <chart :options="networkLine" ref="networkLine1" auto-resize></chart>
+                            <!-- <chart :options="curProject.kind !== 2 ? networkChartOptsK8S : networkLine" ref="networkLine1" auto-resize></chart> -->
+                            <chart :options="networkChartOptsK8S" ref="networkLine1" auto-resize></chart>
                         </div>
                         <div class="part">
                             <div class="info">
-                                <div class="left">IO</div>
+                                <!-- <div class="left" v-if="REGION === 'ieod'">{{$t('IO使用率')}}</div>
+                                <div class="left" v-else>IO</div> -->
+                                <div class="left">{{$t('IO使用率')}}</div>
                                 <div class="right">
                                     <bk-dropdown-menu :align="'right'" ref="storageDropdown">
                                         <div style="cursor: pointer;" slot="dropdown-trigger">
@@ -168,7 +183,8 @@
                                     </bk-dropdown-menu>
                                 </div>
                             </div>
-                            <chart :options="storageLine" ref="storageLine1" auto-resize></chart>
+                            <!-- <chart :options="curProject.kind !== 2 ? diskioChartOptsK8S : storageLine" ref="storageLine1" auto-resize></chart> -->
+                            <chart :options="diskioChartOptsK8S" ref="storageLine1" auto-resize></chart>
                         </div>
                     </div>
                 </div>
@@ -182,15 +198,13 @@
                                             <th style="padding-left: 20px;">{{$t('名称')}}</th>
                                             <th>{{$t('状态')}}</th>
                                             <th>{{$t('镜像')}}</th>
-                                            <template v-if="curProject.kind === PROJECT_K8S">
-                                                <th style="min-width: 120px;">{{$t('操作')}}</th>
-                                            </template>
+                                            <th style="min-width: 120px;">{{$t('操作')}}</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         <template v-if="containerTableCurPageData.length">
                                             <tr v-for="(containerTableItem, index) in containerTableCurPageData" :key="index">
-                                                <td style="padding-left: 20px;" v-if="curProject.kind === 1 && containerTableItem.status !== 'running'">
+                                                <td style="padding-left: 20px;" v-if="(curProject.kind === 1 || curProject.kind === 3) && containerTableItem.status !== 'running'">
                                                     <div class="name">
                                                         <a href="javascript:void(0)" class="bk-text-button is-disabled">{{containerTableItem.name}}</a>
                                                     </div>
@@ -224,18 +238,16 @@
                                                         </template>
                                                     </bk-tooltip>
                                                 </td>
-                                                <template v-if="curProject.kind === PROJECT_K8S">
-                                                    <td>
-                                                        <template v-if="containerTableItem.status === 'running'">
-                                                            <a href="javascript: void(0);" class="bk-text-button" @click.stop="showTerminal(containerTableItem)">WebConsole</a>
-                                                        </template>
-                                                        <template v-else>
-                                                            <bk-tooltip :content="$t('容器状态不是running')" placement="right">
-                                                                <a href="javascript: void(0);" class="bk-text-button is-disabled">WebConsole</a>
-                                                            </bk-tooltip>
-                                                        </template>
-                                                    </td>
-                                                </template>
+                                                <td>
+                                                    <template v-if="containerTableItem.status === 'running'">
+                                                        <a href="javascript: void(0);" class="bk-text-button" @click.stop="showTerminal(containerTableItem)">WebConsole</a>
+                                                    </template>
+                                                    <template v-else>
+                                                        <bk-tooltip :content="$t('容器状态不是running')" placement="right">
+                                                            <a href="javascript: void(0);" class="bk-text-button is-disabled">WebConsole</a>
+                                                        </bk-tooltip>
+                                                    </template>
+                                                </td>
                                             </tr>
                                         </template>
                                         <template v-else>
@@ -306,8 +318,10 @@
     import 'echarts/lib/component/tooltip'
     import 'echarts/lib/component/legend'
 
-    import { nodeOverview } from '@open/common/chart-option'
-    import { catchErrorHandler } from '@open/common/util'
+    import { nodeOverview } from '@/common/chart-option'
+    import { catchErrorHandler, formatBytes } from '@open/common/util'
+
+    import { createChartOption } from './node-overview-chart-opts'
 
     export default {
         components: {
@@ -315,12 +329,22 @@
         },
         data () {
             return {
+                REGION: window.REGION,
                 PROJECT_MESOS: PROJECT_MESOS,
                 tabActiveName: 'container',
+
                 cpuLine: nodeOverview.cpu,
+                cpuChartOptsK8S: createChartOption(this),
+
                 memoryLine: nodeOverview.memory,
+                memChartOptsK8S: createChartOption(this),
+
                 networkLine: nodeOverview.network,
+                networkChartOptsK8S: createChartOption(this),
+
                 storageLine: nodeOverview.storage,
+                diskioChartOptsK8S: createChartOption(this),
+
                 bkMessageInstance: null,
                 cpuToggleRangeStr: this.$t('1小时'),
                 memToggleRangeStr: this.$t('1小时'),
@@ -370,13 +394,42 @@
                 = [0]
             nodeOverview.storage.series[0].data = [9, 0, 22, 40, 12, 31, 2, 12, 18, 27, 27]
         },
-        mounted () {
-            this.fetchData('cpu_summary', '1')
-            this.fetchData('mem', '1')
-            this.fetchData('net', '1')
-            this.fetchData('io', '1')
-            this.fetchNodeInfo()
+        async mounted () {
+            const cpuRef = this.$refs.cpuLine1
+            cpuRef && cpuRef.showLoading({
+                text: this.$t('正在加载中...'),
+                color: '#30d878',
+                maskColor: 'rgba(255, 255, 255, 0.8)'
+            })
+
+            const memRef = this.$refs.memoryLine1
+            memRef && memRef.showLoading({
+                text: this.$t('正在加载中...'),
+                color: '#30d878',
+                maskColor: 'rgba(255, 255, 255, 0.8)'
+            })
+
+            const diskioRef = this.$refs.storageLine1
+            diskioRef && diskioRef.showLoading({
+                text: this.$t('正在加载中...'),
+                color: '#30d878',
+                maskColor: 'rgba(255, 255, 255, 0.8)'
+            })
+
+            const netRef = this.$refs.networkLine1
+            netRef && netRef.showLoading({
+                text: this.$t('正在加载中...'),
+                color: '#30d878',
+                maskColor: 'rgba(255, 255, 255, 0.8)'
+            })
+
+            await this.fetchNodeInfo()
             this.fetchNodeContainers()
+
+            this.fetchDataK8S('cpu_summary', '1')
+            this.fetchDataK8S('mem', '1')
+            this.fetchDataK8S('net', '1')
+            this.fetchDataK8S('io', '1')
         },
         methods: {
             /**
@@ -388,17 +441,17 @@
                 const clusterId = this.$route.params.clusterId
                 const containerId = container.container_id
                 const url = `${DEVOPS_BCS_API_URL}/web_console/projects/${this.projectId}/clusters/${clusterId}/?container_id=${containerId}`
-                if (this.terminalWins.hasOwnProperty(clusterId)) {
-                    const win = this.terminalWins[clusterId]
+                if (this.terminalWins.hasOwnProperty(containerId)) {
+                    const win = this.terminalWins[containerId]
                     if (!win.closed) {
-                        this.terminalWins[clusterId].focus()
+                        this.terminalWins[containerId].focus()
                     } else {
                         const win = window.open(url, '', 'width=990,height=618')
-                        this.terminalWins[clusterId] = win
+                        this.terminalWins[containerId] = win
                     }
                 } else {
                     const win = window.open(url, '', 'width=990,height=618')
-                    this.terminalWins[clusterId] = win
+                    this.terminalWins[containerId] = win
                 }
             },
 
@@ -408,7 +461,7 @@
             async fetchNodeInfo () {
                 const { projectId, clusterId, nodeId } = this
                 try {
-                    const res = await this.$store.dispatch('cluster/getNodeInfo', {
+                    const res = await this.$store.dispatch('cluster/nodeInfo', {
                         projectId,
                         clusterId,
                         nodeId
@@ -416,32 +469,22 @@
 
                     const nodeInfo = {}
 
-                    const { InnerIP = '--', Cpu = {}, Memory = {}, Disk = {}, provider = '--', System = {}, id = '' } = res.data
+                    const data = res.data || {}
 
-                    nodeInfo.id = id
-                    nodeInfo.innerIP = InnerIP
-                    nodeInfo.cpu = Cpu.CpuNum || '--'
+                    nodeInfo.id = data.id || ''
+                    nodeInfo.provider = data.provider || '--'
+                    nodeInfo.dockerVersion = data.dockerVersion || '--'
+                    nodeInfo.osVersion = data.osVersion || '--'
+                    nodeInfo.domainname = data.domainname || '--'
+                    nodeInfo.machine = data.machine || '--'
+                    nodeInfo.nodename = data.nodename || '--'
+                    nodeInfo.release = data.release || '--'
+                    nodeInfo.sysname = data.sysname || '--'
+                    nodeInfo.version = data.version || '--'
+                    nodeInfo.cpu_count = data.cpu_count || '--'
+                    nodeInfo.memory = data.memory ? formatBytes(data.memory) : '--'
+                    nodeInfo.disk = data.disk ? formatBytes(data.disk) : '--'
 
-                    let mem = parseInt(Memory.Total || 0, 10)
-                    if (isNaN(mem)) {
-                        mem = '--'
-                    } else {
-                        mem = mem / 1024 / 1024 / 1024
-                    }
-                    nodeInfo.mem = `${mem.toFixed(2)}GB`
-
-                    let disk = parseInt(Disk.Total || 0, 10)
-                    if (isNaN(disk)) {
-                        disk = '--'
-                    } else {
-                        disk = disk / 1024 / 1024 / 1024
-                    }
-                    nodeInfo.disk = `${disk.toFixed(2)}GB`
-
-                    nodeInfo.provider = provider || '--'
-                    nodeInfo.kernel = System.kernelVersion || '--'
-                    nodeInfo.docker = System.serverDockerVersion || '--'
-                    nodeInfo.os = System.OS || '--'
                     this.nodeInfo = Object.assign({}, nodeInfo)
                 } catch (e) {
                     catchErrorHandler(e, this)
@@ -538,18 +581,18 @@
             },
 
             /**
-             * 获取中间图表数据
+             * 获取中间图表数据 k8s
              *
              * @param {string} idx 标识，cpu / memory / network / storage
              * @param {string} range 时间范围，1: 1 小时，2: 24 小时，3：近 7 天
              */
-            async fetchData (idx, range) {
+            async fetchDataK8S (idx, range) {
                 const params = {
                     startAt: null,
                     endAt: moment().format('YYYY-MM-DD HH:mm:ss'),
+                    projectId: this.projectId,
                     resId: this.nodeId,
-                    metric: idx,
-                    projectId: this.projectId
+                    clusterId: this.clusterId
                 }
 
                 // 1 小时
@@ -561,352 +604,338 @@
                     params.startAt = moment().subtract(7, 'days').format('YYYY-MM-DD HH:mm:ss')
                 }
 
-                // 图表组件 ref
-                let ref
-
-                // 设置图表数据的方法名
-                let hookFuncName
-                if (idx === 'cpu_summary') {
-                    ref = this.$refs.cpuLine1
-                    hookFuncName = 'setCpuData'
-                } else if (idx === 'mem') {
-                    ref = this.$refs.memoryLine1
-                    hookFuncName = 'setMemData'
-                } else if (idx === 'io') {
-                    ref = this.$refs.storageLine1
-                    hookFuncName = 'setStorageData'
-                } else if (idx === 'net') {
-                    ref = this.$refs.networkLine1
-                    hookFuncName = 'setNetworkData'
-                }
-
-                ref && ref.showLoading({
-                    text: this.$t('正在加载'),
-                    color: '#30d878',
-                    maskColor: 'rgba(255, 255, 255, 0.8)'
-                })
-
                 try {
-                    const res = await this.$store.dispatch('cluster/getNodeMetrics', params)
-                    const list = res.data.list || []
-                    this[hookFuncName](ref, list)
+                    if (idx === 'net') {
+                        const res = await Promise.all([
+                            this.$store.dispatch('cluster/nodeNetReceive', Object.assign({}, params)),
+                            this.$store.dispatch('cluster/nodeNetTransmit', Object.assign({}, params))
+                        ])
+                        this.renderNetChart(res[0].data.result, res[1].data.result)
+                    } else {
+                        let url = ''
+                        let renderFn = ''
+                        if (idx === 'cpu_summary') {
+                            url = 'cluster/nodeCpuUsage'
+                            renderFn = 'renderCpuChart'
+                        }
+
+                        if (idx === 'mem') {
+                            url = 'cluster/nodeMemUsage'
+                            renderFn = 'renderMemChart'
+                        }
+
+                        if (idx === 'io') {
+                            url = 'cluster/nodeDiskioUsage'
+                            renderFn = 'renderDiskioChart'
+                        }
+
+                        const res = await this.$store.dispatch(url, params)
+                        this[renderFn](res.data.result || [])
+                    }
                 } catch (e) {
                     catchErrorHandler(e, this)
                 }
             },
 
             /**
-             * 设置 cpu 图表数据
+             * 渲染 cpu 图表
              *
-             * @param {Object} ref 图表组件 ref
-             * @param {Array} data 数据
+             * @param {Array} list 图表数据
              */
-            setCpuData (ref, data) {
-                if (!ref) {
+            renderCpuChart (list) {
+                const chartNode = this.$refs.cpuLine1
+                if (!chartNode) {
                     return
                 }
 
-                const chartData = []
-                const emptyData = []
+                const cpuChartOptsK8S = Object.assign({}, this.cpuChartOptsK8S)
+                cpuChartOptsK8S.series.splice(0, cpuChartOptsK8S.series.length, ...[])
 
-                if (!data.length) {
-                    let startTime = null
-                    if (this.cpuToggleRangeStr === this.$t('1小时')) {
-                        startTime = moment().subtract(1, 'hours').valueOf()
-                    } else if (this.cpuToggleRangeStr === this.$t('24小时')) {
-                        startTime = moment().subtract(24, 'hours').valueOf()
-                    } else if (this.cpuToggleRangeStr === this.$t('近7天')) {
-                        startTime = moment().subtract(7, 'days').valueOf()
-                    }
-                    data = [
-                        {
-                            usage: '-',
-                            time: startTime
-                        },
-                        {
-                            usage: '-',
-                            time: moment().valueOf()
-                        }
-                    ]
-                }
+                const data = list.length ? list : [{ values: [[parseInt(String(+new Date()).slice(0, 10), 10), '0']] }]
 
                 data.forEach(item => {
-                    chartData.push({
-                        value: [item.time, item.usage]
+                    item.values.forEach(d => {
+                        d[0] = parseInt(d[0] + '000', 10)
                     })
-                    emptyData.push(0)
-                })
-                // 先设置 emptyData，再切换数据，这样的话，图表是从中间往两边展开，效果会好一些
-                ref.mergeOptions({
-                    series: [
+                    cpuChartOptsK8S.series.push(
                         {
-                            data: emptyData
-                        }
-                    ]
-                })
-                ref.mergeOptions({
-                    series: [
-                        {
-                            data: chartData
-                        }
-                    ]
-                })
-                ref.hideLoading()
-            },
-
-            /**
-             * 设置 mem 图表数据
-             *
-             * @param {Object} ref 图表组件 ref
-             * @param {Array} data 数据
-             */
-            setMemData (ref, data) {
-                if (!ref) {
-                    return
-                }
-
-                const totalData = []
-                const usedData = []
-                const emptyData = []
-
-                if (!data.length) {
-                    let startTime = null
-                    if (this.memToggleRangeStr === this.$t('1小时')) {
-                        startTime = moment().subtract(1, 'hours').valueOf()
-                    } else if (this.memToggleRangeStr === this.$t('24小时')) {
-                        startTime = moment().subtract(24, 'hours').valueOf()
-                    } else if (this.memToggleRangeStr === this.$t('近7天')) {
-                        startTime = moment().subtract(7, 'days').valueOf()
-                    }
-                    data = [
-                        {
-                            total: '-',
-                            used: '-',
-                            time: startTime
-                        },
-                        {
-                            total: '-',
-                            used: '-',
-                            time: moment().valueOf()
-                        }
-                    ]
-                }
-
-                data.forEach(item => {
-                    totalData.push({
-                        value: [item.time, item.total]
-                    })
-                    usedData.push({
-                        value: [item.time, item.used]
-                    })
-                    emptyData.push(0)
-                })
-                // 先设置 emptyData，再切换数据，这样的话，图表是从中间往两边展开，效果会好一些
-                ref.mergeOptions({
-                    series: [
-                        {
-                            data: emptyData
-                        },
-                        {
-                            data: emptyData
-                        }
-                    ]
-                })
-                ref.mergeOptions({
-                    series: [
-                        {
-                            data: totalData
-                        },
-                        {
-                            data: usedData
-                        }
-                    ]
-                })
-                ref.hideLoading()
-            },
-
-            /**
-             * 设置 network 图表数据
-             *
-             * @param {Object} ref 图表组件 ref
-             * @param {Array} data 数据
-             */
-            setNetworkData (ref, list) {
-                if (!ref) {
-                    return
-                }
-
-                const emptyData = []
-
-                const charOpts = {
-                    legend: {
-                        data: []
-                    },
-                    series: []
-                }
-
-                if (!list.length) {
-                    let startTime = null
-                    if (this.networkToggleRangeStr === this.$t('1小时')) {
-                        startTime = moment().subtract(1, 'hours').valueOf()
-                    } else if (this.networkToggleRangeStr === this.$t('24小时')) {
-                        startTime = moment().subtract(24, 'hours').valueOf()
-                    } else if (this.networkToggleRangeStr === this.$t('近7天')) {
-                        startTime = moment().subtract(7, 'days').valueOf()
-                    }
-                    list = [
-                        {
-                            device_name: 'noData',
-                            metrics: [
-                                {
-                                    time: startTime,
-                                    speedSent: '-',
-                                    speedRecv: '-'
-                                },
-                                {
-                                    time: moment().valueOf(),
-                                    speedSent: '-',
-                                    speedRecv: '-'
+                            type: 'line',
+                            showSymbol: false,
+                            smooth: true,
+                            hoverAnimation: false,
+                            areaStyle: {
+                                normal: {
+                                    opacity: 0.2
                                 }
-                            ]
-                        }
-                    ]
-                }
-
-                list.forEach(item => {
-                    const metrics = item.metrics
-                    // 加上这句那么在图表中就会显示 legend
-                    // charOpts.legend.data.push(item.device_name)
-                    const sentData = []
-                    const recvData = []
-                    metrics.forEach(metric => {
-                        sentData.push({
-                            value: [metric.time, metric.speedSent, 'sent']
-                        })
-                        recvData.push({
-                            value: [metric.time, metric.speedRecv, 'recv']
-                        })
-                        emptyData.push(0)
-                    })
-
-                    charOpts.series.push(
-                        {
-                            type: 'line',
-                            name: item.device_name,
-                            data: sentData
-                        },
-                        {
-                            type: 'line',
-                            name: item.device_name,
-                            data: recvData
+                            },
+                            itemStyle: {
+                                normal: {
+                                    color: '#30d878'
+                                }
+                            },
+                            data: item.values
                         }
                     )
                 })
 
-                // 先设置 emptyData，再切换数据，这样的话，图表是从中间往两边展开，效果会好一些
-                ref.mergeOptions({
-                    series: [
-                        {
-                            data: emptyData
-                        },
-                        {
-                            data: emptyData
+                const label = this.$t('CPU使用率')
+                chartNode.mergeOptions({
+                    tooltip: {
+                        formatter (params, ticket, callback) {
+                            let ret = ''
+
+                            if (params[0].value[1] === '-') {
+                                ret = '<div>No Data</div>'
+                            } else {
+                                ret = `
+                                    <div>${moment(parseInt(params[0].value[0], 10)).format('YYYY-MM-DD HH:mm:ss')}</div>
+                                    <div>${label}：${parseFloat(params[0].value[1]).toFixed(2)}%</div>
+                                `
+                            }
+
+                            return ret
                         }
-                    ]
+                    }
                 })
-                ref.mergeOptions(charOpts)
-                ref.hideLoading()
+
+                chartNode.hideLoading()
             },
 
             /**
-             * 设置 storage 图表数据
+             * 渲染 mem 图表
              *
-             * @param {Object} ref 图表组件 ref
-             * @param {Array} data 数据
+             * @param {Array} list 图表数据
              */
-            setStorageData (ref, list) {
-                if (!ref) {
+            renderMemChart (list) {
+                const chartNode = this.$refs.memoryLine1
+                if (!chartNode) {
                     return
                 }
 
-                const emptyData = []
-                const charOpts = {
-                    legend: {
-                        data: []
-                    },
-                    series: []
-                }
+                const memChartOptsK8S = Object.assign({}, this.memChartOptsK8S)
+                memChartOptsK8S.series.splice(0, memChartOptsK8S.series.length, ...[])
 
-                if (!list.length) {
-                    let startTime = null
-                    if (this.storageToggleRangeStr === this.$t('1小时')) {
-                        startTime = moment().subtract(1, 'hours').valueOf()
-                    } else if (this.storageToggleRangeStr === this.$t('24小时')) {
-                        startTime = moment().subtract(24, 'hours').valueOf()
-                    } else if (this.storageToggleRangeStr === this.$t('近7天')) {
-                        startTime = moment().subtract(7, 'days').valueOf()
-                    }
-                    list = [
-                        {
-                            device_name: 'noData',
-                            metrics: [
-                                {
-                                    time: startTime,
-                                    rkb_s: '-',
-                                    wkb_s: '-'
-                                },
-                                {
-                                    time: moment().valueOf(),
-                                    rkb_s: '-',
-                                    wkb_s: '-'
-                                }
-                            ]
-                        }
-                    ]
-                }
+                const data = list.length ? list : [{ values: [[parseInt(String(+new Date()).slice(0, 10), 10), '0']] }]
 
-                list.forEach(item => {
-                    const metrics = item.metrics
-                    // charOpts.legend.data.push(item.device_name)
-                    const readData = []
-                    const writeData = []
-                    metrics.forEach(metric => {
-                        readData.push({
-                            value: [metric.time, metric.rkb_s, 'read']
-                        })
-                        writeData.push({
-                            value: [metric.time, metric.wkb_s, 'write']
-                        })
-                        emptyData.push(0)
+                data.forEach(item => {
+                    item.values.forEach(d => {
+                        d[0] = parseInt(d[0] + '000', 10)
                     })
-
-                    charOpts.series.push(
+                    memChartOptsK8S.series.push(
                         {
                             type: 'line',
-                            name: item.device_name,
-                            data: readData
-                        },
-                        {
-                            type: 'line',
-                            name: item.device_name,
-                            data: writeData
+                            showSymbol: false,
+                            smooth: true,
+                            hoverAnimation: false,
+                            areaStyle: {
+                                normal: {
+                                    opacity: 0.2
+                                }
+                            },
+                            itemStyle: {
+                                normal: {
+                                    color: '#3c96ff'
+                                }
+                            },
+                            data: item.values
                         }
                     )
                 })
 
-                // 先设置 emptyData，再切换数据，这样的话，图表是从中间往两边展开，效果会好一些
-                ref.mergeOptions({
-                    series: [
-                        {
-                            data: emptyData
-                        },
-                        {
-                            data: emptyData
+                const label = this.$t('内存使用率')
+                chartNode.mergeOptions({
+                    tooltip: {
+                        formatter (params, ticket, callback) {
+                            let ret = ''
+
+                            if (params[0].value[1] === '-') {
+                                ret = '<div>No Data</div>'
+                            } else {
+                                ret = `
+                                    <div>${moment(parseInt(params[0].value[0], 10)).format('YYYY-MM-DD HH:mm:ss')}</div>
+                                    <div>${label}：${parseFloat(params[0].value[1]).toFixed(2)}%</div>
+                                `
+                            }
+
+                            return ret
                         }
-                    ]
+                    }
                 })
-                ref.mergeOptions(charOpts)
-                ref.hideLoading()
+
+                chartNode.hideLoading()
+            },
+
+            /**
+             * 渲染 diskio 图表
+             *
+             * @param {Array} list 图表数据
+             */
+            renderDiskioChart (list) {
+                const chartNode = this.$refs.storageLine1
+                if (!chartNode) {
+                    return
+                }
+
+                const diskioChartOptsK8S = Object.assign({}, this.diskioChartOptsK8S)
+                diskioChartOptsK8S.series.splice(0, diskioChartOptsK8S.series.length, ...[])
+
+                const data = list.length ? list : [{ values: [[parseInt(String(+new Date()).slice(0, 10), 10), '0']] }]
+
+                data.forEach(item => {
+                    item.values.forEach(d => {
+                        d[0] = parseInt(d[0] + '000', 10)
+                    })
+                    diskioChartOptsK8S.series.push(
+                        {
+                            type: 'line',
+                            showSymbol: false,
+                            smooth: true,
+                            hoverAnimation: false,
+                            areaStyle: {
+                                normal: {
+                                    opacity: 0.2
+                                }
+                            },
+                            itemStyle: {
+                                normal: {
+                                    color: '#ffbe21'
+                                }
+                            },
+                            data: item.values
+                        }
+                    )
+                })
+
+                const label = this.$t('磁盘IO')
+                chartNode.mergeOptions({
+                    tooltip: {
+                        formatter (params, ticket, callback) {
+                            let ret = ''
+
+                            if (params[0].value[1] === '-') {
+                                ret = '<div>No Data</div>'
+                            } else {
+                                ret = `
+                                    <div>${moment(parseInt(params[0].value[0], 10)).format('YYYY-MM-DD HH:mm:ss')}</div>
+                                    <div>${label}：${parseFloat(params[0].value[1]).toFixed(2)}%</div>
+                                `
+                            }
+
+                            return ret
+                        }
+                    }
+                })
+
+                chartNode.hideLoading()
+            },
+
+            /**
+             * 渲染 net 图表
+             *
+             * @param {Array} listReceive net 入流量数据
+             * @param {Array} listTransmit net 出流量数据
+             */
+            renderNetChart (listReceive, listTransmit) {
+                const chartNode = this.$refs.networkLine1
+                if (!chartNode) {
+                    return
+                }
+
+                const networkChartOptsK8S = Object.assign({}, this.networkChartOptsK8S)
+                networkChartOptsK8S.series.splice(0, networkChartOptsK8S.series.length, ...[])
+
+                networkChartOptsK8S.yAxis.splice(0, networkChartOptsK8S.yAxis.length, ...[
+                    {
+                        axisLabel: {
+                            formatter (value, index) {
+                                return `${formatBytes(value)}`
+                            }
+                        }
+                    }
+                ])
+
+                const dataReceive = listReceive.length
+                    ? listReceive
+                    : [{ values: [[parseInt(String(+new Date()).slice(0, 10), 10), '0']] }]
+
+                const dataTransmit = listTransmit.length
+                    ? listTransmit
+                    : [{ values: [[parseInt(String(+new Date()).slice(0, 10), 10), '0']] }]
+
+                dataReceive.forEach(item => {
+                    item.values.forEach(d => {
+                        d[0] = parseInt(d[0] + '000', 10)
+                        d.push('receive')
+                    })
+                    networkChartOptsK8S.series.push(
+                        {
+                            type: 'line',
+                            showSymbol: false,
+                            smooth: true,
+                            hoverAnimation: false,
+                            areaStyle: {
+                                normal: {
+                                    opacity: 0.2
+                                }
+                            },
+                            itemStyle: {
+                                normal: {
+                                    color: '#853cff'
+                                }
+                            },
+                            data: item.values
+                        }
+                    )
+                })
+
+                dataTransmit.forEach(item => {
+                    item.values.forEach(d => {
+                        d[0] = parseInt(d[0] + '000', 10)
+                        d.push('transmit')
+                    })
+                    networkChartOptsK8S.series.push(
+                        {
+                            type: 'line',
+                            showSymbol: false,
+                            smooth: true,
+                            hoverAnimation: false,
+                            areaStyle: {
+                                normal: {
+                                    opacity: 0.2
+                                }
+                            },
+                            itemStyle: {
+                                normal: {
+                                    color: '#853cff'
+                                }
+                            },
+                            data: item.values
+                        }
+                    )
+                })
+
+                const labelReceive = this.$t('入流量')
+                const labelTransmit = this.$t('出流量')
+                chartNode.mergeOptions({
+                    tooltip: {
+                        formatter (params, ticket, callback) {
+                            let ret = ''
+                                + `<div>${moment(parseInt(params[0].value[0], 10)).format('YYYY-MM-DD HH:mm:ss')}</div>`
+
+                            params.forEach(p => {
+                                if (p.value[2] === 'receive') {
+                                    ret += `<div>${labelReceive}：${formatBytes(p.value[1])}</div>`
+                                } else if (p.value[2] === 'transmit') {
+                                    ret += `<div>${labelTransmit}：${formatBytes(p.value[1])}</div>`
+                                }
+                            })
+
+                            return ret
+                        }
+                    }
+                })
+
+                chartNode.hideLoading()
             },
 
             /**
@@ -927,7 +956,27 @@
                 }
 
                 this.$refs[dropdownRef].hide()
-                this.fetchData(idx, range)
+
+                let ref = null
+                if (idx === 'cpu_summary') {
+                    ref = this.$refs.cpuLine1
+                }
+                if (idx === 'mem') {
+                    ref = this.$refs.memoryLine1
+                }
+                if (idx === 'io') {
+                    ref = this.$refs.storageLine1
+                }
+                if (idx === 'net') {
+                    ref = this.$refs.networkLine1
+                }
+                ref && ref.showLoading({
+                    text: this.$t('正在加载中...'),
+                    color: '#30d878',
+                    maskColor: 'rgba(255, 255, 255, 0.8)'
+                })
+
+                this.fetchDataK8S(idx, range)
             },
 
             /**
