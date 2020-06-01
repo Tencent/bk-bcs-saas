@@ -317,7 +317,7 @@
 <script>
     import moment from 'moment'
 
-    import { catchErrorHandler } from '@open/common/util'
+    import { catchErrorHandler, formatBytes } from '@open/common/util'
 
     export default {
         data () {
@@ -470,11 +470,31 @@
                     this.updatedTime = data.updated_at ? moment(data.updated_at).format('YYYY-MM-DD HH:mm:ss') : '--'
                     this.description = data.description || '--'
 
-                    this.configInfo = this.isEn
-                        ? `${data.total_cpu}core ${(data.total_mem).toFixed(0)}GB`
-                        : `${data.total_cpu}核 ${(data.total_mem).toFixed(0)}GB`
+                    this.fetchClusterOverview()
 
                     this.fetchVariableInfo()
+                } catch (e) {
+                    catchErrorHandler(e, this)
+                }
+            },
+
+            /**
+             * 获取集群使用率
+             */
+            async fetchClusterOverview () {
+                try {
+                    const res = await this.$store.dispatch('cluster/clusterOverview', {
+                        projectId: this.projectId,
+                        clusterId: this.curCluster.cluster_id // 这里用 this.curCluster 来获取是为了使计算属性生效
+                    })
+                    const cpu = res.data.cpu_usage || {}
+                    const mem = res.data.mem_usage || {}
+                    const cpuTotal = cpu.total || 0
+                    const memTotal = formatBytes(mem.total_bytes) || 0
+
+                    this.configInfo = this.isEn
+                        ? `${cpuTotal}core ${memTotal}`
+                        : `${cpuTotal}核 ${memTotal}`
                 } catch (e) {
                     catchErrorHandler(e, this)
                 }

@@ -1,0 +1,40 @@
+.biz-cluster {
+    .biz-cluster-content {
+        padding: 30px 24px 0 24px;
+
+        .biz-progress-box {
+            margin-bottom: 28px;
+        }
+
+        .progress {
+            &.loading {
+                background-color: #fafbfd;
+                background-image: repeating-linear-gradient(90deg, #fafbfd, #fafbfd 20px, #f0f1f5 20px, #f0f1f5 60px);
+                background-size: 250px 100%;
+                animation: progressLoading 5s linear infinite;
+            }
+            .progress-bar {
+                transition: width 1s ease;
+            }
+        }
+
+        @keyframes progressLoading {
+            0% {
+                background-position: 0% 0%;
+            }
+            100% {
+                background-position: 250px 0%;
+            }
+        }
+
+        &.more-info {
+            padding: 20px 24px 0 24px;
+            .biz-progress-box {
+                margin-bottom: 20px;
+                .progress-header {
+                    margin-bottom: 5px;
+                }
+            }
+        }
+    }
+}
