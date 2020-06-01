@@ -54,3 +54,4 @@ natsort==5.4.1
 raven==6.0.0
 
 openpyxl==3.0.0
+semantic_version==2.8.4
