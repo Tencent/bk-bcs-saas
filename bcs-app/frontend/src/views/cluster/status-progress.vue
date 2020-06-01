@@ -1,5 +1,5 @@
 <template>
-    <div class="biz-cluster-content" :class="curProject.kind === 2 || curProject.kind === 3 ? 'more-info' : ''">
+    <div class="biz-cluster-content" :class="curProject.kind === PROJECT_MESOS || curProject.kind === PROJECT_TKE ? 'more-info' : ''">
         <div class="biz-progress-box">
             <div class="progress-header">
                 <span class="title">{{$t('CPU使用率')}}</span>
