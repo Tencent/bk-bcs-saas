@@ -31,6 +31,8 @@ def get_cluster_versions(access_token, kind="", ver_id="", env=""):
         raise error_codes.APIError(f"get cluster version, {resp.get('message')}")
     data = resp.get("data") or []
     version_list = []
+    # 以ID排序，稳定版本排在前面
+    data.sort(key=lambda info: info["id"])
     for info in data:
         configure = json.loads(info.get("configure") or "{}")
         version_list.append({
