@@ -32,7 +32,7 @@ def get_cluster_versions(access_token, kind="", ver_id="", env=""):
     data = resp.get("data") or []
     version_list = []
     for info in data:
-        configure = json.loads(info.get("configure", ''))
+        configure = json.loads(info.get("configure") or "{}")
         version_list.append({
             "version_id": info["version"],
             "version_name": configure.get("version_name") or info["version"]
