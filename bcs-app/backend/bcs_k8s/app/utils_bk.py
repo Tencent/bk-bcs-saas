@@ -18,13 +18,14 @@ from backend.apps.depot.api import get_jfrog_account
 from backend.bcs_k8s.helm.providers.repo_provider import add_plain_repo
 
 
-def add_private_repo_info(user, project):
+def get_or_create_private_repo(user, project):
     # 通过harbor api创建一次项目账号，然后存储在auth中
     project_id = project.project_id
     project_code = project.project_code
     private_repos = Repository.objects.filter(name=project_code, project_id=project_id)
-    if private_repos.exists():
-        return private_repos[0]
+    repo = private_repos.first()
+    if repo:
+        return repo
     account = get_jfrog_account(user.token.access_token, project_code, project_id)
     repo_auth = {
         "type": "basic",

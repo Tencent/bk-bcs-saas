@@ -64,7 +64,7 @@ from backend.bcs_k8s.dashboard.exceptions import DashboardError, DashboardExecut
 from backend.bcs_k8s.app.utils import compose_url_with_scheme
 from backend.utils.errcodes import ErrorCode
 from backend.bcs_k8s.app.serializers import FilterNamespacesSLZ
-from backend.bcs_k8s.app.utils_bk import add_private_repo_info
+from backend.bcs_k8s.app.utils_bk import get_or_create_private_repo
 
 logger = logging.getLogger(__name__)
 
@@ -862,7 +862,7 @@ class AppAPIView(viewsets.ModelViewSet):
 class HowToPushHelmChartView(AccessTokenMixin, viewsets.GenericViewSet):
 
     def get_private_repo_info(self, user, project):
-        private_repo = add_private_repo_info(user, project)
+        private_repo = get_or_create_private_repo(user, project)
 
         if not private_repo.plain_auths:
             return {
