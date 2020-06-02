@@ -159,6 +159,14 @@ export default {
                     }
 
                     item.config.spec.template.spec.containers.forEach(container => {
+                        // 增加镜像凭证，兼容旧数据
+                        if (container.imagePullUser && container.imagePullPasswd) {
+                            container.isAddImageSecrets = true
+                        } else {
+                            container.isAddImageSecrets = false
+                            container.imagePullUser = ''
+                            container.imagePullPasswd = ''
+                        }
                         if (!container.logListCache) {
                             container.logListCache = [
                                 {
@@ -174,6 +182,12 @@ export default {
                         }
                         if (!container.hasOwnProperty('workingDir')) {
                             container.workingDir = ''
+                        }
+
+                        // 兼容自定义镜像
+                        if (!container.hasOwnProperty('isImageCustomed')) {
+                            // 以DEVOPS_ARTIFACTORY_HOST开头都是通过下拉配置，包括变量形式，否则是自定义
+                            container.isImageCustomed = !container.image.startsWith(`${DEVOPS_ARTIFACTORY_HOST}`)
                         }
 
                         // 将挂载卷的用户数据回填

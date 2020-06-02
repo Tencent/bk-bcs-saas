@@ -19,13 +19,19 @@
                         <div class="bk-mark-corner bk-warning" v-if="
                             cluster.status === 'normal'
                                 && (
-                                    conversionPercent(cluster.remain_cpu, cluster.total_cpu) >= 80
-                                || conversionPercent(cluster.remain_mem, cluster.total_mem) >= 80
-                                || conversionPercent(cluster.remain_disk, cluster.total_disk) >= 80
+                                    conversionPercent(cluster.cpu_usage.used, cluster.cpu_usage.total) >= 80
+                                || conversionPercent(cluster.mem_usage.used_bytes, cluster.mem_usage.total_bytes) >= 80
+                                || conversionPercent(cluster.disk_usage.used_bytes, cluster.disk_usage.total_bytes) >= 80
                                 )
                         ">
                             <p>!</p>
                         </div>
+                        <template v-else>
+                            <status-mark-corner v-if="cluster.status === 'normal' && cluster.cpu_usage !== undefined"
+                                :cur-cluster="cluster"
+                            ></status-mark-corner>
+                        </template>
+
                         <div class="biz-cluster-header">
                             <bk-tooltip :content="cluster.name" :delay="500" placement="top">
                                 <h2 class="cluster-title">
@@ -113,6 +119,7 @@
                                 </ul>
                             </bk-dropdown-menu>
                         </div>
+
                         <div class="biz-cluster-content" v-if="cluster.status === 'removing'">
                             <div class="biz-status-box">
                                 <div class="status-icon">
@@ -179,8 +186,7 @@
                                 <p class="status-text">{{$t('初始化失败，请重试')}}</p>
                                 <div class="status-opera">
                                     <a href="javascript:void(0);" class="bk-text-button" @click.prevent="showLog(cluster)">{{$t('查看日志')}}</a> |
-                                    <a href="javascript:void(0);" class="bk-text-button" @click="reInitializationCluster(cluster, clusterIndex)">{{$t('重新初始化')}}</a> <!-- |
-                                    <a href="javascript:void(0);" class="bk-text-button">修改参数</a> -->
+                                    <a href="javascript:void(0);" class="bk-text-button" @click="reInitializationCluster(cluster, clusterIndex)">{{$t('重新初始化')}}</a>
                                 </div>
                             </div>
                         </div>
@@ -197,7 +203,12 @@
 
                         <!-- 正常状态 -->
                         <template v-else>
-                            <div class="biz-cluster-content" :class="curProject.kind === PROJECT_MESOS ? 'more-info' : ''">
+                            <status-progress
+                                :loading="!Object.keys(cluster.cpu_usage).length"
+                                :cur-project="curProject"
+                                :cur-cluster="cluster">
+                            </status-progress>
+                            <!-- <div class="biz-cluster-content" :class="curProject.kind === PROJECT_MESOS ? 'more-info' : ''">
                                 <div class="biz-progress-box">
                                     <div class="progress-header">
                                         <span class="title">{{$t('CPU使用率')}}</span>
@@ -236,14 +247,14 @@
                                     <div class="progress-header">
                                         <span class="title">{{$t('集群IP')}}</span>
                                         <span class="percent">
-                                            {{cluster.ip_resource_total === 0 ? 0 : `${cluster.ip_resource_used} / ${cluster.ip_resource_total}`}}
+                                            {{cluster.allip === 0 ? 0 : `${cluster.activeip} / ${cluster.allip}（${$t('剩余')}${cluster.availableip}）`}}
                                         </span>
                                     </div>
                                     <div class="progress">
-                                        <div class="progress-bar warning" :style="{ width: `${cluster.ip_resource_total === 0 ? 0 : conversionPercent(cluster.ip_resource_total - cluster.ip_resource_used, cluster.ip_resource_total)}%` }"></div>
+                                        <div class="progress-bar warning" :style="{ width: `${cluster.allip === 0 ? 0 : conversionPercent(cluster.activeip, cluster.allip, true)}%` }"></div>
                                     </div>
                                 </div>
-                            </div>
+                            </div> -->
                             <div class="add-node-btn-wrapper">
                                 <button class="bk-button bk-default add-node-btn" @click="goOverviewOrNode('clusterNode', cluster)">
                                     <span>{{$t('添加节点')}}</span>
@@ -253,7 +264,6 @@
                     </div>
                     <div class="biz-cluster biz-cluster-add" @click="gotCreateCluster">
                         <div class="add-btn">
-                            <!-- <i class="bk-icon icon-plus"></i> -->
                             <img src="@open/images/plus.svg" />
                             <strong>{{$t('点击新建集群')}}</strong>
                         </div>
@@ -396,10 +406,16 @@
     import tipDialog from '@open/components/tip-dialog'
     import ClusterGuide from './guide'
 
+    import StatusProgress from './status-progress'
+    import StatusMarkCorner from './status-mark-corner'
+    import statusHoc from './status-hoc'
+
     export default {
         components: {
             'cluster-guide': ClusterGuide,
-            tipDialog
+            tipDialog,
+            StatusProgress: statusHoc(StatusProgress),
+            StatusMarkCorner: statusHoc(StatusMarkCorner)
         },
         mixins: [applyPerm],
         data () {
@@ -452,12 +468,25 @@
             clusterList () {
                 const clusterList = []
                 this.$store.state.cluster.clusterList.forEach(item => {
+                    if (!item.cpu_usage) {
+                        item.cpu_usage = {}
+                    }
+                    if (!item.mem_usage) {
+                        item.mem_usage = {}
+                    }
+                    if (!item.disk_usage) {
+                        item.disk_usage = {}
+                    }
                     clusterList.push(item)
                 })
 
                 return clusterList
             },
             isHelmEnable () {
+                const curProject = this.$store.state.curProject
+                if (curProject && (curProject.kind === PROJECT_K8S || curProject.kind === PROJECT_TKE)) {
+                    return true
+                }
                 return false
             },
             isEn () {
@@ -543,20 +572,20 @@
             /**
              * 转换百分比
              *
-             * @param {number} remain 剩下的数量
+             * @param {number} used 使用的量
              * @param {number} total 总量
              *
              * @return {number} 百分比数字
              */
-            conversionPercent (remain, total) {
-                if (!total || total === 0) {
+            conversionPercent (used, total) {
+                if (!total || parseFloat(total) === 0) {
                     return 0
                 }
-
-                let ret = (total - remain) / total * 100
+                let ret = parseFloat(used) / parseFloat(total) * 100
                 if (ret !== 0 && ret !== 100) {
                     ret = ret.toFixed(2)
                 }
+
                 return ret
             },
 
@@ -675,6 +704,8 @@
 
             /**
              * 获取所有的集群
+             *
+             * @param {boolean} notLoading notLoading 是否不需要 loading，如果为 true 说明是轮询来的
              */
             async getClusters (notLoading) {
                 if (this.cancelLoop) {
@@ -690,25 +721,59 @@
                     this.permissions = JSON.parse(JSON.stringify(res.permissions || {}))
 
                     const list = res.data.results || []
-
                     list.forEach((item, index) => {
+                        item.cpu_usage = {}
+                        item.mem_usage = {}
+                        item.disk_usage = {}
+                        item.activeip = 0
+                        item.availableip = 0
+                        item.reservedip = 0
+                        item.allip = 0
                         this.getClusterIp(item, index)
-                        // item.remain_cpu = 50
-                        // item.total_cpu = 100
-
-                        // item.remain_mem = 20
-                        // item.total_mem = 80
-
-                        // item.remain_disk = 16
-                        // item.total_disk = 97
-
-                        // item.ip_resource_used = 38
-                        // item.ip_resource_total = 65
                     })
+
+                    if (this.clusterList.length) {
+                        this.clusterList.forEach(c => {
+                            const resListItem = list.find(item => item.cluster_id === c.cluster_id)
+                            if (resListItem) {
+                                resListItem.cpu_usage = c.cpu_usage
+                                resListItem.mem_usage = c.mem_usage
+                                resListItem.disk_usage = c.disk_usage
+                            }
+                        })
+                    }
 
                     this.$store.commit('cluster/forceUpdateClusterList', list)
 
-                    list.forEach((item, index) => {
+                    list.forEach(async (item, index) => {
+                        if (!notLoading) {
+                            const l = []
+                            l.splice(0, 0, ...this.clusterList)
+                            this.$set(l, index, item)
+                            this.$store.commit('cluster/forceUpdateClusterList', l)
+
+                            await this.$store.dispatch('cluster/clusterOverview', {
+                                projectId: this.projectId,
+                                clusterId: item.cluster_id
+                            }).then(d => {
+                                item.cpu_usage = d.data.cpu_usage
+                                // item.cpu_usage = {
+                                //     used: '22.166666666660198',
+                                //     total: '24'
+                                // }
+                                item.mem_usage = d.data.mem_usage
+                                item.disk_usage = d.data.disk_usage
+
+                                const l = []
+                                l.splice(0, 0, ...this.clusterList)
+                                this.$set(l, index, item)
+                                this.$store.commit('cluster/forceUpdateClusterList', l)
+                            })
+                            // promises.push(this.$store.dispatch('cluster/clusterOverview', {
+                            //     projectId: this.projectId,
+                            //     clusterId: item.cluster_id
+                            // }))
+                        }
                         if (item.status === 'initializing' || item.status === 'so_initializing') {
                             this.setStorage(item)
                         } else {
@@ -744,8 +809,14 @@
                         clusterId: cluster.cluster_id
                     })
                     const data = res.data || {}
-                    cluster.ip_resource_total = data.availableip + data.activeip
-                    cluster.ip_resource_used = data.availableip
+
+                    cluster.activeip = data.activeip || 0
+                    cluster.availableip = data.availableip || 0
+                    cluster.reservedip = data.reservedip || 0
+                    cluster.allip = cluster.activeip + cluster.availableip + cluster.reservedip
+
+                    cluster.ip_resource_total = cluster.availableip + cluster.activeip
+                    cluster.ip_resource_used = cluster.availableip
                     this.$set(this.clusterList, index, cluster)
                 } catch (e) {
                     catchErrorHandler(e, this)

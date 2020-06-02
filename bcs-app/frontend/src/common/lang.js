@@ -1180,6 +1180,13 @@ export default {
     '如何从文件导入变量？': ['How to import variables from a file?'],
     '批量导入成功': ['Batch import succeeded'],
     '命名空间包含以下资源，请先删除资源，然后再删除命名空间': ['The namespace contains the following resources. Please delete the resource before deleting the namespace'],
+    '无数据（请检查 Service 是否有关联的 Endpoints)': ['No data (please check whether Service has an associated Endpoints)'],
+    '无数据（新建 Metric 需要1~2分钟生效，请刷新），通过计算创建时间和当前时间判断': ['No data (it takes 1 / 2 minutes for the new Metric to take effect, please refresh it), which can be judged by calculating the creation time and the current time.'],
+    '集群分类': ['Cluster Category'],
+    '新建集群': ['Create Cluster'],
+    '导入集群': ['Import Cluster'],
+    '导入已经存在的集群': ['Import an existing cluster'],
+    '剩余': ['Surplus'],
     // 变量的使用 $t('test', { vari1: 1, vari2: 2 })
     'test': ['{vari1} ---english--- {vari2}']
 }

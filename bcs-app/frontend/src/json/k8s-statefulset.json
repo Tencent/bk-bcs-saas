@@ -88,6 +88,7 @@
                     "hostNetwork": 0, 
                     "dnsPolicy": "ClusterFirst",
                     "volumes": [], 
+                    "imagePullSecrets": [],
                     "allContainers": [
                         {
                             "name": "容器名称",
@@ -99,6 +100,7 @@
                                 "args_text": "",
                                 "livenessProbeType": "HTTP",
                                 "readinessProbeType": "HTTP",
+                                "isImageCustomed": false,
                                 "logListCache": [
                                     {
                                         "value": ""
@@ -195,6 +197,7 @@
                                 "args_text": "",
                                 "livenessProbeType": "HTTP",
                                 "readinessProbeType": "HTTP",
+                                "isImageCustomed": false,
                                 "logListCache": [
                                     {
                                         "value": ""

@@ -1,3 +1,4 @@
+
 <template>
     <div class="bk-input-box bk-selector">
         <input
@@ -30,7 +31,6 @@
 <script>
     import { debounce } from 'throttle-debounce'
     import { getActualTop } from '@open/common/util'
-
     export default {
         props: {
             type: {
@@ -84,10 +84,6 @@
                 default: Number.POSITIVE_INFINITY
             },
             isLink: {
-                type: Boolean,
-                default: false
-            },
-            isCustom: {
                 type: Boolean,
                 default: false
             },
@@ -147,7 +143,6 @@
                 curSelectIndex: -1,
                 resultList: this.defaultList || this.list,
                 timer: 0,
-                userHasInput: false,
                 isMax: false,
                 isMin: false,
                 curValue: '',
@@ -169,8 +164,7 @@
             value: {
                 immediate: true,
                 handler (value) {
-                    // localValue用于保存上次选择值，这里加判断防止重复触发
-                    if (!value || value !== this.localValue) {
+                    if (value !== this.localValue || value !== this.curValue) {
                         this.changeCurValue(this.isLink)
                     }
                 }
@@ -200,14 +194,12 @@
                     targetList = this.list
                     keyWord = this.getKeyWord(val)
                 }
-
                 if (keyWord) {
                     const key = keyWord.toLowerCase()
                     targetList = sourceList.filter(item => {
                         return item[searchKey] && String(item[searchKey]).toLowerCase().indexOf(key) > -1
                     })
                 }
-
                 targetList.forEach(item => {
                     item.isSelected = false
                 })
@@ -227,7 +219,7 @@
                 const value = this.value + ''
                 // 如果是选择模式，从列表项匹配
                 if (this.isSelectMode) {
-                    const selectItem = this.getItem(this.value, this.settingKey)
+                    const selectItem = this.getItemByKey(this.value)
                     if (selectItem) {
                         if (selectItem.type === 'variable') {
                             this.curValue = '{{' + selectItem[this.displayKey] + '}}'
@@ -238,9 +230,6 @@
                         if (isTrigger) {
                             this.$emit('item-selected', value, selectItem, isTrigger)
                         }
-                    } else if (this.isCustom) {
-                        // 如果在选择模式下且允许自定义，在没匹配下拉时直接赋值
-                        this.curValue = this.value
                     } else {
                         this.curValue = ''
                     }
@@ -250,9 +239,7 @@
                     this.curValue = value
                     return
                 }
-
                 // let newVal = parseInt(value)
-
                 // if (this.type === 'decimals') {
                 //     newVal = Number(value)
                 // }
@@ -292,7 +279,6 @@
                 if (this.curSelectIndex >= this.resultList.length) {
                     this.curSelectIndex = this.resultList.length - 1
                 }
-
                 this.selectItemByIndex(this.curSelectIndex)
             },
             selectPrevItem () {
@@ -310,27 +296,23 @@
                         item.isSelected = false
                     }
                 })
-
                 this.resultList = JSON.parse(JSON.stringify(this.resultList))
-
                 this.setScrollTop()
             },
-            getItem (key, name) {
+            getItemByKey (key) {
                 let selectItem = null
                 for (const item of this.defaultList) {
-                    if (String(item[name]) === String(key)) {
+                    if (String(item[this.settingKey]) === String(key)) {
                         selectItem = item
                         selectItem.type = 'normal'
                     }
                 }
-
                 for (const item of this.list) {
-                    if (`{{${item[name]}}}` === key) {
+                    if (`{{${item[this.settingKey]}}}` === key) {
                         selectItem = item
                         selectItem.type = 'variable'
                     }
                 }
-
                 return selectItem
             },
             selectItemByKey (key) {
@@ -345,15 +327,12 @@
                         item.isSelected = false
                     }
                 })
-
                 this.resultList = JSON.parse(JSON.stringify(this.resultList))
-
                 this.setScrollTop()
             },
             setScrollTop () {
                 const MAX_SHOW_NUM = 3
                 const LIST_ITEM_HEIGHT = 42
-
                 if (this.curSelectIndex > MAX_SHOW_NUM) {
                     const offset = this.curSelectIndex - MAX_SHOW_NUM
                     const scrollTop = offset * LIST_ITEM_HEIGHT
@@ -387,7 +366,6 @@
                             preVal = this.value
                             newVal = inputVal
                         }
-
                         event.target.value = inputText
                         this.curValue = inputText
                         this.localValue = val
@@ -402,7 +380,6 @@
             getPower (val) {
                 const valueString = val.toString()
                 const dotPosition = valueString.indexOf('.')
-
                 let power = 0
                 if (dotPosition > -1) {
                     power = valueString.length - dotPosition - 1
@@ -432,9 +409,6 @@
                 } else {
                     this.inputMode = 'input'
                     this.keyWord = ''
-
-                    // 用于标记用户在当前focus已经更改内容
-                    this.userHasInput = true
                     if (this.defaultList) {
                         this.keyWord = val
                         this.showListPanel(event)
@@ -452,7 +426,6 @@
             },
             userInput (event) {
                 let val = event.target.value
-
                 if (!this.useChinese) {
                     val = val.replace(this.chineseReg, '')
                 }
@@ -467,14 +440,12 @@
                         this.hideListPanel()
                         return
                     }
-
                     // 支持负数
                     if (val === '-') {
                         this.curValue = val
                         this.hideListPanel()
                         return
                     }
-
                     if (val.startsWith(this.searchPrefix)) {
                         this.inputMode = 'search'
                         this.keyWord = val
@@ -484,7 +455,6 @@
                         this.$emit('input', val)
                         return
                     }
-
                     this.inputMode = 'input'
                     this.numberInput(event)
                 } else {
@@ -499,15 +469,12 @@
                     target && (target.value = value)
                     return
                 }
-
                 if (value !== '' && value.indexOf('.') === (value.length - 1)) {
                     return
                 }
-
                 if (value !== '' && value.indexOf('.') > -1 && Number(value) === 0) {
                     return
                 }
-
                 // 支持输入百分比
                 let hasPercentCode = false
                 if (this.percentEnable) {
@@ -518,13 +485,10 @@
                         hasPercentCode = true
                     }
                 }
-
                 let newVal = parseInt(value)
-
                 if (this.isDecimals) {
                     newVal = Number(value)
                 }
-
                 if (!isNaN(newVal)) {
                     if (hasPercentCode) {
                         newVal += '%'
@@ -569,7 +533,6 @@
                     if (val.endsWith(this.searchSuffix)) {
                         endIndex = val.length - this.searchSuffix.length
                     }
-
                     keyWord = val.substring(startIndex, endIndex)
                 } else if (this.searchReg.exec(val)) {
                     const match = this.searchReg.exec(val)
@@ -579,7 +542,6 @@
                 } else {
                     keyWord = ''
                 }
-
                 return keyWord
             },
             initInputLayout () {
@@ -598,25 +560,18 @@
                     this.isListPanelShow = false
                 }, 200)
             },
-            clearDefaultList () {
-                this.defaultList = []
-                this.isListPanelShow = false
-            },
             focusHandler (event) {
                 if (!this.isSelectMode) {
                     event.target.select()
                 }
-
                 const val = this.value + ''
                 const key = this.getKeyWord(val)
                 if (key) {
                     this.inputMode = 'search'
                     const list = JSON.parse(JSON.stringify(this.list))
-
                     list.forEach(item => {
                         item.isSelected = false
                     })
-
                     this.resultList = list
                     this.selectItemByKey(key)
                     this.setScrollTop()
@@ -629,7 +584,6 @@
                         list.forEach(item => {
                             item.isSelected = false
                         })
-
                         this.resultList = list
                         this.selectItemByKey(val)
                         this.setScrollTop()
@@ -641,41 +595,24 @@
                 this.$emit('focus', event)
             },
             blurHandler (event) {
-                // 增加一个定时器来解决选择时事件顺序问题，先触发选择事件再触发失焦点事件
-                setTimeout(() => {
-                    if (this.type === 'number') {
-                        this.curValue = this.value
-                    } else if (this.isSelectMode) {
-                        const curValue = this.isCustom && this.userHasInput ? event.target.value : this.value
-                        const selectItem = this.getItem(curValue, this.displayKey)
-                        // 如果匹配，自动选中
-                        if (selectItem) {
-                            if (selectItem.type === 'variable') {
-                                this.curValue = '{{' + selectItem[this.displayKey] + '}}'
-                            } else {
-                                this.curValue = selectItem[this.displayKey]
-                            }
-                            const newVal = selectItem[this.settingKey]
-                            this.$emit('update:value', newVal)
-                            this.$emit('item-selected', newVal, selectItem, false)
-                        } else if (this.isCustom) {
-                            // 选择模式支持自定义输入
-                            if (this.userHasInput) {
-                                const newVal = event.target.value
-                                this.curValue = newVal
-                                this.$emit('update:value', newVal)
-                                this.$emit('item-customed', newVal, { '__isCustom': true }, false)
-                            }
+                if (this.type === 'number') {
+                    this.curValue = this.value
+                } else if (this.isSelectMode) {
+                    const selectItem = this.getItemByKey(this.value)
+                    if (selectItem) {
+                        if (selectItem.type === 'variable') {
+                            this.curValue = '{{' + selectItem[this.displayKey] + '}}'
                         } else {
-                            this.curValue = ''
+                            this.curValue = selectItem[this.displayKey]
                         }
+                    } else {
+                        this.curValue = ''
                     }
-                    this.hideListPanel()
-                    this.userHasInput = false
-                    this.timer = setTimeout(() => {
-                        this.$emit('blur', event)
-                    }, 200)
-                }, 0)
+                }
+                this.hideListPanel()
+                this.timer = setTimeout(() => {
+                    this.$emit('blur', event)
+                }, 200)
             },
             initSelectorPosition (currentTarget) {
                 if (currentTarget) {
@@ -687,23 +624,19 @@
                         listHeight = 160
                     }
                     const scrollTop = document.documentElement.scrollTop || document.body.scrollTop
-
                     if ((distanceTop + listHeight + 42 - scrollTop) < winHeight) {
                         ySet = {
                             top: '40px',
                             bottom: 'auto'
                         }
-
                         this.listSlideName = 'toggle-slide'
                     } else {
                         ySet = {
                             top: 'auto',
                             bottom: '40px'
                         }
-
                         this.listSlideName = 'toggle-slide2'
                     }
-
                     this.panelStyle = { ...ySet, minWidth: '235px' }
                 }
             }

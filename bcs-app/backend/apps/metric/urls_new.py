@@ -38,6 +38,9 @@ cluster_urlpatterns = [
     url(r"^container/disk_read/$", views.performance.Container.as_view({"get": "disk_read"})),
     url(r"^container/disk_write/$", views.performance.Container.as_view({"get": "disk_write"})),
     url(r"^servicemonitors/$", views.servicemonitor.ServiceMonitor.as_view({"get": "list", "post": "create"})),
+    url(r"^targets/$", views.servicemonitor.Targets.as_view({"get": "list_instance"})),
+    url(r"^services/$", views.servicemonitor.Services.as_view({"get": "list"})),
+    url(r"^prometheus/update/$", views.servicemonitor.PrometheusUpdate.as_view({"get": "get", "put": "update"})),
     url(
         r"^servicemonitors/(?P<namespace>[\w-]+)/(?P<name>[\w-]+)/$",
         views.servicemonitor.ServiceMonitor.as_view({"get": "get", "delete": "delete", "put": "update"}),
@@ -45,6 +48,10 @@ cluster_urlpatterns = [
     url(
         r"^servicemonitors/(?P<namespace>[\w-]+)/(?P<name>[\w-]+)/targets/$",
         views.servicemonitor.Targets.as_view({"get": "list"}),
+    ),
+    url(
+        r"^servicemonitors/(?P<namespace>[\w-]+)/(?P<name>[\w-]+)/targets/graph/$",
+        views.servicemonitor.Targets.as_view({"get": "graph"}),
     ),
 ]
 

@@ -30,13 +30,13 @@
                         <i class="bk-icon icon-list"></i>{{$t('节点管理')}}
                     </div>
                     <div class="header-item" @click="goInfo">
-                        <i class="cc-icon icon-cc-machine"></i>{{$t('集群信息')}}
+                        <i class="icon-cc icon-cc-machine"></i>{{$t('集群信息')}}
                     </div>
                 </div>
                 <div class="biz-cluster-tab-content" v-bkloading="{ isLoading: isInitLoading, opacity: 1 }" :style="{ height: isInitLoading ? '300px' : 'auto' }">
+                    <div class="biz-cluster-node-tip" v-if="curProject.kind === 1 || curProject.kind === 3">{{$t('集群就绪后，您可以创建命名空间、推送项目镜像到仓库，然后通过服务配置模板集或使用Helm部署服务')}}</div>
+                    <div class="biz-cluster-node-tip" v-else>{{$t('集群就绪后，您可以创建命名空间、推送项目镜像到仓库，然后通过服务配置模板集部署服务')}}</div>
                     <div class="biz-cluster-node-content" v-if="!isInitLoading">
-                        <div class="biz-cluster-node-tip" v-if="curProject.kind === 1 || curProject.kind === 3">{{$t('集群就绪后，您可以创建命名空间、推送项目镜像到仓库，然后通过服务配置模板集或使用Helm部署服务')}}</div>
-                        <div class="biz-cluster-node-tip" v-else>{{$t('集群就绪后，您可以创建命名空间、推送项目镜像到仓库，然后通过服务配置模板集部署服务')}}</div>
                         <div class="biz-cluster-node-header">
                             <button class="bk-button bk-primary" @click.stop="openDialog">
                                 <i class="bk-icon icon-plus"></i>
@@ -65,12 +65,9 @@
                                     <li>
                                         <a class="action" href="javascript:void(0)" @click="batchOperate('3')">{{$t('删除')}}</a>
                                     </li>
-                                    <!-- <li style="position: relative;">
-                                        <a class="action" href="javascript:void(0)" @click="batchOperate('4')" v-if="isBatchReInstall">{{$t('重新添加')}}</a>
-                                        <bk-tooltip v-else :content="'dontAllowBatchMsgdontAllowBatchMsg'" :always="true" :placement="'left'">
-                                            <a href="javascript:void(0)" class="action disabled">{{$t('重新添加')}}</a>
-                                        </bk-tooltip>
-                                    </li> -->
+                                    <li>
+                                        <a class="action" href="javascript:void(0)" @click="exportNode">{{$t('导出')}}</a>
+                                    </li>
                                     <li>
                                         <a class="action" href="javascript:void(0)" @click="batchOperate('4')" v-if="isBatchReInstall">{{$t('重新添加')}}</a>
                                         <a href="javascript:void(0)" v-else class="action disabled" :title="$t('所选节点均处于初始化失败状态时才允许此操作')">{{$t('重新添加')}}</a>
@@ -78,7 +75,6 @@
                                 </ul>
                             </bk-dropdown-menu>
                             <div class="biz-searcher-wrapper">
-                                <!-- <bk-ip-searcher :search-params="ipSearchParams" :disable="searchDisabled" @search="searchNodeList" ref="searcher" /> -->
                                 <node-searcher :cluster-id="clusterId" :project-id="projectId" ref="searcher"
                                     :params="ipSearchParams" @search="searchNodeList"></node-searcher>
                             </div>
@@ -95,16 +91,19 @@
                             </span>
 
                             <span class="refresh-wrapper">
-                                <button class="bk-button bk-default is-outline is-icon" :title="$t('刷新')" @click="refresh">
-                                    <i class="bk-icon icon-refresh"></i>
-                                </button>
+                                <bk-tooltip :content="$t('重置')" :transfer="true" :placement="'top-end'">
+                                    <button class="bk-button bk-default is-outline is-icon" :title="$t('重置')" @click="refresh">
+                                        <i class="bk-icon icon-refresh"></i>
+                                    </button>
+                                </bk-tooltip>
                             </span>
                         </div>
+
                         <div class="biz-cluster-node-table-wrapper" v-bkloading="{ isLoading: isPageLoading, opacity: 1 }">
                             <table class="bk-table has-table-hover biz-table" :style="{ borderBottomWidth: nodeList.length ? '1px' : 0 }">
                                 <thead>
                                     <tr>
-                                        <th style="width: 3%; text-align: center; top: 0; position: relative; padding: 0;">
+                                        <th style="width: 3%; text-align: center; padding: 0; padding-left: 20px;">
                                             <label class="bk-form-checkbox">
                                                 <input type="checkbox" name="check-all-node" v-model="isCheckCurPageAllNode" @click="checkAllNode($event)" />
                                             </label>
@@ -112,6 +111,9 @@
                                         <th style="width: 12%; padding-left: 10px;">{{$t('主机名/IP')}}</th>
                                         <th style="width: 12%;">{{$t('状态')}}</th>
                                         <th style="width: 10%;">{{$t('容器数量')}}</th>
+                                        <template v-if="curProject.kind === 2">
+                                            <th style="width: 8%;">{{$t('配置')}}</th>
+                                        </template>
                                         <th style="width: 9%;">
                                             CPU
                                             <div class="biz-table-sort">
@@ -139,7 +141,7 @@
                                             </div>
                                         </th>
                                         <th style="width: 9%;">
-                                            {{$t('磁盘IO')}}
+                                            {{$t('磁盘')}}
                                             <div class="biz-table-sort">
                                                 <span class="sort-direction asc "
                                                     :class="sortIdx === 'disk' ? 'active' : ''"
@@ -151,15 +153,28 @@
                                                     @click="sortNodeList('disk', 'desc', '-disk')"></span>
                                             </div>
                                         </th>
-                                        <th style="width: 28%; text-align: left;">
-                                            <span>{{$t('操作')}}</span>
-                                        </th>
+                                        <template v-if="curProject.kind !== 2">
+                                            <th style="width: 9%;">
+                                                {{$t('磁盘IO')}}
+                                                <div class="biz-table-sort">
+                                                    <span class="sort-direction asc "
+                                                        :class="sortIdx === 'io' ? 'active' : ''"
+                                                        :title="sortIdx === 'io' ? $t('取消') : $t('升序')"
+                                                        @click="sortNodeList('io', 'asc', 'io')"></span>
+                                                    <span class="sort-direction desc"
+                                                        :class="sortIdx === '-io' ? 'active' : ''"
+                                                        :title="sortIdx === '-io' ? $t('取消') : $t('降序')"
+                                                        @click="sortNodeList('io', 'desc', '-io')"></span>
+                                                </div>
+                                            </th>
+                                        </template>
+                                        <th style="width: 28%; text-align: left;"><span>{{$t('操作')}}</span></th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     <template v-if="nodeList.length">
                                         <tr v-for="(node, index) in nodeList" :key="index">
-                                            <td style="width: 40px; text-align: center; top: 0; position: relative;">
+                                            <td style="width: 3%; text-align: center; padding: 0; padding-left: 20px;">
                                                 <label class="bk-form-checkbox">
                                                     <input type="checkbox" name="check-node" v-model="node.isChecked" @click="checkNode(node, index)" />
                                                 </label>
@@ -177,6 +192,7 @@
                                                     <div class="biz-status-node"><loading-cell :style="{ left: 0 }" :ext-cls="['bk-spin-loading-mini', 'bk-spin-loading-danger']"></loading-cell></div>
                                                     {{node.status === 'initializing' || node.status === 'so_initializing' || node.status === 'initial_checking' ? $t('初始化中') : $t('删除中')}}
                                                 </td>
+                                                <td></td>
                                                 <td></td>
                                                 <td></td>
                                                 <td></td>
@@ -205,12 +221,23 @@
                                                     {{node.status === 'initial_failed' || node.status === 'so_init_failed' || node.status === 'check_failed' || node.status === 'bke_failed' || node.status === 'schedule_failed' ? $t('初始化失败') : $t('删除失败')}}
                                                 </td>
                                                 <td>{{node.containers}}</td>
+
+                                                <template v-if="curProject.kind === 2">
+                                                    <td>{{node.device_class || '--'}}</td>
+                                                </template>
+
                                                 <td v-if="node.cpuMetric !== null && node.cpuMetric !== undefined"><ring-cell :percent="node.cpuMetric" :fill-color="'#3ede78'"></ring-cell></td>
                                                 <td v-else><loading-cell></loading-cell></td>
                                                 <td v-if="node.memMetric !== null && node.memMetric !== undefined"><ring-cell :percent="node.memMetric" :fill-color="'#3c96ff'"></ring-cell></td>
                                                 <td v-else><loading-cell></loading-cell></td>
-                                                <td v-if="node.ioMetric !== null && node.ioMetric !== undefined"><ring-cell :percent="node.ioMetric" :fill-color="'#853cff'"></ring-cell></td>
+                                                <td v-if="node.diskMetric !== null && node.diskMetric !== undefined"><ring-cell :percent="node.diskMetric" :fill-color="'#853cff'"></ring-cell></td>
                                                 <td v-else><loading-cell></loading-cell></td>
+
+                                                <template v-if="curProject.kind !== 2">
+                                                    <td v-if="node.diskioMetric !== null && node.diskioMetric !== undefined"><ring-cell :percent="node.diskioMetric" :fill-color="'#853cff'"></ring-cell></td>
+                                                    <td v-else><loading-cell></loading-cell></td>
+                                                </template>
+
                                                 <td style="text-align: left;">
                                                     <a href="javascript:void(0);" class="bk-text-button" @click.stop="showLog(node)">{{$t('查看日志')}}</a>
                                                     <template v-if="node.status === 'delete_failed'">
@@ -240,12 +267,22 @@
                                                     {{$t('不可调度')}}
                                                 </td>
                                                 <td>{{node.containers}}</td>
+
+                                                <template v-if="curProject.kind === 2">
+                                                    <td>{{node.device_class || '--'}}</td>
+                                                </template>
+
                                                 <td v-if="node.cpuMetric !== null && node.cpuMetric !== undefined"><ring-cell :percent="node.cpuMetric" :fill-color="'#3ede78'"></ring-cell></td>
                                                 <td v-else><loading-cell></loading-cell></td>
                                                 <td v-if="node.memMetric !== null && node.memMetric !== undefined"><ring-cell :percent="node.memMetric" :fill-color="'#3c96ff'"></ring-cell></td>
                                                 <td v-else><loading-cell></loading-cell></td>
-                                                <td v-if="node.ioMetric !== null && node.ioMetric !== undefined"><ring-cell :percent="node.ioMetric" :fill-color="'#853cff'"></ring-cell></td>
+                                                <td v-if="node.diskMetric !== null && node.diskMetric !== undefined"><ring-cell :percent="node.diskMetric" :fill-color="'#853cff'"></ring-cell></td>
                                                 <td v-else><loading-cell></loading-cell></td>
+
+                                                <template v-if="curProject.kind !== 2">
+                                                    <td v-if="node.diskioMetric !== null && node.diskioMetric !== undefined"><ring-cell :percent="node.diskioMetric" :fill-color="'#853cff'"></ring-cell></td>
+                                                    <td v-else><loading-cell></loading-cell></td>
+                                                </template>
                                                 <td>
                                                     <a href="javascript:void(0);" class="bk-text-button" @click.stop="enableNode(node, index)">{{$t('允许调度')}}</a>
                                                     <bk-tooltip style="margin: 0 15px;" :content="$t('请确保该节点已经没有运行中的容器')" placement="top-end">
@@ -260,7 +297,7 @@
                                                         <ul class="bk-dropdown-list" slot="dropdown-content">
                                                             <li>
                                                                 <a href="javascript:void(0);" class="bk-text-button" @click.stop="schedulerNode(node, index)">
-                                                                    {{curProject.kind === 1 ? $t('pod迁移') : $t('taskgroup迁移')}}
+                                                                    {{(curProject.kind === 1 || curProject.kind === 3) ? $t('pod迁移') : $t('taskgroup迁移')}}
                                                                 </a>
                                                             </li>
                                                         </ul>
@@ -281,12 +318,22 @@
                                                     {{$t('不可调度')}}
                                                 </td>
                                                 <td>{{node.containers}}</td>
+
+                                                <template v-if="curProject.kind === 2">
+                                                    <td>{{node.device_class || '--'}}</td>
+                                                </template>
+
                                                 <td v-if="node.cpuMetric !== null && node.cpuMetric !== undefined"><ring-cell :percent="node.cpuMetric" :fill-color="'#3ede78'"></ring-cell></td>
                                                 <td v-else><loading-cell></loading-cell></td>
                                                 <td v-if="node.memMetric !== null && node.memMetric !== undefined"><ring-cell :percent="node.memMetric" :fill-color="'#3c96ff'"></ring-cell></td>
                                                 <td v-else><loading-cell></loading-cell></td>
-                                                <td v-if="node.ioMetric !== null && node.ioMetric !== undefined"><ring-cell :percent="node.ioMetric" :fill-color="'#853cff'"></ring-cell></td>
+                                                <td v-if="node.diskMetric !== null && node.diskMetric !== undefined"><ring-cell :percent="node.diskMetric" :fill-color="'#853cff'"></ring-cell></td>
                                                 <td v-else><loading-cell></loading-cell></td>
+
+                                                <template v-if="curProject.kind !== 2">
+                                                    <td v-if="node.diskioMetric !== null && node.diskioMetric !== undefined"><ring-cell :percent="node.diskioMetric" :fill-color="'#853cff'"></ring-cell></td>
+                                                    <td v-else><loading-cell></loading-cell></td>
+                                                </template>
                                                 <td style="text-align: left;">
                                                     <a href="javascript:void(0);" class="bk-text-button" @click.stop="enableNode(node, index)">{{$t('允许调度')}}</a>
                                                     <a href="javascript:void(0);" class="bk-text-button" @click.stop="showDelNode(node, index)">{{$t('删除')}}</a>
@@ -299,7 +346,7 @@
                                                         <ul class="bk-dropdown-list" slot="dropdown-content">
                                                             <li>
                                                                 <a href="javascript:void(0);" class="bk-text-button" @click.stop="schedulerNode(node, index)">
-                                                                    {{curProject.kind === 1 ? $t('pod迁移') : $t('taskgroup迁移')}}
+                                                                    {{(curProject.kind === 1 || curProject.kind === 3) ? $t('pod迁移') : $t('taskgroup迁移')}}
                                                                 </a>
                                                             </li>
                                                         </ul>
@@ -320,12 +367,23 @@
                                                     {{$t('不正常')}}
                                                 </td>
                                                 <td>{{node.containers}}</td>
+
+                                                <template v-if="curProject.kind === 2">
+                                                    <td>{{node.device_class || '--'}}</td>
+                                                </template>
+
                                                 <td v-if="node.cpuMetric !== null && node.cpuMetric !== undefined"><ring-cell :percent="node.cpuMetric" :fill-color="'#3ede78'"></ring-cell></td>
                                                 <td v-else><loading-cell></loading-cell></td>
                                                 <td v-if="node.memMetric !== null && node.memMetric !== undefined"><ring-cell :percent="node.memMetric" :fill-color="'#3c96ff'"></ring-cell></td>
                                                 <td v-else><loading-cell></loading-cell></td>
-                                                <td v-if="node.ioMetric !== null && node.ioMetric !== undefined"><ring-cell :percent="node.ioMetric" :fill-color="'#853cff'"></ring-cell></td>
+                                                <td v-if="node.diskMetric !== null && node.diskMetric !== undefined"><ring-cell :percent="node.diskMetric" :fill-color="'#853cff'"></ring-cell></td>
                                                 <td v-else><loading-cell></loading-cell></td>
+
+                                                <template v-if="curProject.kind !== 2">
+                                                    <td v-if="node.diskioMetric !== null && node.diskioMetric !== undefined"><ring-cell :percent="node.diskioMetric" :fill-color="'#853cff'"></ring-cell></td>
+                                                    <td v-else><loading-cell></loading-cell></td>
+                                                </template>
+
                                                 <td style="text-align: left;">
                                                     <a href="javascript:void(0);" class="bk-text-button" @click.stop="showDelNode(node, index)">{{$t('删除')}}</a>
                                                     <a href="javascript:void(0);" class="bk-text-button" @click.stop="showForceDelNode(node, index)">{{$t('强制删除')}}</a>
@@ -353,12 +411,23 @@
                                                     {{$t('不正常')}}
                                                 </td>
                                                 <td>{{node.containers}}</td>
+
+                                                <template v-if="curProject.kind === 2">
+                                                    <td>{{node.device_class || '--'}}</td>
+                                                </template>
+
                                                 <td v-if="node.cpuMetric !== null && node.cpuMetric !== undefined"><ring-cell :percent="node.cpuMetric" :fill-color="'#3ede78'"></ring-cell></td>
                                                 <td v-else><loading-cell></loading-cell></td>
                                                 <td v-if="node.memMetric !== null && node.memMetric !== undefined"><ring-cell :percent="node.memMetric" :fill-color="'#3c96ff'"></ring-cell></td>
                                                 <td v-else><loading-cell></loading-cell></td>
-                                                <td v-if="node.ioMetric !== null && node.ioMetric !== undefined"><ring-cell :percent="node.ioMetric" :fill-color="'#853cff'"></ring-cell></td>
+                                                <td v-if="node.diskMetric !== null && node.diskMetric !== undefined"><ring-cell :percent="node.diskMetric" :fill-color="'#853cff'"></ring-cell></td>
                                                 <td v-else><loading-cell></loading-cell></td>
+
+                                                <template v-if="curProject.kind !== 2">
+                                                    <td v-if="node.diskioMetric !== null && node.diskioMetric !== undefined"><ring-cell :percent="node.diskioMetric" :fill-color="'#853cff'"></ring-cell></td>
+                                                    <td v-else><loading-cell></loading-cell></td>
+                                                </template>
+
                                                 <td style="text-align: left;">
                                                     <a href="javascript:void(0);" class="bk-text-button" @click.stop="stopNode(node, index)">{{$t('停止调度')}}</a>
                                                 </td>
@@ -367,7 +436,7 @@
                                     </template>
                                     <template v-else>
                                         <tr class="no-hover">
-                                            <td colspan="8">
+                                            <td colspan="9">
                                                 <div class="bk-message-box">
                                                     <p class="message empty-message">{{$t('无数据')}}</p>
                                                 </div>
@@ -428,10 +497,20 @@
                             <thead>
                                 <tr>
                                     <th style="width: 60px; text-align: right;">
-                                        <label class="bk-form-checkbox">
-                                            <input type="checkbox" name="check-all-host" v-model="isCheckCurPageAll" @click="toogleCheckCurPage" v-if="candidateHostList.filter(host => !host.is_used && String(host.agent) === '1').length && !isCreating">
-                                            <input type="checkbox" name="check-all-host" style="border: 1px solid #ebf0f5;background-color: #fafbfd;background-image: none;" disabled="disabled" v-else>
-                                        </label>
+                                        <bk-dropdown-menu :align="'left'" ref="pageSelectDropdownMenu" class="all-page-select-dropdown-menu">
+                                            <label class="bk-form-checkbox" slot="dropdown-trigger">
+                                                <div class="mock-checkbox" :class="(checkAllMode === 'page' || checkAllMode === 'all') ? 'checked' : ''"></div>
+                                            </label>
+                                            <ul class="bk-dropdown-list" slot="dropdown-content">
+                                                <li>
+                                                    <a href="javascript:void(0)" @click="checkAll('page')" v-if="candidateHostList.filter(host => !host.is_used && String(host.agent) === '1' && host.is_valid).length && !isCreating">{{$t('全选当页')}}<i class="bk-icon icon-check-1" v-show="checkAllMode === 'page'"></i></a>
+                                                    <a href="javascript:void(0)" class="disabled" v-else>{{$t('全选当页')}}<i class="bk-icon icon-check-1" v-show="checkAllMode === 'page'"></i></a>
+                                                </li>
+                                                <li>
+                                                    <a href="javascript:void(0)" @click="checkAll('all')">{{$t('全选所有')}}<i class="bk-icon icon-check-1" v-show="checkAllMode === 'all'"></i></a>
+                                                </li>
+                                            </ul>
+                                        </bk-dropdown-menu>
                                     </th>
                                     <th width="480">{{$t('主机名称')}}</th>
                                     <th>{{$t('内网IP')}}</th>
@@ -440,24 +519,45 @@
                             </thead>
                             <tbody>
                                 <template v-if="candidateHostList.length">
-                                    <tr v-for="(host, index) in candidateHostList" @click.stop="rowClick" :style="{ cursor: !host.is_used && String(host.agent) === '1' && !isCreating ? 'pointer' : 'not-allowed' }" :key="index">
+                                    <tr v-for="(host, index) in candidateHostList" @click.stop="rowClick" :style="{ cursor: !host.is_used && String(host.agent) === '1' && host.is_valid && !isCreating ? 'pointer' : 'not-allowed' }" :key="index">
                                         <template v-if="!isCreating">
-                                            <td style="text-align: right;" v-if="host.is_used || String(host.agent) !== '1'">
+                                            <td style="text-align: right;" v-if="host.is_used || String(host.agent) !== '1' || !host.is_valid">
                                                 <bk-tooltip placement="left">
                                                     <label class="bk-form-checkbox">
                                                         <input type="checkbox" name="check-host" style="border: 1px solid #ebf0f5;background-color: #fafbfd;background-image: none;" disabled="disabled">
                                                     </label>
                                                     <template slot="content">
-                                                        <p style="text-align: left; white-space: normal;word-break: break-all; width: 240px;">
+                                                        <p v-if="host.is_used" style="text-align: left; white-space: normal;word-break: break-all; width: 240px;">
                                                             {{$t('当前节点已被项目（{projectName}）的集群（{clusterName}）占用', { projectName: host.project_name, clusterName: host.cluster_name })}}
+                                                        </p>
+                                                        <p v-if="String(host.agent) !== '1'" style="text-align: left; white-space: normal;word-break: break-all; width: 90px;">
+                                                            {{$t('Agent状态异常')}}
+                                                        </p>
+                                                        <p v-if="!host.is_valid" style="text-align: left; white-space: normal;word-break: break-all; width: 120px;">
+                                                            <template v-if="isEn">Docker is not allowed to use</template>
+                                                            <template v-else>Docker机不允许使用</template>
                                                         </p>
                                                     </template>
                                                 </bk-tooltip>
                                             </td>
                                             <td style="text-align: right;" v-else>
-                                                <label class="bk-form-checkbox">
-                                                    <input type="checkbox" name="check-host" v-model="host.isChecked" @click.stop="selectHost(candidateHostList)">
-                                                </label>
+                                                <template v-if="checkAllMode === 'all'">
+                                                    <bk-tooltip placement="left">
+                                                        <label class="bk-form-checkbox">
+                                                            <div class="mock-checkbox checked-disabled"></div>
+                                                        </label>
+                                                        <template slot="content">
+                                                            <p style="text-align: left; white-space: normal;word-break: break-all; width: 240px;">
+                                                                {{$t('已经全选所有，如需清除，请在表头多选框清除')}}
+                                                            </p>
+                                                        </template>
+                                                    </bk-tooltip>
+                                                </template>
+                                                <template v-else>
+                                                    <label class="bk-form-checkbox">
+                                                        <input type="checkbox" name="check-host" v-model="host.isChecked" @click.stop="selectHost(candidateHostList)">
+                                                    </label>
+                                                </template>
                                             </td>
                                         </template>
                                         <template v-else>
@@ -905,7 +1005,12 @@
             :ext-cls="'biz-node-re-initialization-dialog'"
             :quick-close="false">
             <template slot="content">
-                <div>{{batchDialogConf.content}}</div>
+                <div v-if="isEn">
+                    Confirm to <span class="operate">{str}</span> on <span class="len">{len}</span> nodes?
+                </div>
+                <div v-else>
+                    确定要对<span class="len">{{batchDialogConf.len}}</span>个节点进行<span class="operate">{{batchDialogConf.operate}}</span>操作？
+                </div>
             </template>
             <template slot="footer">
                 <div class="bk-dialog-outer">
@@ -966,8 +1071,6 @@
                     }
                 ]
             }
-        },
-        methods: {
         }
     }
 </script>
