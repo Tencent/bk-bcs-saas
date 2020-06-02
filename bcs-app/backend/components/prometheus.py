@@ -413,7 +413,7 @@ def get_container_cpu_usage_range(cluster_id, namespace, pod_name, container_id_
     start, end单位为毫秒，和数据平台保持一致
     """
     step = (end - start) // 60
-    container_id_list = "|".join(f".*{i}" for i in container_id_list)
+    container_id_list = "|".join(f".*{i}.*" for i in container_id_list)
 
     prom_query = f"""
         sum by(container_name) (rate(container_cpu_usage_seconds_total{{cluster_id="{cluster_id}", namespace=~"{ namespace }", pod_name=~"{pod_name}",
@@ -429,7 +429,7 @@ def get_container_cpu_limit(cluster_id, namespace, pod_name, container_id_list):
     start, end单位为毫秒，和数据平台保持一致
     """
 
-    container_id_list = "|".join(f".*{i}" for i in container_id_list)
+    container_id_list = "|".join(f".*{i}.*" for i in container_id_list)
 
     prom_query = f"""
         max by(container_name) (container_spec_cpu_quota{{cluster_id="{cluster_id}", namespace=~"{ namespace }", pod_name=~"{pod_name}",
@@ -445,7 +445,7 @@ def get_container_memory_usage_range(cluster_id, namespace, pod_name, container_
     start, end单位为毫秒，和数据平台保持一致
     """
     step = (end - start) // 60
-    container_id_list = "|".join(f".*{i}" for i in container_id_list)
+    container_id_list = "|".join(f".*{i}.*" for i in container_id_list)
 
     prom_query = f"""
         sum by(container_name) (container_memory_usage_bytes{{cluster_id="{cluster_id}", namespace=~"{ namespace }",pod_name=~"{pod_name}",
@@ -461,7 +461,7 @@ def get_container_memory_limit(cluster_id, namespace, pod_name, container_id_lis
     start, end单位为毫秒，和数据平台保持一致
     """
 
-    container_id_list = "|".join(f".*{i}" for i in container_id_list)
+    container_id_list = "|".join(f".*{i}.*" for i in container_id_list)
 
     prom_query = f"""
         max by(container_name) (container_spec_memory_limit_bytes{{cluster_id="{cluster_id}", namespace=~"{ namespace }", pod_name=~"{pod_name}",
@@ -474,7 +474,7 @@ def get_container_memory_limit(cluster_id, namespace, pod_name, container_id_lis
 
 def get_container_disk_read(cluster_id, namespace, pod_name, container_id_list, start, end):
     step = (end - start) // 60
-    container_id_list = "|".join(f".*{i}" for i in container_id_list)
+    container_id_list = "|".join(f".*{i}.*" for i in container_id_list)
 
     prom_query = f"""
         sum by(container_name) (container_fs_reads_bytes_total{{cluster_id="{cluster_id}", namespace=~"{ namespace }", pod_name=~"{pod_name}",
@@ -487,7 +487,7 @@ def get_container_disk_read(cluster_id, namespace, pod_name, container_id_list, 
 
 def get_container_disk_write(cluster_id, namespace, pod_name, container_id_list, start, end):
     step = (end - start) // 60
-    container_id_list = "|".join(f".*{i}" for i in container_id_list)
+    container_id_list = "|".join(f".*{i}.*" for i in container_id_list)
 
     prom_query = f"""
         sum by(container_name) (container_fs_writes_bytes_total{{cluster_id="{cluster_id}", namespace=~"{ namespace }", pod_name=~"{pod_name}",
