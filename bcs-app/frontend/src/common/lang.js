@@ -1187,6 +1187,9 @@ export default {
     '导入集群': ['Import Cluster'],
     '导入已经存在的集群': ['Import an existing cluster'],
     '剩余': ['Surplus'],
+    '容器视图': ['ContainerView'],
+    'Taskgroup视图': ['TaskgroupView'],
+    'POD视图': ['PODView'],
     // 变量的使用 $t('test', { vari1: 1, vari2: 2 })
     'test': ['{vari1} ---english--- {vari2}']
 }
