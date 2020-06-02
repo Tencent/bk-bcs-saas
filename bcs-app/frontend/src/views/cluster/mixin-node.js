@@ -509,7 +509,6 @@ export default {
             this.checkedNodes = Object.assign({}, {})
 
             const searchParams = this.getSearchParams()
-
             this.getNodeList({
                 labels: searchParams.labels,
                 ip: searchParams.ipParams,
@@ -534,29 +533,38 @@ export default {
          * @param {number} index 当前节点索引
          */
         async getNodeSummary (cur, index) {
-            const kind = this.curProject.kind
             try {
-                const res = kind !== 2
-                    ? await this.$store.dispatch('cluster/getNodeOverview', {
-                        projectId: cur.project_id,
-                        clusterId: cur.cluster_id,
-                        nodeIp: cur.inner_ip
-                    })
-                    : await this.$store.dispatch('cluster/getNodeSummary', {
-                        projectId: cur.project_id,
-                        nodeId: cur.inner_ip
-                    })
+                // const res = kind !== 2
+                //     ? await this.$store.dispatch('cluster/getNodeOverview', {
+                //         projectId: cur.project_id,
+                //         clusterId: cur.cluster_id,
+                //         nodeIp: cur.inner_ip
+                //     })
+                //     : await this.$store.dispatch('cluster/getNodeSummary', {
+                //         projectId: cur.project_id,
+                //         nodeId: cur.inner_ip
+                //     })
 
-                if (kind !== 2) {
-                    cur.cpuMetric = parseFloat(res.data.cpu_usage).toFixed(2)
-                    cur.memMetric = parseFloat(res.data.memory_usage).toFixed(2)
-                    cur.diskMetric = parseFloat(res.data.disk_usage).toFixed(2)
-                    cur.diskioMetric = parseFloat(res.data.diskio_usage).toFixed(2)
-                } else {
-                    cur.cpuMetric = res.data.cpu
-                    cur.memMetric = res.data.mem
-                    cur.diskMetric = res.data.io
-                }
+                const res = await this.$store.dispatch('cluster/getNodeOverview', {
+                    projectId: cur.project_id,
+                    clusterId: cur.cluster_id,
+                    nodeIp: cur.inner_ip
+                })
+
+                // if (kind !== 2) {
+                //     cur.cpuMetric = parseFloat(res.data.cpu_usage).toFixed(2)
+                //     cur.memMetric = parseFloat(res.data.memory_usage).toFixed(2)
+                //     cur.diskMetric = parseFloat(res.data.disk_usage).toFixed(2)
+                //     cur.diskioMetric = parseFloat(res.data.diskio_usage).toFixed(2)
+                // } else {
+                //     cur.cpuMetric = res.data.cpu
+                //     cur.memMetric = res.data.mem
+                //     cur.diskMetric = res.data.io
+                // }
+                cur.cpuMetric = parseFloat(res.data.cpu_usage).toFixed(2)
+                cur.memMetric = parseFloat(res.data.memory_usage).toFixed(2)
+                cur.diskMetric = parseFloat(res.data.disk_usage).toFixed(2)
+                cur.diskioMetric = parseFloat(res.data.diskio_usage).toFixed(2)
 
                 this.nodeSummaryMap[cur.id] = {
                     cpuMetric: cur.cpuMetric,
