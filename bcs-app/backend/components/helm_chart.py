@@ -22,7 +22,7 @@ from backend.utils.error_codes import error_codes
 
 
 def delete_chart_version(prefix_path, chart_name, version, username, pwd):
-    url = f"{prefix_path}/api/charts/{chart_name}/version"
+    url = f"{prefix_path}/api/charts/{chart_name}/{version}"
     resp = http_delete(url, auth=(username, pwd), raise_for_status=False)
     # 返回{"deleted" : True} 或 {"error" : "remove xxx failed: no such file or directory"}
     if not (resp.get("deleted") or "no such file or directory" in resp.get("error", "")):
