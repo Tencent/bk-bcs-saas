@@ -12,7 +12,6 @@
 # specific language governing permissions and limitations under the License.
 #
 import json
-import logging
 
 from django.conf import settings
 
@@ -20,8 +19,6 @@ from backend.components.utils import http_delete
 from backend.utils.errcodes import ErrorCode
 from backend.utils.error_codes import error_codes
 from django.utils.translation import ugettext_lazy as _
-
-logger = logging.getLogger(__name__)
 
 
 def delete_chart_version(prefix_path, chart_name, version, username, pwd):

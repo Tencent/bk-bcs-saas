@@ -282,7 +282,7 @@ class ChartVersionViewSet(viewsets.ViewSet):
             raise ValidationError(_("没有查询到chart对应的版本信息"))
         return version_info
 
-    def get_release_queryset(self, request, chart_id, version_id):
+    def get_release_queryset(self, chart_id, version_id):
         # 获取chart version
         version_info = self.get_chart_versions(chart_id, version_id)
         # 因为是同一个chart，所以通过第一个version信息获取
@@ -297,7 +297,7 @@ class ChartVersionViewSet(viewsets.ViewSet):
         """
         # version id
         version_id = request.query_params.get("version_id")
-        release_qs = self.get_release_queryset(request, chart_id, version_id)
+        release_qs = self.get_release_queryset(chart_id, version_id)
         data = release_qs.values(
             "id", "name", "cluster_id", "namespace", "namespace_id"
         )
@@ -308,7 +308,7 @@ class ChartVersionViewSet(viewsets.ViewSet):
         """删除chart或指定的chart版本
         """
         version_id = request.query_params.get("version_id")
-        release_qs = self.get_release_queryset(request, chart_id, version_id)
+        release_qs = self.get_release_queryset(chart_id, version_id)
         # 如果release不为空，则不能进行删除
         if release_qs.exists():
             raise ValidationError(_("chart下存在release，请先删除release"))
