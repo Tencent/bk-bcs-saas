@@ -451,6 +451,39 @@ export default {
             // const url = `/app/helm?invoke=getAppInfo`
             const url = `${DEVOPS_BCS_API_URL}/api/bcs/k8s/configuration/${projectId}/apps/${appId}/status/?format=json`
             return http.get(url, {}, config)
+        },
+
+        /**
+         * 删除Chart时获取 release
+         *
+         * @param {Object} context store 上下文对象
+         *
+         * @return {Promise} promise 对象
+         */
+        getExistReleases (context, { projectId, templateId, versionId }, config = {}) {
+            let url = `${DEVOPS_BCS_API_URL}/api/projects/${projectId}/helm/charts/${templateId}/releases/`
+            if (versionId) {
+                url = url + `?version_id=${versionId}`
+            }
+            return http.get(url)
+        },
+
+        /**
+         * 删除Chart
+         *
+         * @param {Object} context store 上下文对象
+         * @param {string} projectId 项目 id
+         * @param {string} templateId template id
+         *
+         * @return {Promise} promise 对象
+         */
+        removeTemplate (context, { templateId, projectId, versionId }, config = {}) {
+            let url = `${DEVOPS_BCS_API_URL}/api/projects/${projectId}/helm/charts/${templateId}/`
+            if (versionId) {
+                url = url + `?version_id=${versionId}`
+            }
+            return http.delete(url, {}, config)
         }
+
     }
 }
