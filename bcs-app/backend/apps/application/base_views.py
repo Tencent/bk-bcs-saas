@@ -405,6 +405,13 @@ class BaseAPI(views.APIView):
                 "code": ErrorCode.NoError,
                 "message": _("删除成功")
             })
+        # 状态码为正常或者满足不存在条件时，认为已经删除成功
+        if resp.get("code") in [
+            ErrorCode.NoError, ErrorCode.MesosDeploymentNotFound, ErrorCode.MesosApplicationNotFound
+        ]:
+            # 兼容先前返回格式
+            return APIResponse({"code": ErrorCode.NoError})
+
         if resp.get("code") != ErrorCode.NoError:
             return APIResponse({
                 "code": resp.get("code") or DEFAULT_ERROR_CODE,
