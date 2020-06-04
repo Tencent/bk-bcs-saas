@@ -203,5 +203,3 @@ BCS_CC_HOST = f'{APIGW_HOST}/api/apigw/bcs_cc/prod'
 
 # BCS API PRE PATH
 BCS_API_PRE_PATH = f"{APIGW_HOST}/api/apigw/bcs_api"
-
-# BK OP
