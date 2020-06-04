@@ -14,11 +14,11 @@
 import json
 
 from django.conf import settings
+from django.utils.translation import ugettext_lazy as _
 
 from backend.components.utils import http_delete
 from backend.utils.errcodes import ErrorCode
 from backend.utils.error_codes import error_codes
-from django.utils.translation import ugettext_lazy as _
 
 
 def delete_chart_version(prefix_path, chart_name, version, username, pwd):

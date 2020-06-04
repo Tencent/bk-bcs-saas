@@ -275,19 +275,19 @@ class ChartVersionViewSet(viewsets.ViewSet):
 
     def get_chart_versions(self, chart_id, version_id):
         if version_id:
-            version_info = ChartVersion.objects.filter(id=version_id)
+            chart_versions = ChartVersion.objects.filter(id=version_id)
         else:
-            version_info = ChartVersion.objects.filter(chart__id=chart_id)
-        if not version_info:
+            chart_versions = ChartVersion.objects.filter(chart__id=chart_id)
+        if not chart_versions:
             raise ValidationError(_("没有查询到chart对应的版本信息"))
-        return version_info
+        return chart_versions
 
     def get_release_queryset(self, chart_id, version_id):
         # 获取chart version
-        version_info = self.get_chart_versions(chart_id, version_id)
+        chart_versions = self.get_chart_versions(chart_id, version_id)
         # 因为是同一个chart，所以通过第一个version信息获取
-        chart = version_info[0].chart
-        version_list = [info.version for info in version_info]
+        chart = chart_versions[0].chart
+        version_list = [info.version for info in chart_versions]
         # 根据version和chart_name, 过滤相应的release
         return App.objects.filter(version__in=version_list, chart=chart)
 
@@ -313,8 +313,8 @@ class ChartVersionViewSet(viewsets.ViewSet):
         if release_qs.exists():
             raise ValidationError(_("chart下存在release，请先删除release"))
         # 如果指定version id，则只删除指定的version，否则删除所有version及chart
-        version_info = self.get_chart_versions(chart_id, version_id)
-        for info in version_info:
+        chart_versions = self.get_chart_versions(chart_id, version_id)
+        for info in chart_versions:
             repo_info = info.chart.repository
             auth = repo_info.plain_auths
             # 如果auth为空，则赋值为空
