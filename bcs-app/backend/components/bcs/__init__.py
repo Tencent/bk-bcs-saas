@@ -20,7 +20,6 @@ from django.utils.translation import ugettext_lazy as _
 from backend.components import paas_cc
 from backend.utils import cache, exceptions
 
-APIGW = 'bcs_api'
 API_HOST = settings.BCS_API_PRE_PATH
 
 
@@ -39,8 +38,7 @@ def cache_api_host(access_token, project_id, cluster_id, env):
     else:
         stag = env
 
-    host = API_HOST.format(APIGW_HOST=settings.APIGW_HOST, APIGW=APIGW, STAG=stag)
-    return host
+    return f"{API_HOST}/{stag}"
 
 
 class BCSClientBase:

@@ -108,7 +108,7 @@ BCS_CC_OPER_PROJECT_NAMESPACES = '/projects/{project_id}/clusters/null/namespace
 BCS_CC_OPER_PROJECT_NAMESPACE = '/projects/{project_id}/clusters/null/namespaces/{namespace_id}/'
 
 # BCS API PRE PATH
-BCS_API_PRE_PATH = '{APIGW_HOST}/api/apigw/{APIGW}/{STAG}'
+BCS_API_PRE_PATH = f"{APIGW_HOST}/api/apigw/bcs_api"
 HELM_MERELY_REPO_URL = os.environ.get('BKAPP_HARBOR_CHARTS_DOMAIN')
 
 BCS_SERVER_HOST = {
