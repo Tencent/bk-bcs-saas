@@ -1195,3 +1195,12 @@
         right: 0;
     }
 }
+
+.bk-dialog-btn {
+    &.is-disabled {
+        background-color: #fafafa !important;
+        border-color: #e6e6e6 !important;
+        color: #ccc !important;
+        cursor: not-allowed !important;
+    }
+}
