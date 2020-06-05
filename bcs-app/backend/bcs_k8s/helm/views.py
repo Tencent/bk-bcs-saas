@@ -332,4 +332,9 @@ class ChartVersionViewSet(viewsets.ViewSet):
         if not ChartVersion.objects.filter(chart__id=chart_id).exists():
             Chart.objects.filter(id=chart_id).delete()
 
+        # 设置commit id为空，以防出现相同版本且chart内容一致的情况
+        Repository.objects.filter(
+            project_id=project_id
+        ).exclude(name="public-repo").update(commit=None)
+
         return Response()
