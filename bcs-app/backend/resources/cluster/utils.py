@@ -11,6 +11,8 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
+import json
+
 from backend.components import paas_cc
 from backend.utils.errcodes import ErrorCode
 from backend.utils.error_codes import error_codes
@@ -21,3 +23,20 @@ def get_clusters(access_token, project_id):
     if resp.get('code') != ErrorCode.NoError:
         raise error_codes.APIError(f"get clusters error, {resp.get('message')}")
     return resp.get('data', {}).get('results', [])
+
+
+def get_cluster_versions(access_token, kind="", ver_id="", env=""):
+    resp = paas_cc.get_cluster_versions(access_token, kind=kind, ver_id=ver_id, env=env)
+    if resp.get('code') != ErrorCode.NoError:
+        raise error_codes.APIError(f"get cluster version, {resp.get('message')}")
+    data = resp.get("data") or []
+    version_list = []
+    # 以ID排序，稳定版本排在前面
+    data.sort(key=lambda info: info["id"])
+    for info in data:
+        configure = json.loads(info.get("configure") or "{}")
+        version_list.append({
+            "version_id": info["version"],
+            "version_name": configure.get("version_name") or info["version"]
+        })
+    return version_list

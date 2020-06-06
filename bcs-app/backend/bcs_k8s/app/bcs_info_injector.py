@@ -12,11 +12,7 @@
 # specific language governing permissions and limitations under the License.
 #
 import logging
-import re
-import yaml
 
-from ruamel.yaml import YAML
-from ruamel.yaml.compat import StringIO
 from rest_framework.exceptions import ParseError
 
 from .bcs_info_provider import BcsInfoProvider
@@ -88,8 +84,6 @@ def inject_configs(access_token, project_id, cluster_id, namespace_id, namespace
     context = {
         "creator": creator,
         "updator": updator,
-        # "createTime": created_at.strftime("%Y-%m-%d %H:%M:%S"),
-        # "updateTime": updated_at.strftime("%Y-%m-%d %H:%M:%S"),
         "version": version
     }
     context.update(extra_inject_source)
@@ -151,8 +145,14 @@ def inject_configs(access_token, project_id, cluster_id, namespace_id, namespace
         "force_str": True
     }, {
         # pod secrets
-        "matchers": make_kind_matcher_configs(["Deployment", "StatefulSet", "DaemonSet", "ReplicaSet", "Job", "CronJob"]),
+        "matchers": make_kind_matcher_configs(["Deployment", "StatefulSet", "DaemonSet", "ReplicaSet", "Job"]),
         "paths": ["/spec/template/spec"],
+        "data": bcs_image_secrets,
+        "force_str": True
+    }, {
+        # pod secrets
+        "matchers": make_kind_matcher_configs(["CronJob"]),
+        "paths": ["/spec/jobTemplate/spec/template/spec"],
         "data": bcs_image_secrets,
         "force_str": True
     }, {
