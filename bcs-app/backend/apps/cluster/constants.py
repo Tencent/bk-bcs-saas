@@ -11,7 +11,7 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import ugettext as _
 
 from backend.utils.basic import ChoicesEnum
 
@@ -124,10 +124,10 @@ class OpType(ChoicesEnum):
 # skip namespace
 K8S_SKIP_NS_LIST = ['kube-system', 'thanos', 'web-console']
 
-# 调用接口异常的消息
+# 调用接口异常的消息，记录到db中，可以直接转换
 BCS_OPS_ERROR_INFO = {
-    'state': 'FAILURE',
-    'node_tasks': [{'state': 'FAILURE', 'name': _("- 调用初始化接口失败")}]
+    "state": "FAILURE",
+    "node_tasks": [{"state": "FAILURE", "name": _("- 调用初始化接口失败")}]
 }
 
 # 状态映射

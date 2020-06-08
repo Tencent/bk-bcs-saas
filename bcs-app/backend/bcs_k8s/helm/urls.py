@@ -95,4 +95,9 @@ urlpatterns = [
     url(r'^api/bcs/k8s/configuration_noauth/(?P<sync_project_id>\w{32})/helm/repositories/sync/$',
         views.RepositorySyncByProjectAPIView.as_view({'post': 'create'}),
         name='api.bcs_k8s.helm_repositories_sync_by_project'),
+
+    url(r'^api/projects/(?P<project_id>\w{32})/helm/charts/(?P<chart_id>\d+)/releases/$',
+        views.ChartVersionViewSet.as_view({"get": "release_list"})),
+    url(r'^api/projects/(?P<project_id>\w{32})/helm/charts/(?P<chart_id>\d+)/$',
+        views.ChartVersionViewSet.as_view({"delete": "delete"}))
 ]

@@ -75,6 +75,11 @@ def _get_charts_info(url, auths):
                 charts_info = http_get(req_charts_url, auth=make_requests_auth(auth))
                 if charts_info:
                     break
+
+        # 兼容处理
+        if "not found" in charts_info.get("error", ""):
+            return (False, None, None)
+
     except Exception as e:
         logger.error("get charts info fail: [url=%s], error: %s", req_charts_url, str(e))
         return (False, None, None)
