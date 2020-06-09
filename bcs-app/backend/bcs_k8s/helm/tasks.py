@@ -96,8 +96,13 @@ def _update_default_chart_version(chart, full_chart_versions):
 
     # 如果latest_chart_version和先前的版本一致，则无需更新
     latest_chart_version = all_versions[0]
-    if chart.defaultChartVersion and (chart.defaultChartVersion.version == latest_chart_version.version):
-        return
+    # 处理异常: backend.bcs_k8s.helm.models.chart.DoesNotExist: ChartVersion matching query does not exist.
+    try:
+        if chart.defaultChartVersion and (chart.defaultChartVersion.version == latest_chart_version.version):
+            return
+    except Exception as err:
+        logger.error("match chart verson failed, err: %s", err)
+
     chart.defaultChartVersion = latest_chart_version
     chart.description = latest_chart_version.description
     chart.save()

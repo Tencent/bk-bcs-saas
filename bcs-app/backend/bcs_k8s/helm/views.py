@@ -23,7 +23,7 @@ from django.utils.translation import ugettext_lazy as _
 
 from backend.utils.error_codes import error_codes
 from backend.utils.views import ActionSerializerMixin, FilterByProjectMixin, with_code_wrapper
-from .models.chart import (Chart, ChartVersion)
+from .models.chart import (Chart, ChartVersion, ChartVersionSnapshot)
 from .models.repo import Repository
 from .serializers import (
     ChartSLZ, ChartVersionSLZ, ChartDetailSLZ,
@@ -326,10 +326,17 @@ class ChartVersionViewSet(viewsets.ViewSet):
                 pwd = credentials["password"]
             # 删除repo中chart版本记录
             delete_chart_version(repo_info.url, info.chart.name, info.version, username, pwd)
+            # 处理digest不变动的情况
+            ChartVersionSnapshot.objects.filter(digest=info.digest).delete()
             # 删除db中记录
             info.delete()
         # 如果chart下没有版本了，则删除chart
         if not ChartVersion.objects.filter(chart__id=chart_id).exists():
             Chart.objects.filter(id=chart_id).delete()
+
+        # 设置commit id为空，以防出现相同版本digest不变动的情况
+        Repository.objects.filter(
+            project_id=project_id
+        ).exclude(name="public-repo").update(commit=None)
 
         return Response()
