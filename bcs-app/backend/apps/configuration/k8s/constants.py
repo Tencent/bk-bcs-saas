@@ -12,7 +12,7 @@
 # specific language governing permissions and limitations under the License.
 #
 from backend.apps.instance.funutils import update_nested_dict
-from backend.apps.configuration.constants import NUM_VAR_PATTERN, FILE_DIR_PATTERN, KRESOURCE_NAMES, KEY_NAME_PATTERN
+from backend.apps.configuration.constants import NUM_VAR_PATTERN, FILE_DIR_PATTERN, KRESOURCE_NAMES
 
 # 资源名称
 K8S_RES_NAME_PATTERN = "^[a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*$"
@@ -22,6 +22,9 @@ VOLUMR_NAME_PATTERN = "^[a-zA-Z{]{1}[a-zA-Z0-9-_{}]{0,254}$"
 
 # TODO 验证变量的情况
 PORT_NAME_PATTERN = "^[a-zA-Z{]{1}[a-zA-Z0-9-{}_]{0,254}$"
+
+# configmap/secret key 名称限制
+KEY_NAME_PATTERN = "^[.a-zA-Z{]{1}[a-zA-Z0-9-_.{}]{0,254}$"
 
 # 亲和性验证
 AFFINITY_MATCH_EXPRESSION_SCHEMA = {
