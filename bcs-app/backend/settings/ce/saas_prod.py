@@ -199,7 +199,7 @@ K8S_VERSION = os.environ.get('BKAPP_K8S_VERSION')
 MESOS_VERSION = os.environ.get('BKAPP_MESOS_VERSION')
 
 # BCS CC HOST
-BCS_CC_HOST = f'{APIGW_HOST}/api/apigw/bcs_cc/prod'
+BCS_CC_API_PRE_URL = f'{APIGW_HOST}/api/apigw/bcs_cc/prod'
 
 # BCS API PRE PATH
-BCS_API_PRE_PATH = f"{APIGW_HOST}/api/apigw/bcs_api"
+BCS_API_PRE_URL = f"{APIGW_HOST}/api/apigw/bcs_api"

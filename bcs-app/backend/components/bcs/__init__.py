@@ -20,7 +20,7 @@ from django.utils.translation import ugettext_lazy as _
 from backend.components import paas_cc
 from backend.utils import cache, exceptions
 
-API_HOST = settings.BCS_API_PRE_PATH
+BCS_API_PRE_URL = settings.BCS_API_PRE_URL
 
 
 @cache.region.cache_on_arguments(expiration_time=600)
@@ -38,7 +38,7 @@ def cache_api_host(access_token, project_id, cluster_id, env):
     else:
         stag = env
 
-    return f"{API_HOST}/{stag}"
+    return f"{BCS_API_PRE_URL}/{stag}"
 
 
 class BCSClientBase:

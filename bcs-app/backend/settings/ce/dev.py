@@ -96,7 +96,7 @@ CACHES['default'] = {
 }
 
 # BCS CC HOST
-BCS_CC_HOST = os.environ.get('BCS_CC_HOST', 'http://127.0.0.1:8080')
+BCS_CC_API_PRE_URL = os.environ.get('BCS_CC_HOST', 'http://127.0.0.1:8080')
 
 # BCS CC PATH
 BCS_CC_CLUSTER_CONFIG = '/v1/clusters/{cluster_id}/cluster_version_config/'
@@ -107,8 +107,8 @@ BCS_CC_OPER_PROJECT_NODE = '/projects/{project_id}/clusters/null/nodes/{node_id}
 BCS_CC_OPER_PROJECT_NAMESPACES = '/projects/{project_id}/clusters/null/namespaces/'
 BCS_CC_OPER_PROJECT_NAMESPACE = '/projects/{project_id}/clusters/null/namespaces/{namespace_id}/'
 
-# BCS API PRE PATH
-BCS_API_PRE_PATH = f"{APIGW_HOST}/api/apigw/bcs_api"
+# BCS API PRE URL
+BCS_API_PRE_URL = f"{APIGW_HOST}/api/apigw/bcs_api"
 HELM_MERELY_REPO_URL = os.environ.get('BKAPP_HARBOR_CHARTS_DOMAIN')
 
 BCS_SERVER_HOST = {
