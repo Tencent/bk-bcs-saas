@@ -37,7 +37,7 @@ from backend.celery_app.tasks.application import update_create_error_record
 from backend.utils.basic import getitems
 from backend.apps.hpa.utils import get_deployment_hpa
 from backend.apps.application import constants as app_constants
-from backend.apps.application.utils import get_instance_version, get_instance_version_name
+from backend.apps.application.utils import get_instance_version, get_instance_version_name, request_for_query_app
 
 logger = logging.getLogger(__name__)
 
@@ -252,11 +252,14 @@ class GetInstances(object):
             project_id, cluster_id, None
         )
         curr_func = FUNC_MAP[resource_name] % 'get'
-        resp = getattr(client, curr_func)({
-            'name': inst_name,
-            'namespace': ns_name,
-            'field': ','.join(app_constants.RESOURCE_STATUS_FIELD_LIST)
-        })
+        resp = request_for_query_app(
+            getattr(client, curr_func),
+            params={
+                "name": inst_name,
+                "namespace": ns_name,
+                "field": ','.join(app_constants.RESOURCE_STATUS_FIELD_LIST)
+            }
+        )
         if resp.get('code') != ErrorCode.NoError:
             raise error_codes.APIError.f(resp.get('message'))
         data = resp.get('data') or []
