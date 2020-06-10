@@ -399,21 +399,17 @@ class BaseAPI(views.APIView):
                 "code": ErrorCode.NoError,
                 "message": _("删除成功")
             })
-        curr_msg = resp.get("message")
-        if "not found" in curr_msg or "node does not exist" in curr_msg:
-            return APIResponse({
-                "code": ErrorCode.NoError,
-                "message": _("删除成功")
-            })
-        if resp.get("code") != ErrorCode.NoError:
-            return APIResponse({
-                "code": resp.get("code") or DEFAULT_ERROR_CODE,
-                "message": curr_msg
-            })
-        return APIResponse({
-            "code": resp.get("code"),
-            "message": curr_msg
-        })
+
+        # response
+        msg = resp.get("message")
+        # message中有not found或者node does not exist时，认为已经删除成功
+        # 状态码为正常或者满足不存在条件时，认为已经删除成功
+        if (resp.get("code") in [
+            ErrorCode.NoError, ErrorCode.MesosDeploymentNotFound, ErrorCode.MesosApplicationNotFound
+        ]) or ("not found" in msg) or ("node does not exist" in msg):
+            return APIResponse({"code": ErrorCode.NoError, "message": _("删除成功")})
+
+        return APIResponse({"code": resp.get("code"), "message": msg})
 
     def get_mesos_application_deploy_status(
             self, request, project_id, cluster_id, instance_name,
