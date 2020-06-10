@@ -404,9 +404,9 @@ class BaseAPI(views.APIView):
         msg = resp.get("message")
         # message中有not found或者node does not exist时，认为已经删除成功
         # 状态码为正常或者满足不存在条件时，认为已经删除成功
-        if ("not found" in msg) or ("node does not exist" in msg) or (resp.get("code") in [
+        if (resp.get("code") in [
             ErrorCode.NoError, ErrorCode.MesosDeploymentNotFound, ErrorCode.MesosApplicationNotFound
-        ]):
+        ]) or ("not found" in msg) or ("node does not exist" in msg):
             return APIResponse({"code": ErrorCode.NoError, "message": _("删除成功")})
 
         return APIResponse({"code": resp.get("code"), "message": msg})
