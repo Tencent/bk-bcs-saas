@@ -278,8 +278,8 @@ class ServiceMonitorUpdateSLZ(serializers.Serializer):
         return path
 
     def validate_params(self, params):
-        if not params or not isinstance(params, dict):
-            raise ValidationError(_("参数不能为空且为字典类型"))
+        if not isinstance(params, dict):
+            raise ValidationError(_("参数必须是字典类型"))
         return params
 
 
