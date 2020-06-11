@@ -212,6 +212,15 @@ class ServiceMonitor(viewsets.ViewSet):
 
         self._validate_namespace_use_perm(request, project_id, [data["namespace"]])
 
+        endpoints = [
+            {
+                "path": data["path"],
+                "interval": data["interval"],
+                "port": data["port"],
+                "params": data.get("params", {}),
+            }
+        ]
+
         spec = {
             "apiVersion": "monitoring.coreos.com/v1",
             "kind": "ServiceMonitor",
@@ -225,7 +234,7 @@ class ServiceMonitor(viewsets.ViewSet):
                 "namespace": data["namespace"],
             },
             "spec": {
-                "endpoints": [{"path": data["path"], "interval": data["interval"], "port": data["port"]}],
+                "endpoints": endpoints,
                 "selector": {"matchLabels": data["selector"]},
                 "sampleLimit": data["sample_limit"],
             },
@@ -283,7 +292,12 @@ class ServiceMonitor(viewsets.ViewSet):
         spec["spec"]["selector"] = {"matchLabels": validated_data["selector"]}
         spec["spec"]["sampleLimit"] = validated_data["sample_limit"]
         spec["spec"]["endpoints"] = [
-            {"path": validated_data["path"], "interval": validated_data["interval"], "port": validated_data["port"]}
+            {
+                "path": validated_data["path"],
+                "interval": validated_data["interval"],
+                "port": validated_data["port"],
+                "params": validated_data.get("params", {}),
+            }
         ]
         spec["metadata"] = {k: v for k, v in spec["metadata"].items() if k not in FILTERED_METADATA}
 

@@ -260,6 +260,7 @@ class ServiceMonitorUpdateSLZ(serializers.Serializer):
     # scrape_timeout = serializers.IntegerField()
     sample_limit = serializers.IntegerField(min_value=1, max_value=100000)
     selector = serializers.JSONField()
+    params = serializers.JSONField(required=False)
 
     def validate_selector(self, selector):
         if not selector or not isinstance(selector, dict):
@@ -275,6 +276,11 @@ class ServiceMonitorUpdateSLZ(serializers.Serializer):
         if not path.startswith("/"):
             raise ValidationError(_("参数不合法，必须是绝对路径"))
         return path
+
+    def validate_params(self, params):
+        if not params or not isinstance(params, dict):
+            raise ValidationError(_("参数不能为空且为字典类型"))
+        return params
 
 
 class ServiceMonitorCreateSLZ(ServiceMonitorUpdateSLZ):
