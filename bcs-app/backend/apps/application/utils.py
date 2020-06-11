@@ -11,6 +11,7 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
+import time
 import json
 import base64
 import functools
@@ -135,3 +136,25 @@ def get_instance_version(annotations, labels):
         'version': name,
         'version_id': id
     }
+
+
+def retry_requests(func, params=None, data=None, max_retries=2):
+    """查询应用信息
+    因为现在通过接口以storage为数据源，因此，为防止接口失败或者接口为空的情况，增加请求次数
+    """
+    for i in range(1, max_retries + 1):
+        try:
+            # 兼容k8s和mesos
+            resp = func(params) if params else func(**data)
+            if i == max_retries:
+                return resp
+            # 如果为data为空时，code肯定不为0
+            if not resp.get("data"):
+                time.sleep(0.5)
+                continue
+            return resp
+        except Exception:
+            # 设置等待时间
+            time.sleep(0.5)
+
+    raise error_codes.APIError("query storage api error")

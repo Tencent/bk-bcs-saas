@@ -43,6 +43,7 @@ from backend.apps.configuration.models import Template
 from backend.apps.application.drivers import BCSDriver
 from backend.apps.application.common_views.serializers import BaseNotTemplateInstanceParamsSLZ
 from backend.apps.configuration.constants import K8sResourceName
+from backend.apps.application.utils import retry_requests
 
 logger = logging.getLogger(__name__)
 
@@ -421,16 +422,22 @@ class BaseAPI(views.APIView):
             project_id, cluster_id, None
         )
         if category == "application":
-            resp = client.get_mesos_app_instances(
-                app_name=instance_name,
-                field=field or "data.metadata.name,data.metadata.namespace,data.status,data.message",  # noqa
-                namespace=namespace,
+            resp = retry_requests(
+                client.get_mesos_app_instances,
+                data={
+                    "app_name": instance_name,
+                    "field": field or "data.metadata.name,data.metadata.namespace,data.status,data.message",
+                    "namespace": namespace,
+                }
             )
         else:
-            resp = client.get_deployment(
-                name=instance_name,
-                field=field or "data.metadata.name,data.metadata.namespace,data.status,data.message",  # noqa
-                namespace=namespace,
+            resp = retry_requests(
+                client.get_deployment,
+                data={
+                    "name": instance_name,
+                    "field": field or "data.metadata.name,data.metadata.namespace,data.status,data.message",
+                    "namespace": namespace,
+                }
             )
         if resp.get("code") != ErrorCode.NoError:
             return False, APIResponse({
@@ -454,7 +461,7 @@ class BaseAPI(views.APIView):
             "namespace": namespace,
             "field": ",".join(field)
         }
-        resp = curr_func(params)
+        resp = retry_requests(curr_func, params=params)
         if resp.get("code") != ErrorCode.NoError:
             return False, APIResponse({
                 "code": resp.get("code") or DEFAULT_ERROR_CODE,
@@ -488,16 +495,22 @@ class BaseAPI(views.APIView):
             project_id, cluster_id, None
         )
         if category == "application":
-            resp = client.get_application_with_post(
-                name=instance_name,
-                field=field or "data.metadata.name,data.metadata.namespace,data.status,data.message",  # noqa
-                namespace=namespace,
+            resp = retry_requests(
+                client.get_application_with_post,
+                data={
+                    "name": instance_name,
+                    "field": field or "data.metadata.name,data.metadata.namespace,data.status,data.message",
+                    "namespace": namespace
+                }
             )
         else:
-            resp = client.get_deployment_with_post(
-                name=instance_name,
-                field=field or "data.metadata.name,data.metadata.namespace,data.status,data.message",  # noqa
-                namespace=namespace,
+            resp = retry_requests(
+                client.get_deployment_with_post,
+                data={
+                    "name": instance_name,
+                    "field": field or "data.metadata.name,data.metadata.namespace,data.status,data.message",
+                    "namespace": namespace
+                }
             )
         if resp.get("code") != ErrorCode.NoError:
             return False, APIResponse({
@@ -521,7 +534,7 @@ class BaseAPI(views.APIView):
             "namespace": namespace,
             "field": ",".join(field)
         }
-        resp = curr_func(params)
+        resp = retry_requests(curr_func, params=params)
         if resp.get("code") != ErrorCode.NoError:
             return False, APIResponse({
                 "code": resp.get("code") or DEFAULT_ERROR_CODE,
@@ -551,15 +564,17 @@ class BaseAPI(views.APIView):
         """获取application和deployment
         """
         if project_kind == 2:
-            return self.get_mesos_application_deploy_status(
+            result, resp = self.get_mesos_application_deploy_status(
                 request, project_id, cluster_id, instance_name,
                 category=category, namespace=namespace, field=field
             )
         else:
-            return self.get_k8s_application_deploy_status(
+            result, resp = self.get_k8s_application_deploy_status(
                 request, project_id, cluster_id, instance_name,
                 category=category, namespace=namespace, field=field
             )
+
+        return result, resp
 
     def get_instances(self, request, project_id, cluster_id, kind=2):
         """拉取项目下的所有Instance
