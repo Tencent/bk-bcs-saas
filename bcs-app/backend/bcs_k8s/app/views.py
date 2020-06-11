@@ -62,9 +62,9 @@ from backend.accounts import bcs_perm
 from backend.bcs_k8s.bke_client.client import BCSClusterNotFound, BCSClusterCredentialsNotFound
 from backend.bcs_k8s.dashboard.exceptions import DashboardError, DashboardExecutionError
 from backend.bcs_k8s.app.utils import compose_url_with_scheme
-from backend.apps.depot.api import get_jfrog_account
 from backend.utils.errcodes import ErrorCode
 from backend.bcs_k8s.app.serializers import FilterNamespacesSLZ
+from backend.bcs_k8s.app.utils_bk import get_or_create_private_repo
 
 logger = logging.getLogger(__name__)
 
@@ -861,45 +861,8 @@ class AppAPIView(viewsets.ModelViewSet):
 
 class HowToPushHelmChartView(AccessTokenMixin, viewsets.GenericViewSet):
 
-    def create_private_repo_without_chart(self, user, project_id, project_code):
-        # 通过harbor api创建一次项目账号，然后存储在auth中
-        private_repos = Repository.objects.filter(name=project_code, project_id=project_id)
-        if private_repos.exists():
-            return private_repos[0]
-        account = get_jfrog_account(self.access_token, project_code, project_id)
-        repo_auth = {
-            "type": "basic",
-            "role": "admin",
-            "credentials": {
-                # "username": settings.HELM_MERELY_REPO_USERNAME,
-                # "password": settings.HELM_MERELY_REPO_PASSWORD,
-                "username": account.get("user"),
-                "password": account.get("password")
-            }
-        }
-        url = '%s/chartrepo/%s/' % (settings.HELM_MERELY_REPO_URL, project_code)
-        private_repo = add_plain_repo(
-            target_project_id=project_id,
-            name=project_code,
-            url=url,
-            repo_auth=repo_auth
-        )
-        return private_repo
-
-    def get_private_repo_info(self, user, project_id, project_code):
-        # project = paas_cc.get_project(access_token=self.access_token, project_id=project_id)
-        # english_name = project['data']['english_name']
-        if settings.HELM_HAS_ABILITY_SUPPLY_CHART_REPO_SERVICE:
-            # 2. add/get private repo for project
-            private_repo = add_repo(
-                target_project_id=project_id,
-                name=project_code,
-                provider_name="chartmuseum",
-                url="http://localhost/",  # merely provide schema
-                user=user,
-            )
-        else:
-            private_repo = self.create_private_repo_without_chart(user, project_id, project_code)
+    def get_private_repo_info(self, user, project):
+        private_repo = get_or_create_private_repo(user, project)
 
         if not private_repo.plain_auths:
             return {
@@ -912,17 +875,12 @@ class HowToPushHelmChartView(AccessTokenMixin, viewsets.GenericViewSet):
         return repo_info
 
     def retrieve(self, request, project_id, *args, **kwargs):
-        project = paas_cc.get_project(access_token=request.user.token.access_token, project_id=project_id)
-        project_code = project["data"]["english_name"]
-        repo_info = self.get_private_repo_info(
-            user=request.user, project_id=project_id, project_code=project_code)
+        project_code = request.project.english_name
+        repo_info = self.get_private_repo_info(user=request.user, project=request.project)
 
         base_url = request.build_absolute_uri()
         base_url = base_url.split("bcs/k8s")[0]
-        if not settings.HELM_HAS_ABILITY_SUPPLY_CHART_REPO_SERVICE:
-            repo_url = repo_info["url"]
-        else:
-            repo_url = f"http://{settings.PLATFORM_REPO_DOMAIN}/{settings.HELM_REPO_ENV}/{project_code}"
+        repo_url = repo_info["url"]
 
         context = {
             "project_id": project_id,
@@ -936,12 +894,6 @@ class HowToPushHelmChartView(AccessTokenMixin, viewsets.GenericViewSet):
             "helm_push_parameters": "",
             "rumpetroll_demo_url": settings.RUMPETROLL_DEMO_DOWNLOAD_URL
         }
-
-        if settings.HELM_HAS_ABILITY_SUPPLY_CHART_REPO_SERVICE:
-            context["helm_push_parameters"] = "--context-path=/{helm_env}/{project_code}".format(
-                helm_env=settings.HELM_REPO_ENV,
-                project_code=str(project_code)
-            )
 
         file_prefix = 'backend/bcs_k8s/app/documentation'
 

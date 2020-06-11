@@ -14,26 +14,17 @@
 import json
 
 from django.conf import settings
+from django.utils.translation import ugettext_lazy as _
 
-from .utils import http_post
-
-APIGW_OP_HOST = "%s/api/bk-op/%s" % (settings.APIGW_HOST, settings.APIGW_OP_ENV)
-
-# timeout
-DEFAULT_TIMEOUT = 20
+from backend.components.utils import http_delete
+from backend.utils.errcodes import ErrorCode
+from backend.utils.error_codes import error_codes
 
 
-def notify_project_to_op(access_token, data):
-    """
-    When project info add or changed, notify op system
-    in order to update cache of project in op
-    """
-    url = "{host}/openapi/handleProjectInfo".format(
-        host=APIGW_OP_HOST
-    )
-    headers = {
-        "X-BKAPI-AUTHORIZATION": json.dumps({
-            "access_token": access_token
-        })
-    }
-    return http_post(url, json=data, headers=headers, timeout=DEFAULT_TIMEOUT)
+def delete_chart_version(prefix_path, chart_name, version, username, pwd):
+    url = f"{prefix_path}/api/charts/{chart_name}/{version}"
+    resp = http_delete(url, auth=(username, pwd), raise_for_status=False)
+    # 返回{"deleted" : True} 或 {"error" : "remove xxx failed: no such file or directory"}
+    if not (resp.get("deleted") or "no such file or directory" in resp.get("error", "")):
+        raise error_codes.APIError(_("删除chart失败,{}").format(resp))
+    return resp

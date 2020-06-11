@@ -181,6 +181,9 @@ class PromContainerMetricSLZ(PromMetricSLZBase):
         """
         转换示例 2.application-1.bellketest4.10039.1586934929583467102 -> applications-1-2
         """
+        if "." not in pod_id:
+            return pod_id
+
         try:
             return "{1}-{0}".format(*pod_id.split("."))
         except Exception as error:
@@ -191,11 +194,17 @@ class PromContainerMetricSLZ(PromMetricSLZBase):
         """
         转换示例 2.application-1.bellketest4.10039.1586934929583467102 -> bellketest4
         """
+        ns_list = set()
         try:
-            ns_list = set(pod_id.split(".")[2] for pod_id in res_id_list)
-            return "|".join(ns_list)
+            for pod_id in res_id_list:
+                if "." not in pod_id:
+                    continue
+                ns_list.add(pod_id.split(".")[2])
         except Exception as error:
             logger.error("extract mesos namespace error: %s, %s", res_id_list, error)
+
+        if len(ns_list) > 0:
+            return "|".join(ns_list)
         return ".*"
 
     def _get_mesos_res_id_map(self, res_id_list):
@@ -251,6 +260,7 @@ class ServiceMonitorUpdateSLZ(serializers.Serializer):
     # scrape_timeout = serializers.IntegerField()
     sample_limit = serializers.IntegerField(min_value=1, max_value=100000)
     selector = serializers.JSONField()
+    params = serializers.JSONField(required=False)
 
     def validate_selector(self, selector):
         if not selector or not isinstance(selector, dict):
@@ -266,6 +276,11 @@ class ServiceMonitorUpdateSLZ(serializers.Serializer):
         if not path.startswith("/"):
             raise ValidationError(_("参数不合法，必须是绝对路径"))
         return path
+
+    def validate_params(self, params):
+        if not isinstance(params, dict):
+            raise ValidationError(_("参数必须是字典类型"))
+        return params
 
 
 class ServiceMonitorCreateSLZ(ServiceMonitorUpdateSLZ):
