@@ -37,7 +37,7 @@ from backend.celery_app.tasks.application import update_create_error_record
 from backend.utils.basic import getitems
 from backend.apps.hpa.utils import get_deployment_hpa
 from backend.apps.application import constants as app_constants
-from backend.apps.application.utils import get_instance_version, get_instance_version_name, request_for_query_app
+from backend.apps.application.utils import get_instance_version, get_instance_version_name, retry_requests
 
 logger = logging.getLogger(__name__)
 
@@ -252,7 +252,7 @@ class GetInstances(object):
             project_id, cluster_id, None
         )
         curr_func = FUNC_MAP[resource_name] % 'get'
-        resp = request_for_query_app(
+        resp = retry_requests(
             getattr(client, curr_func),
             params={
                 "name": inst_name,

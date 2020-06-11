@@ -138,7 +138,7 @@ def get_instance_version(annotations, labels):
     }
 
 
-def request_for_query_app(func, params=None, data=None, max_retries=2):
+def retry_requests(func, params=None, data=None, max_retries=2):
     """查询应用信息
     因为现在通过接口以storage为数据源，因此，为防止接口失败或者接口为空的情况，增加请求次数
     """
@@ -156,6 +156,5 @@ def request_for_query_app(func, params=None, data=None, max_retries=2):
         except Exception:
             # 设置等待时间
             time.sleep(0.5)
-            continue
 
     raise error_codes.APIError("query storage api error")
