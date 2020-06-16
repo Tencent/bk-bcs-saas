@@ -22,8 +22,8 @@ DEFAULT_NODE_LIMIT = 10000
 FILTER_NODE_STATUS = ['removed']
 
 # cluster status
-COMMON_FAILED_STATUS = ["initial_failed", "failed", "check_failed", "remove_failed", "so_init_failed"]
-COMMON_RUNNING_STATUS = ["initializing", "running", "initial_checking", "removing", "so_initializing"]
+COMMON_FAILED_STATUS = ["initial_failed", "failed", "check_failed", "remove_failed", "so_init_failed", "upgrade_failed"]  # noqa
+COMMON_RUNNING_STATUS = ["initializing", "running", "initial_checking", "removing", "so_initializing", "upgrading"]
 CLUSTER_FAILED_STATUS = COMMON_FAILED_STATUS
 CLUSTER_RUNNING_STATUS = COMMON_RUNNING_STATUS
 NODE_FAILED_STATUS = ['ScheduleFailed', 'bke_failed']
