@@ -1185,6 +1185,42 @@ export default {
                 {},
                 config
             )
+        },
+
+        /**
+         * 获取集群可升级的版本
+         *
+         * @param {Object} context store 上下文对象
+         * @param {string} projectId 项目 id
+         * @param {string} clusterId 集群 id
+         * @param {Object} config 请求的配置
+         *
+         * @return {Promise} promise 对象
+         */
+        getClusterVersion (context, { projectId, clusterId }, config = {}) {
+            return http.get(
+                `${DEVOPS_BCS_API_URL}/api/projects/${projectId}/clusters/${clusterId}/upgradeable_versions/`,
+                {},
+                config
+            )
+        },
+
+        /**
+         * 升级集群信息
+         *
+         * @param {Object} context store 上下文对象
+         * @param {string} projectId 项目 id
+         * @param {string} clusterId 集群 id
+         * @param {Object} config 请求的配置
+         *
+         * @return {Promise} promise 对象
+         */
+        upgradeCluster (context, { projectId, clusterId, data }, config = {}) {
+            return http.put(
+                `${DEVOPS_BCS_API_URL}/api/projects/${projectId}/clusters/${clusterId}/version/`,
+                data,
+                config
+            )
         }
     }
 }
