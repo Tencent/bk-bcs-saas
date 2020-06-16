@@ -27,11 +27,6 @@ app.conf.beat_schedule = {
         'task': 'backend.accounts.bcs_perm.tasks.sync_bcs_perm',
         'schedule': crontab(hour=2),
     },
-    # 每 60 分钟对有变动的仓库进行同步
-    'helm_sync_repo_tasks': {
-        'task': 'backend.bcs_k8s.helm.tasks.sync_all_repo',
-        'schedule': crontab(minute="*/60"),
-    },
     # 每天三点进行一次强制同步
     'helm_force_sync_repo_tasks': {
         'task': 'backend.bcs_k8s.helm.tasks.force_sync_all_repo',
