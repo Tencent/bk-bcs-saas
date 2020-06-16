@@ -223,6 +223,10 @@ class OpenSession(views.APIView):
         data = {"session_id": session_id, "ws_url": ws_url}
         return BKAPIResponse(data, message=_("获取ws session成功"))
 
+
+class CreateOpenSession(views.APIView):
+    renderer_classes = (BKAPIRenderer, BrowsableAPIRenderer)
+
     def get_k8s_context(self, request, project_id_or_code, cluster_id):
         """获取docker监控信息
         """
@@ -246,7 +250,7 @@ class OpenSession(views.APIView):
         return bcs_context
 
     def post(self, request, project_id_or_code, cluster_id):
-        """获取session信息
+        """创建session_id
         """
         context = self.get_k8s_context(request, project_id_or_code, cluster_id)
 
@@ -262,4 +266,4 @@ class OpenSession(views.APIView):
 
         data = {"session_id": session_id}
 
-        return BKAPIResponse(data, message=_("获取session成功"))
+        return BKAPIResponse(data, message=_("创建session成功"))
