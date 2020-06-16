@@ -1204,3 +1204,9 @@
         cursor: not-allowed !important;
     }
 }
+
+.update-cluster-dialog {
+    .bk-dialog-tool {
+        display: none;
+    }
+}
