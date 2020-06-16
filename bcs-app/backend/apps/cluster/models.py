@@ -37,6 +37,8 @@ class ClusterOperType:
     InitialCheck = 'initial_check'
     SoInitial = 'so_initial'
     ClusterReinstall = 'reinstall'
+    ClusterUpgrade = "upgrade"
+    ClusterReupgrade = "reupgrade"
 
 
 class CommonStatus:
@@ -61,6 +63,8 @@ class ClusterStatus:
     Initializing = "initializing"
     InitialFailed = "initial_failed"
     Normal = "normal"
+    Upgrading = "upgrading"
+    UpgradeFailed = "upgrade_failed"
 
 
 class NodeStatus:
@@ -150,6 +154,7 @@ class ClusterInstallLog(GcloudPollingTask):
         ("removing", _("删除集群")),
         ("so_initial", _("SO 机器初始化")),
         ("remove", _("删除集群")),
+        ("upgrade", _("升级集群版本"))
     )
     status = models.CharField(max_length=32, null=True, blank=True)
     oper_type = models.CharField(max_length=16, choices=OPER_TYPE, default="initialize")
