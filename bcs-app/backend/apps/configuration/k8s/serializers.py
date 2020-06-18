@@ -117,7 +117,7 @@ class K8sSecretSLZ(K8sConfigMapSLZ):
 
 class K8sIngressSLZ(BCSResourceSLZ):
     resource_name = serializers.CharField(default=K8sResourceName.K8sIngress.value)
-    namespace_id = serializers.CharField()
+    namespace_id = serializers.CharField(required=False, allow_blank=True, allow_null=True)
 
     def _validate_config(self, data):
         short_name = data['resource_name'][3:]

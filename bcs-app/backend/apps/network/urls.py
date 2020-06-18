@@ -16,7 +16,7 @@ from .views import service
 from .views.lb import k8s, mesos
 from .views.ingress import mesos as mesos_ingress
 
-MESOS_CLUSTER_ID_REGEX = "^BCS-((?!K8S)\w)+-[0-9]{5,7}$"
+MESOS_CLUSTER_ID_REGEX = "BCS-((?!K8S)\w)+-[0-9]{5,7}"
 
 
 urlpatterns = [

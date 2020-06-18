@@ -15,7 +15,7 @@ from django.conf.urls import url
 from . import views
 from . import views_ingress
 
-K8S_CLUSTER_ID_REGEX = "^BCS-K8S-[0-9]{5,7}$"
+K8S_CLUSTER_ID_REGEX = "BCS-K8S-[0-9]{5,7}"
 
 
 urlpatterns = [
