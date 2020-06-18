@@ -304,7 +304,7 @@ class ResourceOperate(object):
         slz.is_valid(raise_exception=True)
         data = slz.data
 
-        config = json.loads(data['config'])
+        config = data["config"]
         namespace_id = data['namespace_id']
         username = request.user.username
 
