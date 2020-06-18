@@ -102,9 +102,9 @@
                                         </td>
                                         <td>
                                             <li style="width: 100px;">
-                                                <a v-if="ingress.can_update" href="javascript:void(0);" class="bk-text-button" @click="showIngressEditDialog(ingress)">更新</a>
+                                                <a v-if="ingress.can_update" href="javascript:void(0);" class="bk-text-button" @click="showIngressEditDialog(ingress)">{{$t('更新')}}</a>
                                                 <bk-tooltip :content="ingress.can_update_msg" v-else placement="left">
-                                                    <a href="javascript:void(0);" class="bk-text-button is-disabled">更新</a>
+                                                    <a href="javascript:void(0);" class="bk-text-button is-disabled">{{$t('更新')}}</a>
                                                 </bk-tooltip>
                                                 <a v-if="ingress.can_delete" @click.stop="removeIngress(ingress)" class="bk-text-button">{{$t('删除')}}</a>
                                                 <bk-tooltip :content="ingress.can_delete_msg || $t('不可删除')" v-else placement="left">
