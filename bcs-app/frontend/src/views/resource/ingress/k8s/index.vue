@@ -963,7 +963,11 @@
                     ]
                 }
                 const ingressClone = JSON.parse(JSON.stringify(ingress))
-                
+                ingressClone.data.spec.tls.forEach(item => {
+                    if (item.hosts && item.hosts.join) {
+                        item.hosts = item.hosts.join(',')
+                    }
+                })
                 this.curEditedIngress = ingressClone
                 this.curEditedIngress.config = ingressClone.data
                 this.ingressEditSlider.title = ingress.name
@@ -1009,7 +1013,7 @@
                 rules.splice(index, 1)
                 if (this.curRuleIndex === index) {
                     this.curRuleIndex = 0
-                } else {
+                } else if (this.curRuleIndex !== 0) {
                     this.curRuleIndex = this.curRuleIndex - 1
                 }
 
