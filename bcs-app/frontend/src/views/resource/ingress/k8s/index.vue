@@ -1094,6 +1094,7 @@
                 const nameReg = /^[a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*$/
                 const labelKeyReg = /^([A-Za-z0-9][-A-Za-z0-9_./]*)?[A-Za-z0-9]$/
                 const varReg = /\{\{([^\{\}]+)?\}\}/g
+                const pathReg = /\/((?!\.)[\w\d\-./~]+)*/
                 let megPrefix = ''
 
                 for (const rule of ingress.config.spec.rules) {
@@ -1130,6 +1131,15 @@
                             return false
                         }
 
+                        if (path.path && !pathReg.test(path.path)) {
+                            megPrefix += `${this.$t('路径组')}：`
+                            this.$bkMessage({
+                                theme: 'error',
+                                message: megPrefix + this.$t('路径不正确'),
+                                delay: 8000
+                            })
+                            return false
+                        }
 
                         if (!path.backend.serviceName) {
                             megPrefix += this.$t('路径组：')
