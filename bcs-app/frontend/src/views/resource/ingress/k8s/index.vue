@@ -102,10 +102,13 @@
                                         </td>
                                         <td>
                                             <li style="width: 100px;">
-                                                <a @click.stop="showIngressDetail(ingress)" class="biz-operate">{{$t('查看')}}</a>
-                                                <a v-if="ingress.can_delete" @click.stop="removeIngress(ingress)" class="biz-operate">{{$t('删除')}}</a>
+                                                <a v-if="ingress.can_update" href="javascript:void(0);" class="bk-text-button" @click="showIngressEditDialog(ingress)">{{$t('更新')}}</a>
+                                                <bk-tooltip :content="ingress.can_update_msg" v-else placement="left">
+                                                    <a href="javascript:void(0);" class="bk-text-button is-disabled">{{$t('更新')}}</a>
+                                                </bk-tooltip>
+                                                <a v-if="ingress.can_delete" @click.stop="removeIngress(ingress)" class="bk-text-button">{{$t('删除')}}</a>
                                                 <bk-tooltip :content="ingress.can_delete_msg || $t('不可删除')" v-else placement="left">
-                                                    <span class="biz-not-operate">{{$t('删除')}}</span>
+                                                    <span class="bk-text-button is-disabled ml10">{{$t('删除')}}</span>
                                                 </bk-tooltip>
                                             </li>
                                         </td>
@@ -219,6 +222,206 @@
                 </div>
             </bk-sideslider>
 
+            <bk-sideslider
+                :is-show.sync="ingressEditSlider.isShow"
+                :title="ingressEditSlider.title"
+                :width="'1020'"
+                @hidden="handleCancelUpdate">
+                <div slot="content">
+                    <div class="bk-form biz-configuration-form pt20 pb20 pl10 pr20">
+                        <div class="bk-form-item">
+                            <div class="bk-form-item">
+                                <div class="bk-form-content" style="margin-left: 0;">
+                                    <div class="bk-form-item is-required">
+                                        <label class="bk-label" style="width: 130px;">{{$t('名称')}}：</label>
+                                        <div class="bk-form-content" style="margin-left: 130px;">
+                                            <input
+                                                type="text"
+                                                class="bk-form-input"
+                                                :disabled="true"
+                                                style="width: 310px;"
+                                                v-model="curEditedIngress.config.metadata.name"
+                                                maxlength="64"
+                                                name="applicationName">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="bk-form-item">
+                                <div class="bk-form-content" style="margin-left: 130px;">
+                                    <button :class="['bk-text-button f12 mb10 pl0', { 'rotate': isTlsPanelShow }]" @click.stop.prevent="toggleTlsPanel">
+                                        {{$t('TLS设置')}}<i class="bk-icon icon-angle-double-down ml5"></i>
+                                    </button>
+                                    <button :class="['bk-text-button f12 mb10 pl0', { 'rotate': isPanelShow }]" @click.stop.prevent="togglePanel">
+                                        {{$t('更多设置')}}<i class="bk-icon icon-angle-double-down ml5"></i>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="bk-form-item mt0" v-show="isTlsPanelShow">
+                                <div class="bk-form-content" style="margin-left: 130px;">
+                                    <bk-tab :type="'fill'" :active-name="'tls'" :size="'small'">
+                                        <bk-tabpanel name="tls" title="TLS">
+                                            <div class="p20">
+                                                <table class="biz-simple-table">
+                                                    <tbody>
+                                                        <tr v-for="(computer, index) in curEditedIngress.config.spec.tls" :key="index">
+                                                            <td>
+                                                                <bk-input
+                                                                    type="text"
+                                                                    :placeholder="$t('主机名，多个用英文逗号分隔')"
+                                                                    style="width: 310px;"
+                                                                    :value.sync="computer.hosts"
+                                                                    :list="varList"
+                                                                >
+                                                                </bk-input>
+                                                            </td>
+                                                            <td>
+                                                                <bk-selector
+                                                                    :placeholder="$t('选择一个证书')"
+                                                                    style="width: 350px;"
+                                                                    :setting-key="'certId'"
+                                                                    :display-key="'certName'"
+                                                                    :selected.sync="computer.certId"
+                                                                    :list="certList"
+                                                                    @item-selected="handlerSelectCert(computer, ...arguments)"
+                                                                >
+                                                                    <div class="bk-selector-create-item" slot="newItem" @click="goCertList" v-if="certListUrl">
+                                                                        <i class="bk-icon icon-apps"></i>
+                                                                        <i class="text">{{$t('证书列表')}}</i>
+                                                                    </div>
+                                                                </bk-selector>
+                                                            </td>
+                                                            <td>
+                                                                <button class="action-btn ml5" @click.stop.prevent="addTls">
+                                                                    <i class="bk-icon icon-plus"></i>
+                                                                </button>
+                                                                <button class="action-btn" v-if="curEditedIngress.config.spec.tls.length > 1" @click.stop.prevent="removeTls(index, computer)">
+                                                                    <i class="bk-icon icon-minus"></i>
+                                                                </button>
+                                                            </td>
+                                                        </tr>
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </bk-tabpanel>
+                                    </bk-tab>
+                                </div>
+                            </div>
+
+                            <div class="bk-form-item mt0" v-show="isPanelShow">
+                                <div class="bk-form-content" style="margin-left: 130px;">
+                                    <bk-tab :type="'fill'" :active-name="'remark'" :size="'small'">
+                                        <bk-tabpanel name="remark" :title="$t('注解')">
+                                            <div class="biz-tab-wrapper m20">
+                                                <bk-keyer :key-list.sync="curRemarkList" :var-list="varList" ref="remarkKeyer"></bk-keyer>
+                                            </div>
+                                        </bk-tabpanel>
+                                        <bk-tabpanel name="label" :title="$t('标签')">
+                                            <div class="biz-tab-wrapper m20">
+                                                <bk-keyer :key-list.sync="curLabelList" :var-list="varList" ref="labelKeyer"></bk-keyer>
+                                            </div>
+                                        </bk-tabpanel>
+                                    </bk-tab>
+                                </div>
+                            </div>
+
+                            <!-- part2 start -->
+                            <div class="biz-part-header">
+                                <div class="bk-button-group">
+                                    <div class="item" v-for="(rule, index) in curEditedIngress.config.spec.rules" :key="index">
+                                        <button :class="['bk-button bk-default is-outline', { 'is-selected': curRuleIndex === index }]" @click.stop="setCurRule(rule, index)">
+                                            {{rule.host || $t('未命名')}}
+                                        </button>
+                                        <span class="bk-icon icon-close-circle" @click.stop="removeRule(index)" v-if="curEditedIngress.config.spec.rules.length > 1"></span>
+                                    </div>
+                                    <bk-tooltip ref="containerTooltip" :content="curEditedIngress.config.spec.rules.length >= 5 ? $t('最多添加5个') : $t('添加Rule')" placement="top">
+                                        <button type="button" class="bk-button bk-default is-outline is-icon" :disabled="curEditedIngress.config.spec.rules.length >= 5 " @click.stop.prevent="addLocalRule">
+                                            <i class="bk-icon icon-plus"></i>
+                                        </button>
+                                    </bk-tooltip>
+                                </div>
+                            </div>
+
+                            <div class="bk-form biz-configuration-form pb15">
+                                <div class="biz-span">
+                                    <span class="title">{{$t('基础信息')}}</span>
+                                </div>
+                                <div class="bk-form-item is-required">
+                                    <label class="bk-label" style="width: 130px;">{{$t('虚拟主机名')}}：</label>
+                                    <div class="bk-form-content" style="margin-left: 130px;">
+                                        <input type="text" :class="['bk-form-input']" :placeholder="$t('请输入')" style="width: 310px;" v-model="curRule.host" name="ruleName">
+                                    </div>
+                                </div>
+                                <div class="bk-form-item">
+                                    <label class="bk-label" style="width: 130px;">{{$t('路径组')}}：</label>
+                                    <div class="bk-form-content" style="margin-left: 130px;">
+                                        <table class="biz-simple-table">
+                                            <tbody>
+                                                <tr v-for="(pathRule, index) of curRule.http.paths" :key="index">
+                                                    <td>
+                                                        <bk-input
+                                                            type="text"
+                                                            :placeholder="$t('路径')"
+                                                            style="width: 310px;"
+                                                            :value.sync="pathRule.path"
+                                                            :list="varList"
+                                                        >
+                                                        </bk-input>
+                                                    </td>
+                                                    <td style="text-align: center;">
+                                                        <i class="bk-icon icon-arrows-right"></i>
+                                                    </td>
+                                                    <td>
+                                                        <bk-selector
+                                                            style="width: 180px;"
+                                                            :placeholder="$t('Service名称')"
+                                                            :disabled="isLoadBalanceEdited"
+                                                            :setting-key="'_name'"
+                                                            :display-key="'_name'"
+                                                            :selected.sync="pathRule.backend.serviceName"
+                                                            :list="linkServices || []"
+                                                            @item-selected="handlerSelectService(pathRule)">
+                                                        </bk-selector>
+                                                    </td>
+                                                    <td>
+                                                        <bk-selector
+                                                            style="width: 180px;"
+                                                            :placeholder="$t('端口')"
+                                                            :disabled="isLoadBalanceEdited"
+                                                            :setting-key="'_id'"
+                                                            :display-key="'_name'"
+                                                            :selected.sync="pathRule.backend.servicePort"
+                                                            :list="linkServices[pathRule.backend.serviceName] || []">
+                                                        </bk-selector>
+                                                    </td>
+                                                    <td>
+                                                        <button class="action-btn ml5" @click.stop.prevent="addRulePath">
+                                                            <i class="bk-icon icon-plus"></i>
+                                                        </button>
+                                                        <button class="action-btn" v-if="curRule.http.paths.length > 1" @click.stop.prevent="removeRulePath(pathRule, index)">
+                                                            <i class="bk-icon icon-minus"></i>
+                                                        </button>
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                        <p class="biz-tip">{{$t('提示：同一个虚拟主机名可以有多个路径')}}</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="bk-form-item mt25" style="margin-left: 130px;">
+                                <button :class="['bk-button bk-primary', { 'is-loading': isDetailSaving }]" @click.stop.prevent="saveIngressDetail">{{$t('保存并更新')}}</button>
+                                <button class="bk-button bk-default" @click.stop.prevent="handleCancelUpdate">{{$t('取消')}}</button>
+                            </div>
+            
+                        </div>
+                    </div>
+                </div>
+            </bk-sideslider>
+
             <bk-dialog
                 :is-show="batchDialogConfig.isShow"
                 :width="550"
@@ -241,8 +444,14 @@
 
 <script>
     import { catchErrorHandler, formatDate } from '@open/common/util'
+    import ingressParams from '@open/json/k8s-ingress.json'
+    import ruleParams from '@open/json/k8s-ingress-rule.json'
+    import bkKeyer from '@open/components/keyer'
 
     export default {
+        components: {
+            bkKeyer
+        },
         data () {
             return {
                 formatDate: formatDate,
@@ -252,6 +461,9 @@
                 searchScope: '',
                 curPageData: [],
                 curIngress: null,
+                curEditedIngress: ingressParams,
+                isPanelShow: false,
+                isTlsPanelShow: false,
                 pageConf: {
                     total: 1,
                     totalPage: 1,
@@ -268,8 +480,15 @@
                     list: [],
                     data: []
                 },
+                curRuleIndex: 0,
+                curRule: ingressParams.config.spec.rules[0],
                 curIngressName: '',
-                alreadySelectedNums: 0
+                alreadySelectedNums: 0,
+                ingressEditSlider: {
+                    title: '',
+                    isShow: false
+                },
+                linkServices: []
             }
         },
         computed: {
@@ -325,6 +544,54 @@
             },
             isClusterDataReady () {
                 return this.$store.state.cluster.isClusterDataReady
+            },
+            varList () {
+                const list = this.$store.state.variable.varList.map(item => {
+                    item._id = item.key
+                    item._name = item.key
+                    return item
+                })
+                return list
+            },
+            certListUrl () {
+                return this.$store.state.k8sTemplate.certListUrl
+            },
+            certList () {
+                return this.$store.state.k8sTemplate.certList
+            },
+            curLabelList () {
+                const list = []
+                const labels = this.curEditedIngress.config.metadata.labels
+                for (const [key, value] of Object.entries(labels)) {
+                    list.push({
+                        key: key,
+                        value: value
+                    })
+                }
+                if (!list.length) {
+                    list.push({
+                        key: '',
+                        value: ''
+                    })
+                }
+                return list
+            },
+            curRemarkList () {
+                const list = []
+                const annotations = this.curEditedIngress.config.metadata.annotations
+                for (const [key, value] of Object.entries(annotations)) {
+                    list.push({
+                        key: key,
+                        value: value
+                    })
+                }
+                if (!list.length) {
+                    list.push({
+                        key: '',
+                        value: ''
+                    })
+                }
+                return list
             }
         },
         watch: {
@@ -344,6 +611,8 @@
         },
         created () {
             this.initPageConf()
+            this.getCertList()
+            // this.initServices()
             // this.getIngressList()
         },
         methods: {
@@ -664,6 +933,311 @@
                 this.$nextTick(() => {
                     this.alreadySelectedNums = this.ingressList.filter(item => item.isChecked).length
                 })
+            },
+
+            async showIngressEditDialog (ingress) {
+                if (!ingress.permissions.edit) {
+                    const params = {
+                        project_id: this.projectId,
+                        policy_code: 'edit',
+                        resource_code: ingress.namespace_id,
+                        resource_name: ingress.namespace,
+                        resource_type: 'namespace'
+                    }
+                    await this.$store.dispatch('getResourcePermissions', params)
+                }
+
+                if (!ingress.data.spec.hasOwnProperty('tls')) {
+                    ingress.data.spec.tls = [
+                        {
+                            hosts: '',
+                            certId: ''
+                        }
+                    ]
+                } else if (JSON.stringify(ingress.data.spec.tls) === '[{}]') {
+                    ingress.data.spec.tls = [
+                        {
+                            hosts: '',
+                            certId: ''
+                        }
+                    ]
+                }
+                const ingressClone = JSON.parse(JSON.stringify(ingress))
+                
+                this.curEditedIngress = ingressClone
+                this.curEditedIngress.config = ingressClone.data
+                this.ingressEditSlider.title = ingress.name
+                delete this.curEditedIngress.data
+                
+                if (this.curEditedIngress.config.spec.rules.length) {
+                    this.setCurRule(this.curEditedIngress.config.spec.rules[0], 0)
+                } else {
+                    this.addLocalRule()
+                }
+                this.getServiceList(ingress.cluster_id, ingress.namespace_id)
+                this.ingressEditSlider.isShow = true
+            },
+
+            togglePanel () {
+                this.isTlsPanelShow = false
+                this.isPanelShow = !this.isPanelShow
+            },
+            toggleTlsPanel () {
+                this.isPanelShow = false
+                this.isTlsPanelShow = !this.isTlsPanelShow
+            },
+            goCertList () {
+                if (this.certListUrl) {
+                    window.open(this.certListUrl)
+                }
+            },
+            addTls () {
+                this.curEditedIngress.config.spec.tls.push({
+                    hosts: '',
+                    certId: ''
+                })
+            },
+            removeTls (index, curTls) {
+                this.curEditedIngress.config.spec.tls.splice(index, 1)
+            },
+            setCurRule (rule, index) {
+                this.curRule = rule
+                this.curRuleIndex = index
+            },
+            removeRule (index) {
+                const rules = this.curEditedIngress.config.spec.rules
+                rules.splice(index, 1)
+                if (this.curRuleIndex === index) {
+                    this.curRuleIndex = 0
+                } else {
+                    this.curRuleIndex = this.curRuleIndex - 1
+                }
+
+                this.curRule = rules[this.curRuleIndex]
+            },
+            addLocalRule () {
+                const rule = JSON.parse(JSON.stringify(ruleParams))
+                const rules = this.curEditedIngress.config.spec.rules
+                const index = rules.length
+                rule.host = 'rule-' + (index + 1)
+                rules.push(rule)
+                this.setCurRule(rule, index)
+            },
+            addRulePath () {
+                const params = {
+                    backend: {
+                        serviceName: '',
+                        servicePort: ''
+                    },
+                    path: ''
+                }
+
+                this.curRule.http.paths.push(params)
+            },
+            removeRulePath (pathRule, index) {
+                this.curRule.http.paths.splice(index, 1)
+            },
+            handlerSelectService (pathRule) {
+                pathRule.backend.servicePort = ''
+            },
+            async initServices (version) {
+                const projectId = this.projectId
+                await this.$store.dispatch('k8sTemplate/getServicesByVersion', { projectId, version })
+            },
+            /**
+             * 获取service列表
+             */
+            async getServiceList (clusterId, namespaceId) {
+                const projectId = this.projectId
+                const params = {
+                    cluster_id: clusterId
+                }
+
+                try {
+                    const res = await this.$store.dispatch('network/getServiceList', {
+                        projectId,
+                        params
+                    })
+
+                    const serviceList = res.data.data.filter(service => {
+                        return service.namespace_id === namespaceId
+                    }).map(service => {
+                        const ports = service.data.spec.ports || []
+                        return {
+                            _name: service.resourceName,
+                            service_name: service.resourceName,
+                            service_ports: ports
+                        }
+                    })
+                    serviceList.forEach(service => {
+                        serviceList[service.service_name] = []
+                        service.service_ports.forEach(item => {
+                            serviceList[service.service_name].push({
+                                _id: item.port,
+                                _name: item.port
+                            })
+                        })
+                    })
+                    this.linkServices = serviceList
+                } catch (e) {
+                    catchErrorHandler(e, this)
+                }
+            },
+
+            checkData () {
+                const ingress = this.curEditedIngress
+                const ingressName = ingress.config.metadata.name
+                const nameReg = /^[a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*$/
+                const labelKeyReg = /^([A-Za-z0-9][-A-Za-z0-9_./]*)?[A-Za-z0-9]$/
+                const varReg = /\{\{([^\{\}]+)?\}\}/g
+                let megPrefix = ''
+
+                for (const rule of ingress.config.spec.rules) {
+                    // 检查rule
+                    if (!rule.host) {
+                        megPrefix += this.$t('规则：')
+                        this.$bkMessage({
+                            theme: 'error',
+                            message: megPrefix + this.$t('主机名不能为空')
+                        })
+                        return false
+                    }
+
+                    if (!nameReg.test(rule.host)) {
+                        megPrefix += this.$t('规则主机名：')
+                        this.$bkMessage({
+                            theme: 'error',
+                            message: megPrefix + this.$t('名称错误，只能包含：小写字母、数字、连字符(-)，首字母必须是字母'),
+                            delay: 8000
+                        })
+                        return false
+                    }
+
+                    const paths = rule.http.paths
+
+                    for (const path of paths) {
+                        if (!path.path) {
+                            megPrefix += this.$t('路径组：')
+                            this.$bkMessage({
+                                theme: 'error',
+                                message: megPrefix + this.$t('请填写路径！'),
+                                delay: 8000
+                            })
+                            return false
+                        }
+
+
+                        if (!path.backend.serviceName) {
+                            megPrefix += this.$t('路径组：')
+                            this.$bkMessage({
+                                theme: 'error',
+                                message: megPrefix + this.$t('请关联服务！'),
+                                delay: 8000
+                            })
+                            return false
+                        }
+
+                        if (!path.backend.servicePort) {
+                            megPrefix += this.$t('路径组：')
+                            this.$bkMessage({
+                                theme: 'error',
+                                message: megPrefix + this.$t('请关联服务端口！'),
+                                delay: 8000
+                            })
+                            return false
+                        }
+
+                        if (path.backend.serviceName && !this.linkServices.hasOwnProperty(path.backend.serviceName)) {
+                            megPrefix += this.$t('路径组：')
+                            this.$bkMessage({
+                                theme: 'error',
+                                message: megPrefix + `关联的Service【${path.backend.serviceName}】不存在，请重新绑定！`,
+                                delay: 8000
+                            })
+                            return false
+                        }
+                    }
+                }
+                return true
+            },
+
+            formatData () {
+                const params = JSON.parse(JSON.stringify(this.curEditedIngress))
+                delete params.config.metadata.resourceVersion
+                delete params.config.metadata.selfLink
+                delete params.config.metadata.uid
+                
+                params.config.metadata.annotations = this.$refs.remarkKeyer.getKeyObject()
+                params.config.metadata.labels = this.$refs.labelKeyer.getKeyObject()
+
+                // 如果不是变量，转为数组形式
+                const varReg = /\{\{([^\{\}]+)?\}\}/g
+                params.config.spec.tls.forEach(item => {
+                    if (!varReg.test(item.hosts)) {
+                        item.hosts = item.hosts.split(',')
+                    }
+                })
+                return params
+            },
+
+            /**
+             * 保存service
+             */
+            async saveIngressDetail () {
+                if (this.checkData()) {
+                    const data = this.formatData()
+                    const projectId = this.projectId
+                    const clusterId = this.curEditedIngress.cluster_id
+                    const namespace = this.curEditedIngress.namespace
+                    const ingressId = this.curEditedIngress.config.metadata.name
+
+
+                    if (this.isDetailSaving) {
+                        return false
+                    }
+
+                    this.isDetailSaving = true
+
+                    try {
+                        await this.$store.dispatch('resource/saveIngressDetail', {
+                            projectId,
+                            clusterId,
+                            namespace,
+                            ingressId,
+                            data
+                        })
+
+                        this.$bkMessage({
+                            theme: 'success',
+                            message: this.$t('保存成功'),
+                            hasCloseIcon: true,
+                            delay: 3000
+                        })
+                        this.getIngressList()
+                        this.handleCancelUpdate()
+                    } catch (e) {
+                        catchErrorHandler(e, this)
+                    } finally {
+                        this.isDetailSaving = false
+                    }
+                }
+            },
+
+            handleCancelUpdate () {
+                this.ingressEditSlider.isShow = false
+            },
+
+            async getCertList () {
+                const projectId = this.projectId
+                try {
+                    await this.$store.dispatch('k8sTemplate/getCertList', projectId)
+                } catch (e) {
+                    catchErrorHandler(e, this)
+                }
+            },
+
+            handlerSelectCert (computer, index, data) {
+                computer.certType = data.certType
             }
         }
     }
