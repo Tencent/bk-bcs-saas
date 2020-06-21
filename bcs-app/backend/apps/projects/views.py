@@ -161,9 +161,9 @@ class Projects(viewsets.ViewSet):
             description='{}: {}'.format(_("更新项目"), request.project.project_name)
         )
         project = paas_cc.update_project_new(access_token, project_id, data)
-        if project.get('code') != 0:
-            ual_client.log_modify(activity_status='failed')
-            raise error_codes.APIError(project.get('message', _("更新项目成功")))
+        if project.get("code") != ErrorCode.NoError:
+            ual_client.log_modify(activity_status="failed")
+            raise error_codes.APIError(_("更新项目信息失败，错误详情: {}").format(project.get("message")))
         ual_client.log_modify(activity_status='succeed')
         project_data = project.get('data')
         if project_data:
