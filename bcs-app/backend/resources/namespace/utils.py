@@ -16,6 +16,28 @@ from backend.utils.errcodes import ErrorCode
 from backend.utils.error_codes import error_codes
 
 
+def get_cc_namespaces(access_token, project_id):
+    resp = paas_cc.get_namespace_list(access_token, project_id, desire_all_data=True)
+    if resp.get("code") != ErrorCode.NoError:
+        raise error_codes.APIError(f"get namespace error, {resp.get('message')}")
+    return resp.get("data", {}).get("results", [])
+
+
+def get_cc_namespace_by_id(access_token, project_id, namespace_id):
+    resp = paas_cc.get_namespace(access_token, project_id, namespace_id)
+    if resp.get('code') != ErrorCode.NoError:
+        raise error_codes.APIError(f"get namespace error, {resp.get('message')}")
+    return resp.get("data") or {}
+
+
+def get_cc_namespaces_by_cluster_id(access_token, project_id, cluster_id):
+    resp = paas_cc.get_cluster_namespace_list(access_token, project_id, cluster_id, desire_all_data=True)
+    if resp.get('code') != ErrorCode.NoError:
+        raise error_codes.APIError(f"get namespace error, {resp.get('message')}")
+
+    return resp.get('data', {}).get('results', [])
+
+
 def get_namespaces(access_token, project_id):
     resp = paas_cc.get_namespace_list(access_token, project_id, desire_all_data=True)
     if resp.get('code') != ErrorCode.NoError:
@@ -38,7 +60,7 @@ def get_namespaces_by_cluster_id(access_token, project_id, cluster_id):
     return resp.get('data', {}).get('results', [])
 
 
-def get_k8s_realtime_namespaces(access_token, project_id, cluster_id):
+def get_k8s_namespaces(access_token, project_id, cluster_id):
     """获取集群中实时的namespace
     """
     client = bcs.k8s.K8SClient(access_token, project_id, cluster_id, env=None)
