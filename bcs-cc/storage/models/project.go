@@ -54,6 +54,7 @@ type Project struct {
 type FilterParams struct {
 	ProjectIDList   []string
 	EnglishNameList []string
+	ProjectNameList []string
 	ApprovalStatus  string
 	Creator         string
 	ProjectType     string
@@ -79,7 +80,8 @@ func (filterParams *FilterParams) ProjectListInfo() (data []Project, count int, 
 	if filterParams.DesireAllData == "0" || filterParams.DesireAllData == "" {
 		qs = qs.ProjectIDInWithoutError(
 			filterParams.ProjectIDList...).EnglishNameInWithoutError(
-			filterParams.EnglishNameList...)
+			filterParams.EnglishNameList...).ProjectNameInWithoutError(
+			filterParams.ProjectNameList...)
 		// (field is uint type) approval_status or project_type filter
 		qs = qs.Filter(map[string]string{
 			"approval_status": filterParams.ApprovalStatus,

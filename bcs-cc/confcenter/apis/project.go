@@ -35,10 +35,12 @@ func ProjectListInfo(c *gin.Context) {
 	// split the project id and english name
 	idList := strings.Split(data.ProjectIDs, ",")
 	englishNameList := strings.Split(data.EnglishNames, ",")
+	projectNameList := strings.Split(data.ProjectNames, ",")
 
 	filter := &models.FilterParams{
 		ProjectIDList:   idList,
 		EnglishNameList: englishNameList,
+		ProjectNameList: projectNameList,
 		ApprovalStatus:  data.ApprovalStatus,
 		Creator:         data.Creator,
 		ProjectType:     data.ProjectType,
@@ -90,6 +92,10 @@ func CreateProject(c *gin.Context) {
 	if err := BindJSON(c, data); err != nil {
 		utils.BadReqJSONResponse(c, ValidationError(err))
 		return
+	}
+	// 兼容处理，如果没有传递ProjectID，则自动生成ProjectID
+	if data.ProjectID == "" {
+		data.ProjectID = utils.NewUUID()
 	}
 	// 兼容历史，需要绑定CC业务
 	if data.UseBK && data.CCAppID == 0 {

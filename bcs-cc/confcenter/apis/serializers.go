@@ -62,6 +62,7 @@ type updateAreaJSON struct {
 type queryProjectParams struct {
 	ProjectIDs     string `form:"project_ids"`
 	EnglishNames   string `form:"english_names"`
+	ProjectNames   string `form:"project_names"`
 	ApprovalStatus string `form:"approval_status"`
 	Creator        string `form:"creator"`
 	ProjectType    string `form:"project_type"`
@@ -77,7 +78,7 @@ type queryprojectData struct {
 
 // create project data
 type createProjectData struct {
-	ProjectID      string `binding:"required" json:"project_id"`
+	ProjectID      string `json:"project_id"`
 	Name           string `binding:"required,max=64" json:"project_name"`
 	EnglishName    string `binding:"required,max=32" json:"english_name"`
 	ProjectType    uint   `binding:"exists" json:"project_type"`
