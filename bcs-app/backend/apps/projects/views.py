@@ -160,12 +160,12 @@ class Projects(viewsets.ViewSet):
             resource_id=project_id,
             description='{}: {}'.format(_("更新项目"), request.project.project_name)
         )
-        project = paas_cc.update_project_new(access_token, project_id, data)
-        if project.get('code') != 0:
-            ual_client.log_modify(activity_status='failed')
-            raise error_codes.APIError(project.get('message', _("更新项目成功")))
+        resp = paas_cc.update_project_new(access_token, project_id, data)
+        if resp.get("code") != ErrorCode.NoError:
+            ual_client.log_modify(activity_status="failed")
+            raise error_codes.APIError(_("更新项目信息失败，错误详情: {}").format(resp.get("message")))
         ual_client.log_modify(activity_status='succeed')
-        project_data = project.get('data')
+        project_data = resp.get('data')
         if project_data:
             project_data['created_at'], project_data['updated_at'] = self.normalize_create_update_time(
                 project_data['created_at'], project_data['updated_at'])
