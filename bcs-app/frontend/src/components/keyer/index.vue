@@ -11,6 +11,7 @@
                         :list="varList"
                         :disabled="!!((keyItem.disabled && !keyItem.linkMessage) || dataKey)"
                         @input="valueChange"
+                        @blur="handleBlur"
                         @paste="pasteKey(keyItem, $event)">
                     </bk-input>
                 </template>
@@ -24,6 +25,7 @@
                         :disabled="!!((keyItem.disabled && !keyItem.linkMessage) || dataKey)"
                         @paste="pasteKey(keyItem, $event)"
                         @input="valueChange"
+                        @blur="handleBlur"
                     />
                 </template>
 
@@ -38,6 +40,7 @@
                         :list="varList"
                         :disabled="keyItem.disabled && !keyItem.linkMessage"
                         @input="valueChange"
+                        @blur="handleBlur"
                     >
                     </bk-input>
                 </template>
@@ -47,9 +50,10 @@
                         class="bk-form-input"
                         :placeholder="valuePlaceholder || $t('值')"
                         :style="{ width: `${valueInputWidth}px` }"
+                        :disabled="keyItem.disabled && !keyItem.linkMessage"
                         v-model="keyItem.value"
                         @input="valueChange"
-                        :disabled="keyItem.disabled && !keyItem.linkMessage"
+                        @blur="handleBlur"
                     />
                 </template>
 
@@ -120,6 +124,14 @@
             valueInputWidth: {
                 type: Number,
                 default: 240
+            },
+            useKeyTrim: {
+                type: Boolean,
+                default: true
+            },
+            useValueTrim: {
+                type: Boolean,
+                default: true
             }
         },
         data () {
@@ -163,6 +175,24 @@
                     this.$emit('change', this.list, obj)
                 })
             },
+            valueChange () {
+                this.$nextTick(() => {
+                    const obj = this.getKeyObject(true)
+                    this.$emit('change', this.list, obj)
+                })
+            },
+            handleBlur () {
+                this.$nextTick(() => {
+                    const obj = this.getKeyObject(true)
+                    const list = this.list.map(item => {
+                        return {
+                            key: this.useKeyTrim ? item.key.trim() : item.key,
+                            value: this.useValueTrim ? item.value.trim() : item.value
+                        }
+                    })
+                    this.$emit('change', list, obj)
+                })
+            },
             pasteKey (item, event) {
                 const cache = item.key
                 const clipboard = event.clipboardData
@@ -184,8 +214,8 @@
                     if (item.indexOf('=') > -1) {
                         const arr = item.split('=')
                         this.list.push({
-                            key: arr[0],
-                            value: arr[1]
+                            key: this.useKeyTrim ? arr[0].trim() : arr[0],
+                            value: this.useValueTrim ? arr[1].trim() : arr[1]
                         })
                     }
                 })
@@ -224,16 +254,19 @@
             },
             getKeyList (isAll) {
                 let results = []
-                const list = this.list
+                const list = this.list.map(item => {
+                    return {
+                        key: this.useKeyTrim ? item.key.trim() : item.key,
+                        value: this.useValueTrim ? item.value.trim() : item.value
+                    }
+                })
                 if (isAll) {
-                    return this.list
+                    return list
                 } else {
-                    results = list.filter(item => {
+                    return list.filter(item => {
                         return item.key && item.value
                     })
                 }
-
-                return results
             },
             getKeyObject (isAll) {
                 const results = this.getKeyList(isAll)
