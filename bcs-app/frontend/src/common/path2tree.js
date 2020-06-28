@@ -8,7 +8,6 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-
 function path2tree (arr, conf) {
     const tree = {
         name: '/',
@@ -30,8 +29,6 @@ function path2tree (arr, conf) {
             const node = {
                 name: splitpath[i],
                 title: splitpath[i],
-                openedIcon: 'icon-folder-open',
-                closedIcon: 'icon-folder',
                 expanded: false,
                 children: []
             }
@@ -46,37 +43,41 @@ function path2tree (arr, conf) {
                 delete node.children
                 delete node.openedIcon
                 delete node.closedIcon
-                node.value = obj.value
-                node.icon = 'icon-file'
+                
+                if (obj.value) {
+                    node.value = obj.value
+                    node.icon = 'icon-file'
+                }
 
                 // default 选中第一个文件
-                if (index === 0) {
+                if (conf.useFirstDefault && index === 0) {
                     node.selected = true
                 }
             }
 
-            const childrenCounts = ptr.children.length
-            for (iChild = 0; iChild < childrenCounts; iChild++) {
-                const child = ptr.children[iChild]
-                if (child.name === node.name) {
-                    if (i === splitpath.length - 1) {
-                        delete node.children
-                        delete node.openedIcon
-                        delete node.closedIcon
-                        node.value = obj.value
-                        node.selected = true
-                        node.icon = 'icon-file'
-                    } else {
-                        ptr = child
+            if (ptr.children) {
+                const childrenCounts = ptr.children.length
+                for (iChild = 0; iChild < childrenCounts; iChild++) {
+                    const child = ptr.children[iChild]
+                    if (child.name === node.name) {
+                        if (i === splitpath.length - 1) {
+                            delete node.children
+                            delete node.openedIcon
+                            delete node.closedIcon
+                            node.value = obj.value
+                            node.selected = true
+                        } else {
+                            ptr = child
+                        }
+                        break
                     }
-                    break
                 }
-            }
 
-            // 循环结束后还没有找到name匹配的children，说明node不在children列表中，将node加入列表
-            if (iChild >= childrenCounts) {
-                ptr.children.push(node)
-                ptr = node
+                // 循环结束后还没有找到name匹配的children，说明node不在children列表中，将node加入列表
+                if (iChild >= childrenCounts) {
+                    ptr.children.push(node)
+                    ptr = node
+                }
             }
         }
     }
