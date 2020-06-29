@@ -17,7 +17,7 @@
             <app-exception v-if="exceptionCode" :type="exceptionCode.code" :text="exceptionCode.msg"></app-exception>
             <div v-else class="biz-cluster-create-form-wrapper">
                 <template v-if="clusterClassify !== 'public'">
-                    <div class="form-item bk-form-item" :class="isEn ? 'en' : ''">
+                    <!-- <div class="form-item bk-form-item" :class="isEn ? 'en' : ''">
                         <label>{{$t('集群分类')}}：<span class="red">*</span></label>
                         <div class="form-item-inner">
                             <label class="bk-form-radio">
@@ -35,7 +35,7 @@
                                 </bk-tooltip>
                             </label>
                         </div>
-                    </div>
+                    </div> -->
                     <div class="form-item bk-form-item" :class="isEn ? 'en' : ''">
                         <label>{{$t('名称：')}}<span class="red">*</span></label>
                         <div class="form-item-inner">
