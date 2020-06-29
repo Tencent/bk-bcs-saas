@@ -161,16 +161,6 @@ class BCSWebSocketHandler(LocaleHandlerMixin, tornado.websocket.WebSocketHandler
             cols = int(rows)
             self.bcs_client.set_pty_size(rows, cols)
         else:
-            # 回车键 \r
-            if message == constants.INPUT_LINE_BREAKER:
-                if self.is_exit_command(self.exit_buffer):
-                    _message = str(_("BCS Console 主动退出"))
-                    self.close_reason = _message
-                    self.close(reason=_message)
-                self.exit_buffer = ""
-            else:
-                self.exit_buffer += message
-
             self.send_message(message)
 
     def on_close(self):
