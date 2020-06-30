@@ -38,10 +38,6 @@ def handle_number_var(var, name, is_preview, is_validate=True):
     if is_rate_number(var):
         return var
 
-    # 与前端的约定: 预览模式下数字变量增加"|toInt"标记，表示前端需要将该值显示成数字
-    if is_preview:
-        if REAL_NUM_VAR_PATTERN.match(var):
-            return var.replace("}}", "|toInt}}")
     try:
         var = int(var)
     except Exception:
