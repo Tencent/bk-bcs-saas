@@ -179,7 +179,7 @@ class BCSWebSocketHandler(LocaleHandlerMixin, tornado.websocket.WebSocketHandler
             logger.info("stop heartbeat_callback, %s", self.user_pod_name)
             self.heartbeat_callback.stop()
 
-        self.bcs_client.end_of_transmission()
+        self.bcs_client.close_transmission()
         WEBSOCKET_HANDLER_SET.remove(self)
 
         logger.info("on_close, code: %s, reason: %s, pod: %s", self.close_code, self.close_reason, self.user_pod_name)

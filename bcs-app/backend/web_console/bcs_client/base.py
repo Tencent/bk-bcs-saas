@@ -68,14 +68,14 @@ class BCSClientBase(abc.ABC):
         self.output_record = []
         return record
 
-    def end_of_transmission(self):
+    def close_transmission(self):
         """结束通讯, 发送CTRL-D
         ASCII编码 EOT 04
         """
         try:
             self.write_message(chr(4))
         except Exception as error:
-            logger.warning("end_of_transmission %s error: %s", self.msg_handler.user_pod_name, error)
+            logger.warning("close_transmission %s error: %s", self.msg_handler.user_pod_name, error)
 
     def handle_message(self, message):
         """消息格式转换
