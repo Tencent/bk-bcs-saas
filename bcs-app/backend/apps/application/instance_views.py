@@ -122,18 +122,13 @@ class QueryAllTaskgroups(BaseTaskgroupCls):
             ret_data.append(info_data)
         return ret_data
 
-    def get_pod_conditions(self, phase, data):
-        """处理pod的状态
-        当phase不为Running时，直接返回Unready
-        否则，分析condition中的各个状态，如果状态不为"True"，则认为Unready
+    def get_pod_conditions(self, data):
+        """处理pod conditions
         """
-        for info in data:
-            status = info.get("status") or "False"
-            message = info.get("message") or ""
-            reason = info.get("reason") or ""
-            if status not in ["True", True]:
-                return "Unready", message, reason
-        return "Running", "", ""
+        if not data:
+            return "", ""
+        info = data[0]
+        return info.get("message") or "", info.get("reason") or ""
 
     def get_pod_info(self, data):
         """获取pod信息
@@ -149,9 +144,9 @@ class QueryAllTaskgroups(BaseTaskgroupCls):
             info_data = info.get("data") or {}
             status = info_data.get("status") or {}
             condition = status.get("conditions") or []
-            pod_status, message, reason = self.get_pod_conditions(status.get("phase"), condition)
+            message, reason = self.get_pod_conditions(condition)
             item.update({
-                "status": pod_status,
+                "status": status.get("phase"),
                 "podIP": status.get("podIP"),
                 "host_ip": status.get("hostIP"),
                 "message": message,
