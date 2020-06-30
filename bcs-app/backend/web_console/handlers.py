@@ -29,6 +29,7 @@ from backend.web_console.auth import authenticated
 from backend.web_console.pod_life_cycle import PodLifeCycle
 from backend.web_console.utils import clean_bash_escape, get_auditor
 
+WEBSOCKET_HANDLER_SET = set()
 logger = logging.getLogger(__name__)
 
 
@@ -132,6 +133,8 @@ class BCSWebSocketHandler(LocaleHandlerMixin, tornado.websocket.WebSocketHandler
         mode = context.get("mode")
         self.bcs_client = bcs_client.factory.create(mode, self, context, rows, cols)
 
+        WEBSOCKET_HANDLER_SET.add(self)
+
     def is_exit_command(self, message):
         """判断是否主动退出
         """
@@ -161,16 +164,6 @@ class BCSWebSocketHandler(LocaleHandlerMixin, tornado.websocket.WebSocketHandler
             cols = int(rows)
             self.bcs_client.set_pty_size(rows, cols)
         else:
-            # 回车键 \r
-            if message == constants.INPUT_LINE_BREAKER:
-                if self.is_exit_command(self.exit_buffer):
-                    _message = str(_("BCS Console 主动退出"))
-                    self.close_reason = _message
-                    self.close(reason=_message)
-                self.exit_buffer = ""
-            else:
-                self.exit_buffer += message
-
             self.send_message(message)
 
     def on_close(self):
@@ -185,6 +178,9 @@ class BCSWebSocketHandler(LocaleHandlerMixin, tornado.websocket.WebSocketHandler
         if self.heartbeat_callback:
             logger.info("stop heartbeat_callback, %s", self.user_pod_name)
             self.heartbeat_callback.stop()
+
+        self.bcs_client.close_transmission()
+        WEBSOCKET_HANDLER_SET.remove(self)
 
         logger.info("on_close, code: %s, reason: %s, pod: %s", self.close_code, self.close_reason, self.user_pod_name)
 
