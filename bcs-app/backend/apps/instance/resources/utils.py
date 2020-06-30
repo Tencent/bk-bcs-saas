@@ -38,6 +38,10 @@ def handle_number_var(var, name, is_preview, is_validate=True):
     if is_rate_number(var):
         return var
 
+    if is_preview:
+        if REAL_NUM_VAR_PATTERN.match(var):
+            return var
+
     try:
         var = int(var)
     except Exception:
