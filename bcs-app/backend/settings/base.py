@@ -406,6 +406,9 @@ THANOS_AUTH = None
 # 灰度功能提示消息
 GRAYSCALE_FEATURE_MSG = "功能灰度测试中，请联系管理员添加白名单"
 
+# APIGW APP权限控制
+BK_APP_WHITELIST = {}
+
 # 覆盖配置
 try:
     from .base_bk import DATABASE_ROUTERS, TEMPLATES, STATICFILES_DIRS

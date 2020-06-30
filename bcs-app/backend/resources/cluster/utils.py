@@ -13,6 +13,8 @@
 #
 import json
 
+from django.utils.translation import ugettext_lazy as _
+
 from backend.components import paas_cc
 from backend.utils.errcodes import ErrorCode
 from backend.utils.error_codes import error_codes
@@ -40,3 +42,53 @@ def get_cluster_versions(access_token, kind="", ver_id="", env=""):
             "version_name": configure.get("version_name") or info["version"]
         })
     return version_list
+
+
+def get_cluster_masters(access_token, project_id, cluster_id):
+    """获取集群下的master信息
+    """
+    resp = paas_cc.get_master_node_list(access_token, project_id, cluster_id)
+    if resp.get("code") != ErrorCode.NoError:
+        raise error_codes.APIError(_("获取集群master ip失败，{}").format(resp.get("message")))
+    results = resp.get("data", {}).get("results") or []
+    if not results:
+        raise error_codes.APIError(_("获取集群master ip为空"))
+    return results
+
+
+def get_cluster_nodes(access_token, project_id, cluster_id):
+    """获取集群下的node信息
+    """
+    resp = paas_cc.get_node_list(access_token, project_id, cluster_id)
+    if resp.get("code") != ErrorCode.NoError:
+        raise error_codes.APIError(_("获取集群node ip失败，{}").format(resp.get("message")))
+    results = resp.get("data", {}).get("results") or []
+    if not results:
+        raise error_codes.APIError(_("获取集群node ip为空"))
+    return results
+
+
+def get_cluster_snapshot(access_token, project_id, cluster_id):
+    """获取集群快照
+    """
+    resp = paas_cc.get_cluster_snapshot(access_token, project_id, cluster_id)
+    if resp.get("code") != ErrorCode.NoError:
+        raise error_codes.APIError(_("获取集群快照失败，{}").format(resp.get("message")))
+    return resp.get("data") or {}
+
+
+def get_cluster_info(access_token, project_id, cluster_id):
+    resp = paas_cc.get_cluster(access_token, project_id, cluster_id)
+    if resp.get("code") != ErrorCode.NoError:
+        raise error_codes.APIError(_("获取集群信息失败，{}").format(resp.get("message")))
+    return resp.get("data") or {}
+
+
+def update_cluster_status(access_token, project_id, cluster_id, status):
+    """更新集群状态
+    """
+    data = {"status": status}
+    resp = paas_cc.update_cluster(access_token, project_id, cluster_id, data)
+    if resp.get("code") != ErrorCode.NoError:
+        raise error_codes.APIError(_("更新集群状态失败，{}").format(resp.get("message")))
+    return resp.get("data") or {}

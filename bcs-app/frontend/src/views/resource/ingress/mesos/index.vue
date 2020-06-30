@@ -72,7 +72,7 @@
                                         </td>
                                         <td>
                                             <li style="width: 200px;">
-                                                <a @click.stop="showIngressEditDialog(ingress)" class="biz-operate">{{$t('编辑')}}</a>
+                                                <a @click.stop="showIngressEditDialog(ingress)" class="biz-operate">{{$t('更新')}}</a>
                                                 <a @click.stop="removeIngress(ingress)" class="biz-operate">{{$t('删除')}}</a>
                                             </li>
                                         </td>

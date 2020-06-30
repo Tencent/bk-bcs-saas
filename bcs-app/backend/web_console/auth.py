@@ -26,21 +26,23 @@ logger = logging.getLogger(__name__)
 def authenticated(view_func):
     """权限认证装饰器
     """
+
     @wraps(view_func)
     def _wrapped_view(self, *args, **kwargs):
         session_id = self.get_argument("session_id", None)
         if not session_id:
             raise tornado.web.HTTPError(401, log_message=_("session_id为空"))
 
-        project_id = kwargs['project_id']
-        cluster_id = kwargs['cluster_id']
+        project_id = kwargs.get("project_id", "")
+        cluster_id = kwargs.get("cluster_id", "")
         session = session_mgr.create(project_id, cluster_id)
 
         ctx = session.get(session_id)
         if not ctx:
             raise tornado.web.HTTPError(401, log_message=_("获取ctx为空, session_id不正确或者已经过期"))
 
-        kwargs['context'] = ctx
+        kwargs["context"] = ctx
 
         return view_func(self, *args, **kwargs)
+
     return _wrapped_view

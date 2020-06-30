@@ -27,6 +27,11 @@ logger = logging.getLogger(__name__)
 # thanos鉴权, 格式如 ('admin', 'admin')
 AUTH = getattr(settings, "THANOS_AUTH", None)
 
+# 磁盘统计 允许的文件系统
+DISK_FSTYPE = "ext[234]|btrfs|xfs|zfs"
+# 磁盘统计 允许的挂载目录
+DISK_MOUNTPOINT = "/|/data"
+
 
 def query_range(query, start, end, step, project_id=None):
     """范围请求API
@@ -176,12 +181,12 @@ def get_cluster_disk_usage(cluster_id, node_ip_list):
     node_ip_list = "|".join(f"{ip}:9100" for ip in node_ip_list)
 
     disk_total_prom_query = f"""
-        sum(node_filesystem_size_bytes{{cluster_id="{cluster_id}", job="node-exporter", instance=~"{node_ip_list}", fstype=~"ext[234]|btrfs|xfs|zfs"}})
+        sum(node_filesystem_size_bytes{{cluster_id="{cluster_id}", job="node-exporter", instance=~"{node_ip_list}", fstype=~"{ DISK_FSTYPE }", mountpoint=~"{ DISK_MOUNTPOINT }"}})
     """  # noqa
 
     disk_used_prom_query = f"""
-        sum(node_filesystem_size_bytes{{cluster_id="{cluster_id}", job="node-exporter", instance=~"{node_ip_list}", fstype=~"ext[234]|btrfs|xfs|zfs"}}) -
-        sum(node_filesystem_free_bytes{{cluster_id="{cluster_id}", job="node-exporter", instance=~"{node_ip_list}", fstype=~"ext[234]|btrfs|xfs|zfs"}})
+        sum(node_filesystem_size_bytes{{cluster_id="{cluster_id}", job="node-exporter", instance=~"{node_ip_list}", fstype=~"{ DISK_FSTYPE }", mountpoint=~"{ DISK_MOUNTPOINT }"}}) -
+        sum(node_filesystem_free_bytes{{cluster_id="{cluster_id}", job="node-exporter", instance=~"{node_ip_list}", fstype=~"{ DISK_FSTYPE }", mountpoint=~"{ DISK_MOUNTPOINT }"}})
     """  # noqa
 
     data = {
@@ -201,9 +206,9 @@ def get_cluster_disk_usage_range(cluster_id, node_ip_list):
     node_ip_list = "|".join(f"{ip}:9100" for ip in node_ip_list)
 
     prom_query = f"""
-        (sum(node_filesystem_size_bytes{{cluster_id="{cluster_id}", job="node-exporter", instance=~"{node_ip_list}", fstype=~"ext[234]|btrfs|xfs|zfs"}}) -
-        sum(node_filesystem_free_bytes{{cluster_id="{cluster_id}", job="node-exporter", instance=~"{node_ip_list}", fstype=~"ext[234]|btrfs|xfs|zfs"}})) /
-        sum(node_filesystem_size_bytes{{cluster_id="{cluster_id}", job="node-exporter", instance=~"{node_ip_list}", fstype=~"ext[234]|btrfs|xfs|zfs"}}) *
+        (sum(node_filesystem_size_bytes{{cluster_id="{cluster_id}", job="node-exporter", instance=~"{node_ip_list}", fstype=~"{ DISK_FSTYPE }", mountpoint=~"{ DISK_MOUNTPOINT }"}}) -
+        sum(node_filesystem_free_bytes{{cluster_id="{cluster_id}", job="node-exporter", instance=~"{node_ip_list}", fstype=~"{ DISK_FSTYPE }", mountpoint=~"{ DISK_MOUNTPOINT }"}})) /
+        sum(node_filesystem_size_bytes{{cluster_id="{cluster_id}", job="node-exporter", instance=~"{node_ip_list}", fstype=~"{ DISK_FSTYPE }", mountpoint=~"{ DISK_MOUNTPOINT }"}}) *
         100
     """  # noqa
 
@@ -217,7 +222,7 @@ def get_node_info(cluster_id, ip):
         node_uname_info{{cluster_id="{cluster_id}", job="node-exporter", instance=~"{ip}:\\\\d+"}} or
         label_replace(sum by (instance) (count without(cpu, mode) (node_cpu_seconds_total{{cluster_id="{cluster_id}", job="node-exporter", mode="idle", instance=~"{ip}:\\\\d+"}})), "metric_name", "cpu_count", "instance", ".*") or
         label_replace(sum by (instance) (node_memory_MemTotal_bytes{{cluster_id="{cluster_id}", job="node-exporter", instance=~"{ip}:\\\\d+"}}), "metric_name", "memory", "instance", ".*") or
-        label_replace(sum by (instance) (node_filesystem_size_bytes{{cluster_id="{cluster_id}", job="node-exporter", instance=~"{ip}:\\\\d+", fstype=~"ext[234]|btrfs|xfs|zfs"}}), "metric_name", "disk", "instance", ".*")
+        label_replace(sum by (instance) (node_filesystem_size_bytes{{cluster_id="{cluster_id}", job="node-exporter", instance=~"{ip}:\\\\d+", fstype=~"{ DISK_FSTYPE }", mountpoint=~"{ DISK_MOUNTPOINT }"}}), "metric_name", "disk", "instance", ".*")
     """  # noqa
 
     resp = query(prom_query)
@@ -296,9 +301,9 @@ def get_node_disk_usage(cluster_id, ip):
     node_ip_list = f"{ip}:9100"
 
     prom_query = f"""
-        (sum(node_filesystem_size_bytes{{cluster_id="{cluster_id}", job="node-exporter", instance=~"{node_ip_list}", fstype=~"ext[234]|btrfs|xfs|zfs"}}) -
-        sum(node_filesystem_free_bytes{{cluster_id="{cluster_id}", job="node-exporter", instance=~"{node_ip_list}", fstype=~"ext[234]|btrfs|xfs|zfs"}})) /
-        sum(node_filesystem_size_bytes{{cluster_id="{cluster_id}", job="node-exporter", instance=~"{node_ip_list}", fstype=~"ext[234]|btrfs|xfs|zfs"}}) *
+        (sum(node_filesystem_size_bytes{{cluster_id="{cluster_id}", job="node-exporter", instance=~"{node_ip_list}", fstype=~"{ DISK_FSTYPE }", mountpoint=~"{ DISK_MOUNTPOINT }"}}) -
+        sum(node_filesystem_free_bytes{{cluster_id="{cluster_id}", job="node-exporter", instance=~"{node_ip_list}", fstype=~"{ DISK_FSTYPE }", mountpoint=~"{ DISK_MOUNTPOINT }"}})) /
+        sum(node_filesystem_size_bytes{{cluster_id="{cluster_id}", job="node-exporter", instance=~"{node_ip_list}", fstype=~"{ DISK_FSTYPE }", mountpoint=~"{ DISK_MOUNTPOINT }"}}) *
         100
     """  # noqa
 
@@ -377,7 +382,7 @@ def get_pod_memory_usage_range(cluster_id, namespace, pod_name_list, start, end)
     pod_name_list = "|".join(pod_name_list)
 
     porm_query = f"""
-        sum by (pod_name) (container_memory_usage_bytes{{cluster_id="{cluster_id}", namespace=~"{ namespace }", pod_name=~"{ pod_name_list }",
+        sum by (pod_name) (container_memory_rss{{cluster_id="{cluster_id}", namespace=~"{ namespace }", pod_name=~"{ pod_name_list }",
         container_name!="", container_name!="POD"}})
         """  # noqa
     resp = query_range(porm_query, start, end, step)
@@ -452,7 +457,7 @@ def get_container_memory_usage_range(cluster_id, namespace, pod_name, container_
     container_id_list = "|".join(f".*{i}.*" for i in container_id_list)
 
     prom_query = f"""
-        sum by(container_name) (container_memory_usage_bytes{{cluster_id="{cluster_id}", namespace=~"{ namespace }",pod_name=~"{pod_name}",
+        sum by(container_name) (container_memory_rss{{cluster_id="{cluster_id}", namespace=~"{ namespace }",pod_name=~"{pod_name}",
         container_name!="", container_name!="POD", BcsNetworkContainer!="true", id=~"{ container_id_list }"}})
         """  # noqa
 

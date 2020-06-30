@@ -62,6 +62,20 @@ class IndexPageHandler(LocaleHandlerMixin, tornado.web.RequestHandler):
         self.render("templates/index.html", **data)
 
 
+class SessionPageHandler(LocaleHandlerMixin, tornado.web.RequestHandler):
+    """开放的页面WebConsole页面
+    """
+
+    @authenticated
+    def get(self, context):
+        # session_id通过参数获取
+        session_id = self.get_argument("session_id")
+        session_url = f"{settings.DEVOPS_BCS_API_URL}/api/web_console/sessions/?session_id={session_id}"
+
+        data = {"settings": settings, "session_url": session_url, "cluster_id": context["cluster_id"]}
+        self.render("templates/index.html", **data)
+
+
 class MgrHandler(LocaleHandlerMixin, tornado.web.RequestHandler):
     """管理页
     """

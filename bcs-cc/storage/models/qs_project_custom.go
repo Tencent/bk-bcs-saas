@@ -135,3 +135,11 @@ func (o *Project) CustomeUpdate(db *gorm.DB, fields ...ProjectDBSchemaField) err
 
 	return nil
 }
+
+// ProjectNameInWithoutError : get project info by project names, not raise error
+func (qs ProjectQuerySet) ProjectNameInWithoutError(projectNameList ...string) ProjectQuerySet {
+	if len(projectNameList) == 0 || projectNameList[0] == "" {
+		return qs.w(qs.db)
+	}
+	return qs.w(qs.db.Where("name IN (?)", projectNameList))
+}

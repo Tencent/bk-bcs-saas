@@ -285,6 +285,19 @@ export default {
                 context.commit('updateIngressList', res.data)
                 return res
             })
+        },
+
+        /**
+         * 保存Ingress
+         *
+         * @param {Object} context store 上下文对象
+         * @param {Object} params 请求参数，包含：projectId, clusterId, namespace, ingressId, data
+         * @param {Object} config 请求的配置
+         *
+         * @return {Promise} promise 对象
+         */
+        saveIngressDetail (context, { projectId, clusterId, namespace, ingressId, data }, config = {}) {
+            return http.put(`${DEVOPS_BCS_API_URL}/api/projects/${projectId}/clusters/${clusterId}/namespaces/${namespace}/ingresses/${ingressId}/`, data)
         }
     }
 }
