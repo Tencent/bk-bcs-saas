@@ -44,6 +44,7 @@ from backend.apps.application.drivers import BCSDriver
 from backend.apps.application.common_views.serializers import BaseNotTemplateInstanceParamsSLZ
 from backend.apps.configuration.constants import K8sResourceName
 from backend.apps.application.utils import retry_requests
+from backend.utils.basic import getitems
 
 logger = logging.getLogger(__name__)
 
@@ -231,7 +232,7 @@ class BaseAPI(views.APIView):
         resp = client.get_rs({
             "extra": extra_encode,
             "namespace": ns_name,
-            "field": "resourceName"
+            "field": "resourceName,data.status"
         })
         if resp.get("code") != 0:
             raise error_codes.APIError.f(
@@ -241,8 +242,14 @@ class BaseAPI(views.APIView):
         data = resp.get("data") or []
         if not data:
             return ret_data
-        all_name = [info["resourceName"] for info in data if info.get("resourceName")]
-        return all_name
+        # NOTE: 因为线上存在revision history，需要忽略掉replica为0的rs
+        rs_name_list = [
+            info["resourceName"]
+            for info in data
+            if info.get("resourceName") and getitems(info, ["data", "status", "replicas"], 0) > 0
+        ]
+
+        return rs_name_list
 
     def get_k8s_pod_info(
             self, request, project_id, cluster_id, ns_name,
