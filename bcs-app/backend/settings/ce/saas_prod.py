@@ -22,9 +22,6 @@ INSTALLED_APPS += [
     'backend.celery_app.CeleryConfig',
 ]
 
-APP_ID = 'bk_bcs_app'
-APP_TOKEN = os.environ.get('APP_TOKEN')
-BK_PAAS_HOST = os.environ.get('BK_PAAS_HOST')
 # 可能有带端口的情况，需要去除
 SESSION_COOKIE_DOMAIN = '.' + parse.urlparse(BK_PAAS_HOST).netloc.split(':')[0]
 CSRF_COOKIE_DOMAIN = SESSION_COOKIE_DOMAIN
@@ -32,7 +29,6 @@ CSRF_COOKIE_DOMAIN = SESSION_COOKIE_DOMAIN
 # 兼容老版本平台变量名
 APP_CODE = APP_ID
 APP_SECRET = APP_TOKEN
-
 
 # 请求官方 API 默认版本号，可选值为："v2" 或 ""；其中，"v2"表示规范化API，""表示未规范化API
 DEFAULT_BK_API_VER = 'v2'
@@ -85,7 +81,6 @@ LOGGING = get_logging_config(LOG_LEVEL, None, LOG_FILE)
 # don't need stdout
 LOGGING['handlers']['console']['class'] = 'logging.NullHandler'
 
-
 REDIS_URL = os.environ.get('BKAPP_REDIS_URL')
 # 解析url
 _rpool = redis.from_url(REDIS_URL).connection_pool
@@ -127,7 +122,6 @@ PAAS_ENV = 'dev'
 # 权限跳转URL, 添加console前缀
 AUTH_REDIRECT_URL = '%s/console' % PAAS_HOST
 
-
 # IAM 地址
 BK_IAM_HOST = os.environ.get('BKAPP_IAM_HOST')
 # 权限中心接口, 和IAM地址保持一致
@@ -152,14 +146,7 @@ DEVOPS_BCS_HOST = f'{BK_PAAS_HOST}/o/{APP_ID}'
 DEVOPS_BCS_API_URL = f'{BK_PAAS_HOST}/o/{APP_ID}'
 DEVOPS_ARTIFACTORY_HOST = os.environ.get('BKAPP_ARTIFACTORY_HOST')
 
-BK_PAAS_INNER_HOST = os.environ.get('BK_PAAS_INNER_HOST', BK_PAAS_HOST)
-
-APIGW_HOST = BK_PAAS_INNER_HOST
-# 组件API地址
-COMPONENT_HOST = BK_PAAS_INNER_HOST
-
 DEPOT_API = f'{APIGW_HOST}/api/apigw/harbor_api/'
-
 
 ##################### TODO 确认变量 ###########################
 # 企业版/社区版 helm没有平台k8s集群时，无法为项目分配chart repo服务
@@ -200,6 +187,3 @@ MESOS_VERSION = os.environ.get('BKAPP_MESOS_VERSION')
 
 # BCS CC HOST
 BCS_CC_API_PRE_URL = f'{APIGW_HOST}/api/apigw/bcs_cc/prod'
-
-# BCS API PRE PATH
-BCS_API_PRE_URL = f"{APIGW_HOST}/api/apigw/bcs_api"
