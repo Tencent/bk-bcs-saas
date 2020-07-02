@@ -34,7 +34,7 @@ def find_containers(content):
 
 
 class ResourceFile(BaseModel):
-    name = models.CharField('file name', max_length=64)
+    name = models.TextField('file name')
     content = models.TextField('file content')
     resource_name = models.CharField(choices=FileResourceName.get_choices(), max_length=32)
     template_id = models.IntegerField()

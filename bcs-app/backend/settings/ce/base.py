@@ -18,6 +18,9 @@ import os
 
 REGION = 'ce'
 
+APP_ID = 'bk_bcs_app'
+APP_TOKEN = os.environ.get('APP_TOKEN')
+
 # drf鉴权, 权限控制配置
 REST_FRAMEWORK['DEFAULT_AUTHENTICATION_CLASSES'] = (
     'backend.utils.authentication_bk.BKTokenAuthentication',
@@ -58,6 +61,7 @@ REDIS_DB = os.environ.get('REDIS_DB', 0)
 REDIS_PASSWORD = os.environ.get('REDIS_PASSWORD', '')
 REDIS_URL = os.environ.get('REDIS_URL', f'redis://:{REDIS_PASSWORD}@{REDIS_HOST}:{REDIS_PORT}/{REDIS_DB}')
 
+BK_PAAS_HOST = os.environ.get('BK_PAAS_HOST')
 
 # apigw 环境
 APIGW_ENV = 'test'
@@ -110,7 +114,6 @@ OPEN_K8S = True
 # 使用使用 k8s 直连地址
 IS_K8S_DRIVER_NO_APIGW = False
 
-
 # cache invalid
 CACHE_VERSION = "v1"
 
@@ -131,7 +134,6 @@ DEVOPS_CI_API_HOST = ''
 # 应用访问路径
 SITE_URL = '/'
 ENVIRONMENT = os.environ.get('BK_ENV', 'development')
-APP_ID = 'bk_bcs_app'
 
 # 运行模式， DEVELOP(开发模式)， TEST(测试模式)， PRODUCT(正式模式)
 RUN_MODE = 'DEVELOP'
@@ -160,8 +162,9 @@ WEB_CONSOLE_PORT = int(os.environ.get('WEB_CONSOLE_PORT', 28800))
 if IS_USE_CELERY:
     try:
         import djcelery
+
         INSTALLED_APPS += (
-            'djcelery',            # djcelery
+            'djcelery',  # djcelery
         )
         djcelery.setup_loader()
         CELERY_ENABLE_UTC = False
@@ -173,13 +176,13 @@ if IS_USE_CELERY:
         if RUN_MODE == 'DEVELOP':
             from celery.signals import worker_process_init
 
+
             @worker_process_init.connect
             def configure_workers(*args, **kwargs):
                 import django
                 django.setup()
     except Exception as error:
         print('use celery error: %s' % error)
-
 
 # ******************************** Helm Config Begin ********************************
 # kubectl 只有1.12版本
@@ -203,3 +206,16 @@ SITE_STATIC_URL = SITE_URL + STATIC_URL.strip('/')
 # 是否在中间件中统一输出异常信息
 IS_COMMON_EXCEPTION_MSG = False
 COMMON_EXCEPTION_MSG = ""
+
+BK_PAAS_INNER_HOST = os.environ.get('BK_PAAS_INNER_HOST', BK_PAAS_HOST)
+
+# 组件API地址
+COMPONENT_HOST = BK_PAAS_INNER_HOST
+
+APIGW_HOST = BK_PAAS_INNER_HOST
+
+# BCS API PRE URL
+BCS_API_PRE_URL = f"{APIGW_HOST}/api/apigw/bcs_api"
+
+# BCS CC HOST
+BCS_CC_API_PRE_URL = os.environ.get('BCS_CC_HOST', 'http://127.0.0.1:8080')
