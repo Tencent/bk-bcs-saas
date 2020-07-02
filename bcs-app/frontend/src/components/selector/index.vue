@@ -51,16 +51,16 @@
                                     <li v-for="(child, index) in item.children" :key="index" class="bk-selector-list-item">
                                         <div class="bk-selector-node bk-selector-sub-node"
                                             :class="{ 'bk-selector-selected': !multiSelect && child[settingKey] === selected,'is-disabled': child.isDisabled }">
-                                            <div class="text" @click.stop="selectItem(child, $event)">
+                                            <div class="text" @click.stop="selectItem(child, $event)" :title="child[displayKey]">
                                                 <label class="bk-form-checkbox bk-checkbox-small mr0 bk-selector-multi-label" v-if="multiSelect">
                                                     <input type="checkbox"
                                                         :name="'multiSelect' + +new Date()"
                                                         :value="child[settingKey]"
                                                         v-model="localSelected">
-                                                    {{ child[displayKey]}}
+                                                    <span class="select-text">{{ child[displayKey]}}</span>
                                                 </label>
                                                 <template v-else>
-                                                    {{ child[displayKey]}}
+                                                    <span class="select-text">{{ child[displayKey]}}</span>
                                                 </template>
                                             </div>
                                             <div class="bk-selector-tools" v-if="tools !== false">
@@ -86,10 +86,10 @@
                                                 :name="'multiSelect' + +new Date()"
                                                 :value="item[settingKey]"
                                                 v-model="localSelected">
-                                            {{ item[displayKey] }}
+                                            <span class="select-text">{{ item[displayKey] }}</span>
                                         </label>
                                         <template v-else>
-                                            {{ item[displayKey] }}
+                                            <span class="select-text">{{ item[displayKey] }}</span>
                                         </template>
                                     </div>
                                     <div class="bk-selector-tools" v-if="tools !== false">
@@ -655,3 +655,17 @@
         }
     }
 </script>
+
+<style scoped>
+    .bk-form-checkbox {
+        width: 100%;
+    }
+    .select-text {
+        display: inline-block;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        vertical-align: middle;
+        width: calc(100% - 15px);
+    }
+</style>
