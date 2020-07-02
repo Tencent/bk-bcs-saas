@@ -60,6 +60,8 @@ urlpatterns = [
     url(r"^", include("backend.apps.ticket.urls", namespace="ticket")),
     url(r"^", include("backend.bcs_k8s.authtoken.urls", namespace="bcs_authtoken")),
     url(r"^api/hpa/projects/(?P<project_id>\w{32})/", include("backend.apps.hpa.urls", namespace="hpa")),
+    # clb urls
+    url(r"^", include("backend.apps.network.clb.urls", namespace="clb")),
 ]
 
 # 导入版本特定的urls
