@@ -285,6 +285,7 @@
                         } else {
                             this.$emit('blur', event)
                         }
+                        this.$emit('enter', event)
                         break
                 }
             },
