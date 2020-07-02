@@ -334,7 +334,7 @@ class ChartVersionViewSet(viewsets.ViewSet):
         # 如果chart下没有版本了，则删除chart，否则如果默认版本删除了，调整chart的对应的默认版本
         chart_all_versions = ChartVersion.objects.filter(chart__id=chart_id)
         chart = Chart.objects.filter(id=chart_id)
-        if chart.first().defaultChartVersion_id is None:
+        if chart.first().defaultChartVersion is None:
             chart.update(defaultChartVersion=chart_all_versions.order_by("-created")[0])
         elif not chart_all_versions:
             chart.delete()
