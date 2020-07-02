@@ -330,9 +330,14 @@ class ChartVersionViewSet(viewsets.ViewSet):
             ChartVersionSnapshot.objects.filter(digest=info.digest).delete()
             # 删除db中记录
             info.delete()
-        # 如果chart下没有版本了，则删除chart
-        if not ChartVersion.objects.filter(chart__id=chart_id).exists():
-            Chart.objects.filter(id=chart_id).delete()
+
+        # 如果chart下没有版本了，则删除chart，否则如果默认版本删除了，调整chart的对应的默认版本
+        chart_all_versions = ChartVersion.objects.filter(chart__id=chart_id)
+        chart = Chart.objects.filter(id=chart_id)
+        if not chart_all_versions:
+            chart.delete()
+        elif chart.first().defaultChartVersion is None:
+            chart.update(defaultChartVersion=chart_all_versions.order_by("-created")[0])
 
         # 设置commit id为空，以防出现相同版本digest不变动的情况
         Repository.objects.filter(
