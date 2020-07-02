@@ -104,7 +104,7 @@ class BaseNode(object):
         if snapshot_config.get('common'):
             self.master_ip_list = list(snapshot_config['common']['cluster_masters'].values())
         else:
-            self.master_ip_list = snapshot_config.get('cluster_m_iplist', '').split(',')
+            self.master_ip_list = snapshot_config.get('master_iplist', '').split(',')
         client = kind_type_map[self.kind_name](snapshot_config, op_type=op_type)
         try:
             resp_config = client.get_request_config(

@@ -36,8 +36,8 @@ function path2tree (arr, conf) {
                 children: []
             }
 
-            // 第一级目录展开
-            if (i === 0) {
+            // 将第一个目录节点下的所有层级展开
+            if (index === 0) {
                 node.expanded = true
             }
 
@@ -92,6 +92,7 @@ function path2tree (arr, conf) {
     arr.forEach((item, index) => {
         addNode(item, index)
     })
+
     return tree
 }
 
