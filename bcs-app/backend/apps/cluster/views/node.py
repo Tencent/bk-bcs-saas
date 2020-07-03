@@ -426,13 +426,10 @@ class CCHostListViewSet(NodeBase, NodeHandler, viewsets.ViewSet):
         return dict(slz.validated_data)
 
     def get_all_nodes(self, request, project_id):
-        data = paas_cc.get_project_all_nodes(
-            request.user.token.access_token, project_id
-        )
+        data = paas_cc.get_all_masters_and_nodes(request.user.token.access_token)
         return {
             info['inner_ip']: info
             for info in data
-            if info['status'] not in [NodeStatus.Removed]
         }
 
     def get_cc_host_mappings(self, host_list):
@@ -536,6 +533,8 @@ class CCHostListViewSet(NodeBase, NodeHandler, viewsets.ViewSet):
         # add node use status, in order to display for frontend
         host_list = self.render_node_with_use_status(
             host_list, exist_node_info, project_cluster_resource)
+        # 获取不可用节点的数量，返回供前端使用
+        unavailable_ip_count = len([info for info in host_list if info.get("is_used") or not info.get("is_valid")])
         # paginator the host list
         pagination_data = custom_paginator(host_list, data['offset'], limit=data['limit'])
         # for frontend display
@@ -547,7 +546,8 @@ class CCHostListViewSet(NodeBase, NodeHandler, viewsets.ViewSet):
         return response.Response({
             'results': list(cc_host_map.values()),
             'count': pagination_data['count'],
-            'cc_application_name': self.cc_application_name
+            'cc_application_name': self.cc_application_name,
+            "unavailable_ip_count": unavailable_ip_count
         })
 
 
