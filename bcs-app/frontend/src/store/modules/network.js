@@ -771,6 +771,20 @@ export default {
             delete params.projectId
             const url = `${DEVOPS_BCS_API_URL}/api/projects/${projectId}/bcs_crd/crds/`
             return http.post(url, params, config)
-        }
+        },
+
+        /**
+         * 获取区域列表
+         *
+         * @param {Object} context store 上下文对象
+         * @param {Object} params 请求参数，包含：projectId
+         * @param {Object} config 请求的配置
+         *
+         * @return {Promise} promise 对象
+         */
+        getRegions (context, { projectId }, config = {}) {
+            const url = `${DEVOPS_BCS_API_URL}/api/projects/${projectId}/network/clb/regions/`
+            return http.get(url, {}, config)
+        },
     }
 }
