@@ -26,5 +26,7 @@ urlpatterns = [
     url(r'^api/projects/(?P<project_id>\w{32})/network/mesos/clbs/(?P<clb_id>\d+)/$',
         views.MesosCLBOperateViewSet.as_view({'post': 'post', 'delete': 'delete'})),
     url(r'^api/projects/(?P<project_id>\w{32})/network/clbs/(?P<clb_id>\d+)/status/$',
-        views.CLBStatusViewSet.as_view({'get': 'retrieve_status'}))
+        views.CLBStatusViewSet.as_view({'get': 'retrieve_status'})),
+    url(r'^api/projects/(?P<project_id>\w{32})/network/clb/regions/$',
+        views.GetCLBRegionsViewSet.as_view({'get': 'list'}))
 ]

@@ -53,3 +53,7 @@ def get_svc_access_info(manifest, cluster_id, extended_routes):
 
 def describe_clb_detail(access_token, username, cc_app_id, region):
     return {}
+
+
+def get_clb_region_list(access_token):
+    return []

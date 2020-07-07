@@ -28,7 +28,7 @@ from backend.apps.network.clb import constants as clb_constants
 from backend.utils.error_codes import error_codes
 from backend.activity_log import client
 from backend.apps.network.clb import utils as clb_utils
-from backend.apps.network.utils_bk import describe_clb_detail
+from backend.apps.network.utils_bk import describe_clb_detail, get_clb_region_list
 from backend.components import paas_cc
 from backend.accounts import bcs_perm
 
@@ -261,4 +261,14 @@ class CLBStatusViewSet(viewsets.ViewSet):
         status_detail = clb_utils.request_clb_status(request, project_id, record)
         remote_listeners = status_detail.get('remoteListeners') or []
         data = self.compose_data(remote_listeners)
+        return response.Response(data)
+
+
+class GetCLBRegionsViewSet(viewsets.ViewSet):
+    renderer_classes = (BKAPIRenderer, BrowsableAPIRenderer)
+
+    def list(self, request, project_id):
+        data = get_clb_region_list(
+            request.user.token.access_token,
+        )
         return response.Response(data)
