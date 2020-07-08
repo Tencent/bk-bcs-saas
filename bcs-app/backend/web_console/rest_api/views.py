@@ -50,8 +50,10 @@ class WebConsoleSession(views.APIView):
         """获取docker监控信息
         """
         client = K8SClient(request.user.token.access_token, project_id, cluster_id, None)
-        slz = K8SWebConsoleSLZ(data=request.query_params, context={"client": client})
-        slz.is_valid(raise_exception=True)
+        container_id = request.GET.get("container_id")
+        if container_id:
+            slz = K8SWebConsoleSLZ(data=request.query_params, context={"client": client})
+            slz.is_valid(raise_exception=True)
 
         try:
             bcs_context = utils.get_k8s_cluster_context(client, project_id, cluster_id)
@@ -67,8 +69,6 @@ class WebConsoleSession(views.APIView):
 
         # kubectl版本区别
         kubectld_version = get_kubectld_version(client.version)
-
-        container_id = slz.validated_data.get("container_id")
         if container_id:
             bcs_context["mode"] = k8s.ContainerDirectClient.MODE
             bcs_context["user_pod_name"] = slz.validated_data["pod_name"]
@@ -264,6 +264,9 @@ class CreateOpenSession(views.APIView):
         context["cluster_id"] = cluster_id
         session_id = session.set(context)
 
-        data = {"session_id": session_id}
+        data = {
+            "session_id": session_id,
+            "web_console_url": f"{settings.DEVOPS_BCS_HOST}/web_console/?session_id={session_id}",
+        }
 
         return BKAPIResponse(data, message=_("创建session成功"))
