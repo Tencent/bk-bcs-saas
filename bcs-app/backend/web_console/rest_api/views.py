@@ -37,7 +37,7 @@ from rest_framework.renderers import BrowsableAPIRenderer
 
 from ..session import session_mgr
 from . import utils
-from .serializers import K8SWebConsoleSLZ, MesosWebConsoleSLZ
+from .serializers import K8SWebConsoleSLZ, MesosWebConsoleSLZ, K8SWebConsoleOpenSLZ
 
 logger = logging.getLogger(__name__)
 
@@ -194,7 +194,6 @@ class WebConsoleSession(views.APIView):
 class OpenSession(views.APIView):
     renderer_classes = (BKAPIRenderer, BrowsableAPIRenderer)
     permission_classes = ()
-    authentication_classes = ()
 
     def get(self, request):
         """校验session_id，同时换取ws_url
@@ -207,6 +206,9 @@ class OpenSession(views.APIView):
         context = session.get(session_id)
         if not context:
             raise error_codes.APIError(_("session_id不合法或已经过期"))
+
+        if context.get("operator") != request.user.username:
+            raise error_codes.APIError(_("不是合法用户"))
 
         ws_session = session_mgr.create(context["project_id"], context["cluster_id"])
         ws_session_id = ws_session.set(context)
@@ -232,7 +234,7 @@ class CreateOpenSession(views.APIView):
         """
         access_token = paas_auth.get_access_token()
         client = K8SClient(access_token["access_token"], project_id_or_code, cluster_id, None)
-        slz = K8SWebConsoleSLZ(data=request.data, context={"client": client})
+        slz = K8SWebConsoleOpenSLZ(data=request.data, context={"client": client})
         slz.is_valid(raise_exception=True)
 
         try:

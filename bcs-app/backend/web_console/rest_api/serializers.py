@@ -62,3 +62,7 @@ class K8SWebConsoleSLZ(serializers.Serializer):
         if not data.get("namespace") or not data.get("pod_name") or not data.get("container_name"):
             raise error_codes.APIError(_("container_id或namespace/pod_name/container_name不能同时为空"))
         return data
+
+
+class K8SWebConsoleOpenSLZ(K8SWebConsoleSLZ):
+    operator = serializers.CharField()
