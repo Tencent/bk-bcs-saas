@@ -256,7 +256,7 @@ class CreateOpenSession(views.APIView):
         """
         context = self.get_k8s_context(request, project_id_or_code, cluster_id)
 
-        context["username"] = request.user.username
+        context["username"] = context.get("operator", "")
         context.setdefault("namespace", constants.NAMESPACE)
 
         logger.info(context)
@@ -265,10 +265,11 @@ class CreateOpenSession(views.APIView):
         context["project_id"] = project_id_or_code
         context["cluster_id"] = cluster_id
         session_id = session.set(context)
+        container_name = context.get("container_name", "")
 
         data = {
             "session_id": session_id,
-            "web_console_url": f"{settings.DEVOPS_BCS_HOST}/web_console/?session_id={session_id}",
+            "web_console_url": f"{settings.DEVOPS_BCS_HOST}/web_console/?session_id={session_id}&container_name={container_name}",
         }
 
         return BKAPIResponse(data, message=_("创建session成功"))
