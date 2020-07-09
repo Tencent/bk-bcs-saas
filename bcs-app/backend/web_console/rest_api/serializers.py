@@ -59,7 +59,7 @@ class K8SWebConsoleSLZ(serializers.Serializer):
             return data
 
         # 其他使用namespace, pod, container
-        if not data.get("namespace") or not data.get("pod_name") or not data.get("container_name"):
+        if not all([data.get("namespace"), data.get("pod_name"), data.get("container_name")]):
             raise error_codes.APIError(_("container_id或namespace/pod_name/container_name不能同时为空"))
         return data
 
