@@ -115,8 +115,9 @@ class ContainerDirectClient(K8SClientBase):
 
         # 使用自己的集群ID
         bcs_address = host._replace(scheme=scheme).geturl()
+        command = cls.get_command_params(context)
 
         ws_url = f"{bcs_address}/api/v1/namespaces/{context['namespace']}/pods/{context['user_pod_name']}/exec"
-        ws_url += f"?command=sh&container={context['container_name']}&stderr=true&stdout=true&stdin=true&tty=true"
+        ws_url += f"?{command}&container={context['container_name']}&stderr=true&stdout=true&stdin=true&tty=true"
         client = cls(ws_url, rows, cols, msg_handler, context["user_token"])
         return client
