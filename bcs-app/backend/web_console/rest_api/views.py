@@ -277,7 +277,7 @@ class CreateOpenSession(views.APIView):
         container_name = context.get("container_name", "")
 
         web_console_url = (
-            f"{settings.DEVOPS_BCS_HOST}/web_console/?session_id={session_id}&container_name={container_name}"
+            f"{settings.DEVOPS_BCS_API_URL}/web_console/?session_id={session_id}&container_name={container_name}"
         )
 
         data = {
