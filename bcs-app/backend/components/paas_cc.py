@@ -241,17 +241,18 @@ def get_all_nodes(access_token):
     return http_get(url, params=params, headers=headers)
 
 
-def get_project_all_nodes(access_token, project_id):
+def get_all_cluster_hosts(access_token):
     node_list_info = get_all_nodes(access_token)
     if node_list_info.get('code') != ErrorCode.NoError:
-        raise error_codes.APIError(_("查询项目下node节点失败，已经通知管理员，请稍后!"))
+        raise error_codes.APIError(_("查询所有集群的node节点失败，已经通知管理员，请稍后!"))
     else:
         data = node_list_info.get('data') or []
     master_list_info = get_all_masters(access_token)
     if master_list_info.get('code') != ErrorCode.NoError:
-        raise error_codes.APIError(_("查询项目下master节点失败，已经通知管理员，请稍后!"))
+        raise error_codes.APIError(_("查询所有集群的master节点失败，已经通知管理员，请稍后!"))
     data.extend(master_list_info.get('data') or [])
-    return data
+    # 在component层过滤掉状态为removed的host，便于上层直接使用
+    return [info for info in data if info["status"] not in [CommonStatus.Removed]]
 
 
 def get_project_nodes(access_token, project_id, is_master=False):
@@ -550,3 +551,8 @@ def get_cluster_versions(access_token, ver_id='', env='', kind=''):
     }
     params = {'ver_id': ver_id, 'environment': env, 'kind': kind}
     return http_get(url, params=params, headers=headers)
+
+
+def get_all_cluster_host_ips(access_token):
+    data = get_all_cluster_hosts(access_token)
+    return [info["inner_ip"] for info in data]
