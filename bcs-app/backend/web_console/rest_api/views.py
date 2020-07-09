@@ -270,8 +270,6 @@ class CreateOpenSession(views.APIView):
         context["username"] = context.get("operator", "")
         context.setdefault("namespace", constants.NAMESPACE)
 
-        logger.info(context)
-
         session = session_mgr.create("", "")
         context["project_id"] = project_id_or_code
         context["cluster_id"] = cluster_id
