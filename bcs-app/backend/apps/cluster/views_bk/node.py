@@ -271,7 +271,7 @@ class CreateNode(BaseNode):
         self.ip_list = [ip.split(',')[0] for ip in self.data['ip']]
         cc_utils.check_ips(self.project_info['cc_app_id'], self.username, self.ip_list)
         # 检测IP是否被占用
-        self.project_nodes = paas_cc.get_all_masters_and_nodes(self.access_token)
+        self.project_nodes = paas_cc.get_all_cluster_hosts(self.access_token)
         self.check_node_ip()
         # 获取已经存在的IP，直接更新使用
         removed_ips, remained_ips = self.get_removed_remained_ips()
