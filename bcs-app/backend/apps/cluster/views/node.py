@@ -74,7 +74,7 @@ class NodeBase:
 
     def get_all_cluster(self, request, project_id):
         resp = paas_cc.get_all_clusters(
-            request.user.token.access_token, project_id, desire_all_data=1
+            request.user.token.access_token, project_id
         )
         if (resp.get('code') != ErrorCode.NoError) or (not resp.get('data')):
             raise error_codes.APIError('search cluster error')
