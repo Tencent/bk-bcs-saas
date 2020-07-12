@@ -56,7 +56,7 @@ class MesosClient(BCSClientBase):
         params = {'access_token': self.access_token, 'hostIp': host_ip}
         if fields:
             params["field"] = fields
-        result = http_get(url, params)
+        result = http_post(url, params)
         return result
 
     def create_application(self, namespace, data):
