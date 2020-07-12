@@ -37,7 +37,7 @@ from rest_framework.renderers import BrowsableAPIRenderer
 
 from ..session import session_mgr
 from . import utils
-from .serializers import K8SWebConsoleSLZ, MesosWebConsoleSLZ
+from .serializers import K8SWebConsoleSLZ, MesosWebConsoleSLZ, K8SWebConsoleOpenSLZ
 
 logger = logging.getLogger(__name__)
 
@@ -46,13 +46,59 @@ class WebConsoleSession(views.APIView):
     # 缓存的key
     renderer_classes = (BKAPIRenderer, BrowsableAPIRenderer)
 
-    def get_k8s_context(self, request, project_id, cluster_id):
-        """获取docker监控信息
+    def get_k8s_container_context(self, request, project_id, cluster_id, client, bcs_context):
+        """获取容器上下文
         """
-        client = K8SClient(request.user.token.access_token, project_id, cluster_id, None)
         slz = K8SWebConsoleSLZ(data=request.query_params, context={"client": client})
         slz.is_valid(raise_exception=True)
 
+        bcs_context["mode"] = k8s.ContainerDirectClient.MODE
+        bcs_context["user_pod_name"] = slz.validated_data["pod_name"]
+        bcs_context.update(slz.validated_data)
+        return bcs_context
+
+    def get_k8s_cluster_context(self, request, project_id, cluster_id, client, bcs_context):
+        """获取集群模式(kubectl)上下文
+        """
+        # kubectl版本区别
+        kubectld_version = get_kubectld_version(client.version)
+
+        bcs_context = utils.get_k8s_admin_context(client, bcs_context, settings.WEB_CONSOLE_MODE)
+
+        ctx = {
+            "username": self.request.user.username,
+            "settings": settings,
+            "kubectld_version": kubectld_version,
+            "namespace": constants.NAMESPACE,
+            "pod_spec": utils.get_k8s_pod_spec(client),
+            "username_slug": utils.get_username_slug(self.request.user.username),
+            # 缓存ctx， 清理使用
+            "should_cache_ctx": True,
+        }
+        ctx.update(bcs_context)
+        try:
+            pod_life_cycle.ensure_namespace(ctx)
+            configmap = pod_life_cycle.ensure_configmap(ctx)
+            logger.debug("get configmap %s", configmap)
+            pod = pod_life_cycle.ensure_pod(ctx)
+            logger.debug("get pod %s", pod)
+        except pod_life_cycle.PodLifeError as error:
+            logger.error("kubetctl apply error: %s", error)
+            utils.activity_log(project_id, self.cluster_name, request.user.username, False, "%s" % error)
+            raise error_codes.APIError("%s" % error)
+        except Exception as error:
+            logger.exception("kubetctl apply error: %s", error)
+            utils.activity_log(project_id, self.cluster_name, request.user.username, False, "申请pod资源失败")
+            raise error_codes.APIError(_("申请pod资源失败，请稍后再试{}").format(settings.COMMON_EXCEPTION_MSG))
+
+        bcs_context["user_pod_name"] = pod.metadata.name
+
+        return bcs_context
+
+    def get_k8s_context(self, request, project_id, cluster_id):
+        """获取k8s的上下文信息
+        """
+        client = K8SClient(request.user.token.access_token, project_id, cluster_id, None)
         try:
             bcs_context = utils.get_k8s_cluster_context(client, project_id, cluster_id)
         except Exception as error:
@@ -65,45 +111,10 @@ class WebConsoleSession(views.APIView):
                 _("{}，请检查 Deployment【kube-system/bcs-agent】是否正常{}").format(message, settings.COMMON_EXCEPTION_MSG)
             )
 
-        # kubectl版本区别
-        kubectld_version = get_kubectld_version(client.version)
-
-        container_id = slz.validated_data.get("container_id")
-        if container_id:
-            bcs_context["mode"] = k8s.ContainerDirectClient.MODE
-            bcs_context["user_pod_name"] = slz.validated_data["pod_name"]
-            bcs_context.update(slz.validated_data)
-
+        if request.GET.get("container_id"):
+            bcs_context = self.get_k8s_container_context(request, project_id, cluster_id, client, bcs_context)
         else:
-            bcs_context = utils.get_k8s_admin_context(client, bcs_context, settings.WEB_CONSOLE_MODE)
-
-            ctx = {
-                "username": self.request.user.username,
-                "settings": settings,
-                "kubectld_version": kubectld_version,
-                "namespace": constants.NAMESPACE,
-                "pod_spec": utils.get_k8s_pod_spec(client),
-                "username_slug": utils.get_username_slug(self.request.user.username),
-                # 缓存ctx， 清理使用
-                "should_cache_ctx": True,
-            }
-            ctx.update(bcs_context)
-            try:
-                pod_life_cycle.ensure_namespace(ctx)
-                configmap = pod_life_cycle.ensure_configmap(ctx)
-                logger.debug("get configmap %s", configmap)
-                pod = pod_life_cycle.ensure_pod(ctx)
-                logger.debug("get pod %s", pod)
-            except pod_life_cycle.PodLifeError as error:
-                logger.error("kubetctl apply error: %s", error)
-                utils.activity_log(project_id, self.cluster_name, request.user.username, False, "%s" % error)
-                raise error_codes.APIError("%s" % error)
-            except Exception as error:
-                logger.exception("kubetctl apply error: %s", error)
-                utils.activity_log(project_id, self.cluster_name, request.user.username, False, "申请pod资源失败")
-                raise error_codes.APIError(_("申请pod资源失败，请稍后再试{}").format(settings.COMMON_EXCEPTION_MSG))
-
-            bcs_context["user_pod_name"] = pod.metadata.name
+            bcs_context = self.get_k8s_cluster_context(request, project_id, cluster_id, client, bcs_context)
 
         return bcs_context
 
@@ -194,7 +205,6 @@ class WebConsoleSession(views.APIView):
 class OpenSession(views.APIView):
     renderer_classes = (BKAPIRenderer, BrowsableAPIRenderer)
     permission_classes = ()
-    authentication_classes = ()
 
     def get(self, request):
         """校验session_id，同时换取ws_url
@@ -207,6 +217,9 @@ class OpenSession(views.APIView):
         context = session.get(session_id)
         if not context:
             raise error_codes.APIError(_("session_id不合法或已经过期"))
+
+        if context.get("operator") != request.user.username:
+            raise error_codes.APIError(_("不是合法用户"))
 
         ws_session = session_mgr.create(context["project_id"], context["cluster_id"])
         ws_session_id = ws_session.set(context)
@@ -232,7 +245,7 @@ class CreateOpenSession(views.APIView):
         """
         access_token = paas_auth.get_access_token()
         client = K8SClient(access_token["access_token"], project_id_or_code, cluster_id, None)
-        slz = K8SWebConsoleSLZ(data=request.data, context={"client": client})
+        slz = K8SWebConsoleOpenSLZ(data=request.data, context={"client": client})
         slz.is_valid(raise_exception=True)
 
         try:
@@ -254,16 +267,22 @@ class CreateOpenSession(views.APIView):
         """
         context = self.get_k8s_context(request, project_id_or_code, cluster_id)
 
-        context["username"] = request.user.username
+        context["username"] = context.get("operator", "")
         context.setdefault("namespace", constants.NAMESPACE)
-
-        logger.info(context)
 
         session = session_mgr.create("", "")
         context["project_id"] = project_id_or_code
         context["cluster_id"] = cluster_id
         session_id = session.set(context)
+        container_name = context.get("container_name", "")
 
-        data = {"session_id": session_id}
+        web_console_url = (
+            f"{settings.DEVOPS_BCS_API_URL}/web_console/?session_id={session_id}&container_name={container_name}"
+        )
+
+        data = {
+            "session_id": session_id,
+            "web_console_url": web_console_url,
+        }
 
         return BKAPIResponse(data, message=_("创建session成功"))
