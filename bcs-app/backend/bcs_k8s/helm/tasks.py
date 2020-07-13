@@ -21,6 +21,7 @@ from natsort import natsorted
 from .models.repo import Repository
 from .models.chart import Chart, ChartVersion
 from .utils.repo import (prepareRepoCharts, InProcessSign)
+from backend.apps.whitelist_bk import enable_incremental_sync_chart_repo
 
 logger = logging.getLogger(__name__)
 
@@ -58,7 +59,11 @@ def sync_helm_repo(repo_id, force=False):
     plain_auths = repo.plain_auths
 
     try:
-        charts_info, charts_info_hash = prepareRepoCharts(repo_url, repo_name, plain_auths)
+        # NOTE: 针对白名单中的项目先开启增量同步
+        if enable_incremental_sync_chart_repo(repo.project_id):
+            pass
+        else:
+            charts_info, charts_info_hash = prepareRepoCharts(repo_url, repo_name, plain_auths)
     except Exception as e:
         logger.exception("prepareRepoCharts fail: repo_url=%s, repo_name=%s, error: %s", repo_url, repo_name, e)
         return
