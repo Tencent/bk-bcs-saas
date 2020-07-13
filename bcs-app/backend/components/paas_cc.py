@@ -80,8 +80,8 @@ def get_all_clusters(access_token, project_id, limit=None, offset=None, desire_a
         params['limit'] = limit
     if offset:
         params['offset'] = offset
-    if desire_all_data:
-        params['desire_all_data'] = desire_all_data
+    # NOTE: 现阶段都是查询全量集群的场景
+    params["desire_all_data"] = 1
     return http_get(url, params=params)
 
 
