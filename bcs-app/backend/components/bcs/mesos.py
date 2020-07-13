@@ -162,7 +162,7 @@ class MesosClient(BCSClientBase):
             params["field"] = field
 
         kwargs = {"headers": self.headers}
-        resp = http_get(url, params=params, **kwargs)
+        resp = http_post(url, params=params, **kwargs)
         return resp
 
     def rescheduler_mesos_taskgroup(self, namespace, app_name, taskgroup_name):
