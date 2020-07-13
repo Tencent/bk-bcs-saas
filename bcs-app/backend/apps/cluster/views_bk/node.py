@@ -160,7 +160,7 @@ class BaseNode(object):
         )
         task_info = ops.add_cluster_node(
             self.access_token, self.project_id, self.kind_name, self.cluster_id,
-            self.master_ip_list[:1], self.ip_list, config, control_ip,
+            self.master_ip_list, self.ip_list, config, control_ip,
             self.cc_app_id, self.username, self.module_id_list, websvr
         )
         if task_info.get('code') != ErrorCode.NoError:
@@ -404,7 +404,7 @@ class DeleteNodeBase(BaseNode):
         try:
             task_info = ops.delete_cluster_node(
                 request.user.token.access_token, project_id, kind_name, cluster_id,
-                self.master_ip_list[:1], self.ip_list, config, control_ip,
+                self.master_ip_list, self.ip_list, config, control_ip,
                 request.project['cc_app_id'], request.user.username, websvr
             )
         except Exception as err:
