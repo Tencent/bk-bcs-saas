@@ -56,7 +56,7 @@ class MesosClient(BCSClientBase):
         params = {'access_token': self.access_token, 'hostIp': host_ip}
         if fields:
             params["field"] = fields
-        result = http_get(url, params)
+        result = http_post(url, json=params)
         return result
 
     def create_application(self, namespace, data):
@@ -162,7 +162,7 @@ class MesosClient(BCSClientBase):
             params["field"] = field
 
         kwargs = {"headers": self.headers}
-        resp = http_get(url, params=params, **kwargs)
+        resp = http_post(url, json=params, **kwargs)
         return resp
 
     def rescheduler_mesos_taskgroup(self, namespace, app_name, taskgroup_name):

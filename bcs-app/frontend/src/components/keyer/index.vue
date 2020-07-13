@@ -175,20 +175,18 @@
                     this.$emit('change', this.list, obj)
                 })
             },
-            valueChange () {
-                this.$nextTick(() => {
-                    const obj = this.getKeyObject(true)
-                    this.$emit('change', this.list, obj)
-                })
-            },
             handleBlur () {
                 this.$nextTick(() => {
                     const obj = this.getKeyObject(true)
                     const list = this.list.map(item => {
-                        return {
-                            key: this.useKeyTrim ? item.key.trim() : item.key,
-                            value: this.useValueTrim ? item.value.trim() : item.value
+                        const obj = { ...item }
+                        if (this.useKeyTrim) {
+                            obj.key = item.key.trim()
                         }
+                        if (this.useValueTrim) {
+                            obj.value = item.value.trim()
+                        }
+                        return obj
                     })
                     this.$emit('change', list, obj)
                 })
@@ -255,10 +253,14 @@
             getKeyList (isAll) {
                 let results = []
                 const list = this.list.map(item => {
-                    return {
-                        key: this.useKeyTrim ? item.key.trim() : item.key,
-                        value: this.useValueTrim ? item.value.trim() : item.value
+                    const obj = { ...item }
+                    if (this.useKeyTrim) {
+                        obj.key = item.key.trim()
                     }
+                    if (this.useValueTrim) {
+                        obj.value = item.value.trim()
+                    }
+                    return obj
                 })
                 if (isAll) {
                     return list
