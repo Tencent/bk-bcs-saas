@@ -39,6 +39,8 @@ from backend.components.bcs.mesos import MesosClient
 from backend.utils.funutils import convert_mappings
 
 DEFAULT_OPER_USER = settings.DEFAULT_OPER_USER
+# 1表示gse agent正常
+AGENT_NORMAL_STATUS = 1
 
 logger = logging.getLogger(__name__)
 
@@ -395,8 +397,7 @@ class ClusterMasterInfo(ClusterPermBase, viewsets.ViewSet):
                 if ip not in master_ips:
                     continue
                 # NOTE: 添加master后，默认master agent状态是正常的
-                normal_status = 1
-                convert_host["agent"] = normal_status
+                convert_host["agent"] = AGENT_NORMAL_STATUS
                 masters.append(convert_host)
                 break
         return response.Response(masters)
