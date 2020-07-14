@@ -426,7 +426,8 @@ class CCHostListViewSet(NodeBase, NodeHandler, viewsets.ViewSet):
         return dict(slz.validated_data)
 
     def get_all_nodes(self, request, project_id):
-        data = paas_cc.get_all_cluster_hosts(request.user.token.access_token)
+        data = paas_cc.get_all_cluster_hosts(
+            request.user.token.access_token, exclude_status_list=[CommonStatus.Removed])
         return {
             info['inner_ip']: info
             for info in data

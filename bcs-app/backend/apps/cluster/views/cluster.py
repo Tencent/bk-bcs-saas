@@ -36,8 +36,11 @@ from backend.apps.cluster import serializers as cluster_serializers
 from backend.apps.cluster.views_bk import cluster
 from backend.apps.cluster.views_bk.tools import cmdb
 from backend.components.bcs.mesos import MesosClient
+from backend.utils.funutils import convert_mappings
 
 DEFAULT_OPER_USER = settings.DEFAULT_OPER_USER
+# 1表示gse agent正常
+AGENT_NORMAL_STATUS = 1
 
 logger = logging.getLogger(__name__)
 
@@ -373,17 +376,7 @@ class ClusterMasterInfo(ClusterPermBase, viewsets.ViewSet):
         master_ip_info = data.get("results") or []
         return [info["inner_ip"] for info in master_ip_info if info.get("inner_ip")]
 
-    def responseslz(self, info):
-        return {
-            'host_name': info.get('HostName'),
-            'idc': info.get('IDCUnit'),
-            'inner_ip': info.get('InnerIP'),
-            'agent': 1,
-            'device_class': info.get('DeviceClass'),
-            'server_rack': info.get('serverRack')
-        }
-
-    def cluster_master_info(self, request, project_id, cluster_id):
+    def cluster_masters(self, request, project_id, cluster_id):
         self.can_view_cluster(request, project_id, cluster_id)
         ip_only = request.query_params.get('ip_only')
         # get master ip
@@ -393,17 +386,21 @@ class ClusterMasterInfo(ClusterPermBase, viewsets.ViewSet):
         # get cc hosts
         cc_host_info = cmdb.CMDBClient(request).get_cc_hosts()
         # compose the data
-        ret_data = []
+        masters = []
         for info in cc_host_info:
             # may be many eths
-            ip_list = info.get('InnerIP', '').split(',')
+            convert_host = convert_mappings(cluster_constants.CCHostKeyMappings, info)
+            ip_list = convert_host.get('inner_ip', '').split(',')
             if not ip_list:
                 continue
             for ip in ip_list:
-                if ip in master_ips:
-                    ret_data.append(self.responseslz(info))
+                if ip not in master_ips:
+                    continue
+                # NOTE: 添加master后，默认master agent状态是正常的
+                convert_host["agent"] = AGENT_NORMAL_STATUS
+                masters.append(convert_host)
                 break
-        return response.Response(ret_data)
+        return response.Response(masters)
 
 
 class ClusterVersionViewSet(viewsets.ViewSet):
