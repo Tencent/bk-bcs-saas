@@ -374,7 +374,7 @@ class ClusterMasterInfo(ClusterPermBase, viewsets.ViewSet):
         master_ip_info = data.get("results") or []
         return [info["inner_ip"] for info in master_ip_info if info.get("inner_ip")]
 
-    def cluster_master_info(self, request, project_id, cluster_id):
+    def cluster_masters(self, request, project_id, cluster_id):
         self.can_view_cluster(request, project_id, cluster_id)
         ip_only = request.query_params.get('ip_only')
         # get master ip
@@ -384,7 +384,7 @@ class ClusterMasterInfo(ClusterPermBase, viewsets.ViewSet):
         # get cc hosts
         cc_host_info = cmdb.CMDBClient(request).get_cc_hosts()
         # compose the data
-        ret_data = []
+        masters = []
         for info in cc_host_info:
             # may be many eths
             convert_host = convert_mappings(cluster_constants.CCHostKeyMappings, info)
@@ -395,10 +395,11 @@ class ClusterMasterInfo(ClusterPermBase, viewsets.ViewSet):
                 if ip not in master_ips:
                     continue
                 # NOTE: 添加master后，默认master agent状态是正常的
-                convert_host["agent"] = 1
-                ret_data.append(convert_host)
+                normal_status = 1
+                convert_host["agent"] = normal_status
+                masters.append(convert_host)
                 break
-        return response.Response(ret_data)
+        return response.Response(masters)
 
 
 class ClusterVersionViewSet(viewsets.ViewSet):

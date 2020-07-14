@@ -124,7 +124,7 @@ urlpatterns = [
         views.ClusterInfo.as_view({'get': 'cluster_info'})),
     # mster info
     url(r'^api/projects/(?P<project_id>\w{32})/clusters/(?P<cluster_id>[\w\-]+)/masters/info/$',
-        views.ClusterMasterInfo.as_view({'get': 'cluster_master_info'})),
+        views.ClusterMasterInfo.as_view({'get': 'cluster_masters'})),
     # node labels
     url(r'^api/projects/(?P<project_id>\w{32})/node_label_info/$',
         views.NodeLabelQueryCreateViewSet.as_view({'get': 'get_node_labels', 'post': 'create_node_labels'})),
