@@ -17,6 +17,7 @@ import logging
 
 from celery import shared_task
 from natsort import natsorted
+from django.utils import timezone
 
 from .models.repo import Repository
 from .models.chart import Chart, ChartVersion
@@ -116,8 +117,7 @@ def _add_charts(repo, sign, charts, index_hash, force=False):
     """添加charts
     """
     for chart_name, versions in charts.items():
-        chart = Chart.objects.get_or_create(name=chart_name, repository=repo)[0]
-        chart.clean_deleted_status()
+        chart, _created = Chart.objects.get_or_create(name=chart_name, repository=repo)
         # 开始添加版本
         full_chart_versions = {}
         for version in versions:
@@ -137,7 +137,7 @@ def _add_charts(repo, sign, charts, index_hash, force=False):
             # 记录版本，便于更新chart默认版本
             full_chart_versions[chart_version.id] = chart_version
         # 更新chart的变更时间
-        chart.changed_at = datetime.datetime.now()
+        chart.changed_at = timezone.now()
         chart.save(update_fields=["changed_at"])
         # 更新chart默认版本为最新推送的chart版本
         _update_default_chart_version(chart, full_chart_versions)
