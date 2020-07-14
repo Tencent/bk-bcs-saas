@@ -10,6 +10,8 @@
  */
 
 import axios from 'axios'
+import Clipboard from 'clipboard'
+
 import { catchErrorHandler } from '@open/common/util'
 
 export default {
@@ -204,7 +206,8 @@ export default {
             // 是否允许批量操作 -> 重新添加
             isBatchReInstall: false,
             // 允许批量操作 -> 重新添加的状态
-            batchReInstallStatusList: ['initial_failed', 'check_failed', 'so_init_failed', 'schedule_failed', 'bke_failed']
+            batchReInstallStatusList: ['initial_failed', 'check_failed', 'so_init_failed', 'schedule_failed', 'bke_failed'],
+            clipboardInstance: null
         }
     },
     computed: {
@@ -1957,6 +1960,26 @@ export default {
                     clusterId: this.clusterId,
                     backTarget: this.$route.params.backTarget
                 }
+            })
+        },
+
+        /**
+         * 复制所选 IP
+         */
+        copyIp () {
+            this.$refs.toggleFilterDropdownMenu && this.$refs.toggleFilterDropdownMenu.hide()
+            // 复制所选 ip
+            this.clipboardInstance = new Clipboard('.batch-operate-dropdown .copy', {
+                text: trigger => Object.keys(this.checkedNodes).map(key => this.checkedNodes[key].inner_ip).join('\n')
+            })
+
+            const successMsg = this.$t('复制 {len} 个IP成功', { len: Object.keys(this.checkedNodes).length })
+            this.clipboardInstance.on('success', e => {
+                this.bkMessageInstance && this.bkMessageInstance.close()
+                this.bkMessageInstance = this.$bkMessage({
+                    theme: 'success',
+                    message: successMsg
+                })
             })
         }
     }
