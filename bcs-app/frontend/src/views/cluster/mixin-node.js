@@ -1966,7 +1966,7 @@ export default {
         /**
          * 复制所选 IP
          */
-        copyIp (idx) {
+        copyIp () {
             this.$refs.toggleFilterDropdownMenu && this.$refs.toggleFilterDropdownMenu.hide()
             // 复制所选 ip
             this.clipboardInstance = new Clipboard('.batch-operate-dropdown .copy', {
