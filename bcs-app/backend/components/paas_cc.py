@@ -241,7 +241,7 @@ def get_all_nodes(access_token):
     return http_get(url, params=params, headers=headers)
 
 
-def get_all_cluster_hosts(access_token, exclude_status=None):
+def get_all_cluster_hosts(access_token, exclude_status_list=None):
     node_list_info = get_all_nodes(access_token)
     if node_list_info.get('code') != ErrorCode.NoError:
         raise error_codes.APIError(_("查询所有集群的node节点失败，已经通知管理员，请稍后!"))
@@ -252,8 +252,8 @@ def get_all_cluster_hosts(access_token, exclude_status=None):
         raise error_codes.APIError(_("查询所有集群的master节点失败，已经通知管理员，请稍后!"))
     data.extend(master_list_info.get('data') or [])
     # 在component层过滤掉状态为removed的host，便于上层直接使用
-    if exclude_status:
-        return [info for info in data if info["status"] not in exclude_status]
+    if exclude_status_list:
+        return [info for info in data if info["status"] not in exclude_status_list]
     return data
 
 
@@ -556,5 +556,5 @@ def get_cluster_versions(access_token, ver_id='', env='', kind=''):
 
 
 def get_all_cluster_host_ips(access_token):
-    data = get_all_cluster_hosts(access_token, exclude_status=[CommonStatus.Removed])
+    data = get_all_cluster_hosts(access_token, exclude_status_list=[CommonStatus.Removed])
     return [info["inner_ip"] for info in data]
