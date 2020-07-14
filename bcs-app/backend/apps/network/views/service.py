@@ -28,7 +28,7 @@ from backend.apps.application.base_views import BaseAPI
 from backend.apps.configuration.models import Template, Application, VersionedEntity, Service, ShowVersion, K8sService
 from backend.components.bcs import k8s, mesos
 from backend.apps import constants
-from backend.apps.network.utils_bk import get_svc_access_info, get_svc_extended_routes
+from backend.apps.network.utils_bk import get_svc_access_info, get_svc_extended_routes, delete_svc_extended_routes
 from backend.apps.instance.constants import (LABLE_TEMPLATE_ID, LABLE_INSTANCE_ID, SEVICE_SYS_CONFIG,
                                              ANNOTATIONS_CREATOR, ANNOTATIONS_UPDATOR, ANNOTATIONS_CREATE_TIME,
                                              ANNOTATIONS_UPDATE_TIME, ANNOTATIONS_WEB_CACHE, K8S_SEVICE_SYS_CONFIG,
@@ -357,6 +357,8 @@ class Services(viewsets.ViewSet, BaseAPI):
                 access_token, project_id, cluster_id, env=None)
             resp = client.delete_service(namespace, name)
             s_cate = 'K8sService'
+
+            delete_svc_extended_routes(request, project_id, cluster_id, namespace, name)
 
         if resp.get("code") == ErrorCode.NoError:
             # 删除成功则更新状态

@@ -18,6 +18,10 @@ def get_svc_extended_routes(project_id):
     return {}
 
 
+def delete_svc_extended_routes(request, project_id, cluster_id, namespace, svc_name):
+    pass
+
+
 def get_svc_access_info(manifest, cluster_id, extended_routes):
     """
     {
