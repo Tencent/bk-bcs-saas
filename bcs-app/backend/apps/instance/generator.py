@@ -62,6 +62,7 @@ from backend.apps.ticket.models import TlsCert
 from backend.apps.instance.resources.utils import handle_number_var
 from backend.apps.instance import constants as instance_constants
 from backend.utils.basic import getitems
+from backend.resources.constants import K8sServiceTypes
 
 logger = logging.getLogger(__name__)
 HANDLED_NUM_VAR_PATTERN = re.compile(r"%s}" % NUM_VAR_PATTERN)
@@ -1206,7 +1207,7 @@ def handel_k8s_service_db_config(db_config, deploy_tag_list, version_id,
 
     if not db_config.get('spec', {}).get('clusterIP', ''):
         remove_key(db_config['spec'], 'clusterIP')
-    elif s_type == 'NodePort' and not is_upadte:
+    elif s_type == K8sServiceTypes.NodePort.value and not is_upadte:
         remove_key(db_config['spec'], 'clusterIP')
     # Service 关联的端口应用的端口信
     # 获取所有端口中的id
@@ -1234,8 +1235,8 @@ def handel_k8s_service_db_config(db_config, deploy_tag_list, version_id,
                 _p['targetPort'] = int(_p['targetPort'])
             except Exception:
                 pass
-            # 只有 Service 类型为 NodePort 时才传 nodePort 字段
-            if s_type != 'NodePort':
+            # 只有 Service 类型为 NodePort或LoadBalancer类型 时才传 nodePort 字段
+            if s_type == K8sServiceTypes.ClusterIP.value:
                 remove_key(_p, "nodePort")
             else:
                 if not _p['nodePort']:
