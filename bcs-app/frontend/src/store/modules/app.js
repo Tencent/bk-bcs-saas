@@ -1021,9 +1021,9 @@ export default {
             delete params.projectId
             delete params.clusterId
 
-            return http.get(
-                `${DEVOPS_BCS_API_URL}/api/projects/${projectId}/clusters/${clusterId}/metrics/pod/cpu_usage/?${json2Query(params)}`,
-                {},
+            return http.post(
+                `${DEVOPS_BCS_API_URL}/api/projects/${projectId}/clusters/${clusterId}/metrics/pod/cpu_usage/`,
+                params.data,
                 config
             )
         },
@@ -1043,9 +1043,9 @@ export default {
             delete params.projectId
             delete params.clusterId
 
-            return http.get(
-                `${DEVOPS_BCS_API_URL}/api/projects/${projectId}/clusters/${clusterId}/metrics/pod/memory_usage/?${json2Query(params)}`,
-                {},
+            return http.post(
+                `${DEVOPS_BCS_API_URL}/api/projects/${projectId}/clusters/${clusterId}/metrics/pod/memory_usage/`,
+                params.data,
                 config
             )
         },
@@ -1065,9 +1065,9 @@ export default {
             delete params.projectId
             delete params.clusterId
 
-            return http.get(
-                `${DEVOPS_BCS_API_URL}/api/projects/${projectId}/clusters/${clusterId}/metrics/pod/network_receive/?${json2Query(params)}`,
-                {},
+            return http.post(
+                `${DEVOPS_BCS_API_URL}/api/projects/${projectId}/clusters/${clusterId}/metrics/pod/network_receive/`,
+                params.data,
                 config
             )
         },
@@ -1087,9 +1087,9 @@ export default {
             delete params.projectId
             delete params.clusterId
 
-            return http.get(
-                `${DEVOPS_BCS_API_URL}/api/projects/${projectId}/clusters/${clusterId}/metrics/pod/network_transmit/?${json2Query(params)}`,
-                {},
+            return http.post(
+                `${DEVOPS_BCS_API_URL}/api/projects/${projectId}/clusters/${clusterId}/metrics/pod/network_transmit/`,
+                params.data,
                 config
             )
         },

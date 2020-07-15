@@ -17,10 +17,14 @@ import logging
 
 from celery import shared_task
 from natsort import natsorted
+from django.utils import timezone
 
 from .models.repo import Repository
 from .models.chart import Chart, ChartVersion
 from .utils.repo import (prepareRepoCharts, InProcessSign)
+from backend.apps.whitelist_bk import enable_incremental_sync_chart_repo
+from backend.bcs_k8s.helm.utils.repo_bk import get_incremental_charts_and_hash_value
+from backend.utils.basic import normalize_time
 
 logger = logging.getLogger(__name__)
 
@@ -43,6 +47,16 @@ def force_sync_all_repo():
             logger.exception("force sync_helm_repo %s failed %s" % (repo.id, e))
 
 
+def enable_increment(force, project_id):
+    """判断是否增量功能
+    NOTE: 当force为false，并且在白名单中才允许增量操作
+    """
+    if not force and enable_incremental_sync_chart_repo(project_id):
+        return True
+
+    return False
+
+
 @shared_task
 def sync_helm_repo(repo_id, force=False):
     # if in processing, then do nothing
@@ -58,7 +72,17 @@ def sync_helm_repo(repo_id, force=False):
     plain_auths = repo.plain_auths
 
     try:
-        charts_info, charts_info_hash = prepareRepoCharts(repo_url, repo_name, plain_auths)
+        # NOTE: 针对白名单中的项目先开启增量同步
+        if enable_increment(force, repo.project_id):
+            if not plain_auths:
+                username, password = None, None
+            else:
+                credentials = plain_auths[0]["credentials"]
+                username, password = credentials["username"], credentials["password"]
+            start_time = normalize_time(repo.refreshed_at)
+            charts_info, charts_info_hash = get_incremental_charts_and_hash_value(repo_url, username, password, start_time)
+        else:
+            charts_info, charts_info_hash = prepareRepoCharts(repo_url, repo_name, plain_auths)
     except Exception as e:
         logger.exception("prepareRepoCharts fail: repo_url=%s, repo_name=%s, error: %s", repo_url, repo_name, e)
         return
@@ -79,10 +103,48 @@ def sync_helm_repo(repo_id, force=False):
         return
 
     try:
-        _do_helm_repo_charts_update(repo, sign, charts_info, charts_info_hash, force)
+        # 增量获取的数据，直接添加到本地记录
+        if enable_increment(force, repo.project_id):
+            _add_charts(repo, sign, charts_info, charts_info_hash, force)
+        else:
+            _do_helm_repo_charts_update(repo, sign, charts_info, charts_info_hash, force)
     except Exception as e:
         logger.exception("_do_helm_repo_charts_update fail, error: %s", e)
         sign.delete()
+
+
+def _add_charts(repo, sign, charts, index_hash, force=False):
+    """添加charts
+    """
+    for chart_name, versions in charts.items():
+        chart, _created = Chart.objects.get_or_create(name=chart_name, repository=repo)
+        # 开始添加版本
+        full_chart_versions = {}
+        for version in versions:
+            # update sign every time
+            sign.update()
+            chart_version = ChartVersion()
+            try:
+                chart_version.update_from_import_version(chart, version, force)
+            except Exception as e:
+                logger.exception(
+                    "save_chart_version fail: chart=%s, version=%s, error: %s", chart, version, e)
+                continue
+            # 更新chart icon
+            icon_url = version.get("icon")
+            if not chart.icon and icon_url:
+                chart.update_icon(icon_url)
+            # 记录版本，便于更新chart默认版本
+            full_chart_versions[chart_version.id] = chart_version
+        # 更新chart的变更时间
+        chart.changed_at = timezone.now()
+        chart.save(update_fields=["changed_at"])
+        # 更新chart默认版本为最新推送的chart版本
+        _update_default_chart_version(chart, full_chart_versions)
+    # 更新hash
+    repo.refreshed(index_hash)
+    # delete sign
+    sign.delete()
 
 
 def _update_default_chart_version(chart, full_chart_versions):
