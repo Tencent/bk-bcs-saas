@@ -270,7 +270,7 @@ class LoadBalances(viewsets.ViewSet, BaseAPI):
             'instance': slz_data['instance'],
             'eth_value': slz_data['eth_value'],
             'host_port': slz_data['host_port'],
-            "is_custom_image_url": slz_data["is_custom_image_url"]
+            "is_custom_image_url": slz_data.get("is_custom_image_url", False)
         }
         return data
 
@@ -464,8 +464,10 @@ class LoadBalances(viewsets.ViewSet, BaseAPI):
             extra=json.dumps(self.lb_data)
         ).log_start() as ual_client:
             cc_app_id = request.project['cc_app_id']
+            # 添加是否自定义镜像
+            params = {"is_custom_image_url": self.lb_data.get("is_custom_image_url", False)}
             result, error_msg = handle_lb(
-                username, access_token, project_id, self.lb_data, cc_app_id)
+                username, access_token, project_id, self.lb_data, cc_app_id, **params)
             ual_client.update_log(
                 activity_status='succeed' if result else 'failed',
                 description=_("启动LoadBalance：{}").format(error_msg or _("已下发配置")),

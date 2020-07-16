@@ -24,7 +24,7 @@ from backend.components.bcs import mesos
 from backend.components import paas_cc
 from backend.utils.error_codes import error_codes
 from backend.utils.errcodes import ErrorCode
-from backend.apps.instance.constants import LB_SYS_CONFIG, DEFAUT_LB_JFROG_DOMAIN
+from backend.apps.instance import constants as inst_constants
 from backend.apps.instance.funutils import render_mako_context
 from backend.apps.instance.generator import handle_intersection_item, handel_custom_network_mode
 from backend.apps.application.constants import UNNORMAL_STATUS
@@ -51,7 +51,19 @@ def get_namespace_name(access_token, project_id, data_dict):
     return namespace
 
 
-def handle_lb(username, access_token, project_id, lb_info, cc_app_id):
+def get_image_url(image_url, is_custom_image_url, access_token, project_id, cluster_id):
+    if is_custom_image_url:
+        return image_url
+    # 查询仓库地址
+    repo_domain = paas_cc.get_jfrog_domain(access_token, project_id, cluster_id)
+    if not repo_domain:
+        repo_domain = inst_constants.DEFAULT_LB_REPO_DOMAIN
+    if image_url:
+        return f"{repo_domain}{image_url}"
+    return f"{repo_domain}{inst_constants.DEFAULT_BCS_LB_PATH}"
+
+
+def handle_lb(username, access_token, project_id, lb_info, cc_app_id, **params):
     """
     1. 组装 lb 配置文件
     2. 调用 bcs api 创建 Deployment
@@ -69,13 +81,6 @@ def handle_lb(username, access_token, project_id, lb_info, cc_app_id):
         raise error_codes.APIError(_("获取zk信息出错"))
     bcs_zookeeper = zk_data.get('bcs_zookeeper')
     zookeeper = zk_data.get('zookeeper')
-
-    # 查询仓库地址
-    jfrog_domain = paas_cc.get_jfrog_domain(
-        access_token, project_id, cluster_id)
-    if not jfrog_domain:
-        jfrog_domain = DEFAUT_LB_JFROG_DOMAIN
-
     # 调度约束
     try:
         intersection_item = json.loads(lb_info.get("data"))
@@ -106,10 +111,8 @@ def handle_lb(username, access_token, project_id, lb_info, cc_app_id):
         data_dict = json.loads(data_dict)
     else:
         data_dict = {}
-    if data_dict.get('image_url'):
-        lb_jfrog_url = f'{jfrog_domain}{data_dict["image_url"]}'
-    else:
-        lb_jfrog_url = f'{jfrog_domain}/paas/public/mesos/bcs-loadbalance'
+    lb_image_url = get_image_url(
+        data_dict.get("image_url"), params["is_custom_image_url"], access_token, project_id, cluster_id)
     resource_limit = data_dict.get('resources', {}).get('limits', {})
     ns_name = get_namespace_name(access_token, project_id, data_dict)
     # 获取data标准日志输出
@@ -130,7 +133,7 @@ def handle_lb(username, access_token, project_id, lb_info, cc_app_id):
         'SYS_UPDATOR': username,
         'SYS_CREATE_TIME': now_time,
         'SYS_UPDATE_TIME': now_time,
-        'SYS_JFROG_DOMAIN_URL': lb_jfrog_url,
+        'LB_IMAGE_URL': lb_image_url,
         'CPU': str(resource_limit.get('cpu', 1)),
         'MEMORY': str(resource_limit.get('memory', 1024)),
         'IMAGE_VERSION': data_dict.get('image_version') or '1.1.0',
@@ -141,7 +144,7 @@ def handle_lb(username, access_token, project_id, lb_info, cc_app_id):
     }
 
     # 组装 lb 配置文件
-    lb_config = copy.deepcopy(LB_SYS_CONFIG)
+    lb_config = copy.deepcopy(inst_constants.LB_SYS_CONFIG)
     lb_config['spec']['instance'] = data_dict.get('instance', 1)
     lb_config['constraint'] = constraint
     lb_config['spec']['template']['metadata']['labels'] = labels

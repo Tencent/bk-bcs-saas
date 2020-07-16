@@ -360,7 +360,7 @@ LB_SYS_CONFIG = {
                             "{{SYS_CLUSTER_ID}}"
                         ],
                         "type": "MESOS",
-                        "image": "{{SYS_JFROG_DOMAIN_URL}}:{{IMAGE_VERSION}}",
+                        "image": "{{LB_IMAGE_URL}}:{{IMAGE_VERSION}}",
                         "imagePullPolicy": "Always",
                         "privileged": True,
                         "ports": [{
@@ -393,7 +393,9 @@ LB_SYS_CONFIG = {
         }
     }
 }
+# TODO: DEFAUT_LB_JFROG_DOMAIN 这个变量使用，先不调整
 DEFAUT_LB_JFROG_DOMAIN = settings.DEFAUT_MESOS_LB_JFROG_DOMAIN
+DEFAULT_LB_REPO_DOMAIN = settings.DEFAUT_MESOS_LB_JFROG_DOMAIN
 
 METRIC_SYS_CONFIG = [
     {
@@ -533,3 +535,5 @@ API_VERSION = {
         'HorizontalPodAutoscaler': 'autoscaling/v2beta2'
     }
 }
+
+DEFAULT_BCS_LB_PATH = "/paas/public/mesos/bcs-loadbalance"
