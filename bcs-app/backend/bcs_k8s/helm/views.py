@@ -193,7 +193,7 @@ class RepositorySyncView(FilterByProjectMixin, viewsets.ViewSet):
         """Sync Chart Repository
         """
         # 默认不需要设置为强制同步
-        sync_helm_repo(repo_id, force=kwargs.get("force") or False)
+        sync_helm_repo(repo_id, force=request.data.get("force") or False)
 
         data = {
             "code": 0,
