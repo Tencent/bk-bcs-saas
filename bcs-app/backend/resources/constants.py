@@ -14,7 +14,7 @@
 from backend.utils.basic import ChoicesEnum
 
 
-class ResourceWithPod(ChoicesEnum):
+class WorkloadTypes(ChoicesEnum):
     Deployment = "Deployment"
     StatefulSet = "StatefulSet"
     DaemonSet = "DaemonSet"
@@ -28,7 +28,7 @@ class ResourceWithPod(ChoicesEnum):
     )
 
 
-class K8sResouseKind(ChoicesEnum):
+class K8sResourceKinds(ChoicesEnum):
     Deployment = "Deployment"
     StatefulSet = "StatefulSet"
     DaemonSet = "DaemonSet"
@@ -54,4 +54,16 @@ class K8sResouseKind(ChoicesEnum):
         (Endpoints, "Endpoints"),
         (Namespace, "Namespace"),
         (Pod, "Pod")
+    )
+
+
+class K8sServiceTypes(ChoicesEnum):
+    ClusterIP = "ClusterIP"
+    NodePort = "NodePort"
+    LoadBalancer = "LoadBalancer"
+
+    _choices_labels = (
+        (ClusterIP, "ClusterIP"),
+        (NodePort, "NodePort"),
+        (LoadBalancer, "LoadBalancer")
     )

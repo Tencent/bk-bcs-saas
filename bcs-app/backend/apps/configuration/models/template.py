@@ -226,43 +226,11 @@ class Template(BaseModel):
             if not item_ids:
                 continue
             item_id_list = item_ids.split(',')
-            item_ins_list = MODULE_DICT.get(
-                item).objects.filter(id__in=item_id_list)
+            item_ins_list = MODULE_DICT.get(item).objects.filter(id__in=item_id_list)
             new_item_id_list = []
             for _ins in item_ins_list:
                 # 复制资源
                 _ins.pk = None
-                _ins.save()
-                # 重命名资源名称
-                _ins_name = _ins.get_name
-                _ins_real_name = _ins_name.split(COPY_TEMPLATE)[0]
-                # 查看已经名称的个数
-                search_name = '%s%s' % (_ins_real_name, COPY_TEMPLATE)
-                search_list = MODULE_DICT.get(item).objects.filter(
-                    name__contains=search_name).values_list('name', flat=True)
-
-                # 获取重命名的后缀
-                _s_num_list = []
-                for _s_name in set(search_list):
-                    _s_num = _s_name.split(search_name)[-1]
-                    try:
-                        _s_num = int(_s_num)
-                        _s_num_list.append(_s_num)
-                    except Exception:
-                        pass
-                search_name_count = max(_s_num_list) + 1 if _s_num_list else 1
-                new_name = '%s%s%s' % (
-                    _ins_real_name, COPY_TEMPLATE, search_name_count)
-
-                # 需要修改 config 中的name信息
-                _new_config = _ins.get_config()
-                _new_config_name = _new_config.get('metadata', {}).get('name')
-                if _new_config_name:
-                    _new_config['metadata']['name'] = new_name
-
-                # 更新 db 中的name信息
-                _ins.config = json.dumps(_new_config)
-                _ins.name = new_name
                 _ins.save()
                 new_item_id_list.append(str(_ins.id))
 
