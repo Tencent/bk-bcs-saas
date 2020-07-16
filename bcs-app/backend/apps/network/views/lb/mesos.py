@@ -269,7 +269,8 @@ class LoadBalances(viewsets.ViewSet, BaseAPI):
             'forward_mode': slz_data['forward_mode'],
             'instance': slz_data['instance'],
             'eth_value': slz_data['eth_value'],
-            'host_port': slz_data['host_port']
+            'host_port': slz_data['host_port'],
+            "is_custom_image_url": slz_data["is_custom_image_url"]
         }
         return data
 
@@ -516,13 +517,13 @@ class LoadBalances(viewsets.ViewSet, BaseAPI):
             resource_id=lb_id,
             extra=json.dumps(self.lb_data)
         ).log_stop() as ual_client:
-            resust = delete_lb_by_bcs(
+            result = delete_lb_by_bcs(
                 access_token, project_id, cluster_id, namespace, lb_name, lb_id, enforce=enforce)
             ual_client.update_log(
-                activity_status='succeed' if resust.get('result') else 'failed',
-                description=_("停止LoadBalance：{}").format(resust.get('message')),
+                activity_status='succeed' if result.get('result') else 'failed',
+                description=_("停止LoadBalance：{}").format(result.get('message')),
             )
-        return Response(resust)
+        return Response(result)
 
     def get_filed(self, project_kind):
         field_list = [
@@ -565,7 +566,7 @@ class LoadBalances(viewsets.ViewSet, BaseAPI):
         else:
             data_dict = {}
         namespace = get_namespace_name(request.user.token.access_token, project_id, data_dict)
-        # 获取taskagroup或者group
+        # 获取taskgroup或者group
         field = self.get_filed(project_kind)
         rc_names = self.get_rc_name_by_deployment_base(
             request, project_id, cluster_id, name,
