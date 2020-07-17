@@ -206,12 +206,16 @@ class KubeHelmClient:
 
         return template_out, notes_out
 
-    def _install_or_upgrade(self, cmd_args, tmpl_content, chart_name, chart_version, chart_values, chart_api_version):
+    def _install_or_upgrade(self, cmd_args, files, chart_values, bcs_inject_data):
         try:
-            with write_chart_dir(
-                tmpl_content, chart_name, chart_version, chart_values, chart_api_version
-            ) as temp_dir:
-                cmd_args.append(temp_dir)
+            with write_chart_with_ytt(files, bcs_inject_data) as (temp_dir, ytt_config_dir):
+                # NOTE: 设置用户渲染的value文件名为bcs-values.yaml；写入用户渲染的内容
+                values_path = os.path.join(temp_dir, "bcs-values.yaml")
+                with open(values_path, "w") as f:
+                    f.write(chart_values)
+                # post renderer添加平台注入信息
+                cmd_args += [temp_dir, "--values", values_path, "--post-renderer", f"{ytt_config_dir}/{YTT_RENDERER_NAME}"]
+
                 cmd_out, cmd_err = self._run_command_with_retry(max_retries=0, cmd_args=cmd_args)
         except Exception as e:
             logger.exception("执行helm命令失败，命令参数: %s", json.dumps(cmd_args))
@@ -219,7 +223,7 @@ class KubeHelmClient:
 
         return cmd_out, cmd_err
 
-    def install(self, name, namespace, tmpl_content, chart_name, chart_version, chart_values, chart_api_version):
+    def install(self, name, namespace, files, chart_values, bcs_inject_data, content=None):
         """install helm chart
         NOTE: 这里需要组装chart格式，才能使用helm install
         必要条件
@@ -231,16 +235,9 @@ class KubeHelmClient:
         - 执行命令
         """
         install_cmd_args = [settings.HELM3_BIN, "install", name, "--namespace", namespace]
-        return self._install_or_upgrade(
-            install_cmd_args,
-            tmpl_content,
-            chart_name,
-            chart_version,
-            chart_values,
-            chart_api_version
-        )
+        return self._install_or_upgrade(install_cmd_args, files, chart_values, bcs_inject_data)
 
-    def upgrade(self, name, namespace, tmpl_content, chart_name, chart_version, chart_values, chart_api_version):
+    def upgrade(self, name, namespace, files, chart_values, bcs_inject_data, content=None):
         """upgrade helm release
         NOTE: 这里需要组装chart格式，才能使用helm upgrade
         必要条件
@@ -252,14 +249,7 @@ class KubeHelmClient:
         - 执行命令
         """
         upgrade_cmd_args = [settings.HELM3_BIN, "upgrade", name, "--namespace", namespace]
-        return self._install_or_upgrade(
-            upgrade_cmd_args,
-            tmpl_content,
-            chart_name,
-            chart_version,
-            chart_values,
-            chart_api_version
-        )
+        return self._install_or_upgrade(upgrade_cmd_args, files, chart_values, bcs_inject_data)
 
     def _uninstall_or_rollback(self, cmd_args):
         try:
