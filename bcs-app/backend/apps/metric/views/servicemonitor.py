@@ -76,6 +76,13 @@ class ServiceMonitor(viewsets.ViewSet):
     SERVICE_NAME_LABEL = "io.tencent.bcs.service_name"
     TIME_DURATION_PATTERN = re.compile(r"^((?P<hours>\d+)h)?((?P<minutes>\d+)m)?((?P<seconds>\d+)s)?$")
 
+    def _get_client(self, request, project_id, cluster_id):
+        if request.project.kind == ProjectKind.MESOS.value:
+            client = mesos.MesosClient(request.user.token.access_token, project_id, cluster_id, env=None)
+        else:
+            client = k8s.K8SClient(request.user.token.access_token, project_id, cluster_id, env=None)
+        return client
+
     def get_duration(self, duration, default=None):
         """解析普罗米修斯时间范围
         """
@@ -176,25 +183,18 @@ class ServiceMonitor(viewsets.ViewSet):
         namespace_map = {i["name"]: i["id"] for i in namespace_list}
         return namespace_map
 
-    def list(self, request, project_id, cluster_id=None):
-        access_token = request.user.token.access_token
+    def list(self, request, project_id, cluster_id):
         cluster_map = self._get_cluster_map(project_id)
         namespace_map = self._get_cluster_map(project_id)
         data = []
 
-        if cluster_id:
-            if cluster_id not in cluster_map:
-                raise error_codes.APIError(_("cluster_id not valid"))
-            client = k8s.K8SClient(access_token, project_id, cluster_id, env=None)
-            items = self._handle_items(cluster_id, cluster_map, namespace_map, client.list_service_monitor())
-            data.extend(items)
-        else:
-            for cluster in cluster_map.values():
-                cluster_id = cluster["cluster_id"]
-                cluster_env = cluster.get("environment")
-                client = k8s.K8SClient(access_token, project_id, cluster_id, env=cluster_env)
-                items = self._handle_items(cluster_id, cluster_map, namespace_map, client.list_service_monitor())
-                data.extend(items)
+        if cluster_id not in cluster_map:
+            raise error_codes.APIError(_("cluster_id not valid"))
+
+        client = self._get_client(request, project_id, cluster_id)
+
+        items = self._handle_items(cluster_id, cluster_map, namespace_map, client.list_service_monitor())
+        data.extend(items)
 
         perm = bcs_perm.Namespace(request, project_id, bcs_perm.NO_RES)
         data = perm.hook_perms(data, ns_id_flag="namespace_id")
@@ -240,7 +240,8 @@ class ServiceMonitor(viewsets.ViewSet):
             },
         }
 
-        client = k8s.K8SClient(request.user.token.access_token, project_id, cluster_id, env=None)
+        client = self._get_client(request, project_id, cluster_id)
+
         result = client.create_service_monitor(data["namespace"], spec)
         if result.get("status") == "Failure":
             message = _("创建Metrics:{}失败, [命名空间:{}], {}").format(
@@ -256,8 +257,7 @@ class ServiceMonitor(viewsets.ViewSet):
     def get(self, request, project_id, cluster_id, namespace, name):
         """获取单个serviceMonitor
         """
-        access_token = request.user.token.access_token
-        client = k8s.K8SClient(access_token, project_id, cluster_id, env=None)
+        client = self._get_client(request, project_id, cluster_id)
         result = client.get_service_monitor(namespace, name)
         if result.get("status") == "Failure":
             raise error_codes.APIError(result.get("message", ""))
@@ -275,8 +275,7 @@ class ServiceMonitor(viewsets.ViewSet):
         """删除servicemonitor
         """
         self._validate_namespace_use_perm(request, project_id, [namespace])
-
-        client = k8s.K8SClient(request.user.token.access_token, project_id, cluster_id, env=None)
+        client = self._get_client(request, project_id, cluster_id)
         result = client.delete_service_monitor(namespace, name)
         if result.get("status") == "Failure":
             message = _("删除Metrics:{}失败, [命名空间:{}], {}").format(name, namespace, result.get("message", ""))
@@ -309,8 +308,7 @@ class ServiceMonitor(viewsets.ViewSet):
         data = slz.validated_data
 
         self._validate_namespace_use_perm(request, project_id, [namespace])
-
-        client = k8s.K8SClient(request.user.token.access_token, project_id, cluster_id, env=None)
+        client = self._get_client(request, project_id, cluster_id)
         result = client.get_service_monitor(namespace, name)
         if result.get("status") == "Failure":
             message = _("更新Metrics:{}失败, [命名空间:{}], {}").format(name, namespace, result.get("message", ""))
@@ -513,14 +511,18 @@ class PrometheusUpdate(viewsets.ViewSet):
     def get(self, request, project_id, cluster_id):
         """获取targets列表
         """
+        data = {"need_update": False, "update_tooltip": ""}
+
+        # Mesos不存在Prometheus CRD, 直接返回
+        if request.project.kind == ProjectKind.MESOS.value:
+            return Response(data)
+
         access_token = request.user.token.access_token
         client = k8s.K8SClient(access_token, project_id, cluster_id, env=None)
         resp = client.get_prometheus("thanos", "po-prometheus-operator-prometheus")
         spec = resp.get("spec") or {}
         if not spec:
             raise error_codes.APIError(_("Prometheus未安装，请联系管理员解决"))
-
-        data = {"need_update": False, "update_tooltip": ""}
 
         for container in spec.get("containers") or []:
             if container["name"] not in settings.PROMETHEUS_VERSIONS:
