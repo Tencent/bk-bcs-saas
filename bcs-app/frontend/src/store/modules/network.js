@@ -785,6 +785,6 @@ export default {
         getRegions (context, { projectId }, config = {}) {
             const url = `${DEVOPS_BCS_API_URL}/api/projects/${projectId}/network/clb/regions/`
             return http.get(url, {}, config)
-        },
+        }
     }
 }

@@ -722,6 +722,17 @@ export default {
         },
 
         /**
+         * 获取templateSet详细内容
+         *
+         * @param {Object} context store 上下文对象
+         *
+         * @return {Promise} promise 对象
+         */
+        getTemplateSetDetail (context, { projectId, templateId, versionId }) {
+            return http.get(`${DEVOPS_BCS_API_URL}/api/configuration/${projectId}/template/${templateId}/show/version/${versionId}/`)
+        },
+
+        /**
          * 获取ports
          *
          * @param {Object} context store 上下文对象
