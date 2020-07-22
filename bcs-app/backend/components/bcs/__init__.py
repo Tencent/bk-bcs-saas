@@ -42,7 +42,7 @@ def cache_api_host(access_token, project_id, cluster_id, env):
 
 
 class BCSClientBase:
-    def __init__(self, access_token, project_id, cluster_id, env=None):
+    def __init__(self, access_token, project_id, cluster_id, env):
         self.access_token = access_token
         self.project_id = project_id
         self.cluster_id = cluster_id

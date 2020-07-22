@@ -132,13 +132,14 @@ def response(f=None):
     return decorator
 
 
-def parse_response_data(default_data=None):
+def parse_response_data(default_data=None, err_msg_prefix=None):
     def decorate(func):
         @wraps(func)
         def parse(*args, **kwargs):
             resp = func(*args, **kwargs)
             if resp.get('code') != ErrorCode.NoError:
-                raise error_codes.APIError(f"{func.__name__} error: {resp.get('message')}")
+                prefix = err_msg_prefix or f"{func.__name__} error"
+                raise error_codes.APIError(f"{prefix}: {resp.get('message')}")
             return resp['data'] or default_data
 
         return parse
