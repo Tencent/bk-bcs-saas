@@ -634,7 +634,7 @@ class MesosClient(BCSClientBase):
             return {}
         return resp["data"][0]
 
-    def _get_servicemonitor_url(self, namespace=None):
+    def _get_service_monitor_url(self, namespace=None):
         """servicemonitor固定前缀
         """
         return f"{self.scheduler_host}/mesos/customresources/monitor.tencent.com/v1/namespaces/{SERVICE_MONITOR_NAMESPACE}/servicemonitors"  # noqa
@@ -642,7 +642,7 @@ class MesosClient(BCSClientBase):
     def list_service_monitor(self, namespace=None):
         """servicemonitor列表
         """
-        url = self._get_servicemonitor_url(namespace)
+        url = self._get_service_monitor_url(namespace)
         resp = http_get(url, headers=self.headers)
         return resp
 
@@ -652,13 +652,13 @@ class MesosClient(BCSClientBase):
         # Mesos API Version 是BCS定制
         spec["apiVersion"] = SERVICE_MONITOR_API_VERSION
         spec["namespace"] = SERVICE_MONITOR_NAMESPACE
-        url = self._get_servicemonitor_url(namespace)
+        url = self._get_service_monitor_url(namespace)
         return http_post(url, json=spec, headers=self.headers, raise_for_status=False)
 
     def get_service_monitor(self, namespace, name):
         """获取servicemonitor
         """
-        url_prefix = self._get_servicemonitor_url(namespace)
+        url_prefix = self._get_service_monitor_url(namespace)
         url = f"{url_prefix}/{name}"
         return http_get(url, headers=self.headers, raise_for_status=False)
 
@@ -668,13 +668,13 @@ class MesosClient(BCSClientBase):
         # Mesos API Version 是BCS定制
         spec["apiVersion"] = SERVICE_MONITOR_API_VERSION
         spec["namespace"] = SERVICE_MONITOR_NAMESPACE
-        url_prefix = self._get_servicemonitor_url(namespace)
+        url_prefix = self._get_service_monitor_url(namespace)
         url = f"{url_prefix}/{name}"
         return http_put(url, json=spec, headers=self.headers, raise_for_status=False)
 
     def delete_service_monitor(self, namespace, name):
         """删除servicemonitor
         """
-        url_prefix = self._get_servicemonitor_url(namespace)
+        url_prefix = self._get_service_monitor_url(namespace)
         url = f"{url_prefix}/{name}"
         return http_delete(url, headers=self.headers, raise_for_status=False)
