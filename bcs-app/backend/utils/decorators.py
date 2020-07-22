@@ -24,6 +24,8 @@ from requests.models import Response
 
 from backend.apps.constants import SENSITIVE_KEYWORD
 from backend.utils.exceptions import ComponentError
+from backend.utils.error_codes import error_codes
+from backend.utils.errcodes import ErrorCode
 
 logger = logging.getLogger(__name__)
 
@@ -38,6 +40,7 @@ MAX_RESP_TEXT_SIZE = 1024 * 10
 # 马赛克
 MOSAIC_CHAR = '*'
 MOSAIC_WORD = MOSAIC_CHAR * 3
+
 
 def get_desensitive_url(request, params):
     """获取脱敏URL
@@ -123,5 +126,21 @@ def response(f=None):
                     raise ComponentError(err_msg or error)
 
             return resp
+
         return _wrapped_func
+
     return decorator
+
+
+def parse_response_data(default_data=None):
+    def decorate(func):
+        @wraps(func)
+        def parse(*args, **kwargs):
+            resp = func(*args, **kwargs)
+            if resp.get('code') != ErrorCode.NoError:
+                raise error_codes.APIError(f"{func.__name__} error: {resp.get('message')}")
+            return resp['data'] or default_data
+
+        return parse
+
+    return decorate
