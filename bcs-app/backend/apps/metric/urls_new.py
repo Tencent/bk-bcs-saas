@@ -66,11 +66,7 @@ cluster_urlpatterns = [
     ),
 ]
 
-metrics_urlpatterns = [
-    url(r"^servicemonitors/$", views.servicemonitor.ServiceMonitor.as_view({"get": "list", "post": "create"}),),
-]
 
 urlpatterns = [
     url(r"^clusters/(?P<cluster_id>[\w-]+)/metrics/", include(cluster_urlpatterns)),
-    url(r"^metrics/", include(metrics_urlpatterns)),
 ]
