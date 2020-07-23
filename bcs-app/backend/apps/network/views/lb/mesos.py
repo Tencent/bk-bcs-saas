@@ -101,6 +101,7 @@ class LoadBalances(viewsets.ViewSet, BaseAPI):
             i['instance'] = data_dict.get('instance')
             i['host_port'] = data_dict.get('host_port')
             i['eth_value'] = data_dict.get('eth_value', 'eth1')
+            i["use_custom_image_url"] = data_dict.get("use_custom_image_url", False)
             i.pop('data_dict', None)
 
             status = i.get('status') or LB_DEFAULT_STATUS
