@@ -51,8 +51,8 @@ def get_namespace_name(access_token, project_id, data_dict):
     return namespace
 
 
-def get_image_url(image_url, is_custom_image_url, access_token, project_id, cluster_id):
-    if is_custom_image_url:
+def get_image_url(image_url, use_custom_image_url, access_token, project_id, cluster_id):
+    if use_custom_image_url:
         return image_url
     # 查询仓库地址
     repo_domain = paas_cc.get_jfrog_domain(access_token, project_id, cluster_id)
@@ -60,7 +60,7 @@ def get_image_url(image_url, is_custom_image_url, access_token, project_id, clus
         repo_domain = inst_constants.DEFAULT_LB_REPO_DOMAIN
     if image_url:
         return f"{repo_domain}{image_url}"
-    return f"{repo_domain}{inst_constants.DEFAULT_BCS_LB_PATH}"
+    return f"{repo_domain}{inst_constants.DEFAULT_BCS_LB_IMAGE_PATH}"
 
 
 def handle_lb(username, access_token, project_id, lb_info, cc_app_id, **params):
@@ -112,7 +112,7 @@ def handle_lb(username, access_token, project_id, lb_info, cc_app_id, **params):
     else:
         data_dict = {}
     lb_image_url = get_image_url(
-        data_dict.get("image_url"), params["is_custom_image_url"], access_token, project_id, cluster_id)
+        data_dict.get("image_url"), params["use_custom_image_url"], access_token, project_id, cluster_id)
     resource_limit = data_dict.get('resources', {}).get('limits', {})
     ns_name = get_namespace_name(access_token, project_id, data_dict)
     # 获取data标准日志输出

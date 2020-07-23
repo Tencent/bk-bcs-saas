@@ -536,4 +536,4 @@ API_VERSION = {
     }
 }
 
-DEFAULT_BCS_LB_PATH = "/paas/public/mesos/bcs-loadbalance"
+DEFAULT_BCS_LB_IMAGE_PATH = "/paas/public/mesos/bcs-loadbalance"
