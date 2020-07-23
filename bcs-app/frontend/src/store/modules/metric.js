@@ -211,7 +211,11 @@ export default {
             const projectId = params.projectId
             delete params.projectId
             delete params.displayName
-            return http.post(`${DEVOPS_BCS_API_URL}/api/projects/${projectId}/metrics/servicemonitors/`, params, config)
+            return http.post(
+                `${DEVOPS_BCS_API_URL}/api/projects/${projectId}/clusters/${params.cluster_id}/metrics/servicemonitors/`,
+                params,
+                config
+            )
         },
 
         /**
