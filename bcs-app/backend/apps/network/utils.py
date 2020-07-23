@@ -60,7 +60,7 @@ def get_image_url(image_url, use_custom_image_url, access_token, project_id, clu
         repo_domain = inst_constants.DEFAULT_LB_REPO_DOMAIN
     if image_url:
         return f"{repo_domain}{image_url}"
-    return f"{repo_domain}{inst_constants.DEFAULT_BCS_LB_IMAGE_PATH}"
+    return f"{repo_domain}{inst_constants.DEFAULT_MESOS_LB_IMAGE_PATH}"
 
 
 def handle_lb(username, access_token, project_id, lb_info, cc_app_id, **params):
