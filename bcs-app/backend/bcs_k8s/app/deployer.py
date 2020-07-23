@@ -123,7 +123,6 @@ class AppDeployer:
                 client,
                 self.app.name,
                 self.app.namespace,
-                content,
                 operation
             )
 
@@ -145,7 +144,7 @@ class AppDeployer:
 
         raise HelmError("parse helm cmd output error")
 
-    def _run_with_helm(self, client, name, namespace, content, operation):
+    def _run_with_helm(self, client, name, namespace, operation):
         transitioning_result = True
         try:
             if operation in [ChartOperations.INSTALL.value, ChartOperations.UPGRADE.value]:
