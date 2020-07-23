@@ -25,7 +25,6 @@ METRIC_PREFIX = "{apigw_host}/v4/metric"
 
 # service monitor 默认参数
 SERVICE_MONITOR_API_VERSION = "monitor.tencent.com/v1"
-SERVICE_MONITOR_NAMESPACE = "default"
 
 logger = logging.getLogger(__name__)
 
@@ -637,7 +636,11 @@ class MesosClient(BCSClientBase):
     def _get_service_monitor_url(self, namespace=None):
         """servicemonitor固定前缀
         """
-        return f"{self.scheduler_host}/mesos/customresources/monitor.tencent.com/v1/namespaces/{SERVICE_MONITOR_NAMESPACE}/servicemonitors"  # noqa
+        if namespace:
+            url = f"{self.scheduler_host}/mesos/customresources/monitor.tencent.com/v1/namespaces/{namespace}/servicemonitors"  # noqa
+        else:
+            url = f"{self.scheduler_host}/mesos/customresources/monitor.tencent.com/v1/servicemonitors"
+        return url
 
     def list_service_monitor(self, namespace=None):
         """servicemonitor列表
@@ -651,7 +654,6 @@ class MesosClient(BCSClientBase):
         """
         # Mesos API Version 是BCS定制
         spec["apiVersion"] = SERVICE_MONITOR_API_VERSION
-        spec["namespace"] = SERVICE_MONITOR_NAMESPACE
         url = self._get_service_monitor_url(namespace)
         return http_post(url, json=spec, headers=self.headers, raise_for_status=False)
 
@@ -667,7 +669,6 @@ class MesosClient(BCSClientBase):
         """
         # Mesos API Version 是BCS定制
         spec["apiVersion"] = SERVICE_MONITOR_API_VERSION
-        spec["namespace"] = SERVICE_MONITOR_NAMESPACE
         url_prefix = self._get_service_monitor_url(namespace)
         url = f"{url_prefix}/{name}"
         return http_put(url, json=spec, headers=self.headers, raise_for_status=False)
