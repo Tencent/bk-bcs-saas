@@ -38,7 +38,8 @@ class AppManager(models.Manager):
 
     def record_initialize_app(self, access_token, project_id, cluster_id, namespace_id, namespace,
                               chart_version, answers, customs, creator, updator, valuefile=None,
-                              name=None, unique_ns=0, sys_variables=None, valuefile_name=DEFAULT_VALUES_FILE_NAME):
+                              name=None, unique_ns=0, sys_variables=None,
+                              valuefile_name=DEFAULT_VALUES_FILE_NAME, **kwargs):
         # operation record
         extra = json.dumps(dict(
             access_token=access_token,
@@ -55,7 +56,8 @@ class AppManager(models.Manager):
             updator=updator,
             unique_ns=unique_ns,
             sys_variables=sys_variables,
-            valuefile_name=valuefile_name
+            valuefile_name=valuefile_name,
+            cmd_flags=kwargs["cmd_flags"]
         ))
         desc = "create Helm App, chart [{chart_name}:{template_id}], cluster[{cluster_id}], namespace[{namespace}]"
         desc = desc.format(
@@ -79,7 +81,8 @@ class AppManager(models.Manager):
 
     def initialize_app(self, access_token, project_id, cluster_id, namespace_id, namespace,
                        chart_version, answers, customs, creator, updator, valuefile=None, name=None,
-                       unique_ns=0, deploy_options=None, sys_variables=None, valuefile_name=DEFAULT_VALUES_FILE_NAME):
+                       unique_ns=0, deploy_options=None, sys_variables=None,
+                       valuefile_name=DEFAULT_VALUES_FILE_NAME, **kwargs):
         # initial app from chart
         # `namespace_id` indicate the id of namespace, and is unique in whole paas-cc, used for filter app.
         # `namespace` is basestring type and can convert by namespace_id ,
@@ -102,7 +105,8 @@ class AppManager(models.Manager):
             updator=updator,
             unique_ns=unique_ns,
             sys_variables=sys_variables,
-            valuefile_name=valuefile_name
+            valuefile_name=valuefile_name,
+            **kwargs
         )
         try:
             app = self.initialize_app_core(
@@ -121,7 +125,8 @@ class AppManager(models.Manager):
                 unique_ns=unique_ns,
                 deploy_options=deploy_options,
                 sys_variables=sys_variables,
-                valuefile_name=valuefile_name
+                valuefile_name=valuefile_name,
+                **kwargs
             )
         except Exception as e:
             logger.exception("initialize_app_core unexpected error: %s", e)
@@ -140,7 +145,8 @@ class AppManager(models.Manager):
 
     def initialize_app_core(self, access_token, project_id, cluster_id, namespace_id, namespace,
                             chart_version, answers, customs, creator, updator, valuefile=None, name=None,
-                            unique_ns=0, deploy_options=None, sys_variables=None, valuefile_name=DEFAULT_VALUES_FILE_NAME):
+                            unique_ns=0, deploy_options=None, sys_variables=None,
+                            valuefile_name=DEFAULT_VALUES_FILE_NAME, **kwargs):
         if not sys_variables:
             sys_variables = {}
 
@@ -181,7 +187,8 @@ class AppManager(models.Manager):
             updator=updator,
             unique_ns=unique_ns,
             sys_variables=sys_variables,
-            version=chart_version.version
+            version=chart_version.version,
+            cmd_flags=json.dumps(kwargs["cmd_flags"])
         )
         release.app_id = app.id
         release.save(update_fields=["app_id"])

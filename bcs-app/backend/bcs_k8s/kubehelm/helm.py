@@ -153,7 +153,8 @@ class KubeHelmClient:
 
         return template_out, notes_out
 
-    def template_with_ytt_renderer(self, files, name, namespace, parameters, valuefile, cluster_id, bcs_inject_data):
+    def template_with_ytt_renderer(self, files, name, namespace, parameters, valuefile, cluster_id, bcs_inject_data,
+                                   **kwargs):
         """支持post renderer的helm template，并使用ytt(YAML Templating Tool)注入平台信息
         命令: helm template release_name chart -n namespace --post-renderer ytt-renderer
         """
@@ -188,6 +189,11 @@ class KubeHelmClient:
                 # 4. add post render params
                 template_cmd_args += ["--post-renderer", f"{ytt_config_dir}/{YTT_RENDERER_NAME}"]
 
+                # 添加命名行参数
+                if kwargs.get("cmd_flags"):
+                    cmd_flags = [f"--{flag}" for flag in kwargs["cmd_flags"]]
+                    template_cmd_args += cmd_flags
+
                 template_out, _ = self._run_command_with_retry(max_retries=0, cmd_args=template_cmd_args)
                 # NOTE: 现阶段不需要helm notes输出
                 notes_out = ""
@@ -206,7 +212,7 @@ class KubeHelmClient:
 
         return template_out, notes_out
 
-    def _install_or_upgrade(self, cmd_args, files, chart_values, bcs_inject_data):
+    def _install_or_upgrade(self, cmd_args, files, chart_values, bcs_inject_data, **kwargs):
         try:
             with write_chart_with_ytt(files, bcs_inject_data) as (temp_dir, ytt_config_dir):
                 # NOTE: 设置用户渲染的value文件名为bcs-values.yaml；写入用户渲染的内容
@@ -216,6 +222,11 @@ class KubeHelmClient:
                 # post renderer添加平台注入信息
                 cmd_args += [temp_dir, "--values", values_path, "--post-renderer", f"{ytt_config_dir}/{YTT_RENDERER_NAME}"]
 
+                # 添加命名行参数
+                if kwargs.get("cmd_flags"):
+                    cmd_flags = [f"--{flag}" for flag in kwargs["cmd_flags"]]
+                    cmd_args += cmd_flags
+
                 cmd_out, cmd_err = self._run_command_with_retry(max_retries=0, cmd_args=cmd_args)
         except Exception as e:
             logger.exception("执行helm命令失败，命令参数: %s", json.dumps(cmd_args))
@@ -223,7 +234,7 @@ class KubeHelmClient:
 
         return cmd_out, cmd_err
 
-    def install(self, name, namespace, files, chart_values, bcs_inject_data, content=None):
+    def install(self, name, namespace, files, chart_values, bcs_inject_data, content=None, **kwargs):
         """install helm chart
         NOTE: 这里需要组装chart格式，才能使用helm install
         必要条件
@@ -235,9 +246,9 @@ class KubeHelmClient:
         - 执行命令
         """
         install_cmd_args = [settings.HELM3_BIN, "install", name, "--namespace", namespace]
-        return self._install_or_upgrade(install_cmd_args, files, chart_values, bcs_inject_data)
+        return self._install_or_upgrade(install_cmd_args, files, chart_values, bcs_inject_data, **kwargs)
 
-    def upgrade(self, name, namespace, files, chart_values, bcs_inject_data, content=None):
+    def upgrade(self, name, namespace, files, chart_values, bcs_inject_data, content=None, **kwargs):
         """upgrade helm release
         NOTE: 这里需要组装chart格式，才能使用helm upgrade
         必要条件
@@ -249,7 +260,7 @@ class KubeHelmClient:
         - 执行命令
         """
         upgrade_cmd_args = [settings.HELM3_BIN, "upgrade", name, "--namespace", namespace]
-        return self._install_or_upgrade(upgrade_cmd_args, files, chart_values, bcs_inject_data)
+        return self._install_or_upgrade(upgrade_cmd_args, files, chart_values, bcs_inject_data, **kwargs)
 
     def _uninstall_or_rollback(self, cmd_args):
         try:
