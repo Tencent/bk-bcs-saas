@@ -106,10 +106,10 @@ class UpdateShowVersionSLZ(ShowVersionNameSLZ):
 class UpdateTemplateSLZ(YamlTemplateSLZ):
     show_version = UpdateShowVersionSLZ(required=False)
     template_files = serializers.ListField(child=UpdateTemplateFileSLZ(), required=False, allow_empty=False)
-    updated_at = serializers.FloatField()
+    updated_timestamp = serializers.FloatField()
 
     def update(self, template, validated_data):
-        if validated_data["updated_at"] < template.updated.timestamp():
+        if validated_data["updated_timestamp"] < template.updated.timestamp():
             raise error_codes.ExpiredError(_("模板集内容已被更改，请刷新页面"))
 
         request = self.context["request"]
@@ -130,7 +130,7 @@ class GetTemplateFilesSLZ(serializers.Serializer):
     desc = serializers.SerializerMethodField()
     locker = serializers.SerializerMethodField()
     is_locked = serializers.SerializerMethodField()
-    updated_at = serializers.SerializerMethodField()
+    updated_timestamp = serializers.SerializerMethodField()
 
     def get_show_version(self, obj):
         return OrderedDict({"name": obj["show_version"].name, "show_version_id": obj["show_version"].id})
@@ -154,7 +154,7 @@ class GetTemplateFilesSLZ(serializers.Serializer):
     def get_is_locked(self, obj):
         return obj["template"].is_locked
 
-    def get_updated_at(self, obj):
+    def get_updated_timestamp(self, obj):
         return obj["template"].updated.timestamp()
 
 

@@ -73,7 +73,7 @@ class YamlTemplateViewSet(viewsets.ViewSet, TemplatePermission):
         request.data = {
             'name': '',
             'desc': '',
-            'updated_at': 1595907256, # timestamp
+            'updated_timestamp': 1595907256.0,
             'show_version': {
                 'name': '',
                 'old_show_version_id': '',
