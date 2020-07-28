@@ -13,13 +13,15 @@
 #
 from collections import OrderedDict
 
+from django.utils.translation import ugettext_lazy as _
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
-from . import files2res, res2files
+from backend.utils.error_codes import error_codes
 from backend.apps.configuration.constants import FileResourceName, TemplateEditMode, FileAction
 from backend.apps.configuration.showversion.serializers import ShowVersionNameSLZ, GetShowVersionSLZ
 from backend.apps.configuration import utils
+from . import files2res, res2files
 
 
 class ResourceFileSLZ(serializers.Serializer):
@@ -30,9 +32,9 @@ class ResourceFileSLZ(serializers.Serializer):
 
     def validate_id(self, id):
         try:
-            assert int(id) > 0, f'file id {id} must be positive integer'
+            assert int(id) > 0, f"file id {id} must be positive integer"
         except Exception as e:
-            raise ValidationError(f'file id {id} error: {e}')
+            raise ValidationError(f"file id {id} error: {e}")
         return id
 
 
@@ -44,14 +46,14 @@ class TemplateFileSLZ(serializers.Serializer):
 class CreateTemplateFileSLZ(TemplateFileSLZ):
     def validate_files(self, files):
         for f in files:
-            if f['action'] != FileAction.CREATE.value:
+            if f["action"] != FileAction.CREATE.value:
                 raise ValidationError(f"file {f['name']} action must be {FileAction.CREATE.value}")
-            if not f['content']:
+            if not f["content"]:
                 raise ValidationError(f"file {f['name']} content cannot be blank")
 
-        name_list = [f['name'] for f in files]
+        name_list = [f["name"] for f in files]
         if len(name_list) != len(set(name_list)):
-            raise ValidationError('file name is duplicated')
+            raise ValidationError("file name is duplicated")
 
         return files
 
@@ -59,16 +61,16 @@ class CreateTemplateFileSLZ(TemplateFileSLZ):
 class UpdateTemplateFileSLZ(TemplateFileSLZ):
     def validate_files(self, files):
         for f in files:
-            if f['action'] not in FileAction.choice_values():
+            if f["action"] not in FileAction.choice_values():
                 raise ValidationError(f"file {f['name']} action {f['action']} is invalid")
-            if 'id' not in f and f['action'] != FileAction.CREATE.value:
+            if "id" not in f and f["action"] != FileAction.CREATE.value:
                 raise ValidationError(f"file {f['name']} miss file id")
-            if not f['content'] and f['action'] != FileAction.DELETE.value:
+            if not f["content"] and f["action"] != FileAction.DELETE.value:
                 raise ValidationError(f"file {f['name']} content cannot be blank")
 
-        name_list = [f['name'] for f in files]
+        name_list = [f["name"] for f in files]
         if len(name_list) != len(set(name_list)):
-            raise ValidationError('file name is duplicated')
+            raise ValidationError("file name is duplicated")
 
         return files
 
@@ -84,16 +86,16 @@ class CreateTemplateSLZ(YamlTemplateSLZ):
     template_files = serializers.ListField(child=CreateTemplateFileSLZ(), allow_empty=False)
 
     def create(self, validated_data):
-        request = self.context['request']
-        project_id = validated_data['project_id']
+        request = self.context["request"]
+        project_id = validated_data["project_id"]
         desc_args = {
-            'name': validated_data['name'],
-            'desc': validated_data.get('desc', ''),
-            'project_id': project_id,
-            'edit_mode': TemplateEditMode.YAML.value
+            "name": validated_data["name"],
+            "desc": validated_data.get("desc", ""),
+            "project_id": project_id,
+            "edit_mode": TemplateEditMode.YAML.value,
         }
         template = utils.create_template_with_perm_check(request, project_id, desc_args)
-        files2res.create_resources(template, validated_data['show_version'], validated_data['template_files'])
+        files2res.create_resources(template, validated_data["show_version"], validated_data["template_files"])
         return template
 
 
@@ -104,18 +106,20 @@ class UpdateShowVersionSLZ(ShowVersionNameSLZ):
 class UpdateTemplateSLZ(YamlTemplateSLZ):
     show_version = UpdateShowVersionSLZ(required=False)
     template_files = serializers.ListField(child=UpdateTemplateFileSLZ(), required=False, allow_empty=False)
+    updated_timestamp = serializers.FloatField()
 
     def update(self, template, validated_data):
-        request = self.context['request']
+        if validated_data["updated_timestamp"] < template.updated.timestamp():
+            raise error_codes.ExpiredError(_("模板集内容已被更改，请刷新页面"))
+
+        request = self.context["request"]
         desc_args = {
-            'name': validated_data['name'],
-            'desc': validated_data.get('desc', ''),
+            "name": validated_data["name"],
+            "desc": validated_data.get("desc", ""),
         }
         template = utils.update_template_with_perm_check(request, template, desc_args)
-        if validated_data.get('show_version'):
-            files2res.update_resources(
-                template, validated_data['show_version'], validated_data.get('template_files')
-            )
+        if validated_data.get("show_version"):
+            files2res.update_resources(template, validated_data["show_version"], validated_data.get("template_files"))
         return template
 
 
@@ -126,28 +130,32 @@ class GetTemplateFilesSLZ(serializers.Serializer):
     desc = serializers.SerializerMethodField()
     locker = serializers.SerializerMethodField()
     is_locked = serializers.SerializerMethodField()
+    updated_timestamp = serializers.SerializerMethodField()
 
     def get_show_version(self, obj):
-        return OrderedDict({'name': obj['show_version'].name, 'show_version_id': obj['show_version'].id})
+        return OrderedDict({"name": obj["show_version"].name, "show_version_id": obj["show_version"].id})
 
     def get_template_files(self, obj):
-        version_id = obj['show_version'].real_version_id
-        if self.context['with_file_content']:
-            return res2files.get_template_files(version_id, 'id', 'name', 'content')
+        version_id = obj["show_version"].real_version_id
+        if self.context["with_file_content"]:
+            return res2files.get_template_files(version_id, "id", "name", "content")
         else:
-            return res2files.get_template_files(version_id, 'id', 'name')
+            return res2files.get_template_files(version_id, "id", "name")
 
     def get_name(self, obj):
-        return obj['template'].name
+        return obj["template"].name
 
     def get_desc(self, obj):
-        return obj['template'].desc
+        return obj["template"].desc
 
     def get_locker(self, obj):
-        return obj['template'].locker
+        return obj["template"].locker
 
     def get_is_locked(self, obj):
-        return obj['template'].is_locked
+        return obj["template"].is_locked
+
+    def get_updated_timestamp(self, obj):
+        return obj["template"].updated.timestamp()
 
 
 class PreviewResourceFileSLZ(serializers.Serializer):
@@ -170,10 +178,10 @@ class TemplateReleaseSLZ(serializers.Serializer):
         data = super().to_internal_value(data)
 
         template_files = []
-        for res_file in data['template_files']:
-            res_file_ids = [f['id'] for f in res_file['files']]
-            res_file = res2files.get_resource_file(res_file['resource_name'], res_file_ids, 'id', 'name', 'content')
+        for res_file in data["template_files"]:
+            res_file_ids = [f["id"] for f in res_file["files"]]
+            res_file = res2files.get_resource_file(res_file["resource_name"], res_file_ids, "id", "name", "content")
             template_files.append(res_file)
-        data['template_files'] = template_files
+        data["template_files"] = template_files
 
         return data
