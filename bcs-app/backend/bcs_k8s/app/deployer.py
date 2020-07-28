@@ -23,6 +23,8 @@ from backend.bcs_k8s.kubectl.exceptions import KubectlError, KubectlExecutionErr
 from backend.bcs_k8s.kubehelm.exceptions import HelmExecutionError, HelmError
 from backend.utils.basic import ChoicesEnum
 from backend.utils import client as bcs_client
+from backend.bcs_k8s import utils as bcs_helm_utils
+from backend.bcs_k8s.app.utils import get_cc_app_id
 
 logger = logging.getLogger(__name__)
 
@@ -121,7 +123,6 @@ class AppDeployer:
                 client,
                 self.app.name,
                 self.app.namespace,
-                content,
                 operation
             )
 
@@ -143,31 +144,31 @@ class AppDeployer:
 
         raise HelmError("parse helm cmd output error")
 
-    def _run_with_helm(self, client, name, namespace, content, operation):
+    def _run_with_helm(self, client, name, namespace, operation):
         transitioning_result = True
         try:
-            if operation == ChartOperations.INSTALL.value:
-                # 需要解析out，获取revision信息，用于rollback
-                cmd_out = client.install(
+            if operation in [ChartOperations.INSTALL.value, ChartOperations.UPGRADE.value]:
+                project_id = self.app.project_id
+                namespace = self.app.namespace
+                bcs_inject_data = bcs_helm_utils.BCSInjectData(
+                    source_type="helm",
+                    creator=self.app.creator,
+                    updator=self.app.updator,
+                    version=self.app.release.chartVersionSnapshot.version,
+                    project_id=project_id,
+                    app_id=get_cc_app_id(self.access_token, project_id),
+                    cluster_id=self.app.cluster_id,
+                    namespace=namespace,
+                    stdlog_data_id=bcs_helm_utils.get_stdlog_data_id(project_id),
+                    image_pull_secret=bcs_helm_utils.provide_image_pull_secrets(namespace)
+                )
+                # 获取执行的操作命令
+                cmd_out = getattr(client, operation)(
                     name=name,
                     namespace=namespace,
-                    tmpl_content=content,
-                    chart_name=self.app.chart.name,
-                    chart_version=self.app.version,
+                    files=self.app.release.chartVersionSnapshot.files,
                     chart_values=self.app.release.valuefile,
-                    chart_api_version="v2"
-                )[0]
-                self.app.release.revision = self.get_release_revision(cmd_out)
-                self.app.release.save()
-            elif operation == ChartOperations.UPGRADE.value:
-                cmd_out = client.upgrade(
-                    name=name,
-                    namespace=namespace,
-                    tmpl_content=content,
-                    chart_name=self.app.chart.name,
-                    chart_version=self.app.version,
-                    chart_values=self.app.release.valuefile,
-                    chart_api_version="v2"
+                    bcs_inject_data=bcs_inject_data,
                 )[0]
                 self.app.release.revision = self.get_release_revision(cmd_out)
                 self.app.release.save()

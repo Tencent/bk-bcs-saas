@@ -116,6 +116,7 @@ class LoadBalancesSLZ(serializers.Serializer):
         default=31000,
         validators=[MaxValueValidator(32000), MinValueValidator(31000)]
     )
+    use_custom_image_url = serializers.BooleanField(required=False, default=False)
 
     def validate_constraints(self, constraints):
         """测试数据
