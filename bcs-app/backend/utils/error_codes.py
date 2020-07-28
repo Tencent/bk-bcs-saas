@@ -26,7 +26,7 @@ class APIError(APIException):
     BrowsableAPIRenderer.show_form_for_method permissons异常无法捕获
     """
 
-    delimiter = ': '
+    delimiter = ": "
 
     def __init__(self, code):
         self.code_obj = code
@@ -40,7 +40,7 @@ class APIError(APIException):
     def __repr__(self):
         """命令行查看使用
         """
-        return '<%s,%s>' % (self.code_obj.code_name, self.code)
+        return "<%s,%s>" % (self.code_obj.code_name, self.code)
 
     @property
     def message(self):
@@ -65,7 +65,7 @@ class APIError(APIException):
             if replace:
                 self.code_obj.message = message
             else:
-                self.code_obj.message += '%s%s' % (self.delimiter, message)
+                self.code_obj.message += "%s%s" % (self.delimiter, message)
 
         # Render message string
         if kwargs:
@@ -127,44 +127,44 @@ error_codes = ErrorCodeCollection()
 
 
 # API使用
-error_codes.add_codes([
-    ErrorCode('APIError', 40001, _("请求失败")),
-    ErrorCode('NoBCSService', 416, _("该项目没有使用蓝鲸容器服务")),
-    ErrorCode('ValidateError', 40002, _("参数不正确")),
-    ErrorCode('ComponentError', 40003, _("第三方接口调用失败")),
-    ErrorCode('JsonFormatError', 40004, _("json格式错误")),
-    ErrorCode('ParamMissError', 40005, _("参数缺失")),
-    ErrorCode('CheckFailed', 40006, _("校验失败")),
-
-    # Helm相关错误码(前端已经在使用)
-    ErrorCode('HelmNoRegister', 40031, _("集群未注册")),
-    ErrorCode('HelmNoNode', 40032, _("集群下没有节点")),
-
-    # 功能暂未开放
-    ErrorCode("NotOpen", 40040, _("功能正在建设中")),
-
-    # 未登入, 只是定义，一般不需要使用
-    ErrorCode("Unauthorized", 40101, _("用户未登录或登录态失效，请使用登录链接重新登录"), status.HTTP_401_UNAUTHORIZED),
-
-    # 没有权限，最好使用drf permission class检查权限
-    ErrorCode("Forbidden", 40301, _("没有使用权限"), status.HTTP_403_FORBIDDEN),
-    # 权限中心错误码
-    ErrorCode("IAMCheckFailed", 40302, _("权限校验失败"), status.HTTP_403_FORBIDDEN),
-
-    # 资源未找到
-    ErrorCode("ResNotFoundError", 40400, _("资源未找到"), status.HTTP_404_NOT_FOUND),
-])
+error_codes.add_codes(
+    [
+        ErrorCode("APIError", 40001, _("请求失败")),
+        ErrorCode("NoBCSService", 416, _("该项目没有使用蓝鲸容器服务")),
+        ErrorCode("ValidateError", 40002, _("参数不正确")),
+        ErrorCode("ComponentError", 40003, _("第三方接口调用失败")),
+        ErrorCode("JsonFormatError", 40004, _("json格式错误")),
+        ErrorCode("ParamMissError", 40005, _("参数缺失")),
+        ErrorCode("CheckFailed", 40006, _("校验失败")),
+        ErrorCode("ExpiredError", 40007, _("资源已过期")),
+        # Helm相关错误码(前端已经在使用)
+        ErrorCode("HelmNoRegister", 40031, _("集群未注册")),
+        ErrorCode("HelmNoNode", 40032, _("集群下没有节点")),
+        # 功能暂未开放
+        ErrorCode("NotOpen", 40040, _("功能正在建设中")),
+        # 未登入, 只是定义，一般不需要使用
+        ErrorCode("Unauthorized", 40101, _("用户未登录或登录态失效，请使用登录链接重新登录"), status.HTTP_401_UNAUTHORIZED),
+        # 没有权限，最好使用drf permission class检查权限
+        ErrorCode("Forbidden", 40301, _("没有使用权限"), status.HTTP_403_FORBIDDEN),
+        # 权限中心错误码
+        ErrorCode("IAMCheckFailed", 40302, _("权限校验失败"), status.HTTP_403_FORBIDDEN),
+        # 资源未找到
+        ErrorCode("ResNotFoundError", 40400, _("资源未找到"), status.HTTP_404_NOT_FOUND),
+    ]
+)
 
 bk_error_codes = ErrorCodeCollection()
 # 打印日志使用, 1402是分配给BCS SaaS使用
-bk_error_codes.add_codes([
-    ErrorCode('ConfigError', 1402400, _("配置{}错误")),
-    # 权限中心API调用错误
-    ErrorCode('IAMError', 1402100, _("权限中心接口调用失败:")),
-    # 仓库API调用错误
-    ErrorCode('DepotError', 1402101, _("仓库接口调用失败:")),
-    # 消息管理API调用错误，请按ESB的错误码指引排查
-    ErrorCode('CmsiError', 1402102, _("消息管理CMSI接口调用失败:")),
-    # 蓝鲸登录平台API调用错误，请按ESB的错误码指引排查
-    ErrorCode('BkLoginError', 1402103, _("蓝鲸登录平台接口调用失败:")),
-])
+bk_error_codes.add_codes(
+    [
+        ErrorCode("ConfigError", 1402400, _("配置{}错误")),
+        # 权限中心API调用错误
+        ErrorCode("IAMError", 1402100, _("权限中心接口调用失败:")),
+        # 仓库API调用错误
+        ErrorCode("DepotError", 1402101, _("仓库接口调用失败:")),
+        # 消息管理API调用错误，请按ESB的错误码指引排查
+        ErrorCode("CmsiError", 1402102, _("消息管理CMSI接口调用失败:")),
+        # 蓝鲸登录平台API调用错误，请按ESB的错误码指引排查
+        ErrorCode("BkLoginError", 1402103, _("蓝鲸登录平台接口调用失败:")),
+    ]
+)

@@ -63,16 +63,17 @@ class YamlTemplateViewSet(viewsets.ViewSet, TemplatePermission):
         }
         """
         data = self._request_data(request, project_id=project_id)
-        serializer = serializers.CreateTemplateSLZ(data=data, context={'request': request})
+        serializer = serializers.CreateTemplateSLZ(data=data, context={"request": request})
         serializer.is_valid(raise_exception=True)
         template = serializer.save()
-        return Response({'template_id': template.id})
+        return Response({"template_id": template.id})
 
     def update_template(self, request, project_id, template_id):
         """
         request.data = {
             'name': '',
             'desc': '',
+            'updated_at': 1595907256, # timestamp
             'show_version': {
                 'name': '',
                 'old_show_version_id': '',
@@ -85,25 +86,23 @@ class YamlTemplateViewSet(viewsets.ViewSet, TemplatePermission):
         """
         template = get_template_by_project_and_id(project_id, template_id)
         data = self._request_data(request, project_id=project_id)
-        serializer = serializers.UpdateTemplateSLZ(template, data=data, context={'request': request})
+        serializer = serializers.UpdateTemplateSLZ(template, data=data, context={"request": request})
         serializer.is_valid(raise_exception=True)
         template = serializer.save()
-        return Response({'template_id': template.id})
+        return Response({"template_id": template.id})
 
     def get_template_by_show_version(self, request, project_id, template_id, show_version_id):
         serializer = GetShowVersionSLZ(data=self.kwargs)
         serializer.is_valid(raise_exception=True)
         validated_data = serializer.validated_data
 
-        template = validated_data['template']
+        template = validated_data["template"]
         self.can_view_template(request, template)
 
-        with_file_content = request.query_params.get('with_file_content')
-        with_file_content = False if with_file_content == 'false' else True
+        with_file_content = request.query_params.get("with_file_content")
+        with_file_content = False if with_file_content == "false" else True
 
-        serializer = serializers.GetTemplateFilesSLZ(
-            validated_data, context={'with_file_content': with_file_content}
-        )
+        serializer = serializers.GetTemplateFilesSLZ(validated_data, context={"with_file_content": with_file_content})
         return Response(serializer.data)
 
     def get_template(self, request, project_id, template_id):
@@ -111,12 +110,10 @@ class YamlTemplateViewSet(viewsets.ViewSet, TemplatePermission):
         serializer.is_valid(raise_exception=True)
         validated_data = serializer.validated_data
 
-        template = validated_data['template']
+        template = validated_data["template"]
         self.can_view_template(request, template)
 
-        serializer = serializers.GetTemplateFilesSLZ(
-            validated_data, context={'with_file_content': True}
-        )
+        serializer = serializers.GetTemplateFilesSLZ(validated_data, context={"with_file_content": True})
         return Response(serializer.data)
 
 
@@ -125,27 +122,27 @@ class TemplateReleaseViewSet(viewsets.ViewSet, TemplatePermission):
 
     def _request_data(self, request, **kwargs):
         request_data = request.data.copy() or {}
-        request_data['show_version'] = kwargs
+        request_data["show_version"] = kwargs
         return request_data
 
     # TODO use resources module function
     def _get_namespace_info(self, access_token, project_id, namespace_id):
         resp = paas_cc.get_namespace(access_token, project_id, namespace_id)
-        if resp.get('code') != 0:
+        if resp.get("code") != 0:
             raise error_codes.APIError(f"get namespace(id:{namespace_id}) info error: {resp.get('message')}")
-        return resp.get('data')
+        return resp.get("data")
 
     def _raw_release_data(self, project_id, initial_data):
-        show_version = initial_data['show_version']
+        show_version = initial_data["show_version"]
         namespace_info = self._get_namespace_info(
-            self.request.user.token.access_token, project_id, initial_data['namespace_id']
+            self.request.user.token.access_token, project_id, initial_data["namespace_id"]
         )
         raw_release_data = ReleaseData(
             project_id=project_id,
             namespace_info=namespace_info,
-            show_version=show_version['show_version'],
-            template_files=initial_data['template_files'],
-            template_variables=initial_data['template_variables']
+            show_version=show_version["show_version"],
+            template_files=initial_data["template_files"],
+            template_variables=initial_data["template_variables"],
         )
         return raw_release_data
 
@@ -161,13 +158,14 @@ class TemplateReleaseViewSet(viewsets.ViewSet, TemplatePermission):
             'template_variables': {}
         }
         """
-        data = self._request_data(request, project_id=project_id, template_id=template_id,
-                                  show_version_id=show_version_id)
+        data = self._request_data(
+            request, project_id=project_id, template_id=template_id, show_version_id=show_version_id
+        )
         serializer = serializers.TemplateReleaseSLZ(data=data)
         serializer.is_valid(raise_exception=True)
         validated_data = serializer.validated_data
 
-        template = validated_data['show_version']['template']
+        template = validated_data["show_version"]["template"]
         self.can_use_template(request, template)
 
         # 在数据平台创建项目信息
@@ -183,13 +181,10 @@ class TemplateReleaseViewSet(viewsets.ViewSet, TemplatePermission):
         )
         release_data = processor.release_data()
 
-        if validated_data['is_preview']:
+        if validated_data["is_preview"]:
             return Response(release_data.template_files)
 
-        controller = DeployController(
-            user=self.request.user,
-            release_data=release_data
-        )
+        controller = DeployController(user=self.request.user, release_data=release_data)
 
         controller.apply()
         return Response()
