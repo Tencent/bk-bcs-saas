@@ -85,6 +85,7 @@ class CreateClusterSLZ(serializers.Serializer):
         min_length=1
     )
     need_nat = serializers.BooleanField(default=True)
+    cluster_type = serializers.CharField(required=False, default="")
 
     def validate_master_ips(self, value):
         # 现阶段k8s和mesos的master数量最大限制为5个
@@ -109,6 +110,11 @@ class CreateClusterSLZ(serializers.Serializer):
         if resp.get('data', {}).get('count'):
             raise ValidationError(_("集群名称已经存在，请修改后重试"))
         return value
+
+    def validate_cluster_type(self, cluster_type):
+        if cluster_type:
+            return cluster_type
+        return self.context["default_cluster_type"]
 
 
 class UpdateClusterSLZ(serializers.Serializer):

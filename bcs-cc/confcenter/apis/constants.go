@@ -26,7 +26,7 @@ var defaultMasterStatus = "initializing"
 var clusterFilterStataus = []string{"removed"}
 
 // cluster type
-var clusterTypeMap = map[uint]string{1: "k8s", 2: "mesos", 3: "k8s"}
+var clusterTypeFromProject = map[uint]string{1: "k8s", 2: "mesos", 3: "k8s"}
 
 var clusterIDRange = map[string]([]int){
 	"mesos-stag":  []int{10000, 15000},

@@ -92,3 +92,13 @@ func GetPojectFromAuthData(respData interface{}) (data []string, err error) {
 		return nil, errors.New("project of auth response format is unknow")
 	}
 }
+
+// 转换集群类型
+// 兼容k8s，转换k8s到bcs-k8s
+func convertClusterType(clusterType string) string {
+	// TODO: 是否枚举所有类型，严格限制下类型
+	if clusterType == "k8s" {
+		return "bcs-k8s"
+	}
+	return clusterType
+}
