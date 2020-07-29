@@ -57,7 +57,7 @@ class AppManager(models.Manager):
             unique_ns=unique_ns,
             sys_variables=sys_variables,
             valuefile_name=valuefile_name,
-            cmd_flags=kwargs["cmd_flags"]
+            cmd_flags=kwargs.get("cmd_flags")
         ))
         desc = "create Helm App, chart [{chart_name}:{template_id}], cluster[{cluster_id}], namespace[{namespace}]"
         desc = desc.format(
@@ -188,7 +188,7 @@ class AppManager(models.Manager):
             unique_ns=unique_ns,
             sys_variables=sys_variables,
             version=chart_version.version,
-            cmd_flags=json.dumps(kwargs["cmd_flags"])
+            cmd_flags=json.dumps(kwargs.get("cmd_flags") or [])
         )
         release.app_id = app.id
         release.save(update_fields=["app_id"])
