@@ -11,6 +11,7 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
+import json
 import datetime
 import yaml
 import logging
@@ -428,7 +429,8 @@ class ChartRelease(BaseTSModel):
                 parameters=self.parameters,
                 valuefile=self.generate_valuesyaml(self.app.project_id, self.app.namespace_id, self.app.cluster_id),
                 cluster_id=self.app.cluster_id,
-                bcs_inject_data=bcs_inject_data
+                bcs_inject_data=bcs_inject_data,
+                cmd_flags=json.loads(self.app.cmd_flags)
             )
 
         return content, notes

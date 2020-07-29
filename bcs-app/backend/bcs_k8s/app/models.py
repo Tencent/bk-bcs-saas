@@ -84,6 +84,8 @@ class App(models.Model):
     unique_ns = models.IntegerField(default=0)
     # allow to use helm command
     enable_helm = models.BooleanField(default=False, help_text="如果为True，允许使用helm命名操作chart/release")
+    # 记录helm命令行参数
+    cmd_flags = models.TextField(help_text="命令行参数", null=True, blank=True, default="[]")
 
     objects = AppManager()
 
@@ -239,7 +241,7 @@ class App(models.Model):
         self.save(update_fields=["transitioning_result", "transitioning_message", "transitioning_on", "updated"])
 
     def record_upgrade_app(self, chart_version_id, answers, customs, updator, access_token,
-                           valuefile=None, sys_variables=None, valuefile_name=DEFAULT_VALUES_FILE_NAME):
+                           valuefile=None, sys_variables=None, valuefile_name=DEFAULT_VALUES_FILE_NAME, **kwargs):
         # operation record
         extra = json.dumps(dict(
             access_token=access_token,
@@ -250,6 +252,7 @@ class App(models.Model):
             updator=updator,
             sys_variables=sys_variables,
             valuefile_name=valuefile_name,
+            **kwargs
         ))
         logger_client = client.UserActivityLogClient(
             project_id=self.project_id,
@@ -308,7 +311,7 @@ class App(models.Model):
 
     def upgrade_app(self, chart_version_id, answers, customs, updator, access_token, valuefile=None,
                     kubeconfig_content=None, ignore_empty_access_token=None, extra_inject_source=None,
-                    sys_variables=None, valuefile_name=DEFAULT_VALUES_FILE_NAME):
+                    sys_variables=None, valuefile_name=DEFAULT_VALUES_FILE_NAME, **kwargs):
         from .tasks import upgrade_app, sync_or_async
 
         # if self.transitioning_on:
@@ -328,27 +331,38 @@ class App(models.Model):
             "extra_inject_source": extra_inject_source,
             "sys_variables": sys_variables,
             "valuefile_name": valuefile_name,
+            **kwargs
         })
         return self
 
     def upgrade_app_task(self, chart_version_id, answers, customs, updator, access_token, valuefile=None,
                          kubeconfig_content=None, ignore_empty_access_token=None, extra_inject_source=None,
-                         sys_variables=None, valuefile_name=DEFAULT_VALUES_FILE_NAME):
+                         sys_variables=None, valuefile_name=DEFAULT_VALUES_FILE_NAME, **kwargs):
         # make upgrade
         # `chart_version_id` indicate the target chartverion for app,
         # it can also use KEEP_TEMPLATE_UNCHANGED to keep app template unchanged.
 
         # operation record
         log_client = self.record_upgrade_app(
-            chart_version_id, answers, customs, updator, access_token, valuefile, sys_variables, valuefile_name)
+            chart_version_id,
+            answers,
+            customs,
+            updator,
+            access_token,
+            valuefile,
+            sys_variables,
+            valuefile_name,
+            **kwargs
+        )
 
         self.release = ChartRelease.objects.make_upgrade_release(
             self, chart_version_id, answers, customs, valuefile=valuefile, valuefile_name=valuefile_name)
         self.version = self.release.chartVersionSnapshot.version
         self.updator = updator
+        self.cmd_flags = json.dumps(kwargs.get("cmd_flags") or [])
         if sys_variables:
             self.sys_variables = sys_variables
-        self.save(update_fields=["release", "updator", "updated", "sys_variables", "version"])
+        self.save(update_fields=["release", "updator", "updated", "sys_variables", "version", "cmd_flags"])
 
         try:
             app_deployer = AppDeployer(

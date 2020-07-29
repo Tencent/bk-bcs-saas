@@ -188,6 +188,7 @@ class AppSLZ(AppBaseSLZ):
         source="get_valuefile_name", write_only=True, default=DEFAULT_VALUES_FILE_NAME)
 
     current_version = serializers.CharField(source="get_current_version", read_only=True)
+    cmd_flags = serializers.JSONField(required=False, default=[])
 
     def create(self, validated_data):
         namespace_info = self.get_ns_info_by_id(validated_data["namespace_info"])
@@ -226,7 +227,8 @@ class AppSLZ(AppBaseSLZ):
             creator=self.request_username,
             updator=self.request_username,
             sys_variables=sys_variables,
-            valuefile_name=validated_data.get('get_valuefile_name')
+            valuefile_name=validated_data.get('get_valuefile_name'),
+            cmd_flags=validated_data["cmd_flags"]
         )
 
     def validate_name(self, value):
@@ -262,6 +264,7 @@ class AppSLZ(AppBaseSLZ):
             "current_version",
             "id",
             "valuefile_name",
+            "cmd_flags"
         )
         read_only_fields = (
             "namespace",
@@ -407,6 +410,7 @@ class AppUpgradeSLZ(AppBaseSLZ):
     )
     valuefile_name = serializers.CharField(
         source="get_valuefile_name", write_only=True, default=DEFAULT_VALUES_FILE_NAME)
+    cmd_flags = serializers.JSONField(required=False, default=[])
 
     def update(self, instance, validated_data):
         # update sys variable
@@ -424,6 +428,7 @@ class AppUpgradeSLZ(AppBaseSLZ):
             updator=self.request_username,
             sys_variables=sys_variables,
             valuefile_name=validated_data.get("get_valuefile_name"),
+            cmd_flags=validated_data["cmd_flags"]
         )
 
     class Meta:
@@ -443,7 +448,8 @@ class AppUpgradeSLZ(AppBaseSLZ):
             "transitioning_on",
             "transitioning_action",
             "id",
-            "valuefile_name"
+            "valuefile_name",
+            "cmd_flags"
         )
         read_only_fields = (
             "name",
@@ -851,6 +857,7 @@ class AppCreatePreviewSLZ(AppMixin, serializers.Serializer):
 
     content = serializers.JSONField(read_only=True)
     notes = serializers.JSONField(read_only=True)
+    cmd_flags = serializers.JSONField(required=False, default=[])
 
     def create(self, validated_data):
         """ 生成应用的预览数据，这个时候应用没有创建，release也没有创建 """
@@ -894,6 +901,7 @@ class AppCreatePreviewSLZ(AppMixin, serializers.Serializer):
         )
         client = KubeHelmClient(helm_bin=settings.HELM3_BIN)
         try:
+            extra_params = {"cmd_flags": validated_data["cmd_flags"]}
             content, notes = client.template_with_ytt_renderer(
                 files=validated_data["chart_version"].files,
                 namespace=namespace_info["name"],
@@ -901,7 +909,8 @@ class AppCreatePreviewSLZ(AppMixin, serializers.Serializer):
                 parameters=parameters,
                 valuefile=valuefile,
                 cluster_id=cluster_id,
-                bcs_inject_data=bcs_inject_data
+                bcs_inject_data=bcs_inject_data,
+                **extra_params
             )
         except helm_exceptions.HelmBaseException:
             # raise ParseError(str(e))
@@ -937,6 +946,7 @@ class AppCreatePreviewSLZ(AppMixin, serializers.Serializer):
             "valuefile",
             "content",
             "notes",
+            "cmd_flags"
         )
         read_only_fields = (
             "content",

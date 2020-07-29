@@ -11,6 +11,7 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
+import json
 import logging
 import contextlib
 import traceback
@@ -169,6 +170,7 @@ class AppDeployer:
                     files=self.app.release.chartVersionSnapshot.files,
                     chart_values=self.app.release.valuefile,
                     bcs_inject_data=bcs_inject_data,
+                    cmd_flags=json.loads(self.app.cmd_flags)
                 )[0]
                 self.app.release.revision = self.get_release_revision(cmd_out)
                 self.app.release.save()
