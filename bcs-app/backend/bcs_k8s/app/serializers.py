@@ -327,6 +327,7 @@ class AppDetailSLZ(AppBaseSLZ):
         }
     )
     valuefile_name = serializers.CharField(source="get_valuefile_name", read_only=True)
+    cmd_flags = serializers.JSONField(source="get_cmd_flags", read_only=True)
 
     class Meta:
         model = App
@@ -354,6 +355,7 @@ class AppDetailSLZ(AppBaseSLZ):
             "created",
             "updated",
             "valuefile_name",
+            "cmd_flags"
         )
 
 
