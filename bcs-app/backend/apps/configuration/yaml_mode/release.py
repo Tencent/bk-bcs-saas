@@ -43,12 +43,6 @@ class ReleaseDataProcessor:
         self.template_files = raw_release_data.template_files
         self.template_variables = raw_release_data.template_variables
 
-    def _parse_yaml(self, yaml_content):
-        return bcs_info_injector.parse_manifest(yaml_content)
-
-    def _join_manifest(self, resources):
-        return bcs_info_injector.join_manifest(resources)
-
     def _get_bcs_variables(self):
         sys_variables = bcs_variable.collect_system_variable(
             access_token=self.access_token, project_id=self.project_id, namespace_id=self.namespace_info["id"]
@@ -82,12 +76,12 @@ class ReleaseDataProcessor:
             raise ParseError("set namespace failed: no valid metadata in manifest")
 
     def _inject_bcs_info(self, yaml_content, inject_configs):
-        resources = self._parse_yaml(yaml_content)
+        resources = bcs_info_injector.parse_manifest(yaml_content)
         context = {"creator": self.username, "updator": self.username, "version": self.show_version.name}
         manager = bcs_info_injector.InjectManager(configs=inject_configs, resources=resources, context=context)
         resources = manager.do_inject()
         self._set_namespace(resources)
-        return self._join_manifest(resources)
+        return bcs_info_injector.join_manifest(resources)
 
     def _get_inject_configs(self):
         now = datetime.datetime.now()
