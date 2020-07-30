@@ -118,6 +118,9 @@ class App(models.Model):
             "version": self.get_current_version()
         }
 
+    def get_cmd_flags(self):
+        return json.loads(self.cmd_flags)
+
     def _template_with_ytt_renderer(self, username, access_token,
                                     ignore_empty_access_token=False, extra_inject_source=None):
 
