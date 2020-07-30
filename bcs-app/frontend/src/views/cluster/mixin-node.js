@@ -207,7 +207,9 @@ export default {
             isBatchReInstall: false,
             // 允许批量操作 -> 重新添加的状态
             batchReInstallStatusList: ['initial_failed', 'check_failed', 'so_init_failed', 'schedule_failed', 'bke_failed'],
-            clipboardInstance: null
+            clipboardInstance: null,
+            hostSourceKey: 'bcs_host_pool',
+            hostSourceList: [{ id: 'bcs_host_pool', name: '平台机器' }, { id: 'biz_host_pool', name: '业务机器' }]
         }
     },
     computed: {
@@ -679,6 +681,13 @@ export default {
         },
 
         /**
+         * cc host 弹框中 change 机器来源下拉框回调函数
+         */
+        async changeHostSource (index, data) {
+            await this.fetchCCData()
+        },
+
+        /**
          * 获取 cc 表格数据
          *
          * @param {Object} params ajax 查询参数
@@ -686,12 +695,17 @@ export default {
         async fetchCCData (params = {}) {
             this.ccHostLoading = true
             try {
-                const res = await this.$store.dispatch('cluster/getCCHostList', {
+                const args = {
                     projectId: this.projectId,
                     limit: this.pageConf.pageSize,
                     offset: params.offset,
                     ip_list: params.ipList || []
-                })
+                }
+                if (this.curProject.kind === 3) {
+                    args.node_role = 'node'
+                    args.host_source = this.hostSourceKey
+                }
+                const res = await this.$store.dispatch('cluster/getCCHostList', args)
 
                 this.ccApplicationName = res.data.cc_application_name || ''
 
