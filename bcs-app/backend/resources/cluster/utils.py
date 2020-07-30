@@ -56,14 +56,14 @@ def get_cluster_masters(access_token, project_id, cluster_id):
     return results
 
 
-def get_cluster_nodes(access_token, project_id, cluster_id):
+def get_cluster_nodes(access_token, project_id, cluster_id, raise_exception=True):
     """获取集群下的node信息
     """
     resp = paas_cc.get_node_list(access_token, project_id, cluster_id)
     if resp.get("code") != ErrorCode.NoError:
         raise error_codes.APIError(_("获取集群node ip失败，{}").format(resp.get("message")))
     results = resp.get("data", {}).get("results") or []
-    if not results:
+    if not results and raise_exception:
         raise error_codes.APIError(_("获取集群node ip为空"))
     return results
 
