@@ -209,7 +209,7 @@ export default {
             batchReInstallStatusList: ['initial_failed', 'check_failed', 'so_init_failed', 'schedule_failed', 'bke_failed'],
             clipboardInstance: null,
             hostSourceKey: 'bcs_host_pool',
-            hostSourceList: [{ id: 'bcs_host_pool', name: this.$t('平台机器') }, { id: 'biz_host_pool', name: this.$t('业务机器') }]
+            hostSourceList: [{ id: 'bcs_host_pool', name: this.$t('平台资源池') }, { id: 'biz_host_pool', name: this.$t('业务资源池') }]
         }
     },
     computed: {
@@ -704,6 +704,7 @@ export default {
                 if (this.curProject.kind === PROJECT_TKE) {
                     args.node_role = 'node'
                     args.host_source = this.hostSourceKey
+                    args.cluster_id = this.clusterId
                 }
                 const res = await this.$store.dispatch('cluster/getCCHostList', args)
 

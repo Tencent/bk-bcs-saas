@@ -1226,10 +1226,9 @@ export default {
     '是否有sid': ['has sid'],
     '转换到YAML': ['Export To YAML'],
     '选择Service以获取Label': ['Select Service for get Label'],
-    '机器来源：': ['Host Source: '],
-    '机器会转移到项目绑定的业务': ['The machine will be transferred to the business bound by the project.'],
-    '平台机器': ['BIZ Host'],
-    '业务机器': ['BCS Host'],
+    '服务器来源：': ['Host Source: '],
+    '平台资源池': ['BIZ Host'],
+    '业务资源池': ['BCS Host'],
     // 变量的使用 $t('test', { vari1: 1, vari2: 2 })
     'test': ['{vari1} ---english--- {vari2}']
 }
