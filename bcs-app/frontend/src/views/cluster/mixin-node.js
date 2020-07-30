@@ -209,7 +209,7 @@ export default {
             batchReInstallStatusList: ['initial_failed', 'check_failed', 'so_init_failed', 'schedule_failed', 'bke_failed'],
             clipboardInstance: null,
             hostSourceKey: 'bcs_host_pool',
-            hostSourceList: [{ id: 'bcs_host_pool', name: '平台机器' }, { id: 'biz_host_pool', name: '业务机器' }]
+            hostSourceList: [{ id: 'bcs_host_pool', name: this.$t('平台机器') }, { id: 'biz_host_pool', name: this.$t('业务机器') }]
         }
     },
     computed: {
@@ -701,7 +701,7 @@ export default {
                     offset: params.offset,
                     ip_list: params.ipList || []
                 }
-                if (this.curProject.kind === 3) {
+                if (this.curProject.kind === PROJECT_TKE) {
                     args.node_role = 'node'
                     args.host_source = this.hostSourceKey
                 }
