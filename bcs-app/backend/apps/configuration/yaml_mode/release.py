@@ -11,12 +11,9 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-import json
 import datetime
-from io import StringIO
 
 import jinja2
-from ruamel.yaml import YAML
 from dataclasses import dataclass
 from rest_framework.exceptions import ParseError
 
@@ -47,33 +44,18 @@ class ReleaseDataProcessor:
         self.template_variables = raw_release_data.template_variables
 
     def _parse_yaml(self, yaml_content):
-        try:
-            yaml = YAML()
-            resources = list(yaml.load_all(yaml_content))
-        except Exception as e:
-            raise ParseError(f'Parse manifest failed: \n{e}\n\nManifest content:\n{yaml_content}')
-        else:
-            # ordereddict to dict
-            return json.loads(json.dumps(resources))
+        return bcs_info_injector.parse_manifest(yaml_content)
 
     def _join_manifest(self, resources):
-        try:
-            yaml = YAML()
-            s = StringIO()
-            yaml.dump_all(resources, s)
-        except Exception as e:
-            raise ParseError(f'join manifest failed: {e}')
-        else:
-            return s.getvalue()
+        return bcs_info_injector.join_manifest(resources)
 
     def _get_bcs_variables(self):
         sys_variables = bcs_variable.collect_system_variable(
-            access_token=self.access_token,
-            project_id=self.project_id,
-            namespace_id=self.namespace_info['id']
+            access_token=self.access_token, project_id=self.project_id, namespace_id=self.namespace_info["id"]
         )
         bcs_variables = bcs_variable.get_bcs_variables(
-            self.project_id, self.namespace_info["cluster_id"], self.namespace_info["id"])
+            self.project_id, self.namespace_info["cluster_id"], self.namespace_info["id"]
+        )
         sys_variables.update(bcs_variables)
         return sys_variables
 
@@ -82,33 +64,27 @@ class ReleaseDataProcessor:
         return t.render(bcs_variables)
 
     def _set_namespace(self, resources):
-        ignore_ns_res = [FileResourceName.ClusterRole.value,
-                         FileResourceName.ClusterRoleBinding.value,
-                         FileResourceName.StorageClass.value,
-                         FileResourceName.PersistentVolume.value]
+        ignore_ns_res = [
+            FileResourceName.ClusterRole.value,
+            FileResourceName.ClusterRoleBinding.value,
+            FileResourceName.StorageClass.value,
+            FileResourceName.PersistentVolume.value,
+        ]
 
         try:
             for res_manifest in resources:
-                if res_manifest['kind'] in ignore_ns_res:
+                if res_manifest["kind"] in ignore_ns_res:
                     continue
 
-                metadata = res_manifest['metadata']
-                metadata['namespace'] = self.namespace_info['name']
+                metadata = res_manifest["metadata"]
+                metadata["namespace"] = self.namespace_info["name"]
         except Exception:
-            raise ParseError('set namespace failed: no valid metadata in manifest')
+            raise ParseError("set namespace failed: no valid metadata in manifest")
 
     def _inject_bcs_info(self, yaml_content, inject_configs):
         resources = self._parse_yaml(yaml_content)
-        context = {
-            'creator': self.username,
-            'updator': self.username,
-            'version': self.show_version.name
-        }
-        manager = bcs_info_injector.InjectManager(
-            configs=inject_configs,
-            resources=resources,
-            context=context
-        )
+        context = {"creator": self.username, "updator": self.username, "version": self.show_version.name}
+        manager = bcs_info_injector.InjectManager(configs=inject_configs, resources=resources, context=context)
         resources = manager.do_inject()
         self._set_namespace(resources)
         return self._join_manifest(resources)
@@ -118,15 +94,15 @@ class ReleaseDataProcessor:
         configs = bcs_info_injector.inject_configs(
             access_token=self.access_token,
             project_id=self.project_id,
-            cluster_id=self.namespace_info['cluster_id'],
-            namespace_id=self.namespace_info['id'],
-            namespace=self.namespace_info['name'],
+            cluster_id=self.namespace_info["cluster_id"],
+            namespace_id=self.namespace_info["id"],
+            namespace=self.namespace_info["name"],
             creator=self.username,
             updator=self.username,
             created_at=now,
             updated_at=now,
             version=self.show_version.name,
-            source_type='template'
+            source_type="template",
         )
         return configs
 
@@ -135,7 +111,7 @@ class ReleaseDataProcessor:
             content = self._render_with_variables(raw_content, bcs_variables)
             return self._inject_bcs_info(content, inject_configs)
         except Exception as e:
-            raise ParseError(f'inject failed: {e}')
+            raise ParseError(f"inject failed: {e}")
 
     def release_data(self):
         inject_configs = self._get_inject_configs()
@@ -145,7 +121,8 @@ class ReleaseDataProcessor:
             bcs_variables.update(self.template_variables)
 
         for res_files in self.template_files:
-            for f in res_files['files']:
-                f['content'] = self._inject(f['content'], inject_configs, bcs_variables)
-        return ReleaseData(self.project_id, self.namespace_info, self.show_version, self.template_files,
-                           self.template_variables)
+            for f in res_files["files"]:
+                f["content"] = self._inject(f["content"], inject_configs, bcs_variables)
+        return ReleaseData(
+            self.project_id, self.namespace_info, self.show_version, self.template_files, self.template_variables
+        )
