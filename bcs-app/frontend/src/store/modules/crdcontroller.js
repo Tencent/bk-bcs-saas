@@ -54,6 +54,20 @@ export default {
         },
 
         /**
+         * 启用组件
+         *
+         * @param {Object} context store 上下文对象
+         * @param {Object} projectId, clusterId, name
+         * @param {Object} config 请求的配置
+         *
+         * @return {Promise} promise 对象
+         */
+        enableCrdController (context, { projectId, clusterId, name }, config = {}) {
+            const url = `${DEVOPS_BCS_API_URL}/api/projects/${projectId}/bcs_crd/clusters/${clusterId}/crd_controllers/`
+            return http.post(url, { name }, config)
+        },
+
+        /**
          * 查询crd列表 (老)
          *
          * @param {Object} context store 上下文对象
