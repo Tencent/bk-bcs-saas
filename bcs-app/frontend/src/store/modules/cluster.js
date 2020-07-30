@@ -113,6 +113,20 @@ export default {
         },
 
         /**
+         * TKE 创建集群时获取所属 VPC 信息
+         *
+         * @param {Object} context store 上下文对象
+         * @param {Object} params 请求参数
+         * @param {Object} config 请求的配置
+         *
+         * @return {Promise} promise 对象
+         */
+        getVPC (context, params, config = {}) {
+            const projectId = params.projectId
+            return http.get(`${DEVOPS_BCS_API_URL}/api/projects/${projectId}/vpcs/?${json2Query(params.data)}`, {}, config)
+        },
+
+        /**
          * 创建集群时获取备选服务器列表
          *
          * @param {Object} context store 上下文对象
