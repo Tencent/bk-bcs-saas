@@ -248,8 +248,6 @@ def _do_helm_repo_charts_update(repo, sign, charts, index_hash, force=False):
                     continue
             else:
                 chart_version = ChartVersion()
-                current_chart_version_ids.append(chart_version.id)
-                full_chart_versions[chart_version.id] = chart_version
 
             # 2.3 do update
             try:
@@ -266,6 +264,10 @@ def _do_helm_repo_charts_update(repo, sign, charts, index_hash, force=False):
             icon_url = version.get("icon")
             if not chart.icon and icon_url:
                 chart.update_icon(icon_url)
+            # 针对新创建的chart version，记录chart全量版本，便于后续针对版本的处理
+            if not chart_version_id:
+                current_chart_version_ids.append(chart_version.id)
+                full_chart_versions[chart_version.id] = chart_version
 
         if chart_changed:
             chart.changed_at = datetime.datetime.now()  # update chart's updated_at whenever a chartversion changed
