@@ -145,7 +145,7 @@ class ServiceMonitor(viewsets.ViewSet):
     def _validate_namespace_use_perm(self, request, project_id, namespace_list):
         """检查是否有命名空间的使用权限
         """
-        namespace_map = self._get_cluster_map(project_id)
+        namespace_map = self._get_namespace_map(project_id)
         for namespace in namespace_list:
             if namespace in self.NO_PERM_NS:
                 raise error_codes.APIError(_("namespace operation is not allowed"))
@@ -185,7 +185,7 @@ class ServiceMonitor(viewsets.ViewSet):
 
     def list(self, request, project_id, cluster_id):
         cluster_map = self._get_cluster_map(project_id)
-        namespace_map = self._get_cluster_map(project_id)
+        namespace_map = self._get_namespace_map(project_id)
         data = []
 
         if cluster_id not in cluster_map:
