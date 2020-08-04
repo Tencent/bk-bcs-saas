@@ -229,6 +229,17 @@ def get_node_info(cluster_id, ip):
     return resp.get("data") or {}
 
 
+def get_container_pod_count(cluster_id, ip):
+    """获取K8S节点容器/Pod数量
+    """
+    prom_query = f"""
+        label_replace(sum by (instance) ({{__name__="kubelet_running_container_count", cluster_id="{cluster_id}", instance=~"{ip}:\\\\d+"}}), "metric_name", "container_count", "instance", ".*") or
+        label_replace(sum by (instance) ({{__name__="kubelet_running_pod_count", cluster_id="{cluster_id}", instance=~"{ip}:\\\\d+"}}), "metric_name", "pod_count", "instance", ".*")
+    """  # noqa
+    resp = query(prom_query)
+    return resp.get("data") or {}
+
+
 def get_node_cpu_usage(cluster_id, ip):
     """获取CPU总使用率
     """
