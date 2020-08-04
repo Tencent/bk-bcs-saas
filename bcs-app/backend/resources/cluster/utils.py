@@ -18,6 +18,8 @@ from django.utils.translation import ugettext_lazy as _
 from backend.components import paas_cc
 from backend.utils.errcodes import ErrorCode
 from backend.utils.error_codes import error_codes
+from backend.utils.decorators import parse_response_data
+from backend.utils.cache import region
 
 
 def get_clusters(access_token, project_id):
@@ -92,3 +94,17 @@ def update_cluster_status(access_token, project_id, cluster_id, status):
     if resp.get("code") != ErrorCode.NoError:
         raise error_codes.APIError(_("更新集群状态失败，{}").format(resp.get("message")))
     return resp.get("data") or {}
+
+
+@parse_response_data(default_data={})
+def get_cluster(access_token, project_id, cluster_id):
+    return paas_cc.get_cluster(access_token, project_id, cluster_id)
+
+
+@region.cache_on_arguments(expiration_time=3600 * 24 * 7)
+def get_cluster_coes(access_token, project_id, cluster_id):
+    """获取集群类型，因为集群创建后，集群类型不允许修改
+    TODO: 为减少调用接口耗时，是否需要缓存？
+    """
+    cluster = get_cluster(access_token, project_id, cluster_id)
+    return cluster["type"]
