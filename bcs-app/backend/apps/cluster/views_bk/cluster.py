@@ -224,7 +224,7 @@ class CreateCluster(BaseCluster):
             context={
                 "project_id": self.project_id,
                 "access_token": self.access_token,
-                "default_cluster_type": self.kind_name
+                "default_coes_name": self.kind_name
             }
         )
         slz.is_valid(raise_exception=True)
@@ -298,7 +298,7 @@ class CreateCluster(BaseCluster):
         ]
         cluster_data["state"] = cluster_data["cluster_state"]
         # 添加类型参数
-        cluster_data["type"] = cluster_data["cluster_type"]
+        cluster_data["type"] = cluster_data["coes_name"]
         self.cluster_name = self.data['name']
         # 创建set
         with client.ContextActivityLogClient(
