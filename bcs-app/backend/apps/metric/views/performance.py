@@ -88,8 +88,8 @@ class Node(base.MetricViewMixin, viewsets.ViewSet):
 
         for count in container_pod_count.get("result") or []:
             for k, v in count["metric"].items():
-                if k == "metric_name":
-                    data[v] = count["value"][1] if count["value"] else "0"
+                if k == "metric_name" and count["value"]:
+                    data[v] = count["value"][1]
         return response.Response(data)
 
     def info(self, request, project_id, cluster_id):
