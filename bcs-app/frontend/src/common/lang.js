@@ -1229,6 +1229,7 @@ export default {
     '服务器来源：': ['Host Source: '],
     '平台资源池': ['BIZ Host'],
     '业务资源池': ['BCS Host'],
+    'Pod数量': ['Pods'],
     // 变量的使用 $t('test', { vari1: 1, vari2: 2 })
     'test': ['{vari1} ---english--- {vari2}']
 }
