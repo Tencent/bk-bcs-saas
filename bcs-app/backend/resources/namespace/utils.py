@@ -65,7 +65,7 @@ def get_namespace_by_id(access_token, project_id, namespace_id):
 def get_k8s_namespaces(access_token, project_id, cluster_id):
     """获取集群中实时的namespace
     """
-    client = K8SClient(access_token, project_id, cluster_id)
+    client = K8SClient(access_token, project_id, cluster_id, env=None)
     return client.get_namespace()
 
 
