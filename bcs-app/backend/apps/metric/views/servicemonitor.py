@@ -113,7 +113,7 @@ class ServiceMonitor(viewsets.ViewSet):
                 item["metadata"] = {k: v for k, v in item["metadata"].items() if k not in FILTERED_METADATA}
                 item["cluster_id"] = cluster_id
                 item["namespace"] = item["metadata"]["namespace"]
-                item["namespace_id"] = namespace_map.get(item["metadata"]["namespace"])
+                item["namespace_id"] = namespace_map.get((cluster_id, item["metadata"]["namespace"]))
                 item["name"] = item["metadata"]["name"]
                 item["instance_id"] = f"{item['namespace']}/{item['name']}"
                 item["service_name"] = labels.get(self.SERVICE_NAME_LABEL)
@@ -145,7 +145,7 @@ class ServiceMonitor(viewsets.ViewSet):
     def _validate_namespace_use_perm(self, request, project_id, namespace_list):
         """检查是否有命名空间的使用权限
         """
-        namespace_map = self._get_cluster_map(project_id)
+        namespace_map = self._get_namespace_map(project_id)
         for namespace in namespace_list:
             if namespace in self.NO_PERM_NS:
                 raise error_codes.APIError(_("namespace operation is not allowed"))
@@ -180,12 +180,12 @@ class ServiceMonitor(viewsets.ViewSet):
         """
         resp = paas_cc.get_namespace_list(self.request.user.token.access_token, project_id, limit=ALL_LIMIT)
         namespace_list = resp.get("data", {}).get("results") or []
-        namespace_map = {i["name"]: i["id"] for i in namespace_list}
+        namespace_map = {(i["cluster_id"], i["name"]): i["id"] for i in namespace_list}
         return namespace_map
 
     def list(self, request, project_id, cluster_id):
         cluster_map = self._get_cluster_map(project_id)
-        namespace_map = self._get_cluster_map(project_id)
+        namespace_map = self._get_namespace_map(project_id)
         data = []
 
         if cluster_id not in cluster_map:
@@ -210,7 +210,7 @@ class ServiceMonitor(viewsets.ViewSet):
         if cluster_id is None:
             cluster_id = data["cluster_id"]
 
-        self._validate_namespace_use_perm(request, project_id, [data["namespace"]])
+        self._validate_namespace_use_perm(request, project_id, [(cluster_id, data["namespace"])])
 
         endpoints = [
             {
@@ -274,7 +274,7 @@ class ServiceMonitor(viewsets.ViewSet):
     def delete(self, request, project_id, cluster_id, namespace, name):
         """删除servicemonitor
         """
-        self._validate_namespace_use_perm(request, project_id, [namespace])
+        self._validate_namespace_use_perm(request, project_id, [(cluster_id, namespace)])
         client = self._get_client(request, project_id, cluster_id)
         result = client.delete_service_monitor(namespace, name)
         if result.get("status") == "Failure":

@@ -392,6 +392,8 @@ export default {
                             item.memMetric = this.nodeSummaryMap[item.id].memMetric
                             item.diskMetric = this.nodeSummaryMap[item.id].diskMetric
                             item.diskioMetric = this.nodeSummaryMap[item.id].diskioMetric
+                            item.containerCount = this.nodeSummaryMap[item.id].containerCount
+                            item.podCount = this.nodeSummaryMap[item.id].podCount
                         }
                     })
                 }
@@ -570,12 +572,16 @@ export default {
                 cur.memMetric = parseFloat(res.data.memory_usage).toFixed(2)
                 cur.diskMetric = parseFloat(res.data.disk_usage).toFixed(2)
                 cur.diskioMetric = parseFloat(res.data.diskio_usage).toFixed(2)
+                cur.containerCount = res.data.container_count || 0
+                cur.podCount = res.data.pod_count || 0
 
                 this.nodeSummaryMap[cur.id] = {
                     cpuMetric: cur.cpuMetric,
                     memMetric: cur.memMetric,
                     diskMetric: cur.diskMetric,
-                    diskioMetric: cur.diskioMetric
+                    diskioMetric: cur.diskioMetric,
+                    containerCount: cur.containerCount,
+                    podCount: cur.podCount
                 }
 
                 this.$set(this.nodeList, index, cur)

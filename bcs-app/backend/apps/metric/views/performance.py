@@ -75,12 +75,21 @@ class Node(base.MetricViewMixin, viewsets.ViewSet):
         memory_usage = prometheus.get_node_memory_usage(cluster_id, ip)
         disk_usage = prometheus.get_node_disk_usage(cluster_id, ip)
         diskio_usage = prometheus.get_node_diskio_usage(cluster_id, ip)
+        container_pod_count = prometheus.get_container_pod_count(cluster_id, ip)
+
         data = {
             "cpu_usage": cpu_usage,
             "memory_usage": memory_usage,
             "disk_usage": disk_usage,
             "diskio_usage": diskio_usage,
+            "container_count": "0",
+            "pod_count": "0",
         }
+
+        for count in container_pod_count.get("result") or []:
+            for k, v in count["metric"].items():
+                if k == "metric_name" and count["value"]:
+                    data[v] = count["value"][1]
         return response.Response(data)
 
     def info(self, request, project_id, cluster_id):
