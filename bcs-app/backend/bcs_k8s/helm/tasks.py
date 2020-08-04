@@ -270,7 +270,7 @@ def _do_helm_repo_charts_update(repo, sign, charts, index_hash, force=False):
                 full_chart_versions[chart_version.id] = chart_version
 
         if chart_changed:
-            chart.changed_at = datetime.datetime.now()  # update chart's updated_at whenever a chartversion changed
+            chart.changed_at = timezone.now()
             chart.save(update_fields=["changed_at"])
 
         # 3. chartVersion sync delete
