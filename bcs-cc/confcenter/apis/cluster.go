@@ -215,8 +215,7 @@ func CreateCluster(c *gin.Context) {
 		utils.DBErrorResponse(c, err)
 		return
 	}
-	// NOTE: 兼容类型为k8s，转换一次
-	data.Type = convertClusterType(data.Type)
+
 	if !utils.StringInSlice(data.Environment, config.GlobalConfigurations.AvailableEnvironmentFlags) {
 		utils.BadReqJSONResponse(c, errors.New("params[environment] is illegal"))
 		return
@@ -356,18 +355,18 @@ func generateClusterIDNum(data *createClusterDataJSON) (clusterID string, cluste
 	if err != nil {
 		return "", 0, err
 	}
-	clusterType, ok := clusterTypeFromProject[projectInfo.Kind]
+	clusterCOES, ok := projectKindCOES[projectInfo.Kind]
 	if !ok {
 		return "", 0, errors.New("cluster type must be k8s or mesos")
 	}
 	// note: cluster env not change
-	clusterNum, err = models.GetMaxClusterNum(clusterType, data.Environment)
+	clusterNum, err = models.GetMaxClusterNum(clusterCOES, data.Environment)
 	if err != nil {
 		return "", 0, err
 	}
-	envTypeStart := clusterIDRange[fmt.Sprintf("%v-%v", clusterType, clusterENV)]
+	envTypeStart := clusterIDRange[fmt.Sprintf("%v-%v", clusterCOES, clusterENV)]
 	clusterNum = int(math.Max(float64(clusterNum), float64(envTypeStart[0])))
-	clusterID = fmt.Sprintf("BCS-%v-%v", strings.ToUpper(clusterType), clusterNum)
+	clusterID = fmt.Sprintf("BCS-%v-%v", strings.ToUpper(clusterCOES), clusterNum)
 	return clusterID, clusterNum, nil
 }
 

@@ -328,10 +328,10 @@ func (cluster *Cluster) DeleteRecord() error {
 }
 
 // GetMaxClusterNum : get the max cluster id number
-func GetMaxClusterNum(clusterType string, clusterEnv string) (clusterNum int, err error) {
+func GetMaxClusterNum(clusterCOES string, clusterEnv string) (clusterNum int, err error) {
 	db := storage.GetDefaultSession().DB
 	// 兼容处理获取不同类型，不同环境对应的cluster id对应数字的最大值
-	sql := fmt.Sprintf("select max(cluster_num) as max_num from clusters where cluster_id like '%%%v%%' and environment='%v'", strings.ToUpper(clusterType), clusterEnv)
+	sql := fmt.Sprintf("select max(cluster_num) as max_num from clusters where cluster_id like '%%%v%%' and environment='%v'", strings.ToUpper(clusterCOES), clusterEnv)
 	var maxInst struct{ MaxNum int }
 	if err := db.Raw(sql).Scan(&maxInst).Error; err != nil {
 		return 0, err
