@@ -77,15 +77,15 @@ class CreateClusterSLZ(serializers.Serializer):
         default=cluster_constants.ClusterState.BCSNew.value
     )
     name = serializers.CharField(max_length=64)
-    description = serializers.CharField(required=False, default="")
-    area_id = serializers.IntegerField(required=False, default=1)
+    description = serializers.CharField(default="")
+    area_id = serializers.IntegerField(default=1)
     environment = serializers.CharField(max_length=8)
     master_ips = serializers.ListField(
         child=serializers.CharField(min_length=1),
         min_length=1
     )
     need_nat = serializers.BooleanField(default=True)
-    coes = serializers.CharField(required=False, default="")
+    coes = serializers.CharField(default="")
 
     def validate_master_ips(self, value):
         # 现阶段k8s和mesos的master数量最大限制为5个
