@@ -52,7 +52,7 @@
                                         <div class="bk-selector-node bk-selector-sub-node"
                                             :class="{ 'bk-selector-selected': !multiSelect && child[settingKey] === selected,'is-disabled': child.isDisabled }">
                                             <div class="text" @click.stop="selectItem(child, $event)" :title="child[displayKey]">
-                                                <label class="bk-form-checkbox bk-checkbox-small mr0 bk-selector-multi-label" v-if="multiSelect">
+                                                <label class="bk-form-checkbox bk-checkbox-small mr0 bk-selector-multi-label" v-if="multiSelect" style="line-height: 42px;">
                                                     <input type="checkbox"
                                                         :name="'multiSelect' + +new Date()"
                                                         :value="child[settingKey]"
@@ -81,7 +81,7 @@
                             <template v-else>
                                 <div class="bk-selector-node" :class="{ 'bk-selector-selected': !multiSelect && item[settingKey] === selected, 'is-disabled': item.isDisabled }">
                                     <div class="text" @click.stop="selectItem(item, $event)" :title="item[displayKey]">
-                                        <label class="bk-form-checkbox bk-checkbox-small mr0 bk-selector-multi-label" v-if="multiSelect">
+                                        <label class="bk-form-checkbox bk-checkbox-small mr0 bk-selector-multi-label" v-if="multiSelect" style="line-height: 42px;">
                                             <input type="checkbox"
                                                 :name="'multiSelect' + +new Date()"
                                                 :value="item[settingKey]"
