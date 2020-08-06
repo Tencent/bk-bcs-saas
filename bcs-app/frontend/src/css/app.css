@@ -2363,3 +2363,14 @@ div.jsoneditor {
 .biz-span {
     max-width: 1280px;
 }
+
+.biz-helm-tree {
+    .bk-tree .node-title {
+        max-width: 200px;
+        white-space: nowrap;
+        overflow: hidden;
+        display: inline-block;
+        vertical-align: middle;
+        text-overflow: ellipsis;
+    }
+}
