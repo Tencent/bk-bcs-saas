@@ -19,25 +19,26 @@ from urllib.parse import urlparse
 
 from django.conf import settings
 from django.utils.translation import ugettext_lazy as _
+from rest_framework import views
+from rest_framework.renderers import BrowsableAPIRenderer
 
 from backend.accounts import bcs_perm
 from backend.apps.constants import ProjectKind
-from backend.components import paas_auth
+from backend.components import paas_auth, paas_cc
 from backend.components.bcs.k8s import K8SClient
 from backend.components.bcs.mesos import MesosClient
 from backend.utils.cache import rd_client
+from backend.utils.errcodes import ErrorCode
 from backend.utils.error_codes import error_codes
 from backend.utils.renderers import BKAPIRenderer
 from backend.utils.response import BKAPIResponse
 from backend.web_console import constants, pod_life_cycle
 from backend.web_console.bcs_client import k8s, mesos
 from backend.web_console.utils import get_kubectld_version
-from rest_framework import views
-from rest_framework.renderers import BrowsableAPIRenderer
 
 from ..session import session_mgr
 from . import utils
-from .serializers import K8SWebConsoleSLZ, MesosWebConsoleSLZ, K8SWebConsoleOpenSLZ
+from .serializers import K8SWebConsoleOpenSLZ, K8SWebConsoleSLZ, MesosWebConsoleSLZ
 
 logger = logging.getLogger(__name__)
 
@@ -243,13 +244,21 @@ class CreateOpenSession(views.APIView):
     def get_k8s_context(self, request, project_id_or_code, cluster_id):
         """获取docker监控信息
         """
-        access_token = paas_auth.get_access_token()
-        client = K8SClient(access_token["access_token"], project_id_or_code, cluster_id, None)
+        access_token = paas_auth.get_access_token().get("access_token")
+
+        result = paas_cc.get_project(access_token, project_id_or_code)
+
+        if result.get("code") != ErrorCode.NoError:
+            raise error_codes.APIError(_("项目Code或者ID不正确: {}").format(result.get("message", "")))
+
+        project_id = result["data"]["project_id"]
+
+        client = K8SClient(access_token, project_id, cluster_id, None)
         slz = K8SWebConsoleOpenSLZ(data=request.data, context={"client": client})
         slz.is_valid(raise_exception=True)
 
         try:
-            bcs_context = utils.get_k8s_cluster_context(client, project_id_or_code, cluster_id)
+            bcs_context = utils.get_k8s_cluster_context(client, project_id, cluster_id)
         except Exception as error:
             logger.exception("get access cluster context failed: %s", error)
             message = _("获取集群{}【{}】WebConsole session 信息失败").format(cluster_id, cluster_id)
@@ -258,6 +267,7 @@ class CreateOpenSession(views.APIView):
 
         bcs_context["mode"] = k8s.ContainerDirectClient.MODE
         bcs_context["user_pod_name"] = slz.validated_data["pod_name"]
+        bcs_context["project_id"] = project_id
         bcs_context.update(slz.validated_data)
 
         return bcs_context
@@ -271,7 +281,7 @@ class CreateOpenSession(views.APIView):
         context.setdefault("namespace", constants.NAMESPACE)
 
         session = session_mgr.create("", "")
-        context["project_id"] = project_id_or_code
+        context["project_id_or_code"] = project_id_or_code
         context["cluster_id"] = cluster_id
         session_id = session.set(context)
         container_name = context.get("container_name", "")
