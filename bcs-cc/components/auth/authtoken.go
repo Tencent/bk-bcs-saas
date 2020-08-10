@@ -41,8 +41,11 @@ func GetAccessToken() (string, error) {
 		"id_provider": "client",
 		"grant_type":  "client_credentials",
 		"env_name":    "prod",
-		"app_code":    confBase.CCAppCode,
-		"app_secret":  confBase.CCAppSecret,
+	}
+	headers := map[string]string{
+		"Content-Type":    "application/json",
+		"X-BK-APP-CODE":   confBase.CCAppCode,
+		"X-BK-APP-SECRET": confBase.CCAppSecret,
 	}
 	// compose the request
 	req := utils.GoReq{
@@ -50,7 +53,7 @@ func GetAccessToken() (string, error) {
 		URL:     reqURL,
 		Params:  "",
 		Data:    reqData,
-		Header:  map[string]string{"Content-Type": "application/json"},
+		Header:  headers,
 		Timeout: time.Duration(10),
 	}
 	body, err := utils.RequestClient(req, authConf.Proxy)
