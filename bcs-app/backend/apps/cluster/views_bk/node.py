@@ -205,7 +205,9 @@ class CreateNode(BaseNode):
         self.data = slz.validated_data
 
     def check_node_ip(self):
-        project_node_list = [info['inner_ip'] for info in self.project_nodes]
+        project_node_list = [
+            info['inner_ip'] for info in self.project_nodes if info['status'] in [CommonStatus.Removed]
+        ]
         intersection = set(project_node_list) & set(self.ip_list)
         if intersection:
             raise error_codes.CheckFailed(_("部分主机已经使用，IP为{}").format(','.join(intersection)))
