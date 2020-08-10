@@ -221,7 +221,11 @@ class CreateCluster(BaseCluster):
     def check_data(self):
         slz = serializers.CreateClusterSLZ(
             data=self.request.data,
-            context={'project_id': self.project_id, 'access_token': self.access_token}
+            context={
+                "project_id": self.project_id,
+                "access_token": self.access_token,
+                "default_coes": self.kind_name
+            }
         )
         slz.is_valid(raise_exception=True)
         self.data = slz.validated_data
@@ -293,6 +297,8 @@ class CreateCluster(BaseCluster):
             for ip in self.data['master_ips']
         ]
         cluster_data["state"] = cluster_data["cluster_state"]
+        # 添加类型参数
+        cluster_data["type"] = cluster_data["coes"]
         self.cluster_name = self.data['name']
         # 创建set
         with client.ContextActivityLogClient(

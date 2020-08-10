@@ -211,18 +211,11 @@ func CreateCluster(c *gin.Context) {
 	}
 	data.NotNeedNAT = !data.NeedNAT
 	data.ProjectID = projectID
-	projectInfo, err := getProjectInfo(projectID)
-	err = verifyAreaExist(data.AreaID)
-	if err != nil {
+	if err := verifyAreaExist(data.AreaID); err != nil {
 		utils.DBErrorResponse(c, err)
 		return
 	}
-	clusterType, ok := clusterTypeMap[projectInfo.Kind]
-	if !ok {
-		utils.BadReqJSONResponse(c, errors.New("cluster type must be k8s or mesos"))
-		return
-	}
-	data.Type = clusterType
+
 	if !utils.StringInSlice(data.Environment, config.GlobalConfigurations.AvailableEnvironmentFlags) {
 		utils.BadReqJSONResponse(c, errors.New("params[environment] is illegal"))
 		return
@@ -358,15 +351,22 @@ func generateClusterIDNum(data *createClusterDataJSON) (clusterID string, cluste
 	if config.GlobalConfigurations.RunENV == develop {
 		clusterENV = stagClusterENV
 	}
-
-	// note: cluster env not change
-	clusterNum, err = models.GetMaxClusterNum(data.Type, data.Environment)
+	projectInfo, err := getProjectInfo(data.ProjectID)
 	if err != nil {
 		return "", 0, err
 	}
-	envTypeStart := clusterIDRange[fmt.Sprintf("%v-%v", data.Type, clusterENV)]
+	clusterCOES, ok := projectKindCOES[projectInfo.Kind]
+	if !ok {
+		return "", 0, errors.New("cluster type must be k8s or mesos")
+	}
+	// note: cluster env not change
+	clusterNum, err = models.GetMaxClusterNum(clusterCOES, data.Environment)
+	if err != nil {
+		return "", 0, err
+	}
+	envTypeStart := clusterIDRange[fmt.Sprintf("%v-%v", clusterCOES, clusterENV)]
 	clusterNum = int(math.Max(float64(clusterNum), float64(envTypeStart[0])))
-	clusterID = fmt.Sprintf("BCS-%v-%v", strings.ToUpper(data.Type), clusterNum)
+	clusterID = fmt.Sprintf("BCS-%v-%v", strings.ToUpper(clusterCOES), clusterNum)
 	return clusterID, clusterNum, nil
 }
 
