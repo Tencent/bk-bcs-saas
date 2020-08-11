@@ -95,8 +95,8 @@ export default {
          *
          * @return {Promise} promise 对象
          */
-        getAreaList (context, projectId, config = {}) {
-            return http.get(`${DEVOPS_BCS_API_URL}/api/projects/${projectId}/areas`, {}, config)
+        getAreaList (context, params, config = {}) {
+            return http.get(`${DEVOPS_BCS_API_URL}/api/projects/${params.projectId}/areas?${json2Query(params.data)}`, {}, config)
         },
 
         /**
@@ -868,7 +868,7 @@ export default {
          * @return {Promise} promise 对象
          */
         getTKEConf (context, { projectId }, config = {}) {
-            return http.get(`${DEVOPS_BCS_API_URL}/api/projects/${projectId}/tke_conf/`, {}, config)
+            return http.get(`${DEVOPS_BCS_API_URL}/api/projects/${projectId}/tke_conf/?coes=tke`, {}, config)
         },
 
         /**
@@ -881,7 +881,7 @@ export default {
          * @return {Promise} promise 对象
          */
         getK8SConf (context, { projectId }, config = {}) {
-            return http.get(`${DEVOPS_BCS_API_URL}/api/projects/${projectId}/cluster_type_versions/`, {}, config)
+            return http.get(`${DEVOPS_BCS_API_URL}/api/projects/${projectId}/cluster_type_versions/?coes=k8s`, {}, config)
         },
 
         // ------------------------------------------------------------------------------------------------ //
