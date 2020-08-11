@@ -68,6 +68,9 @@ from backend.bcs_k8s.app.utils_bk import get_or_create_private_repo
 
 logger = logging.getLogger(__name__)
 
+# Helm 执行超时时间，设置为10min
+HELM_TASK_TIMEOUT = timezone.timedelta(minutes=10)
+
 
 class AppViewBase(AccessTokenMixin, ProjectMixin, viewsets.ModelViewSet):
     queryset = App.objects.all()
@@ -134,8 +137,7 @@ class AppView(ActionSerializerMixin, AppViewBase):
                 App.objects.filter(id=item["id"]).update(version=version)
                 item["current_version"] = version
 
-            helm_deploy_timeout = timezone.timedelta(minutes=60)
-            if item["transitioning_on"] and (timezone.now() - item["updated"]) > helm_deploy_timeout:
+            if item["transitioning_on"] and (timezone.now() - item["updated"]) > HELM_TASK_TIMEOUT:
                 App.objects.filter(id=item["id"]).update(
                     transitioning_on=False,
                     transitioning_result=False,
