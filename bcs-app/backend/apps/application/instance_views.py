@@ -130,6 +130,23 @@ class QueryAllTaskgroups(BaseTaskgroupCls):
         info = data[0]
         return info.get("message") or "", info.get("reason") or ""
 
+    def is_normal(self, status):
+        """获取pod的状态是否正常
+        1. 如果pod phase不处于Succeeded或者Running则肯定是异常的
+        2. 如果pod下的container中包含reason和message，则认为处于了异常
+        """
+        pod_status = status.get("phase")
+        if pod_status not in ["Succeeded", "Running"]:
+            return False
+        # 查询container状态
+        container_statuses = status.get("containerStatuses") or []
+        for info in container_statuses:
+            state = info.get("state") or {}
+            for item in state.values():
+                if item.get("reason") and item.get("message"):
+                    return False
+        return True
+
     def get_pod_info(self, data):
         """获取pod信息
         TODO: message信息怎样获取
@@ -150,7 +167,8 @@ class QueryAllTaskgroups(BaseTaskgroupCls):
                 "podIP": status.get("podIP"),
                 "host_ip": status.get("hostIP"),
                 "message": message,
-                "reason": reason
+                "reason": reason,
+                "is_normal": self.is_normal(status)
             })
             ret_data.append(item)
         return ret_data
