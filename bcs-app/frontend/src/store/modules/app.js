@@ -1416,6 +1416,40 @@ export default {
                 data,
                 config
             )
+        },
+
+        /**
+         * 获取 gamestatefulset 集合
+         *
+         * @param {Object} context store 上下文对象
+         * @param {string} projectId 项目 id
+         * @param {Object} config 请求的配置
+         *
+         * @return {Promise} promise 对象
+         */
+        getGameStatefulsetList (context, params, config = {}) {
+            return http.get(
+                `${DEVOPS_BCS_API_URL}/api/dashboard/projects/${params.projectId}/clusters/${params.clusterId}/crds/${params.gamestatefulsets}/custom_objects/?${json2Query(params.data)}`,
+                {},
+                config
+            )
+        },
+
+        /**
+         * 获取 gamestatefulset 详细信息
+         *
+         * @param {Object} context store 上下文对象
+         * @param {string} projectId 项目 id
+         * @param {Object} config 请求的配置
+         *
+         * @return {Promise} promise 对象
+         */
+        getGameStatefulsetInfo (context, params, config = {}) {
+            return http.get(
+                `${DEVOPS_BCS_API_URL}/api/dashboard/projects/${params.projectId}/clusters/${params.clusterId}/crds/${params.gamestatefulsets}/custom_objects/${params.name}/?${json2Query(params.data)}`,
+                {},
+                config
+            )
         }
     }
 }
