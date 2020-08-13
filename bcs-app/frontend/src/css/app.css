@@ -2173,7 +2173,7 @@ div.jsoneditor {
                     }
                 }
 
-                &:nth-of-type(6n) {
+                &:nth-of-type(4n) {
                     margin-right: 0;
                 }
 
@@ -2254,12 +2254,12 @@ div.jsoneditor {
                 }
 
                 .candidate-namespace-name {
-                    @mixin ellipsis 115px;
+                    @mixin ellipsis 178px;
                     user-select: none;
                     overflow: hidden;
                     text-overflow: ellipsis;
                     white-space: nowrap;
-                    width: 125px;
+                    width: 178px;
                     padding: 0 10px;
                     float: left;
                     font-size: 14px;
