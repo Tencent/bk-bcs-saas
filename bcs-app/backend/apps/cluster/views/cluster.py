@@ -14,29 +14,27 @@
 import logging
 
 from django.conf import settings
-from rest_framework import viewsets, response
-from rest_framework.renderers import BrowsableAPIRenderer
 from django.utils.translation import ugettext_lazy as _
+from rest_framework import response, viewsets
+from rest_framework.renderers import BrowsableAPIRenderer
 
-from backend.components import paas_cc
-from backend.utils.errcodes import ErrorCode
-from backend.activity_log import client
-from backend.apps.cluster.models import CommonStatus
-from backend.utils.error_codes import error_codes
 from backend.accounts.bcs_perm import Cluster
-from backend.apps.cluster.models import ClusterInstallLog
+from backend.activity_log import client
 from backend.apps.application import constants as app_constants
-from backend.components import prometheus
-from backend.apps.cluster.constants import ClusterStatusName
-from backend.utils.basic import normalize_metric, normalize_datetime
 from backend.apps.cluster import constants as cluster_constants
-from backend.apps.cluster.utils import cluster_env_transfer, status_transfer
-from backend.utils.renderers import BKAPIRenderer
 from backend.apps.cluster import serializers as cluster_serializers
+from backend.apps.cluster.constants import ClusterStatusName
+from backend.apps.cluster.models import ClusterInstallLog, CommonStatus
+from backend.apps.cluster.utils import cluster_env_transfer, status_transfer
 from backend.apps.cluster.views_bk import cluster
 from backend.apps.cluster.views_bk.tools import cmdb
+from backend.components import paas_cc
 from backend.components.bcs.mesos import MesosClient
+from backend.utils.basic import normalize_datetime, normalize_metric
+from backend.utils.errcodes import ErrorCode
+from backend.utils.error_codes import error_codes
 from backend.utils.funutils import convert_mappings
+from backend.utils.renderers import BKAPIRenderer
 
 DEFAULT_OPER_USER = settings.DEFAULT_OPER_USER
 # 1表示gse agent正常
@@ -46,32 +44,31 @@ logger = logging.getLogger(__name__)
 
 
 class ClusterBase:
-
     def get_cluster(self, request, project_id, cluster_id):
         """get cluster info
         """
-        cluster_resp = paas_cc.get_cluster(
-            request.user.token.access_token, project_id, cluster_id)
-        if cluster_resp.get('code') != ErrorCode.NoError:
-            raise error_codes.APIErrorf(cluster_resp.get('message'))
-        cluster_data = cluster_resp.get('data') or {}
+        cluster_resp = paas_cc.get_cluster(request.user.token.access_token, project_id, cluster_id)
+        if cluster_resp.get("code") != ErrorCode.NoError:
+            raise error_codes.APIErrorf(cluster_resp.get("message"))
+        cluster_data = cluster_resp.get("data") or {}
         return cluster_data
 
     def get_cluster_node(self, request, project_id, cluster_id):
         """get cluster node list
         """
         cluster_node_resp = paas_cc.get_node_list(
-            request.user.token.access_token, project_id, cluster_id,
-            params={'limit': cluster_constants.DEFAULT_NODE_LIMIT}
+            request.user.token.access_token,
+            project_id,
+            cluster_id,
+            params={"limit": cluster_constants.DEFAULT_NODE_LIMIT},
         )
-        if cluster_node_resp.get('code') != ErrorCode.NoError:
-            raise error_codes.APIError(cluster_node_resp.get('message'))
-        data = cluster_node_resp.get('data') or {}
-        return data.get('results') or []
+        if cluster_node_resp.get("code") != ErrorCode.NoError:
+            raise error_codes.APIError(cluster_node_resp.get("message"))
+        data = cluster_node_resp.get("data") or {}
+        return data.get("results") or []
 
 
 class ClusterPermBase:
-
     def can_view_cluster(self, request, project_id, cluster_id):
         perm = Cluster(request, project_id, cluster_id)
         perm.can_view(raise_exception=True)
@@ -85,35 +82,26 @@ class ClusterCreateListViewSet(viewsets.ViewSet):
         format: {cluster_id: True/False}
         """
         cluster_node_resp = paas_cc.get_node_list(
-            request.user.token.access_token, project_id, None,
-            params={'limit': cluster_constants.DEFAULT_NODE_LIMIT}
+            request.user.token.access_token, project_id, None, params={"limit": cluster_constants.DEFAULT_NODE_LIMIT}
         )
-        data = cluster_node_resp.get('data') or {}
-        results = data.get('results') or []
+        data = cluster_node_resp.get("data") or {}
+        results = data.get("results") or []
         # compose the map for cluste and node
         return {
-            info['cluster_id']: True
-            for info in results
-            if info['status'] not in cluster_constants.FILTER_NODE_STATUS
+            info["cluster_id"]: True for info in results if info["status"] not in cluster_constants.FILTER_NODE_STATUS
         }
 
     def get_cluster_list(self, request, project_id):
-        cluster_resp = paas_cc.get_all_clusters(
-            request.user.token.access_token, project_id, desire_all_data=1
-        )
-        if cluster_resp.get('code') != ErrorCode.NoError:
-            logger.error('get cluster error, %s', cluster_resp)
+        cluster_resp = paas_cc.get_all_clusters(request.user.token.access_token, project_id, desire_all_data=1)
+        if cluster_resp.get("code") != ErrorCode.NoError:
+            logger.error("get cluster error, %s", cluster_resp)
             return {}
-        return cluster_resp.get('data') or {}
+        return cluster_resp.get("data") or {}
 
     def get_cluster_create_perm(self, request, project_id):
-        test_cluster_perm = Cluster(
-            request, project_id, cluster_constants.NO_RES, resource_type="cluster_test"
-        )
+        test_cluster_perm = Cluster(request, project_id, cluster_constants.NO_RES, resource_type="cluster_test")
         can_create_test = test_cluster_perm.can_create(raise_exception=False)
-        prod_cluster_perm = Cluster(
-            request, project_id, cluster_constants.NO_RES, resource_type="cluster_prod"
-        )
+        prod_cluster_perm = Cluster(request, project_id, cluster_constants.NO_RES, resource_type="cluster_prod")
         can_create_prod = prod_cluster_perm.can_create(raise_exception=False)
         return can_create_test, can_create_prod
 
@@ -121,40 +109,36 @@ class ClusterCreateListViewSet(viewsets.ViewSet):
         """get project cluster list
         """
         cluster_info = self.get_cluster_list(request, project_id)
-        cluster_data = cluster_info.get('results') or []
+        cluster_data = cluster_info.get("results") or []
         cluster_node_map = self.cluster_has_node(request, project_id)
         # add allow delete perm
         for info in cluster_data:
-            info['environment'] = cluster_env_transfer(info['environment'])
+            info["environment"] = cluster_env_transfer(info["environment"])
             # allow delete cluster
-            allow_delete = False if cluster_node_map.get(info['cluster_id']) else True
-            info['allow'] = info['allow_delete'] = allow_delete
-        perm_can_use = True if request.GET.get('perm_can_use') == '1' else False
+            allow_delete = False if cluster_node_map.get(info["cluster_id"]) else True
+            info["allow"] = info["allow_delete"] = allow_delete
+        perm_can_use = True if request.GET.get("perm_can_use") == "1" else False
 
-        cluster_results = Cluster.hook_perms(
-            request, project_id, cluster_data, filter_use=perm_can_use)
-        # add disk resource
-        try:
-            cluster_results = prometheus.fixed_disk_usage(cluster_results)
-        except Exception as err:
-            logger.error('request prometheus err, detail: %s', err)
+        cluster_results = Cluster.hook_perms(request, project_id, cluster_data, filter_use=perm_can_use)
         # add can create cluster perm for prod/test
         can_create_test, can_create_prod = self.get_cluster_create_perm(request, project_id)
 
-        return response.Response({
-            'code': ErrorCode.NoError,
-            'data': {'count': len(cluster_results), 'results': cluster_results},
-            'permissions': {
-                'test': can_create_test,
-                'prod': can_create_prod,
-                'create': can_create_test or can_create_prod
+        return response.Response(
+            {
+                "code": ErrorCode.NoError,
+                "data": {"count": len(cluster_results), "results": cluster_results},
+                "permissions": {
+                    "test": can_create_test,
+                    "prod": can_create_prod,
+                    "create": can_create_test or can_create_prod,
+                },
             }
-        })
+        )
 
     def list_clusters(self, request, project_id):
         cluster_info = self.get_cluster_list(request, project_id)
-        cluster_data = cluster_info.get('results') or []
-        return response.Response({'clusters': cluster_data})
+        cluster_data = cluster_info.get("results") or []
+        return response.Response({"clusters": cluster_data})
 
     def create(self, request, project_id):
         """create cluster
@@ -189,15 +173,11 @@ class ClusterFilterViewSet(viewsets.ViewSet):
         """check cluster name exist
         """
         name = request.GET.get("name")
-        cluster_resp = paas_cc.get_cluster_by_name(
-            request.user.token.access_token, project_id, name
-        )
-        if cluster_resp.get('code') != ErrorCode.NoError:
-            raise error_codes.APIError(cluster_resp.get('message'))
-        data = cluster_resp.get('data') or {}
-        return response.Response({
-            'is_exist': True if data.get('count') else False
-        })
+        cluster_resp = paas_cc.get_cluster_by_name(request.user.token.access_token, project_id, name)
+        if cluster_resp.get("code") != ErrorCode.NoError:
+            raise error_codes.APIError(cluster_resp.get("message"))
+        data = cluster_resp.get("data") or {}
+        return response.Response({"is_exist": True if data.get("count") else False})
 
 
 class ClusterCreateGetUpdateViewSet(ClusterBase, viewsets.ViewSet):
@@ -206,11 +186,8 @@ class ClusterCreateGetUpdateViewSet(ClusterBase, viewsets.ViewSet):
     def retrieve(self, request, project_id, cluster_id):
         cluster_data = self.get_cluster(request, project_id, cluster_id)
 
-        cluster_data['environment'] = cluster_env_transfer(cluster_data['environment'])
-        return response.Response({
-            "code": ErrorCode.NoError,
-            "data": cluster_data
-        })
+        cluster_data["environment"] = cluster_env_transfer(cluster_data["environment"])
+        return response.Response({"code": ErrorCode.NoError, "data": cluster_data})
 
     def reinstall(self, request, project_id, cluster_id):
         cluster_client = cluster.ReinstallCluster(request, project_id, cluster_id)
@@ -222,19 +199,17 @@ class ClusterCreateGetUpdateViewSet(ClusterBase, viewsets.ViewSet):
         return dict(slz.validated_data)
 
     def update_cluster(self, request, project_id, cluster_id, data):
-        result = paas_cc.update_cluster(
-            request.user.token.access_token, project_id, cluster_id, data
-        )
-        if result.get('code') != ErrorCode.NoError:
-            raise error_codes.APIError(result.get('message'))
-        return result.get('data') or {}
+        result = paas_cc.update_cluster(request.user.token.access_token, project_id, cluster_id, data)
+        if result.get("code") != ErrorCode.NoError:
+            raise error_codes.APIError(result.get("message"))
+        return result.get("data") or {}
 
     def update_data(self, data, project_id, cluster_id, cluster_perm):
-        if data['cluster_type'] == 'public':
-            data['related_projects'] = [project_id]
+        if data["cluster_type"] == "public":
+            data["related_projects"] = [project_id]
             cluster_perm.register(cluster_id, "公共集群", "prod")
-        elif data.get('name'):
-            cluster_perm.update_cluster(cluster_id, data['name'])
+        elif data.get("name"):
+            cluster_perm.update_cluster(cluster_id, data["name"])
         return data
 
     def update(self, request, project_id, cluster_id):
@@ -244,14 +219,9 @@ class ClusterCreateGetUpdateViewSet(ClusterBase, viewsets.ViewSet):
         data = self.update_data(data, project_id, cluster_id, cluster_perm)
         # update cluster info
         with client.ContextActivityLogClient(
-                project_id=project_id,
-                user=request.user.username,
-                resource_type='cluster',
-                resource_id=cluster_id,
+            project_id=project_id, user=request.user.username, resource_type="cluster", resource_id=cluster_id,
         ).log_modify():
-            cluster_info = self.update_cluster(
-                request, project_id, cluster_id, data
-            )
+            cluster_info = self.update_cluster(request, project_id, cluster_id, data)
         # render environment for frontend
         cluster_info["environment"] = cluster_env_transfer(cluster_info["environment"])
 
@@ -263,31 +233,27 @@ class ClusterInstallLogView(ClusterBase, viewsets.ModelViewSet):
     queryset = ClusterInstallLog.objects.all()
 
     def get_queryset(self, project_id, cluster_id):
-        return super().get_queryset().filter(
-            project_id=project_id, cluster_id=cluster_id
-        ).order_by("-create_at")
+        return super().get_queryset().filter(project_id=project_id, cluster_id=cluster_id).order_by("-create_at")
 
     def get_display_status(self, curr_status):
         return status_transfer(
-            curr_status,
-            cluster_constants.CLUSTER_RUNNING_STATUS,
-            cluster_constants.CLUSTER_FAILED_STATUS
+            curr_status, cluster_constants.CLUSTER_RUNNING_STATUS, cluster_constants.CLUSTER_FAILED_STATUS
         )
 
     def get_log_data(self, logs, project_id, cluster_id):
         if not logs:
-            return {'status': 'none'}
+            return {"status": "none"}
         data = {
-            'project_id': project_id,
-            'cluster_id': cluster_id,
-            'status': self.get_display_status(logs[0].status),
-            'log': []
+            "project_id": project_id,
+            "cluster_id": cluster_id,
+            "status": self.get_display_status(logs[0].status),
+            "log": [],
         }
         for info in logs:
-            data['task_url'] = info.log_params.get('task_url') or ''
+            data["task_url"] = info.log_params.get("task_url") or ""
             info.status = self.get_display_status(info.status)
             slz = cluster_serializers.ClusterInstallLogSLZ(instance=info)
-            data['log'].append(slz.data)
+            data["log"].append(slz.data)
         return data
 
     def can_view_cluster(self, request, project_id, cluster_id):
@@ -297,7 +263,7 @@ class ClusterInstallLogView(ClusterBase, viewsets.ModelViewSet):
         try:
             self.get_cluster(request, project_id, cluster_id)
         except Exception as err:
-            logger.error('request cluster info, detial is %s', err)
+            logger.error("request cluster info, detial is %s", err)
             return
         cluster_perm = Cluster(request, project_id, cluster_id)
         cluster_perm.can_view(raise_exception=True)
@@ -322,43 +288,43 @@ class ClusterInfo(ClusterPermBase, ClusterBase, viewsets.ViewSet):
         if master_info.get("code") != ErrorCode.NoError:
             raise error_codes.APIError(master_info.get("message"))
         data = master_info.get("data") or {}
-        return data.get('count') or 0
+        return data.get("count") or 0
 
     def get_node_count(self, request, project_id, cluster_id):
         # get node count
         node_results = self.get_cluster_node(request, project_id, cluster_id)
-        return len([info for info in node_results if info['status'] not in [CommonStatus.Removed]])
+        return len([info for info in node_results if info["status"] not in [CommonStatus.Removed]])
 
     def get_area(self, request, area_id):
         """get area info
         """
         area_info = paas_cc.get_area_info(request.user.token.access_token, area_id)
-        if area_info.get('code') != ErrorCode.NoError:
-            raise error_codes.APIError(area_info.get('message'))
-        return area_info.get('data') or {}
+        if area_info.get("code") != ErrorCode.NoError:
+            raise error_codes.APIError(area_info.get("message"))
+        return area_info.get("data") or {}
 
     def cluster_info(self, request, project_id, cluster_id):
         # can view cluster
         self.can_view_cluster(request, project_id, cluster_id)
         cluster = self.get_cluster(request, project_id, cluster_id)
-        cluster['cluster_name'] = cluster.get('name')
-        cluster['created_at'] = normalize_datetime(cluster['created_at'])
-        cluster['updated_at'] = normalize_datetime(cluster['updated_at'])
-        status = cluster.get('status', 'normal')
-        cluster['chinese_status_name'] = ClusterStatusName[status].value
+        cluster["cluster_name"] = cluster.get("name")
+        cluster["created_at"] = normalize_datetime(cluster["created_at"])
+        cluster["updated_at"] = normalize_datetime(cluster["updated_at"])
+        status = cluster.get("status", "normal")
+        cluster["chinese_status_name"] = ClusterStatusName[status].value
         # get area info
-        area_info = self.get_area(request, cluster.get('area_id'))
-        cluster['area_name'] = _(area_info.get('chinese_name'))
+        area_info = self.get_area(request, cluster.get("area_id"))
+        cluster["area_name"] = _(area_info.get("chinese_name"))
         # get master count
-        cluster['master_count'] = self.get_master_count(request, project_id, cluster_id)
+        cluster["master_count"] = self.get_master_count(request, project_id, cluster_id)
         # get node count
-        cluster['node_count'] = self.get_node_count(request, project_id, cluster_id)
+        cluster["node_count"] = self.get_node_count(request, project_id, cluster_id)
         if request.project.kind == app_constants.MESOS_KIND:
             # mesos单位是MB，需要转换为GB
-            total_mem = normalize_metric(cluster['total_mem'] / 1024)
+            total_mem = normalize_metric(cluster["total_mem"] / 1024)
         else:
-            total_mem = normalize_metric(cluster['total_mem'])
-        cluster['total_mem'] = total_mem
+            total_mem = normalize_metric(cluster["total_mem"])
+        cluster["total_mem"] = total_mem
 
         return response.Response(cluster)
 
@@ -378,11 +344,11 @@ class ClusterMasterInfo(ClusterPermBase, viewsets.ViewSet):
 
     def cluster_masters(self, request, project_id, cluster_id):
         self.can_view_cluster(request, project_id, cluster_id)
-        ip_only = request.query_params.get('ip_only')
+        ip_only = request.query_params.get("ip_only")
         # get master ip
         master_ips = self.get_master_ips(request, project_id, cluster_id)
-        if ip_only == 'true':
-            return response.Response([{'inner_ip': ip} for ip in master_ips])
+        if ip_only == "true":
+            return response.Response([{"inner_ip": ip} for ip in master_ips])
         # get cc hosts
         cc_host_info = cmdb.CMDBClient(request).get_cc_hosts()
         # compose the data
@@ -390,7 +356,7 @@ class ClusterMasterInfo(ClusterPermBase, viewsets.ViewSet):
         for info in cc_host_info:
             # may be many eths
             convert_host = convert_mappings(cluster_constants.CCHostKeyMappings, info)
-            ip_list = convert_host.get('inner_ip', '').split(',')
+            ip_list = convert_host.get("inner_ip", "").split(",")
             if not ip_list:
                 continue
             for ip in ip_list:
@@ -408,10 +374,11 @@ class ClusterVersionViewSet(viewsets.ViewSet):
 
     def versions(self, request, project_id):
         resp = paas_cc.get_cluster_versions(
-            request.user.token.access_token, kind=cluster_constants.ClusterType[request.project.kind])
-        if resp.get('code') != ErrorCode.NoError:
+            request.user.token.access_token, kind=cluster_constants.ClusterType[request.project.kind]
+        )
+        if resp.get("code") != ErrorCode.NoError:
             data = []
-        data = [info['version'] for info in resp.get('data') or []]
+        data = [info["version"] for info in resp.get("data") or []]
 
         return response.Response(data)
 
