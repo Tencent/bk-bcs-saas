@@ -707,7 +707,7 @@ export default {
                     offset: params.offset,
                     ip_list: params.ipList || []
                 }
-                if (this.curProject.kind === PROJECT_TKE) {
+                if (this.curClusterInPage.type === 'tke') {
                     args.node_role = 'node'
                     args.host_source = this.hostSourceKey
                     args.cluster_id = this.clusterId

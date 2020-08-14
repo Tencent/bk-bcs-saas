@@ -1230,6 +1230,9 @@ export default {
     '平台资源池': ['BIZ Host'],
     '业务资源池': ['BCS Host'],
     'Pod数量': ['Pods'],
+    '调度引擎': ['COES'],
+    '输入集群名称搜索': ['Enter Cluster to Search'],
+    '输入命名空间搜索': ['Enter Namespace to Search'],
     // 变量的使用 $t('test', { vari1: 1, vari2: 2 })
     'test': ['{vari1} ---english--- {vari2}']
 }
