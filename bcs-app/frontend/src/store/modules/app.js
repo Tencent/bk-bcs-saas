@@ -1450,6 +1450,23 @@ export default {
                 {},
                 config
             )
+        },
+
+        /**
+         * 获取 crd 集合
+         *
+         * @param {Object} context store 上下文对象
+         * @param {string} projectId 项目 id
+         * @param {Object} config 请求的配置
+         *
+         * @return {Promise} promise 对象
+         */
+        getCRDList (context, params, config = {}) {
+            return http.get(
+                `${DEVOPS_BCS_API_URL}/api/dashboard/projects/${params.projectId}/clusters/${params.clusterId}/crds/`,
+                {},
+                config
+            )
         }
     }
 }
