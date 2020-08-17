@@ -71,25 +71,44 @@ class Node(base.MetricViewMixin, viewsets.ViewSet):
         data = self.get_validated_data(request)
         ip = data["res_id"]
 
-        cpu_usage = prometheus.get_node_cpu_usage(cluster_id, ip)
-        memory_usage = prometheus.get_node_memory_usage(cluster_id, ip)
-        disk_usage = prometheus.get_node_disk_usage(cluster_id, ip)
-        diskio_usage = prometheus.get_node_diskio_usage(cluster_id, ip)
-        container_pod_count = prometheus.get_container_pod_count(cluster_id, ip)
-
+        # 默认包含container_count, pod_count
         data = {
-            "cpu_usage": cpu_usage,
-            "memory_usage": memory_usage,
-            "disk_usage": disk_usage,
-            "diskio_usage": diskio_usage,
             "container_count": "0",
             "pod_count": "0",
         }
 
+        container_pod_count = prometheus.get_container_pod_count(cluster_id, ip)
         for count in container_pod_count.get("result") or []:
             for k, v in count["metric"].items():
                 if k == "metric_name" and count["value"]:
                     data[v] = count["value"][1]
+
+        # 其他维度数据动态请求
+        dimensions_func = {
+            "cpu_usage": prometheus.get_node_cpu_usage,
+            "memory_usage": prometheus.get_node_memory_usage,
+            "disk_usage": prometheus.get_node_disk_usage,
+            "diskio_usage": prometheus.get_node_diskio_usage,
+            "mesos_memory_usage": prometheus.mesos_memory_usage,
+            "mesos_cpu_usage": prometheus.mesos_cpu_usage,
+            "mesos_ip_remain_count": prometheus.mesos_ip_remain_count,
+        }
+
+        # 默认4个维度, 保存接口兼容
+        dimensions = request.GET.get("dimensions")
+        if not dimensions:
+            dimensions = ["cpu_usage", "memory_usage", "disk_usage", "diskio_usage"]
+        else:
+            dimensions = dimensions.split(",")
+
+        for dimension in dimensions:
+            if dimension not in dimensions_func:
+                raise error_codes.APIError(_("dimension not valid"))
+
+            func = dimensions_func[dimension]
+            result = func(cluster_id, ip)
+            data[dimension] = result
+
         return response.Response(data)
 
     def info(self, request, project_id, cluster_id):

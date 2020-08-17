@@ -516,3 +516,48 @@ def get_container_disk_write(cluster_id, namespace, pod_name, container_id_list,
 
     resp = query_range(prom_query, start, end, step)
     return resp.get("data") or {}
+
+
+def mesos_memory_usage(cluster_id, ip):
+    """mesos内存使用率
+    """
+    data = {"total": "0", "remain": "0"}
+    prom_query = f"""
+        label_replace(max by (InnerIP) (bkbcs_scheduler_agent_memory_resource_remain{{cluster_id="{cluster_id}", InnerIP=~"{ip}"}}), "metric_name", "remain", "InnerIP", ".*") or
+        label_replace(max by (InnerIP) (bkbcs_scheduler_agent_memory_resource_total{{cluster_id="{cluster_id}", InnerIP="{ip}"}}), "metric_name", "total", "InnerIP", ".*")
+    """  # noqa
+
+    resp = query(prom_query)
+
+    for metric in resp.get("data", {}).get("result", []):
+        name = metric["metric"].get("metric_name")
+        data[name] = metric["value"][1]
+    return data
+
+
+def mesos_cpu_usage(cluster_id, ip):
+    """mesosCPU使用率
+    """
+    data = {"total": "0", "remain": "0"}
+    prom_query = f"""
+        label_replace(max by (InnerIP) (bkbcs_scheduler_agent_cpu_resource_remain{{cluster_id="{cluster_id}", InnerIP=~"{ip}"}}), "metric_name", "remain", "InnerIP", ".*") or
+        label_replace(max by (InnerIP) (bkbcs_scheduler_agent_cpu_resource_total{{cluster_id="{cluster_id}", InnerIP="{ip}"}}), "metric_name", "total", "InnerIP", ".*")
+    """  # noqa
+
+    resp = query(prom_query)
+
+    for metric in resp.get("data", {}).get("result", []):
+        name = metric["metric"].get("metric_name")
+        data[name] = metric["value"][1]
+    return data
+
+
+def mesos_ip_remain_count(cluster_id, ip):
+    """mesos 剩余IP数量
+    """
+    prom_query = f"""
+        max by (InnerIP) (bkbcs_scheduler_agent_ip_resource_remain{{cluster_id="{cluster_id}", InnerIP=~"{ip}"}})
+    """  # noqa
+
+    value = get_first_value(query(prom_query))
+    return value
