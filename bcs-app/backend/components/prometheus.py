@@ -561,3 +561,37 @@ def mesos_ip_remain_count(cluster_id, ip):
 
     value = get_first_value(query(prom_query))
     return value
+
+
+def mesos_cluster_cpu_usage(cluster_id, node_list):
+    """mesos集群CPU使用率
+    """
+    data = {"total": "0", "remain": "0"}
+    prom_query = f"""
+        label_replace(max by (InnerIP) (bkbcs_scheduler_cluster_cpu_resource_remain{{cluster_id="{cluster_id}"}}), "metric_name", "remain", "InnerIP", ".*") or
+        label_replace(max by (InnerIP) (bkbcs_scheduler_cluster_cpu_resource_total{{cluster_id="{cluster_id}"}}), "metric_name", "total", "InnerIP", ".*")
+    """  # noqa
+
+    resp = query(prom_query)
+
+    for metric in resp.get("data", {}).get("result", []):
+        name = metric["metric"].get("metric_name")
+        data[name] = metric["value"][1]
+    return data
+
+
+def mesos_cluster_memory_usage(cluster_id, node_list):
+    """mesos集群mem使用率
+    """
+    data = {"total": "0", "remain": "0"}
+    prom_query = f"""
+        label_replace(max by (InnerIP) (bkbcs_scheduler_cluster_memory_resource_remain{{cluster_id="{cluster_id}"}}), "metric_name", "remain", "InnerIP", ".*") or
+        label_replace(max by (InnerIP) (bkbcs_scheduler_cluster_memory_resource_total{{cluster_id="{cluster_id}"}}), "metric_name", "total", "InnerIP", ".*")
+    """  # noqa
+
+    resp = query(prom_query)
+
+    for metric in resp.get("data", {}).get("result", []):
+        name = metric["metric"].get("metric_name")
+        data[name] = metric["value"][1]
+    return data

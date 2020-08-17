@@ -36,6 +36,35 @@ class Cluster(base.MetricViewMixin, viewsets.ViewSet):
 
     def overview(self, request, project_id, cluster_id):
         node_list = self.get_node_ip_list(request, project_id, cluster_id)
+
+        # 默认3个维度, 和老接口兼容
+        dimensions = request.GET.get("dimensions")
+        if not dimensions:
+            dimensions = ["cpu_usage", "mem_usage", "disk_usage"]
+        else:
+            dimensions = dimensions.split(",")
+
+        data = {}
+
+        # 其他维度数据动态请求
+        dimensions_func = {
+            "cpu_usage": prometheus.get_cluster_cpu_usage,
+            "mem_usage": prometheus.get_cluster_memory_usage,
+            "disk_usage": prometheus.get_cluster_disk_usage,
+            "mesos_memory_usage": prometheus.mesos_cluster_memory_usage,
+            "mesos_cpu_usage": prometheus.mesos_cluster_cpu_usage,
+        }
+
+        for dimension in dimensions:
+            if dimension not in dimensions_func:
+                raise error_codes.APIError(_("dimension not valid"))
+
+            func = dimensions_func[dimension]
+            result = func(cluster_id, node_list)
+            data[dimension] = result
+
+        return response.Response(data)
+
         cpu_usage = prometheus.get_cluster_cpu_usage(cluster_id, node_list)
         mem_usage = prometheus.get_cluster_memory_usage(cluster_id, node_list)
         disk_usage = prometheus.get_cluster_disk_usage(cluster_id, node_list)
@@ -94,7 +123,7 @@ class Node(base.MetricViewMixin, viewsets.ViewSet):
             "mesos_ip_remain_count": prometheus.mesos_ip_remain_count,
         }
 
-        # 默认4个维度, 保存接口兼容
+        # 默认4个维度, 和老接口兼容
         dimensions = request.GET.get("dimensions")
         if not dimensions:
             dimensions = ["cpu_usage", "memory_usage", "disk_usage", "diskio_usage"]
