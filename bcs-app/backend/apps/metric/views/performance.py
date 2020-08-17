@@ -65,12 +65,6 @@ class Cluster(base.MetricViewMixin, viewsets.ViewSet):
 
         return response.Response(data)
 
-        cpu_usage = prometheus.get_cluster_cpu_usage(cluster_id, node_list)
-        mem_usage = prometheus.get_cluster_memory_usage(cluster_id, node_list)
-        disk_usage = prometheus.get_cluster_disk_usage(cluster_id, node_list)
-        data = {"cpu_usage": cpu_usage, "mem_usage": mem_usage, "disk_usage": disk_usage}
-        return response.Response(data)
-
     def cpu_usage(self, request, project_id, cluster_id):
         node_list = self.get_node_ip_list(request, project_id, cluster_id)
         result = prometheus.get_cluster_cpu_usage_range(cluster_id, node_list)
