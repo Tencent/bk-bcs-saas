@@ -7,8 +7,10 @@
                 :class="['resize-handler', _direction]"
                 :style="getHandlerStyle(_direction)"
                 @mousedown.left="handleMousedown($event, _direction)">
-                <i class="bk-icon icon-more"></i>
-                <i class="bk-icon icon-more"></i>
+                <template v-if="showToggle">
+                    <i class="bk-icon icon-more"></i>
+                    <i class="bk-icon icon-more"></i>
+                </template>
             </div>
         </template>
         <i :class="['resize-proxy', state.direction]" ref="resizeProxy"></i>
@@ -58,13 +60,14 @@
             },
             handlerWidth: {
                 type: Number,
-                default: 5
+                default: 8
             },
             handlerOffset: {
                 type: Number,
                 default: 0
             },
-            disabled: Boolean
+            disabled: Boolean,
+            showToggle: Boolean
         },
         data () {
             return {
