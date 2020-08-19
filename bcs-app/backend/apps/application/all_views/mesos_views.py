@@ -434,8 +434,6 @@ class GetInstances(object):
         if update_create_error_id_list:
             update_create_error_record.delay(update_create_error_id_list)
 
-        utils.delete_instance_records(all_status, instance_info)
-
     def inst_count_handler(self, instance_info, app_status):
         instance_list = list(instance_info.values())
         ret_data = {
