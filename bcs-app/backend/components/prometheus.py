@@ -518,7 +518,7 @@ def get_container_disk_write(cluster_id, namespace, pod_name, container_id_list,
     return resp.get("data") or {}
 
 
-def mesos_memory_usage(cluster_id, ip):
+def mesos_agent_memory_usage(cluster_id, ip):
     """mesos内存使用率
     """
     data = {"total": "0", "remain": "0"}
@@ -535,7 +535,7 @@ def mesos_memory_usage(cluster_id, ip):
     return data
 
 
-def mesos_cpu_usage(cluster_id, ip):
+def mesos_agent_cpu_usage(cluster_id, ip):
     """mesosCPU使用率
     """
     data = {"total": "0", "remain": "0"}
@@ -552,7 +552,7 @@ def mesos_cpu_usage(cluster_id, ip):
     return data
 
 
-def mesos_ip_remain_count(cluster_id, ip):
+def mesos_agent_ip_remain_count(cluster_id, ip):
     """mesos 剩余IP数量
     """
     prom_query = f"""

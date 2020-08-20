@@ -112,9 +112,9 @@ class Node(base.MetricViewMixin, viewsets.ViewSet):
             "memory_usage": prometheus.get_node_memory_usage,
             "disk_usage": prometheus.get_node_disk_usage,
             "diskio_usage": prometheus.get_node_diskio_usage,
-            "mesos_memory_usage": prometheus.mesos_memory_usage,
-            "mesos_cpu_usage": prometheus.mesos_cpu_usage,
-            "mesos_ip_remain_count": prometheus.mesos_ip_remain_count,
+            "mesos_memory_usage": prometheus.mesos_agent_memory_usage,
+            "mesos_cpu_usage": prometheus.mesos_agent_cpu_usage,
+            "mesos_ip_remain_count": prometheus.mesos_agent_ip_remain_count,
         }
 
         # 默认4个维度, 和老接口兼容
