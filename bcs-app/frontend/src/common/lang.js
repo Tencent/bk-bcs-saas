@@ -1233,6 +1233,16 @@ export default {
     '调度引擎': ['COES'],
     '输入集群名称搜索': ['Enter Cluster to Search'],
     '输入命名空间搜索': ['Enter Namespace to Search'],
+    '请选择CRD': ['Please Select CRD'],
+    '输入CRD搜索': ['Enter CRD to Search'],
+    '输入名称搜索': ['Enter Name to Search'],
+    'IP数量(个)': ['IPs'],
+    '可用IP(个)': ['IPs'],
+    'CPU数量(核)': ['CPUs'],
+    '可用CPU(核)': ['CPUs'],
+    '内存数量(GB)': ['Memory(GB)'],
+    '可用内存(GB)': ['Memory(GB)'],
+    '确定删除？': ['Confirm to delete?'],
     // 变量的使用 $t('test', { vari1: 1, vari2: 2 })
     'test': ['{vari1} ---english--- {vari2}']
 }

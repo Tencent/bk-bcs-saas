@@ -342,6 +342,21 @@ export default {
         },
 
         /**
+         * 转换百分比
+         *
+         * @param {number} remain 剩下的数量
+         * @param {number} total 总量
+         *
+         * @return {number} 百分比数字
+         */
+        conversionPercent (remain, total) {
+            if (!remain || !total) {
+                return 0
+            }
+            return total === 0 ? 0 : ((total - remain) / total * 100).toFixed(2)
+        },
+
+        /**
          * 获取节点管理数据
          *
          * @param {Object} params ajax 参数
@@ -394,6 +409,9 @@ export default {
                             item.diskioMetric = this.nodeSummaryMap[item.id].diskioMetric
                             item.containerCount = this.nodeSummaryMap[item.id].containerCount
                             item.podCount = this.nodeSummaryMap[item.id].podCount
+                            item.mesosMemoryUsage = this.nodeSummaryMap[item.id].mesosMemoryUsage
+                            item.mesosIpRemainCount = this.nodeSummaryMap[item.id].mesosIpRemainCount
+                            item.mesosCpuUsage = this.nodeSummaryMap[item.id].mesosCpuUsage
                         }
                     })
                 }
@@ -541,39 +559,27 @@ export default {
          */
         async getNodeSummary (cur, index) {
             try {
-                // const res = kind !== 2
-                //     ? await this.$store.dispatch('cluster/getNodeOverview', {
-                //         projectId: cur.project_id,
-                //         clusterId: cur.cluster_id,
-                //         nodeIp: cur.inner_ip
-                //     })
-                //     : await this.$store.dispatch('cluster/getNodeSummary', {
-                //         projectId: cur.project_id,
-                //         nodeId: cur.inner_ip
-                //     })
+                const args = {}
+                if (this.curClusterInPage.type === 'mesos') {
+                    args.dimensions = 'mesos_memory_usage,mesos_ip_remain_count,mesos_cpu_usage'
+                }
 
                 const res = await this.$store.dispatch('cluster/getNodeOverview', {
                     projectId: cur.project_id,
                     clusterId: cur.cluster_id,
-                    nodeIp: cur.inner_ip
+                    nodeIp: cur.inner_ip,
+                    data: args
                 })
 
-                // if (kind !== 2) {
-                //     cur.cpuMetric = parseFloat(res.data.cpu_usage).toFixed(2)
-                //     cur.memMetric = parseFloat(res.data.memory_usage).toFixed(2)
-                //     cur.diskMetric = parseFloat(res.data.disk_usage).toFixed(2)
-                //     cur.diskioMetric = parseFloat(res.data.diskio_usage).toFixed(2)
-                // } else {
-                //     cur.cpuMetric = res.data.cpu
-                //     cur.memMetric = res.data.mem
-                //     cur.diskMetric = res.data.io
-                // }
                 cur.cpuMetric = parseFloat(res.data.cpu_usage).toFixed(2)
                 cur.memMetric = parseFloat(res.data.memory_usage).toFixed(2)
                 cur.diskMetric = parseFloat(res.data.disk_usage).toFixed(2)
                 cur.diskioMetric = parseFloat(res.data.diskio_usage).toFixed(2)
                 cur.containerCount = res.data.container_count || 0
                 cur.podCount = res.data.pod_count || 0
+                cur.mesosMemoryUsage = res.data.mesos_memory_usage || { remain: 0, total: 0 }
+                cur.mesosIpRemainCount = res.data.mesos_ip_remain_count || 0
+                cur.mesosCpuUsage = res.data.mesos_cpu_usage || { remain: 0, total: 0 }
 
                 this.nodeSummaryMap[cur.id] = {
                     cpuMetric: cur.cpuMetric,
@@ -581,7 +587,10 @@ export default {
                     diskMetric: cur.diskMetric,
                     diskioMetric: cur.diskioMetric,
                     containerCount: cur.containerCount,
-                    podCount: cur.podCount
+                    podCount: cur.podCount,
+                    mesosMemoryUsage: cur.mesosMemoryUsage,
+                    mesosIpRemainCount: cur.mesosIpRemainCount,
+                    mesosCpuUsage: cur.mesosCpuUsage
                 }
 
                 this.$set(this.nodeList, index, cur)

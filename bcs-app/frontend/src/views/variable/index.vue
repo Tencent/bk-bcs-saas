@@ -167,7 +167,10 @@
             :title="batchUpdateConf.title"
             :width="batchUpdateConf.width">
             <div style="padding: 20px 20px 10px 20px;" slot="content" v-bkloading="{ isLoading: isBatchVarLoading }">
-                <table class="bk-table biz-data-table has-table-bordered">
+                <div style="height: 60px; margin-top: -60px;">
+                    <button class="fr bk-text-button f13" @click="toggleBatchMode">{{batchUpdateConf.mode === 'form' ? $t('切换为文本模式') : $t('切换为表单模式')}}</button>
+                </div>
+                <table class="bk-table biz-data-table has-table-bordered" v-if="batchUpdateConf.mode === 'form'">
                     <thead>
                         <tr>
                             <th v-if="curBatchVar && curBatchVar.scope === 'namespace'" style="width: 250px;">{{$t('所属')}}{{$t('集群')}}</th>
@@ -190,6 +193,17 @@
                         </template>
                     </tbody>
                 </table>
+                <div class="biz-log-box mb20" :style="{ height: `${winHeight - 200}px` }" v-else>
+                    <ace
+                        :value="batchEditorConfig.content"
+                        :width="batchEditorConfig.width"
+                        :height="batchEditorConfig.height"
+                        :lang="batchEditorConfig.lang"
+                        :read-only="batchEditorConfig.readOnly"
+                        :full-screen="batchEditorConfig.fullScreen"
+                        @init="editorInitAfter">
+                    </ace>
+                </div>
                 <div v-if="batchVarList.length">
                     <button class="bk-button bk-primary" @click="saveBatchVar">{{$t('保存')}}</button>
                     <button class="bk-button bk-default" @click="cancelBatchVar">{{$t('取消')}}</button>
@@ -389,6 +403,15 @@
                     isShow: false,
                     title: this.$t('如何从文件导入变量？')
                 },
+                batchEditorConfig: {
+                    width: '100%',
+                    height: '100%',
+                    lang: 'json',
+                    readOnly: false,
+                    fullScreen: false,
+                    content: '',
+                    editor: null
+                },
                 editorConfig: {
                     width: '100%',
                     height: '100%',
@@ -433,6 +456,7 @@
                 },
                 isBatchVarLoading: false,
                 batchUpdateConf: {
+                    mode: 'form',
                     isShow: false,
                     title: '',
                     width: 690
@@ -544,6 +568,7 @@
                 this.curBatchVar = data
                 const projectId = this.projectId
                 const variableId = data.id
+                this.batchUpdateConf.mode = 'form'
                 this.batchUpdateConf.isShow = true
                 this.batchUpdateConf.title = data.name
                 this.isBatchVarLoading = true
@@ -567,6 +592,54 @@
                 const varId = this.curBatchVar.id
                 let url = 'variable/updateNamespaceBatchVar'
                 let data = {}
+
+                // 处于文本编辑模式
+                if (this.batchUpdateConf.mode === 'text') {
+                    try {
+                        const content = this.batchEditorConfig.editor.getValue()
+                        if (!content) {
+                            this.$bkMessage({
+                                theme: 'error',
+                                message: this.$t('请输入内容')
+                            })
+                            return false
+                        }
+
+                        const varList = JSON.parse(content)
+                        if (!Array.isArray(varList)) {
+                            this.$bkMessage({
+                                theme: 'error',
+                                message: this.$t('请输入合法的JSON格式')
+                            })
+                            return false
+                        }
+                        
+                        if (this.curBatchVar && this.curBatchVar.scope === 'namespace') {
+                            varList.forEach(varItem => {
+                                this.batchVarList.forEach(matchItem => {
+                                    if (varItem.cluster_id === matchItem.cluster_id && varItem.namespace === matchItem.name) {
+                                        matchItem.variable_value = varItem.value
+                                    }
+                                })
+                            })
+                        } else {
+                            varList.forEach(varItem => {
+                                this.batchVarList.forEach(matchItem => {
+                                    if (varItem.cluster_id === matchItem.cluster_id) {
+                                        matchItem.variable_value = varItem.value
+                                    }
+                                })
+                            })
+                        }
+                    } catch (e) {
+                        this.$bkMessage({
+                            theme: 'error',
+                            message: this.$t('请输入合法的JSON格式')
+                        })
+                        return false
+                    }
+                }
+                
                 if (this.curBatchVar.scope === 'namespace') {
                     data = {
                         ns_vars: {}
@@ -1155,6 +1228,80 @@
 
             handleShowVarExample () {
                 this.exampleConf.isShow = true
+            },
+
+            editorInitAfter (editor) {
+                this.batchEditorConfig.editor = editor
+            },
+
+            syncBatchVarList () {
+                try {
+                    const content = this.batchEditorConfig.editor.getValue()
+                    const varList = JSON.parse(content)
+                    if (this.curBatchVar && this.curBatchVar.scope === 'namespace') {
+                        varList.forEach(varItem => {
+                            this.batchVarList.forEach(matchItem => {
+                                if (varItem.cluster_id === matchItem.cluster_id && varItem.namespace === matchItem.name) {
+                                    matchItem.variable_value = varItem.value
+                                }
+                            })
+                        })
+                    } else {
+                        varList.forEach(varItem => {
+                            this.batchVarList.forEach(matchItem => {
+                                if (varItem.cluster_id === matchItem.cluster_id) {
+                                    matchItem.variable_value = varItem.value
+                                }
+                            })
+                        })
+                    }
+                } catch (e) {
+                    this.$bkMessage({
+                        theme: 'error',
+                        message: this.$t('请输入合法的JSON格式')
+                    })
+                }
+            },
+
+            toggleBatchMode () {
+                if (this.batchUpdateConf.mode === 'form') {
+                    this.batchUpdateConf.mode = 'text'
+                    const varList = this.batchVarList.map(item => {
+                        if (this.curBatchVar && this.curBatchVar.scope === 'namespace') {
+                            return {
+                                cluster_id: item.cluster_id,
+                                namespace: item.name,
+                                value: item.variable_value
+                            }
+                        } else {
+                            return {
+                                cluster_id: item.cluster_id,
+                                value: item.variable_value
+                            }
+                        }
+                    })
+                    this.batchEditorConfig.content = JSON.stringify(varList, null, 2)
+                } else {
+                    try {
+                        // 校验数据格式
+                        const content = this.batchEditorConfig.editor.getValue()
+                        const varList = JSON.parse(content)
+                        if (!Array.isArray(varList)) {
+                            this.$bkMessage({
+                                theme: 'error',
+                                message: this.$t('请输入合法的JSON格式')
+                            })
+                            return false
+                        }
+                        this.batchUpdateConf.mode = 'form'
+                        this.syncBatchVarList()
+                    } catch (e) {
+                        this.$bkMessage({
+                            theme: 'error',
+                            message: this.$t('请输入合法的JSON格式')
+                        })
+                    }
+                }
             }
         }
     }

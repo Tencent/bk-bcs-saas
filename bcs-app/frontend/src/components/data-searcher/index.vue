@@ -118,10 +118,12 @@
         created () {
             this.initLocalScopeList()
             this.placeholderRender = this.placeholder || this.$t('输入关键字，按Enter搜索')
+            sessionStorage['bcs-cluster'] = this.searchScope
         },
         methods: {
             handleSechScope (index, data) {
                 this.curScope = data
+                sessionStorage['bcs-cluster'] = this.curScope.id
                 this.$emit('update:searchScope', this.curScope.id)
                 this.handleSearch()
             },
@@ -129,12 +131,20 @@
                 this.localScopeList = JSON.parse(JSON.stringify(this.scopeList))
                 if (this.localScopeList.length) {
                     // 在初始化时，如果已经有值，选中
-                    if (this.searchScope) {
-                        this.curScope = this.localScopeList.find(item => item.id === this.searchScope)
+                    const clusterId = this.searchScope || sessionStorage['bcs-cluster']
+                    if (clusterId) {
+                        const matchItem = this.localScopeList.find(item => item.id === clusterId)
+                        if (matchItem) {
+                            this.curScope = matchItem
+                        } else {
+                            this.curScope = this.localScopeList[0]
+                        }
                     } else {
                         this.curScope = this.localScopeList[0]
-                        this.$emit('update:searchScope', this.curScope.id)
                     }
+                    
+                    sessionStorage['bcs-cluster'] = this.curScope.id
+                    this.$emit('update:searchScope', this.curScope.id)
                 }
             },
             handleSearch () {
@@ -149,6 +159,7 @@
                 if (this.localScopeList.length) {
                     this.curScope = this.localScopeList[0]
                 }
+                sessionStorage['bcs-cluster'] = this.curScope.id
                 this.$emit('update:searchScope', this.curScope.id)
                 this.$emit('update:searchKey', this.localKey)
                 this.$emit('refresh')
