@@ -896,9 +896,9 @@ export default {
          *
          * @return {Promise} promise 对象
          */
-        clusterOverview (context, { projectId, clusterId }, config = {}) {
+        clusterOverview (context, { projectId, clusterId, data = {} }, config = {}) {
             return http.get(
-                `${DEVOPS_BCS_API_URL}/api/projects/${projectId}/clusters/${clusterId}/metrics/overview/`,
+                `${DEVOPS_BCS_API_URL}/api/projects/${projectId}/clusters/${clusterId}/metrics/overview/?${json2Query(data)}`,
                 {},
                 config
             )
@@ -969,9 +969,9 @@ export default {
          *
          * @return {Promise} promise 对象
          */
-        getNodeOverview (context, { projectId, clusterId, nodeIp }, config = {}) {
+        getNodeOverview (context, { projectId, clusterId, nodeIp, data = {} }, config = {}) {
             return http.get(
-                `${DEVOPS_BCS_API_URL}/api/projects/${projectId}/clusters/${clusterId}/metrics/node/overview/?res_id=${nodeIp}`,
+                `${DEVOPS_BCS_API_URL}/api/projects/${projectId}/clusters/${clusterId}/metrics/node/overview/?res_id=${nodeIp}&${json2Query(data)}`,
                 {},
                 config
             )
