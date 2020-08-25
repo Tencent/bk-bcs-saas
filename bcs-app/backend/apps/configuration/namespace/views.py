@@ -324,7 +324,7 @@ class NamespaceView(NamespaceBase, viewsets.ViewSet):
                     cluster_ids_with_ns.append(r_ns.get("cluster_id"))
 
                 # 添加无命名空间集群ID
-                results.extend(self.get_clusters_whitout_ns(cluster_dict, cluster_ids_with_ns))
+                results.extend(self.get_clusters_without_ns(cluster_dict, cluster_ids_with_ns))
         else:
             results = sorted(results, key=lambda x: x['id'], reverse=True)
 
