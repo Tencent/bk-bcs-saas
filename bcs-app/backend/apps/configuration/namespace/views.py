@@ -320,6 +320,9 @@ class NamespaceView(NamespaceBase, viewsets.ViewSet):
                     r_ns = r_ns_list[0] if r_ns_list else {}
                     r['environment'] = r_ns.get('environment', '')
                     r['environment_name'] = get_cluster_env_name(r['environment'])
+                    r["cluster_id"] = r_ns.get("cluster_id")
+                    cluster_ids_with_ns.append(r_ns.get("cluster_id"))
+
                 # 添加无命名空间集群ID
                 results.extend(self.get_clusters_whitout_ns(cluster_dict, cluster_ids_with_ns))
         else:
