@@ -211,9 +211,9 @@ class NamespaceView(NamespaceBase, viewsets.ViewSet):
         ns_info = get_namespace_by_id(access_token, project_id, namespace_id)
         return response.Response(ns_info)
 
-    def get_clusters_whitout_ns(self, clusters, cluster_ids_with_ns):
+    def get_clusters_without_ns(self, clusters, cluster_ids_with_ns):
         """获取不带有ns的集群
-        TODO: 后续直接拉取线上的ns
+        TODO: 后续相关的namespace的功能，可以通过K8S/Mesos API获取
         """
         clusters_without_ns = []
         for cluster_id in clusters:
