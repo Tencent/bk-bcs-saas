@@ -43,6 +43,8 @@ from backend.apps.whitelist_bk import enabled_sync_namespace
 from backend.apps.configuration.constants import MesosResourceName
 from backend.utils.renderers import BKAPIRenderer
 from backend.resources.namespace.utils import get_namespace_by_id
+from backend.resources.cluster.utils import get_clusters
+from backend.apps.utils import get_cluster_env_name
 
 logger = logging.getLogger(__name__)
 
@@ -209,6 +211,25 @@ class NamespaceView(NamespaceBase, viewsets.ViewSet):
         ns_info = get_namespace_by_id(access_token, project_id, namespace_id)
         return response.Response(ns_info)
 
+    def get_clusters_without_ns(self, clusters, cluster_ids_with_ns):
+        """获取不带有ns的集群
+        TODO: 后续相关的namespace的功能，可以通过K8S/Mesos API获取
+        """
+        clusters_without_ns = []
+        for cluster_id in clusters:
+            if cluster_id in cluster_ids_with_ns:
+                continue
+            cluster = clusters[cluster_id]
+            item = {
+                "environment_name": get_cluster_env_name(cluster["environment"]),
+                "environment": cluster["environment"],
+                "cluster_id": cluster_id,
+                "name": cluster["name"],
+                "results": []
+            }
+            clusters_without_ns.append(item)
+        return clusters_without_ns
+
     def list(self, request, project_id):
         """命名空间列表
         权限控制: 必须有对应集群的使用权限
@@ -240,10 +261,7 @@ class NamespaceView(NamespaceBase, viewsets.ViewSet):
         can_create = perm.can_create(raise_exception=False)
 
         # 补充cluster_name字段
-        cluster_ids = [i['cluster_id'] for i in results]
-        cluster_list = paas_cc.get_cluster_list(
-            access_token, project_id, cluster_ids).get('data') or []
-        # cluster_list = bcs_perm.Cluster.hook_perms(request, project_id, cluster_list)
+        cluster_list = get_clusters(access_token, project_id)
         cluster_dict = {i['cluster_id']: i for i in cluster_list}
 
         # no_vars=1 不显示变量
@@ -294,12 +312,19 @@ class NamespaceView(NamespaceBase, viewsets.ViewSet):
             else:
                 results = sorted(
                     results, key=lambda x: x['name'], reverse=True)
+                # 过滤带有ns的集群id
+                cluster_ids_with_ns = []
                 # 按集群分组时，添加集群环境信息
                 for r in results:
                     r_ns_list = r.get('results') or []
                     r_ns = r_ns_list[0] if r_ns_list else {}
                     r['environment'] = r_ns.get('environment', '')
-                    r['environment_name'] = _("正式") if r['environment'] == 'prod' else _("测试")
+                    r['environment_name'] = get_cluster_env_name(r['environment'])
+                    r["cluster_id"] = r_ns.get("cluster_id")
+                    cluster_ids_with_ns.append(r_ns.get("cluster_id"))
+
+                # 添加无命名空间集群ID
+                results.extend(self.get_clusters_without_ns(cluster_dict, cluster_ids_with_ns))
         else:
             results = sorted(results, key=lambda x: x['id'], reverse=True)
 

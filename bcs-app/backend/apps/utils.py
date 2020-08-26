@@ -11,6 +11,8 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
+from django.utils.translation import ugettext_lazy as _
+
 from backend.components import paas_cc
 from backend.utils.error_codes import error_codes
 from backend.utils.errcodes import ErrorCode
@@ -93,3 +95,9 @@ def can_use_namespaces(request, project_id, namespaces):
 def get_ns_id_map(access_token, project_id):
     namespace_data = get_project_namespaces(access_token, project_id)
     return {(ns['cluster_id'], ns['name']): ns['id'] for ns in namespace_data}
+
+
+def get_cluster_env_name(env):
+    """获取集群对应的环境名称
+    """
+    return _("正式") if env == "prod" else _("测试")

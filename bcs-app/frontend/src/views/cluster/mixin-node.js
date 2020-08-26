@@ -560,7 +560,7 @@ export default {
         async getNodeSummary (cur, index) {
             try {
                 const args = {}
-                if (this.curClusterInPage.type === 'mesos') {
+                if (this.curClusterInPage.type === 'mesos' && this.curClusterInPage.func_wlist && this.curClusterInPage.func_wlist.indexOf('MesosResource') > -1) {
                     args.dimensions = 'mesos_memory_usage,mesos_ip_remain_count,mesos_cpu_usage'
                 }
 

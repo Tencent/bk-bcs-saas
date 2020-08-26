@@ -1470,6 +1470,23 @@ export default {
         },
 
         /**
+         * 更新 gamestatefulset 详细信息
+         *
+         * @param {Object} context store 上下文对象
+         * @param {string} projectId 项目 id
+         * @param {Object} config 请求的配置
+         *
+         * @return {Promise} promise 对象
+         */
+        updateGameStatefulsetInfo (context, params, config = {}) {
+            return http.patch(
+                `${DEVOPS_BCS_API_URL}/api/dashboard/projects/${params.projectId}/clusters/${params.clusterId}/crds/${params.gamestatefulsets}/custom_objects/${params.name}/`,
+                params.data,
+                config
+            )
+        },
+
+        /**
          * 获取 crd 集合
          *
          * @param {Object} context store 上下文对象

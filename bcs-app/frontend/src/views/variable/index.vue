@@ -617,7 +617,7 @@
                         if (this.curBatchVar && this.curBatchVar.scope === 'namespace') {
                             varList.forEach(varItem => {
                                 this.batchVarList.forEach(matchItem => {
-                                    if (varItem.cluster_id === matchItem.cluster_id && varItem.namespace === matchItem.name) {
+                                    if (varItem.cluster_name === matchItem.cluster_name && varItem.namespace === matchItem.name) {
                                         matchItem.variable_value = varItem.value
                                     }
                                 })
@@ -625,7 +625,7 @@
                         } else {
                             varList.forEach(varItem => {
                                 this.batchVarList.forEach(matchItem => {
-                                    if (varItem.cluster_id === matchItem.cluster_id) {
+                                    if (varItem.cluster_name === matchItem.name) {
                                         matchItem.variable_value = varItem.value
                                     }
                                 })
@@ -1241,7 +1241,7 @@
                     if (this.curBatchVar && this.curBatchVar.scope === 'namespace') {
                         varList.forEach(varItem => {
                             this.batchVarList.forEach(matchItem => {
-                                if (varItem.cluster_id === matchItem.cluster_id && varItem.namespace === matchItem.name) {
+                                if (varItem.cluster_name === matchItem.cluster_name && varItem.namespace === matchItem.name) {
                                     matchItem.variable_value = varItem.value
                                 }
                             })
@@ -1249,7 +1249,7 @@
                     } else {
                         varList.forEach(varItem => {
                             this.batchVarList.forEach(matchItem => {
-                                if (varItem.cluster_id === matchItem.cluster_id) {
+                                if (varItem.cluster_name === matchItem.name) {
                                     matchItem.variable_value = varItem.value
                                 }
                             })
@@ -1269,13 +1269,13 @@
                     const varList = this.batchVarList.map(item => {
                         if (this.curBatchVar && this.curBatchVar.scope === 'namespace') {
                             return {
-                                cluster_id: item.cluster_id,
+                                cluster_name: item.cluster_name,
                                 namespace: item.name,
                                 value: item.variable_value
                             }
                         } else {
                             return {
-                                cluster_id: item.cluster_id,
+                                cluster_name: item.name,
                                 value: item.variable_value
                             }
                         }
