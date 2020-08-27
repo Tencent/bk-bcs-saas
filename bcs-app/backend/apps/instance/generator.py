@@ -1380,39 +1380,42 @@ class K8sDeploymentGenerator(K8sProfileGenerator):
                 _c["command"] = command_list
 
                 # 2.2 lifecycle.command 用 shellhex 命令处理为数组
-                lifecycle = _c["lifecycle"]
-                pre_stop_command = lifecycle["preStop"]["exec"]["command"]
-                pre_stop_command_list = shlex.split(pre_stop_command)
-                if pre_stop_command_list:
-                    lifecycle["preStop"]["exec"]["command"] = pre_stop_command_list
-                else:
-                    remove_key(lifecycle, "preStop")
+                lifecycle = _c.get("lifecycle")
+                if lifecycle:
+                    pre_stop_command = lifecycle["preStop"]["exec"]["command"]
+                    pre_stop_command_list = shlex.split(pre_stop_command)
+                    if pre_stop_command_list:
+                        lifecycle["preStop"]["exec"]["command"] = pre_stop_command_list
+                    else:
+                        remove_key(lifecycle, "preStop")
 
-                post_start_command = lifecycle["postStart"]["exec"]["command"]
-                post_start_command_list = shlex.split(post_start_command)
-                if post_start_command_list:
-                    lifecycle["postStart"]["exec"]["command"] = post_start_command_list
-                else:
-                    remove_key(lifecycle, "postStart")
+                    post_start_command = lifecycle["postStart"]["exec"]["command"]
+                    post_start_command_list = shlex.split(post_start_command)
+                    if post_start_command_list:
+                        lifecycle["postStart"]["exec"]["command"] = post_start_command_list
+                    else:
+                        remove_key(lifecycle, "postStart")
 
                 web_cache = _c.get("webCache", {})
                 # 2.3 健康&就绪检查, 判断是否存在
                 # 健康&就绪检查 type 存放在 curContainer.webCache.livenessProbeType/curContainer.webCache.readinessProbeType
                 liveness_type = web_cache.get("livenessProbeType")
-                liveness_probe = _c["livenessProbe"]
-                is_liveness_exit = handel_container_health_check_type(
-                    liveness_probe, liveness_type, self.is_preview, self.is_validate
-                )
-                if not is_liveness_exit:
-                    remove_key(_c, "livenessProbe")
+                liveness_probe = _c.get("livenessProbe")
+                if liveness_probe:
+                    is_liveness_exit = handel_container_health_check_type(
+                        liveness_probe, liveness_type, self.is_preview, self.is_validate
+                    )
+                    if not is_liveness_exit:
+                        remove_key(_c, "livenessProbe")
 
                 readiness_tye = web_cache.get("readinessProbeType")
-                readiness_probe = _c["readinessProbe"]
-                is_readiness_exit = handel_container_health_check_type(
-                    readiness_probe, readiness_tye, self.is_preview, self.is_validate
-                )
-                if not is_readiness_exit:
-                    remove_key(_c, "readinessProbe")
+                readiness_probe = _c.get("readinessProbe")
+                if readiness_probe:
+                    is_readiness_exit = handel_container_health_check_type(
+                        readiness_probe, readiness_tye, self.is_preview, self.is_validate
+                    )
+                    if not is_readiness_exit:
+                        remove_key(_c, "readinessProbe")
 
                 # 2.4 resources 资源限制后添加单位，且不填则不生成相应的key
                 resources = _c["resources"]
