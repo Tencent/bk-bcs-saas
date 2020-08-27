@@ -312,6 +312,64 @@ export default {
                         if (!container.hasOwnProperty('workingDir')) {
                             container.workingDir = ''
                         }
+                        
+                        // initContainers类型，在保存时会删除livenessProbe，readinessProbe，lifecycle
+                        if (!container.hasOwnProperty('livenessProbe')) {
+                            container.livenessProbe = {
+                                httpGet: {
+                                    port: '',
+                                    path: '',
+                                    httpHeaders: []
+                                },
+                                tcpSocket: {
+                                    port: ''
+                                },
+                                exec: {
+                                    command: ''
+                                },
+                                initialDelaySeconds: 15,
+                                periodSeconds: 10,
+                                timeoutSeconds: 5,
+                                failureThreshold: 3,
+                                successThreshold: 1
+                            }
+                        }
+
+                        if (!container.hasOwnProperty('readinessProbe')) {
+                            container.readinessProbe = {
+                                httpGet: {
+                                    port: '',
+                                    path: '',
+                                    httpHeaders: []
+                                },
+                                tcpSocket: {
+                                    port: ''
+                                },
+                                exec: {
+                                    command: ''
+                                },
+                                initialDelaySeconds: 15,
+                                periodSeconds: 10,
+                                timeoutSeconds: 5,
+                                failureThreshold: 3,
+                                successThreshold: 1
+                            }
+                        }
+        
+                        if (!container.hasOwnProperty('lifecycle')) {
+                            container.lifecycle = {
+                                preStop: {
+                                    exec: {
+                                        command: ''
+                                    }
+                                },
+                                postStart: {
+                                    exec: {
+                                        command: ''
+                                    }
+                                }
+                            }
+                        }
 
                         item.config.spec.template.spec.allContainers.push(container)
                     })
