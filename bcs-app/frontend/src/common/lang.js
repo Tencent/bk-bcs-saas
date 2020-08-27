@@ -1246,6 +1246,7 @@ export default {
     '原地升级': ['Upgrade in place'],
     '请填写内容': ['Please Enter Content'],
     '请填写正确的JSON格式字符串': ['Please fill in the correct JSON format string'],
+    'Kube-proxy代理模式：': ['Kube-proxy: '],
     // 变量的使用 $t('test', { vari1: 1, vari2: 2 })
     'test': ['{vari1} ---english--- {vari2}']
 }

@@ -729,7 +729,9 @@
                         item.availableip = 0
                         item.reservedip = 0
                         item.allip = 0
-                        this.getClusterIp(item, index)
+                        if (this.curProject.kind === this.PROJECT_MESOS) {
+                            this.getClusterIp(item, index)
+                        }
                     })
 
                     if (this.clusterList.length) {
