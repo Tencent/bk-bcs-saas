@@ -19,12 +19,14 @@ class WorkloadTypes(ChoicesEnum):
     StatefulSet = "StatefulSet"
     DaemonSet = "DaemonSet"
     Job = "Job"
+    GameStatefulSet = "GameStatefulSet"
 
     _choices_labels = (
         (Deployment, "Deployment"),
         (StatefulSet, "StatefulSet"),
         (DaemonSet, "DaemonSet"),
-        (Job, "Job")
+        (Job, "Job"),
+        (GameStatefulSet, "GameStatefulSet"),
     )
 
 
@@ -53,7 +55,7 @@ class K8sResourceKinds(ChoicesEnum):
         (Service, "service"),
         (Endpoints, "Endpoints"),
         (Namespace, "Namespace"),
-        (Pod, "Pod")
+        (Pod, "Pod"),
     )
 
 
@@ -62,8 +64,4 @@ class K8sServiceTypes(ChoicesEnum):
     NodePort = "NodePort"
     LoadBalancer = "LoadBalancer"
 
-    _choices_labels = (
-        (ClusterIP, "ClusterIP"),
-        (NodePort, "NodePort"),
-        (LoadBalancer, "LoadBalancer")
-    )
+    _choices_labels = ((ClusterIP, "ClusterIP"), (NodePort, "NodePort"), (LoadBalancer, "LoadBalancer"))
