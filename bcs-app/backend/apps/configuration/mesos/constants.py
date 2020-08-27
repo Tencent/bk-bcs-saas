@@ -26,12 +26,7 @@ APPLICATION_SCHEMA = {
         "metadata": {
             "type": "object",
             "required": ["name"],
-            "properties": {
-                "name": {
-                    "type": "string",
-                    "pattern": RES_NAME_PATTERN
-                }
-            }
+            "properties": {"name": {"type": "string", "pattern": RES_NAME_PATTERN}},
         },
         "restartPolicy": {
             "type": "object",
@@ -39,36 +34,24 @@ APPLICATION_SCHEMA = {
             "properties": {
                 "policy": {"type": "string", "enum": ["Never", "Always", "OnFailure"]},
                 "interval": {
-                    "oneOf": [
-                        {"type": "string", "pattern": NUM_VAR_PATTERN},
-                        {"type": "number", "minimum": 0},
-                    ]
+                    "oneOf": [{"type": "string", "pattern": NUM_VAR_PATTERN}, {"type": "number", "minimum": 0},]
                 },
                 "backoff": {
-                    "oneOf": [
-                        {"type": "string", "pattern": NUM_VAR_PATTERN},
-                        {"type": "number", "minimum": 0},
-                    ]
+                    "oneOf": [{"type": "string", "pattern": NUM_VAR_PATTERN}, {"type": "number", "minimum": 0},]
                 },
                 "maxtimes": {
-                    "oneOf": [
-                        {"type": "string", "pattern": NUM_VAR_PATTERN},
-                        {"type": "number", "minimum": 0},
-                    ]
+                    "oneOf": [{"type": "string", "pattern": NUM_VAR_PATTERN}, {"type": "number", "minimum": 0},]
                 },
-            }
+            },
         },
         "killPolicy": {
             "type": "object",
             "required": ["gracePeriod"],
             "properties": {
                 "gracePeriod": {
-                    "oneOf": [
-                        {"type": "string", "pattern": NUM_VAR_PATTERN},
-                        {"type": "number", "minimum": 0},
-                    ]
+                    "oneOf": [{"type": "string", "pattern": NUM_VAR_PATTERN}, {"type": "number", "minimum": 0},]
                 },
-            }
+            },
         },
         "constraint": {
             "type": "object",
@@ -89,28 +72,32 @@ APPLICATION_SCHEMA = {
                                         "name": {"type": "string", "minLength": 1},
                                         "operate": {
                                             "type": "string",
-                                            "enum": ["UNIQUE", "MAXPER", "CLUSTER", "GROUPBY", "LIKE",
-                                                     "UNLIKE", "GREATER"]
+                                            "enum": [
+                                                "UNIQUE",
+                                                "MAXPER",
+                                                "CLUSTER",
+                                                "GROUPBY",
+                                                "LIKE",
+                                                "UNLIKE",
+                                                "GREATER",
+                                                "TOLERATION",
+                                            ],
                                         },
-                                        "type": {"type": "number", "minimum": 1, "maximum": 4}
-                                    }
-                                }
+                                        "type": {"type": "number", "minimum": 1, "maximum": 4},
+                                    },
+                                },
                             }
-                        }
-                    }
+                        },
+                    },
                 }
-            }
+            },
         },
         "spec": {
             "type": "object",
             "required": ["instance", "template"],
             "properties": {
                 "instance": {
-                    "oneOf": [
-                        {"type": "string",
-                         "pattern": NUM_VAR_PATTERN},
-                        {"type": "number", "minimum": 0},
-                    ]
+                    "oneOf": [{"type": "string", "pattern": NUM_VAR_PATTERN}, {"type": "number", "minimum": 0},]
                 },
                 "template": {
                     "type": "object",
@@ -122,7 +109,7 @@ APPLICATION_SCHEMA = {
                             "properties": {
                                 "networkMode": {
                                     "type": "string",
-                                    "enum": ["CUSTOM", "BRIDGE", "HOST", "USER", "NONE"]
+                                    "enum": ["CUSTOM", "BRIDGE", "HOST", "USER", "NONE"],
                                 },
                                 "networkType": {"type": "string", "enum": ["cni", "cnm"]},
                                 "containers": {
@@ -145,25 +132,19 @@ APPLICATION_SCHEMA = {
                                                         "properties": {
                                                             "cpu": {
                                                                 "oneOf": [
-                                                                    {"type": "string",
-                                                                     "pattern": "^$"},
-                                                                    {"type": "string",
-                                                                     "pattern": NUM_VAR_PATTERN},
-                                                                    {"type": "number",
-                                                                     "minimum": 0},
+                                                                    {"type": "string", "pattern": "^$"},
+                                                                    {"type": "string", "pattern": NUM_VAR_PATTERN},
+                                                                    {"type": "number", "minimum": 0},
                                                                 ]
                                                             },
                                                             "memory": {
                                                                 "oneOf": [
-                                                                    {"type": "string",
-                                                                     "pattern": "^$"},
-                                                                    {"type": "string",
-                                                                     "pattern": NUM_VAR_PATTERN},
-                                                                    {"type": "number",
-                                                                     "minimum": 0},
+                                                                    {"type": "string", "pattern": "^$"},
+                                                                    {"type": "string", "pattern": NUM_VAR_PATTERN},
+                                                                    {"type": "number", "minimum": 0},
                                                                 ]
-                                                            }
-                                                        }
+                                                            },
+                                                        },
                                                     },
                                                     "requests": {
                                                         "type": "object",
@@ -171,27 +152,21 @@ APPLICATION_SCHEMA = {
                                                         "properties": {
                                                             "cpu": {
                                                                 "oneOf": [
-                                                                    {"type": "string",
-                                                                     "pattern": "^$"},
-                                                                    {"type": "string",
-                                                                     "pattern": NUM_VAR_PATTERN},
-                                                                    {"type": "number",
-                                                                     "minimum": 0},
+                                                                    {"type": "string", "pattern": "^$"},
+                                                                    {"type": "string", "pattern": NUM_VAR_PATTERN},
+                                                                    {"type": "number", "minimum": 0},
                                                                 ]
                                                             },
                                                             "memory": {
                                                                 "oneOf": [
-                                                                    {"type": "string",
-                                                                     "pattern": "^$"},
-                                                                    {"type": "string",
-                                                                     "pattern": NUM_VAR_PATTERN},
-                                                                    {"type": "number",
-                                                                     "minimum": 0},
+                                                                    {"type": "string", "pattern": "^$"},
+                                                                    {"type": "string", "pattern": NUM_VAR_PATTERN},
+                                                                    {"type": "number", "minimum": 0},
                                                                 ]
-                                                            }
-                                                        }
-                                                    }
-                                                }
+                                                            },
+                                                        },
+                                                    },
+                                                },
                                             },
                                             "volumes": {
                                                 "type": "array",
@@ -206,20 +181,21 @@ APPLICATION_SCHEMA = {
                                                             "properties": {
                                                                 "hostPath": {
                                                                     "oneOf": [
-                                                                        {"type": "string",
-                                                                         "pattern": "^$"},
-                                                                        {"type": "string",
-                                                                         "pattern": FILE_DIR_PATTERN}
+                                                                        {"type": "string", "pattern": "^$"},
+                                                                        {
+                                                                            "type": "string",
+                                                                            "pattern": FILE_DIR_PATTERN,
+                                                                        },
                                                                     ]
                                                                 },
                                                                 "mountPath": {
                                                                     "type": "string",
-                                                                    "pattern": FILE_DIR_PATTERN
-                                                                }
-                                                            }
-                                                        }
-                                                    }
-                                                }
+                                                                    "pattern": FILE_DIR_PATTERN,
+                                                                },
+                                                            },
+                                                        },
+                                                    },
+                                                },
                                             },
                                             "healthChecks": {
                                                 "type": "array",
@@ -242,98 +218,81 @@ APPLICATION_SCHEMA = {
                                                                 "TCP",
                                                                 "COMMAND",
                                                                 "REMOTE_HTTP",
-                                                                "REMOTE_TCP"
-                                                            ]
+                                                                "REMOTE_TCP",
+                                                            ],
                                                         },
                                                         "delaySeconds": {
                                                             "oneOf": [
-                                                                {"type": "string",
-                                                                 "pattern": NUM_VAR_PATTERN},
-                                                                {"type": "number",
-                                                                 "minimum": 0},
+                                                                {"type": "string", "pattern": NUM_VAR_PATTERN},
+                                                                {"type": "number", "minimum": 0},
                                                             ]
                                                         },
                                                         "intervalSeconds": {
                                                             "oneOf": [
-                                                                {"type": "string",
-                                                                 "pattern": NUM_VAR_PATTERN},
-                                                                {"type": "number",
-                                                                 "minimum": 0},
+                                                                {"type": "string", "pattern": NUM_VAR_PATTERN},
+                                                                {"type": "number", "minimum": 0},
                                                             ]
                                                         },
                                                         "timeoutSeconds": {
                                                             "oneOf": [
-                                                                {"type": "string",
-                                                                 "pattern": NUM_VAR_PATTERN},
-                                                                {"type": "number",
-                                                                 "minimum": 0},
+                                                                {"type": "string", "pattern": NUM_VAR_PATTERN},
+                                                                {"type": "number", "minimum": 0},
                                                             ]
                                                         },
                                                         "consecutiveFailures": {
                                                             "oneOf": [
-                                                                {"type": "string",
-                                                                 "pattern": NUM_VAR_PATTERN},
-                                                                {"type": "number",
-                                                                 "minimum": 0},
+                                                                {"type": "string", "pattern": NUM_VAR_PATTERN},
+                                                                {"type": "number", "minimum": 0},
                                                             ]
                                                         },
                                                         "gracePeriodSeconds": {
                                                             "oneOf": [
-                                                                {"type": "string",
-                                                                 "pattern": NUM_VAR_PATTERN},
-                                                                {"type": "number",
-                                                                 "minimum": 0},
+                                                                {"type": "string", "pattern": NUM_VAR_PATTERN},
+                                                                {"type": "number", "minimum": 0},
                                                             ]
                                                         },
                                                         "command": {
                                                             "type": "object",
-                                                            "properties": {
-                                                                "value": {"type": "string"}
-                                                            }
-
+                                                            "properties": {"value": {"type": "string"}},
                                                         },
                                                         "tcp": {
                                                             "type": "object",
                                                             "properties": {
                                                                 "port": {
-                                                                    "oneOf": [
-                                                                        {"type": "number"},
-                                                                        {"type": "string"}
-                                                                    ]
+                                                                    "oneOf": [{"type": "number"}, {"type": "string"}]
                                                                 },
                                                                 "portName": {
                                                                     "oneOf": [
-                                                                        {"type": "string",
-                                                                         "pattern": "^$"},
-                                                                        {"type": "string",
-                                                                         "pattern": RES_NAME_PATTERN}
+                                                                        {"type": "string", "pattern": "^$"},
+                                                                        {
+                                                                            "type": "string",
+                                                                            "pattern": RES_NAME_PATTERN,
+                                                                        },
                                                                     ]
-                                                                }
-                                                            }
+                                                                },
+                                                            },
                                                         },
                                                         "http": {
                                                             "type": "object",
                                                             "properties": {
                                                                 "port": {
-                                                                    "oneOf": [
-                                                                        {"type": "number"},
-                                                                        {"type": "string"}
-                                                                    ]
+                                                                    "oneOf": [{"type": "number"}, {"type": "string"}]
                                                                 },
                                                                 "portName": {
                                                                     "oneOf": [
-                                                                        {"type": "string",
-                                                                         "pattern": "^$"},
-                                                                        {"type": "string",
-                                                                         "pattern": RES_NAME_PATTERN}
+                                                                        {"type": "string", "pattern": "^$"},
+                                                                        {
+                                                                            "type": "string",
+                                                                            "pattern": RES_NAME_PATTERN,
+                                                                        },
                                                                     ]
                                                                 },
                                                                 "scheme": {"type": "string"},
-                                                                "path": {"type": "string"}
-                                                            }
-                                                        }
-                                                    }
-                                                }
+                                                                "path": {"type": "string"},
+                                                            },
+                                                        },
+                                                    },
+                                                },
                                             },
                                             "ports": {
                                                 "type": "array",
@@ -341,37 +300,32 @@ APPLICATION_SCHEMA = {
                                                     "type": "object",
                                                     "required": ["protocol", "name", "containerPort", "hostPort"],
                                                     "properties": {
-                                                        "protocol": {"type": "string",
-                                                                     "enum": ["HTTP", "TCP", "UDP", ""]},
-                                                        "name": {"oneOf": [
-                                                            {"type": "string",
-                                                             "pattern": "^$"},
-                                                            {"type": "string",
-                                                             "pattern": RES_NAME_PATTERN}
-                                                        ]},
+                                                        "protocol": {
+                                                            "type": "string",
+                                                            "enum": ["HTTP", "TCP", "UDP", ""],
+                                                        },
+                                                        "name": {
+                                                            "oneOf": [
+                                                                {"type": "string", "pattern": "^$"},
+                                                                {"type": "string", "pattern": RES_NAME_PATTERN},
+                                                            ]
+                                                        },
                                                         "hostPort": {
                                                             "oneOf": [
-                                                                {"type": "string",
-                                                                 "pattern": "^$"},
-                                                                {"type": "string",
-                                                                 "pattern": NUM_VAR_PATTERN},
-                                                                {"type": "number",
-                                                                 "minimum": -1, "maximum": 65535},
+                                                                {"type": "string", "pattern": "^$"},
+                                                                {"type": "string", "pattern": NUM_VAR_PATTERN},
+                                                                {"type": "number", "minimum": -1, "maximum": 65535},
                                                             ]
                                                         },
                                                         "containerPort": {
                                                             "oneOf": [
-                                                                {"type": "string",
-                                                                 "pattern": "^$"},
-                                                                {"type": "string",
-                                                                 "pattern": NUM_VAR_PATTERN},
-                                                                {"type": "number",
-                                                                 "minimum": 1,
-                                                                 "maximum": 65535}
+                                                                {"type": "string", "pattern": "^$"},
+                                                                {"type": "string", "pattern": NUM_VAR_PATTERN},
+                                                                {"type": "number", "minimum": 1, "maximum": 65535},
                                                             ]
-                                                        }
-                                                    }
-                                                }
+                                                        },
+                                                    },
+                                                },
                                             },
                                             "command": {"type": "string"},
                                             "args": {"type": "array"},
@@ -382,8 +336,8 @@ APPLICATION_SCHEMA = {
                                                     "required": ["name", "value"],
                                                     "properties": {
                                                         "name": {"type": "string", "minLength": 1},
-                                                        "value": {"type": "string"}
-                                                    }
+                                                        "value": {"type": "string"},
+                                                    },
                                                 },
                                             },
                                             "parameters": {
@@ -393,21 +347,20 @@ APPLICATION_SCHEMA = {
                                                     "required": ["key", "value"],
                                                     "properties": {
                                                         "key": {"type": "string", "minLength": 1},
-                                                        "value": {"type": "string"}
-                                                    }
+                                                        "value": {"type": "string"},
+                                                    },
                                                 },
-                                            }
-                                        }
-                                    }
-                                }
-                            }
+                                            },
+                                        },
+                                    },
+                                },
+                            },
                         }
-                    }
-                }
-            }
-        }
-    }
-
+                    },
+                },
+            },
+        },
+    },
 }
 
 DEPLOYMENT_SCHEMA = {
@@ -441,12 +394,12 @@ DEPLOYMENT_SCHEMA = {
                                 {"type": "number", "minimum": 0},
                             ]
                         },
-                        "rollingOrder": {"type": "string", "enum": ["CreateFirst", "DeleteFirst"]}
-                    }
-                }
-            }
+                        "rollingOrder": {"type": "string", "enum": ["CreateFirst", "DeleteFirst"]},
+                    },
+                },
+            },
         }
-    }
+    },
 }
 
 SERVICE_SCHEMA = {
@@ -457,30 +410,20 @@ SERVICE_SCHEMA = {
             "type": "object",
             "required": ["name"],
             "properties": {
-                "name": {
-                    "type": "string",
-                    "pattern": RES_NAME_PATTERN
-                },
+                "name": {"type": "string", "pattern": RES_NAME_PATTERN},
                 "lb_labels": {
                     "type": "object",
                     "required": ["BCSBALANCE"],
-                    "properties": {
-                        "BCSBALANCE": {"type": "string", "enum": ["source", "roundrobin", "leastconn"]}
-                    }
-                }
-            }
+                    "properties": {"BCSBALANCE": {"type": "string", "enum": ["source", "roundrobin", "leastconn"]}},
+                },
+            },
         },
         "spec": {
             "type": "object",
             "required": ["type", "clusterIP", "ports"],
             "properties": {
                 "type": {"type": "string", "enum": ["ClusterIP", "None"]},
-                "clusterIP": {
-                    "oneOf": [
-                        {"type": "string"},
-                        {"type": "array", "items": {"type": "string"}}
-                    ]
-                },
+                "clusterIP": {"oneOf": [{"type": "string"}, {"type": "array", "items": {"type": "string"}}]},
                 "ports": {
                     "type": "array",
                     "items": {
@@ -493,13 +436,11 @@ SERVICE_SCHEMA = {
                                     "name": {"type": "string", "pattern": RES_NAME_PATTERN},
                                     "servicePort": {
                                         "oneOf": [
-                                            {"type": "string",
-                                             "pattern": NUM_VAR_PATTERN},
-                                            {"type": "number",
-                                             "minimum": 1, "maximum": 65535},
+                                            {"type": "string", "pattern": NUM_VAR_PATTERN},
+                                            {"type": "number", "minimum": 1, "maximum": 65535},
                                         ]
-                                    }
-                                }
+                                    },
+                                },
                             },
                             {
                                 "type": "object",
@@ -509,14 +450,12 @@ SERVICE_SCHEMA = {
                                     "name": {"type": "string", "pattern": RES_NAME_PATTERN},
                                     "servicePort": {
                                         "oneOf": [
-                                            {"type": "string",
-                                             "pattern": NUM_VAR_PATTERN},
-                                            {"type": "number",
-                                             "minimum": 1, "maximum": 65535},
+                                            {"type": "string", "pattern": NUM_VAR_PATTERN},
+                                            {"type": "number", "minimum": 1, "maximum": 65535},
                                         ]
                                     },
-                                    "domainName": {"type": "string", "format": "hostname"}
-                                }
+                                    "domainName": {"type": "string", "format": "hostname"},
+                                },
                             },
                             {
                                 "type": "object",
@@ -525,15 +464,15 @@ SERVICE_SCHEMA = {
                                     "protocol": {"type": "string", "enmu": ["HTTP", "TCP", "UDP"]},
                                     "name": {"type": "string", "pattern": "^$"},
                                     "servicePort": {"type": "string", "pattern": "^$"},
-                                    "domainName": {"type": "string", "pattern": "^$"}
-                                }
-                            }
+                                    "domainName": {"type": "string", "pattern": "^$"},
+                                },
+                            },
                         ]
-                    }
-                }
-            }
-        }
-    }
+                    },
+                },
+            },
+        },
+    },
 }
 
 CONFIGMAP_SCHEMA = {
@@ -543,12 +482,7 @@ CONFIGMAP_SCHEMA = {
         "metadata": {
             "type": "object",
             "required": ["name"],
-            "properties": {
-                "name": {
-                    "type": "string",
-                    "pattern": RES_NAME_PATTERN
-                }
-            }
+            "properties": {"name": {"type": "string", "pattern": RES_NAME_PATTERN}},
         },
         "datas": {
             "type": "object",
@@ -560,23 +494,23 @@ CONFIGMAP_SCHEMA = {
                             "required": ["type", "content"],
                             "properties": {
                                 "type": {"type": "string", "enum": ["file"]},
-                                "content": {"type": "string", "minLength": 1}
-                            }
+                                "content": {"type": "string", "minLength": 1},
+                            },
                         },
                         {
                             "type": "object",
                             "required": ["type", "content"],
                             "properties": {
                                 "type": {"type": "string", "enum": ["http"]},
-                                "content": {"type": "string", "format": "uri"}
-                            }
-                        }
+                                "content": {"type": "string", "format": "uri"},
+                            },
+                        },
                     ]
                 }
             },
-            "additionalProperties": False
-        }
-    }
+            "additionalProperties": False,
+        },
+    },
 }
 
 SECRET_SCHEMA = {
@@ -586,12 +520,7 @@ SECRET_SCHEMA = {
         "metadata": {
             "type": "object",
             "required": ["name"],
-            "properties": {
-                "name": {
-                    "type": "string",
-                    "pattern": RES_NAME_PATTERN
-                }
-            }
+            "properties": {"name": {"type": "string", "pattern": RES_NAME_PATTERN}},
         },
         "datas": {
             "type": "object",
@@ -599,20 +528,17 @@ SECRET_SCHEMA = {
                 KEY_NAME_PATTERN: {
                     "type": "object",
                     "required": ["content"],
-                    "properties": {
-                        "content": {"type": "string", "minLength": 1}
-                    }
+                    "properties": {"content": {"type": "string", "minLength": 1}},
                 }
             },
-            "additionalProperties": False
-        }
-    }
+            "additionalProperties": False,
+        },
+    },
 }
 
 HPA_SCHNEA = {
     "$schema": "http://json-schema.org/draft-04/schema#",
     "id": "mesos_hpa",
-
     "type": "object",
     "required": ["apiVersion", "kind", "metadata", "spec"],
     "properties": {
@@ -621,9 +547,7 @@ HPA_SCHNEA = {
         "metadata": {
             "type": "object",
             "required": ["name"],
-            "properties": {
-                "name": {"type": "string", "pattern": RES_NAME_PATTERN}
-            }
+            "properties": {"name": {"type": "string", "pattern": RES_NAME_PATTERN}},
         },
         "spec": {
             "type": "object",
@@ -634,8 +558,8 @@ HPA_SCHNEA = {
                     "required": ["kind", "name"],
                     "properties": {
                         "kind": {"type": "string", "enum": ["Deployment"]},
-                        "name": {"type": "string", "pattern": RES_NAME_PATTERN}
-                    }
+                        "name": {"type": "string", "pattern": RES_NAME_PATTERN},
+                    },
                 },
                 "minInstance": {"type": "number", "minimum": 0},
                 "maxInstance": {"type": "number", "minimum": 0},
@@ -653,14 +577,14 @@ HPA_SCHNEA = {
                                 "properties": {
                                     "type": {"type": "string", "enum": ["AverageUtilization"]},
                                     "averageUtilization": {"type": "number", "minimum": 0},
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
+                                },
+                            },
+                        },
+                    },
+                },
+            },
+        },
+    },
 }
 
 INGRESS_SCHNEA = {
@@ -672,15 +596,19 @@ INGRESS_SCHNEA = {
         "metadata": {
             "type": "object",
             "required": ["name", "labels"],
-            "properties": {
-                "name": {"type": "string", "pattern": RES_NAME_PATTERN},
-                "kind": {"type": "string"},
-            }
-        }
-    }
+            "properties": {"name": {"type": "string", "pattern": RES_NAME_PATTERN}, "kind": {"type": "string"},},
+        },
+    },
 }
 
-CONFIG_SCHEMA = [APPLICATION_SCHEMA, DEPLOYMENT_SCHEMA, SERVICE_SCHEMA, CONFIGMAP_SCHEMA,
-                 SECRET_SCHEMA, HPA_SCHNEA, INGRESS_SCHNEA]
+CONFIG_SCHEMA = [
+    APPLICATION_SCHEMA,
+    DEPLOYMENT_SCHEMA,
+    SERVICE_SCHEMA,
+    CONFIGMAP_SCHEMA,
+    SECRET_SCHEMA,
+    HPA_SCHNEA,
+    INGRESS_SCHNEA,
+]
 
 CONFIG_SCHEMA_MAP = dict(zip(MRESOURCE_NAMES, CONFIG_SCHEMA))
