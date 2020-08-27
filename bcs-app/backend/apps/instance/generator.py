@@ -650,15 +650,8 @@ class ApplicationProfileGenerator(MesosProfileGenerator):
             remove_key(_c, "env_list")
 
             # 2.6 添加 secrets & configmaps
-            secret_list = []
-            for _secret in secret_dict:
-                secret_list.append({"secretName": _secret, "items": secret_dict[_secret]})
-            _c["secrets"] = secret_list
-
-            configmap_list = []
-            for _conf in config_map_dict:
-                configmap_list.append({"name": _conf, "items": config_map_dict[_conf]})
-            _c["configmaps"] = configmap_list
+            _c["secrets"] = [{"secretName": _secret, "items": secret_dict[_secret]} for _secret in secret_dict]
+            _c["configmaps"] = [{"name": _conf, "items": config_map_dict[_conf]} for _conf in config_map_dict]
 
             # 2.7 定义了非标准日志采集，则需要添加额外的挂载卷
             log_path_list = _c.get("logPathList") or []
