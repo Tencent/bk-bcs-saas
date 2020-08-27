@@ -34,13 +34,13 @@ APPLICATION_SCHEMA = {
             "properties": {
                 "policy": {"type": "string", "enum": ["Never", "Always", "OnFailure"]},
                 "interval": {
-                    "oneOf": [{"type": "string", "pattern": NUM_VAR_PATTERN}, {"type": "number", "minimum": 0},]
+                    "oneOf": [{"type": "string", "pattern": NUM_VAR_PATTERN}, {"type": "number", "minimum": 0}]
                 },
                 "backoff": {
-                    "oneOf": [{"type": "string", "pattern": NUM_VAR_PATTERN}, {"type": "number", "minimum": 0},]
+                    "oneOf": [{"type": "string", "pattern": NUM_VAR_PATTERN}, {"type": "number", "minimum": 0}]
                 },
                 "maxtimes": {
-                    "oneOf": [{"type": "string", "pattern": NUM_VAR_PATTERN}, {"type": "number", "minimum": 0},]
+                    "oneOf": [{"type": "string", "pattern": NUM_VAR_PATTERN}, {"type": "number", "minimum": 0}]
                 },
             },
         },
@@ -49,7 +49,7 @@ APPLICATION_SCHEMA = {
             "required": ["gracePeriod"],
             "properties": {
                 "gracePeriod": {
-                    "oneOf": [{"type": "string", "pattern": NUM_VAR_PATTERN}, {"type": "number", "minimum": 0},]
+                    "oneOf": [{"type": "string", "pattern": NUM_VAR_PATTERN}, {"type": "number", "minimum": 0}]
                 },
             },
         },
@@ -97,7 +97,7 @@ APPLICATION_SCHEMA = {
             "required": ["instance", "template"],
             "properties": {
                 "instance": {
-                    "oneOf": [{"type": "string", "pattern": NUM_VAR_PATTERN}, {"type": "number", "minimum": 0},]
+                    "oneOf": [{"type": "string", "pattern": NUM_VAR_PATTERN}, {"type": "number", "minimum": 0}]
                 },
                 "template": {
                     "type": "object",
@@ -596,7 +596,7 @@ INGRESS_SCHNEA = {
         "metadata": {
             "type": "object",
             "required": ["name", "labels"],
-            "properties": {"name": {"type": "string", "pattern": RES_NAME_PATTERN}, "kind": {"type": "string"},},
+            "properties": {"name": {"type": "string", "pattern": RES_NAME_PATTERN}, "kind": {"type": "string"}},
         },
     },
 }

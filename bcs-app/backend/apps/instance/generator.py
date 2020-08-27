@@ -1003,15 +1003,11 @@ def handel_env(env_list, env, config_map_dict, sercret_dict, template_id):
             _real_name = _name
             if _type == "configmap":
                 _item_list = config_map_dict.get(_real_name, [])
-                _item_list.append(
-                    {"type": "env", "dataKey": _data_key, "KeyOrPath": _key,}
-                )
+                _item_list.append({"type": "env", "dataKey": _data_key, "KeyOrPath": _key})
                 config_map_dict[_real_name] = _item_list
             else:
                 _item_list = sercret_dict.get(_real_name, [])
-                _item_list.append(
-                    {"type": "env", "dataKey": _data_key, "KeyOrPath": _key,}
-                )
+                _item_list.append({"type": "env", "dataKey": _data_key, "KeyOrPath": _key})
                 sercret_dict[_real_name] = _item_list
 
 
