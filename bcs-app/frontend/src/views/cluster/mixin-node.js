@@ -1557,7 +1557,6 @@ export default {
                     clusterId: node.cluster_id,
                     nodeId: node.id
                 })
-                this.$refs.forceRemoveNodeDialog.isConfirming = false
 
                 this.curNode.status = 'removing'
                 this.$set(this.nodeList, this.curNodeIndex, this.curNode)
@@ -1573,6 +1572,8 @@ export default {
                 }, 200)
             } catch (e) {
                 catchErrorHandler(e, this)
+            } finally {
+                this.$refs.forceRemoveNodeDialog.isConfirming = false
             }
         },
 
