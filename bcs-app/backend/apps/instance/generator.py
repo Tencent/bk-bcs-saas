@@ -632,28 +632,28 @@ class ApplicationProfileGenerator(MesosProfileGenerator):
             # 2.4 处理 volumes 中的字段
             volumes = _c.get("volumes")
             config_map_dict = {}
-            sercret_dict = {}
+            secret_dict = {}
             handle_volumes(
                 _c["name"],
                 volumes,
                 db_config.get("webCache", {}).get("volumeUsers", {}),
                 config_map_dict,
-                sercret_dict,
+                secret_dict,
                 self.template_id,
             )
 
             # 2.5 处理 环境变量
             env_list = _c.get("env_list")
             env = []
-            handel_env(env_list, env, config_map_dict, sercret_dict, self.template_id)
+            handle_mesos_env(env_list, env, config_map_dict, secret_dict)
             _c["env"] = env
             remove_key(_c, "env_list")
 
             # 2.6 添加 secrets & configmaps
-            sercret_list = []
-            for _sercret in sercret_dict:
-                sercret_list.append({"secretName": _sercret, "items": sercret_dict[_sercret]})
-            _c["secrets"] = sercret_list
+            secret_list = []
+            for _secret in secret_dict:
+                secret_list.append({"secretName": _secret, "items": secret_dict[_secret]})
+            _c["secrets"] = secret_list
 
             configmap_list = []
             for _conf in config_map_dict:
@@ -904,6 +904,7 @@ def handel_custom_network_mode(db_config):
     return db_config
 
 
+# TODO 这部分逻辑前端可以根据type字段直接处理，不需要bcs-app再做中间转换
 def handle_intersection_item(intersection_item):
     """处理前端的存储的调度约束
     """
@@ -920,7 +921,7 @@ def handle_intersection_item(intersection_item):
         arg_value = union_data.get("arg_value")
 
         _type = union_data.get("type")
-        # arg_value是为了前端处理方便的中间变量，mesos后台实际不需要
+        # arg_value是为了方便前端处理中间变量，mesos后台实际不需要
         if _type not in [3, 4] or arg_value:
             remove_key(union_data, "arg_value")
             new_intersection_item.append({"unionData": [union_data]})
@@ -983,7 +984,7 @@ def handle_volumes(container_name, volumes, volume_users, config_map_dict, sercr
             remove_key(_v_value, "type")
 
 
-def handel_env(env_list, env, config_map_dict, sercret_dict, template_id):
+def handle_mesos_env(env_list, env, config_map_dict, secret_dict):
     """处理前端的环境变量：自定义&configmap&secret
     """
     for _env in env_list:
@@ -994,6 +995,8 @@ def handel_env(env_list, env, config_map_dict, sercret_dict, template_id):
             continue
         if _type == "custom":
             env.append({"name": _key, "value": _value})
+        elif _type == "valueFrom":
+            env.append({"name": _key, "valueFrom": {"resourceFieldRef": {"resource": _value}}})
         else:
             _name = _value.split(".")[0]
             _prefix_len = len(_name) + 1
@@ -1006,9 +1009,9 @@ def handel_env(env_list, env, config_map_dict, sercret_dict, template_id):
                 _item_list.append({"type": "env", "dataKey": _data_key, "KeyOrPath": _key})
                 config_map_dict[_real_name] = _item_list
             else:
-                _item_list = sercret_dict.get(_real_name, [])
+                _item_list = secret_dict.get(_real_name, [])
                 _item_list.append({"type": "env", "dataKey": _data_key, "KeyOrPath": _key})
-                sercret_dict[_real_name] = _item_list
+                secret_dict[_real_name] = _item_list
 
 
 def handel_service_db_config(
