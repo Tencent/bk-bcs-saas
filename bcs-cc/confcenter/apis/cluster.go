@@ -394,3 +394,15 @@ func getClusterAndMaster(data *createClusterDataJSON) (*models.Cluster, []models
 	}
 	return cluster, masterList, nil
 }
+
+// GetClusterByClusterID : get cluster detail without project id
+func GetClusterByClusterID(c *gin.Context) {
+	clusterID := c.Params.ByName("cluster_id")
+	// get cluster without project id
+	cluster := models.Cluster{ClusterID: clusterID}
+	if err := cluster.RetriveRecord(); err != nil {
+		utils.DBErrorResponse(c, err)
+		return
+	}
+	utils.OKJSONResponse(c, cluster)
+}
