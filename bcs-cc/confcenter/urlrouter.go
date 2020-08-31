@@ -153,4 +153,10 @@ func URLConf(engine *gin.Engine) {
 	{
 		clusterVersionConfig.GET("/", apis.ClusterVersionConfig)
 	}
+
+	clusters := engine.Group("/clusters/:cluster_id")
+	clusters.Use(JWTTokenMiddleware())
+	{
+		clusters.GET("/", apis.GetClusterByClusterID)
+	}
 }
