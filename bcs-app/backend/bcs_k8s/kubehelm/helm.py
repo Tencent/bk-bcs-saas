@@ -281,6 +281,26 @@ class KubeHelmClient:
         rollback_cmd_args = [settings.HELM3_BIN, "rollback", name, str(revision), "--namespace", namespace]
         return self._uninstall_or_rollback(rollback_cmd_args)
 
+    def list_releases(self, filter_exp=None, namespace=None, max_release=256, out_format="json"):
+        """列出集群中
+        """
+        cmd_args = [settings.HELM3_BIN, "list", "--all", "--date", "--reverse", f"--max={max_release}"]
+        if namespace:
+            cmd_args += [f"--namespace={namespace}"]
+        else:
+            cmd_args += ["--all-namespaces"]
+        if filter:
+            cmd_args += [f"--filter={filter_exp}"]
+        # 添加输出格式
+        cmd_args += [f"--output={out_format}"]
+        try:
+            cmd_out, cmd_err = self._run_command_with_retry(max_retries=0, cmd_args=cmd_args)
+        except Exception as e:
+            logger.exception("查询Release列表失败, 参数: %s，错误: %s", json.dumps(cmd_args), str(e))
+            return "", ""
+
+        return cmd_out, cmd_err
+
     def _run_command_with_retry(self, max_retries=1, *args, **kwargs):
         for i in range(max_retries + 1):
             try:

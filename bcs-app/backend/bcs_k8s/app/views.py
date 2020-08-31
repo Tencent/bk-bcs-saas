@@ -65,6 +65,7 @@ from backend.bcs_k8s.app.utils import compose_url_with_scheme
 from backend.utils.errcodes import ErrorCode
 from backend.bcs_k8s.app.serializers import FilterNamespacesSLZ
 from backend.bcs_k8s.app.utils_bk import get_or_create_private_repo
+from backend.apps.whitelist_bk import enable_search_helm_releases
 
 logger = logging.getLogger(__name__)
 
@@ -150,6 +151,9 @@ class AppView(ActionSerializerMixin, AppViewBase):
             item["chart"] = item.pop("chart__id")
             item["created"] = item["created"].astimezone().strftime(datetime_format)
             item["updated"] = item["updated"].astimezone().strftime(datetime_format)
+
+        if cluster_id and enable_search_helm_releases(cluster_id):
+            pass
 
         result = {
             "count": len(data),
@@ -991,4 +995,9 @@ class AppTransiningView(AppViewBase):
             "message": "ok",
             "data": data,
         }
+
+        # 针对创建时，出现异常, 删除app，减少用户的操作
+        if app.enable_helm and app.transitioning_action == "create" and not app.transitioning_result:
+            app.delete()
+
         return Response(response)

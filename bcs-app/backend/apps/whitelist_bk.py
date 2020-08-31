@@ -42,3 +42,9 @@ def enable_incremental_sync_chart_repo(project_id: str) -> bool:
     """是否开启增量同步仓库数据
     """
     return False
+
+
+def enable_search_helm_releases(cluster_id: str) -> bool:
+    """是否开启查询helm release功能
+    """
+    return True
