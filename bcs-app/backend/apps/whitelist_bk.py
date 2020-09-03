@@ -48,3 +48,7 @@ def enable_search_helm_releases(cluster_id: str) -> bool:
     """是否开启查询helm release功能
     """
     return True
+
+
+def enable_repo_chart_version(cluster_id: str) -> bool:
+    return True
