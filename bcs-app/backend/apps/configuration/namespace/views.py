@@ -262,7 +262,7 @@ class NamespaceView(NamespaceBase, viewsets.ViewSet):
 
         # 补充cluster_name字段
         cluster_list = get_clusters(access_token, project_id)
-        cluster_dict = {i['cluster_id']: i for i in cluster_list}
+        cluster_dict = {i["cluster_id"]: i for i in (cluster_list or []) if i.get("cluster_id")}
 
         # no_vars=1 不显示变量
         no_vars = request.GET.get('no_vars')

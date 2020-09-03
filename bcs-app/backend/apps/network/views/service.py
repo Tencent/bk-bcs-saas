@@ -279,6 +279,9 @@ class Services(viewsets.ViewSet, BaseAPI):
             if code != ErrorCode.NoError:
                 continue
             for _s in cluster_services:
+                # NOTE: 兼容先前clusterId，增加cluster_id
+                _s["clusterId"] = cluster_id
+                _s["cluster_id"] = cluster_id
                 _config = _s.get('data', {})
                 annotations = _config.get(
                     'metadata', {}).get('annotations', {})
