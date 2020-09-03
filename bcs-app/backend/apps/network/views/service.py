@@ -279,6 +279,9 @@ class Services(viewsets.ViewSet, BaseAPI):
             if code != ErrorCode.NoError:
                 continue
             for _s in cluster_services:
+                # NOTE: 兼容处理，因为key: clusterId已被前端使用；通过非bcs创建的service，不一定包含cluster_id
+                _s["clusterId"] = cluster_id
+                _s["cluster_id"] = cluster_id
                 _config = _s.get('data', {})
                 annotations = _config.get(
                     'metadata', {}).get('annotations', {})
