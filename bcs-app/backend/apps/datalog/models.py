@@ -11,12 +11,8 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-import logging
-
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
-
-logger = logging.getLogger(__name__)
 
 
 class ProjectDataInfo(models.Model):
@@ -25,32 +21,17 @@ class ProjectDataInfo(models.Model):
 
     @note: 此Model数据需采用 save 方法保存，因需要触发signals处理关联数据
     """
-    cc_biz_id = models.IntegerField(_('业务ID'), blank=True, default=0)
+
+    cc_biz_id = models.IntegerField(_("业务ID"), blank=True, default=0)
     project_id = models.CharField(_("项目ID"), max_length=32, unique=True)
     data_project_id = models.IntegerField(_("数据平台上申请的项目ID"), null=True, blank=True)
-    # 标准日志采集
+    # 标准日志
     standard_data_id = models.IntegerField(_("标准日志采集的dataid"), null=True, blank=True)
-    standard_data_name = models.CharField(_("标准日志采集源数据"), max_length=255, null=True, blank=True,
-                                          help_text=_('变更后，会同步更新paas_monitor/log中ES-Index配置'))
-    standard_flow_id = models.IntegerField(_("标准日志采集DataFlow ID"), null=True, blank=True)
-    standard_flow_task_id = models.IntegerField(_("标准日志采集DataFlow 任务ID"), null=True, blank=True)
+    standard_data_name = models.CharField(_("标准日志采集源数据"), max_length=255, null=True, blank=True)
+    standard_table_name = models.CharField(_("标准日志表名"), max_length=255, null=True, blank=True)
+    standard_storage_success = models.BooleanField(default=False)
 
     non_standard_data_id = models.IntegerField(_("非标准日志采集的dataid"), null=True, blank=True)
-    non_standard_data_name = models.CharField(_("非标准日志采集源数据"), max_length=255, null=True, blank=True,
-                                              help_text=_('变更后，会同步更新paas_monitor/log中ES-Index配置'))
-    non_standard_flow_id = models.IntegerField(_("非标准日志采集DataFlow ID"), null=True, blank=True)
-    non_standard_flow_task_id = models.IntegerField(_("非标准日志采集DataFlow 任务ID"), null=True, blank=True)
-
-    def _get_result_table_id(self, data_name, flow_task_id):
-        # 如果 DataFlow 任务ID 为空，后端存储实际不可用，不需要创建日志流
-        if data_name and data_name.strip() and flow_task_id:
-            return '%s_etl_%s' % (self.cc_biz_id, data_name.strip())
-        return ''
-
-    @property
-    def standard_result_table_id(self):
-        return self._get_result_table_id(self.standard_data_name, self.standard_flow_task_id)
-
-    @property
-    def non_standard_result_table_id(self):
-        return self._get_result_table_id(self.non_standard_data_name, self.non_standard_flow_task_id)
+    non_standard_data_name = models.CharField(_("非标准日志采集源数据"), max_length=255, null=True, blank=True)
+    non_standard_table_name = models.CharField(_("非标准日志表名"), max_length=255, null=True, blank=True)
+    non_standard_storage_success = models.BooleanField(default=False)
