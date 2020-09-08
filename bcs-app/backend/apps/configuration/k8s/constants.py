@@ -34,34 +34,27 @@ AFFINITY_MATCH_EXPRESSION_SCHEMA = {
         "required": ["key", "operator"],
         "properties": {
             "key": {"type": "string", "minLength": 1},
-            "operator": {"type": "string", "enum": ["In", "NotIn", "Exists",
-                                                    "DoesNotExist", "Gt", "Lt"
-                                                    ]},
-            "values": {"type": "array", "items": {"type": "string", "minLength": 1}}
+            "operator": {"type": "string", "enum": ["In", "NotIn", "Exists", "DoesNotExist", "Gt", "Lt"]},
+            "values": {"type": "array", "items": {"type": "string", "minLength": 1}},
         },
-        "additionalProperties": False
-    }
+        "additionalProperties": False,
+    },
 }
 
 POD_AFFINITY_TERM_SCHEMA = {
     "type": "object",
     "properties": {
-        "labelSelector": {"type": "object", "properties": {
-            "matchExpressions": AFFINITY_MATCH_EXPRESSION_SCHEMA
-        }},
+        "labelSelector": {"type": "object", "properties": {"matchExpressions": AFFINITY_MATCH_EXPRESSION_SCHEMA}},
         "namespaces": {"type": "array", "items": {"type": "string"}},
-        "topologyKey": {"type": "string"}
+        "topologyKey": {"type": "string"},
     },
-    "additionalProperties": False
+    "additionalProperties": False,
 }
 
 POD_AFFINITY_SCHEMA = {
     "type": "object",
     "properties": {
-        "requiredDuringSchedulingIgnoredDuringExecution": {
-            "type": "array",
-            "items": POD_AFFINITY_TERM_SCHEMA
-        },
+        "requiredDuringSchedulingIgnoredDuringExecution": {"type": "array", "items": POD_AFFINITY_TERM_SCHEMA},
         "preferredDuringSchedulingIgnoredDuringExecution": {
             "type": "array",
             "items": {
@@ -74,108 +67,60 @@ POD_AFFINITY_SCHEMA = {
                             {"type": "number", "minimum": 1, "maximum": 100},
                         ]
                     },
-                    "podAffinityTerm": POD_AFFINITY_TERM_SCHEMA
-                }
-            }
-        }
+                    "podAffinityTerm": POD_AFFINITY_TERM_SCHEMA,
+                },
+            },
+        },
     },
-    "additionalProperties": False
+    "additionalProperties": False,
 }
 
 # 健康检查 & 就绪检查
 K8S_CHECK_SCHEMA = {
     "type": "object",
-    "required": [
-        "initialDelaySeconds",
-        "periodSeconds",
-        "timeoutSeconds",
-        "failureThreshold",
-        "successThreshold",
-    ],
+    "required": ["initialDelaySeconds", "periodSeconds", "timeoutSeconds", "failureThreshold", "successThreshold"],
     "properties": {
         "initialDelaySeconds": {
-            "oneOf": [
-                {"type": "string", "pattern": NUM_VAR_PATTERN},
-                {"type": "number", "minimum": 0},
-            ]
+            "oneOf": [{"type": "string", "pattern": NUM_VAR_PATTERN}, {"type": "number", "minimum": 0}]
         },
-        "periodSeconds": {
-            "oneOf": [
-                {"type": "string", "pattern": NUM_VAR_PATTERN},
-                {"type": "number", "minimum": 1},
-            ]
-        },
+        "periodSeconds": {"oneOf": [{"type": "string", "pattern": NUM_VAR_PATTERN}, {"type": "number", "minimum": 1}]},
         "timeoutSeconds": {
-            "oneOf": [
-                {"type": "string", "pattern": NUM_VAR_PATTERN},
-                {"type": "number", "minimum": 1},
-            ]
+            "oneOf": [{"type": "string", "pattern": NUM_VAR_PATTERN}, {"type": "number", "minimum": 1}]
         },
         "failureThreshold": {
-            "oneOf": [
-                {"type": "string", "pattern": NUM_VAR_PATTERN},
-                {"type": "number", "minimum": 1},
-            ]
+            "oneOf": [{"type": "string", "pattern": NUM_VAR_PATTERN}, {"type": "number", "minimum": 1}]
         },
         "successThreshold": {
-            "oneOf": [
-                {"type": "string", "pattern": NUM_VAR_PATTERN},
-                {"type": "number", "minimum": 1},
-            ]
+            "oneOf": [{"type": "string", "pattern": NUM_VAR_PATTERN}, {"type": "number", "minimum": 1}]
         },
-        "exec": {
-            "type": "object",
-            "properties": {
-                "command": {"type": "string"}
-            }
-        },
-        "tcpSocket": {
-            "type": "object",
-            "properties": {
-                "port": {
-                    "oneOf": [
-                        {"type": "number"},
-                        {"type": "string"}
-                    ]
-                }
-            }
-        },
+        "exec": {"type": "object", "properties": {"command": {"type": "string"}}},
+        "tcpSocket": {"type": "object", "properties": {"port": {"oneOf": [{"type": "number"}, {"type": "string"}]}}},
         "httpGet": {
             "type": "object",
             "properties": {
-                "port": {
-                    "oneOf": [
-                        {"type": "number"},
-                        {"type": "string"}
-                    ]
-                },
+                "port": {"oneOf": [{"type": "number"}, {"type": "string"}]},
                 "path": {"type": "string"},
                 "httpHeaders": {
                     "type": "array",
                     "items": {
                         "type": "object",
-                        "properties": {
-                            "name": {"type": "string"},
-                            "value": {"type": "string"},
-                        }
-                    }
-                }
-            }
-        }
-    }
+                        "properties": {"name": {"type": "string"}, "value": {"type": "string"}},
+                    },
+                },
+            },
+        },
+    },
 }
 
-CONTAINER_SCHEMA = {
+INIT_CONTAINER_SCHEMA = {
     "type": "array",
     "items": {
         "type": "object",
-        "required": ["name", "image", "imagePullPolicy", "volumeMounts", "ports",
-                     "resources", "livenessProbe", "readinessProbe", "lifecycle"],
+        "required": ["name", "image", "imagePullPolicy", "volumeMounts", "ports", "resources"],
         "properties": {
             "name": {"type": "string", "minLength": 1},
             "image": {"type": "string", "minLength": 1},
-            "imagePullPolicy": {"type": "string",
-                                "enum": ["Always", "IfNotPresent", "Never"]},
+            "imagePullPolicy": {"type": "string", "enum": ["Always", "IfNotPresent", "Never"]},
             "volumeMounts": {
                 "type": "array",
                 "items": {
@@ -183,13 +128,10 @@ CONTAINER_SCHEMA = {
                     "required": ["name", "mountPath", "readOnly"],
                     "properties": {
                         "name": {"type": "string", "pattern": VOLUMR_NAME_PATTERN},
-                        "mountPath": {
-                            "type": "string",
-                            "pattern": FILE_DIR_PATTERN
-                        },
-                        "readOnly": {"type": "boolean"}
-                    }
-                }
+                        "mountPath": {"type": "string", "pattern": FILE_DIR_PATTERN},
+                        "readOnly": {"type": "boolean"},
+                    },
+                },
             },
             "ports": {
                 "type": "array",
@@ -197,25 +139,21 @@ CONTAINER_SCHEMA = {
                     "type": "object",
                     "required": ["name", "containerPort"],
                     "properties": {
-                        "name": {"oneOf": [
-                            {"type": "string",
-                             "pattern": "^$"},
-                            {"type": "string",
-                             "pattern": PORT_NAME_PATTERN}
-                        ]},
+                        "name": {
+                            "oneOf": [
+                                {"type": "string", "pattern": "^$"},
+                                {"type": "string", "pattern": PORT_NAME_PATTERN},
+                            ]
+                        },
                         "containerPort": {
                             "oneOf": [
-                                {"type": "string",
-                                 "pattern": "^$"},
-                                {"type": "string",
-                                 "pattern": NUM_VAR_PATTERN},
-                                {"type": "number",
-                                 "minimum": 1,
-                                 "maximum": 65535}
+                                {"type": "string", "pattern": "^$"},
+                                {"type": "string", "pattern": NUM_VAR_PATTERN},
+                                {"type": "number", "minimum": 1, "maximum": 65535},
                             ]
-                        }
-                    }
-                }
+                        },
+                    },
+                },
             },
             "command": {"type": "string"},
             "args": {"type": "string"},
@@ -234,9 +172,7 @@ CONTAINER_SCHEMA = {
                                 "fieldRef": {
                                     "type": "object",
                                     "required": ["fieldPath"],
-                                    "properties": {
-                                        "fieldPath": {"type": "string"}
-                                    }
+                                    "properties": {"fieldPath": {"type": "string"}},
                                 },
                                 "configMapKeyRef": {
                                     "type": "object",
@@ -244,7 +180,7 @@ CONTAINER_SCHEMA = {
                                     "properties": {
                                         "name": {"type": "string", "minLength": 1},
                                         "key": {"type": "string", "minLength": 1},
-                                    }
+                                    },
                                 },
                                 "secretKeyRef": {
                                     "type": "object",
@@ -252,11 +188,11 @@ CONTAINER_SCHEMA = {
                                     "properties": {
                                         "name": {"type": "string", "minLength": 1},
                                         "key": {"type": "string", "minLength": 1},
-                                    }
-                                }
-                            }
-                        }
-                    }
+                                    },
+                                },
+                            },
+                        },
+                    },
                 },
             },
             "envFrom": {
@@ -266,18 +202,11 @@ CONTAINER_SCHEMA = {
                     "properties": {
                         "configMapRef": {
                             "type": "object",
-                            "properties": {
-                                "name": {"type": "string", "minLength": 1},
-                            }
+                            "properties": {"name": {"type": "string", "minLength": 1}},
                         },
-                        "secretRef": {
-                            "type": "object",
-                            "properties": {
-                                "name": {"type": "string", "minLength": 1},
-                            }
-                        }
-                    }
-                }
+                        "secretRef": {"type": "object", "properties": {"name": {"type": "string", "minLength": 1}}},
+                    },
+                },
             },
             "resources": {
                 "type": "object",
@@ -287,52 +216,193 @@ CONTAINER_SCHEMA = {
                         "properties": {
                             "cpu": {
                                 "oneOf": [
-                                    {"type": "string",
-                                     "pattern": "^$"},
-                                    {"type": "string",
-                                     "pattern": NUM_VAR_PATTERN},
-                                    {"type": "number",
-                                     "minimum": 0}
+                                    {"type": "string", "pattern": "^$"},
+                                    {"type": "string", "pattern": NUM_VAR_PATTERN},
+                                    {"type": "number", "minimum": 0},
                                 ]
                             },
                             "memory": {
                                 "oneOf": [
-                                    {"type": "string",
-                                     "pattern": "^$"},
-                                    {"type": "number",
-                                     "minimum": 0},
-                                    {"type": "string",
-                                     "pattern": NUM_VAR_PATTERN},
+                                    {"type": "string", "pattern": "^$"},
+                                    {"type": "number", "minimum": 0},
+                                    {"type": "string", "pattern": NUM_VAR_PATTERN},
                                 ]
-                            }
-                        }
+                            },
+                        },
                     },
                     "requests": {
                         "type": "object",
                         "properties": {
                             "cpu": {
                                 "oneOf": [
-                                    {"type": "string",
-                                     "pattern": "^$"},
-                                    {"type": "number",
-                                     "minimum": 0},
-                                    {"type": "string",
-                                     "pattern": NUM_VAR_PATTERN}
+                                    {"type": "string", "pattern": "^$"},
+                                    {"type": "number", "minimum": 0},
+                                    {"type": "string", "pattern": NUM_VAR_PATTERN},
                                 ]
                             },
                             "memory": {
                                 "oneOf": [
-                                    {"type": "string",
-                                     "pattern": "^$"},
-                                    {"type": "number",
-                                     "minimum": 0},
-                                    {"type": "string",
-                                     "pattern": NUM_VAR_PATTERN}
+                                    {"type": "string", "pattern": "^$"},
+                                    {"type": "number", "minimum": 0},
+                                    {"type": "string", "pattern": NUM_VAR_PATTERN},
                                 ]
-                            }
-                        }
-                    }
-                }
+                            },
+                        },
+                    },
+                },
+            },
+        },
+    },
+}
+
+CONTAINER_SCHEMA = {
+    "type": "array",
+    "items": {
+        "type": "object",
+        "required": [
+            "name",
+            "image",
+            "imagePullPolicy",
+            "volumeMounts",
+            "ports",
+            "resources",
+            "livenessProbe",
+            "readinessProbe",
+            "lifecycle",
+        ],
+        "properties": {
+            "name": {"type": "string", "minLength": 1},
+            "image": {"type": "string", "minLength": 1},
+            "imagePullPolicy": {"type": "string", "enum": ["Always", "IfNotPresent", "Never"]},
+            "volumeMounts": {
+                "type": "array",
+                "items": {
+                    "type": "object",
+                    "required": ["name", "mountPath", "readOnly"],
+                    "properties": {
+                        "name": {"type": "string", "pattern": VOLUMR_NAME_PATTERN},
+                        "mountPath": {"type": "string", "pattern": FILE_DIR_PATTERN},
+                        "readOnly": {"type": "boolean"},
+                    },
+                },
+            },
+            "ports": {
+                "type": "array",
+                "items": {
+                    "type": "object",
+                    "required": ["name", "containerPort"],
+                    "properties": {
+                        "name": {
+                            "oneOf": [
+                                {"type": "string", "pattern": "^$"},
+                                {"type": "string", "pattern": PORT_NAME_PATTERN},
+                            ]
+                        },
+                        "containerPort": {
+                            "oneOf": [
+                                {"type": "string", "pattern": "^$"},
+                                {"type": "string", "pattern": NUM_VAR_PATTERN},
+                                {"type": "number", "minimum": 1, "maximum": 65535},
+                            ]
+                        },
+                    },
+                },
+            },
+            "command": {"type": "string"},
+            "args": {"type": "string"},
+            # 环境变量前端统一存放在 webCache.env_list 中，有后台组装为 env & envFrom
+            "env": {
+                "type": "array",
+                "items": {
+                    "type": "object",
+                    "required": ["name"],
+                    "properties": {
+                        "name": {"type": "string", "minLength": 1},
+                        "value": {"type": "string"},
+                        "valueFrom": {
+                            "type": "object",
+                            "properties": {
+                                "fieldRef": {
+                                    "type": "object",
+                                    "required": ["fieldPath"],
+                                    "properties": {"fieldPath": {"type": "string"}},
+                                },
+                                "configMapKeyRef": {
+                                    "type": "object",
+                                    "required": ["name", "key"],
+                                    "properties": {
+                                        "name": {"type": "string", "minLength": 1},
+                                        "key": {"type": "string", "minLength": 1},
+                                    },
+                                },
+                                "secretKeyRef": {
+                                    "type": "object",
+                                    "required": ["name", "key"],
+                                    "properties": {
+                                        "name": {"type": "string", "minLength": 1},
+                                        "key": {"type": "string", "minLength": 1},
+                                    },
+                                },
+                            },
+                        },
+                    },
+                },
+            },
+            "envFrom": {
+                "type": "array",
+                "items": {
+                    "type": "object",
+                    "properties": {
+                        "configMapRef": {
+                            "type": "object",
+                            "properties": {"name": {"type": "string", "minLength": 1}},
+                        },
+                        "secretRef": {"type": "object", "properties": {"name": {"type": "string", "minLength": 1}}},
+                    },
+                },
+            },
+            "resources": {
+                "type": "object",
+                "properties": {
+                    "limits": {
+                        "type": "object",
+                        "properties": {
+                            "cpu": {
+                                "oneOf": [
+                                    {"type": "string", "pattern": "^$"},
+                                    {"type": "string", "pattern": NUM_VAR_PATTERN},
+                                    {"type": "number", "minimum": 0},
+                                ]
+                            },
+                            "memory": {
+                                "oneOf": [
+                                    {"type": "string", "pattern": "^$"},
+                                    {"type": "number", "minimum": 0},
+                                    {"type": "string", "pattern": NUM_VAR_PATTERN},
+                                ]
+                            },
+                        },
+                    },
+                    "requests": {
+                        "type": "object",
+                        "properties": {
+                            "cpu": {
+                                "oneOf": [
+                                    {"type": "string", "pattern": "^$"},
+                                    {"type": "number", "minimum": 0},
+                                    {"type": "string", "pattern": NUM_VAR_PATTERN},
+                                ]
+                            },
+                            "memory": {
+                                "oneOf": [
+                                    {"type": "string", "pattern": "^$"},
+                                    {"type": "number", "minimum": 0},
+                                    {"type": "string", "pattern": NUM_VAR_PATTERN},
+                                ]
+                            },
+                        },
+                    },
+                },
             },
             "livenessProbe": K8S_CHECK_SCHEMA,
             "readinessProbe": K8S_CHECK_SCHEMA,
@@ -340,24 +410,16 @@ CONTAINER_SCHEMA = {
                 "type": "object",
                 "required": ["preStop", "postStart"],
                 "properties": {
-                    "preStop": {
-                        "type": "object",
-                        "required": ["exec"],
-                        "properties": {
-                            "command": {"type": "string"}
-                        }
-                    },
+                    "preStop": {"type": "object", "required": ["exec"], "properties": {"command": {"type": "string"}}},
                     "postStart": {
                         "type": "object",
                         "required": ["exec"],
-                        "properties": {
-                            "command": {"type": "string"}
-                        }
+                        "properties": {"command": {"type": "string"}},
                     },
-                }
-            }
-        }
-    }
+                },
+            },
+        },
+    },
 }
 
 K8S_DEPLOYMENT_SCHEMA = {
@@ -367,34 +429,22 @@ K8S_DEPLOYMENT_SCHEMA = {
         "metadata": {
             "type": "object",
             "required": ["name"],
-            "properties": {
-                "name": {
-                    "type": "string",
-                    "pattern": K8S_RES_NAME_PATTERN
-                }
-            }
+            "properties": {"name": {"type": "string", "pattern": K8S_RES_NAME_PATTERN}},
         },
         "spec": {
             "type": "object",
             "required": ["replicas", "strategy", "template"],
             "properties": {
                 "replicas": {
-                    "oneOf": [
-                        {"type": "string",
-                         "pattern": NUM_VAR_PATTERN},
-                        {"type": "number", "minimum": 0},
-                    ]
+                    "oneOf": [{"type": "string", "pattern": NUM_VAR_PATTERN}, {"type": "number", "minimum": 0}]
                 },
                 "strategy": {
                     "type": "object",
                     "required": ["type"],
                     "properties": {
                         "type": {"type": "string", "enum": ["RollingUpdate", "Recreate"]},
-                        "rollingUpdate": {
-                            "type": "object",
-                            "required": ["maxUnavailable", "maxSurge"]
-                        }
-                    }
+                        "rollingUpdate": {"type": "object", "required": ["maxUnavailable", "maxSurge"]},
+                    },
                 },
                 "template": {
                     "type": "object",
@@ -402,37 +452,32 @@ K8S_DEPLOYMENT_SCHEMA = {
                     "properties": {
                         "metadata": {
                             "type": "object",
-                            "properties": {
-                                "lables": {"type": "object"},
-                                "annotations": {"type": "object"}
-                            }
+                            "properties": {"lables": {"type": "object"}, "annotations": {"type": "object"}},
                         },
                         "spec": {
                             "type": "object",
-                            "required": ["restartPolicy", "terminationGracePeriodSeconds", "nodeSelector",
-                                         "hostNetwork", "dnsPolicy", "volumes", "containers"],
+                            "required": [
+                                "restartPolicy",
+                                "terminationGracePeriodSeconds",
+                                "nodeSelector",
+                                "hostNetwork",
+                                "dnsPolicy",
+                                "volumes",
+                                "containers",
+                            ],
                             "properties": {
-                                "restartPolicy": {
-                                    "type": "string",
-                                    "enum": ["Always", "OnFailure", "Never"]
-                                },
+                                "restartPolicy": {"type": "string", "enum": ["Always", "OnFailure", "Never"]},
                                 "terminationGracePeriodSeconds": {
                                     "oneOf": [
-                                        {"type": "string",
-                                         "pattern": NUM_VAR_PATTERN},
+                                        {"type": "string", "pattern": NUM_VAR_PATTERN},
                                         {"type": "number", "minimum": 0},
                                     ]
                                 },
                                 "nodeSelector": {"type": "object"},
-                                "hostNetwork": {
-                                    "oneOf": [
-                                        {"type": "number"},
-                                        {"type": "string"}
-                                    ]
-                                },
+                                "hostNetwork": {"oneOf": [{"type": "number"}, {"type": "string"}]},
                                 "dnsPolicy": {
                                     "type": "string",
-                                    "enum": ["ClusterFirst", "Default", "None", "ClusterFirstWithHostNet"]
+                                    "enum": ["ClusterFirst", "Default", "None", "ClusterFirstWithHostNet"],
                                 },
                                 "volumes": {
                                     "type": "array",
@@ -445,48 +490,37 @@ K8S_DEPLOYMENT_SCHEMA = {
                                                 "type": "object",
                                                 "required": ["path"],
                                                 "properties": {
-                                                    "path": {
-                                                        "type": "string",
-                                                        "pattern": FILE_DIR_PATTERN
-                                                    }
-                                                }
+                                                    "path": {"type": "string", "pattern": FILE_DIR_PATTERN}
+                                                },
                                             },
-                                            "emptyDir": {
-                                                "type": "object",
-                                            },
+                                            "emptyDir": {"type": "object"},
                                             "configMap": {
                                                 "type": "object",
                                                 "required": ["name"],
-                                                "properties": {
-                                                    "name": {"type": "string", "minLength": 1}
-                                                }
+                                                "properties": {"name": {"type": "string", "minLength": 1}},
                                             },
                                             "secret": {
                                                 "type": "object",
                                                 "required": ["secretName"],
-                                                "properties": {
-                                                    "secretName": {"type": "string", "minLength": 1}
-                                                }
+                                                "properties": {"secretName": {"type": "string", "minLength": 1}},
                                             },
                                             "persistentVolumeClaim": {
                                                 "type": "object",
                                                 "required": ["claimName"],
-                                                "properties": {
-                                                    "claimName": {"type": "string", "minLength": 1}
-                                                }
-                                            }
-                                        }
-                                    }
+                                                "properties": {"claimName": {"type": "string", "minLength": 1}},
+                                            },
+                                        },
+                                    },
                                 },
                                 "containers": CONTAINER_SCHEMA,
-                                "initContainers": CONTAINER_SCHEMA
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
+                                "initContainers": INIT_CONTAINER_SCHEMA,
+                            },
+                        },
+                    },
+                },
+            },
+        },
+    },
 }
 
 AFFINITY_SCHEMA = {
@@ -504,12 +538,10 @@ AFFINITY_SCHEMA = {
                             "items": {
                                 "type": "object",
                                 "required": ["matchExpressions"],
-                                "properties": {
-                                    "matchExpressions": AFFINITY_MATCH_EXPRESSION_SCHEMA
-                                }
-                            }
+                                "properties": {"matchExpressions": AFFINITY_MATCH_EXPRESSION_SCHEMA},
+                            },
                         }
-                    }
+                    },
                 },
                 "preferredDuringSchedulingIgnoredDuringExecution": {
                     "type": "array",
@@ -526,20 +558,18 @@ AFFINITY_SCHEMA = {
                             "preference": {
                                 "type": "object",
                                 "required": ["matchExpressions"],
-                                "properties": {
-                                    "matchExpressions": AFFINITY_MATCH_EXPRESSION_SCHEMA
-                                }
-                            }
-                        }
-                    }
+                                "properties": {"matchExpressions": AFFINITY_MATCH_EXPRESSION_SCHEMA},
+                            },
+                        },
+                    },
                 },
             },
-            "additionalProperties": False
+            "additionalProperties": False,
         },
         "podAffinity": POD_AFFINITY_SCHEMA,
-        "podAntiAffinity": POD_AFFINITY_SCHEMA
+        "podAntiAffinity": POD_AFFINITY_SCHEMA,
     },
-    "additionalProperties": False
+    "additionalProperties": False,
 }
 
 # DS 与 Deployment 的差异项:滚动升级策略 中 选择 RollingUpdate 时，只可以选择 maxUnavailable
@@ -548,15 +578,7 @@ K8S_DAEMONSET_DIFF = {
     "properties": {
         "spec": {
             "required": ["updateStrategy", "template"],
-            "properties": {
-                "updateStrategy": {
-                    "properties": {
-                        "rollingUpdate": {
-                            "required": ["maxUnavailable"]
-                        }
-                    }
-                }
-            }
+            "properties": {"updateStrategy": {"properties": {"rollingUpdate": {"required": ["maxUnavailable"]}}}},
         }
     }
 }
@@ -569,35 +591,21 @@ K8S_JOB_DIFF = {
     "properties": {
         "spec": {
             "type": "object",
-            "required": ["template",
-                         "completions", "parallelism", "backoffLimit", "activeDeadlineSeconds"],
+            "required": ["template", "completions", "parallelism", "backoffLimit", "activeDeadlineSeconds"],
             "properties": {
                 "parallelism": {
-                    "oneOf": [
-                        {"type": "string", "pattern": NUM_VAR_PATTERN},
-                        {"type": "number", "minimum": 0},
-                    ]
+                    "oneOf": [{"type": "string", "pattern": NUM_VAR_PATTERN}, {"type": "number", "minimum": 0}]
                 },
                 "completions": {
-                    "oneOf": [
-                        {"type": "string", "pattern": NUM_VAR_PATTERN},
-                        {"type": "number", "minimum": 0},
-                    ]
+                    "oneOf": [{"type": "string", "pattern": NUM_VAR_PATTERN}, {"type": "number", "minimum": 0}]
                 },
                 "backoffLimit": {
-                    "oneOf": [
-                        {"type": "string", "pattern": NUM_VAR_PATTERN},
-                        {"type": "number", "minimum": 0},
-                    ]
+                    "oneOf": [{"type": "string", "pattern": NUM_VAR_PATTERN}, {"type": "number", "minimum": 0}]
                 },
                 "activeDeadlineSeconds": {
-                    "oneOf": [
-                        {"type": "string", "pattern": NUM_VAR_PATTERN},
-                        {"type": "number", "minimum": 0},
-                    ]
+                    "oneOf": [{"type": "string", "pattern": NUM_VAR_PATTERN}, {"type": "number", "minimum": 0}]
                 },
-
-            }
+            },
         }
     }
 }
@@ -608,60 +616,78 @@ K8S_JOB_SCHEMA = update_nested_dict(K8S_DEPLOYMENT_SCHEMA, K8S_JOB_DIFF)
 K8S_STATEFULSET_DIFF = {
     "properties": {
         "spec": {
-            "required": ["template",
-                         "updateStrategy", "podManagementPolicy", "volumeClaimTemplates"],
+            "required": ["template", "updateStrategy", "podManagementPolicy", "volumeClaimTemplates"],
             "properties": {
-                "updateStrategy": {"type": "object", "required": ["type"], "properties": {
-                    "type": {"type": "string", "enum": ["OnDelete", "RollingUpdate"]},
-                    "rollingUpdate": {"type": "object", "required": ["partition"], "properties": {
-                        "partition": {
-                            "oneOf": [
-                                {"type": "string", "pattern": NUM_VAR_PATTERN},
-                                {"type": "number", "minimum": 0},
-                            ]
-                        }
-                    }}
-                }},
+                "updateStrategy": {
+                    "type": "object",
+                    "required": ["type"],
+                    "properties": {
+                        "type": {"type": "string", "enum": ["OnDelete", "RollingUpdate"]},
+                        "rollingUpdate": {
+                            "type": "object",
+                            "required": ["partition"],
+                            "properties": {
+                                "partition": {
+                                    "oneOf": [
+                                        {"type": "string", "pattern": NUM_VAR_PATTERN},
+                                        {"type": "number", "minimum": 0},
+                                    ]
+                                }
+                            },
+                        },
+                    },
+                },
                 "podManagementPolicy": {"type": "string", "enum": ["OrderedReady", "Parallel"]},
                 "serviceName": {"type": "string", "minLength": 1},
                 "volumeClaimTemplates": {
-                    "type": "array", "items": {
+                    "type": "array",
+                    "items": {
                         "type": "object",
                         "required": ["metadata", "spec"],
                         "properties": {
-                            "metadata": {"type": "object", "required": ["name"], "properties": {
-                                # "name": {"type": "string", "minLength": 1}
-                            }},
+                            "metadata": {
+                                "type": "object",
+                                "required": ["name"],
+                                "properties": {
+                                    # "name": {"type": "string", "minLength": 1}
+                                },
+                            },
                             "spec": {
-                                "type": "object", "required": ["accessModes", "storageClassName", "resources"],
+                                "type": "object",
+                                "required": ["accessModes", "storageClassName", "resources"],
                                 "properties": {
                                     #  "storageClassName": {"type": "string", "minLength": 1},
                                     "accessModes": {
-                                        "type": "array", "items": {
+                                        "type": "array",
+                                        "items": {
                                             "type": "string",
-                                            "enum": ["ReadWriteOnce", "ReadOnlyMany", "ReadWriteMany"]
-                                        }
+                                            "enum": ["ReadWriteOnce", "ReadOnlyMany", "ReadWriteMany"],
+                                        },
                                     },
                                     "resources": {
-                                        "type": "object", "required": ["requests"], "properties": {
+                                        "type": "object",
+                                        "required": ["requests"],
+                                        "properties": {
                                             "requests": {
-                                                "type": "object", "required": ["storage"], "properties": {
+                                                "type": "object",
+                                                "required": ["storage"],
+                                                "properties": {
                                                     "storage": {
                                                         "oneOf": [
                                                             {"type": "string", "pattern": NUM_VAR_PATTERN},
                                                             {"type": "number", "minimum": 0},
                                                         ]
                                                     }
-                                                }
+                                                },
                                             }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
+                                        },
+                                    },
+                                },
+                            },
+                        },
+                    },
+                },
+            },
         }
     }
 }
@@ -675,23 +701,14 @@ K8S_CONFIGMAP_SCHEMA = {
         "metadata": {
             "type": "object",
             "required": ["name"],
-            "properties": {
-                "name": {
-                    "type": "string",
-                    "pattern": K8S_RES_NAME_PATTERN
-                }
-            }
+            "properties": {"name": {"type": "string", "pattern": K8S_RES_NAME_PATTERN}},
         },
         "data": {
             "type": "object",
-            "patternProperties": {
-                KEY_NAME_PATTERN: {
-                    "type": "string"
-                }
-            },
-            "additionalProperties": False
-        }
-    }
+            "patternProperties": {KEY_NAME_PATTERN: {"type": "string"}},
+            "additionalProperties": False,
+        },
+    },
 }
 
 K8S_SECRET_SCHEMA = {
@@ -701,38 +718,21 @@ K8S_SECRET_SCHEMA = {
         "metadata": {
             "type": "object",
             "required": ["name"],
-            "properties": {
-                "name": {
-                    "type": "string",
-                    "pattern": K8S_RES_NAME_PATTERN
-                }
-            }
+            "properties": {"name": {"type": "string", "pattern": K8S_RES_NAME_PATTERN}},
         },
         "data": {
             "type": "object",
-            "patternProperties": {
-                KEY_NAME_PATTERN: {
-                    "type": "string"
-                }
-            },
-            "additionalProperties": False
-        }
-    }
+            "patternProperties": {KEY_NAME_PATTERN: {"type": "string"}},
+            "additionalProperties": False,
+        },
+    },
 }
 
 K8S_SERVICE_SCHEMA = {
     "type": "object",
     "required": ["metadata", "spec"],
     "properties": {
-        "metadata": {
-            "type": "object",
-            "required": ["name"],
-            "properties": {
-                "name": {
-                    "type": "string"
-                }
-            }
-        },
+        "metadata": {"type": "object", "required": ["name"], "properties": {"name": {"type": "string"}}},
         "spec": {
             "type": "object",
             "required": ["type", "clusterIP", "ports"],
@@ -745,54 +745,47 @@ K8S_SERVICE_SCHEMA = {
                         "type": "object",
                         "required": ["port", "protocol"],
                         "properties": {
-                            "name": {"oneOf": [
-                                {"type": "string",
-                                 "pattern": "^$"},
-                                {"type": "string",
-                                 "pattern": PORT_NAME_PATTERN}
-                            ]},
+                            "name": {
+                                "oneOf": [
+                                    {"type": "string", "pattern": "^$"},
+                                    {"type": "string", "pattern": PORT_NAME_PATTERN},
+                                ]
+                            },
                             "port": {
                                 "oneOf": [
                                     {"type": "string", "pattern": "^$"},
                                     {"type": "string", "pattern": NUM_VAR_PATTERN},
-                                    {"type": "number", "minimum": 1,
-                                     "maximum": 65535},
+                                    {"type": "number", "minimum": 1, "maximum": 65535},
                                 ]
                             },
                             "protocol": {"type": "string", "enum": ["TCP", "UDP"]},
                             "targetPort": {
                                 "anyof": [
-                                    {"type": "number", "minimum": 1,
-                                     "maximum": 65535},
+                                    {"type": "number", "minimum": 1, "maximum": 65535},
                                     {"type": "string", "pattern": NUM_VAR_PATTERN},
-                                    {"type": "string", "minLength": 1}
+                                    {"type": "string", "minLength": 1},
                                 ]
                             },
                             "nodePort": {
                                 "oneOf": [
                                     {"type": "string", "pattern": "^$"},
                                     {"type": "string", "pattern": NUM_VAR_PATTERN},
-                                    {"type": "number", "minimum": 30000,
-                                     "maximum": 32767},
+                                    {"type": "number", "minimum": 30000, "maximum": 32767},
                                 ]
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
+                            },
+                        },
+                    },
+                },
+            },
+        },
+    },
 }
 
-K8S_INGRESS_SCHEMA = {
-    "type": "object",
-    "required": ["metadata", "spec"]
-}
+K8S_INGRESS_SCHEMA = {"type": "object", "required": ["metadata", "spec"]}
 
 K8S_HPA_SCHNEA = {
     "$schema": "http://json-schema.org/draft-04/schema#",
     "id": "k8s_hpa",
-
     "type": "object",
     "required": ["apiVersion", "kind", "metadata", "spec"],
     "properties": {
@@ -801,9 +794,7 @@ K8S_HPA_SCHNEA = {
         "metadata": {
             "type": "object",
             "required": ["name"],
-            "properties": {
-                "name": {"type": "string", "pattern": K8S_RES_NAME_PATTERN}
-            }
+            "properties": {"name": {"type": "string", "pattern": K8S_RES_NAME_PATTERN}},
         },
         "spec": {
             "type": "object",
@@ -814,8 +805,8 @@ K8S_HPA_SCHNEA = {
                     "required": ["kind", "name"],
                     "properties": {
                         "kind": {"type": "string", "enum": ["Deployment"]},
-                        "name": {"type": "string", "pattern": K8S_RES_NAME_PATTERN}
-                    }
+                        "name": {"type": "string", "pattern": K8S_RES_NAME_PATTERN},
+                    },
                 },
                 "minReplicas": {"type": "number", "minimum": 0},
                 "maxReplicas": {"type": "number", "minimum": 0},
@@ -836,20 +827,29 @@ K8S_HPA_SCHNEA = {
                                         "required": ["type", "averageUtilization"],
                                         "properties": {
                                             "type": {"type": "string", "enum": ["Utilization"]},
-                                            "averageUtilization": {"type": "number", "minimum": 0}
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
+                                            "averageUtilization": {"type": "number", "minimum": 0},
+                                        },
+                                    },
+                                },
+                            },
+                        },
+                    },
+                },
+            },
+        },
+    },
 }
 
-CONFIG_SCHEMA = [K8S_DEPLOYMENT_SCHEMA, K8S_DAEMONSET_SCHEMA, K8S_JOB_SCHEMA, K8S_STATEFULSET_SCHEMA,
-                 K8S_SERVICE_SCHEMA, K8S_CONFIGMAP_SCHEMA, K8S_SECRET_SCHEMA, K8S_INGRESS_SCHEMA, K8S_HPA_SCHNEA]
+CONFIG_SCHEMA = [
+    K8S_DEPLOYMENT_SCHEMA,
+    K8S_DAEMONSET_SCHEMA,
+    K8S_JOB_SCHEMA,
+    K8S_STATEFULSET_SCHEMA,
+    K8S_SERVICE_SCHEMA,
+    K8S_CONFIGMAP_SCHEMA,
+    K8S_SECRET_SCHEMA,
+    K8S_INGRESS_SCHEMA,
+    K8S_HPA_SCHNEA,
+]
 
 CONFIG_SCHEMA_MAP = dict(zip(KRESOURCE_NAMES, CONFIG_SCHEMA))
