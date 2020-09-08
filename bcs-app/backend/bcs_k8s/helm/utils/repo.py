@@ -26,6 +26,7 @@ import tarfile
 
 from backend.utils.cache import rd_client
 from backend.components.utils import http_get
+from backend.bcs_k8s.helm.models.repo import Repository
 
 logger = logging.getLogger(__name__)
 
@@ -205,12 +206,46 @@ class InProcessSign(object):
         rd_client.delete(self.key)
 
 
-if __name__ == '__main__':
-    # git
-    # url = "https://git.rancher.io/charts"
-    # name = "test"
-    # prepareRepoPath(url, name)
+def get_repo_info(project_id):
+    repo = Repository.objects.filter(project_id=project_id).exclude(name="public-repo").first()
+    plain_auths = repo.plain_auths
+    credentials = plain_auths[0]["credentials"]
+    return (repo.url, credentials["username"], credentials["password"])
 
-    # helm
-    url = "https://kubernetes-charts-incubator.storage.googleapis.com/"
-    name = "test"
+
+def parse_chart_version_files(chart_version_url, username, password):
+    """解析chart中的文件，用于前端处理
+    """
+    if not (username and password):
+        resp = requests.get(chart_version_url, stream=True)
+    else:
+        resp = requests.get(chart_version_url, stream=True, auth=(username, password))
+
+    if resp.status_code != 200:
+        logger.error("Download template data fail: [url=%s]", chart_version_url)
+        return {}
+
+    tar = tarfile.open(mode="r:*", fileobj=io.BytesIO(resp.content))
+
+    files = {}
+    # 解析文件，获取对应的文件，用于前端使用
+    tar.getnames()
+    for member in tar.members:
+        if member.isdir():
+            continue
+        file_path = member.path
+        file_content = tar.extractfile(file_path).read()
+
+        if is_binary_string(file_content[:1024]):
+            logger.warning("file %s seems to be a binary file, skipped it. content: %s",
+                           file_path, file_content[:1024])
+            continue
+
+        try:
+            files[file_path] = file_content.decode()
+        except Exception as e:
+            logger.exception("download_template_data failed %s, file_path=%s, file_content: %s",
+                             e, file_path, file_content)
+            return {}
+
+    return files

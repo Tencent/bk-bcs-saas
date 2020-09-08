@@ -11,5 +11,31 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
+from backend.utils.basic import ChoicesEnum
+
 
 CLUSTER_IMPORT_TPL = ""
+
+
+class ReleaseStatus(ChoicesEnum):
+    DEPLOYED = "deployed"
+    UNINSTALLING = "uninstalling"
+    UNINSTALLED = "uninstalled"
+    SUPERSEDED = "superseded"
+    FAILED = "failed"
+    PENDING_INSTALL = "pending-install"
+    PENDING_UPGRADE = "pending-upgrade"
+    PENDING_ROLLBACK = "pending-rollback"
+    UNKNOWN = "unknown"
+
+    _choices_labels = (
+        (DEPLOYED, "deployed"),
+        (UNINSTALLING, "uninstalling"),
+        (UNINSTALLED, "uninstalled"),
+        (SUPERSEDED, "superseded"),
+        (FAILED, "failed"),
+        (PENDING_INSTALL, "pending-install"),
+        (PENDING_UPGRADE, "pending-upgrade"),
+        (PENDING_ROLLBACK, "pending-rollback"),
+        (UNKNOWN, "unknown")
+    )

@@ -16,12 +16,18 @@ import yaml
 import yaml.reader
 import re
 import tempfile
+import json
+import logging
+import gzip
+import base64
 
 from urllib.parse import urlparse
 from ruamel.yaml import YAML
 from ruamel.yaml.compat import StringIO
 from ruamel.yaml.compat import ordereddict
 from django.utils.translation import ugettext_lazy as _
+from django.utils import timezone
+from django.conf import settings
 
 from backend.bcs_k8s.helm.utils.util import fix_rancher_value_by_type, EmptyVaue
 from backend.utils.client import make_dashboard_ctl_client
@@ -29,6 +35,14 @@ from backend.bcs_k8s.diff import parser
 
 from backend.bcs_k8s.dashboard.exceptions import DashboardExecutionError
 from backend.components import paas_cc
+from backend.bcs_k8s.app.constants import ReleaseStatus
+from backend.components.bk_repo import get_chart_versions, get_chart_version
+from backend.utils.client import make_helm_client
+from backend.components.bcs.k8s import K8SClient
+from backend.utils.basic import getitems, normalize_time
+from backend.bcs_k8s.helm.utils.repo import get_repo_info
+from backend.bcs_k8s import utils as bcs_helm_utils
+from backend.bcs_k8s.kubehelm.helm import KubeHelmClient
 
 
 yaml.reader.Reader.NON_PRINTABLE = re.compile(
@@ -411,3 +425,173 @@ def get_cc_app_id(access_token, project_id):
     resp = paas_cc.get_project(access_token, project_id)
     project_info = resp.get("data") or {}
     return str(project_info.get("cc_app_id") or "")
+
+
+def get_secrets(access_token, project_id, cluster_id, namespace=None):
+    client = K8SClient(access_token, project_id, cluster_id, None)
+    return client.get_secret(params={"namespace": namespace})
+
+
+def compose_release_data(project_id, cluster_id, release_data, releases, **kwargs):
+    namespace, release_name = release_data["namespace"], release_data["name"]
+    release_id = (namespace, release_name)
+    # 如果已经记录到releases中，则需要根据version(这里的version是迭代的revision)进行更新
+    last_deployed = normalize_time(release_data["info"]["last_deployed"])
+    # 组装前端需要数据
+    compose_data = {
+        "name": release_name,
+        "chart_name": getitems(release_data, ["chart", "metadata", "name"], ""),
+        "cmd_flags": "[]",
+        "created": last_deployed,
+        "updated": last_deployed,
+        "current_version": getitems(release_data, ["chart", "metadata", "version"], ""),
+        "namespace": namespace,
+        "project_id": project_id,
+        "cluster_id": cluster_id,
+        "revision": release_data["version"],
+        "cluster_name": kwargs.get("cluster_name"),
+        "cluster_env": kwargs.get("cluster_env"),
+        "valuefile_name": "values.yaml"
+    }
+    if release_id in releases:
+        if int(releases[release_id]["revision"]) < int(release_data["version"]):
+            compose_data.update(get_transitioning_status_and_msg(release_data["info"]["status"]))
+            releases[release_id] = compose_data
+    else:
+        compose_data.update(get_transitioning_status_and_msg(release_data["info"]["status"]))
+        releases[release_id] = compose_data
+
+
+def compose_release_with_chart(project_id, cluster_id, release_data, releases, **kwargs):
+    last_deployed = normalize_time(release_data["info"]["last_deployed"])
+    value_files = {
+        "values.yaml": yaml_dump(release_data["chart"]["values"]),
+        **{info["name"]: base64.b64decode(info["data"]).decode("utf-8") for info in release_data["chart"]["files"]}
+    }
+    # NOTE: 平台增加的内容，先设置为空
+    compose_data = {
+        "cmd_flags": [],
+        "answers": [],
+        "customs": [],
+        "valuefile_name": "values.yaml",
+        "project_id": project_id,
+        "cluster_id": cluster_id,
+        "chart_info": release_data["chart"]["metadata"],
+        "created": last_deployed,
+        "name": release_data["name"],
+        "namespace": release_data["namespace"],
+        "valuefile": yaml_dump(release_data.get("config") or release_data["chart"]["values"]),
+        "release": {
+            "chartVersionSnapshot": {
+                "files": value_files
+            }
+        }
+    }
+    releases[(release_data["name"], release_data["namespace"])] = compose_data
+
+
+def get_helm_releases(access_token, project_id, cluster_id, **kwargs):
+    secrets = get_secrets(access_token, project_id, cluster_id, namespace=kwargs.get("namespace"))
+    # 过滤type类型为
+    # format: {(namespace, release_name): release}
+    releases = {}
+    for secret in secrets["data"]:
+        secret_type = getitems(secret, ["data", "type"], default="")
+        # 针对存储的release，类型是 helm.sh/release.v1
+        if secret_type != "helm.sh/release.v1":
+            continue
+        # 获取参数
+        namespace = getitems(secret, ["data", "metadata", "namespace"], default="")
+        labels = getitems(secret, ["data", "metadata", "labels"], default={})
+        release_name = labels["name"]
+        release_id = (namespace, release_name)
+        if release_id in kwargs.get("bcs_helm_releases", []):
+            continue
+
+        # 如果过滤指定release
+        if kwargs.get("filter_release") and release_id != kwargs["filter_release"]:
+            continue
+
+        release_data = parse_release_data(getitems(secret, ["data", "data", "release"], default=""))
+        # NOTE: 状态为superseded或unknown时，跳过
+        if release_data["info"]["status"] in [ReleaseStatus.SUPERSEDED.value, ReleaseStatus.UNKNOWN.value]:
+            continue
+        kwargs["compose_data_func"](project_id, cluster_id, release_data, releases, **kwargs)
+
+    return releases.values()
+
+
+def get_transitioning_status_and_msg(release_status):
+    data = {
+        "transitioning_on": False,
+        "transitioning_result": True,
+        "transitioning_message": "release is successful"
+    }
+    if release_status in [
+        ReleaseStatus.UNINSTALLING.value,
+        ReleaseStatus.PENDING_INSTALL.value,
+        ReleaseStatus.PENDING_UPGRADE.value,
+        ReleaseStatus.PENDING_ROLLBACK.value
+    ]:
+        data.update({"transitioning_on": True, "transitioning_message": "release is operating"})
+        return data
+    if release_status in [ReleaseStatus.FAILED]:
+        data.update({"transitioning_result": False, "transitioning_message": "release is failed"})
+        return data
+    if release_status in [ReleaseStatus.DEPLOYED.value]:
+        return data
+
+
+def parse_release_data(release):
+    """解析secret中的release数据，减少命令行的调用
+    需要两次base64解码，然后gzip解压缩，最后json处理
+    """
+    # 两次base64解码
+    release_data = base64.b64decode(release)
+    release_data = base64.b64decode(release_data)
+    # gzip解压缩
+    release_data = gzip.decompress(release_data).decode("utf8")
+    # json处理
+    return json.loads(release_data)
+
+
+def get_repo_chart_versions(project_id, chart_name):
+    url, username, password = get_repo_info(project_id)
+    chart_versions = get_chart_versions(url, chart_name, username=username, password=password)
+    versions = chart_versions[chart_name]
+    # NOTE: versions返回是按时间正序排列，考虑到前端展示，因此处理为时间逆序
+    return [info["version"] for info in versions[::-1]]
+
+
+def get_repo_chart_version(chart_name, version, repo_info):
+    url, username, password = repo_info
+    return get_chart_version(url, chart_name, version, username=username, password=password)
+
+
+def get_release_manifest(request, project_id, cluster_id, namespace, **kwargs):
+    """获取release的manifest
+    """
+    username = request.user.username
+    # 组装注入的参数
+    bcs_inject_data = bcs_helm_utils.BCSInjectData(
+        source_type="helm",
+        creator=username,
+        updator=username,
+        version=kwargs["update_version"],
+        project_id=project_id,
+        app_id=request.project.cc_app_id,
+        cluster_id=cluster_id,
+        namespace=namespace,
+        stdlog_data_id=bcs_helm_utils.get_stdlog_data_id(project_id),
+        image_pull_secret=bcs_helm_utils.provide_image_pull_secrets(namespace)
+    )
+    client = KubeHelmClient(helm_bin=settings.HELM3_BIN)
+    return client.template_with_ytt_renderer(
+        files=kwargs["files"],
+        namespace=namespace,
+        name=kwargs["name"],
+        parameters={},
+        valuefile=kwargs["valuefile"],
+        cluster_id=cluster_id,
+        bcs_inject_data=bcs_inject_data
+    )

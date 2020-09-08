@@ -17,7 +17,7 @@ from django.conf.urls import url
 from django.conf import settings
 from django.views.static import serve
 
-from . import views
+from . import views, releases
 
 urlpatterns = [
     url(r'^api/bcs/k8s/configuration/(?P<project_id>\w{32})/apps/$',
@@ -108,5 +108,12 @@ urlpatterns = [
         views.ClearAppInjectDataView.as_view({'put': 'update'})),
 
     url(r'^api/bcs/k8s/configuration/(?P<project_id>\w{32})/apps/(?P<app_id>\d+)/structure/$',
-        views.AppStructureView.as_view({'get': 'retrieve'}))
+        views.AppStructureView.as_view({'get': 'retrieve'})),
+
+    # 通过集群+命名空间+release名称获取某个release
+    url((r"^api/helm/projects/(?P<project_id>\w{32})/clusters/(?P<cluster_id>[\w\-]+)/"
+        "namespaces/(?P<namespace>[\w\-]+)/releases/(?P<release_name>[\w\-\.]+)/$"),
+        releases.HelmReleaseViewSet.as_view({"get": "retrieve", "post": "preview", "put": "update"})),
+    url(r"^api/helm/projects/(?P<project_id>\w{32})/charts/(?P<chart_name>[\w\-\.]+)/update_versions/",
+        releases.ReleaseUpdateVersionsViewSet.as_view({"get": "list"}))
 ]

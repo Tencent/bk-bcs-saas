@@ -66,6 +66,7 @@ from backend.utils.errcodes import ErrorCode
 from backend.bcs_k8s.app.serializers import FilterNamespacesSLZ
 from backend.bcs_k8s.app.utils_bk import get_or_create_private_repo
 from backend.apps.whitelist_bk import enable_search_helm_releases
+from backend.bcs_k8s.app import utils as bcs_app_utils
 
 logger = logging.getLogger(__name__)
 
@@ -127,6 +128,8 @@ class AppView(ActionSerializerMixin, AppViewBase):
 
         # do fix on the data which version is emtpy
         datetime_format = "%Y-%m-%d %H:%M:%S"
+        # format: [(namespace, name)]
+        bcs_helm_releases = []
         for item in data:
             cluster_info = project_cluster.get(item['cluster_id']) or {'name': item['cluster_id']}
             item['cluster_name'] = cluster_info['name']
@@ -152,8 +155,23 @@ class AppView(ActionSerializerMixin, AppViewBase):
             item["created"] = item["created"].astimezone().strftime(datetime_format)
             item["updated"] = item["updated"].astimezone().strftime(datetime_format)
 
+            bcs_helm_releases.append((item["namespace"], item["name"]))
+
         if cluster_id and enable_search_helm_releases(cluster_id):
-            pass
+            # 集群属性
+            cluster_info = project_cluster.get(cluster_id) or {}
+            cluster_name = cluster_info.get("name")
+            cluster_env = settings.CLUSTER_ENV_FOR_FRONT.get(cluster_info.get("environment"))
+            params = {
+                "namespace": namespace,
+                "cluster_name": cluster_name,
+                "cluster_env": cluster_env,
+                "bcs_helm_releases": bcs_helm_releases,
+                "compose_data_func": bcs_app_utils.compose_release_data
+            }
+            releases = bcs_app_utils.get_helm_releases(
+                request.user.token.access_token, project_id, cluster_id, **params)
+            data.extend(releases)
 
         result = {
             "count": len(data),

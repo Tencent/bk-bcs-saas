@@ -35,6 +35,8 @@ from backend.apps.whitelist_bk import enabled_force_sync_chart_repo
 from backend.utils.renderers import BKAPIRenderer
 from backend.bcs_k8s.app.models import App
 from backend.components.helm_chart import delete_chart_version
+from backend.bcs_k8s.app.utils import get_repo_chart_version
+from backend.bcs_k8s.helm.utils.repo import parse_chart_version_files, get_repo_info
 
 logger = logging.getLogger(__name__)
 
@@ -345,3 +347,24 @@ class ChartVersionViewSet(viewsets.ViewSet):
         ).exclude(name="public-repo").update(commit=None)
 
         return Response()
+
+
+class ChartVersionsViewSet(viewsets.ViewSet):
+
+    def retrieve(self, request, project_id, chart_name):
+        # 获取version
+        version = request.query_params.get("version")
+        # repo info中包含 url、username、password
+        repo_info = get_repo_info(project_id)
+        version_metadata = get_repo_chart_version(chart_name, version, repo_info)
+        if not version_metadata:
+            raise error_codes.APIError(_("没有查询到对应的chart: {}，版本: {}").format(chart_name, version))
+        # 根据version获取对应的版本内容
+        files = parse_chart_version_files(version_metadata["urls"][0], repo_info[1], repo_info[2])
+        # 组装返回数据，方便前端使用
+        version_data = {
+            "name": chart_name,
+            "version": version,
+            "data": {"files": files, **version_metadata}
+        }
+        return Response({"data": version_data})

@@ -294,3 +294,81 @@ class AppDeployer:
         release.content = content
         release.save(update_fields=["content"])
         release.refresh_structure(self.app.namespace)
+
+
+class ReleaseDeployer:
+    """管理helm release相关
+    """
+    def __init__(self, operator, access_token, project_id, cluster_id, namespace, name, version):
+        self.operator = operator
+        self.access_token = access_token
+        self.project_id = project_id
+        self.cluster_id = cluster_id
+        self.namespace = namespace
+        self.name = name
+        self.version = version
+
+    @contextlib.contextmanager
+    def make_helm_client(self):
+        with bcs_client.make_helm_client(
+                project_id=self.project_id,
+                cluster_id=self.cluster_id,
+                access_token=self.access_token) as (client, err):
+            yield client, err
+
+    def run_with_helm(self, valuefile, chart_files, cmd_flags=None):
+        # 使用helm执行相应的命令
+        with self.make_helm_client() as (client, err):
+            if err is not None:
+                raise ValidationError("make helm client failed, %s" % err)
+        self._run_with_helm(
+            client,
+            operation=ChartOperations.UPGRADE.value,
+            valuefile=valuefile,
+            chart_files=chart_files,
+            cmd_flags=cmd_flags
+        )
+
+    def _run_with_helm(self, client, operation, valuefile, chart_files, cmd_flags=None):
+        bcs_inject_data = bcs_helm_utils.BCSInjectData(
+            source_type="helm",
+            creator=self.operator,
+            updator=self.operator,
+            version=self.version,
+            project_id=self.project_id,
+            app_id=get_cc_app_id(self.access_token, self.project_id),
+            cluster_id=self.cluster_id,
+            namespace=self.namespace,
+            stdlog_data_id=bcs_helm_utils.get_stdlog_data_id(self.project_id),
+            image_pull_secret=bcs_helm_utils.provide_image_pull_secrets(self.namespace)
+        )
+        try:
+            # 获取执行的操作命令
+            getattr(client, operation)(
+                name=self.name,
+                namespace=self.namespace,
+                files=chart_files,
+                chart_values=valuefile,
+                bcs_inject_data=bcs_inject_data,
+                cmd_flags=cmd_flags
+            )
+            return
+        except HelmExecutionError as e:
+            error_message = (
+                "helm command execute failed.\n"
+                "Error code: {error_no}\nOutput:\n{output}").format(
+                error_no=e.error_no,
+                output=e.output
+            )
+            logger.error(error_message)
+            raise ValidationError(error_message)
+        except HelmError as e:
+            logger.error(str(e))
+            raise ValidationError(str(e))
+        except Exception as e:
+            error_message = "{error}\n{stack}".format(
+                error=e,
+                stack=traceback.format_exc()
+            )
+            logger.error(error_message)
+            raise ValidationError(error_message)

@@ -99,5 +99,7 @@ urlpatterns = [
     url(r'^api/projects/(?P<project_id>\w{32})/helm/charts/(?P<chart_id>\d+)/releases/$',
         views.ChartVersionViewSet.as_view({"get": "release_list"})),
     url(r'^api/projects/(?P<project_id>\w{32})/helm/charts/(?P<chart_id>\d+)/$',
-        views.ChartVersionViewSet.as_view({"delete": "delete"}))
+        views.ChartVersionViewSet.as_view({"delete": "delete"})),
+    url(r'^api/helm/projects/(?P<project_id>\w{32})/charts/(?P<chart_name>[\w\-\.]+)/versions/$',
+        views.ChartVersionsViewSet.as_view({"get": "retrieve"})),
 ]
