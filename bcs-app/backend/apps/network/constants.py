@@ -31,8 +31,8 @@ K8S_LB_LABEL = {
     "nodetype": "lb"
 }
 
-# K8S helm values
-K8S_HELM_VALUES_CONTENT = """
+# k8s nginx ingress controller helm chart values
+K8S_NGINX_INGRESS_CONTROLLER_VALUES = """
 controller:
   kind: Deployment
   name: controller
