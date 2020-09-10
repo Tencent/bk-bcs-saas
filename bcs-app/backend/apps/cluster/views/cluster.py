@@ -248,9 +248,9 @@ class ClusterInstallLogView(ClusterBase, viewsets.ModelViewSet):
             "cluster_id": cluster_id,
             "status": self.get_display_status(logs[0].status),
             "log": [],
+            "task_url": logs.first().log_params.get("task_url") or ""
         }
         for info in logs:
-            data["task_url"] = info.log_params.get("task_url") or ""
             info.status = self.get_display_status(info.status)
             slz = cluster_serializers.ClusterInstallLogSLZ(instance=info)
             data["log"].append(slz.data)
