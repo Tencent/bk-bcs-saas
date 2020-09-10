@@ -949,7 +949,7 @@ export default {
             }
 
             if (this.curClusterInPage.type === 'tke') {
-                params.host_source = this.curClusterInPage.type
+                params.host_source = this.hostSourceKey
             }
 
             // alert('打开控制台查看参数')
