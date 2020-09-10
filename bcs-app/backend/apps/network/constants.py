@@ -31,8 +31,8 @@ K8S_LB_LABEL = {
     "nodetype": "lb"
 }
 
-# K8S helm values
-K8S_HELM_VALUES_CONTENT = """
+# k8s nginx ingress controller helm chart values
+K8S_NGINX_INGRESS_CONTROLLER_CHART_VALUES = """
 controller:
   kind: Deployment
   name: controller
@@ -97,7 +97,7 @@ defaultBackend:
   name: default-backend
   image:
     repository: __REPO_ADDR__/__BACKEND_IMAGE_PATH__
-    tag: "1.4"
+    tag: "1.5"
     pullPolicy: IfNotPresent
   port: 8080
   tolerations:
