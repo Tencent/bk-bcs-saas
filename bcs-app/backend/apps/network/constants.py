@@ -32,7 +32,7 @@ K8S_LB_LABEL = {
 }
 
 # k8s nginx ingress controller helm chart values
-K8S_NGINX_INGRESS_CONTROLLER_VALUES = """
+K8S_NGINX_INGRESS_CONTROLLER_CHART_VALUES = """
 controller:
   kind: Deployment
   name: controller

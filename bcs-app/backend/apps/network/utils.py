@@ -28,7 +28,7 @@ from backend.apps.instance import constants as inst_constants
 from backend.apps.instance.funutils import render_mako_context
 from backend.apps.instance.generator import handle_intersection_item, handel_custom_network_mode
 from backend.apps.application.constants import UNNORMAL_STATUS
-from backend.apps.network.constants import K8S_NGINX_INGRESS_CONTROLLER_VALUES, MESOS_LB_NAMESPACE_NAME
+from backend.apps.network.constants import K8S_NGINX_INGRESS_CONTROLLER_CHART_VALUES, MESOS_LB_NAMESPACE_NAME
 from backend.apps.network.models import MesosLoadBlance
 from backend.apps.constants import CONTROLLER_IMAGE_PATH, BACKEND_IMAGE_PATH
 from backend.apps.datalog.utils import get_data_id_by_project_id
@@ -268,7 +268,7 @@ def render_helm_values(access_token, project_id, cluster_id, protocol_type, repl
         access_token=access_token, project_id=project_id, cluster_id=cluster_id
     )
     # render
-    template = K8S_NGINX_INGRESS_CONTROLLER_VALUES
+    template = K8S_NGINX_INGRESS_CONTROLLER_CHART_VALUES
     template = template.replace("__REPO_ADDR__", jfrog_domain)
     template = template.replace("__CONTROLLER_IMAGE_PATH__", CONTROLLER_IMAGE_PATH)
     # TODO: 先调整为固定版本，后续允许用户在前端选择相应的版本
