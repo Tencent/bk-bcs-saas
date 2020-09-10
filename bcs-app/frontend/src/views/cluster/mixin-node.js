@@ -948,6 +948,10 @@ export default {
                 })
             }
 
+            if (this.curClusterInPage.type === 'tke') {
+                params.host_source = this.curClusterInPage.type
+            }
+
             // alert('打开控制台查看参数')
             // console.warn(params)
             // console.warn('\n')
