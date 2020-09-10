@@ -56,7 +56,9 @@ class NginxIngressBase(AccessTokenMixin, ProjectMixin, viewsets.ModelViewSet):
 
     @property
     def chart_info(self):
-        chart = Chart.objects.filter(name=K8S_LB_NAME).order_by('defaultChartVersion')
+        chart = Chart.objects.filter(
+            name=K8S_LB_NAME, repository__project_id=self.project_id
+        ).order_by("defaultChartVersion")
         if not chart:
             raise error_codes.CheckFailed(_("Chart不存在"))
         return chart[0]

@@ -97,7 +97,7 @@ defaultBackend:
   name: default-backend
   image:
     repository: __REPO_ADDR__/__BACKEND_IMAGE_PATH__
-    tag: "1.4"
+    tag: "1.5"
     pullPolicy: IfNotPresent
   port: 8080
   tolerations:

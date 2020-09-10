@@ -271,7 +271,8 @@ def render_helm_values(access_token, project_id, cluster_id, protocol_type, repl
     template = K8S_HELM_VALUES_CONTENT
     template = template.replace("__REPO_ADDR__", jfrog_domain)
     template = template.replace("__CONTROLLER_IMAGE_PATH__", CONTROLLER_IMAGE_PATH)
-    template = template.replace("__TAG__", "0.12.0")
+    # TODO: 先调整为固定版本，后续允许用户在前端选择相应的版本
+    template = template.replace("__TAG__", "0.35.0")
     template = template.replace("__CONTROLLER_REPLICA_COUNT__", str(replica_count))
     template = template.replace("__BACKEND_IMAGE_PATH__", BACKEND_IMAGE_PATH)
     template = template.replace("__HTTP_ENABLED__", http_enabled)
