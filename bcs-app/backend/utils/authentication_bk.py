@@ -78,11 +78,11 @@ class BKTokenAuthentication(BaseAuthentication):
         if not credentials or credentials != auth_credentials:
             try:
                 username = self.verify_bk_token(**auth_credentials)
-            except NoAuthError as error:
-                logger.info("%s authentication error: %s", auth_credentials["bk_token"], error)
+            except NoAuthError as e:
+                logger.info("%s authentication error: %s", auth_credentials["bk_token"], e)
                 return None
-            except Exception as error:
-                logger.exception("ticket authentication error: %s", error)
+            except Exception as e:
+                logger.exception("ticket authentication error: %s", e)
                 return None
 
             # 缓存auth_credentials

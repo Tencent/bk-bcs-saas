@@ -27,7 +27,12 @@ class ResourceAPIView(APIView):
     permission_classes = ()
 
     def _get_options(self, request):
-        return {"language": request.META.get("HTTP_BLUEKING_LANGUAGE", "zh-cn")}
+        language = request.META.get("HTTP_BLUEKING_LANGUAGE", "zh-cn")
+        if language == "zh-cn":
+            request.LANGUAGE_CODE = "zh-hans"
+        else:
+            request.LANGUAGE_CODE = "en"
+        return {"language": language}
 
     def post(self, request):
         serializer = QueryResourceSLZ(data=request.data)
