@@ -489,7 +489,7 @@ class MesosClient(BCSClientBase):
     def get_container_exec_id(self, host_ip: str, container_id: str) -> str:
         """获取exec id
         """
-        url = f"{self.api_host}/v1/webconsole/create_exec"
+        url = f"{self.scheduler_host}/mesos/webconsole/create_exec"
         params = {"host_ip": host_ip}
         data = {"container_id": container_id, "cmd": ["sh"]}
         try:
@@ -504,7 +504,7 @@ class MesosClient(BCSClientBase):
     def resize_container_exec(self, host_ip: str, exec_id: str, height: int, width: int) -> None:
         """设置窗口大小
         """
-        url = f"{self.api_host}/v1/webconsole/resize_exec"
+        url = f"{self.scheduler_host}/mesos/webconsole/resize_exec"
         params = {"host_ip": host_ip}
         data = {"exec_id": exec_id, "height": height, "width": width}
         try:
