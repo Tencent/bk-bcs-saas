@@ -12,19 +12,13 @@
 # specific language governing permissions and limitations under the License.
 #
 """
-注: 现阶段只要有项目权限，则拥有所有权限
-说明：使用 Namespace的 hook_perms 函数时，需要增加: ns_name_flag 参数
-
-bcs_perm_handler 调用这个函数的地方需要再次确认
+说明：当前文件待废弃
 """
 import abc
 
 from django.utils.translation import ugettext_lazy as _
 
-from backend.components import paas_cc
-from backend.components.enterprise.iam import BKIAMClient
-from backend.components.enterprise.iam import get_access_token as get_access_token_by_iam
-from backend.utils.error_codes import error_codes, bk_error_codes
+from backend.components.ssm import get_client_access_token
 from backend.components.enterprise.bk_login import get_all_users
 
 # 与资源无关
@@ -58,33 +52,11 @@ class PermissionMeta(object):
     }
 
     def __init__(self, request, project_id, resource_id, resource_name=None):
-        self.access_token = request.user.token.access_token
-        self.user_id = request.user.username
-        self.project_id = project_id
-        self.resource_id = str(resource_id)
-        self.resource_name = resource_name
-        self.resource_code = str(resource_id)
-
-        self.err_msg = _("请联系管理员添加权限")
-
-        project_code = request.project.english_name
-        self.iam_client = BKIAMClient(project_code)
-        self.resource_id = self.tansfer_resource_id(resource_id)
-
-    def tansfer_resource_id(self, resource_id):
-        """resource_id 需要按照新的格式组装
-        """
-        # resource_id 需要按照新的格式组装(与资源无关则保持用：**)
-        if resource_id != NO_RES:
-            resource_id = f"{self.RESOURCE_TYPE}:{resource_id}"
-        return resource_id
+        pass
 
     def had_perm(self, action_id):
         """判断是否有权限
         """
-        # 模板集 和 Metric 都先不做权限限制
-        # if self.RESOURCE_TYPE in ['templates', 'metric']:
-        #     True
         return True
 
     def can_create(self, raise_exception):
@@ -117,40 +89,23 @@ class PermissionMeta(object):
     def get_msg(self, cmd):
         """获取消息
         """
-        cmd_name = self.CMD_NAME[cmd]
-        if cmd == "create":
-            msg = "您没有{res_type_name}的{cmd_name}权限".format(res_type_name=self.RES_TYPE_NAME, cmd_name=cmd_name)
-        else:
-            if self.resource_name:
-                msg_format = _("您没有{}[{}]的{}权限").format(self.RES_TYPE_NAME, self.resource_name, cmd_name)
-            else:
-                msg_format = _("您没有{}的{}权限").format(self.RES_TYPE_NAME, cmd_name)
-            msg = msg_format.format(res_type_name=self.RES_TYPE_NAME, res_name=self.resource_name, cmd_name=cmd_name)
-        return msg
+        return ""
 
     def register(self, resource_id, resource_name):
         """注册资源到权限中心
         """
-        resource_id = self.tansfer_resource_id(resource_id)
-        ret = self.iam_client.register_res(self.user_id, self.RESOURCE_TYPE, resource_id, resource_name,)
-        return ret
+        return {"code": 0}
 
     def delete(self):
         """删除资源
-        注意: resource_id必须是字符串类型
         """
-        ret = self.iam_client.delete_res(self.RESOURCE_TYPE, self.resource_id)
-        return ret
+        return {"code": 0}
 
     def update_name(self, resource_name, raise_exception=False):
-        ret = self.iam_client.update_res(self.RESOURCE_TYPE, self.resource_id, resource_name)
-        if ret.get("code") != 0 and raise_exception is True:
-            error_message = "%s, %s" % (bk_error_codes.IAMError(_("权限中心更新资源接口调用失败")), ret.get("message", ""))
-            raise error_codes.APIError(error_message)
-        return ret
+        return {"code": 0}
 
     def hook_perms(self, data_list, filter_use=False, id_flag="id"):
-        """资源列表，添加permssions dict
+        """资源列表，添加permissions
         """
         # NOTE: 现阶段有项目权限，那么就有所有权限
         default_perms = {perm: True for perm in self.POLICY_LIST}
@@ -160,29 +115,7 @@ class PermissionMeta(object):
         return data_list
 
     def get_err_data(self, policy_code):
-        """获取返回给前端错误数据，权限申请使用
-        """
-        if policy_code == "create":
-            role = "creator"
-        elif policy_code in ["deploy", "download"]:
-            role = "manager"
-        else:
-            role = "bcs_manager"
-
-        data = [
-            {
-                "resource_type": self.RESOURCE_TYPE,
-                "resource_type_name": self.RES_TYPE_NAME,
-                "resource_id": self.resource_id,
-                "resource_code": self.resource_id,
-                "resource_name": self.resource_name,
-                "role": role,
-                "policy_code": policy_code,
-                "policy_name": self.CMD_NAME[policy_code],
-            }
-        ]
-
-        return data
+        return []
 
 
 class Cluster(PermissionMeta):
@@ -196,16 +129,7 @@ class Cluster(PermissionMeta):
     POLICY_LIST = ["create", "edit", "cluster-readonly", "cluster-manager"]
 
     def __init__(self, request, project_id, resource_id, resource_type=None):
-        super(Cluster, self).__init__(request, project_id, resource_id)
-        if resource_id != NO_RES:
-            cluster = paas_cc.get_cluster(self.access_token, self.project_id, resource_id)
-            if cluster.get("code") != 0:
-                raise error_codes.ResNotFoundError(cluster.get("message", ""))
-            # 通过接口判断资源类型
-            self.res = cluster["data"]
-            self.resource_name = cluster["data"]["name"]
-        else:
-            self.res = None
+        pass
 
     @classmethod
     def hook_perms(cls, request, project_id, cluster_list, filter_use=False):
@@ -224,16 +148,12 @@ class Cluster(PermissionMeta):
     def delete_cluster(self, cluster_id, environment=None):
         """删除集群
         """
-        resource_id = f"cluster:{cluster_id}"
-        ret = self.iam_client.delete_res(self.RESOURCE_TYPE, resource_id)
-        return ret
+        return {"code": 0}
 
     def update_cluster(self, cluster_id, cluster_name):
         """更新注册集群的名称
         """
-        resource_id = f"cluster:{cluster_id}"
-        ret = self.iam_client.update_res(self.RESOURCE_TYPE, resource_id, cluster_name)
-        return ret
+        return {"code": 0}
 
 
 class Namespace(PermissionMeta):
@@ -249,58 +169,15 @@ class Namespace(PermissionMeta):
     POLICY_LIST = ["edit", "cluster-readonly", "cluster-manager"]
 
     def __init__(self, request, project_id, namespace_id, cluster_id=None, namespace_name=None):
-        # 企业版权限中心resource_id为命名空间名称
-        self.namespace_id = namespace_id
-        self.namespace_name = namespace_name
-        self.cluster = None
-        super(Namespace, self).__init__(request, project_id, namespace_id)
-
-        # 查询命名空间对应的集群信息
-        if self.namespace_id and self.namespace_id != NO_RES:
-            cluster_id, namespace_name = self.get_namespace_info(self.namespace_id)
-            self.cluster = Cluster(request, project_id, cluster_id)
-        elif cluster_id:
-            self.cluster = Cluster(request, project_id, cluster_id)
-        else:
-            self.cluster = None
-
-        self.namespace_name = namespace_name
-        self.resource_name = namespace_name
-
-        # 与资源无关
-        if self.namespace_id == NO_RES:
-            self.resource_id = NO_RES
-        else:
-            # 命名空间的 resource_id格式为：cluster:cluster1/namespace:namespace2
-            self.resource_id = f"cluster:{cluster_id}/namespace:{self.namespace_name}"
-
-    def get_namespace_info(self, namespace_id):
-        namespace = paas_cc.get_namespace(self.access_token, self.project_id, namespace_id)
-        cluster_id = namespace["data"]["cluster_id"]
-        namespace_name = namespace["data"]["name"]
-        return cluster_id, namespace_name
+        pass
 
     def register(self, resource_id, resource_name):
         """注册资源到权限中心
-        注册命名空间权限的时候，需要添加集群信息
         """
-        # 获取集群信息
-        cluster_id, namespace_name = self.get_namespace_info(resource_id)
-
-        # 命名空间的 resource_id格式为：cluster:cluster1/namespace:namespace2
-        resource_id = f"cluster:{cluster_id}/namespace:{resource_name}"
-        ret = self.iam_client.register_res(
-            self.user_id,
-            self.RESOURCE_TYPE,
-            resource_id,
-            # 删除集群
-            resource_name,
-        )
-        return ret
+        return {"code": 0}
 
     def delete(self):
-        ret = self.iam_client.delete_res(self.RESOURCE_TYPE, self.resource_id)
-        return ret
+        return {"code": 0}
 
     def can_create(self, raise_exception=True):
         """是否编辑命名空间权限
@@ -386,15 +263,14 @@ def get_perm_cls(resource_type, request, project_id, resource_id, resource_name)
 
 
 def get_access_token():
-    return get_access_token_by_iam()
+    return get_client_access_token()
 
 
 def verify_project_by_user(access_token, project_id, project_code, user_id):
     """
     验证用户是否有项目权限
     """
-    iam_client = BKIAMClient(project_code)
-    return iam_client.verify_project(user_id, project_code)
+    return True
 
 
 def get_all_user():

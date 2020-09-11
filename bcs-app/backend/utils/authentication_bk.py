@@ -19,7 +19,7 @@ from rest_framework.authentication import BaseAuthentication
 
 from backend.utils import cache
 from backend.components.utils import http_get
-from backend.components.iam import ssm
+from backend.components import ssm
 from backend.utils.authentication import NoAuthError
 
 logger = logging.getLogger(__name__)

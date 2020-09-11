@@ -99,7 +99,7 @@ def requests_curl_log(resp, st, params):
 
 
 def response(f=None, handle_resp=False):
-    """返回值格式化
+    """返回值格式化handle_resp
     """
 
     def decorator(func):
