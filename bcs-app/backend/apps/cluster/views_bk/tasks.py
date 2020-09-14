@@ -22,15 +22,15 @@ from django.conf import settings
 from backend.components import ops
 from backend.apps.cluster import models
 from backend.utils.errcodes import ErrorCode
-from backend.components import paas_cc
-from backend.components.enterprise import iam
+from backend.components import paas_cc, ssm
+
 
 logger = logging.getLogger(__name__)
 POLLING_TIMEOUT = timedelta(seconds=getattr(settings, "POLLING_TIMEOUT_SECONDS", 3600))
 POLLING_INTERVAL_SECONDS = getattr(settings, "POLLING_INTERVAL_SECONDS", 5)
-TASK_FAILE_SUCCESS_STATUS = ['FAILURE', 'SUCCESS']
-TASK_FAILED_STATUS = ['FAILURE']
-TASK_SUCCESS_STATUS = ['SUCCESS']
+TASK_FAILE_SUCCESS_STATUS = ["FAILURE", "SUCCESS"]
+TASK_FAILED_STATUS = ["FAILURE"]
+TASK_SUCCESS_STATUS = ["SUCCESS"]
 CLUSTER_INSTALL_LOG = "ClusterInstallLog"
 
 
@@ -43,27 +43,23 @@ def log_status(log):
 
 
 def _polling_once(model, log):
-    token_dict = iam.get_access_token()
+    token_dict = ssm.get_client_access_token()
     params = json.loads(log.params)
     resp = ops.get_task_result(
-        token_dict['access_token'],
-        log.project_id,
-        log.task_id,
-        params.get('cc_app_id'),
-        params.get('username')
+        token_dict["access_token"], log.project_id, log.task_id, params.get("cc_app_id"), params.get("username")
     )
-    if resp.get('code') != ErrorCode.NoError:
-        logger.error('query task failed, detail: %s' % resp.get('message'))
-    data = resp.get('data') or {}
-    status = data.get('status', 'UNKNOWN')
-    step_logs = data.get('steps') or []
+    if resp.get("code") != ErrorCode.NoError:
+        logger.error("query task failed, detail: %s" % resp.get("message"))
+    data = resp.get("data") or {}
+    status = data.get("status", "UNKNOWN")
+    step_logs = data.get("steps") or []
     logs = []
     running_logs = []
     failure_logs = []
     for index, val in enumerate(step_logs, 1):
-        local_status = val.get('status')
-        local_name = '- %s' % (val.get('name', '').capitalize())
-        local_name_status = {'state': local_status, 'name': local_name}
+        local_status = val.get("status")
+        local_name = "- %s" % (val.get("name", "").capitalize())
+        local_name_status = {"state": local_status, "name": local_name}
         if local_status in TASK_SUCCESS_STATUS:
             logs.append(local_name_status)
         elif local_status in TASK_FAILED_STATUS:
@@ -81,10 +77,7 @@ def _polling_once(model, log):
         log.is_finished = True
         log.is_polling = False
     if logs:
-        log.log = json.dumps({
-            'state': status,
-            'node_tasks': logs
-        })
+        log.log = json.dumps({"state": status, "node_tasks": logs})
     log.save()
     return log
 
@@ -92,14 +85,7 @@ def _polling_once(model, log):
 def delete_iam_cluster_resource(log):
     """删除iam集群信息
     """
-    params = json.loads(log.params)
-    iam_client = iam.BKIAMClient(params['project_code'])
-    for i in range(2):
-        resp = iam_client.delete_res('cluster', log.cluster_id)
-        if resp.get('code') != ErrorCode.NoError:
-            logger.error('IAM delete cluster failed, detail: %s' % resp.get('message'))
-        else:
-            break
+    pass
 
 
 def update_cluster_status(log):
@@ -111,14 +97,12 @@ def update_cluster_status(log):
     else:
         status = log.status
     for i in range(2):
-        token_dict = iam.get_access_token()
-        resp = paas_cc.update_cluster(
-            token_dict['access_token'], log.project_id, log.cluster_id, {'status': status}
-        )
-        if resp.get('code') != ErrorCode.NoError:
-            logger.error('Update cluster[%s] status failed, detail: %s' % (log.cluster_id, resp.get('message')))
+        token_dict = ssm.get_client_access_token()
+        resp = paas_cc.update_cluster(token_dict["access_token"], log.project_id, log.cluster_id, {"status": status})
+        if resp.get("code") != ErrorCode.NoError:
+            logger.error("Update cluster[%s] status failed, detail: %s" % (log.cluster_id, resp.get("message")))
         else:
-            logger.info('Update cluster[%s] success' % log.cluster_id)
+            logger.info("Update cluster[%s] success" % log.cluster_id)
             break
     if log.oper_type in [models.ClusterOperType.ClusterInstall, models.NodeOperType.NodeInstall]:
         return
@@ -126,12 +110,12 @@ def update_cluster_status(log):
         return
     for i in range(2):
         # 删除集群及master
-        token_dict = iam.get_access_token()
-        resp = paas_cc.delete_cluster(token_dict['access_token'], log.project_id, log.cluster_id)
-        if resp.get('code') != ErrorCode.NoError:
-            logger.error('Delete cluster[%s] failed, detail: %s' % (log.cluster_id, resp.get('message')))
+        token_dict = ssm.get_client_access_token()
+        resp = paas_cc.delete_cluster(token_dict["access_token"], log.project_id, log.cluster_id)
+        if resp.get("code") != ErrorCode.NoError:
+            logger.error("Delete cluster[%s] failed, detail: %s" % (log.cluster_id, resp.get("message")))
         else:
-            logger.info('Delete cluster[%s] success' % log.cluster_id)
+            logger.info("Delete cluster[%s] success" % log.cluster_id)
             break
     # 删除iam集群
     delete_iam_cluster_resource(log)
@@ -139,7 +123,7 @@ def update_cluster_status(log):
 
 def update_node_status(log):
     params = json.loads(log.params)
-    ip_list = list(params.get('node_info', {}).keys())
+    ip_list = list(params.get("node_info", {}).keys())
     if log.oper_type == models.NodeOperType.NodeRemove:
         if log.status == models.CommonStatus.Normal:
             status = models.CommonStatus.Removed
@@ -148,20 +132,17 @@ def update_node_status(log):
     else:
         status = log.status
     for i in range(2):
-        token_dict = iam.get_access_token()
+        token_dict = ssm.get_client_access_token()
         resp = paas_cc.update_node_list(
-            token_dict['access_token'], log.project_id, log.cluster_id,
-            [
-                {
-                    'inner_ip': ip, 'status': status
-                }
-                for ip in ip_list
-            ]
+            token_dict["access_token"],
+            log.project_id,
+            log.cluster_id,
+            [{"inner_ip": ip, "status": status} for ip in ip_list],
         )
-        if resp.get('code') != ErrorCode.NoError:
-            logger.error('Update node[%s] status failed, detail: %s' % (json.dumps(ip_list), resp.get('message')))
+        if resp.get("code") != ErrorCode.NoError:
+            logger.error("Update node[%s] status failed, detail: %s" % (json.dumps(ip_list), resp.get("message")))
         else:
-            logger.info('Update node[%s] status success' % json.dumps(ip_list))
+            logger.info("Update node[%s] status success" % json.dumps(ip_list))
             break
 
 
@@ -200,7 +181,7 @@ def polling_task(log_type, log_pk):
         try:
             log = _polling_once(model, log)
         except Exception as err:
-            logger.exception('query task failed, detail: %s' % err)
+            logger.exception("query task failed, detail: %s" % err)
     # 超时更新状态
     if not log.is_finished:
         log.is_finished = True

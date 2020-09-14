@@ -11,6 +11,10 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
+from backend.apps.instance.constants import LOG_CONFIG_MAP_SUFFIX, APPLICATION_ID_SEPARATOR
+from backend.apps.metric.models import Metric
+
+
 class ResourceMixin:
     @classmethod
     def get_resources_config(cls, resource_id_list, is_simple):
@@ -31,10 +35,7 @@ class ConfigMapAndSecretBase(ResourceMixin):
         resource_data = []
         robj_qsets = cls.objects.filter(id__in=resource_id_list)
         for robj in robj_qsets:
-            resource_data.append({
-                'name': robj.name,
-                'keys': robj.get_data_keys()
-            })
+            resource_data.append({"name": robj.name, "keys": robj.get_data_keys()})
         return resource_data
 
 
@@ -42,7 +43,7 @@ class ConfigMapAndSecretMixin(ConfigMapAndSecretBase):
     def get_data_keys(self):
         config = self.get_config()
         if config:
-            return config.get('data', {}).keys()
+            return config.get("data", {}).keys()
         return []
 
 
@@ -50,13 +51,45 @@ class MConfigMapAndSecretMixin(ConfigMapAndSecretBase):
     def get_data_keys(self):
         config = self.get_config()
         if config:
-            return config.get('datas', {}).keys()
+            return config.get("datas", {}).keys()
         return []
 
 
 class PodMixin(ResourceMixin):
     def get_containers(self):
         config = self.get_config()
-        containers = config.get('spec', {}).get(
-            'template', {}).get('spec', {}).get('containers', [])
+        containers = config.get("spec", {}).get("template", {}).get("spec", {}).get("containers", [])
         return containers
+
+    def get_extra_configmaps_and_metrics(self, resource_name):
+        """
+        configmap used for nonstandard logbeat
+        """
+        configmaps, metrics = [], []
+        for container in self.get_containers():
+            container_name = container.get("name")
+            log_path_list = container.get("logPathList")
+            if log_path_list:
+                configmaps.append(
+                    {
+                        "id": f"{self.id}{APPLICATION_ID_SEPARATOR}{container_name}"
+                        f"{APPLICATION_ID_SEPARATOR}{resource_name}",
+                        "name": f"{self.name}-{container_name}{LOG_CONFIG_MAP_SUFFIX}",
+                    }
+                )
+
+        web_cache = self.get_config().get("webCache") or {}
+        is_metric = web_cache.get("isMetric")
+        metric_id_list = web_cache.get("metricIdList")
+        if not is_metric or not metric_id_list:
+            return configmaps, metrics
+
+        metric_qsets = Metric.objects.filter(id__in=metric_id_list, is_deleted=False)
+        for metric_obj in metric_qsets:
+            metrics.append(
+                {
+                    "id": f"{self.id}{APPLICATION_ID_SEPARATOR}{metric_obj.id}{APPLICATION_ID_SEPARATOR}{resource_name}",
+                    "name": metric_obj.name,
+                }
+            )
+        return configmaps, metrics
