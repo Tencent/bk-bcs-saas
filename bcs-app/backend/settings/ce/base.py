@@ -59,8 +59,6 @@ REDIS_DB = os.environ.get("REDIS_DB", 0)
 REDIS_PASSWORD = os.environ.get("REDIS_PASSWORD", "")
 REDIS_URL = os.environ.get("REDIS_URL", f"redis://:{REDIS_PASSWORD}@{REDIS_HOST}:{REDIS_PORT}/{REDIS_DB}")
 
-BK_PAAS_HOST = os.environ.get("BK_PAAS_HOST")
-
 # apigw 环境
 APIGW_ENV = "test"
 APIGW_PAAS_CC_ENV = "uat"
@@ -148,7 +146,7 @@ else:
 IS_USE_BCS_TLS = True
 
 # CELERY 配置
-IS_USE_CELERY = False
+IS_USE_CELERY = True
 # 本地使用Redis做broker
 BROKER_URL_DEV = REDIS_URL
 
@@ -201,17 +199,20 @@ SITE_STATIC_URL = SITE_URL + STATIC_URL.strip("/")
 IS_COMMON_EXCEPTION_MSG = False
 COMMON_EXCEPTION_MSG = ""
 
+BK_PAAS_HOST = os.environ.get("BK_PAAS_HOST")
 BK_PAAS_INNER_HOST = os.environ.get("BK_PAAS_INNER_HOST", BK_PAAS_HOST)
-
+APIGW_HOST = BK_PAAS_INNER_HOST
 # 组件API地址
 COMPONENT_HOST = BK_PAAS_INNER_HOST
 
-APIGW_HOST = BK_PAAS_INNER_HOST
+DEPOT_API = f"{APIGW_HOST}/api/apigw/harbor_api/"
 
+# env map bcs https server host
+BCS_CLUSTER_ENV_AND_HTTPS_SERVER_HOST = {"prod": os.environ.get("BKAPP_BCS_API_DOMAIN")}
 # BCS API PRE URL
 BCS_API_PRE_URL = f"{APIGW_HOST}/api/apigw/bcs_api"
 
 BK_SSM_HOST = os.environ.get("BKAPP_SSM_HOST")
 
 # BCS CC HOST
-BCS_CC_API_PRE_URL = os.environ.get("BCS_CC_HOST", "http://127.0.0.1:8080")
+BCS_CC_API_PRE_URL = f"{APIGW_HOST}/api/apigw/bcs_cc/prod"

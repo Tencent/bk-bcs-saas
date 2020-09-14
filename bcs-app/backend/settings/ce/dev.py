@@ -12,95 +12,89 @@
 # specific language governing permissions and limitations under the License.
 #
 from urllib import parse
-from .base import *  # noqa
-import os
+
 import redis
 
-DATABASES['default'] = {
-    'ENGINE': 'django.db.backends.mysql',
-    'NAME': 'paas-backend',
-    'USER': 'root',
-    'PASSWORD': os.environ.get('DB_PASSWORD', '157632'),
-    'HOST': os.environ.get('DB_HOST', '127.0.0.1'),
-    'PORT': '3306',
-    'OPTIONS': {
-        'init_command': 'SET default_storage_engine=INNODB',
-    }
+from .base import *  # noqa
+
+
+DATABASES["default"] = {
+    "ENGINE": "django.db.backends.mysql",
+    "NAME": "bcs-app",
+    "USER": "root",
+    "PASSWORD": os.environ.get("DB_PASSWORD", ""),
+    "HOST": os.environ.get("DB_HOST", "127.0.0.1"),
+    "PORT": "3306",
+    "OPTIONS": {"init_command": "SET default_storage_engine=INNODB",},
 }
 
 INSTALLED_APPS += [
-    'backend.celery_app.CeleryConfig',
+    "backend.celery_app.CeleryConfig",
 ]
 
-LOG_LEVEL = 'DEBUG'
+LOG_LEVEL = "DEBUG"
 LOGGING = get_logging_config(LOG_LEVEL)
 
-SESSION_COOKIE_DOMAIN = '.' + parse.urlparse(BK_PAAS_HOST).netloc.split(':')[0]
+SESSION_COOKIE_DOMAIN = "." + parse.urlparse(BK_PAAS_HOST).netloc.split(":")[0]
 CSRF_COOKIE_DOMAIN = SESSION_COOKIE_DOMAIN
 
 # cors settings
-CORS_ORIGIN_REGEX_WHITELIST = (
-    r'.*',
-)
+CORS_ORIGIN_REGEX_WHITELIST = (r".*",)
 
-PAAS_ENV = 'local'
+PAAS_ENV = "local"
 
 # 容器服务地址
-DEVOPS_HOST = os.environ.get('DEV_DEVOPS_HOST', '')
-DEVOPS_BCS_HOST = os.environ.get('DEV_BCS_APP_HOST', '')
+DEVOPS_HOST = os.environ.get("DEV_DEVOPS_HOST", "")
+DEVOPS_BCS_HOST = os.environ.get("DEV_BCS_APP_HOST", "")
 # 容器服务 API 地址
-DEVOPS_BCS_API_URL = os.environ.get('DEV_BCS_APP_HOST', '')
-DEVOPS_ARTIFACTORY_HOST = os.environ.get('BKAPP_ARTIFACTORY_HOST')
+DEVOPS_BCS_API_URL = os.environ.get("DEV_BCS_APP_HOST", "")
+DEVOPS_ARTIFACTORY_HOST = os.environ.get("BKAPP_ARTIFACTORY_HOST")
 
-BK_PAAS_INNER_HOST = os.environ.get('BK_PAAS_INNER_HOST', BK_PAAS_HOST)
+BK_PAAS_INNER_HOST = os.environ.get("BK_PAAS_INNER_HOST", BK_PAAS_HOST)
 
-REDIS_URL = os.environ.get('BKAPP_REDIS_URL', 'redis://127.0.0.1/0')
+REDIS_URL = os.environ.get("BKAPP_REDIS_URL", "redis://127.0.0.1/0")
 # 解析url
 _rpool = redis.from_url(REDIS_URL).connection_pool
-REDIS_HOST = _rpool.connection_kwargs['host']
-REDIS_PORT = _rpool.connection_kwargs['port']
-REDIS_PASSWORD = _rpool.connection_kwargs['password']
-REDIS_DB = _rpool.connection_kwargs['db']
+REDIS_HOST = _rpool.connection_kwargs["host"]
+REDIS_PORT = _rpool.connection_kwargs["port"]
+REDIS_PASSWORD = _rpool.connection_kwargs["password"]
+REDIS_DB = _rpool.connection_kwargs["db"]
 
 # IAM 地址
-BK_IAM_HOST = os.environ.get('BKAPP_IAM_HOST')
+BK_IAM_HOST = os.environ.get("BKAPP_IAM_HOST")
 # 权限中心接口, 和IAM地址保持一致
 PAAS_PERM_HOST = BK_IAM_HOST
 PAAS_AUTH_HOST = BK_IAM_HOST
 
 APIGW_HOST = BK_PAAS_INNER_HOST
 
-DEPOT_API = f'{APIGW_HOST}/api/apigw/harbor_api/'
+DEPOT_API = f"{APIGW_HOST}/api/apigw/harbor_api/"
 
 # web-console配置需要，后台去除
 RDS_HANDER_SETTINGS = {
-    'level': 'INFO',
-    'class': 'backend.utils.log.LogstashRedisHandler',
-    'redis_url': REDIS_URL,
-    'queue_name': 'paas_backend_log_list',
-    'message_type': 'python-logstash',
-    'tags': ['sz', 'stag', 'paas-backend']
+    "level": "INFO",
+    "class": "backend.utils.log.LogstashRedisHandler",
+    "redis_url": REDIS_URL,
+    "queue_name": "paas_backend_log_list",
+    "message_type": "python-logstash",
+    "tags": ["sz", "stag", "paas-backend"],
 }
 
-CACHES['default'] = {
+CACHES["default"] = {
     "BACKEND": "django_redis.cache.RedisCache",
     "LOCATION": REDIS_URL,
-    "OPTIONS": {
-        "CLIENT_CLASS": "django_redis.client.DefaultClient",
-    }
+    "OPTIONS": {"CLIENT_CLASS": "django_redis.client.DefaultClient",},
 }
 
 # BCS CC PATH
-BCS_CC_CLUSTER_CONFIG = '/v1/clusters/{cluster_id}/cluster_version_config/'
-BCS_CC_GET_CLUSTER_MASTERS = '/projects/{project_id}/clusters/{cluster_id}/manager_masters/'
-BCS_CC_GET_PROJECT_MASTERS = '/projects/{project_id}/clusters/null/manager_masters/'
-BCS_CC_GET_PROJECT_NODES = '/projects/{project_id}/clusters/null/nodes/'
-BCS_CC_OPER_PROJECT_NODE = '/projects/{project_id}/clusters/null/nodes/{node_id}/'
-BCS_CC_OPER_PROJECT_NAMESPACES = '/projects/{project_id}/clusters/null/namespaces/'
-BCS_CC_OPER_PROJECT_NAMESPACE = '/projects/{project_id}/clusters/null/namespaces/{namespace_id}/'
+BCS_CC_CLUSTER_CONFIG = "/v1/clusters/{cluster_id}/cluster_version_config/"
+BCS_CC_GET_CLUSTER_MASTERS = "/projects/{project_id}/clusters/{cluster_id}/manager_masters/"
+BCS_CC_GET_PROJECT_MASTERS = "/projects/{project_id}/clusters/null/manager_masters/"
+BCS_CC_GET_PROJECT_NODES = "/projects/{project_id}/clusters/null/nodes/"
+BCS_CC_OPER_PROJECT_NODE = "/projects/{project_id}/clusters/null/nodes/{node_id}/"
+BCS_CC_OPER_PROJECT_NAMESPACES = "/projects/{project_id}/clusters/null/namespaces/"
+BCS_CC_OPER_PROJECT_NAMESPACE = "/projects/{project_id}/clusters/null/namespaces/{namespace_id}/"
 
-HELM_MERELY_REPO_URL = os.environ.get('BKAPP_HARBOR_CHARTS_DOMAIN')
+HELM_MERELY_REPO_URL = os.environ.get("BKAPP_HARBOR_CHARTS_DOMAIN")
 
-BCS_SERVER_HOST = {
-    'prod': os.environ.get('BKAPP_BCS_API_DOMAIN')
-}
+BCS_SERVER_HOST = {"prod": os.environ.get("BKAPP_BCS_API_DOMAIN")}
