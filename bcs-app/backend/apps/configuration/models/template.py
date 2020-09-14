@@ -838,9 +838,7 @@ class VersionedEntity(BaseModel):
 
             item_config = []
             for _i in item_objects:
-                item_config.append(
-                    {"id": _i.id, "name": _i.get_name,}
-                )
+                item_config.append({"id": _i.id, "name": _i.get_name})
             if item_config:
                 version_config[item] = item_config
 

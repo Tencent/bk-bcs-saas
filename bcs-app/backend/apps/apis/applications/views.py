@@ -1847,7 +1847,7 @@ class ProjectMusterVersion(BaseProjectMuster):
         show_sets = ShowVersion.objects.filter(template_id=muster_id)
         for _s in show_sets:
             show_version_list.append(
-                {"id": _s.real_version_id, "show_version_id": _s.id, "show_version_name": _s.name, "version": _s.name,}
+                {"id": _s.real_version_id, "show_version_id": _s.id, "show_version_name": _s.name, "version": _s.name}
             )
 
         return JsonResponse({"code": 0, "data": show_version_list})

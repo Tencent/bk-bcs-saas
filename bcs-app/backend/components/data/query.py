@@ -273,7 +273,7 @@ def get_container_logs(username, container_id=None, index=None):
             "query": {
                 "bool": {
                     "must": [
-                        {"query_string": {"query": "*", "analyze_wildcard": True,}},
+                        {"query_string": {"query": "*", "analyze_wildcard": True}},
                         {"term": {"container_id": container_id}},
                     ],
                 },

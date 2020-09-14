@@ -11,12 +11,11 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-from backend.utils.exceptions import APIError
+from backend.utils import exceptions
 
 
-class AuthenticationFailed(APIError):
+class AuthenticationFailed(exceptions.APIError):
     code = 401
 
 
-class ResNotFoundError(APIError):
-    code = 404
+ResNotFoundError = exceptions.ResNotFoundError
