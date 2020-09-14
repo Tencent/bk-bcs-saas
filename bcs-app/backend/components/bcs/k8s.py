@@ -28,30 +28,13 @@ from backend.utils import FancyDict, cache, exceptions
 from backend.utils.cache import region
 from backend.utils.errcodes import ErrorCode
 from backend.utils.error_codes import error_codes
-from backend.resources.cluster.constants import ClusterCOES
-from backend.resources.cluster.utils import get_cluster_coes
 
 from . import resources
-from .k8s_client import BCSProxyClient, TKEProxyClient
-from .k8s_driver import BCSDriver
+from .k8s_client import K8SProxyClient
 
 logger = logging.getLogger(__name__)
 
 REST_PREFIX = "{apigw_host}/rest/clusters"
-
-
-def create_bcs_client(project_id, cluster_id, access_token, env):
-    # 根据cluster_id判断proxy_type的类型，现阶段只有两类: 使用driver和tke
-    coes = get_cluster_coes(access_token, project_id, cluster_id)
-    # 类型map client
-    client_map = {
-        ClusterCOES.BCS_K8S.value: BCSProxyClient,
-        ClusterCOES.TKE.value: TKEProxyClient
-    }
-    client = client_map.get(coes)
-    if not client:
-        raise ValidationError(_("不支持的容器服务调度类型[{}]").format(coes))
-    return client(access_token, project_id, cluster_id, env)
 
 
 class K8SClient(BCSClientBase):
@@ -60,7 +43,7 @@ class K8SClient(BCSClientBase):
 
     def __init__(self, access_token, project_id, cluster_id, env):
         super().__init__(access_token, project_id, cluster_id, env)
-        self.proxy_client = create_bcs_client(project_id, cluster_id, access_token, env)
+        self.proxy_client = K8SProxyClient(access_token, project_id, cluster_id, env)
 
     @cached_property
     def context(self):
