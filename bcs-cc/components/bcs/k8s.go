@@ -22,6 +22,8 @@ import (
 	"bcs_cc/utils"
 )
 
+var defaultClusterState = "bcs_new"
+
 type agentClusterIDResp struct {
 	ID      string `json:"id"`
 	Message string `json:"message"`
@@ -57,7 +59,9 @@ type nodeListResp struct {
 
 func queryK8sAgentClusterID(projectID string, clusterID string, env string, accessToken string) (string, error) {
 	confBase := config.GlobalConfigurations
-	reqURL := fmt.Sprintf("%s/%s%s", confBase.APIGWConf.Host, env, confBase.BCSConf.K8sQueryClusterIDPath)
+	// 直接连接bcs api
+	host, _ := confBase.BCSConf.Hosts[env]
+	reqURL := fmt.Sprintf("%s%s", host, confBase.BCSConf.K8sQueryClusterIDPath)
 	params := fmt.Sprintf("access_token=%s&project_id=%s&cluster_id=%s", accessToken, projectID, clusterID)
 	req := utils.GoReq{
 		Method:  "GET",
@@ -87,7 +91,8 @@ func queryK8sAgentClusterID(projectID string, clusterID string, env string, acce
 func queryCredentials(agentClusterID string, env string, accessToken string) (string, error) {
 	confBase := config.GlobalConfigurations
 	reqPath := fmt.Sprintf(confBase.BCSConf.K8sQueryCredentialsPath, agentClusterID)
-	reqURL := fmt.Sprintf("%s/%s%s", confBase.APIGWConf.Host, env, reqPath)
+	host, _ := confBase.BCSConf.Hosts[env]
+	reqURL := fmt.Sprintf("%s%s", host, reqPath)
 	params := fmt.Sprintf("access_token=%s", accessToken)
 	req := utils.GoReq{
 		Method:  "GET",
@@ -116,11 +121,15 @@ func queryCredentials(agentClusterID string, env string, accessToken string) (st
 }
 
 // compose the node list, include ip and status
-func composeNodeList(resp nodeListResp) (nodeList []map[string]string) {
+func composeNodeList(resp nodeListResp, clusterState string) (nodeList []map[string]string) {
+	isBCSNEWCluster := true
+	if clusterState != defaultClusterState {
+		isBCSNEWCluster = false
+	}
 	for _, info := range resp.Items {
-		// only node/slave info
-		role := info.Metadata.Labels["node-role.kubernetes.io/node"]
-		if role != "true" {
+		// 针对平台创建集群，获取角色为node的节点，进行保存
+		nodeRole := info.Metadata.Labels["node-role.kubernetes.io/node"]
+		if nodeRole != "true" && isBCSNEWCluster {
 			continue
 		}
 		innerIP := ""
@@ -149,7 +158,7 @@ func composeNodeList(resp nodeListResp) (nodeList []map[string]string) {
 	return nodeList
 }
 
-func queryNodes(agentClusterID string, serverPath string, env string, accessToken string) ([]map[string]string, error) {
+func queryNodes(agentClusterID string, serverPath string, env string, accessToken string, clusterState string) ([]map[string]string, error) {
 	confBase := config.GlobalConfigurations
 	host := confBase.BCSConf.Hosts[env]
 	serverPathTrim := strings.Trim(serverPath, "/")
@@ -182,11 +191,11 @@ func queryNodes(agentClusterID string, serverPath string, env string, accessToke
 		logging.Error("parse bcs response error, cluster_id: %s, detial: %v", agentClusterID, err)
 		return nil, err
 	}
-	return composeNodeList(resp), nil
+	return composeNodeList(resp, clusterState), nil
 }
 
 // K8sIPResource :
-func K8sIPResource(projectID string, clusterID string, env string, accessToken string) ([]map[string]string, error) {
+func K8sIPResource(projectID string, clusterID string, env string, accessToken string, clusterState string) ([]map[string]string, error) {
 	// query k8s agent registered cluster id
 	agentClusterID, err := queryK8sAgentClusterID(projectID, clusterID, env, accessToken)
 	if err != nil {
@@ -197,5 +206,5 @@ func K8sIPResource(projectID string, clusterID string, env string, accessToken s
 	if err != nil {
 		return nil, err
 	}
-	return queryNodes(agentClusterID, serverPath, env, accessToken)
+	return queryNodes(agentClusterID, serverPath, env, accessToken, clusterState)
 }

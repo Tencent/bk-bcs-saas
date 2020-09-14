@@ -59,7 +59,11 @@ func getClusterInfo(projectID string, clusterID string) ([]map[string]string, st
 				clusterType = info.Type
 				creator = info.Creator
 				clusterList = append(clusterList, map[string]string{
-					"cluster_id": info.ClusterID, "env": info.Environment, "type": info.Type})
+					"cluster_id": info.ClusterID,
+					"env":        info.Environment,
+					"type":       info.Type,
+					"state":      info.State,
+				})
 			}
 		}
 	} else {
@@ -72,7 +76,11 @@ func getClusterInfo(projectID string, clusterID string) ([]map[string]string, st
 			clusterType = clusterRecord.Type
 			creator = clusterRecord.Creator
 			clusterList = append(clusterList, map[string]string{
-				"cluster_id": clusterRecord.ClusterID, "env": clusterRecord.Environment, "type": clusterRecord.Type})
+				"cluster_id": clusterRecord.ClusterID,
+				"env":        clusterRecord.Environment,
+				"type":       clusterRecord.Type,
+				"state":      clusterRecord.State,
+			})
 		}
 	}
 
@@ -191,7 +199,9 @@ func handleK8sNodes(projectID string, clusterList []map[string]string, accessTok
 		if err != nil {
 			return err
 		}
-		ipResource, err := bcs.K8sIPResource(projectID, info["cluster_id"], bcsEnv[info["env"]], accessToken)
+		ipResource, err := bcs.K8sIPResource(
+			projectID, info["cluster_id"], bcsEnv[info["env"]], accessToken, info["clusterState"],
+		)
 		if err != nil {
 			return err
 		}
