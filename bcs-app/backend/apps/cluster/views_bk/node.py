@@ -206,7 +206,7 @@ class CreateNode(BaseNode):
 
     def check_node_ip(self):
         project_node_list = [
-            info['inner_ip'] for info in self.project_nodes if info['status'] in [CommonStatus.Removed]
+            info['inner_ip'] for info in self.project_nodes if info['status'] not in [CommonStatus.Removed]
         ]
         intersection = set(project_node_list) & set(self.ip_list)
         if intersection:
