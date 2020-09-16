@@ -64,7 +64,7 @@ class ContainerDirectClient(MesosClientBase):
 
         bcs_address = host._replace(scheme=scheme).geturl()
 
-        ws_url = f'{bcs_address}/bcsapi/v1/webconsole/start_exec?host_ip={context["host_ip"]}&exec_id={context["exec_id"]}'  # noqa
+        ws_url = f'{bcs_address}/bcsapi/v4/scheduler/mesos/webconsole/start_exec?host_ip={context["host_ip"]}&exec_id={context["exec_id"]}'  # noqa
         api_client = MesosClient(**context["client_context"])
         client = cls(ws_url, rows, cols, msg_handler, context["host_ip"], context["exec_id"], api_client)
         return client
