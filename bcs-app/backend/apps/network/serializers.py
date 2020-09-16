@@ -20,7 +20,7 @@ from django.utils.translation import ugettext_lazy as _
 from backend.apps.network.models import K8SLoadBlance
 from backend.utils.error_codes import error_codes
 from backend.apps.configuration.serializers import RE_NAME
-from backend.apps.network.constants import MESOS_LB_NAMESPACE_NAME
+from backend.apps.network.constants import MESOS_LB_NAMESPACE_NAME, K8S_LB_NAMESPACE_NAME
 from django.core.validators import MaxValueValidator, MinValueValidator
 
 
@@ -155,3 +155,17 @@ class ServiceListSLZ(serializers.Serializer):
     offset = serializers.IntegerField(default=0)
     search_name = serializers.CharField(default='')
     cluster_id = serializers.CharField(default='ALL')
+
+
+class ChartVersionSLZ(serializers.Serializer):
+    version = serializers.CharField()
+    cluster_id = serializers.CharField(required=False)
+    namespace = serializers.CharField(required=False)
+
+
+class CreateK8SLBParamsSLZ(serializers.Serializer):
+    version = serializers.CharField()
+    cluster_id = serializers.CharField()
+    namespace = serializers.CharField(default=K8S_LB_NAMESPACE_NAME)
+    values_content = serializers.JSONField()
+    ip_info = serializers.JSONField()

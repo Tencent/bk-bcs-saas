@@ -62,5 +62,9 @@ urlpatterns = [
         mesos_ingress.IngressListViewSet.as_view({'get': 'list'})),
     url(r'^api/projects/(?P<project_id>\w{32})/clusters/(?P<cluster_id>%s)/'
         r'namespaces/(?P<namespace>[\w\-]+)/ingresses/(?P<name>[\w\-]+)/$' % MESOS_CLUSTER_ID_REGEX,
-        mesos_ingress.IngressRetrieveOperteViewSet.as_view({'get': 'retrieve', 'delete': 'delete', 'put': 'update'}))
+        mesos_ingress.IngressRetrieveOperteViewSet.as_view({'get': 'retrieve', 'delete': 'delete', 'put': 'update'})),
+
+    url(r'^api/k8s_lb/projects/(?P<project_id>\w{32})/chart/versions/$',
+        k8s.IngressControllerViewSet.as_view({"get": "list"})),
+
 ]

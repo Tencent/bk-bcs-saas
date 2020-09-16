@@ -19,6 +19,7 @@ from django.db import transaction
 from rest_framework import viewsets
 from rest_framework.response import Response
 from django.utils.translation import ugettext_lazy as _
+from rest_framework.renderers import BrowsableAPIRenderer
 
 from backend.activity_log import client as log_client
 from backend.accounts import bcs_perm
@@ -35,10 +36,12 @@ from backend.bcs_k8s.helm.models import ChartVersion, Chart
 from backend.apps.application.utils import APIResponse
 from backend.components.bcs import k8s
 from backend.apps.network.utils import render_helm_values
-from backend.apps.network.constants import K8S_LB_LABEL, K8S_LB_NAME
+from backend.apps.network.constants import K8S_LB_LABEL, K8S_LB_CHART_NAME, K8S_LB_NAMESPACE_NAME
 from backend.apps.cluster.constants import DEFAULT_SYSTEM_LABEL_KEYS
 from backend.utils.error_codes import error_codes
 from backend.utils.renderers import BKAPIRenderer
+from backend.apps.network import serializers
+from backend.resources.namespace import namespace
 
 logger = logging.getLogger(__name__)
 
@@ -57,7 +60,7 @@ class NginxIngressBase(AccessTokenMixin, ProjectMixin, viewsets.ModelViewSet):
     @property
     def chart_info(self):
         chart = Chart.objects.filter(
-            name=K8S_LB_NAME, repository__project_id=self.project_id
+            name=K8S_LB_CHART_NAME, repository__project_id=self.project_id
         ).order_by("defaultChartVersion")
         if not chart:
             raise error_codes.CheckFailed(_("Chart不存在"))
@@ -214,17 +217,12 @@ class NginxIngressListCreateViewSet(NginxIngressBase):
         if cluster_id:
             queryset = queryset.filter(cluster_id=cluster_id)
         cluster_id_name_map = self.get_cluster_id_name_map(access_token, project_id)
-        ns_id_name_map = self.get_all_namespace(access_token, project_id)
         results = []
         for info in queryset.order_by("-updated").values():
             info["cluster_name"] = cluster_id_name_map.get(info["cluster_id"], {}).get("name")
             info["environment"] = cluster_id_name_map.get(info["cluster_id"], {}).get("environment")
-            info["namespace_name"] = ns_id_name_map.get(int(info["namespace_id"]), {}).get("name")
             results.append(info)
-        # 添加权限
-        if results:
-            perm = bcs_perm.Namespace(request, project_id, bcs_perm.NO_RES)
-            results = perm.hook_perms(results, ns_id_flag='namespace_id', ns_name_flag='namespace_name')
+        # TODO: 后续添加权限相关
         resp = {
             "count": len(results),
             "results": results
@@ -246,18 +244,24 @@ class NginxIngressListCreateViewSet(NginxIngressBase):
         self.create_lb_conf(data)
         # 2. create label for node; format is key: value is nodetype: lb
         self.node_label(request, data)
-        # 3. render values.yaml file
-        namespace_info = self.get_ns_info(request, data["namespace_id"])
-        value_file_content = self.render_yaml(
-            request.user.token.access_token, data["project_id"], data["cluster_id"], data, namespace_info)
-        return value_file_content, namespace_info
 
-    def check_namespace_used(self, cluster_id, namespace_id):
-        """校验集群下命名空间是否已经被占用，如果占用则提示已经被使用
+    def check_lb_exist(self, cluster_id):
+        """校验集群下是否有LB，如果已经存在，现阶段不允许再次创建
         """
-        if K8SLoadBlance.objects.filter(
-                cluster_id=cluster_id, namespace_id=namespace_id, name=K8S_LB_NAME).exists():
-            raise error_codes.CheckFailed(_("命名空间已经被占用，请选择其他命名空间"))
+        if K8SLoadBlance.objects.filter(cluster_id=cluster_id, name=K8S_LB_CHART_NAME).exists():
+            raise error_codes.CheckFailed(_("集群下已存在LB，不允许再次创建"))
+
+    def create_bcs_namespace(self, request, project_id, cluster_id):
+        """创建bcs-system命名空间，如果不存在，则创建；如果存在，则忽略
+        """
+        ns_client = namespace.Namespace(
+            request.user.token.access_token,
+            project_id, cluster_id, None
+        )
+        ns_info = ns_client.get_namespace(K8S_LB_NAMESPACE_NAME)
+        if not ns_info:
+            ns_info = ns_client.create_namespace(request.user.username, K8S_LB_NAMESPACE_NAME)
+        return ns_info
 
     def create(self, request, project_id):
         """针对nginx的实例化，主要有下面几步:
@@ -266,24 +270,23 @@ class NginxIngressListCreateViewSet(NginxIngressBase):
         3. 根据透露给用户的选择，渲染values.yaml文件
         4. 实例化controller相关配置
         """
-        data = dict(request.data)
+        slz = serializers.CreateK8SLBParamsSLZ(data=request.data)
+        slz.is_valid(raise_exception=True)
+        data = slz.validated_data
+        # 处理namespace
+        ns_info = self.create_bcs_namespace(request, project_id, data["cluster_id"])
         data.update({
             "project_id": project_id,
             "creator": request.user.username,
             "updator": request.user.username,
-            "name": K8S_LB_NAME
+            "name": K8S_LB_CHART_NAME,
+            "namespace": ns_info["name"],
+            "namespace_id": ns_info["namespace_id"]
         })
-        ns_id = data['namespace_id']
         # 检查命名空间是否被占用
-        self.check_namespace_used(data['cluster_id'], ns_id)
+        self.check_lb_exist(data["cluster_id"])
 
-        perm = bcs_perm.Namespace(request, project_id, ns_id)
-        perm.can_use(raise_exception=True)
-        # 检查节点ID是否已经存在，不允许占用独享的节点
-        # ip_info = json.loads(data["ip_info"])
-        # self.check_used_node(ip_info.keys())
-
-        value_file_content, namespace_info = self.pre_create(request, data)
+        self.pre_create(request, data)
 
         user_log = log_client.ContextActivityLogClient(
             project_id=project_id,
@@ -296,15 +299,15 @@ class NginxIngressListCreateViewSet(NginxIngressBase):
         try:
             helm_app_info = App.objects.initialize_app(
                 access_token=request.user.token.access_token,
-                name=K8S_LB_NAME,
+                name=K8S_LB_CHART_NAME,
                 project_id=project_id,
                 cluster_id=data["cluster_id"],
                 namespace_id=data["namespace_id"],
-                namespace=namespace_info["name"],
+                namespace=ns_info["name"],
                 chart_version=self.chart_version,
                 answers=[],
                 customs=[],
-                valuefile=value_file_content,
+                valuefile=data["values_content"],
                 creator=request.user.username,
                 updator=request.user.username
             )
@@ -539,3 +542,79 @@ class NginxIngressListNamespceViewSet(NginxIngressBase):
             project_id=project_id, cluster_id=cluster_id, is_deleted=False
         ).values("namespace_id")
         return APIResponse({"data": [info["namespace_id"] for info in used_ns_id_list]})
+
+
+class IngressControllerViewSet(viewsets.ViewSet):
+    renderer_classes = (BKAPIRenderer, BrowsableAPIRenderer)
+    name = K8S_LB_CHART_NAME
+    namespace = K8S_LB_NAMESPACE_NAME
+    public_repo_name = "public-repo"
+    release_version_prefix = "(current-unchanged)"
+
+    def list(self, request, project_id):
+        # 过滤公共仓库下面的lb chart名称
+        chart_versions = ChartVersion.objects.filter(
+            name=self.name,
+            chart__repository__project_id=project_id,
+            chart__repository__name=self.public_repo_name
+        ).order_by("-created").values("version", "id")
+
+        # 获取release版本的version
+        params = request.query_params
+        cluster_id = params.get("cluster_id")
+        operation = params.get("operation")
+        # 创建操作时，因为release不存在，不需要获取release的版本
+        if operation == "create":
+            return Response(chart_versions)
+        # 针对更新操作，需要获取已存在的release对应的版本
+        try:
+            namespace = params.get("namespace") or self.namespace
+            release = App.objects.get(cluster_id=cluster_id, namespace=namespace, name=self.name)
+        except App.DoesNotExist:
+            logger.error(
+                _("没有查询到集群:{}, 命名空间:{}, 名称:{}对应的release信息").format(cluster_id, namespace, self.name)
+            )
+            return Response(chart_versions)
+
+        data = [{"version": f"{self.release_version_prefix} {release.get_current_version()}", "id": -1}]
+        data.extend(list(chart_versions))
+        return Response(data)
+
+    def post(self, request, project_id):
+        """获取指定版本chart信息，包含release的版本
+        """
+        slz = serializers.ChartVersionSLZ(data=request.data)
+        slz.is_valid(raise_exception=True)
+        data = slz.validated_data
+        version = data["version"]
+        # 如果是release，查询release中对应的values信息
+        if not version.startswith(self.release_version_prefix):
+            chart_version = ChartVersion.objects.get(
+                name=self.name,
+                version=version,
+                chart__repository__project_id=project_id,
+                chart__repository__name=self.public_repo_name
+            )
+            return_data = {
+                "name": self.name,
+                "version": version,
+                "files": chart_version.files
+            }
+            return Response(return_data)
+        # 获取release对应的values
+        return_data = {
+            "name": self.name,
+            "version": version,
+        }
+        namespace = data.get("namespace") or self.namespace
+        cluster_id = data.get("cluster_id")
+        try:
+            release = App.objects.get(cluster_id=cluster_id, namespace=namespace, name=self.name)
+        except App.DoesNotExist:
+            logger.error(
+                _("没有查询到集群:{}, 命名空间:{}, 名称:{}对应的release信息").format(cluster_id, namespace, self.name)
+            )
+            return Response(return_data)
+
+        return_data["files"] = release.release.chartVersionSnapshot.files
+        return Response(return_data)

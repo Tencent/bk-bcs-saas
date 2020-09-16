@@ -24,7 +24,8 @@ LB_STATUS_DICT = {
 }
 
 # K8S lb default name
-K8S_LB_NAME = "blueking-nginx-ingress"
+K8S_LB_CHART_NAME = "blueking-nginx-ingress"
+
 
 # k8s lb label
 K8S_LB_LABEL = {
@@ -140,3 +141,7 @@ configMap:
 
 # mesos lb namespace name
 MESOS_LB_NAMESPACE_NAME = 'mesos-lb'
+
+
+# k8s lb namespace name
+K8S_LB_NAMESPACE_NAME = "bcs-system"
