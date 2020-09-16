@@ -11,5 +11,54 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
+import yaml
+import logging
+import hashlib
+import base64
+import requests
+
+logger = logging.getLogger(__name__)
+
+
 def get_incremental_charts_and_hash_value(url_prefix, username, password, start_time):
     return None, None
+
+
+def make_requests_auth(auth):
+    if auth["type"].lower() == "basic":
+        return requests.auth.HTTPBasicAuth(
+            username=auth["credentials"]["username"],
+            password=auth["credentials"]["password"],
+        )
+
+    raise NotImplementedError(auth["type"])
+
+
+def _md5(content):
+    h = hashlib.md5()
+    h.update(content.encode("utf-8"))
+    return h.hexdigest()
+
+
+def get_charts_info(url, auths):
+    url = url.rstrip("/")
+    req_charts_url = "{url}/index.yaml".format(url=url)
+    try:
+        if not auths:
+            resp = requests.get(req_charts_url)
+        else:
+            for auth in auths:
+                resp = requests.get(req_charts_url, auth=make_requests_auth(auth))
+                if resp.status_code != 401:
+                    break
+
+        content = resp.text
+        charts_info = yaml.load(content)["entries"]
+
+    except Exception as e:
+        logger.error("get charts info fail: [url=%s], error: %s", req_charts_url, str(e))
+        return (False, None, None)
+
+    # 生成MD5，主要是便于后续校验是否变动
+    charts_info_hash = _md5(str(charts_info))
+    return (True, charts_info, charts_info_hash)
