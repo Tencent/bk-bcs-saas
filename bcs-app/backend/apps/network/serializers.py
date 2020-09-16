@@ -45,20 +45,12 @@ class NginxIngressSLZ(serializers.ModelSerializer):
     cluster_id = serializers.CharField(max_length=32, required=True)
     namespace_id = serializers.IntegerField(required=True)
     name = serializers.CharField(max_length=32, required=True)
-    protocol_type = serializers.CharField(max_length=32, required=True)
+    protocol_type = serializers.CharField(max_length=32, required=False)
     ip_info = serializers.JSONField(required=True)
     detail = serializers.JSONField(required=False)
     creator = serializers.CharField(max_length=16, required=False)
     updator = serializers.CharField(max_length=16, required=False)
-
-    def validate_protocol_type(self, value):
-        type_list = re.findall(r"[^,; ]+", value)
-        protocol_port_list = []
-        for info in type_list:
-            protocol_port_list.extend(info.split(":"))
-        if "http" not in protocol_port_list and "https" not in protocol_port_list:
-            raise ValidationError(_("参数【protocol_type】至少包含http或https，请确认后重试!"))
-        return value
+    namespace = serializers.CharField()
 
     class Meta:
         model = K8SLoadBlance
@@ -74,6 +66,7 @@ class NginxIngressSLZ(serializers.ModelSerializer):
             "creator",
             "updator",
             "is_deleted",
+            "namespace"
         )
 
 

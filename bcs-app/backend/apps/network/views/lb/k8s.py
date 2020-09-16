@@ -57,19 +57,16 @@ class NginxIngressBase(AccessTokenMixin, ProjectMixin, viewsets.ModelViewSet):
 
         return result["data"]
 
-    @property
-    def chart_info(self):
-        chart = Chart.objects.filter(
-            name=K8S_LB_CHART_NAME, repository__project_id=self.project_id
-        ).order_by("defaultChartVersion")
-        if not chart:
-            raise error_codes.CheckFailed(_("Chart不存在"))
-        return chart[0]
-
-    @property
-    def chart_version(self):
-        chart = self.chart_info
-        return chart.defaultChartVersion
+    def get_chart_version(self, project_id, version):
+        """获取chart版本信息
+        """
+        try:
+            chart_version = ChartVersion.objects.get(
+                name=K8S_LB_CHART_NAME, chart__repository__project_id=project_id, version=version
+            )
+        except ChartVersion.DoesNotExist:
+            raise error_codes.ResNotFoundError(_("没有查询到chart版本: {}").format(version))
+        return chart_version
 
     def create_node_label_via_bcs(self, request, project_id, cluster_id, node_id_labels={}):
         """调用BCS服务创建节点标签
@@ -108,7 +105,7 @@ class NginxIngressBase(AccessTokenMixin, ProjectMixin, viewsets.ModelViewSet):
         """节点打标签
         """
         many_data = []
-        ip_info = json.loads(data["ip_info"])
+        ip_info = data["ip_info"]
         node_id_labels = {}
         existed_node_label_info = NodeLabel.objects.filter(
             node_id__in=[node_id for node_id in ip_info]
@@ -159,13 +156,6 @@ class NginxIngressBase(AccessTokenMixin, ProjectMixin, viewsets.ModelViewSet):
             return None
         return app_instances[0]
 
-    def render_yaml(self, access_token, project_id, cluster_id, data, namespace_info):
-        """渲染helm values配置
-        """
-        replica_count = len(json.loads(data["ip_info"]))
-        return render_helm_values(
-            access_token, project_id, cluster_id, data["protocol_type"], replica_count, namespace_info["name"])
-
     def get_cluster_id_name_map(self, access_token, project_id):
         cluster_list = paas_cc.get_all_clusters(access_token, project_id)
         data = cluster_list.get("data", {}).get("results") or []
@@ -202,8 +192,8 @@ class NginxIngressBase(AccessTokenMixin, ProjectMixin, viewsets.ModelViewSet):
         return {item["id"]: item for item in resp.get("data", {}).get("results") or []}
 
 
-@with_code_wrapper
 class NginxIngressListCreateViewSet(NginxIngressBase):
+    renderer_classes = (BKAPIRenderer, BrowsableAPIRenderer)
     queryset = K8SLoadBlance.objects.all()
     serializer_class = NginxIngressSLZ
 
@@ -251,13 +241,10 @@ class NginxIngressListCreateViewSet(NginxIngressBase):
         if K8SLoadBlance.objects.filter(cluster_id=cluster_id, name=K8S_LB_CHART_NAME).exists():
             raise error_codes.CheckFailed(_("集群下已存在LB，不允许再次创建"))
 
-    def create_bcs_namespace(self, request, project_id, cluster_id):
+    def create_bcs_system_namespace(self, request, project_id, cluster_id):
         """创建bcs-system命名空间，如果不存在，则创建；如果存在，则忽略
         """
-        ns_client = namespace.Namespace(
-            request.user.token.access_token,
-            project_id, cluster_id, None
-        )
+        ns_client = namespace.Namespace(request.user.token.access_token, project_id, cluster_id)
         ns_info = ns_client.get_namespace(K8S_LB_NAMESPACE_NAME)
         if not ns_info:
             ns_info = ns_client.create_namespace(request.user.username, K8S_LB_NAMESPACE_NAME)
@@ -274,14 +261,15 @@ class NginxIngressListCreateViewSet(NginxIngressBase):
         slz.is_valid(raise_exception=True)
         data = slz.validated_data
         # 处理namespace
-        ns_info = self.create_bcs_namespace(request, project_id, data["cluster_id"])
+        ns_info = self.create_bcs_system_namespace(request, project_id, data["cluster_id"])
         data.update({
             "project_id": project_id,
             "creator": request.user.username,
             "updator": request.user.username,
             "name": K8S_LB_CHART_NAME,
             "namespace": ns_info["name"],
-            "namespace_id": ns_info["namespace_id"]
+            "namespace_id": ns_info["namespace_id"],
+            "ip_info": json.dumps(data["ip_info"])
         })
         # 检查命名空间是否被占用
         self.check_lb_exist(data["cluster_id"])
@@ -304,9 +292,10 @@ class NginxIngressListCreateViewSet(NginxIngressBase):
                 cluster_id=data["cluster_id"],
                 namespace_id=data["namespace_id"],
                 namespace=ns_info["name"],
-                chart_version=self.chart_version,
+                chart_version=self.get_chart_version(project_id, data["version"]),
                 answers=[],
                 customs=[],
+                cmd_flags=[],
                 valuefile=data["values_content"],
                 creator=request.user.username,
                 updator=request.user.username
@@ -317,10 +306,10 @@ class NginxIngressListCreateViewSet(NginxIngressBase):
         if helm_app_info:
             if helm_app_info.transitioning_result:
                 user_log.log_add(activity_status="succeed")
-                return APIResponse({"message": _("创建成功!")})
+                return Response()
             else:
                 user_log.log_add(activity_status="failed")
-                raise error_codes.CheckFailed(_("创建失败，请查看实例详情!"))
+                raise error_codes.APIError(helm_app_info.transitioning_message)
         else:
             # 5. 如果失败删除k8s lb实例
             K8SLoadBlance.objects.filter(
@@ -328,22 +317,19 @@ class NginxIngressListCreateViewSet(NginxIngressBase):
             ).delete()
 
         user_log.log_add(activity_status="failed")
-        raise error_codes.CheckFailed(_("创建失败，已通知管理员处理!"))
+        raise error_codes.APIError(_("创建LB失败！"))
 
 
-@with_code_wrapper
 class NginxIngressRetrieveUpdateViewSet(NginxIngressBase):
+    renderer_classes = (BKAPIRenderer, BrowsableAPIRenderer)
     queryset = K8SLoadBlance.objects.all()
     serializer_class = NginxIngressSLZ
 
     def retrieve(self, request, project_id, pk):
         details = self.queryset.filter(id=pk, project_id=project_id, is_deleted=False).values()
         if not details:
-            raise error_codes.CheckFailed(_("没有查询到实例信息，请联系管理员处理"))
+            raise error_codes.ResNotFoundError(_("没有查询到实例信息！"))
         data = details[0]
-
-        perm = bcs_perm.Namespace(request, project_id, data["namespace_id"])
-        perm.can_use(raise_exception=True)
 
         access_token = request.user.token.access_token
         cluster_id_name_map = self.get_cluster_id_name_map(access_token, project_id)
