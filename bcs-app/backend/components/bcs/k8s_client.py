@@ -26,7 +26,7 @@ class K8SAPIClient(BCSClientBase):
 
     @property
     def _headers_for_bcs_agent_api(self):
-        return {"Authorization": settings.BCS_AUTH_TOKEN, "Content-Type": "application/json"}
+        return {"Authorization": getattr(settings, "BCS_AUTH_TOKEN", ""), "Content-Type": "application/json"}
 
     def query_cluster(self):
         url = f"{self.rest_host}/bcs/query_by_id/"

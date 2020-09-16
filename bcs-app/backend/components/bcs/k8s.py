@@ -378,7 +378,7 @@ class K8SClient(BCSClientBase):
 
     @property
     def _headers_for_bcs_agent_api(self):
-        return {"Authorization": settings.BCS_AUTH_TOKEN, "Content-Type": "application/json"}
+        return {"Authorization": getattr(settings, "BCS_AUTH_TOKEN", ""), "Content-Type": "application/json"}
 
     def query_cluster(self):
         """获取bke_cluster_id, identifier
