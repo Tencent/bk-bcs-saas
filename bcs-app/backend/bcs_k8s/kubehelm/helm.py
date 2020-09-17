@@ -259,7 +259,8 @@ class KubeHelmClient:
         - 组装命令行参数
         - 执行命令
         """
-        upgrade_cmd_args = [settings.HELM3_BIN, "upgrade", name, "--namespace", namespace]
+        # NOTE: helm3需要升级到3.3.1版本
+        upgrade_cmd_args = [settings.HELM3_BIN, "upgrade", name, "--namespace", namespace, "--install"]
         return self._install_or_upgrade(upgrade_cmd_args, files, chart_values, bcs_inject_data, **kwargs)
 
     def _uninstall_or_rollback(self, cmd_args):

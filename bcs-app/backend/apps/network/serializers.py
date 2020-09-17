@@ -71,10 +71,10 @@ class NginxIngressSLZ(serializers.ModelSerializer):
 
 
 class NginxIngressUpdateSLZ(serializers.Serializer):
-    id = serializers.IntegerField(required=True)
-    protocol_type = serializers.CharField(max_length=32, required=True)
-    ip_info = serializers.JSONField(required=True)
-    updator = serializers.CharField(max_length=16, required=True)
+    protocol_type = serializers.CharField(default="")
+    ip_info = serializers.JSONField(required=False)
+    version = serializers.CharField()
+    values_content = serializers.JSONField()
 
 
 class LoadBalancesSLZ(serializers.Serializer):

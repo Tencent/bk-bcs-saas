@@ -149,8 +149,8 @@ class NginxIngressBase(AccessTokenMixin, ProjectMixin, viewsets.ModelViewSet):
     def get_node_labels(self, node_id_list):
         return NodeLabel.objects.filter(node_id__in=node_id_list)
 
-    def get_k8s_bcs_app(self, ns_id, chart):
-        app_instances = App.objects.filter(namespace_id=ns_id, chart=chart)
+    def get_k8s_bcs_app(self, ns_id):
+        app_instances = App.objects.filter(namespace_id=ns_id, name=K8S_LB_CHART_NAME)
         if not app_instances:
             logger.exception('Helm app not found, ns_id: %s' % ns_id)
             return None
@@ -325,6 +325,20 @@ class NginxIngressRetrieveUpdateViewSet(NginxIngressBase):
     queryset = K8SLoadBlance.objects.all()
     serializer_class = NginxIngressSLZ
 
+    def get_release_info(self, project_id, cluster_id):
+        try:
+            name = K8S_LB_CHART_NAME
+            release = App.objects.get(project_id=project_id, cluster_id=cluster_id, name=name)
+        except App.DoesNotExist:
+            logger.error(
+                _("没有查询到集群:{}, 名称:{}对应的release信息").format(cluster_id, name)
+            )
+            return {}
+        return {
+            "version": release.get_current_version(),
+            "values_content": release.get_valuefile()
+        }
+
     def retrieve(self, request, project_id, pk):
         details = self.queryset.filter(id=pk, project_id=project_id, is_deleted=False).values()
         if not details:
@@ -345,6 +359,9 @@ class NginxIngressRetrieveUpdateViewSet(NginxIngressBase):
             }
             render_ip_info.append(item)
         data["ip_info"] = json.dumps(render_ip_info)
+
+        # 添加release对应的版本及values内容
+        data.update(self.get_release_info(project_id, data["cluster_id"]))
         return Response(data)
 
     def get_update_node_info(self, request, data):
@@ -352,7 +369,7 @@ class NginxIngressRetrieveUpdateViewSet(NginxIngressBase):
         """
         lb_conf = self.get_k8s_lb_info(data["id"])
         pre_ip_info = json.loads(lb_conf.ip_info)
-        update_ip_info = json.loads(data["ip_info"])
+        update_ip_info = data["ip_info"]
         common_node_id_set = set([
             node_id
             for node_id in pre_ip_info
@@ -381,7 +398,7 @@ class NginxIngressRetrieveUpdateViewSet(NginxIngressBase):
         return node_id_labels
 
     def update_lb_conf(self, instance, ip_info, protocol_type, updator):
-        instance.ip_info = ip_info
+        instance.ip_info = json.dumps(ip_info)
         instance.protocol_type = protocol_type
         instance.updator = updator
         instance.save()
@@ -420,16 +437,14 @@ class NginxIngressRetrieveUpdateViewSet(NginxIngressBase):
         1. 增加/减少LB协议类型
         2. 增加/减少节点数量(标签+replica)
         """
-        req_data = dict(request.data)
-        req_data.update({"id": pk, "updator": request.user.username})
-        serializer = NginxIngressUpdateSLZ(data=req_data)
+        serializer = NginxIngressUpdateSLZ(data=request.data)
         serializer.is_valid(raise_exception=True)
         data = serializer.data
 
+        username = request.user.username
+        data.update({"id": pk, "updator": username})
         lb_conf, delete_node_id_list, add_node_id_list = self.get_update_node_info(request, data)
 
-        perm = bcs_perm.Namespace(request, project_id, lb_conf.namespace_id)
-        perm.can_use(raise_exception=True)
         # 判断调整的节点是否已经存在，并且是独享的
         # self.update_check_node_id(lb_conf, data)
 
@@ -441,15 +456,12 @@ class NginxIngressRetrieveUpdateViewSet(NginxIngressBase):
             self.add_node_label(request, add_node_id_list, project_id, lb_conf)
 
         # 更新lb
-        self.update_lb_conf(lb_conf, data["ip_info"], data["protocol_type"], request.user.username)
-        app_instance = self.get_k8s_bcs_app(lb_conf.namespace_id, self.chart_info)
+        self.update_lb_conf(lb_conf, data["ip_info"], data["protocol_type"], username)
+        app_instance = self.get_k8s_bcs_app(lb_conf.namespace_id)
         if not app_instance:
-            return APIResponse({"code": 400, "message": _("没有查询到应用信息")})
+            raise error_codes.ResNotFoundError(_("没有查询到对应的release信息"))
 
         data["namespace_id"] = lb_conf.namespace_id
-        namespace_info = self.get_ns_info(request, data["namespace_id"])
-        valuefile = self.render_yaml(
-            request.user.token.access_token, project_id, lb_conf.cluster_id, data, namespace_info)
         user_log = log_client.ContextActivityLogClient(
             project_id=project_id,
             user=request.user.username,
@@ -458,18 +470,19 @@ class NginxIngressRetrieveUpdateViewSet(NginxIngressBase):
             resource_id=pk,
             extra=json.dumps(data)
         )
+        chart_version = self.get_chart_version(project_id, data["version"])
         updated_instance = app_instance.upgrade_app(
             access_token=request.user.token.access_token,
-            chart_version_id=self.chart_version.id,
+            chart_version_id=chart_version.id,
             answers=[], customs=[],
-            valuefile=valuefile,
-            updator=request.user.username
+            valuefile=data["values_content"],
+            updator=username
         )
         if updated_instance.transitioning_result:
             user_log.log_modify(activity_status="succeed")
-            return APIResponse({"message": "更新成功!"})
+            return Response()
         user_log.log_modify(activity_status="failed")
-        return APIResponse({"code": 400, "message": updated_instance.transitioning_message})
+        raise error_codes.APIError(updated_instance.transitioning_message)
 
     def delete_lb_conf(self, lb_conf):
         """标识此条记录被删除
@@ -497,10 +510,10 @@ class NginxIngressRetrieveUpdateViewSet(NginxIngressBase):
         # 删除节点标签
         delete_node_id_list = [node_id for node_id in json.loads(lb_conf.ip_info)]
         self.delete_node_label(request, delete_node_id_list, project_id, lb_conf)
-        # 删除helm
-        app_instance = self.get_k8s_bcs_app(lb_conf.namespace_id, self.chart_info)
+        # 删除helm release
+        app_instance = self.get_k8s_bcs_app(lb_conf.namespace_id)
         if not app_instance:
-            return APIResponse({"message": _("删除成功")})
+            return Response()
 
         user_log = log_client.ContextActivityLogClient(
             project_id=project_id,
@@ -513,12 +526,9 @@ class NginxIngressRetrieveUpdateViewSet(NginxIngressBase):
             username=request.user.username,
             access_token=request.user.token.access_token
         )
-        # 因为是helm中是异步过程，因此，放到后台处理
-        # if App.objects.filter(id=app_instance.id).exists():
-        #     user_log.log_delete(activity_status="failed")
-        #     return APIResponse({"code": 400, "message": app_instance.transitioning_message})
+
         user_log.log_delete(activity_status="succeed")
-        return APIResponse({"message": _("任务下发成功!")})
+        return Response()
 
 
 class NginxIngressListNamespceViewSet(NginxIngressBase):
