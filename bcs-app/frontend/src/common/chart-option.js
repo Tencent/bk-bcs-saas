@@ -34,11 +34,11 @@ export const overview = {
                 let ret
 
                 if (params[0].value[2] === '无数据') {
-                    ret = '<div>没有数据</div>'
+                    ret = '<div>No Data</div>'
                 } else {
                     ret = `
                         <div>${moment(params[0].value[0]).format('YYYY-MM-DD HH:mm:ss')}</div>
-                        <div>CPU使用率：${params[0].value[1]}%</div>
+                        <div>CPU Usage：${params[0].value[1]}%</div>
                     `
                 }
 
@@ -122,7 +122,7 @@ export const overview = {
         series: [
             {
                 type: 'line',
-                name: 'CPU使用率',
+                name: 'CPU Usage',
                 // showSymbol: true,
                 smooth: true,
                 showSymbol: false,
@@ -155,11 +155,11 @@ export const overview = {
                 let ret
 
                 if (params[0].value[2] === '无数据') {
-                    ret = '<div>没有数据</div>'
+                    ret = '<div>No Data</div>'
                 } else {
                     ret = `
                         <div>${moment(params[0].value[0]).format('YYYY-MM-DD HH:mm:ss')}</div>
-                        <div>内存使用率：${(params[0].value[1]).toFixed(2)}GB</div>
+                        <div>Memory Usage：${(params[0].value[1]).toFixed(2)}GB</div>
                     `
                 }
 
@@ -275,11 +275,11 @@ export const overview = {
                 let ret
 
                 if (params[0].value[2] === '无数据') {
-                    ret = '<div>没有数据</div>'
+                    ret = '<div>No Data</div>'
                 } else {
                     ret = `
                         <div>${moment(params[0].value[0]).format('YYYY-MM-DD HH:mm:ss')}</div>
-                        <div>磁盘使用率：${(params[0].value[1]).toFixed(2)}GB</div>
+                        <div>Disk Usage：${(params[0].value[1]).toFixed(2)}GB</div>
                     `
                 }
 
@@ -410,11 +410,11 @@ export const nodeOverview = {
                 let ret
 
                 if (params[0].value[1] === '-') {
-                    ret = '<div>没有数据</div>'
+                    ret = '<div>No Data</div>'
                 } else {
                     ret = `
                         <div>${moment(params[0].value[0]).format('YYYY-MM-DD HH:mm:ss')}</div>
-                        <div>CPU使用率：${params[0].value[1]}%</div>
+                        <div>CPU Usage：${params[0].value[1]}%</div>
                     `
                 }
 
@@ -496,7 +496,7 @@ export const nodeOverview = {
         series: [
             {
                 type: 'line',
-                name: 'CPU使用率',
+                name: 'CPU Usage',
                 showSymbol: false,
                 smooth: true,
                 hoverAnimation: false,
@@ -528,7 +528,7 @@ export const nodeOverview = {
             }
         ]
     },
-    // 内存使用率
+    // Memory Usage
     memory: {
         tooltip: {
             trigger: 'axis',
@@ -543,7 +543,7 @@ export const nodeOverview = {
                 let ret
 
                 if (params[0].value[1] === '-' && params[1].value[1] === '-') {
-                    ret = '<div>没有数据</div>'
+                    ret = '<div>No Data</div>'
                 } else {
                     ret = `
                         <div>${moment(params[0].value[0]).format('YYYY-MM-DD HH:mm:ss')}</div>
@@ -707,7 +707,7 @@ export const nodeOverview = {
                 let ret
 
                 if (params[0].seriesName === 'noData') {
-                    ret = '<div>没有数据</div>'
+                    ret = '<div>No Data</div>'
                 } else {
                     ret = `<div>${moment(params[0].value[0]).format('YYYY-MM-DD HH:mm:ss')}</div>`
                     params.forEach(item => {
@@ -858,7 +858,7 @@ export const nodeOverview = {
             }
         ]
     },
-    // 存储使用率
+    // Disk Usage
     storage: {
         tooltip: {
             trigger: 'axis',
@@ -872,7 +872,7 @@ export const nodeOverview = {
             formatter (params, ticket, callback) {
                 let ret
                 if (params[0].seriesName === 'noData') {
-                    ret = '<div>没有数据</div>'
+                    ret = '<div>No Data</div>'
                 } else {
                     ret = `<div>${moment(params[0].value[0]).format('YYYY-MM-DD HH:mm:ss')}</div>`
                     params.forEach(item => {
@@ -1011,7 +1011,7 @@ export const containerDetailChart = {
                 let ret = ''
                 const containerName = params[0].seriesName
                 if (containerName === 'noData') {
-                    ret = '<div>没有数据</div>'
+                    ret = '<div>No Data</div>'
                 } else {
                     ret += '<div style="width: 450px;">'
                     ret += `<div>${moment(params[0].value[0]).format('YYYY-MM-DD HH:mm:ss')}`
@@ -1019,7 +1019,7 @@ export const containerDetailChart = {
                         + `${containerName}</div>`
                         + `</div>`
                     params.forEach(item => {
-                        ret += `<div>CPU使用率：`
+                        ret += `<div>CPU Usage：`
                             + `<span style="font-weight: 700; color: #30d873;">${(item.value[1]).toFixed(2)}%</span>`
                             + `</div>`
                     })
@@ -1142,7 +1142,7 @@ export const containerDetailChart = {
                 let ret = ''
                 const containerName = params[0].seriesName
                 if (containerName === 'noData') {
-                    ret = '<div>没有数据</div>'
+                    ret = '<div>No Data</div>'
                 } else {
                     ret += '<div style="width: 450px;">'
                     ret += `<div>${moment(params[0].value[0]).format('YYYY-MM-DD HH:mm:ss')}`
@@ -1258,6 +1258,137 @@ export const containerDetailChart = {
             }
         ]
     },
+    memInternal: {
+        tooltip: {
+            trigger: 'axis',
+            confine: true,
+            axisPointer: {
+                type: 'line',
+                animation: false,
+                label: {
+                    backgroundColor: '#6a7985'
+                }
+            },
+            formatter (params, ticket, callback) {
+                let ret = ''
+                const containerName = params[0].seriesName
+                if (containerName === 'noData') {
+                    ret = '<div>No Data</div>'
+                } else {
+                    ret += '<div style="width: 450px;">'
+                    ret += `<div>${moment(params[0].value[0]).format('YYYY-MM-DD HH:mm:ss')}`
+                        + '<div style="text-align: left; white-space: normal;word-break: break-all;">'
+                        + `${containerName}</div>`
+                        + `</div>`
+                    params.forEach(item => {
+                        ret += `<div>Memory Usage：`
+                            + `<span style="font-weight: 700; color: #3c96ff;">${(item.value[1]).toFixed(2)}%</span>`
+                            + `</div>`
+                    })
+                    ret += '</div>'
+                }
+                return ret
+            }
+        },
+        grid: {
+            show: false,
+            top: '4%',
+            left: '4%',
+            right: '5%',
+            bottom: '3%',
+            containLabel: true
+        },
+        xAxis: [
+            {
+                type: 'time',
+                boundaryGap: false,
+                axisLine: {
+                    show: true,
+                    lineStyle: {
+                        color: '#dde4eb'
+                    }
+                },
+                axisTick: {
+                    alignWithLabel: true,
+                    length: 5,
+                    lineStyle: {
+                        color: '#ebf0f5'
+                    }
+                },
+                axisLabel: {
+                    color: '#868b97',
+                    formatter (value, index) {
+                        return moment(value).format('HH:mm')
+                    }
+                },
+                splitLine: {
+                    show: true,
+                    lineStyle: {
+                        color: ['#ebf0f5'],
+                        type: 'dashed'
+                    }
+                }
+            }
+        ],
+        yAxis: [
+            {
+                boundaryGap: [0, '2%'],
+                type: 'value',
+                axisLine: {
+                    show: true,
+                    lineStyle: {
+                        color: '#dde4eb'
+                    }
+                },
+                axisTick: {
+                    alignWithLabel: true,
+                    length: 0,
+                    lineStyle: {
+                        color: 'red'
+                    }
+                },
+                axisLabel: {
+                    color: '#868b97',
+                    formatter (value, index) {
+                        return `${value}%`
+                    }
+                },
+                splitLine: {
+                    show: true,
+                    lineStyle: {
+                        color: ['#ebf0f5'],
+                        type: 'dashed'
+                    }
+                }
+            }
+        ],
+        series: [
+            {
+                type: 'line',
+                smooth: true,
+                showSymbol: false,
+                hoverAnimation: false,
+                areaStyle: {
+                    normal: {
+                        color: '#3c96ff',
+                        opacity: 0.1
+                    }
+                },
+                lineStyle: {
+                    normal: {
+                        color: '#3c96ff'
+                    }
+                },
+                // 折线拐点标志的样式
+                itemStyle: {
+                    normal: {
+                        // opacity: 0,
+                        color: '#868b97'
+                    }
+                }
+            }
+        ]
+    },
     net: {
         tooltip: {
             trigger: 'axis',
@@ -1273,7 +1404,7 @@ export const containerDetailChart = {
                 let ret = ''
                 const containerName = params[0].value[3]
                 if (containerName === 'noData') {
-                    ret = '<div>没有数据</div>'
+                    ret = '<div>No Data</div>'
                 } else {
                     ret += '<div style="width: 450px;">'
                     ret += `<div>${moment(params[0].value[0]).format('YYYY-MM-DD HH:mm:ss')}`
@@ -1418,7 +1549,7 @@ export const containerDetailChart = {
                 let ret = ''
                 const containerName = params[0].value[3]
                 if (containerName === 'noData') {
-                    ret = '<div>没有数据</div>'
+                    ret = '<div>No Data</div>'
                 } else {
                     ret += '<div style="width: 450px;">'
                     ret += `<div>${moment(params[0].value[0]).format('YYYY-MM-DD HH:mm:ss')}`
@@ -1426,6 +1557,7 @@ export const containerDetailChart = {
                         + `${containerName}</div>`
                         + `</div>`
                     params.forEach(item => {
+                        console.error(item)
                         ret += '<div>读：'
                             + `<span style="font-weight: 700; color: #30d873;">${(item.value[1]).toFixed(2)}Bytes/s</span>`
                             + `</div>`
@@ -1525,6 +1657,121 @@ export const containerDetailChart = {
                 }
             }
         ]
+    },
+    diskInternal: {
+        tooltip: {
+            trigger: 'axis',
+            confine: true,
+            axisPointer: {
+                type: 'line',
+                animation: false,
+                label: {
+                    backgroundColor: '#6a7985'
+                }
+            },
+            formatter (params, ticket, callback) {
+                let ret = ''
+                const containerName = params[0].seriesName
+                if (containerName === 'noData') {
+                    ret = '<div>No Data</div>'
+                } else {
+                    ret += '<div style="width: 450px;">'
+                    ret += `<div>${moment(params[0].value[0]).format('YYYY-MM-DD HH:mm:ss')}`
+                    params.forEach(item => {
+                        ret += `<div>${item.seriesName}Disk Usage：${(item.value[1]).toFixed(2)}%</div>`
+                    })
+                    ret += '</div>'
+                }
+                return ret
+            }
+        },
+        grid: {
+            show: false,
+            top: '4%',
+            left: '4%',
+            right: '5%',
+            bottom: '3%',
+            containLabel: true
+        },
+        xAxis: [
+            {
+                type: 'time',
+                boundaryGap: false,
+                axisLine: {
+                    show: true,
+                    lineStyle: {
+                        color: '#dde4eb'
+                    }
+                },
+                axisTick: {
+                    alignWithLabel: true,
+                    length: 5,
+                    lineStyle: {
+                        color: '#ebf0f5'
+                    }
+                },
+                axisLabel: {
+                    color: '#868b97'
+                },
+                splitLine: {
+                    show: true,
+                    lineStyle: {
+                        color: ['#ebf0f5'],
+                        type: 'dashed'
+                    }
+                }
+            }
+        ],
+        yAxis: [
+            {
+                boundaryGap: [0, '2%'],
+                type: 'value',
+                axisLine: {
+                    show: true,
+                    lineStyle: {
+                        color: '#dde4eb'
+                    }
+                },
+                axisTick: {
+                    alignWithLabel: true,
+                    length: 0,
+                    lineStyle: {
+                        color: 'red'
+                    }
+                },
+                axisLabel: {
+                    color: '#868b97',
+                    formatter (value, index) {
+                        return `${value}%`
+                    }
+                },
+                splitLine: {
+                    show: true,
+                    lineStyle: {
+                        color: ['#ebf0f5'],
+                        type: 'dashed'
+                    }
+                }
+            }
+        ],
+        series: [
+            {
+                type: 'line',
+                smooth: true,
+                showSymbol: false,
+                hoverAnimation: false,
+                areaStyle: {
+                    normal: {
+                        opacity: 0.1
+                    }
+                },
+                itemStyle: {
+                    normal: {
+                        color: '#ffbe21'
+                    }
+                }
+            }
+        ]
     }
 }
 
@@ -1549,7 +1796,7 @@ export const instanceDetailChart = {
                 let ret = '<div style="width: 300px;">'
                 ret += `<div>${moment(params[0].value[0]).format('YYYY-MM-DD HH:mm:ss')}</div>`
                 if (params[0].seriesName === 'noData') {
-                    ret = '<div>没有数据</div>'
+                    ret = '<div>No Data</div>'
                 } else {
                     params.forEach(item => {
                         ret += `<div style="${STYLE_STR} color: ${item.value[2]}">`
@@ -1639,6 +1886,106 @@ export const instanceDetailChart = {
             }
         ]
     },
+    memInternal: {
+        tooltip: {
+            trigger: 'axis',
+            confine: true,
+            axisPointer: {
+                type: 'line',
+                animation: false,
+                label: {
+                    backgroundColor: '#6a7985'
+                }
+            },
+            formatter (params, ticket, callback) {
+                let ret = '<div style="width: 300px;">'
+                ret += `<div>${moment(params[0].value[0]).format('YYYY-MM-DD HH:mm:ss')}</div>`
+                if (params[0].seriesName === 'noData') {
+                    ret = '<div>No Data</div>'
+                } else {
+                    params.forEach(item => {
+                        ret += `<div style="${STYLE_STR} color: ${item.value[2]}">`
+                            + `${item.seriesName}：<span style="font-weight: 700; color: #3c96ff;">`
+                            + `${(item.value[1]).toFixed(2)}%</span></div>`
+                    })
+                    ret += '</div>'
+                }
+                return ret
+            }
+        },
+        grid: {
+            show: false,
+            top: '4%',
+            left: '4%',
+            right: '5%',
+            bottom: '3%',
+            containLabel: true
+        },
+        xAxis: [
+            {
+                type: 'time',
+                boundaryGap: false,
+                axisLine: {
+                    show: true,
+                    lineStyle: {
+                        color: '#dde4eb'
+                    }
+                },
+                axisTick: {
+                    alignWithLabel: true,
+                    length: 5,
+                    lineStyle: {
+                        color: '#ebf0f5'
+                    }
+                },
+                axisLabel: {
+                    color: '#868b97',
+                    formatter (value, index) {
+                        return moment(value).format('HH:mm')
+                    }
+                },
+                splitLine: {
+                    show: true,
+                    lineStyle: {
+                        color: ['#ebf0f5'],
+                        type: 'dashed'
+                    }
+                }
+            }
+        ],
+        yAxis: [
+            {
+                boundaryGap: [0, '2%'],
+                type: 'value',
+                axisLine: {
+                    show: true,
+                    lineStyle: {
+                        color: '#dde4eb'
+                    }
+                },
+                axisTick: {
+                    alignWithLabel: true,
+                    length: 0,
+                    lineStyle: {
+                        color: 'red'
+                    }
+                },
+                axisLabel: {
+                    color: '#868b97',
+                    formatter (value, index) {
+                        return `${value}%`
+                    }
+                },
+                splitLine: {
+                    show: true,
+                    lineStyle: {
+                        color: ['#ebf0f5'],
+                        type: 'dashed'
+                    }
+                }
+            }
+        ]
+    },
     mem: {
         tooltip: {
             trigger: 'axis',
@@ -1654,7 +2001,7 @@ export const instanceDetailChart = {
                 let ret = '<div style="width: 300px;">'
                 ret += `<div>${moment(params[0].value[0]).format('YYYY-MM-DD HH:mm:ss')}</div>`
                 if (params[0].seriesName === 'noData') {
-                    ret = '<div>没有数据</div>'
+                    ret = '<div>No Data</div>'
                 } else {
                     params.forEach(item => {
                         ret += `<div style="${STYLE_STR} color: ${item.value[2]}">`

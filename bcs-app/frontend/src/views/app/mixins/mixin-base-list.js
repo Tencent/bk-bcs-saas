@@ -1,12 +1,5 @@
 /**
- * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community Edition) available.
- * Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
- * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- * http://opensource.org/licenses/MIT
- * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
- * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
- * specific language governing permissions and limitations under the License.
+ * @file 应用列表 list 页的 base mixin
  */
 
 import moment from 'moment'
@@ -17,12 +10,15 @@ import bkDiff from '@open/components/bk-diff'
 import applyPerm from '@open/mixins/apply-perm'
 import ace from '@open/components/ace-editor'
 
+import MonacoEditor from '@open/components/monaco-editor/editor'
+
 export default {
     mixins: [applyPerm],
     components: {
         bkDiff,
         bkSearcher,
-        ace
+        ace,
+        MonacoEditor
     },
     data () {
         return {
@@ -63,7 +59,7 @@ export default {
                 content: '',
                 // diff, edit
                 showType: 'edit',
-                toggleStr: '查看对比'
+                toggleStr: this.$t('查看对比')
             },
             updateInNotPlatformDialogConf: {
                 isShow: false,
@@ -153,7 +149,29 @@ export default {
             },
             searchParamsList: [],
             // 集群类型 1 正式，2 测试
-            clusterType: '2'
+            clusterType: '2',
+            yamlEditorOptions: {
+                readOnly: true,
+                fontSize: 14
+            },
+            reRenderEditor: 0,
+            reRenderJSONEditor: 0,
+            monacoEditor: null,
+            useEditorDiff: false,
+            rollbackPreviousDialogConf: {
+                isShow: false,
+                width: 1050,
+                title: '',
+                closeIcon: true,
+                loading: false,
+                prevContent: '',
+                curContent: ''
+            },
+            batchRebuildDialogConf: {
+                isShow: false,
+                list: [],
+                tpl: null
+            }
         }
     },
     watch: {
@@ -177,6 +195,15 @@ export default {
                 this.fetchData(false)
             } else {
                 this.fetchData(this.searchParamsListFromRoute !== void 0)
+            }
+        },
+        useEditorDiff () {
+            this.reRenderEditor++
+        },
+        'rollbackPreviousDialogConf.isShow' (v) {
+            const body = document.body
+            if (body) {
+                body.style.overflow = v ? 'hidden' : 'auto'
             }
         }
     },
@@ -208,6 +235,9 @@ export default {
         },
         searchParamsListFromRoute () {
             return this.$route.params.searchParamsList || []
+        },
+        isEn () {
+            return this.$store.state.isEn
         }
     },
     created () {
@@ -222,23 +252,23 @@ export default {
             this.bkSearcherFilterList.splice(0, this.bkSearcherFilterList.length, ...[
                 {
                     id: 'ns_id',
-                    text: '命名空间名称'
+                    text: this.$t('命名空间名称')
                 },
                 {
                     id: 'app_id',
-                    text: '应用名称'
+                    text: this.$t('应用名称')
                 },
                 {
                     id: 'app_status',
-                    text: '状态',
+                    text: this.$t('状态'),
                     list: [
                         {
                             id: 1,
-                            text: '正常'
+                            text: this.$t('正常')
                         },
                         {
                             id: 2,
-                            text: '异常'
+                            text: this.$t('异常')
                         }
                     ]
                 }
@@ -248,15 +278,15 @@ export default {
             this.bkSearcherFilterList.splice(0, this.bkSearcherFilterList.length, ...[
                 {
                     id: 'muster_id',
-                    text: '模板集名称'
+                    text: this.$t('模板集名称')
                 },
                 {
                     id: 'app_id',
-                    text: '应用名称'
+                    text: this.$t('应用名称')
                 },
                 {
                     id: 'ns_id',
-                    text: '命名空间名称'
+                    text: this.$t('命名空间名称')
                 }
             ])
         }
@@ -359,9 +389,9 @@ export default {
             if (this.bkSearcherFixedSearchParams.length === 0) {
                 p.push({
                     id: 'cluster_type',
-                    text: '集群类型',
-                    list: [{ id: 1, text: '正式集群', isSelected: true }],
-                    value: { id: 1, isSelected: true, text: '正式集群' }
+                    text: this.$t('集群类型'),
+                    list: [{ id: 1, text: this.$t('正式集群'), isSelected: true }],
+                    value: { id: 1, isSelected: true, text: this.$t('正式集群') }
                 })
             }
             const searchParamsList = []
@@ -472,23 +502,23 @@ export default {
                 this.bkSearcherFilterList.splice(0, this.bkSearcherFilterList.length, ...[
                     {
                         id: 'ns_id',
-                        text: '命名空间名称'
+                        text: this.$t('命名空间名称')
                     },
                     {
                         id: 'app_id',
-                        text: '应用名称'
+                        text: this.$t('应用名称')
                     },
                     {
                         id: 'app_status',
-                        text: '状态',
+                        text: this.$t('状态'),
                         list: [
                             {
                                 id: 1,
-                                text: '正常'
+                                text: this.$t('正常')
                             },
                             {
                                 id: 2,
-                                text: '异常'
+                                text: this.$t('异常')
                             }
                         ]
                     }
@@ -498,15 +528,15 @@ export default {
                 this.bkSearcherFilterList.splice(0, this.bkSearcherFilterList.length, ...[
                     {
                         id: 'muster_id',
-                        text: '模板集名称'
+                        text: this.$t('模板集名称')
                     },
                     {
                         id: 'app_id',
-                        text: '应用名称'
+                        text: this.$t('应用名称')
                     },
                     {
                         id: 'ns_id',
-                        text: '命名空间名称'
+                        text: this.$t('命名空间名称')
                     }
                 ])
             }
@@ -766,6 +796,7 @@ export default {
                     if (namespace.prepareDeleteInstances.find(n => n.name === item.name)) {
                         item.isChecked = true
                     }
+
                     // k8s
                     if (this.CATEGORY) {
                         item.state = new this.State({
@@ -775,6 +806,7 @@ export default {
                             buildInstance: item.build_instance,
                             operType: item.oper_type,
                             operTypeFlag: item.oper_type_flag,
+                            hpa: item.hpa,
                             category: this.CATEGORY,
                             islock: false
                         })
@@ -784,6 +816,7 @@ export default {
                             backendStatus: item.backend_status,
                             applicationStatus: item.application_status,
                             deploymentStatus: item.deployment_status,
+                            hpa: item.hpa,
                             islock: false
                         })
                     }
@@ -949,6 +982,7 @@ export default {
                             buildInstance: item.build_instance,
                             operType: item.oper_type,
                             operTypeFlag: item.oper_type_flag,
+                            hpa: item.hpa,
                             category: this.CATEGORY,
                             islock: false
                         })
@@ -958,6 +992,7 @@ export default {
                             backendStatus: item.backend_status,
                             applicationStatus: item.application_status,
                             deploymentStatus: item.deployment_status,
+                            hpa: item.hpa,
                             islock: false
                         })
                     }
@@ -1050,7 +1085,9 @@ export default {
             if (!this.curInstance.from_platform && this.curInstance.id === 0) {
                 this.updateInNotPlatformDialogConf.isShow = true
                 this.updateInNotPlatformDialogConf.loading = true
-                this.updateInNotPlatformDialogConf.title = `${instance.name}升级`
+                this.updateInNotPlatformDialogConf.title = this.$t('{instanceName}升级', {
+                    instanceName: instance.name
+                })
 
                 try {
                     const params = {
@@ -1109,7 +1146,9 @@ export default {
             } else {
                 this.updateDialogConf.isShow = true
                 this.updateDialogConf.loading = true
-                this.updateDialogConf.title = `${instance.name}升级`
+                this.updateDialogConf.title = this.$t('{instanceName}升级', {
+                    instanceName: instance.name
+                })
                 this.updateDialogConf.oldVer = this.curInstance.version
                 this.updateDialogConf.verList.splice(0, this.updateDialogConf.verList.length, ...[])
                 this.updateDialogConf.selectedVerId = -1
@@ -1140,7 +1179,7 @@ export default {
                         fontSize: '14px',
                         marginLeft: '-7px'
                     }
-                }, `确定更新【${me.curInstance.name}】？`),
+                }, this.$t('确定更新【{instanceName}】？', { instanceName: me.curInstance.name })),
                 async confirmFn () {
                     const params = {
                         projectId: me.projectId,
@@ -1310,7 +1349,7 @@ export default {
                         fontSize: '14px',
                         marginLeft: '-7px'
                     }
-                }, `确定更新【${me.curInstance.name}】？`),
+                }, this.$t('确定更新【{instanceName}】？', { instanceName: me.curInstance.name })),
                 async confirmFn () {
                     const params = {
                         projectId: me.projectId,
@@ -1412,6 +1451,177 @@ export default {
             })
         },
 
+        handleEditorMount (editorInstance, monacoEditor) {
+            this.monacoEditor = monacoEditor
+        },
+
+        /**
+         * 显示回滚上一版本弹层
+         *
+         * @param {Object} instance 当前实例
+         * @param {number} instanceIndex 当前实例的索引
+         * @param {Array} instanceList 当前 tpl 下的实例集合
+         */
+        async showRollbackPrevious (instance, instanceIndex, instanceList) {
+            if (!instance.permissions.use) {
+                const resourceList = [
+                    {
+                        policy_code: 'use',
+                        resource_code: instance.namespace_id,
+                        resource_name: instance.namespace,
+                        resource_type: 'namespace'
+                    }
+                ]
+                if (instance.from_platform) {
+                    resourceList.push({
+                        policy_code: 'use',
+                        resource_code: instance.muster_id,
+                        resource_name: instance.muster_name,
+                        resource_type: 'templates'
+                    })
+                }
+                await this.$store.dispatch('getMultiResourcePermissions', {
+                    project_id: this.projectId,
+                    operator: 'and',
+                    resource_list: resourceList
+                })
+            }
+
+            // this.reRenderEditor++
+
+            this.curInstance = Object.assign({}, instance)
+
+            this.curInstance.instanceList = instanceList
+            this.curInstance.instanceIndex = instanceIndex
+
+            this.rollbackPreviousDialogConf.isShow = true
+            this.rollbackPreviousDialogConf.loading = true
+            this.rollbackPreviousDialogConf.title = this.$t('{instanceName}回滚上一版本', {
+                instanceName: instance.name
+            })
+            this.fetchRollbackPreviousInfo(this.curInstance)
+
+            if (this.viewMode === 'namespace') {
+                this.cancelLoopAppList()
+            } else {
+                this.cancelLoopInstanceList()
+            }
+        },
+
+        /**
+         * 拉取回滚上一版本所需的信息
+         *
+         * @param {Object} instanceId 实例对象
+         */
+        async fetchRollbackPreviousInfo (instance) {
+            try {
+                const instanceId = instance.id
+
+                const params = {
+                    projectId: this.projectId,
+                    instanceId: instanceId
+                }
+
+                if (instanceId === 0) {
+                    params.name = instance.name
+                    params.namespace = instance.namespace
+                    params.category = instance.category
+                }
+
+                if (this.CATEGORY) {
+                    params.category = this.CATEGORY
+                }
+
+                const res = await this.$store.dispatch('app/getInstanceConfig4RollbackPrevious', params)
+                const data = res.data || {}
+                this.rollbackPreviousDialogConf.prevContent = data.last_config_yaml
+                this.rollbackPreviousDialogConf.curContent = data.current_config_yaml
+                this.useEditorDiff = true
+                this.reRenderEditor++
+            } catch (e) {
+                console.error(e)
+                this.hideRollbackPrevious()
+                this.$bkMessage({
+                    theme: 'error',
+                    message: e.message || e.data.msg || e.statusText
+                })
+            } finally {
+                this.rollbackPreviousDialogConf.loading = false
+            }
+        },
+
+        /**
+         * 关闭回滚上一版本弹层
+         */
+        hideRollbackPrevious () {
+            this.rollbackPreviousDialogConf.isShow = false
+            this.rollbackPreviousDialogConf.loading = false
+
+            this.curInstance = Object.assign({}, {})
+
+            setTimeout(() => {
+                this.rollbackPreviousDialogConf.prevContent = ''
+                this.rollbackPreviousDialogConf.curContent = ''
+
+                this.cancelLoop = false
+                if (this.viewMode === 'namespace') {
+                    this.fetchAppListInNamespaceViewMode(...this.loopAppListParams)
+                } else {
+                    this.fetchInstanceListInTemplateViewMode(...this.loopInstanceListParams)
+                }
+
+                this.reRenderEditor++
+                this.useEditorDiff = false
+            }, 100)
+        },
+
+        /**
+         * 关闭回滚上一版本弹层更新按钮
+         */
+        rollbackPreviousConfirm () {
+            const me = this
+
+            me.$bkInfo({
+                title: '',
+                clsName: 'biz-confirm-dialog',
+                content: me.$createElement('p', {
+                    style: {
+                        color: '#666',
+                        fontSize: '14px',
+                        marginLeft: '-7px',
+                        width: '300px'
+                    }
+                }, this.$t('确定回滚上一版本【{instanceName}】？', { instanceName: me.curInstance.name })),
+                async confirmFn () {
+                    const params = {
+                        projectId: me.projectId,
+                        instanceId: me.curInstance.id
+                    }
+
+                    if (me.CATEGORY) {
+                        params.category = me.CATEGORY
+                    }
+
+                    me.isUpdating = true
+                    me.curInstance.state && me.curInstance.state.lock()
+                    try {
+                        await me.$store.dispatch('app/rollbackPrevious', params)
+                        me.hideRollbackPrevious()
+                    } catch (e) {
+                        me.bkMessageInstance = me.$bkMessage({
+                            theme: 'error',
+                            message: e.message || e.data.msg || e.statusText
+                        })
+                    } finally {
+                        me.isUpdating = false
+                        setTimeout(() => {
+                            me.curInstance.state && me.curInstance.state.unlock()
+                        }, 1000)
+                    }
+                }
+            })
+        },
+
         /**
          * 显示滚动更新弹层
          *
@@ -1452,7 +1662,9 @@ export default {
             if (!this.curInstance.from_platform && this.curInstance.id === 0) {
                 this.rollingUpdateInNotPlatformDialogConf.isShow = true
                 this.rollingUpdateInNotPlatformDialogConf.loading = true
-                this.rollingUpdateInNotPlatformDialogConf.title = `${instance.name}滚动升级`
+                this.rollingUpdateInNotPlatformDialogConf.title = this.$t('{instanceName}滚动升级', {
+                    instanceName: instance.name
+                })
 
                 try {
                     const params = {
@@ -1498,6 +1710,7 @@ export default {
                         this.editorValue = content
                         this.editorConfig.value = content
                         this.compareEditorConfig.value = content
+                        this.reRenderJSONEditor++
                     })
                 } catch (e) {
                     console.error(e)
@@ -1511,12 +1724,13 @@ export default {
             } else {
                 this.rollingUpdateDialogConf.isShow = true
                 this.rollingUpdateDialogConf.loading = true
-                this.rollingUpdateDialogConf.title = `${instance.name}滚动升级`
+                this.rollingUpdateDialogConf.title = this.$t('{instanceName}滚动升级', {
+                    instanceName: instance.name
+                })
                 this.rollingUpdateDialogConf.oldVer = this.curInstance.version
                 this.rollingUpdateDialogConf.verList.splice(0, this.rollingUpdateDialogConf.verList.length, ...[])
                 this.rollingUpdateDialogConf.selectedVerId = -1
                 this.rollingUpdateDialogConf.instanceNum = this.curInstance.instance
-
                 this.fetchVersionInfo(this.curInstance, this.rollingUpdateDialogConf)
             }
 
@@ -1537,17 +1751,17 @@ export default {
                     this.bkMessageInstance = this.$bkMessage({
                         theme: 'primary',
                         delay: 2000,
-                        message: '当前内容一致，没有差异'
+                        message: this.$t('当前内容一致，没有差异')
                     })
                 } else {
                     this.rollingUpdateInNotPlatformDialogConf.showType = 'diff'
-                    this.rollingUpdateInNotPlatformDialogConf.toggleStr = '开始编辑'
+                    this.rollingUpdateInNotPlatformDialogConf.toggleStr = this.$t('开始编辑')
                 }
             } else {
                 this.rollingUpdateInNotPlatformDialogConf.showType = 'edit'
                 this.editorConfig.value = this.editorValue
                 setTimeout(() => {
-                    this.rollingUpdateInNotPlatformDialogConf.toggleStr = '查看对比'
+                    this.rollingUpdateInNotPlatformDialogConf.toggleStr = this.$t('查看对比')
 
                     this.compareEditorConfig.editor.gotoLine(0, 0, true)
 
@@ -1586,7 +1800,7 @@ export default {
                 this.editorConfig.value = ''
                 this.editorValue = ''
                 this.rollingUpdateInNotPlatformDialogConf.showType = 'edit'
-                this.rollingUpdateInNotPlatformDialogConf.toggleStr = '查看对比'
+                this.rollingUpdateInNotPlatformDialogConf.toggleStr = this.$t('查看对比')
 
                 this.cancelLoop = false
                 if (this.viewMode === 'namespace') {
@@ -1594,6 +1808,7 @@ export default {
                 } else {
                     this.fetchInstanceListInTemplateViewMode(...this.loopInstanceListParams)
                 }
+                this.useEditorDiff = false
             }, 100)
         },
 
@@ -1612,7 +1827,7 @@ export default {
                         fontSize: '14px',
                         marginLeft: '-7px'
                     }
-                }, `确定滚动升级【${me.curInstance.name}】？`),
+                }, this.$t('确定滚动升级【{instanceName}】？', { instanceName: me.curInstance.name })),
                 async confirmFn () {
                     const params = {
                         projectId: me.projectId,
@@ -1721,6 +1936,9 @@ export default {
                         dialogConfRef.newVariableList.length,
                         ...(newRes.data.variable || [])
                     )
+
+                    this.useEditorDiff = true
+                    this.reRenderEditor++
                 }
             } catch (e) {
                 console.error(e)
@@ -1740,8 +1958,8 @@ export default {
          */
         getDiffChangeCount (count) {
             if (count === 0) {
-                this.rollingUpdateDialogConf && (this.rollingUpdateDialogConf.noDiffMsg = '更新版本与当前版本无差异')
-                this.updateDialogConf && (this.updateDialogConf.noDiffMsg = '更新版本与当前版本无差异')
+                this.rollingUpdateDialogConf && (this.rollingUpdateDialogConf.noDiffMsg = this.$t('更新版本与当前版本无差异'))
+                this.updateDialogConf && (this.updateDialogConf.noDiffMsg = this.$t('更新版本与当前版本无差异'))
                 const diffWrapper = document.querySelector('.diff-wrapper')
                 if (diffWrapper) {
                     this.$nextTick(() => {
@@ -1825,6 +2043,7 @@ export default {
                     message: e.message || e.data.msg || e.statusText
                 })
             } finally {
+                this.reRenderEditor++
                 this.rollingUpdateDialogConf.loading = false
             }
         },
@@ -1871,6 +2090,8 @@ export default {
                 } else {
                     this.fetchInstanceListInTemplateViewMode(...this.loopInstanceListParams)
                 }
+
+                this.useEditorDiff = false
             }, 100)
         },
 
@@ -1884,7 +2105,7 @@ export default {
                 me.bkMessageInstance && me.bkMessageInstance.close()
                 me.bkMessageInstance = me.$bkMessage({
                     theme: 'error',
-                    message: '请填写实例数'
+                    message: this.$t('请填写实例数')
                 })
                 return
             }
@@ -1903,7 +2124,7 @@ export default {
                         fontSize: '14px',
                         marginLeft: '-7px'
                     }
-                }, `确定滚动升级【${me.curInstance.name}】?`),
+                }, this.$t('确定滚动升级【{instanceName}】？', { instanceName: me.curInstance.name })),
                 async confirmFn () {
                     const params = {
                         projectId: me.projectId,
@@ -1993,7 +2214,7 @@ export default {
                         fontSize: '14px',
                         marginLeft: '-7px'
                     }
-                }, `确定暂停滚动升级【${me.curInstance.name}】？`),
+                }, this.$t('确定暂停滚动升级【{instanceName}】？', { instanceName: me.curInstance.name })),
                 async confirmFn () {
                     const params = {
                         projectId: me.projectId,
@@ -2100,7 +2321,7 @@ export default {
                         fontSize: '14px',
                         marginLeft: '-7px'
                     }
-                }, `确定取消滚动升级【${me.curInstance.name}】？`),
+                }, this.$t('确定取消滚动升级【{instanceName}】？', { instanceName: me.curInstance.name })),
                 async confirmFn () {
                     const params = {
                         projectId: me.projectId,
@@ -2207,7 +2428,7 @@ export default {
                         fontSize: '14px',
                         marginLeft: '-7px'
                     }
-                }, `确定恢复滚动升级【${me.curInstance.name}】？`),
+                }, this.$t('确定恢复滚动升级【{instanceName}】？', { instanceName: me.curInstance.name })),
                 async confirmFn () {
                     const params = {
                         projectId: me.projectId,
@@ -2299,7 +2520,9 @@ export default {
             this.curInstance.instanceIndex = instanceIndex
 
             this.instanceNumDialogConf.isShow = true
-            this.instanceNumDialogConf.title = `${instance.name}扩缩容`
+            this.instanceNumDialogConf.title = this.$t('{instanceName}扩缩容', {
+                instanceName: instance.name
+            })
 
             this.instanceNum = this.curInstance.build_instance
 
@@ -2341,7 +2564,7 @@ export default {
                         fontSize: '14px',
                         marginLeft: '-7px'
                     }
-                }, `确定扩缩容【${me.curInstance.name}】?`),
+                }, this.$t('确定扩缩容【{instanceName}】？', { instanceName: me.curInstance.name })),
                 async confirmFn () {
                     const params = {
                         projectId: me.projectId,
@@ -2415,7 +2638,7 @@ export default {
             this.curInstance.instanceIndex = instanceIndex
 
             this.reBuildDialogConf.isShow = true
-            this.reBuildDialogConf.title = `确定重建【${instance.name}】?`
+            this.reBuildDialogConf.title = this.$t('确定重建【{instanceName}】？', { instanceName: instance.name })
 
             try {
                 if (!this.curInstance.from_platform && this.curInstance.id === 0) {
@@ -2512,26 +2735,44 @@ export default {
          * 重建
          */
         async reBuildConfirm () {
-            const params = {
-                projectId: this.projectId,
-                instanceId: this.curInstance.id,
-                name: this.curInstance.name,
-                cluster_id: this.curInstance.cluster_id
-            }
+            let params = {}
+            let url = 'app/reBuildInstance'
+            if (this.PROJECT_TYPE === 'MESOS') {
+                params = {
+                    projectId: this.projectId,
+                    instanceId: this.curInstance.id,
+                    name: this.curInstance.name,
+                    cluster_id: this.curInstance.cluster_id
+                }
 
-            if (!this.curInstance.from_platform && this.curInstance.id === 0) {
-                params.namespace = this.curInstance.namespace
-                params.category = this.curInstance.category
-            }
+                if (!this.curInstance.from_platform && this.curInstance.id === 0) {
+                    params.namespace = this.curInstance.namespace
+                    params.category = this.curInstance.category
+                }
 
-            if (this.CATEGORY) {
-                params.category = this.CATEGORY
+                if (this.CATEGORY) {
+                    params.category = this.CATEGORY
+                }
+            } else {
+                const data = { resource_list: [] }
+                data.resource_list.push({
+                    resource_kind: this.curInstance.category,
+                    name: this.curInstance.name,
+                    namespace: this.curInstance.namespace,
+                    cluster_id: this.curInstance.cluster_id
+                })
+
+                params = {
+                    projectId: this.projectId,
+                    data
+                }
+                url = 'app/batchRebuild'
             }
 
             this.isUpdating = true
             this.curInstance.state && this.curInstance.state.lock()
             try {
-                await this.$store.dispatch('app/reBuildInstance', params)
+                await this.$store.dispatch(url, params)
             } catch (e) {
                 this.bkMessageInstance = this.$bkMessage({
                     theme: 'error',
@@ -2583,7 +2824,7 @@ export default {
             this.curInstance.instanceIndex = instanceIndex
 
             this.deleteDialogConf.isShow = true
-            this.deleteDialogConf.title = `确定删除【${instance.name}】?`
+            this.deleteDialogConf.title = this.$t('确定删除【{instanceName}】？', { instanceName: instance.name })
 
             if (this.viewMode === 'namespace') {
                 this.cancelLoopAppList()
@@ -2682,7 +2923,9 @@ export default {
             this.curInstance.instanceIndex = instanceIndex
 
             this.forceDeleteDialogConf.isShow = true
-            this.forceDeleteDialogConf.title = `确定要强制删除【${instance.name}】?`
+            this.forceDeleteDialogConf.title = this.$t('确定要强制删除【{instanceName}】？', {
+                instanceName: instance.name
+            })
 
             if (this.viewMode === 'namespace') {
                 this.cancelLoopAppList()
@@ -2796,7 +3039,9 @@ export default {
                         fontSize: '14px',
                         marginLeft: '-7px'
                     }
-                }, `确定重新创建【${me.curInstance.name}】？`),
+                }, this.$t('确定重新创建【{instanceName}】？', {
+                    instanceName: me.curInstance.name
+                })),
                 async confirmFn () {
                     const params = {
                         projectId: me.projectId,
@@ -2919,7 +3164,7 @@ export default {
             if (!tpl.prepareDeleteInstances || !tpl.prepareDeleteInstances.length) {
                 this.bkMessageInstance = this.$bkMessage({
                     theme: 'error',
-                    message: `还未选择${tpl.tmpl_app_name}下的实例`
+                    message: this.$t('还未选择{tmplAppName}下的实例', { tmplAppName: tpl.tmpl_app_name })
                 })
                 return
             }
@@ -2942,7 +3187,9 @@ export default {
 
             const me = this
             me.$bkInfo({
-                title: `已选择 ${tpl.prepareDeleteInstances.length} 个实例，确定全部删除？`,
+                title: this.$t('已选择 {len} 个实例，确定全部删除？', {
+                    len: tpl.prepareDeleteInstances.length
+                }),
                 clsName: 'biz-dialog-700',
                 content: '',
                 async confirmFn () {
@@ -2961,6 +3208,10 @@ export default {
                         })
                         tpl.isAllChecked = false
                         tpl.prepareDeleteInstances.splice(0, tpl.prepareDeleteInstances.length, ...[])
+                        me.$bkMessage({
+                            theme: 'success',
+                            message: me.$t('删除任务已经下发成功，请注意状态变化')
+                        })
                     } catch (e) {
                         me.bkMessageInstance = me.$bkMessage({
                             theme: 'error',
@@ -3065,16 +3316,17 @@ export default {
             if (!namespace.prepareDeleteInstances || !namespace.prepareDeleteInstances.length) {
                 this.bkMessageInstance = this.$bkMessage({
                     theme: 'error',
-                    message: `还未选择${namespace.name}下的应用`
+                    message: this.$t('还未选择{namespaceName}下的应用', { namespaceName: namespace.name })
                 })
                 return
             }
-
             this.cancelLoopAppList()
 
             const me = this
             me.$bkInfo({
-                title: `已选择 ${namespace.prepareDeleteInstances.length} 个实例，确定全部删除？`,
+                title: this.$t('已选择 {len} 个实例，确定全部删除？', {
+                    len: namespace.prepareDeleteInstances.length
+                }),
                 clsName: 'biz-dialog-700',
                 content: '',
                 async confirmFn () {
@@ -3095,7 +3347,6 @@ export default {
                                 })
                             }
                         })
-
                         await me.$store.dispatch('app/batchDeleteInstance', {
                             projectId: me.projectId,
                             inst_id_list: namespace.prepareDeleteInstances.filter(n => n.id !== 0).map(n => n.id),
@@ -3106,6 +3357,10 @@ export default {
                         })
                         namespace.isAllChecked = false
                         namespace.prepareDeleteInstances.splice(0, namespace.prepareDeleteInstances.length, ...[])
+                        me.$bkMessage({
+                            theme: 'success',
+                            message: me.$t('删除任务已经下发成功，请注意状态变化')
+                        })
                     } catch (e) {
                         me.bkMessageInstance = me.$bkMessage({
                             theme: 'error',
@@ -3220,6 +3475,110 @@ export default {
                     templateId: tmplMuster.tmpl_muster_id
                 }
             })
+        },
+
+        /**
+         * 模板集视图，显示批量重建
+         *
+         * @param {Object} tpl 当前点击的模板对象
+         * @param {number} index 当前点击的模板对象的索引
+         */
+        showBatchReBuild (tpl, index) {
+            const appList = this.viewMode === 'namespace' ? tpl.appList : tpl.instanceList
+            const checkedInstances = appList.filter(item => item.isChecked)
+            if (!checkedInstances || !checkedInstances.length) {
+                this.bkMessageInstance = this.$bkMessage({
+                    theme: 'error',
+                    message: this.$t('还未选择{tmplAppName}下的实例', { tmplAppName: tpl.tmpl_app_name })
+                })
+                return
+            }
+
+            if (this.viewMode === 'namespace') {
+                this.cancelLoopAppList()
+            } else {
+                this.cancelLoopInstanceList()
+            }
+
+            const list = []
+            checkedInstances.forEach(item => {
+                list.push(item)
+            })
+            this.batchRebuildDialogConf.list.splice(0, this.batchRebuildDialogConf.list.length, ...list)
+            this.batchRebuildDialogConf.isShow = true
+            // 这里需要引用赋值，便于之后 设置 tpl.isAllChecked 为 false
+            this.batchRebuildDialogConf.tpl = tpl
+        },
+
+        /**
+         * 模板集视图，隐藏批量重建
+         */
+        hideBatchReBuild () {
+            this.batchRebuildDialogConf.isShow = false
+            setTimeout(() => {
+                this.cancelLoop = false
+                if (this.viewMode === 'namespace') {
+                    this.fetchAppListInNamespaceViewMode(...this.loopAppListParams)
+                } else {
+                    this.fetchInstanceListInTemplateViewMode(...this.loopInstanceListParams)
+                }
+            }, 100)
+            setTimeout(() => {
+                this.batchRebuildDialogConf.list.splice(0, this.batchRebuildDialogConf.list.length, ...[])
+                this.batchRebuildDialogConf.tpl = null
+            }, 300)
+        },
+
+        /**
+         * 批量重建确认
+         */
+        async batchRebuildConfirm () {
+            const data = { resource_list: [] }
+            this.batchRebuildDialogConf.list.forEach(item => {
+                data.resource_list.push({
+                    resource_kind: item.category,
+                    name: item.name,
+                    namespace: item.namespace,
+                    cluster_id: item.cluster_id
+                })
+            })
+
+            const params = {
+                projectId: this.projectId,
+                data
+            }
+
+            this.isUpdating = true
+            this.curInstance.state && this.curInstance.state.lock()
+            try {
+                await this.$store.dispatch('app/batchRebuild', params)
+
+                this.batchRebuildDialogConf.tpl[this.viewMode === 'namespace' ? 'appList' : 'instanceList'].forEach(item => {
+                    item.isChecked = false
+                })
+                this.batchRebuildDialogConf.tpl.isAllChecked = false
+                this.batchRebuildDialogConf.tpl.prepareDeleteInstances.splice(
+                    0,
+                    this.batchRebuildDialogConf.tpl.prepareDeleteInstances.length,
+                    ...[]
+                )
+
+                this.bkMessageInstance = this.$bkMessage({
+                    theme: 'success',
+                    message: this.$t('任务下发成功')
+                })
+            } catch (e) {
+                this.bkMessageInstance = this.$bkMessage({
+                    theme: 'error',
+                    message: e.message || e.data.msg || e.statusText
+                })
+            } finally {
+                this.isUpdating = false
+                this.hideBatchReBuild()
+                setTimeout(() => {
+                    this.curInstance.state && this.curInstance.state.unlock()
+                }, 1000)
+            }
         }
     }
 }

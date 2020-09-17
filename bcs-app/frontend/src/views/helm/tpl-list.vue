@@ -2,11 +2,11 @@
     <div class="biz-content">
         <div class="biz-top-bar">
             <div class="biz-tpl-title">
-                Helm Chart仓库
+                {{$t('Helm Chart仓库')}}
             </div>
-            <div class="biz-actions">
-                <a href="javascript:void(0);" class="bk-text-button" @click.stop.prevent="showGuide">如何推送Helm Chart到项目仓库？</a>
-            </div>
+            <bk-guide>
+                <a href="javascript:void(0);" class="bk-text-button" @click.stop.prevent="showGuide">{{$t('如何推送Helm Chart到项目仓库？')}}</a>
+            </bk-guide>
         </div>
 
         <guide ref="clusterGuide"></guide>
@@ -15,13 +15,13 @@
             :is-show.sync="helmDialog.isShow"
             :width="500"
             :has-footer="false"
-            :title="'项目Chart仓库配置信息'"
+            :title="$t('项目Chart仓库配置信息')"
             @cancel="hideHelmDialog">
             <div slot="content">
                 <div class="helm-repos-detail" v-if="reposData">
                     <div class="repos-item" v-for="repo in reposData.privateRepos" :key="repo.url">
                         <div class="wrapper mb10">
-                            <h2 class="label">项目Chart仓库地址：</h2>
+                            <h2 class="label">{{$t('项目Chart仓库地址')}}：</h2>
                             <p class="url">{{repo.url}}</p>
                         </div>
                         <div class="auth" v-for="auth in repo.auths" :key="auth.credentials_decoded.username">
@@ -41,13 +41,13 @@
             <template v-if="!showLoading">
                 <div class="biz-panel-header" style="padding: 20px;">
                     <div class="left">
-                        <bk-button type="primary" @click="syncHelmTpl" :loading="isTplSynLoading">同步仓库</bk-button>
-                        <span class="biz-tip f13 ml5">同步仓库中的Helm Chart</span>
-                        <a class="bk-text-button f13 ml10" href="javascript:void(0);" @click="getHelmDeops">查看项目Chart仓库配置信息</a>
+                        <bk-button type="primary" @click="syncHelmTpl" :loading="isTplSynLoading">{{$t('同步仓库')}}</bk-button>
+                        <span class="biz-tip f13 ml5">{{$t('同步仓库中的Helm Chart')}}</span>
+                        <a class="bk-text-button f13 ml10" href="javascript:void(0);" @click="getHelmDeops">{{$t('查看项目Chart仓库配置信息')}}</a>
                     </div>
                     <div class="right">
                         <div class="biz-search-input" style="width: 300px;">
-                            <input type="text" class="bk-form-input" placeholder="输入关键字，按Enter搜索" v-model="searchKeyword" @keyup.enter="search">
+                            <input type="text" class="bk-form-input" :placeholder="$t('输入关键字，按Enter搜索')" v-model="searchKeyword" @keyup.enter="search">
                             <a href="javascript:void(0)" class="biz-search-btn" v-if="!searchKeyword">
                                 <i class="bk-icon icon-search" style="color: #c3cdd7;"></i>
                             </a>
@@ -66,7 +66,7 @@
 
                 <template>
                     <svg style="display: none;">
-                        <title>模板集默认图标</title>
+                        <title>{{$t('模板集默认图标')}}</title>
                         <symbol id="biz-set-icon" viewBox="0 0 60 60">
                             <g id="图层_6">
                                 <g id="图层_32_1_">
@@ -98,11 +98,11 @@
                     <div class="bk-tab2" style="border-left: none; border-right: none;">
                         <div class="bk-tab2-head is-fill">
                             <div class="bk-tab2-nav" style="width: 100%;">
-                                <div title="项目仓库" :class="['tab2-nav-item', { 'active': tabActiveName === 'privateRepo' }]" @click="tabActiveName = 'privateRepo'" style="width: 200px;">
-                                    项目仓库
+                                <div :title="$t('项目仓库')" :class="['tab2-nav-item', { 'active': tabActiveName === 'privateRepo' }]" @click="tabActiveName = 'privateRepo'" style="width: 200px;">
+                                    {{$t('项目仓库')}}
                                 </div>
                                 <div title="公共仓库" :class="['tab2-nav-item', { 'active': tabActiveName === 'publicRepo' }]" @click="tabActiveName = 'publicRepo'" style="width: 200px;">
-                                    公共仓库
+                                    {{$t('公共仓库')}}
                                 </div>
                             </div>
                         </div>
@@ -111,12 +111,12 @@
                                 <table class="bk-table biz-templateset-table mb20">
                                     <thead>
                                         <tr>
-                                            <th style="width: 120px; padding-left: 0;" class="center">图标</th>
-                                            <th style="width: 230px; padding-left: 20px;">Helm Chart名称</th>
-                                            <th style="width: 120px; padding-left: 0;">版本</th>
-                                            <th style="padding-left: 0;">描述</th>
-                                            <th style="width: 170px; padding-left: 0;">最近更新</th>
-                                            <th style="width: 100px; padding-left: 0;">操作</th>
+                                            <th style="width: 120px; padding-left: 0;" class="center">{{$t('图标')}}</th>
+                                            <th style="width: 230px; padding-left: 20px;">{{$t('Helm Chart名称')}}</th>
+                                            <th style="width: 120px; padding-left: 0;">{{$t('版本')}}</th>
+                                            <th style="padding-left: 0;">{{$t('描述')}}</th>
+                                            <th style="width: 170px; padding-left: 0;">{{$t('最近更新')}}</th>
+                                            <th style="width: 100px; padding-left: 0;">{{$t('操作')}}</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -162,7 +162,7 @@
                                                                 {{template.changed_at}}
                                                             </td>
                                                             <td class="action">
-                                                                <router-link class="bk-button bk-primary bk-button-small" :to="{ name: 'helmTplInstance', params: { tplId: template.id } }">部署</router-link>
+                                                                <router-link class="bk-button bk-primary bk-button-small" :to="{ name: 'helmTplInstance', params: { tplId: template.id } }">{{$t('部署')}}</router-link>
                                                             </td>
                                                         </tr>
                                                     </table>
@@ -174,10 +174,10 @@
                                                 <td colspan="6">
                                                     <div class="biz-empty-message" style="padding: 80px;">
                                                         <template v-if="isSearchMode">
-                                                            无数据
+                                                            {{$t('无数据')}}
                                                         </template>
                                                         <template v-else>
-                                                            <span style="vertical-align: middle;">无数据，请尝试</span> <a href="javascript:void(0);" class="bk-text-button" @click="syncHelmTpl">同步仓库</a>
+                                                            <span style="vertical-align: middle;">{{$t('无数据，请尝试')}}</span> <a href="javascript:void(0);" class="bk-text-button" @click="syncHelmTpl">{{$t('同步仓库')}}</a>
                                                         </template>
                                                     </div>
                                                 </td>
@@ -212,6 +212,7 @@
                 showLoading: false,
                 exceptionCode: null,
                 searchKeyword: '',
+                isSearchMode: false,
                 curProjectId: '',
                 isTplSynLoading: false,
                 isRepoDataLoading: false,
@@ -246,7 +247,7 @@
             },
             curProjectId () {
                 // 如果不是k8s类型的项目，无法访问些页面，重定向回集群首页
-                if (this.curProject && this.curProject.kind !== PROJECT_K8S) {
+                if (this.curProject && (this.curProject.kind !== PROJECT_K8S && this.curProject.kind !== PROJECT_TKE)) {
                     this.$router.push({
                         name: 'clusterMain',
                         params: {
@@ -335,7 +336,7 @@
 
                     this.$bkMessage({
                         theme: 'success',
-                        message: '同步成功！'
+                        message: this.$t('同步成功')
                     })
                     this.getTplList()
                 } catch (e) {
@@ -417,8 +418,10 @@
                         }
                     })
                     this.tplList.splice(0, this.tplList.length, ...results)
+                    this.isSearchMode = true
                 } else {
                     this.tplList.splice(0, this.tplList.length, ...this.tplListCache)
+                    this.isSearchMode = false
                 }
             },
 

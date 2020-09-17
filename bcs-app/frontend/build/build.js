@@ -9,6 +9,7 @@
  * specific language governing permissions and limitations under the License.
  */
 
+const { join } = require('path')
 const ora = require('ora')
 const chalk = require('chalk')
 const webpack = require('webpack')
@@ -20,10 +21,13 @@ const webpackConf = require('./webpack.prod.conf')
 
 checkVer()
 
-const spinner = ora(`building ...`)
+// 打包的版本
+const VERSION = process.env.VERSION
+
+const spinner = ora(`building for ${chalk.green(VERSION)}...`)
 spinner.start()
 
-rm(config.build.assetsRoot, e => {
+rm(join(config.build.assetsRoot, VERSION), e => {
     if (e) {
         throw e
     }

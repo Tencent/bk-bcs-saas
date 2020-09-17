@@ -251,7 +251,6 @@
                 }
             },
             getKeyList (isAll) {
-                let results = []
                 const list = this.list.map(item => {
                     const obj = { ...item }
                     if (this.useKeyTrim) {

@@ -13,30 +13,36 @@
                     :text="exceptionCode.msg">
                 </app-exception>
                 <div class="biz-tab-box" v-else v-show="!isDataLoading">
-                    <biz-tabs @tab-change="tabResource"></biz-tabs>
+                    <biz-tabs @tab-change="tabResource" ref="commonTab"></biz-tabs>
 
                     <div class="biz-tab-content" v-bkloading="{ isLoading: isTabChanging }">
                         <template v-if="!secrets.length">
+                            <p class="biz-template-tip f12 mb10">
+                                {{$t('Secret是一种包含少量敏感信息例如密码、token 或 key 的对象，与ConfigMap相比更加安全')}}，<a class="bk-text-button" :href="PROJECT_CONFIG.doc.mesosSecret" target="_blank">{{$t('详情查看文档')}}</a>
+                            </p>
                             <div class="biz-guide-box mt0" style="padding: 140px 30px;">
                                 <button class="bk-button bk-primary" @click.stop.prevent="addLocalSecret">
                                     <i class="bk-icon icon-plus"></i>
-                                    <span style="margin-left: 0;">添加Secret</span>
+                                    <span style="margin-left: 0;">{{$t('添加')}}Secret</span>
                                 </button>
                             </div>
                         </template>
 
                         <template v-else>
                             <div class="biz-configuration-topbar">
+                                <p class="biz-template-tip f12 mb10">
+                                    {{$t('Secret是一种包含少量敏感信息例如密码、token 或 key 的对象，与ConfigMap相比更加安全')}}，<a class="bk-text-button" :href="PROJECT_CONFIG.doc.mesosSecret" target="_blank">{{$t('详情查看文档')}}</a>
+                                </p>
                                 <div class="biz-list-operation">
                                     <div class="item" v-for="(secret, index) in secrets" :key="secret.id">
                                         <button :class="['bk-button', { 'bk-primary': curSecret.id === secret.id }]" @click.stop="setCurSecret(secret, index)">
-                                            {{(secret && secret.config.metadata.name) || '未命名'}}
+                                            {{(secret && secret.config.metadata.name) || $t('未命名')}}
                                             <span class="biz-update-dot" v-show="secret.isEdited"></span>
                                         </button>
                                         <span class="bk-icon icon-close" @click.stop="removeSecret(secret, index)"></span>
                                     </div>
 
-                                    <bk-tooltip ref="secretTooltip" :content="'添加Secret'" placement="top">
+                                    <bk-tooltip ref="secretTooltip" :content="$t('添加Secret')" placement="top">
                                         <button class="bk-button bk-default is-outline is-icon" @click.stop="addLocalSecret">
                                             <i class="bk-icon icon-plus"></i>
                                         </button>
@@ -46,7 +52,7 @@
 
                             <div class="biz-configuration-content" style="position: relative;">
                                 <div class="bk-form biz-configuration-form">
-                                    <a href="javascript:void(0);" class="bk-text-button from-json-btn" @click.stop.prevent="showJsonPanel">导入JSON</a>
+                                    <a href="javascript:void(0);" class="bk-text-button from-json-btn" @click.stop.prevent="showJsonPanel"></a>
 
                                     <bk-sideslider
                                         :is-show.sync="toJsonDialogConf.isShow"
@@ -57,8 +63,8 @@
                                         @hidden="closeToJson">
                                         <div slot="content" style="position: relative;">
                                             <div class="biz-log-box" :style="{ height: `${winHeight - 60}px` }" v-bkloading="{ isLoading: toJsonDialogConf.loading }">
-                                                <bk-button class="bk-button bk-primary save-json-btn" @click.stop.prevent="saveApplicationJson">导入</bk-button>
-                                                <bk-button class="bk-button bk-default hide-json-btn" @click.stop.prevent="hideApplicationJson">取消</bk-button>
+                                                <bk-button class="bk-button bk-primary save-json-btn" @click.stop.prevent="saveApplicationJson">{{$t('导入')}}</bk-button>
+                                                <bk-button class="bk-button bk-default hide-json-btn" @click.stop.prevent="hideApplicationJson">{{$t('取消')}}</bk-button>
                                                 <ace
                                                     :value="editorConfig.value"
                                                     :width="editorConfig.width"
@@ -73,26 +79,26 @@
                                     </bk-sideslider>
 
                                     <div class="bk-form-item is-required">
-                                        <label class="bk-label" style="width: 105px;">名称：</label>
+                                        <label class="bk-label" style="width: 105px;">{{$t('名称')}}：</label>
                                         <div class="bk-form-content" style="margin-left: 105px;">
-                                            <input type="text" :class="['bk-form-input',{ 'is-danger': errors.has('secretName') }]" placeholder="请输入30个以内的字符" style="width: 310px;" maxlength="30" v-model="curSecret.config.metadata.name" name="secretName" v-validate="{ required: true, regex: /^[a-z]{1}[a-z0-9-]{0,29}$/ }">
+                                            <input type="text" :class="['bk-form-input',{ 'is-danger': errors.has('secretName') }]" :placeholder="$t('请输入64个以内的字符')" style="width: 310px;" maxlength="64" v-model="curSecret.config.metadata.name" name="secretName" v-validate="{ required: true, regex: /^[a-z]{1}[a-z0-9-]{0,63}$/ }">
                                             <div class="bk-form-tip" v-if="errors.has('secretName')">
-                                                <p class="bk-tip-text">名称必填，以字母开头，只能含小写字母、数字、连字符(-)</p>
+                                                <p class="bk-tip-text">{{$t('名称必填，以字母开头，只能含小写字母、数字、连字符(-)')}}</p>
                                             </div>
                                         </div>
                                     </div>
                                     <template>
                                         <div class="bk-form-item">
-                                            <label class="bk-label" style="width: 105px;">键：</label>
+                                            <label class="bk-label" style="width: 105px;">{{$t('键')}}：</label>
                                             <div class="bk-form-content" style="margin-left: 105px;">
                                                 <div class="biz-list-operation">
                                                     <div class="item" v-for="(data, index) in curSecret.secretKeyList" :key="index">
                                                         <button :class="['bk-button', { 'bk-primary': curKeyIndex === index }]" @click.stop.prevent="setCurKey(data, index)" v-if="!data.isEdit">
-                                                            {{data.key || '未命名'}}
+                                                            {{data.key || $t('未命名')}}
                                                         </button>
                                                         <bk-input
                                                             type="text"
-                                                            placeholder="请输入"
+                                                            :placeholder="$t('请输入')"
                                                             style="width: 150px;"
                                                             :auto-focus="true"
                                                             v-else
@@ -105,7 +111,7 @@
                                                         <span class="bk-icon icon-close" v-show="!data.isEdit" @click.stop.prevent="removeKey(data, index)"></span>
                                                     </div>
 
-                                                    <bk-tooltip ref="keyTooltip" :content="'添加Key'" placement="top">
+                                                    <bk-tooltip ref="keyTooltip" :content="$t('添加Key')" placement="top">
                                                         <button class="bk-button bk-default is-outline is-icon" @click.stop.prevent="addKey">
                                                             <i class="bk-icon icon-plus"></i>
                                                         </button>
@@ -115,23 +121,23 @@
                                         </div>
                                         <template v-if="curKeyParams">
                                             <div class="bk-form-item is-required">
-                                                <label class="bk-label" style="width: 105px;">值来源：</label>
+                                                <label class="bk-label" style="width: 105px;">{{$t('值来源')}}：</label>
                                                 <div class="bk-form-content" style="margin-left: 105px;">
                                                     <label class="bk-form-radio">
                                                         <input type="radio" name="key-type" :value="'file'" checked="checked">
-                                                        <i class="bk-radio-text">在线编辑</i>
+                                                        <i class="bk-radio-text">{{$t('在线编辑')}}</i>
                                                     </label>
                                                     <label class="bk-form-radio">
                                                         <input type="radio" name="key-type" :value="'env'" disabled="disabled">
-                                                        <i class="bk-radio-text">仓库获取</i>
+                                                        <i class="bk-radio-text">{{$t('仓库获取')}}</i>
                                                     </label>
                                                 </div>
                                             </div>
                                             <div class="bk-form-item is-required">
-                                                <label class="bk-label" style="width: 105px;">值：</label>
+                                                <label class="bk-label" style="width: 105px;">{{$t('值')}}：</label>
                                                 <div class="bk-form-content" style="margin-left: 105px;">
-                                                    <textarea class="bk-form-textarea" style="height: 200px;" :placeholder="'请输入键' + curKeyParams.key + '的内容'" v-model="curKeyParams.content"></textarea>
-                                                    <p class="biz-tip mt10 f14">实例化时会将值的内容做base64编码</p>
+                                                    <textarea class="bk-form-textarea" style="height: 200px;" :placeholder="$t('请输入键') + curKeyParams.key + $t('的内容')" v-model="curKeyParams.content"></textarea>
+                                                    <p class="biz-tip mt10 f14">{{$t('实例化时会将值的内容做base64编码')}}</p>
                                                 </div>
                                             </div>
                                         </template>
@@ -276,7 +282,7 @@
                     if (!nameReg.test(key)) {
                         this.$bkMessage({
                             theme: 'error',
-                            message: '键名错误，只能包含：字母、数字、连字符(-)、点(.)、下划线(_)，必须是字母开头，长度小于30个字符',
+                            message: this.$t('键名错误，只能包含：字母、数字、连字符(-)、点(.)、下划线(_)，必须是字母开头，长度小于30个字符'),
                             delay: 5000
                         })
                         return false
@@ -289,7 +295,7 @@
                         } else {
                             this.$bkMessage({
                                 theme: 'error',
-                                message: '键不可重复',
+                                message: this.$t('键不可重复'),
                                 delay: 5000
                             })
                             return false
@@ -421,8 +427,8 @@
                 const secretId = secret.id
 
                 this.$bkInfo({
-                    title: '确认',
-                    content: this.$createElement('p', { style: { 'text-align': 'center' } }, `删除Secret：${secret.config.metadata.name || '未命名'}`),
+                    title: this.$t('确认'),
+                    content: this.$createElement('p', { style: { 'text-align': 'center' } }, `${this.$t('删除Secret')}：${secret.config.metadata.name || this.$t('未命名')}`),
                     confirmFn () {
                         if (secretId.indexOf && secretId.indexOf('local_') > -1) {
                             self.removeLocalSecret(secret, index)
@@ -559,10 +565,11 @@
                     this.setCurSecret(data.secret[0], 0)
                 }
             },
-            tabResource (type) {
+            async tabResource (type, target) {
                 this.isTabChanging = true
-                this.$refs.commonHeader.saveTemplate()
-                this.$refs.commonHeader.autoSaveResource(type)
+                await this.$refs.commonHeader.saveTemplate()
+                await this.$refs.commonHeader.autoSaveResource(type)
+                this.$refs.commonTab.goResource(target)
             },
             showJsonPanel () {
                 this.toJsonDialogConf.title = this.curSecret.config.metadata.name + '.json'
@@ -617,7 +624,7 @@
                     if (!appParamKeys.includes(key)) {
                         this.$bkMessage({
                             theme: 'error',
-                            message: `${key}为无效字段！`
+                            message: `${key}${this.$t('为无效字段')}`
                         })
                         const reg = new RegExp(`"${key}"`, 'ig')
                         const match = editor.find(reg)
@@ -639,7 +646,7 @@
                 if (!json) {
                     this.$bkMessage({
                         theme: 'error',
-                        message: '请输入JSON!'
+                        message: this.$t('请输入JSON')
                     })
                     return false
                 }
@@ -649,8 +656,9 @@
                 } catch (err) {
                     this.$bkMessage({
                         theme: 'error',
-                        message: '请输入合法的JSON!'
+                        message: this.$t('请输入合法的JSON')
                     })
+                    return false
                 }
 
                 const annot = editor.getSession().getAnnotations()

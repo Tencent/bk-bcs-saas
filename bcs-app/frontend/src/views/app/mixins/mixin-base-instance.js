@@ -1,12 +1,5 @@
 /**
- * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community Edition) available.
- * Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
- * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- * http://opensource.org/licenses/MIT
- * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
- * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
- * specific language governing permissions and limitations under the License.
+ * @file 应用 instance 详情页的 mixin
  */
 
 import moment from 'moment'
@@ -16,12 +9,20 @@ import 'echarts/lib/chart/line'
 import 'echarts/lib/component/tooltip'
 import 'echarts/lib/component/legend'
 import yamljs from 'js-yaml'
+import { Decimal } from 'decimal.js'
 
 import { instanceDetailChart } from '@open/common/chart-option'
-import { randomInt, catchErrorHandler, chartColors } from '@open/common/util'
+import { randomInt, catchErrorHandler, chartColors, formatBytes } from '@open/common/util'
 import ace from '@open/components/ace-editor'
 
+import { createChartOption } from '../pod-chart-opts'
+
 export default {
+    // props: {
+    //     curProject: {
+    //         type: Object
+    //     }
+    // },
     components: {
         chart: ECharts,
         ace
@@ -30,8 +31,37 @@ export default {
         return {
             terminalWins: {},
             winHeight: 0,
+
+            yAxisDefaultConf: {
+                boundaryGap: [0, '2%'],
+                type: 'value',
+                axisLine: { show: true, lineStyle: { color: '#dde4eb' } },
+                axisTick: { alignWithLabel: true, length: 0, lineStyle: { color: 'red' } },
+                axisLabel: {
+                    color: '#868b97',
+                    formatter (value, index) {
+                        return `${value.toFixed(1)}%`
+                    }
+                },
+                splitLine: { show: true, lineStyle: { color: ['#ebf0f5'], type: 'dashed' } }
+            },
+
             cpuLine: instanceDetailChart.cpu,
+            podCpuChartOpts: createChartOption(this),
+            podCpuChartOptsContainerView: createChartOption(this),
+
+            memLineInternal: instanceDetailChart.memInternal,
+            podMemChartOptsContainerView: instanceDetailChart.memInternal,
+
+            podMemChartOptsInternal: createChartOption(this),
+            podMemChartOptsInternalContainerView: createChartOption(this),
+
             memLine: instanceDetailChart.mem,
+            podMemChartOpts: createChartOption(this),
+
+            podNetChartOpts: createChartOption(this),
+            podNetChartOptsContainerView: createChartOption(this),
+
             tabActiveName: 'taskgroup',
             instanceInfo: {},
             labelList: [],
@@ -40,7 +70,7 @@ export default {
             annotationListLoading: true,
             metricList: [],
             metricListLoading: true,
-            metricListErrorMessage: '没有数据',
+            metricListErrorMessage: this.$t('没有数据'),
             openTaskgroup: {},
             taskgroupList: [],
             taskgroupLoading: true,
@@ -66,7 +96,8 @@ export default {
                 isShow: false,
                 title: '',
                 timer: null,
-                width: 700
+                width: 820,
+                showLogTime: false
             },
             toJsonDialogConf: {
                 isShow: false,
@@ -109,12 +140,23 @@ export default {
                 closeIcon: false,
                 curRescheduler: null,
                 curReschedulerIndex: -1
-            }
+            },
+            curChartView: 'pod',
+            curSelectedPod: '',
+            cpuToggleRangeStr: this.$t('1小时'),
+            memToggleRangeStr: this.$t('1小时'),
+            networkToggleRangeStr: this.$t('1小时'),
+            cpuContainerToggleRangeStr: this.$t('1小时'),
+            memContainerToggleRangeStr: this.$t('1小时'),
+            diskContainerToggleRangeStr: this.$t('1小时')
         }
     },
     computed: {
         projectId () {
             return this.$route.params.projectId
+        },
+        curProject () {
+            return this.$store.state.curProject
         },
         projectCode () {
             return this.$route.params.projectCode
@@ -143,19 +185,71 @@ export default {
         searchParamsList () {
             return this.$route.params.searchParamsList
         },
+        isEn () {
+            return this.$store.state.isEn
+        },
         clusterId () {
             return this.$route.query.cluster_id || ''
         }
     },
-    mounted () {
-        this.fetchInstanceInfo()
+    watch: {
+        curSelectedPod (v) {
+            if (!v) {
+                return
+            }
+            this.$refs.instanceCpuLineContainerView && this.$refs.instanceCpuLineContainerView.showLoading({
+                text: this.$t('正在加载'),
+                color: '#30d878',
+                maskColor: 'rgba(255, 255, 255, 0.8)'
+            })
+            this.$refs.instanceMemLineContainerView && this.$refs.instanceMemLineContainerView.showLoading({
+                text: this.$t('正在加载'),
+                color: '#30d878',
+                maskColor: 'rgba(255, 255, 255, 0.8)'
+            })
+            this.$refs.instanceNetLineContainerView && this.$refs.instanceNetLineContainerView.showLoading({
+                text: this.$t('正在加载'),
+                color: '#30d878',
+                maskColor: 'rgba(255, 255, 255, 0.8)'
+            })
+
+            let containerCpuRange = '1'
+            if (this.cpuContainerToggleRangeStr === this.$t('24小时')) {
+                containerCpuRange = '2'
+            }
+            if (this.cpuContainerToggleRangeStr === this.$t('近7天')) {
+                containerCpuRange = '3'
+            }
+            this.fetchPodCpuUsageContainerView(containerCpuRange)
+
+            let containerMemRange = '1'
+            if (this.memContainerToggleRangeStr === this.$t('24小时')) {
+                containerMemRange = '2'
+            }
+            if (this.memContainerToggleRangeStr === this.$t('近7天')) {
+                containerMemRange = '3'
+            }
+            this.fetchPodMemUsageContainerView(containerMemRange)
+
+            let containerDiskRange = '1'
+            if (this.diskContainerToggleRangeStr === this.$t('24小时')) {
+                containerDiskRange = '2'
+            }
+            if (this.diskContainerToggleRangeStr === this.$t('近7天')) {
+                containerDiskRange = '3'
+            }
+            this.fetchDiskContainerView(containerDiskRange)
+        }
+    },
+    async mounted () {
+        await this.fetchInstanceInfo()
         this.fetchContainerIds()
         this.winHeight = window.innerHeight
         this.clipboardInstance = new Clipboard('.copy-code-btn')
         this.clipboardInstance.on('success', e => {
             this.$bkMessage({
                 theme: 'success',
-                message: '复制成功'
+                message: this.$t('复制成功')
             })
         })
     },
@@ -248,7 +342,7 @@ export default {
                     if (Object.keys(data).length) {
                         this.editorConfig.value = JSON.stringify(res.data || {}, null, 4)
                     } else {
-                        this.editorConfig.value = '配置为空'
+                        this.editorConfig.value = this.$t('配置为空')
                     }
                     this.copyContent = this.editorConfig.value
                 }, 100)
@@ -296,7 +390,7 @@ export default {
                     if (Object.keys(data).length) {
                         this.editorConfig.value = yamljs.dump(res.data || {})
                     } else {
-                        this.editorConfig.value = '配置为空'
+                        this.editorConfig.value = this.$t('配置为空')
                     }
                     this.copyContent = this.editorConfig.value
                 }, 100)
@@ -329,12 +423,17 @@ export default {
                 params.category = this.CATEGORY
             }
             this.$refs.instanceCpuLine && this.$refs.instanceCpuLine.showLoading({
-                text: '正在加载',
+                text: this.$t('正在加载'),
                 color: '#30d878',
                 maskColor: 'rgba(255, 255, 255, 0.8)'
             })
             this.$refs.instanceMemLine && this.$refs.instanceMemLine.showLoading({
-                text: '正在加载',
+                text: this.$t('正在加载'),
+                color: '#30d878',
+                maskColor: 'rgba(255, 255, 255, 0.8)'
+            })
+            this.$refs.instanceNetLine && this.$refs.instanceNetLine.showLoading({
+                text: this.$t('正在加载'),
                 color: '#30d878',
                 maskColor: 'rgba(255, 255, 255, 0.8)'
             })
@@ -354,7 +453,7 @@ export default {
                     ? updateTimeMoment.format('YYYY-MM-DD HH:mm:ss')
                     : '--'
 
-                this.fetchTaskgroup(true)
+                await this.fetchTaskgroup(true)
             } catch (e) {
                 catchErrorHandler(e, this)
             } finally {
@@ -401,10 +500,10 @@ export default {
                             timeDiff.get('minute'),
                             timeDiff.get('second')
                         ]
-                        diffStr = (arr[0] !== 0 ? (arr[0] + '天') : '')
-                            + (arr[1] !== 0 ? (arr[1] + '小时') : '')
-                            + (arr[2] !== 0 ? (arr[2] + '分') : '')
-                            + (arr[3] !== 0 ? (arr[3] + '秒') : '')
+                        diffStr = (arr[0] !== 0 ? (arr[0] + this.$t('天1')) : '')
+                            + (arr[1] !== 0 ? (arr[1] + this.$t('小时1')) : '')
+                            + (arr[2] !== 0 ? (arr[2] + this.$t('分1')) : '')
+                            + (arr[3] !== 0 ? (arr[3] + this.$t('秒1')) : '')
                     }
 
                     this.taskgroupList.push({
@@ -456,8 +555,10 @@ export default {
                 this.containerIdNameMap = JSON.parse(JSON.stringify(containerIdNameMap))
                 this.containerIdList.splice(0, this.containerIdList.length, ...containerIdList)
 
-                this.fetchContainerMetricsCpu()
-                this.fetchContainerMetricsMem()
+                this.fetchPodCpuUsage('1')
+                this.fetchPodMemUsage('1')
+                this.fetchPodNet('1')
+                // }
             } catch (e) {
                 catchErrorHandler(e, this)
             } finally {
@@ -466,9 +567,1049 @@ export default {
         },
 
         /**
+         * 获取 POD CPU使用率
+         *
+         * @param {string} range 时间范围，1: 1 小时，2: 24 小时，3：近 7 天
+         */
+        async fetchPodCpuUsage (range) {
+            const idList = this.taskgroupList.map(item => item.name).join(',')
+            if (!idList || !idList.length) {
+                this.renderPodCpuChart([])
+                return
+            }
+
+            try {
+                const params = {
+                    projectId: this.projectId,
+                    data: {
+                        res_id_list: idList,
+                        end_at: moment().format('YYYY-MM-DD HH:mm:ss')
+                    },
+                    clusterId: this.clusterId
+                }
+
+                // 1 小时
+                if (range === '1') {
+                    params.data.start_at = moment().subtract(1, 'hours').format('YYYY-MM-DD HH:mm:ss')
+                } else if (range === '2') { // 24 小时
+                    params.data.start_at = moment().subtract(1, 'days').format('YYYY-MM-DD HH:mm:ss')
+                } else if (range === '3') { // 近 7 天
+                    params.data.start_at = moment().subtract(7, 'days').format('YYYY-MM-DD HH:mm:ss')
+                }
+
+                const res = await this.$store.dispatch('app/podCpuUsage', params)
+                this.renderPodCpuChart(res.data.result || [])
+            } catch (e) {
+                catchErrorHandler(e, this)
+            } finally {
+                this.$refs.instanceCpuLine && this.$refs.instanceCpuLine.hideLoading()
+            }
+        },
+
+        /**
+         * 渲染 pod cpu 图表
+         *
+         * @param {Array} list 数据
+         */
+        renderPodCpuChart (list) {
+            const chartNode = this.$refs.instanceCpuLine
+            if (!chartNode) {
+                return
+            }
+
+            const podCpuChartOpts = Object.assign({}, this.podCpuChartOpts)
+            podCpuChartOpts.series.splice(0, podCpuChartOpts.series.length, ...[])
+
+            const data = list.length ? list : [{
+                metric: { pod_name: '--' },
+                values: [[parseInt(String(+new Date()).slice(0, 10), 10), '10']]
+            }]
+
+            if (list.length) {
+                podCpuChartOpts.yAxis.splice(0, podCpuChartOpts.yAxis.length, ...[
+                    {
+                        ...this.yAxisDefaultConf,
+                        axisLabel: {
+                            color: '#868b97',
+                            formatter (value, index) {
+                                const valueLen = String(value).length
+                                return `${Decimal(value).toPrecision(valueLen > 3 ? 3 : valueLen)}%`
+                            }
+                        }
+                    }
+                ])
+            }
+
+            data.forEach(item => {
+                item.values.forEach(d => {
+                    d[0] = parseInt(d[0] + '000', 10)
+                    d.push(item.metric.pod_name)
+                })
+                podCpuChartOpts.series.push(
+                    {
+                        type: 'line',
+                        showSymbol: false,
+                        smooth: true,
+                        hoverAnimation: false,
+                        areaStyle: {
+                            normal: {
+                                opacity: 0.2
+                            }
+                        },
+                        itemStyle: {
+                            normal: {
+                                color: '#30d878'
+                            }
+                        },
+                        data: item.values
+                    }
+                )
+            })
+
+            podCpuChartOpts.tooltip.formatter = (params, ticket, callback) => {
+                let ret = ''
+                if (params.every(param => param.value[2] === '--')) {
+                    ret = '<div>No Data</div>'
+                } else {
+                    let date = params[0].value[0]
+                    if (String(parseInt(date, 10)).length === 10) {
+                        date = parseInt(date, 10) + '000'
+                    }
+
+                    ret += `<div>${moment(parseInt(date, 10)).format('YYYY-MM-DD HH:mm:ss')}</div>`
+                    params.forEach(p => {
+                        // ret += `<div>${p.value[2]}：${parseFloat(p.value[1]).toPrecision(3)}%</div>`
+                        const valueLen = String(p.value[1]).length
+                        ret += `<div>${p.value[2]}：${Decimal(p.value[1]).toPrecision(valueLen > 3 ? 3 : valueLen)}%</div>`
+                    })
+                }
+
+                return ret
+            }
+
+            // chartNode.mergeOptions({
+            //     tooltip: {
+            //         formatter (params, ticket, callback) {
+            //             let ret = ''
+            //             if (params.every(param => param.value[2] === '--')) {
+            //                 ret = '<div>No Data</div>'
+            //             } else {
+            //                 let date = params[0].value[0]
+            //                 if (String(parseInt(date, 10)).length === 10) {
+            //                     date = parseInt(date, 10) + '000'
+            //                 }
+
+            //                 ret += `<div>${moment(parseInt(date, 10)).format('YYYY-MM-DD HH:mm:ss')}</div>`
+            //                 params.forEach(p => {
+            //                     // ret += `<div>${p.value[2]}：${parseFloat(p.value[1]).toPrecision(3)}%</div>`
+            //                     const valueLen = String(p.value[1]).length
+            //                     ret += `<div>${p.value[2]}：${Decimal(p.value[1]).toPrecision(valueLen > 3 ? 3 : valueLen)}%</div>`
+            //                 })
+            //             }
+
+            //             return ret
+            //         }
+            //     }
+            // })
+
+            chartNode.hideLoading()
+        },
+
+        /**
+         * 获取 POD 内存使用量
+         *
+         * @param {string} range 时间范围，1: 1 小时，2: 24 小时，3：近 7 天
+         */
+        async fetchPodMemUsage (range) {
+            const idList = this.taskgroupList.map(item => item.name).join(',')
+            if (!idList || !idList.length) {
+                this.renderPodMemChart([])
+                return
+            }
+            try {
+                const params = {
+                    projectId: this.projectId,
+                    data: {
+                        res_id_list: idList,
+                        end_at: moment().format('YYYY-MM-DD HH:mm:ss')
+                    },
+                    clusterId: this.clusterId
+                }
+
+                // 1 小时
+                if (range === '1') {
+                    params.data.start_at = moment().subtract(1, 'hours').format('YYYY-MM-DD HH:mm:ss')
+                } else if (range === '2') { // 24 小时
+                    params.data.start_at = moment().subtract(1, 'days').format('YYYY-MM-DD HH:mm:ss')
+                } else if (range === '3') { // 近 7 天
+                    params.data.start_at = moment().subtract(7, 'days').format('YYYY-MM-DD HH:mm:ss')
+                }
+
+                const res = await this.$store.dispatch('app/podMemUsage', params)
+                this.renderPodMemChart(res.data.result || [])
+            } catch (e) {
+                catchErrorHandler(e, this)
+            } finally {
+                this.$refs.instanceMemLine && this.$refs.instanceMemLine.hideLoading()
+            }
+        },
+
+        /**
+         * 渲染 pod 内存使用量
+         *
+         * @param {Array} list 数据
+         */
+        renderPodMemChart (list) {
+            const chartNode = this.$refs.instanceMemLine
+            if (!chartNode) {
+                return
+            }
+
+            const chartOpts = Object.assign({}, this.podMemChartOptsInternal)
+
+            chartOpts.series.splice(0, chartOpts.series.length, ...[])
+
+            const data = list.length ? list : [{
+                metric: { pod_name: '--' },
+                values: [[parseInt(String(+new Date()).slice(0, 10), 10), '10']]
+            }]
+
+            if (list.length) {
+                chartOpts.yAxis.splice(0, chartOpts.yAxis.length, ...[
+                    {
+                        ...this.yAxisDefaultConf,
+                        axisLabel: {
+                            color: '#868b97',
+                            formatter (value, index) {
+                                return `${formatBytes(value)}`
+                            }
+                        }
+                    }
+                ])
+            }
+
+            data.forEach(item => {
+                item.values.forEach(d => {
+                    d[0] = parseInt(d[0] + '000', 10)
+                    d.push(item.metric.pod_name)
+                })
+                chartOpts.series.push(
+                    {
+                        type: 'line',
+                        showSymbol: false,
+                        smooth: true,
+                        hoverAnimation: false,
+                        areaStyle: {
+                            normal: {
+                                opacity: 0.2
+                            }
+                        },
+                        itemStyle: {
+                            normal: {
+                                color: '#3c96ff'
+                            }
+                        },
+                        data: item.values
+                    }
+                )
+            })
+
+            chartOpts.tooltip.formatter = (params, ticket, callback) => {
+                let ret = ''
+                if (params.every(param => param.value[2] === '--')) {
+                    ret = '<div>No Data</div>'
+                } else {
+                    let date = params[0].value[0]
+                    if (String(parseInt(date, 10)).length === 10) {
+                        date = parseInt(date, 10) + '000'
+                    }
+                    ret += `<div>${moment(parseInt(date, 10)).format('YYYY-MM-DD HH:mm:ss')}</div>`
+                    params.forEach(p => {
+                        ret += `<div>${p.value[2]}：${formatBytes(p.value[1])}</div>`
+                    })
+                }
+
+                return ret
+            }
+
+            // chartNode.mergeOptions({
+            //     tooltip: {
+            //         formatter (params, ticket, callback) {
+            //             let ret = ''
+            //             if (params.every(param => param.value[2] === '--')) {
+            //                 ret = '<div>No Data</div>'
+            //             } else {
+            //                 let date = params[0].value[0]
+            //                 if (String(parseInt(date, 10)).length === 10) {
+            //                     date = parseInt(date, 10) + '000'
+            //                 }
+            //                 ret += `<div>${moment(parseInt(date, 10)).format('YYYY-MM-DD HH:mm:ss')}</div>`
+            //                 params.forEach(p => {
+            //                     ret += `<div>${p.value[2]}：${formatBytes(p.value[1])}</div>`
+            //                 })
+            //             }
+
+            //             return ret
+            //         }
+            //     }
+            // })
+
+            chartNode.hideLoading()
+        },
+
+        /**
+         * 获取 POD网络接收发送数据
+         *
+         * @param {string} range 时间范围，1: 1 小时，2: 24 小时，3：近 7 天
+         */
+        async fetchPodNet (range) {
+            const idList = this.taskgroupList.map(item => item.name).join(',')
+            if (!idList || !idList.length) {
+                this.renderPodNetChart([], [])
+                return
+            }
+            try {
+                const params = {
+                    projectId: this.projectId,
+                    data: {
+                        res_id_list: idList,
+                        end_at: moment().format('YYYY-MM-DD HH:mm:ss')
+                    },
+                    clusterId: this.clusterId
+                }
+
+                // 1 小时
+                if (range === '1') {
+                    params.data.start_at = moment().subtract(1, 'hours').format('YYYY-MM-DD HH:mm:ss')
+                } else if (range === '2') { // 24 小时
+                    params.data.start_at = moment().subtract(1, 'days').format('YYYY-MM-DD HH:mm:ss')
+                } else if (range === '3') { // 近 7 天
+                    params.data.start_at = moment().subtract(7, 'days').format('YYYY-MM-DD HH:mm:ss')
+                }
+
+                const res = await Promise.all([
+                    this.$store.dispatch('app/podNetReceive', Object.assign({}, params)),
+                    this.$store.dispatch('app/podNetTransmit', Object.assign({}, params))
+                ])
+                if (res[0] && res[1]) {
+                    this.renderPodNetChart(res[0].data.result, res[1].data.result)
+                }
+            } catch (e) {
+                catchErrorHandler(e, this)
+            } finally {
+                this.$refs.instanceNetLine && this.$refs.instanceNetLine.hideLoading()
+            }
+        },
+
+        /**
+         * 渲染 Pod网络接收发送数据 图表
+         *
+         * @param {Array} listReceive net 入流量数据
+         * @param {Array} listTransmit net 出流量数据
+         */
+        renderPodNetChart (listReceive, listTransmit) {
+            const chartNode = this.$refs.instanceNetLine
+            if (!chartNode) {
+                return
+            }
+
+            const podNetChartOpts = Object.assign({}, this.podNetChartOpts)
+            podNetChartOpts.series.splice(0, podNetChartOpts.series.length, ...[])
+
+            podNetChartOpts.yAxis.splice(0, podNetChartOpts.yAxis.length, ...[
+                {
+                    ...this.yAxisDefaultConf,
+                    axisLabel: {
+                        color: '#868b97',
+                        formatter (value, index) {
+                            return `${formatBytes(value)}`
+                        }
+                    }
+                }
+            ])
+
+            const dataReceive = listReceive.length
+                ? listReceive
+                : [{
+                    metric: { pod_name: '--' },
+                    values: [[parseInt(String(+new Date()).slice(0, 10), 10), '10']]
+                }]
+
+            const dataTransmit = listTransmit.length
+                ? listTransmit
+                : [{
+                    metric: { pod_name: '--' },
+                    values: [[parseInt(String(+new Date()).slice(0, 10), 10), '10']]
+                }]
+
+            dataReceive.forEach(item => {
+                item.values.forEach(d => {
+                    d[0] = parseInt(d[0] + '000', 10)
+                    d.push('receive')
+                    d.push(item.metric.pod_name)
+                })
+                podNetChartOpts.series.push(
+                    {
+                        type: 'line',
+                        showSymbol: false,
+                        smooth: true,
+                        hoverAnimation: false,
+                        areaStyle: {
+                            normal: {
+                                opacity: 0.2
+                            }
+                        },
+                        itemStyle: {
+                            normal: {
+                                color: '#853cff'
+                            }
+                        },
+                        data: item.values
+                    }
+                )
+            })
+
+            dataTransmit.forEach(item => {
+                item.values.forEach(d => {
+                    d[0] = parseInt(d[0] + '000', 10)
+                    d.push('transmit')
+                    d.push(item.metric.pod_name)
+                })
+                podNetChartOpts.series.push(
+                    {
+                        type: 'line',
+                        showSymbol: false,
+                        smooth: true,
+                        hoverAnimation: false,
+                        areaStyle: {
+                            normal: {
+                                opacity: 0.2
+                            }
+                        },
+                        itemStyle: {
+                            normal: {
+                                color: '#853cff'
+                            }
+                        },
+                        data: item.values
+                    }
+                )
+            })
+
+            const labelReceive = this.$t('入流量')
+            const labelTransmit = this.$t('出流量')
+
+            podNetChartOpts.tooltip.formatter = (params, ticket, callback) => {
+                if (params[0].value[3] === '--') {
+                    return '<div>No Data</div>'
+                }
+
+                let date = params[0].value[0]
+                if (String(parseInt(date, 10)).length === 10) {
+                    date = parseInt(date, 10) + '000'
+                }
+
+                let ret = ''
+                        + `<div>${moment(parseInt(date, 10)).format('YYYY-MM-DD HH:mm:ss')}</div>`
+
+                params.forEach(p => {
+                    if (p.value[2] === 'receive') {
+                        ret += `<div>${p.value[3]}-${labelReceive}：${formatBytes(p.value[1])}</div>`
+                    } else if (p.value[2] === 'transmit') {
+                        ret += `<div>${p.value[3]}-${labelTransmit}：${formatBytes(p.value[1])}</div>`
+                    }
+                })
+
+                return ret
+            }
+
+            // chartNode.mergeOptions({
+            //     tooltip: {
+            //         formatter (params, ticket, callback) {
+            //             if (params[0].value[3] === '--') {
+            //                 return '<div>No Data</div>'
+            //             }
+
+            //             let date = params[0].value[0]
+            //             if (String(parseInt(date, 10)).length === 10) {
+            //                 date = parseInt(date, 10) + '000'
+            //             }
+
+            //             let ret = ''
+            //                     + `<div>${moment(parseInt(date, 10)).format('YYYY-MM-DD HH:mm:ss')}</div>`
+
+            //             params.forEach(p => {
+            //                 if (p.value[2] === 'receive') {
+            //                     ret += `<div>${p.value[3]}-${labelReceive}：${formatBytes(p.value[1])}</div>`
+            //                 } else if (p.value[2] === 'transmit') {
+            //                     ret += `<div>${p.value[3]}-${labelTransmit}：${formatBytes(p.value[1])}</div>`
+            //                 }
+            //             })
+
+            //             return ret
+            //         }
+            //     }
+            // })
+
+            chartNode.hideLoading()
+        },
+
+        /**
+         * 切换 pod 视图下拉框改变事件、容器视图
+         *
+         * @param {string} paramName 选择的 pod name
+         */
+        changeSelectedPod (podName) {
+            this.curSelectedPod = podName
+        },
+
+        /**
+         * 切换 pod 视图、容器视图
+         *
+         * @param {string} idx 视图标识
+         */
+        async toggleView (idx) {
+            if (this.curChartView === idx) {
+                return
+            }
+            this.curChartView = idx
+            // pod 视图
+            if (this.curChartView === 'pod') {
+                this.$refs.instanceCpuLine && this.$refs.instanceCpuLine.showLoading({
+                    text: this.$t('正在加载'),
+                    color: '#30d878',
+                    maskColor: 'rgba(255, 255, 255, 0.8)'
+                })
+                this.$refs.instanceMemLine && this.$refs.instanceMemLine.showLoading({
+                    text: this.$t('正在加载'),
+                    color: '#30d878',
+                    maskColor: 'rgba(255, 255, 255, 0.8)'
+                })
+                this.$refs.instanceNetLine && this.$refs.instanceNetLine.showLoading({
+                    text: this.$t('正在加载'),
+                    color: '#30d878',
+                    maskColor: 'rgba(255, 255, 255, 0.8)'
+                })
+
+                let podCpuRange = '1'
+                if (this.cpuToggleRangeStr === this.$t('24小时')) {
+                    podCpuRange = '2'
+                }
+                if (this.cpuToggleRangeStr === this.$t('近7天')) {
+                    podCpuRange = '3'
+                }
+                this.fetchPodCpuUsage(podCpuRange)
+
+                let podMemRange = '1'
+                if (this.memToggleRangeStr === this.$t('24小时')) {
+                    podMemRange = '2'
+                }
+                if (this.memToggleRangeStr === this.$t('近7天')) {
+                    podMemRange = '3'
+                }
+                this.fetchPodMemUsage(podMemRange)
+
+                let podNetRange = '1'
+                if (this.networkToggleRangeStr === this.$t('24小时')) {
+                    podNetRange = '2'
+                }
+                if (this.networkToggleRangeStr === this.$t('近7天')) {
+                    podNetRange = '3'
+                }
+                this.fetchPodNet(podNetRange)
+                this.curSelectedPod = ''
+            } else { // 容器视图
+                if (this.taskgroupList.length) {
+                    this.curSelectedPod = this.taskgroupList[0].name
+                } else {
+                    this.curSelectedPod = 'null'
+                }
+            }
+        },
+
+        /**
+         * 获取 POD CPU使用率 容器视图
+         *
+         * @param {string} range 时间范围，1: 1 小时，2: 24 小时，3：近 7 天
+         */
+        async fetchPodCpuUsageContainerView (range) {
+            if (this.curSelectedPod === 'null') {
+                this.renderPodCpuChartContainerView([])
+                return
+            }
+            try {
+                const params = {
+                    projectId: this.projectId,
+                    pod_name: this.curSelectedPod,
+                    clusterId: this.clusterId,
+                    end_at: moment().format('YYYY-MM-DD HH:mm:ss')
+                }
+
+                // 1 小时
+                if (range === '1') {
+                    params.start_at = moment().subtract(1, 'hours').format('YYYY-MM-DD HH:mm:ss')
+                } else if (range === '2') { // 24 小时
+                    params.start_at = moment().subtract(1, 'days').format('YYYY-MM-DD HH:mm:ss')
+                } else if (range === '3') { // 近 7 天
+                    params.start_at = moment().subtract(7, 'days').format('YYYY-MM-DD HH:mm:ss')
+                }
+
+                const res = await this.$store.dispatch('app/podCpuUsageContainerView', params)
+                this.renderPodCpuChartContainerView(res.data.result || [])
+            } catch (e) {
+                catchErrorHandler(e, this)
+            } finally {
+                this.$refs.instanceCpuLineContainerView && this.$refs.instanceCpuLineContainerView.hideLoading()
+            }
+        },
+
+        /**
+         * 渲染 pod cpu 图表
+         *
+         * @param {Array} list 数据
+         */
+        renderPodCpuChartContainerView (list) {
+            const chartNode = this.$refs.instanceCpuLineContainerView
+            if (!chartNode) {
+                return
+            }
+
+            const podCpuChartOptsContainerView = Object.assign({}, this.podCpuChartOptsContainerView)
+            podCpuChartOptsContainerView.series.splice(0, podCpuChartOptsContainerView.series.length, ...[])
+
+            const data = list.length ? list : [{
+                metric: { container_name: '--' },
+                values: [[parseInt(String(+new Date()).slice(0, 10), 10), '10']]
+            }]
+
+            if (list.length) {
+                podCpuChartOptsContainerView.yAxis.splice(0, podCpuChartOptsContainerView.yAxis.length, ...[
+                    {
+                        ...this.yAxisDefaultConf,
+                        axisLabel: {
+                            color: '#868b97',
+                            formatter (value, index) {
+                                const valueLen = String(value).length
+                                return `${Decimal(value).toPrecision(valueLen > 3 ? 3 : valueLen)}%`
+                            }
+                        }
+                    }
+                ])
+            }
+
+            data.forEach(item => {
+                item.values.forEach(d => {
+                    d[0] = parseInt(d[0] + '000', 10)
+                    d.push(item.metric.container_name)
+                })
+                podCpuChartOptsContainerView.series.push(
+                    {
+                        type: 'line',
+                        showSymbol: false,
+                        smooth: true,
+                        hoverAnimation: false,
+                        areaStyle: {
+                            normal: {
+                                opacity: 0.2
+                            }
+                        },
+                        itemStyle: {
+                            normal: {
+                                color: '#30d878'
+                            }
+                        },
+                        data: item.values
+                    }
+                )
+            })
+
+            podCpuChartOptsContainerView.tooltip.formatter = (params, ticket, callback) => {
+                let ret = ''
+                if (params.every(param => param.value[2] === '--')) {
+                    ret = '<div>No Data</div>'
+                } else {
+                    let date = params[0].value[0]
+                    if (String(parseInt(date, 10)).length === 10) {
+                        date = parseInt(date, 10) + '000'
+                    }
+                    ret += `<div>${moment(parseInt(date, 10)).format('YYYY-MM-DD HH:mm:ss')}</div>`
+                    params.forEach(p => {
+                        // ret += `<div>${p.value[2]}：${parseFloat(p.value[1]).toPrecision(3)}%</div>`
+                        const valueLen = String(p.value[1]).length
+                        ret += `<div>${p.value[2]}：${Decimal(p.value[1]).toPrecision(valueLen > 3 ? 3 : valueLen)}%</div>`
+                    })
+                }
+
+                return ret
+            }
+
+            // chartNode.mergeOptions({
+            //     tooltip: {
+            //         formatter (params, ticket, callback) {
+            //             console.error(params)
+            //             let ret = ''
+            //             if (params.every(param => param.value[2] === '--')) {
+            //                 ret = '<div>No Data</div>'
+            //             } else {
+            //                 let date = params[0].value[0]
+            //                 if (String(parseInt(date, 10)).length === 10) {
+            //                     date = parseInt(date, 10) + '000'
+            //                 }
+            //                 ret += `<div>${moment(parseInt(date, 10)).format('YYYY-MM-DD HH:mm:ss')}</div>`
+            //                 params.forEach(p => {
+            //                     // ret += `<div>${p.value[2]}：${parseFloat(p.value[1]).toPrecision(3)}%</div>`
+            //                     const valueLen = String(p.value[1]).length
+            //                     ret += `<div>${p.value[2]}：${Decimal(p.value[1]).toPrecision(valueLen > 3 ? 3 : valueLen)}%</div>`
+            //                 })
+            //             }
+
+            //             return ret
+            //         }
+            //     }
+            // })
+
+            chartNode.hideLoading()
+        },
+
+        /**
+         * 获取 内存使用量 容器视图
+         *
+         * @param {string} range 时间范围，1: 1 小时，2: 24 小时，3：近 7 天
+         */
+        async fetchPodMemUsageContainerView (range) {
+            if (this.curSelectedPod === 'null') {
+                this.renderPodMemChartContainerView([])
+                return
+            }
+            try {
+                const params = {
+                    projectId: this.projectId,
+                    pod_name: this.curSelectedPod,
+                    clusterId: this.clusterId,
+                    end_at: moment().format('YYYY-MM-DD HH:mm:ss')
+                }
+
+                // 1 小时
+                if (range === '1') {
+                    params.start_at = moment().subtract(1, 'hours').format('YYYY-MM-DD HH:mm:ss')
+                } else if (range === '2') { // 24 小时
+                    params.start_at = moment().subtract(1, 'days').format('YYYY-MM-DD HH:mm:ss')
+                } else if (range === '3') { // 近 7 天
+                    params.start_at = moment().subtract(7, 'days').format('YYYY-MM-DD HH:mm:ss')
+                }
+
+                const res = await this.$store.dispatch('app/podMemUsageContainerView', params)
+                this.renderPodMemChartContainerView(res.data.result || [])
+            } catch (e) {
+                catchErrorHandler(e, this)
+            } finally {
+                this.$refs.instanceMemLineContainerView && this.$refs.instanceMemLineContainerView.hideLoading()
+            }
+        },
+
+        /**
+         * 渲染 pod 内存使用量 容器视图
+         *
+         * @param {Array} list 数据
+         */
+        renderPodMemChartContainerView (list) {
+            const chartNode = this.$refs.instanceMemLineContainerView
+            if (!chartNode) {
+                return
+            }
+
+            const chartOpts = Object.assign({}, this.podMemChartOptsInternalContainerView)
+
+            chartOpts.series.splice(0, chartOpts.series.length, ...[])
+
+            const data = list.length ? list : [{
+                metric: { container_name: '--' },
+                values: [[parseInt(String(+new Date()).slice(0, 10), 10), '10']]
+            }]
+
+            if (list.length) {
+                chartOpts.yAxis.splice(0, chartOpts.yAxis.length, ...[
+                    {
+                        ...this.yAxisDefaultConf,
+                        axisLabel: {
+                            color: '#868b97',
+                            formatter (value, index) {
+                                return `${formatBytes(value)}`
+                            }
+                        }
+                    }
+                ])
+            }
+
+            data.forEach(item => {
+                item.values.forEach(d => {
+                    d[0] = parseInt(d[0] + '000', 10)
+                    d.push(item.metric.container_name)
+                })
+                chartOpts.series.push(
+                    {
+                        type: 'line',
+                        showSymbol: false,
+                        smooth: true,
+                        hoverAnimation: false,
+                        areaStyle: {
+                            normal: {
+                                opacity: 0.2
+                            }
+                        },
+                        itemStyle: {
+                            normal: {
+                                color: '#3c96ff'
+                            }
+                        },
+                        data: item.values
+                    }
+                )
+            })
+
+            chartOpts.tooltip.formatter = (params, ticket, callback) => {
+                let ret = ''
+                if (params.every(param => param.value[2] === '--')) {
+                    ret = '<div>No Data</div>'
+                } else {
+                    let date = params[0].value[0]
+                    if (String(parseInt(date, 10)).length === 10) {
+                        date = parseInt(date, 10) + '000'
+                    }
+                    ret += `<div>${moment(parseInt(date, 10)).format('YYYY-MM-DD HH:mm:ss')}</div>`
+                    params.forEach(p => {
+                        ret += `<div>${p.value[2]}：${formatBytes(p.value[1])}</div>`
+                    })
+                }
+
+                return ret
+            }
+
+            // chartNode.mergeOptions({
+            //     tooltip: {
+            //         formatter (params, ticket, callback) {
+            //             let ret = ''
+            //             if (params.every(param => param.value[2] === '--')) {
+            //                 ret = '<div>No Data</div>'
+            //             } else {
+            //                 let date = params[0].value[0]
+            //                 if (String(parseInt(date, 10)).length === 10) {
+            //                     date = parseInt(date, 10) + '000'
+            //                 }
+            //                 ret += `<div>${moment(parseInt(date, 10)).format('YYYY-MM-DD HH:mm:ss')}</div>`
+            //                 params.forEach(p => {
+            //                     ret += `<div>${p.value[2]}：${formatBytes(p.value[1])}</div>`
+            //                 })
+            //             }
+
+            //             return ret
+            //         }
+            //     }
+            // })
+
+            chartNode.hideLoading()
+        },
+
+        /**
+         * 获取 容器磁盘读写数据 容器视图
+         *
+         * @param {string} range 时间范围，1: 1 小时，2: 24 小时，3：近 7 天
+         */
+        async fetchDiskContainerView (range) {
+            if (this.curSelectedPod === 'null') {
+                this.renderDiskChartContainerView([], [])
+                return
+            }
+            try {
+                const params = {
+                    projectId: this.projectId,
+                    pod_name: this.curSelectedPod,
+                    clusterId: this.clusterId,
+                    end_at: moment().format('YYYY-MM-DD HH:mm:ss')
+                }
+
+                // 1 小时
+                if (range === '1') {
+                    params.start_at = moment().subtract(1, 'hours').format('YYYY-MM-DD HH:mm:ss')
+                } else if (range === '2') { // 24 小时
+                    params.start_at = moment().subtract(1, 'days').format('YYYY-MM-DD HH:mm:ss')
+                } else if (range === '3') { // 近 7 天
+                    params.start_at = moment().subtract(7, 'days').format('YYYY-MM-DD HH:mm:ss')
+                }
+
+                const res = await Promise.all([
+                    this.$store.dispatch('app/podDiskWriteContainerView', Object.assign({}, params)),
+                    this.$store.dispatch('app/podDiskReadContainerView', Object.assign({}, params))
+                ])
+                this.renderDiskChartContainerView(res[0].data.result, res[1].data.result)
+            } catch (e) {
+                catchErrorHandler(e, this)
+            } finally {
+                this.$refs.instanceNetLineContainerView && this.$refs.instanceNetLineContainerView.hideLoading()
+            }
+        },
+
+        /**
+         * 渲染 容器磁盘读写数据 图表
+         *
+         * @param {Array} listWrite 容器磁盘写数据
+         * @param {Array} listRead 容器磁盘读数据
+         */
+        renderDiskChartContainerView (listWrite, listRead) {
+            const chartNode = this.$refs.instanceNetLineContainerView
+            if (!chartNode) {
+                return
+            }
+
+            const podNetChartOptsContainerView = Object.assign({}, this.podNetChartOptsContainerView)
+            podNetChartOptsContainerView.series.splice(0, podNetChartOptsContainerView.series.length, ...[])
+            podNetChartOptsContainerView.yAxis.splice(0, podNetChartOptsContainerView.yAxis.length, ...[
+                {
+                    ...this.yAxisDefaultConf,
+                    axisLabel: {
+                        color: '#868b97',
+                        formatter (value, index) {
+                            return `${formatBytes(value)}`
+                        }
+                    }
+                }
+            ])
+
+            const dataWrite = listWrite.length
+                ? listWrite
+                : [{
+                    metric: { container_name: '--' },
+                    values: [[parseInt(String(+new Date()).slice(0, 10), 10), '10']]
+                }]
+
+            const dataRead = listRead.length
+                ? listRead
+                : [{
+                    metric: { container_name: '--' },
+                    values: [[parseInt(String(+new Date()).slice(0, 10), 10), '10']]
+                }]
+
+            dataWrite.forEach(item => {
+                item.values.forEach(d => {
+                    d[0] = parseInt(d[0] + '000', 10)
+                    d.push('write')
+                    d.push(item.metric.container_name)
+                })
+                podNetChartOptsContainerView.series.push(
+                    {
+                        type: 'line',
+                        showSymbol: false,
+                        smooth: true,
+                        hoverAnimation: false,
+                        areaStyle: {
+                            normal: {
+                                opacity: 0.2
+                            }
+                        },
+                        itemStyle: {
+                            normal: {
+                                color: '#ffbe21'
+                            }
+                        },
+                        data: item.values
+                    }
+                )
+            })
+
+            dataRead.forEach(item => {
+                item.values.forEach(d => {
+                    d[0] = parseInt(d[0] + '000', 10)
+                    d.push('read')
+                    d.push(item.metric.container_name)
+                })
+                podNetChartOptsContainerView.series.push(
+                    {
+                        type: 'line',
+                        showSymbol: false,
+                        smooth: true,
+                        hoverAnimation: false,
+                        areaStyle: {
+                            normal: {
+                                opacity: 0.2
+                            }
+                        },
+                        itemStyle: {
+                            normal: {
+                                color: '#ffbe21'
+                            }
+                        },
+                        data: item.values
+                    }
+                )
+            })
+
+            const labelWrite = this.$t('磁盘写数据')
+            const labelRead = this.$t('磁盘读数据')
+
+            podNetChartOptsContainerView.tooltip.formatter = (params, ticket, callback) => {
+                if (params[0].value[3] === '--') {
+                    return '<div>No Data</div>'
+                }
+
+                let date = params[0].value[0]
+                if (String(parseInt(date, 10)).length === 10) {
+                    date = parseInt(date, 10) + '000'
+                }
+
+                let ret = ''
+                        + `<div>${moment(parseInt(date, 10)).format('YYYY-MM-DD HH:mm:ss')}</div>`
+
+                params.forEach(p => {
+                    if (p.value[2] === 'write') {
+                        ret += `<div>${p.value[3]}-${labelWrite}：${formatBytes(p.value[1])}</div>`
+                    } else if (p.value[2] === 'read') {
+                        ret += `<div>${p.value[3]}-${labelRead}：${formatBytes(p.value[1])}</div>`
+                    }
+                })
+
+                return ret
+            }
+
+            // chartNode.mergeOptions({
+            //     tooltip: {
+            //         formatter (params, ticket, callback) {
+            //             if (params[0].value[3] === '--') {
+            //                 return '<div>No Data</div>'
+            //             }
+
+            //             let date = params[0].value[0]
+            //             if (String(parseInt(date, 10)).length === 10) {
+            //                 date = parseInt(date, 10) + '000'
+            //             }
+
+            //             let ret = ''
+            //                     + `<div>${moment(parseInt(date, 10)).format('YYYY-MM-DD HH:mm:ss')}</div>`
+
+            //             params.forEach(p => {
+            //                 if (p.value[2] === 'write') {
+            //                     ret += `<div>${p.value[3]}-${labelWrite}：${formatBytes(p.value[1])}</div>`
+            //                 } else if (p.value[2] === 'read') {
+            //                     ret += `<div>${p.value[3]}-${labelRead}：${formatBytes(p.value[1])}</div>`
+            //                 }
+            //             })
+
+            //             return ret
+            //         }
+            //     }
+            // })
+
+            chartNode.hideLoading()
+        },
+
+        // ------------------------------------------------------------------------------------------------------- //
+
+        /**
          * 获取 cpu 图表数据
          */
         async fetchContainerMetricsCpu () {
+            if (!this.containerIdList || !this.containerIdList.length) {
+                return
+            }
             try {
                 const params = {
                     projectId: this.projectId,
@@ -566,6 +1707,9 @@ export default {
          * @param {string} metric 标识是 cpu 还是内存图表
          */
         async fetchContainerMetricsMem (ref, metric) {
+            if (!this.containerIdList || !this.containerIdList.length) {
+                return
+            }
             try {
                 const params = {
                     projectId: this.projectId,
@@ -580,12 +1724,12 @@ export default {
                 const res = await this.$store.dispatch('app/getAllContainerMetrics', params)
 
                 setTimeout(() => {
-                    this.renderMemChart(
+                    this.renderMemChartInternal(
                         res.data.list && res.data.list.length
                             ? res.data.list
                             : [
                                 {
-                                    container_name: 'noData', metrics: [{ used: 0, time: new Date().getTime() }]
+                                    container_name: 'noData', metrics: [{ rss_pct: 0, time: new Date().getTime() }]
                                 }
                             ]
                     )
@@ -595,6 +1739,66 @@ export default {
             } finally {
                 this.$refs.instanceMemLine && this.$refs.instanceMemLine.hideLoading()
             }
+        },
+
+        /**
+         * 渲染 mem 图表，内部版
+         *
+         * @param {Array} data 数据
+         */
+        renderMemChartInternal (data) {
+            const seriesEmpty = []
+            const series = []
+            const seriesLen = data.length
+            const ref = this.$refs.instanceMemLine
+            if (!ref) {
+                return
+            }
+
+            for (let i = 0; i < seriesLen; i++) {
+                const chartData = []
+                const emptyData = []
+
+                const curColor = chartColors[i % 10]
+
+                data[i].metrics.forEach(metric => {
+                    chartData.push({
+                        value: [metric.time, metric.rss_pct, curColor]
+                    })
+                    emptyData.push(0)
+                })
+
+                // this.containerIdNameMap[data[i].id] 不存在时，data[i].container_name 就是 noData
+                // const name = this.containerIdNameMap[data[i].id] || data[i].container_name
+                const name = data[i].container_name || this.containerIdNameMap[data[i].id]
+                series.push({
+                    type: 'line',
+                    name: name,
+                    showSymbol: false,
+                    hoverAnimation: false,
+                    lineStyle: {
+                        normal: {
+                            color: curColor,
+                            opacity: 1
+                        }
+                    },
+                    data: chartData
+                })
+                seriesEmpty.push({
+                    type: 'line',
+                    name: name,
+                    showSymbol: false,
+                    hoverAnimation: false,
+                    data: emptyData
+                })
+            }
+
+            ref.mergeOptions({
+                series: seriesEmpty
+            })
+            ref.mergeOptions({
+                series: series
+            })
         },
 
         /**
@@ -717,10 +1921,10 @@ export default {
                         timeDiff.get('minute'),
                         timeDiff.get('second')
                     ]
-                    diffStr = (arr[0] !== 0 ? (arr[0] + '天') : '')
-                        + (arr[1] !== 0 ? (arr[1] + '小时') : '')
-                        + (arr[2] !== 0 ? (arr[2] + '分') : '')
-                        + (arr[3] !== 0 ? (arr[3] + '秒') : '')
+                    diffStr = (arr[0] !== 0 ? (arr[0] + this.$t('天')) : '')
+                        + (arr[1] !== 0 ? (arr[1] + this.$t('小时')) : '')
+                        + (arr[2] !== 0 ? (arr[2] + this.$t('分')) : '')
+                        + (arr[3] !== 0 ? (arr[3] + this.$t('秒')) : '')
                 }
 
                 this.baseData.surviveTime = diffStr
@@ -791,7 +1995,7 @@ export default {
         async showRescheduler (taskgroup, index) {
             if (taskgroup.status.toLowerCase() === 'lost') {
                 this.reschedulerDialogConf.isShow = true
-                this.reschedulerDialogConf.title = '当前taskgroup处于lost状态，请确认上面容器已经不再运行'
+                this.reschedulerDialogConf.title = this.$t('当前taskgroup处于lost状态，请确认上面容器已经不再运行')
                 this.reschedulerDialogConf.curRescheduler = Object.assign({}, taskgroup)
                 this.reschedulerDialogConf.curReschedulerIndex = index
             } else {
@@ -912,10 +2116,10 @@ export default {
                             timeDiff.get('second')
                         ]
 
-                        diffStr = (arr[0] !== 0 ? (arr[0] + '天') : '')
-                            + (arr[1] !== 0 ? (arr[1] + '小时') : '')
-                            + (arr[2] !== 0 ? (arr[2] + '分') : '')
-                            + (arr[3] !== 0 ? (arr[3] + '秒') : '')
+                        diffStr = (arr[0] !== 0 ? (arr[0] + this.$t('天')) : '')
+                            + (arr[1] !== 0 ? (arr[1] + this.$t('小时')) : '')
+                            + (arr[2] !== 0 ? (arr[2] + this.$t('分')) : '')
+                            + (arr[3] !== 0 ? (arr[3] + this.$t('秒')) : '')
                     }
 
                     this.taskgroupList.push({
@@ -941,22 +2145,57 @@ export default {
          */
         async showTerminal (container) {
             const cluster = this.instanceInfo
-
             const clusterId = cluster.cluster_id
             const containerId = container.container_id
             const url = `${DEVOPS_BCS_API_URL}/web_console/projects/${this.projectId}/clusters/${clusterId}/?container_id=${containerId}`
-
-            if (this.terminalWins.hasOwnProperty(clusterId)) {
-                const win = this.terminalWins[clusterId]
+            if (this.terminalWins.hasOwnProperty(containerId)) {
+                const win = this.terminalWins[containerId]
                 if (!win.closed) {
-                    this.terminalWins[clusterId].focus()
+                    this.terminalWins[containerId].focus()
                 } else {
-                    const win = window.open(url, '', 'width=990,height=618')
-                    this.terminalWins[clusterId] = win
+                    const win = window.open(url, '_blank')
+                    this.terminalWins[containerId] = win
                 }
             } else {
-                const win = window.open(url, '', 'width=990,height=618')
-                this.terminalWins[clusterId] = win
+                const win = window.open(url, '_blank')
+                this.terminalWins[containerId] = win
+            }
+        },
+
+        /**
+         * 显示容器日志
+         *
+         * @param {Object} container 当前容器
+         */
+        async showLog (container) {
+            this.logSideDialogConf.isShow = true
+            this.logSideDialogConf.title = container.name
+            this.logSideDialogConf.container = container
+            this.logLoading = true
+            try {
+                const params = {
+                    projectId: this.projectId,
+                    containerId: container.container_id,
+                    with_localtime: 1,
+                    cluster_id: this.clusterId
+                }
+
+                if (String(this.instanceId) === '0') {
+                    params.name = this.instanceName
+                    params.namespace = this.instanceNamespace
+                    params.category = this.instanceCategory
+                }
+
+                if (this.CATEGORY) {
+                    params.category = this.CATEGORY
+                }
+
+                const res = await this.$store.dispatch('app/getContainterLog', params)
+                this.logList.splice(0, this.logList.length, ...(res.data || []))
+            } catch (e) {
+                catchErrorHandler(e, this)
+            } finally {
+                this.logLoading = false
             }
         },
 
@@ -969,6 +2208,7 @@ export default {
             this.logSideDialogConf.isShow = false
             this.logSideDialogConf.title = ''
             this.logSideDialogConf.container = null
+            this.logSideDialogConf.showLogTime = false
             this.logList.splice(0, this.logList.length, ...[])
         },
 
@@ -981,6 +2221,7 @@ export default {
                 const params = {
                     projectId: this.projectId,
                     containerId: this.logSideDialogConf.container.container_id,
+                    with_localtime: 1,
                     cluster_id: this.clusterId
                 }
 
@@ -1075,7 +2316,7 @@ export default {
          */
         async fetchMetric () {
             this.metricListLoading = true
-            this.metricListErrorMessage = '没有数据'
+            this.metricListErrorMessage = this.$t('没有数据')
             try {
                 const params = {
                     projectId: this.projectId,
@@ -1195,6 +2436,91 @@ export default {
             } else if (name === 'metric') {
                 this.fetchMetric()
             }
+        },
+
+        /**
+         * 切换时间范围
+         *
+         * @param {Object} dropdownRef dropdown 标识
+         * @param {string} toggleRangeStr 标识
+         * @param {string} idx 标识，cpu / memory / network / storage
+         * @param {string} range 时间范围，1: 1 小时，2: 24 小时，3：近 7 天
+         */
+        toggleRange (dropdownRef, toggleRangeStr, idx, range) {
+            if (range === '1') {
+                this[toggleRangeStr] = this.$t('1小时')
+            } else if (range === '2') {
+                this[toggleRangeStr] = this.$t('24小时')
+            } else if (range === '3') {
+                this[toggleRangeStr] = this.$t('近7天')
+            }
+
+            this.$refs[dropdownRef].hide()
+
+            let ref = null
+            let hook = ''
+            if (idx === 'podCpu') {
+                ref = this.$refs.instanceCpuLine
+                hook = 'fetchPodCpuUsage'
+            }
+            if (idx === 'podMem') {
+                ref = this.$refs.instanceMemLine
+                hook = 'fetchPodMemUsage'
+            }
+            if (idx === 'podNet') {
+                ref = this.$refs.instanceNetLine
+                hook = 'fetchPodNet'
+            }
+            ref && ref.showLoading({
+                text: this.$t('正在加载中...'),
+                color: '#30d878',
+                maskColor: 'rgba(255, 255, 255, 0.8)'
+            })
+
+            this[hook](range)
+        },
+
+        /**
+         * 切换时间范围
+         *
+         * @param {Object} dropdownRef dropdown 标识
+         * @param {string} toggleRangeStr 标识
+         * @param {string} idx 标识，cpu / memory / network / storage
+         * @param {string} range 时间范围，1: 1 小时，2: 24 小时，3：近 7 天
+         */
+        toggleContainerRange (dropdownRef, toggleRangeStr, idx, range) {
+            if (range === '1') {
+                this[toggleRangeStr] = this.$t('1小时')
+            } else if (range === '2') {
+                this[toggleRangeStr] = this.$t('24小时')
+            } else if (range === '3') {
+                this[toggleRangeStr] = this.$t('近7天')
+            }
+
+            this.$refs[dropdownRef].hide()
+
+            let ref = null
+            let hook = ''
+            if (idx === 'containerCpu') {
+                ref = this.$refs.instanceCpuLineContainerView
+                hook = 'fetchPodCpuUsageContainerView'
+            }
+            if (idx === 'containerMem') {
+                ref = this.$refs.instanceMemLineContainerView
+                hook = 'fetchPodMemUsageContainerView'
+            }
+            if (idx === 'containerDisk') {
+                ref = this.$refs.instanceNetLineContainerView
+                hook = 'fetchDiskContainerView'
+            }
+
+            ref && ref.showLoading({
+                text: this.$t('正在加载中...'),
+                color: '#30d878',
+                maskColor: 'rgba(255, 255, 255, 0.8)'
+            })
+
+            this[hook](range)
         }
     }
 }

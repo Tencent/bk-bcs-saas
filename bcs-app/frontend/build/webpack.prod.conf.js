@@ -1,12 +1,5 @@
 /**
- * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community Edition) available.
- * Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
- * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- * http://opensource.org/licenses/MIT
- * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
- * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
- * specific language governing permissions and limitations under the License.
+ * @file webpack prod config
  */
 
 const { resolve, sep } = require('path')
@@ -20,7 +13,7 @@ const bundleAnalyzer = require('webpack-bundle-analyzer')
 const LodashModuleReplacementPlugin = require('lodash-webpack-plugin')
 const TerserPlugin = require('terser-webpack-plugin')
 const MiniCssExtractPlugin = require('mini-css-extract-plugin')
-const MonacoEditorPlugin = require('monaco-editor-webpack-plugin')
+const SentryPlugin = require('webpack-sentry-plugin')
 
 const config = require('./config')
 const baseWebpackConfig = require('./webpack.base.conf')
@@ -28,16 +21,24 @@ const { assetsPath } = require('./util')
 const manifest = require('../static/lib-manifest.json')
 const ReplaceJSStaticUrlPlugin = require('./replace-js-static-url-plugin')
 const ReplaceCSSStaticUrlPlugin = require('./replace-css-static-url-plugin')
+const MonacoEditorPlugin = require('monaco-editor-webpack-plugin')
+
+const NOW = new Date()
+const RELEASE_VERSION = [NOW.getFullYear(), '-', (NOW.getMonth() + 1), '-', NOW.getDate(), '_', NOW.getHours(), ':', NOW.getMinutes(), ':', NOW.getSeconds()].join('')
+
+// 打包的版本
+const VERSION = process.env.VERSION
+console.log('VERSION', VERSION)
 
 const webpackConfig = merge(baseWebpackConfig, {
     mode: 'production',
-    // stats: {
-    //     // [mini-css-extract-plugin] Conflicting order between:
-    //     warningsFilter: warning => warning.indexOf('Conflicting order between:') > -1
-    // },
     entry: {
-        main: './src/main.js',
-        'editor.worker': 'monaco-editor/esm/vs/editor/editor.worker.js'
+        [`${VERSION}`]: `./src/main.js`
+        // 'editor.worker': 'monaco-editor/esm/vs/editor/editor.worker.js',
+        // 'json.worker': 'monaco-editor/esm/vs/language/json/json.worker',
+        // 'css.worker': 'monaco-editor/esm/vs/language/css/css.worker',
+        // 'html.worker': 'monaco-editor/esm/vs/language/html/html.worker',
+        // 'ts.worker': 'monaco-editor/esm/vs/language/typescript/ts.worker'
     },
     output: {
         path: config.build.assetsRoot,
@@ -157,6 +158,7 @@ const webpackConfig = merge(baseWebpackConfig, {
             }
         }
     },
+    devtool: config.build.productionSourceMap ? '#source-map' : false,
     plugins: [
         new webpack.DefinePlugin(config.build.env),
 
@@ -182,7 +184,8 @@ const webpackConfig = merge(baseWebpackConfig, {
             },
             // 如果打开 vendor 和 manifest 那么需要配置 chunksSortMode 保证引入 script 的顺序
             chunksSortMode: 'dependency',
-            staticUrl: config.build.env.staticUrl
+            staticUrl: config.build.env.staticUrl,
+            releaseVersion: RELEASE_VERSION
         }),
 
         new MonacoEditorPlugin({
@@ -191,7 +194,7 @@ const webpackConfig = merge(baseWebpackConfig, {
             // Some language extensions like typescript are so huge that may impact build performance
             // e.g. Build full languages support with webpack 4.0 takes over 80 seconds
             // Languages are loaded on demand at runtime
-            output: 'STATIC/',
+            output: `${VERSION}/static/`,
             languages: ['javascript', 'html', 'css', 'json', 'shell', 'yaml']
         }),
 
@@ -206,13 +209,14 @@ const webpackConfig = merge(baseWebpackConfig, {
         new CopyWebpackPlugin([
             {
                 from: resolve(__dirname, '../login_success.html'),
-                to: `${config.build.assetsRoot}/dist`,
+                to: `${VERSION}`,
                 ignore: ['.*']
             }
         ]),
 
         new ReplaceJSStaticUrlPlugin({}),
         new ReplaceCSSStaticUrlPlugin({})
+        // new ReplaceInternalInfo({})
     ]
 })
 
@@ -232,14 +236,14 @@ if (config.build.bundleAnalyzerReport) {
     const BundleAnalyzerPlugin = bundleAnalyzer.BundleAnalyzerPlugin
     webpackConfig.plugins.push(new BundleAnalyzerPlugin(
         // {
-        //     //  可以是 `server`，`static` 或 `disabled`。
-        //     //  在 `server` 模式下，分析器将启动 HTTP 服务器来显示软件包报告。
-        //     //  在“静态”模式下，会生成带有报告的单个 HTML 文件。
-        //     //  在 `disabled` 模式下，你可以使用这个插件来将 `generateStatsFile` 设置为 `true` 来生成 Webpack Stats JSON 文件。
+        //     //  可以是`server`，`static`或`disabled`。
+        //     //  在`server`模式下，分析器将启动HTTP服务器来显示软件包报告。
+        //     //  在“静态”模式下，会生成带有报告的单个HTML文件。
+        //     //  在`disabled`模式下，你可以使用这个插件来将`generateStatsFile`设置为`true`来生成Webpack Stats JSON文件。
         //     analyzerMode: 'server',
-        //     //  将在“服务器”模式下使用的主机启动 HTTP 服务器。
+        //     //  将在“服务器”模式下使用的主机启动HTTP服务器。
         //     analyzerHost: '127.0.0.1',
-        //     //  将在“服务器”模式下使用的端口启动 HTTP 服务器。
+        //     //  将在“服务器”模式下使用的端口启动HTTP服务器。
         //     analyzerPort: 8888,
         //     //  路径捆绑，将在`static`模式下生成的报告文件。
         //     //  相对于捆绑输出目录。

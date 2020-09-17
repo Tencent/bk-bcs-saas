@@ -28,7 +28,7 @@
                     const h = me.$createElement
                     me.$bkInfo({
                         title: '',
-                        content: h('p', `确定要取消${me.tmplAppName}实例化操作？`),
+                        content: h('p', this.$t('确定要取消{tmplAppName}实例化操作？', { tmplAppName: me.tmplAppName })),
                         confirmFn () {
                             me.$router.push({
                                 name: 'statefulset',

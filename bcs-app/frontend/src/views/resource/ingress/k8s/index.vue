@@ -357,6 +357,8 @@
                                 <div class="bk-form-item">
                                     <label class="bk-label" style="width: 130px;">{{$t('路径组')}}：</label>
                                     <div class="bk-form-content" style="margin-left: 130px;">
+                                        {{curRule.http}}
+                                        {{linkServices}}
                                         <table class="biz-simple-table">
                                             <tbody>
                                                 <tr v-for="(pathRule, index) of curRule.http.paths" :key="index">
@@ -1089,6 +1091,7 @@
                             })
                         })
                     })
+                    debugger
                     this.linkServices = serviceList
                 } catch (e) {
                     catchErrorHandler(e, this)
@@ -1097,10 +1100,7 @@
 
             checkData () {
                 const ingress = this.curEditedIngress
-                const ingressName = ingress.config.metadata.name
                 const nameReg = /^[a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*$/
-                const labelKeyReg = /^([A-Za-z0-9][-A-Za-z0-9_./]*)?[A-Za-z0-9]$/
-                const varReg = /\{\{([^\{\}]+)?\}\}/g
                 const pathReg = /\/((?!\.)[\w\d\-./~]+)*/
                 let megPrefix = ''
 
@@ -1211,7 +1211,6 @@
                     const clusterId = this.curEditedIngress.cluster_id
                     const namespace = this.curEditedIngress.namespace
                     const ingressId = this.curEditedIngress.config.metadata.name
-
 
                     if (this.isDetailSaving) {
                         return false
