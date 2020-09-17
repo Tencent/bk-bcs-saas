@@ -3,7 +3,7 @@
         <i class="biz-back bk-icon icon-arrows-left" @click="beforeLeave"></i>
         <template v-if="exceptionCode">
             <div class="biz-templateset-title">
-                <span>返回模板集</span>
+                <span>{{$t('返回模板集')}}</span>
             </div>
         </template>
         <template v-esle>
@@ -11,7 +11,7 @@
                 <span v-show="!isEditName">{{curTemplate.name}}</span>
                 <input
                     type="text"
-                    placeholder="30个以内的字符，Enter保存"
+                    :placeholder="$t('30个以内的字符，Enter保存')"
                     maxlength="30"
                     class="bk-form-input"
                     v-model="editTemplate.name"
@@ -26,7 +26,7 @@
                 <span v-show="!isEditDesc">{{curTemplate.desc}}</span>
                 <input
                     type="text"
-                    placeholder="输入50个以内的字符，Enter保存"
+                    :placeholder="$t('50个以内的字符，Enter保存')"
                     maxlength="50"
                     class="bk-form-input"
                     v-model="editTemplate.desc"
@@ -47,8 +47,8 @@
                                 <div class="lock-wrapper warning">
                                     <i class="bk-icon icon-info-circle-shape"></i>
                                     <strong class="desc">
-                                        您已经对此模板集加锁，只有解锁后，其他用户才可操作此模板集。
-                                        <span v-if="lateShowVersionName">（当前版本号：{{lateShowVersionName}}）</span>
+                                        {{$t('您已经对此模板集加锁，只有解锁后，其他用户才可操作此模板集。')}}
+                                        <span v-if="lateShowVersionName">（{{$t('当前版本号')}}：{{lateShowVersionName}}）</span>
                                     </strong>
                                     <div class="action">
                                         <bk-switcher
@@ -65,11 +65,11 @@
                                 <div class="lock-wrapper warning">
                                     <i class="bk-icon icon-info-circle-shape"></i>
                                     <strong class="desc">
-                                        {{`${templateLockStatus.locker}正在操作，您如需编辑请联系${templateLockStatus.locker}解锁。`}}
-                                        <span v-if="lateShowVersionName">（当前版本号：{{lateShowVersionName}}）</span>
+                                        {{$t('{locker}正在操作，您如需编辑请联系{locker}解锁。', templateLockStatus)}}
+                                        <span v-if="lateShowVersionName">（{{$t('当前版本号')}}：{{lateShowVersionName}}）</span>
                                     </strong>
                                     <div class="action">
-                                        <a href="javascript: void(0);" class="bk-text-button" @click="reloadTemplateset">点击刷新</a>
+                                        <a href="javascript: void(0);" class="bk-text-button" @click="reloadTemplateset">{{$t('点击刷新')}}</a>
                                     </div>
                                 </div>
                             </div>
@@ -80,8 +80,8 @@
                             <div class="lock-wrapper">
                                 <i class="bk-icon icon-info-circle-shape"></i>
                                 <strong class="desc">
-                                    为避免多成员同时编辑，引起内容或版本冲突，建议在编辑时，开启保护功能。
-                                    <span v-if="lateShowVersionName">（当前版本号：{{lateShowVersionName}}）</span>
+                                    {{$t('为避免多成员同时编辑，引起内容或版本冲突，建议在编辑时，开启保护功能。')}}
+                                    <span v-if="lateShowVersionName">（{{$t('当前版本号')}}：{{lateShowVersionName}}）</span>
                                 </strong>
                                 <div class="action">
                                     <bk-switcher
@@ -98,76 +98,76 @@
                 <!-- 如果模板集没有加锁或者当前用户是加锁者才可以操作 -->
                 <template v-if="curTemplate.permissions.edit">
                     <template v-if="templateLockStatus.isLocked && !templateLockStatus.isCurLocker">
-                        <button href="javascript:void(0)" class="bk-button bk-default" disabled>保存草稿</button>
-                        <button href="javascript:void(0)" class="bk-button bk-primary" style="width: 70px;" disabled>保存</button>
+                        <button href="javascript:void(0)" class="bk-button bk-default" disabled>{{$t('保存草稿')}}</button>
+                        <button href="javascript:void(0)" class="bk-button bk-primary" style="width: 70px;" disabled>{{$t('保存')}}</button>
                     </template>
                     <template v-else>
-                        <button href="javascript:void(0)" class="bk-button bk-default" @click.stop.prevent="saveTemplateDraft">保存草稿</button>
-                        <button href="javascript:void(0)" :class="['bk-button bk-primary', { 'is-loading': isDataSaveing, 'is-disabled': !isTemplateCanSave }]" style="width: 70px;" @click.stop.prevent="saveTemplateData">保存</button>
+                        <button href="javascript:void(0)" class="bk-button bk-default" @click.stop.prevent="saveTemplateDraft">{{$t('保存草稿')}}</button>
+                        <button href="javascript:void(0)" :class="['bk-button bk-primary', { 'is-loading': isDataSaveing, 'is-disabled': !isTemplateCanSave }]" style="width: 70px;" @click.stop.prevent="saveTemplateData">{{$t('保存')}}</button>
                     </template>
                 </template>
                 <template v-else>
                     <bk-tooltip :delay="300" placement="bottom">
-                        <button href="javascript:void(0)" class="bk-button bk-default" disabled>保存草稿</button>
+                        <button href="javascript:void(0)" class="bk-button bk-default" disabled>{{$t('保存草稿')}}</button>
                         <template slot="content">
                             <p class="biz-permission-tip">
-                                无权限，请去<a :href="createApplyPermUrl({
+                                {{$t('无权限，请去')}}<a :href="createApplyPermUrl({
                                     policy: 'edit',
                                     projectCode: projectCode,
                                     idx: 'namespace'
-                                })" class="biz-link" target="_blank">申请</a>
+                                })" class="biz-link" target="_blank">{{$t('申请')}}</a>
                             </p>
                         </template>
                     </bk-tooltip>
                     <bk-tooltip :delay="300" placement="bottom">
-                        <button href="javascript:void(0)" class="bk-button bk-success" disabled>保存</button>
+                        <button href="javascript:void(0)" class="bk-button bk-success" disabled>{{$t('保存')}}</button>
                         <template slot="content">
                             <p class="biz-permission-tip">
-                                无权限，请去<a :href="createApplyPermUrl({
+                                {{$t('无权限，请去')}}<a :href="createApplyPermUrl({
                                     policy: 'edit',
                                     projectCode: projectCode,
                                     idx: 'namespace'
-                                })" class="biz-link" target="_blank">申请</a>
+                                })" class="biz-link" target="_blank">{{$t('申请')}}</a>
                             </p>
                         </template>
                     </bk-tooltip>
                 </template>
 
                 <template v-if="curTemplate.permissions.use">
-                    <button href="javascript:void(0)" style="width: 70px; padding: 0;" @click.stop.prevent="createInstance" :class="['bk-button bk-default', { 'is-disabled': !canCreateInstance }]">
-                        实例化
+                    <button href="javascript:void(0)" @click.stop.prevent="createInstance" :class="['bk-button bk-default', { 'is-disabled': !canCreateInstance }]">
+                        {{$t('实例化')}}
                     </button>
                 </template>
                 <template v-else>
                     <bk-tooltip :delay="300" placement="bottom">
-                        <button href="javascript:void(0)" class="bk-button bk-default" disabled>实例化</button>
+                        <button href="javascript:void(0)" class="bk-button bk-default" disabled>{{$t('实例化')}}</button>
                         <template slot="content">
                             <p class="biz-permission-tip">
-                                无权限，请去<a :href="createApplyPermUrl({
+                                {{$t('无权限，请去')}}<a :href="createApplyPermUrl({
                                     policy: 'edit',
                                     projectCode: projectCode,
                                     idx: 'namespace'
-                                })" class="biz-link" target="_blank">申请</a>
+                                })" class="biz-link" target="_blank">{{$t('申请')}}</a>
                             </p>
                         </template>
                     </bk-tooltip>
                 </template>
 
                 <template v-if="curTemplate.permissions.view">
-                    <button href="javascript:void(0)" :class="['bk-button bk-default']" @click.stop.prevent="showVersionPanel">版本列表</button>
+                    <button href="javascript:void(0)" :class="['bk-button bk-default']" @click.stop.prevent="showVersionPanel">{{$t('版本列表')}}</button>
                 </template>
                 <template v-else>
                     <bk-tooltip :delay="300" placement="bottom">
-                        <button href="javascript:void(0)" class="bk-button bk-default is-disabled" disabled>版本列表</button>
+                        <button href="javascript:void(0)" class="bk-button bk-default is-disabled" disabled>{{$t('版本列表')}}</button>
                         <template slot="content">
                             <p class="biz-permission-tip">
-                                无权限，请去
+                                {{$t('无权限，请去')}}
                                 <a :href="createApplyPermUrl({
                                     policy: 'edit',
                                     projectCode: projectCode,
                                     idx: 'namespace'
                                 })" class="biz-link" target="_blank">
-                                    申请
+                                    {{$t('申请')}}
                                 </a>
                             </p>
                         </template>
@@ -186,31 +186,31 @@
             @cancel="hideVersionBox">
             <template slot="content">
                 <div class="version-box">
-                    <p class="title">保存修改到：</p>
+                    <p class="title">{{$t('保存修改到')}}：</p>
                     <ul class="version-list">
                         <template v-if="allVersionList.length && curShowVersionId !== -1">
                             <li class="item">
                                 <label class="bk-form-radio">
                                     <input type="radio" name="save-version-way" value="cur" v-model="saveVersionWay">
-                                    <i class="bk-radio-text" style="display: inline-block; min-width: 70px;">当前版本：{{lateShowVersionName}}</i>
+                                    <i class="bk-radio-text" style="display: inline-block; min-width: 70px;">{{$t('当前版本')}}：{{lateShowVersionName}}</i>
                                 </label>
                             </li>
 
                             <li class="item">
                                 <label class="bk-form-radio" style="margin-right: 0;">
                                     <input type="radio" name="save-version-way" value="new" v-model="saveVersionWay">
-                                    <i class="bk-radio-text" style="display: inline-block; min-width: 70px;">新版本：</i>
-                                    <input type="text" class="bk-form-input" placeholder="请输入版本号" @focus="saveVersionWay = 'new'" style="display: inline-block; width: 176px;" v-model="versionKeyword" />
+                                    <i class="bk-radio-text" style="display: inline-block; min-width: 70px;">{{$t('新版本')}}：</i>
+                                    <input type="text" class="bk-form-input" :placeholder="$t('请输入版本号')" @focus="saveVersionWay = 'new'" style="display: inline-block; width: 176px;" v-model="versionKeyword" />
                                 </label>
                             </li>
 
                             <li class="item" v-if="withoutCurVersionList.length">
                                 <label class="bk-form-radio" style="margin-right: 0;">
                                     <input type="radio" name="save-version-way" value="old" v-model="saveVersionWay">
-                                    <i class="bk-radio-text" style="display: inline-block; min-width: 70px;">其它版本：</i>
+                                    <i class="bk-radio-text" style="display: inline-block; min-width: 70px;">{{$t('其它版本')}}：</i>
                                     <bk-selector
                                         style="width: 176px;"
-                                        placeholder="请选择版本号"
+                                        :placeholder="$t('请选择版本号')"
                                         :setting-key="'show_version_id'"
                                         :selected.sync="selectedVersion"
                                         :list="withoutCurVersionList"
@@ -222,8 +222,8 @@
                         <template v-else>
                             <li class="item">
                                 <label class="bk-form-radio" style="margin-right: 0;">
-                                    <i class="bk-radio-text">新版本：</i>
-                                    <input type="text" class="bk-form-input" placeholder="请输入版本号" @focus="saveVersionWay = 'new'" style="display: inline-block; width: 217px;" v-model="versionKeyword" />
+                                    <i class="bk-radio-text">{{$t('新版本')}}：</i>
+                                    <input type="text" class="bk-form-input" :placeholder="$t('请输入版本号')" @focus="saveVersionWay = 'new'" style="display: inline-block; width: 217px;" v-model="versionKeyword" />
                                 </label>
                             </li>
                         </template>
@@ -234,25 +234,25 @@
                 <div class="bk-dialog-outer">
                     <template v-if="isCreating">
                         <button type="button" class="bk-dialog-btn bk-dialog-btn-confirm bk-btn-primary disabled">
-                            保存中...
+                            {{$t('保存中...')}}
                         </button>
                         <button type="button" class="bk-dialog-btn bk-dialog-btn-cancel disabled">
-                            取消
+                            {{$t('取消')}}
                         </button>
                     </template>
                     <template v-else>
                         <template v-if="!canVersionSave">
                             <button type="button" class="bk-dialog-btn bk-dialog-btn-confirm bk-btn-primary disabled" style="background-color: #fafafa; border-color: #e6e6e6; color: #ccc;">
-                                确定
+                                {{$t('确定')}}
                             </button>
                         </template>
                         <template v-else>
                             <button type="button" class="bk-dialog-btn bk-dialog-btn-confirm bk-btn-primary" @click="saveVersion">
-                                确定
+                                {{$t('确定')}}
                             </button>
                         </template>
                         <button type="button" class="bk-dialog-btn bk-dialog-btn-cancel" @click="hideVersionBox">
-                            取消
+                            {{$t('取消')}}
                         </button>
                     </template>
                 </div>
@@ -260,7 +260,7 @@
         </bk-dialog>
 
         <svg style="display: none;">
-            <title>模板集默认图标</title>
+            <title>{{$t('模板集默认图标')}}</title>
             <symbol id="biz-set-icon" viewBox="0 0 32 32">
                 <path d="M6 3v3h-3v23h23v-3h3v-23h-23zM24 24v3h-19v-19h19v16zM27 24h-1v-18h-18v-1h19v19z"></path>
                 <path d="M13.688 18.313h-6v6h6v-6z"></path>
@@ -281,15 +281,15 @@
                 <div class="biz-danger-tip">
                     <div class="tip-header">
                         <svg class="biz-set-icon"><use xlink:href="#biz-set-icon"></use></svg>
-                        <p class="title">此操作存在风险</p>
+                        <p class="title">{{$t('此操作存在风险')}}</p>
                     </div>
                     <div class="tip-content">
-                        <strong>此操作存在风险，请知悉</strong>
-                        <p class="tip">k8s内部使用 spec.selector.matchLabels 关联资源, 直接修改 matchLabel 会导致产生某些“孤儿”资源 （例如修改没有Deployment管理的 ReplicaSet）</p>
+                        <strong>{{$t('此操作存在风险，请知悉')}}</strong>
+                        <p class="tip">{{$t('k8s内部使用 spec.selector.matchLabels 关联资源, 直接修改 matchLabel 会导致产生某些“孤儿”资源 （例如修改没有Deployment管理的 ReplicaSet）')}}</p>
                     </div>
                     <div class="tip-footer">
-                        <button class="bk-button bk-primary mr10">确定</button>
-                        <button class="bk-button bk-default">取消</button>
+                        <button class="bk-button bk-primary mr10">{{$t('确定')}}</button>
+                        <button class="bk-button bk-default">{{$t('取消')}}</button>
                     </div>
                 </div>
             </template>
@@ -299,15 +299,15 @@
             :quick-close="true"
             :is-show.sync="versionSidePanel.isShow"
             :title="versionSidePanel.title"
-            :width="'640'">
+            :width="'800'">
             <div class="p30" slot="content" v-bkloading="{ isLoading: isVersionListLoading }">
                 <table class="bk-table biz-data-table has-table-bordered">
                     <thead>
                         <tr>
-                            <th>版本号</th>
-                            <th>更新时间</th>
-                            <th>最后更新人</th>
-                            <th style="width: 128px;">操作</th>
+                            <th>{{$t('版本号')}}</th>
+                            <th>{{$t('更新时间')}}</th>
+                            <th>{{$t('最后更新人')}}</th>
+                            <th style="width: 220px;">{{$t('操作')}}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -315,19 +315,25 @@
                             <tr v-for="(versionData, index) in versionList" :key="index">
                                 <td>
                                     <span>{{versionData.name}}</span>
-                                    <span v-if="versionData.show_version_id === curShowVersionId">{{'(当前)'}}</span>
+                                    <span v-if="versionData.show_version_id === curShowVersionId">{{$t('(当前)')}}</span>
                                 </td>
                                 <td>{{versionData.updated}}</td>
                                 <td>{{versionData.updator}}</td>
                                 <td>
-                                    <a href="javascript:void(0);" class="bk-text-button" @click.stop.prevent="getTemplateByVersion(versionData.show_version_id)">加载</a>
+                                    <a href="javascript:void(0);" class="bk-text-button" @click.stop.prevent="getTemplateByVersion(versionData.show_version_id)">{{$t('加载')}}</a>
+                                    <template v-if="versionData.show_version_id === -1">
+                                        <a href="javascript:void(0);" class="bk-text-button is-disabled" v-bktooltips="$t('草稿不支持转换YAML')">{{$t('转换到YAML')}}</a>
+                                    </template>
+                                    <template v-else>
+                                        <a href="javascript:void(0);" class="bk-text-button" @click.stop.prevent="handleExportToYaml(versionData)">{{$t('转换到YAML')}}</a>
+                                    </template>
                                     <!-- 只有一个版本时不能删除 -->
                                     <template v-if="versionList.length <= 1">
                                         <bk-tooltip :delay="300" placement="right">
-                                            <a href="javascript:void(0);" class="bk-text-button is-disabled ml5" disabled>删除</a>
+                                            <a href="javascript:void(0);" class="bk-text-button is-disabled ml5" disabled>{{$t('删除')}}</a>
                                             <template slot="content">
                                                 <p class="biz-permission-tip">
-                                                    必须保留至少一个版本
+                                                    {{$t('必须保留至少一个版本')}}
                                                 </p>
                                             </template>
                                         </bk-tooltip>
@@ -337,37 +343,37 @@
                                         <template v-if="curTemplate.permissions.edit">
                                             <!-- 已经加锁，且是当前加锁人 -->
                                             <template v-if="templateLockStatus.isLocked && templateLockStatus.isCurLocker">
-                                                <a href="javascript:void(0);" class="bk-text-button" @click.stop.prevent="removeVersion(versionData)">删除</a>
+                                                <a href="javascript:void(0);" class="bk-text-button" @click.stop.prevent="removeVersion(versionData)">{{$t('删除')}}</a>
                                             </template>
                                             <!-- 已经加锁，但不是当前加锁人 -->
                                             <template v-else-if="templateLockStatus.isLocked && !templateLockStatus.isCurLocker">
                                                 <bk-tooltip :delay="300" placement="right">
-                                                    <a href="javascript:void(0);" class="bk-text-button is-disabled ml5" disabled>删除</a>
+                                                    <a href="javascript:void(0);" class="bk-text-button is-disabled ml5" disabled>{{$t('删除')}}</a>
                                                     <template slot="content">
                                                         <p class="biz-permission-tip">
-                                                            {{templateLockStatus.locker}}正在操作，您如需编辑请联系{{templateLockStatus.locker}}解锁！
+                                                            {{$t('{locker}正在操作，您如需编辑请联系{locker}解锁！', templateLockStatus)}}
                                                         </p>
                                                     </template>
                                                 </bk-tooltip>
                                             </template>
                                             <!-- 没有加锁 -->
                                             <template v-else>
-                                                <a href="javascript:void(0);" class="bk-text-button" @click.stop.prevent="removeVersion(versionData)">删除</a>
+                                                <a href="javascript:void(0);" class="bk-text-button" @click.stop.prevent="removeVersion(versionData)">{{$t('删除')}}</a>
                                             </template>
                                         </template>
                                         <!-- 没有编辑权限 -->
                                         <template v-else>
                                             <bk-tooltip :delay="300" placement="top">
-                                                <a href="javascript:void(0);" class="bk-text-button is-disabled" disabled>删除</a>
+                                                <a href="javascript:void(0);" class="bk-text-button is-disabled" disabled>{{$t('删除')}}</a>
                                                 <template slot="content">
                                                     <p class="biz-permission-tip">
-                                                        无权限，请去
+                                                        {{$t('无权限，请去')}}
                                                         <a :href="createApplyPermUrl({
                                                             policy: 'edit',
                                                             projectCode: projectCode,
                                                             idx: 'namespace'
                                                         })" class="biz-link" target="_blank">
-                                                            申请
+                                                            {{$t('申请')}}
                                                         </a>
                                                     </p>
                                                 </template>
@@ -382,7 +388,7 @@
                                 <td colspan="4">
                                     <div class="biz-app-list">
                                         <div class="bk-message-box" style="min-height: auto;">
-                                            <p class="message empty-message" style="margin: 30px;">无数据</p>
+                                            <p class="message empty-message" style="margin: 30px;">{{$t('无数据')}}</p>
                                         </div>
                                     </div>
                                 </td>
@@ -398,6 +404,9 @@
 <script>
     import yamljs from 'js-yaml'
     import applyPerm from '@open/mixins/apply-perm'
+    import base64 from 'base-64'
+    import { isObject } from '@open/common/util'
+    import shlex from 'shlex'
 
     export default {
         mixins: [applyPerm],
@@ -419,7 +428,7 @@
                 exceptionCode: null,
                 versionSidePanel: {
                     isShow: false,
-                    title: '版本列表'
+                    title: this.$t('版本列表')
                 },
                 versionDialogConf: {
                     isShow: false,
@@ -441,6 +450,9 @@
             }
         },
         computed: {
+            isEn () {
+                return this.$store.state.isEn
+            },
             projectCode () {
                 return this.$route.params.projectCode
             },
@@ -710,8 +722,12 @@
                 })
                 if (isEdited || this.$store.state.k8sTemplate.canTemplateBindVersion) {
                     this.$bkInfo({
-                        title: '确认',
-                        content: '确定要离开？数据未保存，离开后将会丢失',
+                        title: this.$t('确认'),
+                        content: this.$createElement('p', {
+                            style: {
+                                textAlign: 'center'
+                            }
+                        }, this.$t('模板编辑的内容未保存，确认要离开？')),
                         confirmFn () {
                             self.goTemplatePage()
                         }
@@ -736,8 +752,8 @@
             removeVersion (data) {
                 const self = this
                 this.$bkInfo({
-                    title: `确认`,
-                    content: this.$createElement('p', { style: { 'text-align': 'center' } }, `删除版本：“${data.name}”`),
+                    title: this.$t('确认'),
+                    content: this.$createElement('p', { style: { 'text-align': 'center' } }, `${this.$t('删除版本')}：“${data.name}”`),
                     confirmFn () {
                         const projectId = self.projectId
                         const templateId = self.curTemplateId
@@ -745,7 +761,7 @@
                         self.$store.dispatch('k8sTemplate/removeVersion', { projectId, templateId, versionId }).then(res => {
                             self.$bkMessage({
                                 theme: 'success',
-                                message: '操作成功！'
+                                message: self.$t('操作成功')
                             })
 
                             self.getVersionList().then(versionList => {
@@ -789,12 +805,12 @@
                 const projectId = this.projectId
                 const templateId = this.curTemplateId
                 this.$bkInfo({
-                    title: '确定要删除此模板集？',
+                    title: this.$t('确定要删除此模板集？'),
                     confirmFn () {
                         self.$store.dispatch('k8sTemplate/removeTemplate', { templateId, projectId }).then(res => {
                             this.$bkMessage({
                                 theme: 'success',
-                                message: '删除成功！'
+                                message: this.$t('删除成功')
                             })
                             self.goTemplatePage()
                         }, res => {
@@ -841,7 +857,8 @@
                 }, 200)
             },
             updateTemplateLockStatus () {
-                if (this.isTemplateLocking) {
+                // 判断curTemplate name为空防止返回时清空当前数据解发switcher change事件
+                if (this.isTemplateLocking || this.curTemplate.name === '') {
                     return false
                 }
 
@@ -859,7 +876,7 @@
                     await this.$store.dispatch('k8sTemplate/lockTemplateset', { projectId, templateId })
                     this.$bkMessage({
                         theme: 'success',
-                        message: '加锁成功！'
+                        message: this.$t('加锁成功')
                     })
                     this.reloadTemplateLockStatus()
                 } catch (res) {
@@ -882,7 +899,7 @@
                 if (!this.templateLockStatus.isCurLocker) {
                     this.$bkMessage({
                         theme: 'error',
-                        message: `${this.templateLockStatus.locker}正在操作，您如需编辑请联系${this.templateLockStatus.locker}解锁！`
+                        message: this.$t('{locker}正在操作，您如需编辑请联系{locker}解锁！', this.templateLockStatus)
                     })
                     return false
                 }
@@ -891,7 +908,7 @@
                     await this.$store.dispatch('k8sTemplate/unlockTemplateset', { projectId, templateId })
                     this.$bkMessage({
                         theme: 'success',
-                        message: '解锁成功！'
+                        message: this.$t('解锁成功')
                     })
                     this.reloadTemplateLockStatus()
                 } catch (res) {
@@ -1083,6 +1100,209 @@
                         this.versionSidePanel.isShow = false
                     }
                 })
+            },
+
+            // 生成最终实例化的配置文件
+            filterForInstanceConf (appConf) {
+                this.removeCustomKey(appConf) // 删除前端自定义字段
+                this.removeEmptyValue(appConf) // 删除空数据
+                this.formatKey(appConf) // 处理数据类型转换
+            },
+
+            // 将部分key类型转换
+            formatKey (appConf, parent, parentKey) {
+                const booleanKeys = [
+                    'hostNetwork'
+                ]
+                const arrayKeys = [
+                    'command',
+                    'args'
+                ]
+                for (const key in appConf) {
+                    if (key === 'image') {
+                        // 镜像替换变量
+                        appConf[key] = appConf[key].replace(DEVOPS_ARTIFACTORY_HOST, '{{SYS_JFROG_DOMAIN}}')
+                    } else if (arrayKeys.includes(key)) {
+                        // 转成数组
+                        appConf[key] = shlex.split(appConf[key])
+                        console.log(appConf[key])
+                    } else if (booleanKeys.includes(key)) {
+                        // 转成boolean
+                        appConf[key] = Boolean(appConf[key])
+                    } else if (appConf.kind === 'Secret' && key === 'data') {
+                        this.baseEncode(appConf[key])
+                    } else if (isObject(appConf[key])) {
+                        this.formatKey(appConf[key], appConf, key)
+                    }
+                }
+            },
+
+            baseEncode (data) {
+                for (const key in data) {
+                    data[key] = base64.encode(data[key])
+                }
+            },
+
+            // 删除key
+            removeCustomKey (appConf) {
+                const customKeys = [
+                    'webCache',
+                    'monitorLevel', // 重要级别
+                    'imageName', // 镜像名称
+                    'imageVersion', // 镜像版本
+                    'customLogLabel', // 日志采集
+                    'volumeClaimTemplates',
+                    'id'
+                ]
+                for (const key in appConf) {
+                    if (customKeys.includes(key)) {
+                        delete appConf[key]
+                    } else if (isObject(appConf[key])) {
+                        if (key === 'livenessProbe' || key === 'readinessProbe') {
+                            if ((!appConf[key].httpGet || !appConf[key].httpGet.path)
+                                && (!appConf[key].tcpSocket || !appConf[key].tcpSocket.port)
+                                && (!appConf[key].exec || !appConf[key].exec.command)) {
+                                delete appConf[key]
+                            }
+                        } else {
+                            this.removeCustomKey(appConf[key])
+                        }
+                    }
+                }
+            },
+
+            // 删除空值
+            removeEmptyValue (appConf, parent, parentKey) {
+                for (const key in appConf) {
+                    if (Array.isArray(appConf[key]) && !appConf[key].length) {
+                        delete appConf[key]
+                    } else if (isObject(appConf[key])) {
+                        if (JSON.stringify(appConf[key]) === '{}') {
+                            delete appConf[key]
+                        } else {
+                            this.removeEmptyValue(appConf[key], appConf, key)
+                        }
+                    } else if (appConf[key] === '') {
+                        delete appConf[key]
+                    }
+                }
+                if (parent && JSON.stringify(appConf) === '{}') {
+                    delete parent[parentKey]
+                }
+            },
+            handleExportToYaml (versionData) {
+                const versionId = versionData.show_version_id
+                const name = versionData.name
+                const realVersionId = versionData.real_version_id
+                const me = this
+                let msg = `转换YAML功能会将模板集版本【${name}】复制为一个新的YAML模板集，由平台完成模板配置的转换。使用中如有问题，请联系蓝鲸容器助手`
+                if (this.isEn) {
+                    msg = `The conversion YAML function will copy the template set version [${name}] into a new YAML template set, and the platform will complete the conversion of the template configuration. If you have any questions during use, please contact BCS`
+                }
+                me.$bkInfo({
+                    title: me.$t('注意1'),
+                    content: msg,
+                    confirmFn () {
+                        me.exportYamlTemplate(versionId, realVersionId)
+                    }
+                })
+            },
+            async exportYamlTemplate (versionId, realVersionId) {
+                try {
+                    const projectId = this.projectId
+                    const templateId = this.curTemplateId
+                    const res = await this.$store.dispatch('k8sTemplate/getTemplateSetDetail', { projectId, templateId, versionId })
+                    const serviceRes = await this.$store.dispatch('k8sTemplate/getServicesByVersion', { projectId, version: realVersionId })
+                    const resources = res.data
+                    const curLinkServices = serviceRes.data
+                    const data = {}
+                    if (resources.K8sDeployment && resources.K8sDeployment.length) {
+                        data['Deployment'] = resources.K8sDeployment.map(app => {
+                            const appConfig = app.config
+                            this.filterForInstanceConf(appConfig)
+                            return yamljs.dump(appConfig, { indent: 2 })
+                        })
+                    }
+
+                    if (resources.K8sService && resources.K8sService.length) {
+                        data['Service'] = resources.K8sService.map(app => {
+                            const appConfig = app.config
+                            this.filterForInstanceConf(appConfig)
+                            return yamljs.dump(appConfig, { indent: 2 })
+                        })
+                    }
+
+                    if (resources.K8sConfigMap && resources.K8sConfigMap.length) {
+                        data['ConfigMap'] = resources.K8sConfigMap.map(app => {
+                            const appConfig = app.config
+                            this.filterForInstanceConf(appConfig)
+                            return yamljs.dump(appConfig, { indent: 2 })
+                        })
+                    }
+
+                    if (resources.K8sSecret && resources.K8sSecret.length) {
+                        data['Secret'] = resources.K8sSecret.map(app => {
+                            const appConfig = app.config
+                            this.filterForInstanceConf(appConfig)
+                            return yamljs.dump(appConfig, { indent: 2 })
+                        })
+                    }
+
+                    if (resources.K8sDaemonSet && resources.K8sDaemonSet.length) {
+                        data['DaemonSet'] = resources.K8sDaemonSet.map(app => {
+                            const appConfig = app.config
+                            this.filterForInstanceConf(appConfig)
+                            return yamljs.dump(appConfig, { indent: 2 })
+                        })
+                    }
+                    
+                    if (resources.K8sJob && resources.K8sJob.length) {
+                        data['Job'] = resources.K8sJob.map(app => {
+                            const appConfig = app.config
+                            appConfig.apiVersion = 'batch/v1'
+                            this.filterForInstanceConf(appConfig)
+                            return yamljs.dump(appConfig, { indent: 2 })
+                        })
+                    }
+                    if (resources.K8sStatefulSet && resources.K8sStatefulSet.length) {
+                        data['StatefulSet'] = resources.K8sStatefulSet.map(app => {
+                            const appConfig = app.config
+                            const matchService = curLinkServices.find(item => item.service_tag === app.service_tag)
+                            if (matchService) {
+                                appConfig.spec.serviceName = matchService.service_name
+                            }
+                            delete appConfig.spec.strategy
+                            this.filterForInstanceConf(appConfig)
+                            return yamljs.dump(appConfig, { indent: 2 })
+                        })
+                    }
+
+                    if (resources.K8sIngress && resources.K8sIngress.length) {
+                        data['Ingress'] = resources.K8sIngress.map(app => {
+                            const appConfig = app.config
+                            this.filterForInstanceConf(appConfig)
+                            return yamljs.dump(appConfig, { indent: 2 })
+                        })
+                    }
+
+                    if (resources.K8sHPA && resources.K8sHPA.length) {
+                        data['HPA'] = resources.K8sHPA.map(app => {
+                            const appConfig = app.config
+                            this.filterForInstanceConf(appConfig)
+                            return yamljs.dump(appConfig, { indent: 2 })
+                        })
+                    }
+
+                    window.localStorage['cloneTemplateSet'] = JSON.stringify(data)
+                    this.$emit('exmportToYaml', data)
+                } catch (res) {
+                    this.$bkMessage({
+                        theme: 'error',
+                        message: res.message,
+                        hasCloseIcon: true,
+                        delay: '3000'
+                    })
+                }
             },
             async autoSaveResource (type) {
                 // 没编辑权限不保存
@@ -1314,11 +1534,10 @@
                         this.$store.commit('k8sTemplate/updateCurTemplate', data)
                         this.isEditName = false
                         this.isEditDesc = false
-
                         if (event) {
                             this.$bkMessage({
                                 theme: 'success',
-                                message: '模板集基础信息保存成功！'
+                                message: this.$t('模板集基础信息保存成功')
                             })
                         }
                     } catch (res) {
@@ -1407,23 +1626,23 @@
                             if (!data.code || data.code === 400 || data.code === 404) {
                                 this.exceptionCode = {
                                     code: '404',
-                                    msg: '当前访问的模板集不存在'
+                                    msg: this.$t('当前访问的模板集不存在')
                                 }
                             } else if (data.code === 403) {
                                 this.exceptionCode = {
                                     code: '403',
-                                    msg: 'Sorry，您的权限不足!'
+                                    msg: this.$t('Sorry，您的权限不足')
                                 }
                             } else {
                                 this.exceptionCode = {
                                     code: '403',
-                                    msg: '异常!'
+                                    msg: this.$t('异常')
                                 }
                             }
                         } else {
                             this.exceptionCode = {
                                 code: '403',
-                                msg: '异常!'
+                                msg: this.$t('异常')
                             }
                         }
                         this.$emit('exception', this.exceptionCode)
@@ -1509,31 +1728,32 @@
                 const labelKeyReg = /^([A-Za-z0-9][-A-Za-z0-9_./]*)?[A-Za-z0-9]$/
                 const envKeyReg = /^([A-Za-z0-9][-A-Za-z0-9_.]*)?[A-Za-z0-9]$/
                 const varReg = /\{\{([^\{\}]+)?\}\}/g
-                let megPrefix = `"${appName}"中`
+                const ipReg = /^((2(5[0-5]|[0-4]\d))|[0-1]?\d{1,2})(\.((2(5[0-5]|[0-4]\d))|[0-1]?\d{1,2})){3}$/
+                let megPrefix = `"${appName}"${this.$t('中')}`
 
                 if (appName === '') {
-                    megPrefix += `名称：`
+                    megPrefix += `${this.$t('名称')}：`
                     this.$bkMessage({
                         theme: 'error',
-                        message: megPrefix + '请输入应用名称！'
+                        message: megPrefix + this.$t('请输入应用名称')
                     })
                     return false
                 }
                 if (!nameReg1.test(appName)) {
-                    megPrefix += `名称：`
+                    megPrefix += `${this.$t('名称')}：`
                     this.$bkMessage({
                         theme: 'error',
-                        message: megPrefix + '应用名称错误，以小写字母或数字开头和结尾，只能包含：小写字母、数字、连字符(-)、点(.)',
+                        message: megPrefix + this.$t('应用名称错误，以小写字母或数字开头和结尾，只能包含：小写字母、数字、连字符(-)、点(.)'),
                         delay: 8000
                     })
                     return false
                 }
 
                 if (instance === '') {
-                    megPrefix += `实例数量：`
+                    megPrefix += `${this.$t('实例数量')}：`
                     this.$bkMessage({
                         theme: 'error',
-                        message: megPrefix + '请输入实例数量！'
+                        message: megPrefix + this.$t('请输入实例数量')
                     })
                     return false
                 }
@@ -1544,11 +1764,11 @@
                     for (const label of cacheLabels) {
                         // const key11 = label.key.replace(varReg, 'key')
                         if (label.key && !labelKeyReg.test(label.key.replace(varReg, 'key'))) {
-                            megPrefix += `标签：`
+                            megPrefix += `${this.$t('标签')}：`
                             this.$bkMessage({
                                 theme: 'error',
                                 delay: 8000,
-                                message: megPrefix + 'key值只能包含数字、字母、中划线(-)、下划线(_)、点(.)、斜杆(/)，开头结尾必须是数字或字母！'
+                                message: megPrefix + this.$t('key值只能包含数字、字母、中划线(-)、下划线(_)、点(.)、斜杆(/)，开头结尾必须是数字或字母')
                             })
                             return false
                         }
@@ -1560,24 +1780,24 @@
 
                 // 除去job，其它要至少一个选择器
                 if (!selector.length && type !== 'job') {
-                    megPrefix += `标签：`
+                    megPrefix += `${this.$t('标签')}：`
                     this.$bkMessage({
                         theme: 'error',
-                        message: megPrefix + '必须添加一个选择器!'
+                        message: megPrefix + this.$t('必须添加一个选择器')
                     })
                     return false
                 }
 
-                // 备注
+                // 注解
                 if (application.config.webCache.remarkListCache) {
                     const cacheLabels = application.config.webCache.remarkListCache
                     for (const label of cacheLabels) {
                         if (label.key && !labelKeyReg.test(label.key.replace(varReg, 'key'))) {
-                            megPrefix += `备注：`
+                            megPrefix += `${this.$t('注解')}：`
                             this.$bkMessage({
                                 theme: 'error',
                                 delay: 8000,
-                                message: megPrefix + 'key值只能包含数字、字母、中划线(-)、下划线(_)、点(.)、斜杆(/)，开头结尾必须是数字或字母！'
+                                message: megPrefix + this.$t('key值只能包含数字、字母、中划线(-)、下划线(_)、点(.)、斜杆(/)，开头结尾必须是数字或字母')
                             })
                             return false
                         }
@@ -1599,7 +1819,7 @@
                     for (const item of application.config.spec.volumeClaimTemplates) {
                         if (item.metadata.name || item.spec.storageClassName || item.spec.accessModes.length) {
                             if (!item.metadata.name) {
-                                megPrefix += `卷模板：`
+                                megPrefix += `${this.$t('卷模板')}：`
                                 this.$bkMessage({
                                     theme: 'error',
                                     message: megPrefix + '请输入挂载名!'
@@ -1607,35 +1827,35 @@
                                 return false
                             }
                             if (!/^([A-Za-z0-9][-A-Za-z0-9_.]*)?[A-Za-z0-9]$/.test(item.metadata.name)) {
-                                megPrefix += `卷模板：`
+                                megPrefix += `${this.$t('卷模板')}：`
                                 this.$bkMessage({
                                     theme: 'error',
-                                    message: megPrefix + `挂载名只能含数字、字母、中划线(-)、下划线(_)、点(.)，开头结尾必须是数字或字母！`,
+                                    message: megPrefix + this.$t('挂载名只能含数字、字母、中划线(-)、下划线(_)、点(.)，开头结尾必须是数字或字母'),
                                     delay: 8000
                                 })
                                 return false
                             }
                             if (!item.spec.storageClassName) {
-                                megPrefix += `卷模板：`
+                                megPrefix += `${this.$t('卷模板')}：`
                                 this.$bkMessage({
                                     theme: 'error',
-                                    message: megPrefix + '请选择StorageClassName!'
+                                    message: megPrefix + this.$t('请选择StorageClassName')
                                 })
                                 return false
                             }
                             if (!item.spec.resources.requests.storage) {
-                                megPrefix += `卷模板：`
+                                megPrefix += `${this.$t('卷模板')}：`
                                 this.$bkMessage({
                                     theme: 'error',
-                                    message: megPrefix + '请设置大小!'
+                                    message: megPrefix + this.$t('请设置大小')
                                 })
                                 return false
                             }
                             if (!item.spec.accessModes.length) {
-                                megPrefix += `卷模板：`
+                                megPrefix += `${this.$t('卷模板')}：`
                                 this.$bkMessage({
                                     theme: 'error',
-                                    message: megPrefix + '请选择访问模式!'
+                                    message: megPrefix + this.$t('请选择访问模式')
                                 })
                                 return false
                             }
@@ -1651,28 +1871,28 @@
                         }
                         if (volume.name || volume.source) {
                             if (!volume.name) {
-                                megPrefix += `卷：`
+                                megPrefix += `${this.$t('卷')}：`
                                 this.$bkMessage({
                                     theme: 'error',
-                                    message: megPrefix + '挂载名不能为空！',
+                                    message: megPrefix + this.$t('挂载名不能为空'),
                                     delay: 8000
                                 })
                                 return false
                             }
                             if (!volume.source) {
-                                megPrefix += `卷：`
+                                megPrefix += `${this.$t('卷')}：`
                                 this.$bkMessage({
                                     theme: 'error',
-                                    message: megPrefix + '挂载源不能为空！',
+                                    message: megPrefix + this.$t('挂载源不能为空'),
                                     delay: 8000
                                 })
                                 return false
                             }
                             if (volume.name && !volumeNameReg.test(volume.name.replace(varReg, 'name'))) {
-                                megPrefix += `卷：`
+                                megPrefix += `${this.$t('卷')}：`
                                 this.$bkMessage({
                                     theme: 'error',
-                                    message: megPrefix + '挂载名只能包含：字母、数字、连字符(-)，首字母必须是字母，长度小于253个字符',
+                                    message: megPrefix + this.$t('挂载名只能包含：字母、数字、连字符(-)，首字母必须是字母，长度小于253个字符'),
                                     delay: 8000
                                 })
                                 return false
@@ -1687,6 +1907,32 @@
                     })
                     application.config.webCache.metricIdList = result
                 }
+                if (application.config.webCache.hostAliasesCache && application.config.webCache.hostAliasesCache.length) {
+                    const hostAliases = application.config.webCache.hostAliasesCache
+                    for (const hostAlias of hostAliases) {
+                        if (hostAlias.ip || hostAlias.hostnames) {
+                            if (!hostAlias.ip) {
+                                megPrefix += `hostAliases：`
+                                this.$bkMessage({
+                                    theme: 'error',
+                                    message: megPrefix + this.$t('IP不能为空'),
+                                    delay: 8000
+                                })
+                                return false
+                            }
+                            
+                            if (!hostAlias.hostnames) {
+                                megPrefix += `hostAliases：`
+                                this.$bkMessage({
+                                    theme: 'error',
+                                    message: megPrefix + this.$t('HostNames不能为空'),
+                                    delay: 8000
+                                })
+                                return false
+                            }
+                        }
+                    }
+                }
 
                 const containers = application.config.spec.template.spec.allContainers
                 let hasContainer = false
@@ -1696,19 +1942,19 @@
                         const yamlCode = application.config.webCache.affinityYamlCache
                         const json = yamljs.load(yamlCode)
                         if (!json || Object.prototype.toString.call(json) === '[object String]') {
-                            megPrefix += `调度约束：`
+                            megPrefix += `${this.$t('调度约束')}：`
                             this.$bkMessage({
                                 theme: 'error',
-                                message: megPrefix + '亲和性约束格式不正确！',
+                                message: megPrefix + this.$t('亲和性约束格式不正确'),
                                 delay: 5000
                             })
                             return false
                         }
                     } catch (err) {
-                        megPrefix += `调度约束：`
+                        megPrefix += `${this.$t('调度约束')}：`
                         this.$bkMessage({
                             theme: 'error',
-                            message: megPrefix + '亲和性约束格式不正确！',
+                            message: megPrefix + this.$t('亲和性约束格式不正确'),
                             delay: 5000
                         })
                         return false
@@ -1718,19 +1964,19 @@
                 for (const container of containers) {
                     // 检查container name
                     if (!container.name) {
-                        megPrefix += `容器名称：`
+                        megPrefix += `${this.$t('容器名称')}：`
                         this.$bkMessage({
                             theme: 'error',
-                            message: megPrefix + `名称不能为空！`
+                            message: megPrefix + this.$t('名称不能为空')
                         })
                         return false
                     }
 
                     if (!nameReg1.test(container.name)) {
-                        megPrefix += `容器名称：`
+                        megPrefix += `${this.$t('容器名称')}：`
                         this.$bkMessage({
                             theme: 'error',
-                            message: megPrefix + '名称错误，只能包含：小写字母、数字、连字符(-)，首字母必须是字母，长度小于30个字符',
+                            message: megPrefix + this.$t('名称错误，只能包含：小写字母、数字、连字符(-)，首字母必须是字母，长度小于64个字符'),
                             delay: 8000
                         })
                         return false
@@ -1744,7 +1990,7 @@
                         this.$bkMessage({
                             theme: 'error',
                             delay: 5000,
-                            message: megPrefix + `容器"${container.name}"的镜像及版本配置：请设置所属的镜像及版本！`
+                            message: megPrefix + this.$t('容器"{name}"的镜像及版本配置：请设置所属的镜像及版本', container)
                         })
                         return false
                     } else if (container.webCache.imageName && !container.webCache.imageName.startsWith('{{')) {
@@ -1769,14 +2015,14 @@
                                 this.$bkMessage({
                                     theme: 'error',
                                     delay: 5000,
-                                    message: megPrefix + `容器"${container.name}"的端口映射配置：名称不能为空！`
+                                    message: megPrefix + this.$t('容器"{name}"的端口映射配置：名称不能为空', container)
                                 })
                                 return false
                             }
                             if (!portNameReg.test(item.name.replace(varReg, 'name'))) {
                                 this.$bkMessage({
                                     theme: 'error',
-                                    message: megPrefix + `容器"${container.name}"的端口映射配置：名称错误，以小写字母开头，只能包含：小写字母、数字、连字符(-)，长度小于256个字符`,
+                                    message: megPrefix + this.$t('容器"{name}"的端口映射配置：名称错误，以小写字母开头，只能包含：小写字母、数字、连字符(-)，长度小于256个字符', container),
                                     delay: 8000
                                 })
                                 return false
@@ -1784,7 +2030,7 @@
                             if (portNameCache[item.name]) {
                                 this.$bkMessage({
                                     theme: 'error',
-                                    message: megPrefix + `容器"${container.name}"的端口映射配置：端口名称不可重复！`,
+                                    message: megPrefix + this.$t('容器"{name}"的端口映射配置：端口名称不可重复', container),
                                     delay: 8000
                                 })
                                 return false
@@ -1796,7 +2042,7 @@
                                 this.$bkMessage({
                                     theme: 'error',
                                     delay: 5000,
-                                    message: megPrefix + `容器"${container.name}"的端口映射配置：容器端口不能为空！`
+                                    message: megPrefix + this.$t('容器"{name}"的端口映射配置：容器端口不能为空', container)
                                 })
                                 return false
                             }
@@ -1804,7 +2050,7 @@
                                 this.$bkMessage({
                                     theme: 'error',
                                     delay: 5000,
-                                    message: megPrefix + `容器"${container.name}"的端口映射配置：容器端口范围为1-65535！`
+                                    message: megPrefix + this.$t('容器"{name}"的端口映射配置：容器端口范围为1-65535', container)
                                 })
                                 return false
                             }
@@ -1816,7 +2062,7 @@
                         this.$bkMessage({
                             theme: 'error',
                             delay: 5000,
-                            message: megPrefix + `容器"${container.name}"的命令：启动命令不能含有中文字符！`
+                            message: megPrefix + this.$t('容器"{name}"的命令：启动命令不能含有中文字符', container)
                         })
                         return false
                     }
@@ -1825,7 +2071,7 @@
                         this.$bkMessage({
                             theme: 'error',
                             delay: 5000,
-                            message: megPrefix + `容器"${container.name}"的命令：命令参数不能含有中文字符！`
+                            message: megPrefix + this.$t('容器"{name}"的命令：命令参数不能含有中文字符', container)
                         })
                         return false
                     }
@@ -1838,14 +2084,14 @@
                                     this.$bkMessage({
                                         theme: 'error',
                                         delay: 5000,
-                                        message: megPrefix + `容器"${container.name}"的挂载卷配置：挂载名不能为空！`
+                                        message: megPrefix + this.$t('容器"${name}"的挂载卷配置：挂载名不能为空', container)
                                     })
                                     return false
                                 }
                                 if (!item.mountPath) {
                                     this.$bkMessage({
                                         theme: 'error',
-                                        message: megPrefix + `容器"${container.name}"的挂载卷配置：容器目录不能为空！`,
+                                        message: megPrefix + this.$t('容器"{name}"的挂载卷配置：容器目录不能为空', container),
                                         delay: 5000
                                     })
                                     return false
@@ -1881,7 +2127,7 @@
                                 if (!env.key) {
                                     this.$bkMessage({
                                         theme: 'error',
-                                        message: megPrefix + `容器"${container.name}"的环境变量配置：键不能为空！`,
+                                        message: megPrefix + this.$t('容器"{name}"的环境变量配置：键不能为空', container),
                                         delay: 5000
                                     })
                                     return false
@@ -1889,7 +2135,7 @@
                                 if (!envKeyReg.test(env.key.replace(varReg, 'key'))) {
                                     this.$bkMessage({
                                         theme: 'error',
-                                        message: megPrefix + `容器"${container.name}"的环境变量配置：键只能含数字、字母、中划线(-)、下划线(_)、点(.)，开头结尾必须是数字或字母！`,
+                                        message: megPrefix + this.$t('容器"{name}"的环境变量配置：键只能含数字、字母、中划线(-)、下划线(_)、点(.)，开头结尾必须是数字或字母', container),
                                         delay: 8000
                                     })
                                     return false
@@ -1901,7 +2147,7 @@
                             if (env.type !== 'custom' && !env.value) {
                                 this.$bkMessage({
                                     theme: 'error',
-                                    message: megPrefix + `容器"${container.name}"的环境变量配置：值不能为空！`,
+                                    message: megPrefix + this.$t('容器"{name}"的环境变量配置：值不能为空', container),
                                     delay: 5000
                                 })
                                 return false
@@ -1914,7 +2160,7 @@
                     if (resources.limits.cpu && resources.requests.cpu && !varReg.test(resources.limits.cpu) && !varReg.test(resources.requests.cpu) && (resources.requests.cpu > resources.limits.cpu)) {
                         this.$bkMessage({
                             theme: 'error',
-                            message: megPrefix + `容器"${container.name}"的资源限制配置：CPU限制中第二个输入框的值必须小于等于第一个输入框的值！`,
+                            message: megPrefix + this.$t('容器"{name}"的资源限制配置：CPU限制中最小值必须小于等于最大值', container),
                             delay: 7000
                         })
                         return false
@@ -1922,7 +2168,7 @@
                     if (resources.limits.memory && resources.requests.memory && !varReg.test(resources.limits.memory) && !varReg.test(resources.requests.memory) && (resources.requests.memory > resources.limits.memory)) {
                         this.$bkMessage({
                             theme: 'error',
-                            message: megPrefix + `容器"${container.name}"的资源限制配置：内存限制中第二个输入框的值必须小于等于第一个输入框的值！`,
+                            message: megPrefix + this.$t('容器"{name}"的资源限制配置：内存限制中最小值必须小于等于最大值', container),
                             delay: 7000
                         })
                         return false
@@ -1935,7 +2181,7 @@
                                 this.$bkMessage({
                                     theme: 'error',
                                     delay: 5000,
-                                    message: megPrefix + `容器"${container.name}"的非标准日志采集配置：日志绝对路径不正确！`
+                                    message: megPrefix + this.$t('容器"{name}"的非标准日志采集配置：日志绝对路径不正确', container)
                                 })
                                 return false
                             }
@@ -1947,7 +2193,7 @@
                         this.$bkMessage({
                             theme: 'error',
                             delay: 5000,
-                            message: megPrefix + `容器"${container.name}"的生命周期：停止前执行不能含有中文字符！`
+                            message: megPrefix + this.$t('容器"{name}"的生命周期：停止前执行不能含有中文字符', container)
                         })
                         return false
                     }
@@ -1956,16 +2202,16 @@
                         this.$bkMessage({
                             theme: 'error',
                             delay: 5000,
-                            message: megPrefix + `容器"${container.name}"的生命周期：启动后执行不能含有中文字符！`
+                            message: megPrefix + this.$t('容器"{name}"的生命周期：启动后执行不能含有中文字符', container)
                         })
                         return false
                     }
                 }
                 if (!hasContainer) {
-                    megPrefix += `容器`
+                    megPrefix += this.$t('容器')
                     this.$bkMessage({
                         theme: 'error',
-                        message: megPrefix + '必须添加至少一个Container类型的容器！',
+                        message: megPrefix + this.$t('必须添加至少一个Container类型的容器'),
                         delay: 5000
                     })
                     return false
@@ -2006,8 +2252,19 @@
                         }
                     })
                 }
+                if (webCache && webCache.hostAliasesCache && webCache.hostAliasesCache.length) {
+                    params.config.spec.template.spec.hostAliases = []
+                    webCache.hostAliasesCache.forEach(item => {
+                        params.config.spec.template.spec.hostAliases.push({
+                            ip: item.ip,
+                            hostnames: item.hostnames.replace(/ /g, '').split(';')
+                        })
+                    })
+                } else {
+                    delete params.config.spec.template.spec.hostAliases
+                }
 
-                if (webCache && webCache.volumes.length) {
+                if (webCache && webCache.volumes) {
                     const cacheColumes = webCache.volumes
                     const volumes = []
                     cacheColumes.forEach(volume => {
@@ -2097,6 +2354,17 @@
                     params.config.spec.template.spec.affinity = {}
                 }
 
+                // 镜像凭证处理
+                if (params.config.spec.template.spec.imagePullSecrets) {
+                    const imageSecrets = params.config.spec.template.spec.imagePullSecrets
+                    const validImageSecrets = imageSecrets.filter(item => item.name)
+                    if (validImageSecrets.length) {
+                        params.config.spec.template.spec.imagePullSecrets = validImageSecrets
+                    } else {
+                        delete params.config.spec.template.spec.imagePullSecrets
+                    }
+                }
+
                 // 转换命令参数和环境变量
                 const allContainers = params.config.spec.template.spec.allContainers
                 params.config.spec.template.spec.containers = []
@@ -2111,7 +2379,8 @@
                             validatePorts.push({
                                 id: item.id,
                                 containerPort: item.containerPort,
-                                name: item.name
+                                name: item.name,
+                                protocol: item.protocol
                             })
                         }
                     })
@@ -2122,6 +2391,13 @@
                     let validateVolumes = []
                     validateVolumes = volumes.filter(item => {
                         return item.mountPath && item.name
+                    })
+
+                    // 用户不填subPath，删除此key
+                    validateVolumes.forEach(item => {
+                        if (!item.subPath) {
+                            delete item.subPath
+                        }
                     })
                     container.volumeMounts = validateVolumes
 
@@ -2136,6 +2412,10 @@
                     container.logPathList = paths
 
                     if (container.webCache.containerType === 'initContainer') {
+                        // initContainer类型去除健康检查、就绪检查、生命周期
+                        delete container.livenessProbe
+                        delete container.readinessProbe
+                        delete container.lifecycle
                         params.config.spec.template.spec.initContainers.push(container)
                     } else {
                         params.config.spec.template.spec.containers.push(container)
@@ -2184,7 +2464,13 @@
                 const result = await this.formatApplicationData(application)
                 return result
             },
-            async saveTemplateData () {
+            saveTemplateData () {
+                // 利用setTimeout事件来先让当前容器的blur事件执行完才切换
+                setTimeout(() => {
+                    this.updateTemplateData()
+                }, 500)
+            },
+            async updateTemplateData () {
                 if (!this.isTemplateCanSave) {
                     return false
                 }
@@ -2462,6 +2748,7 @@
                 this.$store.commit('k8sTemplate/updateIsTemplateSaving', false)
                 await this.getVersionList()
                 this.versionSidePanel.isShow = false
+                this.versionDialogConf.width = this.isEn ? 450 : 400
                 this.versionDialogConf.isShow = true
                 this.isDataSaveing = false
             },
@@ -2484,10 +2771,18 @@
             checkVersionData () {
                 const nameReg = /^[a-zA-Z0-9-_.]{1,45}$/
 
+                if (!this.versionKeyword) {
+                    this.$bkMessage({
+                        theme: 'error',
+                        message: this.$t('请输入版本号')
+                    })
+                    return false
+                }
+
                 if (!nameReg.test(this.versionKeyword)) {
                     this.$bkMessage({
                         theme: 'error',
-                        message: '请填写1至45个字符（由字母、数字、下划线以及 - 或 . 组成）'
+                        message: this.$t('请填写1至45个字符（由字母、数字、下划线以及 - 或 . 组成）')
                     })
                     return false
                 }
@@ -2496,7 +2791,7 @@
                     if (item.name === this.versionKeyword) {
                         this.$bkMessage({
                             theme: 'error',
-                            message: `版本${this.versionKeyword}已经存在！`
+                            message: this.$t('版本{versionKeyword}已经存在', { versionKeyword: this.versionKeyword })
                         })
                         return false
                     }
@@ -2506,7 +2801,6 @@
             async saveVersion () {
                 const projectId = this.projectId
                 const templateId = this.curTemplateId
-
                 // 根据不同方式组装数据
                 this.versionMetadata.real_version_id = this.curVersion
                 if (this.saveVersionWay === 'cur') {
@@ -2536,7 +2830,7 @@
                 await this.$store.dispatch('k8sTemplate/saveVersion', { projectId, templateId, params }).then(res => {
                     this.$bkMessage({
                         theme: 'success',
-                        message: '保存成功！',
+                        message: this.$t('保存成功'),
                         delay: 3000
                     })
                     this.$store.commit('k8sTemplate/updateBindVersion', false)
@@ -2905,21 +3199,22 @@
                 const nameReg = /^[a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*$/
                 const labelKeyReg = /^([A-Za-z0-9][-A-Za-z0-9_./]*)?[A-Za-z0-9]$/
                 const varReg = /\{\{([^\{\}]+)?\}\}/g
-                let megPrefix = `"${ingressName}"中`
+                const pathReg = /\/((?!\.)[\w\d\-./~]+)*/
+                let megPrefix = `"${ingressName}"${this.$t('中')}`
 
                 if (ingressName === '') {
-                    megPrefix += '名称：'
+                    megPrefix += this.$t('名称：')
                     this.$bkMessage({
                         theme: 'error',
-                        message: '请输入名称！'
+                        message: this.$t('请输入名称')
                     })
                     return false
                 }
                 if (!nameReg.test(ingressName)) {
-                    megPrefix += '名称：'
+                    megPrefix += this.$t('名称：')
                     this.$bkMessage({
                         theme: 'error',
-                        message: megPrefix + '名称错误，以小写字母或数字开头和结尾，只能包含：小写字母、数字、连字符(-)、点(.)',
+                        message: megPrefix + this.$t('名称错误，以小写字母或数字开头和结尾，只能包含：小写字母、数字、连字符(-)、点(.)'),
                         delay: 8000
                     })
                     return false
@@ -2930,27 +3225,27 @@
                     const cacheLabels = ingress.config.webCache.labelListCache
                     for (const label of cacheLabels) {
                         if (label.key && !labelKeyReg.test(label.key.replace(varReg, 'key'))) {
-                            megPrefix += `标签：`
+                            megPrefix += `${this.$t('标签')}：`
                             this.$bkMessage({
                                 theme: 'error',
                                 delay: 8000,
-                                message: megPrefix + 'key值只能包含数字、字母、中划线(-)、下划线(_)、点(.)、斜杆(/)，开头结尾必须是数字或字母！'
+                                message: megPrefix + this.$t('key值只能包含数字、字母、中划线(-)、下划线(_)、点(.)、斜杆(/)，开头结尾必须是数字或字母')
                             })
                             return false
                         }
                     }
                 }
 
-                // 备注
+                // 注解
                 if (ingress.config.webCache.remarkListCache) {
                     const cacheLabels = ingress.config.webCache.remarkListCache
                     for (const label of cacheLabels) {
                         if (label.key && !labelKeyReg.test(label.key.replace(varReg, 'key'))) {
-                            megPrefix += `备注：`
+                            megPrefix += `${this.$t('注解')}：`
                             this.$bkMessage({
                                 theme: 'error',
                                 delay: 8000,
-                                message: megPrefix + 'key值只能包含数字、字母、中划线(-)、下划线(_)、点(.)、斜杆(/)，开头结尾必须是数字或字母！'
+                                message: megPrefix + this.$t('key值只能包含数字、字母、中划线(-)、下划线(_)、点(.)、斜杆(/)，开头结尾必须是数字或字母')
                             })
                             return false
                         }
@@ -2960,19 +3255,19 @@
                 for (const rule of ingress.config.spec.rules) {
                     // 检查rule
                     if (!rule.host) {
-                        megPrefix += `规则：`
+                        megPrefix += `${this.$t('规则')}：`
                         this.$bkMessage({
                             theme: 'error',
-                            message: megPrefix + `主机名不能为空！`
+                            message: megPrefix + this.$t('主机名不能为空')
                         })
                         return false
                     }
 
                     if (!nameReg.test(rule.host)) {
-                        megPrefix += `规则主机名：`
+                        megPrefix += `${this.$t('规则主机名')}：`
                         this.$bkMessage({
                             theme: 'error',
-                            message: megPrefix + '名称错误，只能包含：小写字母、数字、连字符(-)，首字母必须是字母，长度小于30个字符',
+                            message: megPrefix + this.$t('名称错误，只能包含：小写字母、数字、连字符(-)，首字母必须是字母，长度小于30个字符'),
                             delay: 8000
                         })
                         return false
@@ -2981,21 +3276,33 @@
                     const paths = rule.http.paths
 
                     for (const path of paths) {
-                        if (path.backend.serviceName && !path.backend.servicePort) {
-                            megPrefix += `路径组：`
+                        if (path.path && !pathReg.test(path.path)) {
+                            megPrefix += `${this.$t('路径组')}：`
                             this.$bkMessage({
                                 theme: 'error',
-                                message: megPrefix + '请关联服务端口！',
+                                message: megPrefix + this.$t('路径不正确'),
+                                delay: 8000
+                            })
+                            return false
+                        }
+
+                        if (path.backend.serviceName && !path.backend.servicePort) {
+                            megPrefix += `${this.$t('路径组')}：`
+                            this.$bkMessage({
+                                theme: 'error',
+                                message: megPrefix + this.$t('请关联服务端口'),
                                 delay: 8000
                             })
                             return false
                         }
 
                         if (path.backend.serviceName && !this.linkServices.includes(path.backend.serviceName)) {
-                            megPrefix += `路径组：`
+                            megPrefix += `${this.$t('路径组')}：`
                             this.$bkMessage({
                                 theme: 'error',
-                                message: megPrefix + `关联的Service【${path.backend.serviceName}】不存在，请重新绑定！`,
+                                message: megPrefix + this.$t('关联的Service【{serviceName}】不存在，请重新绑定', {
+                                    serviceName: path.backend.serviceName
+                                }),
                                 delay: 8000
                             })
                             return false
@@ -3022,62 +3329,62 @@
             async checkHPAData (HPA) {
                 const HPAName = HPA.config.metadata.name
                 const nameReg = /^[a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*$/
-                let megPrefix = `"${HPAName}"中`
+                let megPrefix = `"${HPAName}"${this.$t('中')}`
 
                 if (HPAName === '') {
-                    megPrefix += '名称：'
+                    megPrefix += this.$t('名称：')
                     this.$bkMessage({
                         theme: 'error',
-                        message: '请输入名称！'
+                        message: this.$t('请输入名称')
                     })
                     return false
                 }
 
                 if (!nameReg.test(HPAName)) {
-                    megPrefix += '名称：'
+                    megPrefix += this.$t('名称：')
                     this.$bkMessage({
                         theme: 'error',
-                        message: megPrefix + '名称错误，以小写字母或数字开头和结尾，只能包含：小写字母、数字、连字符(-)、点(.)',
+                        message: megPrefix + this.$t('名称错误，以小写字母或数字开头和结尾，只能包含：小写字母、数字、连字符(-)、点(.)'),
                         delay: 5000
                     })
                     return false
                 }
 
                 if (!HPA.config.spec.scaleTargetRef.name) {
-                    megPrefix += '关联应用：'
+                    megPrefix += this.$t('关联应用：')
                     this.$bkMessage({
                         theme: 'error',
-                        message: megPrefix + '请先关联应用',
+                        message: megPrefix + this.$t('请先关联应用'),
                         delay: 5000
                     })
                     return false
                 }
 
                 if (HPA.config.spec.minReplicas === '') {
-                    megPrefix += '实例数范围：'
+                    megPrefix += this.$t('实例数范围：')
                     this.$bkMessage({
                         theme: 'error',
-                        message: megPrefix + '最小实例数不能为空！',
+                        message: megPrefix + this.$t('最小实例数不能为空'),
                         delay: 5000
                     })
                     return false
                 }
 
                 if (HPA.config.spec.maxReplicas === '') {
-                    megPrefix += '实例数范围：'
+                    megPrefix += this.$t('实例数范围：')
                     this.$bkMessage({
                         theme: 'error',
-                        message: megPrefix + '最大实例数不能为空！',
+                        message: megPrefix + this.$t('最大实例数不能为空'),
                         delay: 5000
                     })
                     return false
                 }
 
                 if (HPA.config.spec.maxReplicas < HPA.config.spec.minReplicas) {
-                    megPrefix += '实例数范围：'
+                    megPrefix += this.$t('实例数范围：')
                     this.$bkMessage({
                         theme: 'error',
-                        message: megPrefix + '最大实例数不能小于最小实例数！',
+                        message: megPrefix + this.$t('最大实例数不能小于最小实例数'),
                         delay: 5000
                     })
                     return false
@@ -3086,20 +3393,20 @@
                 if (HPA.config.spec.metrics.length) {
                     for (const metric of HPA.config.spec.metrics) {
                         if (!metric.type) {
-                            megPrefix += '扩缩容触发条件：'
+                            megPrefix += this.$t('扩缩容触发条件：')
                             this.$bkMessage({
                                 theme: 'error',
-                                message: megPrefix + '请选择资源类型！',
+                                message: megPrefix + this.$t('请选择资源类型'),
                                 delay: 5000
                             })
                             return false
                         }
 
                         if (metric.type === 'Resource' && !metric.resource.target.averageUtilization) {
-                            megPrefix += '扩缩容触发条件：'
+                            megPrefix += this.$t('扩缩容触发条件：')
                             this.$bkMessage({
                                 theme: 'error',
-                                message: megPrefix + '资源目标不能为空！',
+                                message: megPrefix + this.$t('资源目标不能为空'),
                                 delay: 5000
                             })
                             return false
@@ -3185,31 +3492,31 @@
                 const serviceIPReg = /^((25[0-5]|2[0-4]\d|[01]?\d\d?)($|(?!\.$)\.)){4}$/
                 const varReg = /\{\{([^\{\}]+)?\}\}/g
 
-                let megPrefix = `"${serviceName}"中`
+                let megPrefix = `"${serviceName}"${this.$t('中')}`
 
                 if (serviceName === '') {
-                    megPrefix += '名称：'
+                    megPrefix += this.$t('名称：')
                     this.$bkMessage({
                         theme: 'error',
-                        message: '请输入名称！'
+                        message: this.$t('请输入名称')
                     })
                     return false
                 }
                 if (!serviceNameReg.test(serviceName.replace(varReg, 'service'))) {
-                    megPrefix += '名称：'
+                    megPrefix += this.$t('名称：')
                     this.$bkMessage({
                         theme: 'error',
-                        message: megPrefix + '名称错误，以小写字母或数字开头和结尾，只能包含：小写字母、数字、连字符(-)、点(.)',
+                        message: megPrefix + this.$t('名称错误，以小写字母或数字开头和结尾，只能包含：小写字母、数字、连字符(-)、点(.)'),
                         delay: 8000
                     })
                     return false
                 }
 
                 if (!service.deploy_tag_list.length) {
-                    megPrefix += '关联应用：'
+                    megPrefix += this.$t('关联应用：')
                     this.$bkMessage({
                         theme: 'error',
-                        message: megPrefix + '请选择要关联的应用',
+                        message: megPrefix + this.$t('请选择要关联的应用'),
                         delay: 3000
                     })
                     return false
@@ -3221,7 +3528,7 @@
                 if (statefulsetList.length >= 2) {
                     this.$bkMessage({
                         theme: 'error',
-                        message: '不可同时绑定多个StatefulSet',
+                        message: this.$t('不可同时绑定多个StatefulSet'),
                         hasCloseIcon: true,
                         delay: '3000'
                     })
@@ -3229,10 +3536,10 @@
                 }
 
                 if (!service.config.webCache.link_labels.length) {
-                    megPrefix += '关联标签：'
+                    megPrefix += this.$t('关联标签：')
                     this.$bkMessage({
                         theme: 'error',
-                        message: megPrefix + '请选择要关联的标签',
+                        message: megPrefix + this.$t('请选择要关联的标签'),
                         delay: 3000
                     })
                     return false
@@ -3243,7 +3550,7 @@
                     megPrefix += 'IP：'
                     this.$bkMessage({
                         theme: 'error',
-                        message: megPrefix + '请输入正确IP地址或“None”值！',
+                        message: megPrefix + this.$t('请输入正确IP地址或“None”值'),
                         delay: 3000
                     })
                     return false
@@ -3262,7 +3569,7 @@
                     if (!hasPort) {
                         // 如果已经关联应用
                         if (service.deploy_tag_list.length) {
-                            megPrefix += '端口映射：'
+                            megPrefix += this.$t('端口映射：')
                             this.$bkMessage({
                                 theme: 'error',
                                 delay: 8000,
@@ -3270,7 +3577,7 @@
                             })
                             return false
                         } else {
-                            megPrefix += '端口映射：'
+                            megPrefix += this.$t('端口映射：')
                             this.$bkMessage({
                                 theme: 'error',
                                 delay: 8000,
@@ -3283,39 +3590,39 @@
                 for (const item of ports) {
                     if (item.name || item.port || item.targetPort) {
                         if (item.name && !/^[a-z]{1}[a-z0-9-]{0,29}$/.test(item.name.replace(varReg, 'name'))) {
-                            megPrefix += '端口映射：'
+                            megPrefix += this.$t('端口映射：')
                             this.$bkMessage({
                                 theme: 'error',
                                 delay: 8000,
-                                message: megPrefix + '端口名称以小写字母开头，只能包含：小写字母、数字、连字符(-)，长度小于30个字符！'
+                                message: megPrefix + this.$t('端口名称以小写字母开头，只能包含：小写字母、数字、连字符(-)，长度小于30个字符')
                             })
                             return false
                         }
                         if (!item.port) {
-                            megPrefix += '端口映射：'
+                            megPrefix += this.$t('端口映射：')
                             this.$bkMessage({
                                 theme: 'error',
                                 delay: 5000,
-                                message: megPrefix + '端口不能为空！'
+                                message: megPrefix + this.$t('端口不能为空')
                             })
                             return false
                         }
                         if (!item.protocol) {
-                            megPrefix += '端口映射：'
+                            megPrefix += this.$t('端口映射：')
                             this.$bkMessage({
                                 theme: 'error',
                                 delay: 5000,
-                                message: megPrefix + '请选择协议！'
+                                message: megPrefix + this.$t('请选择协议')
                             })
                             return false
                         }
                         if (item.nodePort || item.nodePort === 0) {
                             if (!varReg.test(item.nodePort) && (item.nodePort < 30000 || item.nodePort > 32767)) {
-                                megPrefix += '端口映射：'
+                                megPrefix += this.$t('端口映射：')
                                 this.$bkMessage({
                                     theme: 'error',
                                     delay: 5000,
-                                    message: megPrefix + 'NodePort的范围为30000-32767'
+                                    message: megPrefix + this.$t('NodePort的范围为30000-32767')
                                 })
                                 return false
                             }
@@ -3333,6 +3640,10 @@
                     params.config.metadata.labels = labelKeyList
                 }
 
+                if (webCache && webCache.remarkListCache) {
+                    const remarkKeyList = this.tranListToObject(webCache.remarkListCache)
+                    params.config.metadata.annotations = remarkKeyList
+                }
                 if (webCache && webCache.link_labels) {
                     const selector = {}
                     webCache.link_labels.forEach(item => {
@@ -3374,11 +3685,23 @@
                 }
                 // 如果不是变量，转为数组形式
                 const varReg = /\{\{([^\{\}]+)?\}\}/g
+                const tls = []
                 params.config.spec.tls.forEach(item => {
-                    if (!varReg.test(item.hosts)) {
-                        item.hosts = item.hosts.split(',')
+                    if (item.hosts || item.certId) {
+                        if (!varReg.test(item.hosts)) {
+                            item.hosts = item.hosts.split(',')
+                        }
+                        tls.push(item)
                     }
                 })
+
+                // 如果用户有填写，把tls传过去，否则删除
+                if (tls.length) {
+                    params.config.spec.tls = tls
+                } else {
+                    delete params.config.spec.tls
+                }
+
                 delete params.cache
                 return params
             },
@@ -3566,13 +3889,13 @@
                 const nameReg1 = /^[a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*$/
                 const nameReg2 = /^[a-zA-Z{]{1}[a-zA-Z0-9-_.{}]{0,254}$/
                 const keys = configmap.configmapKeyList
-                let megPrefix = `"${configmapName}"中`
+                let megPrefix = `"${configmapName}"${this.$t('中')}`
 
                 if (configmapName === '') {
-                    megPrefix += '名称：'
+                    megPrefix += this.$t('名称：')
                     this.$bkMessage({
                         theme: 'error',
-                        message: '请输入名称！'
+                        message: this.$t('请输入名称')
                     })
                     return false
                 }
@@ -3580,7 +3903,7 @@
                     megPrefix += '名称：'
                     this.$bkMessage({
                         theme: 'error',
-                        message: megPrefix + '名称错误，以小写字母或数字开头和结尾，只能包含：小写字母、数字、连字符(-)、点(.)',
+                        message: megPrefix + this.$t('名称错误，以小写字母或数字开头和结尾，只能包含：小写字母、数字、连字符(-)、点(.)'),
                         delay: 8000
                     })
                     return false
@@ -3588,20 +3911,20 @@
                 if (keys && keys.length) {
                     for (const item of keys) {
                         if (!nameReg2.test(item.key)) {
-                            megPrefix += '键：'
+                            megPrefix += this.$t('键：')
                             this.$bkMessage({
                                 theme: 'error',
-                                message: megPrefix + '键名错误，只能包含：字母、数字、连字符(-)、点(.)、下划线(_)，首字母必须是字母，长度小于30个字符',
+                                message: megPrefix + this.$t('键名错误，只能包含：字母、数字、连字符(-)、点(.)、下划线(_)，首字母必须是字母，长度小于30个字符'),
                                 delay: 8000
                             })
                             return false
                         }
                     }
                 } else {
-                    megPrefix += '键：'
+                    megPrefix += this.$t('键：')
                     this.$bkMessage({
                         theme: 'error',
-                        message: megPrefix + `请先添加键！`
+                        message: megPrefix + this.$t('请先添加键')
                     })
                     return false
                 }
@@ -3701,23 +4024,23 @@
             async checkSecretData (secret) {
                 const secretName = secret.config.metadata.name
                 const nameReg1 = /^[a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*$/
-                const nameReg2 = /^[a-zA-Z{]{1}[a-zA-Z0-9-_.{}]{0,254}$/
+                const nameReg2 = /^[a-zA-Z0-9-_.{}]{0,255}$/
                 const keys = secret.secretKeyList
-                let megPrefix = `"${secretName}"中`
+                let megPrefix = `"${secretName}"${this.$t('中')}`
 
                 if (secretName === '') {
-                    megPrefix += '名称：'
+                    megPrefix += this.$t('名称：')
                     this.$bkMessage({
                         theme: 'error',
-                        message: '请输入名称！'
+                        message: this.$t('请输入名称')
                     })
                     return false
                 }
                 if (!nameReg1.test(secretName)) {
-                    megPrefix += '名称：'
+                    megPrefix += this.$t('名称：')
                     this.$bkMessage({
                         theme: 'error',
-                        message: megPrefix + '名称错误，以小写字母或数字开头和结尾，只能包含：小写字母、数字、连字符(-)、点(.)',
+                        message: megPrefix + this.$t('名称错误，以小写字母或数字开头和结尾，只能包含：小写字母、数字、连字符(-)、点(.)'),
                         delay: 8000
                     })
                     return false
@@ -3726,20 +4049,20 @@
                 if (keys && keys.length) {
                     for (const item of keys) {
                         if (!nameReg2.test(item.key)) {
-                            megPrefix += '键：'
+                            megPrefix += this.$t('键：')
                             this.$bkMessage({
                                 theme: 'error',
-                                message: megPrefix + '键名错误，只能包含：字母、数字、连字符(-)、点(.)、下划线(_)，首字母必须是字母，长度小于30个字符',
+                                message: megPrefix + this.$t('键名错误，只能包含：字母、数字、连字符(-)、点(.)、下划线(_)，长度小于30个字符'),
                                 delay: 8000
                             })
                             return false
                         }
                     }
                 } else {
-                    megPrefix += '键：'
+                    megPrefix += this.$t('键：')
                     this.$bkMessage({
                         theme: 'error',
-                        message: megPrefix + `请先添加键！`
+                        message: megPrefix + this.$t('请先添加键')
                     })
                     return false
                 }

@@ -1,27 +1,27 @@
 <div class="biz-content">
     <div class="biz-top-bar">
         <div class="biz-app-title">
-            应用列表
-            <span class="biz-tip f13 ml10">通过Helm模板集或Client创建的应用，请通过命名空间视图查询详情</span>
+            {{$t('应用列表')}}
+            <span class="biz-tip f13 ml10">{{$t('通过Helm Chart、Client、模板集YAML模式创建的应用，请通过命名空间视图查询详情')}}</span>
         </div>
         <bk-guide></bk-guide>
     </div>
     <div class="biz-content-wrapper biz-app-loading" style="padding: 0;">
         <app-exception v-if="exceptionCode && !showLoading" :type="exceptionCode.code" :text="exceptionCode.msg"></app-exception>
-        <div class="biz-panel-header biz-app-query" style="padding: 27px 20px 30px 20px;">
+        <div class="biz-panel-header biz-app-query" style="padding: 27px 20px 15px 20px;">
             <div class="left">
                 <bk-dropdown-menu :align="'center'" ref="toggleDropdown">
                     <a href="javascript:void(0);" slot="dropdown-trigger" class="bk-text-button toggle-view">
-                        <template v-if="viewMode === 'template'">集群模板视图</template>
-                        <template v-if="viewMode === 'namespace'">命名空间视图</template>
+                        <template v-if="viewMode === 'template'">{{$t('集群模板视图')}}</template>
+                        <template v-if="viewMode === 'namespace'">{{$t('命名空间视图')}}</template>
                         <i class="bk-icon icon-angle-down dropdown-menu-angle-down"></i>
                     </a>
                     <ul class="bk-dropdown-list" slot="dropdown-content">
                         <li>
-                            <a href="javascript:void(0)" @click="toggleView('template')">集群模板视图</a>
+                            <a href="javascript:void(0)" @click="toggleView('template')">{{$t('集群模板视图')}}</a>
                         </li>
                         <li>
-                            <a href="javascript:void(0)" @click="toggleView('namespace')">命名空间视图</a>
+                            <a href="javascript:void(0)" @click="toggleView('namespace')">{{$t('命名空间视图')}}</a>
                         </li>
                     </ul>
                 </bk-dropdown-menu>
@@ -41,7 +41,7 @@
                     </a>
                 </div>
                 <span class="refresh-wrapper">
-                    <bk-tooltip class="refresh" :content="'刷新'" :delay="500" placement="top">
+                    <bk-tooltip class="refresh" :content="$t('刷新')" :delay="500" placement="top">
                         <button :class="['bk-button bk-default is-outline is-icon', {'is-disabled': showLoading}]" @click="refresh">
                             <i class="bk-icon icon-refresh"></i>
                         </button>
@@ -53,14 +53,21 @@
         <div v-bkloading="{isLoading: showLoading}" :class="tmplMusterList.length || namespaceList.length ? '' : 'biz-app-list-wrapper'">
             <!-------------------------------- 模板集视图 -------------------------------->
             <template v-if="viewMode === 'template'">
+                <p class="biz-tip ml20 mb20">
+                    <i class="bk-icon icon-alarm-insufficient vm"></i>
+                    <span class="vm">{{$t('展示通过模板集表单模式实例化的应用详情')}}</span>
+                </p>
                 <div class="biz-app-list" v-if="tmplMusterList.length">
                     <div class="list-item-tplset" :class="tmplMuster.isOpen ? 'expand' : ''" v-for="(tmplMuster, tmplMusterIndex) in tmplMusterList">
                         <div class="list-item-tplset-inner" @click="toggleTmplMuster(tmplMuster, tmplMusterIndex)">
                             <div class="app-name" :title="tmplMuster.tmpl_muster_name">
                                 {{tmplMuster.tmpl_muster_name}}
                             </div>
-                            <div class="app-desc">
-                                共包含 {{tmplMuster.tmpl_num}} 个应用模板
+                            <div class="app-desc" v-if="isEn">
+                                A total of {{tmplMuster.tmpl_num}} application templates
+                            </div>
+                            <div class="app-desc" v-else>
+                                {{$t('共包含')}} {{tmplMuster.tmpl_num}} {{$t('个应用模板')}}
                             </div>
                             <div class="app-toggle">
                                 <i class="bk-icon" :class="tmplMuster.isOpen ? 'icon-angle-up' : 'icon-angle-down'"></i>
@@ -79,22 +86,34 @@
                                                 <span class="ver">{{tpl.version}}</span>
                                                 <span class="ver">{{tpl.category}}</span>
                                                 <span class="status" v-if="tpl.total_num === 0">
-                                                    无应用
+                                                    {{$t('无应用')}}
                                                 </span>
                                                 <span class="status" v-else-if="tpl.error_num !== 0">
-                                                    {{tpl.error_num || 0}}个应用异常
+                                                    <template v-if="isEn">
+                                                        App abnormal：{{tpl.error_num || 0}}
+                                                    </template>
+                                                    <template v-else>
+                                                        {{tpl.error_num || 0}}个应用异常
+                                                    </template>
                                                 </span>
                                                 <span class="status normal" v-else>
-                                                    正常
+                                                    {{$t('正常')}}
                                                 </span>
                                             </span>
                                             <span class="act">
-                                                <a href="javascript:void(0);" class="bk-text-button" @click="batchDelete(tpl, index)"
-                                                    v-if="tpl.instanceList && tpl.instanceList.length && tpl.instanceList.filter(item => item.isChecked === true).length > 0">
-                                                    批量删除
-                                                </a>
-                                                <a href="javascript:void(0);" v-else class="bk-text-button is-disabled">批量删除</a>
-                                                <a href="javascript:void(0);" class="bk-text-button" @click="goInstantiation(tmplMuster, tpl)">实例化</a>
+                                                <template v-if="tpl.instanceList && tpl.instanceList.length && tpl.instanceList.filter(item => item.isChecked === true).length > 0">
+                                                    <a href="javascript:void(0);" class="bk-text-button" @click="showBatchReBuild(tpl, index)">
+                                                        {{$t('批量重建')}}
+                                                    </a>
+                                                    <a href="javascript:void(0);" class="bk-text-button" @click="batchDelete(tpl, index)">
+                                                        {{$t('批量删除')}}
+                                                    </a>
+                                                </template>
+                                                <template v-else>
+                                                    <a href="javascript:void(0);" class="bk-text-button is-disabled">{{$t('批量重建')}}</a>
+                                                    <a href="javascript:void(0);" class="bk-text-button is-disabled">{{$t('批量删除')}}</a>
+                                                </template>
+                                                <a href="javascript:void(0);" class="bk-text-button" @click="goInstantiation(tmplMuster, tpl)">{{$t('实例化')}}</a>
                                             </span>
                                         </div>
 
@@ -112,21 +131,21 @@
                                                                 <input v-else type="checkbox" name="check-all-instance" disabled="disabled" />
                                                             </label>
                                                         </th>
-                                                        <th style="width: 120px; text-align: left;padding: 0">应用名称</th>
-                                                        <th style="width: 80px;">状态</th>
-                                                        <th style="width: 60px;">类型</th>
-                                                        <th style="width: 100px;">命名空间</th>
-                                                        <th style="width: 70px;">版本</th>
-                                                        <th style="width: 80px;">实例数
+                                                        <th style="width: 120px; text-align: left;padding: 0">{{$t('应用名称')}}</th>
+                                                        <th style="width: 80px;">{{$t('状态')}}</th>
+                                                        <th style="width: 60px;">{{$t('类型')}}</th>
+                                                        <th style="width: 100px;">{{$t('命名空间')}}</th>
+                                                        <th style="width: 70px;">{{$t('版本')}}</th>
+                                                        <th style="width: 80px;">{{$t('实例数')}}
                                                             <bk-tooltip placement="top" :delay="300">
                                                                 <i class="bk-icon icon-info-circle tip"></i>
                                                                 <template slot="content">
-                                                                    <p style="font-weight: 400;">实际实例数/期望数</p>
+                                                                    <p style="font-weight: 400;">{{$t('实际实例数/期望数')}}</p>
                                                                 </template>
                                                             </bk-tooltip>
                                                         </th>
-                                                        <th style="width: 120px;">最后更新时间</th>
-                                                        <th style="width: 190px; text-align: right; padding-right: 20px;">操作</th>
+                                                        <th style="width: 120px;">{{$t('最后更新时间')}}</th>
+                                                        <th style="width: 190px; text-align: right; padding-right: 20px;">{{$t('操作')}}</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody>
@@ -156,7 +175,7 @@
                                                                     <bk-tooltip placement="top" :delay="500">
                                                                         <i class="bk-icon icon-info-circle" style="font-size: 16px;color: #ff5656;position: absolute;top: -12px;left: -16px;"></i>
                                                                         <template slot="content">
-                                                                            <p style="text-align: left; white-space: normal;word-break: break-all;font-weight:400;">{{instance.backend_status_message || '异常'}}</p>
+                                                                            <p style="text-align: left; white-space: normal;word-break: break-all;font-weight:400;">{{instance.backend_status_message || $t('异常')}}</p>
                                                                         </template>
                                                                     </bk-tooltip>
                                                                     <p style="display: inline-block;color: #ff5656;">CreateError</p>
@@ -183,18 +202,18 @@
                                                                 <td class="act">
                                                                     <template v-if="instance.state.islock === true">
                                                                         <a href="javascript:void(0);" class="bk-text-button is-disabled">
-                                                                            重试
+                                                                            {{$t('重试')}}
                                                                         </a>
                                                                         <a href="javascript:void(0)" class="bk-text-button is-disabled">
-                                                                            删除
+                                                                            {{$t('删除')}}
                                                                         </a>
                                                                     </template>
                                                                     <template v-else-if="instance.state.islock === false">
                                                                         <a href="javascript:void(0);" class="bk-text-button" @click="reCreate(instance, instanceIndex, tpl.instanceList)">
-                                                                            重试
+                                                                            {{$t('重试')}}
                                                                         </a>
                                                                         <a href="javascript:void(0)" class="bk-text-button" @click="showDelete(instance, instanceIndex, tpl.instanceList)">
-                                                                            删除
+                                                                            {{$t('删除')}}
                                                                         </a>
                                                                     </template>
                                                                 </td>
@@ -239,7 +258,7 @@
                                                                             <bk-tooltip placement="top" :delay="500">
                                                                                 <i class="bk-icon icon-info-circle" style="font-size: 16px;color: #ff5656;position: absolute;top: -12px;left: -16px;"></i>
                                                                                 <template slot="content">
-                                                                                    <p style="text-align: left; white-space: normal;word-break: break-all;font-weight:400;">{{instance.status_message || '请点击查看详情'}}</p>
+                                                                                    <p style="text-align: left; white-space: normal;word-break: break-all;font-weight:400;">{{instance.status_message || $t('请点击查看详情')}}</p>
                                                                                 </template>
                                                                             </bk-tooltip>
                                                                             <p style="display: inline-block;color: #ff5656;">{{instance.status}}</p>
@@ -277,45 +296,45 @@
                                                                     <template v-if="instance.state.getRet().rollingupdate === 1">
                                                                         <template v-if="instance.state.islock === true">
                                                                             <a href="javascript:void(0);" class="bk-text-button is-disabled">
-                                                                                滚动升级
+                                                                                {{$t('滚动升级')}}
                                                                             </a>
                                                                         </template>
                                                                         <template v-if="instance.state.islock === false">
                                                                             <a href="javascript:void(0);" class="bk-text-button"
                                                                                 @click="showRollingUpdate(instance, instanceIndex, tpl.instanceList)">
-                                                                                滚动升级
+                                                                                {{$t('滚动升级')}}
                                                                             </a>
                                                                         </template>
                                                                     </template>
                                                                     <template v-else-if="instance.state.getRet().rollingupdate === 0">
                                                                         <a href="javascript:void(0);" class="bk-text-button is-disabled">
-                                                                            滚动升级
+                                                                            {{$t('滚动升级')}}
                                                                         </a>
                                                                     </template>
 
                                                                     <template v-if="instance.state.getRet().pause === 1">
                                                                         <template v-if="instance.state.islock === true">
                                                                             <a href="javascript:void(0);" class="bk-text-button is-disabled">
-                                                                                暂停升级
+                                                                                {{$t('暂停升级')}}
                                                                             </a>
                                                                         </template>
                                                                         <template v-if="instance.state.islock === false">
                                                                             <a href="javascript:void(0);" class="bk-text-button"
                                                                                 @click="pauseRollingUpdate(instance, instanceIndex, tpl.instanceList)">
-                                                                                暂停升级
+                                                                                {{$t('暂停升级')}}
                                                                             </a>
                                                                         </template>
                                                                     </template>
                                                                     <template v-else-if="instance.state.getRet().pause === 0">
                                                                         <a href="javascript:void(0);" class="bk-text-button is-disabled">
-                                                                            暂停升级
+                                                                            {{$t('暂停升级')}}
                                                                         </a>
                                                                     </template>
 
                                                                     <template v-if="instance.state.getRet().resume === 1">
                                                                         <template v-if="instance.state.islock === true">
                                                                             <a href="javascript:void(0);" class="bk-text-button is-disabled" style="margin-right: 55px;">
-                                                                                恢复升级
+                                                                                {{$t('恢复升级')}}
                                                                             </a>
                                                                         </template>
                                                                         <template v-if="instance.state.islock === false">
@@ -326,13 +345,13 @@
                                                                                         : '0'
                                                                                 }"
                                                                                 @click="resumeRollingUpdate(instance, instanceIndex, tpl.instanceList)">
-                                                                                恢复升级
+                                                                                {{$t('恢复升级')}}
                                                                             </a>
                                                                         </template>
                                                                     </template>
                                                                     <template v-else-if="instance.state.getRet().resume === 0">
                                                                         <a href="javascript:void(0);" class="bk-text-button is-disabled" style="margin-right: 55px;">
-                                                                            恢复升级
+                                                                            {{$t('恢复升级')}}
                                                                         </a>
                                                                     </template>
 
@@ -340,21 +359,21 @@
                                                                         <template v-if="instance.state.islock === true">
                                                                             <a href="javascript:void(0);" class="bk-text-button is-disabled"
                                                                                 :style="{marginRight: instance.state.getRet().rebuild === 1 ? '55px' : '0'}">
-                                                                                取消升级
+                                                                                {{$t('取消升级')}}
                                                                             </a>
                                                                         </template>
                                                                         <template v-if="instance.state.islock === false">
                                                                             <a href="javascript:void(0);" class="bk-text-button"
                                                                                 :style="{marginRight: instance.state.getRet().rebuild === 1 ? '55px' : '0'}"
                                                                                 @click="cancelRollingUpdate(instance, instanceIndex, tpl.instanceList)">
-                                                                                取消升级
+                                                                                {{$t('取消升级')}}
                                                                             </a>
                                                                         </template>
                                                                     </template>
                                                                     <template v-else-if="instance.state.getRet().cancel === 0">
                                                                         <a href="javascript:void(0);" class="bk-text-button is-disabled"
                                                                             :style="{marginRight: instance.state.getRet().rebuild === 1 ? '55px' : '0'}">
-                                                                            取消升级
+                                                                            {{$t('取消升级')}}
                                                                         </a>
                                                                     </template>
 
@@ -363,21 +382,21 @@
                                                                             <template v-if="instance.state.islock === true">
                                                                                 <a href="javascript:void(0);" class="bk-text-button is-disabled"
                                                                                     :style="{marginRight: instance.state.getRet().rebuild === 1 ? '55px' : '0'}">
-                                                                                    扩缩容
+                                                                                    {{$t('扩缩容')}}
                                                                                 </a>
                                                                             </template>
                                                                             <template v-if="instance.state.islock === false">
                                                                                 <a href="javascript:void(0);" class="bk-text-button"
                                                                                     :style="{marginRight: instance.state.getRet().rebuild === 1 ? '55px' : '0'}"
                                                                                     @click="showInstanceNum(instance, instanceIndex, tpl.instanceList)">
-                                                                                    扩缩容
+                                                                                    {{$t('扩缩容')}}
                                                                                 </a>
                                                                             </template>
                                                                         </template>
                                                                         <template v-else-if="instance.state.getRet().scale === 0">
                                                                             <a href="javascript:void(0);" class="bk-text-button is-disabled"
                                                                                 :style="{marginRight: instance.state.getRet().rebuild === 1 ? '55px' : '0'}">
-                                                                                扩缩容
+                                                                                {{$t('扩缩容')}}
                                                                             </a>
                                                                         </template>
                                                                     </template>
@@ -388,22 +407,25 @@
                                                                     <template v-if="instance.state.getRet().rebuild === 1">
                                                                         <template v-if="instance.state.islock === true">
                                                                             <a href="javascript:void(0);" class="bk-text-button is-disabled dropdown-menu">
-                                                                                更多
+                                                                                {{$t('更多')}}
                                                                                 <i class="bk-icon icon-angle-down dropdown-menu-angle-down"></i>
                                                                             </a>
                                                                         </template>
                                                                         <template v-if="instance.state.islock === false">
                                                                             <bk-dropdown-menu class="dropdown-menu" :align="'center'" ref="dropdown">
                                                                                 <a href="javascript:void(0);" slot="dropdown-trigger" class="bk-text-button">
-                                                                                    更多
+                                                                                    {{$t('更多')}}
                                                                                     <i class="bk-icon icon-angle-down dropdown-menu-angle-down"></i>
                                                                                 </a>
                                                                                 <ul class="bk-dropdown-list" slot="dropdown-content">
-                                                                                    <li>
-                                                                                        <a href="javascript:void(0)" @click="showReBuild(instance, instanceIndex, tpl.instanceList)">重建</a>
+                                                                                    <li v-if="instance.from_platform === true">
+                                                                                        <a href="javascript:void(0)" @click="showRollbackPrevious(instance, instanceIndex, tpl.instanceList)">{{$t('回滚上一版本')}}</a>
                                                                                     </li>
                                                                                     <li>
-                                                                                        <a href="javascript:void(0)" @click="showDelete(instance, instanceIndex, tpl.instanceList)">删除</a>
+                                                                                        <a href="javascript:void(0)" @click="showReBuild(instance, instanceIndex, tpl.instanceList)">{{$t('重建')}}</a>
+                                                                                    </li>
+                                                                                    <li>
+                                                                                        <a href="javascript:void(0)" @click="showDelete(instance, instanceIndex, tpl.instanceList)">{{$t('删除')}}</a>
                                                                                     </li>
                                                                                 </ul>
                                                                             </bk-dropdown-menu>
@@ -411,7 +433,7 @@
                                                                     </template>
                                                                     <template v-else-if="instance.state.getRet().rebuild === 0">
                                                                         <a href="javascript:void(0);" class="bk-text-button is-disabled">
-                                                                            更多
+                                                                            {{$t('更多')}}
                                                                             <i class="bk-icon icon-angle-down dropdown-menu-angle-down"></i>
                                                                         </a>
                                                                     </template>
@@ -423,7 +445,7 @@
                                                         <tr>
                                                             <td colspan="9">
                                                                 <div class="bk-message-box">
-                                                                    <p class="message empty-message" v-if="!instanceLoading">无数据</p>
+                                                                    <p class="message empty-message" v-if="!instanceLoading">{{$t('无数据')}}</p>
                                                                 </div>
                                                             </td>
                                                         </tr>
@@ -436,7 +458,7 @@
                                 <template v-if="!tmplMuster.templateLoading && (!tmplMuster.templateList || !tmplMuster.templateList.length)">
                                     <div class="list-item-tpl">
                                         <div class="no-data-list-item-tpl-inner">
-                                            无数据
+                                            {{$t('无数据')}}
                                         </div>
                                     </div>
                                 </template>
@@ -446,13 +468,17 @@
                 </div>
                 <div class="biz-app-list" v-if="!tmplMusterList.length && !showLoading">
                     <div class="bk-message-box">
-                        <p class="message empty-message" v-if="!instanceLoading">无数据</p>
+                        <p class="message empty-message" v-if="!instanceLoading">{{$t('无数据')}}</p>
                     </div>
                 </div>
             </template>
 
             <!-------------------------------- 命名空间视图 -------------------------------->
             <template v-else>
+                <p class="biz-tip ml20 mb20">
+                    <i class="bk-icon icon-alarm-insufficient vm"></i>
+                    <span class="vm">{{$t('展示通过命名空间页面创建的命名空间的应用详情')}}</span>
+                </p>
                 <div class="biz-app-namespace-list k8s" v-if="namespaceList.length">
                     <div class="list-item-tplset" :class="namespace.isOpen ? 'expand' : ''"
                         v-for="(namespace, namespaceIndex) in namespaceList">
@@ -464,14 +490,26 @@
                                 </span>
                             </div>
                             <div class="app-desc">
-                                共包含 {{namespace.total_num}} 个应用，{{namespace.error_num === 0 ? '无异常' : `${namespace.error_num}个异常`}}
+                                <template v-if="isEn">
+                                    A total of {{namespace.total_num}} applications, {{namespace.error_num === 0 ? 'no exception' : `${namespace.error_num} exceptions`}}
+                                </template>
+                                <template v-else>
+                                    共包含 {{namespace.total_num}} 个应用，{{namespace.error_num === 0 ? '无异常' : `${namespace.error_num}个异常`}}
+                                </template>
                             </div>
                             <div class="app-act">
-                                <a href="javascript:void(0);" class="bk-text-button" @click.stop="batchDelete4Namespace(namespace, namespaceIndex)"
-                                    v-if="namespace.appList && namespace.appList.length && namespace.appList.filter(item => item.isChecked === true).length > 0">
-                                    批量删除
-                                </a>
-                                <a href="javascript:void(0);" v-else class="bk-text-button is-disabled">批量删除</a>
+                                <template v-if="namespace.appList && namespace.appList.length && namespace.appList.filter(item => item.isChecked === true).length > 0">
+                                    <a href="javascript:void(0);" class="bk-text-button" @click.stop="showBatchReBuild(namespace, namespaceIndex)">
+                                        {{$t('批量重建')}}
+                                    </a>
+                                    <a href="javascript:void(0);" class="bk-text-button" @click.stop="batchDelete4Namespace(namespace, namespaceIndex)">
+                                        {{$t('批量删除')}}
+                                    </a>
+                                </template>
+                                <template v-else>
+                                    <a href="javascript:void(0);" class="bk-text-button is-disabled">{{$t('批量重建')}}</a>
+                                    <a href="javascript:void(0);" class="bk-text-button is-disabled">{{$t('批量删除')}}</a>
+                                </template>
                             </div>
                             <div class="app-toggle">
                                 <i class="bk-icon" :class="namespace.isOpen ? 'icon-angle-up' : 'icon-angle-down'"></i>
@@ -494,21 +532,21 @@
                                                     </label>
                                                 </th>
                                                 <th style="width: 120px; text-align: left; padding: 10px;">
-                                                    应用名称
+                                                    {{$t('应用名称')}}
                                                 </th>
-                                                <th style="width: 70px;">状态</th>
-                                                <th style="width: 90px;">来源</th>
-                                                <th style="width: 70px;">版本</th>
-                                                <th style="width: 80px;">应用数
+                                                <th style="width: 70px;">{{$t('状态')}}</th>
+                                                <th style="width: 90px;">{{$t('来源')}}</th>
+                                                <th style="width: 70px;">{{$t('版本')}}</th>
+                                                <th style="width: 80px;">{{$t('应用数')}}
                                                     <bk-tooltip placement="top" :delay="300">
                                                         <i class="bk-icon icon-info-circle tip"></i>
                                                         <template slot="content">
-                                                            <p style="font-weight: 400;">实际实例数/期望数</p>
+                                                            <p style="font-weight: 400;">{{$t('实际实例数/期望数')}}</p>
                                                         </template>
                                                     </bk-tooltip>
                                                 </th>
-                                                <th style="width: 90px;">最后更新时间</th>
-                                                <th style="width: 200px; text-align: right; padding-right: 20px;">操作</th>
+                                                <th style="width: 90px;">{{$t('最后更新时间')}}</th>
+                                                <th style="width: 200px; text-align: right; padding-right: 20px;">{{$t('操作')}}</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -537,7 +575,7 @@
                                                             <bk-tooltip placement="top-start" :delay="500">
                                                                 <i class="bk-icon icon-info-circle" style="font-size: 16px;color: #ff5656;position: absolute;top: -12px;left: -16px;"></i>
                                                                 <template slot="content">
-                                                                    <p style="text-align: left; white-space: normal;word-break: break-all;font-weight:400;">{{instance.backend_status_message || '异常'}}</p>
+                                                                    <p style="text-align: left; white-space: normal;word-break: break-all;font-weight:400;">{{instance.backend_status_message || $t('异常')}}</p>
                                                                 </template>
                                                             </bk-tooltip>
                                                             <p style="display: inline-block;color: #ff5656;">CreateError</p>
@@ -556,18 +594,18 @@
                                                         <td class="act">
                                                             <template v-if="instance.state.islock === true">
                                                                 <a href="javascript:void(0);" class="bk-text-button is-disabled">
-                                                                    重试
+                                                                    {{$t('重试')}}
                                                                 </a>
                                                                 <a href="javascript:void(0)" class="bk-text-button is-disabled">
-                                                                    删除
+                                                                    {{$t('删除')}}
                                                                 </a>
                                                             </template>
                                                             <template v-else-if="instance.state.islock === false">
                                                                 <a href="javascript:void(0);" class="bk-text-button" @click="reCreate(instance, instanceIndex, namespace.appList)">
-                                                                    重试
+                                                                    {{$t('重试')}}
                                                                 </a>
                                                                 <a href="javascript:void(0)" class="bk-text-button" @click="showDelete(instance, instanceIndex, namespace.appList)">
-                                                                    删除
+                                                                    {{$t('删除')}}
                                                                 </a>
                                                             </template>
                                                         </td>
@@ -612,7 +650,7 @@
                                                                     <bk-tooltip placement="top" :delay="500">
                                                                         <i class="bk-icon icon-info-circle" style="font-size: 16px;color: #ff5656;position: absolute;top: -12px;left: -16px;"></i>
                                                                         <template slot="content">
-                                                                            <p style="text-align: left; white-space: normal;word-break: break-all;font-weight:400;">{{instance.status_message || '请点击查看详情'}}</p>
+                                                                            <p style="text-align: left; white-space: normal;word-break: break-all;font-weight:400;">{{instance.status_message || $t('请点击查看详情')}}</p>
                                                                         </template>
                                                                     </bk-tooltip>
                                                                     <p style="display: inline-block;color: #ff5656;">{{instance.status}}</p>
@@ -647,45 +685,45 @@
                                                             <template v-if="instance.state.getRet().rollingupdate === 1">
                                                                 <template v-if="instance.state.islock === true">
                                                                     <a href="javascript:void(0);" class="bk-text-button is-disabled">
-                                                                        滚动升级
+                                                                        {{$t('滚动升级')}}
                                                                     </a>
                                                                 </template>
                                                                 <template v-if="instance.state.islock === false">
                                                                     <a href="javascript:void(0);" class="bk-text-button"
                                                                         @click="showRollingUpdate(instance, instanceIndex, namespace.appList)">
-                                                                        滚动升级
+                                                                        {{$t('滚动升级')}}
                                                                     </a>
                                                                 </template>
                                                             </template>
                                                             <template v-else-if="instance.state.getRet().rollingupdate === 0">
                                                                 <a href="javascript:void(0);" class="bk-text-button is-disabled">
-                                                                    滚动升级
+                                                                    {{$t('滚动升级')}}
                                                                 </a>
                                                             </template>
 
                                                             <template v-if="instance.state.getRet().pause === 1">
                                                                 <template v-if="instance.state.islock === true">
                                                                     <a href="javascript:void(0);" class="bk-text-button is-disabled">
-                                                                        暂停升级
+                                                                        {{$t('暂停升级')}}
                                                                     </a>
                                                                 </template>
                                                                 <template v-if="instance.state.islock === false">
                                                                     <a href="javascript:void(0);" class="bk-text-button"
                                                                         @click="pauseRollingUpdate(instance, instanceIndex, namespace.appList)">
-                                                                        暂停升级
+                                                                        {{$t('暂停升级')}}
                                                                     </a>
                                                                 </template>
                                                             </template>
                                                             <template v-else-if="instance.state.getRet().pause === 0">
                                                                 <a href="javascript:void(0);" class="bk-text-button is-disabled">
-                                                                    暂停升级
+                                                                    {{$t('暂停升级')}}
                                                                 </a>
                                                             </template>
 
                                                             <template v-if="instance.state.getRet().resume === 1">
                                                                 <template v-if="instance.state.islock === true">
                                                                     <a href="javascript:void(0);" class="bk-text-button is-disabled" style="margin-right: 55px;">
-                                                                        恢复升级
+                                                                        {{$t('恢复升级')}}
                                                                     </a>
                                                                 </template>
                                                                 <template v-if="instance.state.islock === false">
@@ -696,13 +734,13 @@
                                                                                 : '0'
                                                                         }"
                                                                         @click="resumeRollingUpdate(instance, instanceIndex, namespace.appList)">
-                                                                        恢复升级
+                                                                        {{$t('恢复升级')}}
                                                                     </a>
                                                                 </template>
                                                             </template>
                                                             <template v-else-if="instance.state.getRet().resume === 0">
                                                                 <a href="javascript:void(0);" class="bk-text-button is-disabled"  style="margin-right: 55px;">
-                                                                    恢复升级
+                                                                    {{$t('恢复升级')}}
                                                                 </a>
                                                             </template>
 
@@ -710,21 +748,21 @@
                                                                 <template v-if="instance.state.islock === true">
                                                                     <a href="javascript:void(0);" class="bk-text-button is-disabled"
                                                                         :style="{marginRight: instance.state.getRet().rebuild === 1 ? '55px' : '0'}">
-                                                                        取消升级
+                                                                        {{$t('取消升级')}}
                                                                     </a>
                                                                 </template>
                                                                 <template v-if="instance.state.islock === false">
                                                                     <a href="javascript:void(0);" class="bk-text-button"
                                                                         :style="{marginRight: instance.state.getRet().rebuild === 1 ? '55px' : '0'}"
                                                                         @click="cancelRollingUpdate(instance, instanceIndex, namespace.appList)">
-                                                                        取消升级
+                                                                        {{$t('取消升级')}}
                                                                     </a>
                                                                 </template>
                                                             </template>
                                                             <template v-else-if="instance.state.getRet().cancel === 0">
                                                                 <a href="javascript:void(0);" class="bk-text-button is-disabled"
                                                                     :style="{marginRight: instance.state.getRet().rebuild === 1 ? '55px' : '0'}">
-                                                                    取消升级
+                                                                    {{$t('取消升级')}}
                                                                 </a>
                                                             </template>
 
@@ -733,34 +771,42 @@
                                                                     <template v-if="instance.state.islock === true">
                                                                         <a href="javascript:void(0);" class="bk-text-button is-disabled"
                                                                             :style="{marginRight: instance.state.getRet().rebuild === 1 ? '55px' : '0'}">
-                                                                            扩缩容
+                                                                            {{$t('扩缩容')}}
                                                                         </a>
                                                                     </template>
                                                                     <template v-if="instance.state.islock === false">
                                                                         <a href="javascript:void(0);" class="bk-text-button"
                                                                             :style="{marginRight: instance.state.getRet().rebuild === 1 ? '55px' : '0'}"
                                                                             @click="showInstanceNum(instance, instanceIndex, namespace.appList)">
-                                                                            扩缩容
+                                                                            {{$t('扩缩容')}}
                                                                         </a>
                                                                         <!-- <template v-if="instance.from_platform">
                                                                             <a href="javascript:void(0);" class="bk-text-button"
                                                                                 :style="{marginRight: instance.state.getRet().rebuild === 1 ? '55px' : '0'}"
-                                                                                @click="showInstanceNum(instance, instanceIndex, namespace.appList)">
-                                                                                扩缩容
-                                                                            </a>
+                                                                                @click="showInstanceNum(instance, instanceIndex, namespace.appList)">{{$t('扩缩容
+                                                                            ')}}</a>
                                                                         </template>
                                                                         <template v-else>
-                                                                            <a href="javascript:void(0);" class="bk-text-button is-disabled" :style="{marginRight: instance.state.getRet().rebuild === 1 ? '55px' : '0'}">
-                                                                                扩缩容
-                                                                            </a>
+                                                                            <a href="javascript:void(0);" class="bk-text-button is-disabled" :style="{marginRight: instance.state.getRet().rebuild === 1 ? '55px' : '0'}">{{$t('扩缩容
+                                                                            ')}}</a>
                                                                         </template> -->
                                                                     </template>
                                                                 </template>
                                                                 <template v-else-if="instance.state.getRet().scale === 0">
-                                                                    <a href="javascript:void(0);" class="bk-text-button is-disabled"
-                                                                        :style="{marginRight: instance.state.getRet().rebuild === 1 ? '55px' : '0'}">
-                                                                        扩缩容
-                                                                    </a>
+                                                                    <template v-if="instance.hpa">
+                                                                        <bk-tooltip :content="$t('该应用已经设置HPA')" placement="top">
+                                                                            <a href="javascript:void(0);" class="bk-text-button is-disabled"
+                                                                                :style="{marginRight: instance.state.getRet().rebuild === 1 ? '45px' : '0', marginLeft: instance.state.getRet().rebuild === 1 ? '15px' : '0'}">
+                                                                                {{$t('扩缩容')}}
+                                                                            </a>
+                                                                        </bk-tooltip>
+                                                                    </template>
+                                                                    <template v-else>
+                                                                        <a href="javascript:void(0);" class="bk-text-button is-disabled"
+                                                                            :style="{marginRight: instance.state.getRet().rebuild === 1 ? '55px' : '0'}">
+                                                                            {{$t('扩缩容')}}
+                                                                        </a>
+                                                                    </template>
                                                                 </template>
                                                             </template>
                                                             <template v-else>
@@ -770,22 +816,22 @@
                                                             <template v-if="instance.state.getRet().rebuild === 1">
                                                                 <template v-if="instance.state.islock === true">
                                                                     <a href="javascript:void(0);" class="bk-text-button is-disabled dropdown-menu">
-                                                                        更多
+                                                                        {{$t('更多')}}
                                                                         <i class="bk-icon icon-angle-down dropdown-menu-angle-down"></i>
                                                                     </a>
                                                                 </template>
                                                                 <template v-if="instance.state.islock === false">
                                                                     <bk-dropdown-menu class="dropdown-menu" :align="'center'" ref="dropdown">
                                                                         <a href="javascript:void(0);" slot="dropdown-trigger" class="bk-text-button">
-                                                                            更多
+                                                                            {{$t('更多')}}
                                                                             <i class="bk-icon icon-angle-down dropdown-menu-angle-down"></i>
                                                                         </a>
                                                                         <ul class="bk-dropdown-list" slot="dropdown-content">
                                                                             <li>
-                                                                                <a href="javascript:void(0)" @click="showReBuild(instance, instanceIndex, namespace.appList)">重建</a>
+                                                                                <a href="javascript:void(0)" @click="showReBuild(instance, instanceIndex, namespace.appList)">{{$t('重建')}}</a>
                                                                             </li>
                                                                             <li>
-                                                                                <a href="javascript:void(0)" @click="showDelete(instance, instanceIndex, namespace.appList)">删除</a>
+                                                                                <a href="javascript:void(0)" @click="showDelete(instance, instanceIndex, namespace.appList)">{{$t('删除')}}</a>
                                                                             </li>
                                                                         </ul>
                                                                     </bk-dropdown-menu>
@@ -793,7 +839,7 @@
                                                             </template>
                                                             <template v-else-if="instance.state.getRet().rebuild === 0">
                                                                 <a href="javascript:void(0);" class="bk-text-button is-disabled">
-                                                                    更多
+                                                                    {{$t('更多')}}
                                                                     <i class="bk-icon icon-angle-down dropdown-menu-angle-down"></i>
                                                                 </a>
                                                             </template>
@@ -805,7 +851,7 @@
                                                 <tr>
                                                     <td colspan="9">
                                                         <div class="bk-message-box">
-                                                            <p class="message empty-message" v-if="!namespace.appLoading">无数据</p>
+                                                            <p class="message empty-message" v-if="!namespace.appLoading">{{$t('无数据')}}</p>
                                                         </div>
                                                     </td>
                                                 </tr>
@@ -819,7 +865,7 @@
                 </div>
                 <div class="biz-app-list" v-if="!namespaceList.length && !showLoading">
                     <div class="bk-message-box">
-                        <p class="message empty-message" v-if="!instanceLoading">无数据</p>
+                        <p class="message empty-message" v-if="!instanceLoading">{{$t('无数据')}}</p>
                     </div>
                 </div>
             </template>
@@ -840,15 +886,14 @@
             <div v-bkloading="{isLoading: rollingUpdateDialogConf.loading, opacity: 1}" style="min-height: 455px;">
                 <div class="title-wrapper">
                     <div class="left">
-                        <span style="margin-right: 40px;">当前版本：{{rollingUpdateDialogConf.oldVer}}</span>
-                        <span v-if="CATEGORY !== 'daemonset'">实例数：{{curInstance.instance}}</span>
+                        <span style="margin-right: 40px;">{{$t('当前版本：')}}{{rollingUpdateDialogConf.oldVer}}</span>
+                        <span v-if="CATEGORY !== 'daemonset'">{{$t('实例数：')}}{{curInstance.instance}}</span>
                     </div>
-                    <div class="right">
-                        更新版本：
+                    <div class="right">{{$t('更新版本：')}}
                         <div class="dropdown">
                             <bk-selector
                                 :style="{width: CATEGORY !== 'daemonset' ? '190px' : '330px'}"
-                                :placeholder="'请选择版本'"
+                                :placeholder="$t('请选择版本')"
                                 :list="rollingUpdateDialogConf.verList"
                                 :selected.sync="rollingUpdateDialogConf.selectedVerId"
                                 :setting-key="'id'"
@@ -859,37 +904,67 @@
                             </bk-selector>
                         </div>
                         <span v-if="CATEGORY !== 'daemonset'">
-                            实例数：
+                            {{$t('实例数：')}}
                             <template v-if="rollingUpdateDialogConf.newVersion.instance_num_var_flag">
-                                <bk-number-input
-                                    :value.sync="rollingUpdateDialogConf.newVersion.instance_num"
-                                    :min="1"
-                                    :max="1000"
-                                    :disabled="true"
-                                    :ex-style="{width: '80px'}"
-                                    :placeholder="'请输入'">
-                                </bk-number-input>
+                                <template v-if="curInstance.hpa">
+                                    <bk-tooltip :content="$t('该应用已经设置HPA')" placement="top">
+                                        <bk-number-input
+                                            :value.sync="rollingUpdateDialogConf.newVersion.instance_num"
+                                            :min="1"
+                                            :max="1000"
+                                            :disabled="curInstance.hpa"
+                                            :ex-style="{width: '80px'}"
+                                            :placeholder="$t('请输入')">
+                                        </bk-number-input>
+                                    </bk-tooltip>
+                                </template>
+                                <template v-else>
+                                    <bk-number-input
+                                        :value.sync="rollingUpdateDialogConf.newVersion.instance_num"
+                                        :min="1"
+                                        :max="1000"
+                                        :disabled="curInstance.hpa"
+                                        :ex-style="{width: '80px'}"
+                                        :placeholder="$t('请输入')">
+                                    </bk-number-input>
+                                </template>
                             </template>
                             <template v-else>
-                                <bk-number-input
-                                    :value.sync="rollingUpdateDialogConf.newVersion.instance_num"
-                                    :min="1"
-                                    :max="1000"
-                                    :ex-style="{width: '80px'}"
-                                    :placeholder="'请输入'"
-                                    @change="instanceNumChange">
-                                </bk-number-input>
+                                <template v-if="curInstance.hpa">
+                                    <bk-tooltip :content="$t('该应用已经设置HPA')" placement="top">
+                                        <bk-number-input
+                                            :value.sync="rollingUpdateDialogConf.newVersion.instance_num"
+                                            :min="1"
+                                            :max="1000"
+                                            :disabled="curInstance.hpa"
+                                            :ex-style="{width: '80px'}"
+                                            :placeholder="$t('请输入')"
+                                            @change="instanceNumChange">
+                                        </bk-number-input>
+                                    </bk-tooltip>
+                                </template>
+                                <template v-else>
+                                    <bk-number-input
+                                        :value.sync="rollingUpdateDialogConf.newVersion.instance_num"
+                                        :min="1"
+                                        :max="1000"
+                                        :disabled="curInstance.hpa"
+                                        :ex-style="{width: '80px'}"
+                                        :placeholder="$t('请输入')"
+                                        @change="instanceNumChange">
+                                    </bk-number-input>
+                                </template>
                             </template>
                         </span>
                         <a href="javascript:void(0)" class="bk-text-button" style="margin-left: 5px;" @click="toggleVariable"
                             v-if="(rollingUpdateDialogConf.oldVariableList && rollingUpdateDialogConf.oldVariableList.length) || (rollingUpdateDialogConf.newVariableList && rollingUpdateDialogConf.newVariableList.length)"
                             >
-                            <i class="bk-icon icon-edit2"></i>编辑变量
+                            <i class="bk-icon icon-edit2"></i>{{$t('编辑变量')}}
                         </a>
                         <template v-else>
-                            <bk-tooltip :content="'模板未引用变量'" :delay="500" placement="top">
+                            <bk-tooltip :content="$t('模板未引用变量')" :delay="500" placement="top">
                                 <a href="javascript:void(0)" class="bk-text-button is-disabled" style="margin-left: 5px;">
-                                    <i class="bk-icon icon-edit2"></i>编辑变量
+                                    <i class="bk-icon icon-edit2"></i>{{$t('编辑变量')}}
                                 </a>
                             </bk-tooltip>
                         </template>
@@ -902,7 +977,7 @@
                                 <div class="biz-key-value-item" v-for="(variable, index) in rollingUpdateDialogConf.oldVariableList">
                                     <input type="text" class="bk-form-input" disabled v-model="variable.key">
                                     <span class="equals-sign">=</span>
-                                    <input type="text" class="bk-form-input right" placeholder="值" disabled v-model="variable.value">
+                                    <input type="text" class="bk-form-input right" :placeholder="$t('值')" disabled v-model="variable.value">
                                 </div>
                             </div>
                         </template>
@@ -923,7 +998,7 @@
                                         </bk-number-input>
                                     </template>
                                     <template v-else>
-                                        <input type="text" class="bk-form-input right" placeholder="值" v-model="variable.value">
+                                        <input type="text" class="bk-form-input right" :placeholder="$t('值')" v-model="variable.value">
                                     </template>
                                 </div>
                             </div>
@@ -931,7 +1006,7 @@
                     </div>
                 </div>
                 <div class="diff-wrapper">
-                    <bk-diff
+                    <!-- <bk-diff
                         v-if="rollingUpdateDialogConf.oldContent"
                         :old-content="rollingUpdateDialogConf.oldContent"
                         :new-content="rollingUpdateDialogConf.newContent"
@@ -939,7 +1014,20 @@
                         :min-height="400"
                         :context="200"
                         @change-count="getDiffChangeCount">
-                    </bk-diff>
+                    </bk-diff> -->
+                    <monaco-editor
+                        ref="yamlEditor"
+                        class="editor"
+                        theme="monokai"
+                        language="yaml"
+                        style="height: 400px; width: 100%"
+                        v-model="rollingUpdateDialogConf.newContent"
+                        :diff-editor="useEditorDiff"
+                        :options="yamlEditorOptions"
+                        :key="reRenderEditor"
+                        :original="rollingUpdateDialogConf.oldContent"
+                        @mounted="handleEditorMount">
+                    </monaco-editor>
                 </div>
             </div>
         </template>
@@ -948,19 +1036,19 @@
                 <div class="no-diff-msg">{{rollingUpdateDialogConf.noDiffMsg}}</div>
                 <template v-if="isUpdating">
                     <button type="button" class="bk-dialog-btn bk-dialog-btn-confirm bk-btn-primary disabled">
-                        更新中...
+                        {{$t('更新中...')}}
                     </button>
                     <button type="button" class="bk-dialog-btn bk-dialog-btn-cancel disabled">
-                        取消
+                        {{$t('取消')}}
                     </button>
                 </template>
                 <template v-else>
                     <button type="button" class="bk-dialog-btn bk-dialog-btn-confirm bk-btn-primary"
                         @click="rollingUpdateConfirm">
-                        确定
+                        {{$t('确定')}}
                     </button>
                     <button type="button" class="bk-dialog-btn bk-dialog-btn-cancel" @click="hideRollingUpdate">
-                        取消
+                        {{$t('取消')}}
                     </button>
                 </template>
             </div>
@@ -984,19 +1072,32 @@
                     </div>
                     <template v-if="rollingUpdateInNotPlatformDialogConf.showType === 'diff'">
                         <div class="diff-wrapper" style="margin-top: 26px;">
-                            <bk-diff
+                            <!-- <bk-diff
                                 :old-content="compareEditorConfig.value"
                                 :new-content="editorValue"
                                 :format="'side-by-side'"
                                 :min-height="400"
                                 :context="200">
-                            </bk-diff>
+                            </bk-diff> -->
+                            <monaco-editor
+                                ref="jsonEditor"
+                                class="editor"
+                                theme="monokai"
+                                language="json"
+                                style="height: 480px; width: 100%"
+                                v-model="editorValue"
+                                :diff-editor="true"
+                                :options="yamlEditorOptions"
+                                :key="reRenderJSONEditor"
+                                :original="compareEditorConfig.value"
+                                @mounted="handleEditorMount">
+                            </monaco-editor>
                         </div>
                     </template>
                     <template v-else>
                         <div class="left">
-                            <div class="rolling-update-in-not-platform-tip"><i class="bk-icon icon-info-circle"></i>当前线上配置</div>
-                            <div class="build-code-fullscreen" title="全屏" @click="setFullScreen('compareEditor')">
+                            <div class="rolling-update-in-not-platform-tip"><i class="bk-icon icon-info-circle"></i>{{$t('当前线上配置')}}</div>
+                            <div class="build-code-fullscreen" :title="$t('全屏')" @click="setFullScreen('compareEditor')">
                                 <i class="bk-icon icon-full-screen"></i>
                             </div>
                             <ace
@@ -1010,8 +1111,8 @@
                             </ace>
                         </div>
                         <div class="right">
-                            <div class="rolling-update-in-not-platform-tip"><i class="bk-icon icon-info-circle"></i>编辑并确定，将更新该配置到线上</div>
-                            <div class="build-code-fullscreen" title="全屏" @click="setFullScreen('editor')">
+                            <div class="rolling-update-in-not-platform-tip"><i class="bk-icon icon-info-circle"></i>{{$t('编辑并确定，将更新该配置到线上')}}</div>
+                            <div class="build-code-fullscreen" :title="$t('全屏')" @click="setFullScreen('editor')">
                                 <i class="bk-icon icon-full-screen"></i>
                             </div>
                             <ace
@@ -1035,19 +1136,19 @@
             <div class="bk-dialog-outer">
                 <template v-if="isUpdating">
                     <button type="button" class="bk-dialog-btn bk-dialog-btn-confirm bk-btn-primary disabled">
-                        更新中...
+                        {{$t('更新中...')}}
                     </button>
                     <button type="button" class="bk-dialog-btn bk-dialog-btn-cancel disabled">
-                        取消
+                        {{$t('取消')}}
                     </button>
                 </template>
                 <template v-else>
                     <button type="button" class="bk-dialog-btn bk-dialog-btn-confirm bk-btn-primary"
                         @click="rollingUpdateInNotPlatformConfirm">
-                        确定
+                        {{$t('确定')}}
                     </button>
                     <button type="button" class="bk-dialog-btn bk-dialog-btn-cancel" @click="hideRollingUpdateInNotPlatform">
-                        取消
+                        {{$t('取消')}}
                     </button>
                 </template>
             </div>
@@ -1065,7 +1166,7 @@
             <form class="bk-form bk-form-vertical biz-instance-num-form">
                 <div class="bk-form-item">
                     <label class="bk-label">
-                        实例数量
+                        {{$t('实例数量')}}
                     </label>
                     <div class="bk-form-content">
                         <bk-number-input
@@ -1073,7 +1174,7 @@
                             :min="1"
                             :max="1000"
                             :ex-style="{'width': '260px'}"
-                            :placeholder="'请输入'">
+                            :placeholder="$t('请输入')">
                         </bk-number-input>
                     </div>
                 </div>
@@ -1083,19 +1184,19 @@
             <div class="bk-dialog-outer">
                 <template v-if="isUpdating">
                     <button type="button" class="bk-dialog-btn bk-dialog-btn-confirm bk-btn-primary disabled">
-                        更新中...
+                        {{$t('更新中...')}}
                     </button>
                     <button type="button" class="bk-dialog-btn bk-dialog-btn-cancel disabled">
-                        取消
+                        {{$t('取消')}}
                     </button>
                 </template>
                 <template v-else>
                     <button type="button" class="bk-dialog-btn bk-dialog-btn-confirm bk-btn-primary"
                         @click="instanceNumConfirm">
-                        确定
+                        {{$t('确定')}}
                     </button>
                     <button type="button" class="bk-dialog-btn bk-dialog-btn-cancel" @click="hideInstanceNum">
-                        取消
+                        {{$t('取消')}}
                     </button>
                 </template>
             </div>
@@ -1110,7 +1211,7 @@
         :ext-cls="'adjust-instance-dialog'"
         :quick-close="false">
         <template slot="content">
-            <div class="rebuild-tip">重建是指删除应用，然后重新下发线上的配置</div>
+            <div class="rebuild-tip">{{$t('重建是指应用关联pod的重新调度')}}</div>
             <div v-bkloading="{isLoading: reBuildDialogConf.loading, opacity: 1}" style="height: 455px;">
                 <ace v-show="!reBuildDialogConf.loading"
                     :value="reBuildDialogConf.aceValue"
@@ -1127,19 +1228,19 @@
             <div class="bk-dialog-outer">
                 <template v-if="isUpdating">
                     <button type="button" class="bk-dialog-btn bk-dialog-btn-confirm bk-btn-primary disabled">
-                        重建中...
+                        {{$t('重建中...')}}
                     </button>
                     <button type="button" class="bk-dialog-btn bk-dialog-btn-cancel disabled">
-                        取消
+                        {{$t('取消')}}
                     </button>
                 </template>
                 <template v-else>
                     <button type="button" class="bk-dialog-btn bk-dialog-btn-confirm bk-btn-primary"
                         @click="reBuildConfirm">
-                        确定
+                        {{$t('确定')}}
                     </button>
                     <button type="button" class="bk-dialog-btn bk-dialog-btn-cancel" @click="hideReBuild">
-                        取消
+                        {{$t('取消')}}
                     </button>
                 </template>
             </div>
@@ -1160,19 +1261,19 @@
             <div class="bk-dialog-outer">
                 <template v-if="isUpdating">
                     <button type="button" class="bk-dialog-btn bk-dialog-btn-confirm bk-btn-primary disabled">
-                        删除中...
+                        {{$t('删除中...')}}
                     </button>
                     <button type="button" class="bk-dialog-btn bk-dialog-btn-cancel disabled">
-                        取消
+                        {{$t('取消')}}
                     </button>
                 </template>
                 <template v-else>
                     <button type="button" class="bk-dialog-btn bk-dialog-btn-confirm bk-btn-primary"
                         @click="deleteConfirm">
-                        确定
+                        {{$t('确定')}}
                     </button>
                     <button type="button" class="bk-dialog-btn bk-dialog-btn-cancel" @click="hideDelete">
-                        取消
+                        {{$t('取消')}}
                     </button>
                 </template>
             </div>
@@ -1193,26 +1294,125 @@
             <div class="bk-dialog-outer">
                 <template v-if="isUpdating">
                     <button type="button" class="bk-dialog-btn bk-dialog-btn-confirm bk-btn-primary disabled">
-                        删除中...
+                        {{$t('删除中...')}}
                     </button>
                     <button type="button" class="bk-dialog-btn bk-dialog-btn-cancel disabled">
-                        取消
+                        {{$t('取消')}}
                     </button>
                 </template>
                 <template v-else>
                     <button type="button" class="bk-dialog-btn bk-dialog-btn-confirm bk-btn-primary"
                         @click="forceDeleteConfirm">
-                        确定
+                        {{$t('确定')}}
                     </button>
                     <button type="button" class="bk-dialog-btn bk-dialog-btn-cancel" @click="hideForceDelete">
-                        取消
+                        {{$t('取消')}}
                     </button>
                 </template>
             </div>
         </template>
     </bk-dialog>
 
-    <div title="关闭全屏" @click="cancelFullScreen" class="biz-configuration-instantiation-cancel-fullscreen"
+    <bk-dialog
+        :is-show.sync="rollbackPreviousDialogConf.isShow"
+        :width="rollbackPreviousDialogConf.width"
+        :title="rollbackPreviousDialogConf.title"
+        :close-icon="rollbackPreviousDialogConf.closeIcon"
+        :ext-cls="'biz-rollback-previous-dialog'"
+        :quick-close="false"
+        @confirm="rollbackPreviousConfirm"
+        @cancel="hideRollbackPrevious">
+        <template slot="content">
+            <div v-bkloading="{isLoading: rollbackPreviousDialogConf.loading, opacity: 1}" style="min-height: 455px;">
+                <div class="title-wrapper">
+                    <div class="left">
+                        <span style="margin-right: 40px;">{{$t('当前版本配置')}}</span>
+                    </div>
+                    <div class="right">{{$t('上一版本配置')}}</div>
+                </div>
+                <div class="diff-wrapper">
+                    <monaco-editor
+                        ref="yamlEditor"
+                        class="editor"
+                        theme="monokai"
+                        language="yaml"
+                        style="height: 400px; width: 100%"
+                        v-model="rollbackPreviousDialogConf.curContent"
+                        :diff-editor="useEditorDiff"
+                        :options="yamlEditorOptions"
+                        :key="reRenderEditor"
+                        :original="rollbackPreviousDialogConf.prevContent"
+                        @mounted="handleEditorMount">
+                    </monaco-editor>
+                </div>
+            </div>
+        </template>
+        <template slot="footer">
+            <div class="bk-dialog-outer">
+                <template v-if="isUpdating">
+                    <button type="button" class="bk-dialog-btn bk-dialog-btn-confirm bk-btn-primary disabled">
+                        {{$t('回滚中...')}}
+                    </button>
+                    <button type="button" class="bk-dialog-btn bk-dialog-btn-cancel disabled">
+                        {{$t('取消')}}
+                    </button>
+                </template>
+                <template v-else>
+                    <button type="button" class="bk-dialog-btn bk-dialog-btn-confirm bk-btn-primary"
+                        @click="rollbackPreviousConfirm">
+                        {{$t('确定')}}
+                    </button>
+                    <button type="button" class="bk-dialog-btn bk-dialog-btn-cancel" @click="hideRollbackPrevious">
+                        {{$t('取消')}}
+                    </button>
+                </template>
+            </div>
+        </template>
+    </bk-dialog>
+
+    <bk-dialog
+        :is-show="batchRebuildDialogConf.isShow"
+        :width="420"
+        :has-header="false"
+        :ext-cls="'adjust-instance-dialog'"
+        :quick-close="false"
+        @cancel="hideBatchReBuild">
+        <div slot="content">
+            <div class="biz-batch-wrapper">
+                <p class="batch-title">
+                    {{$t('确定要重建以下资源？')}}
+                    <span class="title-tip" v-if="isEn">(eg: namespace: appname)</span>
+                    <span class="title-tip" v-else>（格式：命名空间: 应用名称）</span>
+                </p>
+                <ul class="batch-list">
+                    <li v-for="(item, index) of batchRebuildDialogConf.list" :key="index">{{item.namespace}}: {{item.name}}</li>
+                </ul>
+            </div>
+        </div>
+        <template slot="footer">
+            <div class="bk-dialog-outer">
+                <template v-if="isUpdating">
+                    <button type="button" class="bk-dialog-btn bk-dialog-btn-confirm bk-btn-primary disabled">
+                        {{$t('重建中...')}}
+                    </button>
+                    <button type="button" class="bk-dialog-btn bk-dialog-btn-cancel disabled">
+                        {{$t('取消')}}
+                    </button>
+                </template>
+                <template v-else>
+                    <button type="button" class="bk-dialog-btn bk-dialog-btn-confirm bk-btn-primary"
+                        @click="batchRebuildConfirm">
+                        {{$t('确定')}}
+                    </button>
+                    <button type="button" class="bk-dialog-btn bk-dialog-btn-cancel" @click="hideBatchReBuild">
+                        {{$t('取消')}}
+                    </button>
+                </template>
+            </div>
+        </template>
+    </bk-dialog>
+
+    <div :title="$t('关闭全屏')" @click="cancelFullScreen" class="biz-configuration-instantiation-cancel-fullscreen"
         v-if="editorConfig.fullScreen || compareEditorConfig.fullScreen">
         <i class="bk-icon icon-close"></i>
     </div>

@@ -1,7 +1,8 @@
 [
-    {
-        "id": "",
-        "container_name": "",
-        "metrics": []
-    }
+  {
+    "id": "",
+    "container_name": "",
+    "metrics": [
+    ]
+  }
 ]

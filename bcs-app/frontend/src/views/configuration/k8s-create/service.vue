@@ -3,7 +3,8 @@
         <biz-header ref="commonHeader"
             @exception="exceptionHandler"
             @saveServiceSuccess="saveServiceSuccess"
-            @switchVersion="initResource">
+            @switchVersion="initResource"
+            @exmportToYaml="exportToYaml">
         </biz-header>
         <template>
             <div class="biz-content-wrapper biz-confignation-wrapper" v-bkloading="{ isLoading: isTemplateSaving }">
@@ -16,26 +17,32 @@
                     <biz-tabs @tab-change="tabResource" ref="commonTab"></biz-tabs>
                     <div class="biz-tab-content" v-bkloading="{ isLoading: isTabChanging }">
                         <template v-if="!services.length">
+                            <p class="biz-template-tip f12 mb10">
+                                {{$t('Service从逻辑上定义了运行在集群中的一组Pod，通常通过selector绑定，将Pod服务公开访问')}}，<a class="bk-text-button" :href="PROJECT_CONFIG.doc.k8sService" target="_blank">{{$t('详情查看文档')}}</a>
+                            </p>
                             <div class="biz-guide-box mt0">
                                 <button class="bk-button bk-primary" @click.stop.prevent="addLocalService">
                                     <i class="bk-icon icon-plus"></i>
-                                    <span style="margin-left: 0;">添加Service</span>
+                                    <span style="margin-left: 0;">{{$t('添加')}}Service</span>
                                 </button>
                             </div>
                         </template>
 
                         <template v-else>
                             <div class="biz-configuration-topbar">
+                                <p class="biz-template-tip f12 mb10">
+                                    {{$t('Service从逻辑上定义了运行在集群中的一组Pod，通常通过selector绑定，将Pod服务公开访问')}}，<a class="bk-text-button" :href="PROJECT_CONFIG.doc.k8sService" target="_blank">{{$t('详情查看文档')}}</a>
+                                </p>
                                 <div class="biz-list-operation">
                                     <div class="item" v-for="(service, index) in services" :key="index">
                                         <button :class="['bk-button', { 'bk-primary': curService.id === service.id }]" @click.stop="setCurService(service, index)">
-                                            {{(service && service.config.metadata.name) || '未命名'}}
+                                            {{(service && service.config.metadata.name) || $t('未命名')}}
                                             <span class="biz-update-dot" v-show="service.isEdited"></span>
                                         </button>
                                         <span class="bk-icon icon-close" @click.stop="removeService(service, index)"></span>
                                     </div>
 
-                                    <bk-tooltip ref="serviceTooltip" :content="'添加Service'" placement="top">
+                                    <bk-tooltip ref="serviceTooltip" :content="$t('添加Service')" placement="top">
                                         <button class="bk-button bk-default is-outline is-icon" @click.stop="addLocalService">
                                             <i class="bk-icon icon-plus"></i>
                                         </button>
@@ -45,29 +52,55 @@
 
                             <div class="biz-configuration-content" style="position: relative; margin-bottom: 105px;">
                                 <div class="bk-form biz-configuration-form">
+                                    <a href="javascript:void(0);" class="bk-text-button from-json-btn" @click.stop.prevent="showJsonPanel">{{$t('导入YAML')}}</a>
+
+                                    <bk-sideslider
+                                        :is-show.sync="toJsonDialogConf.isShow"
+                                        :title="toJsonDialogConf.title"
+                                        :width="toJsonDialogConf.width"
+                                        class="biz-app-container-tojson-sideslider"
+                                        :quick-close="false"
+                                        @hidden="closeToJson">
+                                        <div slot="content" style="position: relative;">
+                                            <div class="biz-log-box" :style="{ height: `${winHeight - 60}px` }" v-bkloading="{ isLoading: toJsonDialogConf.loading }">
+                                                <bk-button class="bk-button bk-primary save-json-btn" @click.stop.prevent="saveApplicationJson">{{$t('导入')}}</bk-button>
+                                                <bk-button class="bk-button bk-default hide-json-btn" @click.stop.prevent="hideApplicationJson">{{$t('取消')}}</bk-button>
+                                                <ace
+                                                    :value="editorConfig.value"
+                                                    :width="editorConfig.width"
+                                                    :height="editorConfig.height"
+                                                    :lang="editorConfig.lang"
+                                                    :read-only="editorConfig.readOnly"
+                                                    :full-screen="editorConfig.fullScreen"
+                                                    @init="editorInitAfter">
+                                                </ace>
+                                            </div>
+                                        </div>
+                                    </bk-sideslider>
+
                                     <div class="bk-form-item is-required">
-                                        <label class="bk-label" style="width: 130px;">名称：</label>
+                                        <label class="bk-label" style="width: 130px;">{{$t('名称')}}：</label>
                                         <div class="bk-form-content" style="margin-left: 130px;">
                                             <bk-input
                                                 type="text"
-                                                placeholder="请输入30个以内的字符"
+                                                :placeholder="$t('请输入64个以内的字符')"
                                                 style="width: 310px;"
-                                                maxlength="30"
+                                                maxlength="64"
                                                 :value.sync="curService.config.metadata.name"
                                                 :list="varList"
                                             >
                                             </bk-input>
                                             <div class="bk-form-tip" v-if="errors.has('serviceName')">
-                                                <p class="bk-tip-text">名称必填，以小写字母或数字开头和结尾，只能包含：小写字母、数字、连字符(-)、点(.)</p>
+                                                <p class="bk-tip-text">{{$t('名称必填，以小写字母或数字开头和结尾，只能包含：小写字母、数字、连字符(-)、点(.)')}}</p>
                                             </div>
                                         </div>
                                     </div>
                                     <div class="bk-form-item is-required">
-                                        <label class="bk-label" style="width: 130px;">关联应用：</label>
+                                        <label class="bk-label" style="width: 130px;">{{$t('关联应用')}}：</label>
                                         <div class="bk-form-content" style="margin-left: 130px;">
                                             <div class="bk-dropdown-box" style="width: 310px;" @click="reloadApplications">
                                                 <bk-selector
-                                                    placeholder="请选择要关联的应用"
+                                                    :placeholder="$t('请选择要关联的应用')"
                                                     :setting-key="'deploy_tag'"
                                                     :multi-select="true"
                                                     :display-key="'deploy_name'"
@@ -78,11 +111,11 @@
                                                     @item-selected="selectApps">
                                                 </bk-selector>
                                             </div>
-                                            <span class="biz-tip ml10" v-if="!isDataLoading && !applicationList.length">请先配置Deployment/DaemonSet/StatefulSet，再进行关联</span>
+                                            <span class="biz-tip f12 ml10" v-if="!isDataLoading && !applicationList.length">{{$t('请先配置Deployment/DaemonSet/StatefulSet，再进行关联')}}</span>
                                         </div>
                                     </div>
                                     <div class="bk-form-item is-required">
-                                        <label class="bk-label" style="width: 130px;">关联标签：</label>
+                                        <label class="bk-label" style="width: 130px;">{{$t('关联标签')}}：</label>
                                         <div class="bk-form-content key-tip-wrapper" style="margin-left: 130px;">
                                             <template v-if="appLabels.length && !isLabelsLoading">
                                                 <ul class="key-list">
@@ -95,19 +128,19 @@
                                                         <span class="value">{{label.key}}:{{label.value}}</span>
                                                     </li>
                                                 </ul>
-                                                <p class="biz-tip mt10 mb15">Service使用标签来查找所有正在运行的容器。请注意：同一个命名空间下，使用了选中标签的应用都会被导流</p>
+                                                <p class="biz-tip f12 mt10 mb15">{{$t('Service使用标签来查找所有正在运行的容器。请注意：同一个命名空间下，使用了选中标签的应用都会被导流')}}</p>
                                             </template>
-                                            <div v-else-if="!isLabelsLoading" class="biz-tip mt10 biz-danger">
-                                                {{curService.deploy_tag_list.length ? '关联的应用没有公共的标签（注：Key、Value都相同的标签为公共标签）' : '请先关联应用'}}
+                                            <div v-else-if="!isLabelsLoading" class="biz-tip f12 biz-danger" style="margin-top: 7px;">
+                                                {{existLinkApp.length ? $t('关联的应用没有公共的标签（注：Key、Value都相同的标签为公共标签）') : $t('请先关联应用')}}
                                             </div>
                                         </div>
                                     </div>
                                     <div class="bk-form-item">
-                                        <label class="bk-label" style="width: 130px;">Service类型：</label>
+                                        <label class="bk-label" style="width: 130px;">{{$t('Service类型')}}：</label>
                                         <div class="bk-form-content" style="margin-left: 130px;">
                                             <div class="bk-dropdown-box" style="width: 310px;">
                                                 <bk-selector
-                                                    placeholder="请选择"
+                                                    :placeholder="$t('请选择')"
                                                     :setting-key="'id'"
                                                     :display-key="'name'"
                                                     :selected.sync="curService.config.spec.type"
@@ -117,15 +150,15 @@
                                             </div>
                                         </div>
                                     </div>
-                                    <div class="bk-form-item" v-show="curService.config.spec.type !== 'NodePort'">
+                                    <div class="bk-form-item" v-show="curService.config.spec.type !== 'NodePort' && curService.config.spec.type !== 'LoadBalancer'">
                                         <label class="bk-label" style="width: 130px;">ClusterIP：</label>
                                         <div class="bk-form-content" style="margin-left: 130px;">
-                                            <input type="text" class="bk-form-input" placeholder="请输入ClusterIP" style="width: 310px;" v-model="curService.config.spec.clusterIP">
-                                            <p class="biz-tip mt10">不填或None</p>
+                                            <input type="text" class="bk-form-input" :placeholder="$t('请输入ClusterIP')" style="width: 310px;" v-model="curService.config.spec.clusterIP">
+                                            <p class="biz-tip f12 mt10">{{$t('不填或None')}}</p>
                                         </div>
                                     </div>
                                     <div class="bk-form-item">
-                                        <label class="bk-label" style="width: 130px;">端口映射：</label>
+                                        <label class="bk-label" style="width: 130px;">{{$t('端口映射')}}：</label>
                                         <div class="bk-form-content" style="margin-left: 130px;">
                                             <div class="biz-keys-list mb10">
                                                 <template v-if="curService.deploy_tag_list.length">
@@ -133,11 +166,11 @@
                                                         <table class="biz-simple-table">
                                                             <thead>
                                                                 <tr>
-                                                                    <th style="width: 100px;">端口名称</th>
-                                                                    <th style="width: 100px;">端口</th>
-                                                                    <th style="width: 120px;">协议</th>
-                                                                    <th style="width: 120px;">目标端口</th>
-                                                                    <th style="width: 100px;" v-if="curService.config.spec.type === 'NodePort'">NodePort</th>
+                                                                    <th style="width: 100px;">{{$t('端口名称')}}</th>
+                                                                    <th style="width: 100px;">{{$t('端口')}}</th>
+                                                                    <th style="width: 120px;">{{$t('协议')}}</th>
+                                                                    <th style="width: 120px;">{{$t('目标端口')}}</th>
+                                                                    <th style="width: 100px;" v-if="curService.config.spec.type === 'NodePort' || curService.config.spec.type === 'LoadBalancer'">NodePort</th>
                                                                     <th></th>
                                                                 </tr>
                                                             </thead>
@@ -146,7 +179,7 @@
                                                                     <td>
                                                                         <bk-input
                                                                             type="text"
-                                                                            placeholder="请输入"
+                                                                            :placeholder="$t('请输入')"
                                                                             style="width: 100px;"
                                                                             :value.sync="port.name"
                                                                             :list="varList"
@@ -156,7 +189,7 @@
                                                                     <td>
                                                                         <bk-input
                                                                             type="number"
-                                                                            placeholder="请输入"
+                                                                            :placeholder="$t('请输入')"
                                                                             style="width: 100px;"
                                                                             :min="1"
                                                                             :max="65535"
@@ -167,7 +200,7 @@
                                                                     </td>
                                                                     <td>
                                                                         <bk-selector
-                                                                            placeholder="协议"
+                                                                            :placeholder="$t('协议')"
                                                                             :setting-key="'id'"
                                                                             :allow-clear="true"
                                                                             :selected.sync="port.protocol"
@@ -176,7 +209,7 @@
                                                                     </td>
                                                                     <td>
                                                                         <bk-selector
-                                                                            placeholder="请选择"
+                                                                            :placeholder="$t('请选择')"
                                                                             :setting-key="'id'"
                                                                             :display-key="'name'"
                                                                             :selected.sync="port.id"
@@ -189,14 +222,14 @@
                                                                             @item-selected="selectPort(port)">
                                                                         </bk-selector>
                                                                     </td>
-                                                                    <td v-if="curService.config.spec.type === 'NodePort'">
+                                                                    <td v-if="curService.config.spec.type === 'NodePort' || curService.config.spec.type === 'LoadBalancer'">
                                                                         <bk-input
                                                                             type="number"
-                                                                            placeholder="请输入"
+                                                                            :placeholder="$t('请输入')"
                                                                             style="width: 76px;"
                                                                             :min="0"
                                                                             :max="32767"
-                                                                            :disabled="curService.config.spec.type !== 'NodePort'"
+                                                                            :disabled="curService.config.spec.type !== 'NodePort' && curService.config.spec.type !== 'LoadBalancer'"
                                                                             :value.sync="port.nodePort"
                                                                             :list="varList"
                                                                         >
@@ -204,8 +237,7 @@
                                                                         <bk-tooltip placement="top">
                                                                             <i class="bk-icon icon-question-circle" style="vertical-align: middle; cursor: pointer;"></i>
                                                                             <div slot="content">
-                                                                                输入node port值，值的范围为[30000-32767]；或者不填写，k8s会生成一个可用的随机端口，此时，可在 网络->Service 查看node port值
-
+                                                                                {{$t('输入node port值，值的范围为[30000-32767]；或者不填写，k8s会生成一个可用的随机端口，此时，可在 网络->Service 查看node port值')}}
                                                                             </div>
                                                                         </bk-tooltip>
                                                                     </td>
@@ -222,23 +254,29 @@
                                                         </table>
                                                     </template>
                                                     <template v-else>
-                                                        <p class="mt5 biz-tip biz-danger">请先填写已关联应用的容器端口映射信息</p>
+                                                        <p class="mt5 biz-tip f12 biz-danger">{{$t('请先填写已关联应用的容器端口映射信息')}}</p>
                                                     </template>
                                                 </template>
                                                 <template v-else>
-                                                    <p class="mt5 biz-tip biz-danger">请先关联应用</p>
+                                                    <p class="mt5 biz-tip f12 biz-danger">{{$t('请先关联应用')}}</p>
                                                 </template>
-                                                <p class="biz-tip">
-                                                    ClusterIP为None时，端口映射可以不填；否则请先关联应用后，再填写端口映射
-                                                    <a href="javascript:void(0);" class="bk-text-button" @click="showPortExampleDialg">查看示例</a>
+                                                <p class="biz-tip f12">
+                                                    {{$t('ClusterIP为None时，端口映射可以不填；否则请先关联应用后，再填写端口映射')}}
+                                                    <a href="javascript:void(0);" class="bk-text-button" @click="showPortExampleDialg">{{$t('查看示例')}}</a>
                                                 </p>
                                             </div>
                                         </div>
                                     </div>
                                     <div class="bk-form-item">
-                                        <label class="bk-label" style="width: 130px;">标签管理：</label>
+                                        <label class="bk-label" style="width: 130px;">{{$t('标签管理')}}：</label>
                                         <div class="bk-form-content" style="margin-left: 130px;">
                                             <bk-keyer :key-list.sync="curLabelList" ref="labelKeyer" @change="updateLabelList" :var-list="varList"></bk-keyer>
+                                        </div>
+                                    </div>
+                                    <div class="bk-form-item">
+                                        <label class="bk-label" style="width: 130px;">{{$t('注解管理')}}：</label>
+                                        <div class="bk-form-content" style="margin-left: 130px;">
+                                            <bk-keyer :key-list.sync="curRemarkList" :var-list="varList" ref="remarkKeyer" @change="updateApplicationRemark"></bk-keyer>
                                         </div>
                                     </div>
                                 </div>
@@ -270,12 +308,16 @@
     import tabs from './tabs.vue'
     import mixinBase from '@open/mixins/configuration/mixin-base'
     import k8sBase from '@open/mixins/configuration/k8s-base'
+    import ace from '@open/components/ace-editor'
+    import yamljs from 'js-yaml'
+    import _ from 'lodash'
 
     export default {
         components: {
             'bk-keyer': bkKeyer,
             'biz-header': header,
-            'biz-tabs': tabs
+            'biz-tabs': tabs,
+            'ace': ace
         },
         mixins: [mixinBase, k8sBase],
         data () {
@@ -286,6 +328,8 @@
                 isDataSaveing: false,
                 isWeightError: false,
                 isLoadingApps: false,
+                portTimer: 0,
+                existLinkApp: [],
                 algorithmList: [
                     {
                         id: 'roundrobin',
@@ -302,7 +346,7 @@
                 ],
                 exampleDialogConf: {
                     isShow: false,
-                    title: '端口映射示例',
+                    title: this.$t('端口映射示例'),
                     width: 800,
                     closeIcon: true
                 },
@@ -315,6 +359,10 @@
                     {
                         id: 'NodePort',
                         name: 'NodePort'
+                    },
+                    {
+                        id: 'LoadBalancer',
+                        name: 'LoadBalancer'
                     }
                 ],
                 weight: 10,
@@ -334,7 +382,33 @@
                 appPortList: [],
                 appLabels: [],
                 curServiceCache: Object.assign({}, serviceParams),
-                curService: serviceParams
+                curService: serviceParams,
+                winHeight: 0,
+                toJsonDialogConf: {
+                    isShow: false,
+                    title: '',
+                    timer: null,
+                    width: 800,
+                    loading: false
+                },
+                editorConfig: {
+                    width: '100%',
+                    height: '100%',
+                    lang: 'yaml',
+                    readOnly: false,
+                    fullScreen: false,
+                    value: '',
+                    editor: null
+                },
+                yamlEditorConfig: {
+                    width: '100%',
+                    height: '100%',
+                    lang: 'yaml',
+                    readOnly: false,
+                    fullScreen: false,
+                    value: '',
+                    editor: null
+                }
             }
         },
         computed: {
@@ -345,8 +419,7 @@
                 return this.$store.state.k8sTemplate.curTemplate
             },
             applicationList () {
-                const data = this.$store.state.k8sTemplate.linkApplications
-                return data
+                return this.$store.state.k8sTemplate.linkApplications
             },
             isTemplateSaving () {
                 return this.$store.state.k8sTemplate.isTemplateSaving
@@ -388,6 +461,30 @@
                     results.push(item.targetPort)
                 })
                 return results
+            },
+            curRemarkList () {
+                const list = []
+                const annotations = this.curService.config.metadata.annotations
+                // 如果有缓存直接使用
+                if (this.curService.config.webCache && this.curService.config.webCache.remarkListCache) {
+                    return this.curService.config.webCache.remarkListCache
+                }
+                if (annotations) {
+                    for (const [key, value] of Object.entries(annotations)) {
+                        list.push({
+                            key: key,
+                            value: value
+                        })
+                    }
+                }
+                
+                if (!list.length) {
+                    list.push({
+                        key: '',
+                        value: ''
+                    })
+                }
+                return list
             },
             curLabelList () {
                 const list = []
@@ -438,6 +535,7 @@
                 this.initResource(data)
                 this.isDataLoading = false
             })
+            this.winHeight = window.innerHeight
         },
         methods: {
             showPortExampleDialg () {
@@ -455,26 +553,216 @@
                 })
             },
             selectServiceType (index, item) {
-                if (index !== 'NodePort') {
+                if (index !== 'NodePort' && index !== 'LoadBalancer') {
                     this.curService.config.spec.ports.forEach(port => {
                         port.nodePort = ''
                     })
                 }
             },
             async initResource (data) {
+                const self = this
                 const version = data.latest_version_id || data.version
                 if (version) {
-                    await this.initApplications(version)
+                    this.initApplications(version, function () {
+                        if (data.services && data.services.length) {
+                            self.$nextTick(() => {
+                                self.setCurService(data.services[0], 0)
+                            })
+                        }
+                    })
+                } else {
+                    if (data.services && data.services.length) {
+                        this.$nextTick(() => {
+                            this.setCurService(data.services[0], 0)
+                        })
+                    }
                 }
-
-                if (data.services && data.services.length) {
-                    this.setCurService(data.services[0], 0)
-                }
+            },
+            exportToYaml (data) {
+                this.$router.push({
+                    name: 'K8sYamlTemplateset',
+                    params: {
+                        projectId: this.projectId,
+                        projectCode: this.projectCode,
+                        templateId: 0
+                    },
+                    query: {
+                        action: 'export'
+                    }
+                })
             },
             async tabResource (type, target) {
                 this.isTabChanging = true
+                await this.$refs.commonHeader.saveTemplate()
                 await this.$refs.commonHeader.autoSaveResource(type)
                 this.$refs.commonTab.goResource(target)
+            },
+            showJsonPanel () {
+                this.toJsonDialogConf.title = this.curService.config.metadata.name + '.yaml'
+                const appConfig = JSON.parse(JSON.stringify(this.curService.config))
+                const webCache = appConfig.webCache
+                // 在处理yaml导入时，保存一份原数据，方便对导入的数据进行合并处理
+                this.curServiceCache = JSON.parse(JSON.stringify(this.curService.config))
+
+                // 标签
+                if (webCache && webCache.labelListCache) {
+                    const labelKeyList = this.tranListToObject(webCache.labelListCache)
+                    appConfig.metadata.labels = labelKeyList
+                }
+
+                // 注解
+                if (webCache && webCache.remarkListCache) {
+                    const remarkKeyList = this.tranListToObject(webCache.remarkListCache)
+                    appConfig.metadata.annotations = remarkKeyList
+                }
+
+                delete appConfig.webCache
+                const yamlStr = yamljs.dump(appConfig)
+                this.editorConfig.value = yamlStr
+                this.toJsonDialogConf.isShow = true
+            },
+            hideApplicationJson () {
+                this.toJsonDialogConf.isShow = false
+            },
+            closeToJson () {
+                this.toJsonDialogConf.isShow = false
+                this.toJsonDialogConf.title = ''
+                this.editorConfig.value = ''
+            },
+            editorInitAfter (editor) {
+                this.editorConfig.editor = editor
+                this.editorConfig.editor.setStyle('biz-app-container-tojson-ace')
+            },
+            getAppParamsKeys (obj, result) {
+                for (const key in obj) {
+                    if (key === 'data') continue
+                    if (Object.prototype.toString.call(obj) === '[object Array]') {
+                        this.getAppParamsKeys(obj[key], result)
+                    } else if (Object.prototype.toString.call(obj) === '[object Object]') {
+                        if (!result.includes(key)) {
+                            result.push(key)
+                        }
+                        this.getAppParamsKeys(obj[key], result)
+                    }
+                }
+            },
+            checkJson (jsonObj) {
+                const editor = this.editorConfig.editor
+                const appParams = serviceParams.config
+                const appParamKeys = [
+                    'id',
+                    'creationTimestamp'
+                ]
+                const jsonParamKeys = []
+
+                this.getAppParamsKeys(appParams, appParamKeys)
+                this.getAppParamsKeys(jsonObj, jsonParamKeys)
+
+                // application查看无效字段
+                for (const key of jsonParamKeys) {
+                    if (!appParamKeys.includes(key)) {
+                        this.$bkMessage({
+                            theme: 'error',
+                            message: `${key}${this.$t('为无效字段')}`
+                        })
+                        const match = editor.find(`${key}`)
+                        if (match) {
+                            editor.moveCursorTo(match.end.row, match.end.column)
+                        }
+                        return false
+                    }
+                }
+                return true
+            },
+            formatJson (jsonObj) {
+                // 标签
+                const keyList = []
+                const labels = jsonObj.metadata.labels
+
+                for (const [key, value] of Object.entries(labels)) {
+                    const params = {
+                        key: key,
+                        value: value
+                    }
+                    keyList.push(params)
+                }
+                if (!keyList.length) {
+                    keyList.push({
+                        key: '',
+                        value: ''
+                    })
+                }
+                jsonObj.webCache.labelListCache = keyList
+
+                // 注解
+                const remarkKeyList = []
+                const annotations = jsonObj.metadata.annotations
+
+                for (const [key, value] of Object.entries(annotations)) {
+                    const params = {
+                        key: key,
+                        value: value
+                    }
+                    remarkKeyList.push(params)
+                }
+                if (!remarkKeyList.length) {
+                    remarkKeyList.push({
+                        key: '',
+                        value: ''
+                    })
+                }
+                jsonObj.webCache.remarkListCache = remarkKeyList
+
+                // 关联标签
+                const selector = jsonObj.spec.selector
+                if (selector) {
+                    for (const [key, value] of Object.entries(selector)) {
+                        const params = key + ':' + value
+                        jsonObj.webCache.link_labels.push(params)
+                    }
+                }
+                
+                return jsonObj
+            },
+            saveApplicationJson () {
+                const editor = this.editorConfig.editor
+                const yaml = editor.getValue()
+                let appObj = null
+                if (!yaml) {
+                    this.$bkMessage({
+                        theme: 'error',
+                        message: this.$t('请输入YAML')
+                    })
+                    return false
+                }
+
+                try {
+                    appObj = yamljs.load(yaml)
+                } catch (err) {
+                    this.$bkMessage({
+                        theme: 'error',
+                        message: this.$t('请输入合法的YAML')
+                    })
+                    return false
+                }
+
+                const annot = editor.getSession().getAnnotations()
+                if (annot && annot.length) {
+                    editor.gotoLine(annot[0].row, annot[0].column, true)
+                    return false
+                }
+                const newConfObj = _.merge({}, serviceParams.config, appObj)
+                const jsonFromat = this.formatJson(newConfObj)
+                this.curService.config = jsonFromat
+                this.toJsonDialogConf.isShow = false
+
+                this.appLabels.forEach(label => {
+                    if (this.curService.config.webCache.link_labels && this.curService.config.webCache.link_labels.indexOf(label.id) > -1) {
+                        label.isSelected = true
+                    } else {
+                        label.isSelected = false
+                    }
+                })
             },
             exceptionHandler (exceptionCode) {
                 this.isDataLoading = false
@@ -522,11 +810,15 @@
                 const ports = this.curService.config.spec.ports
                 ports.splice(index, 1)
             },
-            initApplications (version) {
+            initApplications (version, callback) {
                 const projectId = this.projectId
                 this.linkAppVersion = version
                 this.$store.dispatch('k8sTemplate/getAppsByVersion', { projectId, version }).then(res => {
                     this.isLoadingApps = false
+
+                    setTimeout(() => {
+                        callback && callback()
+                    }, 10)
                 }, res => {
                     const message = res.message
                     this.$bkMessage({
@@ -563,11 +855,12 @@
                 clearInterval(this.compareTimer)
                 clearTimeout(this.setTimer)
                 this.setTimer = setTimeout(() => {
+                    this.appPortList = []
+                    this.initLinkResource()
+
                     if (!this.curService.cache) {
                         this.curService.cache = JSON.parse(JSON.stringify(service))
                     }
-                    this.appPortList = []
-                    this.initLinkResource()
                     this.watchChange()
                 }, 500)
             },
@@ -625,8 +918,10 @@
             selectApps (appIds, data) {
                 this.curService.config.webCache.link_labels = []
                 this.curService.config.spec.selector = {}
-                this.getPorts(appIds)
-                this.getLabels(appIds)
+
+                this.existLinkApp = appIds
+                this.getPorts(appIds, this.curService.config.metadata.name)
+                this.getLabels(appIds, this.curService.config.metadata.name)
                 // 如果关联应用, 且clusterIp为None
                 if (appIds && appIds.length) {
                     if (this.curService.config.spec.clusterIP === 'None') {
@@ -651,18 +946,33 @@
                 this.curService.deploy_tag_list.forEach(item => {
                     if (appKeys.includes(item)) {
                         appIds.push(item)
+                    } else {
+                        const type = item.split('|')[1]
+                        this.$bkMessage({
+                            theme: 'error',
+                            message: this.$t('"{name}"中关联应用：原已经关联的{type}已经删除，请重新选择', {
+                                name: this.curService.config.metadata.name,
+                                type: type
+                            })
+                        })
                     }
                 })
-                this.getPorts(appIds)
-                this.getLabels(appIds)
+
+                this.existLinkApp = appIds
+                this.getPorts(appIds, this.curService.config.metadata.name)
+                this.getLabels(appIds, this.curService.config.metadata.name)
             },
-            getLabels (apps) {
+            getLabels (apps, serviceName) {
                 this.isLabelsLoading = true
                 const projectId = this.projectId
                 const version = this.curVersion
 
                 this.$store.dispatch('k8sTemplate/getLabelsByDeployments', { projectId, version, apps }).then(res => {
                     if (!res.data) {
+                        return false
+                    }
+                    // 防止不断点tab发起请求导致数据冲突
+                    if (serviceName !== this.curService.config.metadata.name) {
                         return false
                     }
                     const labels = []
@@ -685,40 +995,43 @@
                     this.isLabelsLoading = false
                 })
             },
-            getPorts (apps) {
+            getPorts (apps, serviceName) {
                 const projectId = this.projectId
                 const version = this.curVersion
-                setTimeout(() => {
-                    this.$store.dispatch('k8sTemplate/getPortsByDeployments', { projectId, version, apps }).then(res => {
-                        if (!res.data) {
+                this.$store.dispatch('k8sTemplate/getPortsByDeployments', { projectId, version, apps }).then(res => {
+                    if (!res.data) {
+                        return false
+                    }
+                    // 防止不断点tab发起请求导致数据冲突
+                    if (serviceName !== this.curService.config.metadata.name) {
+                        return false
+                    }
+                    const ports = res.data.filter(item => {
+                        return item.name
+                    })
+                    const keys = []
+                    let results = []
+                    ports.forEach(port => {
+                        keys.push(port.id)
+                    })
+                    this.appPortList.splice(0, this.appPortList.length, ...ports)
+                    results = this.curService.config.spec.ports.filter(item => {
+                        if (!item.id) {
+                            return true
+                        } else if (keys.includes(item.id)) {
+                            return true
+                        } else {
                             return false
                         }
-                        const ports = res.data.filter(item => {
-                            return item.name
-                        })
-                        const keys = []
-                        let results = []
-                        ports.forEach(port => {
-                            keys.push(port.id)
-                        })
-                        this.appPortList.splice(0, this.appPortList.length, ...ports)
-                        results = this.curService.config.spec.ports.filter(item => {
-                            if (!item.id) {
-                                return true
-                            } else if (keys.includes(item.id)) {
-                                return true
-                            } else {
-                                return false
-                            }
-                        })
-                        this.curService.config.spec.ports.splice(0, this.curService.config.spec.ports.length, ...results)
-                        if (!this.curService.config.spec.ports.length) {
-                            this.addPort()
-                        }
-                    }, res => {
-                        this.curService.config.spec.ports.splice(0, this.appPortList.length)
                     })
-                }, 300)
+
+                    this.curService.config.spec.ports.splice(0, this.curService.config.spec.ports.length, ...results)
+                    if (!this.curService.config.spec.ports.length) {
+                        this.addPort()
+                    }
+                }, res => {
+                    this.curService.config.spec.ports.splice(0, this.appPortList.length)
+                })
             },
             removeLocalService (service, index) {
                 // 是否删除当前项
@@ -736,8 +1049,8 @@
                 const serviceId = service.id
 
                 this.$bkInfo({
-                    title: '确认',
-                    content: this.$createElement('p', { style: { 'text-align': 'center' } }, `删除Service：${service.config.metadata.name || '未命名'}`),
+                    title: this.$t('确认'),
+                    content: this.$createElement('p', { style: { 'text-align': 'center' } }, `${this.$t('删除Service')}：${service.config.metadata.name || this.$t('未命名')}`),
                     confirmFn () {
                         if (serviceId.indexOf && serviceId.indexOf('local_') > -1) {
                             self.removeLocalService(service, index)
@@ -831,6 +1144,12 @@
                     this.curService.config.webCache = {}
                 }
                 this.curService.config.webCache.labelListCache = list
+            },
+            updateApplicationRemark (list, data) {
+                if (!this.curService.config.webCache) {
+                    this.curService.config.webCache = {}
+                }
+                this.curService.config.webCache.remarkListCache = list
             }
         }
     }

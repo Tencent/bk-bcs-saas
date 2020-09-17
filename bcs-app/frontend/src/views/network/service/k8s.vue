@@ -3,6 +3,7 @@
         <div class="biz-top-bar">
             <div class="biz-service-title">
                 Service
+                <span class="biz-tip f12 ml10">{{$t('请通过模板集或Helm创建Service')}}</span>
             </div>
             <bk-guide></bk-guide>
         </div>
@@ -17,7 +18,7 @@
                 <div class="biz-panel-header">
                     <div class="left">
                         <button class="bk-button bk-default" @click.stop.prevent="removeServices" v-if="curPageData.length">
-                            <span>批量删除</span>
+                            <span>{{$t('批量删除')}}</span>
                         </button>
                         <button style="opacity: 0">
                             <span>.</span>
@@ -25,11 +26,11 @@
                     </div>
                     <div class="right">
                         <bk-data-searcher
-                            :placeholder="'输入关键字，按Enter搜索'"
+                            :placeholder="$t('输入关键字，按Enter搜索')"
                             :scope-list="searchScopeList"
                             :search-key.sync="searchKeyword"
                             :search-scope.sync="searchScope"
-                            @search="searchService"
+                            @search="getServiceList"
                             @refresh="refresh">
                         </bk-data-searcher>
                     </div>
@@ -45,18 +46,16 @@
                                             <input type="checkbox" name="check-all-user" :checked="isCheckCurPageAll" @click="toogleCheckCurPage" :disabled="!serviceList.length">
                                         </label>
                                     </th>
-                                    <th style="padding-left: 30px;">Service名称</th>
-                                    <th style="min-width: 100px;">所属集群</th>
-                                    <th>命名空间</th>
-                                    <th>来源</th>
-                                    <th style="min-width: 100px;">更新时间</th>
-                                    <th style="min-width: 100px;">创建时间</th>
-                                    <th>更新人</th>
-                                    <th style="width: 125px;">操作</th>
+                                    <th style="padding-left: 10px;">{{$t('名称')}}</th>
+                                    <th style="min-width: 200px;">{{$t('所属集群/命名空间')}}</th>
+                                    <th>{{$t('类型')}}</th>
+                                    <th style="min-width: 200px;">{{$t('集群内访问')}}</th>
+                                    <th style="min-width: 200px;">{{$t('集群外访问')}}</th>
+                                    <th :style="{ width: isEn ? '220px' : '180px' }">{{$t('操作')}}</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                <template v-if="serviceList.length">
+                                <template v-if="curPageData.length">
                                     <tr v-for="(service, index) in curPageData" :key="service._id">
                                         <td>
                                             <label class="bk-form-checkbox">
@@ -68,7 +67,7 @@
                                                     @click="rowClick" />
                                             </label>
                                         </td>
-                                        <td style="padding-left: 30px;">
+                                        <td style="padding-left: 10px;">
                                             <div class="bk-spin-loading bk-spin-loading-mini bk-spin-loading-warning" v-if="service.status === 'updating'" style="margin-left: -20px;">
                                                 <div class="rotate rotate1"></div>
                                                 <div class="rotate rotate2"></div>
@@ -82,40 +81,45 @@
                                             <a href="javascript: void(0)" class="bk-text-button biz-table-title biz-resource-title" @click.stop.prevent="showServiceDetail(service, index)">{{service.resourceName ? service.resourceName : '--'}}</a>
                                         </td>
                                         <td>
-                                            <bk-tooltip :content="service.clusterId || '--'" placement="top">
-                                                {{service.cluster_name ? service.cluster_name : '--'}}
-                                            </bk-tooltip>
+                                            <div>
+                                                <span class="cluster-namespace-source en" v-if="isEn">Cluster: </span>
+                                                <span class="cluster-namespace-source" v-else>所属集群: </span>
+                                                <bk-tooltip :content="service.clusterId || '--'" placement="top">
+                                                    <div class="cluster-name">{{service.cluster_name ? service.cluster_name : '--'}}</div>
+                                                </bk-tooltip>
+                                            </div>
+                                            <div>
+                                                <span class="cluster-namespace-source en" v-if="isEn">Namespace: </span>
+                                                <span class="cluster-namespace-source" v-else>命名空间: </span>
+                                                {{service.namespace ? service.namespace : '--'}}
+                                            </div>
+                                        </td>
+                                        <td>{{service.data.spec.type}}</td>
+                                        <td>
+                                            <div v-for="(internal, internalIndex) in service.accessInternal" :key="internalIndex">
+                                                {{internal}}
+                                            </div>
                                         </td>
                                         <td>
-                                            {{service.namespace ? service.namespace : '--'}}
-                                        </td>
-                                        <td>
-                                            {{service.source_type ? service.source_type : '--'}}
-                                        </td>
-                                        <td>
-                                            {{service.updateTime ? formatDate(service.updateTime) : '--'}}
-                                        </td>
-                                        <td>
-                                            {{service.createTime ? formatDate(service.createTime) : '--'}}
-                                        </td>
-                                        <td>
-                                            {{service.updator ? service.updator : '--'}}
+                                            <div v-for="(external, externalIndex) in service.accessExternal" :key="externalIndex">
+                                                {{external}}
+                                            </div>
                                         </td>
                                         <td>
                                             <template v-if="service.can_update">
-                                                <a href="javascript:void(0);" :class="['bk-text-button']" @click="showUpdateServicePanel(service)">更新</a>
+                                                <a href="javascript:void(0);" class="bk-text-button" @click="showUpdateServicePanel(service)">{{$t('更新')}}</a>
                                             </template>
                                             <template v-else>
                                                 <bk-tooltip :content="service.can_update_msg" placement="left">
-                                                    <a href="javascript:void(0);" :class="['bk-text-button is-disabled']">更新</a>
+                                                    <a href="javascript:void(0);" class="bk-text-button is-disabled">{{$t('更新')}}</a>
                                                 </bk-tooltip>
                                             </template>
                                             <template v-if="service.can_delete">
-                                                <a href="javascript:void(0);" :class="['bk-text-button ml15']" @click="removeService(service)">删除</a>
+                                                <a href="javascript:void(0);" class="bk-text-button ml15" @click="removeService(service)">{{$t('删除')}}</a>
                                             </template>
                                             <template v-else>
                                                 <bk-tooltip :content="service.can_delete_msg" placement="left" style="margin-left: 15px;">
-                                                    <a href="javascript:void(0);" :class="['bk-text-button is-disabled']">删除</a>
+                                                    <a href="javascript:void(0);" class="bk-text-button is-disabled">{{$t('删除')}}</a>
                                                 </bk-tooltip>
                                             </template>
                                         </td>
@@ -123,10 +127,10 @@
                                 </template>
                                 <template v-else>
                                     <tr style="background: none;">
-                                        <td colspan="9">
+                                        <td colspan="7">
                                             <div class="biz-app-list">
                                                 <div class="bk-message-box">
-                                                    <p class="message empty-message" v-if="!isInitLoading">无数据</p>
+                                                    <p class="message empty-message" v-if="!isInitLoading">{{$t('无数据')}}</p>
                                                 </div>
                                             </div>
                                         </td>
@@ -137,6 +141,7 @@
                     </div>
                     <div class="biz-page-wrapper" v-if="pageConf.total">
                         <bk-page-counter
+                            :is-en="isEn"
                             :total="pageConf.total"
                             :page-size="pageConf.pageSize"
                             @change="changePageSize">
@@ -146,7 +151,7 @@
                             :total-page="pageConf.totalPage"
                             @page-change="pageChangeHandler">
                         </bk-paging>
-                        <div class="already-selected-nums" v-if="alreadySelectedNums">已选{{alreadySelectedNums}}条</div>
+                        <div class="already-selected-nums" v-if="alreadySelectedNums">{{$t('已选')}} {{alreadySelectedNums}} {{$t('条')}}</div>
                     </div>
                 </div>
             </template>
@@ -160,7 +165,7 @@
                 <div class="p30" slot="content" v-bkloading="{ isLoading: isDetailLoading }" style="overflow: hidden;">
                     <div class="bk-form bk-form-vertical">
                         <div class="bk-form-item">
-                            <label class="bk-label">名称：</label>
+                            <label class="bk-label">{{$t('名称')}}：</label>
                             <div class="bk-form-content">
                                 <input
                                     type="text"
@@ -171,10 +176,10 @@
                             </div>
                         </div>
                         <div class="bk-form-item">
-                            <label class="bk-label">关联应用：</label>
+                            <label class="bk-label">{{$t('关联应用')}}：</label>
                             <div class="bk-form-content" style="width: 600px;">
                                 <bk-selector
-                                    placeholder="请选择要关联的Application"
+                                    :placeholder="$t('请选择要关联的Application')"
                                     :setting-key="'deploy_tag'"
                                     :multi-select="true"
                                     :display-key="'deploy_name'"
@@ -187,7 +192,7 @@
                             </div>
                         </div>
                         <div class="bk-form-item">
-                            <label class="bk-label">关联标签：</label>
+                            <label class="bk-label">{{$t('关联标签')}}：</label>
                             <div class="bk-form-content key-tip-wrapper" style="width: 705px;">
                                 <ul class="key-list" v-if="appLabels.length && !isLabelsLoading">
                                     <li v-for="(label, index) in appLabels" @click="selectLabel(label)" :key="index">
@@ -200,17 +205,17 @@
                                     </li>
                                 </ul>
                                 <div v-else-if="!isLabelsLoading" class="key-tip">
-                                    {{curServiceDetail.config.webCache.link_app ? '关联的应用没有公共的标签（注：Key、Value都相同的标签为公共标签）' : '请先关联应用'}}
+                                    {{curServiceDetail.config.webCache.link_app ? $t('关联的应用没有公共的标签（注：Key、Value都相同的标签为公共标签）') : $t('请先关联应用')}}
                                 </div>
                             </div>
                         </div>
                         <div class="bk-form-item">
-                            <label class="bk-label">Service类型：</label>
+                            <label class="bk-label">{{$t('Service类型')}}：</label>
                             <div class="bk-form-content">
                                 <bk-selector
                                     style="width: 360px;"
                                     :disabled="true"
-                                    placeholder="请选择"
+                                    :placeholder="$t('请选择')"
                                     :setting-key="'id'"
                                     :display-key="'name'"
                                     :selected.sync="curServiceDetail.config.spec.type"
@@ -219,7 +224,7 @@
                             </div>
                         </div>
                         <div class="bk-form-item">
-                            <label class="bk-label">端口映射：</label>
+                            <label class="bk-label">{{$t('端口映射')}}：</label>
                             <div class="bk-form-content">
                                 <div class="biz-keys-list mt10">
                                     <template v-if="curServiceDetail.config.webCache.link_app.length">
@@ -227,10 +232,10 @@
                                             <table class="biz-simple-table">
                                                 <thead>
                                                     <tr>
-                                                        <th style="width: 100px;">端口名称</th>
-                                                        <th style="width: 100px;">端口</th>
-                                                        <th style="width: 120px;">协议</th>
-                                                        <th style="width: 120px;">目标端口</th>
+                                                        <th style="width: 100px;">{{$t('端口名称')}}</th>
+                                                        <th style="width: 100px;">{{$t('端口')}}</th>
+                                                        <th style="width: 120px;">{{$t('协议')}}</th>
+                                                        <th style="width: 120px;">{{$t('目标端口')}}</th>
                                                         <th style="width: 100px;">NodePort</th>
                                                         <th></th>
                                                     </tr>
@@ -247,12 +252,12 @@
                                                                 :max="65535"
                                                                 :hide-operation="true"
                                                                 :ex-style="{ 'width': '100px' }"
-                                                                :placeholder="'请输入'">
+                                                                :placeholder="$t('请输入')">
                                                             </bk-number-input>
                                                         </td>
                                                         <td>
                                                             <bk-selector
-                                                                placeholder="协议"
+                                                                :placeholder="$t('协议')"
                                                                 :setting-key="'id'"
                                                                 :allow-clear="true"
                                                                 :selected.sync="port.protocol"
@@ -262,7 +267,7 @@
                                                         <td>
                                                             <!-- {{appPortList}} -->
                                                             <bk-selector
-                                                                placeholder="请输入"
+                                                                :placeholder="$t('请输入')"
                                                                 :setting-key="'name'"
                                                                 :display-key="'name'"
                                                                 :selected.sync="port.targetPort"
@@ -282,7 +287,7 @@
                                                                 :max="32767"
                                                                 :hide-operation="true"
                                                                 :ex-style="{ 'width': '100px' }"
-                                                                :placeholder="'请输入'">
+                                                                :placeholder="$t('请输入')">
                                                             </bk-number-input>
                                                         </td>
                                                         <td>
@@ -299,33 +304,33 @@
                                         </template>
                                         <template v-else>
                                             <p class="mt5">
-                                                <router-link :to="{ name: 'k8sTemplatesetDeployment', params: { templateId: curServiceDetail.template_id } }" class="bk-text-button">点此</router-link>去模板集配置端口映射信息
+                                                <router-link :to="{ name: 'k8sTemplatesetDeployment', params: { templateId: curServiceDetail.template_id } }" class="bk-text-button">{{$t('点此')}}</router-link>{{$t('去模板集配置端口映射信息')}}
                                             </p>
                                         </template>
                                     </template>
                                     <template v-else>
-                                        <p class="mt5">请关联相应的应用</p>
+                                        <p class="mt5">{{$t('请关联相应的应用')}}</p>
                                     </template>
                                 </div>
                             </div>
                         </div>
                         <div class="bk-form-item">
-                            <label class="bk-label">标签管理：</label>
+                            <label class="bk-label">{{$t('标签管理')}}：</label>
                             <div class="bk-form-content">
                                 <bk-keyer :key-list.sync="curLabelList" ref="labelKeyer" @change="updateLabelList"></bk-keyer>
                             </div>
                         </div>
 
                         <div class="bk-form-item">
-                            <label class="bk-label">备注管理：</label>
+                            <label class="bk-label">{{$t('备注管理')}}：</label>
                             <div class="bk-form-content">
                                 <bk-keyer :key-list.sync="curRemarkList" ref="labelKeyer" @change="updateRemarkList"></bk-keyer>
                             </div>
                         </div>
 
                         <div class="bk-form-item mt25">
-                            <button :class="['bk-button bk-primary', { 'is-loading': isDetailSaving }]" @click.stop.prevent="saveServiceDetail">保存并更新</button>
-                            <button class="bk-button bk-default" @click.stop.prevent="hideServiceSlider">取消</button>
+                            <button :class="['bk-button bk-primary', { 'is-loading': isDetailSaving }]" @click.stop.prevent="saveServiceDetail">{{$t('保存并更新')}}</button>
+                            <button class="bk-button bk-default" @click.stop.prevent="hideServiceSlider">{{$t('取消')}}</button>
                         </div>
                     </div>
                 </div>
@@ -339,17 +344,17 @@
                 :width="'800'">
                 <div class="p30" slot="content" v-bkloading="{ isLoading: isEndpointLoading }">
                     <p class="data-title">
-                        基础信息
+                        {{$t('基础信息')}}
                     </p>
                     <div class="biz-metadata-box">
                         <div class="data-item" style="width: 260px;">
-                            <p class="key">选择器：</p>
+                            <p class="key">{{$t('选择器')}}：</p>
                             <p class="value" v-bktooltips="{ direction: 'top', content: selector }">
                                 {{selector ? selector : '--'}}
                             </p>
                         </div>
                         <div class="data-item">
-                            <p class="key">类型：</p>
+                            <p class="key">{{$t('类型')}}：</p>
                             <p class="value">{{curService.data.spec.type}}</p>
                         </div>
                         <div class="data-item">
@@ -362,15 +367,15 @@
                         </div>
                     </div>
                     <p class="data-title">
-                        端口映射
+                        {{$t('端口映射')}}
                     </p>
                     <table class="bk-table biz-data-table">
                         <thead>
                             <tr>
-                                <th>端口名称</th>
-                                <th>端口</th>
-                                <th>协议</th>
-                                <th>目标端口</th>
+                                <th>{{$t('端口名称')}}</th>
+                                <th>{{$t('端口')}}</th>
+                                <th>{{$t('协议')}}</th>
+                                <th>{{$t('目标端口')}}</th>
                                 <th>NodePort</th>
                             </tr>
                         </thead>
@@ -395,7 +400,7 @@
                                     <td colspan="5">
                                         <div class="biz-app-list">
                                             <div class="bk-message-box" style="min-height: auto;">
-                                                <p class="message empty-message" style="margin: 30px; font-size: 14px;">无数据</p>
+                                                <p class="message empty-message" style="margin: 30px; font-size: 14px;">{{$t('无数据')}}</p>
                                             </div>
                                         </div>
                                     </td>
@@ -410,7 +415,7 @@
                     <table class="bk-table biz-data-table">
                         <thead>
                             <tr>
-                                <th>名称</th>
+                                <th>{{$t('名称')}}</th>
                                 <th>Pod IP</th>
                                 <th>Node IP</th>
                             </tr>
@@ -418,7 +423,7 @@
                         <tbody>
                             <template v-if="endpoints.length">
                                 <tr v-for="(point, index) in endpoints" :key="index">
-                                    <td>{{point.targetRef.name ? point.targetRef.name : '--'}}</td>
+                                    <td>{{point.targetRef && point.targetRef.name ? point.targetRef.name : '--'}}</td>
                                     <td>
                                         {{point.ip ? point.ip : '--'}}
                                     </td>
@@ -433,7 +438,7 @@
                                     <td colspan="4">
                                         <div class="biz-app-list">
                                             <div class="bk-message-box" style="min-height: auto;">
-                                                <p class="message empty-message" style="margin: 30px; font-size: 14px;">无数据</p>
+                                                <p class="message empty-message" style="margin: 30px; font-size: 14px;">{{$t('无数据')}}</p>
                                             </div>
                                         </div>
                                     </td>
@@ -442,8 +447,34 @@
                         </tbody>
                     </table>
 
+                    <p class="data-title">
+                        {{$t('其他信息')}}
+                    </p>
+                    <div class="biz-metadata-box">
+                        <div class="data-item" style="width: 260px;">
+                            <p class="key">{{$t('创建时间')}}：</p>
+                            <p class="value">
+                                {{curService.createTime ? formatDate(curService.createTime) : '--'}}
+                            </p>
+                        </div>
+                        <div class="data-item">
+                            <p class="key">{{$t('更新时间')}}：</p>
+                            <p class="value">
+                                {{curService.updateTime ? formatDate(curService.updateTime) : '--'}}
+                            </p>
+                        </div>
+                        <div class="data-item">
+                            <p class="key">{{$t('更新人')}}：</p>
+                            <p class="value">{{curService.updator ? curService.updator : '--'}}</p>
+                        </div>
+                        <div class="data-item">
+                            <p class="key">{{$t('来源')}}：</p>
+                            <p class="value">{{curService.source_type ? curService.source_type : '--'}}</p>
+                        </div>
+                    </div>
+
                     <div class="actions">
-                        <span class="show-labels-btn bk-button bk-button-small bk-primary">标签</span>
+                        <span class="show-labels-btn bk-button bk-button-small bk-primary">{{$t('标签')}}</span>
                     </div>
                     <div class="point-box">
                         <template v-if="labelList.length">
@@ -456,7 +487,7 @@
                         </template>
                         <template v-else>
                             <div class="bk-message-box" style="min-height: auto;">
-                                <p class="message empty-message" style="margin: 30px; font-size: 14px;">无数据</p>
+                                <p class="message empty-message" style="margin: 30px; font-size: 14px;">{{$t('无数据')}}</p>
                             </div>
                         </template>
                     </div>
@@ -465,18 +496,101 @@
 
             <bk-dialog
                 :is-show="batchDialogConfig.isShow"
-                :width="400"
+                :width="550"
                 :has-header="false"
                 :quick-close="false"
                 @confirm="deleteServices(batchDialogConfig.data)"
                 @cancel="batchDialogConfig.isShow = false">
                 <div slot="content">
                     <div class="biz-batch-wrapper">
-                        <p class="batch-title">确定要删除以下Service？</p>
+                        <p class="batch-title">{{$t('确定要删除以下Service？')}}</p>
                         <ul class="batch-list">
                             <li v-for="(item, index) of batchDialogConfig.list" :key="index">{{item}}</li>
                         </ul>
                     </div>
+                </div>
+            </bk-dialog>
+
+            <bk-dialog
+                class="createcl5-dialog"
+                :is-show="createCL5DialogConf.isShow"
+                :width="500"
+                :has-header="false"
+                :quick-close="false">
+                <div slot="content">
+                    <div class="biz-batch-wrapper">
+                        <p class="batch-title" style="font-weight: 700;">{{$t('新建CL5')}}
+                            <span style="font-size: 12px; font-weight: 400; color: red;position: absolute; top: 24px;" :style="{ left: isEn ? '130px' : '95px' }">
+                                <template v-if="isEn">
+                                    Please View <a :href="PROJECT_CONFIG.doc.cl5" target="_blank" class="bk-text-button">the document</a> for details
+                                </template>
+                                <template v-else>
+                                    具体使用方法参考<a :href="PROJECT_CONFIG.doc.cl5" target="_blank" class="bk-text-button">文章</a>
+                                </template>
+                            </span>
+                        </p>
+                        <div class="create-form-wrapper">
+                            <div class="form-item">
+                                <label :class="isEn ? 'en' : ''">{{$t('是否有sid')}}：</label>
+                                <div class="form-item-inner">
+                                    <label class="bk-form-radio">
+                                        <input type="radio" name="has-sid" value="yes" v-model="createCL5DialogConf.isHasSid">
+                                        <i class="bk-radio-text">{{$t('是')}}</i>
+                                    </label>
+                                    <label class="bk-form-radio">
+                                        <input type="radio" name="has-sid" value="no" v-model="createCL5DialogConf.isHasSid">
+                                        <i class="bk-radio-text">{{$t('否')}}</i>
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="form-item">
+                                <template v-if="createCL5DialogConf.isHasSid === 'yes'">
+                                    <label>sid：</label>
+                                </template>
+                                <template v-else>
+                                    <label :class="isEn ? 'en' : ''">{{$t('业务模块')}}：</label>
+                                </template>
+                                <div class="form-item-inner">
+                                    <input maxlength="60" :style="{ width: isEn ? '260px' : '350px' }" type="text" class="bk-form-input"
+                                        :placeholder="createCL5DialogConf.isHasSid === 'yes' ? $t('请输入sid') : $t('请输入业务模块')"
+                                        v-model="createCL5DialogConf.bid4">
+                                    <bk-tooltip v-if="createCL5DialogConf.isHasSid === 'no'" :content="$t('Node节点所属的CMDB三级业务模块ID')" placement="top">
+                                        <i class="bk-icon icon-info-circle" style="margin-left: 5px;"></i>
+                                    </bk-tooltip>
+                                </div>
+                            </div>
+                            <div class="form-item" style="margin-bottom: 0;">
+                                <label :class="isEn ? 'en' : ''">{{$t('责任人')}}：</label>
+                                <div class="form-item-inner">
+                                    {{userInfo.username}}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div slot="footer">
+                    <template>
+                        <div class="bk-dialog-outer" style="line-height: 56px; height: 56px;">
+                            <div style="float: right;">
+                                <template v-if="!isCreatingCL5">
+                                    <button type="button" class="bk-dialog-btn bk-dialog-btn-confirm bk-btn-primary" @click="createCl5">
+                                        {{$t('确定')}}
+                                    </button>
+                                    <button type="button" class="bk-dialog-btn bk-dialog-btn-cancel" @click="hideCreateCL5">
+                                        {{$t('取消')}}
+                                    </button>
+                                </template>
+                                <template v-else>
+                                    <button type="button" class="bk-dialog-btn bk-dialog-btn-confirm bk-btn-primary disabled">
+                                        {{$t('添加中...')}}
+                                    </button>
+                                    <button type="button" class="bk-dialog-btn bk-dialog-btn-cancel disabled">
+                                        {{$t('取消')}}
+                                    </button>
+                                </template>
+                            </div>
+                        </div>
+                    </template>
                 </div>
             </bk-dialog>
         </div>
@@ -523,7 +637,7 @@
                     isShow: false
                 },
                 updateServiceSliderConf: {
-                    title: '更新Service',
+                    title: this.$t('更新Service'),
                     isShow: false
                 },
                 isLabelsShow: false,
@@ -576,10 +690,21 @@
                 ],
                 curServicePortMap: [],
                 algorithmIndex: -1,
-                loadBalanceList: []
+                loadBalanceList: [],
+                createCL5DialogConf: {
+                    isShow: false,
+                    bid4: '',
+                    service: {},
+                    isHasSid: 'no'
+                },
+                userInfo: {},
+                isCreatingCL5: false
             }
         },
         computed: {
+            isEn () {
+                return this.$store.state.isEn
+            },
             applicationList () {
                 return this.$store.state.k8sTemplate.linkApplications
             },
@@ -611,25 +736,55 @@
                     results.push(item.targetPort)
                 })
                 return results
+            },
+            isClusterDataReady () {
+                return this.$store.state.cluster.isClusterDataReady
+            }
+        },
+        watch: {
+            isClusterDataReady: {
+                immediate: true,
+                handler (val) {
+                    if (val) {
+                        setTimeout(() => {
+                            if (this.searchScopeList.length) {
+                                const clusterIds = this.searchScopeList.map(item => item.id)
+                                // 使用当前缓存
+                                if (sessionStorage['bcs-cluster'] && clusterIds.includes(sessionStorage['bcs-cluster'])) {
+                                    this.searchScope = sessionStorage['bcs-cluster']
+                                } else {
+                                    const clusterId = this.searchScopeList[1].id
+                                    this.searchScope = clusterId
+                                }
+                            }
+                            this.getServiceList()
+                        }, 1000)
+                    }
+                }
             }
         },
         created () {
             this.initPageConf()
-            this.getServiceList()
+            // this.getServiceList()
+            this.userInfo = Object.assign({}, window.$userInfo)
         },
         methods: {
             /**
              * 选择标签
              * @param  {object} labels 标签
              */
-            selectLabel (labels) {
-                labels.isSelected = !labels.isSelected
+            selectLabel (label) {
+                label.isSelected = !label.isSelected
+                this.updateLabels()
+            },
+
+            updateLabels () {
                 this.curServiceDetail.config.webCache.link_labels = []
-                this.curServiceDetail.config.selector = {}
+                this.curServiceDetail.config.spec.selector = {}
                 this.appLabels.forEach(label => {
                     if (label.isSelected) {
                         this.curServiceDetail.config.webCache.link_labels.push(label.id)
-                        this.curServiceDetail.config.selector[label.key] = label.value
+                        this.curServiceDetail.config.spec.selector[label.key] = label.value
                     }
                 })
             },
@@ -729,7 +884,6 @@
                     const appIds = []
 
                     this.formatService(service)
-
                     service.config.webCache.link_app.forEach(item => {
                         appIds.push(item)
                     })
@@ -818,12 +972,14 @@
                             value: res.data[key],
                             isSelected: false
                         }
-                        if (this.curServiceDetail.config.webCache.link_labels && this.curServiceDetail.config.webCache.link_labels.indexOf(params.id) > -1) {
+                        console.log('this.curServiceDetail.config.webCache', this.curServiceDetail.config.webCache)
+                        if (this.curServiceDetail.config.webCache.link_labels && this.curServiceDetail.config.webCache.link_labels.includes(params.id)) {
                             params.isSelected = true
                         }
                         labels.push(params)
                     }
                     this.appLabels.splice(0, this.appLabels.length, ...labels)
+                    this.updateLabels()
                 } catch (e) {
                     catchErrorHandler(e, this)
                     this.appLabels.splice(0, this.appLabels.length)
@@ -936,27 +1092,35 @@
              */
             async getServiceList () {
                 const projectId = this.projectId
+                const params = {
+                    cluster_id: this.searchScope
+                }
 
                 try {
-                    await this.$store.dispatch('network/getServiceList', projectId)
-                    this.clearSelectServices()
-                    this.initPageConf()
-                    if (this.pageConf.curPage > this.pageConf.totalPage) {
-                        this.pageConf.curPage = this.pageConf.totalPage
-                    }
-                    this.curPageData = this.getDataByPage(this.pageConf.curPage)
+                    this.isPageLoading = true
+                    await this.$store.dispatch('network/getServiceList', {
+                        projectId,
+                        params
+                    })
 
-                    // 如果有搜索关键字，继续显示过滤后的结果
-                    if (this.searchScope || this.searchKeyword) {
-                        this.searchService()
-                    }
+                    setTimeout(() => {
+                        this.clearSelectServices()
+                        this.initPageConf()
+                        this.curPageData = this.getDataByPage(this.pageConf.curPage)
+
+                        // 如果有搜索关键字，继续显示过滤后的结果
+                        if (this.searchKeyword) {
+                            this.searchService()
+                        }
+                    }, 200)
                 } catch (e) {
                     catchErrorHandler(e, this)
                 } finally {
                     // 晚消失是为了防止整个页面loading和表格数据loading效果叠加产生闪动
                     setTimeout(() => {
+                        this.isPageLoading = false
                         this.isInitLoading = false
-                    }, 200)
+                    }, 400)
                 }
             },
 
@@ -1036,6 +1200,7 @@
             initPageConf () {
                 const total = this.serviceList.length
                 this.pageConf.total = total
+                this.pageConf.curPage = 1
                 this.pageConf.totalPage = Math.ceil(total / this.pageConf.pageSize)
             },
 
@@ -1045,9 +1210,6 @@
              */
             reloadCurPage () {
                 this.initPageConf()
-                if (this.pageConf.curPage > this.pageConf.totalPage) {
-                    this.pageConf.curPage = this.pageConf.totalPage
-                }
                 this.curPageData = this.getDataByPage(this.pageConf.curPage)
             },
 
@@ -1117,7 +1279,7 @@
                 if (service.config.spec.type === 'NodePort' && !service.deploy_tag_list.length) {
                     this.$bkMessage({
                         theme: 'error',
-                        message: megPrefix + '请选择要关联的应用',
+                        message: megPrefix + this.$t('请选择要关联的应用'),
                         delay: 3000
                     })
                     return false
@@ -1134,11 +1296,11 @@
                         }
                     }
                     if (!hasPort) {
-                        megPrefix += '端口映射：'
+                        megPrefix += `${this.$t('端口映射')}：`
                         this.$bkMessage({
                             theme: 'error',
                             delay: 8000,
-                            message: megPrefix + 'ClusterIP不为None时，请配置相应的端口映射！'
+                            message: megPrefix + this.$t('ClusterIP不为None时，请配置相应的端口映射')
                         })
                         return false
                     }
@@ -1147,39 +1309,39 @@
                 for (const item of ports) {
                     if (item.name || item.port || item.targetPort) {
                         if (item.name && !/^[a-z]{1}[a-z0-9-]{0,29}$/.test(item.name)) {
-                            megPrefix += '端口映射：'
+                            megPrefix += `${this.$t('端口映射')}：`
                             this.$bkMessage({
                                 theme: 'error',
                                 delay: 8000,
-                                message: megPrefix + '端口名称以小写字母开头，只能包含：小写字母、数字、连字符(-)，长度小于30个字符！'
+                                message: megPrefix + this.$t('端口名称以小写字母开头，只能包含：小写字母、数字、连字符(-)，长度小于30个字符')
                             })
                             return false
                         }
                         if (!item.port) {
-                            megPrefix += '端口映射：'
+                            megPrefix += `${this.$t('端口映射')}：`
                             this.$bkMessage({
                                 theme: 'error',
                                 delay: 5000,
-                                message: megPrefix + '端口不能为空！'
+                                message: megPrefix + this.$t('端口不能为空')
                             })
                             return false
                         }
                         if (!item.protocol) {
-                            megPrefix += '端口映射：'
+                            megPrefix += `${this.$t('端口映射')}：`
                             this.$bkMessage({
                                 theme: 'error',
                                 delay: 5000,
-                                message: megPrefix + '请选择协议！'
+                                message: megPrefix + this.$t('请选择协议')
                             })
                             return false
                         }
                         if (item.nodePort || item.nodePort === 0) {
                             if (item.nodePort < 30000 || item.nodePort > 32767) {
-                                megPrefix += '端口映射：'
+                                megPrefix += `${this.$t('端口映射')}：`
                                 this.$bkMessage({
                                     theme: 'error',
                                     delay: 5000,
-                                    message: megPrefix + 'NodePort的范围为30000-32767'
+                                    message: megPrefix + this.$t('NodePort的范围为30000-32767')
                                 })
                                 return false
                             }
@@ -1198,14 +1360,18 @@
                 if (params.config.webCache.labelListCache) {
                     const keys = {}
                     params.config.webCache.labelListCache.forEach(item => {
-                        keys[item.key] = item.value
+                        if (item.key) {
+                            keys[item.key] = item.value
+                        }
                     })
                     params.config.metadata.labels = keys
                 }
                 if (params.config.webCache.remarkListCache) {
                     const keys = {}
                     params.config.webCache.remarkListCache.forEach(item => {
-                        keys[item.key] = item.value
+                        if (item.key) {
+                            keys[item.key] = item.value
+                        }
                     })
                     params.config.metadata.annotations = keys
                 }
@@ -1244,7 +1410,7 @@
 
                         this.$bkMessage({
                             theme: 'success',
-                            message: '操作成功！',
+                            message: this.$t('操作成功'),
                             hasCloseIcon: true,
                             delay: 3000
                         })
@@ -1264,6 +1430,70 @@
              */
             hideServiceSlider () {
                 this.updateServiceSliderConf.isShow = false
+            },
+
+            /**
+             * 显示创建 CL5 路由弹框
+             */
+            showCreateCL5 (service) {
+                this.createCL5DialogConf.isShow = true
+                this.createCL5DialogConf.service = Object.assign({}, service)
+            },
+
+            /**
+             * 隐藏创建 CL5 路由弹框
+             */
+            hideCreateCL5 () {
+                this.createCL5DialogConf.isShow = false
+                this.createCL5DialogConf.bid4 = ''
+                this.createCL5DialogConf.service = Object.assign({}, {})
+                this.createCL5DialogConf.isHasSid = 'no'
+            },
+
+            /**
+             * 创建 CL5 路由
+             */
+            async createCl5 () {
+                const bid4 = this.createCL5DialogConf.bid4.trim()
+                if (!bid4) {
+                    this.$bkMessage({
+                        theme: 'error',
+                        delay: 3000,
+                        message: this.$t('请填写业务模块')
+                    })
+                    return
+                }
+
+                const params = {
+                    projectId: this.projectId,
+                    manifest: this.createCL5DialogConf.service.data,
+                    cluster_id: this.createCL5DialogConf.service.clusterId,
+                    crd_kind: 'CL5'
+                }
+
+                if (this.createCL5DialogConf.isHasSid === 'yes') {
+                    params.sid = this.createCL5DialogConf.bid4
+                } else {
+                    params.bid4 = this.createCL5DialogConf.bid4
+                }
+
+                try {
+                    this.isCreatingCL5 = true
+                    await this.$store.dispatch('network/createCl5', params)
+                    this.hideCreateCL5()
+                    this.$bkMessage({
+                        theme: 'success',
+                        delay: 1000,
+                        message: this.$t('新建CL5成功')
+                    })
+                    setTimeout(() => {
+                        this.searchService()
+                    }, 300)
+                } catch (e) {
+                    catchErrorHandler(e, this)
+                } finally {
+                    this.isCreatingCL5 = false
+                }
             }
         }
     }

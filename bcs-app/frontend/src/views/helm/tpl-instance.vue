@@ -3,7 +3,7 @@
         <div class="biz-top-bar">
             <div class="biz-helm-title">
                 <a class="bk-icon icon-arrows-left back" @click="goTplList"></a>
-                <span>Chart部署</span>
+                <span>{{$t('Chart部署')}}</span>
             </div>
         </div>
 
@@ -12,7 +12,7 @@
                 <div class="biz-helm-header">
                     <div class="left">
                         <svg style="display: none;">
-                            <title>模板集默认图标</title>
+                            <title>{{$t('模板集默认图标')}}</title>
                             <symbol id="biz-set-icon" viewBox="0 0 32 32">
                                 <path d="M6 3v3h-3v23h23v-3h3v-23h-23zM24 24v3h-19v-19h19v16zM27 24h-1v-18h-18v-1h19v19z"></path>
                                 <path d="M13.688 18.313h-6v6h6v-6z"></path>
@@ -30,10 +30,10 @@
 
                             <div class="title">{{curTpl.name}}</div>
                             <p>
-                                <a class="bk-text-button f12" href="javascript:void(0);" @click="gotoHelmTplDetail">查看Chart详情</a>
+                                <a class="bk-text-button f12" href="javascript:void(0);" @click="gotoHelmTplDetail">{{$t('查看Chart详情')}}</a>
                             </p>
                             <div class="desc" :title="curTpl.description">
-                                <span>简介：</span>
+                                <span>{{$t('简介')}}：</span>
                                 {{curTpl.description || '--'}}
                             </div>
                         </div>
@@ -43,30 +43,43 @@
                         <div class="bk-collapse biz-collapse" style="border-top: none;">
                             <div class="bk-collapse-item bk-collapse-item-active">
                                 <div class="bk-collapse-item-header" style="cursor: default; color: #737987;">
-                                    配置选项
+                                    {{$t('配置选项')}}
                                 </div>
                                 <div class="bk-collapse-item-content" style="padding: 15px;">
                                     <div class="config-box">
                                         <div class="inner">
                                             <div class="inner-item">
-                                                <label class="title">名称</label>
+                                                <label class="title">{{$t('名称')}}</label>
                                                 <input type="text" class="bk-form-input" v-model="appName">
                                             </div>
 
                                             <div class="inner-item">
-                                                <label class="title">版本</label>
+                                                <label class="title">{{$t('版本')}}</label>
                                                 <div>
-                                                    <bk-selector
+                                                    <bk-input
                                                         style="width: 225px; display: inline-block; vertical-align: middle;"
-                                                        :placeholder="'请选择'"
+                                                        type="text"
+                                                        :placeholder="$t('请选择')"
+                                                        :value.sync="tplsetVerIndex"
+                                                        :is-select-mode="true"
+                                                        :default-list="curTplVersions"
+                                                        :setting-key="'id'"
+                                                        :disabled="isTplSynLoading"
+                                                        :display-key="'version'"
+                                                        :search-key="'version'"
+                                                        @item-selected="getTplDetail">
+                                                    </bk-input>
+                                                    <!-- <bk-selector
+                                                        style="width: 225px; display: inline-block; vertical-align: middle;"
+                                                        :placeholder="$t('请选择')"
                                                         :selected.sync="tplsetVerIndex"
                                                         :list="curTplVersions"
                                                         :setting-key="'id'"
                                                         :is-loading="isTplVerLoading"
                                                         :display-key="'version'"
                                                         @item-selected="getTplDetail">
-                                                    </bk-selector>
-                                                    <button class="bk-button bk-default is-outline is-icon" v-bktooltips.top="'同步仓库'" @click="syncHelmTpl">
+                                                    </bk-selector> -->
+                                                    <button class="bk-button bk-default is-outline is-icon" v-bktooltips.top="$t('同步仓库')" @click="syncHelmTpl">
                                                         <div class="bk-spin-loading bk-spin-loading-mini bk-spin-loading-default" style="margin-top: -3px;" v-if="isTplSynLoading">
                                                             <div class="rotate rotate1"></div>
                                                             <div class="rotate rotate2"></div>
@@ -83,16 +96,15 @@
                                             </div>
                                         </div>
                                         <div class="inner">
-                                            <label class="title">命名空间</label>
+                                            <label class="title">{{$t('命名空间')}}</label>
                                             <div>
                                                 <bk-selector
                                                     style="width: 557px;"
-                                                    :placeholder="'请选择'"
+                                                    :placeholder="$t('请选择')"
                                                     :searchable="true"
                                                     :selected.sync="namespaceId"
                                                     :field-type="'namespace'"
                                                     :list="namespaceList"
-                                                    :filter-list="initedList"
                                                     :setting-key="'id'"
                                                     :display-key="'name'"
                                                     @item-selected="getClusterInfo">
@@ -107,22 +119,76 @@
                     </div>
                 </div>
                 <template v-if="tplsetVerIndex">
+                    <div class="biz-expand-panel mt20 mb10">
+                        <div class="header" @click="isShowCommandParams = !isShowCommandParams" style="line-height: 40px;">
+                            {{$t('Helm命令行参数')}}
+                            <div class="expand">
+                                <i class="bk-icon icon-angle-down" v-if="isShowCommandParams"></i>
+                                <i class="bk-icon icon-angle-up" v-else></i>
+                            </div>
+                        </div>
+                        <div class="content p0 m0 biz-table-wrapper" style="border: none;">
+                            <table class="bk-table has-table-hover has-table-bordered" style="border: none;" v-if="isShowCommandParams">
+                                <thead>
+                                    <tr>
+                                        <th class="pl20 f12" style="width: 400px; height: auto;">{{$t('参数')}}</th>
+                                        <th class="pl25 f12" style="height: auto;">{{$t('是否启用')}}</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr v-for="command of commandList" :key="command.id" v-if="!command.disabled">
+                                        <td class="pl20 pt5 pb5" style="height: auto;">
+                                            {{command.id}}
+                                            <bk-tooltip placement="top" :content="command.desc">
+                                                <span style="font-size: 12px;cursor: pointer;">
+                                                    <i class="bk-icon icon-info-circle"></i>
+                                                </span>
+                                            </bk-tooltip>
+                                        </td>
+                                        <td class="pl25 pt5 pb5" style="height: auto;">
+                                            <label class="bk-form-checkbox">
+                                                <input type="checkbox" v-model="helmCommandParams[command.id]">
+                                            </label>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
                     <div class="action-box">
                         <div class="title">
-                            Helm参数
+                            Chart Values
                         </div>
                     </div>
                     <div slot="content" class="mt10" style="min-height: 180px;">
+                        <section class="value-file-wrapper">
+                            {{$t('Values文件：')}}
+                            <bk-selector
+                                style="width: 300px;"
+                                :placeholder="$t('请选择')"
+                                :searchable="true"
+                                :selected.sync="curValueFile"
+                                :list="curValueFileList"
+                                :setting-key="'name'"
+                                :display-key="'name'"
+                                @item-selected="changeValueFile">
+                            </bk-selector>
+                            <bk-tooltip placement="top" :content="$t('Values文件命名规范是以values.yaml结尾，例如xxx-values.yaml')">
+                                <span class="bk-badge ml5">
+                                    <i class="f12 bk-icon icon-question"></i>
+                                </span>
+                            </bk-tooltip>
+                        </section>
                         <bk-tab
                             :type="'fill'"
                             :size="'small'"
                             :active-name.sync="curEditMode"
                             @tab-changed="helmModeChangeHandler">
-                            <bk-tabpanel name="yaml-mode" title="Yaml模式">
+                            <bk-tabpanel name="yaml-mode" :title="$t('YAML模式')">
                                 <div style="width: 100%; min-height: 600px;" v-bkloading="{ isLoading: isSyncYamlLoading }">
                                     <p class="biz-tip p15" style="color: #63656E; overflow: hidden;">
                                         <i class="bk-icon icon-info-circle biz-warning-text mr5"></i>
-                                        Yaml初始值为创建时Chart中values.yaml内容，后续更新部署以该Yaml内容为准，Yaml内容最终通过`--values`选项传递给`helm template`命令
+                                        {{$t('YAML初始值为创建时Chart中values.yaml内容，后续更新部署以该YAML内容为准，YAML内容最终通过`--values`选项传递给`helm template`命令')}}
                                     </p>
                                     <ace
                                         v-if="curEditMode === 'yaml-mode'"
@@ -136,20 +202,20 @@
                                     </ace>
                                 </div>
                             </bk-tabpanel>
-                            <bk-tabpanel name="form-mode" title="表单模式">
+                            <bk-tabpanel name="form-mode" :title="$t('表单模式')">
                                 <p class="biz-tip p15" style="color: #63656E;">
-                                    <i class="bk-icon icon-info-circle biz-warning-text mr5"></i>表单根据Chart中questions.yaml生成，表单修改后的数据会自动同步给Yaml模式
+                                    <i class="bk-icon icon-info-circle biz-warning-text mr5"></i>{{$t('表单根据Chart中questions.yaml生成，表单修改后的数据会自动同步给YAML模式')}}
                                 </p>
                                 <template v-if="formData.questions">
                                     <bk-form-creater :form-data="formData" ref="bkFormCreater"></bk-form-creater>
                                 </template>
                                 <template v-else>
                                     <div class="biz-guard-box" v-if="!isQuestionsLoading">
-                                        <span>您可以参考
-                                            <a class="bk-text-button" :href="PROJECT_CONFIG.doc.writeQuestionsYaml" target="_blank">指引</a>
-                                            通过表单模式配置您的Helm Release 参数，
+                                        <span>{{$t('您可以参考')}}
+                                            <a class="bk-text-button" href="https://docs.bk.tencent.com/bcs/Container/helm/WriteQuestionsYaml.html" target="_blank">{{$t('指引')}}</a>
+                                            {{$t('通过表单模式配置您的Helm Release 参数')}}，
                                         </span>
-                                        <span>也可以通过<a href="javascript:void(0)" class="bk-text-button" @click="editYaml">Yaml模式</a>直接修改Helm Release参数</span>
+                                        <span>{{$t('也可以通过')}}<a href="javascript:void(0)" class="bk-text-button" @click="editYaml"></a>{{$t('直接修改Helm Release参数')}}</span>
                                     </div>
                                 </template>
                             </bk-tabpanel>
@@ -158,14 +224,14 @@
                 </template>
 
                 <div class="create-wrapper">
-                    <bk-button type="primary" title="部署" @click="createApp">
-                        部署
+                    <bk-button type="primary" :title="$t('部署')" @click="createApp">
+                        {{$t('部署')}}
                     </bk-button>
-                    <bk-button type="default" title="预览" @click="showPreview">
-                        预览
+                    <bk-button type="default" :title="$t('预览')" @click="showPreview">
+                        {{$t('预览')}}
                     </bk-button>
-                    <bk-button type="default" title="取消" @click="goBack">
-                        取消
+                    <bk-button type="default" :title="$t('取消')" @click="goBack">
+                        {{$t('取消')}}
                     </bk-button>
                 </div>
             </div>
@@ -179,15 +245,22 @@
             <div slot="content" :style="{ height: `${winHeight - 70}px` }" v-bkloading="{ isLoading: previewInstanceLoading }">
                 <template v-if="tplPreviewList.length">
                     <div class="biz-resource-wrapper" style="height: 100%;">
-                        <div class="tree-box" style="width: 320px;">
-                            <bk-tree
-                                ref="tree1"
-                                :data="treeData"
-                                :node-key="'id'"
-                                :has-border="true"
-                                @on-click="getFileDetail">
-                            </bk-tree>
-                        </div>
+                        <resizer :class="['resize-layout fl']"
+                            direction="right"
+                            :handler-offset="3"
+                            :min="250"
+                            :max="400">
+                            <div class="tree-box">
+                                <bk-tree
+                                    ref="tree1"
+                                    :data="treeData"
+                                    :node-key="'id'"
+                                    :has-border="true"
+                                    @on-click="getFileDetail">
+                                </bk-tree>
+                            </div>
+                        </resizer>
+                        
                         <div class="resource-box">
                             <div class="biz-code-wrapper" style="height: 100%;">
                                 <ace
@@ -202,7 +275,7 @@
                         </div>
                     </div>
                 </template>
-                <p class="biz-no-data" v-else>无数据</p>
+                <p class="biz-no-data" v-else>{{$t('无数据')}}</p>
             </div>
         </bk-sideslider>
 
@@ -213,27 +286,30 @@
             :title="errorDialogConf.title"
             @cancel="hideErrorDialog">
             <div slot="content">
-                <pre class="bk-intro bk-danger biz-error-message" v-if="errorDialogConf.message">
-                    {{errorDialogConf.message}}
-                </pre>
+                <div class="bk-intro bk-danger pb30 mb15" v-if="errorDialogConf.message" style="position: relative;">
+                    <pre class="biz-error-message">
+                        {{errorDialogConf.message}}
+                    </pre>
+                    <bk-button size="mini" type="default" id="error-copy-btn" :data-clipboard-text="errorDialogConf.message"><i class="bk-icon icon-clipboard mr5"></i>{{$t('复制')}}</bk-button>
+                </div>
                 <div class="biz-message" v-if="errorDialogConf.errorCode === 40031">
-                    <h3>您需要：</h3>
-                    <p>在集群页面，启用Helm</p>
+                    <h3>{{$t('您需要')}}：</h3>
+                    <p>{{$t('在集群页面，启用Helm')}}</p>
                 </div>
                 <div class="biz-message" v-else-if="errorDialogConf.actionType === 'previewApp'">
-                    <h3>您可以：</h3>
-                    <p>1、检查Helm Chart是否存在语法错误</p>
-                    <p>2、前往Helm Release列表页面，更新Helm Release</p>
+                    <h3>{{$t('您可以')}}：</h3>
+                    <p>1、{{$t('检查Helm Chart是否存在语法错误')}}</p>
+                    <p>2、{{$t('前往Helm Release列表页面，更新Helm Release')}}</p>
                 </div>
                 <div class="biz-message" v-else>
-                    <h3>您可以：</h3>
-                    <p>1、更新Helm Chart，并推送到项目Chart仓库</p>
-                    <p>2、前往Helm Release列表页面，更新Helm Release</p>
+                    <h3>{{$t('您可以')}}：</h3>
+                    <p>1、{{$t('更新Helm Chart，并推送到项目Chart仓库')}}</p>
+                    <p>2、{{$t('前往Helm Release列表页面，更新Helm Release')}}</p>
                 </div>
             </div>
             <template slot="footer">
                 <div class="biz-footer">
-                    <bk-button type="primary" @click="hideErrorDialog">知道了</bk-button>
+                    <bk-button type="primary" @click="hideErrorDialog">{{$t('知道了')}}</bk-button>
                 </div>
             </template>
         </bk-dialog>
@@ -247,8 +323,13 @@
     import baseMixin from '@open/mixins/helm/mixin-base'
     import { catchErrorHandler } from '@open/common/util'
     import moment from 'moment'
+    import Clipboard from 'clipboard'
+    import resizer from '@open/components/resize'
 
     export default {
+        components: {
+            resizer
+        },
         mixins: [baseMixin],
         data () {
             return {
@@ -263,7 +344,7 @@
                 tplsetVerList: [],
                 formData: {},
                 createInstanceLoading: false,
-                previewList: [],
+                curValueFileList: [],
                 tplPreviewList: [],
                 difference: '',
                 previewInstanceLoading: true,
@@ -288,7 +369,7 @@
                 curProjectId: '',
                 previewEditorConfig: {
                     isShow: false,
-                    title: '预览',
+                    title: this.$t('预览'),
                     width: '100%',
                     height: '100%',
                     lang: 'yaml',
@@ -300,7 +381,7 @@
                 initedList: [],
                 yamlConfig: {
                     isShow: false,
-                    title: '预览',
+                    title: this.$t('预览'),
                     width: '100%',
                     height: '700',
                     lang: 'yaml',
@@ -336,12 +417,36 @@
                     }
                 ],
                 appAction: {
-                    create: '部署',
+                    create: this.$t('部署'),
                     noop: '',
-                    update: '更新',
-                    rollback: '回滚',
-                    delete: '删除',
-                    destroy: '删除'
+                    update: this.$t('更新'),
+                    rollback: this.$t('回滚'),
+                    delete: this.$t('删除'),
+                    destroy: this.$t('删除')
+                },
+                curValueFile: 'values.yaml',
+                isShowCommandParams: false,
+                commandList: [
+                    {
+                        id: 'disable-openapi-validation',
+                        disabled: false,
+                        desc: '如果选择，部署时，不会通过Kubernetes OpenAPI Schema校验渲染的模板'
+                    },
+                    {
+                        id: 'no-hooks',
+                        disabled: false,
+                        desc: '如果选择，部署或更新时，忽略hooks'
+                    },
+                    {
+                        id: 'skip-crds',
+                        disabled: false,
+                        desc: '如果选择，部署或更新时，跳过crds'
+                    }
+                ],
+                helmCommandParams: {
+                    'disable-openapi-validation': false,
+                    'no-hooks': false,
+                    'skip-crds': false
                 }
             }
         },
@@ -418,7 +523,7 @@
                 const projectId = this.projectId
 
                 this.clusterInfo = ''
-
+                
                 try {
                     const res = await this.$store.dispatch('helm/getClusterInfo', { projectId, clusterId })
                     const clusterInfo = res.data.note
@@ -516,7 +621,7 @@
                 if (!yaml) {
                     this.$bkMessage({
                         theme: 'error',
-                        message: '请输入YAML!'
+                        message: this.$t('请输入YAML')
                     })
                     return false
                 }
@@ -526,7 +631,7 @@
                 } catch (err) {
                     this.$bkMessage({
                         theme: 'error',
-                        message: '请输入合法的YAML!'
+                        message: this.$t('请输入合法的YAML')
                     })
                     return false
                 }
@@ -556,7 +661,7 @@
                 } catch (err) {
                     this.$bkMessage({
                         theme: 'error',
-                        message: '请输入合法的YAML!'
+                        message: this.$t('请输入合法的YAML')
                     })
                     return false
                 }
@@ -667,26 +772,43 @@
                     const tplData = res.data
                     const files = res.data.data.files
                     const tplName = tplData.name
-                    this.formData = res.data.data.questions
+                    console.log(`^${tplName}/[\w-]*values.(yaml|yml)$`)
+                    const regex = new RegExp(`^${tplName}\\/[\\w-]*values.(yaml|yml)$`)
 
+                    this.formData = res.data.data.questions
                     for (const key in files) {
-                        list.push({
-                            name: key,
-                            value: files[key]
-                        })
+                        console.log('key', key)
+                        if (regex.test(key)) {
+                            const catalog = key.split('/')
+                            const fileName = catalog[catalog.length - 1]
+                            console.log('key', fileName)
+                            list.push({
+                                name: fileName,
+                                content: files[key]
+                            })
+                        }
                     }
 
-                    this.previewList.splice(0, this.previewList.length, ...list)
+                    this.curValueFileList.splice(0, this.curValueFileList.length, ...list)
                     this.curTplReadme = files[`${tplName}/README.md`]
                     this.curTplYaml = files[`${tplName}/values.yaml`]
                     this.yamlFile = files[`${tplName}/values.yaml`]
-
                     this.editYaml()
                 } catch (e) {
                     catchErrorHandler(e, this)
                 } finally {
                     this.isQuestionsLoading = false
                 }
+            },
+
+            /**
+             * 修改value file
+             */
+            changeValueFile (index, data) {
+                this.curValueFile = index
+                this.curTplYaml = data.content
+                this.yamlFile = data.content
+                this.editYaml()
             },
 
             /**
@@ -704,7 +826,7 @@
                     const tplId = this.$route.params.tplId
                     this.$bkMessage({
                         theme: 'success',
-                        message: '同步成功！'
+                        message: this.$t('同步成功')
                     })
 
                     setTimeout(() => {
@@ -749,16 +871,16 @@
                     const res = await this.$store.dispatch('helm/getNamespaceListByChart', { projectId, chartId })
 
                     this.initedList = []
-                    res.data.forEach(item => {
-                        if (item.children) {
-                            item.children.forEach(child => {
-                                if (child.has_initialized) {
-                                    child.name = `${child.name} （已部署）`
-                                    this.initedList.push(child.id)
-                                }
-                            })
-                        }
-                    })
+                    // res.data.forEach(item => {
+                    //     if (item.children) {
+                    //         item.children.forEach(child => {
+                    //             if (child.has_initialized) {
+                    //                 child.name = `${child.name}（${this.$t('已部署')}）`
+                    //                 this.initedList.push(child.id)
+                    //             }
+                    //         })
+                    //     }
+                    // })
                     this.namespaceList = res.data
                 } catch (e) {
                     catchErrorHandler(e, this)
@@ -779,7 +901,7 @@
                 if (!data.name) {
                     this.$bkMessage({
                         theme: 'error',
-                        message: '请输入名称！'
+                        message: this.$t('请输入名称')
                     })
                     return false
                 }
@@ -787,7 +909,7 @@
                 if (!data.chart_version) {
                     this.$bkMessage({
                         theme: 'error',
-                        message: '请选择版本！'
+                        message: this.$t('请选择版本')
                     })
                     return false
                 }
@@ -795,7 +917,7 @@
                 if (!data.namespace_info) {
                     this.$bkMessage({
                         theme: 'error',
-                        message: '请选择命名空间！'
+                        message: this.$t('请选择命名空间')
                     })
                     return false
                 }
@@ -810,6 +932,7 @@
             getAppParams () {
                 let formData = []
                 const customs = []
+                const commands = []
                 for (const key in this.answers) {
                     customs.push({
                         name: key,
@@ -817,6 +940,13 @@
                         type: 'string'
                     })
                 }
+
+                for (const key in this.helmCommandParams) {
+                    if (this.helmCommandParams[key]) {
+                        commands.push(key)
+                    }
+                }
+
                 if (this.curEditMode === 'yaml-mode') {
                     this.saveYaml()
                 }
@@ -832,6 +962,8 @@
                     chart_version: this.tplsetVerIndex,
                     answers: formData,
                     customs: customs,
+                    cmd_flags: commands,
+                    valuefile_name: this.curValueFile,
                     valuefile: this.yamlFile
                 }
                 return data
@@ -852,6 +984,22 @@
                 this.previewEditorConfig.isShow = false
                 this.errorDialogConf.title = title
                 this.errorDialogConf.actionType = actionType
+
+                if (this.clipboardInstance && this.clipboardInstance.off) {
+                    this.clipboardInstance.off('success')
+                }
+                if (this.errorDialogConf.message) {
+                    this.$nextTick(() => {
+                        this.clipboardInstance = new Clipboard('#error-copy-btn')
+                        this.clipboardInstance.on('success', e => {
+                            this.$bkMessage({
+                                theme: 'success',
+                                message: '复制成功'
+                            })
+                            this.isVarPanelShow = false
+                        })
+                    })
+                }
             },
 
             /**
@@ -895,7 +1043,7 @@
                         if (res.data.transitioning_result) {
                             this.$bkMessage({
                                 theme: 'success',
-                                message: `${app.name}${action}成功`
+                                message: `${app.name}${action}${this.$t('成功2')}`
                             })
                             // 返回helm首页
                             setTimeout(() => {
@@ -911,7 +1059,7 @@
                     }
                 } catch (e) {
                     this.createInstanceLoading = false
-                    this.showErrorDialog(e, '操作失败', 'reback')
+                    this.showErrorDialog(e, this.$t('操作失败'), 'reback')
                 }
             },
 
@@ -937,7 +1085,7 @@
                     const res = await this.$store.dispatch('helm/createApp', { projectId, data })
                     this.checkAppStatus(res.data)
                 } catch (e) {
-                    this.showErrorDialog(e, '部署失败', 'createApp')
+                    this.showErrorDialog(e, this.$t('部署失败'), 'createApp')
                 }
             },
 
@@ -978,7 +1126,7 @@
                         this.curReourceFile = this.tplPreviewList[0]
                     }
                 } catch (e) {
-                    this.showErrorDialog(e, '预览失败', 'previewApp')
+                    this.showErrorDialog(e, this.$t('预览失败'), 'previewApp')
                 } finally {
                     this.previewInstanceLoading = false
                 }

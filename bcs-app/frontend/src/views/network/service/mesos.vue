@@ -3,6 +3,7 @@
         <div class="biz-top-bar">
             <div class="biz-service-title">
                 Service
+                <span class="biz-tip f12 ml10">{{$t('请通过模板集创建Service')}}</span>
             </div>
             <bk-guide></bk-guide>
         </div>
@@ -17,16 +18,16 @@
                 <div class="biz-panel-header">
                     <div class="left">
                         <button class="bk-button bk-default" @click.stop.prevent="removeServices" v-if="curPageData.length">
-                            <span>批量删除</span>
+                            <span>{{$t('批量删除')}}</span>
                         </button>
                     </div>
                     <div class="right">
                         <bk-data-searcher
-                            :placeholder="'输入关键字，按Enter搜索'"
+                            :placeholder="$t('输入关键字，按Enter搜索')"
                             :scope-list="searchScopeList"
                             :search-key.sync="searchKeyword"
                             :search-scope.sync="searchScope"
-                            @search="searchService"
+                            @search="getServiceList"
                             @refresh="refresh">
                         </bk-data-searcher>
                     </div>
@@ -47,18 +48,18 @@
                                                 :disabled="!serviceList.length" />
                                         </label>
                                     </th>
-                                    <th style="padding-left: 30px;">Service名称</th>
-                                    <th style="min-width: 100px;">所属集群</th>
-                                    <th>命名空间</th>
-                                    <th>来源</th>
-                                    <th style="min-width: 100px;">更新时间</th>
-                                    <th style="min-width: 100px;">创建时间</th>
-                                    <th>更新人</th>
-                                    <th style="width: 125px;">操作</th>
+                                    <th style="padding-left: 30px;">{{$t('Service名称')}}</th>
+                                    <th style="min-width: 100px;">{{$t('所属集群')}}</th>
+                                    <th>{{$t('命名空间')}}</th>
+                                    <th>{{$t('来源')}}</th>
+                                    <th style="min-width: 100px;">{{$t('更新时间')}}</th>
+                                    <th style="min-width: 100px;">{{$t('创建时间')}}</th>
+                                    <th>{{$t('更新人')}}</th>
+                                    <th style="width: 125px;">{{$t('操作')}}</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                <template v-if="serviceList.length">
+                                <template v-if="curPageData.length">
                                     <tr v-for="(service, index) in curPageData" :key="service._id">
                                         <td>
                                             <label class="bk-form-checkbox">
@@ -105,21 +106,21 @@
                                         </td>
                                         <td>
                                             <template v-if="service.can_update">
-                                                <a href="javascript:void(0);" :class="['bk-text-button']" @click="showUpdateServicePanel(service)">更新</a>
+                                                <a href="javascript:void(0);" :class="['bk-text-button']" @click="showUpdateServicePanel(service)">{{$t('更新')}}</a>
                                             </template>
 
                                             <template v-else>
                                                 <bk-tooltip :content="service.can_update_msg" placement="left">
-                                                    <a href="javascript:void(0);" :class="['bk-text-button is-disabled']">更新</a>
+                                                    <a href="javascript:void(0);" :class="['bk-text-button is-disabled']">{{$t('更新')}}</a>
                                                 </bk-tooltip>
                                             </template>
 
                                             <template v-if="service.can_delete">
-                                                <a href="javascript:void(0);" :class="['bk-text-button ml15']" @click="removeService(service)">删除</a>
+                                                <a href="javascript:void(0);" :class="['bk-text-button ml15']" @click="removeService(service)">{{$t('删除')}}</a>
                                             </template>
                                             <template v-else>
                                                 <bk-tooltip :content="service.can_delete_msg" placement="left" style="margin-left: 15px;">
-                                                    <a href="javascript:void(0);" :class="['bk-text-button is-disabled']">删除</a>
+                                                    <a href="javascript:void(0);" :class="['bk-text-button is-disabled']">{{$t('删除')}}</a>
                                                 </bk-tooltip>
                                             </template>
 
@@ -131,7 +132,7 @@
                                         <td colspan="9">
                                             <div class="biz-app-list">
                                                 <div class="bk-message-box">
-                                                    <p class="message empty-message" v-if="!isInitLoading">无数据</p>
+                                                    <p class="message empty-message" v-if="!isInitLoading">{{$t('无数据')}}</p>
                                                 </div>
                                             </div>
                                         </td>
@@ -142,6 +143,7 @@
                     </div>
                     <div class="biz-page-wrapper" v-if="pageConf.total">
                         <bk-page-counter
+                            :is-en="isEn"
                             :total="pageConf.total"
                             :page-size="pageConf.pageSize"
                             @change="changePageSize">
@@ -151,7 +153,7 @@
                             :total-page="pageConf.totalPage"
                             @page-change="pageChangeHandler">
                         </bk-paging>
-                        <div class="already-selected-nums" v-if="alreadySelectedNums">已选{{alreadySelectedNums}}条</div>
+                        <div class="already-selected-nums" v-if="alreadySelectedNums">{{$t('已选')}} {{alreadySelectedNums}} {{$t('条')}}</div>
                     </div>
                 </div>
             </template>
@@ -165,7 +167,7 @@
                 <div class="p30 pr10" slot="content" v-bkloading="{ isLoading: isDetailLoading }">
                     <div class="bk-form bk-form-vertical">
                         <div class="bk-form-item">
-                            <label class="bk-label">名称：</label>
+                            <label class="bk-label">{{$t('名称')}}：</label>
                             <div class="bk-form-content">
                                 <input
                                     type="text"
@@ -177,10 +179,10 @@
                             </div>
                         </div>
                         <div class="bk-form-item">
-                            <label class="bk-label">关联应用：</label>
+                            <label class="bk-label">{{$t('关联应用')}}：</label>
                             <div class="bk-form-content" style="width: 600px;">
                                 <bk-selector
-                                    placeholder="请选择要关联的Application"
+                                    :placeholder="$t('请选择要关联的Application')"
                                     :setting-key="'app_id'"
                                     :multi-select="true"
                                     :display-key="'app_name'"
@@ -193,7 +195,7 @@
                             </div>
                         </div>
                         <div class="bk-form-item">
-                            <label class="bk-label">权重设置(%)：<p :class="['biz-tip', { 'bk-danger': isWeightError }]">{{curTotalPercent}}%</p></label>
+                            <label class="bk-label">{{$t('权重设置')}}(%)：<p :class="['biz-tip', { 'bk-danger': isWeightError }]">{{curTotalPercent}}%</p></label>
                             <div class="bk-form-content">
                                 <template v-if="curServiceDetail.config.webCache.link_app_weight.length">
                                     <div class="bk-form-input-group is-addon-left mr10" v-for="(app, index) in curServiceDetail.config.webCache.link_app_weight" :key="index">
@@ -207,24 +209,24 @@
                                             :max="100"
                                             :hide-operation="true"
                                             :ex-style="{ 'width': '25px' }"
-                                            :placeholder="'输入'"
+                                            :placeholder="$t('输入')"
                                             @change="checkTotalPercent">
                                         </bk-number-input>
                                     </div>
 
                                 </template>
                                 <template v-else>
-                                    <p class="mt5">请关联相应的Application</p>
+                                    <p class="mt5">{{$t('请关联相应的Application')}}</p>
                                 </template>
                             </div>
                         </div>
                         <div class="bk-form-item">
-                            <label class="bk-label">Service类型：</label>
+                            <label class="bk-label">{{$t('Service类型')}}：</label>
                             <div class="bk-form-content">
                                 <bk-selector
                                     style="width: 600px;"
                                     :disabled="true"
-                                    placeholder="请选择"
+                                    :placeholder="$t('请选择')"
                                     :setting-key="'id'"
                                     :display-key="'name'"
                                     :selected.sync="curServiceDetail.config.spec.type"
@@ -235,11 +237,11 @@
                         <div class="bk-form-item">
                             <label class="bk-label">IP：</label>
                             <div class="bk-form-content" style="width: 600px;">
-                                <input type="text" class="bk-form-input" placeholder="请输入" disabled :value="curServiceDetail.config.spec.clusterIP ? curServiceDetail.config.spec.clusterIP.join(',') : '--'">
+                                <input type="text" class="bk-form-input" :placeholder="$t('请输入')" disabled :value="curServiceDetail.config.spec.clusterIP ? curServiceDetail.config.spec.clusterIP.join(',') : '--'">
                             </div>
                         </div>
                         <div class="bk-form-item">
-                            <label class="bk-label">端口映射：</label>
+                            <label class="bk-label">{{$t('端口映射')}}：</label>
                             <div class="bk-form-content">
                                 <div class="biz-keys-list mb10">
                                     <template v-if="curServiceDetail.config.webCache.link_app.length">
@@ -247,12 +249,12 @@
                                             <table class="biz-simple-table">
                                                 <thead>
                                                     <tr>
-                                                        <th style="width: 100px;">端口名称</th>
-                                                        <th style="width: 90px;">协议</th>
-                                                        <th style="width: 90px;">目标端口</th>
-                                                        <th style="width: 90px;">服务端口</th>
-                                                        <th style="width: 100px;">域名</th>
-                                                        <th style="width: 90px;">路径</th>
+                                                        <th style="width: 100px;">{{$t('端口名称')}}</th>
+                                                        <th style="width: 90px;">{{$t('协议')}}</th>
+                                                        <th style="width: 90px;">{{$t('目标端口')}}</th>
+                                                        <th style="width: 90px;">{{$t('服务端口')}}</th>
+                                                        <th style="width: 100px;">{{$t('域名')}}</th>
+                                                        <th style="width: 90px;">{{$t('路径')}}</th>
                                                         <th></th>
                                                     </tr>
                                                 </thead>
@@ -260,7 +262,7 @@
                                                     <tr v-for="(port, index) in curServicePortMap" :key="index">
                                                         <td>
                                                             <bk-selector
-                                                                placeholder="端口名称"
+                                                                :placeholder="$t('端口名称')"
                                                                 :setting-key="'name'"
                                                                 :display-key="'name'"
                                                                 :selected.sync="port.name"
@@ -287,14 +289,14 @@
                                                                 :max="65535"
                                                                 :hide-operation="true"
                                                                 :ex-style="{ 'width': '90px' }"
-                                                                :placeholder="'服务端口'">
+                                                                :placeholder="$t('服务端口')">
                                                             </bk-number-input>
                                                         </td>
                                                         <td>
                                                             <input type="text" class="bk-form-input" placeholder="域名" v-model="port.domainName" :disabled="port.protocol !== 'HTTP'" style="width: 100px;" />
                                                         </td>
                                                         <td>
-                                                            <input type="text" class="bk-form-input" placeholder="路径" style="width: 90px;" v-model="port.path" :disabled="port.protocol !== 'HTTP'" />
+                                                            <input type="text" class="bk-form-input" :placeholder="$t('路径')" style="width: 90px;" v-model="port.path" :disabled="port.protocol !== 'HTTP'" />
                                                         </td>
                                                         <td>
                                                             <button class="action-btn" @click.stop.prevent="addPort" v-show="curServicePortMap.length < appPortList.length">
@@ -310,19 +312,19 @@
                                         </template>
                                         <template v-else>
                                             <p class="mt5">
-                                                <router-link :to="{ name: 'mesosTemplatesetApplication', params: { templateId: curServiceDetail.template_id } }" class="bk-text-button">点此</router-link>去模板集配置端口映射信息
+                                                <router-link :to="{ name: 'mesosTemplatesetApplication', params: { templateId: curServiceDetail.template_id } }" class="bk-text-button">{{$t('点此')}}</router-link>{{$t('去模板集配置端口映射信息')}}
                                             </p>
                                         </template>
                                     </template>
                                     <template v-else>
-                                        <p class="mt5">请关联相应的Application</p>
+                                        <p class="mt5">{{$t('请关联相应的Application')}}</p>
                                     </template>
                                 </div>
                             </div>
                         </div>
                         <!-- mesos service 现阶段不允许随便更新label及关联lb，需要禁用掉相关内容更新 -->
                         <div class="bk-form-item" style="display: none;">
-                            <label class="bk-label">标签管理：</label>
+                            <label class="bk-label">{{$t('标签管理')}}：</label>
                             <div class="bk-form-content">
                                 <bk-keyer
                                     :key-list.sync="curLabelList"
@@ -339,13 +341,13 @@
                                         type="checkbox"
                                         v-model="curServiceDetail.config.isLinkLoadBalance"
                                         :disabled="isLoadBalanceEdited" />
-                                    <i class="bk-checkbox-text">关联LoadBalance</i>
+                                    <i class="bk-checkbox-text">{{$t('关联LoadBalance')}}</i>
                                 </label>
-                                <span class="biz-tip ml5 bk-danger" style="display: inline-block;" v-if="curServiceDetail.config.isLinkLoadBalance && !loadBalanceList.length && !isDetailLoading">没有相关联的 LoadBalance，请先到 网络 -> LoadBalance 页面关联!</span>
+                                <span class="biz-tip ml5 bk-danger" style="display: inline-block;" v-if="curServiceDetail.config.isLinkLoadBalance && !loadBalanceList.length && !isDetailLoading">{{$t('没有相关联的 LoadBalance，请先到 网络 -> LoadBalance 页面关联')}}!</span>
                                 <div style="width: 360px;">
                                     <bk-selector
                                         v-if="curServiceDetail.config.isLinkLoadBalance"
-                                        placeholder="请选择"
+                                        :placeholder="$t('请选择')"
                                         :disabled="isLoadBalanceEdited"
                                         :setting-key="'lb_name'"
                                         :display-key="'lb_name'"
@@ -357,11 +359,11 @@
                         </div>
                         <!-- mesos service 现阶段不允许随便更新label及关联lb，需要禁用掉相关内容更新 -->
                         <div class="bk-form-item" v-if="curServiceDetail.config.isLinkLoadBalance" style="display: none;">
-                            <label class="bk-label" style="width: 130px;">负载均衡算法：</label>
+                            <label class="bk-label" style="width: 130px;">{{$t('负载均衡算法')}}：</label>
                             <div class="bk-form-content" style="margin-left: 130px;">
                                 <div class="bk-dropdown-box" style="width: 360px;">
                                     <bk-selector
-                                        placeholder="请选择"
+                                        :placeholder="$t('请选择')"
                                         :disabled="isLoadBalanceEdited"
                                         :setting-key="'id'"
                                         :display-key="'name'"
@@ -373,8 +375,8 @@
                             </div>
                         </div>
                         <div class="bk-form-item mt25">
-                            <button :class="['bk-button bk-primary', { 'is-loading': isDetailSaving }]" @click.stop.prevent="saveServiceDetail">保存并更新</button>
-                            <button class="bk-button bk-default" @click.stop.prevent="hideServiceSlider">取消</button>
+                            <button :class="['bk-button bk-primary', { 'is-loading': isDetailSaving }]" @click.stop.prevent="saveServiceDetail">{{$t('保存并更新')}}</button>
+                            <button class="bk-button bk-default" @click.stop.prevent="hideServiceSlider">{{$t('取消')}}</button>
                         </div>
                     </div>
                 </div>
@@ -388,17 +390,17 @@
                 :width="'800'">
                 <div class="p30" slot="content" v-bkloading="{ isLoading: isEndpointLoading }">
                     <p class="data-title">
-                        基础信息
+                        {{$t('基础信息')}}
                     </p>
                     <div class="biz-metadata-box">
                         <div class="data-item" style="width: 260px;">
-                            <p class="key">选择器：</p>
+                            <p class="key">{{$t('选择器')}}：</p>
                             <p class="value" v-bktooltips="{ direction: 'top', content: selector }">
                                 {{selector}}
                             </p>
                         </div>
                         <div class="data-item">
-                            <p class="key">类型：</p>
+                            <p class="key">{{$t('类型')}}：</p>
                             <p class="value">{{curService.data.spec.type}}</p>
                         </div>
                         <div class="data-item">
@@ -411,16 +413,16 @@
                         </div>
                     </div>
                     <p class="data-title">
-                        端口映射
+                        {{$t('端口映射')}}
                     </p>
                     <table class="bk-table biz-data-table">
                         <thead>
                             <tr>
-                                <th>端口索引</th>
-                                <th>服务端口</th>
-                                <th>目标端口</th>
-                                <th>域名</th>
-                                <th>路径</th>
+                                <th>{{$t('端口索引')}}</th>
+                                <th>{{$t('服务端口')}}</th>
+                                <th>{{$t('目标端口')}}</th>
+                                <th>{{$t('域名')}}</th>
+                                <th>{{$t('路径')}}</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -444,7 +446,7 @@
                                     <td colspan="5">
                                         <div class="biz-app-list">
                                             <div class="bk-message-box" style="min-height: auto;">
-                                                <p class="message empty-message" style="margin: 30px; font-size: 14px;">无数据</p>
+                                                <p class="message empty-message" style="margin: 30px; font-size: 14px;">{{$t('无数据')}}</p>
                                             </div>
                                         </div>
                                     </td>
@@ -459,7 +461,7 @@
                     <table class="bk-table biz-data-table">
                         <thead>
                             <tr>
-                                <th>名称</th>
+                                <th>{{$t('名称')}}</th>
                                 <!-- <th>状态</th> -->
                                 <th>Pod IP</th>
                                 <th>Node IP</th>
@@ -484,7 +486,7 @@
                                     <td colspan="4">
                                         <div class="biz-app-list">
                                             <div class="bk-message-box" style="min-height: auto;">
-                                                <p class="message empty-message" style="margin: 30px; font-size: 14px;">无数据</p>
+                                                <p class="message empty-message" style="margin: 30px; font-size: 14px;">{{$t('无数据')}}</p>
                                             </div>
                                         </div>
                                     </td>
@@ -494,7 +496,7 @@
                     </table>
 
                     <div class="actions">
-                        <span class="show-labels-btn bk-button bk-button-small bk-primary">标签</span>
+                        <span class="show-labels-btn bk-button bk-button-small bk-primary">{{$t('标签')}}</span>
                     </div>
                     <div class="point-box">
                         <template v-if="labelList.length">
@@ -507,7 +509,7 @@
                         </template>
                         <template v-else>
                             <div class="bk-message-box" style="min-height: auto;">
-                                <p class="message empty-message" style="margin: 30px; font-size: 14px;">无数据</p>
+                                <p class="message empty-message" style="margin: 30px; font-size: 14px;">{{$t('无数据')}}</p>
                             </div>
                         </template>
                     </div>
@@ -516,14 +518,14 @@
 
             <bk-dialog
                 :is-show="batchDialogConfig.isShow"
-                :width="400"
+                :width="550"
                 :has-header="false"
                 :quick-close="false"
                 @confirm="deleteServices(batchDialogConfig.data)"
                 @cancel="batchDialogConfig.isShow = false">
                 <div slot="content">
                     <div class="biz-batch-wrapper">
-                        <p class="batch-title">确定要删除以下Service？</p>
+                        <p class="batch-title">{{$t('确定要删除以下Service？')}}</p>
                         <ul class="batch-list">
                             <li v-for="(item, index) of batchDialogConfig.list" :key="index">{{item}}</li>
                         </ul>
@@ -573,7 +575,7 @@
                     isShow: false
                 },
                 updateServiceSliderConf: {
-                    title: '更新Service',
+                    title: this.$t('更新Service'),
                     isShow: false
                 },
                 isLabelsShow: false,
@@ -635,6 +637,9 @@
             }
         },
         computed: {
+            isEn () {
+                return this.$store.state.isEn
+            },
             curServicePortList () {
                 const results = []
                 const ports = this.curServicePortMap
@@ -642,11 +647,42 @@
                     results.push(item.name)
                 })
                 return results
+            },
+            isClusterDataReady () {
+                return this.$store.state.cluster.isClusterDataReady
+            }
+        },
+        watch: {
+            isClusterDataReady: {
+                immediate: true,
+                handler (val) {
+                    if (val) {
+                        setTimeout(() => {
+                            if (this.searchScopeList.length) {
+                                const clusterIds = this.searchScopeList.map(item => item.id)
+                                // 使用当前缓存
+                                if (sessionStorage['bcs-cluster'] && clusterIds.includes(sessionStorage['bcs-cluster'])) {
+                                    this.searchScope = sessionStorage['bcs-cluster']
+                                } else {
+                                    this.searchScope = this.searchScopeList[1].id
+                                }
+                            }
+                            
+                            this.getServiceList()
+                        }, 1000)
+                    }
+                }
             }
         },
         created () {
             this.initPageConf()
-            this.getServiceList()
+            // this.getServiceList()
+        },
+        beforeDestroy () {
+            this.serviceList = []
+        },
+        beforeRouteLeave () {
+            this.serviceList = []
         },
         methods: {
             /**
@@ -958,26 +994,33 @@
              */
             async getServiceList () {
                 const projectId = this.projectId
+                const params = {
+                    cluster_id: this.searchScope
+                }
 
                 try {
-                    await this.$store.dispatch('network/getServiceList', projectId)
-                    this.initPageConf()
-                    if (this.pageConf.curPage > this.pageConf.totalPage) {
-                        this.pageConf.curPage = this.pageConf.totalPage
-                    }
-                    this.curPageData = this.getDataByPage(this.pageConf.curPage)
+                    this.isPageLoading = true
+                    await this.$store.dispatch('network/getServiceList', {
+                        projectId,
+                        params
+                    })
+                    setTimeout(() => {
+                        this.initPageConf()
+                        this.curPageData = this.getDataByPage(this.pageConf.curPage)
 
-                    // 如果有搜索关键字，继续显示过滤后的结果
-                    if (this.searchScope || this.searchKeyword) {
-                        this.searchService()
-                    }
+                        // 如果有搜索关键字，继续显示过滤后的结果
+                        if (this.searchKeyword) {
+                            this.searchService()
+                        }
+                    }, 200)
                 } catch (e) {
                     catchErrorHandler(e, this)
                 } finally {
                     // 晚消失是为了防止整个页面loading和表格数据loading效果叠加产生闪动
                     setTimeout(() => {
+                        this.isPageLoading = false
                         this.isInitLoading = false
-                    }, 200)
+                    }, 400)
                 }
             },
 
@@ -1069,6 +1112,7 @@
             initPageConf () {
                 const total = this.serviceList.length
                 this.pageConf.total = total
+                this.pageConf.curPage = 1
                 this.pageConf.totalPage = Math.ceil(total / this.pageConf.pageSize)
             },
 
@@ -1078,9 +1122,6 @@
              */
             reloadCurPage () {
                 this.initPageConf()
-                if (this.pageConf.curPage > this.pageConf.totalPage) {
-                    this.pageConf.curPage = this.pageConf.totalPage
-                }
                 this.curPageData = this.getDataByPage(this.pageConf.curPage)
             },
 
@@ -1140,7 +1181,7 @@
                 if (!appId.length) {
                     this.$bkMessage({
                         theme: 'error',
-                        message: '请关联相应的Application！'
+                        message: this.$t('请关联相应的Application')
                     })
                     return false
                 }
@@ -1148,7 +1189,7 @@
                 if (!this.checkTotalPercent()) {
                     this.$bkMessage({
                         theme: 'error',
-                        message: '权重的值为大于等于0的整数，且所有权重相加为100！'
+                        message: this.$t('权重的值为大于等于0的整数，且所有权重相加为100')
                     })
                     return false
                 }
@@ -1162,7 +1203,7 @@
                             this.$bkMessage({
                                 theme: 'error',
                                 delay: 5000,
-                                message: '服务端口不能为空！'
+                                message: this.$t('服务端口不能为空')
                             })
                             return false
                         }
@@ -1170,7 +1211,7 @@
                             this.$bkMessage({
                                 theme: 'error',
                                 delay: 5000,
-                                message: '服务端口范围为1-65535！'
+                                message: this.$t('服务端口范围为1-65535')
                             })
                             return false
                         }
@@ -1178,7 +1219,7 @@
                             this.$bkMessage({
                                 theme: 'error',
                                 delay: 5000,
-                                message: `请填写正确的路径！`
+                                message: this.$t('请填写正确的路径')
                             })
                             return false
                         }
@@ -1189,7 +1230,7 @@
                     this.$bkMessage({
                         theme: 'error',
                         delay: 5000,
-                        message: '请选择需要关联的LoadBalance！'
+                        message: this.$t('请选择需要关联的LoadBalance')
                     })
                     return false
                 }
@@ -1245,7 +1286,7 @@
 
                         this.$bkMessage({
                             theme: 'success',
-                            message: '操作成功！',
+                            message: this.$t('操作成功'),
                             hasCloseIcon: true,
                             delay: 3000
                         })

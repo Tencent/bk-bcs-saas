@@ -28,7 +28,7 @@
 .biz-actions {
     position: absolute;
     right: 20px;
-    top: 12px;
+    top: 0;
 
     .button {
         width: 32px;

@@ -1,16 +1,5 @@
-/**
- * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community Edition) available.
- * Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
- * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- * http://opensource.org/licenses/MIT
- * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
- * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
- * specific language governing permissions and limitations under the License.
- */
-
-@import '../../css/variable.css';
-@import '../../css/mixins/ellipsis.css';
+@import '@open/css/variable.css';
+@import '@open/css/mixins/ellipsis.css';
 
 .biz-app-instance {
     padding: 20px;
@@ -68,6 +57,7 @@
         height: 75px;
         border-right: 1px solid $borderWeightColor;
         padding-left: 20px;
+        background-color: #fff;
 
         &:nth-of-type(5) {
             border-right: none;
@@ -90,13 +80,92 @@
     }
 }
 
+.biz-app-toggle-instance-chart-view {
+    font-size: 0;
+    position: relative;
+    top: 20px;
+    height: 30px;
+    line-height: 30px;
+    width: 100%;
+    span {
+        border: 1px solid #dde4eb;
+        display: inline-block;
+        font-size: 14px;
+        padding: 0 10px;
+        border-bottom: none;
+        cursor: pointer;
+        &:hover {
+            color: #3a84ff;
+        }
+        &:nth-child(2) {
+            border-left: 0;
+        }
+        &.cur {
+            cursor: default;
+            background-color: #fff;
+            &:hover {
+                color: inherit;
+            }
+        }
+    }
+}
+
 .biz-app-instance-chart-wrapper {
     margin-top: 20px;
     background-color: #fff;
-    box-shadow: 1px 0 2px rgba(0, 0, 0, 0.1);
+    /* box-shadow: 1px 0 2px rgba(0, 0, 0, 0.1); */
     border: 1px solid $borderWeightColor;
     font-size: 0;
     border-radius: 2px;
+
+    .change-pod-wrapper {
+        width: 400px;
+        float: right;
+        margin-right: 20px;
+        margin-top: 20px;
+        .bk-selector-list {
+            z-index: 102;
+        }
+    }
+
+    .biz-app-instance-chart-k8s {
+        display: flex;
+        width: 100%;
+        &.container-view {
+            margin-top: 50px;
+        }
+        .part {
+            flex: 1;
+            height: 250px;
+            &.top-left {
+                border-right: 1px solid $borderWeightColor;
+                border-bottom: 1px solid $borderWeightColor;
+            }
+
+            &.top-right {
+                border-bottom: 1px solid $borderWeightColor;
+            }
+
+            .info {
+                font-size: 14px;
+                display: flex;
+                padding: 20px 30px;
+
+                .left,
+                .right {
+                    flex: 1;
+                }
+
+                .left {
+                    font-weight: 700;
+                }
+
+                .right {
+                    text-align: right;
+                }
+            }
+        }
+    }
 
     .biz-app-instance-chart {
         display: inline-block;
@@ -494,6 +563,81 @@
         font-size: 14px;
         word-wrap: break-word;
         margin-bottom: 10px;
+    }
+
+    .slider-log-content-wrapper {
+        background-color: #222;
+        color: #f1f1f1;
+        height: 100%;
+        .toggle-time-btn {
+            position: absolute;
+            top: -50px;
+            right: 60px;
+        }
+        .biz-log-box {
+            font-size: 12px;
+            font-family: monospace;
+
+            background-color: #222;
+            position: absolute;
+            margin: 6px 0;
+            top: 0;
+            right: 0;
+            left: 0;
+            bottom: 0;
+            overflow: hidden;
+            &::-webkit-scrollbar {
+                width: 9px;
+                height: 9px;
+                background-color: white;
+            }
+            ::-webkit-scrollbar-thumb {
+                height: 8px;
+                border-radius: 20px;
+                background-color: #a5a5a5;
+            }
+        }
+        .log-content {
+            overflow-y: auto;
+            height: 100%;
+            &::-webkit-scrollbar {
+                width: 9px;
+                height: 9px;
+                background-color: white;
+            }
+            ::-webkit-scrollbar-thumb {
+                height: 8px;
+                border-radius: 20px;
+                background-color: #a5a5a5;
+            }
+        }
+        .line {
+            padding: 0 15px;
+
+            display: flex;
+            flex-direction: row;
+            margin: 0;
+            min-height: 16px;
+            &:hover {
+                background-color: #383838;
+            }
+        }
+        .line-num {
+            color: #5f697d;
+
+            text-align: right;
+            display: inline-block;
+            width: 32px;
+            min-width: 32px;
+            padding-right: 12px;
+            line-height: 22px;
+        }
+        .line-time {
+            color: #5f697d;
+        }
+        .line-text {
+            line-height: 22px;
+        }
     }
 }
 

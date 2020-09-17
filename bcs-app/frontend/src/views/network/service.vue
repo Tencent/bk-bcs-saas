@@ -19,7 +19,7 @@
         mixins: [globalMixin],
         data () {
             return {
-                currentView: k8sService
+                currentView: ''
             }
         },
         computed: {
@@ -41,7 +41,7 @@
             setComponent () {
                 if (this.curProject.kind === PROJECT_MESOS) {
                     this.currentView = 'mesosService'
-                } else if (this.curProject.kind === PROJECT_K8S) {
+                } else {
                     this.currentView = 'k8sService'
                 }
             }

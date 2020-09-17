@@ -1,25 +1,57 @@
 /**
- * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community Edition) available.
- * Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
- * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- * http://opensource.org/licenses/MIT
- * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
- * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
- * specific language governing permissions and limitations under the License.
+ * @file ee 版本 router 配置
  */
 
 import Vue from 'vue'
 import VueRouter from 'vue-router'
-import { bus } from '@open/common/bus'
-import store from '@open/store'
+
 import http from '@open/api'
+import { bus } from '@open/common/bus'
 import preload from '@open/common/preload'
-import { routes as ceRoutes } from './ce'
+import resourceRoutes from '@open/router/resource'
+import nodeRoutes from '@open/router/node'
+import mcRoutes from '@open/router/mc'
+import depotRoutes from '@open/router/depot'
+
+import store from '@open/store'
+import clusterRoutes from './cluster'
+import appRoutes from './app'
+import configurationRoutes from './configuration'
+import networkRoutes from './network'
+import helmRoutes from './helm'
 
 Vue.use(VueRouter)
 
-const routes = ceRoutes
+const ContainerServiceEntry = () => import(/* webpackChunkName: 'containerserviceentry' */'@open/views')
+const None = () => import(/* webpackChunkName: 'none' */'@open/views/none')
+
+const children = clusterRoutes.concat(
+    nodeRoutes,
+    appRoutes,
+    configurationRoutes,
+    networkRoutes,
+    resourceRoutes,
+    depotRoutes,
+    mcRoutes,
+    helmRoutes
+)
+
+const routes = [
+    {
+        // domain/bcs
+        // path: '/bcs',
+        path: `${SITE_URL}`,
+        name: 'containerServiceMain',
+        component: ContainerServiceEntry,
+        children: children
+    },
+    // 404
+    {
+        path: '*',
+        name: '404',
+        component: None
+    }
+]
 
 const router = new VueRouter({
     mode: 'history',

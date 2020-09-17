@@ -1,12 +1,5 @@
 /**
- * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community Edition) available.
- * Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
- * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- * http://opensource.org/licenses/MIT
- * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
- * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
- * specific language governing permissions and limitations under the License.
+ * @file k8s 状态判断
  */
 
 // 0: 置灰, 1: 可用, -1: 隐藏
@@ -34,6 +27,7 @@ export default class State {
         this.instance = props.instance
         this.buildInstance = props.buildInstance
         this.operType = props.operType
+        this.hpa = props.hpa
         this.category = props.category
         // backend_error && oper_type==create，oper_type_flag 为空
         // 否则，oper_type_flag 和 oper_type 同一个值，表示前端不显示重试+删除；显示的是这个值对应的操作，并且加上 error 的感叹号
@@ -97,7 +91,7 @@ export default class State {
                     if (this.buildInstance !== this.instance) {
                         ret = Object.assign({}, OPERATE_MAP, {
                             // 暂停可用
-                            pause: 1,
+                            pause: this.category === 'statefulset' ? -1 : 1,
                             // 撤销可用
                             cancel: 1,
                             // 重建可用
@@ -110,7 +104,7 @@ export default class State {
                     } else {
                         ret = Object.assign({}, OPERATE_MAP, {
                             // 暂停可用
-                            pause: 1,
+                            pause: this.category === 'statefulset' ? -1 : 1,
                             // 撤销可用
                             cancel: 1,
                             // 重建可用
@@ -181,7 +175,7 @@ export default class State {
                     if (this.buildInstance !== this.instance) {
                         ret = Object.assign({}, OPERATE_MAP, {
                             // 暂停可用
-                            pause: 1,
+                            pause: this.category === 'statefulset' ? -1 : 1,
                             // 撤销可用
                             cancel: 1,
                             // 重建可用
@@ -243,6 +237,11 @@ export default class State {
                     showLoading: true
                 })
             }
+        }
+
+        // hpa 扩缩容置灰
+        if (this.hpa) {
+            ret.scale = 0
         }
 
         // k8s job 类型，没有滚动升级操作

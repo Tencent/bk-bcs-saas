@@ -2,7 +2,8 @@
     <div class="biz-content">
         <div class="biz-top-bar">
             <div class="biz-loadbalance-title">
-                LoadBalance
+                LoadBalancer
+                <span data-v-67a1b199="" class="biz-tip f12 ml10">{{$t('K8S官方维护的ingress-nginx')}}</span>
             </div>
             <bk-guide></bk-guide>
         </div>
@@ -18,16 +19,16 @@
                     <div class="left">
                         <button class="bk-button bk-primary" @click.stop.prevent="createLoadBlance">
                             <i class="bk-icon icon-plus"></i>
-                            <span>新建LoadBalance</span>
+                            <span>{{$t('新建LoadBalancer')}}</span>
                         </button>
                     </div>
                     <div class="right">
                         <bk-data-searcher
-                            :placeholder="'输入命名空间，按Enter搜索'"
+                            :placeholder="$t('输入命名空间，按Enter搜索')"
                             :scope-list="searchScopeList"
                             :search-key.sync="searchKeyword"
                             :search-scope.sync="searchScope"
-                            @search="searchLoadBalance"
+                            @search="getLoadBalanceList"
                             @refresh="refresh">
                         </bk-data-searcher>
                     </div>
@@ -37,12 +38,12 @@
                         <table class="bk-table has-table-hover biz-table biz-loadbalance-table">
                             <thead>
                                 <tr>
-                                    <th>所属集群</th>
-                                    <th>命名空间</th>
-                                    <th>端口</th>
-                                    <th>更新时间</th>
-                                    <th>更新人</th>
-                                    <th style="width: 160px;">操作</th>
+                                    <th>{{$t('所属集群')}}</th>
+                                    <th>{{$t('命名空间')}}</th>
+                                    <th>{{$t('端口')}}</th>
+                                    <th>{{$t('更新时间')}}</th>
+                                    <th>{{$t('更新人')}}</th>
+                                    <th style="width: 160px;">{{$t('操作')}}</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -57,13 +58,12 @@
                                             {{loadBalance.namespace_name}}
                                         </td>
                                         <td>
-                                            <!-- <p>{{loadBalance.protocol}}</p> -->
-                                            <div class="biz-key-label" v-for="key of Object.keys(loadBalance.protocol)" :key="key">
-                                                <template v-if="loadBalance.protocol[key].isUse && key">
+                                            <template v-for="key of Object.keys(loadBalance.protocol)">
+                                                <div class="biz-key-label" :key="key" v-if="loadBalance.protocol[key].isUse && key">
                                                     <span class="key">{{key}}</span>
                                                     <span class="value">{{loadBalance.protocol[key].port}}</span>
-                                                </template>
-                                            </div>
+                                                </div>
+                                            </template>
                                         </td>
                                         <td>
                                             {{formatDate(loadBalance.updated)}}
@@ -72,8 +72,8 @@
                                             {{loadBalance.updator}}
                                         </td>
                                         <td>
-                                            <a href="javascript:void(0);" class="bk-text-button" @click.stop.prevent="editLoadBalance(loadBalance, index)">编辑</a>
-                                            <a href="javascript:void(0);" class="bk-text-button" @click.stop.prevent="removeLoadBalance(loadBalance, index)">删除</a>
+                                            <a href="javascript:void(0);" class="bk-text-button" @click.stop.prevent="editLoadBalance(loadBalance, index)">{{$t('编辑')}}</a>
+                                            <a href="javascript:void(0);" class="bk-text-button" @click.stop.prevent="removeLoadBalance(loadBalance, index)">{{$t('删除')}}</a>
                                         </td>
                                     </tr>
                                 </template>
@@ -82,7 +82,7 @@
                                         <td colspan="7">
                                             <div class="biz-app-list">
                                                 <div class="bk-message-box">
-                                                    <p class="message empty-message" v-if="!isInitLoading">无数据</p>
+                                                    <p class="message empty-message" v-if="!isInitLoading">{{$t('无数据')}}</p>
                                                 </div>
                                             </div>
                                         </td>
@@ -93,6 +93,7 @@
                     </div>
                     <div class="biz-page-wrapper" v-if="pageConf.total">
                         <bk-page-counter
+                            :is-en="isEn"
                             :total="pageConf.total"
                             :page-size="pageConf.pageSize"
                             @change="changePageSize">
@@ -118,14 +119,14 @@
                 <div class="bk-form bk-form-vertical mb20" v-bkloading="{ isLoading: isDataSaveing }">
                     <div class="bk-form-item is-required">
                         <div class="bk-form-content">
-                            <label class="bk-label">所属集群：</label>
+                            <label class="bk-label">{{$t('所属集群')}}：</label>
                             <div class="bk-form-content">
                                 <bk-selector
                                     style="width:565px;"
                                     :field-type="'cluster'"
-                                    placeholder="请选择"
+                                    :placeholder="$t('请选择')"
                                     :setting-key="'cluster_id'"
-                                    :display-key="'name'"
+                                    :display-key="'longName'"
                                     :is-link="true"
                                     :selected.sync="curLoadBalance.cluster_id"
                                     :list="clusterList"
@@ -137,13 +138,13 @@
 
                     <div class="bk-form-item is-required">
                         <div class="bk-form-content">
-                            <label class="bk-label">命名空间：</label>
+                            <label class="bk-label">{{$t('命名空间')}}：</label>
                             <div class="bk-form-content">
                                 <div style="width: 565px;">
                                     <bk-selector
                                         :searchable="true"
                                         :field-type="'namespace'"
-                                        placeholder="请选择"
+                                        :placeholder="$t('请选择')"
                                         :setting-key="'id'"
                                         :display-key="'name'"
                                         :selected.sync="curLoadBalance.namespace"
@@ -155,7 +156,7 @@
                     </div>
 
                     <div class="bk-form-item">
-                        <label class="bk-label">设置协议：<span class="biz-tip">至少有一个勾选</span></label>
+                        <label class="bk-label">{{$t('设置协议')}}：<span class="biz-tip">{{$t('至少有一个勾选')}}</span></label>
                         <div class="bk-form-content">
                             <div class="bk-form-inline-item is-required" style="width: 260px;">
                                 <label class="bk-form-checkbox" style="width: 100px;">
@@ -164,11 +165,11 @@
                                         name="portocal"
                                         v-model="curLoadBalance.protocol.http.isUse"
                                         :disabled="!curLoadBalance.protocol.https.isUse" />
-                                    <i class="bk-checkbox-text">启用Http</i>
+                                    <i class="bk-checkbox-text">{{$t('启用Http')}}</i>
                                 </label>
                                 <bk-input
                                     type="number"
-                                    placeholder="请输入"
+                                    :placeholder="$t('启用Http')"
                                     style="width: 154px;"
                                     :min="0"
                                     :value.sync="curLoadBalance.protocol.http.port">
@@ -181,11 +182,11 @@
                                         name="portocal"
                                         v-model="curLoadBalance.protocol.https.isUse"
                                         :disabled="!curLoadBalance.protocol.http.isUse" />
-                                    <i class="bk-checkbox-text">启用Https</i>
+                                    <i class="bk-checkbox-text">{{$t('启用Https')}}</i>
                                 </label>
                                 <bk-input
                                     type="number"
-                                    placeholder="请输入"
+                                    :placeholder="$t('启用Https')"
                                     style="width: 157px;"
                                     :min="0"
                                     :value.sync="curLoadBalance.protocol.https.port">
@@ -196,14 +197,14 @@
 
                     <div class="bk-form-item is-required mt15">
                         <div class="head">
-                            <label class="bk-label">节点IP：</label>
-                            <bk-button type="primary" size="mini" @click="showNodeSelector">添加节点</bk-button>
+                            <label class="bk-label">{{$t('节点IP')}}：</label>
+                            <bk-button type="primary" size="mini" @click="showNodeSelector">{{$t('添加节点')}}</bk-button>
                         </div>
                         <table class="bk-table biz-data-table has-table-bordered">
                             <thead>
                                 <tr>
                                     <th>IP</th>
-                                    <th style="width: 160px;">操作</th>
+                                    <th style="width: 160px;">{{$t('操作')}}</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -213,14 +214,14 @@
                                             {{node.inner_ip}}
                                         </td>
                                         <td>
-                                            <a href="javascript:void(0);" class="bk-text-button" @click="removeNode(index)">删除</a>
+                                            <a href="javascript:void(0);" class="bk-text-button" @click="removeNode(index)">{{$t('删除')}}</a>
                                         </td>
                                     </tr>
                                 </template>
                                 <template v-else>
                                     <tr>
                                         <td colspan="2">
-                                            <div class="biz-no-data p30">无数据</div>
+                                            <div class="biz-no-data p30">{{$t('无数据')}}</div>
                                         </td>
                                     </tr>
                                 </template>
@@ -229,8 +230,8 @@
                     </div>
 
                     <div class="bk-form-item mt25">
-                        <bk-button type="primary" @click="saveLoadBalance">保存</bk-button>
-                        <bk-button @click="hideLoadBalanceSlider">取消</bk-button>
+                        <bk-button type="primary" @click="saveLoadBalance">{{$t('保存')}}</bk-button>
+                        <bk-button @click="hideLoadBalanceSlider">{{$t('取消')}}</bk-button>
                     </div>
                 </div>
             </div>
@@ -298,6 +299,9 @@
             }
         },
         computed: {
+            isEn () {
+                return this.$store.state.isEn
+            },
             varList () {
                 return this.$store.state.variable.varList
             },
@@ -310,9 +314,9 @@
                 return list
             },
             clusterList () {
-                const clusterList = this.$store.state.network.clusterList
+                const clusterList = this.$store.state.cluster.clusterList
                 const list = clusterList.map(cluster => {
-                    cluster.name = `${cluster.name}(${cluster.cluster_id})`
+                    cluster.longName = `${cluster.name}(${cluster.cluster_id})`
                     return cluster
                 })
                 return list
@@ -325,15 +329,19 @@
                         name: item.name
                     }
                 })
+
                 results.length && results.unshift({
                     id: '',
-                    name: '全部集群'
+                    name: this.$t('全部集群')
                 })
 
                 return results
             },
             curProject () {
                 return this.$store.state.curProject
+            },
+            isClusterDataReady () {
+                return this.$store.state.cluster.isClusterDataReady
             }
         },
         watch: {
@@ -347,14 +355,30 @@
                         this.getLoadBalanceStatus(item)
                     }
                 })
+            },
+            isClusterDataReady: {
+                immediate: true,
+                handler (val) {
+                    if (val) {
+                        setTimeout(() => {
+                            if (this.searchScopeList.length) {
+                                const clusterIds = this.searchScopeList.map(item => item.id)
+                                // 使用当前缓存
+                                if (sessionStorage['bcs-cluster'] && clusterIds.includes(sessionStorage['bcs-cluster'])) {
+                                    this.searchScope = sessionStorage['bcs-cluster']
+                                } else {
+                                    this.searchScope = this.searchScopeList[1].id
+                                }
+                            }
+                            
+                            this.getLoadBalanceList()
+                        }, 1000)
+                    }
+                }
             }
         },
         created () {
-            if (!this.loadBalanceList.length) {
-                this.getLoadBalanceList()
-                this.initPageConf()
-                this.getClusterList()
-            }
+            this.initPageConf()
         },
         methods: {
             /**
@@ -395,7 +419,7 @@
                 if (!this.curLoadBalance.cluster_id) {
                     this.$bkMessage({
                         theme: 'error',
-                        message: '请选择所属集群！'
+                        message: this.$t('请选择所属集群')
                     })
                     return false
                 }
@@ -448,7 +472,7 @@
                     },
                     'node_list': []
                 }
-                this.loadBalanceSlider.title = '新建LoadBalance'
+                this.loadBalanceSlider.title = this.$t('新建LoadBalancer')
                 this.loadBalanceSlider.isShow = true
             },
 
@@ -519,7 +543,7 @@
                     this.isDataSaveing = false
                 }
 
-                this.loadBalanceSlider.title = '编辑LoadBalance'
+                this.loadBalanceSlider.title = this.$t('编辑LoadBalancer')
                 this.loadBalanceSlider.isShow = true
             },
 
@@ -577,7 +601,7 @@
                     clsName: 'biz-remove-dialog',
                     content: this.$createElement('p', {
                         class: 'biz-confirm-desc'
-                    }, `确定要删除LoadBalance？`),
+                    }, this.$t('确定要删除LoadBalancer')),
                     async confirmFn () {
                         self.isPageLoading = true
 
@@ -589,7 +613,7 @@
                             })
                             self.$bkMessage({
                                 theme: 'success',
-                                message: '删除成功！'
+                                message: self.$t('删除成功')
                             })
                             self.getLoadBalanceList()
                         } catch (e) {
@@ -641,6 +665,7 @@
             initPageConf () {
                 const total = this.loadBalanceList.length
                 this.pageConf.total = total
+                this.pageConf.curPage = 1
                 this.pageConf.totalPage = Math.ceil(total / this.pageConf.pageSize)
             },
 
@@ -649,9 +674,6 @@
              */
             reloadCurPage () {
                 this.initPageConf()
-                if (this.pageConf.curPage > this.pageConf.totalPage) {
-                    this.pageConf.curPage = this.pageConf.totalPage
-                }
                 this.curPageData = this.getDataByPage(this.pageConf.curPage)
             },
 
@@ -685,6 +707,7 @@
              * @param  {number} page 页
              */
             handlerPageChange (page = 1) {
+                this.isPageLoading = true
                 this.pageConf.curPage = page
                 const data = this.getDataByPage(page)
                 this.curPageData = JSON.parse(JSON.stringify(data))
@@ -721,14 +744,19 @@
              */
             async getLoadBalanceList () {
                 try {
-                    await this.$store.dispatch('network/getLoadBalanceListByPage', this.curProject)
+                    const project = this.curProject
+                    const params = {
+                        cluster_id: this.searchScope
+                    }
+                    this.isPageLoading = true
+                    await this.$store.dispatch('network/getLoadBalanceListByPage', {
+                        project,
+                        params
+                    })
                     this.isAllDataLoad = true
                     this.initPageConf()
-                    if (this.pageConf.curPage > this.pageConf.totalPage) {
-                        this.pageConf.curPage = this.pageConf.totalPage
-                    }
                     // 如果有搜索关键字，继续显示过滤后的结果
-                    if (this.searchScope || this.searchKeyword) {
+                    if (this.searchKeyword) {
                         this.searchLoadBalance()
                     }
                 } catch (e) {
@@ -736,6 +764,7 @@
                 } finally {
                     // 晚消失是为了防止整个页面loading和表格数据loading效果叠加产生闪动
                     setTimeout(() => {
+                        this.isPageLoading = false
                         this.isInitLoading = false
                     }, 200)
                 }
@@ -761,7 +790,7 @@
                 if (!data.cluster_id) {
                     this.$bkMessage({
                         theme: 'error',
-                        message: '请选择所属集群！',
+                        message: this.$t('请选择所属集群'),
                         delay: 5000
                     })
                     return false
@@ -770,7 +799,7 @@
                 if (!data.namespace_id) {
                     this.$bkMessage({
                         theme: 'error',
-                        message: '请选择命名空间！',
+                        message: this.$t('请选择命名空间'),
                         delay: 5000
                     })
                     return false
@@ -779,7 +808,7 @@
                 if (data.protocols.http.isUse && !data.protocols.http.port) {
                     this.$bkMessage({
                         theme: 'error',
-                        message: '请输入http端口！',
+                        message: this.$t('请输入http端口'),
                         delay: 5000
                     })
                     return false
@@ -788,7 +817,7 @@
                 if (data.protocols.https.isUse && !data.protocols.https.port) {
                     this.$bkMessage({
                         theme: 'error',
-                        message: '请输入https端口！',
+                        message: this.$t('请输入https端口'),
                         delay: 5000
                     })
                     return false
@@ -797,7 +826,7 @@
                 if (data.ip_info === '{}') {
                     this.$bkMessage({
                         theme: 'error',
-                        message: '请添加节点！',
+                        message: this.$t('请添加节点'),
                         delay: 5000
                     })
                     return false
@@ -837,7 +866,7 @@
                         }
                     })
 
-                    // eg："{"244":true}"
+                    // 例如"{"244":true}"
                     const ipInfo = JSON.parse(item.ip_info)
                     item.node_list = []
                     item.unsharedNum = 0
@@ -906,10 +935,10 @@
 
                 try {
                     await this.$store.dispatch('network/addK8sLoadBalance', { projectId, data })
-
+                    this.searchScope = data.cluster_id
                     this.$bkMessage({
                         theme: 'success',
-                        message: '数据保存成功！'
+                        message: this.$t('数据保存成功')
                     })
                     this.getLoadBalanceList()
                     this.hideLoadBalanceSlider()
@@ -941,7 +970,7 @@
 
                     this.$bkMessage({
                         theme: 'success',
-                        message: '数据保存成功！'
+                        message: this.$t('数据保存成功')
                     })
                     this.getLoadBalanceList()
                     this.hideLoadBalanceSlider()

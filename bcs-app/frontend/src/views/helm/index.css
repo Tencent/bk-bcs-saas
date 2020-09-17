@@ -1,16 +1,5 @@
-/**
- * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community Edition) available.
- * Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
- * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- * http://opensource.org/licenses/MIT
- * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
- * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
- * specific language governing permissions and limitations under the License.
- */
-
-@import '../../css/variable.css';
-@import '../../css/mixins/ellipsis.css';
+@import '@open/css/variable.css';
+@import '@open/css/mixins/ellipsis.css';
 
 .biz-helm-title {
     display: inline-block;
@@ -18,24 +7,6 @@
     line-height: 60px;
     font-size: 16px;
     margin-left: 20px;
-}
-
-.biz-actions {
-    position: absolute;
-    right: 20px;
-    top: 19px;
-
-    .button {
-        width: 32px;
-        height: 32px;
-        border: none;
-        background: transparent;
-        font-size: 26px;
-        color: #c3cdd7;
-        padding: 0;
-        margin: 0 3px;
-        line-height: 1;
-    }
 }
 
 .biz-helm-list {
@@ -160,6 +131,52 @@
     display: flex;
 }
 
+.logo-th {
+    width: 120px;
+}
+
+.logo {
+    width: 100px;
+    text-align: center;
+}
+
+.data-th {
+    width: 350px;
+    padding-left: 20px;
+}
+
+.data {
+    width: 350px;
+    padding-left: 20px;
+}
+
+.namespace-th {
+    width: 400px;
+    padding: 0 10px;
+}
+
+.namespace {
+    width: 400px;
+    padding: 0 10px;
+}
+
+.opera_record-th {
+    width: auto;
+}
+
+.opera_record {
+    width: auto;
+}
+
+.action-th {
+    width: 230px;
+    padding-left: 0;
+}   
+
+.action {
+    width: 205px;
+}
+
 .biz-inner-table {
     width: 100%;
     border: 1px solid $borderColor;
@@ -174,30 +191,18 @@
         border-left: none;
     }
 
+    .logo {
+        border-right: 1px solid $borderColor;
+    }
+
     .app-name {
-        max-width: 160px;
+        max-width: 270px;
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
         display: inline-block;
         vertical-align: middle;
         margin-right: 5px;
-    }
-
-    .logo {
-        width: 100px;
-        text-align: center;
-        border-right: 1px solid $borderColor;
-    }
-
-    .data {
-        width: 240px;
-        padding-left: 20px;
-    }
-
-    .namespace {
-        min-width: 230px;
-        padding: 0 10px;
     }
 
     .version {
@@ -210,14 +215,6 @@
 
     .deploy {
         width: 160px;
-    }
-
-    .opera_record {
-        width: 250px;
-    }
-
-    .action {
-        width: 205px;
     }
 
     .title {
@@ -412,7 +409,13 @@
     text-align: left;
     max-height: 200px;
     overflow: auto;
-    margin: 0 0 15px 0;
+    margin: 0;
+}
+
+#error-copy-btn {
+    position: absolute;
+    bottom: 5px;
+    right: 5px;
 }
 
 .biz-message {
@@ -474,10 +477,68 @@
 }
 
 /* 自适应 */
-@media screen and (max-width: $mediaWidth) {
+@media screen and (max-width: 1600px) {
+    .data-th {
+        width: 300px;
+        padding-left: 20px;
+    }
+
+    .data {
+        width: 300px;
+        padding-left: 20px;
+    }
+
+    .namespace-th {
+        width: 300px;
+        padding: 0 10px;
+    }
+
+    .namespace {
+        width: 300px;
+        padding: 0 10px;
+    }
+}
+
+
+@media screen and (max-width: 1366px) {
     .app-version {
         max-width: 170px;
         @mixin ellipsis;
         margin-right: 5px;
+    }
+
+    .biz-inner-table {
+        .app-name {
+            max-width: 160px;
+        }
+    }
+
+    .data-th {
+        width: 240px;
+        padding-left: 20px;
+    }
+
+    .data {
+        width: 240px;
+        padding-left: 20px;
+    }
+
+    .namespace-th {
+        width: 230px;
+        padding: 0 10px;
+    }
+
+    .namespace {
+        width: 230px;
+        padding: 0 10px;
+    }
+
+    .action-th {
+        width: 230px;
+        padding-left: 0;
+    }   
+
+    .action {
+        width: 205px;
     }
 }
