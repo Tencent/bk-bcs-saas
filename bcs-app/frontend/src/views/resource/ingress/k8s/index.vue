@@ -357,8 +357,6 @@
                                 <div class="bk-form-item">
                                     <label class="bk-label" style="width: 130px;">{{$t('路径组')}}：</label>
                                     <div class="bk-form-content" style="margin-left: 130px;">
-                                        {{curRule.http}}
-                                        {{linkServices}}
                                         <table class="biz-simple-table">
                                             <tbody>
                                                 <tr v-for="(pathRule, index) of curRule.http.paths" :key="index">
@@ -1091,7 +1089,6 @@
                             })
                         })
                     })
-                    debugger
                     this.linkServices = serviceList
                 } catch (e) {
                     catchErrorHandler(e, this)
