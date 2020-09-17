@@ -57,7 +57,7 @@ def custom_exception_handler(exc, context):
     if isinstance(exc, (NotAuthenticated, AuthenticationFailed)):
         data = {
             "code": error_codes.Unauthorized.code,
-            "data": {"login_url": {"full": settings.LOGIN_FULL, "simple": settings.LOGIN_SIMPLE,}},
+            "data": {"login_url": {"full": settings.LOGIN_FULL, "simple": settings.LOGIN_SIMPLE}},
             "message": error_codes.Unauthorized.message,
             "request_id": local.request_id,
         }
@@ -176,8 +176,8 @@ class CodeJSONRenderer(JSONRenderer):
             # note: 不要对GET操作的返回结果进行处理
             if (
                 renderer_context is not None
-                and renderer_context["request"].method in ["POST", "PUT", "DELETE"]
-                and "transitioning_result" in data
+                and renderer_context["request"].method in ["POST", "PUT", "DELETE"]  # noqa
+                and "transitioning_result" in data  # noqa
             ):
                 response_data = {
                     "data": data,
