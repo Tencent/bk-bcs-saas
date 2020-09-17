@@ -1728,7 +1728,7 @@
                 const labelKeyReg = /^([A-Za-z0-9][-A-Za-z0-9_./]*)?[A-Za-z0-9]$/
                 const envKeyReg = /^([A-Za-z0-9][-A-Za-z0-9_.]*)?[A-Za-z0-9]$/
                 const varReg = /\{\{([^\{\}]+)?\}\}/g
-                const ipReg = /^((2(5[0-5]|[0-4]\d))|[0-1]?\d{1,2})(\.((2(5[0-5]|[0-4]\d))|[0-1]?\d{1,2})){3}$/
+                // const ipReg = /^((2(5[0-5]|[0-4]\d))|[0-1]?\d{1,2})(\.((2(5[0-5]|[0-4]\d))|[0-1]?\d{1,2})){3}$/
                 let megPrefix = `"${appName}"${this.$t('中')}`
 
                 if (appName === '') {
@@ -1920,7 +1920,6 @@
                                 })
                                 return false
                             }
-                            
                             if (!hostAlias.hostnames) {
                                 megPrefix += `hostAliases：`
                                 this.$bkMessage({
