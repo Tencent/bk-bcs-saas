@@ -374,7 +374,10 @@ class NodeGetUpdateDeleteViewSet(NodeBase, NodeLabelBase, viewsets.ViewSet):
         self.allow_oper_node(node_info, curr_node_status)
         # enable/disable node info
         project_name = request.project['project_name']
-        log_desc = f'project: {project_name}, cluster: {cluster_id}, update node: {node_info["inner_ip"]}'
+        # 记录node的操作，这里包含disable: 停止调度，enable: 允许调度
+        # 根据状态进行判断，当前端传递的是normal时，是要允许调度，否则是停止调度
+        operate = "enable" if node_info["status"] == NodeStatus.Normal else "disable"
+        log_desc = f'project: {project_name}, cluster: {cluster_id}, {operate} node: {node_info["inner_ip"]}'
         with client.ContextActivityLogClient(
             project_id=project_id,
             user=request.user.username,
