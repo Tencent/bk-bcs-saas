@@ -65,6 +65,6 @@ urlpatterns = [
         mesos_ingress.IngressRetrieveOperteViewSet.as_view({'get': 'retrieve', 'delete': 'delete', 'put': 'update'})),
 
     url(r'^api/k8s_lb/projects/(?P<project_id>\w{32})/chart/versions/$',
-        k8s.IngressControllerViewSet.as_view({"get": "list"})),
+        k8s.IngressControllerViewSet.as_view({"get": "list", "post": "post"})),
 
 ]
