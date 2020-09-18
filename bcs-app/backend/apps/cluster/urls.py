@@ -63,7 +63,7 @@ urlpatterns = [
     ),
     url(
         r'^api/projects/(?P<project_id>[\w\-]+)/clusters/(?P<cluster_id>[\w\-]+)/nodes/$',
-        views.NodeCreateListViewSet.as_view({'post': 'post_node_list'}),
+        views.NodeCreateListViewSet.as_view({"post": "post_node_list", "get": "list_nodes_ip"}),
     ),
     url(
         r'^api/projects/(?P<project_id>[\w\-]+)/cluster/(?P<cluster_id>[\w\-]+)/node/(?P<node_id>[\w\-]+)/logs/?$',
