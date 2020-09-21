@@ -20,7 +20,7 @@ from django.utils.translation import ugettext_lazy as _
 from backend.apps.network.models import K8SLoadBlance
 from backend.utils.error_codes import error_codes
 from backend.apps.configuration.serializers import RE_NAME
-from backend.apps.network.constants import MESOS_LB_NAMESPACE_NAME, K8S_LB_NAMESPACE_NAME
+from backend.apps.network.constants import MESOS_LB_NAMESPACE, K8S_LB_NAMESPACE
 from django.core.validators import MaxValueValidator, MinValueValidator
 
 
@@ -70,7 +70,7 @@ class NginxIngressSLZ(serializers.ModelSerializer):
         )
 
 
-class NginxIngressUpdateSLZ(serializers.Serializer):
+class UpdateK8SLoadBalancerSLZ(serializers.Serializer):
     protocol_type = serializers.CharField(default="")
     ip_info = serializers.JSONField(required=False)
     version = serializers.CharField()
@@ -94,7 +94,7 @@ class LoadBalancesSLZ(serializers.Serializer):
     constraints = serializers.JSONField(required=True)
     # type = serializers.ChoiceField(choices=['cover', 'append'], required=True)
     # mesos lb限制使用的lb占用的命名空间只能作为lb使用，并且建议全局使用同一个命名空间
-    namespace = serializers.CharField(required=False, default=MESOS_LB_NAMESPACE_NAME)
+    namespace = serializers.CharField(required=False, default=MESOS_LB_NAMESPACE)
     namespace_id = serializers.IntegerField(required=False, default=-1)
     network_type = serializers.CharField(required=True)
     network_mode = serializers.CharField(required=True)
@@ -156,9 +156,9 @@ class ChartVersionSLZ(serializers.Serializer):
     namespace = serializers.CharField(required=False)
 
 
-class CreateK8SLBParamsSLZ(serializers.Serializer):
+class CreateK8SLoadBalancerSLZ(serializers.Serializer):
     version = serializers.CharField()
     cluster_id = serializers.CharField()
-    namespace = serializers.CharField(default=K8S_LB_NAMESPACE_NAME)
+    namespace = serializers.CharField(default=K8S_LB_NAMESPACE)
     values_content = serializers.JSONField()
     ip_info = serializers.JSONField()

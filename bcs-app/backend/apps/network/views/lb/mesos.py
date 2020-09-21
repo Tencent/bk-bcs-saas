@@ -30,7 +30,7 @@ from backend.apps.configuration.models import Template, Application, VersionedEn
 from backend.components import paas_cc
 from backend.components.bcs import k8s, mesos
 from backend.apps import constants
-from backend.apps.network.constants import LB_STATUS_DICT, LB_DEFAULT_STATUS, MESOS_LB_NAMESPACE_NAME
+from backend.apps.network.constants import LB_STATUS_DICT, LB_DEFAULT_STATUS, MESOS_LB_NAMESPACE
 from backend.apps.network.utils import (handle_lb, get_lb_status, delete_lb_by_bcs, get_namespace_name)
 from backend.apps.instance.constants import (LABLE_TEMPLATE_ID, LABLE_INSTANCE_ID, SEVICE_SYS_CONFIG,
                                              ANNOTATIONS_CREATOR, ANNOTATIONS_UPDATOR, ANNOTATIONS_CREATE_TIME,
@@ -64,7 +64,7 @@ class LoadBalances(viewsets.ViewSet, BaseAPI):
         merge_data = []
         for info in data:
             ns_id = info.pop('namespace_id')
-            ns_name = namespace.get(ns_id) or MESOS_LB_NAMESPACE_NAME
+            ns_name = namespace.get(ns_id) or MESOS_LB_NAMESPACE
             info['ns_id_list'] = [ns_id]
             info['ns_name_list'] = [ns_name]
             merge_data.append(info)
@@ -88,7 +88,7 @@ class LoadBalances(viewsets.ViewSet, BaseAPI):
             ns = data_dict.get('namespace_id') or data_dict.get('namespace')
             if ns and str(ns).isdigit():
                 ns = int(ns)
-            ns_name = namespace.get(ns) or MESOS_LB_NAMESPACE_NAME
+            ns_name = namespace.get(ns) or MESOS_LB_NAMESPACE
             i['namespace'] = ns
             i['namespace_name'] = ns_name
             i['network_mode'] = data_dict.get('networkMode')

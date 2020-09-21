@@ -11,6 +11,7 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
+from django.conf import settings
 
 from django.utils.translation import ugettext_lazy as _
 
@@ -140,8 +141,7 @@ configMap:
 """
 
 # mesos lb namespace name
-MESOS_LB_NAMESPACE_NAME = 'mesos-lb'
+MESOS_LB_NAMESPACE = 'mesos-lb'
 
-
-# k8s lb namespace name
-K8S_LB_NAMESPACE_NAME = "bcs-system"
+# K8S lb部署到的命名空间
+K8S_LB_NAMESPACE = settings.BCS_SYSTEM_NAMESPACE
