@@ -20,12 +20,16 @@
 // 如果这里定义的是 VART: 'abcde' 那么这段代码会替换为 if (a === abcde) 会报错
 
 const NODE_ENV = JSON.stringify('production')
+// 打包的版本
+const VERSION = process.env.VERSION
 
 module.exports = {
     'process.env': {
         'NODE_ENV': NODE_ENV
     },
-    staticUrl: '/dist/static',
+    staticUrl: `/${VERSION}/static`,
     NODE_ENV: NODE_ENV,
+    VERSION: JSON.stringify(`${VERSION}`),
+    LOGIN_SERVICE_URL: JSON.stringify(''),
     IMAGE_BASE: ''
 }

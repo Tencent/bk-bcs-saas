@@ -1,12 +1,5 @@
 /**
- * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community Edition) available.
- * Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
- * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- * http://opensource.org/licenses/MIT
- * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
- * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
- * specific language governing permissions and limitations under the License.
+ * @file 应用 instantiation 详情页的 mixin
  */
 
 import yamljs from 'js-yaml'
@@ -44,6 +37,7 @@ export default {
     },
     data () {
         return {
+            REGION: window.REGION,
             tplList: [],
             // 存放给的是模板的 id 集合
             tplIndex: [],
@@ -56,7 +50,7 @@ export default {
                 isShow: false,
                 width: 912,
                 // width: 895,
-                title: '选择运行的集群及命名空间',
+                title: this.$t('选择运行的集群及命名空间'),
                 closeIcon: false,
                 loading: false
             },
@@ -106,7 +100,8 @@ export default {
                 hasFooter: false,
                 hasHeader: false
             },
-            curProject: null
+            curProject: null,
+            isSelectAllTpl: false
         }
     },
     computed: {
@@ -142,6 +137,9 @@ export default {
         },
         searchParamsList () {
             return this.$route.params.searchParamsList
+        },
+        isEn () {
+            return this.$store.state.isEn
         }
     },
     created () {
@@ -160,7 +158,7 @@ export default {
                 }
             }
             // k8s
-            if (this.curProject.kind === 1) {
+            if (this.curProject.kind === PROJECT_K8S || this.curProject.kind === PROJECT_TKE) {
                 this.editorConfig.lang = 'yaml'
             } else {
                 this.editorConfig.lang = 'json'
@@ -337,6 +335,7 @@ export default {
 
                 this.tplIndex.splice(0, this.tplIndex.length, ...tplIndex)
                 this.tplList.splice(0, this.tplList.length, ...tplList)
+                this.isSelectAllTpl = true
 
                 this.instanceEntity = Object.assign({}, tplData)
             } catch (e) {
@@ -366,6 +365,13 @@ export default {
                     name: item.name
                 })
             })
+
+            let count = 0
+            this.tplList.forEach(item => {
+                count += (item.children || []).length
+            })
+            this.isSelectAllTpl = data.length === count
+
             this.instanceEntity = Object.assign({}, ret)
 
             this.clearCandidateNamespaceStatus()
@@ -380,6 +386,63 @@ export default {
             // 清空已经选择的 namespace
             this.selectedNamespaceList.splice(0, this.selectedNamespaceList.length, ...[])
             this.selectedNamespaceCluster = {}
+        },
+
+        /**
+         * 全选模板
+         */
+        selectAllTpl () {
+            if (this.isSelectAllTpl) {
+                this.isSelectAllTpl = false
+                this.tplIndex = [...[]]
+                this.yamlTplResource = [...[]]
+                this.instanceEntity = Object.assign({}, {})
+                return
+            }
+
+            const ret = {}
+            const tplIndex = []
+            const yamlTplResource = []
+            this.tplList.forEach(item => {
+                if (!ret[item.name]) {
+                    ret[item.name] = []
+                }
+
+                const yamlResource = {
+                    resource_name: item.name,
+                    files: []
+                }
+                item.children.forEach(child => {
+                    ret[item.name].push({
+                        id: child.id,
+                        name: child.name
+                    })
+                    tplIndex.push(child.settingKey)
+                    yamlResource.files.push({
+                        id: child.id,
+                        name: child.name
+                    })
+                })
+                yamlTplResource.push(yamlResource)
+            })
+
+            this.tplIndex = [...tplIndex]
+            this.yamlTplResource = [...yamlTplResource]
+            this.instanceEntity = Object.assign({}, ret)
+
+            this.clearCandidateNamespaceStatus()
+            this.clearNamespaceStatus()
+            this.previewTitle = ''
+            this.previewNs = Object.assign({}, {})
+            this.previewList.splice(0, this.previewList.length, ...[])
+            this.editorConfig.editors.splice(0, this.editorConfig.editors.length, ...[])
+            this.editorConfig.values.splice(0, this.editorConfig.values.length, ...[])
+            this.previewShow = false
+
+            // 清空已经选择的 namespace
+            this.selectedNamespaceList.splice(0, this.selectedNamespaceList.length, ...[])
+            this.selectedNamespaceCluster = {}
+            this.isSelectAllTpl = true
         },
 
         /**
@@ -402,7 +465,10 @@ export default {
                         if (existList.indexOf(String(ns.id)) > -1) {
                             const message = existNamespaceList[ns.id].join(', ')
                             ns.isExist = true
-                            ns.message = `命名空间【${ns.name}】下存在${message.replace(/K8s/ig, '')}类型的同名实例, 无法再次实例化`
+                            ns.message = this.isEn
+                                ? `An instance of the same name of the ${message.replace(/K8s/ig, '')} type under the`
+                                    + ` namespace【${ns.name}】, which cannot be instantiated again.`
+                                : `命名空间【${ns.name}】下存在${message.replace(/K8s/ig, '')}类型的同名实例, 无法再次实例化`
                         } else {
                             ns.isExist = false
                         }
@@ -436,7 +502,7 @@ export default {
                 this.bkMessageInstance && this.bkMessageInstance.close()
                 this.bkMessageInstance = this.$bkMessage({
                     theme: 'error',
-                    message: '请选择模板集版本'
+                    message: this.$t('请选择模板集版本')
                 })
                 return
             }
@@ -445,7 +511,7 @@ export default {
                 this.bkMessageInstance && this.bkMessageInstance.close()
                 this.bkMessageInstance = this.$bkMessage({
                     theme: 'error',
-                    message: '请选择要实例化的模板'
+                    message: this.$t('请选择要实例化的模板')
                 })
                 return
             }
@@ -625,7 +691,7 @@ export default {
                 this.bkMessageInstance && this.bkMessageInstance.close()
                 this.bkMessageInstance = this.$bkMessage({
                     theme: 'error',
-                    message: '请选择命名空间'
+                    message: this.$t('请选择命名空间')
                 })
                 return
             }
@@ -719,7 +785,7 @@ export default {
                 this.bkMessageInstance && this.bkMessageInstance.close()
                 this.bkMessageInstance = this.$bkMessage({
                     theme: 'error',
-                    message: '请选择模板集版本'
+                    message: this.$t('请选择模板集版本')
                 })
                 return
             }
@@ -728,7 +794,7 @@ export default {
                 this.bkMessageInstance && this.bkMessageInstance.close()
                 this.bkMessageInstance = this.$bkMessage({
                     theme: 'error',
-                    message: '请选择要实例化的模板'
+                    message: this.$t('请选择要实例化的模板')
                 })
                 return
             }
@@ -763,7 +829,7 @@ export default {
 
                     // 当前这个 ns 没有 lb 信息，不需要展示变量了，也不能 preview 和提交
                     if (!lbData.length) {
-                        this.previewTitle = `${ns.name}的详细配置`
+                        this.previewTitle = this.$t('{nsName}的详细配置', { nsName: ns.name })
                         this.previewNs = Object.assign({}, ns)
                         if (this.invalidNsList.indexOf(ns.name) < 0) {
                             this.invalidNsList.splice(0, this.invalidNsList.length, ...[].concat(ns.name))
@@ -809,7 +875,7 @@ export default {
                     this.lbServiceListInPage.splice(0, this.lbServiceListInPage.length, ...lbServiceListInPage)
                     this.lbServiceListInPageTmp = Object.assign({}, lbServiceListInPageTmp)
 
-                    this.previewTitle = `${ns.cluster_name} / ${ns.name}的详细配置`
+                    this.previewTitle = ns.cluster_name + ' / ' + this.$t('{nsName}的详细配置', { nsName: ns.name })
                     this.previewNs = Object.assign({}, ns)
 
                     if (!this.checkCurNamespacePreview(ns)) {
@@ -848,7 +914,7 @@ export default {
                             })
                         })
                     })
-                    this.previewTitle = `${ns.cluster_name} / ${ns.name}的详细配置`
+                    this.previewTitle = ns.cluster_name + ' / ' + this.$t('{nsName}的详细配置', { nsName: ns.name })
                     this.previewNs = Object.assign({}, ns)
 
                     this.sortTplType(list, 'tag', true)
@@ -862,8 +928,11 @@ export default {
                     setTimeout(() => {
                         // 这里触发一次 change 为了让初始值也显示
                         this.variableValChange()
-                        this.editorConfig.editors[0].resize(true)
-                        this.editorConfig.editors[0].gotoLine(0, 0, true)
+                        const editor = this.editorConfig.editors[0]
+                        if (editor) {
+                            editor.resize(true)
+                            editor.gotoLine(0, 0, true)
+                        }
                     }, 100)
                 }
             } catch (e) {
@@ -1068,7 +1137,7 @@ export default {
                 this.bkMessageInstance && this.bkMessageInstance.close()
                 this.bkMessageInstance = this.$bkMessage({
                     theme: 'error',
-                    message: '请选择模板集版本'
+                    message: this.$t('请选择模板集版本')
                 })
                 return
             }
@@ -1077,7 +1146,7 @@ export default {
                 this.bkMessageInstance && this.bkMessageInstance.close()
                 this.bkMessageInstance = this.$bkMessage({
                     theme: 'error',
-                    message: '请选择要实例化的模板'
+                    message: this.$t('请选择要实例化的模板')
                 })
                 return
             }
@@ -1086,7 +1155,7 @@ export default {
                 this.bkMessageInstance && this.bkMessageInstance.close()
                 this.bkMessageInstance = this.$bkMessage({
                     theme: 'error',
-                    message: '请选择命名空间'
+                    message: this.$t('请选择命名空间')
                 })
                 return
             }
@@ -1094,8 +1163,11 @@ export default {
             if (this.invalidNsList.length) {
                 this.$bkMessage({
                     theme: 'error',
-                    message: `命令空间[${this.invalidNsList.join(',')}]没有相关联的LoadBalance，`
-                        + `请先到网络 -> LoadBalance页面关联`
+                    message: this.isEn
+                        ? `Namespace [${this.invalidNsList.join(',')}] has no associated LoadBalance, `
+                            + `please go to Network -> LoadBalance page association first.`
+                        : `命名空间[${this.invalidNsList.join(',')}]没有相关联的LoadBalance，`
+                            + `请先到网络 -> LoadBalance页面关联`
                 })
                 return
             }
@@ -1167,7 +1239,7 @@ export default {
             const me = this
             me.$bkInfo({
                 title: '',
-                content: me.$createElement('p', '确定要进行创建操作？'),
+                content: me.$createElement('p', this.$t('确定要进行创建操作？')),
                 async confirmFn () {
                     me.createInstanceLoading = true
                     try {
@@ -1215,7 +1287,7 @@ export default {
                     if (serviceObj[k] === -1) {
                         this.$bkMessage({
                             theme: 'error',
-                            message: `请选择${key}命名空间的${k}`
+                            message: this.$t('请选择{key}命名空间的{k}', { key: key, k: k })
                         })
                         outloop = false
                         ret = false
@@ -1236,6 +1308,139 @@ export default {
                     projectId: this.projectId,
                     projectCode: this.projectCode
                 }
+            })
+        },
+
+        hideNamesapceDialog () {
+            this.goNamespaceDialogConf.isShow = false
+        },
+
+        /**
+         * 触发 快速添加命名空间
+         *
+         * @param {string} paramName paramDesc
+         *
+         * @return {string} returnDesc
+         */
+        triggerAddNamespace (index) {
+            this.namespaceName = ''
+            this.$refs.addNamespaceNode.forEach(vnode => {
+                vnode.visiable = false
+                vnode.visible = false
+            })
+
+            const vnode = this.$refs.addNamespaceNode[index]
+            vnode.visiable = true
+            vnode.visible = true
+        },
+
+        /**
+         * 快速添加命名空间确认
+         *
+         * @param {Object} item 当前集群对象
+         * @param {number} index 当前集群对象的索引
+         */
+        async addNamespace (item, index) {
+            this.dialogConf.loading = true
+            try {
+                const clusterId = item.cluster_id
+                if (!this.namespaceName.trim()) {
+                    this.bkMessageInstance && this.bkMessageInstance.close()
+                    this.bkMessageInstance = this.$bkMessage({
+                        theme: 'error',
+                        message: this.$t('请填写命名空间名称')
+                    })
+                    return
+                }
+
+                if (this.namespaceName.length < 2) {
+                    this.$bkMessage({
+                        theme: 'error',
+                        message: this.$t('命名空间名称不得小于2个字符')
+                    })
+                    return
+                }
+
+                if (!/^[a-z][a-z0-9-]+$/g.test(this.namespaceName)) {
+                    this.$bkMessage({
+                        theme: 'error',
+                        message: this.$t('命名空间名称只能包含小写字母、数字以及连字符(-)，且不能以数字开头')
+                    })
+                    return
+                }
+
+                if (!clusterId) {
+                    this.bkMessageInstance && this.bkMessageInstance.close()
+                    this.bkMessageInstance = this.$bkMessage({
+                        theme: 'error',
+                        message: this.$t('请选择所属集群')
+                    })
+                    return
+                }
+
+                const addedRes = await this.$store.dispatch('configuration/addNamespace', {
+                    projectId: this.projectId,
+                    name: this.namespaceName,
+                    cluster_id: clusterId
+                })
+
+                const res = await this.$store.dispatch('configuration/getAllNamespaceList', {
+                    projectId: this.projectId,
+                    group_by: 'cluster_name',
+                    perm_can_use: 1
+                })
+
+                const resList = res.data
+                const resCluster = resList.find(cluster => cluster.name === item.name)
+                if (resCluster) {
+                    const resNamespaces = resCluster.results
+                    const itemNamespaces = item.results
+                    resNamespaces.forEach(ns => {
+                        const inItemNamespaces = itemNamespaces.find(
+                            itemNs => itemNs.id === ns.id && itemNs.name === ns.name
+                        )
+                        if (inItemNamespaces) {
+                            ns.isChoose = inItemNamespaces.isChoose
+                            ns.isExist = inItemNamespaces.isExist
+                        }
+                    })
+                    const resClusterIndex = resList.findIndex(cluster => cluster.name === item.name)
+                    this.$set(this.candidateNamespaceList, resClusterIndex, Object.assign(resCluster, {
+                        isOpen: this.candidateNamespaceList[resClusterIndex].isOpen
+                    }))
+
+                    this.selectNamespaceInDialog(index, addedRes.data, 0)
+                }
+                this.cancelNamespace()
+            } catch (e) {
+                catchErrorHandler(e, this)
+                this.$nextTick(() => {
+                    this.$refs.addNamespaceInputNode[index] && this.$refs.addNamespaceInputNode[index].focus()
+                })
+            } finally {
+                this.dialogConf.loading = false
+            }
+        },
+
+        /**
+         * 快速添加命名空间 tooltip 弹出回调函数
+         */
+        showAddNamespace (index) {
+            this.$nextTick(() => {
+                this.$refs.addNamespaceInputNode[index] && this.$refs.addNamespaceInputNode[index].focus()
+            })
+        },
+
+        /**
+         * 快速添加命名空间取消
+         */
+        cancelNamespace () {
+            this.$nextTick(() => {
+                this.namespaceName = ''
+                this.$refs.addNamespaceNode.forEach(vnode => {
+                    vnode.visiable = false
+                    vnode.visible = false
+                })
             })
         }
     }

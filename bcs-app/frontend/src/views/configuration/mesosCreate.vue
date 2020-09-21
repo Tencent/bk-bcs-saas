@@ -45,7 +45,9 @@
                 'mesosTemplatesetDeployment',
                 'mesosTemplatesetService',
                 'mesosTemplatesetConfigmap',
-                'mesosTemplatesetSecret'
+                'mesosTemplatesetSecret',
+                'mesosTemplatesetIngress',
+                'mesosTemplatesetHPA'
             ]
             const routeName = this.$route.name
             if (createRoutes.join(',').indexOf(routeName) < 0) {

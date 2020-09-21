@@ -1,12 +1,5 @@
 /**
- * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community Edition) available.
- * Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
- * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- * http://opensource.org/licenses/MIT
- * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
- * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
- * specific language governing permissions and limitations under the License.
+ * @file main store
  */
 
 import Vue from 'vue'
@@ -14,22 +7,21 @@ import Vuex from 'vuex'
 import cookie from 'cookie'
 
 import http from '@open/api'
-import { unifyObjectStyle } from '@open/common/util'
+import { unifyObjectStyle, json2Query } from '@open/common/util'
 
-import depot from './modules/depot'
-import metric from './modules/metric'
-import mc from './modules/mc'
-import cluster from './modules/cluster'
-import resource from './modules/resource'
-import app from './modules/app'
-import variable from './modules/variable'
-import configuration from './modules/configuration'
-import templateset from './modules/templateset'
-import network from './modules/network'
-import mesosTemplate from './modules/mesos-template'
-import k8sTemplate from './modules/k8s-template'
-import helm from './modules/helm'
-import hpa from './modules/hpa'
+import depot from '@open/store/modules/depot'
+import mc from '@open/store/modules/mc'
+import cluster from '@open/store/modules/cluster'
+import resource from '@open/store/modules/resource'
+import app from '@open/store/modules/app'
+import variable from '@open/store/modules/variable'
+import configuration from '@open/store/modules/configuration'
+import templateset from '@open/store/modules/templateset'
+import network from '@open/store/modules/network'
+import mesosTemplate from '@open/store/modules/mesos-template'
+import k8sTemplate from '@open/store/modules/k8s-template'
+import helm from '@open/store/modules/helm'
+
 import menuConfig from './menu-config'
 
 Vue.use(Vuex)
@@ -48,7 +40,6 @@ const store = new Vuex.Store({
     // 模块
     modules: {
         depot,
-        metric,
         mc,
         cluster,
         resource,
@@ -59,8 +50,7 @@ const store = new Vuex.Store({
         network,
         mesosTemplate,
         k8sTemplate,
-        helm,
-        hpa
+        helm
     },
     // 公共 store
     state: {
@@ -350,7 +340,7 @@ const store = new Vuex.Store({
          * @return {Promise} promise 对象
          */
         getCCList (context, params = {}, config = {}) {
-            return http.get(`${DEVOPS_BCS_API_URL}/api/cc/`, params, config)
+            return http.get(`${DEVOPS_BCS_API_URL}/api/cc/?${json2Query(params)}`, params, config)
         },
 
         /**

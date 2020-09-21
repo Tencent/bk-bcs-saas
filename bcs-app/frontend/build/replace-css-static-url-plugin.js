@@ -17,6 +17,7 @@ class ReplaceCSSStaticUrlPlugin {
         compiler.hooks.emit.tapAsync('ReplaceCSSStaticUrlPlugin', (compilation, callback) => {
             const assets = Object.keys(compilation.assets)
             const assetsLen = assets.length
+
             for (let i = 0; i < assetsLen; i++) {
                 const fileName = assets[i]
                 if (extname(fileName) !== '.css') {

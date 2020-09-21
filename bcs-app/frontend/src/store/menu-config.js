@@ -1,12 +1,5 @@
-/**
- * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community Edition) available.
- * Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
- * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- * http://opensource.org/licenses/MIT
- * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
- * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
- * specific language governing permissions and limitations under the License.
+/*
+ * @file menu 配置
  */
 
 /**
@@ -24,7 +17,7 @@ export default function menuConfig (lang) {
     let variable = '变量管理'
     let app = '应用'
     let network = '网络'
-    let resource = '资源'
+    let resource = '配置'
     let imageHub = '仓库'
     let publicImage = '公共镜像'
     let projectImage = '项目镜像'
@@ -42,12 +35,12 @@ export default function menuConfig (lang) {
         variable = 'Variables'
         app = 'Applications'
         network = 'Network'
-        resource = 'Resource'
+        resource = 'Configuration'
         imageHub = 'ImageHub'
         publicImage = 'Public'
         projectImage = 'Private'
-        operateAudit = 'Operate Audit'
-        eventQuery = 'Event Query'
+        operateAudit = 'Audit Log'
+        eventQuery = 'Events'
         monitor = 'Container Monitoring'
         release = 'Release'
         chart = 'Chart'
@@ -88,6 +81,7 @@ export default function menuConfig (lang) {
                     'mesosTemplatesetService',
                     'mesosTemplatesetConfigmap',
                     'mesosTemplatesetSecret',
+                    'mesosTemplatesetHPA',
                     'instantiation'
                 ]
             },
@@ -114,7 +108,7 @@ export default function menuConfig (lang) {
                         pathName: ['service']
                     },
                     {
-                        name: 'LoadBalance',
+                        name: 'LoadBalancer',
                         pathName: ['loadBalance', 'loadBalanceDetail']
                     }
                 ]
@@ -125,7 +119,7 @@ export default function menuConfig (lang) {
                 roleId: 'resource:menu',
                 children: [
                     {
-                        name: 'Configmaps',
+                        name: 'ConfigMaps',
                         pathName: ['resourceConfigmap']
                     },
                     {
@@ -206,6 +200,8 @@ export default function menuConfig (lang) {
                     'k8sTemplatesetConfigmap',
                     'k8sTemplatesetSecret',
                     'k8sTemplatesetIngress',
+                    'k8sTemplatesetHPA',
+                    'K8sYamlTemplateset',
                     'instantiation'
                 ]
             },
@@ -284,7 +280,7 @@ export default function menuConfig (lang) {
                         pathName: ['resourceIngress']
                     },
                     {
-                        name: 'LoadBalance',
+                        name: 'LoadBalancer',
                         pathName: ['loadBalance', 'loadBalanceDetail']
                     }
                 ]
@@ -295,7 +291,7 @@ export default function menuConfig (lang) {
                 roleId: 'resource:menu',
                 children: [
                     {
-                        name: 'Configmaps',
+                        name: 'ConfigMaps',
                         pathName: ['resourceConfigmap']
                     },
                     {

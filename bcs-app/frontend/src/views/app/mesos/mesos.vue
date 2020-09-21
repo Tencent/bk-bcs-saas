@@ -8,6 +8,7 @@
         mixins: [mixinBaseList],
         data () {
             return {
+                PROJECT_TYPE: 'MESOS',
                 State,
                 updateDialogConf: {
                     isShow: false,

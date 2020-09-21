@@ -79,9 +79,9 @@
                                     <li>
                                         <a href="javascript:void(0)" @click="goClusterInfo(cluster)">{{$t('集群信息')}}</a>
                                     </li>
-                                    <li v-if="isHelmEnable">
+                                    <!-- <li v-if="isHelmEnable">
                                         <a href="javascript:void(0)" @click="enableClusterHelm(cluster)">{{$t('启用Helm')}}</a>
-                                    </li>
+                                    </li> -->
                                     <template v-if="cluster.allow">
                                         <li>
                                             <a href="javascript:void(0)" @click="confirmDeleteCluster(cluster, clusterIndex)">{{$t('删除')}}</a>

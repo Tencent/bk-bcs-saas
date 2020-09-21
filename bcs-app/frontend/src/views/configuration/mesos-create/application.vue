@@ -13,19 +13,22 @@
                     :text="exceptionCode.msg">
                 </app-exception>
                 <div class="biz-tab-box" v-else v-show="!isDataLoading">
-                    <biz-tabs @tab-change="tabResource"></biz-tabs>
+                    <biz-tabs @tab-change="tabResource" ref="commonTab"></biz-tabs>
                     <div class="biz-tab-content" v-bkloading="{ isLoading: isTabChanging }">
                         <div class="biz-configuration-topbar">
+                            <p class="biz-template-tip f12 mb10">
+                                {{$t('Application实现Pod的含义，并与k8s的RC，Mesos的app概念等价')}}，<a class="bk-text-button" :href="PROJECT_CONFIG.doc.mesosApplication" target="_blank">{{$t('详情查看文档')}}</a>
+                            </p>
                             <div class="biz-list-operation">
                                 <div class="item" v-for="(application, index) in applications" :key="application.id">
                                     <button :class="['bk-button', { 'bk-primary': curApplication.id === application.id }]" @click.stop="setCurApplication(application, index)">
-                                        {{(application && application.config.metadata.name) || '未命名'}}
+                                        {{(application && application.config.metadata.name) || $t('未命名')}}
                                         <span class="biz-update-dot" v-show="application.isEdited"></span>
                                     </button>
-                                    <span class="bk-icon icon-close" title="未保存" @click.stop="removeApplication(application, index)" v-if="applications.length > 1"></span>
+                                    <span class="bk-icon icon-close" :title="$t('未保存')" @click.stop="removeApplication(application, index)" v-if="applications.length > 1"></span>
                                 </div>
 
-                                <bk-tooltip ref="applicationTooltip" :content="'添加Application'" placement="top">
+                                <bk-tooltip ref="applicationTooltip" :content="$t('添加Application')" placement="top">
                                     <button class="bk-button bk-default is-outline is-icon" @click.stop="addLocalApplication">
                                         <i class="bk-icon icon-plus"></i>
                                     </button>
@@ -35,7 +38,7 @@
                         <div class="biz-configuration-content" style="position: relative;">
                             <!-- part1 start -->
                             <div class="bk-form biz-configuration-form">
-                                <a href="javascript:void(0);" class="bk-text-button from-json-btn" @click.stop.prevent="showJsonPanel">导入JSON</a>
+                                <a href="javascript:void(0);" class="bk-text-button from-json-btn" @click.stop.prevent="showJsonPanel">{{$t('导入JSON')}}</a>
 
                                 <bk-sideslider
                                     :is-show.sync="toJsonDialogConf.isShow"
@@ -46,8 +49,8 @@
                                     @hidden="closeToJson">
                                     <div slot="content" style="position: relative;">
                                         <div class="biz-log-box" :style="{ height: `${winHeight - 60}px` }" v-bkloading="{ isLoading: toJsonDialogConf.loading }">
-                                            <bk-button class="bk-button bk-primary save-json-btn" @click.stop.prevent="saveApplicationJson">导入</bk-button>
-                                            <bk-button class="bk-button bk-default hide-json-btn" @click.stop.prevent="hideApplicationJson">取消</bk-button>
+                                            <bk-button class="bk-button bk-primary save-json-btn" @click.stop.prevent="saveApplicationJson">{{$t('导入')}}</bk-button>
+                                            <bk-button class="bk-button bk-default hide-json-btn" @click.stop.prevent="hideApplicationJson">{{$t('取消')}}</bk-button>
                                             <ace
                                                 :value="editorConfig.value"
                                                 :width="editorConfig.width"
@@ -65,20 +68,20 @@
                                     <div class="bk-form-item">
                                         <div class="bk-form-content" style="margin-left: 0;">
                                             <div class="bk-form-inline-item is-required">
-                                                <label class="bk-label" style="width: 105px;">应用名称：</label>
+                                                <label class="bk-label" style="width: 105px;">{{$t('应用名称')}}：</label>
                                                 <div class="bk-form-content" style="margin-left: 105px;">
                                                     <div class="bk-form-input-group">
-                                                        <input type="text" :class="['bk-form-input',{ 'is-danger': errors.has('applicationName') }]" placeholder="请输入30个字符以内" style="width: 310px;" v-model="curApplication.config.metadata.name" maxlength="30" name="applicationName" v-validate="{ required: true, regex: /^[a-z]{1}[a-z0-9-]{0,29}$/ }">
+                                                        <input type="text" :class="['bk-form-input',{ 'is-danger': errors.has('applicationName') }]" :placeholder="$t('请输入64个字符以内')" style="width: 310px;" v-model="curApplication.config.metadata.name" maxlength="64" name="applicationName" v-validate="{ required: true, regex: /^[a-z]{1}[a-z0-9-]{0,64}$/ }">
                                                     </div>
                                                 </div>
                                             </div>
                                             <div class="bk-form-inline-item is-required">
-                                                <label class="bk-label" style="width: 105px;">实例数量：</label>
+                                                <label class="bk-label" style="width: 105px;">{{$t('实例数量')}}：</label>
                                                 <div class="bk-form-content" style="margin-left: 105px;">
                                                     <div class="bk-form-input-group">
                                                         <bk-input
                                                             type="number"
-                                                            placeholder="请输入"
+                                                            :placeholder="$t('请输入')"
                                                             style="width: 310px;"
                                                             :min="0"
                                                             :max="10000"
@@ -90,61 +93,61 @@
                                                 </div>
                                             </div>
                                             <div class="bk-form-tip is-danger" style="margin-left: 105px;" v-if="errors.has('applicationName')">
-                                                <p class="bk-tip-text">名称必填，只能包含：小写字母、数字、连字符(-)，必须是字母开头，长度小于30个字符</p>
+                                                <p class="bk-tip-text">{{$t('名称必填，只能包含：小写字母、数字、连字符(-)，必须是字母开头，长度小于64个字符')}}</p>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
                                 <div class="bk-form-item">
-                                    <label class="bk-label" style="width: 105px;">重要级别：</label>
+                                    <label class="bk-label" style="width: 105px;">{{$t('重要级别')}}：</label>
                                     <div class="bk-form-content" style="margin-left: 105px;">
                                         <label class="bk-form-radio">
                                             <input type="radio" name="monitorlevel" value="important" v-model="curApplication.config.monitorLevel">
-                                            <i class="bk-radio-text">重要</i>
+                                            <i class="bk-radio-text">{{$t('重要')}}</i>
                                         </label>
                                         <label class="bk-form-radio">
                                             <input type="radio" name="monitorlevel" value="general" v-model="curApplication.config.monitorLevel">
-                                            <i class="bk-radio-text">一般</i>
+                                            <i class="bk-radio-text">{{$t('一般')}}</i>
                                         </label>
                                         <label class="bk-form-radio">
                                             <input type="radio" name="monitorlevel" value="unimportant" v-model="curApplication.config.monitorLevel">
-                                            <i class="bk-radio-text">不重要</i>
+                                            <i class="bk-radio-text">{{$t('不重要')}}</i>
                                         </label>
                                     </div>
                                 </div>
                                 <div class="bk-form-item">
-                                    <label class="bk-label" style="width: 105px;">描述：</label>
+                                    <label class="bk-label" style="width: 105px;">{{$t('描述')}}：</label>
                                     <div class="bk-form-content" style="margin-left: 105px;">
-                                        <textarea class="bk-form-textarea" placeholder="请输入256个字符以内" v-model="curApplication.desc" maxlength="256"></textarea>
+                                        <textarea class="bk-form-textarea" :placeholder="$t('请输入256个字符以内')" v-model="curApplication.desc" maxlength="256"></textarea>
                                     </div>
                                 </div>
                                 <div class="bk-form-item">
                                     <div class="bk-form-content" style="margin-left: 105px;">
                                         <button :class="['bk-text-button f12 mb10 pl0', { 'rotate': isPartAShow }]" @click.stop.prevent="togglePartA">
-                                            更多设置<i class="bk-icon icon-angle-double-down ml5"></i>
+                                            {{$t('更多设置')}}<i class="bk-icon icon-angle-double-down ml5"></i>
                                         </button>
                                         <bk-tab :type="'fill'" :active-name="'tab1'" :size="'small'" v-show="isPartAShow">
-                                            <bk-tabpanel name="tab1" title="Restart策略">
+                                            <bk-tabpanel name="tab1" :title="$t('Restart策略')">
                                                 <div class="bk-form m20">
                                                     <div class="bk-form-item">
-                                                        <label class="bk-label" style="width: 105px;">重启策略：</label>
+                                                        <label class="bk-label" style="width: 105px;">{{$t('重启策略')}}：</label>
                                                         <div class="bk-form-content" style="margin-left: 105px;">
                                                             <label class="bk-form-radio" v-for="(policy, index) in restartPolicy" :key="index">
                                                                 <input type="radio" name="restartPolicy" :value="policy" v-model="curApplication.config.restartPolicy.policy">
                                                                 <i class="bk-radio-text">{{policy}}</i>
-                                                                <span v-if="policy === 'OnFailure'">(容器异常退出后，自动重新调度)</span>
+                                                                <span v-if="policy === 'OnFailure'">({{$t('容器异常退出后，自动重新调度')}})</span>
                                                             </label>
                                                         </div>
                                                     </div>
                                                     <div class="bk-form-item" v-if="curApplication.config.restartPolicy.policy !== 'Never'">
                                                         <div class="bk-form-content" style="margin-left: 0;">
                                                             <div class="bk-form-inline-item">
-                                                                <label class="bk-label" style="width: 105px;">重启间隔：</label>
+                                                                <label class="bk-label" style="width: 105px;">{{$t('重启间隔')}}：</label>
                                                                 <div class="bk-form-content" style="margin-left: 105px;">
                                                                     <div class="bk-form-input-group">
                                                                         <bk-input
                                                                             type="number"
-                                                                            placeholder="请输入"
+                                                                            :placeholder="$t('请输入')"
                                                                             style="width: 100px;"
                                                                             :min="0"
                                                                             :value.sync="curApplication.config.restartPolicy.interval"
@@ -158,12 +161,12 @@
                                                                 </div>
                                                             </div>
                                                             <div class="bk-form-inline-item">
-                                                                <label class="bk-label" style="width: 135px;">重启间隔步长：</label>
+                                                                <label class="bk-label" style="width: 135px;">{{$t('重启间隔步长')}}：</label>
                                                                 <div class="bk-form-content" style="margin-left: 135px;">
                                                                     <div class="bk-form-input-group">
                                                                         <bk-input
                                                                             type="number"
-                                                                            placeholder="请输入"
+                                                                            :placeholder="$t('请输入')"
                                                                             style="width: 100px;"
                                                                             :min="0"
                                                                             :value.sync="curApplication.config.restartPolicy.backoff"
@@ -177,12 +180,12 @@
                                                                 </div>
                                                             </div>
                                                             <div class="bk-form-inline-item">
-                                                                <label class="bk-label" style="width: 135px;">最多重启次数：</label>
+                                                                <label class="bk-label" style="width: 135px;">{{$t('最多重启次数')}}：</label>
                                                                 <div class="bk-form-content" style="margin-left: 135px;">
                                                                     <div class="bk-form-input-group">
                                                                         <bk-input
                                                                             type="number"
-                                                                            placeholder="请输入"
+                                                                            :placeholder="$t('请输入')"
                                                                             style="width: 100px;"
                                                                             :min="0"
                                                                             :value.sync="curApplication.config.restartPolicy.maxtimes"
@@ -199,16 +202,16 @@
                                                     </div>
                                                 </div>
                                             </bk-tabpanel>
-                                            <bk-tabpanel name="tab2" title="Kill策略">
+                                            <bk-tabpanel name="tab2" :title="$t('Kill策略')">
                                                 <div class="biz-tab-wrapper">
                                                     <div class="bk-form">
                                                         <div class="bk-form-item">
-                                                            <label class="bk-label" style="width: 105px;">宽期限：</label>
+                                                            <label class="bk-label" style="width: 105px;">{{$t('宽期限')}}：</label>
                                                             <div class="bk-form-content" style="margin-left: 105px;">
                                                                 <div class="bk-form-input-group">
                                                                     <bk-input
                                                                         type="number"
-                                                                        placeholder="请输入"
+                                                                        :placeholder="$t('请输入')"
                                                                         style="width: 100px;"
                                                                         :min="0"
                                                                         :value.sync="curApplication.config.killPolicy.gracePeriod"
@@ -216,7 +219,7 @@
                                                                     >
                                                                     </bk-input>
                                                                     <span class="input-group-addon">
-                                                                        秒
+                                                                        {{$t('秒')}}
                                                                     </span>
                                                                 </div>
                                                             </div>
@@ -224,17 +227,17 @@
                                                     </div>
                                                 </div>
                                             </bk-tabpanel>
-                                            <bk-tabpanel name="tab3" title="备注">
+                                            <bk-tabpanel name="tab3" :title="$t('注解')">
                                                 <div class="biz-tab-wrapper">
                                                     <bk-keyer :key-list.sync="curRemarkList" :var-list="varList" ref="remarkKeyer" @change="updateApplicationRemark"></bk-keyer>
                                                 </div>
                                             </bk-tabpanel>
-                                            <bk-tabpanel name="tab4" title="标签">
+                                            <bk-tabpanel name="tab4" :title="$t('标签')">
                                                 <div class="biz-tab-wrapper">
                                                     <bk-keyer :key-list.sync="curLabelList" :var-list="varList" ref="labelKeyer" @change="updateApplicationLabel"></bk-keyer>
                                                 </div>
                                             </bk-tabpanel>
-                                            <bk-tabpanel name="tab5" title="调度约束">
+                                            <bk-tabpanel name="tab5" :title="$t('调度约束')">
                                                 <div class="biz-tab-wrapper">
                                                     <table class="biz-simple-table">
                                                         <thead>
@@ -250,7 +253,7 @@
                                                                 <td>
                                                                     <bk-combobox
                                                                         type="text"
-                                                                        placeholder="请输入"
+                                                                        :placeholder="$t('请输入')"
                                                                         style="width: 195px;"
                                                                         :value.sync="item.unionData[0].name"
                                                                         :display-key="'name'"
@@ -264,7 +267,7 @@
                                                                 <td>
                                                                     <template v-if="item.unionData[0].name !== 'ip-resources'">
                                                                         <bk-selector
-                                                                            placeholder="请选择"
+                                                                            :placeholder="$t('请选择')"
                                                                             :setting-key="'id'"
                                                                             :selected.sync="item.unionData[0].operate"
                                                                             :list="operatorList"
@@ -273,7 +276,7 @@
                                                                     </template>
                                                                     <template v-else>
                                                                         <bk-selector
-                                                                            placeholder="请选择"
+                                                                            :placeholder="$t('请选择')"
                                                                             :setting-key="'id'"
                                                                             :disabled="true"
                                                                             :selected.sync="item.unionData[0].operate"
@@ -285,7 +288,7 @@
                                                                     <template v-if="item.unionData[0].name !== 'ip-resources'">
                                                                         <bk-input
                                                                             type="text"
-                                                                            placeholder="多个值以管道符分隔"
+                                                                            :placeholder="$t('多个值以管道符分隔')"
                                                                             style="width: 250px;"
                                                                             :disabled="item.unionData[0].operate === 'UNIQUE'"
                                                                             :value.sync="item.unionData[0].arg_value"
@@ -296,7 +299,7 @@
                                                                     <template v-else>
                                                                         <bk-input
                                                                             type="number"
-                                                                            placeholder="请输入"
+                                                                            :placeholder="$t('请输入')"
                                                                             style="width: 250px;"
                                                                             :value.sync="item.unionData[0].arg_value"
                                                                             :list="varList"
@@ -319,15 +322,15 @@
                                                     </table>
                                                 </div>
                                             </bk-tabpanel>
-                                            <bk-tabpanel name="tab6" title="网络">
+                                            <bk-tabpanel name="tab6" :title="$t('网络')">
                                                 <div class="biz-tab-wrapper">
                                                     <div class="bk-form">
                                                         <div class="bk-form-item">
-                                                            <label class="bk-label" style="width: 105px;">网络模式：</label>
+                                                            <label class="bk-label" style="width: 105px;">{{$t('网络模式')}}：</label>
                                                             <div class="bk-form-content" style="margin-left: 105px;">
                                                                 <div class="bk-dropdown-box" style="width: 200px;">
                                                                     <bk-selector
-                                                                        placeholder="请选择"
+                                                                        :placeholder="$t('请选择')"
                                                                         :setting-key="'id'"
                                                                         :display-key="'name'"
                                                                         :selected.sync="curApplication.config.spec.template.spec.networkMode"
@@ -336,12 +339,12 @@
                                                                     </bk-selector>
                                                                 </div>
                                                                 <transition name="fade">
-                                                                    <input type="text" class="bk-form-input" style="width: 200px;" placeholder="自定义值" v-model="curApplication.config.spec.template.spec.custom_value" v-if="curApplication.config.spec.template.spec.networkMode === 'CUSTOM'">
+                                                                    <input type="text" class="bk-form-input" style="width: 200px;" :placeholder="$t('自定义值')" v-model="curApplication.config.spec.template.spec.custom_value" v-if="curApplication.config.spec.template.spec.networkMode === 'CUSTOM'">
                                                                 </transition>
                                                             </div>
                                                         </div>
                                                         <div class="bk-form-item">
-                                                            <label class="bk-label" style="width: 105px;">网络类型：</label>
+                                                            <label class="bk-label" style="width: 105px;">{{$t('网络类型')}}：</label>
                                                             <div class="bk-form-content" style="margin-left: 105px;">
                                                                 <label class="bk-form-radio">
                                                                     <input type="radio" name="networkmodel" value="cni" v-model="curApplication.config.spec.template.spec.networkType" :disabled="curApplication.config.spec.template.spec.networkMode !== 'USER' && curApplication.config.spec.template.spec.networkMode !== 'CUSTOM'">
@@ -356,6 +359,46 @@
                                                     </div>
                                                 </div>
                                             </bk-tabpanel>
+                                            <bk-tabpanel name="tab8" :title="$t('日志采集')">
+                                                <div class="bk-form p20">
+                                                    <div class="biz-expand-panel">
+                                                        <div class="panel">
+                                                            <div class="header">
+                                                                <span class="topic">{{$t('标准日志')}}</span>
+                                                            </div>
+                                                            <div class="bk-form-item content">
+                                                                <ul>
+                                                                    <li>
+                                                                        <label class="bk-form-checkbox is-readonly">
+                                                                            <input type="checkbox" name="type" checked disabled="disabled">
+                                                                            <i class="bk-checkbox-text">{{$t('标准输出：包含容器Stdout日志')}}</i>
+                                                                        </label>
+                                                                    </li>
+                                                                </ul>
+                                                            </div>
+                                                        </div>
+                                                        <div class="panel">
+                                                            <div class="header">
+                                                                <div class="topic">
+                                                                    {{$t('附加日志标签')}}
+                                                                    <bk-tooltip :content="$t('附加的日志标签会以KV的形式追加到采集日志中')" placement="top">
+                                                                        <span class="bk-badge">
+                                                                            <i class="bk-icon icon-question"></i>
+                                                                        </span>
+                                                                    </bk-tooltip>
+                                                                </div>
+                                                            </div>
+                                                            <div class="bk-form-item content">
+                                                                <bk-keyer
+                                                                    :key-list.sync="curLogLabelList"
+                                                                    :var-list="varList"
+                                                                    @change="updateApplicationLogLabel">
+                                                                </bk-keyer>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </bk-tabpanel>
                                         </bk-tab>
                                     </div>
                                 </div>
@@ -363,15 +406,15 @@
                             <!-- part1 end -->
 
                             <!-- part2 start -->
-                            <div class="biz-part-header" style="margin-left: 105px;">
+                            <div class="biz-part-header">
                                 <div class="bk-button-group">
                                     <div class="item" v-for="(container, index) in curApplication.config.spec.template.spec.containers" :key="index">
                                         <button :class="['bk-button bk-default is-outline', { 'is-selected': curContainerIndex === index }]" @click.stop="setCurContainer(container, index)">
-                                            {{container.name || '未命名'}}
+                                            {{container.name || $t('未命名')}}
                                         </button>
                                         <span class="bk-icon icon-close-circle" @click.stop="removeContainer(index)" v-if="curApplication.config.spec.template.spec.containers.length > 1"></span>
                                     </div>
-                                    <bk-tooltip ref="containerTooltip" :content="curApplication.config.spec.template.spec.containers.length >= 5 ? '最多添加5个' : '添加Container'" placement="top">
+                                    <bk-tooltip ref="containerTooltip" :content="curApplication.config.spec.template.spec.containers.length >= 5 ? $t('最多添加5个') : $t('添加Container')" placement="top">
                                         <button type="button" class="bk-button bk-default is-outline is-icon" :disabled="curApplication.config.spec.template.spec.containers.length >= 5 " @click.stop.prevent="addLocalContainer">
                                             <i class="bk-icon icon-plus"></i>
                                         </button>
@@ -380,84 +423,155 @@
                             </div>
 
                             <div class="bk-form biz-configuration-form pb15">
-                                <div class="biz-span" style="margin-left: 105px;">
-                                    <span class="title">基础信息</span>
+                                <div class="biz-span">
+                                    <span class="title">{{$t('基础信息')}}</span>
                                 </div>
                                 <div class="bk-form-item is-required">
-                                    <label class="bk-label" style="width: 105px;">容器名称：</label>
+                                    <label class="bk-label" style="width: 105px;">{{$t('容器名称')}}：</label>
                                     <div class="bk-form-content" style="margin-left: 105px;">
-                                        <input type="text" :class="['bk-form-input', { 'is-danger': errors.has('containerName') }]" placeholder="请输入30个字符以内" style="width: 310px;" v-model="curContainer.name" maxlength="30" name="containerName" v-validate="{ required: true, regex: /^[a-z]{1}[a-z0-9-]{0,29}$/ }">
+                                        <input type="text" :class="['bk-form-input', { 'is-danger': errors.has('containerName') }]" :placeholder="$t('请输入64个字符以内')" style="width: 310px;" v-model="curContainer.name" maxlength="64" name="containerName" v-validate="{ required: true, regex: /^[a-z]{1}[a-z0-9-]{0,63}$/ }">
                                     </div>
                                 </div>
                                 <div class="bk-form-item">
-                                    <label class="bk-label" style="width: 105px;">描述：</label>
+                                    <label class="bk-label" style="width: 105px;">{{$t('描述')}}：</label>
                                     <div class="bk-form-content" style="margin-left: 105px;">
-                                        <textarea name="" id="" cols="30" rows="10" class="bk-form-textarea" placeholder="请输入256个字符以内" v-model="curContainer.desc" maxlength="256"></textarea>
+                                        <textarea name="" id="" cols="30" rows="10" class="bk-form-textarea" :placeholder="$t('请输入256个字符以内')" v-model="curContainer.desc" maxlength="256"></textarea>
                                     </div>
                                 </div>
                                 <div class="bk-form-item is-required">
                                     <label class="bk-label" style="width: 105px;">{{$t('镜像及版本')}}：</label>
                                     <div class="bk-form-content" style="margin-left: 105px;">
-                                        <div class="bk-dropdown-box" style="width: 305px;">
+                                        <div class="mb10">
+                                            <span @click="handleChangeImageMode">
+                                                <bk-switcher
+                                                    :selected="curContainer.isImageCustomed"
+                                                    size="small">
+                                                </bk-switcher>
+                                            </span>
+                                            <span class="vm">{{$t('使用自定义镜像')}}</span>
+                                            <span class="biz-tip f12 vm">({{$t('启用后允许直接填写镜像信息')}})</span>
+                                        </div>
+                                        <template v-if="curContainer.isImageCustomed">
                                             <bk-input
-                                                style="width: 250px;"
                                                 type="text"
+                                                style="width: 255px;"
                                                 :placeholder="$t('镜像')"
-                                                :display-key="'_name'"
-                                                :setting-key="'_id'"
-                                                :search-key="'_name'"
                                                 :value.sync="curContainer.imageName"
-                                                :list="varList"
-                                                :is-link="true"
-                                                :is-custom="true"
-                                                :is-select-mode="true"
-                                                :default-list="imageList"
-                                                @item-selected="changeImage(...arguments, curContainer)"
-                                                @item-customed="handleImageCustom">
+                                                @change="handleImageCustom">
                                             </bk-input>
-                                            <button class="bk-button bk-default is-outline is-icon" v-bktooltips.top="$t('刷新镜像列表')" @click="initImageList">
-                                                <div class="bk-spin-loading bk-spin-loading-mini bk-spin-loading-default" style="margin-top: -3px;" v-if="isLoadingImageList">
-                                                    <div class="rotate rotate1"></div>
-                                                    <div class="rotate rotate2"></div>
-                                                    <div class="rotate rotate3"></div>
-                                                    <div class="rotate rotate4"></div>
-                                                    <div class="rotate rotate5"></div>
-                                                    <div class="rotate rotate6"></div>
-                                                    <div class="rotate rotate7"></div>
-                                                    <div class="rotate rotate8"></div>
-                                                </div>
-                                                <i class="bk-icon icon-refresh" v-else></i>
-                                            </button>
-                                        </div>
-                                        <div class="bk-dropdown-box" style="width: 221px;">
                                             <bk-input
-                                                ref="imageVersion"
                                                 type="text"
+                                                style="width: 220px;"
                                                 :placeholder="$t('版本号1')"
-                                                :display-key="'_name'"
-                                                :setting-key="'_id'"
-                                                :search-key="'_name'"
                                                 :value.sync="curContainer.imageVersion"
-                                                :list="varList"
-                                                :is-select-mode="true"
-                                                :is-custom="true"
-                                                :key="renderVersionIndex"
-                                                :default-list="imageVersionList"
-                                                :disabled="!curContainer.imageName"
-                                                @item-selected="setImageVersion"
-                                                @item-customed="handleVersionCustom">
+                                                @change="handleImageCustom">
                                             </bk-input>
-                                        </div>
+                                        </template>
+                                        <template v-else>
+                                            <div class="bk-dropdown-box" style="width: 300px;">
+                                                <bk-combox
+                                                    style="width: 255px;"
+                                                    type="text"
+                                                    :placeholder="$t('镜像')"
+                                                    :key="renderImageIndex"
+                                                    :display-key="'_name'"
+                                                    :setting-key="'_id'"
+                                                    :search-key="'_name'"
+                                                    :value.sync="curContainer.imageName"
+                                                    :list="varList"
+                                                    :is-link="true"
+                                                    :is-select-mode="true"
+                                                    :default-list="imageList"
+                                                    @item-selected="changeImage(...arguments, curContainer)">
+                                                </bk-combox>
+
+                                                <button class="bk-button bk-default is-outline is-icon" v-bktooltips.top="$t('刷新镜像列表')" @click="initImageList">
+                                                    <div class="bk-spin-loading bk-spin-loading-mini bk-spin-loading-default" style="margin-top: -3px;" v-if="isLoadingImageList">
+                                                        <div class="rotate rotate1"></div>
+                                                        <div class="rotate rotate2"></div>
+                                                        <div class="rotate rotate3"></div>
+                                                        <div class="rotate rotate4"></div>
+                                                        <div class="rotate rotate5"></div>
+                                                        <div class="rotate rotate6"></div>
+                                                        <div class="rotate rotate7"></div>
+                                                        <div class="rotate rotate8"></div>
+                                                    </div>
+                                                    <i class="bk-icon icon-refresh" v-else></i>
+                                                </button>
+                                            </div>
+                                            <div class="bk-dropdown-box" style="width: 200px;">
+                                                <bk-combox
+                                                    type="text"
+                                                    :placeholder="$t('版本号1')"
+                                                    :display-key="'_name'"
+                                                    :setting-key="'_id'"
+                                                    :search-key="'_name'"
+                                                    :value.sync="curContainer.imageVersion"
+                                                    :list="varList"
+                                                    :is-select-mode="true"
+                                                    :default-list="imageVersionList"
+                                                    :disabled="!curContainer.imageName"
+                                                    @item-selected="setImageVersion">
+                                                </bk-combox>
+                                            </div>
+                                        </template>
 
                                         <label class="bk-form-checkbox" style="margin-left: 10px;">
                                             <input type="checkbox" name="image-get" value="Always" v-model="isAlwayCheckImage" @click="changeImagePullPolicy">
                                             <i class="bk-checkbox-text">{{$t('总是在创建之前拉取镜像')}}</i>
                                         </label>
+                                        <label class="bk-form-checkbox" style="margin-left: 10px;">
+                                            <input type="checkbox" name="image-get" value="Always" v-model="curContainer.isAddImageSecrets">
+                                            <i class="bk-checkbox-text">{{$t('添加镜像凭证')}}</i>
+                                        </label>
+                                        <p class="biz-tip f12 mt10" v-if="!isLoadingImageList && !imageList.length">{{$t('提示：项目镜像不存在，')}}
+                                            <router-link class="bk-text-button" :to="{ name: 'projectImage', params: { projectCode, projectId } }">{{$t('去创建')}}</router-link>
+                                        </p>
+                                        <div class="biz-expand-panel mt10" v-if="curContainer.isAddImageSecrets">
+                                            <div class="panel">
+                                                <div class="header">
+                                                    <div class="topic">
+                                                        {{$t('镜像凭证')}}
+                                                        <!-- <bk-tooltip :content="$t('附加的日志标签会以KV的形式追加到采集日志中')" placement="top">
+                                                            <span class="bk-badge">
+                                                                <i class="bk-icon icon-question"></i>
+                                                            </span>
+                                                        </bk-tooltip> -->
+                                                    </div>
+                                                </div>
+                                                <div class="bk-form-item content">
+                                                    <div class="bk-form-item">
+                                                        <label class="bk-label" style="width: 150px;">ImagePullUser：</label>
+                                                        <div class="bk-form-content" style="margin-left: 150px;">
+                                                            <bk-input
+                                                                type="text"
+                                                                :placeholder="$t('请输入，格式是明文或secret语法(如secret::secret英文名称||user)')"
+                                                                style="width: 520px;"
+                                                                :value.sync="curContainer.imagePullUser"
+                                                                :list="varList">
+                                                            </bk-input>
+                                                        </div>
+                                                    </div>
+                                                    <div class="bk-form-item">
+                                                        <label class="bk-label" style="width: 150px;">ImagePullPasswd：</label>
+                                                        <div class="bk-form-content" style="margin-left: 150px;">
+                                                            <bk-input
+                                                                type="text"
+                                                                :placeholder="$t('请输入，格式是明文或secret语法(如secret::secret英文名称||pwd)')"
+                                                                style="width: 520px;"
+                                                                :value.sync="curContainer.imagePullPasswd"
+                                                                :list="varList">
+                                                            </bk-input>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
 
-                                <div class="biz-span" style="margin-left: 105px;">
-                                    <span class="title">端口映射</span>
+                                <div class="biz-span">
+                                    <span class="title">{{$t('端口映射')}}</span>
                                 </div>
 
                                 <div class="bk-form-item">
@@ -465,10 +579,10 @@
                                         <table class="biz-simple-table">
                                             <thead>
                                                 <tr>
-                                                    <th style="width: 330px;">名称</th>
-                                                    <th style="width: 135px;">协议</th>
-                                                    <th style="width: 135px;">容器端口</th>
-                                                    <th style="width: 135px;">主机端口</th>
+                                                    <th style="width: 330px;">{{$t('名称')}}</th>
+                                                    <th style="width: 135px;">{{$t('协议')}}</th>
+                                                    <th style="width: 135px;">{{$t('容器端口')}}</th>
+                                                    <th style="width: 135px;">{{$t('主机端口')}}</th>
                                                     <th></th>
                                                 </tr>
                                             </thead>
@@ -477,7 +591,7 @@
                                                     <td>
                                                         <bk-input
                                                             type="text"
-                                                            placeholder="名称"
+                                                            :placeholder="$t('名称')"
                                                             maxlength="255"
                                                             :value.sync="port.name"
                                                             :list="varList"
@@ -488,7 +602,7 @@
                                                         <template v-if="port.isLink">
                                                             <bk-tooltip :content="port.isLink" placement="top">
                                                                 <bk-selector
-                                                                    placeholder="协议"
+                                                                    :placeholder="$t('协议')"
                                                                     :setting-key="'id'"
                                                                     :disabled="true"
                                                                     :allow-clear="true"
@@ -499,7 +613,7 @@
                                                         </template>
                                                         <template v-else>
                                                             <bk-selector
-                                                                placeholder="协议"
+                                                                :placeholder="$t('协议')"
                                                                 :setting-key="'id'"
                                                                 :allow-clear="true"
                                                                 :selected.sync="port.protocol"
@@ -545,22 +659,22 @@
                                     </div>
                                 </div>
 
-                                <div class="biz-span" style="margin-left: 105px;">
+                                <div class="biz-span">
                                     <div class="title">
                                         <button :class="['bk-text-button fb', { 'rotate': isPartBShow }]" @click.stop.prevent="togglePartB">
-                                            更多设置<i class="bk-icon icon-angle-double-down f12 ml5 mb10 fb"></i>
+                                            {{$t('更多设置')}}<i class="bk-icon icon-angle-double-down f12 ml5 mb10 fb"></i>
                                         </button>
                                     </div>
                                 </div>
 
                                 <div style="margin-left: 105px;" v-show="isPartBShow">
                                     <bk-tab :type="'fill'" :active-name="'tab1'" :size="'small'">
-                                        <bk-tabpanel name="tab1" title="命令">
+                                        <bk-tabpanel name="tab1" :title="$t('命令')">
                                             <div class="bk-form m20">
                                                 <div class="bk-form-item">
                                                     <div class="bk-form-content" style="margin-left: 0;">
                                                         <div class="bk-form-item">
-                                                            <label class="bk-label" style="width: 130px;">启动命令：</label>
+                                                            <label class="bk-label" style="width: 130px;">{{$t('启动命令')}}：</label>
                                                             <div class="bk-form-content" style="margin-left: 130px;">
                                                                 <bk-input
                                                                     type="text"
@@ -573,11 +687,11 @@
                                                             </div>
                                                         </div>
                                                         <div class="bk-form-item">
-                                                            <label class="bk-label" style="width: 130px;">命令参数：</label>
+                                                            <label class="bk-label" style="width: 130px;">{{$t('命令参数')}}：</label>
                                                             <div class="bk-form-content" style="margin-left: 125px;">
                                                                 <bk-input
                                                                     type="text"
-                                                                    placeholder="多个参数用空格分隔"
+                                                                    :placeholder="$t('多个参数用空格分隔，例如&quot;-c&quot;  &quot;while true; do echo hello; sleep 10;done&quot;')"
                                                                     style="width: 520px;"
                                                                     :value.sync="curContainer.args_text"
                                                                     :list="varList"
@@ -586,7 +700,7 @@
                                                             </div>
                                                         </div>
                                                         <div class="bk-form-item">
-                                                            <label class="bk-label" style="width: 130px;">工作目录：</label>
+                                                            <label class="bk-label" style="width: 130px;">{{$t('工作目录')}}：</label>
                                                             <div class="bk-form-content" style="margin-left: 125px;">
                                                                 <bk-input
                                                                     type="text"
@@ -601,24 +715,24 @@
                                                     </div>
                                                 </div>
                                                 <div class="bk-form-item">
-                                                    <label class="bk-label" style="width: 130px;">Docker参数：</label>
+                                                    <label class="bk-label" style="width: 130px;">{{$t('Docker参数')}}：</label>
                                                     <div class="bk-form-content" style="margin-left: 130px;">
                                                         <bk-keyer :key-list.sync="curContainer.parameter_list" :var-list="varList"></bk-keyer>
                                                     </div>
                                                 </div>
                                             </div>
                                         </bk-tabpanel>
-
-                                        <bk-tabpanel name="tab2" title="挂载卷">
+                                        <bk-tabpanel name="tab2" :title="$t('挂载卷')">
                                             <div class="bk-form m20">
                                                 <table class="biz-simple-table">
                                                     <thead>
                                                         <tr>
-                                                            <th>类型</th>
-                                                            <th>挂载名</th>
-                                                            <th>挂载源</th>
-                                                            <th>容器目录</th>
-                                                            <th>子路径</th>
+                                                            <th style="width: 140px;">{{$t('类型')}}</th>
+                                                            <th style="max-width: 250px;">{{$t('挂载名')}}</th>
+                                                            <th>{{$t('挂载源')}}</th>
+                                                            <th style="max-width: 200px;">{{$t('容器目录')}}</th>
+                                                            <th style="width: 100px;"></th>
+                                                            <th style="width: 80px;">{{$t('用户')}}</th>
                                                             <th style="width: 80px;"></th>
                                                             <th style="width: 80px;"></th>
                                                         </tr>
@@ -627,7 +741,7 @@
                                                         <tr v-for="(volumeItem, index) in curContainer.volumes" :key="index">
                                                             <td>
                                                                 <bk-selector
-                                                                    placeholder="类型"
+                                                                    :placeholder="$t('类型')"
                                                                     :setting-key="'id'"
                                                                     :selected.sync="volumeItem.type"
                                                                     :list="mountTypeList"
@@ -638,7 +752,7 @@
                                                                 <template v-if="volumeItem.type === 'custom'">
                                                                     <bk-input
                                                                         type="text"
-                                                                        placeholder="请输入"
+                                                                        :placeholder="$t('请输入')"
                                                                         :value.sync="volumeItem.name"
                                                                         :list="varList"
                                                                     >
@@ -646,7 +760,7 @@
                                                                 </template>
                                                                 <template v-else>
                                                                     <bk-selector
-                                                                        placeholder="请选择"
+                                                                        :placeholder="$t('请选择')"
                                                                         :setting-key="'name'"
                                                                         :selected.sync="volumeItem.name"
                                                                         :list="getVolumeNameList(volumeItem.type)"
@@ -658,8 +772,7 @@
                                                                 <template v-if="volumeItem.type === 'custom'">
                                                                     <bk-input
                                                                         type="text"
-                                                                        placeholder="例如：/a/b"
-                                                                        style="width: 215px;"
+                                                                        placeholder="例如/a/b"
                                                                         maxlength="512"
                                                                         :value.sync="volumeItem.volume.hostPath"
                                                                         :list="varList"
@@ -668,7 +781,7 @@
                                                                 </template>
                                                                 <template v-else>
                                                                     <bk-selector
-                                                                        placeholder="请选择"
+                                                                        :placeholder="$t('请选择')"
                                                                         :setting-key="'id'"
                                                                         :selected.sync="volumeItem.volume.hostPath"
                                                                         :list="getVolumeSourceList(volumeItem.type, volumeItem.name)">
@@ -679,7 +792,7 @@
                                                             <td>
                                                                 <bk-input
                                                                     type="text"
-                                                                    placeholder="例如：/a/b"
+                                                                    placeholder="例如/a/b"
                                                                     maxlength="512"
                                                                     :value.sync="volumeItem.volume.mountPath"
                                                                     :list="varList"
@@ -689,7 +802,7 @@
                                                             <td>
                                                                 <bk-input
                                                                     type="text"
-                                                                    placeholder="请输入"
+                                                                    :placeholder="'subPath'"
                                                                     :value.sync="volumeItem.volume.subPath"
                                                                     :list="varList"
                                                                     :disabled="volumeItem.type !== 'custom'"
@@ -697,10 +810,20 @@
                                                                 </bk-input>
                                                             </td>
                                                             <td>
+                                                                <bk-input
+                                                                    type="text"
+                                                                    :placeholder="$t('默认')"
+                                                                    :value.sync="volumeItem.volume.user"
+                                                                    :list="varList"
+                                                                    :disabled="volumeItem.type === 'custom'"
+                                                                >
+                                                                </bk-input>
+                                                            </td>
+                                                            <td>
                                                                 <div class="biz-input-wrapper">
                                                                     <label class="bk-form-checkbox">
                                                                         <input type="checkbox" v-model="volumeItem.volume.readOnly">
-                                                                        <i class="bk-checkbox-text">只读</i>
+                                                                        <i class="bk-checkbox-text">{{$t('只读')}}</i>
                                                                     </label>
                                                                 </div>
                                                             </td>
@@ -718,14 +841,14 @@
                                             </div>
                                         </bk-tabpanel>
 
-                                        <bk-tabpanel name="tab3" title="环境变量">
+                                        <bk-tabpanel name="tab3" :title="$t('环境变量')">
                                             <div class="bk-form m20">
                                                 <table class="biz-simple-table" style="width: 690px;">
                                                     <thead>
                                                         <tr>
-                                                            <th style="width: 140px;">类型</th>
-                                                            <th style="width: 220px;">变量键</th>
-                                                            <th style="width: 220px;">变量值</th>
+                                                            <th style="width: 140px;">{{$t('类型')}}</th>
+                                                            <th style="width: 220px;">{{$t('变量键')}}</th>
+                                                            <th style="width: 220px;">{{$t('变量值')}}</th>
                                                             <th></th>
                                                         </tr>
                                                     </thead>
@@ -733,16 +856,16 @@
                                                         <tr v-for="(env, index) in curContainer.env_list" :key="index">
                                                             <td>
                                                                 <bk-selector
-                                                                    placeholder="类型"
+                                                                    :placeholder="$t('类型')"
                                                                     :setting-key="'id'"
                                                                     :selected.sync="env.type"
-                                                                    :list="mountTypeList">
+                                                                    :list="envTypeList">
                                                                 </bk-selector>
                                                             </td>
                                                             <td>
                                                                 <bk-input
                                                                     type="text"
-                                                                    placeholder="请输入"
+                                                                    :placeholder="$t('请输入')"
                                                                     :value.sync="env.key"
                                                                     :list="varList"
                                                                     @paste="pasteKey(env, $event)"
@@ -750,10 +873,10 @@
                                                                 </bk-input>
                                                             </td>
                                                             <td>
-                                                                <template v-if="env.type === 'custom'">
+                                                                <template v-if="env.type === 'custom' || env.type === 'valueFrom'">
                                                                     <bk-input
                                                                         type="text"
-                                                                        placeholder="例如：/metadata/name"
+                                                                        placeholder="例如/metadata/name"
                                                                         :value.sync="env.value"
                                                                         :list="varList"
                                                                     >
@@ -761,7 +884,7 @@
                                                                 </template>
                                                                 <template v-else-if="env.type === 'configmap'">
                                                                     <bk-selector
-                                                                        placeholder="请选择"
+                                                                        :placeholder="$t('请选择')"
                                                                         :setting-key="'id'"
                                                                         :selected.sync="env.value"
                                                                         :list="configmapKeyList">
@@ -769,7 +892,7 @@
                                                                 </template>
                                                                 <template v-else>
                                                                     <bk-selector
-                                                                        placeholder="请选择"
+                                                                        :placeholder="$t('请选择')"
                                                                         :setting-key="'id'"
                                                                         :selected.sync="env.value"
                                                                         :list="secretKeyList">
@@ -789,18 +912,18 @@
                                                         </tr>
                                                     </tbody>
                                                 </table>
-                                                <p class="biz-tip">自定义类型可同时粘贴多行“键=值”的文本会自动添加多行记录</p>
+                                                <p class="biz-tip f12">{{$t('自定义类型可同时粘贴多行“键=值”的文本会自动添加多行记录')}}</p>
                                             </div>
                                         </bk-tabpanel>
 
-                                        <bk-tabpanel name="tab4" title="资源限制">
+                                        <bk-tabpanel name="tab4" :title="$t('资源限制')">
                                             <div class="bk-form m20">
                                                 <div class="bk-form-item">
-                                                    <label class="bk-label" style="width: 105px;">特权：</label>
+                                                    <label class="bk-label" style="width: 105px;">{{$t('特权')}}：</label>
                                                     <div class="bk-form-content" style="margin-left: 105px;">
                                                         <label class="bk-form-checkbox">
                                                             <input type="checkbox" v-model="curContainer.privileged">
-                                                            <i class="bk-checkbox-text">可完全访问母机资源</i>
+                                                            <i class="bk-checkbox-text">{{$t('可完全访问母机资源')}}</i>
                                                         </label>
                                                     </div>
                                                 </div>
@@ -817,16 +940,16 @@
                                                                 :min="0.001"
                                                                 :is-decimals="true"
                                                                 :max="curContainer.resources.limits.cpu ? curContainer.resources.limits.cpu : 128"
-                                                                placeholder="请输入"
+                                                                :placeholder="$t('请输入')"
                                                                 :value.sync="curContainer.resources.requests.cpu"
                                                                 :list="varList"
                                                             >
                                                             </bk-input>
                                                             <span class="input-group-addon">
-                                                                核
+                                                                {{$t('核')}}
                                                             </span>
                                                         </div>
-                                                        <bk-tooltip content="设置CPU下限，范围为0.001-128" placement="top">
+                                                        <bk-tooltip :content="$t('设置CPU requests，范围为0.001-128')" placement="top">
                                                             <span class="bk-badge">
                                                                 <i class="bk-icon icon-question"></i>
                                                             </span>
@@ -841,17 +964,17 @@
                                                                 :min="0.001"
                                                                 :is-decimals="true"
                                                                 :max="128"
-                                                                placeholder="请输入"
+                                                                :placeholder="$t('请输入')"
                                                                 style="width: 100px;"
                                                                 :value.sync="curContainer.resources.limits.cpu"
                                                                 :list="varList"
                                                             >
                                                             </bk-input>
                                                             <span class="input-group-addon">
-                                                                核
+                                                                {{$t('核')}}
                                                             </span>
                                                         </div>
-                                                        <bk-tooltip content="设置CPU上限，范围为0.001-128" placement="top">
+                                                        <bk-tooltip :content="$t('设置CPU limits，范围为0.001-128')" placement="top">
                                                             <span class="bk-badge">
                                                                 <i class="bk-icon icon-question"></i>
                                                             </span>
@@ -859,7 +982,7 @@
                                                     </div>
                                                 </div>
                                                 <div class="bk-form-item">
-                                                    <label class="bk-label" style="width: 105px;">内存：</label>
+                                                    <label class="bk-label" style="width: 105px;">{{$t('内存')}}：</label>
                                                     <div class="bk-form-content" style="margin-left: 105px;">
                                                         <div class="bk-form-input-group mr5">
                                                             <span class="input-group-addon is-left">
@@ -870,7 +993,7 @@
                                                                 style="width: 100px;"
                                                                 :min="0"
                                                                 :max="curContainer.resources.limits.memory ? curContainer.resources.limits.memory : Number.MAX_VALUE"
-                                                                placeholder="请输入"
+                                                                :placeholder="$t('请输入')"
                                                                 :value.sync="curContainer.resources.requests.memory"
                                                                 :list="varList"
                                                             >
@@ -879,7 +1002,7 @@
                                                                 M
                                                             </span>
                                                         </div>
-                                                        <bk-tooltip content="设置内存下限" placement="top">
+                                                        <bk-tooltip :content="$t('设置内存requests')" placement="top">
                                                             <span class="bk-badge">
                                                                 <i class="bk-icon icon-question"></i>
                                                             </span>
@@ -893,7 +1016,7 @@
                                                                 type="number"
                                                                 :is-decimals="true"
                                                                 :min="0"
-                                                                placeholder="请输入"
+                                                                :placeholder="$t('请输入')"
                                                                 style="width: 100px;"
                                                                 :value.sync="curContainer.resources.limits.memory"
                                                                 :list="varList"
@@ -903,7 +1026,7 @@
                                                                 M
                                                             </span>
                                                         </div>
-                                                        <bk-tooltip content="设置内存上限" placement="top">
+                                                        <bk-tooltip :content="$t('设置内存limits')" placement="top">
                                                             <span class="bk-badge">
                                                                 <i class="bk-icon icon-question"></i>
                                                             </span>
@@ -913,29 +1036,30 @@
                                             </div>
                                         </bk-tabpanel>
 
-                                        <bk-tabpanel name="tab5" title="健康检查">
+                                        <bk-tabpanel name="tab5" :title="$t('健康检查')">
                                             <div class="bk-form m20">
                                                 <div class="bk-form-item">
-                                                    <label class="bk-label" style="width: 120px;">类型：</label>
+                                                    <label class="bk-label" style="width: 120px;">{{$t('类型')}}：</label>
                                                     <div class="bk-form-content" style="margin-left: 120px">
                                                         <div class="bk-dropdown-box" style="width: 250px;">
                                                             <bk-selector
-                                                                placeholder="请选择"
+                                                                :placeholder="$t('请选择')"
                                                                 :setting-key="'id'"
                                                                 :display-key="'name'"
                                                                 :selected.sync="curContainer.healthChecks[0].type"
-                                                                :list="healthCheckTypes">
+                                                                :list="healthCheckTypes"
+                                                                @item-selected="healthTypeSelect">
                                                             </bk-selector>
                                                         </div>
                                                     </div>
                                                 </div>
 
                                                 <div class="bk-form-item" v-show="curContainer.healthChecks[0].type && curContainer.healthChecks[0].type !== 'COMMAND'">
-                                                    <label class="bk-label" style="width: 120px;">端口名称：</label>
+                                                    <label class="bk-label" style="width: 120px;">{{$t('端口名称')}}：</label>
                                                     <div class="bk-form-content" style="margin-left: 120px;">
                                                         <div class="bk-dropdown-box" style="width: 250px;">
                                                             <bk-selector
-                                                                placeholder="请选择"
+                                                                :placeholder="$t('请选择')"
                                                                 :setting-key="'name'"
                                                                 :display-key="'name'"
                                                                 :selected="portName"
@@ -943,18 +1067,24 @@
                                                                 @item-selected="portNameSelect">
                                                             </bk-selector>
                                                         </div>
-                                                        <span class="biz-guard-tip ml10 bk-default" v-if="!portList.length">请先配置完整的端口映射</span>
+                                                        <bk-tooltip placement="right">
+                                                            <i class="bk-icon icon-question-circle ml5" style="vertical-align: middle; cursor: pointer;"></i>
+                                                            <div slot="content">
+                                                                {{$t('引用端口映射中的端口设置')}}
+                                                            </div>
+                                                        </bk-tooltip>
+                                                        <p class="biz-guard-tip bk-default mt5" v-if="!portList.length">{{$t('请先配置完整的端口映射')}}</p>
                                                     </div>
                                                 </div>
 
                                                 <div class="bk-form-item" v-show="curContainer.healthChecks[0].type && (curContainer.healthChecks[0].type === 'HTTP' || curContainer.healthChecks[0].type === 'REMOTE_HTTP')">
                                                     <div class="bk-form-content" style="margin-left: 0">
                                                         <div class="bk-form-inline-item">
-                                                            <label class="bk-label" style="width: 120px;">请求路径：</label>
+                                                            <label class="bk-label" style="width: 120px;">{{$t('请求路径')}}：</label>
                                                             <div class="bk-form-content" style="margin-left: 120px;">
                                                                 <bk-input
                                                                     type="text"
-                                                                    placeholder="例如：/healthcheck"
+                                                                    placeholder="例如/healthcheck"
                                                                     style="width: 675px;"
                                                                     :value.sync="curContainer.healthChecks[0].http.path"
                                                                     :list="varList"
@@ -968,11 +1098,11 @@
                                                 <div class="bk-form-item" v-show="curContainer.healthChecks[0].type && curContainer.healthChecks[0].type === 'COMMAND'">
                                                     <div class="bk-form-content" style="margin-left: 0">
                                                         <div class="bk-form-inline-item">
-                                                            <label class="bk-label" style="width: 120px;">检查命令：</label>
+                                                            <label class="bk-label" style="width: 120px;">{{$t('检查命令')}}：</label>
                                                             <div class="bk-form-content" style="margin-left: 120px;">
                                                                 <bk-input
                                                                     type="text"
-                                                                    placeholder="例如：/tmp/check.sh"
+                                                                    placeholder="例如/tmp/check.sh"
                                                                     style="width: 670px;"
                                                                     :value.sync="curContainer.healthChecks[0].command.value"
                                                                     :list="varList"
@@ -986,9 +1116,9 @@
                                                 <div class="bk-form-item" v-show="curContainer.healthChecks[0].type && curContainer.healthChecks[0].type === 'REMOTE_HTTP'">
                                                     <div class="bk-form-content" style="margin-left: 0">
                                                         <div class="bk-form-inline-item">
-                                                            <label class="bk-label" style="width: 120px;">设置Header：</label>
+                                                            <label class="bk-label" style="width: 120px;">{{$t('设置Header')}}：</label>
                                                             <div class="bk-form-content" style="margin-left: 120px;">
-                                                                <bk-keyer ref="headerKeyer" :key-list.sync="healCheckHttpHeaders" :var-list="varList"></bk-keyer>
+                                                                <bk-keyer ref="headerKeyer" :key-list.sync="healCheckHttpHeaders" :var-list="varList" @change="handleHeaderChange"></bk-keyer>
                                                             </div>
                                                         </div>
                                                     </div>
@@ -996,18 +1126,18 @@
 
                                                 <template v-if="curContainer.healthChecks[0].type">
                                                     <button :class="['bk-text-button mt10 f12 mb10', { 'rotate': isPartCShow }]" style="margin-left: 114px;" @click.stop.prevent="togglePartC">
-                                                        高级设置<i class="bk-icon icon-angle-double-down ml5"></i>
+                                                        {{$t('高级设置')}}<i class="bk-icon icon-angle-double-down ml5"></i>
                                                     </button>
                                                     <div v-show="isPartCShow">
                                                         <div class="bk-form-item" v-show="curContainer.healthChecks[0].type">
                                                             <div class="bk-form-content" style="margin-left: 0">
                                                                 <div class="bk-form-inline-item">
-                                                                    <label class="bk-label" style="width: 120px;">初始化超时：</label>
+                                                                    <label class="bk-label" style="width: 120px;">{{$t('初始化超时')}}：</label>
                                                                     <div class="bk-form-content" style="margin-left: 120px;">
                                                                         <div class="bk-form-input-group">
                                                                             <bk-input
                                                                                 type="number"
-                                                                                placeholder="请输入"
+                                                                                :placeholder="$t('请输入')"
                                                                                 style="width: 100px;"
                                                                                 :min="0"
                                                                                 :value.sync="curContainer.healthChecks[0].delaySeconds"
@@ -1015,19 +1145,19 @@
                                                                             >
                                                                             </bk-input>
                                                                             <span class="input-group-addon">
-                                                                                秒
+                                                                                {{$t('秒')}}
                                                                             </span>
                                                                         </div>
                                                                     </div>
                                                                 </div>
 
                                                                 <div class="bk-form-inline-item">
-                                                                    <label class="bk-label" style="width: 130px;">检查间隔：</label>
+                                                                    <label class="bk-label" style="width: 130px;">{{$t('检查间隔')}}：</label>
                                                                     <div class="bk-form-content" style="margin-left: 130px;">
                                                                         <div class="bk-form-input-group">
                                                                             <bk-input
                                                                                 type="number"
-                                                                                placeholder="请输入"
+                                                                                :placeholder="$t('请输入')"
                                                                                 style="width: 100px;"
                                                                                 :min="0"
                                                                                 :value.sync="curContainer.healthChecks[0].intervalSeconds"
@@ -1035,18 +1165,18 @@
                                                                             >
                                                                             </bk-input>
                                                                             <span class="input-group-addon">
-                                                                                秒
+                                                                                {{$t('秒')}}
                                                                             </span>
                                                                         </div>
                                                                     </div>
                                                                 </div>
                                                                 <div class="bk-form-inline-item">
-                                                                    <label class="bk-label" style="width: 130px;">检查超时：</label>
+                                                                    <label class="bk-label" style="width: 130px;">{{$t('检查超时')}}：</label>
                                                                     <div class="bk-form-content" style="margin-left: 130px;">
                                                                         <div class="bk-form-input-group">
                                                                             <bk-input
                                                                                 type="number"
-                                                                                placeholder="请输入"
+                                                                                :placeholder="$t('请输入')"
                                                                                 style="width: 100px;"
                                                                                 :min="0"
                                                                                 :value.sync="curContainer.healthChecks[0].timeoutSeconds"
@@ -1054,7 +1184,7 @@
                                                                             >
                                                                             </bk-input>
                                                                             <span class="input-group-addon">
-                                                                                秒
+                                                                                {{$t('秒')}}
                                                                             </span>
                                                                         </div>
                                                                     </div>
@@ -1065,21 +1195,21 @@
                                                         <div class="bk-form-item" v-show="curContainer.healthChecks[0].type">
                                                             <div class="bk-form-content" style="margin-left: 0">
                                                                 <div class="bk-form-inline-item">
-                                                                    <label class="bk-label" style="width: 120px;">不健康阈值：</label>
+                                                                    <label class="bk-label" style="width: 120px;">{{$t('不健康阈值')}}：</label>
                                                                     <div class="bk-form-content" style="margin-left: 120px;">
                                                                         <div class="bk-form-input-group">
                                                                             <bk-input
                                                                                 type="number"
-                                                                                placeholder="请输入"
+                                                                                :placeholder="$t('请输入')"
                                                                                 style="width: 80px;"
                                                                                 :min="0"
                                                                                 :value.sync="curContainer.healthChecks[0].consecutiveFailures"
                                                                                 :list="varList">
                                                                             </bk-input>
                                                                             <span class="input-group-addon">
-                                                                                次失败
+                                                                                {{$t('次失败')}}
                                                                             </span>
-                                                                            <bk-tooltip content="健康检查连续失败的次数，达到次数后会重新调度容器" placement="top">
+                                                                            <bk-tooltip :content="$t('健康检查连续失败的次数，达到次数后会重新调度容器')" placement="top">
                                                                                 <span class="bk-badge ml5">
                                                                                     <i class="bk-icon icon-question" style="cursor: pointer;"></i>
                                                                                 </span>
@@ -1089,12 +1219,12 @@
                                                                 </div>
 
                                                                 <div class="bk-form-inline-item">
-                                                                    <label class="bk-label" style="width: 107px;">健康阈值：</label>
+                                                                    <label class="bk-label" style="width: 107px;">{{$t('健康阈值')}}：</label>
                                                                     <div class="bk-form-content" style="margin-left: 107px;">
                                                                         <div class="bk-form-input-group">
                                                                             <bk-input
                                                                                 type="number"
-                                                                                placeholder="请输入"
+                                                                                :placeholder="$t('请输入')"
                                                                                 style="width: 80px;"
                                                                                 :min="0"
                                                                                 :value.sync="curContainer.healthChecks[0].gracePeriodSeconds"
@@ -1104,7 +1234,7 @@
                                                                             <span class="input-group-addon">
                                                                                 秒
                                                                             </span>
-                                                                            <bk-tooltip content="启动之后，该时间内的健康检查失败会被忽略" placement="top">
+                                                                            <bk-tooltip :content="$t('启动之后，该时间内的健康检查失败会被忽略')" placement="top">
                                                                                 <span class="bk-badge ml5">
                                                                                     <i class="bk-icon icon-question" style="cursor: pointer;"></i>
                                                                                 </span>
@@ -1118,6 +1248,36 @@
                                                     </div>
                                                 </template>
 
+                                            </div>
+                                        </bk-tabpanel>
+
+                                        <bk-tabpanel name="tab6" :title="$t('非标准日志采集')">
+                                            <div class="bk-form m20">
+                                                <div class="bk-form-item">
+                                                    <div class="bk-form-content" style="margin-left: 20px">
+                                                        <div class="bk-keyer">
+                                                            <div class="biz-keys-list mb10">
+                                                                <div class="biz-key-item" v-for="(logItem, index) in curContainer.logListCache" :key="index">
+                                                                    <bk-input
+                                                                        type="text"
+                                                                        :placeholder="$t('请输入容器中自定义采集的日志绝对路径')"
+                                                                        style="width: 360px;"
+                                                                        :value.sync="logItem.value"
+                                                                        :list="varList"
+                                                                    >
+                                                                    </bk-input>
+
+                                                                    <button class="action-btn ml5" @click.stop.prevent="addLog">
+                                                                        <i class="bk-icon icon-plus"></i>
+                                                                    </button>
+                                                                    <button class="action-btn" v-if="curContainer.logListCache.length > 1" @click.stop.prevent="removeLog(logItem, index)">
+                                                                        <i class="bk-icon icon-minus"></i>
+                                                                    </button>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
                                             </div>
                                         </bk-tabpanel>
                                     </bk-tab>
@@ -1144,6 +1304,7 @@
     import tabs from './tabs.vue'
     import _ from 'lodash'
 
+    applicationParams.config.spec.template.spec.containers[0].isAddImageSecrets = false
     export default {
         components: {
             ace,
@@ -1156,6 +1317,7 @@
             return {
                 isTabChanging: false,
                 renderVersionIndex: 0,
+                renderImageIndex: 0,
                 imagePublish: '',
                 curImageData: {},
                 winHeight: 0,
@@ -1246,6 +1408,10 @@
                     {
                         id: 'MAXPER',
                         name: 'MAXPER'
+                    },
+                    {
+                        id: 'TOLERATION',
+                        name: 'TOLERATION'
                     }
                 ],
                 operatorListForIP: [
@@ -1268,10 +1434,28 @@
                         name: 'UDP'
                     }
                 ],
+                envTypeList: [
+                    {
+                        id: 'custom',
+                        name: this.$t('自定义')
+                    },
+                    {
+                        id: 'configmap',
+                        name: 'Configmap'
+                    },
+                    {
+                        id: 'secret',
+                        name: 'Secret'
+                    },
+                    {
+                        id: 'valueFrom',
+                        name: 'ValueFrom'
+                    }
+                ],
                 mountTypeList: [
                     {
                         id: 'custom',
-                        name: '自定义'
+                        name: this.$t('自定义')
                     },
                     {
                         id: 'configmap',
@@ -1305,7 +1489,7 @@
                 healthCheckTypes: [
                     {
                         id: '',
-                        name: '无'
+                        name: this.$t('无')
                     },
                     {
                         id: 'HTTP',
@@ -1322,11 +1506,11 @@
                     {
                         id: 'REMOTE_TCP',
                         name: 'REMOTE_TCP'
+                    },
+                    {
+                        id: 'COMMAND',
+                        name: 'COMMAND'
                     }
-                    // {
-                    //     id: 'COMMAND',
-                    //     name: 'COMMAND'
-                    // }
                 ],
                 logList: [
                     {
@@ -1380,7 +1564,7 @@
                 } else if (type === 'TCP' || type === 'REMOTE_TCP') {
                     return healthParams.tcp.portName
                 } else if (type === 'COMMAND') {
-                    return healthParams.command.portName
+                    return ''
                 } else {
                     return ''
                 }
@@ -1531,7 +1715,7 @@
                                 const message = res.message || res.data.data || ''
                                 const msg = message.split(',')[0]
                                 if (msg) {
-                                    item.isLink = msg + '，不能修改协议！'
+                                    item.isLink = msg + `，${this.$t('不能修改协议')}`
                                 } else {
                                     item.isLink = ''
                                 }
@@ -1548,6 +1732,7 @@
                             'hostPath': '',
                             'mountPath': '',
                             'subPath': '',
+                            'user': '',
                             'readOnly': false
                         },
                         'type': 'custom',
@@ -1557,7 +1742,8 @@
             },
             'curApplication' () {
                 this.curContainerIndex = 0
-                this.curContainer = this.curApplication.config.spec.template.spec.containers[0]
+                const container = this.curApplication.config.spec.template.spec.containers[0]
+                this.setCurContainer(container, 0)
             },
             'curApplication.config.spec.template.spec.networkMode' (val) {
                 if (val === 'USER') {
@@ -1648,7 +1834,7 @@
                     if (!appParamKeys.includes(key)) {
                         this.$bkMessage({
                             theme: 'error',
-                            message: `${key}为无效字段！`
+                            message: `${key}${this.$t('为无效字段')}！`
                         })
                         const reg = new RegExp(`"${key}"`, 'ig')
                         const match = editor.find(reg)
@@ -1672,7 +1858,7 @@
                 if (!json) {
                     this.$bkMessage({
                         theme: 'error',
-                        message: '请输入JSON!'
+                        message: this.$t('请输入JSON')
                     })
                     return false
                 }
@@ -1682,8 +1868,9 @@
                 } catch (err) {
                     this.$bkMessage({
                         theme: 'error',
-                        message: '请输入合法的JSON!'
+                        message: this.$t('请输入合法的JSON')
                     })
+                    return false
                 }
 
                 const annot = editor.getSession().getAnnotations()
@@ -1692,40 +1879,11 @@
                     return false
                 }
 
-                const curAppContainers = this.curApplication.config.spec.template.spec.containers
-                const containers = appObj.spec.template.spec.containers
-                let index = 0
-                for (let container of containers) {
-                    // 处理container命名
-                    if (!container.name) {
-                        if (curAppContainers[index]) {
-                            container.name = curAppContainers[index].name
-                        } else {
-                            container.name = 'container-' + (index + 1)
-                        }
-                    }
-                    if (!container.logListCache) {
-                        container.logListCache = [{
-                            value: ''
-                        }]
-                    }
-                    if (container.args && container.args.length) {
-                        container.args_text = container.args.join(' ')
-                    }
-                    if (!container.args_text) {
-                        container.args_text = ''
-                    }
-                    if (container.resources && container.resources.limits && container.resources.limits.cpu) {
-                        container.resources.limits.cpu = Number(container.resources.limits.cpu)
-                    }
-                    if (container.resources && container.resources.limits && container.resources.limits.memory) {
-                        container.resources.limits.memory = Number(container.resources.limits.memory)
-                    }
+                appObj.spec.template.spec.containers.forEach(container => {
                     container = _.merge({}, cParams, container)
-                    index++
-                }
+                })
 
-                const newConfObj = _.merge({}, this.curApplication.config, appObj)
+                const newConfObj = _.merge({}, applicationParams.config, appObj)
                 const jsonFromat = this.formatJson(newConfObj)
                 this.curApplication.config = jsonFromat
                 this.toJsonDialogConf.isShow = false
@@ -1763,6 +1921,7 @@
                             data.arg_value = ''
                             break
                         case 'MAXPER':
+                        case 'TOLERATION':
                             data.type = 3
                             break
                         case 'CLUSTER':
@@ -1800,7 +1959,7 @@
                     }
                 })
 
-                // 备注
+                // 注解
                 const annotations = jsonObj.metadata.annotations
                 if (annotations) {
                     const list = []
@@ -1839,27 +1998,42 @@
                     jsonObj.webCache.logLabelListCache = list
                 }
 
-                // container env
+                // container
                 const containers = jsonObj.spec.template.spec.containers
-                containers.forEach(container => {
+                containers.forEach((container, index) => {
+                    // 处理container命名
+                    if (!container.name) {
+                        container.name = 'container-' + (index + 1)
+                    }
+
+                    // 非标准日志采集
+                    if (!container.logListCache) {
+                        container.logListCache = [{
+                            value: ''
+                        }]
+                    }
+
+                    // 命令参数
+                    if (container.args && container.args.length) {
+                        container.args_text = container.args.join(' ')
+                    }
+                    if (!container.args_text) {
+                        container.args_text = ''
+                    }
+                    // 资源限制
+                    if (container.resources && container.resources.limits && container.resources.limits.cpu) {
+                        container.resources.limits.cpu = Number(container.resources.limits.cpu)
+                    }
+                    if (container.resources && container.resources.limits && container.resources.limits.memory) {
+                        container.resources.limits.memory = Number(container.resources.limits.memory)
+                    }
                     // 环境变量
-                    if (container.env) {
-                        const envs = container.env
-                        container.env_list = []
-                        envs.forEach(item => {
-                            container.env_list.push({
-                                type: 'custom',
-                                key: item.name,
-                                value: item.value
-                            })
+                    if (!container.env_list.length) {
+                        container.env_list.push({
+                            type: 'custom',
+                            key: '',
+                            value: ''
                         })
-                        if (!container.env_list.length) {
-                            container.env_list.push({
-                                type: 'custom',
-                                key: '',
-                                value: ''
-                            })
-                        }
                     }
 
                     // 端口
@@ -1880,10 +2054,14 @@
                             if (item.type !== 'configmap' && item.type !== 'secret') {
                                 item.type = 'custom'
                             }
+                            if (!item.volume.user) {
+                                item.volume.user = ''
+                            }
                         })
                     }
 
                     // 命令参数
+                    container.parameter_list = []
                     if (container.parameters && container.parameters.length > 0) {
                         container.parameters.forEach(item => {
                             container.parameter_list.push(item)
@@ -1905,18 +2083,17 @@
                             consecutiveFailures: 0,
                             gracePeriodSeconds: 10,
                             command: {
-                                portName: '',
                                 value: ''
                             },
                             http: {
-                                port: 0,
+                                port: '',
                                 portName: '',
                                 scheme: 'http',
                                 path: '',
                                 headers: {}
                             },
                             tcp: {
-                                port: 0,
+                                port: '',
                                 portName: ''
                             }
                         }
@@ -1928,65 +2105,6 @@
                     }
                 })
                 return jsonObj
-            },
-            formatLocalToServerData (data) {
-                data.spec.template.containers.forEach(container => {
-                    // delete 命令参数
-                    if (container.args_text.trim().length) {
-                        container.args = container.args_text.split(' ')
-                    } else {
-                        container.args = []
-                    }
-                    delete container.args_text
-
-                    // 环境变量
-                    if (container.env_list) {
-                        const envList = container.env_list
-                        container.env = []
-                        envList.forEach(item => {
-                            container.env.push({
-                                name: item.name,
-                                value: item.value
-                            })
-                        })
-                    }
-                    delete container.env_list
-                })
-            },
-            formatServerToLocalData (data) {
-                // container env
-                const containers = data.spec.template.spec.containers
-                containers.forEach(container => {
-                    // 环境变量
-                    if (container.env) {
-                        const envs = container.env
-                        container.env_list = []
-                        envs.forEach(item => {
-                            container.env_list.push({
-                                type: 'custom',
-                                key: item.name,
-                                value: item.value
-                            })
-                        })
-                    }
-
-                    // 端口
-                    if (container.ports) {
-                        const ports = container.ports
-                        ports.forEach(item => {
-                            item.isLink = ''
-                            item.id = +new Date()
-                        })
-                    }
-
-                    // volumes
-                    if (container.volumes) {
-                        const volumes = container.volumes
-                        volumes.forEach(item => {
-                            item.type = 'custom'
-                        })
-                    }
-                })
             },
             getKeyList (list) {
                 let results = []
@@ -2025,6 +2143,7 @@
                             delete data.text
                             break
                         case 'MAXPER':
+                        case 'TOLERATION':
                             data.type = 3
                             data.text = {
                                 'value': data.arg_value
@@ -2112,6 +2231,24 @@
                 })
                 delete appConfig.webCache
 
+                // container
+                const containers = appConfig.spec.template.spec.containers
+                containers.forEach(container => {
+                    // 命令参数
+                    container.args = container.args_text.split(' ')
+
+                    // 命令参数
+                    container.parameters = []
+                    if (container.parameter_list && container.parameter_list.length > 0) {
+                        container.parameter_list.forEach(item => {
+                            container.parameters.push(item)
+                        })
+                    }
+
+                    delete container.parameter_list
+                    delete container.args_text
+                })
+                
                 const jsonStr = JSON.stringify(appConfig, null, 4)
                 this.applicationJsonCache = jsonStr
                 this.editorConfig.value = jsonStr
@@ -2141,14 +2278,33 @@
                     this.addLocalApplication()
                 }
             },
-            tabResource (type) {
+            async tabResource (type, target) {
                 this.isTabChanging = true
-                this.$refs.commonHeader.saveTemplate()
-                this.$refs.commonHeader.autoSaveResource(type)
+                await this.$refs.commonHeader.saveTemplate()
+                await this.$refs.commonHeader.autoSaveResource(type)
+                this.$refs.commonTab.goResource(target)
             },
             exceptionHandler (exceptionCode) {
                 this.isDataLoading = false
                 this.exceptionCode = exceptionCode
+            },
+            healthTypeSelect () {
+                const healthParams = this.curContainer.healthChecks[0]
+
+                healthParams.command = {
+                    value: ''
+                }
+                healthParams.http = {
+                    port: '',
+                    portName: '',
+                    scheme: 'http',
+                    path: '',
+                    headers: {}
+                }
+                healthParams.tcp = {
+                    port: '',
+                    portName: ''
+                }
             },
             portNameSelect (selected, data) {
                 const healthParams = this.curContainer.healthChecks[0]
@@ -2157,9 +2313,11 @@
                     healthParams.http.portName = selected
                 } else if (type === 'TCP' || type === 'REMOTE_TCP') {
                     healthParams.tcp.portName = selected
-                } else if (type === 'COMMAND') {
-                    healthParams.command.portName = selected
                 }
+            },
+            handleHeaderChange (list, obj) {
+                const healthParams = this.curContainer.healthChecks[0]
+                healthParams.http.headers = obj
             },
             toggleRouter (target) {
                 this.$router.push({
@@ -2197,6 +2355,7 @@
                 this.$refs.applicationTooltip.visible = false
             },
             setCurApplication (application, index) {
+                this.renderImageIndex++
                 this.curApplication = application
                 this.curApplicationId = application.id
 
@@ -2244,14 +2403,28 @@
                     }
                 }, 1000)
             },
+            /**
+             * 把上一个容器的参数重置
+             */
+            resetPreContainerParams () {
+                this.imageVersionList = []
+            },
+            /**
+             * 切换container
+             * @param {object} container container
+             */
             setCurContainer (container, index) {
-                // this.imageVersionList = []
-                // 保存当前container数据
-                const httpHeaders = this.$refs.headerKeyer.getKeyObject()
-                this.curContainer.healthChecks[0].http.headers = httpHeaders
-                // 切换container
-                this.curContainer = container
-                this.curContainerIndex = index
+                // 利用setTimeout事件来先让当前容器的blur事件执行完才切换
+                setTimeout(() => {
+                    this.resetPreContainerParams()
+                    // 保存当前container数据
+                    const httpHeaders = this.$refs.headerKeyer.getKeyObject()
+                    this.curContainer.healthChecks[0].http.headers = httpHeaders
+                    // 切换container
+                    this.renderImageIndex++
+                    this.curContainer = container
+                    this.curContainerIndex = index
+                }, 300)
             },
             removeContainer (index) {
                 const containers = this.curApplication.config.spec.template.spec.containers
@@ -2290,7 +2463,7 @@
                 const applicationId = application.id
                 this.$bkInfo({
                     title: '确认',
-                    content: this.$createElement('p', { style: { 'text-align': 'center' } }, `删除Application：${application.config.metadata.name || '未命名'}`),
+                    content: this.$createElement('p', { style: { 'text-align': 'center' } }, `删除Application：${application.config.metadata.name || this.$t('未命名')}`),
                     confirmFn () {
                         if (applicationId.indexOf && applicationId.indexOf('local_') > -1) {
                             self.removeLocalApplication(application, index)
@@ -2371,7 +2544,7 @@
                     const data = res.data
                     this.$bkMessage({
                         theme: 'success',
-                        message: '数据保存成功！'
+                        message: this.$t('数据保存成功')
                     })
                     this.updateLocalData(data)
                     this.isDataSaveing = false
@@ -2396,48 +2569,6 @@
                     this.isDataSaveing = false
                 })
             },
-            updateApplication (data) {
-                const version = this.curVersion
-                const projectId = this.projectId
-                const applicationId = this.curApplicationId
-                this.$store.dispatch('mesosTemplate/updateApplication', { projectId, version, data, applicationId }).then(res => {
-                    const data = res.data
-                    this.$bkMessage({
-                        theme: 'success',
-                        message: '数据保存成功！'
-                    })
-                    this.updateLocalData(data)
-                    this.isDataSaveing = false
-                }, res => {
-                    const message = res.message
-                    this.$bkMessage({
-                        theme: 'error',
-                        message: message
-                    })
-                    this.isDataSaveing = false
-                })
-            },
-            createApplication (data) {
-                const version = this.curVersion
-                const projectId = this.projectId
-                this.$store.dispatch('mesosTemplate/addApplication', { projectId, version, data }).then(res => {
-                    const data = res.data
-                    this.$bkMessage({
-                        theme: 'success',
-                        message: '数据保存成功！'
-                    })
-
-                    this.updateLocalData(data)
-                    this.isDataSaveing = false
-                }, res => {
-                    const message = res.message
-                    this.$bkMessage({
-                        theme: 'error',
-                        message: message
-                    })
-                    this.isDataSaveing = false
-                })
-            },
             removeVolumn (item, index) {
                 const volumes = this.curContainer.volumes
                 volumes.splice(index, 1)
@@ -2449,6 +2580,7 @@
                         'hostPath': '',
                         'mountPath': '',
                         'subPath': '',
+                        'user': '',
                         'readOnly': false
                     },
                     'type': 'custom',
@@ -2560,7 +2692,7 @@
                 constraint.push({
                     unionData: [
                         {
-                            name: 'hostname',
+                            name: '',
                             operate: 'CLUSTER',
                             type: 4,
                             arg_value: '',
@@ -2588,295 +2720,6 @@
                     data.arg_value = ''
                 }
             },
-            checkData () {
-                const appName = this.curApplication.config.metadata.name
-                const instance = this.curApplication.config.spec.instance
-                const nameReg1 = /^[a-z]{1}[a-z0-9-]{0,29}$/
-                const nameReg2 = /^[a-zA-Z]{1}[a-zA-Z0-9-_]{0,29}$/
-                const pathReg = /\/((?!\.)[\w\d\-./~]+)+/
-
-                if (appName === '') {
-                    this.$bkMessage({
-                        theme: 'error',
-                        message: '请输入应用名称！'
-                    })
-                    return false
-                }
-                if (!nameReg1.test(appName)) {
-                    this.$bkMessage({
-                        theme: 'error',
-                        message: '应用名称错误，只能包含：小写字母、数字、连字符(-)，必须是字母开头，长度小于30个字符',
-                        delay: 8000
-                    })
-                    return false
-                }
-
-                if (instance === '') {
-                    this.$bkMessage({
-                        theme: 'error',
-                        message: '请输入实例数量！'
-                    })
-                    return false
-                }
-
-                const containers = this.curApplication.config.spec.template.spec.containers
-
-                for (const container of containers) {
-                    // 检查container name
-                    if (!container.name) {
-                        this.$bkMessage({
-                            theme: 'error',
-                            message: `容器名称不能为空！`
-                        })
-                        return false
-                    }
-
-                    if (!nameReg1.test(container.name)) {
-                        this.$bkMessage({
-                            theme: 'error',
-                            message: '容器名称错误，只能包含：小写字母、数字、连字符(-)，必须是字母开头，长度小于30个字符',
-                            delay: 8000
-                        })
-                        return false
-                    }
-
-                    // 检查container镜像设置
-                    if (!container.image) {
-                        this.$bkMessage({
-                            theme: 'error',
-                            delay: 5000,
-                            message: `容器${container.name}的镜像及版本配置：请设置所属的镜像及版本！`
-                        })
-                        return false
-                    }
-
-                    // 端口映射检查
-                    const portNameCache = {}
-                    for (const item of container.ports) {
-                        if (item.name || item.protocol || item.containerPort || (item.hostPort !== '')) {
-                            if (!item.name) {
-                                this.$bkMessage({
-                                    theme: 'error',
-                                    delay: 5000,
-                                    message: `容器${container.name}的端口映射配置：名称不能为空！`
-                                })
-                                return false
-                            }
-                            if (!nameReg2.test(item.name)) {
-                                this.$bkMessage({
-                                    theme: 'error',
-                                    message: `容器${container.name}的端口映射配置：名称错误，只能包含：字母、数字、连字符(-)、下划线(_)，必须是字母开头，长度小于30个字符`,
-                                    delay: 8000
-                                })
-                                return false
-                            }
-                            if (portNameCache[item.name]) {
-                                this.$bkMessage({
-                                    theme: 'error',
-                                    message: `容器${container.name}的端口映射配置：端口名称不可重复！`,
-                                    delay: 8000
-                                })
-                                return false
-                            } else {
-                                portNameCache[item.name] = true
-                            }
-                            if (!item.protocol) {
-                                this.$bkMessage({
-                                    theme: 'error',
-                                    delay: 5000,
-                                    message: `容器${container.name}的端口映射配置：协议不能为空！`
-                                })
-                                return false
-                            }
-                            if (!item.containerPort) {
-                                this.$bkMessage({
-                                    theme: 'error',
-                                    delay: 5000,
-                                    message: `容器${container.name}的端口映射配置：容器端口不能为空！`
-                                })
-                                return false
-                            }
-                            if (parseInt(item.containerPort) < 1 || parseInt(item.containerPort) > 65535) {
-                                this.$bkMessage({
-                                    theme: 'error',
-                                    delay: 5000,
-                                    message: `容器${container.name}的端口映射配置：容器端口范围为1-65535！`
-                                })
-                                return false
-                            }
-                            if (item.hostPort === '') {
-                                this.$bkMessage({
-                                    theme: 'error',
-                                    delay: 5000,
-                                    message: `容器${container.name}的端口映射配置：主机端口不能为空！`
-                                })
-                                return false
-                            }
-                            if ((parseInt(item.hostPort) < 31000 && parseInt(item.hostPort) !== 0) || parseInt(item.hostPort) > 32000) {
-                                this.$bkMessage({
-                                    theme: 'error',
-                                    delay: 5000,
-                                    message: `容器${container.name}的端口映射配置：主机端口范围为31000-32000或者0！`
-                                })
-                                return false
-                            }
-                        }
-                    }
-
-                    // 检查container volumes
-                    if (container.volumes.length) {
-                        for (const item of container.volumes) {
-                            if (item.name || item.volume.hostname || item.volume.mountPath || item.volume.subPath) {
-                                if (!item.name) {
-                                    this.$bkMessage({
-                                        theme: 'error',
-                                        delay: 5000,
-                                        message: `容器${container.name}的挂载卷配置：挂载名不能为空！`
-                                    })
-                                    return false
-                                }
-                                if (!nameReg2.test(item.name)) {
-                                    this.$bkMessage({
-                                        theme: 'error',
-                                        message: `容器${container.name}的挂载卷配置：挂载名错误，只能包含：字母、数字、连字符(-)、下划线(_)，必须是字母开头，长度小于30个字符`,
-                                        delay: 8000
-                                    })
-                                    return false
-                                }
-                                if (!item.volume.hostPath) {
-                                    this.$bkMessage({
-                                        theme: 'error',
-                                        message: `容器${container.name}的挂载卷配置：挂载源不能为空！`,
-                                        delay: 5000
-                                    })
-                                    return false
-                                }
-                                if (!item.volume.mountPath) {
-                                    this.$bkMessage({
-                                        theme: 'error',
-                                        message: `容器${container.name}的挂载卷配置：容器目录不能为空！`,
-                                        delay: 5000
-                                    })
-                                    return false
-                                }
-                                if (!pathReg.test(item.volume.mountPath)) {
-                                    this.$bkMessage({
-                                        theme: 'error',
-                                        delay: 5000,
-                                        message: `容器${container.name}的挂载卷配置：容器目录不正确！`
-                                    })
-                                    return false
-                                }
-                            }
-                        }
-                    }
-
-                    // 环境变量检查
-                    const envList = container.env_list
-                    for (const env of envList) {
-                        if (env.key || env.value) {
-                            if (!env.key) {
-                                this.$bkMessage({
-                                    theme: 'error',
-                                    message: `容器${container.name}的环境变量配置：键不能为空！`,
-                                    delay: 5000
-                                })
-                                return false
-                            }
-                            if (!env.value) {
-                                this.$bkMessage({
-                                    theme: 'error',
-                                    message: `容器${container.name}的环境变量配置：值不能为空！`,
-                                    delay: 5000
-                                })
-                                return false
-                            }
-                        }
-                    }
-
-                    // 资源限制
-                    if (container.resources.limits.cpu !== undefined) {
-                        if (container.resources.limits.cpu < 0.001) {
-                            this.$bkMessage({
-                                theme: 'error',
-                                message: `容器${container.name}的资源限制配置：CPU限制不能少于0.001！`,
-                                delay: 5000
-                            })
-                            return false
-                        }
-                        if (container.resources.limits.cpu > 128) {
-                            this.$bkMessage({
-                                theme: 'error',
-                                message: `容器${container.name}的资源限制配置：CPU限制不能大于128！`,
-                                delay: 5000
-                            })
-                            return false
-                        }
-                    }
-
-                    // 健康检查
-                    const healthChecks = container.healthChecks[0]
-                    if (healthChecks.type) {
-                        switch (healthChecks.type) {
-                            case 'HTTP':
-                            case 'REMOTE_HTTP':
-                                if (!healthChecks.http.portName) {
-                                    this.$bkMessage({
-                                        theme: 'error',
-                                        delay: 5000,
-                                        message: `容器${container.name}的健康检查配置：端口名称不能为空！`
-                                    })
-                                    return false
-                                }
-                                break
-                            case 'TCP':
-                            case 'REMOTE_TCP':
-                                if (!healthChecks.tcp.portName) {
-                                    this.$bkMessage({
-                                        theme: 'error',
-                                        delay: 5000,
-                                        message: `容器${container.name}的健康检查配置：端口名称不能为空！`
-                                    })
-                                    return false
-                                }
-                                break
-                            case 'COMMAND':
-                                if (!healthChecks.command.portName) {
-                                    this.$bkMessage({
-                                        theme: 'error',
-                                        delay: 5000,
-                                        message: `容器${container.name}的健康检查配置：端口名称不能为空！`
-                                    })
-                                    return false
-                                }
-                                if (!healthChecks.command.value) {
-                                    this.$bkMessage({
-                                        theme: 'error',
-                                        delay: 5000,
-                                        message: `容器${container.name}的健康检查配置：检查命令不能为空！`
-                                    })
-                                    return false
-                                }
-                                break
-                        }
-                    }
-
-                    if (container.logListCache.length) {
-                        for (const log of container.logListCache) {
-                            if (log.value && !pathReg.test(log.value)) {
-                                this.$bkMessage({
-                                    theme: 'error',
-                                    delay: 5000,
-                                    message: `容器${container.name}的非标准日志采集配置：日志绝对路径不正确！`
-                                })
-                                return false
-                            }
-                        }
-                    }
-                }
-
-                return true
-            },
             updateApplicationRemark (list, data) {
                 if (!this.curApplication.config.webCache) {
                     this.curApplication.config.webCache = {}
@@ -2898,198 +2741,21 @@
                 this.curApplication.config.customLogLabel = data
                 this.curApplication.config.webCache.logLabelListCache = list
             },
-            formatData () {
-                const params = JSON.parse(JSON.stringify(this.curApplication))
-                params.template = {
-                    name: this.curTemplate.name,
-                    desc: this.curTemplate.desc
-                }
-                delete params.isEdited
-                // 键值转换
-                const remarkKeyList = this.$refs.remarkKeyer.getKeyObject()
-                const labelKeyList = this.$refs.labelKeyer.getKeyObject()
-
-                params.config.metadata.labels = labelKeyList
-                params.config.metadata.annotations = remarkKeyList
-
-                // 转换调度约束
-                const constraint = params.config.constraint.intersectionItem
-                constraint.forEach(item => {
-                    const data = item.unionData[0]
-                    const operate = data.operate
-                    switch (operate) {
-                        case 'UNIQUE':
-                            delete data.type
-                            delete data.set
-                            delete data.text
-                            break
-                        case 'MAXPER':
-                            data.type = 3
-                            data.text = {
-                                'value': data.arg_value
-                            }
-                            delete data.set
-                            break
-                        case 'CLUSTER':
-                            data.type = 4
-                            if (data.arg_value.trim().length) {
-                                data.set = {
-                                    'item': data.arg_value.split('|')
-                                }
-                            } else {
-                                data.set = {
-                                    'item': []
-                                }
-                            }
-
-                            delete data.text
-                            break
-                        case 'GROUPBY':
-                            data.type = 4
-                            if (data.arg_value.trim().length) {
-                                data.set = {
-                                    'item': data.arg_value.split('|')
-                                }
-                            } else {
-                                data.set = {
-                                    'item': []
-                                }
-                            }
-                            delete data.text
-                            break
-                        case 'LIKE':
-                            if (data.arg_value.indexOf('|') > -1) {
-                                data.type = 4
-                                if (data.arg_value.trim().length) {
-                                    data.set = {
-                                        'item': data.arg_value.split('|')
-                                    }
-                                } else {
-                                    data.set = {
-                                        'item': []
-                                    }
-                                }
-                                delete data.text
-                            } else {
-                                data.type = 3
-                                data.text = {
-                                    'value': data.arg_value
-                                }
-                                delete data.set
-                            }
-                            break
-                        case 'UNLIKE':
-                            if (data.arg_value.indexOf('|') > -1) {
-                                data.type = 4
-                                if (data.arg_value.trim().length) {
-                                    data.set = {
-                                        'item': data.arg_value.split('|')
-                                    }
-                                } else {
-                                    data.set = {
-                                        'item': []
-                                    }
-                                }
-                                delete data.text
-                            } else {
-                                data.type = 3
-                                data.text = {
-                                    'value': data.arg_value
-                                }
-                                delete data.set
-                            }
-                            break
-                    }
-                })
-
-                // 转换命令参数和环境变量
-                const containers = params.config.spec.template.spec.containers
-                containers.forEach(container => {
-                    if (container.args_text.trim().length) {
-                        container.args = container.args_text.split(' ')
-                    } else {
-                        container.args = []
-                    }
-
-                    container.resources.limits.cpu = parseFloat(container.resources.limits.cpu)
-
-                    // docker参数
-                    const parameterList = container.parameter_list
-                    container.parameters = []
-                    parameterList.forEach(param => {
-                        if (param.key && param.value) {
-                            container.parameters.push(param)
-                        }
-                    })
-
-                    // 端口
-                    const ports = container.ports
-                    const validatePorts = []
-                    ports.forEach(item => {
-                        if (item.containerPort && (item.hostPort !== undefined) && item.name && item.protocol) {
-                            validatePorts.push({
-                                id: item.id,
-                                containerPort: item.containerPort,
-                                hostPort: item.hostPort,
-                                protocol: item.protocol,
-                                name: item.name
-                            })
-                        }
-                    })
-                    container.ports = validatePorts
-
-                    // volumes
-                    const volumes = container.volumes
-                    let validateVolumes = []
-                    validateVolumes = volumes.filter(item => {
-                        return item.volume.hostPath && item.volume.mountPath && item.name
-                    })
-                    container.volumes = validateVolumes
-
-                    // logpath
-                    const paths = []
-                    const logList = container.logListCache
-                    logList.forEach(item => {
-                        if (item.value) {
-                            paths.push(item.value)
-                        }
-                    })
-                    container.logPathList = paths
-                })
-                return params
-            },
-            saveApplication () {
-                if (!this.checkData()) {
-                    return false
-                }
-                if (this.isDataSaveing) {
-                    return false
-                } else {
-                    this.isDataSaveing = true
-                }
-                const data = this.formatData()
-                if (this.curVersion) {
-                    if (this.curApplicationId.indexOf && this.curApplicationId.indexOf('local') > -1) {
-                        this.createApplication(data)
-                    } else {
-                        this.updateApplication(data)
-                    }
-                } else {
-                    this.createFirstApplication(data)
-                }
-            },
             initImageList () {
+                if (this.isLoadingImageList) return false
                 this.isLoadingImageList = true
                 const projectId = this.projectId
                 this.$store.dispatch('mesosTemplate/getImageList', { projectId }).then(res => {
                     const data = res.data
-                    data.forEach(item => {
-                        item._id = item.value
-                        item._name = item.name
-                    })
-                    this.imageList.splice(0, this.imageList.length, ...data)
-                    this.$store.commit('mesosTemplate/updateImageList', this.imageList)
-                    this.isLoadingImageList = false
+                    setTimeout(() => {
+                        data.forEach(item => {
+                            item._id = item.value
+                            item._name = item.name
+                        })
+                        this.imageList.splice(0, this.imageList.length, ...data)
+                        this.$store.commit('mesosTemplate/updateImageList', this.imageList)
+                        this.isLoadingImageList = false
+                    }, 1000)
                 }, res => {
                     const message = res.message
                     this.$bkMessage({
@@ -3100,8 +2766,30 @@
                     this.isLoadingImageList = false
                 })
             },
+
+            handleImageCustom () {
+                setTimeout(() => {
+                    const imageName = this.curContainer.imageName
+                    const imageVersion = this.curContainer.imageVersion
+                    if (imageName && imageVersion) {
+                        this.curContainer.image = `${imageName}:${imageVersion}`
+                    } else {
+                        this.curContainer.image = ''
+                    }
+                }, 100)
+            },
+
+            handleChangeImageMode () {
+                this.curContainer.isImageCustomed = !this.curContainer.isImageCustomed
+                // 清空原来值
+                this.curContainer.imageName = ''
+                this.curContainer.image = ''
+                this.curContainer.imageVersion = ''
+            },
+
             setImageVersion (value, data) {
                 /**
+                 *   imageBase = ''
                  *   根据imagename的 is_pub:
                  *   1) true:
                  *   image = imageBase + imageName + ':' + imageVersion
@@ -3133,24 +2821,7 @@
                         this.curContainer.imageVersion = value
                         this.curContainer.image = `${DEVOPS_ARTIFACTORY_HOST}/${projectCode}/${imageName}:${value}`
                     }
-                } else if (this.curContainer.imageName) {
-                    this.curContainer.image = `${this.curContainer.imageName}:${value}`
-                    console.log('镜像是自定义，版本是变量', this.curContainer.image)
                 }
-            },
-            handleImageCustom () {
-                this.$nextTick(() => {
-                    const imageName = this.curContainer.imageName
-                    const matcher = this.imageList.find(image => image._name === imageName)
-                    this.imageVersionList = []
-                    this.curContainer.imageVersion = ''
-                    this.$refs.imageVersion.clearDefaultList()
-                    if (matcher) {
-                        this.changeImage(matcher._id, matcher)
-                    } else {
-                        this.curImageData = {}
-                    }
-                })
             },
 
             handleVersionCustom () {
@@ -3162,8 +2833,20 @@
                     } else {
                         const imageName = this.curContainer.imageName
                         const version = this.curContainer.imageVersion
-                        this.curContainer.image = `${imageName}:${version}`
-                        console.log('自定义', this.curContainer.image)
+
+                        // curImageData有值，表示是通过选择
+                        if (JSON.stringify(this.curImageData) !== '{}') {
+                            if (this.curImageData.is_pub !== undefined) {
+                                this.curContainer.image = `${DEVOPS_ARTIFACTORY_HOST}/${imageName}:${version}`
+                                console.log('镜像是下拉，版本是自定义', this.curContainer.image)
+                            } else {
+                                this.curContainer.image = `${DEVOPS_ARTIFACTORY_HOST}/${this.projectCode}/${imageName}:${version}`
+                                console.log('镜像是变量，版本是自定义', this.curContainer.image)
+                            }
+                        } else {
+                            this.curContainer.image = `${imageName}:${version}`
+                            console.log('镜像和版本都是自定义', this.curContainer.image)
+                        }
                     }
                 })
             },
@@ -3182,7 +2865,6 @@
                             item._name = item.text
                         })
                         this.imageVersionList.splice(0, this.imageVersionList.length, ...data)
-                        this.renderVersionIndex++
                         // 非首次关联触发，默认选择第一项或清空
                         if (isInitTrigger) return
 
@@ -3203,10 +2885,10 @@
                 } else if (!isInitTrigger) {
                     this.imageVersionList = []
                     this.curContainer.image = ''
-
                     this.curContainer.imageVersion = ''
                 }
             },
+
             addPort () {
                 const id = +new Date()
                 const params = {
@@ -3238,7 +2920,7 @@
                     const msg = message.split(',')[0]
                     this.$bkMessage({
                         theme: 'error',
-                        message: msg + '，不能修改协议！'
+                        message: msg + `，${this.$t('不能修改协议')}`
                     })
                 })
             },
@@ -3261,6 +2943,7 @@
                 volumeItem.volume.hostPath = ''
                 volumeItem.volume.mountPath = ''
                 volumeItem.volume.subPath = ''
+                volumeItem.volume.user = ''
                 const data = Object.assign([], this.curContainer.volumes)
                 this.curContainer.volumes.splice(0, this.curContainer.volumes.length, ...data)
             },

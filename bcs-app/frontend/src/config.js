@@ -13,11 +13,30 @@ export default {
     // 白皮书地址
     doc: {
         quickStart: 'https://docs.bk.tencent.com/bcs/Container/QuickStart.html',
-        serviceAccess: 'https://docs.bk.tencent.com/bcs/Container/helm/ServiceAccess.html',
-        harborGuide: 'https://docs.bk.tencent.com/bcs/Container/HarborGuide.html',
         nodeLabelK8s: 'https://docs.bk.tencent.com/bcs/Container/KubernetesSolution/NodeLabelDoc.html',
         nodeLabelMesos: 'https://docs.bk.tencent.com/bcs/Container/Mesosolution/NodeLabelDoc.html',
-        webConsole: 'https://docs.bk.tencent.com/bcs/Container/web-console/Description.html',
-        writeQuestionsYaml: 'https://docs.bk.tencent.com/bcs/Container/helm/WriteQuestionsYaml.html'
+        dockerCpuSummary: 'https://docs.bk.tencent.com/bcs/Container/QuickStart.html',
+        harborGuide: 'https://docs.bk.tencent.com/bcs/Container/HarborGuide.html',
+        serviceAccess: 'https://docs.bk.tencent.com/bcs/Container/helm/ServiceAccess.html',
+        webConsole: 'https://bk.tencent.com/docs/document/5.1/11/283',
+        writeQuestionsYaml: 'https://docs.bk.tencent.com/bcs/Container/helm/WriteQuestionsYaml.html',
+        k8sConfigmap: 'https://docs.bk.tencent.com/bcs/Container/KubernetesSolution/configmap.html',
+        k8sDaemonset: 'https://docs.bk.tencent.com/bcs/Container/KubernetesSolution/daemonset.html',
+        k8sDeployment: 'https://docs.bk.tencent.com/bcs/Container/KubernetesSolution/deployment.html',
+        k8sHpa: 'https://docs.bk.tencent.com/bcs/Container/QuickStart.html',
+        k8sIngress: 'https://docs.bk.tencent.com/bcs/Container/KubernetesSolution/ingress.html',
+        k8sJob: 'https://docs.bk.tencent.com/bcs/Container/KubernetesSolution/job.html',
+        k8sSecret: 'https://docs.bk.tencent.com/bcs/Container/KubernetesSolution/secret.html',
+        k8sService: 'https://docs.bk.tencent.com/bcs/Container/KubernetesSolution/service.html',
+        k8sStatefulset: 'https://docs.bk.tencent.com/bcs/Container/KubernetesSolution/statefulset.html',
+        mesosApplication: 'https://docs.bk.tencent.com/bcs/Container/Mesosolution/application.html',
+        mesosConfigmap: 'https://docs.bk.tencent.com/bcs/Container/Mesosolution/configmap.html',
+        mesosDeployment: 'https://docs.bk.tencent.com/bcs/Container/Mesosolution/deployment.html',
+        mesosHpa: 'https://docs.bk.tencent.com/bcs/Container/QuickStart.html',
+        mesosSecret: 'https://docs.bk.tencent.com/bcs/Container/Mesosolution/secret.html',
+        mesosService: 'https://docs.bk.tencent.com/bcs/Container/Mesosolution/service.html'
+    },
+    str: {
+        taskgroupAndPodTips: ''
     }
 }

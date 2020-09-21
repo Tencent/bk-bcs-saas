@@ -25,7 +25,8 @@ const requestHandler = req => {
 
     console.log(chalk.magenta('Ajax Request Path: ', pathName))
 
-    delete require.cache[require.resolve(mockFilePath)]
+    // 删除 require.cache[require.resolve(mockFilePath)] 缓存即每次 mock 请求都会重新执行
+    // delete require.cache[require.resolve(mockFilePath)]
     return require(mockFilePath)
 }
 

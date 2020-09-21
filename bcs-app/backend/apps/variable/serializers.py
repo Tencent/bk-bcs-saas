@@ -197,7 +197,9 @@ class ImportVariableSLZ(serializers.Serializer):
     @cached_property
     def clusters(self):
         data = get_clusters(self.context['access_token'], self.context['project_id'])
-        return [c['cluster_id'] for c in data]
+        if data:
+            return [c["cluster_id"] for c in data]
+        return []
 
     @cached_property
     def namespaces(self):
