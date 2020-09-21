@@ -31,6 +31,7 @@ module.exports = {
         extensions: ['.js', '.vue', '.json'],
         alias: {
             'vue$': 'vue/dist/vue.esm.js',
+            '@': resolve('src'),
             '@open': resolve('src'),
             'echarts$': 'echarts/dist/echarts.min.js',
             'echarts': 'echarts',
@@ -38,6 +39,7 @@ module.exports = {
             'zrender': 'zrender'
         }
     },
+    cache: true,
     plugins: [
         new VueLoaderPlugin(),
         // moment 优化，只提取本地包
@@ -83,10 +85,10 @@ module.exports = {
                     options: {
                         include: [
                             resolve('src'),
+                            resolve('bk-bcs-saas/bcs-app/frontend/src'),
                             resolve('/node_modules/monaco-editor/esm')
                         ],
                         cacheDirectory: './webpack_cache/',
-                        exclude: [/node_modules\//, /lib\.bundle\.js/],
                         plugins: [
                             'dynamic-import-webpack'
                         ]

@@ -19,5 +19,7 @@ module.exports = merge(prodEnv, {
         'NODE_ENV': NODE_ENV
     },
     staticUrl: '/static',
-    NODE_ENV: NODE_ENV
+    NODE_ENV: NODE_ENV,
+    VERSION: JSON.stringify('ce'),
+    LOGIN_SERVICE_URL: JSON.stringify('')
 })

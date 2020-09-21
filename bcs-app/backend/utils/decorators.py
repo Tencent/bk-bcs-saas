@@ -23,7 +23,7 @@ from django.utils.translation import ugettext_lazy as _
 from requests.models import Response
 
 from backend.apps.constants import SENSITIVE_KEYWORD
-from backend.utils.exceptions import ComponentError
+from backend.utils.exceptions import ComponentError, APIError
 from backend.utils.error_codes import error_codes
 from backend.utils.errcodes import ErrorCode
 
@@ -31,14 +31,14 @@ logger = logging.getLogger(__name__)
 
 # 格式化方法
 FORMAT_FUNC = {
-    'json': json.loads,
+    "json": json.loads,
 }
 
 # 最大返回字符数 10KB
 MAX_RESP_TEXT_SIZE = 1024 * 10
 
 # 马赛克
-MOSAIC_CHAR = '*'
+MOSAIC_CHAR = "*"
 MOSAIC_WORD = MOSAIC_CHAR * 3
 
 
@@ -68,8 +68,8 @@ def requests_curl_log(resp, st, params):
 
     # 添加日志信息
     curl_req = "REQ: curl -X {method} '{url}'".format(
-        method=resp.request.method,
-        url=get_desensitive_url(resp.request, params))
+        method=resp.request.method, url=get_desensitive_url(resp.request, params)
+    )
 
     if resp.request.body:
         curl_req += " -d '{body}'".format(body=force_str(resp.request.body))
@@ -77,9 +77,9 @@ def requests_curl_log(resp, st, params):
     if resp.request.headers:
         for key, value in resp.request.headers.items():
             # ignore headers
-            if key in ['User-Agent', 'Accept-Encoding', 'Connection', 'Accept', 'Content-Length']:
+            if key in ["User-Agent", "Accept-Encoding", "Connection", "Accept", "Content-Length"]:
                 continue
-            if key == 'Cookie' and value.startswith('x_host_key'):
+            if key == "Cookie" and value.startswith("x_host_key"):
                 continue
 
             # 去除敏感信息, key保留, 表示鉴权信息有传递
@@ -93,13 +93,13 @@ def requests_curl_log(resp, st, params):
     else:
         resp_text = resp.text
 
-    curl_resp = 'RESP: [%s] %.2fms %s' % (resp.status_code, (time.time() - st) * 1000, resp_text)
+    curl_resp = "RESP: [%s] %.2fms %s" % (resp.status_code, (time.time() - st) * 1000, resp_text)
 
-    logger.info('%s\n \t %s', curl_req, curl_resp)
+    logger.info("%s\n \t %s", curl_req, curl_resp)
 
 
-def response(f=None):
-    """返回值格式化
+def response(f=None, handle_resp=False):
+    """返回值格式化handle_resp
     """
 
     def decorator(func):
@@ -117,13 +117,17 @@ def response(f=None):
                     raise ValueError(_("返回值[{}]必须是字符串或者Respose对象").format(resp))
 
                 # 解析格式
-                err_msg = kwargs.get('err_msg', None)
+                err_msg = kwargs.get("err_msg", None)
                 try:
                     resp = format_func(content)
                 except Exception as error:
-                    logger.exception(
-                        "请求第三方失败，使用【%s】格式解析 %s 异常，%s", f, content, error)
+                    logger.exception("请求第三方失败，使用【%s】格式解析 %s 异常，%s", f, content, error)
                     raise ComponentError(err_msg or error)
+
+            if handle_resp:
+                if resp.get("code") != ErrorCode.NoError:
+                    raise APIError(resp.get("message"))
+                return resp.get("data")
 
             return resp
 
@@ -137,10 +141,10 @@ def parse_response_data(default_data=None, err_msg_prefix=None):
         @wraps(func)
         def parse(*args, **kwargs):
             resp = func(*args, **kwargs)
-            if resp.get('code') != ErrorCode.NoError:
+            if resp.get("code") != ErrorCode.NoError:
                 prefix = err_msg_prefix or f"{func.__name__} error"
                 raise error_codes.APIError(f"{prefix}: {resp.get('message')}")
-            return resp['data'] or default_data
+            return resp["data"] or default_data
 
         return parse
 

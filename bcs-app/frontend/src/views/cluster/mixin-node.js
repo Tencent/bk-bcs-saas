@@ -948,6 +948,10 @@ export default {
                 })
             }
 
+            if (this.curClusterInPage.type === 'tke') {
+                params.host_source = this.hostSourceKey
+            }
+
             // alert('打开控制台查看参数')
             // console.warn(params)
             // console.warn('\n')
@@ -1336,7 +1340,7 @@ export default {
                     nodeId: node.id
                 })
 
-                const { status, log = [], error_msg_list: errorMsgList = [] } = res.data
+                const { status, log = [], error_msg_list: errorMsgList = [], task_url: taskUrl = '' } = res.data
 
                 // 最终的状态
                 // running / failed / success
@@ -1345,6 +1349,7 @@ export default {
                 const tasks = []
                 log.forEach(operation => {
                     operation.errorMsgList = errorMsgList
+                    operation.taskUrl = taskUrl
                     tasks.push(operation)
                 })
                 this.logList.splice(0, this.logList.length, ...tasks)

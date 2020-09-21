@@ -76,7 +76,7 @@ def get_node_metric(request, access_token, project_id, cluster_id, cluster_type)
     node_actived = 0
     node_disabled = 0
 
-    if cluster_type == 'k8s':
+    if cluster_type != constants.ProjectKind.MESOS.value:
         # namespace 获取处理
         client = k8s.K8SClient(access_token, project_id, cluster_id=cluster_id, env=None)
         namespace = client.get_namespace()

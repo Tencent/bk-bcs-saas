@@ -1,7 +1,7 @@
 <template>
     <keep-alive>
         <app-exception v-if="isError" :type="'404'"></app-exception>
-        <component v-else :is="componentName"></component>
+        <component v-else :is="componentName" :cur-project="curProject"></component>
     </keep-alive>
     <!-- <router-view v-else :key="$route.path"></router-view> -->
 </template>
@@ -99,6 +99,12 @@
     const statefulsetInstantiation = () => import(
         /* webpackChunkName: 'app-instantiation' */'./k8s/statefulset-instantiation'
     )
+    const gamestatefulset = () => import(
+        /* webpackChunkName: 'app-list' */'./k8s/gamestatefulset'
+    )
+    const customobjects = () => import(
+        /* webpackChunkName: 'app-list' */'./k8s/customobjects'
+    )
 
     export default {
         components: {
@@ -135,7 +141,10 @@
             statefulsetInstanceDetail2,
             statefulsetContainerDetail,
             statefulsetContainerDetail2,
-            statefulsetInstantiation
+            statefulsetInstantiation,
+
+            gamestatefulset,
+            customobjects
         },
         data () {
             return {
@@ -171,7 +180,10 @@
                     'statefulsetInstanceDetail2',
                     'statefulsetContainerDetail',
                     'statefulsetContainerDetail2',
-                    'statefulsetInstantiation'
+                    'statefulsetInstantiation',
+
+                    'gamestatefulset',
+                    'customobjects'
                 ],
                 isError: false,
                 componentName: '',
@@ -237,7 +249,7 @@
                             this.componentName = routeName
                         }
                     }
-                } else if (this.curProject.kind === PROJECT_K8S) {
+                } else {
                     // k8s
                     if (this.mesosPathNameList.indexOf(routeName) > -1) {
                         this.$router.replace({

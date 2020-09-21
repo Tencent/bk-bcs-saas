@@ -94,7 +94,7 @@
                     <button href="javascript:void(0)" class="bk-button bk-primary" disabled>{{$t('保存')}}</button>
                 </template>
                 <template v-else>
-                    <button class="bk-button bk-primary" :disabled="!canTemplateSave" @click="handleSaveTemplate">{{$t('保存')}}</button>
+                    <button class="bk-button bk-primary" @click="handleSaveTemplate">{{$t('保存')}}</button>
                 </template>
                 
                 <button class="bk-button bk-default" :disabled="templateId === 0" @click="createInstance">
@@ -110,108 +110,104 @@
         </p>
 
         <section class="biz-yaml-content" v-bkloading="{ isLoading: isYamlTemplateLoading || isTemplateLocking, opacity: 0.3 }">
-            <div class="biz-yaml-resources">
-                <ul class="yaml-tab">
-                    <li :class="{ 'active': tabName === 'default' }" @click="handleToggleTab('default')">
-                        {{$t('常用Manifest')}}
-                    </li>
-                    <li :class="{ 'active': tabName === 'custom' }" @click="handleToggleTab('custom')">
-                        {{$t('自定义Manifest')}}
-                    </li>
-                </ul>
-                <ul class="resources-tree">
-                    <li class="group" v-for="resource of curTemplateFiles" :key="resource.resource_name">
-                        <div :class="['group-header', { 'has-file': resource.files.filter(file => file.action !== 'delete').length }]" @click="handleToggleResource(resource)">
-                            <strong class="title">
-                                {{resource.resource_name}}
-                                <span class="badge">({{resource.files.filter(file => file.action !== 'delete').length}})</span>
-                            </strong>
-                            <i class="bk-icon icon-plus" @click.stop.prevent="handleAddFile(resource)"></i>
-                        </div>
+            <resizer :class="['resize-layout fl']"
+                direction="right"
+                :handler-offset="3"
+                :min="300"
+                :max="500"
+                @resize="reRenderEditor++">
+                <div class="tree-box">
+                    <div class="biz-yaml-resources">
+                        <ul class="yaml-tab">
+                            <li :class="{ 'active': tabName === 'default' }" @click="handleToggleTab('default')">
+                                {{$t('常用Manifest')}}
+                            </li>
+                            <li :class="{ 'active': tabName === 'custom' }" @click="handleToggleTab('custom')">
+                                {{$t('自定义Manifest')}}
+                            </li>
+                        </ul>
+                        
+                        <div class="tree-box ml15">
+                            <div>
+                                <bk-tree
+                                    class="default-tree mt20"
+                                    ref="defaultTree"
+                                    v-show="tabName === 'default'"
+                                    :data="defaultTreeData"
+                                    :node-key="'id'"
+                                    :tpl="renderDefaultTree"
+                                    :has-border="true">
+                                </bk-tree>
 
-                        <collapse-transition :key="resource.files.length">
-                            <ul class="group-content" v-show="resource.actived">
-                                <template v-for="(file, index) of resource.files">
-                                    <template v-if="file.action !== 'delete'">
-                                        <li :class="{ 'active': curResourceFile.id === file.id }" :key="file.id" v-if="!file.isEdited" @click="handleSelectFile(resource, file)">
-                                            <span class="title" :title="file.name">{{file.name}}</span>
-                                            <i class="edit-dot" v-bktooltips.top="'文件有更新'" v-show="file.content !== file.originContent"></i>
-                                            <i class="bk-icon icon-close" @click.stop.prevent="handleRemoveFile(resource, file, index)"></i>
-                                        </li>
-                                        <li :key="file.id" v-else>
-                                            <input
-                                                type="text"
-                                                v-model="addFileNameTmp"
-                                                ref="fileNameInput"
-                                                class="bk-form-input"
-                                                maxlength="64"
-                                                :placeholder="$t('请输入')"
-                                                @blur="handleFileBlur(resource, file)"
-                                                @keyup.enter="handleFileEnter(resource, file)">
-                                        </li>
-                                    </template>
-                                </template>
-                            </ul>
-                        </collapse-transition>
-                    </li>
-                </ul>
-            </div>
+                                <bk-tree
+                                    class="custom-tree mt20"
+                                    ref="customTree"
+                                    v-show="tabName === 'custom'"
+                                    :data="customTreeData"
+                                    :node-key="'id'"
+                                    :tpl="renderCustomTree"
+                                    :has-border="true">
+                                </bk-tree>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </resizer>
+            
             <div class="biz-yaml-editor">
                 <div class="yaml-header">
-                    <template v-if="isEditFileName">
-                        <input
-                            type="text"
-                            v-model="editFileNameTmp"
-                            style="width: 300px;"
-                            ref="resourceFileNameInput"
-                            maxlength="64"
-                            class="bk-form-input resource-file-input"
-                            :placeholder="$t('请输入')"
-                            @blur="handleEditNameBlur"
-                            @keyup.enter="handleEditNameEnter">
-                        <a href="javascript: void(0);" class="bk-text-button f12 ml10">确定</a>
-                        <a href="javascript: void(0);" class="bk-text-button f12 ml5" @click="isEditFileName = false">取消</a>
-                    </template>
-                    <template v-else>
-                        <strong class="title" v-show="curResourceFile.name">
-                            {{curResourceFile.name}}
-                            <a href="javascript:void(0)" class="bk-text-button bk-default ml5" @click="handleEditFileName">
-                                <i class="bk-icon icon-edit"></i>
-                            </a>
-                        </strong>
-                    </template>
-                    
+                    <strong class="title" v-bktooltips="curTreeNode.value.fullName">
+                        {{curTreeNode.value.fullName}}
+                    </strong>
                     <div class="yaml-header-action">
                         <button
-                            v-if="curResourceFile.content !== curResourceFile.originContent || useEditorDiff"
+                            v-if="curTreeNode.value.content !== curTreeNode.value.originContent || useEditorDiff"
                             class="biz-template-btn"
                             @click="toggleCompare">
                             {{ useEditorDiff ? $t('返回编辑') : $t('修改对比') }}
                         </button>
+                        <button class="biz-template-btn primary" :key="fileImportIndex" v-bktooltips="zipTooltipText">
+                            <i class="bk-icon icon-upload"></i>
+                            {{$t('导入')}}
+                            <input ref="fileInput" type="file" name="upload" class="file-input" accept="application/zip,application/x-zip,application/x-zip-compressed" @change="handleFileInput(false)">
+                        </button>
+                        <template v-if="canTemplateExport">
+                            <button class="biz-template-btn" v-bktooltips="$t('请先保存模板集版本再导出')" @click.stop.prevent="handleExport(curTemplate)"><i class="bk-icon icon-download"></i>{{$t('导出')}}</button>
+                        </template>
+                        <template v-else>
+                            <button class="biz-template-btn disabled" v-bktooltips="$t('请先保存模板集版本再导出')"><i class="bk-icon icon-download"></i>{{$t('导出')}}</button>
+                        </template>
                         <button class="biz-template-btn" @click.stop.prevent="handleToggleVarPanel">{{$t('变量列表')}}</button>
                         <button class="biz-template-btn" @click.stop.prevent="handleToggleImagePanel">{{$t('镜像查询')}}</button>
                     </div>
                 </div>
                 <div class="yaml-content">
-                    <template v-if="curResourceFile.id">
+                    <template v-if="curTreeNode.value.id">
                         <monaco-editor
                             ref="yamlEditor"
                             class="editor"
                             theme="monokai"
                             language="yaml"
                             :style="{ height: `${editorHeight}px`, width: '100%' }"
-                            v-model="curResourceFile.content"
+                            v-model="curTreeNode.value.content"
                             :diff-editor="useEditorDiff"
                             :options="yamlEditorOptions"
                             :key="reRenderEditor"
-                            :original="curResourceFile.originContent"
+                            :original="curTreeNode.value.originContent"
                             @mounted="handleEditorMount">
                         </monaco-editor>
                     </template>
                     <template v-else>
                         <div class="biz-editor-tip" v-if="!isYamlTemplateLoading">
                             <i class="bk-icon icon-edit2"></i>
-                            <p>{{$t('请选择需要编辑的资源文件')}}</p>
+                            <p>
+                                {{$t('你可以通过+号新建K8S资源yaml文件，也可以通过上方的')}}
+                                <a :key="fileImportIndex" href="javascript: void(0);" style="color: #aaa; text-decoration: underline;">
+                                    {{$t('导入按钮')}}
+                                    <input ref="fileInputClone" type="file" name="upload" class="file-input" accept="application/zip,application/x-zip,application/x-zip-compressed" @change="handleFileInput(true)">
+                                </a>
+                                {{$t('导入zip包')}}
+                            </p>
                         </div>
                     </template>
 
@@ -440,20 +436,7 @@
                                 <td>{{versionData.updator}}</td>
                                 <td>
                                     <a href="javascript:void(0);" class="bk-text-button" @click.stop.prevent="getTemplateByVersion(versionData.show_version_id)">{{$t('加载')}}</a>
-                                    <!-- 只有一个版本时不能删除 -->
-                                    <!-- <template v-if="allVersionList.length <= 1">
-                                        <bk-tooltip :delay="300" placement="right">
-                                            <a href="javascript:void(0);" class="bk-text-button is-disabled ml5" disabled>删除</a>
-                                            <template slot="content">
-                                                <p class="biz-permission-tip">
-                                                    必须保留至少一个版本
-                                                </p>
-                                            </template>
-                                        </bk-tooltip>
-                                    </template>
-                                    <template v-else>
-                                        <a href="javascript:void(0);" class="bk-text-button" @click.stop.prevent="removeVersion(versionData)">删除</a>
-                                    </template> -->
+                                    <a href="javascript:void(0);" class="bk-text-button" @click.stop.prevent="exportTemplateByVersion(versionData.show_version_id)">{{$t('导出')}}</a>
                                 </td>
                             </tr>
                         </template>
@@ -472,23 +455,73 @@
                 </table>
             </div>
         </bk-sideslider>
+
+        <bk-dialog
+            width="400"
+            :title="nodeDialogConf.title"
+            :quick-close="false"
+            :has-header="false"
+            :is-show.sync="nodeDialogConf.isShow"
+            @confirm="addNode"
+            @cancel="hideNodeDialog">
+            <template slot="content">
+                <div class="bk-form bk-form-vertical">
+                    <div class="bk-form-item">
+                        <label class="bk-label">
+                            <span>{{nodeDialogConf.action === 'addCatalog' ? $t('目录') : $t('文件')}}{{$t('名称')}}：</span>
+                        </label>
+                        <div class="bk-form-content mb10">
+                            <bk-input v-model="nodeDialogConf.name" :placeholder="$t('请输入名称')" ref="newFileInputer" @enter="addNode"></bk-input>
+                        </div>
+                    </div>
+                </div>
+            </template>
+        </bk-dialog>
+
+        <bk-dialog
+            width="400"
+            :title="fileDialogConf.title"
+            :quick-close="false"
+            :has-header="false"
+            :is-show.sync="fileDialogConf.isShow"
+            @confirm="updateNode"
+            @cancel="hideFileDialog">
+            <template slot="content">
+                <div class="bk-form bk-form-vertical">
+                    <div class="bk-form-item">
+                        <label class="bk-label">
+                            <span>{{$t('文件名称')}}：</span>
+                        </label>
+                        <div class="bk-form-content mb10">
+                            <bk-input v-model="fileDialogConf.fileName" ref="renameInputer" @enter="updateNode"></bk-input>
+                        </div>
+                    </div>
+                </div>
+            </template>
+        </bk-dialog>
     </div>
 </template>
 
 <script>
     import yamljs from 'js-yaml'
     import MonacoEditor from './editor.js'
-    import CollapseTransition from '@open/components/menu/collapse-transition'
-    import { catchErrorHandler } from '@open/common/util'
+    // import CollapseTransition from '@open/components/menu/collapse-transition'
+    import { catchErrorHandler, uuid } from '@open/common/util'
     import Clipboard from 'clipboard'
     import clickoutside from '@open/directives/clickoutside'
-    // import FileInputer from './inputer.vue'
+    import JSZip from 'jszip'
+    import { saveAs } from 'file-saver'
+    import { Archive } from 'libarchive.js/main.js'
+    import path2tree from '@open/common/path2tree'
+    import resizer from '@open/components/resize'
 
+    Archive.init({
+        workerUrl: `${window.STATIC_URL}${window.VERSION_STATIC_URL}/archive-worker/worker-bundle.js`
+    })
     export default {
         components: {
             MonacoEditor,
-            CollapseTransition
-            // FileInputer
+            resizer
         },
         directives: {
             clickoutside
@@ -504,11 +537,13 @@
                 isVarPanelShow: false,
                 isImagePanelShow: false,
                 isEditFileName: false,
-                // canTemplateSave: false,
+                pathList: [],
+                fileImportIndex: 0,
                 useEditorDiff: false,
                 winHeight: 500,
                 isYamlTemplateLoading: true,
                 reRenderEditor: 0,
+                updatedTimestamp: 0,
                 curTemplate: {
                     name: '',
                     desc: '',
@@ -523,6 +558,8 @@
                     isShow: false,
                     title: this.$t('版本列表')
                 },
+                fileNameReg: /^([A-Za-z0-9][-A-Za-z0-9_.]*)?[A-Za-z0-9]$/,
+                renderTimer: 0,
                 imageList: [],
                 imageVersionList: [],
                 curImageData: {},
@@ -550,6 +587,16 @@
                     content: '',
                     originContent: ''
                 },
+                curTreeNode: {
+                    id: 0,
+                    name: '',
+                    value: {
+                        id: 0,
+                        fullName: '',
+                        content: '',
+                        originContent: ''
+                    }
+                },
                 editTemplate: {
                     name: '',
                     desc: ''
@@ -560,12 +607,29 @@
                 },
                 versionKeyword: '',
                 yamlEditorOptions: {
-                    readOnly: true,
+                    readOnly: false,
                     fontSize: 14
                 },
-                yamlResourceConf: null,
+                yamlResourceConf: {
+                    initial_templates: {},
+                    resource_names: []
+                },
                 yamlTemplateJson: null,
-                tabName: 'default'
+                tabName: 'default',
+                defaultTreeData: [],
+                customTreeData: [],
+                yamlFileList: [],
+                nodeDialogConf: {
+                    title: '',
+                    isShow: false,
+                    name: ''
+                },
+                fileDialogConf: {
+                    title: '',
+                    isShow: false,
+                    fileName: ''
+                },
+                zipTooltipText: this.$t('请选择zip压缩包导入，包中的文件名以.yaml结尾。其中的yaml文件(非"_常用Manifest"目录下的文件)将会统一导入到自定义Manifest分类下。注意：同名文件会被覆盖')
             }
         },
         computed: {
@@ -673,6 +737,9 @@
                 }
                 return true
             },
+            canTemplateExport () {
+                return !!this.templateId
+            },
             curTemplateFiles () {
                 if (this.tabName === 'default') {
                     return this.defaultTemplateFiles
@@ -718,6 +785,19 @@
                     })
                     this.isImagePanelShow = false
                 })
+            },
+            'curTemplate.template_files': {
+                deep: true,
+                handler (val) {
+                    clearTimeout(this.renderTimer)
+                    // 防止频繁刷新
+                    this.renderTimer = setTimeout(() => {
+                        const defaultTree = this.getTreeNodes('default')
+                        const customTree = this.getTreeNodes('CustomManifest', { hideRoot: true })
+                        this.defaultTreeData = [defaultTree]
+                        this.customTreeData = [customTree]
+                    }, 500)
+                }
             }
         },
 
@@ -750,16 +830,13 @@
             window.addEventListener('resize', () => {
                 debounce()
             })
-            // window.addEventListener('change::$currentProjectId', async e => {
-            //     this.isProjectChange = true
-            //     this.goTemplateIndex()
-            // })
         },
 
         beforeRouteLeave (to, from, next) {
             let isEdited = false
             const changeActions = ['create', 'delete', 'update']
-            this.curTemplate.template_files.forEach(resource => {
+            const curTemplate = this.getYamlParams()
+            curTemplate.template_files.forEach(resource => {
                 resource.files.forEach(file => {
                     if (changeActions.includes(file.action)) {
                         isEdited = true
@@ -826,7 +903,6 @@
                 try {
                     const res = await this.$store.dispatch('k8sTemplate/getYamlResources', { projectId })
                     this.yamlResourceConf = res.data
-
                     this.yamlResourceConf.resource_names.forEach(resource => {
                         this.yamlTemplateJson.template_files.push({
                             resource_name: resource,
@@ -865,6 +941,51 @@
                     this.isLoadingImageList = false
                     catchErrorHandler(e, this)
                 }
+            },
+
+            getTreeNodes (type, conf) {
+                let templateFiles = []
+                const filterType = type || this.tabName
+                if (filterType === 'default') {
+                    templateFiles = this.curTemplate.template_files.filter(item => {
+                        return item.resource_name !== 'CustomManifest'
+                    })
+                } else {
+                    templateFiles = this.curTemplate.template_files.filter(item => {
+                        return item.resource_name === 'CustomManifest'
+                    })
+                }
+                const yamlFileList = []
+                templateFiles.forEach(resource => {
+                    if (resource.files.length) {
+                        resource.files.forEach(file => {
+                            file.originContent = file.content
+                            const fullName = `${resource.resource_name}/${file.name}`
+                            const item = {
+                                id: uuid(),
+                                type: 'file',
+                                status: 'normal',
+                                name: fullName,
+                                value: {
+                                    ...file,
+                                    fullName: fullName,
+                                    resourceName: resource.resource_name
+                                }
+                            }
+                            yamlFileList.push(item)
+                        })
+                    } else {
+                        const parent = {
+                            id: uuid(),
+                            type: 'catalog',
+                            status: 'normal',
+                            name: `${resource.resource_name}`
+                        }
+                        yamlFileList.push(parent)
+                    }
+                })
+                const tree = path2tree(yamlFileList, conf)
+                return tree
             },
 
             changeImage (value, data) {
@@ -941,10 +1062,31 @@
                 const params = JSON.parse(JSON.stringify(this.yamlTemplateJson))
                 params.name = this.$t('模板集_') + (+new Date())
                 params.desc = this.$t('模板集描述')
-                this.curTemplate = params
 
-                // 默认第一个资源添加文件
-                this.handleAddFile(this.curTemplate.template_files[0], true)
+                // 如果是从表单模板集导出过来
+                if (this.$route.query.action === 'export' && localStorage['cloneTemplateSet']) {
+                    const templateset = JSON.parse(localStorage['cloneTemplateSet'])
+                    for (const key in templateset) {
+                        const resource = params.template_files.find(item => item.resource_name === key)
+                        if (resource) {
+                            resource.files = templateset[key].map((content, index) => {
+                                const application = yamljs.load(content)
+                                const defaultName = `${key.toLowerCase()}-${index} + 1`
+                                const name = `${application.metadata.name || defaultName}.yaml`
+                                const id = `local_${+new Date()}`
+                                return {
+                                    id: id,
+                                    name: name,
+                                    content: content,
+                                    originContent: content,
+                                    isEdited: false,
+                                    action: 'create'
+                                }
+                            })
+                        }
+                    }
+                }
+                this.curTemplate = params
                 this.isYamlTemplateLoading = false
             },
 
@@ -1006,6 +1148,9 @@
                     data.desc = this.curTemplate.desc
                 }
 
+                if (this.updatedTimestamp) {
+                    data.updated_timestamp = this.updatedTimestamp
+                }
                 // 没有修改，不处理
                 if (data.name === this.curTemplate.name && data.desc === this.curTemplate.desc) {
                     this.isEditName = false
@@ -1021,6 +1166,12 @@
                             data
                         })
 
+                        const res = await this.$store.dispatch('k8sTemplate/getYamlTemplateDetail', {
+                            projectId: this.projectId,
+                            templateId: this.templateId
+                        })
+                        this.updatedTimestamp = res.data.updated_timestamp
+                        this.curTemplate.updated_timestamp = res.data.updated_timestamp
                         this.updateTemplateBaseInfo(data)
                         this.$bkMessage({
                             theme: 'success',
@@ -1052,7 +1203,7 @@
 
             focusAddNameInput () {
                 this.$nextTick(() => {
-                    const inputer = this.$refs.fileNameInput[0]
+                    const inputer = this.$refs.fileNameInput && this.$refs.fileNameInput[0]
                     if (inputer) {
                         inputer.focus()
                         inputer.select()
@@ -1069,12 +1220,11 @@
              * action 'delete' 删除
              * action 'unchange' 没改变
              */
-            handleAddFile (resource, isImmediate) {
-                if (this.addFileNameTmp) {
-                    this.focusAddNameInput()
-                    return false
-                }
-
+            handleAddFile (resource, isImmediate, fileNamePrefix) {
+                // if (this.addFileNameTmp) {
+                //     // this.focusAddNameInput()
+                //     return false
+                // }
                 const type = resource.resource_name
                 const index = resource.files.length + 1
                 const content = this.yamlResourceConf.initial_templates[type] || ''
@@ -1083,7 +1233,7 @@
 
                 const file = {
                     id: id,
-                    name: name,
+                    name: fileNamePrefix ? `${fileNamePrefix}/${name}` : name,
                     content: content,
                     originContent: content,
                     isEdited: true,
@@ -1096,11 +1246,11 @@
 
                 if (isImmediate) {
                     file.isEdited = false
-                    this.addFileNameTmp = ''
                     this.setCurResourceFile(resource, file)
                 } else {
-                    this.focusAddNameInput()
+                    // this.focusAddNameInput()
                 }
+                this.getTreeNodes()
             },
 
             checkFileName (resource, file, name, action) {
@@ -1203,6 +1353,9 @@
                 this.curResource = resource
                 this.curResourceFile = file
                 this.yamlEditorOptions.readOnly = false
+                if (resource.resource_name === 'CustomManifest') {
+                    this.tabName = 'custom'
+                }
             },
 
             /**
@@ -1314,8 +1467,9 @@
              * 保存模板集
              */
             handleSaveTemplate () {
+                const template = this.getYamlParams()
                 // 验证模板集信息
-                if (!this.curTemplate.name) {
+                if (!template.name) {
                     this.$bkMessage({
                         theme: 'error',
                         message: this.$t('请输入模板集名称')
@@ -1323,7 +1477,7 @@
                     return false
                 }
 
-                if (!this.curTemplate.desc) {
+                if (!template.desc) {
                     this.$bkMessage({
                         theme: 'error',
                         message: this.$t('请输入模板集描述')
@@ -1331,7 +1485,7 @@
                     return false
                 }
 
-                const resources = this.curTemplate.template_files
+                const resources = template.template_files
                 for (const resource of resources) {
                     const files = resource.files.filter(file => file.action !== 'delete')
                     for (const file of files) {
@@ -1350,16 +1504,28 @@
                             })
                             return false
                         }
-                        if (resource.resource_name !== 'CustomManifest') {
-                            try {
-                                yamljs.load(file.content)
-                            } catch (err) {
-                                this.$bkMessage({
-                                    theme: 'error',
-                                    message: `${file.name}：${this.$t('请输入合法的YAML')}`
-                                })
-                                return false
+                        try {
+                            // 一个yaml文件支持多个，以---分隔
+                            const yamls = file.content.split(/[^-]---[^-]/)
+                            for (let i = 0; i < yamls.length; i++) {
+                                const content = yamls[i]
+                                if (i !== 0 && (!content || /^[\s\t\n\r]+$/.test(content))) {
+                                    this.$bkMessage({
+                                        theme: 'error',
+                                        message: `${file.name}：${this.$t('请输入合法的YAML')}`
+                                    })
+                                    return false
+                                }
+                                yamljs.load(content)
                             }
+                        } catch (err) {
+                            console.error(err)
+                            this.$bkMessage({
+                                theme: 'error',
+                                delay: 10000,
+                                message: `${file.name}：${this.$t('请输入合法的YAML')}：${err.message}`
+                            })
+                            return false
                         }
                     }
                 }
@@ -1385,30 +1551,103 @@
             /**
              * 组装数据
              */
+            getYamlFiles (node) {
+                if (node.value) {
+                    this.pathList = []
+                    this.getAbsolutePath(node)
+                    
+                    const file = JSON.parse(JSON.stringify(node.value))
+                    file.fullName = this.pathList.join('/')
+                    this.yamlListCache.push(file)
+                } else {
+                    if (node.children) {
+                        node.children.forEach(child => {
+                            this.getYamlFiles(child)
+                        })
+                    }
+                }
+            },
+            mergeParams (file, params) {
+                const paths = file.fullName.split('/')
+                const resourceName = paths.shift()
+                const fileName = paths.join('/')
+                const matchResource = params.template_files.find(resource => resource.resource_name === resourceName)
+                if (matchResource) {
+                    // 增加或删除再增加重名
+                    if (String(file.id).startsWith('local_')) {
+                        // 防止通过导入而重名
+                        const matchFile = matchResource.files.find(originFile => originFile.name === file.name)
+                        if (!matchFile) {
+                            file.action = 'create'
+                            file.isMatch = true
+                            delete file.id
+                            matchResource.files.push(file)
+                        } else {
+                            if (String(matchFile.id).startsWith('local_')) {
+                                delete matchFile.id
+                                matchFile.action = 'create'
+                            } else if (file.content !== matchFile.content || file.name !== fileName) {
+                                matchFile.action = 'update'
+                            }
+                            matchFile.isMatch = true
+                            matchFile.name = fileName
+                            matchFile.content = file.content
+                        }
+                    } else if (matchResource.files.length) {
+                        const matchFile = matchResource.files.find(originFile => String(originFile.id) === String(file.id))
+                        // 更新
+                        if (matchFile) {
+                            matchFile.isMatch = true
+                            if (file.content !== file.originContent) {
+                                matchFile.action = 'update'
+                                matchFile.content = file.content
+                            }
+                            if (matchFile.name !== fileName) {
+                                matchFile.action = 'update'
+                                matchFile.name = fileName
+                            }
+                        }
+                    }
+                } else {
+                    params.template_files.push({
+                        resource_name: resourceName,
+                        files: [
+                            {
+                                action: 'create',
+                                isMatch: true,
+                                name: file.name,
+                                content: file.content
+                            }
+                        ]
+                    })
+                }
+            },
             getYamlParams () {
                 const params = JSON.parse(JSON.stringify(this.curTemplate))
+                
                 params.template_files = params.template_files.filter(resource => {
                     return resource.files.length
                 })
-
+                this.yamlListCache = []
+                this.getYamlFiles(this.defaultTreeData[0])
+                this.getYamlFiles(this.customTreeData[0])
+                this.yamlListCache.forEach(file => {
+                    this.mergeParams(file, params)
+                })
                 params.template_files.forEach(resource => {
                     delete resource.actived
 
                     if (resource.files.length) {
-                        resource.files.forEach(file => {
-                            // action 'create' 创建
-                            // action 'update' 更新
-                            // action 'delete' 删除
-                            // action 'unchange' 没改变
-                            
-                            if (String(file.id).startsWith('local_')) {
-                                delete file.id
-                                file.action = 'create'
-                            } else if (file.action === 'unchange') {
-                                file.action = (file.content !== file.originContent) ? 'update' : 'unchange'
-                            }
+                        resource.files.forEach((file, index) => {
+                            if (!file.hasOwnProperty('isMatch')) {
+                                // 经过前面合并对比，如果没匹配则表示删除
+                                file.action = 'delete'
 
-                            delete file.originContent
+                                // 导入的时候会新建然后再删除，处理这种情况
+                                if (String(file.id).startsWith('local_')) {
+                                    resource.files.splice(index, 1)
+                                }
+                            }
                             delete file.isEdited
                         })
                     } else {
@@ -1457,7 +1696,15 @@
                     })
                     this.hideVersionBox()
                 } catch (e) {
-                    catchErrorHandler(e, this)
+                    this.isTemplateSaving = false
+                    if (e.message && e.message.indexOf('file name is duplicated') > -1) {
+                        this.$bkMessage({
+                            theme: 'error',
+                            message: this.$t('文件名称不能重复')
+                        })
+                    } else {
+                        catchErrorHandler(e, this)
+                    }
                 }
             },
 
@@ -1484,21 +1731,17 @@
                         message: this.$t('保存成功')
                     })
                 } catch (e) {
-                    catchErrorHandler(e, this)
+                    this.isTemplateSaving = false
+                    if (e.message && e.message.indexOf('file name is duplicated') > -1) {
+                        this.$bkMessage({
+                            theme: 'error',
+                            message: this.$t('文件名称不能重复')
+                        })
+                    } else {
+                        catchErrorHandler(e, this)
+                    }
                 }
             },
-
-            /**
-             * 更新当前模板数据
-             */
-            // updateLocalYamlTemplate (data) {
-            //     this.curTemplate.template_files.forEach(resource => {
-            //         // 重置
-            //         resource.files.forEach(file => {
-
-            //         })
-            //     })
-            // },
 
             /**
              * 获取模板集详情
@@ -1526,6 +1769,7 @@
                 const resourceList = originYamlParams.template_files
                 let hasDefaultList = false
                 let hasCustomList = false
+                this.updatedTimestamp = template.updated_timestamp || 0
                 template.template_files.forEach(resource => {
                     resource.files.forEach(file => {
                         file.action = 'unchange'
@@ -1540,12 +1784,16 @@
                         }
                     }
                 })
-                if (hasCustomList && !hasDefaultList) {
-                    this.tabName = 'custom'
-                } else {
-                    this.tabName = 'default'
-                }
 
+                // 如果从没选过，设置默认tab
+                if (!this.curTreeNode.value.id) {
+                    if (hasCustomList && !hasDefaultList) {
+                        this.tabName = 'custom'
+                    } else {
+                        this.tabName = 'default'
+                    }
+                }
+                
                 resourceList.forEach(resource => {
                     const targetResource = template.template_files.find(serverResource => serverResource.resource_name === resource.resource_name)
                     if (targetResource) {
@@ -1555,24 +1803,69 @@
 
                 template.template_files = resourceList
                 this.curTemplate = template
-                this.setDefaultEditFile()
+                setTimeout(() => {
+                    this.setDefaultEditFile()
+                }, 1000)
+            },
+
+            selectNode (children) {
+                const path = this.pathList.shift()
+                children.forEach(node => {
+                    if (node.name === path) {
+                        if (this.pathList.length) {
+                            this.selectNode(node.children || [])
+                        } else {
+                            node.parent.expanded = true
+                            this.$set(node, 'selected', true)
+                            this.curTreeNode = node
+                        }
+                    } else {
+                        this.$set(node, 'selected', false)
+                    }
+                })
             },
 
             /**
              * 设置默认要编辑的资源文件
              */
             setDefaultEditFile () {
-                // 如果已经存在当前编辑中的文件
-                // if (this.curResourceFile.id) {
-                //     this.curTemplate.template_files.find(resource => {
-                //         resource.files.forEach()
+                if (this.curTreeNode.value.id && this.curTreeNode.value.fullName) {
+                    this.pathList = this.curTreeNode.value.fullName.split('/')
+                    let tree = this.defaultTreeData
+                    if (this.curTreeNode.value.resourceName === 'CustomManifest') {
+                        tree = this.customTreeData
+                    }
+                    this.selectNode(tree[0].children)
+                }
+                // 如果有上次目录记录
+                // if (this.curResource.resource_name) {
+                //     const activeResource = this.curTemplate.template_files.find(resource => {
+                //         return resource.resource_name === this.curResource.resource_name && resource.files.length
                 //     })
-                //     return false
+
+                //     if (activeResource) {
+                //         let defaultFile = null
+                //         // 如果上次文件有记录
+                //         if (this.curResourceFile) {
+                //             defaultFile = activeResource.files.find(file => {
+                //                 return file.name === this.curResourceFile.name
+                //             })
+                //         }
+                //         const curFile = defaultFile || activeResource.files[0]
+                //         this.setCurResourceFile(activeResource, curFile)
+                //     } else {
+                //         this.setFirstActiveResource()
+                //     }
+                // } else {
+                //     this.setFirstActiveResource()
                 // }
+            },
+
+            setFirstActiveResource () {
+                // 从其它目录有文件作为第一个编辑
                 const activeResource = this.curTemplate.template_files.find(resource => {
                     return resource.files.length
                 })
-
                 if (activeResource) {
                     this.setCurResourceFile(activeResource, activeResource.files[0])
                 }
@@ -1671,6 +1964,19 @@
                 this.getVersionList()
             },
 
+            clearPrevContext () {
+                this.curTreeNode = {
+                    id: 0,
+                    name: '',
+                    value: {
+                        id: 0,
+                        content: '',
+                        fullName: '',
+                        originContent: ''
+                    }
+                }
+            },
+
             /**
              * 获取相应版本的资源详情
              *
@@ -1684,6 +1990,7 @@
                 this.isEditFileName = false
                 try {
                     const res = await this.$store.dispatch('k8sTemplate/getYamlTemplateDetailByVersion', { projectId, templateId, versionId })
+                    this.clearPrevContext()
                     this.setCurTemplte(res.data)
                     // 如果不是操作删除版本，则可隐藏
                     if (!isVersionRemove) {
@@ -1693,6 +2000,126 @@
                     this.$store.commit('k8sTemplate/updateVersionList', [])
                     catchErrorHandler(e, this)
                 }
+            },
+
+            /**
+             * 导出相应版本的资源文件
+             *
+             * @param {Number} versionId 版本id
+             */
+            async exportTemplateByVersion (versionId) {
+                const projectId = this.projectId
+                const templateId = this.templateId
+                
+                try {
+                    const res = await this.$store.dispatch('k8sTemplate/getYamlTemplateDetailByVersion', { projectId, templateId, versionId })
+                    this.handleExport(res.data)
+                } catch (e) {
+                    this.$store.commit('k8sTemplate/updateVersionList', [])
+                    catchErrorHandler(e, this)
+                }
+            },
+
+            async handleFileInput (isClone) {
+                const fileInput = isClone ? this.$refs.fileInputClone : this.$refs.fileInput
+                if (fileInput.files && fileInput.files.length) {
+                    try {
+                        const file = fileInput.files[0]
+                        const archive = await Archive.open(file)
+                        const zipFile = await archive.extractFiles()
+                        if (zipFile) {
+                            this.handleToggleTab('default')
+                            this.renderYamls(zipFile)
+                            this.fileImportIndex++
+                        }
+                    } catch (e) {
+                        this.$bkMessage({
+                            theme: 'error',
+                            message: this.$t('请选择合适的压缩包')
+                        })
+                    }
+                }
+            },
+
+            renderYamls (zip, folderName = '') {
+                const self = this
+                for (const key in zip) {
+                    const file = zip[key]
+                    // 如果是文件
+                    if (file.name) {
+                        if (file.name.endsWith('.yaml') && !file.name.startsWith('._') && window.FileReader) {
+                            const reader = new FileReader()
+                            reader.onloadend = function (event) {
+                                if (event.target.readyState === FileReader.DONE) {
+                                    const content = event.target.result
+                                    let fileName = file.name
+                                    // 判断是否匹配到相应目录，否则为自定义
+                                    let resource = self.curTemplate.template_files.find(resource => {
+                                        // 如果是从系统导出的包来导入，目前以_开头，如_Deployment
+                                        return resource.resource_name === folderName.substring(1)
+                                    })
+                                    // 自定义
+                                    if (!resource) {
+                                        resource = self.customTemplateFiles[0]
+                                        fileName = `${folderName ? folderName + '/' : ''}${file.name}`
+                                    }
+
+                                    if (resource.resource_name === 'CustomManifest') {
+                                        self.handleToggleTab('custom')
+                                    }
+
+                                    const matchFile = resource.files.find(item => item.name === file.name)
+                                    // 查看是否有同名
+                                    if (matchFile) {
+                                        matchFile.content = content
+                                        matchFile.action = 'update'
+                                    } else {
+                                        resource.files.push({
+                                            id: `local_${+new Date()}`,
+                                            name: fileName,
+                                            content: content,
+                                            originContent: content,
+                                            action: 'create'
+                                        })
+                                    }
+                                    
+                                    self.$bkMessage({
+                                        theme: 'success',
+                                        message: self.$t('导入成功')
+                                    })
+                                }
+                            }
+                            reader.readAsText(file)
+                        }
+                    } else {
+                        let catalogName = key
+                        if (folderName && !folderName.startsWith('_')) {
+                            catalogName = `${folderName}/${key}`
+                        }
+                        this.renderYamls(file, catalogName)
+                    }
+                }
+            },
+
+            handleExport (templateData) {
+                const zip = new JSZip()
+                const template = templateData || this.curTemplate
+                template.template_files.forEach(resource => {
+                    if (resource.files.length) {
+                        // 用_开头表示是通过内部导出的文件
+                        const folder = zip.folder(`_${resource.resource_name}`)
+
+                        resource.files.forEach(file => {
+                            if (file.action !== 'delete') {
+                                folder.file(file.name, file.content, { binary: false })
+                            }
+                        })
+                    }
+                })
+
+                zip.generateAsync({ type: 'blob' }).then((content) => {
+                    saveAs(content, `${this.curTemplate.name || 'yaml'}_${this.curTemplate.show_version.name}.zip`)
+                })
             },
 
             /**
@@ -1875,12 +2302,366 @@
                 }
             },
 
+            /**
+             * 获取文件详情
+             * @param  {object} file 文件
+             */
+            getFileDetail (file) {
+                if (file.hasOwnProperty('value')) {
+                    this.curReourceFile = file
+                }
+            },
+
             handleToggleTab (name) {
                 this.tabName = name
                 this.isEditFileName = false
                 this.$nextTick(() => {
                     this.clearCurResourfeFile()
                 })
+            },
+
+            renderDefaultTree (node, ctx) {
+                let titleClass = node.selected ? 'node-title node-selected' : 'node-title'
+                
+                // 有value属性表示为叶子节点（文件）
+                if (node.value) {
+                    const nodeId = `file_${node.value.id}`
+                    return <div id={ nodeId }>
+                        <span class={ titleClass } domPropsInnerHTML={ node.name } title={ node.name } onClick={() => this.handleSelectNode(node, 'default') }></span>
+                        <div class="actions">
+                            <span class="bk-icon icon-more" onClick={this.preventEvent}></span>
+                            <div class="menulist">
+                                <div class="menu-item" onClick={() => this.handleRenameNode(node, 'file') }>{ this.$t('重命名') }</div>
+                                <div class="menu-item" onClick={() => this.handleRemoveNode(node, 'default') }>{ this.$t('删除') }</div>
+                            </div>
+                        </div>
+                    </div>
+                } else if (node.parent) {
+                    if (this.yamlResourceConf.resource_names.includes(node.name)) {
+                        titleClass += ' node-catalog'
+                    }
+                    return <div>
+                        <div class={ titleClass } title={ node.name }>
+                            { node.name }
+                            <span class="badge">({ node.children ? node.children.length : 0 })</span>
+                        </div>
+                        <div class="actions" onClick={this.preventEvent}>
+                            <span class="bk-icon icon-plus" onClick={() => this.handleAddNode(node, 'default') }></span>
+                        </div>
+                    </div>
+                } else {
+                    return <span></span>
+                }
+            },
+
+            renderCustomTree (node, ctx) {
+                let titleClass = node.selected ? 'node-title node-selected' : 'node-title'
+                if (node.name === 'CustomManifest') {
+                    titleClass += ' node-catalog'
+                }
+                if (node.value) {
+                    return <div>
+                        <span class={ titleClass } domPropsInnerHTML={ node.name } onClick={() => this.handleSelectNode(node, 'custom') } title={ node.name }></span>
+                        <div class="actions" onClick={this.preventEvent}>
+                            <span class="bk-icon icon-more" onClick={this.preventEvent}></span>
+                            <div class="menulist">
+                                <div class="menu-item" onClick={() => this.handleRenameNode(node, 'file') }>{ this.$t('重命名') }</div>
+                                <div class="menu-item" onClick={() => this.handleRemoveNode(node, 'custom') }>{ this.$t('删除') }</div>
+                            </div>
+                        </div>
+                    </div>
+                } else if (node.parent) {
+                    if (node.name === 'CustomManifest') {
+                        return <div>
+                            <span class={ titleClass } domPropsInnerHTML={ node.name } title={ node.name }></span>
+                            <div class="actions" onClick={this.preventEvent}>
+                                <span class="bk-icon icon-more" onClick={this.preventEvent}></span>
+                                <div class="menulist">
+                                    <div class="menu-item" onClick={() => this.handleAddCatalog(node, 'custom') }>{ this.$t('新增目录') }</div>
+                                    <div class="menu-item" onClick={() => this.handleAddNode(node, 'custom') }>{ this.$t('新增文件') }</div>
+                                </div>
+                            </div>
+                        </div>
+                    } else {
+                        return <div>
+                            <span class={ titleClass } domPropsInnerHTML={ node.name } title={ node.name }></span>
+                            <div class="actions" onClick={this.preventEvent}>
+                                <span class="bk-icon icon-more" onClick={this.preventEvent}></span>
+                                <div class="menulist">
+                                    <div class="menu-item" onClick={() => this.handleAddCatalog(node, 'custom') }>{ this.$t('新增目录') }</div>
+                                    <div class="menu-item" onClick={() => this.handleAddNode(node, 'custom') }>{ this.$t('新增文件') }</div>
+                                    <div class="menu-item" onClick={() => this.handleRenameNode(node, 'catalog') }>{ this.$t('重命名') }</div>
+                                    <div class="menu-item" onClick={() => this.handleRemoveNode(node, 'custom') }>{ this.$t('删除') }</div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                } else {
+                    return <div>
+                        <span class={ titleClass } domPropsInnerHTML={ node.name } title={ node.name }></span>
+                        <div class="actions" onClick={this.preventEvent}>
+                            <span class="bk-icon icon-more" onClick={this.preventEvent}></span>
+                            <div class="menulist">
+                                <div class="menu-item" onClick={() => this.handleAddCatalog(node, 'custom') }>{ this.$t('新增目录') }</div>
+                                <div class="menu-item" onClick={() => this.handleAddNode(node, 'custom') }>{ this.$t('新增文件') }</div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            },
+
+            preventEvent (event) {
+                event.stopPropagation()
+            },
+
+            handleAddNode (node, type) {
+                const index = node.children ? node.children.length + 1 : 1
+                const catalogName = node.name
+                const name = `${catalogName.toLowerCase()}-${index}.yaml`
+
+                this.curNode = node
+                this.nodeDialogConf.action = 'addFile'
+                this.nodeDialogConf.name = name
+                this.nodeDialogConf.type = type
+                this.nodeDialogConf.isShow = true
+                setTimeout(() => {
+                    this.$refs.newFileInputer.focus()
+                }, 500)
+            },
+
+            handleAddCatalog (node, type) {
+                this.curNode = node
+                this.nodeDialogConf.action = 'addCatalog'
+                this.nodeDialogConf.type = type
+                this.nodeDialogConf.isShow = true
+                setTimeout(() => {
+                    this.$refs.newFileInputer.focus()
+                }, 500)
+            },
+
+            addNode () {
+                const { name, type, action } = this.nodeDialogConf
+                const tree = type === 'default' ? this.$refs.defaultTree : this.$refs.customTree
+                if (!name) {
+                    this.$bkMessage({
+                        theme: 'error',
+                        message: this.$t('名称不能为空')
+                    })
+                    return false
+                }
+                const node = (this.curNode.children || []).find(child => child.name === name)
+                if (node) {
+                    this.$bkMessage({
+                        theme: 'error',
+                        message: this.$t('名称不能重复')
+                    })
+                    return false
+                }
+                if (!this.fileNameReg.test(name)) {
+                    this.$bkMessage({
+                        theme: 'error',
+                        message: this.$t('名称只能包含数字、字母、中划线(-)、下划线(_)、点(.)，开头结尾必须是数字或字母')
+                    })
+                    return false
+                }
+                
+                if (action === 'addCatalog') {
+                    this.curNode.openedIcon = 'icon-folder-open'
+                    this.curNode.closedIcon = 'icon-folder'
+                    this.curNode.expanded = true
+
+                    tree.addNode(this.curNode, {
+                        name: name,
+                        title: name,
+                        openedIcon: 'icon-folder-open',
+                        closedIcon: 'icon-folder',
+                        icon: 'icon-folder',
+                        expanded: false,
+                        id: uuid()
+                    })
+                } else {
+                    if (!name.endsWith('.yaml') && !name.endsWith('.yml')) {
+                        this.$bkMessage({
+                            theme: 'error',
+                            message: this.$t('文件名称后缀以yaml、yml结尾')
+                        })
+                        return false
+                    }
+                   
+                    this.pathList = []
+                    this.getAbsolutePath(this.curNode)
+                    const resourceName = this.pathList.shift()
+                    const content = this.yamlResourceConf.initial_templates[resourceName] || ''
+                    const fileNamePrefix = this.pathList.join('/')
+                    this.curNode.openedIcon = 'icon-folder-open'
+                    this.curNode.closedIcon = 'icon-folder'
+                    delete this.curNode.icon
+
+                    const fileName = fileNamePrefix ? `${fileNamePrefix}/${name}` : name
+                    const fileNode = {
+                        id: uuid(),
+                        name: name,
+                        icon: 'icon-file',
+                        selected: true,
+                        value: {
+                            id: `local_${+new Date()}`,
+                            name: fileName,
+                            fullName: `${resourceName}/${fileName}`,
+                            content: content,
+                            resourceName: resourceName,
+                            originContent: content,
+                            action: 'create'
+                        }
+                    }
+                    tree.addNode(this.curNode, fileNode)
+                    this.curTreeNode.selected = false
+                    this.$set(this.curTreeNode, 'selected', false) // 把上次选择取消
+                    this.curTreeNode = fileNode
+                    setTimeout(() => {
+                        this.setDefaultEditFile()
+                    }, 1000)
+                }
+                
+                this.hideNodeDialog()
+            },
+
+            hideNodeDialog () {
+                this.nodeDialogConf.name = ''
+                this.nodeDialogConf.action = ''
+                this.nodeDialogConf.type = ''
+                this.nodeDialogConf.isShow = false
+            },
+
+            handleRenameNode (node, type) {
+                this.curNode = node
+                this.fileDialogConf.action = 'rename'
+                this.fileDialogConf.fileName = node.name
+                this.fileDialogConf.isShow = true
+                this.fileDialogConf.type = type
+                setTimeout(() => {
+                    this.$refs.renameInputer.focus()
+                }, 500)
+            },
+
+            updateNode () {
+                const { fileName } = this.fileDialogConf
+                if (!fileName) {
+                    this.$bkMessage({
+                        theme: 'error',
+                        message: this.$t('请输入文件名称')
+                    })
+                    return false
+                }
+
+                if (!this.fileNameReg.test(fileName)) {
+                    this.$bkMessage({
+                        theme: 'error',
+                        message: this.$t('文件名称只能包含数字、字母、中划线(-)、下划线(_)、点(.)，开头结尾必须是数字或字母')
+                    })
+                    return false
+                }
+
+                if (this.fileDialogConf.type === 'file') {
+                    if (!fileName.endsWith('.yaml') && !fileName.endsWith('.yml')) {
+                        this.$bkMessage({
+                            theme: 'error',
+                            message: this.$t('文件名称后缀以yaml、yml结尾')
+                        })
+                        return false
+                    }
+                }
+
+                const file = this.curNode.parent.children.find(child => child.name === fileName)
+                if (file) {
+                    this.$bkMessage({
+                        theme: 'error',
+                        message: this.$t('名称不能重复')
+                    })
+                    return false
+                }
+
+                this.curNode.name = fileName
+                
+                if (this.curNode.value && this.curNode.value.fullName) {
+                    const paths = this.curNode.value.fullName.split('/')
+                    paths.pop()
+                    paths.push(fileName)
+                    this.curNode.value.fullName = paths.join('/')
+                } else {
+                    this.changeFileNodeName(this.curNode)
+                }
+                this.hideFileDialog()
+            },
+
+            changeFileNodeName (node) {
+                if (node.children) {
+                    node.children.forEach(child => {
+                        if (child.value) {
+                            this.pathList = []
+                            this.getAbsolutePath(child)
+                            child.value.fullName = this.pathList.join('/')
+                        } else {
+                            this.changeFileNodeName(child)
+                        }
+                    })
+                }
+            },
+
+            hideFileDialog () {
+                this.fileDialogConf.fileName = ''
+                this.fileDialogConf.type = ''
+                this.fileDialogConf.action = ''
+                this.fileDialogConf.isShow = false
+            },
+
+            handleSelectNode (node, type) {
+                const tree = type === 'default' ? this.$refs.defaultTree : this.$refs.customTree
+                this.$set(this.curTreeNode, 'selected', false) // 把上次选择取消
+                this.curTreeNode = node
+                tree.nodeSelected(node)
+            },
+
+            handleRemoveNode (node, type) {
+                const self = this
+                const tree = type === 'default' ? this.$refs.defaultTree : this.$refs.customTree
+
+                this.$bkInfo({
+                    title: this.$t('确认'),
+                    content: this.$createElement('p', { style: { 'text-align': 'center' } }, `${this.$t('删除')} ${node.name}`),
+                    confirmFn () {
+                        self.pathList = []
+                        self.getAbsolutePath(node)
+                        const nodePath = self.pathList.join('/')
+                        if (self.curTreeNode.value.fullName.startsWith(nodePath)) {
+                            self.curTreeNode = {
+                                id: 0,
+                                name: '',
+                                value: {
+                                    id: 0,
+                                    fullName: '',
+                                    content: '',
+                                    originContent: ''
+                                }
+                            }
+                        }
+
+                        tree.delNode(node.parent, node)
+                    }
+                })
+            },
+
+            getAbsolutePath (node) {
+                if (node.name && node.name !== '/') {
+                    this.pathList.unshift(node.name)
+                }
+                if (node.parent) {
+                    this.getAbsolutePath(node.parent)
+                }
+            },
+
+            handleRenameBlur (node) {
+                const input = document.getElementById(node.value.id)
+                alert(input.value)
             }
             // removeVersion (data) {
             //     const self = this

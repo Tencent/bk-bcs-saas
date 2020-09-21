@@ -18,7 +18,7 @@
                     <div class="lb-data-box">
                         <div class="biz-metadata-box mb20">
                             <div class="data-item" style="width: 200px;">
-                                <p class="key">所属集群：</p>
+                                <p class="key">{{$t('所属集群')}}：</p>
                                 <p class="value" :title="loadBalanceDetail.cluster_name">
                                     {{loadBalanceDetail.cluster_name}}
                                 </p>
@@ -61,10 +61,10 @@
 
                     <div class="lb-chart-box" style="display: none;">
                         <div class="info">
-                            <div class="left">流量</div>
+                            <div class="left">{{$t('流量')}}</div>
                             <div class="right">
-                                <span class="mr15"><i class="biz-dot bk-primary large"></i>入带宽</span>
-                                <span><i class="biz-dot bk-warning large"></i>出带宽</span>
+                                <span class="mr15"><i class="biz-dot bk-primary large"></i>{{$t('入带宽')}}</span>
+                                <span><i class="biz-dot bk-warning large"></i>{{$t('出带宽')}}</span>
                             </div>
                         </div>
                         <chart :options="chartOptions" ref="instance" auto-resize></chart>
@@ -73,7 +73,7 @@
 
                 <div class="mt20">
                     <bk-tab :type="'fill'" :active-name="tabActiveName">
-                        <bk-tabpanel name="taskgroup" title="映射Taskgroup">
+                        <bk-tabpanel name="taskgroup" :title="$t('映射Taskgroup')">
                             <div class="biz-app-instance-taskgroup-list" v-if="taskGroup && Object.keys(taskGroup).length">
                                 <div class="list-item-tpl" v-for="(key, index) in Object.keys(taskGroup)" :key="index">
                                     <div class="list-item-tpl-inner">
@@ -83,7 +83,7 @@
                                             <span class="ver">{{taskGroup[key].type}}</span>
 
                                             <div class="key-item">
-                                                <div class="key-label">状态：</div>
+                                                <div class="key-label">{{$t('状态')}}：</div>
                                                 <div class="value-label">
                                                     <span class="status-val" v-if="taskGroup[key].status === 'Running' || taskGroup[key].status === 'Finish'" style="color: #34d97b;">
                                                         Normal
@@ -114,9 +114,9 @@
                                                 <thead>
                                                     <tr>
                                                         <th style="text-align: left;padding-left: 23px; width: 150px;">
-                                                            名称
+                                                            {{$t('名称')}}
                                                         </th>
-                                                        <th style="width: 150px;">所属namespace</th>
+                                                        <th style="width: 150px;">{{$t('所属namespace')}}</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody>
@@ -139,7 +139,7 @@
                                                         <tr>
                                                             <td colspan="4">
                                                                 <div class="bk-message-box">
-                                                                    <p class="message empty-message">无数据</p>
+                                                                    <p class="message empty-message">{{$t('无数据')}}</p>
                                                                 </div>
                                                             </td>
                                                         </tr>
@@ -152,11 +152,11 @@
                             </div>
                             <div class="biz-app-instance-taskgroup-list" v-else>
                                 <div class="bk-message-box">
-                                    <p class="message empty-message">无数据</p>
+                                    <p class="message empty-message">{{$t('无数据')}}</p>
                                 </div>
                             </div>
                         </bk-tabpanel>
-                        <bk-tabpanel name="rule" title="调度约束规则">
+                        <bk-tabpanel name="rule" :title="$t('调度约束规则')">
                             <table class="bk-table has-table-hover biz-table biz-rule-table" style="border-bottom: none;">
                                 <thead>
                                     <tr>
@@ -214,6 +214,9 @@
             },
             loadBalanceId () {
                 return this.$route.params.lbId
+            },
+            curProject () {
+                return this.$store.state.curProject
             },
             curLoadBalance () {
                 const loadBalanceId = this.loadBalanceId
@@ -326,9 +329,10 @@
             async initLoadBalanceDetail () {
                 const projectId = this.projectId
                 const loadBalanceId = this.loadBalanceId
+                const projectKind = this.curProject.kind
                 this.isDataLoading = true
                 try {
-                    const res = await this.$store.dispatch('network/getLoadBalanceDetail', { projectId, loadBalanceId })
+                    const res = await this.$store.dispatch('network/getLoadBalanceDetail', { projectId, loadBalanceId, projectKind })
                     this.loadBalanceDetail = res.data
                     this.$nextTick(() => {
                         this.renderChart()

@@ -136,8 +136,7 @@
                         startLeft: handlerRect.right - containerRect.left
                     }
                     $resizeProxy.style.top = 0
-                    $resizeProxy.style.
-                    left = this.state.startLeft + 'px'
+                    // left = this.state.startLeft + 'px'
                     $resizeMask.style.cursor = 'col-resize'
                 } else {
                     this.state = {

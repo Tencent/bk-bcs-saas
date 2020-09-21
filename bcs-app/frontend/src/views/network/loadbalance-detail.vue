@@ -36,7 +36,7 @@
                 // mesos
                 if (this.curProject.kind === PROJECT_MESOS) {
                     this.currentView = 'mesosLoadBalance'
-                } else if (this.curProject.kind === PROJECT_K8S) {
+                } else {
                     this.currentView = 'k8sLoadBalance'
                 }
             }

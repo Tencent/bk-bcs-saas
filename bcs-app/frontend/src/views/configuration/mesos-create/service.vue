@@ -13,29 +13,35 @@
                     :text="exceptionCode.msg">
                 </app-exception>
                 <div class="biz-tab-box" v-else v-show="!isDataLoading">
-                    <biz-tabs @tab-change="tabResource"></biz-tabs>
+                    <biz-tabs @tab-change="tabResource" ref="commonTab"></biz-tabs>
                     <div class="biz-tab-content" v-bkloading="{ isLoading: isTabChanging }">
                         <template v-if="!services.length">
+                            <p class="biz-template-tip f12 mb10">
+                                {{$t('Service主要用于服务发现、DNS基础数据、loadbalance服务导出')}}，<a class="bk-text-button" :href="PROJECT_CONFIG.doc.mesosService" target="_blank">{{$t('详情查看文档')}}</a>
+                            </p>
                             <div class="biz-guide-box mt0" style="padding: 140px 30px;">
                                 <button class="bk-button bk-primary" @click.stop.prevent="addLocalService">
                                     <i class="bk-icon icon-plus"></i>
-                                    <span style="margin-left: 0;">添加Service</span>
+                                    <span style="margin-left: 0;">{{$t('添加')}}Service</span>
                                 </button>
                             </div>
                         </template>
 
                         <template v-else>
                             <div class="biz-configuration-topbar">
+                                <p class="biz-template-tip f12 mb10">
+                                    {{$t('Service主要用于服务发现、DNS基础数据、loadbalance服务导出')}}，<a class="bk-text-button" :href="PROJECT_CONFIG.doc.mesosService" target="_blank">{{$t('详情查看文档')}}</a>
+                                </p>
                                 <div class="biz-list-operation">
                                     <div class="item" v-for="(service, index) in services" :key="service.id">
                                         <button :class="['bk-button', { 'bk-primary': curService.id === service.id }]" @click.stop="setCurService(service, index)">
-                                            {{(service && service.config.metadata.name) || '未命名'}}
+                                            {{(service && service.config.metadata.name) || $t('未命名')}}
                                             <span class="biz-update-dot" v-show="service.isEdited"></span>
                                         </button>
                                         <span class="bk-icon icon-close" @click.stop="removeService(service, index)"></span>
                                     </div>
 
-                                    <bk-tooltip ref="serviceTooltip" :content="'添加Service'" placement="top">
+                                    <bk-tooltip ref="serviceTooltip" :content="$t('添加Service')" placement="top">
                                         <button class="bk-button bk-default is-outline is-icon" @click.stop="addLocalService">
                                             <i class="bk-icon icon-plus"></i>
                                         </button>
@@ -46,28 +52,28 @@
                             <div class="biz-configuration-content">
                                 <div class="bk-form biz-configuration-form">
                                     <div class="bk-form-item is-required">
-                                        <label class="bk-label" style="width: 130px;">名称：</label>
+                                        <label class="bk-label" style="width: 130px;">{{$t('名称')}}：</label>
                                         <div class="bk-form-content" style="margin-left: 130px;">
                                             <bk-input
                                                 type="text"
-                                                placeholder="请输入30个以内的字符"
+                                                :placeholder="$t('请输入64个以内的字符')"
                                                 style="width: 310px;"
-                                                maxlength="30"
+                                                maxlength="64"
                                                 :value.sync="curService.config.metadata.name"
                                                 :list="varList"
                                             >
                                             </bk-input>
                                             <div class="bk-form-tip" v-if="errors.has('serviceName')">
-                                                <p class="bk-tip-text">名称必填，以字母开头，只能含小写字母、数字、连字符(-)</p>
+                                                <p class="bk-tip-text">{{$t('名称必填，以字母开头，只能含小写字母、数字、连字符(-)')}}</p>
                                             </div>
                                         </div>
                                     </div>
                                     <div class="bk-form-item is-required">
-                                        <label class="bk-label" style="width: 130px;">关联应用：</label>
+                                        <label class="bk-label" style="width: 130px;">{{$t('关联应用')}}：</label>
                                         <div class="bk-form-content" style="margin-left: 130px;">
                                             <div class="bk-dropdown-box" style="width: 310px;" @click="reloadApplications">
                                                 <bk-selector
-                                                    placeholder="请选择要关联的Application"
+                                                    :placeholder="$t('请选择要关联的Application')"
                                                     :setting-key="'app_id'"
                                                     :multi-select="true"
                                                     :display-key="'app_name'"
@@ -78,11 +84,11 @@
                                                     @item-selected="selectApps">
                                                 </bk-selector>
                                             </div>
-                                            <span class="biz-guard-tip ml10" v-if="!isDataLoading && !applicationList.length">请先配置Application，再进行关联</span>
+                                            <span class="biz-guard-tip ml10" v-if="!isDataLoading && !applicationList.length">{{$t('请先配置Application，再进行关联')}}</span>
                                         </div>
                                     </div>
                                     <div class="bk-form-item is-required">
-                                        <label class="bk-label" style="width: 130px;">权重设置(%)：</label>
+                                        <label class="bk-label" style="width: 130px;">{{$t('权重设置')}}(%)：</label>
                                         <div class="bk-form-content" style="margin-left: 130px;">
                                             <template v-if="curService.config.webCache.link_app_weight.length">
                                                 <div class="bk-form-input-group is-addon-left mr10" v-for="(app, index) in curService.config.webCache.link_app_weight" :key="index">
@@ -95,23 +101,23 @@
                                                         :max="100"
                                                         :hide-operation="true"
                                                         :ex-style="{ 'width': '25px' }"
-                                                        :placeholder="'输入'"
+                                                        :placeholder="$t('输入')"
                                                         @change="checkTotalPercent">
                                                     </bk-number-input>
                                                 </div>
-                                                <p :class="['biz-tip', { 'bk-danger': isWeightError }]">权重的值为大于等于0的整数，且所有权重相加为100</p>
+                                                <p :class="['biz-tip f12', { 'bk-danger': isWeightError }]">{{$t('权重的值为大于等于0的整数，且所有权重相加为100')}}</p>
                                             </template>
                                             <template v-else>
-                                                <p class="mt5 biz-tip">请关联相应的Application</p>
+                                                <p class="mt5 biz-tip f12">{{$t('请关联相应的Application')}}</p>
                                             </template>
                                         </div>
                                     </div>
                                     <div class="bk-form-item">
-                                        <label class="bk-label" style="width: 130px;">Service类型：</label>
+                                        <label class="bk-label" style="width: 130px;">{{$t('Service类型')}}：</label>
                                         <div class="bk-form-content" style="margin-left: 130px;">
                                             <div class="bk-dropdown-box" style="width: 310px;">
                                                 <bk-selector
-                                                    placeholder="请选择"
+                                                    :placeholder="$t('请选择')"
                                                     :setting-key="'id'"
                                                     :display-key="'name'"
                                                     :selected.sync="curService.config.spec.type"
@@ -123,11 +129,11 @@
                                     <div class="bk-form-item" v-show="curService.config.spec.type !== 'None'">
                                         <label class="bk-label" style="width: 130px;">IP：</label>
                                         <div class="bk-form-content" style="margin-left: 130px;">
-                                            <input type="text" class="bk-form-input" placeholder="多个IP以逗号分隔" style="width: 310px;" v-model="curService.serviceIPs">
+                                            <input type="text" class="bk-form-input" :placeholder="$t('多个IP以逗号分隔')" style="width: 310px;" v-model="curService.serviceIPs">
                                         </div>
                                     </div>
                                     <div class="bk-form-item">
-                                        <label class="bk-label" style="width: 130px;">端口映射：</label>
+                                        <label class="bk-label" style="width: 130px;">{{$t('端口映射')}}：</label>
                                         <div class="bk-form-content" style="margin-left: 130px;">
                                             <div class="biz-keys-list mb10">
                                                 <template v-if="curService.config.webCache.link_app.length">
@@ -135,12 +141,12 @@
                                                         <table class="biz-simple-table">
                                                             <thead>
                                                                 <tr>
-                                                                    <th style="width: 130px;">端口名称</th>
-                                                                    <th style="width: 120px;">协议</th>
-                                                                    <th style="width: 100px;">目标端口</th>
-                                                                    <th style="width: 100px;">服务端口</th>
-                                                                    <th style="width: 125px;">域名</th>
-                                                                    <th style="width: 125px;">路径</th>
+                                                                    <th style="width: 130px;">{{$t('端口名称')}}</th>
+                                                                    <th style="width: 120px;">{{$t('协议')}}</th>
+                                                                    <th style="width: 100px;">{{$t('目标端口')}}</th>
+                                                                    <th style="width: 100px;">{{$t('服务端口')}}</th>
+                                                                    <th style="width: 125px;">{{$t('域名')}}</th>
+                                                                    <th style="width: 125px;">{{$t('路径')}}</th>
                                                                     <th></th>
                                                                 </tr>
                                                             </thead>
@@ -148,7 +154,7 @@
                                                                 <tr v-for="(port, index) in curService.config.spec.ports" :key="index">
                                                                     <td>
                                                                         <bk-selector
-                                                                            placeholder="端口名称"
+                                                                            :placeholder="$t('端口名称')"
                                                                             :setting-key="'id'"
                                                                             :display-key="'name'"
                                                                             :selected.sync="port.id"
@@ -171,7 +177,7 @@
                                                                     <td>
                                                                         <bk-input
                                                                             type="number"
-                                                                            placeholder="服务端口"
+                                                                            :placeholder="$t('服务端口')"
                                                                             :value.sync="port.servicePort"
                                                                             :min="1"
                                                                             :max="65535"
@@ -181,7 +187,7 @@
                                                                     <td>
                                                                         <bk-input
                                                                             type="text"
-                                                                            placeholder="域名"
+                                                                            :placeholder="$t('域名')"
                                                                             style="width: 125px;"
                                                                             :disabled="port.protocol !== 'HTTP'"
                                                                             :value.sync="port.domainName"
@@ -191,7 +197,7 @@
                                                                     <td>
                                                                         <bk-input
                                                                             type="text"
-                                                                            placeholder="路径"
+                                                                            :placeholder="$t('路径')"
                                                                             style="width: 125px;"
                                                                             :disabled="port.protocol !== 'HTTP'"
                                                                             :value.sync="port.path"
@@ -211,17 +217,17 @@
                                                         </table>
                                                     </template>
                                                     <template v-else>
-                                                        <p class="mt5">请先配置关联应用的容器端口映射信息</p>
+                                                        <p class="mt5">{{$t('请先配置关联应用的容器端口映射信息')}}</p>
                                                     </template>
                                                 </template>
                                                 <template v-else>
-                                                    <p class="mt5 biz-tip">请关联相应的Application</p>
+                                                    <p class="mt5 biz-tip f12">{{$t('请关联相应的Application')}}</p>
                                                 </template>
                                             </div>
                                         </div>
                                     </div>
                                     <div class="bk-form-item">
-                                        <label class="bk-label" style="width: 130px;">标签管理：</label>
+                                        <label class="bk-label" style="width: 130px;">{{$t('标签管理')}}：</label>
                                         <div class="bk-form-content" style="margin-left: 130px;">
                                             <bk-keyer :key-list.sync="curLabelList" :var-list="varList" ref="labelKeyer" @change="updateLabelList"></bk-keyer>
                                         </div>
@@ -231,17 +237,17 @@
                                         <div class="bk-form-content" style="margin-left: 130px">
                                             <label class="bk-form-checkbox">
                                                 <input type="checkbox" v-model="curService.config.isLinkLoadBalance">
-                                                <i class="bk-checkbox-text">关联LoadBalance</i>
+                                                <i class="bk-checkbox-text">{{$t('关联LoadBalance')}}</i>
                                             </label>
                                         </div>
                                     </div>
 
                                     <div class="bk-form-item" v-if="curService.config.isLinkLoadBalance">
-                                        <label class="bk-label" style="width: 130px;">负载均衡算法：</label>
+                                        <label class="bk-label" style="width: 130px;">{{$t('负载均衡算法')}}：</label>
                                         <div class="bk-form-content" style="margin-left: 130px;">
                                             <div class="bk-dropdown-box" style="width: 310px;">
                                                 <bk-selector
-                                                    placeholder="请选择"
+                                                    :placeholder="$t('请选择')"
                                                     :setting-key="'id'"
                                                     :display-key="'name'"
                                                     :selected.sync="algorithmIndex"
@@ -452,10 +458,11 @@
                     this.$store.commit('mesosTemplate/updateLinkApps', [])
                 }
             },
-            tabResource (type) {
+            async tabResource (type, target) {
                 this.isTabChanging = true
-                this.$refs.commonHeader.saveTemplate()
-                this.$refs.commonHeader.autoSaveResource(type)
+                await this.$refs.commonHeader.saveTemplate()
+                await this.$refs.commonHeader.autoSaveResource(type)
+                this.$refs.commonTab.goResource(target)
             },
             exceptionHandler (exceptionCode) {
                 this.isDataLoading = false
@@ -709,8 +716,8 @@
                 const serviceId = service.id
 
                 this.$bkInfo({
-                    title: '确认',
-                    content: this.$createElement('p', { style: { 'text-align': 'center' } }, `删除Service：${service.config.metadata.name || '未命名'}`),
+                    title: this.$t('确认'),
+                    content: this.$createElement('p', { style: { 'text-align': 'center' } }, `${this.$t('删除Service')}：${service.config.metadata.name || this.$t('未命名')}`),
                     confirmFn () {
                         if (serviceId.indexOf && serviceId.indexOf('local_') > -1) {
                             self.removeLocalService(service, index)
@@ -752,7 +759,7 @@
                     const data = res.data
                     this.$bkMessage({
                         theme: 'success',
-                        message: '数据保存成功！'
+                        message: this.$t('数据保存成功')
                     })
                     this.updateLocalData(data)
                     this.isDataSaveing = false
@@ -774,7 +781,7 @@
                 this.$store.dispatch('mesosTemplate/addFirstService', { projectId, templateId, data }).then(res => {
                     this.$bkMessage({
                         theme: 'success',
-                        message: '数据保存成功！'
+                        message: this.$t('数据保存成功')
                     })
                     this.updateLocalData(data)
                     this.isDataSaveing = false
@@ -798,7 +805,7 @@
                     const data = res.data
                     this.$bkMessage({
                         theme: 'success',
-                        message: '数据保存成功！'
+                        message: this.$t('数据保存成功')
                     })
                     this.updateLocalData(data)
                     this.isDataSaveing = false

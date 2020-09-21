@@ -2,7 +2,7 @@
     <div class="biz-top-bar">
         <div class="biz-configuration-instantiation-title">
             <i class="bk-icon icon-arrows-left back" @click="goTemplateset(false)"></i>
-            <span style="cursor: default;" v-if="tmplAppName">{{category}}模板：{{tmplAppName}}实例化</span>
+            <span style="cursor: default;" v-if="tmplAppName">{{category}}{{$t('模板：')}}{{tmplAppName}}{{$t('实例化')}}</span>
         </div>
         <bk-guide></bk-guide>
     </div>
@@ -12,7 +12,7 @@
             <div class="biz-configuration-instantiation-header">
                 <div class="left">
                     <svg style="display: none;">
-                        <title>模板集默认图标</title>
+                        <title>{{$t('模板集默认图标')}}</title>
                         <symbol id="biz-set-icon" viewBox="0 0 32 32">
                             <path d="M6 3v3h-3v23h23v-3h3v-23h-23zM24 24v3h-19v-19h19v16zM27 24h-1v-18h-18v-1h19v19z"></path>
                             <path d="M13.688 18.313h-6v6h6v-6z"></path>
@@ -23,51 +23,66 @@
                     <div class="info">
                         <svg class="logo"><use xlink:href="#biz-set-icon"></use></svg>
                         <div class="title" :title="curTemplate.name">{{curTemplate.name || '--'}}</div>
-                        <div class="creater" :title="curTemplate.creator">创建人：{{curTemplate.creator || '--'}}</div>
+                        <div class="creater" :title="curTemplate.creator">{{$t('创建人：')}}{{curTemplate.creator || '--'}}</div>
                     </div>
                     <div class="desc" :title="curTemplate.desc">
-                        <span>简介：</span>
+                        <span>{{$t('简介：')}}</span>
                         {{curTemplate.desc || '--'}}
                     </div>
                 </div>
                 <div class="right">
                     <div class="top">
                         <div class="inner">
-                            <div class="inner-item">
-                                <label class="title">模板集版本</label>
-                                <bk-selector :placeholder="'请选择'"
+                            <div class="inner-item" style="width: 180px;">
+                                <label class="title">{{$t('模板集版本')}}</label>
+                                <bk-selector :placeholder="$t('请选择')"
                                     :selected.sync="tplsetVerIndex"
                                     :list="tplsetVerList"
                                     :setting-key="'show_version_id'"
                                     @item-selected="changeTplset">
                                 </bk-selector>
-                                <label class="tip">创建后启动实例</label>
+                                <label class="tip">{{$t('创建后启动实例')}}</label>
                             </div>
-                            <div class="inner-item">
-                                <label class="title">模板</label>
-                                <bk-selector :placeholder="'请选择要实例化的模板'"
+                            <div class="inner-item" style="width: 280px;">
+                                <label class="title">{{$t('模板')}}</label>
+                                <bk-selector :placeholder="$t('请选择要实例化的模板')"
+                                    :searchable="true"
                                     :selected.sync="tplIndex"
                                     :setting-key="'settingKey'"
                                     :list="tplList"
                                     :multi-select="true"
                                     @item-selected="multiSelect">
                                 </bk-selector>
+                                <a href="javascript:void(0);" class="bk-text-button select-all-tpl is-disabled" v-if="tplList.length === 0">
+                                    {{$t('全选模板')}}
+                                </a>
+                                <a href="javascript:void(0);" class="bk-text-button select-all-tpl" v-else @click="selectAllTpl">
+                                    {{isSelectAllTpl ? $t('清空全选') : $t('全选模板')}}
+                                </a>
                             </div>
                         </div>
                     </div>
                     <div class="bottom">
                         <div class="inner">
                             <bk-button type="default" @click="showChooseDialog">
-                                选择运行的集群及命名空间
+                                {{$t('选择运行的集群及命名空间')}}
                             </bk-button>
                             <div class="selected-namespace-wrapper biz-configuration-instantiation-dialog">
                                 <div class="content-inner m0 pl0 pb0">
                                     <div :key="index" class="content-trigger-wrapper open" v-for="(cluster, index) in selectedNamespaceCluster">
                                         <div class="content-trigger">
-                                            <div class="left-area" style="border-right: none;">
+                                            <div class="left-area" style="border-right: none; width: auto;">
                                                 <div class="label">
+                                                    <template v-if="REGION === 'ieod'">
+                                                        <template v-if="cluster.environment !== 'prod'">
+                                                            <span class="biz-env-label mr5 stag">{{$t('测试')}}</span>
+                                                        </template>
+                                                        <template v-else>
+                                                            <span class="biz-env-label mr5 prod">{{$t('正式')}}</span>
+                                                        </template>
+                                                    </template>
                                                     <span class="biz-text-wrapper">{{cluster.cluster_name}}</span>
-                                                    <span class="choose-num">{{cluster.namespaceList.length}} 个</span>
+                                                    <span class="choose-num">{{cluster.namespaceList.length}} {{$t('个')}}</span>
                                                 </div>
                                             </div>
                                         </div>
@@ -87,17 +102,6 @@
                                     </div>
                                 </div>
                             </div>
-                            <!-- <div class="selected-namespace-wrapper">
-                                <template v-for="(item, index) in selectedNamespaceList">
-                                    <div :key="index" class="selected-namespace-item"
-                                        :class="item.isSelected ? 'active' : ''"
-                                        @click="previewNamespace(item, index)">
-                                        <div class="selected-namespace-item-name" :class="item.isSelected ? 'active' : ''">
-                                            {{item.name}}
-                                        </div>
-                                    </div>
-                                </template>
-                            </div> -->
                         </div>
                     </div>
                 </div>
@@ -112,7 +116,12 @@
                         <div class="form-wrapper">
                             <template v-if="invalidNsList.length && invalidNsList.indexOf(previewNs.name) > -1">
                                 <div style="text-align: center; margin: 0 auto; margin-bottom: 20px; margin-top: -20px;">
-                                    命令空间[{{previewNs.name}}]没有相关联的 LoadBalance，请先到 网络 -> LoadBalance 页面关联
+                                    <template v-if="isEn">
+                                        Namespace [{{previewNs.name}}] has no associated LoadBalance, please go to Network -> LoadBalance page association first.
+                                    </template>
+                                    <template v-else>
+                                        命令空间[{{previewNs.name}}]没有相关联的 LoadBalance，请先到 网络 -> LoadBalance 页面关联
+                                    </template>
                                 </div>
                             </template>
                             <template v-else>
@@ -122,7 +131,7 @@
                                             {{lb[0].key}}：
                                         </label>
                                         <div class="form-item-inner">
-                                            <bk-selector :placeholder="'请选择'"
+                                            <bk-selector :placeholder="$t('请选择')"
                                                 :ext-cls="'dropdown'"
                                                 :selected.sync="lbSelectData[previewNs.name][lb[0].key]"
                                                 :list="lb[0].value"
@@ -137,7 +146,7 @@
                                             {{lb[1].key}}：
                                         </label>
                                         <div class="form-item-inner">
-                                            <bk-selector :placeholder="'请选择'"
+                                            <bk-selector :placeholder="$t('请选择')"
                                                 :ext-cls="'dropdown'"
                                                 :selected.sync="lbSelectData[previewNs.name][lb[1].key]"
                                                 :list="lb[1].value"
@@ -151,13 +160,13 @@
                                 <template v-if="previewNs.variableList && previewNs.variableList.length">
                                     <div class="form-item">
                                         <label class="form-label">
-                                            变量：
+                                            {{$t('变量：')}}
                                         </label>
                                         <div class="form-item-inner">
                                             <div class="biz-key-value-item" v-for="variable in previewNs.variableList">
                                                 <input type="text" class="bk-form-input" disabled :value="`${variable.name}(${variable.key})`">
                                                 <span class="equals-sign">=</span>
-                                                <input type="text" class="bk-form-input right" placeholder="值"
+                                                <input type="text" class="bk-form-input right" :placeholder="$t('值')"
                                                     v-model="variable.value" @keyup="variableValChange">
                                             </div>
                                         </div>
@@ -165,13 +174,13 @@
                                 </template>
                                 <div class="form-item" v-if="previewList.length">
                                     <label class="form-label">
-                                        预览：
+                                        {{$t('预览：')}}
                                     </label>
                                     <div class="form-item-inner" style="width: 900px;">
                                         <bk-tab :type="'fill'" :size="'small'" :active-name="previewList[0].name" :key="previewList.length" @tab-changed="tabChange">
                                             <bk-tabpanel :key="index" :name="item.name" :title="item.name" :tag="item.tag" v-for="(item, index) in previewList">
                                                 <div class="biz-code-wrapper">
-                                                    <div class="build-code-fullscreen" title="全屏"
+                                                    <div class="build-code-fullscreen" :title="$t('全屏')"
                                                         @click="setFullScreen(index)">
                                                         <i class="bk-icon icon-full-screen"></i>
                                                     </div>
@@ -196,11 +205,11 @@
                 </div>
             </transition>
             <div class="create-wrapper">
-                <bk-button type="primary" title="创建" @click="createInstance">
-                    创建
+                <bk-button type="primary" :title="$t('创建')" @click="createInstance">
+                    {{$t('创建')}}
                 </bk-button>
-                <bk-button type="default" title="取消" @click="goTemplateset(true)">
-                    取消
+                <bk-button type="default" :title="$t('取消')" @click="goTemplateset(true)">
+                    {{$t('取消')}}
                 </bk-button>
             </div>
         </div>
@@ -217,21 +226,25 @@
         @confirm="confirmSelect"
         @cancel="dialogConf.isShow = false">
         <template slot="content">
-            <div class="content-inner" v-bkloading="{isLoading: dialogConf.loading}">
+            <div class="content-inner" style="max-height: 420px; overflow: auto;" v-bkloading="{isLoading: dialogConf.loading}">
                 <div class="namespace-types">
-                    <span class="bk-outline"><i class="bk-icon icon-circle-shape"></i>未实例化过</span>
-                    <span class="bk-default"><i class="bk-icon icon-circle-shape"></i>已实例化过</span>
+                    <span class="bk-outline"><i class="bk-icon icon-circle-shape"></i>{{$t('未实例化过')}}</span>
+                    <span class="bk-defult"><i class="bk-icon icon-circle-shape"></i>{{$t('已实例化过')}}</span>
                 </div>
                 <div :key="index" class="content-trigger-wrapper" :class="item.isOpen ? 'open' : ''" v-for="(item, index) in candidateNamespaceList" style="cursor: default;">
                     <div class="content-trigger" @click="triggerHandler(item, index)">
-                        <div class="left-area">
+                        <div class="left-area" style="border-right: none;">
                             <div class="label">
+                                <template v-if="REGION === 'ieod'">
+                                    <span :class="['biz-env-label mr5', {'stag': item.environment !== 'prod', 'prod': item.environment === 'prod'}]">{{item.environment_name}}</span>
+                                </template>
                                 <span class="biz-text-wrapper" style="max-width: 300px;">{{item.name}}</span>
-                                <span class="choose-num">已经选择 {{item.results.filter(ns => ns.isChoose).length}} 个</span>
+                                <span class="choose-num" v-if="isEn">Selected: {{item.results.filter(ns => ns.isChoose).length}}</span>
+                                <span class="choose-num" v-else>已经选择 {{item.results.filter(ns => ns.isChoose).length}} 个</span>
                             </div>
                             <div class="checker-inner">
-                                <a href="javascript:;" class="bk-text-button" @click.stop="selectAll(item, index)">全选</a>
-                                <a href="javascript:;" class="bk-text-button" @click.stop="selectInvert(item, index)">反选</a>
+                                <a href="javascript:;" class="bk-text-button" @click.stop="selectAll(item, index)">{{$t('全选')}}</a>
+                                <a href="javascript:;" class="bk-text-button" @click.stop="selectInvert(item, index)">{{$t('反选')}}</a>
                             </div>
                         </div>
                         <i v-if="item.isOpen" class="bk-icon icon-angle-up trigger active"></i>
@@ -260,6 +273,32 @@
                                     </bk-tooltip>
                                 </div>
                             </template>
+                            <div class="candidate-namespace add-namespace" :title="$t('新增命名空间')">
+                                <bk-tooltip ref="addNamespaceNode" :delay="30000" placement="top-end" :controlled="true" @on-show="showAddNamespace(index)">
+                                    <div class="candidate-namespace-name" @click="triggerAddNamespace(index)">
+                                        <img src="@open/images/plus.svg" class="add-btn" />
+                                    </div>
+                                    <template slot="content">
+                                        <div class="title">{{$t('新增命名空间')}}</div>
+                                        <input type="text" ref="addNamespaceInputNode" :placeholder="$t('输入名称')" class="bk-form-input ns-name" v-model="namespaceName" v-if="dialogConf.loading" disabled />
+                                        <input type="text" ref="addNamespaceInputNode" :placeholder="$t('输入名称')" class="bk-form-input ns-name" v-model="namespaceName" v-else />
+                                        <a href="javascript:;" class="bk-text-button link disabled" v-if="dialogConf.loading">
+                                            {{$t('更多设置')}}
+                                            <img src="@open/images/link-disabled.svg" />
+                                        </a>
+                                        <a href="javascript:;" class="bk-text-button link" @click="goNamespace" v-else>
+                                            {{$t('更多设置')}}
+                                            <img src="@open/images/link.svg" />
+                                        </a>
+                                        <div class="operate">
+                                            <a href="javascript:;" class="bk-text-button disabled" v-if="dialogConf.loading">{{$t('保存中...')}}</a>
+                                            <a href="javascript:;" class="bk-text-button" v-else @click="addNamespace(item, index)">{{$t('保存')}}</a>
+                                            <a href="javascript:;" class="bk-text-button disabled" v-if="dialogConf.loading" @click="cancelNamespace">{{$t('取消')}}</a>
+                                            <a href="javascript:;" class="bk-text-button" v-else @click="cancelNamespace">{{$t('取消')}}</a>
+                                        </div>
+                                    </template>
+                                </bk-tooltip>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -277,11 +316,27 @@
         :quick-close="false"
         @cancel="goNamespaceDialogConf.isShow = false">
         <template slot="content">
-            还没有命名空间，请<a href="javascript:void(0);" class="bk-text-button" @click="goNamespace">创建或申请</a>命名空间
+            <template v-if="isEn">
+                There is no namespace yet, please <a href="javascript:void(0);" class="bk-text-button" @click="goNamespace"></a>create or request</a> a namespace
+            </template>
+            <template v-else>
+                还没有命名空间，请<a href="javascript:void(0);" class="bk-text-button" @click="goNamespace">创建或申请</a>命名空间
+            </template>
+        </template>
+        <template slot="footer">
+            <div class="bk-dialog-outer">
+                <button type="button" class="bk-dialog-btn bk-dialog-btn-confirm bk-btn-primary"
+                    @click="goNamespace" style="width: 110px;">
+                    {{$t('创建或申请')}}
+                </button>
+                <button type="button" class="bk-dialog-btn bk-dialog-btn-cancel" @click="hideNamesapceDialog">
+                    {{$t('取消')}}
+                </button>
+            </div>
         </template>
     </bk-dialog>
 
-    <div title="关闭全屏" @click="cancelFullScreen" class="biz-configuration-instantiation-cancel-fullscreen"
+    <div :title="$t('关闭全屏')" @click="cancelFullScreen" class="biz-configuration-instantiation-cancel-fullscreen"
         v-if="editorConfig.fullScreen">
         <i class="bk-icon icon-close"></i>
     </div>
