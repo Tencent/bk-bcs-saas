@@ -117,22 +117,23 @@ class BCSIAM(IAM):
         return {field: value, "op": op}
 
     def _match_resource_id(self, expression, resource_type_id, resource_id):
-        # 忽略content这一级的op, 暂时仅分析第一个
-        content = expression["content"][0]
-        if content["field"] != f"{resource_type_id}.id":
+        if expression["op"] in [OP.AND, OP.OR]:
+            return any([self._match_resource_id(exp, resource_type_id, resource_id) for exp in expression["content"]])
+
+        if expression["field"] != f"{resource_type_id}.id":
             return False
 
-        if content["op"] == OP.IN:
-            if resource_id in content["value"]:
+        if expression["op"] == OP.IN:
+            if resource_id in expression["value"]:
                 return True
             return False
 
-        if content["op"] == OP.EQ:
-            if resource_id == content["value"]:
+        if expression["op"] == OP.EQ:
+            if resource_id == expression["value"]:
                 return True
             return False
 
-        if content["op"] == OP.ANY:
+        if expression["op"] == OP.ANY:
             return True
         return False
 
@@ -142,8 +143,19 @@ class BCSIAM(IAM):
         for p in policies:
             if self._match_resource_id(p["expression"], resource_type_id, resource_id):
                 id_list.append(str(p["id"]))
-        subjects = self._client.list_subjects({"ids": ",".join(id_list)})
-        return [{"id": s["subject"]["id"], "name": s["subject"]["name"]} for s in subjects]
+        subjects = self._client.list_subjects({"ids": ",".join(id_list)}) if id_list else []
+
+        has_admin = False
+        authorized_users = []
+        for s in subjects:
+            if s["subject"]["id"] == "admin":
+                has_admin = True
+            authorized_users.append({"id": s["subject"]["id"], "name": s["subject"]["name"]})
+        # admin用户默认有所有权限，需要主动添加进列表中(list_subjects一般情况下没有admin)
+        if not has_admin:
+            authorized_users.append({"id": "admin", "name": "admin"})
+
+        return authorized_users
 
     def grant_resource_creator_action(self, bk_username, resource_type_id, resource_id, resource_name):
         data = {
