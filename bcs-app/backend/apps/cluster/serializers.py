@@ -249,7 +249,7 @@ class ListNodeSLZ(serializers.Serializer):
     with_containers = serializers.BooleanField(required=False)
     ordering = serializers.ChoiceField(choices=list(get_order_choices()), required=False)
     labels = serializers.ListField(required=False)
-
+    status = serializers.CharField(required=False)
 
 class NodeSLZ(serializers.Serializer):
     res_id = serializers.CharField(required=True)
