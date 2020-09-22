@@ -118,7 +118,7 @@ class BCSIAM(IAM):
 
     def _match_resource_id(self, expression, resource_type_id, resource_id):
         if expression["op"] in [OP.AND, OP.OR]:
-            return self._match_resource_id(expression["content"], resource_type_id, resource_id)
+            return any([self._match_resource_id(exp, resource_type_id, resource_id) for exp in expression["content"]])
 
         if expression["field"] != f"{resource_type_id}.id":
             return False
