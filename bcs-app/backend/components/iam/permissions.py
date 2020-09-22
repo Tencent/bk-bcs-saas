@@ -151,6 +151,7 @@ class BCSIAM(IAM):
             if s["subject"]["id"] == "admin":
                 has_admin = True
             authorized_users.append({"id": s["subject"]["id"], "name": s["subject"]["name"]})
+        # admin用户默认有所有权限，需要主动添加进列表中(list_subjects一般情况下没有admin)
         if not has_admin:
             authorized_users.append({"id": "admin", "name": "admin"})
 
