@@ -361,3 +361,6 @@ try:
     from .base_bk import DATABASE_ROUTERS, TEMPLATES, STATICFILES_DIRS
 except Exception:
     pass
+
+# 平台组件部署到的命名空间
+BCS_SYSTEM_NAMESPACE = "bcs-system"

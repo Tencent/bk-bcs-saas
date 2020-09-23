@@ -20,7 +20,7 @@ from django.utils.translation import ugettext_lazy as _
 from backend.apps.network.models import K8SLoadBlance
 from backend.utils.error_codes import error_codes
 from backend.apps.configuration.serializers import RE_NAME
-from backend.apps.network.constants import MESOS_LB_NAMESPACE_NAME
+from backend.apps.network.constants import MESOS_LB_NAMESPACE, K8S_LB_NAMESPACE
 from django.core.validators import MaxValueValidator, MinValueValidator
 
 
@@ -45,20 +45,12 @@ class NginxIngressSLZ(serializers.ModelSerializer):
     cluster_id = serializers.CharField(max_length=32, required=True)
     namespace_id = serializers.IntegerField(required=True)
     name = serializers.CharField(max_length=32, required=True)
-    protocol_type = serializers.CharField(max_length=32, required=True)
+    protocol_type = serializers.CharField(max_length=32, required=False)
     ip_info = serializers.JSONField(required=True)
     detail = serializers.JSONField(required=False)
     creator = serializers.CharField(max_length=16, required=False)
     updator = serializers.CharField(max_length=16, required=False)
-
-    def validate_protocol_type(self, value):
-        type_list = re.findall(r"[^,; ]+", value)
-        protocol_port_list = []
-        for info in type_list:
-            protocol_port_list.extend(info.split(":"))
-        if "http" not in protocol_port_list and "https" not in protocol_port_list:
-            raise ValidationError(_("参数【protocol_type】至少包含http或https，请确认后重试!"))
-        return value
+    namespace = serializers.CharField()
 
     class Meta:
         model = K8SLoadBlance
@@ -74,14 +66,15 @@ class NginxIngressSLZ(serializers.ModelSerializer):
             "creator",
             "updator",
             "is_deleted",
+            "namespace"
         )
 
 
-class NginxIngressUpdateSLZ(serializers.Serializer):
-    id = serializers.IntegerField(required=True)
-    protocol_type = serializers.CharField(max_length=32, required=True)
-    ip_info = serializers.JSONField(required=True)
-    updator = serializers.CharField(max_length=16, required=True)
+class UpdateK8SLoadBalancerSLZ(serializers.Serializer):
+    protocol_type = serializers.CharField(default="")
+    ip_info = serializers.JSONField(required=False)
+    version = serializers.CharField()
+    values_content = serializers.JSONField()
 
 
 class LoadBalancesSLZ(serializers.Serializer):
@@ -101,7 +94,7 @@ class LoadBalancesSLZ(serializers.Serializer):
     constraints = serializers.JSONField(required=True)
     # type = serializers.ChoiceField(choices=['cover', 'append'], required=True)
     # mesos lb限制使用的lb占用的命名空间只能作为lb使用，并且建议全局使用同一个命名空间
-    namespace = serializers.CharField(required=False, default=MESOS_LB_NAMESPACE_NAME)
+    namespace = serializers.CharField(required=False, default=MESOS_LB_NAMESPACE)
     namespace_id = serializers.IntegerField(required=False, default=-1)
     network_type = serializers.CharField(required=True)
     network_mode = serializers.CharField(required=True)
@@ -155,3 +148,17 @@ class ServiceListSLZ(serializers.Serializer):
     offset = serializers.IntegerField(default=0)
     search_name = serializers.CharField(default='')
     cluster_id = serializers.CharField(default='ALL')
+
+
+class ChartVersionSLZ(serializers.Serializer):
+    version = serializers.CharField()
+    cluster_id = serializers.CharField(required=False)
+    namespace = serializers.CharField(required=False)
+
+
+class CreateK8SLoadBalancerSLZ(serializers.Serializer):
+    version = serializers.CharField()
+    cluster_id = serializers.CharField()
+    namespace = serializers.CharField(default=K8S_LB_NAMESPACE)
+    values_content = serializers.JSONField()
+    ip_info = serializers.JSONField()

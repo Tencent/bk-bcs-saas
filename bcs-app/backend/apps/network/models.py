@@ -20,7 +20,7 @@ from backend.utils.models import BaseModel
 class BaseLoadBalance(BaseModel):
     project_id = models.CharField(_("项目ID"), max_length=32)
     cluster_id = models.CharField(_("集群ID"), max_length=32)
-    namespace_id = models.IntegerField()
+    namespace_id = models.IntegerField(default=0)
     name = models.CharField(_("名称"), max_length=32)
 
     class Meta:
@@ -31,10 +31,11 @@ class K8SLoadBlance(BaseLoadBalance):
     protocol_type = models.CharField(_("协议类型"), max_length=32, default="https;http")
     ip_info = models.TextField()
     detail = models.TextField(help_text=_("可以用来存储整个配置信息"))
+    namespace = models.CharField("命名空间名称", max_length=253, null=True, blank=True)
 
     class Meta:
         db_table = "k8s_load_blance"
-        unique_together = (("cluster_id", "namespace_id", "name"))
+        unique_together = (("cluster_id", "namespace", "name"))
 
 
 class MesosLoadBlance(BaseLoadBalance):
