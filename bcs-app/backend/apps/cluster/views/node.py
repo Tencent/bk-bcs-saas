@@ -274,7 +274,7 @@ class NodeCreateListViewSet(NodeBase, NodeHandler, viewsets.ViewSet):
     def filter_nodes_by_status(self, node_list, status_list):
         if not status_list:
             return node_list
-        return [info for info in node_list if info["status"] in status_list]
+        return [node for node in node_list if node["status"] in status_list]
 
     def data_handler_for_nodes(self, request, project_id, cluster_id, data):
         self.can_view_cluster(request, project_id, cluster_id)
