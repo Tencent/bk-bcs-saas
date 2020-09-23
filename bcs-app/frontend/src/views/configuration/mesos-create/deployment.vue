@@ -13,28 +13,34 @@
                     :text="exceptionCode.msg">
                 </app-exception>
                 <div class="biz-tab-box" v-else v-show="!isDataLoading">
-                    <biz-tabs @tab-change="tabResource"></biz-tabs>
+                    <biz-tabs @tab-change="tabResource" ref="commonTab"></biz-tabs>
                     <div class="biz-tab-content" v-bkloading="{ isLoading: isTabChanging }">
                         <template v-if="!deployments.length">
+                            <p class="biz-template-tip f12 mb10">
+                                {{$t('Deployment是基于bcs-application抽象出的顶层概念，主要满足应用的滚动升级、回滚、暂停、扩缩容等需求')}}，<a class="bk-text-button" :href="PROJECT_CONFIG.doc.mesosDeployment" target="_blank">{{$t('详情查看文档')}}</a>
+                            </p>
                             <div class="biz-guide-box mt0" style="padding: 140px 30px;">
                                 <button class="bk-button bk-primary" @click.stop.prevent="addLocalDeployment">
                                     <i class="bk-icon icon-plus"></i>
-                                    <span style="margin-left: 0;">添加Deployment</span>
+                                    <span style="margin-left: 0;">{{$t('添加')}}Deployment</span>
                                 </button>
                             </div>
                         </template>
                         <template v-else>
                             <div class="biz-configuration-topbar">
+                                <p class="biz-template-tip f12 mb10">
+                                    {{$t('Deployment是基于bcs-application抽象出的顶层概念，主要满足应用的滚动升级、回滚、暂停、扩缩容等需求')}}，<a class="bk-text-button" :href="PROJECT_CONFIG.doc.mesosDeployment" target="_blank">{{$t('详情查看文档')}}</a>
+                                </p>
                                 <div class="biz-list-operation">
                                     <div class="item" v-for="(deployment, index) in deployments" :key="deployment.id">
                                         <button :class="['bk-button', { 'bk-primary': curDeployment.id === deployment.id }]" @click.stop="setCurDeployment(deployment, index)">
-                                            {{(deployment && deployment.name) || '未命名'}}
+                                            {{(deployment && deployment.name) || $t('未命名')}}
                                             <span class="biz-update-dot" v-show="deployment.isEdited"></span>
                                         </button>
                                         <span class="bk-icon icon-close" @click.stop="removeDeployment(deployment, index)"></span>
                                     </div>
 
-                                    <bk-tooltip ref="deployTooltip" :content="'添加Deployment'" placement="top">
+                                    <bk-tooltip ref="deployTooltip" :content="$t('添加Deployment')" placement="top">
                                         <button class="bk-button bk-default is-outline is-icon" @click.stop="addLocalDeployment">
                                             <i class="bk-icon icon-plus"></i>
                                         </button>
@@ -45,22 +51,22 @@
                             <div class="biz-configuration-content">
                                 <div class="bk-form biz-configuration-form">
                                     <div class="bk-form-item is-required">
-                                        <label class="bk-label" style="width: 105px;">名称：</label>
+                                        <label class="bk-label" style="width: 105px;">{{$t('名称')}}：</label>
                                         <div class="bk-form-content" style="margin-left: 105px;">
                                             <div class="bk-dropdown-box" style="width: 310px;">
-                                                <input type="text" placeholder="请输入30个以内的字符" maxlength="30" :class="['bk-form-input', { 'is-danger': errors.has('deploymentName') }]" v-model="curDeployment.name" name="deploymentName" v-validate="{ required: true, regex: /^[a-z]{1}[a-z0-9-]{0,29}$/ }">
+                                                <input type="text" :placeholder="$t('请输入64个以内的字符')" maxlength="64" :class="['bk-form-input', { 'is-danger': errors.has('deploymentName') }]" v-model="curDeployment.name" name="deploymentName" v-validate="{ required: true, regex: /^[a-z]{1}[a-z0-9-]{0,63}$/ }">
                                                 <div class="bk-form-tip" v-if="errors.has('deploymentName')">
-                                                    <p class="bk-tip-text">名称必填，以字母开头，只能含小写字母、数字、连字符(-)</p>
+                                                    <p class="bk-tip-text">{{$t('名称必填，以字母开头，只能含小写字母、数字、连字符(-)')}}</p>
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
                                     <div class="bk-form-item is-required">
-                                        <label class="bk-label" style="width: 105px;">关联：</label>
+                                        <label class="bk-label" style="width: 105px;">{{$t('关联')}}：</label>
                                         <div class="bk-form-content" style="margin-left: 105px;">
                                             <div class="bk-dropdown-box" style="width: 310px;" @click="reloadApplications">
                                                 <bk-selector
-                                                    placeholder="请选择要关联的Application"
+                                                    :placeholder="$t('请选择要关联的Application')"
                                                     :setting-key="'app_id'"
                                                     :display-key="'app_name'"
                                                     :selected.sync="curDeployment.app_id"
@@ -68,48 +74,48 @@
                                                     :is-loading="isLoadingApps">
                                                 </bk-selector>
                                             </div>
-                                            <span class="biz-guard-tip ml10" v-if="!isDataLoading && !applicationList.length">请先配置Application，再进行关联</span>
+                                            <span class="biz-guard-tip ml10" v-if="!isDataLoading && !applicationList.length">{{$t('请先配置Application，再进行关联')}}</span>
                                         </div>
                                     </div>
                                     <div class="bk-form-item">
-                                        <label class="bk-label" style="width: 105px;">描述：</label>
+                                        <label class="bk-label" style="width: 105px;">{{$t('描述')}}：</label>
                                         <div class="bk-form-content" style="margin-left: 105px;">
-                                            <textarea name="" id="" cols="30" rows="10" class="bk-form-textarea" placeholder="请输入50个以内的字符" maxlength="50" v-model="curDeployment.desc"></textarea>
+                                            <textarea name="" id="" cols="30" rows="10" class="bk-form-textarea" :placeholder="$t('请输入50个以内的字符')" maxlength="50" v-model="curDeployment.desc"></textarea>
                                         </div>
                                     </div>
                                 </div>
 
-                                <div class="biz-span" style="margin: 50px auto 30px 105px;">
-                                    <span class="title">升级策略</span>
+                                <div class="biz-span">
+                                    <span class="title">{{$t('升级策略')}}</span>
                                 </div>
 
                                 <div class="bk-form biz-configuration-form">
                                     <div class="bk-form-item">
-                                        <label class="bk-label" style="width: 105px;">类型：</label>
+                                        <label class="bk-label" style="width: 105px;">{{$t('类型')}}：</label>
                                         <div class="bk-form-content" style="margin-left: 105px;">
                                             <label class="bk-form-radio">
                                                 <input type="radio" name="type" value="RollingUpdate" v-model="curDeployment.config.strategy.type">
-                                                <i class="bk-radio-text">滚动升级</i>
+                                                <i class="bk-radio-text">{{$t('滚动升级')}}</i>
                                             </label>
                                             <label class="bk-form-radio">
                                                 <input type="radio" name="type" value="Recreate" disabled="disabled">
-                                                <i class="bk-radio-text">重新创建</i>
+                                                <i class="bk-radio-text">{{$t('重新创建')}}</i>
                                             </label>
                                         </div>
                                     </div>
                                     <div class="bk-form-item">
-                                        <label class="bk-label" style="width: 105px;">周期删除数：</label>
+                                        <label class="bk-label" style="width: 105px;">{{$t('周期删除数')}}：</label>
                                         <div class="bk-form-content" style="margin-left: 105px;">
                                             <bk-input
                                                 type="number"
-                                                placeholder="请输入"
+                                                :placeholder="$t('请输入')"
                                                 style="width: 250px;"
                                                 :min="0"
                                                 :value.sync="curDeployment.config.strategy.rollingupdate.maxUnavilable"
                                                 :list="varList"
                                             >
                                             </bk-input>
-                                            <bk-tooltip content="决定了每个rolling周期内可以删除的taskgroup数量。如果原有的taskgroup已经全部删除，则后续每一次rolling中不会再删除taskgroup" placement="top">
+                                            <bk-tooltip :content="$t('决定了每个rolling周期内可以删除的taskgroup数量。如果原有的taskgroup已经全部删除，则后续每一次rolling中不会再删除taskgroup')" placement="top">
                                                 <span class="bk-badge">
                                                     <i class="bk-icon icon-question"></i>
                                                 </span>
@@ -118,7 +124,7 @@
                                     </div>
 
                                     <div class="bk-form-item">
-                                        <label class="bk-label" style="width: 105px;">周期新增数：</label>
+                                        <label class="bk-label" style="width: 105px;">{{$t('周期新增数')}}：</label>
                                         <div class="bk-form-content" style="margin-left: 105px;">
                                             <bk-input
                                                 type="number"
@@ -132,12 +138,12 @@
                                         </div>
                                     </div>
                                     <div class="bk-form-item">
-                                        <label class="bk-label" style="width: 105px;">更新间隔：</label>
+                                        <label class="bk-label" style="width: 105px;">{{$t('更新间隔')}}：</label>
                                         <div class="bk-form-content" style="margin-left: 105px;">
                                             <div class="bk-form-input-group">
                                                 <bk-input
                                                     type="number"
-                                                    placeholder="请输入"
+                                                    :placeholder="$t('请输入')"
                                                     style="width: 215px;"
                                                     :min="0"
                                                     :value.sync="curDeployment.config.strategy.rollingupdate.upgradeDuration"
@@ -145,41 +151,40 @@
                                                 >
                                                 </bk-input>
                                                 <span class="input-group-addon">
-                                                    秒
+                                                    {{$t('秒')}}
                                                 </span>
                                             </div>
                                         </div>
                                     </div>
                                     <div class="bk-form-item">
-                                        <label class="bk-label" style="width: 105px;">滚动顺序：</label>
+                                        <label class="bk-label" style="width: 105px;">{{$t('滚动顺序')}}：</label>
                                         <div class="bk-form-content" style="margin-left: 105px;">
                                             <label class="bk-form-radio">
                                                 <input type="radio" name="rollingOrder" value="CreateFirst" v-model="curDeployment.config.strategy.rollingupdate.rollingOrder">
-                                                <i class="bk-radio-text">先创建</i>
+                                                <i class="bk-radio-text">{{$t('先创建')}}</i>
                                             </label>
                                             <label class="bk-form-radio">
                                                 <input type="radio" name="rollingOrder" value="DeleteFirst" v-model="curDeployment.config.strategy.rollingupdate.rollingOrder">
-                                                <i class="bk-radio-text">先删除</i>
+                                                <i class="bk-radio-text">{{$t('先删除')}}</i>
                                             </label>
                                         </div>
                                     </div>
                                     <div class="bk-form-item">
-                                        <label class="bk-label" style="width: 105px;">手动更新：</label>
+                                        <label class="bk-label" style="width: 105px;">{{$t('手动更新')}}：</label>
                                         <div class="bk-form-content" style="margin-left: 105px;">
                                             <label class="bk-form-radio">
                                                 <input type="radio" name="rollingManually" :value="true" v-model="curDeployment.config.strategy.rollingupdate.rollingManually">
-                                                <i class="bk-radio-text">是</i>
+                                                <i class="bk-radio-text">{{$t('是')}}</i>
                                             </label>
                                             <label class="bk-form-radio">
                                                 <input type="radio" name="rollingManually" :value="false" v-model="curDeployment.config.strategy.rollingupdate.rollingManually">
-                                                <i class="bk-radio-text">否</i>
+                                                <i class="bk-radio-text">{{$t('否')}}</i>
                                             </label>
                                         </div>
                                     </div>
                                 </div>
                             </div>
                         </template>
-
                     </div>
                 </div>
             </div>
@@ -280,10 +285,11 @@
                     this.setCurDeployment(data.deployment[0], 0)
                 }
             },
-            tabResource (type) {
+            async tabResource (type, target) {
                 this.isTabChanging = true
-                this.$refs.commonHeader.saveTemplate()
-                this.$refs.commonHeader.autoSaveResource(type)
+                await this.$refs.commonHeader.saveTemplate()
+                await this.$refs.commonHeader.autoSaveResource(type)
+                this.$refs.commonTab.goResource(target)
             },
             exceptionHandler (exceptionCode) {
                 this.isDataLoading = false
@@ -366,8 +372,8 @@
                 const version = this.curVersion
                 const deploymentId = deployment.id
                 this.$bkInfo({
-                    title: '确认',
-                    content: this.$createElement('p', { style: { 'text-align': 'center' } }, `删除Deployment：${deployment.name || '未命名'}`),
+                    title: this.$t('确认'),
+                    content: this.$createElement('p', { style: { 'text-align': 'center' } }, `${this.$t('删除Deployment')}：${deployment.name || this.$t('未命名')}`),
                     confirmFn () {
                         if (deploymentId.indexOf && deploymentId.indexOf('local_') > -1) {
                             self.removeLocalDeployment(deployment, index)
@@ -427,7 +433,7 @@
                     const data = res.data
                     this.$bkMessage({
                         theme: 'success',
-                        message: '数据保存成功！'
+                        message: this.$t('数据保存成功')
                     })
                     this.updateLocalData(data)
                     this.isDataSaveing = false
@@ -449,7 +455,7 @@
                 this.$store.dispatch('mesosTemplate/addFirstDeployment', { projectId, templateId, data }).then(res => {
                     this.$bkMessage({
                         theme: 'success',
-                        message: '数据保存成功！'
+                        message: this.$t('数据保存成功')
                     })
                     this.updateLocalData(data)
                     this.isDataSaveing = false
@@ -473,7 +479,7 @@
                     const data = res.data
                     this.$bkMessage({
                         theme: 'success',
-                        message: '数据保存成功！'
+                        message: this.$t('数据保存成功')
                     })
                     this.updateLocalData(data)
                     this.isDataSaveing = false
@@ -491,18 +497,18 @@
             checkData () {
                 const deploymentName = this.curDeployment.name
                 const appId = this.curDeployment.app_id
-                const deploymentNameReg = /^[a-z]{1}[a-z0-9-]{0,29}$/
+                const deploymentNameReg = /^[a-z]{1}[a-z0-9-]{0,63}$/
                 if (deploymentName === '') {
                     this.$bkMessage({
                         theme: 'error',
-                        message: '请输入名称！'
+                        message: this.$t('请输入名称')
                     })
                     return false
                 }
                 if (!deploymentNameReg.test(deploymentName)) {
                     this.$bkMessage({
                         theme: 'error',
-                        message: '名称错误，只能包含：小写字母、数字、连字符(-)，必须是字母开头，长度小于30个字符',
+                        message: this.$t('名称错误，只能包含：小写字母、数字、连字符(-)，必须是字母开头，长度小于64个字符'),
                         delay: 8000
                     })
                     return false
@@ -510,7 +516,7 @@
                 if (!appId) {
                     this.$bkMessage({
                         theme: 'error',
-                        message: '请关联相应的Application！'
+                        message: this.$t('请关联相应的Application')
                     })
                     return false
                 }

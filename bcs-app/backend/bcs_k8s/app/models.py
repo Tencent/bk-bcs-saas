@@ -442,13 +442,14 @@ class App(models.Model):
             if self.enable_helm:
                 # 回滚到先前release对应的revision
                 self.release = release
-                self.save(update_fields=["release"])
+                self.version = release.chartVersionSnapshot.version
+                self.save(update_fields=["release", "version"])
                 app_deployer.rollback_app_by_helm()
             else:
                 # kubectl的逻辑不变动
                 self.release = ChartRelease.objects.make_rollback_release(self, release)
                 self.version = self.release.chartVersionSnapshot.version
-                self.save(update_fields=["release"])
+                self.save(update_fields=["release", "version"])
                 app_deployer.install_app_by_kubectl()
         except Exception as e:
             logger.exception("rollback_app_task unexpected error: %s", e)

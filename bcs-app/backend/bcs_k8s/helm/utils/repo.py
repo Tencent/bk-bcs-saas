@@ -26,18 +26,9 @@ import tarfile
 
 from backend.utils.cache import rd_client
 from backend.components.utils import http_get
+from backend.bcs_k8s.helm.utils.repo_bk import make_requests_auth, get_charts_info
 
 logger = logging.getLogger(__name__)
-
-
-def make_requests_auth(auth):
-    if auth["type"].lower() == "basic":
-        return requests.auth.HTTPBasicAuth(
-            username=auth["credentials"]["username"],
-            password=auth["credentials"]["password"],
-        )
-
-    raise NotImplementedError(auth["type"])
 
 
 def prepareRepoCharts(url, name, auths):
@@ -49,44 +40,12 @@ def prepareRepoCharts(url, name, auths):
 
 
 def _prepareHelmRepoPath(url, name, auths):
-    ok, charts_info, charts_info_hash = _get_charts_info(url, auths)
+    ok, charts_info, charts_info_hash = get_charts_info(url, auths)
     if not ok:
         logger.error("get charts info from url fail! %s", url)
         return None, None
 
     return charts_info, charts_info_hash
-
-
-def _md5(content):
-    h = hashlib.md5()
-    h.update(content.encode("utf-8"))
-    return h.hexdigest()
-
-
-def _get_charts_info(url, auths):
-    url = url.rstrip("/")
-    # 更改为直接获取chart list，不解析index.yaml
-    req_charts_url = "{url}/api/charts".format(url=url)
-    try:
-        if not auths:
-            charts_info = http_get(req_charts_url)
-        else:
-            for auth in auths:
-                charts_info = http_get(req_charts_url, auth=make_requests_auth(auth))
-                if charts_info:
-                    break
-
-        # 兼容处理
-        if "not found" in charts_info.get("error", ""):
-            return (False, None, None)
-
-    except Exception as e:
-        logger.error("get charts info fail: [url=%s], error: %s", req_charts_url, str(e))
-        return (False, None, None)
-
-    # 生成MD5，主要是便于后续校验是否变动
-    charts_info_hash = _md5(str(charts_info))
-    return (True, charts_info, charts_info_hash)
 
 
 def download_icon_data(url, auths):

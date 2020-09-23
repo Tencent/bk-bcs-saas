@@ -2,7 +2,8 @@
     <div class="biz-content">
         <div class="biz-top-bar">
             <div class="biz-app-title">
-                Metric管理
+                <!-- Metric管理{{$t('test', { vari1: 1, vari2: 2 })}} -->
+                {{$t('Metric管理')}}
             </div>
             <bk-guide></bk-guide>
         </div>
@@ -15,34 +16,18 @@
             <template v-if="!exceptionCode && !isInitLoading">
                 <div class="biz-panel-header biz-metric-manage-create" style="padding: 27px 30px 22px 20px;">
                     <div class="left">
-                        <bk-button type="primary" title="新建Metric" @click="showCreateMetric">
+                        <bk-button type="primary" :title="$t('新建Metric')" @click="showCreateMetric">
                             <i class="bk-icon icon-plus"></i>
-                            <span class="text">新建Metric</span>
+                            <span class="text">{{$t('新建Metric')}}</span>
                         </bk-button>
                     </div>
                     <div class="right">
                         <bk-data-searcher
-                            :placeholder="'输入名称，按Enter搜索'"
+                            :placeholder="$t('输入名称，按Enter搜索')"
                             :search-key.sync="searchKeyWord"
                             @search="searchMetric"
                             @refresh="refresh">
                         </bk-data-searcher>
-                        <!-- <div class="biz-search-input">
-                            <input type="text" class="bk-form-input" style="width: 300px;" v-model="searchKeyWord" placeholder="输入名称，按Enter搜索" @keyup.enter="searchMetric(true)">
-                            <a href="javascript:void(0)" class="biz-search-btn" @click="searchMetric(true)" v-if="!searchKeyWord">
-                                <i class="bk-icon icon-search icon-search-li"></i>
-                            </a>
-                            <a href="javascript:void(0)" class="biz-search-btn" v-else @click.stop.prevent="clearSearch">
-                                <i class="bk-icon icon-close-circle-shape"></i>
-                            </a>
-                        </div>
-                        <span class="refresh-wrapper">
-                            <bk-tooltip class="refresh" :content="'刷新'" :delay="500" placement="top">
-                                <button class="bk-button bk-default is-outline is-icon" @click="refresh">
-                                    <i class="bk-icon icon-refresh"></i>
-                                </button>
-                            </bk-tooltip>
-                        </span> -->
                     </div>
                 </div>
                 <div class="biz-table-wrapper" v-bkloading="{ isLoading: isPageLoading && !isInitLoading }">
@@ -50,12 +35,12 @@
                         <thead>
                             <tr>
                                 <th style="width: 260px; text-align: left;padding-left: 36px;">
-                                    名称
+                                    {{$t('名称')}}
                                 </th>
-                                <th style="width: 100px;">端口</th>
+                                <th style="width: 100px;">{{$t('端口')}}</th>
                                 <th style="width: 350px;">URI</th>
-                                <th style="width: 200px;">采集频率(秒/次)</th>
-                                <th style="width: 600px; text-align: right; padding-right: 100px;">操作</th>
+                                <th style="width: 270px;">{{$t('采集频率(秒/次)')}}</th>
+                                <th style="width: 600px; text-align: right; padding-right: 100px;">{{$t('操作')}}</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -82,18 +67,18 @@
                                     </td>
                                     <td>{{item.frequency || '--'}}</td>
                                     <td class="act">
-                                        <a href="javascript:void(0);" class="bk-text-button" @click="checkMetricInstance(item)">查看实例</a>
+                                        <a href="javascript:void(0);" class="bk-text-button" @click="checkMetricInstance(item)">{{$t('查看实例')}}</a>
                                         <template v-if="!item.status || item.status === 'normal'">
-                                            <a href="javascript:void(0);" class="bk-text-button" @click="pauseAndResume(item, 'pause', [])">暂停</a>
-                                            <a href="javascript:void(0);" class="bk-text-button" @click="editMetric(item)">更新</a>
+                                            <a href="javascript:void(0);" class="bk-text-button" @click="pauseAndResume(item, 'pause', [])">{{$t('暂停')}}</a>
+                                            <a href="javascript:void(0);" class="bk-text-button" @click="editMetric(item)">{{$t('更新')}}</a>
                                         </template>
                                         <template v-else>
-                                            <a href="javascript:void(0);" class="bk-text-button" @click="pauseAndResume(item, 'resume', [])">恢复</a>
+                                            <a href="javascript:void(0);" class="bk-text-button" @click="pauseAndResume(item, 'resume', [])">{{$t('恢复')}}</a>
                                         </template>
-                                        <a href="javascript:void(0);" class="bk-text-button" @click="deleteMetric(item)">删除</a>
+                                        <a href="javascript:void(0);" class="bk-text-button" @click="deleteMetric(item)">{{$t('删除')}}</a>
                                         <!-- 数据平台不能直接跳转到字段设置页面，先去掉 -->
                                         <!-- <a class="bk-text-button" href="javascript:void(0)" @click="go(item, item.uri_fields_info)" target="_blank">字段设置</a> -->
-                                        <a class="bk-text-button" href="javascript:void(0)" @click="go(item, item.uri_data_clean)" target="_blank">数据清洗</a>
+                                        <a class="bk-text-button" href="javascript:void(0)" @click="go(item, item.uri_data_clean)" target="_blank">{{$t('数据清洗')}}</a>
                                     </td>
                                 </tr>
                             </template>
@@ -101,7 +86,7 @@
                                 <tr class="no-hover">
                                     <td colspan="5">
                                         <div class="bk-message-box">
-                                            <p class="message empty-message">无数据</p>
+                                            <p class="message empty-message">{{$t('无数据')}}</p>
                                         </div>
                                     </td>
                                 </tr>
@@ -119,6 +104,7 @@
                 </div>
                 <div class="biz-page-wrapper" v-if="pageConf.total">
                     <bk-page-counter
+                        :is-en="isEn"
                         :total="pageConf.total"
                         :page-size="pageConf.pageSize"
                         @change="changePageSize">
@@ -144,13 +130,13 @@
                     <form class="bk-form bk-form-vertical create-form">
                         <div class="bk-form-item flex-item">
                             <div class="left">
-                                <label class="bk-label label">名称：<span class="red">*</span></label>
+                                <label class="bk-label label">{{$t('名称')}}：<span class="red">*</span></label>
                                 <div class="bk-form-content">
-                                    <input type="text" v-model="createParams.name" class="bk-form-input text-input-half" placeholder="请输入" maxlength="253" />
+                                    <input type="text" v-model="createParams.name" class="bk-form-input text-input-half" :placeholder="$t('请输入')" maxlength="253" />
                                 </div>
                             </div>
                             <div class="right">
-                                <label class="bk-label label">端口：<span class="red">*</span></label>
+                                <label class="bk-label label">{{$t('端口')}}：<span class="red">*</span></label>
                                 <div class="bk-form-content">
                                     <bk-number-input
                                         class="text-input-half"
@@ -158,7 +144,7 @@
                                         :min="1"
                                         :max="65535"
                                         :debounce-timer="0"
-                                        :placeholder="'请输入'">
+                                        :placeholder="$t('请输入')">
                                     </bk-number-input>
                                 </div>
                             </div>
@@ -168,12 +154,12 @@
                                 URI：<span class="red">*</span>
                             </label>
                             <div class="bk-form-content">
-                                <input type="text" v-model="createParams.url" class="bk-form-input text-input" placeholder="请输入" />
+                                <input type="text" v-model="createParams.url" class="bk-form-input text-input" :placeholder="$t('请输入')" />
                             </div>
                         </div>
                         <div class="bk-form-item flex-item">
                             <div class="left">
-                                <label class="bk-label label">采集频率：<span class="red">*</span></label>
+                                <label class="bk-label label">{{$t('采集频率')}}：<span class="red">*</span></label>
                                 <div class="bk-form-content">
                                     <bk-number-input
                                         class="text-input-half has-suffix"
@@ -181,32 +167,32 @@
                                         :min="0"
                                         :max="999999999"
                                         :debounce-timer="0"
-                                        :placeholder="'请输入'">
+                                        :placeholder="$t('请输入')">
                                     </bk-number-input>
                                     <span class="suffix">
-                                        秒/次
+                                        {{$t('秒/次')}}
                                     </span>
                                 </div>
                             </div>
                             <div class="right">
-                                <label class="bk-label label">单次采集超时时间（秒）：<span class="red">*</span></label>
+                                <label class="bk-label label">{{$t('单次采集超时时间（秒）')}}：<span class="red">*</span></label>
                                 <div class="bk-form-content">
                                     <bk-number-input
                                         class="text-input-half has-suffix"
                                         :value.sync="createParams.timeout"
                                         :min="0"
                                         :debounce-timer="0"
-                                        :placeholder="'请输入'">
+                                        :placeholder="$t('请输入')">
                                     </bk-number-input>
                                     <span class="suffix">
-                                        秒
+                                        {{$t('秒')}}
                                     </span>
                                 </div>
                             </div>
                         </div>
                         <div class="bk-form-item prometheus-item">
                             <div class="prometheus-header">
-                                <label class="bk-label label">Prometheus格式设置</label>
+                                <label class="bk-label label">{{$t('Prometheus格式设置')}}</label>
                                 <label class="bk-form-checkbox">
                                     <input type="checkbox" name="metric-type" value="prometheus" v-model="createParams.metricType">
                                 </label>
@@ -214,9 +200,16 @@
 
                             <div class="prometheus-keys" v-show="createParams.metricType">
                                 <label class="bk-label label">
-                                    附加数据：
+                                    {{$t('附加数据')}}：
                                 </label>
-                                <bk-keyer :key-list.sync="createParams.constLabels" class="prometheus-keylist" ref="constKeyer"></bk-keyer>
+                                <bk-keyer
+                                    class="prometheus-keylist"
+                                    ref="constKeyer"
+                                    :key-placeholder="$t('键')"
+                                    :value-placeholder="$t('值')"
+                                    :tip="$t('小提示：同时粘贴多行“键=值”的文本会自动添加多行记录')"
+                                    :key-list.sync="createParams.constLabels"
+                                ></bk-keyer>
                             </div>
                         </div>
                         <div class="bk-form-item">
@@ -224,7 +217,14 @@
                                 Http Header：
                             </label>
                             <div class="bk-form-content">
-                                <bk-keyer :key-list.sync="createParams.httpHeader" class="http-header" ref="labelKeyer"></bk-keyer>
+                                <bk-keyer
+                                    class="http-header"
+                                    ref="labelKeyer"
+                                    :key-list.sync="createParams.httpHeader"
+                                    :key-placeholder="$t('键')"
+                                    :value-placeholder="$t('值')"
+                                    :tip="$t('小提示：同时粘贴多行“键=值”的文本会自动添加多行记录')"
+                                ></bk-keyer>
                             </div>
                         </div>
                         <div class="bk-form-item">
@@ -242,23 +242,30 @@
                         </div>
                         <div class="bk-form-item">
                             <label class="bk-label label">
-                                Http参数：
+                                {{$t('Http参数')}}：
                             </label>
                             <div class="bk-form-content">
                                 <template v-if="createParams.httpMethod === 'GET'">
-                                    <bk-keyer :key-list.sync="createParams.httpBodyGet" class="http-header" ref="labelKeyer"></bk-keyer>
+                                    <bk-keyer
+                                        class="http-header"
+                                        ref="labelKeyer"
+                                        :key-list.sync="createParams.httpBodyGet"
+                                        :key-placeholder="$t('键')"
+                                        :value-placeholder="$t('值')"
+                                        :tip="$t('小提示：同时粘贴多行“键=值”的文本会自动添加多行记录')"
+                                    ></bk-keyer>
                                 </template>
                                 <template v-else>
-                                    <textarea v-model="createParams.httpBodyPost" class="bk-form-textarea" placeholder="请输入"></textarea>
+                                    <textarea v-model="createParams.httpBodyPost" class="bk-form-textarea" :placeholder="$t('请输入')"></textarea>
                                 </template>
                             </div>
                         </div>
                         <div class="action-inner">
                             <button type="button" class="bk-dialog-btn bk-dialog-btn-confirm bk-btn-primary" @click="confirmCreateMetric">
-                                创建
+                                {{$t('创建')}}
                             </button>
                             <button type="button" class="bk-dialog-btn bk-dialog-btn-cancel" @click="hideCreateMetric">
-                                取消
+                                {{$t('取消')}}
                             </button>
                         </div>
                     </form>
@@ -278,13 +285,13 @@
                     <form class="bk-form bk-form-vertical create-form">
                         <div class="bk-form-item flex-item">
                             <div class="left">
-                                <label class="bk-label label">名称：<span class="red">*</span></label>
+                                <label class="bk-label label">{{$t('名称')}}：<span class="red">*</span></label>
                                 <div class="bk-form-content">
-                                    <input type="text" disabled="disabled" v-model="editParams.name" class="bk-form-input text-input-half" placeholder="请输入" maxlength="32" />
+                                    <input type="text" disabled="disabled" v-model="editParams.name" class="bk-form-input text-input-half" :placeholder="$t('请输入')" maxlength="32" />
                                 </div>
                             </div>
                             <div class="right">
-                                <label class="bk-label label">端口：<span class="red">*</span></label>
+                                <label class="bk-label label">{{$t('端口')}}：<span class="red">*</span></label>
                                 <div class="bk-form-content">
                                     <bk-number-input
                                         class="text-input-half"
@@ -292,7 +299,7 @@
                                         :min="1"
                                         :max="65535"
                                         :debounce-timer="0"
-                                        :placeholder="'请输入'">
+                                        :placeholder="$t('请输入')">
                                     </bk-number-input>
                                 </div>
                             </div>
@@ -302,12 +309,12 @@
                                 URI：<span class="red">*</span>
                             </label>
                             <div class="bk-form-content">
-                                <input type="text" v-model="editParams.url" class="bk-form-input text-input" placeholder="请输入" />
+                                <input type="text" v-model="editParams.url" class="bk-form-input text-input" :placeholder="$t('请输入')" />
                             </div>
                         </div>
                         <div class="bk-form-item flex-item">
                             <div class="left">
-                                <label class="bk-label label">采集频率：<span class="red">*</span></label>
+                                <label class="bk-label label">{{$t('采集频率')}}：<span class="red">*</span></label>
                                 <div class="bk-form-content">
                                     <bk-number-input
                                         class="text-input-half has-suffix"
@@ -315,25 +322,25 @@
                                         :min="0"
                                         :max="999999999"
                                         :debounce-timer="0"
-                                        :placeholder="'请输入'">
+                                        :placeholder="$t('请输入')">
                                     </bk-number-input>
                                     <span class="suffix">
-                                        秒/次
+                                        {{$t('秒/次')}}
                                     </span>
                                 </div>
                             </div>
                             <div class="right">
-                                <label class="bk-label label">单次采集超时时间（秒）：<span class="red">*</span></label>
+                                <label class="bk-label label">{{$t('单次采集超时时间（秒）')}}：<span class="red">*</span></label>
                                 <div class="bk-form-content">
                                     <bk-number-input
                                         class="text-input-half has-suffix"
                                         :value.sync="editParams.timeout"
                                         :min="0"
                                         :debounce-timer="0"
-                                        :placeholder="'请输入'">
+                                        :placeholder="$t('请输入')">
                                     </bk-number-input>
                                     <span class="suffix">
-                                        秒
+                                        {{$t('秒')}}
                                     </span>
                                 </div>
                             </div>
@@ -341,11 +348,14 @@
 
                         <div class="bk-form-item prometheus-item">
                             <div class="prometheus-header">
-                                <label class="bk-label label">Prometheus格式设置</label>
+                                <label class="bk-label label">{{$t('Prometheus格式设置')}}</label>
                                 <label class="bk-form-checkbox">
-                                    <bk-tooltip placement="left">
+                                    <bk-tooltip placement="left" :transfer="true">
                                         <div slot="content" style="white-space: normal;">
-                                            <div style="width: 230px;">在创建的时候已经按{{editParams.metricType ? 'Prometheus' : '普通'}}类型在数据平台申请dataid，不能更改</div>
+                                            <div style="width: 230px;">
+                                                <!-- 在创建的时候已经按{{editParams.metricType ? 'Prometheus' : '普通'}}类型在数据平台申请dataid，不能更改 -->
+                                                {{$t('在创建的时候已经按{metricType}类型在数据平台申请dataid，不能更改', { metricType: editParams.metricType ? 'Prometheus' : $t('普通') })}}
+                                            </div>
                                         </div>
                                         <input type="checkbox" name="metric-type" value="prometheus" v-model="editParams.metricType" disabled="disabled">
                                     </bk-tooltip>
@@ -354,9 +364,16 @@
 
                             <div class="prometheus-keys" v-show="editParams.metricType">
                                 <label class="bk-label label">
-                                    附加数据：
+                                    {{$t('附加数据')}}：
                                 </label>
-                                <bk-keyer :key-list.sync="editParams.constLabels" class="prometheus-keylist" ref="constKeyer"></bk-keyer>
+                                <bk-keyer
+                                    class="prometheus-keylist"
+                                    ref="constKeyer"
+                                    :key-list.sync="editParams.constLabels"
+                                    :key-placeholder="$t('键')"
+                                    :value-placeholder="$t('值')"
+                                    :tip="$t('小提示：同时粘贴多行“键=值”的文本会自动添加多行记录')"
+                                ></bk-keyer>
                             </div>
                         </div>
                         <div class="bk-form-item">
@@ -364,7 +381,14 @@
                                 Http Header：
                             </label>
                             <div class="bk-form-content">
-                                <bk-keyer :key-list.sync="editParams.httpHeader" class="http-header" ref="labelKeyer"></bk-keyer>
+                                <bk-keyer
+                                    class="http-header"
+                                    ref="labelKeyer"
+                                    :key-list.sync="editParams.httpHeader"
+                                    :key-placeholder="$t('键')"
+                                    :value-placeholder="$t('值')"
+                                    :tip="$t('小提示：同时粘贴多行“键=值”的文本会自动添加多行记录')"
+                                ></bk-keyer>
                             </div>
                         </div>
                         <div class="bk-form-item">
@@ -382,23 +406,30 @@
                         </div>
                         <div class="bk-form-item">
                             <label class="bk-label label">
-                                Http参数：
+                                {{$t('Http参数')}}：
                             </label>
                             <div class="bk-form-content">
                                 <template v-if="editParams.httpMethod === 'GET'">
-                                    <bk-keyer :key-list.sync="editParams.httpBodyGet" class="http-header" ref="labelKeyer"></bk-keyer>
+                                    <bk-keyer
+                                        class="http-header"
+                                        ref="labelKeyer"
+                                        :key-list.sync="editParams.httpBodyGet"
+                                        :key-placeholder="$t('键')"
+                                        :value-placeholder="$t('值')"
+                                        :tip="$t('小提示：同时粘贴多行“键=值”的文本会自动添加多行记录')"
+                                    ></bk-keyer>
                                 </template>
                                 <template v-else>
-                                    <textarea v-model="editParams.httpBodyPost" class="bk-form-textarea" placeholder="请输入"></textarea>
+                                    <textarea v-model="editParams.httpBodyPost" class="bk-form-textarea" :placeholder="$t('请输入')"></textarea>
                                 </template>
                             </div>
                         </div>
                         <div class="action-inner">
                             <button type="button" class="bk-dialog-btn bk-dialog-btn-confirm bk-btn-primary" @click="confirmEditMetric">
-                                更新
+                                {{$t('更新')}}
                             </button>
                             <button type="button" class="bk-dialog-btn bk-dialog-btn-cancel" @click="hideEditMetric">
-                                取消
+                                {{$t('取消')}}
                             </button>
                         </div>
                     </form>
@@ -420,15 +451,15 @@
                         <i class="bk-dialog-close bk-icon icon-close" @click="hideInstanceDialog"></i>
                     </div>
                     <div class="instance-title">
-                        {{curInstanceMetric.name}}实例
+                        {{curInstanceMetric.name}}{{$t('实例')}}
                     </div>
                     <div style="min-height: 100px;" v-bkloading="{ isLoading: isMetricInstanceLoading }">
                         <table class="bk-table has-table-hover biz-table biz-metric-instance-table" :style="{ borderBottomWidth: curMetricInstancePageData.length ? '1px' : 0 }" v-show="!isMetricInstanceLoading">
                             <thead>
                                 <tr>
-                                    <th style="padding-left: 30px;">关联命名空间</th>
-                                    <th>关联应用</th>
-                                    <th style="width: 150px;">应用类型</th>
+                                    <th style="padding-left: 30px;">{{$t('关联命名空间')}}</th>
+                                    <th>{{$t('关联应用')}}</th>
+                                    <th style="width: 150px;">{{$t('应用类型')}}</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -449,7 +480,7 @@
                                     <tr>
                                         <td colspan="3">
                                             <div class="bk-message-box no-data">
-                                                <p class="message empty-message">无数据</p>
+                                                <p class="message empty-message">{{$t('无数据')}}</p>
                                             </div>
                                         </td>
                                     </tr>
@@ -518,7 +549,7 @@
                 },
                 createMetricConf: {
                     isShow: false,
-                    title: '新建Metric',
+                    title: this.$t('新建Metric'),
                     timer: null,
                     width: 644,
                     loading: false
@@ -540,7 +571,7 @@
                 // 编辑的参数
                 editMetricConf: {
                     isShow: false,
-                    title: '新建Metric',
+                    title: this.$t('新建Metric'),
                     timer: null,
                     width: 644,
                     loading: false
@@ -573,6 +604,9 @@
             },
             projectCode () {
                 return this.$route.params.projectCode
+            },
+            isEn () {
+                return this.$store.state.isEn
             }
         },
         mounted () {
@@ -749,7 +783,7 @@
                 if (!name) {
                     me.$bkMessage({
                         theme: 'error',
-                        message: '请输入名称'
+                        message: this.$t('请输入名称')
                     })
                     return
                 }
@@ -757,7 +791,7 @@
                 if (name.length < 3) {
                     me.$bkMessage({
                         theme: 'error',
-                        message: '名称不得小于三个字符'
+                        message: this.$t('名称不得小于三个字符')
                     })
                     return
                 }
@@ -765,7 +799,7 @@
                 if (url.length < 2) {
                     me.$bkMessage({
                         theme: 'error',
-                        message: 'URI不得小于2个字符'
+                        message: this.$t('URI不得小于两个字符')
                     })
                     return
                 }
@@ -773,7 +807,7 @@
                 if (port === null || port === undefined || port === '') {
                     me.$bkMessage({
                         theme: 'error',
-                        message: '请输入端口'
+                        message: this.$t('请输入端口')
                     })
                     return
                 }
@@ -781,7 +815,7 @@
                 if (!url) {
                     me.$bkMessage({
                         theme: 'error',
-                        message: '请输入URI'
+                        message: this.$t('请输入URI')
                     })
                     return
                 }
@@ -789,7 +823,7 @@
                 if (frequency === null || frequency === undefined || frequency === '') {
                     me.$bkMessage({
                         theme: 'error',
-                        message: '请输入采集频率'
+                        message: this.$t('请输入采集频率')
                     })
                     return
                 }
@@ -797,7 +831,7 @@
                 if (timeout === '' || timeout === null || timeout === undefined) {
                     me.$bkMessage({
                         theme: 'error',
-                        message: '请输入单次采集超时时间'
+                        message: this.$t('请输入单次采集超时时间')
                     })
                     return
                 }
@@ -856,7 +890,7 @@
 
                 try {
                     me.isCreatingOrEditing = true
-                    me.creatingOrEditingStr = '创建Metric中，请稍候...'
+                    me.creatingOrEditingStr = this.$t('创建Metric中，请稍候...')
                     await me.$store.dispatch('metric/createMetric', params)
 
                     const res = await me.$store.dispatch('metric/getMetricList', {
@@ -946,7 +980,7 @@
                 }
 
                 this.editMetricConf.isShow = true
-                this.editMetricConf.title = `更新【${metric.name}】`
+                this.editMetricConf.title = this.$t(`更新【{metricName}】`, { metricName: metric.name })
 
                 this.editParams.curMetric = metric
                 this.editParams.name = metric.name
@@ -1025,7 +1059,7 @@
                 if (!name) {
                     me.$bkMessage({
                         theme: 'error',
-                        message: '请输入名称'
+                        message: this.$t('请输入名称')
                     })
                     return
                 }
@@ -1033,7 +1067,7 @@
                 if (name.length < 3) {
                     me.$bkMessage({
                         theme: 'error',
-                        message: '名称不得小于三个字符'
+                        message: this.$t('名称不得小于三个字符')
                     })
                     return
                 }
@@ -1041,7 +1075,7 @@
                 if (port === null || port === undefined || port === '') {
                     me.$bkMessage({
                         theme: 'error',
-                        message: '请输入端口'
+                        message: this.$t('请输入端口')
                     })
                     return
                 }
@@ -1049,7 +1083,7 @@
                 if (!url) {
                     me.$bkMessage({
                         theme: 'error',
-                        message: '请输入URI'
+                        message: this.$t('请输入URI')
                     })
                     return
                 }
@@ -1057,7 +1091,7 @@
                 if (frequency === null || frequency === undefined || frequency === '') {
                     me.$bkMessage({
                         theme: 'error',
-                        message: '请输入采集频率'
+                        message: this.$t('请输入采集频率')
                     })
                     return
                 }
@@ -1065,7 +1099,7 @@
                 if (timeout === null || timeout === undefined || timeout === '') {
                     me.$bkMessage({
                         theme: 'error',
-                        message: '请输入单次采集超时时间'
+                        message: this.$t('请输入单次采集超时时间')
                     })
                     return
                 }
@@ -1140,7 +1174,7 @@
 
                 try {
                     me.isCreatingOrEditing = true
-                    me.creatingOrEditingStr = '更新Metric中，请稍候...'
+                    me.creatingOrEditingStr = this.$t('更新Metric中，请稍候...')
                     await me.$store.dispatch('metric/editMetric', params)
 
                     const res = await me.$store.dispatch('metric/getMetricList', {
@@ -1278,11 +1312,11 @@
                     clsName: 'biz-remove-dialog',
                     content: me.$createElement('p', {
                         class: 'biz-confirm-desc'
-                    }, `确定要删除Metric【${metric.name}】？`),
+                    }, `${this.$t('确定要删除Metric')}【${metric.name}】？`),
                     async confirmFn () {
                         try {
                             me.$bkLoading({
-                                title: me.$createElement('span', '删除Metric中，请稍候...')
+                                title: me.$createElement('span', me.$t('删除Metric中，请稍候'))
                             })
 
                             await me.$store.dispatch('metric/deleteMetric', {
@@ -1332,16 +1366,18 @@
                     })
                 }
 
-                const idxStr = idx === 'pause' ? '暂停' : '恢复'
+                const idxStr = idx === 'pause' ? this.$t('暂停') : this.$t('恢复')
                 const opType = idx === 'pause' ? 'pause' : 'resume'
 
                 const me = this
                 me.$bkInfo({
-                    title: `确认${idxStr}【${metric.name}】？`,
+                    // title: `确认${idxStr}【${metric.name}】？`,
+                    title: this.$t(`确认{action}【{metricName}】？`, { action: idxStr, metricName: metric.name }),
                     async confirmFn () {
                         try {
                             me.$bkLoading({
-                                title: me.$createElement('span', `${idxStr}Metric中，请稍候...`)
+                                // title: me.$createElement('span', `${idxStr}Metric中，请稍候...`)
+                                title: me.$createElement('span', me.$t(`{action}Metric中，请稍候`, { action: idxStr }))
                             })
 
                             await me.$store.dispatch('metric/pauseAndResumeMetric', {

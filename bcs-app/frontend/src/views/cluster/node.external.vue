@@ -705,7 +705,7 @@
                                 {{$t('操作成功')}}
                             </div>
                             <div v-else-if="op.status.toLowerCase() === 'failed'" style="margin: 0 0 5px 0; color: #e64d34; font-size: 14px; font-weight: 700; margin-left: 20px;">
-                                {{$t('操作失败')}}<span style="margin-left: 10px;" v-if="op.task_url"><a :href="op.task_url" class="bk-text-button" target="_blank">{{$t('查看详情')}}</a></span>
+                                {{$t('操作失败')}}<span style="margin-left: 10px;" v-if="op.taskUrl"><a :href="op.taskUrl" class="bk-text-button" target="_blank">{{$t('查看详情')}}</a></span>
                             </div>
                             <div style="margin: 10px 0px 5px 13px; font-size: 10px;" v-else>
                                 <div class="bk-spin-loading bk-spin-loading-small bk-spin-loading-primary">

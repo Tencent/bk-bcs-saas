@@ -20,10 +20,12 @@ const config = require('./config')
 const baseWebpackConfig = require('./webpack.base.conf')
 const manifest = require('../static/lib-manifest.json')
 
+const VERSION = process.env.VERSION
+
 const webpackConfig = merge(baseWebpackConfig, {
     mode: 'development',
     entry: {
-        main: './src/main.js'
+        [`${VERSION}`]: `./src/main.js`
     },
     devtool: '#cheap-module-eval-source-map',
     module: {

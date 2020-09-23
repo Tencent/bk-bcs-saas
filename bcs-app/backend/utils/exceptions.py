@@ -16,13 +16,13 @@
 from django.conf import settings
 from django.utils.translation import ugettext_lazy as _
 
-from backend.utils.itertools import groupby
 from backend.utils.exceptions_bk import get_auth_url
 
 
 class APIError(Exception):
     """所有API继承的基础
     """
+
     # 返回的http状态
     status_code = 200
 
@@ -35,11 +35,11 @@ class APIError(Exception):
     # code_name = xxx
 
     # 错误消息前缀
-    msg_prefix = ''
+    msg_prefix = ""
 
     def __str__(self):
         if self.args and self.msg_prefix:
-            msg = '%s，%s' % (self.msg_prefix, self.args[0])
+            msg = "%s，%s" % (self.msg_prefix, self.args[0])
         elif self.args:
             msg = self.args[0]
         else:
@@ -50,6 +50,7 @@ class APIError(Exception):
 class ResNotFoundError(APIError):
     """资源未找到，可以让前端显示404页面
     """
+
     code = 404
 
 
@@ -59,6 +60,7 @@ class ComponentError(APIError):
     - 需要自己在代码中处理
     - 如果没有处理，同时返回错误信息
     """
+
     # 状态是400 + x
     code = 4001
     msg_prefix = _("第三方请求失败")
@@ -85,6 +87,7 @@ class ValidateError(APIError):
     """参数请求错误， 需要提示前端
     和django restful的区别: 返回状态码是200
     """
+
     code = 400
 
 
@@ -105,10 +108,16 @@ class NoAuthPermError(APIError):
     def data(self):
         perms = self.args[1]
 
-        d = {
-            'perms': perms,
-            'apply_url': get_auth_url(perms=perms)
-        }
+        d = {"perms": perms, "apply_url": get_auth_url(perms=perms)}
+        return d
+
+
+class PermissionDeniedError(APIError):
+    code = 4003
+
+    @property
+    def data(self):
+        d = {"apply_url": self.args[1]}
         return d
 
 

@@ -19,7 +19,7 @@
                         
                         <button class="bk-button bk-default import-btn">
                             <span>{{$t('文件导入')}}</span>
-                            <input ref="fileInput" type="file" name="upload" class="file-input" @change="handleFileInput">
+                            <input ref="fileInput" type="file" name="upload" class="file-input" accept="application/json" @change="handleFileInput">
                         </button>
 
                         <button class="bk-button bk-default" @click.stop.prevent="removeVars">
@@ -418,7 +418,7 @@
                     lang: 'json',
                     readOnly: false,
                     fullScreen: false,
-                    content:  JSON.stringify(exampleData, null, 4),
+                    content: JSON.stringify(exampleData, null, 4),
                     editor: null
                 },
                 winHeight: 0,

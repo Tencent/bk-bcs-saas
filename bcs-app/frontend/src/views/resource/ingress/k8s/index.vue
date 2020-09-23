@@ -1097,10 +1097,7 @@
 
             checkData () {
                 const ingress = this.curEditedIngress
-                const ingressName = ingress.config.metadata.name
                 const nameReg = /^[a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*$/
-                const labelKeyReg = /^([A-Za-z0-9][-A-Za-z0-9_./]*)?[A-Za-z0-9]$/
-                const varReg = /\{\{([^\{\}]+)?\}\}/g
                 const pathReg = /\/((?!\.)[\w\d\-./~]+)*/
                 let megPrefix = ''
 
@@ -1211,7 +1208,6 @@
                     const clusterId = this.curEditedIngress.cluster_id
                     const namespace = this.curEditedIngress.namespace
                     const ingressId = this.curEditedIngress.config.metadata.name
-
 
                     if (this.isDetailSaving) {
                         return false

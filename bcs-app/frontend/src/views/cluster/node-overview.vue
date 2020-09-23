@@ -68,8 +68,6 @@
                     <div class="biz-cluster-node-overview-chart">
                         <div class="part top-left">
                             <div class="info">
-                                <!-- <div class="left" v-if="REGION === 'ieod'">{{$t('CPU使用率')}}</div>
-                                <div class="left" v-else>CPU</div> -->
                                 <div class="left">{{$t('CPU使用率')}}</div>
                                 <div class="right">
                                     <bk-dropdown-menu :align="'right'" ref="cpuDropdown">
@@ -98,8 +96,6 @@
                         </div>
                         <div class="part top-right">
                             <div class="info">
-                                <!-- <div class="left" v-if="REGION === 'ieod'">{{$t('内存使用率')}}</div>
-                                <div class="left" v-else>{{$t('内存')}}</div> -->
                                 <div class="left">{{$t('内存使用率')}}</div>
                                 <div class="right">
                                     <bk-dropdown-menu :align="'right'" ref="memoryDropdown">
@@ -158,8 +154,6 @@
                         </div>
                         <div class="part">
                             <div class="info">
-                                <!-- <div class="left" v-if="REGION === 'ieod'">{{$t('IO使用率')}}</div>
-                                <div class="left" v-else>IO</div> -->
                                 <div class="left">{{$t('IO使用率')}}</div>
                                 <div class="right">
                                     <bk-dropdown-menu :align="'right'" ref="storageDropdown">
@@ -318,7 +312,7 @@
     import 'echarts/lib/component/tooltip'
     import 'echarts/lib/component/legend'
 
-    import { nodeOverview } from '@/common/chart-option'
+    import { nodeOverview } from '@open/common/chart-option'
     import { catchErrorHandler, formatBytes } from '@open/common/util'
 
     import { createChartOption } from './node-overview-chart-opts'
@@ -329,7 +323,6 @@
         },
         data () {
             return {
-                REGION: window.REGION,
                 PROJECT_MESOS: PROJECT_MESOS,
                 tabActiveName: 'container',
 

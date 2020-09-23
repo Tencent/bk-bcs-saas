@@ -249,6 +249,7 @@ class ListNodeSLZ(serializers.Serializer):
     with_containers = serializers.BooleanField(required=False)
     ordering = serializers.ChoiceField(choices=list(get_order_choices()), required=False)
     labels = serializers.ListField(required=False)
+    status_list = serializers.ListField(default=[])
 
 
 class NodeSLZ(serializers.Serializer):

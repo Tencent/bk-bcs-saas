@@ -14,9 +14,24 @@
 from . import base, k8s, mesos
 from backend.apps.configuration.constants import RESOURCE_NAMES, K8sResourceName, MesosResourceName
 
-MODEL_CLASS_LIST = [k8s.K8sDeployment, k8s.K8sDaemonSet, k8s.K8sJob, k8s.K8sStatefulSet, k8s.K8sService,
-                    k8s.K8sConfigMap, k8s.K8sSecret, k8s.K8sIngress, k8s.K8sHPA, mesos.Application, mesos.Deplpyment,
-                    mesos.Service, mesos.ConfigMap, mesos.Secret, mesos.HPA, mesos.Ingress]
+MODEL_CLASS_LIST = [
+    k8s.K8sDeployment,
+    k8s.K8sDaemonSet,
+    k8s.K8sJob,
+    k8s.K8sStatefulSet,
+    k8s.K8sService,
+    k8s.K8sConfigMap,
+    k8s.K8sSecret,
+    k8s.K8sIngress,
+    k8s.K8sHPA,
+    mesos.Application,
+    mesos.Deplpyment,
+    mesos.Service,
+    mesos.ConfigMap,
+    mesos.Secret,
+    mesos.HPA,
+    mesos.Ingress,
+]
 
 RESOURCE_MODEL_MAP = dict(zip(RESOURCE_NAMES, MODEL_CLASS_LIST))
 
@@ -37,7 +52,7 @@ MODULE_DICT = {
     "K8sJob": k8s.K8sJob,
     "K8sStatefulSet": k8s.K8sStatefulSet,
     "K8sIngress": k8s.K8sIngress,
-    'K8sHPA': k8s.K8sHPA
+    "K8sHPA": k8s.K8sHPA,
 }
 
 
@@ -52,7 +67,7 @@ def get_pod_related_service(ventity, resource_name, resource_id):
     pod_res = model_class.objects.get(id=resource_id)
 
     deploy_tag = pod_res.deploy_tag
-    pod_res_tag = '%s|%s' % (deploy_tag, resource_name)
+    pod_res_tag = "%s|%s" % (deploy_tag, resource_name)
 
     # 获取模板中 Service 的 关联的 pod tag
     service_id_list = ventity.get_resource_id_list(K8sResourceName.K8sService.value)
@@ -97,7 +112,7 @@ def get_application_related_resource(ventity, app_id):
     deployment_id_list = ventity.get_resource_id_list(MesosResourceName.deployment.value)
     if deployment_id_list:
         deploy_qsets = mesos.Deplpyment.objects.filter(id__in=deployment_id_list, app_id=app_id)
-        related_deploy_names = [f'Deplpyment[{deploy.name}]' for deploy in deploy_qsets]
+        related_deploy_names = [f"Deplpyment[{deploy.name}]" for deploy in deploy_qsets]
 
     service_id_list = ventity.get_resource_id_list(MesosResourceName.application.value)
     if not service_id_list:
@@ -107,7 +122,7 @@ def get_application_related_resource(ventity, app_id):
     service_qsets = mesos.Service.objects.filter(id__in=service_id_list)
     for svc in service_qsets:
         if app_id in svc.get_app_id_list():
-            related_svc_names.append(f'Service[{svc.name}')
+            related_svc_names.append(f"Service[{svc.name}")
 
     return application.name, related_deploy_names + related_svc_names
 
@@ -120,7 +135,7 @@ def _to_resource_tags_map(tag_list):
         if not tag:
             continue
 
-        deploy_tag, res_name = tag.split('|')
+        deploy_tag, res_name = tag.split("|")
         if res_name not in base.POD_RES_LIST:
             res_name = K8sResourceName.K8sDeployment.value
 
@@ -129,18 +144,14 @@ def _to_resource_tags_map(tag_list):
             deploy_tag_list.append(deploy_tag)
             resource_tag_map[res_name] = deploy_tag_list
         else:
-            resource_tag_map[res_name] = [deploy_tag, ]
+            resource_tag_map[res_name] = [
+                deploy_tag,
+            ]
     return resource_tag_map
 
 
 def get_secret_name_by_certid(cert_id, ingress_name):
-    """由tls证书的名称组装secret的名称
-    certId: "perrier.ffm"
-    tls: 证书名称不能为空，只支持英文大小写、数字、下划线和英文句号
-    secret名称: 以小写字母或数字开头和结尾，只能包含：小写字母、数字、连字符(-)、点(.)
-    """
-    cert_id = str(cert_id).replace('_', '-')
-    return f'{ingress_name}-{cert_id}-srt'
+    return k8s.get_secret_name_by_certid(cert_id, ingress_name)
 
 
 def get_pod_qsets_by_tag(tag_list, ventity):

@@ -12,7 +12,7 @@ const vueFiles = {}
                 walkVue([filePath + '/' + item])
             } else {
                 const ext = extname(item)
-                if (ext === '.vue' || ext === '.js') {
+                if (ext === '.vue' || ext === '.js' || ext === '.html') {
                     if (!vueFiles[basename(filePath)]) {
                         vueFiles[basename(filePath)] = []
                     }
@@ -21,7 +21,7 @@ const vueFiles = {}
             }
         })
     })
-})([resolve(__dirname, '../src/views/configuration')])
+})([resolve(__dirname, '../src/views/app/k8s/11')])
 
 const JS_COMMENT_REG = /(\/\*([\s\S]*?)\*\/|([^:]|^)\/\/(.*)$)/mg
 const HTML_COMMENT_REG = /(<!--[\s\S]*?-->)/mg
