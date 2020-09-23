@@ -272,12 +272,19 @@ class NodeCreateListViewSet(NodeBase, NodeHandler, viewsets.ViewSet):
                     break
         return filter_data
 
+    def filter_nodes_by_status(self, node_list, status_list):
+        if not status_list:
+            return node_list
+        return [node for node in node_list if node["status"] in status_list]
+
     def data_handler_for_nodes(self, request, project_id, cluster_id, data):
         self.can_view_cluster(request, project_id, cluster_id)
         node_list = self.get_node_list(request, project_id, cluster_id)
         # filter by request ip
         node_list = self.filter_node(node_list.get('results') or [], data.get('ip'), filter_key="inner_ip")
         node_list = self.filter_node_with_labels(cluster_id, node_list, data.get('labels'))
+        # 通过节点状态过滤节点
+        node_list = self.filter_nodes_by_status(node_list, data["status_list"])
         node_list = self.clean_node(node_list)
         # pagination for node list
         ip_offset = data.pop('offset', 0)
