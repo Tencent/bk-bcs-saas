@@ -327,7 +327,7 @@
             },
 
             /**
-             * 选择 status 事件
+             * 选择 status 回调事件
              *
              * @param {Object} v 选中的 status 对象
              */
