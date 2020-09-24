@@ -145,3 +145,6 @@ MESOS_LB_NAMESPACE = 'mesos-lb'
 
 # K8S lb部署到的命名空间
 K8S_LB_NAMESPACE = settings.BCS_SYSTEM_NAMESPACE
+
+# release version prefix
+RELEASE_VERSION_PREFIX = "(current-unchanged)"

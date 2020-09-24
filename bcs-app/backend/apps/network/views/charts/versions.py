@@ -15,7 +15,7 @@ from rest_framework import viewsets
 from rest_framework.response import Response
 from rest_framework.renderers import BrowsableAPIRenderer
 
-from backend.apps.network import serializers
+from backend.apps.network import serializers, constants
 from backend.utils.renderers import BKAPIRenderer
 from backend.bcs_k8s.helm.models import ChartVersion
 from backend.apps.network.views.charts.releases import HelmReleaseMixin
@@ -27,7 +27,7 @@ class K8SIngressControllerViewSet(viewsets.ViewSet, HelmReleaseMixin):
     chart_name = K8S_LB_CHART_NAME
     namespace = K8S_LB_NAMESPACE
     public_repo_name = "public-repo"
-    release_version_prefix = "(current-unchanged)"
+    release_version_prefix = constants.RELEASE_VERSION_PREFIX
 
     def get_chart_versions(self, request, project_id):
         # 过滤公共仓库下面的lb chart名称
