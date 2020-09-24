@@ -378,7 +378,7 @@ def get_pod_cpu_usage_range(cluster_id, namespace, pod_name_list, start, end):
 
     porm_query = f"""
         sum by (pod_name) (rate(container_cpu_usage_seconds_total{{cluster_id="{cluster_id}", namespace=~"{ namespace }",
-        pod_name=~"{ pod_name_list }", container_name!="", container_name!="POD"}}[1m])) * 100
+        pod_name=~"{ pod_name_list }", container_name!="", container_name!="POD"}}[2m])) * 100
         """  # noqa
     resp = query_range(porm_query, start, end, step)
 
@@ -409,7 +409,7 @@ def get_pod_network_receive(cluster_id, namespace, pod_name_list, start, end):
     pod_name_list = "|".join(pod_name_list)
 
     prom_query = f"""
-        sum by(pod_name) (rate(container_network_receive_bytes_total{{cluster_id="{cluster_id}", namespace=~"{ namespace }", pod_name=~"{ pod_name_list }"}}[1m]))
+        sum by(pod_name) (rate(container_network_receive_bytes_total{{cluster_id="{cluster_id}", namespace=~"{ namespace }", pod_name=~"{ pod_name_list }"}}[2m]))
         """  # noqa
 
     resp = query_range(prom_query, start, end, step)
@@ -421,7 +421,7 @@ def get_pod_network_transmit(cluster_id, namespace, pod_name_list, start, end):
     pod_name_list = "|".join(pod_name_list)
 
     prom_query = f"""
-        sum by(pod_name) (rate(container_network_transmit_bytes_total{{cluster_id="{cluster_id}",  namespace=~"{ namespace }", pod_name=~"{ pod_name_list }"}}[1m]))
+        sum by(pod_name) (rate(container_network_transmit_bytes_total{{cluster_id="{cluster_id}",  namespace=~"{ namespace }", pod_name=~"{ pod_name_list }"}}[2m]))
         """  # noqa
 
     resp = query_range(prom_query, start, end, step)
@@ -437,7 +437,7 @@ def get_container_cpu_usage_range(cluster_id, namespace, pod_name, container_id_
 
     prom_query = f"""
         sum by(container_name) (rate(container_cpu_usage_seconds_total{{cluster_id="{cluster_id}", namespace=~"{ namespace }", pod_name=~"{pod_name}",
-        container_name!="", container_name!="POD", BcsNetworkContainer!="true", id=~"{ container_id_list }"}}[1m])) * 100
+        container_name!="", container_name!="POD", BcsNetworkContainer!="true", id=~"{ container_id_list }"}}[2m])) * 100
         """  # noqa
 
     resp = query_range(prom_query, start, end, step)
