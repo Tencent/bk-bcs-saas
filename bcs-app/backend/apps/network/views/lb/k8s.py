@@ -39,7 +39,7 @@ from backend.apps.cluster.constants import DEFAULT_SYSTEM_LABEL_KEYS
 from backend.utils.error_codes import error_codes
 from backend.utils.renderers import BKAPIRenderer
 from backend.apps.network import serializers
-from backend.resources.namespace import namespace
+from backend.resources.namespace import namespace, utils as ns_utils
 from backend.resources.cluster import utils as cluster_utils
 from backend.apps.network.views.charts.releases import HelmReleaseMixin
 
@@ -149,6 +149,10 @@ class NginxIngressListCreateViewSet(NginxIngressBase, HelmReleaseMixin):
     def get_queryset(self):
         return super(NginxIngressListCreateViewSet, self).get_queryset().filter(is_deleted=False)
 
+    def get_ns_id_name(self, access_token, project_id):
+        ns_list = ns_utils.get_cc_namespaces(access_token, project_id) or []
+        return {ns["id"]: ns["name"] for ns in ns_list}
+
     def list(self, request, project_id):
         access_token = request.user.token.access_token
         queryset = self.get_queryset().filter(project_id=project_id)
@@ -157,11 +161,19 @@ class NginxIngressListCreateViewSet(NginxIngressBase, HelmReleaseMixin):
             queryset = queryset.filter(cluster_id=cluster_id)
         cluster_id_name_map = self.get_cluster_id_name_map(access_token, project_id)
         results = []
+        ns_id_name = self.get_ns_id_name(access_token, project_id)
+
         for info in queryset.order_by("-updated").values():
             info["cluster_name"] = cluster_id_name_map.get(info["cluster_id"], {}).get("name")
             info["environment"] = cluster_id_name_map.get(info["cluster_id"], {}).get("environment")
+            # 兼容先前，如果没有时，通过命名空间ID，获取命名空间名称
+            namespace = info["namespace"]
+            if not info["namespace"]:
+                namespace = ns_id_name.get(info["namespace_id"])
+                info["namespace"] = namespace
+            info["namespace_name"] = namespace
             release = self.get_helm_release(
-                cluster_id, K8S_LB_CHART_NAME, namespace_id=info["namespace_id"], namespace=info["namespace"])
+                cluster_id, K8S_LB_CHART_NAME, namespace_id=info["namespace_id"], namespace=namespace)
             info["chart"] = {"name": K8S_LB_CHART_NAME, "version": release.get_current_version() if release else ""}
             results.append(info)
         # TODO: 后续添加权限相关
