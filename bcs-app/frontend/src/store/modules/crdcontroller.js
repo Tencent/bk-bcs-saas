@@ -68,7 +68,7 @@ export default {
         },
 
         /**
-         * 查询crd列表 (老)
+         * 查询crd列表 (老，仅DB授权使用)
          *
          * @param {Object} context store 上下文对象
          * @param {Object} projectId, clusterId, crdKind
@@ -104,7 +104,7 @@ export default {
         },
 
         /**
-         * 查询单个crd
+         * 查询单个crd (仅用于DB授权)
          *
          * @param {Object} context store 上下文对象
          * @param {Object} projectId, clusterId, crdId
@@ -114,6 +114,20 @@ export default {
          */
         getCrdInstanceDetail (context, { projectId, clusterId, crdId }, config = {}) {
             const url = `${DEVOPS_BCS_API_URL}/api/projects/${projectId}/bcs_crd/clusters/${clusterId}/crd_instances/${crdId}/`
+            return http.get(url, {}, config)
+        },
+
+        /**
+         * 查询单个crd
+         *
+         * @param {Object} context store 上下文对象
+         * @param {Object} projectId, crdKind, crdId
+         * @param {Object} config 请求的配置
+         *
+         * @return {Promise} promise 对象
+         */
+        getLogCrdInstanceDetail (context, { projectId, crdId, crdKind }, config = {}) {
+            const url = `${DEVOPS_BCS_API_URL}/api/projects/${projectId}/bcs_crd/crds/-/detail/?id=${crdId}&crd_kind=${crdKind}`
             return http.get(url, {}, config)
         },
 
