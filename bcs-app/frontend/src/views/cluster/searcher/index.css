@@ -178,7 +178,7 @@
             box-sizing: border-box;
             outline: none;
             height: 36px;
-            width: 300px;
+            width: 200px;
             margin: 0;
             &::-webkit-input-placeholder {
                 color: #c3cdd7;
