@@ -38,8 +38,8 @@ from backend.apps.network.constants import K8S_LB_LABEL, K8S_LB_CHART_NAME, K8S_
 from backend.apps.cluster.constants import DEFAULT_SYSTEM_LABEL_KEYS
 from backend.utils.error_codes import error_codes
 from backend.utils.renderers import BKAPIRenderer
-from backend.apps.network import serializers
-from backend.resources.namespace import namespace
+from backend.apps.network import serializers, constants
+from backend.resources.namespace import namespace, utils as ns_utils
 from backend.resources.cluster import utils as cluster_utils
 from backend.apps.network.views.charts.releases import HelmReleaseMixin
 
@@ -52,7 +52,10 @@ class NginxIngressBase(viewsets.ModelViewSet):
     def get_chart_version(self, project_id, version):
         try:
             chart_version = ChartVersion.objects.get(
-                name=K8S_LB_CHART_NAME, chart__repository__project_id=project_id, version=version
+                name=K8S_LB_CHART_NAME,
+                chart__repository__project_id=project_id,
+                version=version,
+                chart__repository__name="public-repo"
             )
         except ChartVersion.DoesNotExist:
             raise error_codes.ResNotFoundError(_("没有查询到chart版本: {}").format(version))
@@ -88,7 +91,7 @@ class NginxIngressBase(viewsets.ModelViewSet):
         """节点打标签
         """
         many_data = []
-        ip_info = data["ip_info"]
+        ip_info = json.loads(data["ip_info"])
         node_id_labels = {}
         existed_node_label_info = NodeLabel.objects.filter(
             node_id__in=[node_id for node_id in ip_info]
@@ -149,6 +152,21 @@ class NginxIngressListCreateViewSet(NginxIngressBase, HelmReleaseMixin):
     def get_queryset(self):
         return super(NginxIngressListCreateViewSet, self).get_queryset().filter(is_deleted=False)
 
+    def get_ns_id_name(self, access_token, project_id):
+        ns_list = ns_utils.get_cc_namespaces(access_token, project_id) or []
+        return {ns["id"]: ns["name"] for ns in ns_list}
+
+    def _set_lb_namespace(self, lb, ns_id_name):
+        """更新lb中namespace
+        兼容逻辑，后续可以删除
+        如果lb中namespace为空，则通过namespace id查询到namespace，然后更新namespace
+        """
+        namespace = lb["namespace"]
+        if not lb["namespace"]:
+            namespace = ns_id_name.get(lb["namespace_id"])
+            lb["namespace"] = namespace
+        lb["namespace_name"] = namespace
+
     def list(self, request, project_id):
         access_token = request.user.token.access_token
         queryset = self.get_queryset().filter(project_id=project_id)
@@ -157,13 +175,16 @@ class NginxIngressListCreateViewSet(NginxIngressBase, HelmReleaseMixin):
             queryset = queryset.filter(cluster_id=cluster_id)
         cluster_id_name_map = self.get_cluster_id_name_map(access_token, project_id)
         results = []
-        for info in queryset.order_by("-updated").values():
-            info["cluster_name"] = cluster_id_name_map.get(info["cluster_id"], {}).get("name")
-            info["environment"] = cluster_id_name_map.get(info["cluster_id"], {}).get("environment")
+        ns_id_name = self.get_ns_id_name(access_token, project_id)
+
+        for lb in queryset.order_by("-updated").values():
+            lb["cluster_name"] = cluster_id_name_map.get(lb["cluster_id"], {}).get("name")
+            lb["environment"] = cluster_id_name_map.get(lb["cluster_id"], {}).get("environment")
+            self._set_lb_namespace(lb, ns_id_name)
             release = self.get_helm_release(
-                cluster_id, K8S_LB_CHART_NAME, namespace_id=info["namespace_id"], namespace=info["namespace"])
-            info["chart"] = {"name": K8S_LB_CHART_NAME, "version": release.get_current_version() if release else ""}
-            results.append(info)
+                cluster_id, K8S_LB_CHART_NAME, namespace_id=lb["namespace_id"], namespace=lb["namespace"])
+            lb["chart"] = {"name": K8S_LB_CHART_NAME, "version": release.get_current_version() if release else ""}
+            results.append(lb)
         # TODO: 后续添加权限相关
         resp = {
             "count": len(results),
@@ -414,7 +435,9 @@ class NginxIngressRetrieveUpdateViewSet(NginxIngressBase, HelmReleaseMixin):
             resource_id=pk,
             extra=json.dumps(data)
         )
-        chart_version = self.get_chart_version(project_id, data["version"])
+        # release 对应的版本为"(current-unchanged) v1.1.2"
+        version = data["version"].split(constants.RELEASE_VERSION_PREFIX)[-1].strip()
+        chart_version = self.get_chart_version(project_id, version)
         updated_instance = release.upgrade_app(
             access_token=request.user.token.access_token,
             chart_version_id=chart_version.id,
