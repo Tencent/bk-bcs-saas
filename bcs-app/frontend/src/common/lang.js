@@ -1591,6 +1591,11 @@ export default {
     'Kube-proxy代理模式：': ['Kube-proxy: '],
     '请输入集群名或ID': ['Please enter the cluster name or ID'],
     '请通过container查询异常详情': ['Please query the exception details through container'],
+    '选择chart:blueking-nginx-ingress对应的版本': ['Select the version corresponding to chart:blueking-nginx-ingress'],
+    '选择版本': ['Select Version'],
+    'Values内容': ['Values'],
+    '请选择节点IP': ['Please Select Node IP'],
+    '请填写Values内容': ['Please Enter Values'],
     // 变量的使用 $t('test', { vari1: 1, vari2: 2 })
     // 变量的使用 $t('test', { vari1: 1, vari2: 2 })
     'test': ['{vari1} ---english--- {vari2}']
