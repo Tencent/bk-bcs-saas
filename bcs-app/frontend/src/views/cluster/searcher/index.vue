@@ -214,8 +214,8 @@
                 showEnterTip: false,
                 showStatus: false,
                 statusList: [
-                    { text: '正常', value: ['normal'] },
-                    { text: '不可调度', value: ['to_removed', 'removable'] }
+                    { text: this.$t('正常'), value: ['normal'] },
+                    { text: this.$t('不可调度'), value: ['to_removed', 'removable'] }
                 ]
             }
         },
