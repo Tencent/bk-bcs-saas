@@ -209,7 +209,8 @@ export default {
             batchReInstallStatusList: ['initial_failed', 'check_failed', 'so_init_failed', 'schedule_failed', 'bke_failed'],
             clipboardInstance: null,
             hostSourceKey: 'bcs_host_pool',
-            hostSourceList: [{ id: 'bcs_host_pool', name: this.$t('平台资源池') }, { id: 'biz_host_pool', name: this.$t('业务资源池') }]
+            hostSourceList: [{ id: 'bcs_host_pool', name: this.$t('平台资源池') }, { id: 'biz_host_pool', name: this.$t('业务资源池') }],
+            nodeList4Copy: []
         }
     },
     computed: {
@@ -280,8 +281,21 @@ export default {
             }
             this.getNodeList(params)
         }
+        this.fetchNodeList4Copy()
     },
     methods: {
+        async fetchNodeList4Copy () {
+            try {
+                const res = await this.$store.dispatch('cluster/getNodeList4Copy', {
+                    projectId: this.projectId,
+                    clusterId: this.clusterId
+                })
+                this.nodeList4Copy.splice(0, this.nodeList4Copy.length, ...(res.data || []))
+            } catch (e) {
+                catchErrorHandler(e, this)
+            }
+        },
+
         /**
          * 格式化日志
          *
@@ -462,6 +476,7 @@ export default {
             this.getNodeList({
                 labels: searchParams.labels,
                 ip: searchParams.ipParams,
+                status_list: searchParams.statusList,
                 limit: this.nodeListPageConf.pageSize,
                 offset: this.nodeListPageConf.pageSize * (this.nodeListPageConf.curPage - 1),
                 with_containers: '1'
@@ -492,6 +507,7 @@ export default {
             this.getNodeList({
                 labels: searchParams.labels,
                 ip: searchParams.ipParams,
+                status_list: searchParams.statusList,
                 limit: this.nodeListPageConf.pageSize,
                 offset: this.nodeListPageConf.pageSize * (page - 1),
                 with_containers: '1'
@@ -518,7 +534,15 @@ export default {
                     })
                 })
             })
-            return { ipParams, labels }
+
+            const statusListParams = searchParams.filter(item => item.id === 'status_list')
+            const statusMap = {}
+            statusListParams.forEach(statusItem => {
+                statusItem.valueArr.forEach(statusVal => {
+                    statusMap[statusVal] = 1
+                })
+            })
+            return { ipParams, labels, statusList: Object.keys(statusMap) }
         },
 
         /**
@@ -537,6 +561,7 @@ export default {
             this.getNodeList({
                 labels: searchParams.labels,
                 ip: searchParams.ipParams,
+                status_list: searchParams.statusList,
                 limit: this.nodeListPageConf.pageSize,
                 offset: 0,
                 with_containers: '1'
@@ -621,6 +646,7 @@ export default {
                 this.getNodeList({
                     labels: searchParams.labels,
                     ip: searchParams.ipParams,
+                    status_list: searchParams.statusList,
                     limit: this.nodeListPageConf.pageSize,
                     offset: 0,
                     with_containers: '1'
@@ -2000,16 +2026,49 @@ export default {
         },
 
         /**
-         * 复制所选 IP
+         * 复制 IP
+         *
+         * @param {string} idx 复制的标识
          */
-        copyIp () {
-            this.$refs.toggleFilterDropdownMenu && this.$refs.toggleFilterDropdownMenu.hide()
-            // 复制所选 ip
-            this.clipboardInstance = new Clipboard('.batch-operate-dropdown .copy', {
-                text: trigger => Object.keys(this.checkedNodes).map(key => this.checkedNodes[key].inner_ip).join('\n')
-            })
+        async copyIp (idx) {
+            this.$refs.copyIpDropdownMenu && this.$refs.copyIpDropdownMenu.hide()
 
-            const successMsg = this.$t('复制 {len} 个IP成功', { len: Object.keys(this.checkedNodes).length })
+            let successMsg = ''
+            // 复制所选 ip
+            if (idx === 'selected') {
+                this.clipboardInstance = new Clipboard('.copy-ip-dropdown .selected', {
+                    text: trigger => Object.keys(this.checkedNodes).map(key => this.checkedNodes[key].inner_ip).join('\n')
+                })
+                successMsg = this.$t('复制 {len} 个IP成功', { len: Object.keys(this.checkedNodes).length })
+            } else if (idx === 'cur-page') {
+                // 复制当前页 IP
+                if (!this.nodeList.length) {
+                    this.bkMessageInstance && this.bkMessageInstance.close()
+                    this.bkMessageInstance = this.$bkMessage({
+                        theme: 'primary',
+                        message: this.$t('当前页无数据')
+                    })
+                    return
+                }
+                this.clipboardInstance = new Clipboard('.copy-ip-dropdown .cur-page', {
+                    text: trigger => this.nodeList.map(node => node.inner_ip).join('\n')
+                })
+                successMsg = this.$t('复制当前页IP成功')
+            } else if (idx === 'all') {
+                // 复制所有 IP
+                if (!this.nodeList4Copy.length) {
+                    this.bkMessageInstance && this.bkMessageInstance.close()
+                    this.bkMessageInstance = this.$bkMessage({
+                        theme: 'primary',
+                        message: this.$t('无数据')
+                    })
+                    return
+                }
+                this.clipboardInstance = new Clipboard('.copy-ip-dropdown .all', {
+                    text: trigger => this.nodeList4Copy.map(ip => ip).join('\n')
+                })
+                successMsg = this.$t('复制所有IP成功')
+            }
             this.clipboardInstance.on('success', e => {
                 this.bkMessageInstance && this.bkMessageInstance.close()
                 this.bkMessageInstance = this.$bkMessage({
