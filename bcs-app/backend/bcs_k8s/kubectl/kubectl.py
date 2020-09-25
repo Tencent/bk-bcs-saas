@@ -104,7 +104,7 @@ class KubectlClusterClient:
                 "delete",
                 "--ignore-not-found=true",
                 item["kind"],
-                item["name"]
+                item["name"],
             ]
             try:
                 self._run_command_with_retry(max_retries=0, cmd_arguments=cmd_arguments)
@@ -120,14 +120,7 @@ class KubectlClusterClient:
         :returns: dict
         :raises: KubectlError or KubectlExecutionError
         """
-        cmd_arguments = self.kubectl_base + [
-            "get",
-            kind.lower(),
-            name,
-            "--namespace=%s" % namespace,
-            "-o",
-            "json"
-        ]
+        cmd_arguments = self.kubectl_base + ["get", kind.lower(), name, "--namespace=%s" % namespace, "-o", "json"]
         output = self._run_command_with_retry(max_retries=0, cmd_arguments=cmd_arguments)
         return json.loads(output)
 
@@ -139,7 +132,7 @@ class KubectlClusterClient:
             "--ignore-not-found=true",
             "--namespace=%s" % namespace,
             "-o",
-            "json"
+            "json",
         ]
         output = self._run_command_with_retry(max_retries=0, cmd_arguments=cmd_arguments)
         return json.loads(output)
@@ -182,8 +175,6 @@ class KubectlClusterClient:
                 # retry after 0.5, 1, 1.5, ... seconds
                 time.sleep((i + 1) * 0.5)
                 continue
-            else:
-                break
 
         raise ValueError(max_retries)
 
@@ -194,13 +185,12 @@ class KubectlClusterClient:
         logger.info("Calling kubectl cmd, cmd: (%s)", cmd_str)
         try:
             output = subprocess.check_output(
-                cmd_arguments,
-                stderr=subprocess.STDOUT,
-                env={KUBECONFIG_ENV: self.kubeconfig}
+                cmd_arguments, stderr=subprocess.STDOUT, env={KUBECONFIG_ENV: self.kubeconfig}
             )
         except subprocess.CalledProcessError as err:
-            logger.exception("Unable to run kubectl command, return code: %s\ncommand output: \n%s",
-                             err.returncode, err.output)
+            logger.exception(
+                "Unable to run kubectl command, return code: %s\ncommand output: \n%s", err.returncode, err.output
+            )
             raise KubectlExecutionError(err.returncode, err.output)
         except Exception as err:
             logger.exception("Unable to run kubectl command")

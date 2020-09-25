@@ -72,7 +72,14 @@ def requests_curl_log(resp, st, params):
     )
 
     if resp.request.body:
-        curl_req += " -d '{body}'".format(body=force_str(resp.request.body))
+        try:
+            body = json.loads(resp.request.body.decode("utf-8"))
+            for s_key in SENSITIVE_KEYWORD:
+                if s_key in body:
+                    body[s_key] = MOSAIC_WORD
+            curl_req += " -d '{body}'".format(body=json.dumps(body))
+        except Exception:
+            pass
 
     if resp.request.headers:
         for key, value in resp.request.headers.items():
