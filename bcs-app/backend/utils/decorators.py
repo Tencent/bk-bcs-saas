@@ -79,7 +79,7 @@ def requests_curl_log(resp, st, params):
                     body[s_key] = MOSAIC_WORD
             curl_req += " -d '{body}'".format(body=json.dumps(body))
         except Exception:
-            pass
+            curl_req += " -d '{body}'".format(body=force_str(resp.request.body))
 
     if resp.request.headers:
         for key, value in resp.request.headers.items():
