@@ -987,7 +987,7 @@
                 const sLabels = searchParams.labels
                 const len = sLabels.length
 
-                const statusList = searchParams.statusList
+                const statusList = searchParams.statusList || []
                 const statusListLen = statusList.length
 
                 const results = []
@@ -1022,11 +1022,13 @@
                         }
                     })
 
-                    Object.keys(resultMap).forEach(ip => {
-                        if (statusList.indexOf(resultMap[ip].status) < 0) {
-                            delete resultMap[ip]
-                        }
-                    })
+                    if (statusListLen) {
+                        Object.keys(resultMap).forEach(ip => {
+                            if (statusList.indexOf(resultMap[ip].status) < 0) {
+                                delete resultMap[ip]
+                            }
+                        })
+                    }
 
                     Object.keys(resultMap).forEach(key => {
                         results.push(resultMap[key])
