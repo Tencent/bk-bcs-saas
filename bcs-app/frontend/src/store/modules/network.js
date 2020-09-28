@@ -785,6 +785,34 @@ export default {
         getRegions (context, { projectId }, config = {}) {
             const url = `${DEVOPS_BCS_API_URL}/api/projects/${projectId}/network/clb/regions/`
             return http.get(url, {}, config)
+        },
+
+        /**
+         * 查询chart 版本记录
+         *
+         * @param {Object} context store 上下文对象
+         * @param {Object} params 请求参数
+         * @param {Object} config 请求的配置
+         *
+         * @return {Promise} promise 对象
+         */
+        getChartVersions (context, { projectId, params = {} }, config = {}) {
+            const url = `${DEVOPS_BCS_API_URL}/api/k8s_lb/projects/${projectId}/chart/versions/?${json2Query(params)}`
+            return http.get(url, {}, config)
+        },
+
+        /**
+         * 查询对应版本values
+         *
+         * @param {Object} context store 上下文对象
+         * @param {Object} params 请求参数
+         * @param {Object} config 请求的配置
+         *
+         * @return {Promise} promise 对象
+         */
+        getChartDetails (context, { projectId, params }, config = {}) {
+            const url = `${DEVOPS_BCS_API_URL}/api/k8s_lb/projects/${projectId}/chart/versions/-/detail/`
+            return http.post(url, params, config)
         }
     }
 }

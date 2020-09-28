@@ -59,8 +59,8 @@
                 const currentProject = getProjectByCode(window.$currentProjectId)
                 let menuList = this.menuList
                 const kind = currentProject.kind
-                // k8s
-                if (kind === 1) {
+                // k8s, tke
+                if (kind === 1 || kind === 3) {
                     menuList = this.k8sMenuList
                 }
 
@@ -86,7 +86,6 @@
                     }
                 }
             },
-
             /**
              * 通过改变 router-view 里的 key 来实现强制刷新 router-view
              */
@@ -96,3 +95,18 @@
         }
     }
 </script>
+
+<style>
+    .bk-form-inline-item.is-required .bk-label:after,
+    .bk-form-item.is-required .bk-label:after {
+        top: 0;
+        margin-top: 12px;
+    }
+    .v-tooltips-container .v-tooltips-content {
+        max-width: 500px;
+    }
+    .bk-selector .bk-selector-node .text {
+        height: 42px;
+        line-height: 42px;
+    }
+</style>

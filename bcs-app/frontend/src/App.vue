@@ -19,65 +19,94 @@
             </div>
             <div v-else>
                 <div class="biz-guide-box" style="border: none; box-shadow: none; margin-top: 0;" :style="{ height: `${height}px` }">
-                    <p class="title">容器服务未启用，请完善以下信息</p>
-                    <main class="bk-form biz-app-form">
-                        <div class="form-item">
-                            <label>业务编排类型：</label>
-                            <div class="form-item-inner">
-                                <label class="bk-form-radio">
-                                    <input type="radio" value="1" name="kind" v-model="kind">
-                                    <i class="bk-radio-text">Kubernetes</i>
-                                </label>
-                                <label class="bk-form-radio">
-                                    <input type="radio" value="2" name="kind" v-model="kind">
-                                    <i class="bk-radio-text">Mesos</i>
-                                </label>
-                            </div>
-                        </div>
-                        <div class="form-item" v-if="ccList.length" style="margin-bottom: 30px;">
-                            <label>关联CMDB业务：<span class="red">*</span></label>
-                            <div class="form-item-inner">
-                                <div style="display: inline-block;" class="mr5">
-                                    <bk-selector
-                                        style="width: 250px;"
-                                        placeholder="请选择"
-                                        :searchable="true"
-                                        :setting-key="'id'"
-                                        :display-key="'name'"
-                                        :selected.sync="ccKey"
-                                        :list="ccList">
-                                    </bk-selector>
+                    <p class="title">{{$t('容器服务未启用')}}{{isIEGProject ? $t('，请完善以下信息') : ''}}</p>
+                    <template v-if="!isIEGProject">
+                        <p class="desc">{{$t('您当前的项目')}}“{{curProject.project_name}}”{{$t('没有启用蓝鲸部署服务，如需开启使用，请联系')}}<a href="wxwork://message/?username=BCS">【{{$t('蓝鲸容器助手')}}】</a></p>
+                        <p style="font-size: 14px">
+                            <a :href="PROJECT_CONFIG.doc.quickStart" target="_blank">{{$t('请点击了解更多')}}<i class="bk-icon icon-angle-double-right"></i></a>
+                        </p>
+                    </template>
+                    <template v-else>
+                        <main class="bk-form biz-app-form">
+                            <div class="form-item">
+                                <label>{{$t('业务编排类型')}}：</label>
+                                <div class="form-item-inner">
+                                    <label class="bk-form-radio">
+                                        <input type="radio" value="1" name="kind" v-model="kind">
+                                        <i class="bk-radio-text">BCS-K8S</i>
+                                    </label>
+                                    <label class="bk-form-radio">
+                                        <input type="radio" value="2" name="kind" v-model="kind">
+                                        <i class="bk-radio-text">BCS-Mesos</i>
+                                    </label>
                                 </div>
-                                <bk-tooltip placement="top" content="关联业务后，您可以从对应的业务下选择机器，搭建容器集群">
-                                    <span style="font-size: 12px;cursor: pointer;">
-                                        <i class="bk-icon icon-info-circle"></i>
-                                    </span>
-                                </bk-tooltip>
                             </div>
-                        </div>
-                        <div class="form-item" v-else>
-                            <label>关联CMDB业务：<span class="red">*</span></label>
-                            <div class="form-item-inner" style="margin-top: -20px;">
-                                <p class="desc">当前账号在蓝鲸配置平台无业务，请联系运维在蓝鲸配置平台关联业务，<a :href="bkCCHost" target="_blank">点击查看业务和运维信息</a></p>
+                            <div class="form-item" v-if="ccList.length" style="margin-bottom: 30px;">
+                                <label>{{$t('关联CMDB业务')}}：<span class="red">*</span></label>
+                                <div class="form-item-inner">
+                                    <div style="display: inline-block;" class="mr5">
+                                        <bk-selector
+                                            style="width: 250px;"
+                                            :placeholder="$t('请选择')"
+                                            :searchable="true"
+                                            :setting-key="'id'"
+                                            :display-key="'name'"
+                                            :selected.sync="ccKey"
+                                            :list="ccList">
+                                        </bk-selector>
+                                    </div>
+                                    <bk-tooltip placement="top" :content="$t('关联业务后，您可以从对应的业务下选择机器，搭建容器集群')">
+                                        <span style="font-size: 12px;cursor: pointer;">
+                                            <i class="bk-icon icon-info-circle"></i>
+                                        </span>
+                                    </bk-tooltip>
+                                </div>
                             </div>
-                        </div>
-                        <button class="bk-button bk-primary" :class="enableBtn ? '' : 'is-disabled'"
-                            style="margin-left: -40px;"
-                            @click="updateProject"
-                            :disabled="!enableBtn">
-                            启用容器服务
-                        </button>
-                    </main>
+                            <div class="form-item" v-else>
+                                <label>{{$t('关联CMDB业务')}}：<span class="red">*</span></label>
+                                <div class="form-item-inner" style="margin-top: -20px;">
+                                    <p class="desc">
+                                        {{$t('当前账号无运维角色权限的业务，请到')}}<a :href="bkIamAppUrl" target="_blank">{{$t('权限中心')}}</a>{{$t('申请，')}}<a href="javascript: void(0)" @click="showGuide">{{$t('查看帮助')}}</a>
+                                    </p>
+                                </div>
+                            </div>
+                            <button class="bk-button bk-primary" :class="enableBtn ? '' : 'is-disabled'"
+                                style="margin-left: -40px;"
+                                @click="updateProject"
+                                :disabled="!enableBtn">
+                                {{$t('启用容器服务')}}
+                            </button>
+                        </main>
+                    </template>
                 </div>
             </div>
         </template>
+        <bk-dialog
+            :is-show.sync="guideDialogConf.isShow"
+            :width="guideDialogConf.width"
+            :title="guideDialogConf.title"
+            :close-icon="guideDialogConf.closeIcon"
+            :ext-cls="'perm-guide-dialog'"
+            :quick-close="true"
+            @cancel="hideGuide">
+            <div slot="content" class="content">
+                <div class="tip">{{$t('点击图片放大')}}</div>
+                <img :title="$t('点击图片放大')" src="./images/guide1.jpg" @click="setFullsreenImg(1)" />
+                <img :title="$t('点击图片放大')" src="./images/guide2.jpg" @click="setFullsreenImg(2)" />
+            </div>
+        </bk-dialog>
+        <div class="fullscreen-img" v-if="fullscreenImg">
+            <img :title="$t('点击图片还原')" :src="fullscreenImg" @click="fullscreenImg = ''" />
+        </div>
         <app-apply-perm ref="bkApplyPerm"></app-apply-perm>
     </div>
 </template>
 <script>
-    import Img403 from '@open/images/403.png'
     import { bus } from '@open/common/bus'
     import { getProjectByCode } from '@open/common/util'
+    import Img403 from '@open/images/403.png'
+    import imgGuide1 from './images/guide1.jpg'
+    import imgGuide2 from './images/guide2.jpg'
 
     export default {
         name: 'app',
@@ -88,6 +117,7 @@
                 minHeight: 768,
                 isUserBKService: true,
                 curProject: null,
+                isIEGProject: true,
                 height: 0,
                 ccKey: '',
                 ccList: [],
@@ -96,7 +126,15 @@
                 projectId: '',
                 projectCode: '',
                 isLoading: true,
-                bkCCHost: window.BK_CC_HOST + '/#/business'
+                bkCCHost: window.BK_CC_HOST + '/#/business',
+                bkIamAppUrl: window.BK_IAM_APP_URL + '/apply-custom-perm',
+                guideDialogConf: {
+                    isShow: false,
+                    width: 1000,
+                    title: this.$t('帮助'),
+                    closeIcon: true
+                },
+                fullscreenImg: ''
             }
         },
         computed: {
@@ -123,6 +161,10 @@
                 this.systemCls = 'win'
             }
 
+            if (this.$store.state.isEn) {
+                this.systemCls += ' english'
+            }
+
             window.addEventListener('change::$currentProjectId', async e => {
                 this.isLoading = true
 
@@ -144,9 +186,9 @@
             })
         },
         mounted () {
-            document.title = '容器服务'
+            document.title = this.$t('容器服务')
             if (window.$changeDocumentTitle) {
-                window.$changeDocumentTitle('蓝鲸容器管理平台')
+                window.$changeDocumentTitle(this.$t('蓝鲸容器管理平台'))
             }
 
             this.initContainerSize()
@@ -193,6 +235,31 @@
             })
         },
         methods: {
+            /**
+             * 显示指引信息
+             */
+            showGuide () {
+                this.guideDialogConf.isShow = true
+            },
+
+            /**
+             * 隐藏指引信息
+             */
+            hideGuide () {
+                this.guideDialogConf.isShow = false
+                this.fullscreenImg = ''
+            },
+
+            setFullsreenImg (idx) {
+                if (idx === 1) {
+                    this.fullscreenImg = imgGuide1
+                } else if (idx === 2) {
+                    this.fullscreenImg = imgGuide2
+                } else {
+                    this.fullscreenImg = ''
+                }
+            },
+
             /**
              * 初始化容器最小高度
              */
@@ -250,12 +317,14 @@
             async fetchCCList () {
                 try {
                     const res = await this.$store.dispatch('getCCList')
-                    this.ccList = [...(res.data || [])]
+                    if (res.data) {
+                        this.ccList = [...(res.data || [])]
+                    }
                 } catch (e) {
-                    this.bkMessageInstance = this.$bkMessage({
-                        theme: 'error',
-                        message: e.message || e.data.msg || e.statusText
-                    })
+                    // this.bkMessageInstance = this.$bkMessage({
+                    //     theme: 'error',
+                    //     message: e.message || e.data.msg || e.statusText
+                    // })
                 }
             },
 
@@ -284,7 +353,6 @@
                         // this.isLoading = false
                     })
                 } catch (e) {
-                    console.error(e)
                     this.isLoading = false
                     this.bkMessageInstance = this.$bkMessage({
                         theme: 'error',
@@ -302,10 +370,11 @@
         }
     }
 </script>
-<style>
-    @import './css/reset.css';
-    @import './css/app.css';
-    @import './css/animation.css';
+<style lang="postcss">
+    @import '@open/css/reset.css';
+    @import '@open/css/app.css';
+    @import '@open/css/animation.css';
+    @import '@open/css/mixins/scroller.css';
 
     .app-container {
         min-width: 1280px;
@@ -319,5 +388,42 @@
     .app-content {
         flex: 1;
         background: #fafbfd;
+    }
+
+    .perm-guide-dialog {
+        .bk-dialog-header,
+        .bk-dialog-footer {
+            display: none;
+        }
+        .content {
+            @mixin scroller #eee;
+            height: 500px;
+            overflow: scroll;
+            .tip {
+                font-size: 14px;
+                color: #737987;
+                position: absolute;
+                top: 20px;
+            }
+            img {
+                cursor: pointer;
+                width: 100%;
+            }
+        }
+    }
+
+    .fullscreen-img {
+        position: fixed;
+        top: 0;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        width: 100%;
+        background-color: rgba(0, 0, 0, 0.6);
+        z-index: 2500;
+        img {
+            cursor: pointer;
+            width: 100%;
+        }
     }
 </style>

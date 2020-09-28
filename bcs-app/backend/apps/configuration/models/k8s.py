@@ -17,26 +17,38 @@ import json
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
 
+from backend.apps.instance.constants import INGRESS_ID_SEPARATOR
+
 from .base import BaseModel, logger
 from .mixins import ResourceMixin, ConfigMapAndSecretMixin, PodMixin
 
 
+def get_secret_name_by_certid(cert_id, ingress_name):
+    """由tls证书的名称组装secret的名称
+    certId: "perrier.ffm"
+    tls: 证书名称不能为空，只支持英文大小写、数字、下划线和英文句号
+    secret名称: 以小写字母或数字开头和结尾，只能包含：小写字母、数字、连字符(-)、点(.)
+    """
+    cert_id = str(cert_id).replace("_", "-")
+    return f"{ingress_name}-{cert_id}-srt"
+
+
 class K8sResource(BaseModel):
     config = models.TextField("配置信息")
-    name = models.CharField("名称", max_length=255, default='')
+    name = models.CharField("名称", max_length=255, default="")
 
     class Meta:
         abstract = True
-        ordering = ('created',)
+        ordering = ("created",)
 
     def save(self, *args, **kwargs):
         # TODO mark refactor 这段代码为了保证兼容性，后面只保留一种条件
         if isinstance(self.config, dict):
-            self.name = self.config.get('metadata', {}).get('name')
+            self.name = self.config.get("metadata", {}).get("name")
             self.config = json.dumps(self.config)
         else:
             config = json.loads(self.config)
-            self.name = config.get('metadata', {}).get('name')
+            self.name = config.get("metadata", {}).get("name")
         super().save(*args, **kwargs)
 
     @classmethod
@@ -56,9 +68,9 @@ class K8sResource(BaseModel):
         return config
 
     def get_res_config(self, is_simple):
-        c = {'id': self.id, 'name': self.name}
+        c = {"id": self.id, "name": self.name}
         if not is_simple:
-            c['config'] = self.get_config()
+            c["config"] = self.get_config()
         return c
 
     # TODO refactor 保留get_name仅仅为了兼容，因为太多模块这么用了，后面去掉
@@ -67,12 +79,11 @@ class K8sResource(BaseModel):
         config = self.get_config()
         if not config:
             return None
-        return config.get('metadata', {}).get('name')
+        return config.get("metadata", {}).get("name")
 
 
 class K8sPodResource(K8sResource):
-    deploy_tag = models.CharField(max_length=32, default='',
-                                  help_text="每次保存时会生成新的应用记录，用deploy_tag来记录与其他资源的关联关系")
+    deploy_tag = models.CharField(max_length=32, default="", help_text="每次保存时会生成新的应用记录，用deploy_tag来记录与其他资源的关联关系")
     desc = models.TextField("描述", help_text="前台展示字段，bcs api 中无该信息")
 
     class Meta:
@@ -80,7 +91,7 @@ class K8sPodResource(K8sResource):
 
     @classmethod
     def perform_create(cls, **kwargs):
-        kwargs['deploy_tag'] = int(time.time() * 1000000)
+        kwargs["deploy_tag"] = int(time.time() * 1000000)
         return super().perform_create(**kwargs)
 
     @classmethod
@@ -93,30 +104,27 @@ class K8sPodResource(K8sResource):
         deploy_tag = resource.deploy_tag
         if not deploy_tag:
             deploy_tag = int(time.time() * 1000000)
-        kwargs['deploy_tag'] = deploy_tag
+        kwargs["deploy_tag"] = deploy_tag
         return super().perform_update(old_id, **kwargs)
 
     def get_res_config(self, is_simple):
         c = super().get_res_config(is_simple)
-        c['deploy_tag'] = self.deploy_tag
+        c["deploy_tag"] = self.deploy_tag
         if not is_simple:
-            c['desc'] = self.desc
+            c["desc"] = self.desc
         return c
 
     def get_labels(self):
         config = self.get_config()
-        return config.get('spec', {}).get(
-            'template', {}).get('metadata', {}).get('labels', {})
+        return config.get("spec", {}).get("template", {}).get("metadata", {}).get("labels", {})
 
     def get_ports(self):
         ports = []
         for container in self.get_containers():
-            for port in container.get('ports'):
-                ports.append({
-                    'name': port.get('name'),
-                    'containerPort': port.get('containerPort'),
-                    'id': port.get('id')
-                })
+            for port in container.get("ports"):
+                ports.append(
+                    {"name": port.get("name"), "containerPort": port.get("containerPort"), "id": port.get("id")}
+                )
         return ports
 
 
@@ -134,10 +142,7 @@ class K8sDeployment(K8sPodResource, PodMixin):
         resource_data = []
         robj_qsets = cls.objects.filter(id__in=resource_id_list)
         for robj in robj_qsets:
-            resource_data.append({
-                'deploy_tag': robj.deploy_tag,
-                'deploy_name': robj.name
-            })
+            resource_data.append({"deploy_tag": robj.deploy_tag, "deploy_name": robj.name})
         return resource_data
 
 
@@ -150,12 +155,12 @@ class K8sJob(K8sPodResource, PodMixin):
 
 
 class K8sStatefulSet(K8sPodResource, PodMixin):
-    service_tag = models.CharField(u"关联的K8sService 标识", max_length=32)
+    service_tag = models.CharField("关联的K8sService 标识", max_length=32)
 
     def get_res_config(self, is_simple):
         c = super().get_res_config(is_simple)
         if not is_simple:
-            c['service_tag'] = self.service_tag
+            c["service_tag"] = self.service_tag
         return c
 
 
@@ -163,10 +168,9 @@ class K8sService(K8sResource, ResourceMixin):
     """
     service 中的 ports 一定是在 k8s Deployment 中有的。Deployment(ports) 大于等于 service(ports)
     """
-    deploy_tag_list = models.TextField("关联的含有Pod资源(如K8sDeployment)的ID",
-                                       help_text="可以关联多个Pod,json格式存储,可选")
-    service_tag = models.CharField("K8sService 标识", max_length=32,
-                                   help_text="每次保存时会生成新的应用记录，用来记录与其他资源的关联关系")
+
+    deploy_tag_list = models.TextField("关联的含有Pod资源(如K8sDeployment)的ID", help_text="可以关联多个Pod,json格式存储,可选")
+    service_tag = models.CharField("K8sService 标识", max_length=32, help_text="每次保存时会生成新的应用记录，用来记录与其他资源的关联关系")
 
     def save(self, *args, **kwargs):
         if isinstance(self.deploy_tag_list, list):
@@ -176,7 +180,7 @@ class K8sService(K8sResource, ResourceMixin):
     @classmethod
     def perform_create(cls, **kwargs):
         # TODO refactor use uuid instead of timestamp
-        kwargs['service_tag'] = int(time.time() * 1000000)
+        kwargs["service_tag"] = int(time.time() * 1000000)
         return super().perform_create(**kwargs)
 
     @classmethod
@@ -186,7 +190,7 @@ class K8sService(K8sResource, ResourceMixin):
         except cls.DoesNotExist:
             raise cls.DoesNotExist(_("{} Id ({}) 不存在").format(cls.__name__, old_id))
 
-        kwargs['service_tag'] = resource.service_tag
+        kwargs["service_tag"] = resource.service_tag
         return super().perform_update(old_id, **kwargs)
 
     @classmethod
@@ -196,25 +200,25 @@ class K8sService(K8sResource, ResourceMixin):
         for svc in svc_qsets:
             ports = svc.get_ports_config()
             svc_info = {
-                'service_tag': svc.service_tag,
-                'service_name': svc.name,
-                'service_ports': [p.get('port') for p in ports if p.get('port')]
+                "service_tag": svc.service_tag,
+                "service_name": svc.name,
+                "service_ports": [p.get("port") for p in ports if p.get("port")],
             }
             svc_list.append(svc_info)
         return svc_list
 
     def get_res_config(self, is_simple):
         c = super().get_res_config(is_simple)
-        c['service_tag'] = self.service_tag
+        c["service_tag"] = self.service_tag
         if not is_simple:
-            c['deploy_tag_list'] = self.get_deploy_tag_list()
+            c["deploy_tag_list"] = self.get_deploy_tag_list()
         return c
 
     def get_ports_config(self):
         config = self.get_config()
         if not config:
             return []
-        return config.get('spec', {}).get('ports', [])
+        return config.get("spec", {}).get("ports", [])
 
     def get_deploy_tag_list(self):
         if not self.deploy_tag_list:
@@ -226,14 +230,14 @@ class K8sService(K8sResource, ResourceMixin):
         config = self.get_config()
         if not config:
             return {}
-        return config.get('spec', {}).get('selector')
+        return config.get("spec", {}).get("selector")
 
     def is_headless_service(self):
         """spec.clusterIP 为 "None"
         """
         config = self.get_config() or {}
-        cluster_ip = config.get('spec', {}).get('clusterIP', '')
-        if cluster_ip == 'None':
+        cluster_ip = config.get("spec", {}).get("clusterIP", "")
+        if cluster_ip == "None":
             return True
         return False
 
@@ -242,12 +246,33 @@ class K8sIngress(K8sResource, ResourceMixin):
     desc = models.TextField("描述", help_text="前台展示字段，bcs api 中无该信息")
     category = models.CharField("类型", max_length=16, blank=True, null=True, help_text="该字段已经废弃")
 
+    def get_tls_secret_list(self):
+        tls_secret_list = []
+        # 配置项中每一个tls证书需要生成一个secret文件
+        tls_list = self.get_config().get("spec", {}).get("tls", [])
+        for tls in tls_list:
+            cert_id = tls.get("certId")
+            if not cert_id:
+                continue
+
+            cert_type = tls.get("certType") or "tls"
+            tls_secret_list.append(
+                {
+                    "id": f"{self.id}{INGRESS_ID_SEPARATOR}{cert_id}{INGRESS_ID_SEPARATOR}"
+                    f"K8sIngress{INGRESS_ID_SEPARATOR}{cert_type}",
+                    "name": get_secret_name_by_certid(cert_id, self.name),
+                }
+            )
+
+        return tls_secret_list
+
 
 class K8sHPA(K8sResource, ResourceMixin):
     pass
 
 
 # 资源类型在前端展示的名称
+# backend.apps.configuration.utils.get_real_category 方法依赖下面约定的规则
 CATE_SHOW_NAME = {
     # meos:后台类型全小写，前台展示首字母大写（规则不可变）
     "application": "Application",
@@ -255,8 +280,7 @@ CATE_SHOW_NAME = {
     "service": "Service",
     "configmap": "ConfigMap",
     "secret": "Secret",
-    'hpa': 'HPA',
-
+    "hpa": "HPA",
     # k8s:前台展示去掉 'K8s' 字符 （规则不可变）
     "K8sDeployment": "Deployment",
     "K8sService": "Service",
@@ -276,7 +300,7 @@ CATE_ABBR_NAME = {
     "service": "svc",
     "configmap": "cm",
     "secret": "srt",
-    'hpa': 'hpa',
+    "hpa": "hpa",
     # k8s 相关资源
     "K8sDeployment": "deploy",
     "K8sService": "svc",
@@ -286,5 +310,5 @@ CATE_ABBR_NAME = {
     "K8sJob": "job",
     "K8sStatefulSet": "sts",
     "K8sIngress": "ing",
-    "K8sHPA": "hpa"
+    "K8sHPA": "hpa",
 }

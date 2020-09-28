@@ -36,9 +36,10 @@
                     <div class="right">
                         <div class="top">
                             <div class="inner">
-                                <div class="inner-item">
+                                <div class="inner-item" style="width: 180px;">
                                     <label class="title">{{$t('模板集版本')}}</label>
-                                    <bk-selector :placeholder="$t('请选择')"
+                                    <bk-selector
+                                        :placeholder="$t('请选择')"
                                         :selected.sync="tplsetVerIndex"
                                         :list="tplsetVerList"
                                         :setting-key="'show_version_id'"
@@ -46,7 +47,7 @@
                                     </bk-selector>
                                     <label class="tip">{{$t('创建后启动实例')}}</label>
                                 </div>
-                                <div class="inner-item">
+                                <div class="inner-item" style="width: 280px;">
                                     <label class="title">{{$t('模板')}}</label>
                                     <bk-selector :placeholder="$t('请选择要实例化的模板')"
                                         :searchable="true"
@@ -74,7 +75,7 @@
                                     <div class="content-inner m0 pl0 pb0">
                                         <div :key="index" class="content-trigger-wrapper open" v-for="(cluster, index) in selectedNamespaceCluster" style="cursor: default;">
                                             <div class="content-trigger">
-                                                <div class="left-area" style="border-right: none;">
+                                                <div class="left-area" style="border-right: none; width: auto;">
                                                     <div class="label">
                                                         <span class="biz-text-wrapper">{{cluster.cluster_name}}</span>
                                                         <span class="choose-num">{{cluster.namespaceList.length}} 个</span>
@@ -111,7 +112,7 @@
                             <div class="form-wrapper">
                                 <template v-if="invalidNsList.length && invalidNsList.indexOf(previewNs.name) > -1">
                                     <div style="text-align: center; margin: 0 auto; margin-bottom: 20px; margin-top: -20px;">
-                                        命令空间[{{previewNs.name}}]没有相关联的 LoadBalance，请先到 网络 -> LoadBalance 页面关联
+                                        {{$t('命令空间')}} [{{previewNs.name}}] {{$t('没有相关联的 LoadBalance，请先到 网络 -> LoadBalance 页面关联')}}
                                     </div>
                                 </template>
                                 <template v-else>
@@ -168,7 +169,7 @@
                                         <label class="form-label">
                                             {{$t('预览')}}：
                                         </label>
-                                        <div class="form-item-inner" style="width: 900px">
+                                        <div class="form-item-inner" style="width: 100px">
                                             <bk-tab :type="'fill'" :size="'small'" :active-name="previewList[0].name" :key="previewList.length" @tab-changed="tabChange">
                                                 <bk-tabpanel :key="index" :name="item.name" :title="item.title" :tag="item.tag" v-for="(item, index) in previewList">
                                                     <div class="biz-code-wrapper">
@@ -225,7 +226,7 @@
             @confirm="confirmSelect"
             @cancel="dialogConf.isShow = false">
             <template slot="content">
-                <div class="content-inner" style="max-height: 420px; overflow: auto;" v-bkloading="{ isLoading: dialogConf.loading }">
+                <div class="content-inner" :style="{ 'max-height': '420px', 'overflow': 'auto' }">
                     <div class="namespace-types">
                         <span class="bk-outline"><i class="bk-icon icon-circle-shape"></i>{{$t('未实例化过')}}</span>
                         <span class="bk-default"><i class="bk-icon icon-circle-shape"></i>{{$t('已实例化过')}}</span>
@@ -245,7 +246,7 @@
                             <i v-if="item.isOpen" class="bk-icon icon-angle-up trigger active" style="border-left: 1px solid #eee;"></i>
                             <i v-else class="bk-icon icon-angle-down trigger" style="border-left: 1px solid #eee;"></i>
                         </div>
-                        <div class="biz-namespace-wrapper" v-if="item.results.length" :style="{ display: item.isOpen ? '' : 'none' }">
+                        <div class="biz-namespace-wrapper" :style="{ display: item.isOpen ? '' : 'none' }">
                             <div class="namespace-inner">
                                 <template v-for="(namespace, i) in item.results">
                                     <div :key="i" v-if="namespace.isExist" class="candidate-namespace exist">
@@ -268,9 +269,9 @@
                                         </bk-tooltip>
                                     </div>
                                 </template>
-                                <div class="candidate-namespace add-namespace" title="新增命名空间">
+                                <div class="candidate-namespace add-namespace" :title="$t('新增命名空间')">
                                     <bk-tooltip ref="addNamespaceNode" :delay="30000" placement="top-end" :controlled="true" @on-show="showAddNamespace(index)">
-                                        <div class="candidate-namespace-name" @click="triggerAddNamespace">
+                                        <div class="candidate-namespace-name" @click="triggerAddNamespace(index)">
                                             <img src="@open/images/plus.svg" class="add-btn" />
                                         </div>
                                         <template slot="content">
@@ -286,7 +287,7 @@
                                                 <img src="@open/images/link.svg" />
                                             </a>
                                             <div class="operate">
-                                                <a href="javascript:;" class="bk-text-button disabled" v-if="dialogConf.loading">{{$t('保存')}}</a>
+                                                <a href="javascript:;" class="bk-text-button disabled" v-if="dialogConf.loading">{{$t('保存中...')}}</a>
                                                 <a href="javascript:;" class="bk-text-button" v-else @click="addNamespace(item, index)">{{$t('保存')}}</a>
                                                 <a href="javascript:;" class="bk-text-button disabled" v-if="dialogConf.loading" @click="cancelNamespace">{{$t('取消')}}</a>
                                                 <a href="javascript:;" class="bk-text-button" v-else @click="cancelNamespace">{{$t('取消')}}</a>
@@ -499,7 +500,7 @@
                     }
                 }
                 // k8s
-                if (this.curProject.kind === PROJECT_K8S) {
+                if (this.curProject.kind === PROJECT_K8S || this.curProject.kind === PROJECT_TKE) {
                     this.editorConfig.lang = 'yaml'
                 } else { // mesos
                     this.editorConfig.lang = 'json'
@@ -595,7 +596,7 @@
                     const list = res.data
 
                     list.forEach(item => {
-                        this.candidateNamespaceList.push({ ...item, isOpen: false })
+                        this.candidateNamespaceList.push({ ...item, isOpen: true })
                     })
                 } catch (e) {
                     catchErrorHandler(e, this)
@@ -714,7 +715,7 @@
 
                         tplList.push(obj)
                     })
-                    
+
                     this.sortTplType(tplList, 'name')
 
                     this.tplIndex.splice(0, this.tplIndex.length, ...tplIndex)
@@ -791,7 +792,7 @@
                         name: item.name
                     })
                 })
-                
+
                 let count = 0
                 this.tplList.forEach(item => {
                     count += (item.children || []).length
@@ -920,6 +921,7 @@
                             // boolean（强制转数整数）相减，isEist为true排后面
                             return cur.isExist - next.isExist
                         })
+                        item.isOpen = true
                     })
                     this.existList.splice(0, this.existList.length, ...existList)
                     this.candidateNamespaceList.splice(0, this.candidateNamespaceList.length, ...list)
@@ -974,7 +976,10 @@
                 // 清除弹层中的选中状态，不需要清除已选择的 ns 的状态
                 this.clearCandidateNamespaceStatus()
 
-                // 之前选择过，那么把之前选择的回填到弹层中，同时展开有选择的
+                // 默认展开所有
+                candidateNamespaceList.forEach(item => {
+                    item.isOpen = true
+                })
                 if (selectedNamespaceList.length) {
                     selectedNamespaceList.forEach(ns => {
                         candidateNamespaceList[ns.candidateIndex].isOpen = true
@@ -987,9 +992,6 @@
                             index: ns.index
                         }
                     })
-                } else {
-                    // 之前没选择过，那么展开第一个
-                    candidateNamespaceList[0].isOpen = true
                 }
             },
 
@@ -1051,7 +1053,7 @@
             triggerHandler (item, index) {
                 // 展开时滚动条回到顶部
                 // document.querySelectorAll('.namespace-wrapper .namespace-inner')[1].scrollTop = 0
-                this.collapseTrigger()
+                // this.collapseTrigger()
                 item.isOpen = !item.isOpen
                 this.$set(this.candidateNamespaceList, index, item)
 
@@ -1215,6 +1217,7 @@
                     this.editorConfig.editors.splice(0, this.editorConfig.editors.length, ...[])
                     this.editorConfig.values.splice(0, this.editorConfig.values.length, ...[])
                     this.previewShow = false
+
                     this.previewNamespace(alreadySelected || this.selectedNamespaceList[0], 0, true)
                 } catch (e) {
                     console.error(e)
@@ -1283,7 +1286,7 @@
 
                 this.resetNamespacePreview(ns)
                 this.clearNamespaceStatus()
-                
+
                 ns.isSelected = !ns.isSelected
                 this.$set(this.selectedNamespaceList, index, ns)
 
@@ -1364,7 +1367,7 @@
              */
             async previewNamespaceByForm (ns, index, forceSelect) {
                 if (!this.checkParams()) return false
-                
+
                 this.resetNamespacePreview()
                 this.clearNamespaceStatus()
                 const variableInfo = {
@@ -1534,9 +1537,34 @@
                         if (type === '[object Array]' || type === '[object Object]') {
                             this.analysisJSON(data[k], originalData, path.concat(k), keyMap)
                         } else {
-                            const reg = new RegExp(`\\{\\{\\s*${Object.keys(keyMap).join('|')}\\s*\\}\\}`)
-                            if (reg.test(data[k])) {
-                                data[k] = keyMap[data[k].replace(/\{\{\s*/, '').replace(/\s*\}\}/, '')]
+                            const intReg = /\{\{\s*([^{{]*)\s*\|toInt\}\}/g
+                            if (intReg.test(data[k])) {
+                                const ret = data[k].replace(intReg, (c, d) => {
+                                    if (keyMap[d] !== undefined && keyMap[d] !== null) {
+                                        if (String(keyMap[d]).trim() === '') {
+                                            return c
+                                        }
+                                        return keyMap[d]
+                                    }
+                                })
+
+                                if (!isNaN(ret)) {
+                                    data[k] = parseFloat(ret)
+                                } else {
+                                    data[k] = ret
+                                }
+                            } else {
+                                const reg = /\{\{\s*([^{{]*)\s*\}\}/g
+                                if (reg.test(data[k])) {
+                                    data[k] = data[k].replace(reg, (c, d) => {
+                                        if (keyMap[d] !== undefined && keyMap[d] !== null) {
+                                            if (String(keyMap[d]).trim() === '') {
+                                                return c
+                                            }
+                                            return keyMap[d]
+                                        }
+                                    })
+                                }
                             }
                         }
                     })
@@ -2078,11 +2106,16 @@
              *
              * @return {string} returnDesc
              */
-            triggerAddNamespace () {
+            triggerAddNamespace (index) {
+                this.namespaceName = ''
                 this.$refs.addNamespaceNode.forEach(vnode => {
-                    vnode.visiable = true
-                    vnode.visible = true
+                    vnode.visiable = false
+                    vnode.visible = false
                 })
+
+                const vnode = this.$refs.addNamespaceNode[index]
+                vnode.visiable = true
+                vnode.visible = true
             },
 
             /**
@@ -2094,7 +2127,7 @@
             async addNamespace (item, index) {
                 this.dialogConf.loading = true
                 try {
-                    const clusterId = item.results[0].cluster_id
+                    const clusterId = item.cluster_id
                     if (!this.namespaceName.trim()) {
                         this.bkMessageInstance && this.bkMessageInstance.close()
                         this.bkMessageInstance = this.$bkMessage({

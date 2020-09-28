@@ -43,6 +43,7 @@ from backend.utils.renderers import BKAPIRenderer
 from backend.apps.cluster.views_bk import node
 from backend.apps.cluster.views_bk.tools import cmdb, gse
 from backend.apps.cluster.views.utils import get_error_msg
+from backend.resources.cluster.utils import get_cluster_nodes
 
 logger = logging.getLogger(__name__)
 
@@ -271,12 +272,19 @@ class NodeCreateListViewSet(NodeBase, NodeHandler, viewsets.ViewSet):
                     break
         return filter_data
 
+    def filter_nodes_by_status(self, node_list, status_list):
+        if not status_list:
+            return node_list
+        return [node for node in node_list if node["status"] in status_list]
+
     def data_handler_for_nodes(self, request, project_id, cluster_id, data):
         self.can_view_cluster(request, project_id, cluster_id)
         node_list = self.get_node_list(request, project_id, cluster_id)
         # filter by request ip
         node_list = self.filter_node(node_list.get('results') or [], data.get('ip'), filter_key="inner_ip")
         node_list = self.filter_node_with_labels(cluster_id, node_list, data.get('labels'))
+        # 通过节点状态过滤节点
+        node_list = self.filter_nodes_by_status(node_list, data["status_list"])
         node_list = self.clean_node(node_list)
         # pagination for node list
         ip_offset = data.pop('offset', 0)
@@ -321,6 +329,12 @@ class NodeCreateListViewSet(NodeBase, NodeHandler, viewsets.ViewSet):
     def create(self, request, project_id, cluster_id):
         node_client = node.CreateNode(request, project_id, cluster_id)
         return node_client.create()
+
+    def list_nodes_ip(self, request, project_id, cluster_id):
+        """获取集群下节点的IP
+        """
+        nodes = get_cluster_nodes(request.user.token.access_token, project_id, cluster_id, raise_exception=False)
+        return response.Response([info["inner_ip"] for info in nodes if info["status"] != CommonStatus.Removed])
 
 
 class NodeGetUpdateDeleteViewSet(NodeBase, NodeLabelBase, viewsets.ViewSet):

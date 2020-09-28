@@ -821,10 +821,11 @@
                     return
                 }
 
-                if (!/^[a-z][a-z0-9-]+$/g.test(namespaceName)) {
+                if (!/^[a-z0-9]([-a-z0-9]*[a-z0-9])?$/g.test(namespaceName)) {
                     this.$bkMessage({
                         theme: 'error',
-                        message: this.$t('命名空间名称只能包含小写字母、数字以及连字符(-)，且不能以数字开头')
+                        delay: 5000,
+                        message: this.$t('命名空间名称只能包含小写字母、数字以及连字符(-)，不能以数字开头，且连字符（-）后面必须接英文或者数字')
                     })
                     return
                 }
@@ -833,6 +834,7 @@
                     this.bkMessageInstance && this.bkMessageInstance.close()
                     this.bkMessageInstance = this.$bkMessage({
                         theme: 'error',
+                        deplay: 5000,
                         message: this.$t('请选择所属集群')
                     })
                     return
@@ -964,11 +966,11 @@
                     })
                     return
                 }
-
-                if (!/^[a-z][a-z0-9-]+$/g.test(namespaceName)) {
+                if (!/^[a-z0-9]([-a-z0-9]*[a-z0-9])?$/g.test(namespaceName)) {
                     this.$bkMessage({
                         theme: 'error',
-                        message: this.$t('命名空间名称只能包含小写字母、数字以及连字符(-)，且不能以数字开头')
+                        delay: 5000,
+                        message: this.$t('命名空间名称只能包含小写字母、数字以及连字符(-)，不能以数字开头，且连字符（-）后面必须接英文或者数字')
                     })
                     return
                 }

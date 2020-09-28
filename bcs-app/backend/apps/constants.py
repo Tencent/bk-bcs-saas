@@ -23,39 +23,33 @@ from backend.apps.constants_bk import *  # noqa
 
 class NodeStatus(Enum):
     # 未初始化
-    UNINITIALIZED = 'uninitialized'
+    UNINITIALIZED = "uninitialized"
     # 初始化中
-    INITIALIZING = 'initializing'
+    INITIALIZING = "initializing"
     # 正常状态
-    NORMAL = 'normal'
+    NORMAL = "normal"
     # 初始化失败
-    INITIAL_FAILED = 'initial_failed'
+    INITIAL_FAILED = "initial_failed"
     # 待移除
-    TO_REMOVED = 'to_removed'
+    TO_REMOVED = "to_removed"
     # 可移除
-    REMOVABLE = 'removable'
+    REMOVABLE = "removable"
     # 移除中
-    REMOVING = 'removing'
+    REMOVING = "removing"
     # 移除失败 remove_failed
-    REMOVE_FAILED = 'remove_failed'
+    REMOVE_FAILED = "remove_failed"
     # 已移除
-    REMOVED = 'removed'
+    REMOVED = "removed"
 
 
 # 节点使用中状态
-NodeActiveStatus = [NodeStatus.UNINITIALIZED,
-                    NodeStatus.INITIALIZING, NodeStatus.NORMAL]
+NodeActiveStatus = [NodeStatus.UNINITIALIZED, NodeStatus.INITIALIZING, NodeStatus.NORMAL]
 
 
 # docker状态排序
 # default will be 100
 DockerStatusDefaultOrder = 100
-DockerStatusOrdering = {
-    'running': 0,
-    'waiting': 1,
-    'lost': 8,  # mesos
-    'terminated': 9
-}
+DockerStatusOrdering = {"running": 0, "waiting": 1, "lost": 8, "terminated": 9}  # mesos
 
 
 # 模板实例化时需要传递给BCS的KEY
@@ -67,19 +61,16 @@ PROJECT_ID = "projectId"
 
 # env 环境, 现在是给namespace使用
 class EnvType(Enum):
-    DEV = 'dev'
-    TEST = 'test'
-    PROD = 'prod'
+    DEV = "dev"
+    TEST = "test"
+    PROD = "prod"
 
 
 ClusterType = dict(ProjectKind._choices_labels.get_choices())
 
 
 class MetricProjectKind(ChoicesEnum):
-    _choices_labels = (
-        (1, 'k8s'),
-        (2, 'Mesos')
-    )
+    _choices_labels = ((1, "k8s"), (2, "Mesos"))
 
 
 # 限制project kind
@@ -96,20 +87,20 @@ K8S_SKIP_NS = "kube-system"
 METRICS_DEFAULT_TIMEDELTA = 3600
 
 # 功能开关
-BIND_BIZ_ID_FUNC_CODE = 'bind_biz_id_enabled'
-NOTIFY_MANAGER_FUNC_CODE = 'notify_manager'
-NOTIFY_PROJECT_APPROVAL_FUNC_CODE = 'notify_project_approval'
+BIND_BIZ_ID_FUNC_CODE = "bind_biz_id_enabled"
+NOTIFY_MANAGER_FUNC_CODE = "notify_manager"
+NOTIFY_PROJECT_APPROVAL_FUNC_CODE = "notify_project_approval"
 
 # k8s 中系统的命名空间，不允许用户创建，也不能操作上面的资源 kube-system, kube-public
-K8S_SYS_NAMESPACE = ['kube-system', 'kube-public', 'thanos']
+K8S_SYS_NAMESPACE = ["kube-system", "kube-public", "thanos"]
 
 # k8s 平台服务用的命名空间
-K8S_PLAT_NAMESPACE = ['web-console', 'gitlab-ci', 'thanos']
+K8S_PLAT_NAMESPACE = ["web-console", "gitlab-ci", "thanos"]
 
 SKIP_REQUEST_NAMESPACE = ["projects", "projects_pub"]
 
 # all cluster flag
-ALL_CLUSTER_FLAG = 'ALL'
+ALL_CLUSTER_FLAG = "ALL"
 
 # 敏感单词
-SENSITIVE_KEYWORD = ['access_token', 'bk_app_secret', 'X-BKAPI-AUTHORIZATION']
+SENSITIVE_KEYWORD = ["access_token", "bk_app_secret", "X-BKAPI-AUTHORIZATION", "X-BK-APP-SECRET"]

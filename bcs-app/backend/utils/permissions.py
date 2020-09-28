@@ -11,12 +11,11 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-from django.conf import settings
 from rest_framework.permissions import BasePermission
 
-from backend.accounts import bcs_perm
 from backend.apps.constants import SKIP_REQUEST_NAMESPACE, ClusterType
-from backend.components import paas_auth, paas_cc
+from backend.components import paas_cc
+from backend.components.iam import permissions
 from backend.utils import FancyDict
 from backend.utils.cache import region
 from backend.utils.error_codes import error_codes
@@ -24,22 +23,18 @@ from backend.utils.error_codes import error_codes
 
 class HasProject(BasePermission):
     def has_permission(self, request, view):
-        project_id = view.kwargs.get('project_id')
+        project_id = view.kwargs.get("project_id")
         if not project_id:
             return True
 
-        access_token = request.user.token.access_token
         user_id = request.user.username
-        result = paas_auth.verify_project(access_token, project_id, user_id)
-        if result.get('code') == 0:
-            return True
-
-        return False
+        perm = permissions.ProjectPermission()
+        return perm.can_view(user_id, project_id)
 
 
 class HasIAMProject(BasePermission):
     def has_permission(self, request, view):
-        project_id = view.kwargs.get('project_id')
+        project_id = view.kwargs.get("project_id")
         if not project_id:
             return True
 
@@ -50,29 +45,27 @@ class HasIAMProject(BasePermission):
         if not project_code:
             return False
 
-        verify = bcs_perm.verify_project_by_user(
-            access_token=access_token, project_code=project_code, project_id=project_id, user_id=user_id)
-
-        return verify
+        perm = permissions.ProjectPermission()
+        return perm.can_view(user_id, project_id)
 
     def get_project_code(self, access_token, project_id):
         """获取project_code
         缓存较长时间
         """
-        cache_key = f'BK_DEVOPS_BCS:PROJECT_CODE:{project_id}'
+        cache_key = f"BK_DEVOPS_BCS:PROJECT_CODE:{project_id}"
         project_code = region.get(cache_key, expiration_time=3600 * 24 * 30)
         if not project_code:
             result = paas_cc.get_project(access_token, project_id)
-            if result.get('code') != 0:
+            if result.get("code") != 0:
                 return None
-            project_code = result['data']['english_name']
+            project_code = result["data"]["english_name"]
             region.set(cache_key, project_code)
         return project_code
 
 
 class ProjectHasBCS(BasePermission):
     def has_permission(self, request, view):
-        project_id = view.kwargs.get('project_id')
+        project_id = view.kwargs.get("project_id")
         if not project_id:
             return True
 
@@ -82,7 +75,7 @@ class ProjectHasBCS(BasePermission):
         project = self.has_bcs_service(access_token, project_id, request_namespace)
 
         # 赋值给request.project
-        project['project_code'] = project['english_name']
+        project["project_code"] = project["english_name"]
         request.project = project
 
         return True
@@ -91,22 +84,22 @@ class ProjectHasBCS(BasePermission):
         """判断是否开启容器服务
         开启后就不能关闭，所以缓存很久，默认30天
         """
-        cache_key = f'BK_DEVOPS_BCS:HAS_BCS_SERVICE:{project_id}'
+        cache_key = f"BK_DEVOPS_BCS:HAS_BCS_SERVICE:{project_id}"
         project = region.get(cache_key, expiration_time=3600 * 24 * 30)
 
         if not project or not isinstance(project, FancyDict):
             result = paas_cc.get_project(access_token, project_id)
-            project = result.get('data') or {}
+            project = result.get("data") or {}
             project = FancyDict(project)
 
             if request_namespace in SKIP_REQUEST_NAMESPACE:
                 # 如果是SKIP_REQUEST_NAMESPACE，有更新接口，不判断kind
-                if project.get('cc_app_id') != 0 and project.get('kind') in ClusterType:
+                if project.get("cc_app_id") != 0 and project.get("kind") in ClusterType:
                     region.set(cache_key, project)
 
-            elif project.get('kind') in ClusterType:
+            elif project.get("kind") in ClusterType:
                 # 如果已经开启容器服务，判断是否cc_app_id再缓存
-                if project.get('cc_app_id') != 0:
+                if project.get("cc_app_id") != 0:
                     region.set(cache_key, project)
             else:
                 # 其他抛出没有开启容器服务

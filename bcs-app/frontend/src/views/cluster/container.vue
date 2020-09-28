@@ -404,10 +404,10 @@
     import moment from 'moment'
     import { Decimal } from 'decimal.js'
 
-    import { containerDetailChart } from '@/common/chart-option'
+    import { containerDetailChart } from '@open/common/chart-option'
     import { catchErrorHandler, formatBytes } from '@open/common/util'
 
-    import { createChartOption } from '@/views/app/container-chart-opts'
+    import { createChartOption } from '@open/views/app/container-chart-opts'
 
     export default {
         components: {

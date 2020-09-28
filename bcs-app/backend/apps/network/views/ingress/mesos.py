@@ -104,7 +104,7 @@ class IngressListViewSet(BaseIngress):
         return response.Response(ingress_list)
 
 
-class IngressRetrieveOperteViewSet(BaseIngress):
+class IngressRetrieveOperateViewSet(BaseIngress):
     renderer_classes = (BKAPIRenderer, BrowsableAPIRenderer)
 
     def can_view(self, request, project_id, cluster_id, namespace_id):

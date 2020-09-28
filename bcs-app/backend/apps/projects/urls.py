@@ -12,14 +12,31 @@
 # specific language governing permissions and limitations under the License.
 #
 from django.conf.urls import url
+
 from . import views
 
 urlpatterns = [
-    # projec list
-    url(r'^api/projects/$', views.Projects.as_view({'get': 'list'})),
+    # project list
+    url(r"^api/projects/$", views.Projects.as_view({"get": "list"})),
     # compatible with project_id, project_code
-    url(r'^api/projects/(?P<project_id>[\w-]+)/$',
-        views.Projects.as_view({'get': 'info', 'put': 'update'}), name="update_project"),
+    url(
+        r"^api/projects/(?P<project_id>[\w-]+)/$",
+        views.Projects.as_view({"get": "info", "put": "update"}),
+        name="update_project",
+    ),
     # get cmdb business
-    url(r'^api/cc/$', views.CC.as_view({'get': 'list'})),
+    url(r"^api/cc/$", views.CC.as_view({"get": "list"})),
+    url(r"^api/nav/users/$", views.UserAPIView.as_view()),
+    url(
+        r"^api/nav/projects/$", views.NavProjectsViewSet.as_view({"get": "filter_projects", "post": "create_project"})
+    ),
+    url(
+        r"^api/nav/projects/(?P<project_id>\w{32})/$",
+        views.NavProjectsViewSet.as_view({"get": "get_project", "put": "update_project"}),
+    ),
+    url(r"^api/nav/projects/user_perms/$", views.NavProjectPermissionViewSet.as_view({"post": "get_user_perms"})),
+    url(
+        r"^api/nav/projects/(?P<project_id>\w{32})/user_perms/$",
+        views.NavProjectPermissionViewSet.as_view({"post": "query_user_perms_by_project"}),
+    ),
 ]

@@ -28,7 +28,7 @@ from backend.apps.instance import constants as inst_constants
 from backend.apps.instance.funutils import render_mako_context
 from backend.apps.instance.generator import handle_intersection_item, handel_custom_network_mode
 from backend.apps.application.constants import UNNORMAL_STATUS
-from backend.apps.network.constants import K8S_NGINX_INGRESS_CONTROLLER_CHART_VALUES, MESOS_LB_NAMESPACE_NAME
+from backend.apps.network.constants import K8S_NGINX_INGRESS_CONTROLLER_CHART_VALUES, MESOS_LB_NAMESPACE
 from backend.apps.network.models import MesosLoadBlance
 from backend.apps.constants import CONTROLLER_IMAGE_PATH, BACKEND_IMAGE_PATH
 from backend.apps.datalog.utils import get_data_id_by_project_id
@@ -47,7 +47,7 @@ def get_namespace_name(access_token, project_id, data_dict):
         ns_resp = paas_cc.get_namespace(access_token, project_id, ns_id)
         namespace = ns_resp.get('data', {}).get('name')
     else:
-        namespace = MESOS_LB_NAMESPACE_NAME
+        namespace = MESOS_LB_NAMESPACE
     return namespace
 
 

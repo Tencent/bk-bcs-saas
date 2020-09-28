@@ -2,11 +2,11 @@
     <div class="biz-content">
         <div class="biz-top-bar">
             <div class="biz-helm-title">
-                Helm Release列表
+                {{$t('Helm Release列表')}}
             </div>
-            <div class="biz-actions">
-                <a class="bk-text-button" :href="PROJECT_CONFIG.doc.serviceAccess" target="_blank">如何使用Helm？</a>
-            </div>
+            <bk-guide>
+                <a class="bk-text-button" href="https://docs.bk.tencent.com/bcs/Container/helm/ServiceAccess.html" target="_blank">{{$t('如何使用Helm？')}}</a>
+            </bk-guide>
         </div>
         <div class="biz-content-wrapper biz-helm-wrapper m0 p0" v-bkloading="{ isLoading: showLoading, opacity: 0.1 }">
             <template v-if="!showLoading">
@@ -20,23 +20,25 @@
                     <div class="left">
                         <router-link class="bk-button bk-primary" :to="{ name: 'helmTplList' }">
                             <i class="bk-icon icon-plus"></i>
-                            <span>部署Helm Chart</span>
+                            <span>{{$t('部署Helm Chart')}}</span>
                         </router-link>
                     </div>
                     <div class="right">
-                        <bk-data-searcher
+                        <search
                             :width-refresh="false"
                             :scope-list="searchScopeList"
+                            :namespace-list="namespaceList"
                             :search-key.sync="searchKeyword"
                             :search-scope.sync="searchScope"
-                            @search="search"
-                            @refresh="refresh">
-                        </bk-data-searcher>
+                            :search-namespace.sync="searchNamespace"
+                            @search="handleSearch"
+                            @refresh="handleRefresh">
+                        </search>
                     </div>
                 </div>
 
                 <svg style="display: none;">
-                    <title>模板集默认图标</title>
+                    <title>{{$t('模板集默认图标')}}</title>
                     <symbol id="biz-set-icon" viewBox="0 0 60 60">
                         <path class="st0" d="M54.8,16.5L34,4.5C33.4,4.2,32.7,4,32,4s-1.4,0.2-2,0.5l-20.8,12c-1.2,0.7-2,2-2,3.5v24c0,1.4,0.8,2.7,2,3.5
                             l20.8,12c0.6,0.4,1.3,0.5,2,0.5s1.4-0.2,2-0.5l20.8-12c1.2-0.7,2-2,2-3.5V20C56.8,18.6,56,17.3,54.8,16.5z M11.2,20L11.2,20L11.2,20
@@ -47,15 +49,15 @@
                     </symbol>
                 </svg>
 
-                <div class="biz-namespace" style="margin-bottom: 150px;">
+                <div class="biz-namespace" style="margin-bottom: 150px;" v-bkloading="{ isLoading: isPageLoading }">
                     <table class="bk-table biz-templateset-table mb20">
                         <thead>
                             <tr>
-                                <th style="width: 120px;" class="center">图标</th>
-                                <th style="width: 240px; padding-left: 20px;">Release名称</th>
-                                <th style="min-width: 230px; padding: 0 10px;">集群/命名空间</th>
-                                <th style="width: 250px; padding-left: 0;">操作记录</th>
-                                <th style="width: 225px; padding-left: 0;">操作</th>
+                                <th class="logo-th center">{{$t('图标')}}</th>
+                                <th class="data-th">{{$t('Release名称')}}</th>
+                                <th class="namespace-th">{{$t('集群')}}/{{$t('命名空间')}}</th>
+                                <th class="opera_record-th">{{$t('操作记录')}}</th>
+                                <th class="action-th">{{$t('操作')}}</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -70,14 +72,14 @@
                                                     </svg>
                                                 </td>
                                                 <td class="data">
-                                                    <span v-if="app.transitioning_on" class="f14 fb app-name biz-text-wrapper">
+                                                    <span v-if="app.transitioning_on" class="f14 fb app-name">
                                                         {{app.name}}
                                                     </span>
-                                                    <a @click="showAppDetail(app)" href="javascript:void(0)" class="bk-text-button app-name biz-text-wrapper f14 fb" v-else>
+                                                    <a @click="showAppDetail(app)" href="javascript:void(0)" class="bk-text-button app-name f14 fb" v-else v-bktooltips="app.name">
                                                         {{app.name}}
                                                     </a>
                                                     <div class="mt5">
-                                                        版本：
+                                                        {{$t('版本')}}：
                                                         <bk-tooltip :content="app.current_version" placement="top">
                                                             <span class="app-version biz-text-wrapper">{{app.current_version}}</span>
                                                         </bk-tooltip>
@@ -98,37 +100,37 @@
                                                         </div>
                                                     </template>
                                                     <template v-else-if="!app.transitioning_result && app.transitioning_action !== 'noop'">
-                                                        <bk-tooltip content="点击查看原因" placement="top">
+                                                        <bk-tooltip :content="$t('点击查看原因')" placement="top">
                                                             <div class="bk-tag bk-danger biz-check-btn" @click="showAppError(app)">
                                                                 <i class="bk-icon icon-order"></i>
-                                                                {{appAction[app.transitioning_action]}}失败
+                                                                {{appAction[app.transitioning_action]}}{{$t('失败')}}
                                                             </div>
                                                         </bk-tooltip>
                                                     </template>
                                                 </td>
                                                 <td class="namespace">
                                                     <div>
-                                                        所属集群：
+                                                        {{$t('所属集群')}}：
                                                         <bk-tooltip :content="app.cluster_id || '--'" placement="top">
                                                             <span class="biz-min-wrapper">{{app.cluster_name ? app.cluster_name : '--'}}</span>
                                                         </bk-tooltip>
                                                     </div>
                                                     <p>
-                                                        命名空间：<span class="biz-text-wrapper">{{app.namespace}}</span>
+                                                        {{$t('命名空间')}}：<span class="biz-text-wrapper ml5">{{app.namespace}}</span>
                                                     </p>
                                                 </td>
                                                 <td class="opera_record">
-                                                    <p class="updator">操作者：{{app.updator}}</p>
-                                                    <p class="updated">更新时间：{{app.updated}}</p>
+                                                    <p class="updator">{{$t('操作者')}}：{{app.updator}}</p>
+                                                    <p class="updated">{{$t('更新时间')}}：{{app.updated}}</p>
                                                 </td>
-                                                <td class="action">
+                                                <td class="action" style="width: 215px">
                                                     <template v-if="app.transitioning_on">
                                                         <button :class="['bk-button bk-default btn is-disabled']">
-                                                            <span>操作</span>
+                                                            <span>{{$t('操作')}}</span>
                                                             <i class="bk-icon icon-angle-down dropdown-menu-angle-down ml0" style="font-size: 10px;"></i>
                                                         </button>
                                                         <button :class="['bk-button bk-default btn is-disabled']">
-                                                            <span>查看状态</span>
+                                                            <span>{{$t('查看状态')}}</span>
                                                         </button>
                                                     </template>
                                                     <template v-else>
@@ -137,24 +139,24 @@
                                                             :align="'left'"
                                                             ref="dropdown">
                                                             <button :class="['bk-button bk-default btn']" slot="dropdown-trigger" style="position: relative;">
-                                                                <span>操作</span>
+                                                                <span>{{$t('操作')}}</span>
                                                                 <i class="bk-icon icon-angle-down dropdown-menu-angle-down ml0" style="font-size: 10px;"></i>
                                                             </button>
 
                                                             <ul class="bk-dropdown-list" slot="dropdown-content">
                                                                 <li>
-                                                                    <a href="javascript:void(0)" @click="showAppDetail(app)">更新</a>
+                                                                    <a href="javascript:void(0)" @click="showAppDetail(app)">{{$t('更新')}}</a>
                                                                 </li>
                                                                 <li>
-                                                                    <a href="javascript:void(0)" @click="showRebackDialog(app)">回滚</a>
+                                                                    <a href="javascript:void(0)" @click="showRebackDialog(app)">{{$t('回滚')}}</a>
                                                                 </li>
                                                                 <li>
-                                                                    <a href="javascript:void(0)" @click="deleteApp(app)">删除</a>
+                                                                    <a href="javascript:void(0)" @click="deleteApp(app)">{{$t('删除')}}</a>
                                                                 </li>
                                                             </ul>
                                                         </bk-dropdown-menu>
                                                         <button :class="['bk-button bk-default btn']" @click="showAppInfoSlider(app)">
-                                                            <span>查看状态</span>
+                                                            <span>{{$t('查看状态')}}</span>
                                                         </button>
                                                     </template>
                                                 </td>
@@ -167,7 +169,7 @@
                                 <tr>
                                     <td colspan="7">
                                         <div class="biz-guide-box" style="margin: 0 20px;">
-                                            <p class="message empty-message">无数据</p>
+                                            <p class="message empty-message">{{$t('无数据')}}</p>
                                         </div>
                                     </td>
                                 </tr>
@@ -190,11 +192,11 @@
                     <div class="bk-form bk-form-vertical" style="width: 760px;">
                         <div class="bk-form-item">
                             <label for="" class="bk-label">
-                                回滚到版本 <span class="error-tip" v-if="!isRebackListLoading && !rebackList.length">（Release当前没有可切换的版本，无法回滚）</span>
+                                {{$t('回滚到版本')}} <span class="error-tip" v-if="!isRebackListLoading && !rebackList.length">{{$t('（Release当前没有可切换的版本，无法回滚）')}}</span>
                             </label>
                             <div class="bk-form-content mb10">
                                 <bk-selector
-                                    :placeholder="'请选择'"
+                                    :placeholder="$t('请选择')"
                                     :selected.sync="versionId"
                                     :list="rebackList"
                                     :setting-key="'id'"
@@ -210,7 +212,7 @@
                                     :size="'small'"
                                     :active-name="'Difference'"
                                     :key="rebackPreviewList.length">
-                                    <bk-tabpanel :name="'Difference'" :title="'版本对比'">
+                                    <bk-tabpanel :name="'Difference'" :title="$t('版本对比')">
                                         <div style="height: 320px;">
                                             <ace
                                                 :value="difference"
@@ -244,10 +246,10 @@
                 <div class="bk-dialog-outer">
                     <template>
                         <button :class="['bk-button bk-dialog-btn-confirm bk-primary', { 'is-disabled': isRebackVersionLoading || isRebackLoading || !versionId }]" @click="submitRebackData">
-                            {{isRebackLoading ? '更新中...' : '确定'}}
+                            {{isRebackLoading ? $t('更新中...') : $t('确定')}}
                         </button>
                         <button :class="['bk-button bk-dialog-btn-cancel bk-default', { 'is-disabled': isRebackLoading }]" :disabled="isRebackLoading" @click="cancelReback">
-                            取消
+                            {{$t('取消')}}
                         </button>
                     </template>
                 </div>
@@ -261,13 +263,16 @@
             :title="errorDialogConf.title"
             @cancel="hideErrorDialog">
             <div slot="content">
-                <pre class="bk-intro bk-danger biz-error-message" v-if="errorDialogConf.message">
-                    {{errorDialogConf.message}}
-                </pre>
+                <div class="bk-intro bk-danger pb30 mb15" v-if="errorDialogConf.message" style="position: relative;">
+                    <pre class="biz-error-message">
+                        {{errorDialogConf.message}}
+                    </pre>
+                    <bk-button size="mini" type="default" id="error-copy-btn" :data-clipboard-text="errorDialogConf.message"><i class="bk-icon icon-clipboard mr5"></i>{{$t('复制')}}</bk-button>
+                </div>
             </div>
             <template slot="footer">
                 <div class="biz-footer">
-                    <bk-button type="primary" @click="hideErrorDialog">知道了</bk-button>
+                    <bk-button type="primary" @click="hideErrorDialog">{{$t('知道了')}}</bk-button>
                 </div>
             </template>
         </bk-dialog>
@@ -283,7 +288,7 @@
                     <input
                         type="text"
                         class="bk-form-input"
-                        placeholder="输入关键字，按Enter搜索"
+                        :placeholder="$t('输入关键字，按Enter搜索')"
                         v-model="resourceSearchKey"
                         @keyup.enter="searchResource" />
                     <span href="javascript:void(0)" class="biz-search-btn" v-if="!resourceSearchKey">
@@ -297,11 +302,11 @@
                     <thead>
                         <tr>
                             <th style="width: 10px; padding: 0;"></th>
-                            <th>名称</th>
-                            <th style="width: 130px;">类型</th>
+                            <th>{{$t('名称')}}</th>
+                            <th style="width: 130px;">{{$t('类型')}}</th>
                             <th style="width: 100px;">
                                 Pods
-                                <bk-tooltip content="实际实例数/期望数" placement="right">
+                                <bk-tooltip :content="$t('实际实例数/期望数')" placement="right">
                                     <i class="bk-icon icon-info-circle tip-trigger"></i>
                                 </bk-tooltip>
                             </th>
@@ -354,7 +359,7 @@
                         <template v-if="curAppResources.length === 0">
                             <tr>
                                 <td colspan="4">
-                                    <div class="biz-empty-message p50">无数据</div>
+                                    <div class="biz-empty-message p50">{{$t('无数据')}}</div>
                                 </td>
                             </tr>
                         </template>
@@ -368,19 +373,24 @@
 <script>
     import ace from '@open/components/ace-editor'
     import { catchErrorHandler } from '@open/common/util'
+    import Clipboard from 'clipboard'
+    import search from './search.vue'
 
     const FAST_TIME = 3000
     const SLOW_TIME = 10000
 
     export default {
         components: {
-            ace
+            ace,
+            search
         },
         data () {
             return {
                 curApp: {},
+                allNamespaces: [],
                 curAppResources: [],
                 curAppResourcesCache: [],
+                namespaceList: [],
                 statusTimer: 0,
                 isRebackLoading: false,
                 isRebackListLoading: false,
@@ -389,7 +399,8 @@
                 isAppInfoLoading: false,
                 appList: [],
                 appListCache: [],
-                showLoading: false,
+                showLoading: true,
+                isPageLoading: false,
                 exceptionCode: null,
                 versionId: '',
                 difference: '',
@@ -399,6 +410,7 @@
                 editor: null,
                 searchKeyword: '',
                 searchScope: '',
+                searchNamespace: '',
                 previewLoading: true,
                 rebackDialogConf: {
                     title: '',
@@ -446,12 +458,12 @@
                 },
                 operaRunningApp: {}, // 缓存操作更新中的app状态信息
                 appAction: {
-                    create: '部署',
+                    create: this.$t('部署'),
                     noop: '',
-                    update: '更新',
-                    rollback: '回滚',
-                    delete: '删除',
-                    destroy: '删除'
+                    update: this.$t('更新'),
+                    rollback: this.$t('回滚'),
+                    delete: this.$t('删除'),
+                    destroy: this.$t('删除')
                 },
                 isOperaLayerShow: false, // 操作弹层显示，包括删除和回滚
                 appCheckTime: FAST_TIME
@@ -475,7 +487,7 @@
                 if (clusterList.length) {
                     results = [{
                         id: '',
-                        name: '全部集群'
+                        name: this.$t('全部集群')
                     }]
                     clusterList.forEach(item => {
                         results.push({
@@ -491,7 +503,7 @@
         watch: {
             curProjectId () {
                 // 如果不是k8s类型的项目，无法访问些页面，重定向回集群首页
-                if (this.curProject && this.curProject.kind !== PROJECT_K8S) {
+                if (this.curProject && (this.curProject.kind !== PROJECT_K8S && this.curProject.kind !== PROJECT_TKE)) {
                     this.$router.push({
                         name: 'clusterMain',
                         params: {
@@ -504,23 +516,52 @@
         },
         mounted () {
             this.isRouterLeave = false
-            this.getAppList()
             this.winHeight = window.innerHeight
+            if (window.sessionStorage && window.sessionStorage['bcs-cluster']) {
+                this.searchScope = window.sessionStorage['bcs-cluster']
+            }
+            if (window.sessionStorage && window.sessionStorage['bcs-helm-namespace']) {
+                this.searchNamespace = window.sessionStorage['bcs-helm-namespace']
+            }
+
+            this.$watch('searchScope', () => {
+                this.searchNamespace = ''
+                this.setNamespaceList()
+            })
+
+            this.getAppList()
+            this.getAllNamespaces()
         },
         beforeRouteLeave (to, from, next) {
             this.isRouterLeave = true
+            // 如果不是到详情内页，清空搜索条件
+            // if (to.name !== 'helmAppDetail') {
+            //     window.sessionStorage['bcs-helm-cluster'] = ''
+            //     window.sessionStorage['bcs-helm-namespace'] = ''
+            // }
             clearTimeout(this.statusTimer)
             next()
         },
         beforeDestroy () {
             this.isRouterLeave = true
             clearTimeout(this.statusTimer)
+            // window.sessionStorage['bcs-helm-cluster'] = ''
+            // window.sessionStorage['bcs-helm-namespace'] = ''
         },
         methods: {
             /**
              * 刷新列表
              */
-            refresh () {
+            handleRefresh () {
+                this.getAppList()
+            },
+
+            /**
+             * 搜索列表
+             */
+            handleSearch () {
+                window.sessionStorage['bcs-cluster'] = this.searchScope
+                window.sessionStorage['bcs-helm-namespace'] = this.searchNamespace
                 this.getAppList()
             },
 
@@ -529,7 +570,8 @@
              * @param  {string} link 资源链接
              */
             goResourceInfo (link) {
-                const url = `${DEVOPS_HOST}${link}`
+                const clusterId = this.curApp.cluster_id
+                const url = `${DEVOPS_HOST}${link}&cluster_id=${clusterId}`
                 window.open(url)
             },
 
@@ -681,15 +723,41 @@
                 const projectId = this.projectId
                 const appId = app.id
                 const me = this
+                const boxStyle = {
+                    'margin-top': '-20px',
+                    'margin-bottom': '-20px'
+                }
+                const titleStyle = {
+                    style: {
+                        'text-align': 'left',
+                        'font-size': '20px',
+                        'margin-bottom': '15px',
+                        'color': '#313238'
+                    }
+                }
+                const itemStyle = {
+                    style: {
+                        'text-align': 'left',
+                        'font-size': '14px',
+                        'margin-bottom': '3px',
+                        'color': '#71747c'
+                    }
+                }
 
                 clearTimeout(this.statusTimer)
                 this.isOperaLayerShow = true
                 this.$bkInfo({
                     title: '',
                     clsName: 'biz-remove-dialog',
-                    content: me.$createElement('p', {
-                        class: 'biz-confirm-desc'
-                    }, `确定要删除Release【${app.name}】？`),
+                    // content: me.$createElement('p', {
+                    //     class: 'biz-confirm-desc'
+                    // }, `确定要删除Release【${app.name}】？`),
+                    content: me.$createElement('div', { class: 'biz-confirm-desc', style: boxStyle }, [
+                        me.$createElement('h5', titleStyle, this.$t('确定要删除Release？')),
+                        me.$createElement('p', itemStyle, `${this.$t('名称')}：${app.name}`),
+                        me.$createElement('p', itemStyle, `${this.$t('所属集群')}：${app.cluster_name}`),
+                        me.$createElement('p', itemStyle, `${this.$t('命名空间')}：${app.namespace}`)
+                    ]),
                     async confirmFn () {
                         app.transitioning_action = 'delete'
                         app.transitioning_on = true
@@ -726,7 +794,7 @@
                 res.message = app.transitioning_message
                 actionType = app.transitioning_action
 
-                const title = `${app.name}${this.appAction[app.transitioning_action]}失败`
+                const title = `${app.name}${this.appAction[app.transitioning_action]}${this.$t('失败')}`
                 this.showErrorDialog(res, title, actionType)
             },
 
@@ -745,6 +813,22 @@
                 this.errorDialogConf.title = title
                 this.rebackDialogConf.isShow = false
                 this.errorDialogConf.actionType = actionType
+
+                if (this.clipboardInstance && this.clipboardInstance.off) {
+                    this.clipboardInstance.off('success')
+                }
+                if (this.errorDialogConf.message) {
+                    this.$nextTick(() => {
+                        this.clipboardInstance = new Clipboard('#error-copy-btn')
+                        this.clipboardInstance.on('success', e => {
+                            this.$bkMessage({
+                                theme: 'success',
+                                message: '复制成功'
+                            })
+                            this.isVarPanelShow = false
+                        })
+                    })
+                }
             },
 
             /**
@@ -753,12 +837,8 @@
             search () {
                 const keyword = this.searchKeyword
                 const keyList = ['name', 'namespace', 'cluster_name']
-                let list = JSON.parse(JSON.stringify(this.appListCache))
-                if (this.searchScope) {
-                    list = list.filter(item => {
-                        return item.cluster_id === this.searchScope
-                    })
-                }
+                const list = JSON.parse(JSON.stringify(this.appListCache))
+                
                 if (keyword) {
                     const results = list.filter(item => {
                         for (const key of keyList) {
@@ -839,7 +919,7 @@
                 this.isRebackVersionLoading = false
                 this.rebackDialogConf.isShow = true
                 this.isOperaLayerShow = true
-                this.rebackDialogConf.title = `回滚 ${app.name}`
+                this.rebackDialogConf.title = `${this.$t('回滚')} ${app.name}`
                 this.rebackPreviewList = []
                 this.rebackList = []
                 this.isRebackListLoading = true
@@ -859,7 +939,7 @@
 
                     if (res.data.results) {
                         res.data.results.forEach(item => {
-                            item.version = `版本：${item.version} （部署时间：${item.created_at}） `
+                            item.version = `${this.$t('版本')}：${item.version} （${this.$t('部署时间')}：${item.created_at}） `
                         })
                         this.rebackList = res.data.results
                     } else {
@@ -872,20 +952,37 @@
                 }
             },
 
+            getParams () {
+                const data = {
+                    projectId: this.projectId,
+                    params: {
+                        limit: 1000000,
+                        offset: 0,
+                        cluster_id: this.searchScope,
+                        namespace: ''
+                    }
+                }
+                if (this.searchNamespace) {
+                    const args = this.searchNamespace.split(':')
+                    data.params.cluster_id = args[0]
+                    data.params.namespace = args[1]
+                }
+
+                return data
+            },
+
             /**
              * 获取应用列表
              */
             async getAppList (reload) {
-                const projectId = this.projectId
-                this.showLoading = true
-
                 if (reload) {
                     this.searchKeyword = ''
                 }
-
+                this.isPageLoading = true
                 try {
                     clearTimeout(this.statusTimer)
-                    const res = await this.$store.dispatch('helm/getAppList', projectId)
+                    const data = this.getParams()
+                    const res = await this.$store.dispatch('helm/getAppList', data)
 
                     this.appList = res.data.results
                     this.appListCache = JSON.parse(JSON.stringify(res.data.results))
@@ -893,13 +990,61 @@
                     this.getAppsStatus()
 
                     // 按原关键字再搜索
-                    if (this.searchScope || this.searchKeyword) {
+                    if (this.searchKeyword) {
                         this.search()
                     }
                 } catch (e) {
                     catchErrorHandler(e, this)
                 } finally {
                     this.showLoading = false
+                    this.isPageLoading = false
+                }
+            },
+
+            /**
+             * 获取所有命名空间列表
+             */
+            async getAllNamespaces (reload) {
+                this.allNamespaces = []
+                try {
+                    clearTimeout(this.statusTimer)
+                    const res = await this.$store.dispatch('helm/getNamespaceList', {
+                        projectId: this.projectId,
+                        params: {
+                            filter_use_perm: false
+                        }
+                    })
+                    res.data.forEach(item => {
+                        item.id = item.name
+                        item.name = item.name.split('(')[0]
+                        let clusterId = ''
+                        const matcher = item.id.match(/^[\S|\s]*\((\S+)\)$/)
+                        if (matcher && matcher.length > 1) {
+                            clusterId = matcher[1]
+                        }
+                        item.children.forEach(child => {
+                            child.namespace_id = `${clusterId}:${child.name}`
+                        })
+                    })
+                    this.allNamespaces = res.data
+                    this.namespaceList = res.data
+                    this.setNamespaceList()
+                } catch (e) {
+                    catchErrorHandler(e, this)
+                }
+            },
+
+            setNamespaceList () {
+                if (this.searchScope) {
+                    this.allNamespaces.forEach(item => {
+                        if (item.id.indexOf(this.searchScope) > -1) {
+                            this.namespaceList = item.children
+                        } else {
+                            this.namespaceList = []
+                        }
+                    })
+                } else {
+                    this.namespaceList = this.allNamespaces
                 }
             },
 
@@ -926,7 +1071,7 @@
                     this.isOperaLayerShow = false
                     this.checkingAppStatus(this.curApp, 'rollback')
                 } catch (e) {
-                    this.showErrorDialog(e, '回滚失败', 'reback')
+                    this.showErrorDialog(e, this.$t('回滚失败'), 'reback')
                 } finally {
                     this.isRebackLoading = false
                 }
@@ -979,13 +1124,12 @@
             getAppsStatus () {
                 clearTimeout(this.statusTimer)
                 this.statusTimer = setTimeout(async () => {
-                    const projectId = this.projectId
-
                     if (this.isOperaLayerShow) {
                         return false
                     }
                     try {
-                        const res = await this.$store.dispatch('helm/getAppList', projectId)
+                        const data = this.getParams()
+                        const res = await this.$store.dispatch('helm/getAppList', data)
 
                         this.appList = res.data.results
                         this.appListCache = JSON.parse(JSON.stringify(res.data.results))
@@ -998,7 +1142,7 @@
                         })
 
                         // 按原关键字再搜索
-                        if (this.searchScope || this.searchKeyword) {
+                        if (this.searchKeyword) {
                             this.search()
                         }
 
@@ -1059,7 +1203,7 @@
                         const app = this.operaRunningApp[appId]
                         this.$bkMessage({
                             theme: 'success',
-                            message: `${app.name}删除成功`
+                            message: `${app.name}${this.$t('删除成功')}`
                         })
                         delete this.operaRunningApp[appId]
                         return true
@@ -1072,12 +1216,12 @@
                         if (appStatus.transitioning_result) {
                             this.$bkMessage({
                                 theme: 'success',
-                                message: `${appStatus.name}${action}成功`
+                                message: `${appStatus.name}${action}${this.$t('成功')}`
                             })
                         } else {
                             this.$bkMessage({
                                 theme: 'error',
-                                message: `${appStatus.name}${action}失败`
+                                message: `${appStatus.name}${action}${this.$t('失败')}`
                             })
                         }
                         delete this.operaRunningApp[appId]
@@ -1120,7 +1264,7 @@
                     if (res.data.difference) {
                         this.difference = res.data.difference
                     } else {
-                        this.difference = '与当前线上版本没有内容差异'
+                        this.difference = this.$t('与当前线上版本没有内容差异')
                     }
                 } catch (e) {
                     catchErrorHandler(e, this)

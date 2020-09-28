@@ -16,6 +16,43 @@
                                 <i class="bk-icon icon-plus"></i>
                                 <span>{{$t('添加模板集')}}</span>
                             </button>
+                            <template v-if="isImportLoading">
+                                <button
+                                    href="javascript:void(0)"
+                                    style="width: 128px; min-width: 70px; cursor: default;"
+                                    :key="fileImportIndex"
+                                    :class="['bk-button bk-default biz-import-btn']">
+                                    <div class="bk-spin-loading bk-spin-loading-mini bk-spin-loading-primary">
+                                        <div class="rotate rotate1"></div>
+                                        <div class="rotate rotate2"></div>
+                                        <div class="rotate rotate3"></div>
+                                        <div class="rotate rotate4"></div>
+                                        <div class="rotate rotate5"></div>
+                                        <div class="rotate rotate6"></div>
+                                        <div class="rotate rotate7"></div>
+                                        <div class="rotate rotate8"></div>
+                                    </div>
+                                    {{$t('导入中...')}}
+                                </button>
+                            </template>
+                            <template v-else>
+                                <button
+                                    href="javascript:void(0)"
+                                    style="min-width: 70px;"
+                                    v-bktooltips="zipTooltipText"
+                                    :key="fileImportIndex"
+                                    :class="['bk-button bk-default biz-import-btn']">
+                                    <i class="bk-icon icon-upload"></i>
+                                    {{$t('导入模板集')}}
+                                    <input
+                                        ref="fileInput"
+                                        type="file"
+                                        name="upload"
+                                        class="file-input"
+                                        accept="application/zip,application/x-zip,application/x-zip-compressed"
+                                        @change="handleFileInput()">
+                                </button>
+                            </template>
                         </template>
                         <template v-else>
                             <bk-dropdown-menu
@@ -29,10 +66,10 @@
                                 </button>
                                 <ul class="bk-dropdown-list" slot="dropdown-content">
                                     <li>
-                                        <a href="javascript:;" @click.stop.prevent="addTemplate('k8sTemplatesetDeployment')">{{$t('表单模式')}}</a>
+                                        <a href="javascript:;" @click="addTemplate('K8sYamlTemplateset')">{{$t('YAML模式')}}</a>
                                     </li>
                                     <li>
-                                        <a href="javascript:;" @click="addTemplate('K8sYamlTemplateset')">{{$t('YAML模式')}}</a>
+                                        <a href="javascript:;" @click.stop.prevent="addTemplate('k8sTemplatesetDeployment')">{{$t('表单模式')}}</a>
                                     </li>
                                 </ul>
                             </bk-dropdown-menu>
@@ -394,17 +431,27 @@
 <script>
     import applyPerm from '@open/mixins/apply-perm'
     import { catchErrorHandler } from '@open/common/util'
+    import { Archive } from 'libarchive.js/main.js'
+
+    Archive.init({
+        workerUrl: `${window.STATIC_URL}${window.VERSION_STATIC_URL}/archive-worker/worker-bundle.js`
+    })
 
     export default {
         mixins: [applyPerm],
         data () {
             return {
                 PROJECT_MESOS: window.PROJECT_MESOS,
+                fileImportIndex: 0,
+                zipTooltipText: this.$t('只允许导入从已有模板集导出的zip包'),
                 permissions: {},
                 isLoading: true,
+                isImportLoading: false,
                 searchKeyword: '',
                 templateList: [],
                 templateListCache: [],
+                linkAppList: [],
+                curVersion: 0,
                 editMode: {
                     page_form: this.$t('表单模式'),
                     yaml: this.$t('YAML模式')
@@ -871,7 +918,7 @@
                     await this.$store.dispatch('getResourcePermissions', params)
                 }
 
-                if (this.projectKind === PROJECT_K8S) {
+                if (this.projectKind === PROJECT_K8S || this.projectKind === PROJECT_TKE) {
                     if (template.edit_mode === 'yaml') {
                         this.$router.push({
                             name: 'K8sYamlTemplateset',
@@ -1361,6 +1408,236 @@
                         templateId: 0
                     }
                 })
+            },
+
+            async handleFileInput () {
+                this.curTemplateId = 0
+                this.curVersion = 0
+                this.isImportLoading = true
+                const fileInput = this.$refs.fileInput
+                if (fileInput.files && fileInput.files.length) {
+                    try {
+                        const file = fileInput.files[0]
+                        const archive = await Archive.open(file)
+                        const zipFile = await archive.extractFiles()
+                        if (zipFile) {
+                            this.importFileList = []
+                            this.getImportFileList(zipFile)
+                            this.renderJsonFile()
+                            this.fileImportIndex++
+                        }
+                    } catch (e) {
+                        this.$bkMessage({
+                            theme: 'error',
+                            message: this.$t('请选择系统导出的压缩包')
+                        })
+                        this.isImportLoading = false
+                    }
+                }
+            },
+
+            getImportFileList (zip, folderName = '') {
+                for (const key in zip) {
+                    const file = zip[key]
+                    // 文件
+                    if (file.name) {
+                        this.importFileList.push(file)
+                    } else {
+                        this.getImportFileList(file, key)
+                    }
+                }
+            },
+
+            async renderJsonFile () {
+                const promiseList = []
+                const self = this
+                this.importFileList.forEach(file => {
+                    if (file.name.endsWith('.json')) {
+                        // 保存资源
+                        promiseList.push(() => {
+                            return new Promise((resolve, reject) => {
+                                const reader = new FileReader()
+                                reader.onloadend = async function (event) {
+                                    if (event.target.readyState === FileReader.DONE) {
+                                        const content = event.target.result
+                                        const fileMetadata = file.name.split('--')
+                                        const fileType = fileMetadata[0]
+                                        const fileName = fileMetadata[1].replace('.json', '')
+                                        self.importFile(fileName, fileType, content, resolve, reject)
+                                    }
+                                }
+                                reader.readAsText(file)
+                            })
+                        })
+                    }
+                })
+
+                if (promiseList.length) {
+                    // 保存模板
+                    promiseList.push(() => {
+                        return new Promise(async (resolve, reject) => {
+                            const projectId = this.projectId
+                            const templateId = this.curTemplateId
+                            const params = {
+                                show_version_id: 0,
+                                name: 'v1.1.0',
+                                real_version_id: this.curVersion
+                            }
+                            await this.$store.dispatch('mesosTemplate/saveVersion', { projectId, templateId, params })
+                            resolve(true)
+                        })
+                    })
+                }
+
+                // 上一个完成才可执行下一个
+                let promiseIndex = 0
+                try {
+                    while (promiseIndex >= 0 && promiseIndex < promiseList.length) {
+                        await promiseList[promiseIndex]()
+                        promiseIndex++
+                    }
+                    this.getTemplateList(true)
+                    self.$bkMessage({
+                        theme: 'success',
+                        message: self.$t('导入成功')
+                    })
+                } catch (e) {
+                    this.$bkMessage({
+                        theme: 'error',
+                        message: '导入失败'
+                    })
+                } finally {
+                    this.isImportLoading = false
+                }
+            },
+
+            async importFile (fileName, fileType, content, resolve, reject) {
+                // 处理关联
+                this.linkAppList.forEach(linkApp => {
+                    const appName = linkApp.app_name
+                    const reg = new RegExp(`<%${appName}%>`, 'g')
+                    content = content.replace(reg, linkApp.app_id)
+                })
+                const data = JSON.parse(content)
+
+                // 处理属性
+                const now = +new Date()
+                data.id = `local_${now}`
+                data.isEdited = true
+
+                // 如果是application，需要先保存才可让deployment、service绑定
+                const projectId = this.projectId
+                const actionMap = {
+                    applications: {
+                        add: 'mesosTemplate/addApplication',
+                        new: 'mesosTemplate/addFirstApplication'
+                    },
+                    deployments: {
+                        add: 'mesosTemplate/addDeployment',
+                        new: 'mesosTemplate/addFirstDeployment'
+                    },
+                    configmaps: {
+                        add: 'mesosTemplate/addConfigmap',
+                        new: 'mesosTemplate/addFirstConfigmap'
+                    },
+                    secrets: {
+                        add: 'mesosTemplate/addSecret',
+                        new: 'mesosTemplate/addFirstSecret'
+                    },
+                    ingresss: {
+                        add: 'mesosTemplate/addIngress',
+                        new: 'mesosTemplate/addFirstIngress'
+                    },
+                    services: {
+                        add: 'mesosTemplate/addService',
+                        new: 'mesosTemplate/addFirstService'
+                    }
+                }
+                try {
+                    if (this.curVersion) {
+                        const res = await this.$store.dispatch(actionMap[fileType].add, { projectId, version: this.curVersion, data })
+                        this.curVersion = res.data.version
+                    } else {
+                        const templateId = 0
+                        data.template = {
+                            desc: '模板集描述',
+                            name: `模板集_${+new Date()}`
+                        }
+                        const res = await await this.$store.dispatch(actionMap[fileType].new, { projectId, templateId, data })
+                        this.curVersion = res.data.version
+                        this.curTemplateId = res.data.template_id
+                    }
+                    
+                    if (fileType === 'applications') {
+                        const res1 = await this.$store.dispatch('mesosTemplate/getApplicationsByVersion', { projectId, version: this.curVersion })
+                        this.linkAppList = res1.data
+                    }
+                } catch (err) {
+                    reject(false)
+                }
+                // switch (fileType) {
+                //     case 'applications':
+                //         delete data.app_id
+                        
+                //         break
+                    
+                //     case 'deployments':
+                //         this.linkAppList.forEach(linkApp => {
+                //             const appName = linkApp.app_name
+                //             const reg = new RegExp(`<%${appName}%>`, 'g')
+                //             content = content.replace(reg, linkApp.app_id)
+                //         })
+                //         data = JSON.parse(content)
+                //         if (this.curVersion) {
+                //             const res = await this.$store.dispatch('mesosTemplate/addDeployment', { projectId, version: this.curVersion, data })
+                //             this.curVersion = res.data.version
+                //         } else {
+                //             const templateId = 0
+                //             data.template = {
+                //                 desc: '模板集描述',
+                //                 name: `模板集_${+new Date()}`
+                //             }
+                //             const res = await await this.$store.dispatch('mesosTemplate/addFirstDeployment', { projectId, templateId, data })
+                //             this.curVersion = res.data.version
+                //             this.curTemplateId = res.data.template_id
+                //         }
+                //         break
+                // }
+                console.log('执行完成', fileName)
+                resolve(true)
+
+                // if (fileType === 'applications') {
+                //     await this.saveApplication(app)
+                //     const projectId = this.projectId
+                //     const version = this.curVersion
+                //     const res = await this.$store.dispatch('mesosTemplate/getApplicationsByVersion', { projectId, version })
+                //     this.linkAppList = res.data
+                // } else if (fileType === 'deployments' || fileType === 'services') {
+                //     this.linkAppList.forEach(linkApp => {
+                //         const appName = linkApp.app_name
+                //         const reg = new RegExp(`<%${appName}%>`, 'g')
+                //         content = content.replace(reg, linkApp.app_id)
+                //     })
+                //     app = JSON.parse(content)
+                //     debugger
+                // }
+
+                // 处理同名问题
+                // const resources = this[fileType]
+                // const matchIndex = resources.findIndex(item => {
+                //     return item.config.metadata.name === fileName
+                // })
+                // if (matchIndex > -1) {
+                //     resources.splice(matchIndex, 1, app)
+                // } else {
+                //     resources.push(app)
+                // }
+                // console.log('执行完成', fileName)
+                // 处理关联
+                // console.log('fffxx', fileType)
+                // if (folderName === 'applications') {
+                //     await self.autoSaveResource('mesosTemplatesetApplication')
+                // }
             }
         }
     }

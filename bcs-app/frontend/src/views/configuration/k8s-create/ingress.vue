@@ -3,7 +3,8 @@
         <biz-header ref="commonHeader"
             @exception="exceptionHandler"
             @saveIngressSuccess="saveIngressSuccess"
-            @switchVersion="initResource">
+            @switchVersion="initResource"
+            @exmportToYaml="exportToYaml">
         </biz-header>
         <div class="biz-content-wrapper biz-confignation-wrapper" v-bkloading="{ isLoading: isTemplateSaving }">
             <app-exception
@@ -25,11 +26,11 @@
                     <div slot="content">
                         <div style="margin: -20px;">
                             <div class="ingress-type-header">
-                                请选择类型
+                                {{$t('请选择类型')}}
                             </div>
                             <div class="bk-form" style="padding: 30px 0 10px 0;">
                                 <div class="bk-form-item">
-                                    <label class="bk-label" style="width: 140px;">类型：</label>
+                                    <label class="bk-label" style="width: 140px;">{{$t('类型')}}：</label>
                                     <div class="bk-form-content" style="margin-left: 140px">
                                         <label class="bk-form-radio">
                                             <input type="radio" name="type" value="STGW" disabled="disabled">
@@ -41,40 +42,46 @@
                                         </label>
                                         <label class="bk-form-radio">
                                             <input type="radio" name="type" value="K8S" checked="checked">
-                                            <i class="bk-radio-text">K8S原生</i>
+                                            <i class="bk-radio-text">{{$t('K8S原生')}}</i>
                                         </label>
                                     </div>
                                 </div>
                             </div>
+                            <p class="pb30 f13 biz-danger-text">{{$t('提示：K8S原生规则需在“网络” => “LoadBalancer”中新建LoadBalancer才能生效')}}</p>
                         </div>
                     </div>
                 </bk-dialog>
 
                 <div class="biz-tab-content" v-bkloading="{ isLoading: isTabChanging }">
                     <template v-if="!ingresss.length">
+                        <p class="biz-template-tip f12 mb10">
+                            {{$t('Ingress是管理外部访问集群内服务的对象，可配置访问的URL、基于名称的虚拟主机等。 Ingress controller负责实现Ingress，BCS使用的是nginx-controller')}}，<a class="bk-text-button" :href="PROJECT_CONFIG.doc.k8sIngress" target="_blank">{{$t('详情查看文档')}}</a>
+                        </p>
                         <div class="biz-guide-box mt0">
                             <button class="bk-button bk-primary" @click.stop.prevent="showIngressTypeBox">
                                 <i class="bk-icon icon-plus"></i>
-                                <span style="margin-left: 0;">添加Ingress</span>
+                                <span style="margin-left: 0;">{{$t('添加')}}Ingress</span>
                             </button>
                         </div>
                     </template>
                     <template v-else>
                         <div class="biz-configuration-topbar">
-                            <p class="biz-tip mb10">
-                                <i class="bk-icon icon-info-circle-shape"></i>
-                                K8S原生规则需在“网络” => “LoadBalance”中新建LoadBalance才能生效
+                            <p class="biz-template-tip f12 mb10">
+                                {{$t('Ingress是管理外部访问集群内服务的对象，可配置访问的URL、基于名称的虚拟主机等。 Ingress controller负责实现Ingress，BCS使用的是nginx-controller')}}，<a class="bk-text-button" :href="PROJECT_CONFIG.doc.k8sIngress" target="_blank">{{$t('详情查看文档')}}</a>
+                            </p>
+                            <p class="biz-template-tip f12 mb10">
+                                {{$t('提示：K8S原生规则需在“网络” => “LoadBalancer”中新建LoadBalancer才能生效')}}
                             </p>
                             <div class="biz-list-operation">
                                 <div class="item" v-for="(ingress, index) in ingresss" :key="ingress.id">
                                     <button :class="['bk-button', { 'bk-primary': curIngress.id === ingress.id }]" @click.stop="setCurIngress(ingress, index)">
-                                        {{(ingress && ingress.config.metadata.name) || '未命名'}}
+                                        {{(ingress && ingress.config.metadata.name) || $t('未命名')}}
                                         <span class="biz-update-dot" v-show="ingress.isEdited"></span>
                                     </button>
                                     <span class="bk-icon icon-close" @click.stop="removeIngress(ingress, index)"></span>
                                 </div>
 
-                                <bk-tooltip ref="applicationTooltip" :content="'添加Ingress'" placement="top">
+                                <bk-tooltip ref="applicationTooltip" :content="$t('添加Ingress')" placement="top">
                                     <button class="bk-button bk-default is-outline is-icon" @click.stop="showIngressTypeBox">
                                         <i class="bk-icon icon-plus"></i>
                                     </button>
@@ -82,7 +89,7 @@
                             </div>
                         </div>
                         <div class="biz-configuration-content" style="position: relative;">
-                            <k8s-ingress :ingress-data="curIngress" :key="curIngress.id" :version="curVersion"></k8s-ingress>
+                            <k8s-ingress :ingress-data="curIngress" :key="curIngress" :version="curVersion"></k8s-ingress>
                         </div>
                     </template>
                 </div>
@@ -97,13 +104,10 @@
     import ingressParams from '@open/json/k8s-ingress.json'
     import { catchErrorHandler } from '@open/common/util'
 
-    const K8sIngress = () => import('./ingress/ce/k8s-ingress.vue')
-
     export default {
         components: {
             'biz-header': header,
-            'biz-tabs': tabs,
-            'k8s-ingress': K8sIngress
+            'biz-tabs': tabs
         },
         data () {
             return {
@@ -196,7 +200,7 @@
             },
             async initResource (data) {
                 const version = data.latest_version_id || data.version
-
+                
                 if (version) {
                     await this.initServices(version)
                 } else {
@@ -207,6 +211,19 @@
                 } else if (data.ingress && data.ingress.length) {
                     this.setCurIngress(data.ingress[0], 0)
                 }
+            },
+            exportToYaml (data) {
+                this.$router.push({
+                    name: 'K8sYamlTemplateset',
+                    params: {
+                        projectId: this.projectId,
+                        projectCode: this.projectCode,
+                        templateId: 0
+                    },
+                    query: {
+                        action: 'export'
+                    }
+                })
             },
             saveIngressSuccess (params) {
                 this.ingresss.forEach(item => {
@@ -238,6 +255,7 @@
             },
             async tabResource (type, target) {
                 this.isTabChanging = true
+                await this.$refs.commonHeader.saveTemplate()
                 await this.$refs.commonHeader.autoSaveResource(type)
                 this.$refs.commonTab.goResource(target)
             },
@@ -317,8 +335,8 @@
                 const version = this.curVersion
                 const ingressId = ingress.id
                 this.$bkInfo({
-                    title: '确认',
-                    content: this.$createElement('p', { style: { 'text-align': 'center' } }, `删除Ingress：${ingress.config.metadata.name || '未命名'}`),
+                    title: this.$t('确认'),
+                    content: this.$createElement('p', { style: { 'text-align': 'center' } }, `${this.$t('删除Ingress')}：${ingress.config.metadata.name || this.$t('未命名')}`),
                     confirmFn () {
                         if (ingressId.indexOf && ingressId.indexOf('local_') > -1) {
                             self.removeLocalIngress(ingress, index)

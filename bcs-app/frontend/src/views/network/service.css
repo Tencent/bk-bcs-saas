@@ -1,16 +1,6 @@
-/**
- * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community Edition) available.
- * Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
- * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- * http://opensource.org/licenses/MIT
- * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
- * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
- * specific language governing permissions and limitations under the License.
- */
-
-@import '../../css/variable.css';
-@import '../../css/mixins/clearfix.css';
+@import '@open/css/variable.css';
+@import '@open/css/mixins/clearfix.css';
+@import '@open/css/mixins/ellipsis.css';
 
 .biz-service-title {
     display: inline-block;
@@ -23,6 +13,30 @@
 .biz-service-table>thead>tr>th:first-child,
 .biz-service-table>tbody>tr>td:first-child {
     padding-left: 20px;
+}
+
+.biz-service-table {
+    min-width: 1200px;
+    .cluster-name {
+        @mixin ellipsis 160px;
+        vertical-align: bottom;
+    }
+    .cluster-namespace-source {
+        width: 70px;
+        display: inline-block;
+        text-align: right;
+        &.en {
+            width: 90px;
+        }
+    }
+    .update-create-time {
+        width: 70px;
+        display: inline-block;
+        text-align: right;
+        &.en {
+            width: 95px;
+        }
+    }
 }
 
 .data-title {
@@ -134,5 +148,60 @@
         float: left;
         margin-left: 15px;
         color: #737987;
+    }
+    .biz-table-wrapper {
+        overflow-x: scroll;
+        &::-webkit-scrollbar {
+            width: 4px;
+            height: 4px;
+            background-color: #fafbfd;
+        }
+        &::-webkit-scrollbar-thumb {
+            height: 5px;
+            border-radius: 2px;
+            background-color: #c4c6cc;
+        }
+    }
+}
+
+.createcl5-dialog {
+    button.disabled {
+        background-color: #fafafa;
+        border-color: #e6e6e6;
+        color: #ccc;
+        cursor: not-allowed;
+    }
+    .create-form-wrapper {
+        .form-item {
+            margin-bottom: 20px;
+
+            .info-item {
+                color: #c3cdd7;
+                background-color: #fafbfd;
+                font-size: 14px;
+                margin-left: 118px;
+            }
+
+            >label {
+                font-size: 14px;
+                width: 80px;
+                display: inline-block;
+                text-align: right;
+                &.en {
+                    width: 150px;
+                }
+            }
+
+            .form-item-inner {
+                display: inline-block;
+                position: relative;
+                margin-left: 0;
+            }
+        }
+        .bk-dialog-tool {
+            .bk-dialog-close {
+                display: none;
+            }
+        }
     }
 }

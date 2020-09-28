@@ -26,7 +26,7 @@ def get_clusters(access_token, project_id):
     resp = paas_cc.get_all_clusters(access_token, project_id, desire_all_data=True)
     if resp.get('code') != ErrorCode.NoError:
         raise error_codes.APIError(f"get clusters error, {resp.get('message')}")
-    return resp.get('data', {}).get('results', [])
+    return resp.get("data", {}).get("results") or []
 
 
 def get_cluster_versions(access_token, kind="", ver_id="", env=""):

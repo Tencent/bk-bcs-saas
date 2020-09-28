@@ -3,11 +3,11 @@
         <div class="biz-top-bar">
             <div class="biz-helm-title">
                 <a class="bk-icon icon-arrows-left back" @click="goTplList"></a>
-                <span>Chart详情</span>
+                <span>{{$t('Chart详情')}}</span>
             </div>
-            <div class="biz-actions" style="top: 11px;">
+            <div class="biz-actions" style="margin-top: 11px; ">
                 <router-link :to="{ name: 'helmTplInstance', params: { tplId: curTpl.id } }" :class="['bk-button bk-primary']">
-                    部署
+                    {{$t('部署')}}
                 </router-link>
             </div>
         </div>
@@ -17,7 +17,7 @@
                 <div class="biz-helm-header">
                     <div class="left">
                         <svg style="display: none;">
-                            <title>模板集默认图标</title>
+                            <title>{{$t('模板集默认图标')}}</title>
                             <symbol id="biz-set-icon" viewBox="0 0 32 32">
                                 <path d="M6 3v3h-3v23h23v-3h3v-23h-23zM24 24v3h-19v-19h19v16zM27 24h-1v-18h-18v-1h19v19z"></path>
                                 <path d="M13.688 18.313h-6v6h6v-6z"></path>
@@ -34,7 +34,7 @@
                             </svg>
                             <div class="title">{{curTpl.name}}</div>
                             <div class="desc" :title="curTpl.description">
-                                <span>简介：</span>
+                                <span>{{$t('简介')}}：</span>
                                 {{curTpl.description || '--'}}
                             </div>
                         </div>
@@ -44,14 +44,15 @@
                         <div class="bk-collapse biz-collapse">
                             <div class="bk-collapse-item bk-collapse-item-active">
                                 <div class="bk-collapse-item-header" style="cursor: default;">
-                                    版本
+                                    {{$t('版本')}}
                                 </div>
                                 <div class="bk-collapse-item-content f13" style="padding: 15px;">
                                     <div class="config-box">
                                         <div class="inner">
-                                            <label class="title">Chart版本</label>
-                                            <bk-selector :placeholder="'请选择'"
-                                                style="width: 560px;"
+                                            <label class="title">{{$t('Chart版本')}}</label>
+                                            <bk-selector
+                                                :placeholder="$t('请选择')"
+                                                style="max-width: 800px;"
                                                 :selected.sync="tplsetVerIndex"
                                                 :list="curTplVersions"
                                                 :setting-key="'id'"
@@ -68,18 +69,26 @@
 
                 <div v-if="tplsetVerIndex" v-bkloading="{ isLoading: isVersionLoading }">
                     <bk-tab :active-name="'files'" class="mt20">
-                        <bk-tabpanel name="files" title="资源文件">
+                        <bk-tabpanel name="files" :title="$t('资源文件')">
                             <template v-if="previewList.length">
                                 <div class="biz-resource-wrapper">
-                                    <div class="tree-box" style="max-height: 500px;">
-                                        <bk-tree
-                                            ref="tree1"
-                                            :data="treeData"
-                                            :node-key="'id'"
-                                            :has-border="true"
-                                            @on-click="getFileDetail">
-                                        </bk-tree>
-                                    </div>
+                                    <resizer :class="['resize-layout fl']"
+                                        direction="right"
+                                        :handler-offset="3"
+                                        :min="250"
+                                        :max="500">
+                                        <div class="tree-box" style="max-height: 500px;">
+                                            <bk-tree
+                                                ref="tree1"
+                                                :class="'biz-helm-tree'"
+                                                :data="treeData"
+                                                :node-key="'id'"
+                                                :has-border="true"
+                                                @on-click="getFileDetail">
+                                            </bk-tree>
+                                        </div>
+                                    </resizer>
+                                    
                                     <div class="resource-box">
                                         <div class="biz-code-wrapper">
                                             <ace
@@ -96,11 +105,11 @@
                             </template>
                             <template v-else>
                                 <div class="bk-message-box">
-                                    <p class="message empty-message">无数据</p>
+                                    <p class="message empty-message">{{$t('无数据')}}</p>
                                 </div>
                             </template>
                         </bk-tabpanel>
-                        <bk-tabpanel name="readme" title="详细说明">
+                        <bk-tabpanel name="readme" :title="$t('详细说明')">
                             <template v-if="curTplReadme">
                                 <div class="p20">
                                     <div class="biz-scroller-container">
@@ -110,7 +119,7 @@
                             </template>
                             <template v-else>
                                 <div class="bk-message-box">
-                                    <p class="message empty-message">无数据</p>
+                                    <p class="message empty-message">{{$t('无数据')}}</p>
                                 </div>
                             </template>
                         </bk-tabpanel>
@@ -125,8 +134,12 @@
     import path2tree from '@open/common/path2tree'
     import baseMixin from '@open/mixins/helm/mixin-base'
     import { catchErrorHandler } from '@open/common/util'
+    import resizer from '@open/components/resize'
 
     export default {
+        components: {
+            resizer
+        },
         mixins: [baseMixin],
         data () {
             return {
@@ -326,7 +339,9 @@
                 const projectId = this.projectId
 
                 try {
-                    const res = await this.$store.dispatch('helm/getNamespaceList', projectId)
+                    const res = await this.$store.dispatch('helm/getNamespaceList', {
+                        projectId: projectId
+                    })
                     this.namespaceList = res.data
                 } catch (e) {
                     catchErrorHandler(e, this)
