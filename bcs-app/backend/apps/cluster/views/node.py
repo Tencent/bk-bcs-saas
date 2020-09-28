@@ -42,7 +42,6 @@ from backend.apps.cluster import serializers as node_serializers
 from backend.utils.renderers import BKAPIRenderer
 from backend.apps.cluster.views_bk import node
 from backend.apps.cluster.views_bk.tools import cmdb, gse
-from backend.apps.cluster.views.utils import get_error_msg
 from backend.resources.cluster.utils import get_cluster_nodes
 
 logger = logging.getLogger(__name__)
@@ -610,10 +609,7 @@ class NodeUpdateLogView(NodeBase, viewsets.ModelViewSet):
             info.status = self.get_display_status(info.status)
             slz = node_serializers.NodeInstallLogSLZ(instance=info)
             data['log'].append(slz.data)
-        # 异常时，展示错误消息
-        if status == "failed":
-            node_ip = self.get_node_ip(request.user.token.access_token, project_id, cluster_id, node_id)
-            data["error_msg_list"] = get_error_msg(cluster_id, node_ip=node_ip)
+
         return data
 
     def get(self, request, project_id, cluster_id, node_id):
