@@ -62,7 +62,8 @@
                         @blur="searchInputBlurHandler($event)"
                         @keyup="inputKeyup($event)"
                         @keypress="preventKeyboardEvt($event)"
-                        @keydown="preventKeyboardEvt($event)">
+                        @keydown="preventKeyboardEvt($event)"
+                        @paste="handleInputPaste">
                 </li>
             </ul>
         </div>
@@ -619,6 +620,19 @@
                         e.preventDefault()
                         break
                     default:
+                }
+            },
+
+            /**
+             * 处理 input 框 paste 事件
+             * 把数据中的换行符\n 转换成 |
+             */
+            handleInputPaste (e) {
+                const value = e.clipboardData.getData('text')
+                if (value && this.curSearchParams && this.curSearchParams.id === 'ip') {
+                    this.$nextTick(() => {
+                        this.curInputValue = value.split('\n').join('|')
+                    })
                 }
             },
 
