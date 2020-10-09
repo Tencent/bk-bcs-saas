@@ -976,10 +976,12 @@ class ClearAppInjectDataView(AccessTokenMixin, ProjectMixin, viewsets.ModelViewS
 class AppTransiningView(AppViewBase):
     def retrieve(self, request, *args, **kwargs):
         app_id = self.request.parser_context["kwargs"]["app_id"]
-        if not App.objects.filter(id=app_id).exists():
-            return Response({"code": 404, "detail": "app not found"})
+        # 统一通过ID查询记录信息，防止多次查询时，间隙出现已经删除的情况
+        try:
+            app = App.objects.get(id=app_id)
+        except App.DoesNotExist:
+            return Response({"code": 404, "message": "app not found"})
 
-        app = App.objects.get(id=app_id)
         data = {
             "transitioning_action": app.transitioning_action,
             "transitioning_on": app.transitioning_on,
