@@ -22,7 +22,3 @@ def get_areas(request):
         raise error_codes.APIError(areas.get('message'))
 
     return areas.get('data') or {}
-
-
-def get_error_msg(cluster_id, node_ip=None):
-    return []

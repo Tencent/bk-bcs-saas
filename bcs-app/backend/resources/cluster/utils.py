@@ -108,3 +108,8 @@ def get_cluster_coes(access_token, project_id, cluster_id):
     """
     cluster = get_cluster(access_token, project_id, cluster_id)
     return cluster["type"]
+
+
+@parse_response_data()
+def delete_cluster(access_token, project_id, cluster_id):
+    return paas_cc.delete_cluster(access_token, project_id, cluster_id)
