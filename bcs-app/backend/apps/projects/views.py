@@ -245,6 +245,7 @@ class NavProjectsViewSet(viewsets.ViewSet, ProjectPermission):
         if with_permissions_field != "false":  # 需要权限字段
             self._add_permissions_field(projects, request.user.username)
 
+        projects.sort(key=lambda p: p.get("created_at", ""), reverse=True)
         return Response(projects)
 
     def get_project(self, request, project_id):
