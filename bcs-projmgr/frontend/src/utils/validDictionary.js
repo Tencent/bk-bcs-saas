@@ -26,7 +26,17 @@ const dictionary = {
             },
             min: (field, args) => {
                 return `字段长度不能少于${args}个字符`
-            }
+            },
+            projectNameUnique: field => '项目名称已存在',
+            projectEnglishNameUnique: field => '英文缩写已存在',
+            projectEnglishNameReg: field => '英文缩写必须由小写字母+数字组成，以小写字母开头，长度限制2-32字符！'
+        }
+    }, 
+    en: {
+        messages: {
+            projectNameUnique: field => 'Project name is already taken',
+            projectEnglishNameUnique: field => 'English name is already taken',
+            projectEnglishNameReg: field => 'The English name field consists of lowercase letters and numbers and begins with lowercase letters, with a lenth of 2-32'
         }
     }
 }

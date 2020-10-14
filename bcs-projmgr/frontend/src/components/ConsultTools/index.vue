@@ -17,26 +17,26 @@ import { State, Action, Getter } from 'vuex-class'
 
 @Component
 export default class ConsultTools extends Vue {
-    consultTypeList = [
-        {
+    get consultTypeList() { 
+        return [{
             icon: 'icon-bk',
-            label: '蓝鲸官网',
+            label: this.$t('flowTips.websiteUrl'),
             href: 'https://bk.tencent.com/',
             target: '_blank'
         },
         {
             icon: 'icon-order',
-            label: '服务协议',
+            label: this.$t('flowTips.protocol'),
             href: 'https://bk.tencent.com/info/#laws',
             target: '_blank'
         },
         {
             icon: 'icon-qq',
-            label: 'QQ咨询（800802001）',
+            label: this.$t('flowTips.qq'),
             href: 'https://wpa.b.qq.com/cgi/wpa.php?ln=1&key=XzgwMDgwMjAwMV80NDMwOTZfODAwODAyMDAxXzJf',
-            target: ''
-        }
-    ]
+            target: '_blank'
+        }]
+    }
 
     prevent(event) {
         event.preventDefault()

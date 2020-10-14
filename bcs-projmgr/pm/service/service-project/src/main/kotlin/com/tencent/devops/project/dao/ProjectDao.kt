@@ -265,4 +265,14 @@ class ProjectDao {
                         .fetch()
             }
     }
+
+    fun listAll(dslContext: DSLContext): Result<TProjectRecord> {
+        with(TProject.T_PROJECT) {
+            return dslContext.selectFrom(this)
+                    .where(APPROVAL_STATUS.eq(2))
+                    .and(IS_OFFLINED.eq(false))
+                    .orderBy(CREATED_AT.desc())
+                    .fetch()
+        }
+    }
 }

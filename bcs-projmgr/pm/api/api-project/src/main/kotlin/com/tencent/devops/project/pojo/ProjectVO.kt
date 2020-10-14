@@ -86,5 +86,7 @@ data class ProjectVO(
     @ApiModelProperty("启用")
     val enabled: Boolean,
     @ApiModelProperty("是否灰度")
-    val gray: Boolean
+    val gray: Boolean,
+    @ApiModelProperty("是否有权限")
+    val permission: Boolean? = true
 )

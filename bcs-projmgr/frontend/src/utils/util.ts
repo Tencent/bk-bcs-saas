@@ -130,7 +130,7 @@ export function isShallowEqual (obj1: object, obj2: object): boolean {
 }
 
 export function judgementLsVersion () {
-    console.log(DEVOPS_LS_VERSION, 'DEVOPS_LS_VERSION')
+    // console.log(DEVOPS_LS_VERSION, 'DEVOPS_LS_VERSION')
     const curLsVersion = window.localStorage.getItem('lsVersion')
     if (!curLsVersion || curLsVersion !== DEVOPS_LS_VERSION) {
         window.localStorage.clear()
@@ -168,4 +168,36 @@ export function importStyle (href, oHead) {
 export function getServiceAliasByPath (path: string): string {
     const serviceAliasREG = /^\/(console\/)?(\w+)\S*$/
     return path.replace(serviceAliasREG, '$2')
+}
+
+export function getAuthUrl (projectId: string) {
+    const item = getAuthPermissionItem({
+        resources: [
+            [
+                {
+                    resource_type: 'bcs_project',
+                    resource_id: projectId
+                }
+            ]
+        ]
+    })
+    let arr = []
+    arr.push(item)
+    const params = {
+        permission: arr
+    }
+    return params
+}
+
+export function getAuthPermissionItem (obj) {
+    const item = (typeof obj === 'object') ? obj : {}
+    const base = {
+        "system_id": "bk_bcs_app",
+        "scope_id": "bk_bcs_app",
+        "scope_type": "system",
+        "resource_type": "bcs_project",
+        "action_id": 'manage',
+        "resources": []
+    }
+    return Object.assign(base, item)
 }

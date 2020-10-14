@@ -30,19 +30,19 @@ class UserProjectResourceImpl @Autowired constructor(
 ) : UserProjectResource {
 
     override fun list(bkToken: String): Result<List<ProjectVO>> {
-        return Result(userProjectService.getPxternalProjectList(bkToken))
+        return Result(userProjectService.getExternalProjectList(bkToken))
     }
 
     override fun get(bkToken: String, projectId: String): Result<ProjectVO?> {
-        return Result(data = userProjectService.getPxternalProject(bkToken, projectId))
+        return Result(data = userProjectService.getExternalProject(bkToken, projectId))
     }
 
     override fun getByCode(bkToken: String, projectCode: String): Result<ProjectVO?> {
-        return Result(data = userProjectService.getPxternalProjectByCode(bkToken, projectCode))
+        return Result(data = userProjectService.getExternalProjectByCode(bkToken, projectCode))
     }
 
     override fun listAll(bkToken: String): Result<List<ProjectVO>> {
-        return Result(userProjectService.getPxternalAllProjectList(bkToken))
+        return Result(userProjectService.getExternalAllProjectList(bkToken))
     }
 
     override fun create(bkToken: String, projectCreateInfo: ProjectCreateInfo): Result<Boolean> {

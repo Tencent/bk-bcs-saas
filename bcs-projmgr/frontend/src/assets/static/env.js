@@ -11,14 +11,10 @@
  */
 
 var LOGIN_SERVICE_URL = 'http://paas.bk.com/login' // 登录域名前缀
-var GW_URL_PREFIX = 'http://api.dev.devops.bk.com' // api接口前缀
+var GW_URL_PREFIX = 'http://paas.bk.com/o/bk_bcs_app' // api接口前缀
 var DEVOPS_LS_VERSION = 'dev' // 最近访问服务版本
-var AUTHORITY_CENTER_URL = 'http://paas.bk.com/o/bk_iam_app/my-perm'
+var AUTHORITY_CENTER_URL = 'http://paas.bk.com/o/bk_iam'
 var BCS_DOCS_URL = 'https://bk.tencent.com/docs/' // 容器文档地址s
-var USER_MANAGER_URL = 'http://paas.bk.com/o/bk_iam_app/policy?type=system' // 项目管理“用户管理”
-
-var BCS_IFRAME_URL = "http://bcs.bk.com" //容器服务iframe地址
+var BCS_IFRAME_URL = "http://bcs.bk.com/o/bk_bcs_app" //容器服务iframe地址
 
 var MONITOR_IFRAME_URL = "http://paas.bk.com/o/bk_bcs_monitor" //监控中心服务地址
-
-var APPLY_PROJECT_URL = "http://paas.bk.com/o/bk_iam_app/perm-apply" //申请加入项目

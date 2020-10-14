@@ -1,34 +1,14 @@
 <template>
     <div v-bkloading='loadingOption' class='devops-index'>
-        <div class="user-prompt" v-if="showExplorerTips === 'true' && isShowPreviewTips && !chromeExplorer">
-            <p><i class="bk-icon icon-info-circle-shape"></i>推荐使用谷歌浏览器以获得更好的体验</p>
-            <div class="close-btn">
-                <span class="close-remind" @click="closeExplorerTips">不再提示</span>
-                <i class="bk-icon icon-close" @click="closePreviewTips"></i>
-            </div>
-        </div>
         <template v-if='projectList'>
             <Header />
             <main>
                 <template v-if='hasProjectList'>
-                    <empty-tips v-if='!hasProject' :title="`无${hrefProjectId}项目权限或者项目不存在`" desc='请切换项目试试，或申请加入该项目'>
+                    <empty-tips v-if='!hasProject' :title="`${$t('pageTips.noPermissionTitlePrefix')}${$t('pageTips.noPermissionTitleSuffix')}`" :desc="$t('pageTips.noPermissionDesc')">
 
-                        <bk-button type='primary' @click='switchProject'>切换项目</bk-button>
-                        <a target="_blank" class='empty-btns-item' :href="permUrl">
-                            <bk-button type='success'>申请加入</bk-button>
-                        </a>
+                        <bk-button type='primary' @click='switchProject'>{{ $t('pageTips.switchProject') }}</bk-button>
+                        <bk-button type='success' @click='joinProject'>{{ $t('pageTips.joinProject') }}</bk-button>
                     </empty-tips>
-
-                    <empty-tips v-else-if='isOfflineProject' title='项目已禁用' desc='该项目已被禁用，请切换项目试试，或重新启用该项目'>
-                        <bk-button type='primary' @click='switchProject'>切换项目</bk-button>
-                        <a target="_blank" class='empty-btns-item' href='/console/pm'>
-                            <bk-button type='success'>项目管理</bk-button>
-                        </a>
-                    </empty-tips>
-
-                    <!--<empty-tips v-else-if='isApprovalingProject' title='无法访问该项目' desc='你正在访问的项目正在处于审核中，禁止访问'>
-                        <bk-button type='primary' @click='switchProject'>切换项目</bk-button>
-                    </empty-tips>-->
                 </template>
                 <router-view v-if='!hasProjectList || isOnlineProject || isApprovalingProject'></router-view>
             </main>
@@ -45,7 +25,7 @@ import LoginDialog from '../components/LoginDialog'
 import { Component, Watch } from 'vue-property-decorator'
 import { State, Getter, Action } from 'vuex-class'
 import eventBus from '../utils/eventBus'
-import { urlJoin } from '../utils/util'
+import { urlJoin, getAuthUrl } from '../utils/util'
 import compilePath from '../utils/pathExp'
 
 @Component({
@@ -55,16 +35,14 @@ import compilePath from '../utils/pathExp'
     }
 })
 export default class Index extends Vue {
-    @State hrefProjectId
     @State projectList
     @State headerConfig
     @State isShowPreviewTips
     @Getter onlineProjectList
     @Getter approvalingProjectList
-    @Action closePreviewTips
+    @Action getPermissionUrl
 
     showLoginDialog: boolean = false
-    permUrl: string = `${APPLY_PROJECT_URL}`
     showExplorerTips: string = localStorage.getItem('showExplorerTips')
 
     get loadingOption(): object {
@@ -74,7 +52,7 @@ export default class Index extends Vue {
     }
 
     get hasProject(): boolean {
-        return this.projectList.some(project => project.project_code === this.$route.params.projectId)
+        return this.projectList.some(project => project.project_code === this.$route.params.projectId && project.permission !== false)
     }
 
     get isOfflineProject(): boolean {
@@ -108,9 +86,8 @@ export default class Index extends Vue {
         this.iframeUtil.toggleProjectMenu(true)
     }
 
-    closeExplorerTips() {
-        localStorage.setItem('showExplorerTips', 'false')
-        this.closePreviewTips()
+    async joinProject() {
+        location.href = '/console'
     }
 
     saveProjectId(): void {

@@ -61,4 +61,5 @@ interface Project {
     cc_app_name?: string
     approval_status?: number
     is_offlined?: boolean
+    permissions?: object
 }
