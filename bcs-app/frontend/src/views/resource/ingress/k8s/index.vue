@@ -1126,7 +1126,7 @@
 
                     for (const path of paths) {
                         if (!path.path) {
-                            megPrefix += this.$t('路径组：')
+                            megPrefix += `${rule.host}中${this.$t('路径组')}：`
                             this.$bkMessage({
                                 theme: 'error',
                                 message: megPrefix + this.$t('请填写路径！'),
@@ -1136,7 +1136,7 @@
                         }
 
                         if (path.path && !pathReg.test(path.path)) {
-                            megPrefix += `${this.$t('路径组')}：`
+                            megPrefix += `${rule.host}中${this.$t('路径组')}：`
                             this.$bkMessage({
                                 theme: 'error',
                                 message: megPrefix + this.$t('路径不正确'),
@@ -1146,7 +1146,7 @@
                         }
 
                         if (!path.backend.serviceName) {
-                            megPrefix += this.$t('路径组：')
+                            megPrefix += `${rule.host}中${this.$t('路径组')}：`
                             this.$bkMessage({
                                 theme: 'error',
                                 message: megPrefix + this.$t('请关联服务！'),
@@ -1156,7 +1156,7 @@
                         }
 
                         if (!path.backend.servicePort) {
-                            megPrefix += this.$t('路径组：')
+                            megPrefix += `${rule.host}中${this.$t('路径组')}：`
                             this.$bkMessage({
                                 theme: 'error',
                                 message: megPrefix + this.$t('请关联服务端口！'),
@@ -1166,7 +1166,7 @@
                         }
 
                         if (path.backend.serviceName && !this.linkServices.hasOwnProperty(path.backend.serviceName)) {
-                            megPrefix += this.$t('路径组：')
+                            megPrefix += `${rule.host}中${this.$t('路径组')}：`
                             this.$bkMessage({
                                 theme: 'error',
                                 message: megPrefix + `关联的Service【${path.backend.serviceName}】不存在，请重新绑定！`,
