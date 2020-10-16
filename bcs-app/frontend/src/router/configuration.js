@@ -35,6 +35,9 @@ const MesosCreateSecret = () => import(/* webpackChunkName: 'mesosTemplateset' *
 // 添加模板集 - configmap
 const MesosCreateConfigmap = () => import(/* webpackChunkName: 'mesosTemplateset' */'@open/views/configuration/mesos-create/configmap')
 
+// 添加模板集 - ingress
+const MesosCreateIngress = () => import(/* webpackChunkName: 'k8sTemplateset' */'@/views/configuration/mesos-create/ingress')
+
 // 添加模板集 - HPA
 const MesosCreateHPA = () => import(/* webpackChunkName: 'k8sTemplateset' */'@open/views/configuration/mesos-create/hpa')
 
@@ -123,6 +126,11 @@ const childRoutes = [
                         path: 'templateset/secret/:templateId',
                         name: 'mesosTemplatesetSecret',
                         component: MesosCreateSecret
+                    },
+                    {
+                        path: 'templateset/ingress/:templateId',
+                        name: 'mesosTemplatesetIngress',
+                        component: MesosCreateIngress
                     },
                     {
                         path: 'templateset/hpa/:templateId',
