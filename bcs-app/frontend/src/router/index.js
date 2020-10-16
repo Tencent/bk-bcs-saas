@@ -1,5 +1,5 @@
 /**
- * @file ee 版本 router 配置
+ * @file router 配置
  */
 
 import Vue from 'vue'

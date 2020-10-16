@@ -949,7 +949,16 @@
                         })
                     })
                 })
-                return { ipParams, labels }
+
+                const statusListParams = searchParams.filter(item => item.id === 'status_list')
+                const statusMap = {}
+                statusListParams.forEach(statusItem => {
+                    statusItem.valueArr.forEach(statusVal => {
+                        statusMap[statusVal] = 1
+                    })
+                })
+
+                return { ipParams, labels, statusList: Object.keys(statusMap) }
             },
 
             /**
@@ -978,10 +987,13 @@
                 const sLabels = searchParams.labels
                 const len = sLabels.length
 
+                const statusList = searchParams.statusList || []
+                const statusListLen = statusList.length
+
                 const results = []
 
                 // 没有搜索条件，那么就是全部
-                if (!ipList.length && !len) {
+                if (!ipList.length && !len && !statusListLen) {
                     results.splice(0, 0, ...newNodeList)
                 } else {
                     const resultMap = {}
@@ -1009,6 +1021,15 @@
                             }
                         }
                     })
+
+                    if (statusListLen) {
+                        Object.keys(resultMap).forEach(ip => {
+                            if (statusList.indexOf(resultMap[ip].status) < 0) {
+                                delete resultMap[ip]
+                            }
+                        })
+                    }
+
                     Object.keys(resultMap).forEach(key => {
                         results.push(resultMap[key])
                     })

@@ -118,7 +118,7 @@
     font-size: 0;
     border-radius: 2px;
 
-    .change-pod-wrapper {
+    /deep/ .change-pod-wrapper {
         width: 400px;
         float: right;
         margin-right: 20px;

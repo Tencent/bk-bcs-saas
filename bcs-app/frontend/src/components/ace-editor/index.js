@@ -54,6 +54,10 @@ module.exports = {
         value (newVal) {
             if (this.$ace && this.$ace.setValue) {
                 this.$ace.setValue(newVal, 1)
+                // 设置光标在第一行
+                setTimeout(() => {
+                    this.$ace.scrollToLine(1, true, true)
+                }, 0)
             }
         },
         lang (newVal) {

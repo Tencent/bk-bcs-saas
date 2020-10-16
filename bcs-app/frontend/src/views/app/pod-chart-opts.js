@@ -15,7 +15,8 @@ export function createChartOption (ctx) {
                 label: {
                     backgroundColor: '#6a7985'
                 }
-            }
+            },
+            appendToBody: true
         },
         grid: {
             show: false,

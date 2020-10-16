@@ -17,11 +17,19 @@
                                     <input type="text" class="input" v-model="sp.value" :ref="`editInput${spIndex}`" @blur="editInputBlurHandler($event, sp, spIndex)">
                                 </div>
                             </template>
-                            <template v-else>
+                            <template v-else-if="sp.id === 'labels'">
                                 <div class="value-container" v-if="sp.key">
                                     <div class="value">{{sp.key}}:</div>
                                     <div class="value-value">
                                         <span class="value-item" v-for="(valueArrItem, valueArrIndex) in sp.valueArr" :key="valueArrIndex">{{valueArrItem}}</span>
+                                    </div>
+                                    <div class="remove-search-params" @click.stop="removeSearchParams(sp, spIndex)"><i class="bk-icon icon-close"></i></div>
+                                </div>
+                            </template>
+                            <template v-else>
+                                <div class="value-container" v-if="sp.text">
+                                    <div class="value">
+                                        <span class="value-item">{{sp.value}}</span>
                                     </div>
                                     <div class="remove-search-params" @click.stop="removeSearchParams(sp, spIndex)"><i class="bk-icon icon-close"></i></div>
                                 </div>
@@ -39,7 +47,7 @@
                     <template v-else>
                         <div class="selectable">
                             <div class="name">{{curSearchParams.text}}</div>
-                            <div class="value-container" ref="tmpLabelsValueContainer" v-if="curSearchParams.key">
+                            <div class="value-container" v-if="curSearchParams.key">
                                 <div class="value">{{curSearchParams.key}}</div>
                             </div>
                         </div>
@@ -54,7 +62,8 @@
                         @blur="searchInputBlurHandler($event)"
                         @keyup="inputKeyup($event)"
                         @keypress="preventKeyboardEvt($event)"
-                        @keydown="preventKeyboardEvt($event)">
+                        @keydown="preventKeyboardEvt($event)"
+                        @paste="handleInputPaste">
                 </li>
             </ul>
         </div>
@@ -75,6 +84,16 @@
                 <ul class="node-searcher-dropdown-list">
                     <li v-for="(label, labelIndex) in labelList" :key="labelIndex">
                         <a href="javascript:void(0);" @click="selectLabel(label, labelIndex)">{{label.text}}</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="node-searcher-dropdown-menu tag-list" v-show="showStatus">
+            <div class="node-searcher-dropdown-content is-show" :style="{ left: `${searcherDropdownLeft}px` }">
+                <ul class="node-searcher-dropdown-list">
+                    <li v-for="(s, sIndex) in statusList" :key="sIndex">
+                        <a href="javascript:void(0);" @click="selectStatus(s)">{{s.text}}</a>
                     </li>
                 </ul>
             </div>
@@ -155,12 +174,13 @@
                 curInputValue: '',
                 labelList: [
                     { id: 'ip', text: this.$t('IP地址') },
-                    { id: 'labels', text: this.$t('标签') }
+                    { id: 'labels', text: this.$t('标签') },
+                    { id: 'status_list', text: this.$t('状态') }
                 ],
                 // 输入框的最小宽度
                 minInputWidth: 190,
                 // 输入框的最大宽度
-                maxInputWidth: 300,
+                maxInputWidth: 200,
                 // 显示 label 的弹层
                 showLabel: false,
                 // 显示 key 的弹层
@@ -192,7 +212,12 @@
                 selectedValues: {},
                 curTmpLabelsValueContainerWidth: 0,
                 maxLeftOffset: 514,
-                showEnterTip: false
+                showEnterTip: false,
+                showStatus: false,
+                statusList: [
+                    { text: this.$t('正常'), value: ['normal'] },
+                    { text: this.$t('不可调度'), value: ['to_removed', 'removable'] }
+                ]
             }
         },
         watch: {
@@ -268,7 +293,7 @@
                         this.isListeningInputKeyup = true
                         this.showEnterTip = true
                     })
-                } else {
+                } else if (label.id === 'labels') {
                     curSearchParams.key = ''
                     curSearchParams.value = ''
                     this.curSearchParams = Object.assign({}, curSearchParams)
@@ -293,7 +318,39 @@
                     } finally {
                         this.tagLoading = false
                     }
+                } else {
+                    curSearchParams.key = ''
+                    curSearchParams.value = ''
+                    this.curSearchParams = Object.assign({}, curSearchParams)
+                    this.showLabel = false
+                    this.showStatus = true
                 }
+            },
+
+            /**
+             * 选择 status 回调事件
+             *
+             * @param {Object} v 选中的 status 对象
+             */
+            selectStatus (s) {
+                this.$refs.searchInput.focus()
+                this.curSearchParams.key = 'status'
+
+                const searchParams = []
+                searchParams.splice(0, 0, ...this.searchParams)
+                searchParams.push({
+                    id: this.curSearchParams.id,
+                    key: this.curSearchParams.key,
+                    text: this.curSearchParams.text,
+                    value: s.text,
+                    valueArr: s.value
+                })
+                this.searchParams.splice(0, this.searchParams.length, ...searchParams)
+
+                this.curSearchParams = null
+                this.showStatus = false
+                this.adjustOffset()
+                this.$emit('search')
             },
 
             /**
@@ -453,6 +510,7 @@
                 this.showLabel = false
                 this.showKey = false
                 this.showValue = false
+                this.showStatus = false
                 this.$emit('search')
             },
 
@@ -566,6 +624,19 @@
             },
 
             /**
+             * 处理 input 框 paste 事件
+             * 把数据中的换行符\n 转换成 |
+             */
+            handleInputPaste (e) {
+                const value = e.clipboardData.getData('text')
+                if (value && this.curSearchParams && this.curSearchParams.id === 'ip') {
+                    this.$nextTick(() => {
+                        this.curInputValue = value.split('\n').join('|')
+                    })
+                }
+            },
+
+            /**
              * 修正弹框的左偏移
              */
             adjustOffset () {
@@ -610,6 +681,7 @@
                     this.showLabel = false
                     this.showKey = false
                     this.showValue = false
+                    this.showStatus = false
                     this.keyList.splice(0, this.keyList.length, ...[])
                     this.keyListTmp.splice(0, this.keyListTmp.length, ...[])
                     this.valueList.splice(0, this.valueList.length, ...[])

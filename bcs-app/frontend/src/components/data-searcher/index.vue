@@ -13,7 +13,7 @@
                     :searchable="true"
                     :setting-key="'id'"
                     :display-key="'name'"
-                    :selected.sync="searchScope"
+                    :selected.sync="localSearchScope"
                     :list="scopeList"
                     :search-placeholder="searchPlaceholder || $t('请选择集群')"
                     @item-selected="handleSechScope">
@@ -98,7 +98,8 @@
                     name: this.$t('全部集群')
                 },
                 placeholderRender: '',
-                keyword: ''
+                keyword: '',
+                localSearchScope: ''
             }
         },
         watch: {
@@ -113,12 +114,20 @@
                 if (oldVal && !newVal && !this.isRefresh) {
                     this.clearSearch()
                 }
+            },
+            searchScope: {
+                immediate: true,
+                handler (val) {
+                    if (val) {
+                        this.localSearchScope = val
+                        this.handleSearch()
+                    }
+                }
             }
         },
         created () {
             this.initLocalScopeList()
             this.placeholderRender = this.placeholder || this.$t('输入关键字，按Enter搜索')
-            sessionStorage['bcs-cluster'] = this.searchScope
         },
         methods: {
             handleSechScope (index, data) {
@@ -131,7 +140,7 @@
                 this.localScopeList = JSON.parse(JSON.stringify(this.scopeList))
                 if (this.localScopeList.length) {
                     // 在初始化时，如果已经有值，选中
-                    const clusterId = this.searchScope || sessionStorage['bcs-cluster']
+                    const clusterId = this.localSearchScope || sessionStorage['bcs-cluster']
                     if (clusterId) {
                         const matchItem = this.localScopeList.find(item => item.id === clusterId)
                         if (matchItem) {

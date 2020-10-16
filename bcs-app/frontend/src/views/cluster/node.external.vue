@@ -42,7 +42,7 @@
                                 <i class="bk-icon icon-plus"></i>
                                 <span>{{$t('添加节点')}}</span>
                             </button>
-                            <bk-tooltip v-if="!allowBatch" :content="dontAllowBatchMsg" placement="right">
+                            <bk-tooltip v-if="!allowBatch" :content="dontAllowBatchMsg" placement="top">
                                 <bk-dropdown-menu :align="'center'" ref="toggleFilterDropdownMenu" class="batch-operate-dropdown" :disabled="true">
                                     <a href="javascript:void(0);" slot="dropdown-trigger" class="bk-text-button batch-operate" :class="!allowBatch ? 'disabled' : ''">
                                         <span class="label">{{$t('批量操作')}}</span>
@@ -69,11 +69,25 @@
                                         <a class="action" href="javascript:void(0)" @click="exportNode">{{$t('导出')}}</a>
                                     </li>
                                     <li>
-                                        <a class="action copy" href="javascript:void(0)" @click="copyIp">{{$t('复制所选IP')}}</a>
-                                    </li>
-                                    <li>
                                         <a class="action" href="javascript:void(0)" @click="batchOperate('4')" v-if="isBatchReInstall">{{$t('重新添加')}}</a>
                                         <a href="javascript:void(0)" v-else class="action disabled" :title="$t('所选节点均处于初始化失败状态时才允许此操作')">{{$t('重新添加')}}</a>
+                                    </li>
+                                </ul>
+                            </bk-dropdown-menu>
+                            <bk-dropdown-menu :align="'left'" ref="copyIpDropdownMenu" class="copy-ip-dropdown">
+                                <a href="javascript:void(0);" slot="dropdown-trigger" class="bk-text-button copy-ip-btn">
+                                    <span class="label">{{$t('复制IP')}}</span>
+                                    <i class="bk-icon icon-angle-down dropdown-menu-angle-down"></i>
+                                </a>
+                                <ul class="bk-dropdown-list" slot="dropdown-content">
+                                    <li>
+                                        <a href="javascript:void(0)" @click="copyIp('selected')" class="selected" :class="!allowBatch ? 'disabled' : ''">{{$t('复制所选IP')}}</a>
+                                    </li>
+                                    <li>
+                                        <a href="javascript:void(0)" @click="copyIp('cur-page')" class="cur-page">{{$t('复制当前页IP')}}</a>
+                                    </li>
+                                    <li>
+                                        <a href="javascript:void(0)" @click="copyIp('all')" class="all">{{$t('复制所有IP')}}</a>
                                     </li>
                                 </ul>
                             </bk-dropdown-menu>
@@ -705,7 +719,7 @@
                                 {{$t('操作成功')}}
                             </div>
                             <div v-else-if="op.status.toLowerCase() === 'failed'" style="margin: 0 0 5px 0; color: #e64d34; font-size: 14px; font-weight: 700; margin-left: 20px;">
-                                {{$t('操作失败')}}<span style="margin-left: 10px;" v-if="op.task_url"><a :href="op.task_url" class="bk-text-button" target="_blank">{{$t('查看详情')}}</a></span>
+                                {{$t('操作失败')}}<span style="margin-left: 10px;" v-if="op.taskUrl"><a :href="op.taskUrl" class="bk-text-button" target="_blank">{{$t('查看详情')}}</a></span>
                             </div>
                             <div style="margin: 10px 0px 5px 13px; font-size: 10px;" v-else>
                                 <div class="bk-spin-loading bk-spin-loading-small bk-spin-loading-primary">

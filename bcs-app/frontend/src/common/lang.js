@@ -1219,6 +1219,7 @@ export default {
     '复制所有IP成功': ['Copy all IP success'],
     '复制当前页IP成功': ['Copy current page IP success'],
     '复制 {len} 个IP成功': ['Copy {len} IP success'],
+    '当前页无数据': ['No data on the current page '],
     '模板实例化操作即平台通过用户配置的模板，生成对应的资源json文件，并将它们下发到指定集群的命名空间下。资源创建成功后，可在"应用"和"网络"中查看资源实例详情。': ['Template instantiation means that the platform generates the corresponding resource json files through the user-configured templates and sends them to the namespace of the specified cluster. After the resource is created successfully, you can view the resource instance details in Application and Network.'],
     '模板实例化操作即平台通过用户配置的模板，生成对应的资源YAML文件，并将它们下发到指定集群的命名空间下。资源创建成功后，可在"应用"和"网络"中查看资源实例详情。': ['Template instantiation means that the platform generates the corresponding resource YAML files through the user-configured templates and sends them to the namespace of the specified cluster. After the resource is created successfully, you can view the resource instance details in Application and Network.'],
     '命名空间：YAML模板集命名空间在实例化时生效，在编辑YAML文件时不需要填写（会在保存时被置为占位符）': ['Namespace: The YAML TemplateSet namespace takes effect when instantiated, and does not need to be filled in when editing YAML files (it will be set as a placeholder when saving)'],
@@ -1590,6 +1591,11 @@ export default {
     'Kube-proxy代理模式：': ['Kube-proxy: '],
     '请输入集群名或ID': ['Please enter the cluster name or ID'],
     '请通过container查询异常详情': ['Please query the exception details through container'],
+    '选择chart:blueking-nginx-ingress对应的版本': ['Select the version corresponding to chart:blueking-nginx-ingress'],
+    '选择版本': ['Select Version'],
+    'Values内容': ['Values'],
+    '请选择节点IP': ['Please Select Node IP'],
+    '请填写Values内容': ['Please Enter Values'],
     // 变量的使用 $t('test', { vari1: 1, vari2: 2 })
     // 变量的使用 $t('test', { vari1: 1, vari2: 2 })
     'test': ['{vari1} ---english--- {vari2}']

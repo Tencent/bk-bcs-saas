@@ -2380,3 +2380,23 @@ div.jsoneditor {
         text-overflow: ellipsis;
     }
 }
+
+/* 设置默认滚动条样式 */
+div::-webkit-scrollbar {
+    width: 5px;
+    background-color: #fafafa;
+}
+div::-webkit-scrollbar-thumb {
+    height: 6px;
+    border-radius: 4px;
+    background-color: #ccc;
+}
+.ace_scrollbar-v::-webkit-scrollbar {
+    width: 5px;
+    background-color: #666;
+}
+.ace_scrollbar-v::-webkit-scrollbar-thumb {
+    height: 6px;
+    border-radius: 4px;
+    background-color: #000;
+}
