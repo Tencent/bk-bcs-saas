@@ -1210,7 +1210,7 @@
                                 }).then(() => {
                                     self.$bkMessage({
                                         theme: 'success',
-                                        message: this.$t('批量导入成功')
+                                        message: self.$t('批量导入成功')
                                     })
                                     self.refresh()
                                 }).catch((e) => {
