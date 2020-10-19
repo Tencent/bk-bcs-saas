@@ -216,3 +216,7 @@ BK_SSM_HOST = os.environ.get("BKAPP_SSM_HOST")
 
 # BCS CC HOST
 BCS_CC_API_PRE_URL = f"{APIGW_HOST}/api/apigw/bcs_cc/prod"
+
+# bk repo api prefix
+BK_REPO_API_PREFIX = f"{APIGW_HOST}/api/apigw/bkrepo"
+BK_REPO_STAG = "prod"

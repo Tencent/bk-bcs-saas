@@ -49,8 +49,12 @@ class BaseImage:
         else:
             repo_prefix = f'{pro_name}/'
         for i in images:
+            if i.get("name"):
+                name = i["name"]
+            else:
+                name = i.get("repo").split(repo_prefix)[-1] if pro_name else i.get("repo")
             data_list.append({
-                'name': i.get('repo').split(repo_prefix)[-1] if pro_name else i.get('repo'),
+                'name': name,
                 "repo": i.get("repo", ""),
                 "deployBy": i.get("createdBy", ""),
                 "type": i.get("type", ""),
@@ -185,6 +189,12 @@ class AvailableImage(FinalizeResponseMixin, views.APIView):
     """
     """
 
+    def get_image_path(self, image):
+        image_path = image.get("imagePath")
+        if not image_path:
+            image_path = image.get("repo")
+        return image_path
+
     def get(self, request, project_id):
         image_list = []
         # 获取公共镜像
@@ -197,8 +207,9 @@ class AvailableImage(FinalizeResponseMixin, views.APIView):
         pub_image_list = pub_image_data.get('imageList', [])
         for _pub in pub_image_list:
             _repo = _pub.get('repo')
+            image_path = self.get_image_path(_pub)
             image_list.append({
-                'name': _repo.split(settings.DEPOT_PREFIX)[-1] if settings.DEPOT_PREFIX else _repo,
+                "name": image_path.split(settings.DEPOT_PREFIX)[-1] if settings.DEPOT_PREFIX else image_path,
                 'value': _repo,
                 'is_pub': True
             })
@@ -222,8 +233,9 @@ class AvailableImage(FinalizeResponseMixin, views.APIView):
         else:
             repo_prefix = f'{pro_name}/'
         for _pub in pro_image_list:
+            image_path = self.get_image_path(_pub)
             image_list.append({
-                'name': _pub.get('repo').split(repo_prefix)[-1] if pro_name else _pub.get('repo'),
+                "name": image_path.split(repo_prefix)[-1] if pro_name else image_path,
                 'value': _pub.get('repo'),
                 'is_pub': False
             })
@@ -309,6 +321,7 @@ class ImagesInfo(FinalizeResponseMixin, viewsets.ViewSet):
             'imageRepo': self.slz.data['image_repo'],
             'tagStart': offset,
             'tagLimit': limit,
+            "is_public": self.slz.data["is_public"]
         }
         resp = api.get_image_tags(access_token, project_id, project_code, offset, limit, **query_params)
         return response.Response(resp)
