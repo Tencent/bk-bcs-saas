@@ -1428,7 +1428,7 @@
                     }
 
                     if (!nameReg1.test(container.name)) {
-                        megPrefix += `$t('容器名称')：`
+                        megPrefix += `${this.$t('容器名称')}：`
                         this.$bkMessage({
                             theme: 'error',
                             message: megPrefix + this.$t('名称错误，只能包含：小写字母、数字、连字符(-)，必须是字母开头，长度小于64个字符'),

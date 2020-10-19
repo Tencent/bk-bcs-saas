@@ -93,6 +93,7 @@
                 <div class="tip">{{$t('点击图片放大')}}</div>
                 <img :title="$t('点击图片放大')" src="./images/guide1.jpg" @click="setFullsreenImg(1)" />
                 <img :title="$t('点击图片放大')" src="./images/guide2.jpg" @click="setFullsreenImg(2)" />
+                <img :title="$t('点击图片放大')" src="./images/guide3.jpg" @click="setFullsreenImg(3)" />
             </div>
         </bk-dialog>
         <div class="fullscreen-img" v-if="fullscreenImg">
@@ -107,6 +108,7 @@
     import Img403 from '@open/images/403.png'
     import imgGuide1 from './images/guide1.jpg'
     import imgGuide2 from './images/guide2.jpg'
+    import imgGuide3 from './images/guide3.jpg'
 
     export default {
         name: 'app',
@@ -255,6 +257,8 @@
                     this.fullscreenImg = imgGuide1
                 } else if (idx === 2) {
                     this.fullscreenImg = imgGuide2
+                } else if (idx === 3) {
+                    this.fullscreenImg = imgGuide3
                 } else {
                     this.fullscreenImg = ''
                 }
