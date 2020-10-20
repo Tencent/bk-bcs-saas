@@ -226,8 +226,12 @@ class NodeCreateListViewSet(NodeBase, NodeHandler, viewsets.ViewSet):
 
     def add_container_count(self, request, project_id, cluster_id, project_kind, node_list):
         host_ip_list = [info['inner_ip'] for info in node_list]
-        driver = BaseDriver(project_kind).driver(request, project_id, cluster_id)
-        host_container_map = driver.get_host_container_count(host_ip_list)
+        try:
+            driver = BaseDriver(project_kind).driver(request, project_id, cluster_id)
+            host_container_map = driver.get_host_container_count(host_ip_list)
+        except Exception:
+            logger.exception("查询主机container数量异常")
+            host_container_map = {}
         for info in node_list:
             info['containers'] = 0
             if info['inner_ip'] in host_container_map:

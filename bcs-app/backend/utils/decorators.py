@@ -105,7 +105,7 @@ def requests_curl_log(resp, st, params):
     logger.info("%s\n \t %s", curl_req, curl_resp)
 
 
-def response(f=None, handle_resp=False):
+def response(f=None, handle_resp=False, raise_exception=True):
     """返回值格式化handle_resp
     """
 
@@ -129,7 +129,9 @@ def response(f=None, handle_resp=False):
                     resp = format_func(content)
                 except Exception as error:
                     logger.exception("请求第三方失败，使用【%s】格式解析 %s 异常，%s", f, content, error)
-                    raise ComponentError(err_msg or error)
+                    if raise_exception:
+                        raise ComponentError(err_msg or error)
+                    return {}
 
             if handle_resp:
                 if resp.get("code") != ErrorCode.NoError:

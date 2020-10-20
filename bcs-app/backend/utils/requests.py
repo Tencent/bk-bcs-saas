@@ -29,11 +29,11 @@ TIMEOUT = 30
 SSL_VERIFY = False
 
 
-def request_factory(method, handle_resp=False):
+def request_factory(method, handle_resp=False, raise_exception=True):
     """http请求封装
     """
 
-    @response(f="json", handle_resp=handle_resp)
+    @response(f="json", handle_resp=handle_resp, raise_exception=raise_exception)
     def _request(url, params=None, data=None, json=None, **kwargs):
         kwargs.setdefault("timeout", TIMEOUT)
         kwargs.setdefault("verify", SSL_VERIFY)
