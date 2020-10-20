@@ -1,10 +1,22 @@
 # -*- coding: utf-8 -*-
+#
+# Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community Edition) available.
+# Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+# Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://opensource.org/licenses/MIT
+#
+# Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+# an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+# specific language governing permissions and limitations under the License.
+#
 import json
 import logging
 
 from django.conf import settings
 
-from backend.utils.requests import http_post, http_get
+from backend.utils.requests import bk_post
 from backend.utils.decorators import parse_response_data
 
 logger = logging.getLogger(__name__)
@@ -24,10 +36,9 @@ def _headers(access_token):
 
 
 def api_request(access_token, url, data=None):
-    return http_post(url, json=data, headers=_headers(access_token))
+    return bk_post(url, json=data, headers=_headers(access_token))
 
 
-@parse_response_data()
 def query_public_images(access_token, search_name=None, page_num=1, page_size=100):
     """查询公共仓库镜像
     """
@@ -40,7 +51,6 @@ def query_public_images(access_token, search_name=None, page_num=1, page_size=10
     return api_request(access_token, url, data=data)
 
 
-@parse_response_data()
 def query_project_images(access_token, project_code, search_name=None, page_num=1, page_size=100):
     """查询项目下的镜像
     """
@@ -54,7 +64,6 @@ def query_project_images(access_token, project_code, search_name=None, page_num=
     return api_request(access_token, url, data=data)
 
 
-@parse_response_data()
 def query_image_tags(access_token, project_code, image_name, page_num=1, page_size=100):
     url = f"{IMAGE_API_PREFIX}/queryImageTag"
     data = {
@@ -66,7 +75,6 @@ def query_image_tags(access_token, project_code, image_name, page_num=1, page_si
     return api_request(access_token, url, data=data)
 
 
-@parse_response_data()
 def create_repo(access_token, project_code):
     """创建仓库
     """
@@ -74,7 +82,6 @@ def create_repo(access_token, project_code):
     return api_request(access_token, url)
 
 
-@parse_response_data()
 def create_account(access_token, project_code):
     url = f"{REPO_API_PREFIX}/account/create/{project_code}"
     return api_request(access_token, url)
