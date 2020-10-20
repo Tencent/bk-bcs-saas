@@ -229,8 +229,8 @@ class NodeCreateListViewSet(NodeBase, NodeHandler, viewsets.ViewSet):
         try:
             driver = BaseDriver(project_kind).driver(request, project_id, cluster_id)
             host_container_map = driver.get_host_container_count(host_ip_list)
-        except Exception:
-            logger.exception("查询主机container数量异常")
+        except Exception as e:
+            logger.exception(f"通过BCS API查询主机container数量异常, 详情: {e}")
             host_container_map = {}
         for info in node_list:
             info['containers'] = 0

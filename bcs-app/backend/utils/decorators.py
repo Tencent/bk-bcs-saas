@@ -121,7 +121,7 @@ def response(f=None, handle_resp=False, raise_exception=True):
                 elif isinstance(resp, six.string_types):
                     content = resp
                 else:
-                    raise ValueError(_("返回值[{}]必须是字符串或者Respose对象").format(resp))
+                    raise ValueError(_("返回值[{}]必须是字符串或者Response对象").format(resp))
 
                 # 解析格式
                 err_msg = kwargs.get("err_msg", None)
