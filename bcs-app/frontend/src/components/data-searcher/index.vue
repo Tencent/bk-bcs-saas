@@ -45,12 +45,7 @@
 </template>
 
 <script>
-    // import { bkDropdownMenu } from '@open/components/bk-magic'
-
     export default {
-        components: {
-            // bkDropdownMenu
-        },
         props: {
             placeholder: {
                 type: String,
@@ -115,13 +110,10 @@
                     this.clearSearch()
                 }
             },
-            searchScope: {
-                immediate: true,
-                handler (val) {
-                    if (val) {
-                        this.localSearchScope = val
-                        this.handleSearch()
-                    }
+            searchScope (val) {
+                if (val) {
+                    this.localSearchScope = val
+                    this.handleSearch()
                 }
             }
         },
