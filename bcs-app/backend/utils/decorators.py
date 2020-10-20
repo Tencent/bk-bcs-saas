@@ -112,6 +112,7 @@ def response(f=None, handle_resp=False):
     def decorator(func):
         @wraps(func)
         def _wrapped_func(*args, **kwargs):
+            raise_for_status = kwargs.get("raise_for_status")
             resp = func(*args, **kwargs)
             format_func = FORMAT_FUNC.get(f)
             if format_func:
@@ -121,7 +122,11 @@ def response(f=None, handle_resp=False):
                 elif isinstance(resp, six.string_types):
                     content = resp
                 else:
-                    raise ValueError(_("返回值[{}]必须是字符串或者Respose对象").format(resp))
+                    raise ValueError(_("返回值[{}]必须是字符串或者Response对象").format(resp))
+
+                # 针对content为字符串，并且raise_for_status为False时，直接返回
+                if isinstance(content, six.string_types) and not raise_for_status:
+                    return {"message": content}
 
                 # 解析格式
                 err_msg = kwargs.get("err_msg", None)
