@@ -19,8 +19,8 @@ import time
 import arrow
 from django.conf import settings
 
+from backend.components.utils import http_get, http_post
 from backend.utils.basic import normalize_metric
-from backend.utils.requests import request_factory
 
 logger = logging.getLogger(__name__)
 
@@ -31,9 +31,6 @@ AUTH = getattr(settings, "THANOS_AUTH", None)
 DISK_FSTYPE = "ext[234]|btrfs|xfs|zfs"
 # 磁盘统计 允许的挂载目录
 DISK_MOUNTPOINT = "/|/data"
-
-http_get = request_factory("get", raise_exception=False)
-http_post = request_factory("post", raise_exception=False)
 
 
 def query_range(query, start, end, step, project_id=None):

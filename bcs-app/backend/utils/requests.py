@@ -29,11 +29,11 @@ TIMEOUT = 30
 SSL_VERIFY = False
 
 
-def request_factory(method, handle_resp=False, raise_exception=True):
+def request_factory(method, handle_resp=False):
     """http请求封装
     """
 
-    @response(f="json", handle_resp=handle_resp, raise_exception=raise_exception)
+    @response(f="json", handle_resp=handle_resp)
     def _request(url, params=None, data=None, json=None, **kwargs):
         kwargs.setdefault("timeout", TIMEOUT)
         kwargs.setdefault("verify", SSL_VERIFY)
@@ -58,6 +58,7 @@ def request_factory(method, handle_resp=False, raise_exception=True):
 
             return resp
         except Exception as error:
+            print(9999)
             e_msg = f"第三方请求异常，url: {url}, {error}"
             logger.exception(e_msg)
             raise ComponentError(err_msg or error)

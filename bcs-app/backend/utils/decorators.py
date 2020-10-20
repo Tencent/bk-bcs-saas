@@ -72,14 +72,7 @@ def requests_curl_log(resp, st, params):
     )
 
     if resp.request.body:
-        try:
-            body = json.loads(resp.request.body.decode("utf-8"))
-            for s_key in SENSITIVE_KEYWORD:
-                if s_key in body:
-                    body[s_key] = MOSAIC_WORD
-            curl_req += " -d '{body}'".format(body=json.dumps(body))
-        except Exception:
-            curl_req += " -d '{body}'".format(body=force_str(resp.request.body))
+        curl_req += " -d '{body}'".format(body=force_str(resp.request.body))
 
     if resp.request.headers:
         for key, value in resp.request.headers.items():
@@ -105,13 +98,14 @@ def requests_curl_log(resp, st, params):
     logger.info("%s\n \t %s", curl_req, curl_resp)
 
 
-def response(f=None, handle_resp=False, raise_exception=True):
+def response(f=None, handle_resp=False):
     """返回值格式化handle_resp
     """
 
     def decorator(func):
         @wraps(func)
         def _wrapped_func(*args, **kwargs):
+            raise_for_status = kwargs.get("raise_for_status")
             resp = func(*args, **kwargs)
             format_func = FORMAT_FUNC.get(f)
             if format_func:
@@ -123,15 +117,17 @@ def response(f=None, handle_resp=False, raise_exception=True):
                 else:
                     raise ValueError(_("返回值[{}]必须是字符串或者Response对象").format(resp))
 
+                # 针对content为字符串，并且不抛异常时，直接返回
+                if isinstance(content, six.string_types) and not raise_for_status:
+                    return {"message": content}
+
                 # 解析格式
                 err_msg = kwargs.get("err_msg", None)
                 try:
                     resp = format_func(content)
                 except Exception as error:
                     logger.exception("请求第三方失败，使用【%s】格式解析 %s 异常，%s", f, content, error)
-                    if raise_exception:
-                        raise ComponentError(err_msg or error)
-                    return {}
+                    raise ComponentError(err_msg or error)
 
             if handle_resp:
                 if resp.get("code") != ErrorCode.NoError:
