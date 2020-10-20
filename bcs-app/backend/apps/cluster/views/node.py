@@ -233,9 +233,7 @@ class NodeCreateListViewSet(NodeBase, NodeHandler, viewsets.ViewSet):
             logger.exception(f"通过BCS API查询主机container数量异常, 详情: {e}")
             host_container_map = {}
         for info in node_list:
-            info['containers'] = 0
-            if info['inner_ip'] in host_container_map:
-                info['containers'] = host_container_map[info['inner_ip']]
+            info["containers"] = host_container_map.get(info["inner_ip"], 0)
         return node_list
 
     def compose_data_with_containers(self, request, project_id, cluster_id, with_containers, data):
