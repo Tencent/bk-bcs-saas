@@ -58,7 +58,6 @@ def request_factory(method, handle_resp=False):
 
             return resp
         except Exception as error:
-            print(9999)
             e_msg = f"第三方请求异常，url: {url}, {error}"
             logger.exception(e_msg)
             raise ComponentError(err_msg or error)

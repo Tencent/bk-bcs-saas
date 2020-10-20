@@ -72,7 +72,14 @@ def requests_curl_log(resp, st, params):
     )
 
     if resp.request.body:
-        curl_req += " -d '{body}'".format(body=force_str(resp.request.body))
+        try:
+            body = json.loads(resp.request.body.decode("utf-8"))
+            for s_key in SENSITIVE_KEYWORD:
+                if s_key in body:
+                    body[s_key] = MOSAIC_WORD
+            curl_req += " -d '{body}'".format(body=json.dumps(body))
+        except Exception:
+            curl_req += " -d '{body}'".format(body=force_str(resp.request.body))
 
     if resp.request.headers:
         for key, value in resp.request.headers.items():
@@ -117,7 +124,7 @@ def response(f=None, handle_resp=False):
                 else:
                     raise ValueError(_("返回值[{}]必须是字符串或者Response对象").format(resp))
 
-                # 针对content为字符串，并且不抛异常时，直接返回
+                # 针对content为字符串，并且raise_for_status为False时，直接返回
                 if isinstance(content, six.string_types) and not raise_for_status:
                     return {"message": content}
 
