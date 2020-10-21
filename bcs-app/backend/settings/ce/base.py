@@ -222,9 +222,9 @@ BK_SSM_HOST = os.environ.get("BKAPP_SSM_HOST")
 # BCS CC HOST
 BCS_CC_API_PRE_URL = f"{APIGW_HOST}/api/apigw/bcs_cc/prod"
 
+BK_IAM_HOST = os.environ.get("BKAPP_IAM_HOST")
 # BCS IAM MIGRATION相关，用于初始资源数据到权限中心
 APP_CODE = APP_ID
-BK_IAM_HOST = os.environ.get("BKAPP_IAM_HOST")
 BK_IAM_SYSTEM_ID = APP_ID
 BK_IAM_MIGRATION_APP_NAME = "bcs_iam_migration"
 BK_IAM_RESOURCE_API_HOST = BK_PAAS_INNER_HOST or "http://paas.service.consul"
