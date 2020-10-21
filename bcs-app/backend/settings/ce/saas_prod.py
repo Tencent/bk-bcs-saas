@@ -118,12 +118,6 @@ PAAS_ENV = "dev"
 # 权限跳转URL, 添加console前缀
 AUTH_REDIRECT_URL = "%s/console" % PAAS_HOST
 
-# IAM 地址
-BK_IAM_HOST = os.environ.get("BKAPP_IAM_HOST")
-# 权限中心接口, 和IAM地址保持一致
-PAAS_PERM_HOST = BK_IAM_HOST
-PAAS_AUTH_HOST = BK_IAM_HOST
-
 # 项目地址
 DEVOPS_HOST = os.environ.get("BKAPP_DEVOPS_HOST")
 # PaaS Devops域名, 静态连接使用
