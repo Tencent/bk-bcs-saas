@@ -112,31 +112,38 @@ def response(f=None, handle_resp=False):
     def decorator(func):
         @wraps(func)
         def _wrapped_func(*args, **kwargs):
-            resp = func(*args, **kwargs)
-            format_func = FORMAT_FUNC.get(f)
-            if format_func:
-                # 获取内容
-                if isinstance(resp, Response):
-                    content = resp.text
-                elif isinstance(resp, six.string_types):
-                    content = resp
-                else:
-                    raise ValueError(_("返回值[{}]必须是字符串或者Respose对象").format(resp))
+            # 判断是否抛异常
+            raise_exception = kwargs.pop("raise_exception", True)
+            try:
+                resp = func(*args, **kwargs)
+                format_func = FORMAT_FUNC.get(f)
+                if format_func:
+                    # 获取内容
+                    if isinstance(resp, Response):
+                        content = resp.text
+                    elif isinstance(resp, six.string_types):
+                        content = resp
+                    else:
+                        raise ValueError(_("返回值[{}]必须是字符串或者Response对象").format(resp))
 
-                # 解析格式
-                err_msg = kwargs.get("err_msg", None)
-                try:
-                    resp = format_func(content)
-                except Exception as error:
-                    logger.exception("请求第三方失败，使用【%s】格式解析 %s 异常，%s", f, content, error)
-                    raise ComponentError(err_msg or error)
+                    # 解析格式
+                    err_msg = kwargs.get("err_msg", None)
+                    try:
+                        resp = format_func(content)
+                    except Exception as e:
+                        logger.exception("请求第三方失败，使用【%s】格式解析 %s 异常，%s", f, content, e)
+                        raise ComponentError(err_msg or e)
 
-            if handle_resp:
-                if resp.get("code") != ErrorCode.NoError:
-                    raise APIError(resp.get("message"))
-                return resp.get("data")
+                if handle_resp:
+                    if resp.get("code") != ErrorCode.NoError:
+                        raise APIError(resp.get("message"))
+                    return resp.get("data")
 
-            return resp
+                return resp
+            except Exception as e:
+                if raise_exception:
+                    raise
+                return {"message": str(e)}
 
         return _wrapped_func
 
