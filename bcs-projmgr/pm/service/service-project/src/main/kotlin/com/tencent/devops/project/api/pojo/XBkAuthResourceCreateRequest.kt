@@ -15,18 +15,35 @@ package com.tencent.devops.project.api.pojo
 import com.fasterxml.jackson.annotation.JsonProperty
 
 data class XBkAuthResourceCreateRequest(
-    @JsonProperty("creator_type")
-    val creator_type: String,
-    @JsonProperty("creator_id")
-    val creator_id: String,
-    @JsonProperty("scope_type")
-    val scope_type: String,
-    @JsonProperty("scope_id")
-    val scope_id: String,
-    @JsonProperty("resource_name")
-    val resourceName: String,
-    @JsonProperty("resource_type")
-    val resourceType: String,
-    @JsonProperty("resource_id")
-    val resource_id: String
-)
+        @JsonProperty("creator_id")
+        val creatorId: String?,
+        @JsonProperty("creator_type")
+        val creatorType: String?, // user
+        val resources: Set<Resource?>?
+) {
+    data class Resource(
+            @JsonProperty("resource_id")
+            val resourceId: Set<ResourceId?>?,
+
+            @JsonProperty("resource_name")
+            val resourceName: String?, // 2019.4.1测试资源存入
+
+            @JsonProperty("resource_type")
+            val resourceType: String?, // env_node
+
+            @JsonProperty("scope_id")
+            val scopeId: String?, // projecttest01
+
+            @JsonProperty("scope_type")
+            val scopeType: String? // project
+    )
+
+    data class ResourceId(
+
+            @JsonProperty("resource_id")
+            val resourceId: String?, // aaaaa
+
+            @JsonProperty("resource_type")
+            val resourceType: String? // env_node
+    )
+}

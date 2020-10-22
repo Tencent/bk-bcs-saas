@@ -21,15 +21,12 @@ import {
     SET_DEMO_PIPELINE_ID,
     UPDATE_NEW_PROJECT,
     TOGGLE_PROJECT_DIALOG,
-    BACKEND_API_URL_PREFIX,
     PROCESS_API_URL_PREFIX,
     PROJECT_API_URL_PREFIX,
-    SUPPORT_API_URL_PREFIX,
     EMPTY_PROJECT,
     RESET_NEW_PROJECT,
     SET_POPUP_SHOW,
     UPDATE_HEADER_CONFIG,
-    CLOSE_PREVIEW_TIPS,
     TOGGLE_MODULE_LOADING,
     SET_PROJECT_INFO
 } from './constants'
@@ -62,7 +59,8 @@ const actions: ActionTree<RootState, any> = {
         return Request.post(`${PROCESS_API_URL_PREFIX}/user/accesses/`, payload)
     },
     async getProjects({ commit }) {
-        const projectList = await Request.get(`${PROJECT_API_URL_PREFIX}/user/projects/`)
+        // const projectList = await Request.get(`${PROJECT_API_URL_PREFIX}/user/projects/`)
+        const projectList = await Request.get(`${PROJECT_API_URL_PREFIX}/projects/`)
         commit(SET_PROJECT_LIST, { projectList })
     },
     checkProjectField({ commit }, { field, value, projectId }) {
@@ -76,10 +74,10 @@ const actions: ActionTree<RootState, any> = {
         return Request.get(`${PROJECT_API_URL_PREFIX}/user/organizations/types/${type}/ids/${id}`)
     },
     ajaxUpdatePM({ commit }, { id, data }) {
-        return Request.put(`${PROJECT_API_URL_PREFIX}/user/projects/${id}/`, data)
+        return Request.put(`${PROJECT_API_URL_PREFIX}/projects/${id}/`, data)
     },
     ajaxAddPM({ commit }, data) {
-        return Request.post(`${PROJECT_API_URL_PREFIX}/user/projects/`, data)
+        return Request.post(`${PROJECT_API_URL_PREFIX}/projects/`, data)
     },
     async ajaxCheckProjectId({ commit }, hrefId) {
         const projectInfo = await Request.get(`${PROJECT_API_URL_PREFIX}/user/projects/getProjectByCode/${hrefId}`)
@@ -111,18 +109,18 @@ const actions: ActionTree<RootState, any> = {
     togglePopupShow({ commit, dispatch }, payload) {
         commit(SET_POPUP_SHOW, payload)
     },
-    getDocList({ commit }) {
-        return Request.get(`${BACKEND_API_URL_PREFIX}/ci/docs/?format=json`)
+    getPermissionUrl({ commit }, params) {
+        return Request.post(`${AUTHORITY_CENTER_URL}/api/v1/apply-permission/url/`, params)
     },
-    changeProjectLogo({ commit }, { projectId, formData }) {
-        return Request.put(`${PROJECT_API_URL_PREFIX}/user/projects/${projectId}/logo/`, formData)
+    getUserPerms({ commit }, params) {
+        params = Object.assign(params, { with_apply_url: true })
+        return Request.post(`${PROJECT_API_URL_PREFIX}/projects/user_perms/`, params)
     },
-    closePreviewTips({ commit, dispatch }) {
-        commit(CLOSE_PREVIEW_TIPS);
+    getProjectPerms({ commit }, params) {
+        const projectId = params.project_id
+        params = Object.assign({ with_apply_url: true }, params)
+        return Request.post(`${PROJECT_API_URL_PREFIX}/projects/${projectId}/user_perms/`, params)
     },
-    getAnnouncement({ commit }) {
-        return Request.get(`${SUPPORT_API_URL_PREFIX}/user/notice/valid`)
-    }
 }
 
 export default actions

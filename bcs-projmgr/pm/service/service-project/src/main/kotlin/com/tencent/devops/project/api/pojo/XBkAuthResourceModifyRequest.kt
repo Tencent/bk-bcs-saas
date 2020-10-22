@@ -15,14 +15,21 @@ package com.tencent.devops.project.api.pojo
 import com.fasterxml.jackson.annotation.JsonProperty
 
 data class XBkAuthResourceModifyRequest(
-    @JsonProperty("scope_type")
-    val scope_type: String,
-    @JsonProperty("scope_id")
-    val scope_id: String,
-    @JsonProperty("resource_name")
-    val resourceName: String,
-    @JsonProperty("resource_type")
-    val resourceType: String,
-    @JsonProperty("resource_id")
-    val resource_id: String
-)
+        @JsonProperty("resource_id")
+        val resourceId: Set<ResourceId?>?,
+        @JsonProperty("resource_name")
+        val resourceName: String?, // 2019.4.1测试资源修改
+        @JsonProperty("resource_type")
+        val resourceType: String?, // env_node
+        @JsonProperty("scope_id")
+        val scopeId: String?, // projecttest01
+        @JsonProperty("scope_type")
+        val scopeType: String? // project
+) {
+    data class ResourceId(
+            @JsonProperty("resource_id")
+            val resourceId: String?, // ccc
+            @JsonProperty("resource_type")
+            val resourceType: String? // env_node
+    )
+}

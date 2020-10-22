@@ -17,10 +17,7 @@ import com.tencent.devops.common.api.exception.OperationException
 import com.tencent.devops.common.api.util.DateTimeUtil
 import com.tencent.devops.common.api.util.UUIDUtil
 import com.tencent.devops.model.project.tables.records.TProjectRecord
-import com.tencent.devops.project.api.XBkAuthResourceApi
-import com.tencent.devops.project.api.XBkAuthResourceType
-import com.tencent.devops.project.api.XBkAuthScopeType
-import com.tencent.devops.project.api.XBkAuthSystemCode
+import com.tencent.devops.project.api.*
 import com.tencent.devops.project.dao.ProjectDao
 import com.tencent.devops.project.jmx.api.JmxApi
 import com.tencent.devops.project.pojo.*
@@ -48,6 +45,7 @@ import javax.ws.rs.core.Response
 @Service
 class UserProjectService constructor(
         private val xBkAuthResourceApi: XBkAuthResourceApi,
+        private val xBkAuthPermissionApi: XBkAuthPermissionApi,
         private val dslContext: DSLContext,
         private val projectDao: ProjectDao,
         private val jmxApi: JmxApi,
@@ -59,33 +57,52 @@ class UserProjectService constructor(
         const val ENGLISH_NAME_PATTERN = "[a-z][a-zA-Z0-9]+"
     }
 
-    fun getPxternalProjectList(bkToken: String): List<ProjectVO> {
+    fun getExternalProjectList(bkToken: String): List<ProjectVO> {
         val userId = xBkAuthResourceApi.getBkUsername(bkToken)
         val startEpoch = System.currentTimeMillis()
         var success = false
         try {
-            val resourceIdList = xBkAuthResourceApi.getUserAuthorizedScopes(userId)
-            if (resourceIdList.bk_error_code != 0) {
-                logger.warn("Fail to get the project info with response $resourceIdList")
-                throw OperationException("从权限中心获取用户的项目信息失败")
-            }
-            if (resourceIdList.data == null) {
-                return emptyList()
-            }
 
-            val englishNameList = resourceIdList.data.map {
-                it.split(":")[1]
-            }
+            val map = xBkAuthPermissionApi.getUserResourcesByPermissions(
+                    userId = userId,
+                    userType = "user",
+                    scopeType = XBkAuthScopeType.SYSTEM,
+                    resourceType = XBkAuthResourceType.PROJECT,
+                    permissions = setOf(XBkAuthPermission.MANAGE),
+                    systemCode = XBkAuthSystemCode.DEVOPS_PROJECT,
+                    supplier = null
+            )
+            val englishNameList = mutableListOf<String>()
+            map.map { englishNameList.addAll(it.value) }
+//            不再从iam获取项目信息
+//            val resourceIdList = xBkAuthResourceApi.getUserAuthorizedScopes(userId)
+//            if (resourceIdList.bk_error_code != 0) {
+//                logger.warn("Fail to get the project info with response $resourceIdList")
+//                throw OperationException("从权限中心获取用户的项目信息失败")
+//            }
+//            if (resourceIdList.data == null) {
+//                return emptyList()
+//            }
+//
+//            val englishNameList = resourceIdList.data.map
+//                it.split(":")[1]
+//            }
             val list = ArrayList<ProjectVO>()
-
             projectDao.listByEnglishName(dslContext, englishNameList).map {
                 list.add(packagingBean(it))
             }
+
+            projectDao.listAll(dslContext).map {
+                if(!englishNameList.contains(it.englishName)) {
+                    list.add(packagingBean(it,false))
+                }
+            }
+
             success = true
             return list
         } catch (e: Exception) {
             logger.warn("Fail to get the project list with token - $bkToken", e)
-            throw CustomException(Response.Status.INTERNAL_SERVER_ERROR, "获取项目列表失败")
+            throw CustomException(Response.Status.INTERNAL_SERVER_ERROR, "Failed to get project list.")
         } finally {
             jmxApi.execute(JmxApi.PROJECT_LIST, System.currentTimeMillis() - startEpoch, success)
             logger.info("It took ${System.currentTimeMillis() - startEpoch}ms to list projects")
@@ -93,7 +110,7 @@ class UserProjectService constructor(
     }
 
 
-    fun getPxternalAllProjectList(bkToken: String): List<ProjectVO> {
+    fun getExternalAllProjectList(bkToken: String): List<ProjectVO> {
         val startEpoch = System.currentTimeMillis()
         var success = false
         try {
@@ -105,14 +122,14 @@ class UserProjectService constructor(
             success = true
             return list
         } catch (e: Exception) {
-            throw CustomException(Response.Status.INTERNAL_SERVER_ERROR, "获取项目列表失败")
+            throw CustomException(Response.Status.INTERNAL_SERVER_ERROR, "Failed to get project list.")
         } finally {
             jmxApi.execute(JmxApi.PROJECT_LIST, System.currentTimeMillis() - startEpoch, success)
             logger.info("It took ${System.currentTimeMillis() - startEpoch}ms to list projects")
         }
     }
 
-    fun getPxternalProject(bkToken: String, projectId: String): ProjectVO? {
+    fun getExternalProject(bkToken: String, projectId: String): ProjectVO? {
         val startEpoch = System.currentTimeMillis()
         var success = false
         try {
@@ -125,7 +142,7 @@ class UserProjectService constructor(
             success = true
             return projectInfo
         } catch (e: Exception) {
-            throw CustomException(Response.Status.INTERNAL_SERVER_ERROR, "获取项目列表失败")
+            throw CustomException(Response.Status.INTERNAL_SERVER_ERROR, "Failed to get project list.")
         } finally {
             jmxApi.execute(JmxApi.PROJECT_LIST, System.currentTimeMillis() - startEpoch, success)
             logger.info("It took ${System.currentTimeMillis() - startEpoch}ms to list projects")
@@ -133,7 +150,7 @@ class UserProjectService constructor(
     }
 
 
-    fun getPxternalProjectByCode(bkToken: String, projectCode: String): ProjectVO? {
+    fun getExternalProjectByCode(bkToken: String, projectCode: String): ProjectVO? {
         val startEpoch = System.currentTimeMillis()
         var success = false
         try {
@@ -146,7 +163,7 @@ class UserProjectService constructor(
             success = true
             return projectInfo
         } catch (e: Exception) {
-            throw CustomException(Response.Status.INTERNAL_SERVER_ERROR, "获取项目列表失败")
+            throw CustomException(Response.Status.INTERNAL_SERVER_ERROR, "Failed to get project list.")
         } finally {
             jmxApi.execute(JmxApi.PROJECT_LIST, System.currentTimeMillis() - startEpoch, success)
             logger.info("It took ${System.currentTimeMillis() - startEpoch}ms to list projects")
@@ -169,10 +186,16 @@ class UserProjectService constructor(
                 val logoAddress = ""
 
                 // 注册项目到权限中心
-                val resourceId = XBkAuthResourceType.PROJECT.value + ":" + projectCreateInfo.english_name
-                xBkAuthResourceApi.createResource(XBkAuthSystemCode.DEVOPS_PROJECT, "user", userId,
-                        XBkAuthScopeType.SYSTEM, XBkAuthSystemCode.DEVOPS_PROJECT.value,
-                        XBkAuthResourceType.PROJECT, resourceId, projectCreateInfo.project_name)
+                val resourceId = projectCreateInfo.english_name
+                xBkAuthResourceApi.createResource(
+                        XBkAuthSystemCode.DEVOPS_PROJECT,
+                        "user", userId,
+                        XBkAuthScopeType.SYSTEM,
+                        XBkAuthSystemCode.DEVOPS_PROJECT.value,
+                        XBkAuthResourceType.PROJECT,
+                        resourceId,
+                        projectCreateInfo.project_name
+                )
 
                 val projectId = UUIDUtil.generate()
                 //   val userDeptDetail = tofService.getUserDeptDetail(userId, "") // 获取用户机构信息
@@ -194,7 +217,7 @@ class UserProjectService constructor(
                     }
                 } catch (e: DuplicateKeyException) {
                     logger.warn("Duplicate project $projectCreateInfo", e)
-                    throw OperationException("项目名或者英文名重复")
+                    throw OperationException("Project Name or Project Code is dumplicate.")
                 } catch (t: Throwable) {
                     logger.warn("Fail to create the project ($projectCreateInfo)", t)
                     xBkAuthResourceApi.deleteResource(XBkAuthSystemCode.DEVOPS_PROJECT, XBkAuthScopeType.SYSTEM,
@@ -227,7 +250,7 @@ class UserProjectService constructor(
         var success = false
         val tProjectRecord = projectDao.get(dslContext, projectId)
         if (tProjectRecord != null && tProjectRecord.englishName != null) {
-            val resourceId = XBkAuthResourceType.PROJECT.value + ":" + projectUpdateInfo.english_name
+            val resourceId = projectUpdateInfo.english_name
             try {
                 try {
                     dslContext.transaction { configuration ->
@@ -252,7 +275,7 @@ class UserProjectService constructor(
                     xBkAuthResourceApi.modifyResource(XBkAuthSystemCode.DEVOPS_PROJECT,
                             XBkAuthScopeType.SYSTEM, XBkAuthSystemCode.DEVOPS_PROJECT.value,
                             XBkAuthResourceType.PROJECT, resourceId, projectUpdateInfo.project_name)
-                    throw OperationException("项目名或英文名重复")
+                    throw OperationException("Project Name or Project Code is dumplicate.")
                 }
 
 
@@ -262,7 +285,7 @@ class UserProjectService constructor(
             }
         } else {
             logger.warn("ProjectID is invalid")
-            throw OperationException("项目id无效")
+            throw OperationException("Project Id is invalid.")
         }
         return Result(success)
     }
@@ -298,13 +321,13 @@ class UserProjectService constructor(
                 }
             } catch (e: Exception) {
                 logger.warn("fail update projectLogo", e)
-                throw OperationException("更新项目logo失败")
+                throw OperationException("Failed to update project logo.")
             } finally {
                 logoFile?.delete()
             }
         } else {
             logger.warn("$project is null or $project is empty")
-            throw OperationException("查询不到有效的项目")
+            throw OperationException("Can not found  project")
         }
         return Result(true)
     }
@@ -325,34 +348,34 @@ class UserProjectService constructor(
             projectId: String? = null
     ) {
         if (name.isBlank()) {
-            throw OperationException("名称不能为空")
+            throw OperationException("Project Name can not be null.")
         }
         when (validateType) {
             ProjectValidateType.project_name -> {
                 if (name.length < 4) {
-                    throw OperationException("项目名至少4个字符")
+                    throw OperationException("Project Name must more than 4 characters.")
                 }
                 if (name.length > 12) {
-                    throw OperationException("项目名至多12个字符")
+                    throw OperationException("Project Name must less than 12 characters.")
                 }
                 if (projectDao.existByProjectName(dslContext, name, projectId)) {
-                    throw OperationException("项目名已经存在")
+                    throw OperationException("Project name is existed")
                 }
             }
             ProjectValidateType.english_name -> {
                 // 2 ~ 32 个字符+数字，以小写字母开头
                 if (name.length < 2) {
-                    throw OperationException("英文名长度至少2个字符")
+                    throw OperationException("Project Code must more than 2 characters.")
                 }
                 if (name.length > 32) {
-                    throw OperationException("英文名长度最多不能超过32个字符")
+                    throw OperationException("Project Code must less than 32 characters.")
                 }
                 if (!Pattern.matches(ENGLISH_NAME_PATTERN, name)) {
                     logger.warn("Project English Name($name) is not match")
-                    throw OperationException("英文名是字符+数字组成，并以小写字母开头")
+                    throw OperationException("English name is composed of characters + numbers and starts with lowercase letters.")
                 }
                 if (projectDao.existByEnglishName(dslContext, name, projectId)) {
-                    throw OperationException("英文名已经存在")
+                    throw OperationException("Project Code already exists.")
                 }
             }
         }
@@ -368,7 +391,7 @@ class UserProjectService constructor(
         return logo
     }
 
-    private fun packagingBean(tProjectRecord: TProjectRecord): ProjectVO {
+    private fun packagingBean(tProjectRecord: TProjectRecord,permission: Boolean? = true): ProjectVO {
         return ProjectVO(
                 tProjectRecord.id,
                 tProjectRecord.projectId ?: "",
@@ -409,7 +432,8 @@ class UserProjectService constructor(
                 },
                 tProjectRecord.useBk,
                 tProjectRecord.enabled ?: false,
-                false
+                false,
+                permission
         )
     }
 

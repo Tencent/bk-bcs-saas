@@ -3,8 +3,8 @@
         class='devops-ask-permission-dialog'
         :is-show.sync='showDialog'
         :width='width'
-        :title='title'
-        confirm='去申请'
+        :title='setting.title'
+        :confirm="setting.confirmBtn"
         @confirm='toApplyPermission'
         @cancel='handleClose'
     >
@@ -12,8 +12,8 @@
             <table class='devops-table'>
                     <thead>
                         <tr>
-                            <th>资源</th>
-                            <th>需要申请的权限</th>
+                            <th>{{ setting.resource }}</th>
+                            <th>{{ setting.toApply }}</th>
                         </tr>
                     </thead>
 
@@ -40,8 +40,8 @@
         @Prop({ default: 640 })
         width: number | string
 
-        @Prop({ default: '无权限操作' })
-        title: string
+        // @Prop({ default: '无权限操作' })
+        // title: string
 
         @Prop({default: []})
         noPermissionList: Permission[]
@@ -49,8 +49,20 @@
         @Prop({default: '/console/perm/apply-perm'})
         applyPermissionUrl: string
 
-
         showDialog: boolean = false
+
+        get setting() {
+            return {
+                // @ts-ignore
+                title: window.devops.$i18n.t('noPermission'),
+                // @ts-ignore
+                confirmBtn: window.devops.$i18n.t('toApply'),
+                // @ts-ignore
+                resource: window.devops.$i18n.t('resource'),
+                // @ts-ignore
+                toApply: window.devops.$i18n.t('permissionToApply')
+            }
+        }
 
         created () {
             eventBus.$on('update-permission-props', props => {

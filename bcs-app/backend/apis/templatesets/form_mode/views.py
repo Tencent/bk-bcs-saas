@@ -45,7 +45,7 @@ class TemplateViewSet(views.BaseAPIViewSet, TemplatePermission):
         return Response(serializer.data)
 
 
-class TemplateReleaseViewSet(views.BaseAPIViewSet, TemplatePermission):
+class TemplateReleaseViewSet(views.NoAccessTokenBaseAPIViewSet, TemplatePermission):
     def _request_data(self, request, project_id, template_id, show_version_id):
         request_data = request.data.copy() or {}
         show_version = {"show_version_id": show_version_id, "template_id": template_id, "project_id": project_id}
@@ -96,12 +96,10 @@ class TemplateReleaseViewSet(views.BaseAPIViewSet, TemplatePermission):
             }
         }
         """
-        if request.project.kind != ProjectKind.K8S.value:
-            raise error_codes.CheckFailed(f"project_kind({request.project.kind}) is not supported")
-
         data = self._request_data(request, request.project.project_id, template_id, show_version_id)
         serializer = serializers.CreateTemplateReleaseSLZ(
-            data=data, context={"project_kind": ProjectKind.K8S.value, "access_token": request.user.token.access_token}
+            data=data,
+            context={"project_kind": request.project.project_id, "access_token": request.user.token.access_token}
         )
         serializer.is_valid(raise_exception=True)
         validated_data = serializer.validated_data

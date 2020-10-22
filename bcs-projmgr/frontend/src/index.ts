@@ -30,6 +30,10 @@ import Logo from './components/Logo/index.vue'
 import EmptyTips from './components/EmptyTips/index.vue'
 import ShowTooltip from './components/ShowTooltip/index.vue'
 import iframeUtil from './utils/iframeUtil'
+import Cookies from 'js-cookie'
+
+import cn from './common/lang/zh.js'
+import en from './common/lang/en.js'
 
 import VeeValidate from 'vee-validate'
 import ExtendsCustomRules from './utils/customRules'
@@ -40,10 +44,17 @@ import { judgementLsVersion } from './utils/util'
 
 import './assets/scss/index'
 
+import VueI18n from 'vue-i18n'
+
+const enArr: any = ['en', 'EN', 'ENGLISH', 'english', 'en-US']
+const lang = Cookies.get('blueking_language') && enArr.includes(Cookies.get('blueking_language')) ? 'en' : 'zh-CN'
+
+Vue.use(VueI18n)
+
 // @ts-ignore
 Vue.use(VeeValidate, {
     fieldsBagName: 'veeFields',
-    locale: 'cn'
+    locale: lang === 'en' ? 'en' : 'cn'
 })
 
 VeeValidate.Validator.localize(validDictionary)
@@ -61,8 +72,22 @@ Vue.prototype.$showAskPermissionDialog = showAskPermissionDialog
 // 判断localStorage版本, 旧版本需要清空
 judgementLsVersion()
 
+const i18n = new VueI18n({
+    locale: lang,
+    messages: {
+        // @ts-ignore
+        'zh-CN': Object.assign(window.bkMagic.langPkg.zhCN, cn),
+        // @ts-ignore
+        'en': Object.assign(window.bkMagic.langPkg.enUS, en)
+    }
+})
+
+// @ts-ignore
+window.bkMagic.locale.i18n((key, value) => i18n.t(key, value))  
+
 window.devops = new Vue({
     el: "#devops-root",
+    i18n,
     router,
     store,
     render (h) {

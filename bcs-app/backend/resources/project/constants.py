@@ -11,13 +11,12 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-from django.conf.urls import url
+from backend.utils.basic import ChoicesEnum
 
-from .cluster import ClusterViewSet
-from .namespace import NamespaceViewSet
 
-urlpatterns = [
-    url(r"^$", ClusterViewSet.as_view({"get": "list"})),
-    url(r"^(?P<cluster_id>[\w\-]+)/namespaces/$",
-        NamespaceViewSet.as_view({"get": "list_by_cluster_id", "post": "create_namespace"}))
-]
+# 项目类型
+class ProjectKind(ChoicesEnum):
+    K8S = 1
+    MESOS = 2
+
+    _choices_labels = ((K8S, "K8S"), (MESOS, "Mesos"))

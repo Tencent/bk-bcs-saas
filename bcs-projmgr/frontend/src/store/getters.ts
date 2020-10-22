@@ -32,7 +32,7 @@ const getters: GetterTree<RootState, any> = {
     },
 
     onlineProjectList: (state: RootState) => {
-        return state.projectList.filter((project: ObjectMap) => project.approval_status === 2 && !project.is_offlined)
+        return state.projectList.filter((project: ObjectMap) => project.approval_status === 2 && !project.is_offlined && project.permission !== false)
     },
 
     approvalingProjectList: (state: RootState) => {
