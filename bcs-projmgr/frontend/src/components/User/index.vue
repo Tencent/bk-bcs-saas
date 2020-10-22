@@ -7,8 +7,8 @@
         <div class='user-info-dropmenu' v-if="show">
             <p class='user-avatar'>
                 <!-- <i class='bk-icon icon-user-shape defaultPic' /> -->
-                <img :src='avatarUrl' alt='用户头像' />
-                <span>{{chineseName || username || "默认用户"}}</span>
+                <img :src='avatarUrl' alt='user' />
+                <span>{{username || "defaultUser"}}</span>
             </p>
             <slot name='menu'>
                 <ul>
@@ -69,15 +69,15 @@ export default class User extends Vue {
             return [
                 {
                     to: '/console/',
-                    label: '项目管理'
+                    label: this.$t('projectTitle')
                 },
                 {
-                    open: AUTHORITY_CENTER_URL,
-                    label: '权限中心'
+                    open: `${AUTHORITY_CENTER_URL}/my-perm`,
+                    label: this.$t('authTitle')
                 },
                 {
                     cb: this.logout,
-                    label: '退出'
+                    label: this.$t('logout')
                 }
             ]
         } catch (e) {

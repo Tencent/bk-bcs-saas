@@ -94,11 +94,11 @@ class ExternalPaasCCProjectConsumer @Autowired constructor(
         val param = objectMapper.writeValueAsString(paasCCProject)
         val requestBody = RequestBody.create(mediaType, param)
         val request = Request.Builder().url(url).post(requestBody).build()
-        val responseContent = request(request, "调用PaasCC接口创建项目失败")
+        val responseContent = request(request, "Failed to call PaasCC api to create a project.")
         val result = objectMapper.readValue<Result<Map<String, Any>>>(responseContent)
         if (result.isNotOk()) {
             logger.warn("Fail to create the projects in paas cc with response $responseContent")
-            throw OperationException("同步项目到PaasCC失败")
+            throw OperationException("Failed to synchronization project info to PaasCC")
         }
     }
 
@@ -130,13 +130,13 @@ class ExternalPaasCCProjectConsumer @Autowired constructor(
         val param = objectMapper.writeValueAsString(paasCCProjectForUpdate)
         val requestBody = RequestBody.create(mediaType, param)
         val request = Request.Builder().url(url).put(requestBody).build()
-        val responseContent = request(request, "更新PaaSCC的项目信息失败")
+        val responseContent = request(request, "Failed to call PaasCC api to update a project info.")
         logger.info("Success to update the project with response $responseContent")
         val result: Response<Any> = objectMapper.readValue(responseContent)
 
         if (result.code.toInt() != 0) {
             logger.warn("Fail to update the project in paas cc with response $responseContent")
-            throw OperationException("更新PaaSCC的项目信息失败")
+            throw OperationException("Failed to update project info to PaasCC")
         }
     }
 
@@ -153,13 +153,13 @@ class ExternalPaasCCProjectConsumer @Autowired constructor(
         val param = objectMapper.writeValueAsString(projectUpdateLogoInfo)
         val requestBody = RequestBody.create(mediaType, param)
         val request = Request.Builder().url(url).put(requestBody).build()
-        val responseContent = request(request, "更新PaaSCC的项目LOGO信息失败")
+        val responseContent = request(request, "Failed to call PaasCC api to update a project logo.")
         logger.info("Success to update the projectLogo with response $responseContent")
         val result: Response<Any> = objectMapper.readValue(responseContent)
 
         if (result.code.toInt() != 0) {
             logger.warn("Fail to update the projectLogo in paas cc with response $responseContent")
-            throw OperationException("更新PaaSCC的项目LOGO信息失败")
+            throw OperationException("Failed to update project logo to PaasCC")
         }
     }
 

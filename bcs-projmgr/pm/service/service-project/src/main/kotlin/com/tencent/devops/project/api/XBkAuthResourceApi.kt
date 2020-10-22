@@ -33,13 +33,13 @@ import javax.ws.rs.core.Response
 
 @Component
 class XBkAuthResourceApi @Autowired constructor(
-    private val objectMapper: ObjectMapper
+        private val objectMapper: ObjectMapper
 ) {
     private val okHttpClient = okhttp3.OkHttpClient.Builder()
-        .connectTimeout(5L, TimeUnit.SECONDS)
-        .readTimeout(60L, TimeUnit.SECONDS)
-        .writeTimeout(60L, TimeUnit.SECONDS)
-        .build()
+            .connectTimeout(5L, TimeUnit.SECONDS)
+            .readTimeout(60L, TimeUnit.SECONDS)
+            .writeTimeout(60L, TimeUnit.SECONDS)
+            .build()
 
     @Value("\${auth.url}")
     private lateinit var url: String
@@ -54,26 +54,34 @@ class XBkAuthResourceApi @Autowired constructor(
     private lateinit var bkUrl: String
 
     fun createResource(
-        systemCode: XBkAuthSystemCode,
-        creatorType: String,
-        creatorId: String,
-        scopeType: XBkAuthScopeType,
-        scopeId: String,
-        resourceType: XBkAuthResourceType,
-        resourceId: String,
-        resourceName: String
+            systemCode: XBkAuthSystemCode,
+            creatorType: String,
+            creatorId: String,
+            scopeType: XBkAuthScopeType,
+            scopeId: String,
+            resourceType: XBkAuthResourceType,
+            resourceId: String,
+            resourceName: String
     ) {
-        val url = "$url/bkiam/api/v1/perm/systems/${systemCode.value}/resources"
+        val url = "$url/bkiam/api/v1/perm/systems/${systemCode.value}/resources/batch-register"
+        logger.info("createResource url=$url")
+        val xBkAuthResourceCreateResources = mutableSetOf(XBkAuthResourceCreateRequest.Resource(
+                resourceId = mutableSetOf(XBkAuthResourceCreateRequest.ResourceId(
+                        resourceId = resourceId,
+                        resourceType = resourceType.value
+                )),
+                resourceName = resourceName,
+                resourceType = resourceType.value,
+                scopeId = scopeId,
+                scopeType = scopeType.value
+        ))
         val xBkAuthResourceCreateRequest = XBkAuthResourceCreateRequest(
-                creatorType,
                 creatorId,
-                scopeType.value,
-                scopeId,
-                resourceName,
-                resourceType.value,
-                resourceId
+                creatorType,
+                xBkAuthResourceCreateResources
         )
         val content = objectMapper.writeValueAsString(xBkAuthResourceCreateRequest)
+        logger.info("createResource  body content=$content")
         val mediaType = MediaType.parse("application/json; charset=utf-8")
         val requestBody = RequestBody.create(mediaType, content)
         val request = Request.Builder().url(url)
@@ -87,7 +95,7 @@ class XBkAuthResourceApi @Autowired constructor(
             logger.info("Auth create resource response: $responseContent")
             if (!response.isSuccessful) {
                 logger.error("Fail to create auth resource. $responseContent")
-                throw CustomException(Response.Status.INTERNAL_SERVER_ERROR,"Fail to create auth resource")
+                throw CustomException(Response.Status.INTERNAL_SERVER_ERROR, "Fail to create auth resource")
             }
 
             val responseObject = objectMapper.readValue<XBkAuthResourceCreateResponse>(responseContent)
@@ -99,22 +107,25 @@ class XBkAuthResourceApi @Autowired constructor(
     }
 
     fun modifyResource(
-        systemCode: XBkAuthSystemCode,
-        scopeType: XBkAuthScopeType,
-        scopeId: String,
-        resourceType: XBkAuthResourceType,
-        resourceId: String,
-        resourceName: String
+            systemCode: XBkAuthSystemCode,
+            scopeType: XBkAuthScopeType,
+            scopeId: String,
+            resourceType: XBkAuthResourceType,
+            resourceId: String,
+            resourceName: String
     ) {
         val url = "$url/bkiam/api/v1/perm/systems/${systemCode.value}/resources"
 
         logger.info("Auth modify resource url: $url")
         val xBkAuthResourceModifyRequest = XBkAuthResourceModifyRequest(
-                scopeType.value,
-                scopeId,
-                resourceName,
-                resourceType.value,
-                resourceId
+                scopeType = scopeType.value,
+                scopeId = scopeId,
+                resourceName = resourceName,
+                resourceType = resourceType.value,
+                resourceId = setOf(XBkAuthResourceModifyRequest.ResourceId(
+                        resourceId = resourceId,
+                        resourceType = resourceType.value
+                ))
         )
         val content = objectMapper.writeValueAsString(xBkAuthResourceModifyRequest)
         logger.info("Auth modify resource content: $content")
@@ -131,30 +142,36 @@ class XBkAuthResourceApi @Autowired constructor(
             logger.info("Auth modify resource response: $responseContent")
             if (!response.isSuccessful) {
                 logger.error("Fail to modify auth resource. $responseContent")
-                throw CustomException(Response.Status.INTERNAL_SERVER_ERROR,"Fail to modify auth resource")
+                throw CustomException(Response.Status.INTERNAL_SERVER_ERROR, "Fail to modify auth resource")
             }
 
             val responseObject = objectMapper.readValue<XBkAuthResourceModifyResponse>(responseContent)
             if (!responseObject.result) {
                 logger.error("Fail to modify auth resource. $responseContent")
-                throw CustomException(Response.Status.INTERNAL_SERVER_ERROR,responseObject.bk_error_msg)
+                throw CustomException(Response.Status.INTERNAL_SERVER_ERROR, responseObject.bk_error_msg)
             }
         }
     }
 
     fun deleteResource(
-        systemCode: XBkAuthSystemCode,
-        scopeType: XBkAuthScopeType,
-        scopeId: String,
-        resourceType: XBkAuthResourceType,
-        resourceId: String
+            systemCode: XBkAuthSystemCode,
+            scopeType: XBkAuthScopeType,
+            scopeId: String,
+            resourceType: XBkAuthResourceType,
+            resourceId: String
     ) {
-        val url = "$url/bkiam/api/v1/perm/systems/${systemCode.value}/resources"
+        val url = "$url/bkiam/api/v1/perm/systems/${systemCode.value}/resources/batch-delete"
         val xBkAuthResourceDeleteRequest = XBkAuthResourceDeleteRequest(
-                scopeType.value,
-                scopeId,
-                resourceType.value,
-                resourceId
+                listOf(XBkAuthResourceDeleteRequest.Resource(
+                        scopeType = scopeType.value,
+                        scopeId = scopeId,
+                        resourceType = resourceType.value,
+                        resourceId = setOf(XBkAuthResourceDeleteRequest.ResourceId(
+                                resourceId = resourceId,
+                                resourceType = resourceType.value
+                        ))
+                ))
+
         )
         val content = objectMapper.writeValueAsString(xBkAuthResourceDeleteRequest)
         val mediaType = MediaType.parse("application/json; charset=utf-8")
@@ -170,13 +187,13 @@ class XBkAuthResourceApi @Autowired constructor(
             logger.info("Auth delete resource response: $responseContent")
             if (!response.isSuccessful) {
                 logger.error("Fail to delete auth resource. $responseContent")
-                throw CustomException(Response.Status.INTERNAL_SERVER_ERROR,"Fail to delete auth resource")
+                throw CustomException(Response.Status.INTERNAL_SERVER_ERROR, "Fail to delete auth resource")
             }
 
             val responseObject = objectMapper.readValue<XBkAuthResourceDeleteResponse>(responseContent)
             if (!responseObject.result) {
                 logger.error("Fail to delete auth resource. $responseContent")
-                throw CustomException(Response.Status.INTERNAL_SERVER_ERROR,responseObject.bk_error_msg)
+                throw CustomException(Response.Status.INTERNAL_SERVER_ERROR, responseObject.bk_error_msg)
             }
         }
     }
@@ -199,13 +216,13 @@ class XBkAuthResourceApi @Autowired constructor(
             val responseContent = response.body()!!.string()
             if (!response.isSuccessful) {
                 logger.error("Fail to get project users. $responseContent")
-                throw CustomException(Response.Status.INTERNAL_SERVER_ERROR,"Fail to get project users")
+                throw CustomException(Response.Status.INTERNAL_SERVER_ERROR, "Fail to get project users")
             }
 
             val responseObject = objectMapper.readValue<XBkAuthorizedScopesResponse<List<String>>>(responseContent)
             if (!responseObject.result) {
                 logger.error("Fail to delete auth resource. $responseContent")
-                throw CustomException(Response.Status.INTERNAL_SERVER_ERROR,responseObject.bk_error_msg)
+                throw CustomException(Response.Status.INTERNAL_SERVER_ERROR, responseObject.bk_error_msg)
             }
             return responseObject
         }
@@ -236,18 +253,18 @@ class XBkAuthResourceApi @Autowired constructor(
             logger.info("Get accessToken response: $responseContent")
             if (!response.isSuccessful) {
                 logger.error("Get accessToken response: $responseContent")
-                throw CustomException(Response.Status.INTERNAL_SERVER_ERROR,"Fail to get access_token")
+                throw CustomException(Response.Status.INTERNAL_SERVER_ERROR, "Fail to get access_token")
             }
 
             val responseObject = objectMapper.readValue<Map<String, Any>>(responseContent)
             if (!(responseObject["result"] as Boolean)) {
                 logger.error("Fail to create get accessToken. $responseContent")
-                throw CustomException(Response.Status.INTERNAL_SERVER_ERROR,"Fail to create get accessToken")
+                throw CustomException(Response.Status.INTERNAL_SERVER_ERROR, "Fail to create get accessToken")
             }
             val responseData: Map<String, String> = responseObject["data"] as Map<String, String>
             if (responseData["access_token"].isNullOrEmpty()) {
                 logger.error("Fail to get accessToken. $responseContent")
-                throw CustomException(Response.Status.INTERNAL_SERVER_ERROR,"Fail to get accessToken")
+                throw CustomException(Response.Status.INTERNAL_SERVER_ERROR, "Fail to get accessToken")
             }
 
             accessToken = responseData["access_token"] as String
@@ -321,6 +338,7 @@ class XBkAuthResourceApi @Autowired constructor(
             throw RuntimeException(e)
         }
     }
+
     companion object {
         private val logger = LoggerFactory.getLogger(XBkAuthResourceApi::class.java)
     }

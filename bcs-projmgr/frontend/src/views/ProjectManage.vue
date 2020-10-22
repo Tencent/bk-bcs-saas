@@ -3,20 +3,14 @@
         <div class="biz-pm biz-pm-index biz-create-pm">
             <template v-if="projectList.length || isDataLoading">
                 <div class="biz-pm-header">
-                    <div class="title">项目管理</div>
+                    <div class="title">{{ $t('projectTitle') }}</div>
                     <div class="action">
-                        <!-- <label class="bk-form-checkbox bk-checkbox-small">
-                            <input type="checkbox" value="1" name="isFilterByOffline" v-model="isFilterByOffline">
-                            <i class="bk-checkbox-text">显示已停用项目</i>
-                        </label> -->
                         <button class="bk-button bk-primary" @click="togglePMDialog(true)">
                             <i class="bk-icon icon-plus"></i>
-                            <span style="margin-left: 0;">新建项目</span>
+                            <span style="margin-left: 0;">{{ $t('addProject') }}</span>
                         </button>
                         <div class="search-input-row">
-                            <input type="text" name="searchInput" placeholder="输入关键字按Enter搜索" v-model="inputValue" @keyup.enter="filterProjectList(isFilterByOffline)">
-                            <!-- <i v-if="inputValue" class="bk-icon icon-close-circle-shape"></i>
-                            <i v-else class="bk-icon icon-search" @click="filterProjectList(isFilterByOffline)"></i> -->
+                            <input type="text" name="searchInput" :placeholder="$t('searchTips')" v-model="inputValue" @keyup.enter="filterProjectList(isFilterByOffline)">
                             <a href="javascript:void(0)" class="biz-search-btn">
                                 <i v-if="inputValue" class="bk-icon icon-close-circle-shape" @click="clearFilter"></i>
                                 <i v-else class="bk-icon icon-search" @click="filterProjectList(isFilterByOffline)"></i>
@@ -28,40 +22,26 @@
                     <table class="bk-table has-table-hover biz-table biz-pm-table">
                         <thead>
                             <tr>
-                                <th style="width: 300px;border-bottom:none">项目名称</th>
-                                <th style="width: 300px;border-bottom:none">项目英文名</th>
-                                <th>项目说明</th>
-                                <th style="width: 170px;">创建者</th>
-                                <th style="width: 200px; text-align: center;">操作</th>
+                                <th style="width: 300px;border-bottom:none">{{ $t('projectTable.name') }}</th>
+                                <th style="width: 300px;border-bottom:none">{{ $t('projectTable.englishName') }}</th>
+                                <th>{{ $t('projectTable.desc') }}</th>
+                                <th style="width: 100px;">{{ $t('projectTable.creator') }}</th>
+                                <th style="width: 200px; text-align: center;">{{ $t('projectTable.operation') }}</th>
                             </tr>
                         </thead>
                         <tbody>
                             <tr v-for="project in curPageData" :key="project.project_code">
                                 <td>
-                                    <!-- @click="modifyLogo(project)" -->
                                     <span class="avatar" v-if="project.logo_addr">
                                         <img class="avatar-addr" :src="project.logo_addr">
-                                        <!-- <span class="bg-avatar">编辑</span> -->
                                     </span>
-                                    <!-- @click="modifyLogo(project)" -->
                                     <span class="avatar" v-else :class="['project-avatar', 'match-color-blue']">
                                         {{ project.project_name.substr(0, 1) }}
-                                        <!-- <span class="bg-avatar">编辑</span> -->
                                     </span>
                                     <div class="info">
                                         <p class="title">
-                                            <template v-if="project.approval_status !== 2">
-                                                <bk-tooltip :content="'没有操作权限'" placement="top">
-                                                    <a href="javascript:void(0)" class="bk-text-button is-disabled" title="没有操作权限">{{project.project_name}}</a>
-                                                </bk-tooltip>
-                                            </template>
-                                            <!-- <template v-else-if="project.permissions['modify:project:btn'] === 2">
-                                                <bk-tooltip :content="'没有操作权限'" placement="top">
-                                                    <a href="javascript:void(0)" class="bk-text-button is-disabled" title="没有操作权限">{{project.project_name}}</a>
-                                                </bk-tooltip>
-                                            </template> -->
-                                            <template v-else>
-                                                <a href="javascript:void(0)" @click.stop.prevent="goProject(project.project_code)" :class="['bk-text-button', {'is-disabled': project.is_offlined}]" v-if="!project.is_offlined">{{project.project_name}}</a>
+                                            <template>
+                                                <a href="javascript:void(0)" @click.stop.prevent="goProject(project)" :class="['bk-text-button', {'is-disabled': project.is_offlined}]" v-if="!project.is_offlined">{{project.project_name}}</a>
                                                 <a href="javascript:void(0)" :class="['bk-text-button', {'is-disabled': project.is_offlined}]" v-else>{{project.project_name}}</a>
                                             </template>
                                         </p>
@@ -78,53 +58,10 @@
                                     <p class="desc">{{project.creator}}</p>
                                 </td>
                                 <td class="action">
-                                    <!-- 状态为待审批 -->
-                                    <template v-if="project.approval_status === 1">
-                                        <bk-tooltip :content="'待审批，没有操作权限'" placement="top">
-                                            <a href="javascript:void(0)" class="bk-text-button is-disabled" title="没有操作权限">编辑</a>
-                                        </bk-tooltip>
-                                        <!-- <bk-tooltip :content="'待审批，没有操作权限'" placement="top" style="margin: 0 15px;">
-                                            <a href="javascript:void(0)" class="bk-text-button is-disabled" title="没有操作权限">启用</a>
-                                        </bk-tooltip> -->
-                                        <bk-tooltip :content="'待审批，没有操作权限'" placement="top">
-                                            <a href="javascript:void(0)" class="bk-text-button is-disabled" title="没有操作权限">权限管理</a>
-                                        </bk-tooltip>
-                                    </template>
-                                    <!-- 状态为已驳回 -->
-                                    <template v-else-if="project.approval_status === 3">
-                                        <a href="javascript:void(0)" :class="['bk-text-button']" @click.stop.prevent="togglePMDialog(true, project)">编辑</a>
-                                        <!-- <bk-tooltip :content="'已驳回，没有操作权限'" placement="top" style="margin: 0 15px;">
-                                            <a href="javascript:void(0)" class="bk-text-button is-disabled" title="没有操作权限">启用</a>
-                                        </bk-tooltip> -->
-                                        <bk-tooltip :content="'已驳回，没有操作权限'" placement="top">
-                                            <a href="javascript:void(0)" class="bk-text-button is-disabled" title="没有操作权限">权限管理</a>
-                                        </bk-tooltip>
-                                    </template>
-                                    <!-- 没操作权限 置灰 -->
-                                    <!-- <template v-else-if="project.permissions['modify:project:btn'] === 2">
-                                        <bk-tooltip :content="'没有操作权限'" placement="top">
-                                            <a href="javascript:void(0)" class="bk-text-button is-disabled" title="没有操作权限">编辑</a>
-                                        </bk-tooltip>
-                                        <bk-tooltip :content="project.is_offlined?'没有操作权限':'此功能暂未开放'" placement="top">
-                                            <a href="javascript:void(0)" style="margin-left: 15px;" class="bk-text-button is-disabled">{{project.is_offlined? '启用' : '停用'}}</a>
-                                        </bk-tooltip>
-                                        <bk-tooltip :content="'没有操作权限'" placement="top">
-                                            <a href="javascript:void(0)" style="margin-left: 15px;" class="bk-text-button is-disabled" title="没有操作权限">权限管理</a>
-                                        </bk-tooltip>
-                                    </template> -->
-                                    <!-- 否则正常显示 -->
-                                    <template v-else>
-                                        <a href="javascript:void(0)" :class="['bk-text-button', {'is-disabled': project.is_offlined}]" @click.stop.prevent="togglePMDialog(true, project)">编辑</a>
-                                        <!-- <template v-if="project.is_offlined">
-                                            <a href="javascript:void(0)" class="bk-text-button" @click.stop.prevent="offlineProject(project)">启用</a>
-                                        </template>
-                                        <template v-else>
-                                            <bk-tooltip :content="'此功能暂未开放'" placement="top">
-                                                <a href="javascript:void(0)" style="margin: 0 15px;" class="bk-text-button is-disabled">停用</a>
-                                            </bk-tooltip>
-                                        </template> -->
-                                        <a href="javascript:void(0)" @click="goUserManager(project.project_code)" class="bk-text-button" v-if="!project.is_offlined">权限管理</a>
-                                        <a href="javascript:void(0)" :class="['bk-text-button', {'is-disabled': project.is_offlined}]" v-else>权限管理</a>
+                                    <template>
+                                        <a v-if="project.permissions && !project.permissions.project_edit && !project.permissions.project_view" href="javascript:void(0)" @click="goProject(project)" class="bk-text-button">{{ $t('pageTips.joinProject') }}</a>
+                                        <a v-else href="javascript:void(0)" :class="['bk-text-button', {'is-disabled': project.is_offlined}, {'en-underline': isEn}]" @click.stop.prevent="togglePMDialog(true, project)">{{ $t('projectTable.edit') }}</a>
+                                        <!--<a href="javascript:void(0)" @click="goUserManager(project.project_code)" class="bk-text-button">{{ $t('projectTable.auth') }}</a>-->
                                     </template>
                                 </td>
                             </tr>
@@ -137,37 +74,20 @@
                 </template>
                 <template v-else>
                     <div class="biz-guide-box" v-show="!isDataLoading">
-                        <p class="title" v-if="!isFilterByOffline && offlineProjectNum">您有{{offlineProjectNum}}个项目已经停用，请点击右上角“显示已停用项目”或新建项目</p>
-                        <p class="title" v-else>暂时没有数据！</p>
+                        <p class="title">{{ $t('pageTips.noFoundProject') }}</p>
                     </div>
                 </template>
             </template>
-            <empty-tips v-else title='未找到您参与的项目' desc='您可以创建自己的项目，然后针对自己的项目进行相应用户和权限管理，也可以申请加入已有的项目'>
+            <empty-tips v-else :title="$t('pageTips.noProjectTitle')" :desc="$t('pageTips.noProjectDesc')">
                 <button class="bk-button bk-primary" @click="togglePMDialog(true)">
                     <i class="bk-icon icon-plus"></i>
-                    <span style="margin-left: 0;">新建项目</span>
+                    <span style="margin-left: 0;">{{ $t('addProject') }}</span>
                 </button>
-                <a class="bk-button bk-success" :href="applyProjectUrl">
-                    <span style="margin-left: 0;">申请加入项目</span>
-                </a>
+                <!--<a class="bk-button bk-success" :href="applyProjectUrl">
+                    <span style="margin-left: 0;">{{ $t('pageTips.joinProject') }}</span>
+                </a>-->
             </empty-tips>
         </div>
-        <logo-dialog :showDialog='showlogoDialog' :toConfirmLogo="toConfirmLogo" :toCloseDialog="toCloseDialog" :fileChange="fileChange" :selectedUrl="selectedUrl" :isUploading="isUploading">
-        </logo-dialog>
-        <!-- <footer class="footer">
-            <p class="logo-qt">
-                <img class="img-logo" src="/static/home/images/qtlogo.png"><span>青藤云安全提供安全检测</span>
-            </p>
-            <p>
-                <a id="contact_us" class="link">QQ咨询(800802001)</a>
-                | <a href="http://bbs.bk.tencent.com/forum.php" target="_blank" hotrep="hp.footer.feedback" class="link">蓝鲸论坛</a>
-                | <a href="http://bk.tencent.com/" target="_blank" hotrep="hp.footer.feedback" class="link">蓝鲸官网</a>
-                | <a href="/" target="_blank" hotrep="hp.footer.feedback" class="link">蓝鲸智云工作台</a>
-                |<a class="follow-us" href="###">关注我们<span class="qr-box"><span class="qr"><img src="/static/home/images/qr.png"></span><span class="qr-caret"></span></span></a>
-            </p>
-            <p>Copyright © 2012-2019 Tencent BlueKing. All Rights Reserved.</p>
-            <p>蓝鲸智云 版权所有</p>
-        </footer> -->
     </div>
 </template>
 
@@ -175,30 +95,22 @@
 import Vue from 'vue'
 import { Component, Watch } from 'vue-property-decorator'
 import { State, Action } from 'vuex-class'
-import logoDialog from '../components/logoDialog/index.vue'
+import { getAuthUrl } from '../utils/util'
+import Cookies from 'js-cookie'
 
-@Component({
-    components: {
-        logoDialog
-    }
-})
+@Component({})
 export default class ProjectManage extends Vue {
     @State projectList
     @State newProject
     @Action toggleProjectDialog
     @Action ajaxUpdatePM
     @Action getProjects
-    @Action changeProjectLogo
+    @Action getPermissionUrl
+    @Action getUserPerms
+    @Action getProjectPerms
 
-    applyProjectUrl: string = `${APPLY_PROJECT_URL}`
     isFilterByOffline: boolean = false
-    showlogoDialog: boolean = false
-    isUploading: boolean = false
-    curProjectData: object
-    selectedFile: object
     isDataLoading: boolean = false
-    selectedUrl: string = ''
-    curSelectProject: string = ''
     inputValue: string = ''
     offlineProjectNum: number
     curProjectList: object[] = []
@@ -210,6 +122,11 @@ export default class ProjectManage extends Vue {
         show: false
     }
     matchColorList: any = ['green', 'yellow', 'red', 'blue']
+
+    get isEn (): Boolean {
+        const enArr: any = ['en', 'EN', 'ENGLISH', 'english', 'en-US']
+        return Cookies.get('blueking_language') && enArr.includes(Cookies.get('blueking_language')) ? true : false
+    }
 
     @Watch('isFilterByOffline')
     watchFilterOffline(isFilterByOffline: boolean): void {
@@ -241,7 +158,7 @@ export default class ProjectManage extends Vue {
         } else {
             this.curProjectList = this.projectList.filter(project => {
                 return (
-                    project.is_offlined === false &&
+                    // project.is_offlined === false &&
                     project.project_name.indexOf(this.inputValue) !== -1 &&
                     project.approval_status !== 3
                 )
@@ -294,20 +211,96 @@ export default class ProjectManage extends Vue {
         this.curPageData = JSON.parse(JSON.stringify(data))
     }
 
-    togglePMDialog(show: boolean, project = null): void {
-        this.toggleProjectDialog({
+    // 点击新增或编辑项目
+    async togglePMDialog(show: boolean, project = null) {
+        let showEdit = false
+        let res = {}
+        if (show) {
+            try {
+                if (!project) {
+                    res = await this.getUserPerms({})
+                    // @ts-ignore
+                    if (res.project_create && !res.project_create.is_allowed && res.project_create.apply_url) {
+                        this.$showAskPermissionDialog({
+                            noPermissionList: [{
+                                resource: this.$t('project'), 
+                                option: this.$t('create')
+                            }],
+                            // @ts-ignore
+                            applyPermissionUrl: res.project_create.apply_url
+                        })
+                    } else {
+                        showEdit = true
+                    }
+                } else {
+                    res = await this.getProjectPerms({
+                        project_id: project.project_id,
+                        action_ids: ['project_edit']
+                    })
+                    // @ts-ignore
+                    if (res.project_edit && !res.project_edit.is_allowed && res.project_edit.apply_url) {
+                        this.$showAskPermissionDialog({
+                            noPermissionList: [{
+                                resource: this.$t('project'), 
+                                option: this.$t('edit')
+                            }],
+                            // @ts-ignore
+                            applyPermissionUrl: res.project_edit.apply_url
+                        })
+                    } else {
+                        showEdit = true
+                    }
+                }
+            } catch (err) {
+                this.$bkMessage({
+                    theme: 'error',
+                    message: err.message || err
+                })   
+            }
+        } else {
+            showEdit = true
+        }
+        showEdit && this.toggleProjectDialog({
             showProjectDialog: show,
             project
         })
     }
 
-    goProject(project_code: string): void {
-        // window.open(`/console/perm/my-project?project_code=${project_code}`, '_self')
-        window.open(`/console/bcs/${project_code}/cluster?v`, '_self')
+    async goProject(project: Project) {
+        // @ts-ignore
+        if (project && project.permissions && project.permissions.project_view) {
+            window.open(`/console/bcs/${project.project_code}/cluster?v`, '_self')
+        } else {
+            const res = await this.getProjectPerms({
+                project_id: project.project_id,
+                action_ids: ['project_view']
+            })
+            if (res.project_view && res.project_view.apply_url) {
+                this.$showAskPermissionDialog({
+                    noPermissionList: [{
+                        resource: this.$t('project'), 
+                        option: this.$t('view')
+                    }],
+                    applyPermissionUrl: res.project_view.apply_url
+                })
+            }
+        }
+        
     }
 
-    goUserManager() {
-        window.open(USER_MANAGER_URL)
+    async applyJoin(projectCode: string) {
+        const params = getAuthUrl(projectCode)
+        try {
+            const res = await this.getPermissionUrl(params)
+            if (res && res.url) {
+                window.open(res.url, '_blank')
+            }
+        } catch (err) {
+            this.$bkMessage({
+                theme: 'error',
+                message: err.message || err
+            })
+        }
     }
 
     formatDate(dateStr: string): string {
@@ -318,156 +311,11 @@ export default class ProjectManage extends Vue {
             const day = date.getDate()
             return `${date.getFullYear()}-${month > 9 ? month : `0${month}`}-${day > 9 ? day : `0${day}`}`
         } catch (e) {
-            console.error(e)
             return '--'
         }
     }
 
-    offlineProject(project: any): void {
-        let _this = this
-        const { is_offlined, project_id } = project
-        this.curProjectData = JSON.parse(JSON.stringify(project))
-
-        const message = is_offlined ? '确定要启用？' : '确定要停用？'
-
-        this.$bkInfo({
-            title: message,
-            confirmFn() {
-                const params = {
-                    id: project_id,
-                    data: {
-                        is_offlined: !is_offlined
-                    }
-                }
-                _this.updateProject(params)
-                return true
-            }
-        })
-    }
-
-    matchForCode(project_code) {
-        let event = project_code.substr(0, 1)
-        let key = event.charCodeAt() % 4
-        return this.matchColorList[key]
-    }
-
-    modifyLogo(project) {
-        if (project.logo_addr) {
-            this.selectedUrl = project.logo_addr
-        } else {
-            this.selectedUrl = ''
-        }
-        this.showlogoDialog = true
-        this.isUploading = false
-        this.curSelectProject = project.project_id
-    }
-
-    async toConfirmLogo() {
-        if (this.selectedUrl && this.selectedFile) {
-            this.isUploading = true
-
-            let formData = new FormData()
-            formData.append('logo', this.selectedFile[0])
-
-            try {
-                const res = await this.changeProjectLogo({
-                    projectId: this.curSelectProject,
-                    formData
-                })
-
-                if (res) {
-                    this.$bkMessage({
-                        theme: 'success',
-                        message: 'LOGO修改成功！'
-                    })
-
-                    this.showlogoDialog = false
-                    this.projectList.forEach(item => {
-                        if (item.project_id === this.curSelectProject) {
-                            item.logo_addr = res.logo_addr
-                        }
-                    })
-                }
-            } catch (e) {
-                this.$bkMessage({
-                    message: e.message,
-                    theme: 'error'
-                })
-
-                this.isUploading = false
-            } finally {
-                this.selectedFile = undefined
-            }
-        } else if (!this.selectedUrl) {
-            this.$bkMessage({
-                message: '请选择要上传的图片',
-                theme: 'error'
-            })
-        } else {
-            this.showlogoDialog = false
-        }
-        this.resetUploadInput()
-    }
-
-    toCloseDialog() {
-        this.showlogoDialog = false
-        this.selectedFile = undefined
-        this.resetUploadInput()
-    }
-
-    fileChange(e): void {
-        let file = e.target.files[0]
-        if (file) {
-            if (!(file.type === 'image/jpeg' || file.type === 'image/png')) {
-                this.$bkMessage({
-                    theme: 'error',
-                    message: '请上传png、jpg格式的图片'
-                })
-            } else if (file.size > 2 * 1024 * 1024) {
-                this.$bkMessage({
-                    theme: 'error',
-                    message: '请上传大小不超过2M的图片'
-                })
-            } else {
-                let reader = new FileReader()
-                reader.readAsDataURL(file)
-                reader.onload = evts => {
-                    this.selectedUrl = evts.target.result
-                }
-                this.selectedFile = e.target.files
-            }
-        }
-    }
-
-    /**
-     * 清空input file的值
-     */
-    resetUploadInput() {
-        this.$nextTick(() => {
-            let inputElement = <HTMLInputElement>document.getElementById('inputfile')
-            inputElement.value = ''
-        })
-    }
-
-    async updateProject(project: any) {
-        try {
-            const res = await this.ajaxUpdatePM(project)
-
-            this.$bkMessage({
-                theme: 'success',
-                message: '项目修改成功！'
-            })
-            this.togglePMDialog(false)
-            this.getProjects()
-        } catch (e) {
-            this.$bkMessage({
-                message: e.message,
-                theme: 'error'
-            })
-        }
-    }
-
-    created() {
+    async created() {
         this.initList()
         this.initPageConf()
     }
@@ -575,6 +423,10 @@ export default class ProjectManage extends Vue {
     }
     .action {
         text-align: center;
+        .en-underline:hover {
+            border-bottom: 1px solid #3c96ff;
+            padding-bottom: 3px;
+        }
     }
     .time {
         color: #a3a4ac;

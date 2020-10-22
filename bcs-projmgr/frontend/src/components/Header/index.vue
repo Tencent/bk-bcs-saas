@@ -2,16 +2,16 @@
     <div class='devops-header'>
         <div class='header-left-bar'>
             <router-link class='header-logo' to='/console/'>
-                <Logo name='service-logo' width='150' height='40' />
+                <Logo :name="$t('serviceLogo')" :width="$t('serviceLogo') === 'service-logo-en' ? 200 : 150" height='40' />
             </router-link>
-            <bk-dropdown ref='projectDropdown' v-if='showProjectList' class='devops-project-dropdown' :list='selectProjectList' :selected='projectId' placeholder='请选择项目' displayKey='project_name' settingKey='project_code' searchKey='project_name' :searchable='true' @visible-toggle='handleDropdownVisible' @item-selected='handleProjectChange' :has-create-item='true'>
+            <bk-dropdown ref='projectDropdown' v-if='showProjectList' class='devops-project-dropdown' :list='selectProjectList' :selected='projectId' :placeholder="$t('chooseProject')" displayKey='project_name' settingKey='project_code' searchKey='project_name' :searchable='true' @visible-toggle='handleDropdownVisible' @item-selected='handleProjectChange' :has-create-item='true'>
                 <div class="bk-selector-create-item" @click.stop.prevent="popProjectDialog()">
                     <i class="bk-icon icon-plus-circle"></i>
-                    <i class="text">新建项目</i>
+                    <i class="text">{{ $t('addProject') }}</i>
                 </div>
                 <div class="bk-selector-create-item" @click.stop.prevent="goToPm">
                     <i class="bk-icon icon-apps"></i>
-                    <i class="text">项目管理</i>
+                    <i class="text">{{ $t('projectTitle') }}</i>
                 </div>
             </bk-dropdown>
 
@@ -68,7 +68,8 @@ export default class Header extends Vue {
 
     @Action toggleProjectDialog
     @Action togglePopupShow
-    @Action ajaxCheckProjectId
+    @Action getUserPerms
+    @Action getProjectPerms
 
     isDropdownMenuVisible: boolean = false
     isShowTooltip: boolean = true
@@ -83,7 +84,6 @@ export default class Header extends Vue {
         return this.$route.params.projectId
     }
     get title(): string {
-        console.log(this.$route.meta)
         return this.$route.meta.header
     }
     get serviceLogo(): string {
@@ -93,23 +93,23 @@ export default class Header extends Vue {
     get serviceList(): object[] {
         return [
             {
-                name: '容器服务',
+                name: this.$t('bcsName'),
                 key: 'bcs',
-                isActive: this.title === '容器服务',
-                action: this.title === '容器服务' ? this.goHome : this.goConitor
+                isActive: this.title === this.$t('bcsName'),
+                action: this.title === this.$t('bcsName') ? this.goHome : this.goConitor
             },
             {
-                name: '监控中心',
+                name: this.$t('monitorName'),
                 key: 'monitor',
-                isActive: this.title === '监控中心',
-                action: this.title === '监控中心' ? this.goHome : this.goConitor
+                isActive: this.title === this.$t('monitorName'),
+                action: this.title === this.$t('monitorName') ? this.goHome : this.goConitor
             }
         ]
     }
 
     get selectProjectList(): Project[] {
         let list = this.projectList.filter(
-            item => (item.approval_status === 1 || item.approval_status === 2) && !item.is_offlined
+            item => !item.is_offlined && item.permissions && item.permissions.project_view
         )
         // console.log('==========================' + list)
         return list.sort(function(a, b) {
@@ -137,7 +137,6 @@ export default class Header extends Vue {
         eventBus.$on('show-project-dialog', (project: Project) => {
             this.popProjectDialog(project)
         })
-        this.checkProjectId()
     }
 
     handleDropdownVisible(isShow: boolean): void {
@@ -145,11 +144,6 @@ export default class Header extends Vue {
             this.togglePopupShow(isShow)
         }
         this.isDropdownMenuVisible = isShow
-    }
-    checkProjectId() {
-        const arr = window.location.href.split('/')
-        let id = arr[arr.length - 2]
-        this.ajaxCheckProjectId(id)
     }
 
     goHome(): void {
@@ -170,7 +164,7 @@ export default class Header extends Vue {
         if (type === 'bcs') {
             path = `/console/bcs/${id}/cluster?v`
         } else if (type === 'monitor') {
-            path = `/console/monitor/${id}/all-alarm`
+            path = `/console/monitor/${id}/`
         }
         this.$router.push({
             path: path,
@@ -182,19 +176,12 @@ export default class Header extends Vue {
         const { projectId } = this.$route.params
         if (projectId && this.selectProjectList.every(project => project.project_code !== projectId)) {
             //当前无权限时返回首页
-            if (this.$route.name === 'codecc') {
-                // todo
-                this.$router.replace({
-                    path: `/console/codecc/${id}/coverity/myproject`
-                })
-            } else {
-                this.$router.replace({
-                    name: this.$route.name,
-                    params: {
-                        projectId: id
-                    }
-                })
-            }
+            this.$router.replace({
+                name: this.$route.name,
+                params: {
+                    projectId: id
+                }
+            })
         } else {
             this.$router.replace({
                 params: {
@@ -217,8 +204,51 @@ export default class Header extends Vue {
         this.to('/console/')
     }
 
-    popProjectDialog(project: object): void {
-        this.toggleProjectDialog({
+    async popProjectDialog(project: Project) {
+        let showEdit = false
+        let res
+        try {
+            if (!project) {
+                res = await this.getUserPerms({})
+                // @ts-ignore
+                if (res.project_create && !res.project_create.is_allowed && res.project_create.apply_url) {
+                    this.$showAskPermissionDialog({
+                        noPermissionList: [{
+                            resource: this.$t('project'), 
+                            option: this.$t('create')
+                        }],
+                        // @ts-ignore
+                        applyPermissionUrl: res.project_create.apply_url
+                    })
+                } else {
+                    showEdit = true
+                }
+            } else {
+                res = await this.getProjectPerms({
+                    project_id: project.project_id,
+                    action_ids: ['project_edit']
+                })
+                // @ts-ignore
+                if (res.project_edit && !res.project_edit.is_allowed && res.project_edit.apply_url) {
+                    this.$showAskPermissionDialog({
+                        noPermissionList: [{
+                            resource: this.$t('project'), 
+                            option: this.$t('edit')
+                        }],
+                        // @ts-ignore
+                        applyPermissionUrl: res.project_edit.apply_url
+                    })
+                } else {
+                    showEdit = true
+                }
+            }
+        } catch (err) {
+            this.$bkMessage({
+                theme: 'error',
+                message: err.message || err
+            })   
+        }
+        showEdit && this.toggleProjectDialog({
             showProjectDialog: true,
             project
         })

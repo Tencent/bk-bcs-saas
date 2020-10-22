@@ -96,7 +96,13 @@
                 var xhr = new XMLHttpRequest()
                 xhr.onreadystatechange = function () {
                     if (this.readyState == 4 && this.status == 200) {
-                        resolve(JSON.parse(xhr.responseText).data)
+                        // status始终为200，通过code判断接口返回
+                        const response = JSON.parse(xhr.responseText)
+                        if (response.code === 40401) {
+                            window.location.href = LOGIN_SERVICE_URL + '/?c_url=' + window.location.href
+                        } else {
+                            resolve(response.data)
+                        }
                     } else if (this.status == 401) {
                         window.location.href = LOGIN_SERVICE_URL + '/?c_url=' + window.location.href
                     } else if (this.readyState == 4 && this.status > 400) {
@@ -113,15 +119,17 @@
         }
 
         function fetchAllServices() {
-            return asyncGet(GW_URL_PREFIX + '/project/api/user/services/')
+            return asyncGet(GW_URL_PREFIX + '/project/api/user/services/')  
         }
 
         function fetchAllProjects() {
-            return asyncGet(GW_URL_PREFIX + '/project/api/user/projects/')
+            // return asyncGet(GW_URL_PREFIX + '/project/api/user/projects/')
+            return asyncGet(GW_URL_PREFIX + '/api/nav/projects/')
         }
 
         function requestUser() {
-            return asyncGet(GW_URL_PREFIX + '/project/api/user/users')
+            // return asyncGet(GW_URL_PREFIX + '/project/api/user/users')
+            return asyncGet(GW_URL_PREFIX + '/api/nav/users/')
         }
 
 
