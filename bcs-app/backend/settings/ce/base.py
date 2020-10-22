@@ -35,7 +35,7 @@ INSTALLED_APPS += [
     "backend.apps.apis",
     "backend.apis.apps.APIConfig",
     "iam.contrib.iam_migration",
-    "backend.apps.bcs_iam_migration",
+    "backend.apps.bcs_iam_migration.apps.BcsIamMigrationConfig",
 ]
 
 # 统一登录页面
