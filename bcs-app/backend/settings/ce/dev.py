@@ -62,9 +62,6 @@ REDIS_DB = _rpool.connection_kwargs["db"]
 
 # IAM 地址
 BK_IAM_HOST = os.environ.get("BKAPP_IAM_HOST")
-# 权限中心接口, 和IAM地址保持一致
-PAAS_PERM_HOST = BK_IAM_HOST
-PAAS_AUTH_HOST = BK_IAM_HOST
 
 APIGW_HOST = BK_PAAS_INNER_HOST
 
