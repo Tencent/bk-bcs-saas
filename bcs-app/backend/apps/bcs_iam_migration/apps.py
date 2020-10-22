@@ -16,5 +16,5 @@ from __future__ import unicode_literals
 from django.apps import AppConfig
 
 
-class AppsConfig(AppConfig):
+class BcsIamMigrationConfig(AppConfig):
     name = "backend.apps.bcs_iam_migration"
