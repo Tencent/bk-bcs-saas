@@ -17,6 +17,7 @@ from backend.resources.namespace import utils as ns_utils
 from backend.resources.project.constants import ProjectKind
 from backend.apis.views import NoAccessTokenBaseAPIViewSet
 from backend.apis.resources.serializers import CreateNamespaceParamsSLZ
+from backend.apps.variable.models import NameSpaceVariable
 
 
 class NamespaceViewSet(NoAccessTokenBaseAPIViewSet):
@@ -30,13 +31,14 @@ class NamespaceViewSet(NoAccessTokenBaseAPIViewSet):
         """
         namespace = ns_utils.create_cc_namespace(access_token, project_id, cluster_id, ns_name, username)
         # TODO: 现阶段不向权限中心注入
-        return Response(namespace)
+        return namespace
 
     def create_k8s_namespace(self, access_token, username, project_id, cluster_id, ns_name):
         pass
 
     def create_namespace(self, request, project_id_or_code, cluster_id):
-        slz = CreateNamespaceParamsSLZ(data=request.data)
+        project_id = request.project.project_id
+        slz = CreateNamespaceParamsSLZ(data=request.data, context={"project_id": project_id})
         slz.is_valid(raise_exception=True)
         data = slz.data
 
@@ -45,6 +47,12 @@ class NamespaceViewSet(NoAccessTokenBaseAPIViewSet):
         project_id = request.project.project_id
 
         project_kind_name = ProjectKind.get_choice_label(request.project.kind)
-        return getattr(self, f"create_{project_kind_name.lower()}_namespace")(
+        namespace = getattr(self, f"create_{project_kind_name.lower()}_namespace")(
             access_token, username, project_id, cluster_id, data["name"]
         )
+        # 创建命名空间下的变量值
+        ns_id = namespace["id"]
+        NameSpaceVariable.batch_save(ns_id, data["variables"])
+        namespace["variables"] = data["variables"]
+
+        return Response(namespace)
