@@ -35,4 +35,4 @@ def render_mako_context(content, context):
     """通过mako模板做变量替换
     note: 所有的变量必须添加到 context 中
     """
-    return Template(content).render(Context(context))
+    return Template(f"{{% autoescape off %}}{content}{{% endautoescape %}}").render(Context(context))
