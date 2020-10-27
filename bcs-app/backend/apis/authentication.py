@@ -31,4 +31,6 @@ class JWTAuthentication(BaseAuthentication):
             username = request.META.get(USERNAME_KEY_NAME, "")
 
         user = JWTUser(username=username)
+        user.client = client
+
         return (user, None)
