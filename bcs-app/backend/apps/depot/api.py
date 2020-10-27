@@ -16,9 +16,9 @@ import logging
 
 from django.utils.translation import ugettext_lazy as _
 
+from backend.components import bk_repo
 from backend.utils.error_codes import error_codes, bk_error_codes
-from backend.components.enterprise.harbor import HarborClient
-
+from backend.utils.errcodes import ErrorCode
 
 logger = logging.getLogger(__name__)
 
@@ -27,17 +27,10 @@ def get_jfrog_account(access_token, project_code, project_id, is_bk=False):
     """
     获取项目的镜像账号
     """
-    client = HarborClient(access_token, project_id, project_code)
-    resp = client.create_account()
-
-    # api调用失败
-    if resp.get('code') != 0:
-        message = bk_error_codes.DepotError(_("创建项目仓库账号失败"))
-        error_message = f'{message}, {resp.get("message", "")}'
-        logger.error(error_message)
-        raise error_codes.ComponentError(error_message)
-
-    return resp.get('data')
+    account = bk_repo.create_account(access_token, project_code)
+    # 兼容先前返回{"user": "", "password": ""}
+    account["user"] = account["userId"]
+    return account
 
 
 def get_bk_jfrog_auth(access_token, project_code, project_id):
@@ -86,15 +79,20 @@ def trans_paging_query(query):
     return query
 
 
-def get_harbor_client(query):
-    """镜像相关第一批API统一方法
-    该方法只在本文件内调用
+def refine_images(images):
+    records = images.pop("records", [])
+    images["total"] = images["totalRecords"]
+    for record in records:
+        record["repo"] = record["imageName"]
+        record["name"] = record["imagePath"]
+    images["imageList"] = records
+    return images
+
+
+def _repo_response(data):
+    """兼容上层
     """
-    project_id = query.get('projectId')
-    project_code = query.get('project_code', '')
-    access_token = query.pop('access_token')
-    client = HarborClient(access_token, project_id, project_code)
-    return client
+    return {"code": ErrorCode.NoError, "data": data}
 
 
 def get_public_image_list(query):
@@ -102,8 +100,13 @@ def get_public_image_list(query):
     获取公共镜像列表
     """
     query = trans_paging_query(query)
-    client = get_harbor_client(query)
-    return client.get_public_image(**query)
+    images = bk_repo.query_public_images(
+        query["access_token"],
+        search_name=query.get("searchKey", ""),
+        page_num=query["page"],
+        page_size=query["pageSize"]
+    )
+    return _repo_response(refine_images(images))
 
 
 def get_project_image_list(query):
@@ -111,45 +114,64 @@ def get_project_image_list(query):
     获取项目镜像列表
     """
     query = trans_paging_query(query)
-    client = get_harbor_client(query)
-    return client.get_project_image(**query)
+    images = bk_repo.query_project_images(
+        query["access_token"],
+        query["project_code"],
+        search_name=query.get("searchKey", ""),
+        page_num=query["page"],
+        page_size=query["pageSize"]
+    )
+    return _repo_response(refine_images(images))
 
 
 def get_image_tags(access_token, project_id, project_code, offset, limit, **query_params):
     """获取镜像信息和tag列表
     """
-    client = HarborClient(access_token, project_id, project_code)
-    resp = client.get_image_tags(**query_params)
-    # 处理返回数据(harbor 的tag列表没有做分页)
-    data = resp.get('data') or {}
-    data['has_previous'] = False
-    data['has_next'] = False
-    tags = data.get('tags') or []
-    for tag in tags:
+    project_code = "public" if query_params.get("is_public") else project_code
+    tags = bk_repo.query_image_tags(
+        access_token,
+        project_code,
+        image_name=query_params.get("imageRepo", ""),
+        page_num=offset,
+        page_size=limit
+    )
+    tags["has_previous"] = False
+    tags["has_next"] = False
+    records = tags.pop("records", [])
+    for record in records:
         # 外部版本只有一套仓库
-        tag['artifactorys'] = ['PROD']
-    return resp
+        record["artifactorys"] = ["PROD"]
+        record["repo"] = record["imageName"]
+        record["name"] = record["imagePath"]
+    tags["tags"] = records
+    return _repo_response(tags)
+
+
+def get_pub_or_project_image_tags(query, project_code="public"):
+    tags = bk_repo.query_image_tags(
+        query["access_token"],
+        project_code,
+        image_name=query.get("imageRepo", "")
+    )
+    records = tags.pop("records", [])
+    for record in records:
+        record["repo"] = record["imageName"]
+        record["name"] = record["imagePath"]
+    tags["tags"] = records
+    return _repo_response([tags])
 
 
 def get_pub_image_info(query):
     """公共获镜像详情（tag列表信息)
     """
-    client = get_harbor_client(query)
-    resp = client.get_image_tags(**query)
-    data = resp.get('data') or {}
-    resp['data'] = [data]
-    return resp
+    return get_pub_or_project_image_tags(query)
 
 
 def get_project_image_info(query):
     """
     获取项目镜像详情（tag列表信息）
     """
-    client = get_harbor_client(query)
-    resp = client.get_image_tags(**query)
-    data = resp.get('data') or {}
-    resp['data'] = [data]
-    return resp
+    return get_pub_or_project_image_tags(query, project_code=query["project_code"])
 
 
 def create_project_path_by_api(access_token, project_id, project_code):
@@ -167,11 +189,4 @@ def create_project_path_by_api(access_token, project_id, project_code):
         "code": 0
     }
     """
-    client = HarborClient(access_token, project_id, project_code)
-    resp = client.create_project_path()
-    # api调用失败
-    if resp.get('code') != 0:
-        error_message = ('%s, %s' % (bk_error_codes.DepotError(_("创建项目仓库路径失败")), resp.get('message', '')))
-        logger.error(error_message)
-        raise error_codes.ComponentError(error_message)
-    return True
+    return bk_repo.create_repo(access_token, project_code)

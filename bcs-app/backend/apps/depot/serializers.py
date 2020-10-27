@@ -41,6 +41,8 @@ class ImageDetailSLZ(serializers.Serializer):
     limit = serializers.IntegerField(required=False)
     offset = serializers.IntegerField(required=False)
     image_repo = serializers.CharField(required=True)
+    # 标识是否为公共仓库镜像
+    is_public = serializers.BooleanField(default=False)
 
     def validate(self, data):
         if data.get('limit') is None:
