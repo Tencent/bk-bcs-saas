@@ -18,6 +18,7 @@ from backend.resources.project.constants import ProjectKind
 from backend.apis.views import NoAccessTokenBaseAPIViewSet
 from backend.apis.resources.serializers import CreateNamespaceParamsSLZ
 from backend.apps.variable.models import NameSpaceVariable
+from backend.utils.error_codes import error_codes
 
 
 class NamespaceViewSet(NoAccessTokenBaseAPIViewSet):
@@ -34,7 +35,7 @@ class NamespaceViewSet(NoAccessTokenBaseAPIViewSet):
         return namespace
 
     def create_k8s_namespace(self, access_token, username, project_id, cluster_id, ns_name):
-        pass
+        raise error_codes.NotOpen()
 
     def create_namespace(self, request, project_id_or_code, cluster_id):
         project_id = request.project.project_id
