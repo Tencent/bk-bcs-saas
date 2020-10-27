@@ -27,9 +27,10 @@ export const CLOSE_PREVIEW_TIPS = 'CLOSE_PREVIEW_TIPS'
 export const TOGGLE_MODULE_LOADING = 'TOGGLE_MODULE_LOADING'
 export const SET_PROJECT_INFO = 'SET_PROJECT_INFO'
 
+export const PROJECT_API_URL_PREFIX = 'api/nav'
+
 // 服务列表
 const serviceList = [
-    'project',
     'backend',
     'support',
     'process',
@@ -44,7 +45,6 @@ const serviceList = [
     'ticket'
 ]
 export const [
-    PROJECT_API_URL_PREFIX,
     BACKEND_API_URL_PREFIX,
     SUPPORT_API_URL_PREFIX,
     PROCESS_API_URL_PREFIX,

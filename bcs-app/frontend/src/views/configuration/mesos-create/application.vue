@@ -2416,7 +2416,7 @@
             setCurContainer (container, index) {
                 // 利用setTimeout事件来先让当前容器的blur事件执行完才切换
                 setTimeout(() => {
-                    this.resetPreContainerParams()
+                    // this.resetPreContainerParams()
                     // 保存当前container数据
                     const httpHeaders = this.$refs.headerKeyer.getKeyObject()
                     this.curContainer.healthChecks[0].http.headers = httpHeaders
@@ -2749,7 +2749,7 @@
                     const data = res.data
                     setTimeout(() => {
                         data.forEach(item => {
-                            item._id = item.value
+                            item._id = `${item.name}:${item.value}`
                             item._name = item.name
                         })
                         this.imageList.splice(0, this.imageList.length, ...data)

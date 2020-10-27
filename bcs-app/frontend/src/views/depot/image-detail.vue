@@ -197,9 +197,11 @@
                     limit: limit,
                     projectId: this.projectId
                 }
+                if (this.$route.query.public) {
+                    params.is_public = true
+                }
                 try {
                     const res = await this.$store.dispatch('depot/getImageLibraryDetail', params)
-
                     if (this.showScrollLoading) {
                         this.hasNext = res.data.has_next
                         this.hasPrevious = res.data.has_previous

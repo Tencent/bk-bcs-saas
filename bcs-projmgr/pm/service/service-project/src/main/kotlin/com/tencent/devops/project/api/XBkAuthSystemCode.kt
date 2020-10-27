@@ -14,7 +14,7 @@ package com.tencent.devops.project.api
 
 enum class XBkAuthSystemCode(val value: String) {
 
-    DEVOPS_PROJECT("devops_project");
+    DEVOPS_PROJECT("bk_bcs_app");
 
     companion object {
         fun get(value: String): XBkAuthSystemCode {

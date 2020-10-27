@@ -2384,7 +2384,8 @@ div.jsoneditor {
 /* 设置默认滚动条样式 */
 div::-webkit-scrollbar {
     width: 5px;
-    background-color: #fafafa;
+    height: 6px;
+    background-color: #e6e6e6;
 }
 div::-webkit-scrollbar-thumb {
     height: 6px;

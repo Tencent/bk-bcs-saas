@@ -3123,7 +3123,7 @@
                 // 利用setTimeout事件来先让当前容器的blur事件执行完才切换
                 setTimeout(() => {
                     // 切换container
-                    this.resetPreContainerParams()
+                    // this.resetPreContainerParams()
                     this.renderImageIndex++
                     this.curContainer = container
                     this.curContainerIndex = index
@@ -3686,7 +3686,7 @@
                     const data = res.data
                     setTimeout(() => {
                         data.forEach(item => {
-                            item._id = item.value
+                            item._id = `${item.name}:${item.value}`
                             item._name = item.name
                         })
                         this.imageList.splice(0, this.imageList.length, ...data)

@@ -18,5 +18,6 @@ from .namespace import NamespaceViewSet
 
 urlpatterns = [
     url(r"^$", ClusterViewSet.as_view({"get": "list"})),
-    url(r"^(?P<cluster_id>[\w\-]+)/namespaces/$", NamespaceViewSet.as_view({"get": "list_by_cluster_id"})),
+    url(r"^(?P<cluster_id>[\w\-]+)/namespaces/$",
+        NamespaceViewSet.as_view({"get": "list_by_cluster_id", "post": "create_namespace"}))
 ]

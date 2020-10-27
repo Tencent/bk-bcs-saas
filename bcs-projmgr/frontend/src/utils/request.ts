@@ -50,14 +50,21 @@ request.interceptors.response.use(response => {
         console.log('no permission')
 
     } else if ((typeof code !== 'undefined' && code !== 0) || (typeof status !== 'undefined' && status !== 0)) {
-        let msg = message
-        if (Object.prototype.toString.call(message) === '[object Object]') {
-            msg = Object.keys(message).map(key => message[key].join(';')).join(';')
-        } else if (Object.prototype.toString.call(message) === '[object Array]') {
-            msg = message.join(';')
+        if (code === 40101) {
+            // 未登录
+            window.location.href = LOGIN_SERVICE_URL + '/?c_url=' + window.location.href
+            return Promise.reject(response.data)
+        } else {
+            let msg = message
+            if (Object.prototype.toString.call(message) === '[object Object]') {
+                msg = Object.keys(message).map(key => message[key].join(';')).join(';')
+            } else if (Object.prototype.toString.call(message) === '[object Array]') {
+                msg = message.join(';')
+            }
+            const errorMsg = { httpStatus, message: msg, code: code || status, data }
+            return Promise.reject(errorMsg)
         }
-        const errorMsg = { httpStatus, message: msg, code: code || status }
-        return Promise.reject(errorMsg)
+        
     }
 
     return data

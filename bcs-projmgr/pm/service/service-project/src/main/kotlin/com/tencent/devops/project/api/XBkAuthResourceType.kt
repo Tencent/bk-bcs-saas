@@ -13,7 +13,7 @@
 package com.tencent.devops.project.api
 
 enum class XBkAuthResourceType(val value: String) {
-    PROJECT("project");
+    PROJECT("bcs_project");
 
     companion object {
         fun get(value: String): XBkAuthResourceType {
