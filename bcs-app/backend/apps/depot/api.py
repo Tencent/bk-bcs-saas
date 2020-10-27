@@ -89,7 +89,7 @@ def refine_images(images):
     return images
 
 
-def repo_response(data):
+def _repo_response(data):
     """兼容上层
     """
     return {"code": ErrorCode.NoError, "data": data}
@@ -106,7 +106,7 @@ def get_public_image_list(query):
         page_num=query["page"],
         page_size=query["pageSize"]
     )
-    return repo_response(refine_images(images))
+    return _repo_response(refine_images(images))
 
 
 def get_project_image_list(query):
@@ -121,7 +121,7 @@ def get_project_image_list(query):
         page_num=query["page"],
         page_size=query["pageSize"]
     )
-    return repo_response(refine_images(images))
+    return _repo_response(refine_images(images))
 
 
 def get_image_tags(access_token, project_id, project_code, offset, limit, **query_params):
@@ -144,7 +144,7 @@ def get_image_tags(access_token, project_id, project_code, offset, limit, **quer
         record["repo"] = record["imageName"]
         record["name"] = record["imagePath"]
     tags["tags"] = records
-    return repo_response(tags)
+    return _repo_response(tags)
 
 
 def get_pub_or_project_image_tags(query, project_code="public"):
@@ -158,7 +158,7 @@ def get_pub_or_project_image_tags(query, project_code="public"):
         record["repo"] = record["imageName"]
         record["name"] = record["imagePath"]
     tags["tags"] = records
-    return repo_response([tags])
+    return _repo_response([tags])
 
 
 def get_pub_image_info(query):
