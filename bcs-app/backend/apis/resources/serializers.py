@@ -20,7 +20,6 @@ from backend.apps.variable.serializers import RE_KEY
 class VariablesSLZ(serializers.Serializer):
     id = serializers.IntegerField(required=False)
     key = serializers.RegexField(RE_KEY, max_length=64)
-    name = serializers.CharField(max_length=256)
     value = serializers.CharField(default="")
 
 
