@@ -672,6 +672,7 @@
                                             </template>
                                             <template v-else>
                                                 <div class="bk-dropdown-box" style="width: 375px;">
+                                                    {{curContainer.webCache.imageName}}
                                                     <bk-combox
                                                         style="width: 325px;"
                                                         type="text"
@@ -2656,6 +2657,7 @@
 
                 // 兼容原数据webcache
                 container.webCache.imageName = container.imageName
+                debugger
                 delete container.imageName
                 container.webCache.env_list = []
 
@@ -3457,7 +3459,7 @@
                 // 利用setTimeout事件来先让当前容器的blur事件执行完才切换
                 setTimeout(() => {
                     // 切换container
-                    this.resetPreContainerParams()
+                    // this.resetPreContainerParams()
                     container.ports.forEach(port => {
                         if (!port.protocol) {
                             port.protocol = 'TCP'
@@ -3815,7 +3817,7 @@
                     const data = res.data
                     setTimeout(() => {
                         data.forEach(item => {
-                            item._id = item.value
+                            item._id = `${item.name}:${item.value}`
                             item._name = item.name
                         })
                         this.imageList.splice(0, this.imageList.length, ...data)

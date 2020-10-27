@@ -4,8 +4,8 @@
             <div class="biz-project-image-title">
                 {{$t('项目镜像')}}
             </div>
-            <div class="biz-actions">
-                <a :href="PROJECT_CONFIG.doc.harborGuide" target="_blank" class="bk-text-button ml10">{{$t('如何推镜像？')}}</a>
+            <div class="biz-actions" style="top: 0;">
+                <a :href="PROJECT_CONFIG.doc.harborGuide" target="_blank" class="bk-text-button ml10 mb10">{{$t('如何推镜像？')}}</a>
             </div>
         </div>
 
