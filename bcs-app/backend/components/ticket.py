@@ -56,8 +56,7 @@ class TicketClient(object):
     def get_tls_cert_list(self):
         """获取tls证书列表
         """
-        self.url = '{prefix}user/certs/{project_code}/hasPermissionList'.format(prefix=TICKET_API_PREFIX,
-                                                                                project_code=self.project_code)
+        self.url = f"{TICKET_API_PREFIX}user/certs/projects/{self.project_code}/hasPermissionList"
         self.query = {
             'permission': 'USE',
             'certType': 'tls',
