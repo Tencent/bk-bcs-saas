@@ -574,7 +574,7 @@ class BatchDeleteNode(DeleteNodeBase):
 
     def delete_nodes(self):
         node_info = {node['inner_ip']: '[%s]' % node['id'] for node in self.node_list}
-        # 更新节点状态
+        # 更新节点状态为删除中
         self.update_nodes_with_response(
             [node["inner_ip"] for node in self.node_list],
             NodeStatus.Removing
