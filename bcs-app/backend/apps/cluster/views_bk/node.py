@@ -574,6 +574,11 @@ class BatchDeleteNode(DeleteNodeBase):
 
     def delete_nodes(self):
         node_info = {node['inner_ip']: '[%s]' % node['id'] for node in self.node_list}
+        # 更新节点状态
+        self.update_nodes_with_response(
+            [node["inner_ip"] for node in self.node_list],
+            NodeStatus.Removing
+        )
         log = self.delete_via_bcs(self.request, self.project_id, self.cluster_id, self.kind_name, node_info)
         if not log.is_finished and log.is_polling:
             log.polling_task()

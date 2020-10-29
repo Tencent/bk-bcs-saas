@@ -1288,7 +1288,6 @@ class BatchUpdateDeleteNodeViewSet(NodeGetUpdateDeleteViewSet):
             resource_id=','.join(id_list)[:200],
             description=log_desc
         ).log_delete():
-            self.update_nodes_in_cluster(request, project_id, cluster_id, ip_list, NodeStatus.Removing)
             cluster_utils.delete_node_labels_record(NodeLabel, id_list, request.user.username)
             node_client = node.BatchDeleteNode(request, project_id, cluster_id, node_list)
             node_client.delete_nodes()
