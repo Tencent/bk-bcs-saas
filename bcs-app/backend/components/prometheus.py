@@ -598,7 +598,7 @@ def mesos_cluster_memory_usage(cluster_id, node_list):
 
 
 def mesos_cluster_cpu_resource_remain_range(cluster_id, start, end):
-    """mesos集群CPU使用率
+    """mesos集群CPU剩余量, 单位核
     """
     step = (end - start) // 60
     prom_query = f"""
@@ -610,7 +610,7 @@ def mesos_cluster_cpu_resource_remain_range(cluster_id, start, end):
 
 
 def mesos_cluster_cpu_resource_total_range(cluster_id, start, end):
-    """mesos集群CPU使用率
+    """mesos集群CPU总量, 单位核
     """
     step = (end - start) // 60
     prom_query = f"""
@@ -622,7 +622,7 @@ def mesos_cluster_cpu_resource_total_range(cluster_id, start, end):
 
 
 def mesos_cluster_memory_resource_remain_range(cluster_id, start, end):
-    """mesos集群mem使用率
+    """mesos集群内存剩余量, 单位MB
     """
     step = (end - start) // 60
     prom_query = f"""
@@ -634,7 +634,7 @@ def mesos_cluster_memory_resource_remain_range(cluster_id, start, end):
 
 
 def mesos_cluster_memory_resource_total_range(cluster_id, start, end):
-    """mesos集群mem使用率
+    """mesos集群内存总量, 单位MB
     """
     step = (end - start) // 60
     prom_query = f"""
