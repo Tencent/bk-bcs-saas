@@ -595,3 +595,51 @@ def mesos_cluster_memory_usage(cluster_id, node_list):
         name = metric["metric"].get("metric_name")
         data[name] = metric["value"][1]
     return data
+
+
+def mesos_cluster_cpu_remain_usage_range(cluster_id, start, end):
+    """mesos集群CPU使用率
+    """
+    step = (end - start) // 60
+    prom_query = f"""
+        max by (cluster_id) (bkbcs_scheduler_cluster_cpu_resource_remain{{cluster_id="{cluster_id}"}})
+    """  # noqa
+
+    resp = query_range(prom_query, start, end, step)
+    return resp.get("data") or {}
+
+
+def mesos_cluster_cpu_total_usage_range(cluster_id, start, end):
+    """mesos集群CPU使用率
+    """
+    step = (end - start) // 60
+    prom_query = f"""
+        max by (cluster_id) (bkbcs_scheduler_cluster_cpu_resource_total{{cluster_id="{cluster_id}"}})
+    """  # noqa
+
+    resp = query_range(prom_query, start, end, step)
+    return resp.get("data") or {}
+
+
+def mesos_cluster_memory_remain_usage_range(cluster_id, start, end):
+    """mesos集群mem使用率
+    """
+    step = (end - start) // 60
+    prom_query = f"""
+        max by (cluster_id) (bkbcs_scheduler_cluster_memory_resource_remain{{cluster_id="{cluster_id}"}})
+    """  # noqa
+
+    resp = query_range(prom_query, start, end, step)
+    return resp.get("data") or {}
+
+
+def mesos_cluster_memory_total_usage_range(cluster_id, start, end):
+    """mesos集群mem使用率
+    """
+    step = (end - start) // 60
+    prom_query = f"""
+       max by (cluster_id) (bkbcs_scheduler_cluster_memory_resource_total{{cluster_id="{cluster_id}"}})
+    """  # noqa
+
+    resp = query_range(prom_query, start, end, step)
+    return resp.get("data") or {}

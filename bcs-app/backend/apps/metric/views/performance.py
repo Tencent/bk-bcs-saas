@@ -81,6 +81,31 @@ class Cluster(base.MetricViewMixin, viewsets.ViewSet):
         return response.Response(result)
 
 
+class MesosCluster(base.MetricViewMixin, viewsets.ViewSet):
+    renderer_classes = (BKAPIRenderer, BrowsableAPIRenderer)
+    serializer_class = serializers.PromMetricSLZBase
+
+    def offer_remain_cpu_usage(self, request, project_id, cluster_id):
+        data = self.get_validated_data(request)
+        result = prometheus.mesos_cluster_cpu_remain_usage_range(cluster_id, data["start_at"], data["end_at"])
+        return response.Response(result)
+
+    def offer_total_cpu_usage(self, request, project_id, cluster_id):
+        data = self.get_validated_data(request)
+        result = prometheus.mesos_cluster_cpu_total_usage_range(cluster_id, data["start_at"], data["end_at"])
+        return response.Response(result)
+
+    def offer_remain_memory_usage(self, request, project_id, cluster_id):
+        data = self.get_validated_data(request)
+        result = prometheus.mesos_cluster_memory_remain_usage_range(cluster_id, data["start_at"], data["end_at"])
+        return response.Response(result)
+
+    def offer_total_memory_usage(self, request, project_id, cluster_id):
+        data = self.get_validated_data(request)
+        result = prometheus.mesos_cluster_memory_total_usage_range(cluster_id, data["start_at"], data["end_at"])
+        return response.Response(result)
+
+
 class Node(base.MetricViewMixin, viewsets.ViewSet):
     """节点相关Metrics
     """
