@@ -20,10 +20,16 @@ cluster_urlpatterns = [
     url(r"^cpu_usage/$", views.performance.Cluster.as_view({"get": "cpu_usage"})),
     url(r"^memory_usage/$", views.performance.Cluster.as_view({"get": "memory_usage"})),
     # Mesos metrics, 依赖BCS 1.18.3 版本
-    url(r"^mesos_remain_cpu_usage/$", views.performance.MesosCluster.as_view({"get": "mesos_remain_cpu_usage"})),
-    url(r"^mesos_total_cpu_usage/$", views.performance.MesosCluster.as_view({"get": "mesos_total_cpu_usage"})),
-    url(r"^mesos_remain_memory_usage/$", views.performance.MesosCluster.as_view({"get": "mesos_remain_memory_usage"})),
-    url(r"^mesos_total_memory_usage/$", views.performance.MesosCluster.as_view({"get": "mesos_total_memory_usage"})),
+    url(r"^mesos_cpu_resource_remain/$", views.performance.MesosCluster.as_view({"get": "mesos_cpu_resource_remain"})),
+    url(r"^mesos_cpu_resource_total/$", views.performance.MesosCluster.as_view({"get": "mesos_cpu_resource_total"})),
+    url(
+        r"^mesos_memory_resource_remain/$",
+        views.performance.MesosCluster.as_view({"get": "mesos_memory_resource_remain"}),
+    ),
+    url(
+        r"^mesos_memory_resource_total/$",
+        views.performance.MesosCluster.as_view({"get": "mesos_memory_resource_total"}),
+    ),
     url(r"^disk_usage/$", views.performance.Cluster.as_view({"get": "disk_usage"})),
     url(r"^node/overview/$", views.performance.Node.as_view({"get": "overview"})),
     url(r"^node/info/$", views.performance.Node.as_view({"get": "info"})),

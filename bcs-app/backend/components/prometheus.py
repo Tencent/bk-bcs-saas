@@ -597,7 +597,7 @@ def mesos_cluster_memory_usage(cluster_id, node_list):
     return data
 
 
-def mesos_cluster_cpu_remain_usage_range(cluster_id, start, end):
+def mesos_cluster_cpu_resource_remain_range(cluster_id, start, end):
     """mesos集群CPU使用率
     """
     step = (end - start) // 60
@@ -609,7 +609,7 @@ def mesos_cluster_cpu_remain_usage_range(cluster_id, start, end):
     return resp.get("data") or {}
 
 
-def mesos_cluster_cpu_total_usage_range(cluster_id, start, end):
+def mesos_cluster_cpu_resource_total_range(cluster_id, start, end):
     """mesos集群CPU使用率
     """
     step = (end - start) // 60
@@ -621,7 +621,7 @@ def mesos_cluster_cpu_total_usage_range(cluster_id, start, end):
     return resp.get("data") or {}
 
 
-def mesos_cluster_memory_remain_usage_range(cluster_id, start, end):
+def mesos_cluster_memory_resource_remain_range(cluster_id, start, end):
     """mesos集群mem使用率
     """
     step = (end - start) // 60
@@ -633,7 +633,7 @@ def mesos_cluster_memory_remain_usage_range(cluster_id, start, end):
     return resp.get("data") or {}
 
 
-def mesos_cluster_memory_total_usage_range(cluster_id, start, end):
+def mesos_cluster_memory_resource_total_range(cluster_id, start, end):
     """mesos集群mem使用率
     """
     step = (end - start) // 60
