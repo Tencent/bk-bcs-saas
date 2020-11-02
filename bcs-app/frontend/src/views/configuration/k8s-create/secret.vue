@@ -145,7 +145,7 @@
                                             <div class="bk-form-item">
                                                 <label class="bk-label" style="width: 105px;">{{$t('值')}}：</label>
                                                 <div class="bk-form-content" style="margin-left: 105px;">
-                                                    <textarea class="bk-form-textarea" style="height: 200px;" v-model="curKeyParams.content" :placeholder="valuePlaceholder"></textarea>
+                                                    <textarea class="bk-form-textarea" style="height: 300px;" v-model="curKeyParams.content" :placeholder="valuePlaceholder"></textarea>
                                                     <p class="biz-tip f12 mt10 f14">{{$t('实例化时会将值的内容做base64编码')}}</p>
                                                 </div>
                                             </div>

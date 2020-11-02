@@ -1140,6 +1140,12 @@
     max-width: 220px;
 }
 
+.biz-scroll-tab {
+    &.bk-tab2 .bk-tab2-head .bk-tab2-nav>.tab2-nav-item {
+        width: 180px;
+    }
+}
+
 .english {
     .bk-form .bk-label {
         position: absolute;
