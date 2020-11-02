@@ -1137,7 +1137,13 @@
 }
 
 .bk-tab2 .bk-tab2-head .bk-tab2-nav>.tab2-nav-item {
-    max-width: 220px;
+    max-width: 150px;
+}
+
+.biz-scroll-tab {
+    &.bk-tab2 .bk-tab2-head .bk-tab2-nav>.tab2-nav-item {
+        width: 180px;
+    }
 }
 
 .english {

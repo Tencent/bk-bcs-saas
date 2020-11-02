@@ -2401,3 +2401,7 @@ div::-webkit-scrollbar-thumb {
     border-radius: 4px;
     background-color: #000;
 }
+
+.biz-resize-textarea {
+    resize: vertical;
+}

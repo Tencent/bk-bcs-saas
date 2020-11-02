@@ -121,7 +121,8 @@
                                                 <label class="bk-label" style="width: 105px;">{{$t('值')}}：</label>
                                                 <div class="bk-form-content" style="margin-left: 105px;">
                                                     <bk-textarea
-                                                        ext-style="height: 200px;"
+                                                        class="biz-resize-textarea"
+                                                        ext-style="height: 300px;"
                                                         :value.sync="curKeyParams.content"
                                                         :placeholder="$t('请输入键') + curKeyParams.key + $t('的内容')">
                                                     </bk-textarea>
