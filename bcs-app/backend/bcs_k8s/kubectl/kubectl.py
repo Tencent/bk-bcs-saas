@@ -101,7 +101,7 @@ class KubectlClusterClient:
         for item in items:
             # 针对chart中以`-`开头的资源名称，进行忽略，防止出现删除不掉的情况
             # TODO: 如果后续有其它场景，再以正则进行完整校验
-            if item["name"].startwith("-"):
+            if item["name"].startswith("-"):
                 continue
             cmd_arguments = self.kubectl_base + [
                 "--namespace=%s" % namespace,

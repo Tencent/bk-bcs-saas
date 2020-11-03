@@ -69,7 +69,7 @@ class BaseNode(object):
         if resp.get('code') != ErrorCode.NoError:
             raise error_codes.APIError(resp.get('message'))
 
-    def update_nodes_with_response(self, node_ips, status=CommonStatus.Initializing):
+    def update_cluster_nodes(self, node_ips, status=CommonStatus.Initializing):
         """更新阶段状态，并返回更新后的信息
         """
         data = [
@@ -294,7 +294,7 @@ class CreateNode(BaseNode):
                 resource=','.join(self.ip_list)[:32],
         ).log_add():
             # 更新所有节点为初始化中
-            node_info_list = self.update_nodes_with_response(self.ip_list)
+            node_info_list = self.update_cluster_nodes(self.ip_list)
             log = self.create_node_by_bcs(node_info_list)
             if not log.is_finished and log.is_polling:
                 log.polling_task()
@@ -574,6 +574,11 @@ class BatchDeleteNode(DeleteNodeBase):
 
     def delete_nodes(self):
         node_info = {node['inner_ip']: '[%s]' % node['id'] for node in self.node_list}
+        # 更新节点状态为删除中
+        self.update_cluster_nodes(
+            [node["inner_ip"] for node in self.node_list],
+            NodeStatus.Removing
+        )
         log = self.delete_via_bcs(self.request, self.project_id, self.cluster_id, self.kind_name, node_info)
         if not log.is_finished and log.is_polling:
             log.polling_task()
