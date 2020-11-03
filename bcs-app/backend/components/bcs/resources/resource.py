@@ -178,6 +178,6 @@ class StorageAPIClassMixins(BaseMixins):
     """
 
     def get_api_class(self, api_client):
-        resp = client.StorageApi(self.api_client).get_api_group()
-        group_version = resp.preferred_version.group_version
-        return self.compose_api_class(group_version)
+        resp = client.StorageApi(api_client).get_api_group()
+        version = resp.preferred_version.version
+        return self.compose_api_class(f"Storage/{version}")

@@ -2657,7 +2657,6 @@
 
                 // 兼容原数据webcache
                 container.webCache.imageName = container.imageName
-                debugger
                 delete container.imageName
                 container.webCache.env_list = []
 

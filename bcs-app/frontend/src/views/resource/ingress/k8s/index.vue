@@ -106,7 +106,7 @@
                                                 <bk-tooltip :content="ingress.can_update_msg" v-else placement="left">
                                                     <a href="javascript:void(0);" class="bk-text-button is-disabled">{{$t('更新')}}</a>
                                                 </bk-tooltip>
-                                                <a v-if="ingress.can_delete" @click.stop="removeIngress(ingress)" class="bk-text-button">{{$t('删除')}}</a>
+                                                <a v-if="ingress.can_delete" @click.stop="removeIngress(ingress)" class="bk-text-button ml10">{{$t('删除')}}</a>
                                                 <bk-tooltip :content="ingress.can_delete_msg || $t('不可删除')" v-else placement="left">
                                                     <span class="bk-text-button is-disabled ml10">{{$t('删除')}}</span>
                                                 </bk-tooltip>

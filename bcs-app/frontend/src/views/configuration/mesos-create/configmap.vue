@@ -134,8 +134,8 @@
                                             <div class="bk-form-item is-required">
                                                 <label class="bk-label" style="width: 105px;">{{$t('值')}}：</label>
                                                 <div class="bk-form-content" style="margin-left: 105px;">
-                                                    <textarea class="bk-form-textarea" style="height: 200px;" v-model="curKeyParams.content" :placeholder="$t('请输入键') + curKeyParams.key + $t('的内容')" v-if="curKeyParams.type === 'file'"></textarea>
-                                                    <textarea class="bk-form-textarea" style="height: 200px;" v-model="curKeyParams.content" :placeholder="$t('请输入仓库中配置文件的相对路径')" v-else></textarea>
+                                                    <textarea class="bk-form-textarea biz-resize-textarea" style="height: 300px;" v-model="curKeyParams.content" :placeholder="$t('请输入键') + curKeyParams.key + $t('的内容')" v-if="curKeyParams.type === 'file'"></textarea>
+                                                    <textarea class="bk-form-textarea biz-resize-textarea" style="height: 300px;" v-model="curKeyParams.content" :placeholder="$t('请输入仓库中配置文件的相对路径')" v-else></textarea>
                                                     <p class="biz-tip mt10 f14" v-show="curKeyParams.type === 'file'">{{$t('实例化时会将值的内容做base64编码')}}</p>
                                                 </div>
                                             </div>
