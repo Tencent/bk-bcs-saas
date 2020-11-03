@@ -170,7 +170,7 @@
                                             {{$t('预览')}}：
                                         </label>
                                         <div class="form-item-inner" style="width: 100px">
-                                            <bk-tab :type="'fill'" :size="'small'" :active-name="previewList[0].name" :key="renderTabIndex" @tab-changed="tabChange">
+                                            <bk-tab class="biz-scroll-tab" :type="'fill'" :size="'small'" :active-name="previewList[0].name" :key="renderTabIndex" @tab-changed="tabChange">
                                                 <bk-tabpanel :key="index" :name="item.name" :title="item.title" :tag="item.tag" v-for="(item, index) in previewList">
                                                     <div class="biz-code-wrapper">
                                                         <div class="build-code-fullscreen" :title="$t('全屏')"
