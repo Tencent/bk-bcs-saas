@@ -1027,7 +1027,7 @@ export default {
     '查看示例': ['View example'],
     '"{name}"中关联应用：原已经关联的{type}已经删除，请重新选择': ['"{name}" associated application：The original {type} has been deleted, please re-select'],
     '请选择类型': ['Please choose the type'],
-    '提示：K8S原生规则需在“网络” => “LoadBalancer”中新建LoadBalancer才能生效': ['Tip: K8S native rules need to create a new LoadBalancer in "Network" => "LoadBalancer" to take effect.'],
+    '提示：调度引擎为BCS-K8S的集群，需在左侧菜单“网络” => “LoadBalancer”中新建LoadBalancer，Ingress规则才能生效（通常单个集群只需要创建一个LoadBalancer）': ['Tip: The scheduling engine is a cluster of BCS-K8S. You need to create a new LoadBalancer in the left menu "Network" => "LoadBalancer" for the Ingress rule to take effect (usually a single cluster only needs to create a LoadBalancer'],
     '删除Ingress': ['Delete Ingress'],
     'TLS设置': ['TLS settings'],
     '主机名，多个用英文逗号分隔': ['Host name, separated by commas'],
@@ -1596,6 +1596,7 @@ export default {
     'Values内容': ['Values'],
     '请选择节点IP': ['Please Select Node IP'],
     '请填写Values内容': ['Please Enter Values'],
+    '后台实际拉取文件命令: curl -X GET -H "Authorization: Basic {user:$base64(passwd)}"': ['The actual pull file command in the background: curl -X GET -H "Authorization: Basic {user:$base64(passwd)}"'],
     // 变量的使用 $t('test', { vari1: 1, vari2: 2 })
     // 变量的使用 $t('test', { vari1: 1, vari2: 2 })
     'test': ['{vari1} ---english--- {vari2}']

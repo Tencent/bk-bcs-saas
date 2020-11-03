@@ -2888,7 +2888,16 @@
                             type: item.type,
                             content: item.content
                         }
+                        if (item.type === 'http' && item.auth && item.auth.split(':').length >= 2) {
+                            const remoteUser = item.auth.split(':')[0]
+                            const remotePassword = item.auth.replace(remoteUser + ':', '').trim()
+                            if (remoteUser && remotePassword) {
+                                keyObj[item.key].remoteUser = remoteUser
+                                keyObj[item.key].remotePassword = remotePassword
+                            }
+                        }
                     })
+
                     params.config.datas = keyObj
                     configmap.config.datas = keyObj
                 }
@@ -2897,6 +2906,8 @@
                     name: this.curTemplate.name,
                     desc: this.curTemplate.desc
                 }
+
+                delete params.configmapKeyList
                 return params
             },
             async saveConfigmap (configmap) {
