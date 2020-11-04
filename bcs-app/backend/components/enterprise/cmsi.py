@@ -58,7 +58,7 @@ def send_mail(title, content, receiver__username):
 
 def send_weixin(heading, message, receiver__username):
     url = f"{settings.BK_PAAS_INNER_HOST}/{CSMI_PREFIX_PATH}/send_weixin/"
-    data = {"receiver__username": receiver__username, "data": {"heading": heading, "message": message,}}  # 多个以逗号分隔
+    data = {"receiver__username": receiver__username, "data": {"heading": heading, "message": message}}  # 多个以逗号分隔
     resp = common_base_request(url, data)
     return resp
 
