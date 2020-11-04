@@ -15,14 +15,18 @@ from rest_framework import response, viewsets
 from rest_framework.renderers import BrowsableAPIRenderer
 from django.utils.translation import ugettext_lazy as _
 
-from .base import Nodes, ClusterPerm
+from backend.activity_log import client
+from backend.utils.errcodes import ErrorCode
+from backend.apps.cluster.views_bk import node
 from backend.utils.renderers import BKAPIRenderer
 from backend.utils.error_codes import error_codes
-from backend.utils.errcodes import ErrorCode
+from backend.resources.cluster import utils as node_utils
+from backend.resources.project.constants import ProjectKind
 from backend.apps.cluster.models import CommonStatus, NodeUpdateLog
 from backend.apps.cluster import serializers as node_serializers
-from backend.activity_log import client
-from backend.apps.cluster.views_bk import node
+from backend.apps.cluster.views.node_views import serializers as node_slz
+
+from .base import Nodes, ClusterPerm
 
 NotReadyNodeStatus = ['not_ready', CommonStatus.DeleteFailed]
 
@@ -87,5 +91,40 @@ class BatchReinstallNodes(ClusterPerm, Nodes, viewsets.ViewSet):
             # 下发流程，触发重试任务
             node_client = node.BatchReinstallNodes(request, project_id, cluster_info, node_id_ip_map)
             node_client.reinstall()
+
+        return response.Response()
+
+
+class CreateNodelabelsViewSets(viewsets.ViewSet):
+    renderer_classes = (BKAPIRenderer, BrowsableAPIRenderer)
+
+    def set_mesos_node_labels(self, access_token, project_id, node_labels):
+        # {"cluster_id": [{"inner_ip": ip1, "strings":{key: {"value": val}}}]}
+        cluster_node_labels = {}
+        for node_label in node_labels:
+            cluster_id = node_label["cluster_id"]
+            # 组装格式, 注意value必须为string
+            item = {
+                "strings": {key: {"value": str(val)} for label in node_label["labels"] for key, val in label.items()},
+                "innerIP": node_label["inner_ip"]
+            }
+            if cluster_id in cluster_node_labels:
+                cluster_node_labels[cluster_id].append(item)
+            else:
+                cluster_node_labels[cluster_id] = [item]
+
+        node_utils.set_mesos_node_labels(access_token, project_id, cluster_node_labels)
+
+    def set_k8s_node_labels(self, access_token, project_id, labels):
+        pass
+
+    def set_labels(self, request, project_id):
+        slz = node_slz.CreateNodeLabelsSLZ(data=request.data)
+        slz.is_valid(raise_exception=True)
+        data = slz.validated_data
+
+        project_kind_name = ProjectKind.get_choice_label(request.project.kind)
+        getattr(self, f"set_{project_kind_name.lower()}_node_labels")(
+            request.user.token.access_token, project_id, data["node_labels"])
 
         return response.Response()
