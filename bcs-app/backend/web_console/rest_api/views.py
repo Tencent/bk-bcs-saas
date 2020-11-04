@@ -11,10 +11,7 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-import json
 import logging
-import time
-import uuid
 from urllib.parse import urlparse
 
 from django.conf import settings
@@ -25,9 +22,9 @@ from rest_framework.renderers import BrowsableAPIRenderer
 from backend.accounts import bcs_perm
 from backend.apps.constants import ProjectKind
 from backend.components import paas_auth, paas_cc
+from backend.resources import cluster
 from backend.components.bcs.k8s import K8SClient
 from backend.components.bcs.mesos import MesosClient
-from backend.utils.cache import rd_client
 from backend.utils.errcodes import ErrorCode
 from backend.utils.error_codes import error_codes
 from backend.utils.renderers import BKAPIRenderer
@@ -85,11 +82,11 @@ class WebConsoleSession(views.APIView):
             logger.debug("get pod %s", pod)
         except pod_life_cycle.PodLifeError as error:
             logger.error("kubetctl apply error: %s", error)
-            utils.activity_log(project_id, self.cluster_name, request.user.username, False, "%s" % error)
+            utils.activity_log(project_id, cluster_id, self.cluster_name, request.user.username, False, "%s" % error)
             raise error_codes.APIError("%s" % error)
         except Exception as error:
             logger.exception("kubetctl apply error: %s", error)
-            utils.activity_log(project_id, self.cluster_name, request.user.username, False, "申请pod资源失败")
+            utils.activity_log(project_id, cluster_id, self.cluster_name, request.user.username, False, "申请pod资源失败")
             raise error_codes.APIError(_("申请pod资源失败，请稍后再试{}").format(settings.COMMON_EXCEPTION_MSG))
 
         bcs_context["user_pod_name"] = pod.metadata.name
@@ -106,7 +103,7 @@ class WebConsoleSession(views.APIView):
             logger.exception("get access cluster context failed: %s", error)
             message = _("获取集群{}【{}】WebConsole 信息失败").format(self.cluster_name, cluster_id)
             # 记录操作日志
-            utils.activity_log(project_id, self.cluster_name, request.user.username, False, message)
+            utils.activity_log(project_id, cluster_id, self.cluster_name, request.user.username, False, message)
             # 返回前端消息
             raise error_codes.APIError(
                 _("{}，请检查 Deployment【kube-system/bcs-agent】是否正常{}").format(message, settings.COMMON_EXCEPTION_MSG)
@@ -137,7 +134,12 @@ class WebConsoleSession(views.APIView):
         exec_id = client.get_container_exec_id(context["host_ip"], context["short_container_id"])
         if not exec_id:
             utils.activity_log(
-                project_id, self.cluster_name, request.user.username, False, f'连接{context["user_pod_name"]}失败'
+                project_id,
+                cluster_id,
+                self.cluster_name,
+                request.user.username,
+                False,
+                f'连接{context["user_pod_name"]}失败',
             )
 
             raise error_codes.APIError(
@@ -158,15 +160,17 @@ class WebConsoleSession(views.APIView):
     def get(self, request, project_id, cluster_id):
         """获取session信息
         """
+        cluster_data = cluster.get_cluster(request.user.token.access_token, project_id, cluster_id)
+        self.cluster_name = cluster_data.get("name", "")[:32]
+
         perm = bcs_perm.Cluster(request, project_id, cluster_id)
         try:
             perm.can_use(raise_exception=True)
         except Exception as error:
-            utils.activity_log(project_id, cluster_id, request.user.username, False, _("集群不正确或没有集群使用权限"))
+            utils.activity_log(
+                project_id, cluster_id, self.cluster_name, request.user.username, False, _("集群不正确或没有集群使用权限")
+            )
             raise error
-
-        # resource_name字段长度限制32位
-        self.cluster_name = perm.res["name"][:32]
 
         # 获取web-console context信息
         if request.project.kind == ProjectKind.MESOS.value:
@@ -198,7 +202,7 @@ class WebConsoleSession(views.APIView):
         ws_url = f"{bcs_api_url.geturl()}/web_console/projects/{project_id}/clusters/{cluster_id}/ws/?session_id={session_id}&source={source}"  # noqa
 
         data = {"session_id": session_id, "ws_url": ws_url}
-        utils.activity_log(project_id, self.cluster_name, request.user.username, True)
+        utils.activity_log(project_id, cluster_id, self.cluster_name, request.user.username, True)
 
         return BKAPIResponse(data, message=_("获取session成功"))
 

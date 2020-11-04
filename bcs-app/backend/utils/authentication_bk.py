@@ -50,7 +50,7 @@ class BKTokenAuthentication(BaseAuthentication):
     def verify_bk_token(self, bk_token):
         """校验是否
         """
-        url = f"{settings.BK_PAAS_HOST}/login/accounts/is_login/"
+        url = f"{settings.BK_PAAS_INNER_HOST}/login/accounts/is_login/"
         params = {"bk_token": bk_token}
         resp = http_get(url, params=params)
         if resp.get("result") is not True:

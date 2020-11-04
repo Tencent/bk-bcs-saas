@@ -19,29 +19,22 @@ from backend.utils.errcodes import ErrorCode
 from backend.utils.error_codes import error_codes
 
 
-GSE_HOST = settings.BK_PAAS_HOST
+GSE_HOST = settings.BK_PAAS_INNER_HOST
 BK_APP_CODE = settings.APP_ID
 BK_APP_SECRET = settings.APP_TOKEN
-PREFIX_PATH = '/api/c/compapi'
-FUNCTION_PATH_MAP = {
-    'agent_status': '/v2/gse/get_agent_status'
-}
+PREFIX_PATH = "/api/c/compapi"
+FUNCTION_PATH_MAP = {"agent_status": "/v2/gse/get_agent_status"}
 
 
 def get_agent_status(username, hosts, bk_supplier_id=0):
-    url = '{host}{prefix_path}{path}'.format(
-        host=GSE_HOST, prefix_path=PREFIX_PATH, path=FUNCTION_PATH_MAP['agent_status']
+    url = "{host}{prefix_path}{path}".format(
+        host=GSE_HOST, prefix_path=PREFIX_PATH, path=FUNCTION_PATH_MAP["agent_status"]
     )
 
-    data = {
-        'bk_app_code': BK_APP_CODE,
-        'bk_app_secret': BK_APP_SECRET,
-        'bk_username': username,
-        'hosts': hosts
-    }
+    data = {"bk_app_code": BK_APP_CODE, "bk_app_secret": BK_APP_SECRET, "bk_username": username, "hosts": hosts}
     if bk_supplier_id is not None:
-        data['bk_supplier_id'] = bk_supplier_id
+        data["bk_supplier_id"] = bk_supplier_id
     resp = http_post(url, json=data)
-    if resp.get('code') != ErrorCode.NoError:
+    if resp.get("code") != ErrorCode.NoError:
         raise error_codes.APIError.f(resp.get("message"))
-    return resp.get('data', {}).values()
+    return resp.get("data", {}).values()
