@@ -544,6 +544,9 @@
                 }
             }
         },
+        created () {
+            this.getClusters()
+        },
         destroyed () {
             this.bkMessageInstance && this.bkMessageInstance.close()
         },
