@@ -26,64 +26,46 @@ from backend.utils.error_codes import bk_error_codes
 logger = logging.getLogger(__name__)
 
 
-CSMI_PREFIX_PATH = 'api/c/compapi/cmsi'
+CSMI_PREFIX_PATH = "api/c/compapi/cmsi"
 
 
 def common_base_request(url, data):
     """请求
     """
-    data.update(
-        {
-            'bk_app_code': settings.APP_ID,
-            'bk_app_secret': settings.APP_TOKEN,
-            'bk_username': '100'
-        }
-    )
+    data.update({"bk_app_code": settings.APP_ID, "bk_app_secret": settings.APP_TOKEN, "bk_username": "100"})
     resp = http_post(url, json=data)
-    if not resp.get('result'):
-        logger.error(u'''{error_code} ESB errorcode: {esb_code}\ncurl -X POST -d "{data}" {url}\nresp:{resp}'''.format(
-            error_code=bk_error_codes.CmsiError(),
-            esb_code=resp.get('code'),
-            data=data,
-            url=url,
-            resp=resp
-        ))
+    if not resp.get("result"):
+        logger.error(
+            """{error_code} ESB errorcode: {esb_code}\ncurl -X POST -d "{data}" {url}\nresp:{resp}""".format(
+                error_code=bk_error_codes.CmsiError(), esb_code=resp.get("code"), data=data, url=url, resp=resp
+            )
+        )
     return resp
 
 
 def send_mail(title, content, receiver__username):
-    url = f'{settings.BK_PAAS_HOST}/{CSMI_PREFIX_PATH}/send_mail/'
+    url = f"{settings.BK_PAAS_INNER_HOST}/{CSMI_PREFIX_PATH}/send_mail/"
     content = smart_text(base64.b64encode(smart_bytes(content)))
     data = {
         "receiver__username": receiver__username,  # 多个以逗号分隔
         "title": title,
         "content": content,
-        "is_content_base64": True
+        "is_content_base64": True,
     }
     resp = common_base_request(url, data)
     return resp
 
 
 def send_weixin(heading, message, receiver__username):
-    url = f'{settings.BK_PAAS_HOST}/{CSMI_PREFIX_PATH}/send_weixin/'
-    data = {
-        "receiver__username": receiver__username,  # 多个以逗号分隔
-        "data": {
-            "heading": heading,
-            "message": message,
-        }
-    }
+    url = f"{settings.BK_PAAS_INNER_HOST}/{CSMI_PREFIX_PATH}/send_weixin/"
+    data = {"receiver__username": receiver__username, "data": {"heading": heading, "message": message,}}  # 多个以逗号分隔
     resp = common_base_request(url, data)
     return resp
 
 
 def send_sms(content, receiver__username):
-    url = f'{settings.BK_PAAS_HOST}/{CSMI_PREFIX_PATH}/send_sms/'
+    url = f"{settings.BK_PAAS_INNER_HOST}/{CSMI_PREFIX_PATH}/send_sms/"
     content = smart_text(base64.b64encode(smart_bytes(content)))
-    data = {
-        "receiver__username": receiver__username,  # 多个以逗号分隔
-        "content": content,
-        "is_content_base64": True
-    }
+    data = {"receiver__username": receiver__username, "content": content, "is_content_base64": True}  # 多个以逗号分隔
     resp = common_base_request(url, data)
     return resp
