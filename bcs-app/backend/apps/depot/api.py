@@ -79,7 +79,7 @@ def trans_paging_query(query):
     else:
         # 不分页的地方给默认值
         query['page'] = 1
-        query['pageSize'] = 100
+        query['pageSize'] = 100000
     return query
 
 
