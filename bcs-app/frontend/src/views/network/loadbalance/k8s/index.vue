@@ -126,7 +126,6 @@
                                     :placeholder="$t('请选择')"
                                     :setting-key="'cluster_id'"
                                     :display-key="'longName'"
-                                    :is-link="true"
                                     :disabled="!!curLoadBalance.id"
                                     :selected.sync="curLoadBalance.cluster_id"
                                     :list="clusterList"
