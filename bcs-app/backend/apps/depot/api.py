@@ -64,7 +64,7 @@ def get_upload_status_api(request, project_id, task_id):
 
 def trans_paging_query(query):
     """
-    将前端的分页信息转换为haobor API需要的:page\pageSize
+    将前端的分页信息转换为harbor API需要的:page\pageSize
     该方法只在本文件内调用
     """
     start = query.get("start")
