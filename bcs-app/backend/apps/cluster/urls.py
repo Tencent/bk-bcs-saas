@@ -177,8 +177,8 @@ urlpatterns += [
         views.ExportNodes.as_view({'post': 'export'})
     ),
     url(
-        r"^api/node_mgr/projects/(?P<project_id>\w{32})/labels/list/$",
-        views.ListNodelabelsViewSets.as_view({"post": "list_labels", "get": "list"})
+        r"^api/cluster_mgr/projects/(?P<project_id>\w{32})/nodes/-/labels/detail/$",
+        views.ListNodelabelsViewSets.as_view({"post": "list_labels"})
     )
 ]
 
@@ -189,8 +189,8 @@ urlpatterns += [
         views.DeleteNotReadyNode.as_view({'delete': 'delete'})
     ),
     url(
-        r"^api/node_mgr/projects/(?P<project_id>\w{32})/labels/$",
-        views.SetNodelabelsViewSets.as_view({"post": "set_labels"})
+        r"^api/cluster_mgr/projects/(?P<project_id>\w{32})/nodes/-/labels/$",
+        views.NodelabelsViewSets.as_view({"post": "set_labels", "get": "list"})
     )
 ]
 

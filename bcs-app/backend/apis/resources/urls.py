@@ -21,5 +21,5 @@ urlpatterns = [
     url(r"^$", ClusterViewSet.as_view({"get": "list"})),
     url(r"^(?P<cluster_id>[\w\-]+)/namespaces/$",
         NamespaceViewSet.as_view({"get": "list_by_cluster_id", "post": "create_namespace"})),
-    url(r"^(?P<cluster_id>[\w\-]+)/node_labels/$", NodeLabelsViewSet.as_view({"post": "set_labels"}))
+    url(r"^(?P<cluster_id>[\w\-]+)/nodes/-/labels/$", NodeLabelsViewSet.as_view({"post": "set_labels"}))
 ]
