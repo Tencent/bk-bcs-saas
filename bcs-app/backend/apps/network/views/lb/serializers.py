@@ -11,13 +11,30 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
+import json
+
 from rest_framework import serializers
 
-from backend.apps.network.models import MesosLoadBlance
+from backend.apps.network.models import MesosLoadBlance as MesosLoadBalancer
 
 
 class MesosLBSLZ(serializers.ModelSerializer):
+    cluster_id = serializers.CharField()
+    cluster_name = serializers.SerializerMethodField()
+    data = serializers.SerializerMethodField()
+
+    def get_data(self, obj):
+        return json.loads(obj.data_dict)
 
     class Meta:
-        model = MesosLoadBlance
-        fields = ["svc_name", "namespace", "cluster_id", "crd_data"]
+        model = MesosLoadBalancer
+        fields = [
+            "id",
+            "name",
+            "cluster_name",
+            "cluster_id",
+            "namespace",
+            "ip_list"
+            "status",
+            "data"
+        ]
