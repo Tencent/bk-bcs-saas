@@ -95,7 +95,7 @@ class BatchReinstallNodes(ClusterPerm, Nodes, viewsets.ViewSet):
         return response.Response()
 
 
-class CreateNodelabelsViewSets(viewsets.ViewSet):
+class SetNodelabelsViewSets(viewsets.ViewSet):
     renderer_classes = (BKAPIRenderer, BrowsableAPIRenderer)
 
     def set_mesos_node_labels(self, access_token, project_id, node_labels):

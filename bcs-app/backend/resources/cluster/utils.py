@@ -124,7 +124,7 @@ def create_or_update_agent_labels(access_token, project_id, cluster_id, labels):
 
 def query_mesos_node_labels(access_token, project_id, cluster_nodes):
     # 需要支持跨集群操作
-    # 格式: {"cluster-id1": ["ip1", "ip2"], "cluster-id2": ["ip3", "ip4"]]
+    # cluster_nodes格式: {"cluster-id1": ["ip1", "ip2"], "cluster-id2": ["ip3", "ip4"]]
     node_labels = {cluster_id: {} for cluster_id in cluster_nodes}
     for cluster_id, node_ips in cluster_nodes.items():
         client = mesos.MesosClient(access_token, project_id, cluster_id, None)
@@ -144,6 +144,6 @@ def query_mesos_node_labels(access_token, project_id, cluster_nodes):
 
 
 def set_mesos_node_labels(access_token, project_id, labels):
-    # 格式: {"cluster_id": [{"inner_ip": ip1, "strings":{key: {"value": val}}}]}
+    # labels格式: {"cluster_id": [{"inner_ip": ip1, "strings":{key: {"value": val}}}]}
     for cluster_id, node_labels in labels.items():
         create_or_update_agent_labels(access_token, project_id, cluster_id, node_labels)

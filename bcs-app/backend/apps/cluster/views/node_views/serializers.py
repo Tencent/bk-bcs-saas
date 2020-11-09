@@ -28,5 +28,5 @@ class FilterNodeLabelsSLZ(NodeLabelsSLZ):
     pass
 
 
-class CreateNodeLabelsSLZ(NodeLabelsSLZ):
+class SetNodeLabelsSLZ(NodeLabelsSLZ):
     pass
