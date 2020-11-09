@@ -32,9 +32,8 @@ class HelmReleaseMixin:
         return release
 
     def collect_system_variable(self, access_token, project_id, namespace_id):
-        sys_variables = bcs_variable.collect_system_variable(
+        return bcs_variable.collect_system_variable(
             access_token=access_token,
             project_id=project_id,
             namespace_id=namespace_id
         )
-        return sys_variables
