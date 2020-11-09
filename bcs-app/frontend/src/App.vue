@@ -21,7 +21,7 @@
                 <div class="biz-guide-box" style="border: none; box-shadow: none; margin-top: 0;" :style="{ height: `${height}px` }">
                     <p class="title">{{$t('容器服务未启用')}}{{isIEGProject ? $t('，请完善以下信息') : ''}}</p>
                     <template v-if="!isIEGProject">
-                        <p class="desc">{{$t('您当前的项目')}}“{{curProject.project_name}}”{{$t('没有启用蓝鲸部署服务，如需开启使用，请联系')}}<a href="wxwork://message/?username=BCS">【{{$t('蓝鲸容器助手')}}】</a></p>
+                        <p class="desc">{{$t('您当前的项目')}}“{{curProject.project_name}}”{{$t('没有启用蓝鲸部署服务')}}</p>
                         <p style="font-size: 14px">
                             <a :href="PROJECT_CONFIG.doc.quickStart" target="_blank">{{$t('请点击了解更多')}}<i class="bk-icon icon-angle-double-right"></i></a>
                         </p>
