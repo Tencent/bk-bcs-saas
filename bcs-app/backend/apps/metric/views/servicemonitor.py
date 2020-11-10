@@ -210,8 +210,6 @@ class ServiceMonitor(viewsets.ViewSet):
         if cluster_id is None:
             cluster_id = data["cluster_id"]
 
-        self._validate_namespace_use_perm(request, project_id, [(cluster_id, data["namespace"])])
-
         endpoints = [
             {
                 "path": data["path"],
@@ -307,7 +305,6 @@ class ServiceMonitor(viewsets.ViewSet):
         slz.is_valid(raise_exception=True)
         data = slz.validated_data
 
-        self._validate_namespace_use_perm(request, project_id, [namespace])
         client = self._get_client(request, project_id, cluster_id)
         result = client.get_service_monitor(namespace, name)
         if result.get("status") == "Failure":
