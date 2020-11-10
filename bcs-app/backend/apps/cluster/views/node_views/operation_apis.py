@@ -158,7 +158,7 @@ class NodelabelsViewSets(viewsets.ViewSet):
             node_info["labels"] = labels.get(cluster_id, {}).get(inner_ip, [])
             node_info.update(cluster_id_map.get(cluster_id, {}))
 
-    def list(self, request, project_id):
+    def list_labels(self, request, project_id):
         # TODO: 现阶段仅针对mesos
         if request.project.kind == ProjectKind.K8S.value:
             raise error_codes.NotOpen()

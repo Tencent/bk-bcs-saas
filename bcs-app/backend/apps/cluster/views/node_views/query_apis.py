@@ -146,7 +146,7 @@ class ListNodelabelsViewSets(viewsets.ViewSet):
     def query_k8s_node_labels(self, access_token, project_id, data):
         pass
 
-    def list_labels(self, request, project_id):
+    def list_labels_details(self, request, project_id):
         slz = node_slz.FilterNodeLabelsSLZ(data=request.data)
         slz.is_valid(raise_exception=True)
         data = slz.validated_data

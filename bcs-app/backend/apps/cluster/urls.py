@@ -178,7 +178,7 @@ urlpatterns += [
     ),
     url(
         r"^api/cluster_mgr/projects/(?P<project_id>\w{32})/nodes/-/labels/detail/$",
-        views.ListNodelabelsViewSets.as_view({"post": "list_labels"})
+        views.ListNodelabelsViewSets.as_view({"post": "list_labels_details"})
     )
 ]
 
@@ -190,7 +190,7 @@ urlpatterns += [
     ),
     url(
         r"^api/cluster_mgr/projects/(?P<project_id>\w{32})/nodes/-/labels/$",
-        views.NodelabelsViewSets.as_view({"post": "set_labels", "get": "list"})
+        views.NodelabelsViewSets.as_view({"post": "set_labels", "get": "list_labels"})
     )
 ]
 
