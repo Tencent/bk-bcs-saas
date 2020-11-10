@@ -11,15 +11,10 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-from rest_framework.response import Response
-
-from backend.apis.authentication import JWTAuthentication
-from backend.apis.permissions import AccessTokenPermission
-from backend.utils.renderers import BKAPIRenderer
+from backend.apis.views import NoAccessTokenBaseAPIViewSet
 from backend.apps.metric.views import servicemonitor
 
 
-class ServiceMonitor(servicemonitor.ServiceMonitor):
-    authentication_classes = (JWTAuthentication,)
-    renderer_classes = (BKAPIRenderer,)
-    permission_classes = (AccessTokenPermission,)
+class ServiceMonitor(NoAccessTokenBaseAPIViewSet, servicemonitor.ServiceMonitor):
+    """继承servicemonitor
+    """
