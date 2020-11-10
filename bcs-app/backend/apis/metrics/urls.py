@@ -13,12 +13,12 @@
 #
 from django.conf.urls import url
 
-from . import views
+from . import servicemonitor
 
 urlpatterns = [
-    url(r"^servicemonitors/$", views.ServiceMonitor.as_view({"post": "create"})),
+    url(r"^servicemonitors/$", servicemonitor.ServiceMonitor.as_view({"post": "create"})),
     url(
         r"^servicemonitors/(?P<namespace>[\w-]+)/(?P<name>[\w-]+)/$",
-        views.ServiceMonitor.as_view({"get": "get", "put": "update"}),
+        servicemonitor.ServiceMonitor.as_view({"get": "get", "put": "update"}),
     ),
 ]
