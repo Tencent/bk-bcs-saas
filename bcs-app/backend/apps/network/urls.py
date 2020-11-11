@@ -16,6 +16,7 @@ from .views import service
 from .views.lb import k8s, mesos
 from .views.ingress import mesos as mesos_ingress
 from .views.charts import versions
+from .views.lb import mesos_new
 
 MESOS_CLUSTER_ID_REGEX = "BCS-((?!K8S)\w)+-[0-9]{5,7}"
 
@@ -68,5 +69,8 @@ urlpatterns = [
     url(r'^api/k8s_lb/projects/(?P<project_id>\w{32})/chart/versions/$',
         versions.K8SIngressControllerViewSet.as_view({"get": "get_chart_versions"})),
     url(r'^api/k8s_lb/projects/(?P<project_id>\w{32})/chart/versions/-/detail/$',
-        versions.K8SIngressControllerViewSet.as_view({"post": "get_version_detail"}))
+        versions.K8SIngressControllerViewSet.as_view({"post": "get_version_detail"})),
+
+    url(r'^api/network/projects/(?P<project_id>\w{32})/clusters/-/mesos/lbs/$',
+        mesos_new.LoadBalancersViewSet.as_view({"get": "list", "post": "create"})),
 ]

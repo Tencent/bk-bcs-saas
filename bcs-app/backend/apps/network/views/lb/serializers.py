@@ -14,14 +14,18 @@
 import json
 
 from rest_framework import serializers
+from rest_framework.exceptions import ValidationError
+from django.utils.translation import ugettext_lazy as _
 
 from backend.apps.network.models import MesosLoadBlance as MesosLoadBalancer
 
 
 class MesosLBSLZ(serializers.ModelSerializer):
-    cluster_id = serializers.CharField()
-    cluster_name = serializers.SerializerMethodField()
     data = serializers.SerializerMethodField()
+    ip_list = serializers.SerializerMethodField()
+
+    def get_ip_list(self, obj):
+        return json.loads(obj.ip_list)
 
     def get_data(self, obj):
         return json.loads(obj.data_dict)
@@ -31,10 +35,40 @@ class MesosLBSLZ(serializers.ModelSerializer):
         fields = [
             "id",
             "name",
-            "cluster_name",
             "cluster_id",
             "namespace",
-            "ip_list"
+            "ip_list",
             "status",
             "data"
         ]
+
+
+class CreateMesosLBSLZ(serializers.Serializer):
+    name = serializers.CharField()
+    cluster_id = serializers.CharField()
+    namespace = serializers.CharField()
+    instance_num = serializers.IntegerField(min_value=1)
+    constraint = serializers.JSONField()
+    use_custom_image_url = serializers.BooleanField(default=False)
+    image_url = serializers.CharField()
+    image_tag = serializers.CharField()
+    related_service_label = serializers.CharField()
+    ip_list = serializers.ListField(default=[])
+    configmaps = serializers.ListField(default=[])
+    env_list = serializers.ListField(default=[])
+    resources = serializers.DictField(default={})
+    network_type = serializers.CharField()
+    network_mode = serializers.CharField()
+    port = serializers.IntegerField(default=31000, min_value=31000, max_value=32000)
+    forward_mode = serializers.CharField(required=True)
+    eth_value = serializers.CharField(required=True)
+
+    def validate(self, data):
+        # 如果 ip_list 存在，ip_list数量必须和instance num相同
+        ip_list = data.get("ip_list")
+        instance_num = data.get("instance_num")
+        if not ip_list:
+            return data
+        if len(ip_list) != instance_num:
+            raise ValidationError(_("参数【ip_list】数量必须和【instance_num】相同"))
+        return data

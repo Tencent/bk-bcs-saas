@@ -14,12 +14,22 @@
 from rest_framework import serializers, viewsets
 from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
+from rest_framework.renderers import BrowsableAPIRenderer
 
+from backend.utils.renderers import BKAPIRenderer
+from backend.apps.network.views.lb import serializers as lb_slz
+from backend.apps.network.models import MesosLoadBlance as MesosLoadBalancer
 
-class LoadBalancers(viewsets.ViewSet):
+class LoadBalancersViewSet(viewsets.ViewSet):
+    renderer_classes = (BKAPIRenderer, BrowsableAPIRenderer)
 
     def list(self, request, project_id):
-        pass
+        cluster_id = request.query_params.get("cluster_id")
+        qs = MesosLoadBalancer.objects.filter(project_id=project_id)
+        if cluster_id:
+            qs = qs.filter(cluster_id=cluster_id)
+        slz = lb_slz.MesosLBSLZ(qs, many=True)
+        return Response(slz.data)
 
-    def create(self, request, project_id, cluster_id):
+    def create(self, request, project_id):
         pass
