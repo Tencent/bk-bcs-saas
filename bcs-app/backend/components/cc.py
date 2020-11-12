@@ -39,8 +39,6 @@ FUNCTION_PATH_MAP = {
     "search_host_lock": "/v2/cc/search_host_lock/",
 }
 
-SKIP_BIZ_NAME_LIST = ["蓝鲸"]
-
 
 def get_application(username, bk_supplier_account=None):
     resp = get_all_application(username, bk_supplier_account=bk_supplier_account)
@@ -71,7 +69,6 @@ def get_app_by_user_role(username, bk_supplier_account=None):
     return [
         {"id": item["bk_biz_id"], "name": item["bk_biz_name"]}
         for item in data
-        if item["bk_biz_name"] not in SKIP_BIZ_NAME_LIST
     ]
 
 

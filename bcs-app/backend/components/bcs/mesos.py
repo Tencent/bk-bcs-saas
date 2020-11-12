@@ -18,6 +18,7 @@ from backend.components.bcs import BCSClientBase
 from backend.components.utils import http_delete, http_get, http_post, http_put
 from backend.utils.error_codes import error_codes
 from backend.utils.errcodes import ErrorCode
+from backend.utils.decorators import parse_response_data
 
 STORAGE_PREFIX = "{apigw_host}/v4/storage"
 SCHEDULER_PREFIX = "{apigw_host}/v4/scheduler"
@@ -423,6 +424,13 @@ class MesosClient(BCSClientBase):
         if namespace:
             data["namespace"] = namespace
         return http_post(url, json=data, headers=self.headers)
+
+    @parse_response_data(default_data=[])
+    def get_agent_attrs(self, params=None):
+        """获取节点属性
+        """
+        url = "{host}/mesos/agentsettings".format(host=self.scheduler_host)
+        return http_get(url, params=params, headers=self.headers)
 
     def update_agent_attrs(self, attrs):
         """批量修改/增加节点属性

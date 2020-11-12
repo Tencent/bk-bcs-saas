@@ -11,15 +11,10 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-from django.conf.urls import url
+from backend.apis.views import ProjectBaseAPIViewSet
+from backend.apps.metric.views import servicemonitor
 
-from .cluster import ClusterViewSet
-from .namespace import NamespaceViewSet
-from .node import NodeLabelsViewSet
 
-urlpatterns = [
-    url(r"^$", ClusterViewSet.as_view({"get": "list"})),
-    url(r"^(?P<cluster_id>[\w\-]+)/namespaces/$",
-        NamespaceViewSet.as_view({"get": "list_by_cluster_id", "post": "create_namespace"})),
-    url(r"^(?P<cluster_id>[\w\-]+)/nodes/-/labels/$", NodeLabelsViewSet.as_view({"post": "set_labels"}))
-]
+class ServiceMonitor(ProjectBaseAPIViewSet, servicemonitor.ServiceMonitor):
+    """继承servicemonitor
+    """

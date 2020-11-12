@@ -3075,6 +3075,8 @@
             },
             watchChange () {
                 this.compareTimer = setInterval(() => {
+                    if (!this.curApplication || !this.curApplication.cache) return
+                    
                     const appCopy = JSON.parse(JSON.stringify(this.curApplication))
                     const cacheCopy = JSON.parse(JSON.stringify(this.curApplication.cache))
                     // 删除无用属性

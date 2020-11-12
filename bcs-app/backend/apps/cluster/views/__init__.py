@@ -39,9 +39,9 @@ from .metrics import (  # noqa
 )
 
 from .node_views.query_apis import (
-    QueryNodeLabelKeys, ExportNodes
+    QueryNodeLabelKeys, ExportNodes, ListNodelabelsViewSets
 )
 
 from .node_views.operation_apis import (
-    DeleteNotReadyNode, BatchReinstallNodes
+    DeleteNotReadyNode, BatchReinstallNodes, NodelabelsViewSets
 )

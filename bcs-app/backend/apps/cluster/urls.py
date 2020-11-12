@@ -175,8 +175,11 @@ urlpatterns += [
     url(
         r'^api/projects/(?P<project_id>[\w\-]+)/nodes/export/$',
         views.ExportNodes.as_view({'post': 'export'})
+    ),
+    url(
+        r"^api/cluster_mgr/projects/(?P<project_id>\w{32})/nodes/-/labels/detail/$",
+        views.ListNodelabelsViewSets.as_view({"post": "list_labels_details"})
     )
-
 ]
 
 # operation api
@@ -184,6 +187,10 @@ urlpatterns += [
     url(
         r'^api/projects/(?P<project_id>[\w\-]+)/clusters/(?P<cluster_id>[\w\-]+)/nodes/(?P<node_id>\d+)/$',
         views.DeleteNotReadyNode.as_view({'delete': 'delete'})
+    ),
+    url(
+        r"^api/cluster_mgr/projects/(?P<project_id>\w{32})/nodes/-/labels/$",
+        views.NodelabelsViewSets.as_view({"post": "set_labels", "get": "list_labels"})
     )
 ]
 

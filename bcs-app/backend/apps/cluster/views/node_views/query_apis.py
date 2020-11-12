@@ -18,13 +18,16 @@ from rest_framework import response, viewsets
 from rest_framework.renderers import BrowsableAPIRenderer
 from django.http import HttpResponse
 
-from backend.utils.renderers import BKAPIRenderer
-from backend.apps.cluster.models import NodeLabel, NodeStatus
-from backend.apps.cluster import serializers as node_serializers
-from backend.apps.cluster import constants as node_constants
 from backend.components import paas_cc
 from backend.utils.errcodes import ErrorCode
 from backend.utils.error_codes import error_codes
+from backend.utils.renderers import BKAPIRenderer
+from backend.resources.cluster import utils as node_utils
+from backend.resources.project.constants import ProjectKind
+from backend.apps.cluster import constants as node_constants
+from backend.apps.cluster.models import NodeLabel, NodeStatus
+from backend.apps.cluster import serializers as node_serializers
+from backend.apps.cluster.views.node_views import serializers as node_slz
 
 
 class QueryNodeBase:
@@ -131,3 +134,33 @@ class ExportNodes(viewsets.ViewSet):
         response['Content-Disposition'] = f'attachment; filename=export-node-{request.user.username}.xlsx'
 
         return response
+
+
+class ListNodelabelsViewSets(viewsets.ViewSet):
+    renderer_classes = (BKAPIRenderer, BrowsableAPIRenderer)
+
+    def query_mesos_node_labels(self, access_token, project_id, data):
+        node_labels = node_utils.query_mesos_node_labels(access_token, project_id, data)
+        return node_labels.values()
+
+    def query_k8s_node_labels(self, access_token, project_id, data):
+        pass
+
+    def list_labels_details(self, request, project_id):
+        slz = node_slz.FilterNodeLabelsSLZ(data=request.data)
+        slz.is_valid(raise_exception=True)
+        data = slz.validated_data
+
+        cluster_nodes = {}
+        for node in data["node_labels"]:
+            if node["cluster_id"] in cluster_nodes:
+                cluster_nodes[node["cluster_id"]].append(node["inner_ip"])
+            else:
+                cluster_nodes[node["cluster_id"]] = [node["inner_ip"]]
+
+        # 查询节点labels
+        project_kind_name = ProjectKind.get_choice_label(request.project.kind)
+        labels = getattr(self, f"query_{project_kind_name.lower()}_node_labels")(
+            request.user.token.access_token, project_id, cluster_nodes)
+
+        return response.Response(labels)

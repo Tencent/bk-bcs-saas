@@ -16,7 +16,7 @@ export default {
         nodeLabelK8s: 'https://docs.bk.tencent.com/bcs/Container/KubernetesSolution/NodeLabelDoc.html',
         nodeLabelMesos: 'https://docs.bk.tencent.com/bcs/Container/Mesosolution/NodeLabelDoc.html',
         dockerCpuSummary: 'https://docs.bk.tencent.com/bcs/Container/QuickStart.html',
-        harborGuide: 'https://docs.bk.tencent.com/bcs/Container/HarborGuide.html',
+        harborGuide: 'https://bk.tencent.com/docs/document/5.1/11/268',
         serviceAccess: 'https://docs.bk.tencent.com/bcs/Container/helm/ServiceAccess.html',
         webConsole: 'https://bk.tencent.com/docs/document/5.1/11/283',
         writeQuestionsYaml: 'https://docs.bk.tencent.com/bcs/Container/helm/WriteQuestionsYaml.html',

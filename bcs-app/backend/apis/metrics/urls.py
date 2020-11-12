@@ -13,13 +13,12 @@
 #
 from django.conf.urls import url
 
-from .cluster import ClusterViewSet
-from .namespace import NamespaceViewSet
-from .node import NodeLabelsViewSet
+from . import servicemonitor
 
 urlpatterns = [
-    url(r"^$", ClusterViewSet.as_view({"get": "list"})),
-    url(r"^(?P<cluster_id>[\w\-]+)/namespaces/$",
-        NamespaceViewSet.as_view({"get": "list_by_cluster_id", "post": "create_namespace"})),
-    url(r"^(?P<cluster_id>[\w\-]+)/nodes/-/labels/$", NodeLabelsViewSet.as_view({"post": "set_labels"}))
+    url(r"^servicemonitors/$", servicemonitor.ServiceMonitor.as_view({"post": "create"})),
+    url(
+        r"^servicemonitors/(?P<namespace>[\w-]+)/(?P<name>[\w-]+)/$",
+        servicemonitor.ServiceMonitor.as_view({"get": "get", "put": "update"}),
+    ),
 ]
