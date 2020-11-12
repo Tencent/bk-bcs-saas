@@ -32,4 +32,12 @@ class LoadBalancersViewSet(viewsets.ViewSet):
         return Response(slz.data)
 
     def create(self, request, project_id):
-        pass
+        """创建lb
+        1. 下发service
+        2. 下发deployment
+        """
+        slz = lb_slz.CreateMesosLBSLZ(data=request.data)
+        slz.is_valid(raise_exception=True)
+        # data = slz.data
+
+        # 组装下发的json
