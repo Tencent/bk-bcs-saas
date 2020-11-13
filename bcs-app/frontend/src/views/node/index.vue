@@ -462,7 +462,7 @@
             @hidden="hideSetLabel">
             <template slot="content">
                 <div class="title-tip" v-if="isEn">Tags help organize your resources (like env:prod), <a :href="labelDocUrl" target="_blank" class="bk-text-button">Show detail</a></div>
-                <div class="title-tip" v-else>标签有助于整理你的资源（如 env:prod），详情可查看<a :href="labelDocUrl" target="_blank" class="bk-text-button">帮助文档</a></div>
+                <div class="title-tip" v-else>标签有助于整理你的资源（如 env:prod）</div>
                 <div class="wrapper" style="position: relative;" v-bkloading="{ isLoading: setLabelConf.loading }">
                     <form class="bk-form bk-form-vertical set-label-form">
                         <div class="bk-form-item flex-item">

@@ -712,9 +712,9 @@
                 const list = []
                 const annotations = this.curServiceDetail.config.metadata.annotations
                 // 如果有缓存直接使用
-                if (this.curServiceDetail.config.webCache && this.curServiceDetail.config.webCache.remarkListCache) {
-                    return this.curServiceDetail.config.webCache.remarkListCache
-                }
+                // if (this.curServiceDetail.config.webCache && this.curServiceDetail.config.webCache.remarkList) {
+                //     return this.curServiceDetail.config.webCache.remarkList
+                // }
                 for (const [key, value] of Object.entries(annotations)) {
                     list.push({
                         key: key,
@@ -1254,7 +1254,7 @@
                 if (!this.curServiceDetail.config.webCache) {
                     this.curServiceDetail.config.webCache = {}
                 }
-                this.curServiceDetail.config.webCache.labelListCache = list
+                this.curServiceDetail.config.webCache.labelList = list
             },
 
             /**
@@ -1266,7 +1266,7 @@
                 if (!this.curServiceDetail.config.webCache) {
                     this.curServiceDetail.config.webCache = {}
                 }
-                this.curServiceDetail.config.webCache.remarkListCache = list
+                this.curServiceDetail.config.webCache.remarkList = list
             },
 
             /**
@@ -1357,18 +1357,18 @@
              */
             formatData () {
                 const params = JSON.parse(JSON.stringify(this.curServiceDetail))
-                if (params.config.webCache.labelListCache) {
+                if (params.config.webCache.labelList) {
                     const keys = {}
-                    params.config.webCache.labelListCache.forEach(item => {
+                    params.config.webCache.labelList.forEach(item => {
                         if (item.key) {
                             keys[item.key] = item.value
                         }
                     })
                     params.config.metadata.labels = keys
                 }
-                if (params.config.webCache.remarkListCache) {
+                if (params.config.webCache.remarkList) {
                     const keys = {}
-                    params.config.webCache.remarkListCache.forEach(item => {
+                    params.config.webCache.remarkList.forEach(item => {
                         if (item.key) {
                             keys[item.key] = item.value
                         }
