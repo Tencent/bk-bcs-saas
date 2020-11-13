@@ -19,20 +19,16 @@ from collections import OrderedDict
 from django.utils.translation import ugettext_lazy as _
 
 GUIDE_MESSAGE = [
-    'Guide: https://docs.bk.tencent.com/bcs/',
-    _('支持常用Bash快捷键; Windows下Ctrl-W为关闭窗口快捷键, 请使用Alt-W代替'),
+    "Guide: https://bk.tencent.com/docs/markdown/产品白皮书/Function/web_console/Description.md",
+    _("支持常用Bash快捷键; Windows下Ctrl-W为关闭窗口快捷键, 请使用Alt-W代替"),
 ]
 
 MGR_GUIDE_MESSAGE = [
-    'Guide: https://docs.bk.tencent.com/bcs/',
-    _('支持常用Bash快捷键; Windows下Ctrl-W为关闭窗口快捷键, 请使用Alt-W代替; 使用Alt-Num切换Tab'),
+    "Guide: https://bk.tencent.com/docs/markdown/产品白皮书/Function/web_console/Description.md",
+    _("支持常用Bash快捷键; Windows下Ctrl-W为关闭窗口快捷键, 请使用Alt-W代替; 使用Alt-Num切换Tab"),
 ]
 
 # pod版本
-KUBECTLD_VERSION = OrderedDict({
-    '1.12.3_debian_0.1': [
-        re.compile(r'^[vV]?1\.12\.\w+$'),
-    ],
-})
+KUBECTLD_VERSION = OrderedDict({"1.12.3_debian_0.1": [re.compile(r"^[vV]?1\.12\.\w+$"),],})
 
-DEFAULT_KUBECTLD_VERSION = '1.12.3_debian_0.1'
+DEFAULT_KUBECTLD_VERSION = "1.12.3_debian_0.1"
