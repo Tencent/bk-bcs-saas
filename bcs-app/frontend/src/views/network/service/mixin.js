@@ -69,9 +69,9 @@ export default {
             const list = []
             const labels = this.curServiceDetail.config.metadata.labels
             // 如果有缓存直接使用
-            if (this.curServiceDetail.config.webCache && this.curServiceDetail.config.webCache.labelListCache) {
-                return this.curServiceDetail.config.webCache.labelListCache
-            }
+            // if (this.curServiceDetail.config.webCache && this.curServiceDetail.config.webCache.labelListCache) {
+            //     return this.curServiceDetail.config.webCache.labelListCache
+            // }
             for (const [key, value] of Object.entries(labels)) {
                 list.push({
                     key: key,

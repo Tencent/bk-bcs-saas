@@ -5,7 +5,7 @@
                 {{$t('Helm Release列表')}}
             </div>
             <bk-guide>
-                <a class="bk-text-button" href="https://docs.bk.tencent.com/bcs/Container/helm/ServiceAccess.html" target="_blank">{{$t('如何使用Helm？')}}</a>
+                <a class="bk-text-button" href="https://bk.tencent.com/docs/markdown/%E5%AE%B9%E5%99%A8%E7%AE%A1%E7%90%86%E5%B9%B3%E5%8F%B0/%E4%BA%A7%E5%93%81%E7%99%BD%E7%9A%AE%E4%B9%A6/Function/helm/ServiceAccess.md" target="_blank">{{$t('如何使用Helm？')}}</a>
             </bk-guide>
         </div>
         <div class="biz-content-wrapper biz-helm-wrapper m0 p0" v-bkloading="{ isLoading: showLoading, opacity: 0.1 }">
