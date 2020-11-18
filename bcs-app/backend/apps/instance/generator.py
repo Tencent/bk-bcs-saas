@@ -826,9 +826,28 @@ class IngressProfileGenerator(ProfileGenerator):
         """针对ingress下的service配置添加namespace
         """
         spec = db_config["spec"]
-        for protocol in spec:
-            for info in spec[protocol]:
-                info["namespace"] = self.context["SYS_NAMESPACE"]
+        # kind: 包含 tcp/udp/http/https/statefulset
+        # format: {
+        #  "spec": {
+        #     "tcp": [],
+        #     "udp": [],
+        #     "http": [],
+        #     "https": [],
+        #     "statefulset": {
+        #           "tcp": [],
+        #           "udp": [],
+        #           "http": [],
+        #           "https": []
+        #     }
+        # }
+        for kind in spec:
+            if isinstance(spec[kind], dict):
+                for __, conf_list in spec[kind].items():
+                    for conf in conf_list:
+                        conf["namespace"] = self.context["SYS_NAMESPACE"]
+            else:
+                for conf in spec[kind]:
+                    conf["namespace"] = self.context["SYS_NAMESPACE"]
         db_config["spec"] = spec
         return db_config
 
