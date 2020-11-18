@@ -34,7 +34,7 @@
                     </div>
                 </div>
                 <div class="biz-cluster-tab-content" v-bkloading="{ isLoading: isInitLoading, opacity: 1 }" :style="{ height: isInitLoading ? '300px' : 'auto' }">
-                    <div class="biz-cluster-node-tip" v-if="curProject.kind === 1 || curProject.kind === 3">{{$t('集群就绪后，您可以创建命名空间、推送项目镜像到仓库，然后通过服务配置模板集或使用Helm部署服务')}}</div>
+                    <div class="biz-cluster-node-tip" v-if="curClusterInPage.type === 'k8s' || curProject.kind === 3">{{$t('集群就绪后，您可以创建命名空间、推送项目镜像到仓库，然后通过服务配置模板集或使用Helm部署服务')}}</div>
                     <div class="biz-cluster-node-tip" v-else>{{$t('集群就绪后，您可以创建命名空间、推送项目镜像到仓库，然后通过服务配置模板集部署服务')}}</div>
                     <div class="biz-cluster-node-content" v-if="!isInitLoading">
                         <div class="biz-cluster-node-header">
@@ -127,50 +127,62 @@
                                         </th>
                                         <th style="width: 12%; padding-left: 10px;">{{$t('主机名/IP')}}</th>
                                         <th style="width: 12%;">{{$t('状态')}}</th>
-                                        <th style="width: 10%;">{{$t('容器数量')}}</th>
-                                        <template v-if="curProject.kind === 2">
+                                        <th style="width: 8%;">{{$t('容器数量')}}</th>
+                                        <template v-if="curClusterInPage.type === 'k8s'">
+                                            <th style="width: 8%;">{{$t('Pod数量')}}</th>
+                                        </template>
+                                        <template v-if="curClusterInPage.type === 'mesos'">
                                             <th style="width: 8%;">{{$t('配置')}}</th>
                                         </template>
-                                        <th style="width: 9%;">
-                                            CPU
-                                            <div class="biz-table-sort">
-                                                <span class="sort-direction asc"
-                                                    :class="sortIdx === 'cpu_summary' ? 'active' : ''"
-                                                    :title="sortIdx === 'cpu_summary' ? $t('取消') : $t('升序')"
-                                                    @click="sortNodeList('cpu_summary', 'asc', 'cpu_summary')"></span>
-                                                <span class="sort-direction desc"
-                                                    :class="sortIdx === '-cpu_summary' ? 'active' : ''"
-                                                    :title="sortIdx === '-cpu_summary' ? $t('取消') : $t('降序')"
-                                                    @click="sortNodeList('cpu_summary', 'desc', '-cpu_summary')"></span>
-                                            </div>
+                                        <th style="width: 10%;">
+                                            <template v-if="curClusterInPage.type === 'mesos' && curClusterInPage.func_wlist && curClusterInPage.func_wlist.indexOf('MesosResource') > -1">{{$t('可用IP(个)')}}</template>
+                                            <template v-else>
+                                                CPU
+                                                <div class="biz-table-sort">
+                                                    <span class="sort-direction asc"
+                                                        :class="sortIdx === 'cpu_summary' ? 'active' : ''"
+                                                        :title="sortIdx === 'cpu_summary' ? $t('取消') : $t('升序')"
+                                                        @click="sortNodeList('cpu_summary', 'asc', 'cpu_summary')"></span>
+                                                    <span class="sort-direction desc"
+                                                        :class="sortIdx === '-cpu_summary' ? 'active' : ''"
+                                                        :title="sortIdx === '-cpu_summary' ? $t('取消') : $t('降序')"
+                                                        @click="sortNodeList('cpu_summary', 'desc', '-cpu_summary')"></span>
+                                                </div>
+                                            </template>
                                         </th>
-                                        <th style="width: 9%;">
-                                            {{$t('内存')}}
-                                            <div class="biz-table-sort">
-                                                <span class="sort-direction asc"
-                                                    :class="sortIdx === 'mem' ? 'active' : ''"
-                                                    :title="sortIdx === 'mem' ? $t('取消') : $t('升序')"
-                                                    @click="sortNodeList('mem', 'asc', 'mem')"></span>
-                                                <span class="sort-direction desc"
-                                                    :class="sortIdx === '-mem' ? 'active' : ''"
-                                                    :title="sortIdx === '-mem' ? $t('取消') : $t('降序')"
-                                                    @click="sortNodeList('mem', 'desc', '-mem')"></span>
-                                            </div>
+                                        <th style="width: 10%;">
+                                            <template v-if="curClusterInPage.type === 'mesos' && curClusterInPage.func_wlist && curClusterInPage.func_wlist.indexOf('MesosResource') > -1">{{$t('可用内存(GB)')}}</template>
+                                            <template v-else>
+                                                {{$t('内存')}}
+                                                <div class="biz-table-sort">
+                                                    <span class="sort-direction asc"
+                                                        :class="sortIdx === 'mem' ? 'active' : ''"
+                                                        :title="sortIdx === 'mem' ? $t('取消') : $t('升序')"
+                                                        @click="sortNodeList('mem', 'asc', 'mem')"></span>
+                                                    <span class="sort-direction desc"
+                                                        :class="sortIdx === '-mem' ? 'active' : ''"
+                                                        :title="sortIdx === '-mem' ? $t('取消') : $t('降序')"
+                                                        @click="sortNodeList('mem', 'desc', '-mem')"></span>
+                                                </div>
+                                            </template>
                                         </th>
-                                        <th style="width: 9%;">
-                                            {{$t('磁盘')}}
-                                            <div class="biz-table-sort">
-                                                <span class="sort-direction asc "
-                                                    :class="sortIdx === 'disk' ? 'active' : ''"
-                                                    :title="sortIdx === 'disk' ? $t('取消') : $t('升序')"
-                                                    @click="sortNodeList('disk', 'asc', 'disk')"></span>
-                                                <span class="sort-direction desc"
-                                                    :class="sortIdx === '-disk' ? 'active' : ''"
-                                                    :title="sortIdx === '-disk' ? $t('取消') : $t('降序')"
-                                                    @click="sortNodeList('disk', 'desc', '-disk')"></span>
-                                            </div>
+                                        <th style="width: 10%;">
+                                            <template v-if="curClusterInPage.type === 'mesos' && curClusterInPage.func_wlist && curClusterInPage.func_wlist.indexOf('MesosResource') > -1">{{$t('可用CPU(核)')}}</template>
+                                            <template v-else>
+                                                {{$t('磁盘')}}
+                                                <div class="biz-table-sort">
+                                                    <span class="sort-direction asc "
+                                                        :class="sortIdx === 'disk' ? 'active' : ''"
+                                                        :title="sortIdx === 'disk' ? $t('取消') : $t('升序')"
+                                                        @click="sortNodeList('disk', 'asc', 'disk')"></span>
+                                                    <span class="sort-direction desc"
+                                                        :class="sortIdx === '-disk' ? 'active' : ''"
+                                                        :title="sortIdx === '-disk' ? $t('取消') : $t('降序')"
+                                                        @click="sortNodeList('disk', 'desc', '-disk')"></span>
+                                                </div>
+                                            </template>
                                         </th>
-                                        <template v-if="curProject.kind !== 2">
+                                        <template v-if="curClusterInPage.type !== 'mesos'">
                                             <th style="width: 9%;">
                                                 {{$t('磁盘IO')}}
                                                 <div class="biz-table-sort">
@@ -214,6 +226,7 @@
                                                 <td></td>
                                                 <td></td>
                                                 <td></td>
+                                                <td v-if="curClusterInPage.type === 'k8s'"></td>
                                                 <td style="text-align: left;">
                                                     <a href="javascript:void(0);" class="bk-text-button" @click.stop="showLog(node)">{{$t('查看日志')}}</a>
                                                 </td>
@@ -237,20 +250,44 @@
                                                     <div class="biz-status-node"><i class="node danger"></i></div>
                                                     {{node.status === 'initial_failed' || node.status === 'so_init_failed' || node.status === 'check_failed' || node.status === 'bke_failed' || node.status === 'schedule_failed' ? $t('初始化失败') : $t('删除失败')}}
                                                 </td>
-                                                <td>{{node.containers}}</td>
+                                                <td>{{curClusterInPage.type === 'mesos' ? node.containers : node.containerCount}}</td>
+                                                <template v-if="curClusterInPage.type === 'k8s'">
+                                                    <td>{{node.podCount}}</td>
+                                                </template>
 
-                                                <template v-if="curProject.kind === 2">
+                                                <template v-if="curClusterInPage.type === 'mesos'">
                                                     <td>{{node.device_class || '--'}}</td>
                                                 </template>
 
-                                                <td v-if="node.cpuMetric !== null && node.cpuMetric !== undefined"><ring-cell :percent="node.cpuMetric" :fill-color="'#3ede78'"></ring-cell></td>
-                                                <td v-else><loading-cell></loading-cell></td>
-                                                <td v-if="node.memMetric !== null && node.memMetric !== undefined"><ring-cell :percent="node.memMetric" :fill-color="'#3c96ff'"></ring-cell></td>
-                                                <td v-else><loading-cell></loading-cell></td>
-                                                <td v-if="node.diskMetric !== null && node.diskMetric !== undefined"><ring-cell :percent="node.diskMetric" :fill-color="'#853cff'"></ring-cell></td>
-                                                <td v-else><loading-cell></loading-cell></td>
+                                                <template v-if="curClusterInPage.type === 'mesos' && curClusterInPage.func_wlist && curClusterInPage.func_wlist.indexOf('MesosResource') > -1">
+                                                    <td>{{node.mesosIpRemainCount}}</td>
+                                                    <td>
+                                                        <template v-if="node.mesosMemoryUsage">
+                                                            <div class="node-metric-str">{{(node.mesosMemoryUsage.remain / 1024).toFixed(2)}} / {{(node.mesosMemoryUsage.total / 1024).toFixed(2)}}</div>
+                                                            <!-- <div class="node-metric-progress" v-bktooltips.bottom="`${$t('内存使用率')}${conversionPercent(node.mesosMemoryUsage.remain, node.mesosMemoryUsage.total)}%`">
+                                                                <div class="node-metric-progress-bar cpu" :style="{ width: `${conversionPercent(node.mesosMemoryUsage.remain, node.mesosMemoryUsage.total)}%` }"></div>
+                                                            </div> -->
+                                                        </template>
+                                                    </td>
+                                                    <td>
+                                                        <template v-if="node.mesosCpuUsage">
+                                                            <div class="node-metric-str">{{parseFloat(node.mesosCpuUsage.remain).toFixed(2)}} / {{parseFloat(node.mesosCpuUsage.total).toFixed(2)}}</div>
+                                                            <!-- <div class="node-metric-progress" v-bktooltips.bottom="`${$t('CPU使用率')}${conversionPercent(node.mesosCpuUsage.remain, node.mesosCpuUsage.total)}%`">
+                                                                <div class="node-metric-progress-bar mem" :style="{ width: `${conversionPercent(node.mesosCpuUsage.remain, node.mesosCpuUsage.total)}%` }"></div>
+                                                            </div> -->
+                                                        </template>
+                                                    </td>
+                                                </template>
+                                                <template v-else>
+                                                    <td v-if="node.cpuMetric !== null && node.cpuMetric !== undefined"><ring-cell :percent="node.cpuMetric" :fill-color="'#3ede78'"></ring-cell></td>
+                                                    <td v-else><loading-cell></loading-cell></td>
+                                                    <td v-if="node.memMetric !== null && node.memMetric !== undefined"><ring-cell :percent="node.memMetric" :fill-color="'#3c96ff'"></ring-cell></td>
+                                                    <td v-else><loading-cell></loading-cell></td>
+                                                    <td v-if="node.diskMetric !== null && node.diskMetric !== undefined"><ring-cell :percent="node.diskMetric" :fill-color="'#853cff'"></ring-cell></td>
+                                                    <td v-else><loading-cell></loading-cell></td>
+                                                </template>
 
-                                                <template v-if="curProject.kind !== 2">
+                                                <template v-if="curClusterInPage.type !== 'mesos'">
                                                     <td v-if="node.diskioMetric !== null && node.diskioMetric !== undefined"><ring-cell :percent="node.diskioMetric" :fill-color="'#853cff'"></ring-cell></td>
                                                     <td v-else><loading-cell></loading-cell></td>
                                                 </template>
@@ -283,20 +320,44 @@
                                                     <div class="biz-status-node"><i class="node warning"></i></div>
                                                     {{$t('不可调度')}}
                                                 </td>
-                                                <td>{{node.containers}}</td>
+                                                <td>{{curClusterInPage.type === 'mesos' ? node.containers : node.containerCount}}</td>
+                                                <template v-if="curClusterInPage.type === 'k8s'">
+                                                    <td>{{node.podCount}}</td>
+                                                </template>
 
-                                                <template v-if="curProject.kind === 2">
+                                                <template v-if="curClusterInPage.type === 'mesos'">
                                                     <td>{{node.device_class || '--'}}</td>
                                                 </template>
 
-                                                <td v-if="node.cpuMetric !== null && node.cpuMetric !== undefined"><ring-cell :percent="node.cpuMetric" :fill-color="'#3ede78'"></ring-cell></td>
-                                                <td v-else><loading-cell></loading-cell></td>
-                                                <td v-if="node.memMetric !== null && node.memMetric !== undefined"><ring-cell :percent="node.memMetric" :fill-color="'#3c96ff'"></ring-cell></td>
-                                                <td v-else><loading-cell></loading-cell></td>
-                                                <td v-if="node.diskMetric !== null && node.diskMetric !== undefined"><ring-cell :percent="node.diskMetric" :fill-color="'#853cff'"></ring-cell></td>
-                                                <td v-else><loading-cell></loading-cell></td>
+                                                <template v-if="curClusterInPage.type === 'mesos' && curClusterInPage.func_wlist && curClusterInPage.func_wlist.indexOf('MesosResource') > -1">
+                                                    <td>{{node.mesosIpRemainCount}}</td>
+                                                    <td>
+                                                        <template v-if="node.mesosMemoryUsage">
+                                                            <div class="node-metric-str">{{(node.mesosMemoryUsage.remain / 1024).toFixed(2)}} / {{(node.mesosMemoryUsage.total / 1024).toFixed(2)}}</div>
+                                                            <!-- <div class="node-metric-progress" v-bktooltips.bottom="`${$t('内存使用率')}${conversionPercent(node.mesosMemoryUsage.remain, node.mesosMemoryUsage.total)}%`">
+                                                                <div class="node-metric-progress-bar cpu" :style="{ width: `${conversionPercent(node.mesosMemoryUsage.remain, node.mesosMemoryUsage.total)}%` }"></div>
+                                                            </div> -->
+                                                        </template>
+                                                    </td>
+                                                    <td>
+                                                        <template v-if="node.mesosCpuUsage">
+                                                            <div class="node-metric-str">{{parseFloat(node.mesosCpuUsage.remain).toFixed(2)}} / {{parseFloat(node.mesosCpuUsage.total).toFixed(2)}}</div>
+                                                            <!-- <div class="node-metric-progress" v-bktooltips.bottom="`${$t('CPU使用率')}${conversionPercent(node.mesosCpuUsage.remain, node.mesosCpuUsage.total)}%`">
+                                                                <div class="node-metric-progress-bar mem" :style="{ width: `${conversionPercent(node.mesosCpuUsage.remain, node.mesosCpuUsage.total)}%` }"></div>
+                                                            </div> -->
+                                                        </template>
+                                                    </td>
+                                                </template>
+                                                <template v-else>
+                                                    <td v-if="node.cpuMetric !== null && node.cpuMetric !== undefined"><ring-cell :percent="node.cpuMetric" :fill-color="'#3ede78'"></ring-cell></td>
+                                                    <td v-else><loading-cell></loading-cell></td>
+                                                    <td v-if="node.memMetric !== null && node.memMetric !== undefined"><ring-cell :percent="node.memMetric" :fill-color="'#3c96ff'"></ring-cell></td>
+                                                    <td v-else><loading-cell></loading-cell></td>
+                                                    <td v-if="node.diskMetric !== null && node.diskMetric !== undefined"><ring-cell :percent="node.diskMetric" :fill-color="'#853cff'"></ring-cell></td>
+                                                    <td v-else><loading-cell></loading-cell></td>
+                                                </template>
 
-                                                <template v-if="curProject.kind !== 2">
+                                                <template v-if="curClusterInPage.type !== 'mesos'">
                                                     <td v-if="node.diskioMetric !== null && node.diskioMetric !== undefined"><ring-cell :percent="node.diskioMetric" :fill-color="'#853cff'"></ring-cell></td>
                                                     <td v-else><loading-cell></loading-cell></td>
                                                 </template>
@@ -314,7 +375,7 @@
                                                         <ul class="bk-dropdown-list" slot="dropdown-content">
                                                             <li>
                                                                 <a href="javascript:void(0);" class="bk-text-button" @click.stop="schedulerNode(node, index)">
-                                                                    {{(curProject.kind === 1 || curProject.kind === 3) ? $t('pod迁移') : $t('taskgroup迁移')}}
+                                                                    {{(curClusterInPage.type === 'k8s' || curProject.kind === 3) ? $t('pod迁移') : $t('taskgroup迁移')}}
                                                                 </a>
                                                             </li>
                                                         </ul>
@@ -334,20 +395,44 @@
                                                     <div class="biz-status-node"><i class="node warning"></i></div>
                                                     {{$t('不可调度')}}
                                                 </td>
-                                                <td>{{node.containers}}</td>
+                                                <td>{{curClusterInPage.type === 'mesos' ? node.containers : node.containerCount}}</td>
+                                                <template v-if="curClusterInPage.type === 'k8s'">
+                                                    <td>{{node.podCount}}</td>
+                                                </template>
 
-                                                <template v-if="curProject.kind === 2">
+                                                <template v-if="curClusterInPage.type === 'mesos'">
                                                     <td>{{node.device_class || '--'}}</td>
                                                 </template>
 
-                                                <td v-if="node.cpuMetric !== null && node.cpuMetric !== undefined"><ring-cell :percent="node.cpuMetric" :fill-color="'#3ede78'"></ring-cell></td>
-                                                <td v-else><loading-cell></loading-cell></td>
-                                                <td v-if="node.memMetric !== null && node.memMetric !== undefined"><ring-cell :percent="node.memMetric" :fill-color="'#3c96ff'"></ring-cell></td>
-                                                <td v-else><loading-cell></loading-cell></td>
-                                                <td v-if="node.diskMetric !== null && node.diskMetric !== undefined"><ring-cell :percent="node.diskMetric" :fill-color="'#853cff'"></ring-cell></td>
-                                                <td v-else><loading-cell></loading-cell></td>
+                                                <template v-if="curClusterInPage.type === 'mesos' && curClusterInPage.func_wlist && curClusterInPage.func_wlist.indexOf('MesosResource') > -1">
+                                                    <td>{{node.mesosIpRemainCount}}</td>
+                                                    <td>
+                                                        <template v-if="node.mesosMemoryUsage">
+                                                            <div class="node-metric-str">{{(node.mesosMemoryUsage.remain / 1024).toFixed(2)}} / {{(node.mesosMemoryUsage.total / 1024).toFixed(2)}}</div>
+                                                            <!-- <div class="node-metric-progress" v-bktooltips.bottom="`${$t('内存使用率')}${conversionPercent(node.mesosMemoryUsage.remain, node.mesosMemoryUsage.total)}%`">
+                                                                <div class="node-metric-progress-bar cpu" :style="{ width: `${conversionPercent(node.mesosMemoryUsage.remain, node.mesosMemoryUsage.total)}%` }"></div>
+                                                            </div> -->
+                                                        </template>
+                                                    </td>
+                                                    <td>
+                                                        <template v-if="node.mesosCpuUsage">
+                                                            <div class="node-metric-str">{{parseFloat(node.mesosCpuUsage.remain).toFixed(2)}} / {{parseFloat(node.mesosCpuUsage.total).toFixed(2)}}</div>
+                                                            <!-- <div class="node-metric-progress" v-bktooltips.bottom="`${$t('CPU使用率')}${conversionPercent(node.mesosCpuUsage.remain, node.mesosCpuUsage.total)}%`">
+                                                                <div class="node-metric-progress-bar mem" :style="{ width: `${conversionPercent(node.mesosCpuUsage.remain, node.mesosCpuUsage.total)}%` }"></div>
+                                                            </div> -->
+                                                        </template>
+                                                    </td>
+                                                </template>
+                                                <template v-else>
+                                                    <td v-if="node.cpuMetric !== null && node.cpuMetric !== undefined"><ring-cell :percent="node.cpuMetric" :fill-color="'#3ede78'"></ring-cell></td>
+                                                    <td v-else><loading-cell></loading-cell></td>
+                                                    <td v-if="node.memMetric !== null && node.memMetric !== undefined"><ring-cell :percent="node.memMetric" :fill-color="'#3c96ff'"></ring-cell></td>
+                                                    <td v-else><loading-cell></loading-cell></td>
+                                                    <td v-if="node.diskMetric !== null && node.diskMetric !== undefined"><ring-cell :percent="node.diskMetric" :fill-color="'#853cff'"></ring-cell></td>
+                                                    <td v-else><loading-cell></loading-cell></td>
+                                                </template>
 
-                                                <template v-if="curProject.kind !== 2">
+                                                <template v-if="curClusterInPage.type !== 'mesos'">
                                                     <td v-if="node.diskioMetric !== null && node.diskioMetric !== undefined"><ring-cell :percent="node.diskioMetric" :fill-color="'#853cff'"></ring-cell></td>
                                                     <td v-else><loading-cell></loading-cell></td>
                                                 </template>
@@ -363,7 +448,7 @@
                                                         <ul class="bk-dropdown-list" slot="dropdown-content">
                                                             <li>
                                                                 <a href="javascript:void(0);" class="bk-text-button" @click.stop="schedulerNode(node, index)">
-                                                                    {{(curProject.kind === 1 || curProject.kind === 3) ? $t('pod迁移') : $t('taskgroup迁移')}}
+                                                                    {{(curClusterInPage.type === 'k8s' || curProject.kind === 3) ? $t('pod迁移') : $t('taskgroup迁移')}}
                                                                 </a>
                                                             </li>
                                                         </ul>
@@ -383,20 +468,44 @@
                                                     <div class="biz-status-node"><i class="node danger"></i></div>
                                                     {{$t('不正常')}}
                                                 </td>
-                                                <td>{{node.containers}}</td>
+                                                <td>{{curClusterInPage.type === 'mesos' ? node.containers : node.containerCount}}</td>
+                                                <template v-if="curClusterInPage.type === 'k8s'">
+                                                    <td>{{node.podCount}}</td>
+                                                </template>
 
-                                                <template v-if="curProject.kind === 2">
+                                                <template v-if="curClusterInPage.type === 'mesos'">
                                                     <td>{{node.device_class || '--'}}</td>
                                                 </template>
 
-                                                <td v-if="node.cpuMetric !== null && node.cpuMetric !== undefined"><ring-cell :percent="node.cpuMetric" :fill-color="'#3ede78'"></ring-cell></td>
-                                                <td v-else><loading-cell></loading-cell></td>
-                                                <td v-if="node.memMetric !== null && node.memMetric !== undefined"><ring-cell :percent="node.memMetric" :fill-color="'#3c96ff'"></ring-cell></td>
-                                                <td v-else><loading-cell></loading-cell></td>
-                                                <td v-if="node.diskMetric !== null && node.diskMetric !== undefined"><ring-cell :percent="node.diskMetric" :fill-color="'#853cff'"></ring-cell></td>
-                                                <td v-else><loading-cell></loading-cell></td>
+                                                <template v-if="curClusterInPage.type === 'mesos' && curClusterInPage.func_wlist && curClusterInPage.func_wlist.indexOf('MesosResource') > -1">
+                                                    <td>{{node.mesosIpRemainCount}}</td>
+                                                    <td>
+                                                        <template v-if="node.mesosMemoryUsage">
+                                                            <div class="node-metric-str">{{(node.mesosMemoryUsage.remain / 1024).toFixed(2)}} / {{(node.mesosMemoryUsage.total / 1024).toFixed(2)}}</div>
+                                                            <!-- <div class="node-metric-progress" v-bktooltips.bottom="`${$t('内存使用率')}${conversionPercent(node.mesosMemoryUsage.remain, node.mesosMemoryUsage.total)}%`">
+                                                                <div class="node-metric-progress-bar cpu" :style="{ width: `${conversionPercent(node.mesosMemoryUsage.remain, node.mesosMemoryUsage.total)}%` }"></div>
+                                                            </div> -->
+                                                        </template>
+                                                    </td>
+                                                    <td>
+                                                        <template v-if="node.mesosCpuUsage">
+                                                            <div class="node-metric-str">{{parseFloat(node.mesosCpuUsage.remain).toFixed(2)}} / {{parseFloat(node.mesosCpuUsage.total).toFixed(2)}}</div>
+                                                            <!-- <div class="node-metric-progress" v-bktooltips.bottom="`${$t('CPU使用率')}${conversionPercent(node.mesosCpuUsage.remain, node.mesosCpuUsage.total)}%`">
+                                                                <div class="node-metric-progress-bar mem" :style="{ width: `${conversionPercent(node.mesosCpuUsage.remain, node.mesosCpuUsage.total)}%` }"></div>
+                                                            </div> -->
+                                                        </template>
+                                                    </td>
+                                                </template>
+                                                <template v-else>
+                                                    <td v-if="node.cpuMetric !== null && node.cpuMetric !== undefined"><ring-cell :percent="node.cpuMetric" :fill-color="'#3ede78'"></ring-cell></td>
+                                                    <td v-else><loading-cell></loading-cell></td>
+                                                    <td v-if="node.memMetric !== null && node.memMetric !== undefined"><ring-cell :percent="node.memMetric" :fill-color="'#3c96ff'"></ring-cell></td>
+                                                    <td v-else><loading-cell></loading-cell></td>
+                                                    <td v-if="node.diskMetric !== null && node.diskMetric !== undefined"><ring-cell :percent="node.diskMetric" :fill-color="'#853cff'"></ring-cell></td>
+                                                    <td v-else><loading-cell></loading-cell></td>
+                                                </template>
 
-                                                <template v-if="curProject.kind !== 2">
+                                                <template v-if="curClusterInPage.type !== 'mesos'">
                                                     <td v-if="node.diskioMetric !== null && node.diskioMetric !== undefined"><ring-cell :percent="node.diskioMetric" :fill-color="'#853cff'"></ring-cell></td>
                                                     <td v-else><loading-cell></loading-cell></td>
                                                 </template>
@@ -427,22 +536,45 @@
                                                     <div class="biz-status-node"><i class="node danger"></i></div>
                                                     {{$t('不正常')}}
                                                 </td>
-                                                <td>{{node.containers}}</td>
+                                                <td>{{curClusterInPage.type === 'mesos' ? node.containers : node.containerCount}}</td>
+                                                <template v-if="curClusterInPage.type === 'k8s'">
+                                                    <td>{{node.podCount}}</td>
+                                                </template>
 
-                                                <template v-if="curProject.kind === 2">
+                                                <template v-if="curClusterInPage.type === 'mesos'">
                                                     <td>{{node.device_class || '--'}}</td>
                                                 </template>
 
-                                                <td v-if="node.cpuMetric !== null && node.cpuMetric !== undefined"><ring-cell :percent="node.cpuMetric" :fill-color="'#3ede78'"></ring-cell></td>
-                                                <td v-else><loading-cell></loading-cell></td>
-                                                <td v-if="node.memMetric !== null && node.memMetric !== undefined"><ring-cell :percent="node.memMetric" :fill-color="'#3c96ff'"></ring-cell></td>
-                                                <td v-else><loading-cell></loading-cell></td>
-                                                <td v-if="node.diskMetric !== null && node.diskMetric !== undefined"><ring-cell :percent="node.diskMetric" :fill-color="'#853cff'"></ring-cell></td>
-                                                <td v-else><loading-cell></loading-cell></td>
-
-                                                <template v-if="curProject.kind !== 2">
-                                                    <td v-if="node.diskioMetric !== null && node.diskioMetric !== undefined"><ring-cell :percent="node.diskioMetric" :fill-color="'#853cff'"></ring-cell></td>
+                                                <template v-if="curClusterInPage.type === 'mesos' && curClusterInPage.func_wlist && curClusterInPage.func_wlist.indexOf('MesosResource') > -1">
+                                                    <td>{{node.mesosIpRemainCount}}</td>
+                                                    <td>
+                                                        <template v-if="node.mesosMemoryUsage">
+                                                            <div class="node-metric-str">{{(node.mesosMemoryUsage.remain / 1024).toFixed(2)}} / {{(node.mesosMemoryUsage.total / 1024).toFixed(2)}}</div>
+                                                            <!-- <div class="node-metric-progress" v-bktooltips.bottom="`${$t('内存使用率')}${conversionPercent(node.mesosMemoryUsage.remain, node.mesosMemoryUsage.total)}%`">
+                                                                <div class="node-metric-progress-bar cpu" :style="{ width: `${conversionPercent(node.mesosMemoryUsage.remain, node.mesosMemoryUsage.total)}%` }"></div>
+                                                            </div> -->
+                                                        </template>
+                                                    </td>
+                                                    <td>
+                                                        <template v-if="node.mesosCpuUsage">
+                                                            <div class="node-metric-str">{{parseFloat(node.mesosCpuUsage.remain).toFixed(2)}} / {{parseFloat(node.mesosCpuUsage.total).toFixed(2)}}</div>
+                                                            <!-- <div class="node-metric-progress" v-bktooltips.bottom="`${$t('CPU使用率')}${conversionPercent(node.mesosCpuUsage.remain, node.mesosCpuUsage.total)}%`">
+                                                                <div class="node-metric-progress-bar mem" :style="{ width: `${conversionPercent(node.mesosCpuUsage.remain, node.mesosCpuUsage.total)}%` }"></div>
+                                                            </div> -->
+                                                        </template>
+                                                    </td>
+                                                </template>
+                                                <template v-else>
+                                                    <td v-if="node.cpuMetric !== null && node.cpuMetric !== undefined"><ring-cell :percent="node.cpuMetric" :fill-color="'#3ede78'"></ring-cell></td>
                                                     <td v-else><loading-cell></loading-cell></td>
+                                                    <td v-if="node.memMetric !== null && node.memMetric !== undefined"><ring-cell :percent="node.memMetric" :fill-color="'#3c96ff'"></ring-cell></td>
+                                                    <td v-else><loading-cell></loading-cell></td>
+                                                    <td v-if="node.diskMetric !== null && node.diskMetric !== undefined"><ring-cell :percent="node.diskMetric" :fill-color="'#853cff'"></ring-cell></td>
+                                                    <td v-else><loading-cell></loading-cell></td>
+                                                    <template v-if="curClusterInPage.type !== 'mesos'">
+                                                        <td v-if="node.diskioMetric !== null && node.diskioMetric !== undefined"><ring-cell :percent="node.diskioMetric" :fill-color="'#853cff'"></ring-cell></td>
+                                                        <td v-else><loading-cell></loading-cell></td>
+                                                    </template>
                                                 </template>
 
                                                 <td style="text-align: left;">

@@ -16,6 +16,7 @@ import logging
 from django.db.models import Q
 
 from backend.bcs_k8s.app.models import App
+from backend.bcs_k8s.helm import bcs_variable
 
 logger = logging.getLogger(__name__)
 
@@ -29,3 +30,10 @@ class HelmReleaseMixin:
         if not release:
             logger.error(f"没有查询到集群:{cluster_id}, 名称:{name}对应的release信息")
         return release
+
+    def collect_system_variable(self, access_token, project_id, namespace_id):
+        return bcs_variable.collect_system_variable(
+            access_token=access_token,
+            project_id=project_id,
+            namespace_id=namespace_id
+        )

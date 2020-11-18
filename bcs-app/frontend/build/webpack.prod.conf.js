@@ -13,7 +13,6 @@ const bundleAnalyzer = require('webpack-bundle-analyzer')
 const LodashModuleReplacementPlugin = require('lodash-webpack-plugin')
 const TerserPlugin = require('terser-webpack-plugin')
 const MiniCssExtractPlugin = require('mini-css-extract-plugin')
-const SentryPlugin = require('webpack-sentry-plugin')
 
 const config = require('./config')
 const baseWebpackConfig = require('./webpack.base.conf')

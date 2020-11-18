@@ -196,7 +196,13 @@ export default class Header extends Vue {
     }
 
     goToDocs(): void {
-        window.open(BCS_DOCS_URL, '_blank')
+        let prefix = ''
+        if (BCS_DOCS_URL && !BCS_DOCS_URL.endsWith('/')) {
+            prefix = BCS_DOCS_URL + '/'
+        } else {
+            prefix = BCS_DOCS_URL
+        }
+        window.open(prefix + 'markdown/%E5%AE%B9%E5%99%A8%E7%AE%A1%E7%90%86%E5%B9%B3%E5%8F%B0/%E4%BA%A7%E5%93%81%E7%99%BD%E7%9A%AE%E4%B9%A6/Introduction/README.md', '_blank')
     }
 
     goToPm(): void {

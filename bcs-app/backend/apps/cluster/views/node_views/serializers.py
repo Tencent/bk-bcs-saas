@@ -11,15 +11,22 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-from django.conf.urls import url
+from rest_framework import serializers
 
-from .cluster import ClusterViewSet
-from .namespace import NamespaceViewSet
-from .node import NodeLabelsViewSet
 
-urlpatterns = [
-    url(r"^$", ClusterViewSet.as_view({"get": "list"})),
-    url(r"^(?P<cluster_id>[\w\-]+)/namespaces/$",
-        NamespaceViewSet.as_view({"get": "list_by_cluster_id", "post": "create_namespace"})),
-    url(r"^(?P<cluster_id>[\w\-]+)/nodes/-/labels/$", NodeLabelsViewSet.as_view({"post": "set_labels"}))
-]
+class LabelsItemSLZ(serializers.Serializer):
+    cluster_id = serializers.CharField()
+    inner_ip = serializers.CharField()
+    labels = serializers.JSONField(default=[])
+
+
+class NodeLabelsSLZ(serializers.Serializer):
+    node_labels = serializers.ListField(child=LabelsItemSLZ())
+
+
+class FilterNodeLabelsSLZ(NodeLabelsSLZ):
+    pass
+
+
+class SetNodeLabelsSLZ(NodeLabelsSLZ):
+    pass

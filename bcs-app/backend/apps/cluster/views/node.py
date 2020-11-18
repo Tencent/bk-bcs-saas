@@ -1218,7 +1218,10 @@ class BatchUpdateDeleteNodeViewSet(NodeGetUpdateDeleteViewSet):
         # get update node ip and id, in order to render the activity
         req_ip_list, req_id_list = self.get_node_ips_and_ids(node_list)
         req_ip_str = ','.join(req_ip_list)
-        log_desc = f'project: {project_name}, cluster: {cluster_id}, update node: {req_ip_str}'
+        # 记录node的操作，这里包含disable: 停止调度，enable: 允许调度
+        # 根据状态进行判断，当前端传递的是normal时，是要允许调度，否则是停止调度
+        operate = "enable" if params["status"] == NodeStatus.Normal else "disable"
+        log_desc = f'project: {project_name}, cluster: {cluster_id}, {operate} node: {req_ip_str}'
         with client.ContextActivityLogClient(
             project_id=project_id,
             user=request.user.username,
