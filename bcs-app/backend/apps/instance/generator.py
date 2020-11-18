@@ -842,7 +842,7 @@ class IngressProfileGenerator(ProfileGenerator):
         # }
         for kind in spec:
             if isinstance(spec[kind], dict):
-                for __, conf_list in spec[kind].items():
+                for conf_list in spec[kind].values():
                     for conf in conf_list:
                         conf["namespace"] = self.context["SYS_NAMESPACE"]
             else:
