@@ -181,6 +181,7 @@ spec:
         spec:
           #@overlay/match missing_ok=True
           imagePullSecrets:
+          #@overlay/append
           - name: #@ image_pull_secret
 
 #@overlay/match by=overlay.subset({"kind": "Deployment"}),expects="0+"
