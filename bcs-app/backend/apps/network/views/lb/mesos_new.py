@@ -37,10 +37,10 @@ class LoadBalancersViewSet(viewsets.ViewSet):
 
     def list(self, request, project_id):
         cluster_id = request.query_params.get("cluster_id")
-        qs = MesosLoadBalancer.objects.filter(project_id=project_id)
+        queryset = MesosLoadBalancer.objects.filter(project_id=project_id)
         if cluster_id:
-            qs = qs.filter(cluster_id=cluster_id)
-        slz = lb_slz.MesosLBSLZ(qs, many=True)
+            queryset = queryset.filter(cluster_id=cluster_id)
+        slz = lb_slz.MesosLBSLZ(queryset, many=True)
         data = slz.data
         # 添加lb对应的deployment和application状态
         access_token = request.user.token.access_token
@@ -60,7 +60,7 @@ class LoadBalancersViewSet(viewsets.ViewSet):
         1. 下发service
         2. 下发deployment
         """
-        slz = lb_slz.MesosLBCreateOrUpdateSLZ(data=request.data)
+        slz = lb_slz.CreateOrUpdateMesosLBSLZ(data=request.data)
         slz.is_valid(raise_exception=True)
         data = slz.data
 
@@ -88,7 +88,7 @@ class LoadBalancersViewSet(viewsets.ViewSet):
 class LoadBalancerViewSet(viewsets.ViewSet):
     renderer_classes = (BKAPIRenderer, BrowsableAPIRenderer)
 
-    def get_lb_qs(self, project_id, cluster_id, namespace, name):
+    def get_lb_queryset(self, project_id, cluster_id, namespace, name):
         lbs = MesosLoadBalancer.objects.filter(
             project_id=project_id, cluster_id=cluster_id, namespace=namespace, name=name
         )
@@ -99,16 +99,16 @@ class LoadBalancerViewSet(viewsets.ViewSet):
     def update_record(self, request, project_id, cluster_id, namespace, name):
         """更新执行集群+namespace+name的lb记录
         """
-        lb_qs = self.get_lb_qs(project_id, cluster_id, namespace, name)
+        lb_queryset = self.get_lb_queryset(project_id, cluster_id, namespace, name)
         # 仅允许LB处于未部署状态时，才允许编辑
-        if lb_qs.first().status not in [
+        if lb_queryset.first().status not in [
             mesos_lb_constants.MESOS_LB_STATUS.NOT_DEPLOYED.value,
             mesos_lb_constants.MESOS_LB_STATUS.STOPPED.value
         ]:
             raise ValidationError(_("LB必须处于未部署状态或停用状态，当前状态不允许更新"))
 
         # 获取数据
-        slz = lb_slz.MesosLBCreateOrUpdateSLZ(data=request.data)
+        slz = lb_slz.CreateOrUpdateMesosLBSLZ(data=request.data)
         slz.is_valid(raise_exception=True)
         data = slz.data
 
@@ -121,7 +121,7 @@ class LoadBalancerViewSet(viewsets.ViewSet):
             extra=json.dumps(data),
             description=_("更新Mesos LB, 集群: {},命名空间: {},名称: {}").format(cluster_id, namespace, name)
         ).log_modify():
-            lb_qs.update(
+            lb_queryset.update(
                 ip_list=json.dumps(data["ip_list"]),
                 data_dict=json.dumps(data)
             )
@@ -129,9 +129,9 @@ class LoadBalancerViewSet(viewsets.ViewSet):
         return Response()
 
     def delete_record(self, request, project_id, cluster_id, namespace, name):
-        lb_qs = self.get_lb_qs(project_id, cluster_id, namespace, name)
+        lb_queryset = self.get_lb_queryset(project_id, cluster_id, namespace, name)
         # 仅允许LB处于未部署状态时，才允许删除
-        if lb_qs.first().status not in [
+        if lb_queryset.first().status not in [
             mesos_lb_constants.MESOS_LB_STATUS.NOT_DEPLOYED.value,
             mesos_lb_constants.MESOS_LB_STATUS.STOPPED.value
         ]:
@@ -145,7 +145,7 @@ class LoadBalancerViewSet(viewsets.ViewSet):
             resource=name,
             description=_("删除Mesos LB, 集群: {},命名空间: {},名称: {}").format(cluster_id, namespace, name)
         ).log_delete():
-            lb_qs.delete()
+            lb_queryset.delete()
 
         return Response()
 
@@ -153,8 +153,8 @@ class LoadBalancerViewSet(viewsets.ViewSet):
         """查询LB的详情，包含实时状态
         需要查询状态，如果处于部署中或者删除中，需要根据对应的deployment状态更新LB状态
         """
-        lb_qs = self.get_lb_qs(project_id, cluster_id, namespace, name)
-        lb = lb_qs.first()
+        lb_queryset = self.get_lb_queryset(project_id, cluster_id, namespace, name)
+        lb = lb_queryset.first()
 
         slz = lb_slz.MesosLBSLZ(lb)
         lb_detail = dict(slz.data)
@@ -163,14 +163,14 @@ class LoadBalancerViewSet(viewsets.ViewSet):
         lb_detail.update(
             lb_utils.get_mesos_lb_status_detail(access_token, project_id, cluster_id, namespace, name, lb.status)
         )
-        lb_qs.update(status=lb_detail["status"])
+        lb_queryset.update(status=lb_detail["status"])
         return Response(lb_detail)
 
     def deploy(self, request, project_id, cluster_id, namespace, name):
         """部署LB到集群
         """
-        lb_qs = self.get_lb_qs(project_id, cluster_id, namespace, name)
-        lb = lb_qs.first()
+        lb_queryset = self.get_lb_queryset(project_id, cluster_id, namespace, name)
+        lb = lb_queryset.first()
 
         access_token = request.user.token.access_token
         # 组装下发配置
@@ -187,15 +187,15 @@ class LoadBalancerViewSet(viewsets.ViewSet):
             description=_("启动Mesos LoadBalancer")
         ).log_start():
             lb_utils.deploy_mesos_lb(access_token, project_id, cluster_id, svc_conf, deploy_conf)
-            lb_qs.update(status=mesos_lb_constants.MESOS_LB_STATUS.DEPLOYING.value)
+            lb_queryset.update(status=mesos_lb_constants.MESOS_LB_STATUS.DEPLOYING.value)
         return Response()
 
     def stop(self, request, project_id, cluster_id, namespace, name):
         """LB停止服务
         删除对应的deployment和service
         """
-        lb_qs = self.get_lb_qs(project_id, cluster_id, namespace, name)
-        lb = lb_qs.first()
+        lb_queryset = self.get_lb_queryset(project_id, cluster_id, namespace, name)
+        lb = lb_queryset.first()
 
         access_token = request.user.token.access_token
         # 创建lb，包含service和deployment
@@ -207,6 +207,6 @@ class LoadBalancerViewSet(viewsets.ViewSet):
             description=_("启动Mesos LoadBalancer")
         ).log_stop():
             lb_utils.stop_mesos_lb(access_token, project_id, cluster_id, lb.namespace, lb.name)
-            lb_qs.update(status=mesos_lb_constants.MESOS_LB_STATUS.STOPPING.value)
+            lb_queryset.update(status=mesos_lb_constants.MESOS_LB_STATUS.STOPPING.value)
 
         return Response()

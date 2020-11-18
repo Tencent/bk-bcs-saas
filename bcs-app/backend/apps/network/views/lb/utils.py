@@ -257,7 +257,7 @@ def get_mesos_lb_status_detail(access_token, project_id, cluster_id, namespace, 
     })
     # 如果是部署中，则更新为DEPLOYED
     if op_status == lb_constants.MESOS_LB_STATUS.DEPLOYING.value:
-        if application_status in lb_constants.MESOS_DEPLOY_APP_STABLE_STATUS:
+        if application_status in lb_constants.MESOS_APP_STABLE_STATUS:
             lb_status_detail["status"] = lb_constants.MESOS_LB_STATUS.DEPLOYED.value
 
     return lb_status_detail

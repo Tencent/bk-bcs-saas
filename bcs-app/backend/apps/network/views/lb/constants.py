@@ -66,17 +66,7 @@ MESOS_LB_DEPLOYMENT = {
                         "imagePullPolicy": "Always",
                         "privileged": True,
                         "resources": {},
-                        "configmaps": [],
-                        "env": [
-                            {
-                                "name": "LB_HAPROXY_STATS_FRONTEND_AUTH_USER",
-                                "value": "bcsadmin"
-                            },
-                            {
-                                "name": "LB_HAPROXY_STATS_FRONTEND_AUTH_PASSWORD",
-                                "value": "GseBcs1qaz@WSX"
-                            }
-                        ]
+                        "configmaps": []
                     }
                 ],
                 "networkMode": "",
@@ -104,4 +94,4 @@ class MESOS_LB_STATUS(ChoicesEnum):
 
 
 # mesos deployment和application的稳定状态
-MESOS_DEPLOY_APP_STABLE_STATUS = ["Abnormal", "Running", "Finish", "Failed", "Lost"]
+MESOS_APP_STABLE_STATUS = ["Abnormal", "Running", "Finish", "Failed", "Lost"]

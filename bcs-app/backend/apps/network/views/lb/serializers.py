@@ -43,7 +43,7 @@ class MesosLBSLZ(serializers.ModelSerializer):
         ]
 
 
-class MesosLBCreateOrUpdateSLZ(serializers.Serializer):
+class CreateOrUpdateMesosLBSLZ(serializers.Serializer):
     name = serializers.CharField()
     cluster_id = serializers.CharField()
     namespace = serializers.CharField()

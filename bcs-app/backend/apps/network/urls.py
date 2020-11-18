@@ -66,19 +66,19 @@ urlpatterns = [
         r'namespaces/(?P<namespace>[\w\-]+)/ingresses/(?P<name>[\w\-]+)/$' % MESOS_CLUSTER_ID_REGEX,
         mesos_ingress.IngressRetrieveOperateViewSet.as_view({'get': 'retrieve', 'delete': 'delete', 'put': 'update'})),
 
-    url(r'^api/k8s_lb/projects/(?P<project_id>\w{32})/chart/versions/$',
+    url(r'^api/network/projects/(?P<project_id>\w{32})/chart/versions/$',
         versions.K8SIngressControllerViewSet.as_view({"get": "get_chart_versions"})),
-    url(r'^api/k8s_lb/projects/(?P<project_id>\w{32})/chart/versions/-/detail/$',
+    url(r'^api/network/projects/(?P<project_id>\w{32})/chart/versions/-/detail/$',
         versions.K8SIngressControllerViewSet.as_view({"post": "get_version_detail"})),
 
-    url(r'^api/network-mesos/projects/(?P<project_id>\w{32})/clusters/-/lbs/$',
+    url(r'^api/network/projects/(?P<project_id>\w{32})/clusters/-/mesos-lbs/$',
         mesos_new.LoadBalancersViewSet.as_view({"get": "list", "post": "create"})),
 
-    url(r'^api/network-mesos/projects/(?P<project_id>\w{32})/clusters/(?P<cluster_id>[\w\-]+)'\
-        '/namespaces/(?P<namespace>[\w\-]+)/lbs/(?P<name>[\w.\-]+)/$',
+    url(r'^api/network/projects/(?P<project_id>\w{32})/clusters/(?P<cluster_id>[\w\-]+)'\
+        '/namespaces/(?P<namespace>[\w\-]+)/mesos-lbs/(?P<name>[\w\-]+)/$',
         mesos_new.LoadBalancerViewSet.as_view({"get": "detail", "put": "update_record", "delete": "delete_record"})),
 
-    url(r'^api/network-mesos/projects/(?P<project_id>\w{32})/clusters/(?P<cluster_id>[\w\-]+)'\
-        '/namespaces/(?P<namespace>[\w\-]+)/lbs/(?P<name>[\w.\-]+)/operation/$',
+    url(r'^api/network/projects/(?P<project_id>\w{32})/clusters/(?P<cluster_id>[\w\-]+)'\
+        '/namespaces/(?P<namespace>[\w\-]+)/mesos-lbs/(?P<name>[\w\-]+)/operation/$',
         mesos_new.LoadBalancerViewSet.as_view({"post": "deploy", "delete": "stop"}))
 ]
