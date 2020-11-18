@@ -11,14 +11,26 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
+import copy
+import json
+import logging
+
 from rest_framework import serializers, viewsets
 from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 from rest_framework.renderers import BrowsableAPIRenderer
+from django.utils.translation import ugettext_lazy as _
 
 from backend.utils.renderers import BKAPIRenderer
+from backend.activity_log import client as activity_client
 from backend.apps.network.views.lb import serializers as lb_slz
 from backend.apps.network.models import MesosLoadBlance as MesosLoadBalancer
+from backend.apps.network.views.lb import constants as mesos_lb_constants
+
+from . import utils as lb_utils
+
+logger = logging.getLogger(__name__)
+
 
 class LoadBalancersViewSet(viewsets.ViewSet):
     renderer_classes = (BKAPIRenderer, BrowsableAPIRenderer)
@@ -29,15 +41,172 @@ class LoadBalancersViewSet(viewsets.ViewSet):
         if cluster_id:
             qs = qs.filter(cluster_id=cluster_id)
         slz = lb_slz.MesosLBSLZ(qs, many=True)
-        return Response(slz.data)
+        data = slz.data
+        # 添加lb对应的deployment和application状态
+        access_token = request.user.token.access_token
+        for lb in data:
+            lb.update(lb_utils.get_mesos_lb_status_detail(
+                access_token,
+                project_id,
+                lb["cluster_id"],
+                lb["namespace"],
+                lb["name"],
+                lb["status"]
+            ))
+        return Response(data)
 
     def create(self, request, project_id):
         """创建lb
         1. 下发service
         2. 下发deployment
         """
-        slz = lb_slz.CreateMesosLBSLZ(data=request.data)
+        slz = lb_slz.MesosLBCreateOrUpdateSLZ(data=request.data)
         slz.is_valid(raise_exception=True)
-        # data = slz.data
+        data = slz.data
 
-        # 组装下发的json
+        # 保存数据，便于后续下发时，组装下发配置
+        with activity_client.ContextActivityLogClient(
+            project_id=project_id,
+            user=request.user.username,
+            resource_type="lb",
+            resource=data["name"],
+            extra=json.dumps(data)
+        ).log_add():
+            MesosLoadBalancer.objects.create(
+                project_id=project_id,
+                cluster_id=data["cluster_id"],
+                name=data["name"],
+                ip_list=json.dumps(data["ip_list"]),
+                data_dict=json.dumps(data),
+                status=mesos_lb_constants.MESOS_LB_STATUS.NOT_DEPLOYED.value,
+                namespace=data["namespace"]
+            )
+
+        return Response()
+
+
+class LoadBalancerViewSet(viewsets.ViewSet):
+    renderer_classes = (BKAPIRenderer, BrowsableAPIRenderer)
+
+    def get_lb_qs(self, project_id, cluster_id, namespace, name):
+        lbs = MesosLoadBalancer.objects.filter(
+            project_id=project_id, cluster_id=cluster_id, namespace=namespace, name=name
+        )
+        if not lbs.exists():
+            raise ValidationError(_("没有查询到集群{}-命名空间{}-名称{}下的LB记录").format(cluster_id, namespace, name))
+        return lbs
+
+    def update_record(self, request, project_id, cluster_id, namespace, name):
+        """更新执行集群+namespace+name的lb记录
+        """
+        lb_qs = self.get_lb_qs(project_id, cluster_id, namespace, name)
+        # 仅允许LB处于未部署状态时，才允许编辑
+        if lb_qs.first().status not in [
+            mesos_lb_constants.MESOS_LB_STATUS.NOT_DEPLOYED.value,
+            mesos_lb_constants.MESOS_LB_STATUS.STOPPED.value
+        ]:
+            raise ValidationError(_("LB必须处于未部署状态或停用状态，当前状态不允许更新"))
+
+        # 获取数据
+        slz = lb_slz.MesosLBCreateOrUpdateSLZ(data=request.data)
+        slz.is_valid(raise_exception=True)
+        data = slz.data
+
+        # 更新属性
+        with activity_client.ContextActivityLogClient(
+            project_id=project_id,
+            user=request.user.username,
+            resource_type="lb",
+            resource=name,
+            extra=json.dumps(data),
+            description=_("更新Mesos LB, 集群: {},命名空间: {},名称: {}").format(cluster_id, namespace, name)
+        ).log_modify():
+            lb_qs.update(
+                ip_list=json.dumps(data["ip_list"]),
+                data_dict=json.dumps(data)
+            )
+
+        return Response()
+
+    def delete_record(self, request, project_id, cluster_id, namespace, name):
+        lb_qs = self.get_lb_qs(project_id, cluster_id, namespace, name)
+        # 仅允许LB处于未部署状态时，才允许删除
+        if lb_qs.first().status not in [
+            mesos_lb_constants.MESOS_LB_STATUS.NOT_DEPLOYED.value,
+            mesos_lb_constants.MESOS_LB_STATUS.STOPPED.value
+        ]:
+            raise ValidationError(_("LB必须处于未部署状态或停用状态，当前状态不允许更新"))
+
+        # 删除记录
+        with activity_client.ContextActivityLogClient(
+            project_id=project_id,
+            user=request.user.username,
+            resource_type="lb",
+            resource=name,
+            description=_("删除Mesos LB, 集群: {},命名空间: {},名称: {}").format(cluster_id, namespace, name)
+        ).log_delete():
+            lb_qs.delete()
+
+        return Response()
+
+    def detail(self, request, project_id, cluster_id, namespace, name):
+        """查询LB的详情，包含实时状态
+        需要查询状态，如果处于部署中或者删除中，需要根据对应的deployment状态更新LB状态
+        """
+        lb_qs = self.get_lb_qs(project_id, cluster_id, namespace, name)
+        lb = lb_qs.first()
+
+        slz = lb_slz.MesosLBSLZ(lb)
+        lb_detail = dict(slz.data)
+        # 查询deployment状态
+        access_token = request.user.token.access_token
+        lb_detail.update(
+            lb_utils.get_mesos_lb_status_detail(access_token, project_id, cluster_id, namespace, name, lb.status)
+        )
+        lb_qs.update(status=lb_detail["status"])
+        return Response(lb_detail)
+
+    def deploy(self, request, project_id, cluster_id, namespace, name):
+        """部署LB到集群
+        """
+        lb_qs = self.get_lb_qs(project_id, cluster_id, namespace, name)
+        lb = lb_qs.first()
+
+        access_token = request.user.token.access_token
+        # 组装下发配置
+        lb_conf = lb_utils.MesosLBConfig(access_token, project_id, cluster_id, lb)
+        svc_conf = lb_conf._service_config()
+        deploy_conf = lb_conf._deployment_config()
+
+        # 创建lb，包含service和deployment
+        with activity_client.ContextActivityLogClient(
+            project_id=project_id,
+            user=request.user.username,
+            resource_type="lb",
+            resource=name,
+            description=_("启动Mesos LoadBalancer")
+        ).log_start():
+            lb_utils.deploy_mesos_lb(access_token, project_id, cluster_id, svc_conf, deploy_conf)
+            lb_qs.update(status=mesos_lb_constants.MESOS_LB_STATUS.DEPLOYING.value)
+        return Response()
+
+    def stop(self, request, project_id, cluster_id, namespace, name):
+        """LB停止服务
+        删除对应的deployment和service
+        """
+        lb_qs = self.get_lb_qs(project_id, cluster_id, namespace, name)
+        lb = lb_qs.first()
+
+        access_token = request.user.token.access_token
+        # 创建lb，包含service和deployment
+        with activity_client.ContextActivityLogClient(
+            project_id=project_id,
+            user=request.user.username,
+            resource_type="lb",
+            resource=name,
+            description=_("启动Mesos LoadBalancer")
+        ).log_stop():
+            lb_utils.stop_mesos_lb(access_token, project_id, cluster_id, lb.namespace, lb.name)
+            lb_qs.update(status=mesos_lb_constants.MESOS_LB_STATUS.STOPPING.value)
+
+        return Response()

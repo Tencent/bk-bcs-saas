@@ -113,3 +113,17 @@ def get_cluster_coes(access_token, project_id, cluster_id):
 @parse_response_data()
 def delete_cluster(access_token, project_id, cluster_id):
     return paas_cc.delete_cluster(access_token, project_id, cluster_id)
+
+
+def get_cc_zk_config(access_token, project_id, cluster_id):
+    resp = paas_cc.get_zk_config(access_token, project_id, cluster_id)
+    if resp.get("code") != ErrorCode.NoError:
+        raise error_codes.APIError(_("通过cc获取zk信息出错，{}").format(resp.get("message")))
+    data = resp.get("data")
+    if not data:
+        raise error_codes.APIError(_("通过cc获取zk信息为空"))
+    return data[0]
+
+
+def get_cc_repo_domain(access_token, project_id, cluster_id):
+    return paas_cc.get_jfrog_domain(access_token, project_id, cluster_id)

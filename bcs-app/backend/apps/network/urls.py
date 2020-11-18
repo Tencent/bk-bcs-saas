@@ -71,6 +71,14 @@ urlpatterns = [
     url(r'^api/k8s_lb/projects/(?P<project_id>\w{32})/chart/versions/-/detail/$',
         versions.K8SIngressControllerViewSet.as_view({"post": "get_version_detail"})),
 
-    url(r'^api/network/projects/(?P<project_id>\w{32})/clusters/-/mesos/lbs/$',
+    url(r'^api/network-mesos/projects/(?P<project_id>\w{32})/clusters/-/lbs/$',
         mesos_new.LoadBalancersViewSet.as_view({"get": "list", "post": "create"})),
+
+    url(r'^api/network-mesos/projects/(?P<project_id>\w{32})/clusters/(?P<cluster_id>[\w\-]+)'\
+        '/namespaces/(?P<namespace>[\w\-]+)/lbs/(?P<name>[\w.\-]+)/$',
+        mesos_new.LoadBalancerViewSet.as_view({"get": "detail", "put": "update_record", "delete": "delete_record"})),
+
+    url(r'^api/network-mesos/projects/(?P<project_id>\w{32})/clusters/(?P<cluster_id>[\w\-]+)'\
+        '/namespaces/(?P<namespace>[\w\-]+)/lbs/(?P<name>[\w.\-]+)/operation/$',
+        mesos_new.LoadBalancerViewSet.as_view({"post": "deploy", "delete": "stop"}))
 ]

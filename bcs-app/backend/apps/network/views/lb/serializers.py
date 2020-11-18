@@ -43,25 +43,29 @@ class MesosLBSLZ(serializers.ModelSerializer):
         ]
 
 
-class CreateMesosLBSLZ(serializers.Serializer):
+class MesosLBCreateOrUpdateSLZ(serializers.Serializer):
     name = serializers.CharField()
     cluster_id = serializers.CharField()
     namespace = serializers.CharField()
+    namespace_id = serializers.IntegerField(default=0)
     instance_num = serializers.IntegerField(min_value=1)
     constraint = serializers.JSONField()
     use_custom_image_url = serializers.BooleanField(default=False)
     image_url = serializers.CharField()
     image_tag = serializers.CharField()
+    use_custom_imagesecret = serializers.BooleanField(default=False)
+    image_pull_user = serializers.CharField(default="")
+    image_pull_password = serializers.CharField(default="")
     related_service_label = serializers.CharField()
     ip_list = serializers.ListField(default=[])
     configmaps = serializers.ListField(default=[])
-    env_list = serializers.ListField(default=[])
     resources = serializers.DictField(default={})
     network_type = serializers.CharField()
     network_mode = serializers.CharField()
-    port = serializers.IntegerField(default=31000, min_value=31000, max_value=32000)
+    custom_value = serializers.CharField(default="")
+    container_port = serializers.IntegerField(default=80)
+    host_port = serializers.IntegerField(default=31000, max_value=32000)
     forward_mode = serializers.CharField(required=True)
-    eth_value = serializers.CharField(required=True)
 
     def validate(self, data):
         # 如果 ip_list 存在，ip_list数量必须和instance num相同
@@ -71,4 +75,8 @@ class CreateMesosLBSLZ(serializers.Serializer):
             return data
         if len(ip_list) != instance_num:
             raise ValidationError(_("参数【ip_list】数量必须和【instance_num】相同"))
+
+        if data["use_custom_imagesecret"]:
+            if not (data["image_pull_user"] and data["image_pull_password"]):
+                raise ValidationError(_("启用添加镜像凭证，参数[image_pull_user]和[image_pull_password]不能为空"))
         return data
