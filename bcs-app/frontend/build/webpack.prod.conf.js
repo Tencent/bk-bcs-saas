@@ -184,7 +184,8 @@ const webpackConfig = merge(baseWebpackConfig, {
             // 如果打开 vendor 和 manifest 那么需要配置 chunksSortMode 保证引入 script 的顺序
             chunksSortMode: 'dependency',
             staticUrl: config.build.env.staticUrl,
-            releaseVersion: RELEASE_VERSION
+            releaseVersion: RELEASE_VERSION,
+            version: VERSION
         }),
 
         new MonacoEditorPlugin({

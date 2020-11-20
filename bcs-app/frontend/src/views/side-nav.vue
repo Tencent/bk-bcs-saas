@@ -25,7 +25,8 @@
                             <span style="line-height: 34px;">{{englishName}}</span>
                         </div>
                     </div>
-                    <div class="bk-form-item is-required">
+                    <!-- 针对社区版，不展示编排类型，向后端传递参数是标识k8s即可 -->
+                    <div class="bk-form-item is-required" v-if="runVersion !== 'ce'">
                         <label class="bk-label" style="width:160px;">{{$t('编排类型')}}：</label>
                         <div class="bk-form-content" style="margin-left:160px;">
                             <label class="bk-form-radio" style="margin-right: 10px;">
@@ -114,6 +115,7 @@
         data () {
             return {
                 isLoading: false,
+                runVersion: window.RUN_VERSION,
                 clusterRouters: [
                     'clusterMain',
                     'clusterCreate',
