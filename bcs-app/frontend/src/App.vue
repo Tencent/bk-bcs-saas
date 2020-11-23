@@ -35,7 +35,8 @@
                                         <input type="radio" value="1" name="kind" v-model="kind">
                                         <i class="bk-radio-text">BCS-K8S</i>
                                     </label>
-                                    <label class="bk-form-radio">
+                                    <!-- 针对社区版，不展示编排类型，向后端传递参数是标识k8s即可 -->
+                                    <label class="bk-form-radio" v-if="runVersion !== 'ce'">
                                         <input type="radio" value="2" name="kind" v-model="kind">
                                         <i class="bk-radio-text">BCS-Mesos</i>
                                     </label>
@@ -124,6 +125,7 @@
                 ccKey: '',
                 ccList: [],
                 kind: 1, // 业务编排类型
+                runVersion: window.RUN_VERSION,
                 enableBtn: false, // 提交按钮是否可用
                 projectId: '',
                 projectCode: '',

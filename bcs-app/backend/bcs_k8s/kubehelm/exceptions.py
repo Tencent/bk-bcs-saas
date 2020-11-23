@@ -29,5 +29,4 @@ class HelmExecutionError(HelmBaseException):
         self.output = output.decode().strip()
 
     def __str__(self):
-        # Use the first line as a summary
-        return "({}) {}".format(self.error_no, self.output.split("\n")[0])
+        return "({}) {}".format(self.error_no, self.output)
