@@ -21,6 +21,7 @@ import six
 from django.utils.encoding import force_str
 from django.utils.translation import ugettext_lazy as _
 from requests.models import Response
+from django.conf import settings
 
 from backend.apps.constants import SENSITIVE_KEYWORD
 from backend.utils.exceptions import ComponentError, APIError
@@ -132,7 +133,10 @@ def response(f=None, handle_resp=False):
                         resp = format_func(content)
                     except Exception as e:
                         logger.exception("请求第三方失败，使用【%s】格式解析 %s 异常，%s", f, content, e)
-                        raise ComponentError(err_msg or e)
+                        error = ComponentError(err_msg or e)
+                        # 设置response, 上层使用可进一步判断
+                        error.response = resp
+                        raise error
 
                 if handle_resp:
                     if resp.get("code") != ErrorCode.NoError:
@@ -161,5 +165,27 @@ def parse_response_data(default_data=None, err_msg_prefix=None):
             return resp["data"] or default_data
 
         return parse
+
+    return decorate
+
+
+def handle_mesos_api_not_implemented(keyword):
+    """处理mesos API 为上线, 返回404 page not found的情况
+    """
+
+    def decorate(func):
+        @wraps(func)
+        def handle(*args, **kwargs):
+            try:
+                resp = func(*args, **kwargs)
+                return resp
+            except ComponentError as error:
+                response = getattr(error, "response", None)
+                if response and keyword and keyword in response.text:
+                    raise error_codes.APIError(_("当前集群还不支持Metric管理，请{}").format(settings.COMMON_CUSTOMER_SUPPORT_MSG))
+                else:
+                    raise error
+
+        return handle
 
     return decorate
