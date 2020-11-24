@@ -55,6 +55,9 @@
                                 <bk-tooltip :content="cluster.cluster_id" :delay="500" placement="top">
                                     <span class="cluster-id">{{cluster.cluster_id}}</span>
                                 </bk-tooltip>
+                                <span v-if="cluster.state === 'existing'" class="prod">
+                                    {{$t('导入集群')}}
+                                </span>
                             </p>
                             <bk-dropdown-menu
                                 v-if="
@@ -82,7 +85,7 @@
                                     <!-- <li v-if="isHelmEnable">
                                         <a href="javascript:void(0)" @click="enableClusterHelm(cluster)">{{$t('启用Helm')}}</a>
                                     </li> -->
-                                    <template v-if="cluster.allow">
+                                    <template v-if="cluster.allow || cluster.state === 'existing'">
                                         <li>
                                             <a href="javascript:void(0)" @click="confirmDeleteCluster(cluster, clusterIndex)">{{$t('删除')}}</a>
                                         </li>
