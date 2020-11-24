@@ -282,13 +282,6 @@ class Template(BaseModel):
 
         # 只校验当前版本内是否重复
         versions = VersionedEntity.objects.filter(id=version_id)
-        # if resource_name[:3] == 'K8s':
-        #     versions = VersionedEntity.objects.filter(id=version_id)
-        # else:
-        #     # 判断名称在改类资源中是否已经存在
-        #     template_ids = cls.objects.filter(
-        #         project_id=project_id).values_list('id', flat=True)
-        #     versions = VersionedEntity.objects.filter(template_id__in=template_ids)
 
         pro_resource_id_list = []
         for ver_entity in versions:
@@ -316,7 +309,7 @@ class ShowVersion(BaseModel):
     name = models.CharField("版本名称", max_length=255)
     history = models.TextField("所有指向过的版本", default="[]")
     real_version_id = models.IntegerField("关联的VersionedEntity ID", null=True, blank=True)
-
+    notes = models.TextField("版本备注", default="")
     objects = ShowVersionManager()
     default_objects = models.Manager()
 
