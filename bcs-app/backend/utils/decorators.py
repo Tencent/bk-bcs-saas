@@ -169,7 +169,7 @@ def parse_response_data(default_data=None, err_msg_prefix=None):
     return decorate
 
 
-def handle_api_not_implemented(keyword, msg):
+def handle_api_not_implemented(keyword, module):
     """处理mesos API 为上线, 返回404 page not found的情况
     """
 
@@ -182,7 +182,9 @@ def handle_api_not_implemented(keyword, msg):
             except ComponentError as error:
                 response = getattr(error, "response", None)
                 if response and keyword and keyword in response.text:
-                    raise error_codes.APIError(msg)
+                    raise error_codes.APIError(
+                        _("当前集群API版本过低, 还不支持{}，请{}").format(module, settings.COMMON_CUSTOMER_SUPPORT_MSG)
+                    )
                 else:
                     raise error
 
