@@ -31,24 +31,19 @@ def get_jfrog_account(access_token, project_code, project_id, is_bk=False):
     resp = client.create_account()
 
     # api调用失败
-    if resp.get('code') != 0:
+    if resp.get("code") != 0:
         message = bk_error_codes.DepotError(_("创建项目仓库账号失败"))
         error_message = f'{message}, {resp.get("message", "")}'
         logger.error(error_message)
         raise error_codes.ComponentError(error_message)
 
-    return resp.get('data')
+    return resp.get("data")
 
 
 def get_bk_jfrog_auth(access_token, project_code, project_id):
-    jfrog_account = get_jfrog_account(
-        access_token, project_code, project_id, is_bk=True)
-    user_pwd = "%s:%s" % (jfrog_account.get(
-        'user'), jfrog_account.get('password'))
-    user_auth = {
-        "auth": base64.b64encode(
-            user_pwd.encode(encoding="utf-8")).decode()
-    }
+    jfrog_account = get_jfrog_account(access_token, project_code, project_id, is_bk=True)
+    user_pwd = "%s:%s" % (jfrog_account.get("user"), jfrog_account.get("password"))
+    user_auth = {"auth": base64.b64encode(user_pwd.encode(encoding="utf-8")).decode()}
     return user_auth
 
 
@@ -69,20 +64,20 @@ def get_upload_status_api(request, project_id, task_id):
 
 def trans_paging_query(query):
     """
-    将前端的分页信息转换为haobor API需要的:page\pageSize
+    将前端的分页信息转换为harbor API需要的:page\pageSize
     该方法只在本文件内调用
     """
-    start = query.get('start')
-    limit = query.get('limit')
+    start = query.get("start")
+    limit = query.get("limit")
     if start is not None and limit is not None:
         page_size = limit
         page = (start // page_size) + 1
-        query['page'] = page
-        query['pageSize'] = page_size
+        query["page"] = page
+        query["pageSize"] = page_size
     else:
         # 不分页的地方给默认值
-        query['page'] = 1
-        query['pageSize'] = 100
+        query["page"] = 1
+        query["pageSize"] = 100000
     return query
 
 
@@ -90,9 +85,9 @@ def get_harbor_client(query):
     """镜像相关第一批API统一方法
     该方法只在本文件内调用
     """
-    project_id = query.get('projectId')
-    project_code = query.get('project_code', '')
-    access_token = query.pop('access_token')
+    project_id = query.get("projectId")
+    project_code = query.get("project_code", "")
+    access_token = query.pop("access_token")
     client = HarborClient(access_token, project_id, project_code)
     return client
 
@@ -121,13 +116,13 @@ def get_image_tags(access_token, project_id, project_code, offset, limit, **quer
     client = HarborClient(access_token, project_id, project_code)
     resp = client.get_image_tags(**query_params)
     # 处理返回数据(harbor 的tag列表没有做分页)
-    data = resp.get('data') or {}
-    data['has_previous'] = False
-    data['has_next'] = False
-    tags = data.get('tags') or []
+    data = resp.get("data") or {}
+    data["has_previous"] = False
+    data["has_next"] = False
+    tags = data.get("tags") or []
     for tag in tags:
         # 外部版本只有一套仓库
-        tag['artifactorys'] = ['PROD']
+        tag["artifactorys"] = ["PROD"]
     return resp
 
 
@@ -136,8 +131,8 @@ def get_pub_image_info(query):
     """
     client = get_harbor_client(query)
     resp = client.get_image_tags(**query)
-    data = resp.get('data') or {}
-    resp['data'] = [data]
+    data = resp.get("data") or {}
+    resp["data"] = [data]
     return resp
 
 
@@ -147,8 +142,8 @@ def get_project_image_info(query):
     """
     client = get_harbor_client(query)
     resp = client.get_image_tags(**query)
-    data = resp.get('data') or {}
-    resp['data'] = [data]
+    data = resp.get("data") or {}
+    resp["data"] = [data]
     return resp
 
 
@@ -170,8 +165,8 @@ def create_project_path_by_api(access_token, project_id, project_code):
     client = HarborClient(access_token, project_id, project_code)
     resp = client.create_project_path()
     # api调用失败
-    if resp.get('code') != 0:
-        error_message = ('%s, %s' % (bk_error_codes.DepotError(_("创建项目仓库路径失败")), resp.get('message', '')))
+    if resp.get("code") != 0:
+        error_message = "%s, %s" % (bk_error_codes.DepotError(_("创建项目仓库路径失败")), resp.get("message", ""))
         logger.error(error_message)
         raise error_codes.ComponentError(error_message)
     return True

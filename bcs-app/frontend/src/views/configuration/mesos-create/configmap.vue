@@ -134,9 +134,26 @@
                                             <div class="bk-form-item is-required">
                                                 <label class="bk-label" style="width: 105px;">{{$t('值')}}：</label>
                                                 <div class="bk-form-content" style="margin-left: 105px;">
-                                                    <textarea class="bk-form-textarea" style="height: 200px;" v-model="curKeyParams.content" :placeholder="$t('请输入键') + curKeyParams.key + $t('的内容')" v-if="curKeyParams.type === 'file'"></textarea>
-                                                    <textarea class="bk-form-textarea" style="height: 200px;" v-model="curKeyParams.content" :placeholder="$t('请输入仓库中配置文件的相对路径')" v-else></textarea>
+                                                    <textarea class="bk-form-textarea biz-resize-textarea" style="height: 300px;" v-model="curKeyParams.content" :placeholder="$t('请输入键') + curKeyParams.key + $t('的内容')" v-if="curKeyParams.type === 'file'"></textarea>
+                                                    <textarea class="bk-form-textarea biz-resize-textarea" style="height: 300px;" v-model="curKeyParams.content" :placeholder="$t('请输入仓库中配置文件的相对路径')" v-else></textarea>
                                                     <p class="biz-tip mt10 f14" v-show="curKeyParams.type === 'file'">{{$t('实例化时会将值的内容做base64编码')}}</p>
+                                                </div>
+                                            </div>
+                                            <div class="bk-form-item" v-show="curKeyParams.type === 'http'">
+                                                <label class="bk-label" style="width: 105px;">{{$t('凭证')}}：</label>
+                                                <div class="bk-form-content" style="margin-left: 105px;">
+                                                    <bk-input
+                                                        type="text"
+                                                        style="width:310px;"
+                                                        :placeholder="$t('输入格式用户名:密码，如bcs:123#@bk')"
+                                                        :value.sync="curKeyParams.auth">
+                                                    </bk-input>
+                                                    <bk-tooltip placement="top">
+                                                        <p slot="content" style="word-break: break-all; width: 480px;">{{authTip}}</p>
+                                                        <span class="bk-badge">
+                                                            <i class="bk-icon icon-question"></i>
+                                                        </span>
+                                                    </bk-tooltip>
                                                 </div>
                                             </div>
                                         </template>
@@ -198,7 +215,8 @@
                     fullScreen: false,
                     value: '',
                     editor: null
-                }
+                },
+                authTip: this.$t('后台实际拉取文件命令: curl -X GET -H "Authorization: Basic {user:$base64(passwd)}"')
             }
         },
         computed: {
@@ -307,7 +325,10 @@
                     key: 'key-' + index,
                     isEdit: true,
                     type: 'file',
-                    content: ''
+                    content: '',
+                    auth: '',
+                    remoteUser: '',
+                    remotePassword: ''
                 })
                 this.curKeyParams = this.curConfigmap.configmapKeyList[index - 1]
                 this.curKeyIndex = index - 1
@@ -339,6 +360,14 @@
                             type: item.type,
                             content: item.content
                         }
+                        if (item.type === 'http' && item.auth && item.auth.split(':').length >= 2) {
+                            const remoteUser = item.auth.split(':')[0]
+                            const remotePassword = item.auth.replace(remoteUser + ':', '').trim()
+                            if (remoteUser && remotePassword) {
+                                params[item.key].remoteUser = remoteUser
+                                params[item.key].remotePassword = remotePassword
+                            }
+                        }
                     })
                     this.curConfigmap.config.datas = params
                 }
@@ -363,12 +392,16 @@
                     configmap.configmapKeyList = []
                 }
                 for (const [key, value] of Object.entries(keys)) {
-                    list.push({
+                    const params = {
                         key: key,
                         type: value.type,
                         isEdit: false,
                         content: value.content
-                    })
+                    }
+                    if (params.type === 'http' && value.remoteUser && value.remotePassword) {
+                        params.auth = `${value.remoteUser}:${value.remotePassword}`
+                    }
+                    list.push(params)
                 }
                 this.curKeyIndex = 0
                 if (list.length) {
@@ -573,6 +606,27 @@
             showJsonPanel () {
                 this.toJsonDialogConf.title = this.curConfigmap.config.metadata.name + '.json'
                 const appConfig = JSON.parse(JSON.stringify(this.curConfigmap.config))
+
+                // 同步上一个键值
+                const params = {}
+                const keys = this.curConfigmap.configmapKeyList
+                if (keys && keys.length) {
+                    keys.forEach(item => {
+                        params[item.key] = {
+                            type: item.type,
+                            content: item.content
+                        }
+                        if (item.type === 'http' && item.auth && item.auth.split(':').length >= 2) {
+                            const remoteUser = item.auth.split(':')[0]
+                            const remotePassword = item.auth.replace(remoteUser + ':', '').trim()
+                            if (remoteUser && remotePassword) {
+                                params[item.key].remoteUser = remoteUser
+                                params[item.key].remotePassword = remotePassword
+                            }
+                        }
+                    })
+                    appConfig.datas = params
+                }
                 delete appConfig.webCache
 
                 const jsonStr = JSON.stringify(appConfig, null, 4)

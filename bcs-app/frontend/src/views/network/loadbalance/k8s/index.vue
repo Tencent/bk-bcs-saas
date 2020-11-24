@@ -24,7 +24,7 @@
                     </div>
                     <div class="right">
                         <bk-data-searcher
-                            :placeholder="$t('输入命名空间，按Enter搜索')"
+                            :placeholder="$t('输入名称，按Enter搜索')"
                             :scope-list="searchScopeList"
                             :search-key.sync="searchKeyword"
                             :search-scope.sync="searchScope"
@@ -40,7 +40,7 @@
                                 <tr>
                                     <th>{{$t('所属集群')}}</th>
                                     <th>{{$t('命名空间')}}</th>
-                                    <th>{{$t('端口')}}</th>
+                                    <th>{{$t('Chart名称及版本')}}</th>
                                     <th>{{$t('更新时间')}}</th>
                                     <th>{{$t('更新人')}}</th>
                                     <th style="width: 160px;">{{$t('操作')}}</th>
@@ -58,12 +58,11 @@
                                             {{loadBalance.namespace_name}}
                                         </td>
                                         <td>
-                                            <template v-for="key of Object.keys(loadBalance.protocol)">
-                                                <div class="biz-key-label" :key="key" v-if="loadBalance.protocol[key].isUse && key">
-                                                    <span class="key">{{key}}</span>
-                                                    <span class="value">{{loadBalance.protocol[key].port}}</span>
-                                                </div>
-                                            </template>
+                                            <div class="chart-info" v-if="loadBalance.chart">
+                                                <p>{{$t('名称')}}：{{loadBalance.chart.name || '--'}}</p>
+                                                <p>{{$t('版本')}}：{{loadBalance.chart.version || '--'}}</p>
+                                            </div>
+                                            <template v-else>--</template>
                                         </td>
                                         <td>
                                             {{formatDate(loadBalance.updated)}}
@@ -72,14 +71,14 @@
                                             {{loadBalance.updator}}
                                         </td>
                                         <td>
-                                            <a href="javascript:void(0);" class="bk-text-button" @click.stop.prevent="editLoadBalance(loadBalance, index)">{{$t('编辑')}}</a>
+                                            <a href="javascript:void(0);" class="bk-text-button" @click.stop.prevent="editLoadBalance(loadBalance, index)">{{$t('更新')}}</a>
                                             <a href="javascript:void(0);" class="bk-text-button" @click.stop.prevent="removeLoadBalance(loadBalance, index)">{{$t('删除')}}</a>
                                         </td>
                                     </tr>
                                 </template>
                                 <template v-else>
                                     <tr style="background: none;">
-                                        <td colspan="7">
+                                        <td colspan="5">
                                             <div class="biz-app-list">
                                                 <div class="bk-message-box">
                                                     <p class="message empty-message" v-if="!isInitLoading">{{$t('无数据')}}</p>
@@ -113,7 +112,7 @@
             :quick-close="false"
             :is-show.sync="loadBalanceSlider.isShow"
             :title="loadBalanceSlider.title"
-            :width="630"
+            :width="700"
             @hidden="hideLoadBalanceSlider">
             <div class="p30" slot="content">
                 <div class="bk-form bk-form-vertical mb20" v-bkloading="{ isLoading: isDataSaveing }">
@@ -122,75 +121,16 @@
                             <label class="bk-label">{{$t('所属集群')}}：</label>
                             <div class="bk-form-content">
                                 <bk-selector
-                                    style="width:565px;"
+                                    style="width: 100%;"
                                     :field-type="'cluster'"
                                     :placeholder="$t('请选择')"
                                     :setting-key="'cluster_id'"
                                     :display-key="'longName'"
-                                    :is-link="true"
+                                    :disabled="!!curLoadBalance.id"
                                     :selected.sync="curLoadBalance.cluster_id"
                                     :list="clusterList"
-                                    @item-selected="handlerSelectCluster">
+                                    @item-selected="handleClusterChange">
                                 </bk-selector>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="bk-form-item is-required">
-                        <div class="bk-form-content">
-                            <label class="bk-label">{{$t('命名空间')}}：</label>
-                            <div class="bk-form-content">
-                                <div style="width: 565px;">
-                                    <bk-selector
-                                        :searchable="true"
-                                        :field-type="'namespace'"
-                                        :placeholder="$t('请选择')"
-                                        :setting-key="'id'"
-                                        :display-key="'name'"
-                                        :selected.sync="curLoadBalance.namespace"
-                                        :list="nameSpaceClusterList">
-                                    </bk-selector>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="bk-form-item">
-                        <label class="bk-label">{{$t('设置协议')}}：<span class="biz-tip">{{$t('至少有一个勾选')}}</span></label>
-                        <div class="bk-form-content">
-                            <div class="bk-form-inline-item is-required" style="width: 260px;">
-                                <label class="bk-form-checkbox" style="width: 100px;">
-                                    <input
-                                        type="checkbox"
-                                        name="portocal"
-                                        v-model="curLoadBalance.protocol.http.isUse"
-                                        :disabled="!curLoadBalance.protocol.https.isUse" />
-                                    <i class="bk-checkbox-text">{{$t('启用Http')}}</i>
-                                </label>
-                                <bk-input
-                                    type="number"
-                                    :placeholder="$t('启用Http')"
-                                    style="width: 154px;"
-                                    :min="0"
-                                    :value.sync="curLoadBalance.protocol.http.port">
-                                </bk-input>
-                            </div>
-                            <div class="bk-form-inline-item is-required" style="width: 263px; margin-left: 35px;">
-                                <label class="bk-form-checkbox" style="width: 100px;">
-                                    <input
-                                        type="checkbox"
-                                        name="portocal"
-                                        v-model="curLoadBalance.protocol.https.isUse"
-                                        :disabled="!curLoadBalance.protocol.http.isUse" />
-                                    <i class="bk-checkbox-text">{{$t('启用Https')}}</i>
-                                </label>
-                                <bk-input
-                                    type="number"
-                                    :placeholder="$t('启用Https')"
-                                    style="width: 157px;"
-                                    :min="0"
-                                    :value.sync="curLoadBalance.protocol.https.port">
-                                </bk-input>
                             </div>
                         </div>
                     </div>
@@ -229,6 +169,47 @@
                         </table>
                     </div>
 
+                    <div class="bk-form-item">
+                        <div class="bk-form-content">
+                            <label class="bk-label">
+                                {{$t('选择版本')}}：
+                                <bk-tooltip :content="$t('选择chart:blueking-nginx-ingress对应的版本')" placement="right">
+                                    <i class="bk-icon icon-question-circle"></i>
+                                </bk-tooltip>
+                            </label>
+                            <div class="bk-form-content">
+                                <bk-selector
+                                    style="width: 100%;"
+                                    :placeholder="$t('请选择')"
+                                    :setting-key="'id'"
+                                    :display-key="'version'"
+                                    :is-link="true"
+                                    :selected.sync="curLoadBalanceChartId"
+                                    :list="chartVersionList">
+                                </bk-selector>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bk-form-item mt15">
+                        <label class="bk-label">{{$t('Values内容')}}：</label>
+                        <div class="bk-form-content">
+                            <i v-if="editorIsFullScreen" class="bk-icon icon-close icon-btn" :title="$t('关闭全屏')" @click="handleCloseFullScreen"></i>
+                            <i v-else class="bk-icon icon-full-screen icon-btn" :title="$t('全屏')" @click="handleSetFullScreen"></i>
+                            <ace
+                                lang="yaml"
+                                :width="'100%'"
+                                :height="460"
+                                :value="curLoadBalance.values"
+                                :read-only="false"
+                                :full-screen="editorIsFullScreen"
+                                @init="editorInitAfter"
+                                @input="yamlEditorInput"
+                                @blur="yamlEditorBlur">
+                            </ace>
+                        </div>
+                    </div>
+
                     <div class="bk-form-item mt25">
                         <bk-button type="primary" @click="saveLoadBalance">{{$t('保存')}}</bk-button>
                         <bk-button @click="hideLoadBalanceSlider">{{$t('取消')}}</bk-button>
@@ -246,11 +227,14 @@
 </template>
 
 <script>
-    import nodeSelector from '@open/components/node-selector'
-    import { catchErrorHandler, formatDate } from '@open/common/util'
+    import yamljs from 'js-yaml'
+    import ace from '@/components/ace-editor'
+    import nodeSelector from '@/components/node-selector'
+    import { catchErrorHandler, formatDate } from '@/common/util'
 
     export default {
         components: {
+            ace,
             nodeSelector
         },
         data () {
@@ -265,6 +249,7 @@
                     show: true
                 },
                 curLoadBalance: {
+                    'id': '',
                     'name': '',
                     'namespace': '',
                     'project_id': '',
@@ -279,8 +264,10 @@
                             isUse: true
                         }
                     },
-                    'node_list': []
+                    'node_list': [],
+                    'values': ''
                 },
+                curLoadBalanceChartId: '',
                 statusTimer: [],
                 nameSpaceClusterList: [],
                 isAllDataLoad: false,
@@ -295,7 +282,10 @@
                 loadBalanceSlider: {
                     title: '',
                     isShow: false
-                }
+                },
+                chartVersionList: [],
+                aceEditor: null,
+                editorIsFullScreen: false
             }
         },
         computed: {
@@ -370,11 +360,15 @@
                                     this.searchScope = this.searchScopeList[1].id
                                 }
                             }
-                            
+
                             this.getLoadBalanceList()
                         }, 1000)
                     }
                 }
+            },
+
+            async 'curLoadBalanceChartId' (chartId) {
+                await this.handlerSelectChart(chartId)
             }
         },
         created () {
@@ -453,9 +447,10 @@
             /**
              * 创建新的LB
              */
-            createLoadBlance () {
+            async createLoadBlance () {
                 this.nameSpaceSelectedList = []
                 this.curLoadBalance = {
+                    'id': '',
                     'name': '',
                     'namespace': '',
                     'project_id': this.projectId,
@@ -470,39 +465,21 @@
                             isUse: true
                         }
                     },
-                    'node_list': []
+                    'node_list': [],
+                    'values': ''
                 }
                 this.loadBalanceSlider.title = this.$t('新建LoadBalancer')
                 this.loadBalanceSlider.isShow = true
-            },
 
-            /**
-             * 对返回的lb进行处理
-             * @param  {object} loadBalance loadBalance
-             * @return {object} loadBalance loadBalance
-             */
-            formatLoadBalance (loadBalance) {
-                const protocols = loadBalance.protocol_type.split(';')
-                loadBalance.protocol = {
-                    'http': {
-                        port: 80,
-                        isUse: false
-                    },
-                    'https': {
-                        port: 443,
-                        isUse: false
-                    }
+                try {
+                    const res = await this.$store.dispatch('network/getChartVersions', {
+                        projectId: this.projectId
+                    })
+                    this.chartVersionList = res.data || []
+                    this.curLoadBalanceChartId = (this.chartVersionList[0] || {}).id || ''
+                } catch (e) {
+                    catchErrorHandler(e, this)
                 }
-                protocols.forEach(protocol => {
-                    const confs = protocol.split(':')
-                    loadBalance.protocol[confs[0]] = {
-                        port: confs[1],
-                        isUse: true
-                    }
-                })
-                loadBalance.namespace = loadBalance.namespace_id
-                loadBalance.node_list = JSON.parse(loadBalance.ip_info)
-                return loadBalance
             },
 
             /**
@@ -511,16 +488,6 @@
              * @param  {number} index 索引
              */
             async editLoadBalance (loadBalance, index) {
-                if (!loadBalance.permissions.use) {
-                    await this.$store.dispatch('getResourcePermissions', {
-                        project_id: this.projectId,
-                        policy_code: 'use',
-                        resource_code: loadBalance.namespace,
-                        resource_name: loadBalance.namespace_name,
-                        resource_type: 'namespace'
-                    })
-                }
-
                 const projectId = this.projectId
                 const projectKind = this.curProject.kind
                 const loadBalanceId = loadBalance.id
@@ -535,8 +502,14 @@
                         projectKind
                     })
 
-                    const loadBalance = this.formatLoadBalance(res.data)
-                    this.curLoadBalance = loadBalance
+                    const curLoadBalance = res.data
+                    if (!curLoadBalance) {
+                        return
+                    }
+                    curLoadBalance.node_list = JSON.parse(curLoadBalance.ip_info)
+                    this.curLoadBalance = Object.assign({}, curLoadBalance)
+                    console.error(this.curLoadBalance)
+                    await this.handlerSelectCluster(this.curLoadBalance.cluster_id)
                 } catch (e) {
                     catchErrorHandler(e, this)
                 } finally {
@@ -550,29 +523,65 @@
             /**
              * 选择集群回调
              * @param  {number}  index 集群索引（ID）
-             * @param  {object}  data 集群
-             * @param  {boolean} isInitTrigger 是否在进入页面时触发
              */
-            async handlerSelectCluster (index, data, isInitTrigger) {
+            async handlerSelectCluster (clusterId) {
                 const projectId = this.projectId
-                const clusterId = index
-                if (!isInitTrigger) {
-                    this.curLoadBalance.namespace = ''
-                }
                 if (projectId && clusterId) {
                     try {
-                        const res = await this.$store.dispatch('network/getNameSpaceClusterList', { projectId, clusterId })
-                        this.nameSpaceClusterList = res.data
-                        this.nameSpaceList = res.data
-                        this.nameSpaceList.forEach(item => {
-                            item.isSelected = false
+                        const params = {
+                            cluster_id: clusterId,
+                            namespace: this.curLoadBalance.namespace || ''
+                        }
+                        const res = await this.$store.dispatch('network/getChartVersions', {
+                            projectId,
+                            params
                         })
-                        this.nameSpaceSelectedList = []
+                        this.chartVersionList = res.data || []
+
+                        this.curLoadBalanceChartId = (this.chartVersionList[0] || {}).id || ''
                     } catch (e) {
                         catchErrorHandler(e, this)
                     }
                 } else {
-                    this.nameSpaceClusterList = []
+                    this.chartVersionList = []
+                }
+            },
+
+            /**
+             * 选择chart版本回调
+             * @param {number} chartId chart_id
+             */
+            async handlerSelectChart (chartId) {
+                const data = this.chartVersionList.find(item => item.id === chartId)
+                const projectId = this.projectId
+                if (projectId && chartId && data) {
+                    try {
+                        this.curLoadBalance.values = ''
+                        const params = {
+                            version: data.version,
+                            namespace: this.curLoadBalance.namespace || 'default',
+                            cluster_id: chartId === -1 ? this.curLoadBalance.cluster_id : undefined
+                        }
+                        const res = await this.$store.dispatch('network/getChartDetails', {
+                            projectId,
+                            params
+                        })
+                        const files = res.data.files || {}
+                        Object.keys(files).forEach(filesKey => {
+                            if (filesKey.endsWith('values.yaml')) {
+                                this.curLoadBalance.values = files[filesKey]
+                            }
+                        })
+                        this.aceEditor.setValue(this.curLoadBalance.values)
+                    } catch (e) {
+                        catchErrorHandler(e, this)
+                    } finally {
+                        setTimeout(() => {
+                            this.aceEditor.gotoLine(0, 0, true)
+                        }, 10)
+                    }
+                } else {
+                    this.curLoadBalance.values = ''
                 }
             },
 
@@ -582,16 +591,6 @@
              * @param  {number} index 索引
              */
             async removeLoadBalance (loadBalance, index) {
-                if (!loadBalance.permissions.use) {
-                    await this.$store.dispatch('getResourcePermissions', {
-                        project_id: this.projectId,
-                        policy_code: 'use',
-                        resource_code: loadBalance.namespace,
-                        resource_name: loadBalance.namespace_name,
-                        resource_type: 'namespace'
-                    })
-                }
-
                 const self = this
                 const projectId = this.projectId
                 const projectKind = this.curProject.kind
@@ -637,7 +636,7 @@
              */
             searchLoadBalance () {
                 const keyword = this.searchKeyword.trim()
-                const keyList = ['cluster_name', 'namespace_name']
+                const keyList = ['cluster_name', 'name']
                 let list = this.$store.state.network.loadBalanceList
                 let results = []
 
@@ -719,6 +718,7 @@
              */
             hideLoadBalanceSlider () {
                 this.curLoadBalance = {
+                    'id': '',
                     'name': '',
                     'namespace': '',
                     'project_id': this.projectId,
@@ -733,10 +733,14 @@
                             isUse: true
                         }
                     },
-                    'node_list': []
+                    'node_list': [],
+                    'values': ''
                 }
 
                 this.loadBalanceSlider.isShow = false
+
+                this.curLoadBalanceChartId = ''
+                this.aceEditor.setValue('')
             },
 
             /**
@@ -785,7 +789,7 @@
              * 检查提交的数据
              * @return {boolean} true/false 是否合法
              */
-            checkData () {
+            checkData1 () {
                 const data = this.formatDataToServer()
                 if (!data.cluster_id) {
                     this.$bkMessage({
@@ -828,6 +832,63 @@
                         theme: 'error',
                         message: this.$t('请添加节点'),
                         delay: 5000
+                    })
+                    return false
+                }
+
+                return true
+            },
+
+            /**
+             * 检查提交的数据
+             * @return {boolean} true/false 是否合法
+             */
+            checkData () {
+                const data = this.curLoadBalance
+                if (!data.cluster_id) {
+                    this.$bkMessage({
+                        theme: 'error',
+                        message: this.$t('请选择所属集群'),
+                        delay: 2000
+                    })
+                    return false
+                }
+
+                if (!data.node_list || !data.node_list.length) {
+                    this.$bkMessage({
+                        theme: 'error',
+                        message: this.$t('请选择节点IP'),
+                        delay: 2000
+                    })
+                    return false
+                }
+
+                if (!this.curLoadBalanceChartId || !this.chartVersionList.find(item => item.id === this.curLoadBalanceChartId)) {
+                    this.$bkMessage({
+                        theme: 'error',
+                        message: this.$t('请选择版本'),
+                        delay: 2000
+                    })
+                    return false
+                }
+
+                const values = data.values.trim()
+
+                if (!values) {
+                    this.$bkMessage({
+                        theme: 'error',
+                        message: this.$t('请填写Values内容'),
+                        delay: 2000
+                    })
+                    return false
+                }
+
+                try {
+                    yamljs.load(values)
+                } catch (err) {
+                    this.$bkMessage({
+                        theme: 'error',
+                        message: this.$t('请输入合法的YAML')
                     })
                     return false
                 }
@@ -929,7 +990,18 @@
              */
             async createLoadBalance () {
                 const projectId = this.projectId
-                const data = this.formatDataToServer()
+
+                const data = {
+                    project_id: projectId,
+                    cluster_id: this.curLoadBalance.cluster_id,
+                    values_content: this.curLoadBalance.values,
+                    ip_info: {},
+                    version: this.chartVersionList.find(item => item.id === this.curLoadBalanceChartId).version
+                }
+
+                this.curLoadBalance.node_list.forEach(item => {
+                    data.ip_info[String(item.id + '')] = false
+                })
 
                 this.isDataSaveing = true
 
@@ -954,18 +1026,26 @@
              */
             async updateLoadBalance () {
                 const projectId = this.projectId
-                const data = this.formatDataToServer()
-                const loadBalanceId = data.id
-                const projectKind = this.curProject.kind
+
+                const data = {
+                    project_id: projectId,
+                    cluster_id: this.curLoadBalance.cluster_id,
+                    values_content: this.curLoadBalance.values,
+                    ip_info: {},
+                    version: this.chartVersionList.find(item => item.id === this.curLoadBalanceChartId).version
+                }
+                this.curLoadBalance.node_list.forEach(item => {
+                    data.ip_info[String(item.id + '')] = false
+                })
 
                 this.isDataSaveing = true
 
                 try {
                     await this.$store.dispatch('network/updateLoadBalance', {
                         projectId,
-                        loadBalanceId,
+                        loadBalanceId: this.curLoadBalance.id,
                         data,
-                        projectKind
+                        projectKind: this.curProject.kind
                     })
 
                     this.$bkMessage({
@@ -986,12 +1066,41 @@
              */
             saveLoadBalance () {
                 if (this.checkData()) {
-                    if (this.curLoadBalance.id > 0) {
+                    if (this.curLoadBalance.id) {
                         this.updateLoadBalance()
                     } else {
                         this.createLoadBalance()
                     }
                 }
+            },
+
+            /**
+             *  编辑器初始化之后的回调函数
+             *  @param editor - 编辑器对象
+             */
+            editorInitAfter (editor) {
+                this.aceEditor = editor
+            },
+
+            yamlEditorInput (val) {
+            },
+            yamlEditorBlur (val) {
+                this.curLoadBalance.values = val
+            },
+
+            /**
+             * 切换编辑器全屏状态
+             * @param {type}
+             * @return {type}
+             */
+            handleSetFullScreen () {
+                this.editorIsFullScreen = true
+            },
+            handleCloseFullScreen () {
+                this.editorIsFullScreen = false
+            },
+            handleClusterChange () {
+                this.curLoadBalance.node_list = []
             }
         }
     }

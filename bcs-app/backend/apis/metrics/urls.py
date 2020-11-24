@@ -11,22 +11,14 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
+from django.conf.urls import url
 
+from . import servicemonitor
 
-class HelmBaseException(Exception):
-    """Exception for kubectl client"""
-
-
-class HelmError(HelmBaseException):
-    """Normal error for kubectl ClusterClient"""
-
-
-class HelmExecutionError(HelmBaseException):
-    """Error when running kubectl command failed
-    """
-    def __init__(self, error_no: int, output: bytes):
-        self.error_no = error_no
-        self.output = output.decode().strip()
-
-    def __str__(self):
-        return "({}) {}".format(self.error_no, self.output)
+urlpatterns = [
+    url(r"^servicemonitors/$", servicemonitor.ServiceMonitor.as_view({"post": "create"})),
+    url(
+        r"^servicemonitors/(?P<namespace>[\w-]+)/(?P<name>[\w-]+)/$",
+        servicemonitor.ServiceMonitor.as_view({"get": "get", "put": "update"}),
+    ),
+]

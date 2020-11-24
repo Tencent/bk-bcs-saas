@@ -1195,7 +1195,7 @@
                 const name = versionData.name
                 const realVersionId = versionData.real_version_id
                 const me = this
-                let msg = `转换YAML功能会将模板集版本【${name}】复制为一个新的YAML模板集，由平台完成模板配置的转换。使用中如有问题，请联系蓝鲸容器助手`
+                let msg = `转换YAML功能会将模板集版本【${name}】复制为一个新的YAML模板集，由平台完成模板配置的转换`
                 if (this.isEn) {
                     msg = `The conversion YAML function will copy the template set version [${name}] into a new YAML template set, and the platform will complete the conversion of the template configuration. If you have any questions during use, please contact BCS`
                 }

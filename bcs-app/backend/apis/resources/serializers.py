@@ -45,3 +45,13 @@ class CreateNamespaceParamsSLZ(serializers.Serializer):
             var["id"] = key_id_map[var["key"]]
 
         return variables
+
+
+class LabelsItemSLZ(serializers.Serializer):
+    inner_ip = serializers.CharField()
+    labels = serializers.JSONField(default={})
+
+
+class CreateNodeLabelsSLZ(serializers.Serializer):
+    # [{"inner_ip": ip1, "labels": {key: {"value": val}}}]
+    node_labels = serializers.ListField(child=LabelsItemSLZ())

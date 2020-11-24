@@ -672,7 +672,6 @@
                                             </template>
                                             <template v-else>
                                                 <div class="bk-dropdown-box" style="width: 375px;">
-                                                    {{curContainer.webCache.imageName}}
                                                     <bk-combox
                                                         style="width: 325px;"
                                                         type="text"
@@ -2657,7 +2656,6 @@
 
                 // 兼容原数据webcache
                 container.webCache.imageName = container.imageName
-                debugger
                 delete container.imageName
                 container.webCache.env_list = []
 
@@ -3404,6 +3402,8 @@
              */
             watchChange () {
                 this.compareTimer = setInterval(() => {
+                    if (!this.curApplication || !this.curApplication.cache) return
+                    
                     const appCopy = JSON.parse(JSON.stringify(this.curApplication))
                     const cacheCopy = JSON.parse(JSON.stringify(this.curApplication.cache))
                     this.deletePropertyBeforeDiff(appCopy)

@@ -11,22 +11,10 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
+from backend.apis.views import ProjectBaseAPIViewSet
+from backend.apps.metric.views import servicemonitor
 
 
-class HelmBaseException(Exception):
-    """Exception for kubectl client"""
-
-
-class HelmError(HelmBaseException):
-    """Normal error for kubectl ClusterClient"""
-
-
-class HelmExecutionError(HelmBaseException):
-    """Error when running kubectl command failed
+class ServiceMonitor(ProjectBaseAPIViewSet, servicemonitor.ServiceMonitor):
+    """继承servicemonitor
     """
-    def __init__(self, error_no: int, output: bytes):
-        self.error_no = error_no
-        self.output = output.decode().strip()
-
-    def __str__(self):
-        return "({}) {}".format(self.error_no, self.output)

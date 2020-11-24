@@ -260,8 +260,10 @@ class NginxIngressListCreateViewSet(NginxIngressBase, HelmReleaseMixin):
         )
         # 4. helm apply
         try:
+            access_token = request.user.token.access_token
+            sys_variables = self.collect_system_variable(access_token, project_id, ns_info["namespace_id"])
             helm_app_info = App.objects.initialize_app(
-                access_token=request.user.token.access_token,
+                access_token=access_token,
                 name=K8S_LB_CHART_NAME,
                 project_id=project_id,
                 cluster_id=data["cluster_id"],
@@ -273,7 +275,8 @@ class NginxIngressListCreateViewSet(NginxIngressBase, HelmReleaseMixin):
                 cmd_flags=[],
                 valuefile=data["values_content"],
                 creator=request.user.username,
-                updator=request.user.username
+                updator=request.user.username,
+                sys_variables=sys_variables
             )
         except Exception as err:
             logger.exception('Create helm app error, detail: %s' % err)
@@ -438,12 +441,15 @@ class NginxIngressRetrieveUpdateViewSet(NginxIngressBase, HelmReleaseMixin):
         # release 对应的版本为"(current-unchanged) v1.1.2"
         version = data["version"].split(constants.RELEASE_VERSION_PREFIX)[-1].strip()
         chart_version = self.get_chart_version(project_id, version)
+        access_token = request.user.token.access_token
+        sys_variables = self.collect_system_variable(access_token, project_id, data["namespace_id"])
         updated_instance = release.upgrade_app(
-            access_token=request.user.token.access_token,
+            access_token=access_token,
             chart_version_id=chart_version.id,
             answers=[], customs=[],
             valuefile=data["values_content"],
-            updator=username
+            updator=username,
+            sys_variables=sys_variables,
         )
         if updated_instance.transitioning_result:
             user_log.log_modify(activity_status="succeed")

@@ -169,7 +169,7 @@ class BCSIAM(IAM):
 
 
 class Permission:
-    iam = BCSIAM(settings.APP_ID, settings.APP_TOKEN, settings.BK_IAM_HOST, settings.BK_PAAS_HOST)
+    iam = BCSIAM(settings.APP_ID, settings.APP_TOKEN, settings.BK_IAM_HOST, settings.BK_PAAS_INNER_HOST)
     resource_type_id = None
 
     def make_application(self, action_id, resource_id):

@@ -6,17 +6,26 @@
   "scripts": {
     "dll": "rimraf static/lib* && node build/build-dll.js",
     "check-dll": "node build/check-dll.js",
-    "dev": "better-npm-run dev",
+    "dev": "better-npm-run dev:ce",
+    "dev:ee": "better-npm-run dev:ee",
     "build:analyzer": "better-npm-run build:analyzer",
     "clean:ee": "rimraf dist/ee",
-    "build": "better-npm-run build"
+    "build": "better-npm-run build:ce",
+    "build:ee": "better-npm-run build:ee"
   },
   "betterScripts": {
-    "dev": {
+    "dev:ce": {
       "command": "npm run check-dll && node build/dev-server.js",
       "env": {
         "NODE_ENV": "development",
         "VERSION": "ce"
+      }
+    },
+    "dev:ee": {
+      "command": "npm run check-dll && node build/dev-server.js",
+      "env": {
+        "NODE_ENV": "development",
+        "VERSION": "ee"
       }
     },
     "build:analyzer": {
@@ -27,11 +36,18 @@
         "npm_config_report": 1
       }
     },
-    "build": {
+    "build:ce": {
       "command": "npm run clean:ee && npm run dll && node --max-old-space-size=4096 build/build.js && node build/replace-internal-info.js",
       "env": {
         "NODE_ENV": "production",
         "VERSION": "ce"
+      }
+    },
+    "build:ee": {
+      "command": "npm run clean:ee && npm run dll && node --max-old-space-size=4096 build/build.js && node build/replace-internal-info.js",
+      "env": {
+        "NODE_ENV": "production",
+        "VERSION": "ee"
       }
     }
   },
@@ -76,7 +92,6 @@
     "@babel/plugin-transform-runtime": "~7.4.4",
     "@babel/preset-env": "~7.4.5",
     "@babel/runtime": "~7.4.5",
-    "@tencent/webpack-sentry-plugin": "~1.0.0",
     "@vue/babel-helper-vue-jsx-merge-props": "~1.0.0",
     "@vue/babel-plugin-transform-vue-jsx": "~1.0.0",
     "@vue/babel-preset-jsx": "~1.0.0",

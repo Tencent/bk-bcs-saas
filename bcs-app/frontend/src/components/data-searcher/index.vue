@@ -110,10 +110,13 @@
                     this.clearSearch()
                 }
             },
-            searchScope (val) {
-                if (val) {
-                    this.localSearchScope = val
-                    this.handleSearch()
+            searchScope: {
+                immediate: true,
+                handler (val) {
+                    if (val) {
+                        this.localSearchScope = val
+                        // this.handleSearch()
+                    }
                 }
             }
         },
@@ -125,7 +128,6 @@
             handleSechScope (index, data) {
                 this.curScope = data
                 sessionStorage['bcs-cluster'] = this.curScope.id
-                this.$emit('update:searchScope', this.curScope.id)
                 this.handleSearch()
             },
             initLocalScopeList () {
@@ -150,6 +152,7 @@
             },
             handleSearch () {
                 this.isTriggerSearch = true
+                this.$emit('update:searchScope', this.curScope.id)
                 this.$emit('update:searchKey', this.localKey)
                 this.$emit('search')
                 this.isRefresh = false

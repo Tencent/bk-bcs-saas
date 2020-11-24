@@ -11,22 +11,22 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
+from rest_framework import serializers
 
 
-class HelmBaseException(Exception):
-    """Exception for kubectl client"""
+class LabelsItemSLZ(serializers.Serializer):
+    cluster_id = serializers.CharField()
+    inner_ip = serializers.CharField()
+    labels = serializers.JSONField(default=[])
 
 
-class HelmError(HelmBaseException):
-    """Normal error for kubectl ClusterClient"""
+class NodeLabelsSLZ(serializers.Serializer):
+    node_labels = serializers.ListField(child=LabelsItemSLZ())
 
 
-class HelmExecutionError(HelmBaseException):
-    """Error when running kubectl command failed
-    """
-    def __init__(self, error_no: int, output: bytes):
-        self.error_no = error_no
-        self.output = output.decode().strip()
+class FilterNodeLabelsSLZ(NodeLabelsSLZ):
+    pass
 
-    def __str__(self):
-        return "({}) {}".format(self.error_no, self.output)
+
+class SetNodeLabelsSLZ(NodeLabelsSLZ):
+    pass
