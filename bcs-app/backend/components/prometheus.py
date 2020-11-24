@@ -643,3 +643,27 @@ def mesos_cluster_memory_resource_total_range(cluster_id, start, end):
 
     resp = query_range(prom_query, start, end, step)
     return resp.get("data") or {}
+
+
+def mesos_cluster_cpu_resource_usage_range(cluster_id, start, end):
+    """mesos集群使用的CPU, 单位核
+    """
+    step = (end - start) // 60
+    prom_query = f"""
+        max by (cluster_id) (bkbcs_scheduler_cluster_cpu_resource_total{{cluster_id="{cluster_id}"}} - bkbcs_scheduler_cluster_cpu_resource_remain{{cluster_id="{cluster_id}"}})
+    """  # noqa
+
+    resp = query_range(prom_query, start, end, step)
+    return resp.get("data") or {}
+
+
+def mesos_cluster_memory_resource_usage_range(cluster_id, start, end):
+    """mesos集群使用的内存, 单位MB
+    """
+    step = (end - start) // 60
+    prom_query = f"""
+       max by (cluster_id) (bkbcs_scheduler_cluster_memory_resource_total{{cluster_id="{cluster_id}"}} - bkbcs_scheduler_cluster_memory_resource_remain{{cluster_id="{cluster_id}"}})
+    """  # noqa
+
+    resp = query_range(prom_query, start, end, step)
+    return resp.get("data") or {}
