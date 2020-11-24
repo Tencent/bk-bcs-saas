@@ -169,7 +169,7 @@ def parse_response_data(default_data=None, err_msg_prefix=None):
     return decorate
 
 
-def handle_mesos_api_not_implemented(keyword):
+def handle_api_not_implemented(keyword, msg):
     """处理mesos API 为上线, 返回404 page not found的情况
     """
 
@@ -182,7 +182,7 @@ def handle_mesos_api_not_implemented(keyword):
             except ComponentError as error:
                 response = getattr(error, "response", None)
                 if response and keyword and keyword in response.text:
-                    raise error_codes.APIError(_("当前集群还不支持Metric管理，请{}").format(settings.COMMON_CUSTOMER_SUPPORT_MSG))
+                    raise error_codes.APIError(msg)
                 else:
                     raise error
 
