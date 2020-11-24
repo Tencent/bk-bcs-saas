@@ -19,7 +19,7 @@ from django.utils.translation import ugettext_lazy as _
 
 from backend.components.bcs import BCSClientBase
 from backend.components.utils import http_delete, http_get, http_post, http_put
-from backend.utils.decorators import handle_mesos_api_not_implemented, parse_response_data
+from backend.utils.decorators import handle_api_not_implemented, parse_response_data
 from backend.utils.errcodes import ErrorCode
 from backend.utils.error_codes import error_codes
 
@@ -658,7 +658,7 @@ class MesosClient(BCSClientBase):
             url = f"{self.scheduler_host}/mesos/customresources/monitor.tencent.com/v1/servicemonitors"
         return url
 
-    @handle_mesos_api_not_implemented(**API_NOT_IMPLEMENTED_MSG["ServiceMonitor"])
+    @handle_api_not_implemented(**API_NOT_IMPLEMENTED_MSG["ServiceMonitor"])
     def list_service_monitor(self, namespace=None):
         """servicemonitor列表
         """
@@ -666,7 +666,7 @@ class MesosClient(BCSClientBase):
         resp = http_get(url, headers=self.headers)
         return resp
 
-    @handle_mesos_api_not_implemented(**API_NOT_IMPLEMENTED_MSG["ServiceMonitor"])
+    @handle_api_not_implemented(**API_NOT_IMPLEMENTED_MSG["ServiceMonitor"])
     def create_service_monitor(self, namespace, spec):
         """创建servicemonitor
         """
@@ -675,7 +675,7 @@ class MesosClient(BCSClientBase):
         url = self._get_service_monitor_url(namespace)
         return http_post(url, json=spec, headers=self.headers, raise_for_status=False)
 
-    @handle_mesos_api_not_implemented(**API_NOT_IMPLEMENTED_MSG["ServiceMonitor"])
+    @handle_api_not_implemented(**API_NOT_IMPLEMENTED_MSG["ServiceMonitor"])
     def get_service_monitor(self, namespace, name):
         """获取servicemonitor
         """
@@ -683,7 +683,7 @@ class MesosClient(BCSClientBase):
         url = f"{url_prefix}/{name}"
         return http_get(url, headers=self.headers, raise_for_status=False)
 
-    @handle_mesos_api_not_implemented(**API_NOT_IMPLEMENTED_MSG["ServiceMonitor"])
+    @handle_api_not_implemented(**API_NOT_IMPLEMENTED_MSG["ServiceMonitor"])
     def update_service_monitor(self, namespace, name, spec):
         """更新servicemonitor
         """
@@ -693,7 +693,7 @@ class MesosClient(BCSClientBase):
         url = f"{url_prefix}/{name}"
         return http_put(url, json=spec, headers=self.headers, raise_for_status=False)
 
-    @handle_mesos_api_not_implemented(**API_NOT_IMPLEMENTED_MSG["ServiceMonitor"])
+    @handle_api_not_implemented(**API_NOT_IMPLEMENTED_MSG["ServiceMonitor"])
     def delete_service_monitor(self, namespace, name):
         """删除servicemonitor
         """
