@@ -424,6 +424,10 @@ class DeleteNodeBase(BaseNode):
         self.save_task_url(log, data)
         return log
 
+    def can_delete_node(self, access_token, project_id, cluster_id):
+        # 针对导入/纳管的集群，不允许通过平台流程删除节点
+        pass
+
 
 class DeleteNode(DeleteNodeBase):
 
