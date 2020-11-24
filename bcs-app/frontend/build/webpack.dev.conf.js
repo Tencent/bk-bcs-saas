@@ -70,7 +70,8 @@ const webpackConfig = merge(baseWebpackConfig, {
             filename: 'index.html',
             template: 'index-dev.html',
             inject: true,
-            staticUrl: config.dev.env.staticUrl
+            staticUrl: config.dev.env.staticUrl,
+            version: VERSION
         }),
         new FriendlyErrorsPlugin(),
         new MonacoEditorPlugin({
