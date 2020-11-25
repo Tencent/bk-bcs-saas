@@ -645,7 +645,7 @@ def mesos_cluster_memory_resource_total_range(cluster_id, start, end):
     return resp.get("data") or {}
 
 
-def mesos_cluster_cpu_resource_usage_range(cluster_id, start, end):
+def mesos_cluster_cpu_resource_used_range(cluster_id, start, end):
     """mesos集群使用的CPU, 单位核
     """
     step = (end - start) // 60
@@ -657,7 +657,7 @@ def mesos_cluster_cpu_resource_usage_range(cluster_id, start, end):
     return resp.get("data") or {}
 
 
-def mesos_cluster_memory_resource_usage_range(cluster_id, start, end):
+def mesos_cluster_memory_resource_used_range(cluster_id, start, end):
     """mesos集群使用的内存, 单位MB
     """
     step = (end - start) // 60

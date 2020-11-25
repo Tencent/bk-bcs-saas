@@ -23,7 +23,7 @@ cluster_urlpatterns = [
     url(r"^mesos_cpu_resource_remain/$", views.performance.MesosCluster.as_view({"get": "mesos_cpu_resource_remain"})),
     url(r"^mesos_cpu_resource_total/$", views.performance.MesosCluster.as_view({"get": "mesos_cpu_resource_total"})),
     url(
-        r"^mesos_cpu_resource_usage/$", views.performance.MesosCluster.as_view({"get": "mesos_cpu_resource_usage"})
+        r"^mesos_cpu_resource_used/$", views.performance.MesosCluster.as_view({"get": "mesos_cpu_resource_used"})
     ),
     url(
         r"^mesos_memory_resource_remain/$",
@@ -34,8 +34,8 @@ cluster_urlpatterns = [
         views.performance.MesosCluster.as_view({"get": "mesos_memory_resource_total"}),
     ),
     url(
-        r"^mesos_memory_resource_usage/$",
-        views.performance.MesosCluster.as_view({"get": "mesos_memory_resource_usage"})
+        r"^mesos_memory_resource_used/$",
+        views.performance.MesosCluster.as_view({"get": "mesos_memory_resource_used"})
     ),
     url(r"^disk_usage/$", views.performance.Cluster.as_view({"get": "disk_usage"})),
     url(r"^node/overview/$", views.performance.Node.as_view({"get": "overview"})),

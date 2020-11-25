@@ -105,14 +105,14 @@ class MesosCluster(base.MetricViewMixin, viewsets.ViewSet):
         result = prometheus.mesos_cluster_memory_resource_total_range(cluster_id, data["start_at"], data["end_at"])
         return response.Response(result)
 
-    def mesos_cpu_resource_usage(self, request, project_id, cluster_id):
+    def mesos_cpu_resource_used(self, request, project_id, cluster_id):
         data = self.get_validated_data(request)
-        result = prometheus.mesos_cluster_cpu_resource_usage_range(cluster_id, data["start_at"], data["end_at"])
+        result = prometheus.mesos_cluster_cpu_resource_used_range(cluster_id, data["start_at"], data["end_at"])
         return response.Response(result)
 
-    def mesos_memory_resource_usage(self, request, project_id, cluster_id):
+    def mesos_memory_resource_used(self, request, project_id, cluster_id):
         data = self.get_validated_data(request)
-        result = prometheus.mesos_cluster_memory_resource_usage_range(cluster_id, data["start_at"], data["end_at"])
+        result = prometheus.mesos_cluster_memory_resource_used_range(cluster_id, data["start_at"], data["end_at"])
         return response.Response(result)
 
 
