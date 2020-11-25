@@ -429,9 +429,9 @@ class DeleteNodeBase(BaseNode):
 
     def can_delete_node(self, access_token, project_id, cluster_id):
         cluster = get_cluster(access_token, project_id, cluster_id)
-        # 针对导入/纳管的集群，不允许通过平台流程删除节点
+        # 针对导入/纳管的集群，不允许通过平台删除节点
         if cluster["state"] == ClusterState.Existing.value:
-            raise ValidationError(_("导入的集群不允许通过平台删除节点流程"))
+            raise ValidationError(_("导入的集群不允许通过平台删除节点"))
 
 
 class DeleteNode(DeleteNodeBase):
