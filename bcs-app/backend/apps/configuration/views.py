@@ -24,11 +24,21 @@ from rest_framework.renderers import BrowsableAPIRenderer
 from django.utils.translation import ugettext_lazy as _
 
 from backend.accounts import bcs_perm
-from backend.apps.configuration.models import Template, VersionedEntity, get_default_version, \
-    get_model_class_by_resource_name, get_template_by_project_and_id
+from backend.apps.configuration.models import (
+    Template,
+    VersionedEntity,
+    get_default_version,
+    get_model_class_by_resource_name,
+    get_template_by_project_and_id,
+)
 from backend.apps.configuration import serializers_new
-from backend.apps.configuration.serializers import ResourceSLZ, ResourceRequstSLZ, TemplateCreateSLZ, \
-    get_tempate_info, is_tempalte_instance
+from backend.apps.configuration.serializers import (
+    ResourceSLZ,
+    ResourceRequstSLZ,
+    TemplateCreateSLZ,
+    get_template_info,
+    is_tempalte_instance,
+)
 from backend.apps.configuration.utils import validate_resource_name, create_template_with_perm_check
 from backend.apps.instance.utils import check_tempalte_available, validate_template_id
 from backend.utils.renderers import BKAPIRenderer
@@ -38,7 +48,7 @@ from .mixins import TemplatePermission
 
 def is_create_template(template_id):
     # template_id 为 0 时，创建模板集
-    if template_id == '0':
+    if template_id == "0":
         return True
     return False
 
@@ -48,9 +58,9 @@ class TemplatesView(APIView):
     renderer_classes = (BKAPIRenderer, BrowsableAPIRenderer)
 
     def filter_queryset_with_params(self, project_id, name):
-        params = {'project_id': project_id}
+        params = {"project_id": project_id}
         if name:
-            params['name__icontains'] = name.strip()
+            params["name__icontains"] = name.strip()
         return self.queryset.filter(**params)
 
     def get(self, request, project_id):
@@ -58,33 +68,35 @@ class TemplatesView(APIView):
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
 
-        templates = self.filter_queryset_with_params(project_id, data['search'])
+        templates = self.filter_queryset_with_params(project_id, data["search"])
         num_of_templates = templates.count()
 
         # 获取项目类型 backend.utils.permissions做了处理
         kind = request.project.kind
         # 添加分页信息
-        limit, offset = data['limit'], data['offset']
-        templates = templates[offset:limit + offset]
+        limit, offset = data["limit"], data["offset"]
+        templates = templates[offset : limit + offset]
 
-        serializer = serializers_new.ListTemplateSLZ(templates, many=True, context={'kind': kind})
+        serializer = serializers_new.ListTemplateSLZ(templates, many=True, context={"kind": kind})
         template_list = serializer.data
 
         # 初始化模板权限模板
         perm = bcs_perm.Templates(request, project_id, bcs_perm.NO_RES)
         # 过滤有使用权限的模板集
-        template_list = perm.hook_perms(template_list, data['perm_can_use'])
-        return Response({
-            'code': 0,
-            'message': 'OK',
-            'data': {
-                'count': num_of_templates,
-                'has_previous': True if offset != 0 else False,
-                'has_next': True if (offset + limit) < num_of_templates else False,
-                'results': template_list
-            },
-            'permissions': {'create': perm.can_create(raise_exception=False)}
-        })
+        template_list = perm.hook_perms(template_list, data["perm_can_use"])
+        return Response(
+            {
+                "code": 0,
+                "message": "OK",
+                "data": {
+                    "count": num_of_templates,
+                    "has_previous": True if offset != 0 else False,
+                    "has_next": True if (offset + limit) < num_of_templates else False,
+                    "results": template_list,
+                },
+                "permissions": {"create": perm.can_create(raise_exception=False)},
+            }
+        )
 
 
 class CreateTemplateDraftView(APIView, TemplatePermission):
@@ -93,14 +105,16 @@ class CreateTemplateDraftView(APIView, TemplatePermission):
     def post(self, request, project_id, template_id):
         if is_create_template(template_id):
             # template dict like {'desc': '', 'name': ''}
-            tpl_args = request.data.get('template', {})
+            tpl_args = request.data.get("template", {})
             template = create_template_with_perm_check(request, project_id, tpl_args)
         else:
             template = get_template_by_project_and_id(project_id, template_id)
 
         self.can_edit_template(request, template)
 
-        serializer = serializers_new.TemplateDraftSLZ(template, data=request.data, context={'template_id': template.id})
+        serializer = serializers_new.TemplateDraftSLZ(
+            template, data=request.data, context={"template_id": template.id}
+        )
         serializer.is_valid(raise_exception=True)
         serializer.save(draft_updator=request.user.username)
 
@@ -109,30 +123,28 @@ class CreateTemplateDraftView(APIView, TemplatePermission):
         client.ContextActivityLogClient(
             project_id=template.project_id,
             user=request.user.username,
-            resource_type='template',
+            resource_type="template",
             resource=template.name,
             resource_id=template.id,
             extra=json.dumps(validated_data),
-            description=_("保存草稿")
+            description=_("保存草稿"),
         ).log_modify()
 
-        return Response({
-            'template_id': template.id,
-            'show_version_id': -1,
-            'real_version_id': validated_data['real_version_id'],
-        })
+        return Response(
+            {"template_id": template.id, "show_version_id": -1, "real_version_id": validated_data["real_version_id"],}
+        )
 
 
 class CreateAppResourceView(APIView, TemplatePermission):
     renderer_classes = (BKAPIRenderer, BrowsableAPIRenderer)
 
     def _compose_create_data(self, data):
-        del data['version_id']
-        if 'resource_name' in data:
-            del data['resource_name']
-        del data['project_id']
-        del data['resource_id']
-        data['creator'] = self.request.user.username
+        del data["version_id"]
+        if "resource_name" in data:
+            del data["resource_name"]
+        del data["project_id"]
+        del data["resource_id"]
+        data["creator"] = self.request.user.username
         return data
 
     @transaction.atomic
@@ -145,13 +157,13 @@ class CreateAppResourceView(APIView, TemplatePermission):
             template_id=template_id,
             version=get_default_version(),
             entity=resource_entity,
-            creator=self.request.user.username
+            creator=self.request.user.username,
         )
         return {
-            'id': resource.id,
-            'version': ventity.id,
-            'template_id': template_id,
-            'resource_data': resource.get_res_config(is_simple=True)
+            "id": resource.id,
+            "version": ventity.id,
+            "template_id": template_id,
+            "resource_data": resource.get_res_config(is_simple=True),
         }
 
     @transaction.atomic
@@ -160,7 +172,7 @@ class CreateAppResourceView(APIView, TemplatePermission):
 
         if is_create_template(template_id):
             # template dict like {'desc': '', 'name': ''}
-            tpl_args = request.data.get('template', {})
+            tpl_args = request.data.get("template", {})
             template = create_template_with_perm_check(request, project_id, tpl_args)
         else:
             template = get_template_by_project_and_id(project_id, template_id)
@@ -168,11 +180,7 @@ class CreateAppResourceView(APIView, TemplatePermission):
         self.can_edit_template(request, template)
 
         data = request.data or {}
-        data.update({
-            'version_id': 0,
-            'resource_id': 0,
-            'project_id': project_id
-        })
+        data.update({"version_id": 0, "resource_id": 0, "project_id": project_id})
         serializer_class = serializers_new.get_slz_class_by_resource_name(resource_name)
         serializer = serializer_class(data=data)
         serializer.is_valid(raise_exception=True)
@@ -186,12 +194,12 @@ class UpdateDestroyAppResourceView(APIView, TemplatePermission):
     renderer_classes = (BKAPIRenderer, BrowsableAPIRenderer)
 
     def _compose_update_data(self, data):
-        del data['version_id']
-        if 'resource_name' in data:
-            del data['resource_name']
-        del data['project_id']
-        del data['resource_id']
-        data['creator'] = self.request.user.username
+        del data["version_id"]
+        if "resource_name" in data:
+            del data["resource_name"]
+        del data["project_id"]
+        del data["resource_id"]
+        data["creator"] = self.request.user.username
         return data
 
     def put(self, request, project_id, version_id, resource_name, resource_id):
@@ -203,16 +211,12 @@ class UpdateDestroyAppResourceView(APIView, TemplatePermission):
         serializer.is_valid(raise_exception=True)
         validated_data = serializer.validated_data
 
-        ventity = validated_data['ventity']
-        template = validated_data['template']
+        ventity = validated_data["ventity"]
+        template = validated_data["template"]
         self.can_edit_template(request, template)
 
         data = request.data or {}
-        data.update({
-            'version_id': version_id,
-            'resource_id': resource_id,
-            'project_id': project_id
-        })
+        data.update({"version_id": version_id, "resource_id": resource_id, "project_id": project_id})
 
         serializer_class = serializers_new.get_slz_class_by_resource_name(resource_name)
         serializer = serializer_class(data=data)
@@ -226,18 +230,15 @@ class UpdateDestroyAppResourceView(APIView, TemplatePermission):
             robj = resource_class.perform_create(**update_data)
 
         new_ventity = VersionedEntity.update_for_new_ventity(
-            ventity.id, resource_name, resource_id, str(robj.id),
-            **{'creator': self.request.user.username}
+            ventity.id, resource_name, resource_id, str(robj.id), **{"creator": self.request.user.username}
         )
 
         # model Template updated field need change when update resource
-        template.save(update_fields=['updated'])
+        template.save(update_fields=["updated"])
 
-        return Response({
-            'id': robj.id,
-            'version': new_ventity.id,
-            'resource_data': robj.get_res_config(is_simple=True)
-        })
+        return Response(
+            {"id": robj.id, "version": new_ventity.id, "resource_data": robj.get_res_config(is_simple=True)}
+        )
 
     def delete(self, request, project_id, version_id, resource_name, resource_id):
         validate_resource_name(resource_name)
@@ -246,18 +247,17 @@ class UpdateDestroyAppResourceView(APIView, TemplatePermission):
         serializer.is_valid(raise_exception=True)
         validated_data = serializer.validated_data
 
-        ventity = validated_data['ventity']
-        template = validated_data['template']
+        ventity = validated_data["ventity"]
+        template = validated_data["template"]
         self.can_edit_template(request, template)
 
         # 关联关系检查
         serializers_new.can_delete_resource(ventity, resource_name, resource_id)
 
         new_ventity = VersionedEntity.update_for_delete_ventity(
-            ventity.id, resource_name, resource_id,
-            **{'creator': self.request.user.username}
+            ventity.id, resource_name, resource_id, **{"creator": self.request.user.username}
         )
-        return Response({'id': resource_id, 'version': new_ventity.id})
+        return Response({"id": resource_id, "version": new_ventity.id})
 
 
 class LockTemplateView(viewsets.ViewSet, TemplatePermission):
@@ -268,12 +268,12 @@ class LockTemplateView(viewsets.ViewSet, TemplatePermission):
         self.validate_template_locked(request, template)
 
         with client.ContextActivityLogClient(
-                project_id=project_id,
-                user=request.user.username,
-                resource_type="template",
-                resource=template.name,
-                resource_id=template_id,
-                description=_("加锁模板集")
+            project_id=project_id,
+            user=request.user.username,
+            resource_type="template",
+            resource=template.name,
+            resource_id=template_id,
+            description=_("加锁模板集"),
         ).log_add():
             template.is_locked = True
             template.locker = request.user.username
@@ -285,15 +285,15 @@ class LockTemplateView(viewsets.ViewSet, TemplatePermission):
         self.validate_template_locked(request, template)
 
         with client.ContextActivityLogClient(
-                project_id=project_id,
-                user=request.user.username,
-                resource_type="template",
-                resource=template.name,
-                resource_id=template_id,
-                description=_("解锁模板集")
+            project_id=project_id,
+            user=request.user.username,
+            resource_type="template",
+            resource=template.name,
+            resource_id=template_id,
+            description=_("解锁模板集"),
         ).log_delete():
             template.is_locked = False
-            template.locker = ''
+            template.locker = ""
             template.save()
         return Response(data={})
 
@@ -304,14 +304,11 @@ class TempalteResourceView(generics.RetrieveAPIView):
     renderer_classes = (BKAPIRenderer, BrowsableAPIRenderer)
 
     def get_queryset(self):
-        return VersionedEntity.objects.filter(
-            id=self.pk
-        )
+        return VersionedEntity.objects.filter(id=self.pk)
 
     def get_serializer_context(self):
         context = super(TempalteResourceView, self).get_serializer_context()
-        self.slz = ResourceRequstSLZ(
-            data=self.request.GET, context={'project_kind': self.project_kind})
+        self.slz = ResourceRequstSLZ(data=self.request.GET, context={"project_kind": self.project_kind})
         self.slz.is_valid(raise_exception=True)
 
         context.update(self.slz.data)
@@ -329,21 +326,15 @@ class SingleTempalteView(generics.RetrieveUpdateDestroyAPIView):
     renderer_classes = (BKAPIRenderer, BrowsableAPIRenderer)
 
     def get_queryset(self):
-        return Template.objects.filter(
-            project_id=self.project_id,
-            id=self.pk
-        )
+        return Template.objects.filter(project_id=self.project_id, id=self.pk)
 
     def get_serializer_context(self):
         context = super(SingleTempalteView, self).get_serializer_context()
-        context.update({'request': self.request})
+        context.update({"request": self.request})
         return context
 
     def perform_update(self, serializer):
-        instance = serializer.save(
-            updator=self.request.user.username,
-            project_id=self.project_id
-        )
+        instance = serializer.save(updator=self.request.user.username, project_id=self.project_id)
         # 记录操作日志
         client.ContextActivityLogClient(
             project_id=self.project_id,
@@ -352,7 +343,7 @@ class SingleTempalteView(generics.RetrieveUpdateDestroyAPIView):
             resource=instance.name,
             resource_id=instance.id,
             extra=json.dumps(serializer.data),
-            description=_("更新模板集")
+            description=_("更新模板集"),
         ).log_modify()
         # 同步模板集名称到权限中心
         self.perm.update_name(instance.name)
@@ -372,13 +363,12 @@ class SingleTempalteView(generics.RetrieveUpdateDestroyAPIView):
         check_tempalte_available(template, request.user.username)
 
         # 验证模板名是否已经存在
-        new_template_name = request.data.get('name')
-        is_exist = Template.default_objects.exclude(id=pk).filter(
-            name=new_template_name, project_id=project_id).exists()
+        new_template_name = request.data.get("name")
+        is_exist = (
+            Template.default_objects.exclude(id=pk).filter(name=new_template_name, project_id=project_id).exists()
+        )
         if is_exist:
-            detail = {
-                'field': [_('模板集名称[{}]已经存在').format(new_template_name)]
-            }
+            detail = {"field": [_("模板集名称[{}]已经存在").format(new_template_name)]}
             raise ValidationError(detail=detail)
 
         self.slz = serializers_new.UpdateTemplateSLZ(data=request.data)
@@ -397,16 +387,12 @@ class SingleTempalteView(generics.RetrieveUpdateDestroyAPIView):
         tems = self.get_queryset()
         if tems:
             tem = tems.first()
-            data = get_tempate_info(tem, kind)
+            data = get_template_info(tem, kind)
         else:
             data = {}
         perm = bcs_perm.Templates(request, project_id, pk, template.name)
         data_list = perm.hook_perms([data])
-        return Response({
-            "code": 0,
-            "message": "OK",
-            "data": data_list[0]
-        })
+        return Response({"code": 0, "message": "OK", "data": data_list[0]})
 
     def delete(self, request, project_id, pk):
         self.request = request
@@ -423,35 +409,24 @@ class SingleTempalteView(generics.RetrieveUpdateDestroyAPIView):
         # 已经实例化过的版本，不能被删除
         exist_version = is_tempalte_instance(pk)
         if exist_version:
-            return Response({
-                "code": 400,
-                "message": _("模板集已经被实例化过，不能被删除"),
-                "data": {}
-            })
+            return Response({"code": 400, "message": _("模板集已经被实例化过，不能被删除"), "data": {}})
         instance = self.get_queryset().first()
         with client.ContextActivityLogClient(
-                project_id=project_id,
-                user=request.user.username,
-                resource_type="template",
-                resource=instance.name,
-                resource_id=instance.id,
-                description=_("删除模板集")
+            project_id=project_id,
+            user=request.user.username,
+            resource_type="template",
+            resource=instance.name,
+            resource_id=instance.id,
+            description=_("删除模板集"),
         ).log_delete():
             # 删除后名称添加 [deleted]前缀
-            _del_prefix = '[deleted_%s]' % int(time.time())
+            _del_prefix = "[deleted_%s]" % int(time.time())
             del_tem_name = "%s%s" % (_del_prefix, instance.name)
-            self.get_queryset().update(name=del_tem_name, is_deleted=True,
-                                       deleted_time=timezone.now())
+            self.get_queryset().update(name=del_tem_name, is_deleted=True, deleted_time=timezone.now())
             # 直接调用delete删除权限中心的资源
             perm.delete()
 
-        return Response({
-            "code": 0,
-            "message": "OK",
-            "data": {
-                "id": pk
-            }
-        })
+        return Response({"code": 0, "message": "OK", "data": {"id": pk}})
         # return super(SingleTempalteView, self).delete(self, request)
 
     @transaction.atomic
@@ -467,30 +442,24 @@ class SingleTempalteView(generics.RetrieveUpdateDestroyAPIView):
         self.project_id = project_id
         self.pk = pk
         data = request.data
-        data['project_id'] = project_id
+        data["project_id"] = project_id
         self.slz = TemplateCreateSLZ(data=data)
         self.slz.is_valid(raise_exception=True)
-        new_template_name = self.slz.data['name']
+        new_template_name = self.slz.data["name"]
         # 验证模板名是否已经存在
-        is_exist = Template.default_objects.filter(
-            name=new_template_name, project_id=project_id).exists()
+        is_exist = Template.default_objects.filter(name=new_template_name, project_id=project_id).exists()
         if is_exist:
-            detail = {
-                'field': [_('模板集名称[{}]已经存在').format(new_template_name)]
-            }
+            detail = {"field": [_("模板集名称[{}]已经存在").format(new_template_name)]}
             raise ValidationError(detail=detail)
         # 验证 old模板集id 是否正确
         old_tems = self.get_queryset()
         if not old_tems.exists():
-            detail = {
-                'field': [_("要复制的模板集不存在")]
-            }
+            detail = {"field": [_("要复制的模板集不存在")]}
             raise ValidationError(detail=detail)
         old_tem = old_tems.first()
 
         username = request.user.username
-        template_id, version_id, show_version_id = old_tem.copy_tempalte(
-            project_id, new_template_name, username)
+        template_id, version_id, show_version_id = old_tem.copy_tempalte(project_id, new_template_name, username)
         # 注册资源到权限中心
         perm.register(template_id, new_template_name)
         # 记录操作日志
@@ -500,14 +469,12 @@ class SingleTempalteView(generics.RetrieveUpdateDestroyAPIView):
             resource_type="template",
             resource=new_template_name,
             resource_id=template_id,
-            description=_("复制模板集")
+            description=_("复制模板集"),
         ).log_add()
-        return Response({
-            "code": 0,
-            "message": "OK",
-            "data": {
-                "template_id": template_id,
-                "version_id": version_id,
-                "show_version_id": show_version_id,
+        return Response(
+            {
+                "code": 0,
+                "message": "OK",
+                "data": {"template_id": template_id, "version_id": version_id, "show_version_id": show_version_id,},
             }
-        })
+        )
