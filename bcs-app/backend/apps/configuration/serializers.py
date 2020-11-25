@@ -119,13 +119,13 @@ def filter_instance_resource_by_version(data, version_id):
 def get_template_info(tpl, kind):
     """获取模板的基本信息（模板&模板列表）,不再使用 TemplateSLZ
     """
-    latest_version = models.ShowVersion.objects.filter(template_id=tpl.id).order_by("-updated").first()
-    if latest_version:
-        latest_show_version = latest_version.name
-        latest_show_version_id = latest_version.id
-        latest_version = latest_version.real_version_id
-        latest_version_id = latest_version.real_version_id
-        latest_version_comment = latest_version.comment
+    show_version = models.ShowVersion.objects.filter(template_id=tpl.id).order_by("-updated").first()
+    if show_version:
+        latest_show_version = show_version.name
+        latest_show_version_id = show_version.id
+        latest_version = show_version.real_version_id
+        latest_version_id = show_version.real_version_id
+        latest_version_comment = show_version.comment
     else:
         latest_version = ""
         latest_version_id = 0
@@ -148,7 +148,7 @@ def get_template_info(tpl, kind):
         "updated": timezone.localtime(tpl.updated).strftime("%Y-%m-%d %H:%M:%S"),
         "category_name": tpl.get_category_display(),
         "logo": tpl.log_url,
-        "containers": tpl.get_containers(kind, latest_version),
+        "containers": tpl.get_containers(kind, show_version),
         "is_locked": tpl.is_locked,
         "locker": tpl.locker,
         "edit_mode": tpl.edit_mode,
