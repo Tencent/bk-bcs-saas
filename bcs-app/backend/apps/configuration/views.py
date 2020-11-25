@@ -75,7 +75,7 @@ class TemplatesView(APIView):
         kind = request.project.kind
         # 添加分页信息
         limit, offset = data["limit"], data["offset"]
-        templates = templates[offset : limit + offset]
+        templates = templates[offset: limit + offset]
 
         serializer = serializers_new.ListTemplateSLZ(templates, many=True, context={"kind": kind})
         template_list = serializer.data
@@ -131,7 +131,7 @@ class CreateTemplateDraftView(APIView, TemplatePermission):
         ).log_modify()
 
         return Response(
-            {"template_id": template.id, "show_version_id": -1, "real_version_id": validated_data["real_version_id"],}
+            {"template_id": template.id, "show_version_id": -1, "real_version_id": validated_data["real_version_id"]}
         )
 
 
@@ -475,6 +475,6 @@ class SingleTempalteView(generics.RetrieveUpdateDestroyAPIView):
             {
                 "code": 0,
                 "message": "OK",
-                "data": {"template_id": template_id, "version_id": version_id, "show_version_id": show_version_id,},
+                "data": {"template_id": template_id, "version_id": version_id, "show_version_id": show_version_id}
             }
         )
