@@ -309,7 +309,7 @@ class ShowVersion(BaseModel):
     name = models.CharField("版本名称", max_length=255)
     history = models.TextField("所有指向过的版本", default="[]")
     real_version_id = models.IntegerField("关联的VersionedEntity ID", null=True, blank=True)
-    notes = models.TextField("版本备注", default="")
+    comment = models.TextField("版本说明", default="")
     objects = ShowVersionManager()
     default_objects = models.Manager()
 

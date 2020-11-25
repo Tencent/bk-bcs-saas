@@ -27,7 +27,7 @@ class ShowVersionNameSLZ(serializers.Serializer):
     name = serializers.RegexField(
         RE_SHOW_NAME, max_length=45, required=True, error_messages={"invalid": "请填写1至45个字符（字母、数字、下划线以及 - 或 .）"}
     )
-    notes = serializers.CharField(default="")
+    comment = serializers.CharField(default="")
 
 
 class ShowVersionCreateSLZ(ShowVersionNameSLZ):
@@ -153,7 +153,7 @@ class ListShowVersionSLZ(serializers.ModelSerializer):
 
     class Meta:
         model = models.ShowVersion
-        fields = ("show_version_id", "real_version_id", "name", "updator", "updated", "notes")
+        fields = ("show_version_id", "real_version_id", "name", "updator", "updated", "comment")
 
 
 class ListShowVersionISLZ(serializers.ModelSerializer):
@@ -164,4 +164,4 @@ class ListShowVersionISLZ(serializers.ModelSerializer):
 
     class Meta:
         model = models.ShowVersion
-        fields = ("id", "show_version_id", "show_version_name", "version", "notes")
+        fields = ("id", "show_version_id", "show_version_name", "version", "comment")

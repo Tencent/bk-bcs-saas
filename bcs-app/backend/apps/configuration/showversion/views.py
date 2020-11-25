@@ -54,7 +54,7 @@ class ShowVersionViewSet(viewsets.ViewSet, TemplatePermission):
         template = create_data["template"]
         show_version_id = create_data["show_version_id"]
         real_version_id = create_data["real_version_id"]
-        notes = create_data["notes"]
+        comment = create_data["comment"]
 
         if show_version_id == 0:
             show_version, created = models.ShowVersion.default_objects.update_or_create(
@@ -67,12 +67,12 @@ class ShowVersionViewSet(viewsets.ViewSet, TemplatePermission):
                     "creator": username,
                     "real_version_id": real_version_id,
                     "history": [real_version_id,],
-                    "notes": notes,
+                    "comment": comment,
                 },
             )
         else:
             show_version = models.ShowVersion.objects.get(id=show_version_id, template_id=template.id)
-            show_version.update_real_version_id(real_version_id, updator=username, notes=notes)
+            show_version.update_real_version_id(real_version_id, updator=username, comment=comment)
 
         del create_data["template"]
         desc = _("更新版本[{}]").format(show_version_name)
@@ -163,7 +163,7 @@ class ShowVersionViewSet(viewsets.ViewSet, TemplatePermission):
             name=serializer.data["name"],
             creator=username,
             updator=username,
-            notes=serializer.data["notes"],
+            comment=serializer.data["comment"],
         )
 
         # model Template updated field need change when save version

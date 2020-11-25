@@ -116,21 +116,21 @@ def filter_instance_resource_by_version(data, version_id):
     return new_data
 
 
-def get_template_info(tem, kind):
+def get_template_info(tpl, kind):
     """获取模板的基本信息（模板&模板列表）,不再使用 TemplateSLZ
     """
-    latest_version = models.ShowVersion.objects.filter(template_id=tem.id).order_by("-updated").first()
+    latest_version = models.ShowVersion.objects.filter(template_id=tpl.id).order_by("-updated").first()
     if latest_version:
         latest_show_version = latest_version.name
         latest_show_version_id = latest_version.id
         latest_version = latest_version.real_version_id
         latest_version_id = latest_version.real_version_id
-        latest_version_notes = latest_version.notes
+        latest_version_comment = latest_version.comment
     else:
         latest_version = ""
         latest_version_id = 0
-        latest_version_notes = ""
-        draft = tem.get_draft
+        latest_version_comment = ""
+        draft = tpl.get_draft
         latest_show_version_id = -1
         if draft:
             latest_show_version = _("草稿")
@@ -138,25 +138,25 @@ def get_template_info(tem, kind):
             latest_show_version = ""
 
     data = {
-        "id": tem.id,
-        "name": tem.name,
-        "category": tem.category,
-        "desc": tem.desc,
-        "creator": tem.creator,
-        "updator": tem.updator,
-        "created": timezone.localtime(tem.created).strftime("%Y-%m-%d %H:%M:%S"),
-        "updated": timezone.localtime(tem.updated).strftime("%Y-%m-%d %H:%M:%S"),
-        "category_name": tem.get_category_display(),
-        "logo": tem.log_url,
-        "containers": tem.get_containers(kind, latest_version),
-        "is_locked": tem.is_locked,
-        "locker": tem.locker,
-        "edit_mode": tem.edit_mode,
+        "id": tpl.id,
+        "name": tpl.name,
+        "category": tpl.category,
+        "desc": tpl.desc,
+        "creator": tpl.creator,
+        "updator": tpl.updator,
+        "created": timezone.localtime(tpl.created).strftime("%Y-%m-%d %H:%M:%S"),
+        "updated": timezone.localtime(tpl.updated).strftime("%Y-%m-%d %H:%M:%S"),
+        "category_name": tpl.get_category_display(),
+        "logo": tpl.log_url,
+        "containers": tpl.get_containers(kind, latest_version),
+        "is_locked": tpl.is_locked,
+        "locker": tpl.locker,
+        "edit_mode": tpl.edit_mode,
         "latest_version": latest_version,
         "latest_version_id": latest_version_id,
         "latest_show_version": latest_show_version,
         "latest_show_version_id": latest_show_version_id,
-        "latest_version_notes": latest_version_notes,
+        "latest_version_comment": latest_version_comment,
     }
     return data
 
