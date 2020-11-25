@@ -1599,5 +1599,7 @@ export default {
     '后台实际拉取文件命令: curl -X GET -H "Authorization: Basic {user:$base64(passwd)}"': ['The actual pull file command in the background: curl -X GET -H "Authorization: Basic {user:$base64(passwd)}"'],
     // 变量的使用 $t('test', { vari1: 1, vari2: 2 })
     // 变量的使用 $t('test', { vari1: 1, vari2: 2 })
-    'test': ['{vari1} ---english--- {vari2}']
+    'test': ['{vari1} ---english--- {vari2}'],
+    '导入的集群不允许删除操作': ['The imported cluster does not allow delete operation'],
+    '导入的集群不允许强制删除操作': ['The imported cluster does not allow forced deletion']
 }
