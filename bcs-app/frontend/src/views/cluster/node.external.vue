@@ -363,10 +363,20 @@
                                                 </template>
                                                 <td>
                                                     <a href="javascript:void(0);" class="bk-text-button" @click.stop="enableNode(node, index)">{{$t('允许调度')}}</a>
-                                                    <bk-tooltip style="margin: 0 15px;" :content="$t('请确保该节点已经没有运行中的容器')" placement="top-end">
-                                                        <a href="javascript:void(0);" class="bk-text-button is-disabled">{{$t('删除')}}</a>
-                                                    </bk-tooltip>
-                                                    <a href="javascript:void(0);" class="bk-text-button" style="margin-right: 15px;" @click.stop="showForceDelNode(node, index)">{{$t('强制删除')}}</a>
+                                                    <template v-if="curClusterInPage.state === 'existing'">
+                                                        <bk-tooltip style="margin: 0 15px;" :content="$t('导入的集群不允许删除操作')" placement="top-end">
+                                                            <a href="javascript:void(0);" class="bk-text-button is-disabled">{{$t('删除')}}</a>
+                                                        </bk-tooltip>
+                                                        <bk-tooltip style="margin-right: 15px;" :content="$t('导入的集群不允许强制删除操作')" placement="top-end">
+                                                            <a href="javascript:void(0);" class="bk-text-button is-disabled">{{$t('强制删除')}}</a>
+                                                        </bk-tooltip>
+                                                    </template>
+                                                    <template v-else>
+                                                        <bk-tooltip style="margin: 0 15px;" :content="$t('请确保该节点已经没有运行中的容器')" placement="top-end">
+                                                            <a href="javascript:void(0);" class="bk-text-button is-disabled">{{$t('删除')}}</a>
+                                                        </bk-tooltip>
+                                                        <a href="javascript:void(0);" class="bk-text-button" style="margin-right: 15px;" @click.stop="showForceDelNode(node, index)">{{$t('强制删除')}}</a>
+                                                    </template>
                                                     <bk-dropdown-menu class="dropdown-menu" :align="'center'" ref="dropdown">
                                                         <a href="javascript:void(0);" slot="dropdown-trigger" class="bk-text-button">
                                                             {{$t('更多')}}
@@ -438,8 +448,18 @@
                                                 </template>
                                                 <td style="text-align: left;">
                                                     <a href="javascript:void(0);" class="bk-text-button" @click.stop="enableNode(node, index)">{{$t('允许调度')}}</a>
-                                                    <a href="javascript:void(0);" class="bk-text-button" @click.stop="showDelNode(node, index)">{{$t('删除')}}</a>
-                                                    <a href="javascript:void(0);" class="bk-text-button" style="margin-right: 15px;" @click.stop="showForceDelNode(node, index)">{{$t('强制删除')}}</a>
+                                                    <template v-if="curClusterInPage.state === 'existing'">
+                                                        <bk-tooltip style="margin: 0 15px;" :content="$t('导入的集群不允许删除操作')" placement="top-end">
+                                                            <a href="javascript:void(0);" class="bk-text-button is-disabled">{{$t('删除')}}</a>
+                                                        </bk-tooltip>
+                                                        <bk-tooltip style="margin-right: 15px;" :content="$t('导入的集群不允许强制删除操作')" placement="top-end">
+                                                            <a href="javascript:void(0);" class="bk-text-button is-disabled">{{$t('强制删除')}}</a>
+                                                        </bk-tooltip>
+                                                    </template>
+                                                    <template v-else>
+                                                        <a href="javascript:void(0);" class="bk-text-button" @click.stop="showDelNode(node, index)">{{$t('删除')}}</a>
+                                                        <a href="javascript:void(0);" class="bk-text-button" style="margin-right: 15px;" @click.stop="showForceDelNode(node, index)">{{$t('强制删除')}}</a>
+                                                    </template>
                                                     <bk-dropdown-menu class="dropdown-menu" :align="'center'" ref="dropdown">
                                                         <a href="javascript:void(0);" slot="dropdown-trigger" class="bk-text-button">
                                                             {{$t('更多')}}
@@ -511,8 +531,8 @@
                                                 </template>
 
                                                 <td style="text-align: left;">
-                                                    <a href="javascript:void(0);" class="bk-text-button" @click.stop="showDelNode(node, index)">{{$t('删除')}}</a>
-                                                    <a href="javascript:void(0);" class="bk-text-button" @click.stop="showForceDelNode(node, index)">{{$t('强制删除')}}</a>
+                                                    <!-- <a href="javascript:void(0);" class="bk-text-button" @click.stop="showDelNode(node, index)">{{$t('删除')}}</a>
+                                                    <a href="javascript:void(0);" class="bk-text-button" @click.stop="showForceDelNode(node, index)">{{$t('强制删除')}}</a> -->
                                                     <a href="javascript:void(0);" class="bk-text-button" @click.stop="showFaultRemove(node, index)">{{$t('故障移除')}}</a>
                                                 </td>
                                             </template>
