@@ -148,7 +148,7 @@ def get_template_info(tpl, kind):
         "updated": timezone.localtime(tpl.updated).strftime("%Y-%m-%d %H:%M:%S"),
         "category_name": tpl.get_category_display(),
         "logo": tpl.log_url,
-        "containers": tpl.get_containers(kind, latest_version),
+        "containers": tpl.get_containers(kind, show_version),
         "is_locked": tpl.is_locked,
         "locker": tpl.locker,
         "edit_mode": tpl.edit_mode,
