@@ -66,7 +66,7 @@ class ShowVersionViewSet(viewsets.ViewSet, TemplatePermission):
                     "updator": username,
                     "creator": username,
                     "real_version_id": real_version_id,
-                    "history": [real_version_id,],
+                    "history": [real_version_id],
                     "comment": comment,
                 },
             )
