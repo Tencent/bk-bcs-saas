@@ -13,6 +13,7 @@
 #
 
 from backend.utils.basic import ChoicesEnum
+from .constants_bk import MESOS_LB_ENV_CONFIG
 
 # mesos lb service manifest
 MESOS_LB_SERVICE = {
@@ -66,7 +67,8 @@ MESOS_LB_DEPLOYMENT = {
                         "imagePullPolicy": "Always",
                         "privileged": True,
                         "resources": {},
-                        "configmaps": []
+                        "configmaps": [],
+                        "env": MESOS_LB_ENV_CONFIG
                     }
                 ],
                 "networkMode": "",
