@@ -37,7 +37,7 @@ class LoadBalancersViewSet(viewsets.ViewSet):
 
     def list(self, request, project_id):
         cluster_id = request.query_params.get("cluster_id")
-        queryset = MesosLoadBalancer.objects.filter(project_id=project_id)
+        queryset = MesosLoadBalancer.objects.filter(project_id=project_id, is_deleted=False).order_by("-updated")
         if cluster_id:
             queryset = queryset.filter(cluster_id=cluster_id)
         slz = lb_slz.MesosLBSLZ(queryset, many=True)
