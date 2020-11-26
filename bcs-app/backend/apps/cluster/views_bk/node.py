@@ -17,6 +17,7 @@ from datetime import datetime
 
 from rest_framework.response import Response
 from django.utils.translation import ugettext_lazy as _
+from rest_framework.exceptions import ValidationError
 
 from .configs import k8s, mesos
 from backend.apps.cluster import serializers, constants
@@ -34,6 +35,8 @@ from backend.components.bcs import k8s as bcs_k8s, mesos as bcs_mesos
 from backend.utils.errcodes import ErrorCode
 from backend.utils.error_codes import error_codes
 from backend.accounts.bcs_perm import Cluster
+from backend.resources.cluster import get_cluster
+from backend.apps.cluster.constants import ClusterState
 
 logger = logging.getLogger(__name__)
 
@@ -424,6 +427,12 @@ class DeleteNodeBase(BaseNode):
         self.save_task_url(log, data)
         return log
 
+    def can_delete_node(self, access_token, project_id, cluster_id):
+        cluster = get_cluster(access_token, project_id, cluster_id)
+        # 针对导入/纳管的集群，不允许通过平台删除节点
+        if cluster["state"] == ClusterState.Existing.value:
+            raise ValidationError(_("导入的集群不允许通过平台删除节点"))
+
 
 class DeleteNode(DeleteNodeBase):
 
@@ -515,6 +524,8 @@ class DeleteNode(DeleteNodeBase):
         self.node_ip = node_info.get('inner_ip')
         # 检测容器是否存在
         self.check_host_exist_container()
+        # 判断节点是否允许删除
+        self.can_delete_node(self.request.user.token.access_token, self.project_id, self.cluster_id)
         # 调用BCS
         with client.ContextActivityLogClient(
             project_id=self.project_id,
@@ -538,6 +549,8 @@ class DeleteNode(DeleteNodeBase):
         2. 调用ops删除节点
         """
         self.check_perm()
+        # 判断节点是否允许删除
+        self.can_delete_node(self.request.user.token.access_token, self.project_id, self.cluster_id)
         # 查询节点
         node_info = self.get_node_ip()
         self.check_host_stop_scheduler(node_info)
@@ -573,6 +586,9 @@ class BatchDeleteNode(DeleteNodeBase):
         self.access_token = request.user.token.access_token
 
     def delete_nodes(self):
+        # 判断节点是否允许删除
+        self.can_delete_node(self.request.user.token.access_token, self.project_id, self.cluster_id)
+
         node_info = {node['inner_ip']: '[%s]' % node['id'] for node in self.node_list}
         # 更新节点状态为删除中
         self.update_cluster_nodes(
