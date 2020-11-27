@@ -192,6 +192,9 @@ DASHBOARD_CTL_BIN = os.path.join(HELM_BASE_DIR, "bin/dashboard-ctl")  # default 
 KUBECTL_BIN_MAP = {
     "1.8.3": os.path.join(HELM_BASE_DIR, "bin/kubectl-v1.12.3"),
     "1.12.3": os.path.join(HELM_BASE_DIR, "bin/kubectl-v1.12.3"),
+    "1.14.9": os.path.join(HELM_BASE_DIR, "bin/kubectl-v1.14.9"),
+    "1.16.3": os.path.join(HELM_BASE_DIR, "bin/kubectl-v1.16.3"),
+    "1.18.12": os.path.join(HELM_BASE_DIR, "bin/kubectl-v1.18.12")
 }
 
 # BKE企业版证书

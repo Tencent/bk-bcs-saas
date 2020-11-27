@@ -211,6 +211,16 @@ func NodeListByCluster(clusterIDList []string, excludeStatus []string) (data []N
 	return data, nil
 }
 
+
+// GetNodesByIPList : 通过IP获取节点信息
+func GetNodesByIPList(nodeIPList []string) (nodes []Node, err error){
+	db := storage.GetDefaultSession().DB
+	if err := NewNodeQuerySet(db).InnerIPInWithoutError(nodeIPList...).All(&nodes); err != nil {
+		return nil, err
+	}
+	return nodes, nil
+}
+
 // UpdateNodeStatus : update node status, only status in [normal, not_ready, initializing]
 // if ip in nodeIPList, set status as normal, else set not_ready
 func UpdateNodeStatus(clusterID string, nodeIPList []string) error {
