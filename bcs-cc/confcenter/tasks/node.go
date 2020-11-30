@@ -88,15 +88,11 @@ func getClusterInfo(projectID string, clusterID string) ([]map[string]string, st
 }
 
 // get node ip list in cluster, in order to diff online node records
-func getNodeIPList(clusterID string) ([]map[string]string, set.Interface, error) {
+func getNodeIPList(ipList []string) ([]map[string]string, set.Interface, error) {
 	// query nodes of cluster
 	var ipStatusList []map[string]string // format: [{"ip": "xxx", "status": "xxx"}]
 	ipSet := set.New(set.ThreadSafe)
-	filter := models.NodeFilterData{
-		ClusterID:     clusterID,
-		DesireAllData: "1", // 获取所有节点
-	}
-	nodeList, _, err := filter.NodeList()
+	nodeList, err := models.GetNodesByIPList(ipList)
 	if err != nil {
 		return nil, ipSet, err
 	}
@@ -170,11 +166,12 @@ func handleNodes(params nodeParams) error {
 func handleMesosNodes(projectID string, clusterList []map[string]string, accessToken string, creator string) error {
 	// query and update by cluster id
 	for _, info := range clusterList {
-		ipStatusList, ipSet, err := getNodeIPList(info["cluster_id"])
+		ipResource, err := bcs.MesosIPResource(info["cluster_id"], bcsEnv[info["env"]], accessToken)
 		if err != nil {
 			return err
 		}
-		ipResource, err := bcs.MesosIPResource(info["cluster_id"], bcsEnv[info["env"]], accessToken)
+		// 通过ip查询节点信息
+		ipStatusList, ipSet, err := getNodeIPList(getIPList(ipResource))
 		if err != nil {
 			return err
 		}
@@ -195,13 +192,14 @@ func handleMesosNodes(projectID string, clusterList []map[string]string, accessT
 
 func handleK8sNodes(projectID string, clusterList []map[string]string, accessToken string, creator string) error {
 	for _, info := range clusterList {
-		ipStatusList, ipSet, err := getNodeIPList(info["cluster_id"])
-		if err != nil {
-			return err
-		}
 		ipResource, err := bcs.K8sIPResource(
 			projectID, info["cluster_id"], bcsEnv[info["env"]], accessToken, info["clusterState"],
 		)
+		if err != nil {
+			return err
+		}
+		// 通过ip查询节点信息
+		ipStatusList, ipSet, err := getNodeIPList(getIPList(ipResource))
 		if err != nil {
 			return err
 		}
@@ -219,6 +217,13 @@ func handleK8sNodes(projectID string, clusterList []map[string]string, accessTok
 	}
 
 	return nil
+}
+
+func getIPList(ipResource []map[string]string) (ipList []string){
+	for _, res := range ipResource {
+		ipList = append(ipList, res["ip"])
+	}
+	return ipList
 }
 
 // SyncNodes : sync node info, and add/update node db record

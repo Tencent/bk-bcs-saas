@@ -161,3 +161,10 @@ def set_mesos_node_labels(access_token, project_id, labels):
     # labels格式: {"cluster_id": [{"inner_ip": ip1, "strings":{key: {"value": val}}}]}
     for cluster_id, node_labels in labels.items():
         create_or_update_agent_labels(access_token, project_id, cluster_id, node_labels)
+
+
+@parse_response_data()
+def update_cc_nodes_status(access_token, project_id, cluster_id, nodes):
+    """更新记录的节点状态
+    """
+    return paas_cc.update_node_list(access_token, project_id, cluster_id, data=nodes)
