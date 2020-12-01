@@ -43,6 +43,8 @@ from backend.apps.network.models import K8SLoadBlance, MesosLoadBlance
 from backend.utils.renderers import BKAPIRenderer
 from backend.accounts.bcs_perm import Cluster, Namespace
 from backend.bcs_k8s.app.models import App
+from backend.resources import cluster as cluster_utils
+from backend.apps.cluster.constants import ClusterState
 
 logger = logging.getLogger(__name__)
 ACTIVITY_RESOURCE_TYPE = 'cluster'
@@ -541,9 +543,26 @@ class DeleteCluster(BaseCluster):
         cluster_perm = Cluster(self.request, self.project_id, self.cluster_id)
         cluster_perm.can_delete(raise_exception=True)
 
+    def delete_cluster_nodes(self, access_token, project_id, cluster_id):
+        """删除集群下的节点
+        """
+        # 查询集群下节点
+        nodes = cluster_utils.get_cluster_nodes(access_token, project_id, cluster_id, raise_exception=False)
+        if not nodes:
+            return
+        node_status = [
+            {"inner_ip": node["inner_ip"], "status": CommonStatus.Removed}
+            for node in nodes
+        ]
+        cluster_utils.update_cc_nodes_status(access_token, project_id, cluster_id, node_status)
+
     def delete(self):
         # 添加权限限制
         self.check_cluster_perm()
+        # 针对导入/纳管的集群，需要删除节点记录
+        cluster = cluster_utils.get_cluster(self.access_token, self.project_id, self.cluster_id)
+        if cluster["state"] == ClusterState.Existing.value:
+            self.delete_cluster_nodes(self.access_token, self.project_id, self.cluster_id)
         # 更新集群状态为删除中
         data = self.update_cluster_status(status=CommonStatus.Removing)
         # 删除平台数据库记录的已经实例化，但是没有删除的实例信息

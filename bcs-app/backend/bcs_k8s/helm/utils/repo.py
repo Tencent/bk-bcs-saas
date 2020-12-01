@@ -90,10 +90,10 @@ def download_template_data(chart_name, url, auths):
         return False, None, None
 
     if not auths:
-        resp = requests.get(url, stream=True)
+        resp = requests.get(url, stream=True, verify=False)
     else:
         for auth in auths:
-            resp = requests.get(url, stream=True, auth=make_requests_auth(auth))
+            resp = requests.get(url, stream=True, auth=make_requests_auth(auth), verify=False)
             if resp.status_code != 401:
                 break
 

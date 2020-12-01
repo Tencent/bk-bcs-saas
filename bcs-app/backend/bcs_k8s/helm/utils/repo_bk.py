@@ -45,10 +45,10 @@ def get_charts_info(url, auths):
     req_charts_url = "{url}/index.yaml".format(url=url)
     try:
         if not auths:
-            resp = requests.get(req_charts_url)
+            resp = requests.get(req_charts_url, verify=False)
         else:
             for auth in auths:
-                resp = requests.get(req_charts_url, auth=make_requests_auth(auth))
+                resp = requests.get(req_charts_url, auth=make_requests_auth(auth), verify=False)
                 if resp.status_code != 401:
                     break
 
