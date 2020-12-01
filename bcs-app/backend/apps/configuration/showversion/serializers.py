@@ -27,7 +27,7 @@ class ShowVersionNameSLZ(serializers.Serializer):
     name = serializers.RegexField(
         RE_SHOW_NAME, max_length=45, required=True, error_messages={"invalid": "请填写1至45个字符（字母、数字、下划线以及 - 或 .）"}
     )
-    comment = serializers.CharField(default="")
+    comment = serializers.CharField(default="", allow_blank=True)
 
 
 class ShowVersionCreateSLZ(ShowVersionNameSLZ):
