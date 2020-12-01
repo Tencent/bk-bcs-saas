@@ -65,6 +65,7 @@ from backend.bcs_k8s.app.utils import compose_url_with_scheme
 from backend.utils.errcodes import ErrorCode
 from backend.bcs_k8s.app.serializers import FilterNamespacesSLZ
 from backend.bcs_k8s.app.utils_bk import get_or_create_private_repo
+from backend.resources.namespace.constants import K8S_PLAT_NAMESPACE, K8S_SYS_NAMESPACE
 
 logger = logging.getLogger(__name__)
 
@@ -126,7 +127,11 @@ class AppView(ActionSerializerMixin, AppViewBase):
 
         # do fix on the data which version is emtpy
         datetime_format = "%Y-%m-%d %H:%M:%S"
+        app_list = []
         for item in data:
+            # 过滤掉k8s系统和bcs平台命名空间下的release
+            if item["namespace"] in K8S_PLAT_NAMESPACE or item["namespace"] in K8S_SYS_NAMESPACE:
+                continue
             cluster_info = project_cluster.get(item['cluster_id']) or {'name': item['cluster_id']}
             item['cluster_name'] = cluster_info['name']
             item['cluster_env'] = settings.CLUSTER_ENV_FOR_FRONT.get(cluster_info.get('environment'))
@@ -150,12 +155,13 @@ class AppView(ActionSerializerMixin, AppViewBase):
             item["chart"] = item.pop("chart__id")
             item["created"] = item["created"].astimezone().strftime(datetime_format)
             item["updated"] = item["updated"].astimezone().strftime(datetime_format)
+            app_list.append(item)
 
         result = {
-            "count": len(data),
+            "count": len(app_list),
             "next": None,
             "previous": None,
-            "results": data
+            "results": app_list
         }
         return Response(data=result)
 
@@ -241,7 +247,11 @@ class AppNamespaceView(AccessTokenMixin, ProjectMixin, viewsets.ReadOnlyModelVie
         # cluster_list = bcs_perm.Cluster.hook_perms(request, project_id, cluster_list)
         cluster_dict = {i['cluster_id']: i for i in cluster_list}
 
+        filter_ns_list = []
         for i in results:
+            # 过滤掉k8s系统和bcs平台使用的命名空间
+            if i["name"] in K8S_SYS_NAMESPACE or i["name"] in K8S_PLAT_NAMESPACE:
+                continue
             # ns_vars = NameSpaceVariable.get_ns_vars(i['id'], project_id)
             i['ns_vars'] = []
 
@@ -251,9 +261,10 @@ class AppNamespaceView(AccessTokenMixin, ProjectMixin, viewsets.ReadOnlyModelVie
             else:
                 i['cluster_name'] = i['cluster_id']
                 i['environment'] = None
+            filter_ns_list.append(i)
 
         perm = bcs_perm.Namespace(self.request, self.project_id, bcs_perm.NO_RES)
-        results = perm.hook_perms(results, filter_use=filter_use_perm)
+        results = perm.hook_perms(filter_ns_list, filter_use=filter_use_perm)
         return results
 
     def list(self, request, project_id):

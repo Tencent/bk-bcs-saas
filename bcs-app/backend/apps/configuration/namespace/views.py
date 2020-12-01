@@ -26,7 +26,7 @@ from .tasks import sync_namespace as sync_ns_task
 from .resources import Namespace
 from backend.accounts import bcs_perm
 from backend.apps import constants
-from backend.apps.constants import K8S_SYS_NAMESPACE, ClusterType
+from backend.apps.constants import ClusterType
 from backend.apps.depot.api import get_jfrog_account, get_bk_jfrog_auth
 from backend.apps.instance.constants import K8S_IMAGE_SECRET_PRFIX, MESOS_IMAGE_SECRET, OLD_MESOS_IMAGE_SECRET
 from backend.apps.variable.models import NameSpaceVariable
