@@ -62,7 +62,7 @@
                                     <li>
                                         <a class="action" href="javascript:void(0)" @click="batchOperate('2')">{{$t('停止调度')}}</a>
                                     </li>
-                                    <li>
+                                    <li v-if="curClusterInPage.state !== 'existing'">
                                         <a class="action" href="javascript:void(0)" @click="batchOperate('3')">{{$t('删除')}}</a>
                                     </li>
                                     <li>
