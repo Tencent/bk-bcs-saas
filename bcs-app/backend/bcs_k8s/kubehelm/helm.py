@@ -14,7 +14,7 @@
 """
 this is the operations for helm cli
 
-required: helm 2.9.1
+required: helm 2.9.1+
 """
 
 import os
@@ -73,20 +73,13 @@ class KubeHelmClient:
         """
         if not answers:
             return []
-        set_values = ','.join(["{k}={v}".format(k=k, v=v) for k, v in answers.items() if not isinstance(v, str)])
-        set_stirng_values = ','.join(["{k}={v}".format(k=k, v=v) for k, v in answers.items() if isinstance(v, str)])
-        return ["--set", set_values, "--set-string", set_stirng_values]
+        set_values = ",".join(["{k}={v}".format(k=k, v=v) for k, v in answers.items() if not isinstance(v, str)])
+        set_string_values = ",".join(["{k}={v}".format(k=k, v=v) for k, v in answers.items() if isinstance(v, str)])
+        return ["--set", set_values, "--set-string", set_string_values]
 
     def _get_cmd_args_for_template(self, root_dir, app_name, namespace, cluster_id):
         if enable_helm_v3(cluster_id):
-            return [
-                settings.HELM3_BIN,
-                "template",
-                app_name,
-                root_dir,
-                "--namespace",
-                namespace
-            ]
+            return [settings.HELM3_BIN, "template", app_name, root_dir, "--namespace", namespace]
 
         return [
             settings.HELM_BIN,
@@ -139,22 +132,22 @@ class KubeHelmClient:
 
         except Exception as e:
             logger.exception(
-                ("do helm template fail: namespace={namespace}, name={name}\n"
-                 "parameters={parameters}\nvaluefile={valuefile}\nfiles={files}").format(
-                    namespace=namespace,
-                    name=name,
-                    parameters=parameters,
-                    valuefile=valuefile,
-                    files=files,
-                ))
+                (
+                    "do helm template fail: namespace={namespace}, name={name}\n"
+                    "parameters={parameters}\nvaluefile={valuefile}\nfiles={files}"
+                ).format(
+                    namespace=namespace, name=name, parameters=parameters, valuefile=valuefile, files=files,
+                )
+            )
             raise e
         finally:
             shutil.rmtree(temp_dir)
 
         return template_out, notes_out
 
-    def template_with_ytt_renderer(self, files, name, namespace, parameters, valuefile, cluster_id, bcs_inject_data,
-                                   **kwargs):
+    def template_with_ytt_renderer(
+        self, files, name, namespace, parameters, valuefile, cluster_id, bcs_inject_data, **kwargs
+    ):
         """支持post renderer的helm template，并使用ytt(YAML Templating Tool)注入平台信息
         命令: helm template release_name chart -n namespace --post-renderer ytt-renderer
         """
@@ -164,14 +157,7 @@ class KubeHelmClient:
                 values = self._make_answers_to_args(parameters)
 
                 # 2. construct cmd and run
-                base_cmd_args = [
-                    settings.HELM3_BIN,
-                    "template",
-                    name,
-                    temp_dir,
-                    "--namespace",
-                    namespace
-                ]
+                base_cmd_args = [settings.HELM3_BIN, "template", name, temp_dir, "--namespace", namespace]
 
                 # 3. helm template command params
                 template_cmd_args = base_cmd_args
@@ -200,14 +186,13 @@ class KubeHelmClient:
 
         except Exception as e:
             logger.exception(
-                ("do helm template fail: namespace={namespace}, name={name}\n"
-                 "parameters={parameters}\nvaluefile={valuefile}\nfiles={files}").format(
-                    namespace=namespace,
-                    name=name,
-                    parameters=parameters,
-                    valuefile=valuefile,
-                    files=files,
-                ))
+                (
+                    "do helm template fail: namespace={namespace}, name={name}\n"
+                    "parameters={parameters}\nvaluefile={valuefile}\nfiles={files}"
+                ).format(
+                    namespace=namespace, name=name, parameters=parameters, valuefile=valuefile, files=files,
+                )
+            )
             raise e
 
         return template_out, notes_out
@@ -220,7 +205,13 @@ class KubeHelmClient:
                 with open(values_path, "w") as f:
                     f.write(chart_values)
                 # post renderer添加平台注入信息
-                cmd_args += [temp_dir, "--values", values_path, "--post-renderer", f"{ytt_config_dir}/{YTT_RENDERER_NAME}"]
+                cmd_args += [
+                    temp_dir,
+                    "--values",
+                    values_path,
+                    "--post-renderer",
+                    f"{ytt_config_dir}/{YTT_RENDERER_NAME}",
+                ]
 
                 # 添加命名行参数
                 if kwargs.get("cmd_flags"):
@@ -282,6 +273,27 @@ class KubeHelmClient:
         rollback_cmd_args = [settings.HELM3_BIN, "rollback", name, str(revision), "--namespace", namespace]
         return self._uninstall_or_rollback(rollback_cmd_args)
 
+    def _compose_args_and_run(self, cmd_args, **kwargs):
+        for key, value in kwargs:
+            if isinstance(value, str):
+                cmd_args += [key, value]
+            elif isinstance(value, list):
+                for v in value:
+                    cmd_args += [key, v]
+
+        try:
+            cmd_out, cmd_err = self._run_command_with_retry(max_retries=0, cmd_args=cmd_args)
+        except Exception as e:
+            logger.exception("执行helm命令失败，命令参数: %s", json.dumps(cmd_args))
+            raise e
+
+        return cmd_out, cmd_err
+
+    def do_install(self, name, namespace, chart, **kwargs):
+        # e.g. helm install mynginx https://example.com/charts/nginx-1.2.3.tgz --username xxx --password xxx
+        cmd_args = [settings.HELM3_BIN, "install", name, "--namespace", namespace, chart]
+        return self._compose_args_and_run(cmd_args, **kwargs)
+
     def _run_command_with_retry(self, max_retries=1, *args, **kwargs):
         for i in range(max_retries + 1):
             try:
@@ -294,8 +306,6 @@ class KubeHelmClient:
                 # retry after 0.5, 1, 1.5, ... seconds
                 time.sleep((i + 1) * 0.5)
                 continue
-            else:
-                break
 
         raise ValueError(max_retries)
 
@@ -306,16 +316,16 @@ class KubeHelmClient:
             logger.info("Calling helm cmd, cmd: (%s)", " ".join(cmd_args))
 
             proc = subprocess.Popen(
-                cmd_args, shell=False,
+                cmd_args,
+                shell=False,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
-                env={"KUBECONFIG": self.kubeconfig}  # 添加连接集群信息
+                env={"KUBECONFIG": self.kubeconfig},  # 添加连接集群信息
             )
             stdout, stderr = proc.communicate()
 
             if proc.returncode != 0:
-                logger.exception("Unable to run helm command, return code: %s, output: %s",
-                                 proc.returncode, stderr)
+                logger.exception("Unable to run helm command, return code: %s, output: %s", proc.returncode, stderr)
                 raise HelmExecutionError(proc.returncode, stderr)
 
             return stdout, stderr

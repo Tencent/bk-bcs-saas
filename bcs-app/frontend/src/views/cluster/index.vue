@@ -55,6 +55,7 @@
                                 <bk-tooltip :content="cluster.cluster_id" :delay="500" placement="top">
                                     <span class="cluster-id">{{cluster.cluster_id}}</span>
                                 </bk-tooltip>
+                                <span v-if="cluster.state === 'existing'" class="prod">Imported</span>
                             </p>
                             <bk-dropdown-menu
                                 v-if="
@@ -82,7 +83,7 @@
                                     <!-- <li v-if="isHelmEnable">
                                         <a href="javascript:void(0)" @click="enableClusterHelm(cluster)">{{$t('启用Helm')}}</a>
                                     </li> -->
-                                    <template v-if="cluster.allow">
+                                    <template v-if="cluster.allow || cluster.state === 'existing'">
                                         <li>
                                             <a href="javascript:void(0)" @click="confirmDeleteCluster(cluster, clusterIndex)">{{$t('删除')}}</a>
                                         </li>
@@ -387,12 +388,23 @@
             </div>
         </bk-dialog>
 
-        <tip-dialog
+        <tip-dialog v-if="curCluster && curCluster.state === 'existing'"
             ref="clusterNoticeDialog"
             icon="bk-icon icon-exclamation-triangle"
             :title="$t('确定删除集群？')"
             :sub-title="$t('此操作无法撤回，请确认：')"
             :check-list="clusterNoticeList"
+            :confirm-btn-text="$t('确定')"
+            :cancel-btn-text="$t('取消')"
+            :confirm-callback="deleteCluster">
+        </tip-dialog>
+
+        <tip-dialog v-else
+            ref="clusterNoticeDialog"
+            icon="bk-icon icon-exclamation-triangle"
+            :title="$t('确定删除集群？')"
+            :sub-title="' '"
+            :check-list="[]"
             :confirm-btn-text="$t('确定')"
             :cancel-btn-text="$t('取消')"
             :confirm-callback="deleteCluster">

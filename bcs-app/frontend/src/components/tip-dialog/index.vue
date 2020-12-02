@@ -18,7 +18,7 @@
                 </div>
                 <div class="dialog-content">
                     <strong>{{subTitleRender}}</strong>
-                    <ul class="update-list">
+                    <ul class="update-list" v-if="noticeList.length">
                         <li v-for="(item, index) of noticeList" :key="index">
                             <label :class="['bk-form-checkbox']">
                                 <input v-if="!isConfirming" type="checkbox" name="check" v-model="item.isChecked" @change="changeCheck(item)">

@@ -5,7 +5,7 @@
                 <i class="bk-icon icon-arrows-left back"></i>
                 <span>{{$t('创建容器集群')}}</span>
             </div>
-            <div class="biz-actions">
+            <div class="biz-actions" style="margin: 0;">
                 <bk-tooltip :content="$t('快速入门')" placement="left" :transfer="true">
                     <a class="button" href="javascript:void(0)" @click.stop.prevent="showGuide">
                         <i class="bk-icon icon-calendar"></i>
@@ -95,7 +95,7 @@
                             </table>
                         </div>
                     </div>
-                    <div class="form-item bk-form-item" :class="isEn ? 'en' : ''">
+                    <div v-if="clusterState !== 'existing'" class="form-item bk-form-item" :class="isEn ? 'en' : ''">
                         <label class="mt10">{{$t('注意事项：')}}<span class="red">*</span></label>
                         <div class="form-item-inner" style="vertical-align: top;">
                             <div v-if="isK8sProject">
