@@ -274,12 +274,12 @@ class KubeHelmClient:
         return self._uninstall_or_rollback(rollback_cmd_args)
 
     def _compose_args_and_run(self, cmd_args, **kwargs):
-        for k, v in kwargs:
-            if isinstance(v, str):
-                cmd_args += [k, v]
-            elif isinstance(v, list):
-                for ik, iv in v:
-                    cmd_args += [ik, iv]
+        for key, value in kwargs:
+            if isinstance(value, str):
+                cmd_args += [key, value]
+            elif isinstance(value, list):
+                for v in value:
+                    cmd_args += [key, v]
 
         try:
             cmd_out, cmd_err = self._run_command_with_retry(max_retries=0, cmd_args=cmd_args)
