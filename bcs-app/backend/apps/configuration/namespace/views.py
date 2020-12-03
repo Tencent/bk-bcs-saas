@@ -45,6 +45,7 @@ from backend.utils.renderers import BKAPIRenderer
 from backend.resources.namespace.utils import get_namespace_by_id
 from backend.resources.cluster.utils import get_clusters
 from backend.apps.utils import get_cluster_env_name
+from backend.resources import namespace as ns_resource
 
 logger = logging.getLogger(__name__)
 
@@ -140,9 +141,13 @@ class NamespaceBase:
         name = data['name']
         # 创建 ns
         self.create_ns_by_bcs(client, name, data)
-        # 创建 jfrog Sercret
+        # 创建 jfrog account secret
         self.create_jfrog_secret(client, access_token,
                                  project_id, project_code, data)
+        # 如果需要使用资源配额，创建配额
+        if data.get("use_resource_quota"):
+            k8s_client = ns_resource.Namespace(access_token, project_id, data["cluster_id"])
+            k8s_client.create_resource_quota(name, data["quota"])
 
     def check_ns_image_secret(self, client, access_token, project_id, cluster_id, ns_name):
         """检查命名空间下是否已经有secret文件
@@ -403,7 +408,6 @@ class NamespaceView(NamespaceBase, viewsets.ViewSet):
         perm = bcs_perm.Namespace(request, project_id, bcs_perm.NO_RES, cluster_id)
         perm.can_create(raise_exception=is_validate_perm)
 
-        data = serializer.data
         description = _('集群: {}, 创建命名空间: 命名空间[{}]').format(cluster_id, data["name"])
         with client.ContextActivityLogClient(
                 project_id=project_id,
@@ -437,6 +441,12 @@ class NamespaceView(NamespaceBase, viewsets.ViewSet):
                 result['message'] = _("以下变量不存在:{}").format(";".join(not_exist_show_msg))
             result['data']['ns_vars'] = NameSpaceVariable.get_ns_vars(
                 namespace_id, project_id)
+
+        # 针对k8s，允许添加或更新资源配额
+        if request.project.kind == ProjectKind.K8S.value and data.get("use_resource_quota"):
+            client = ns_resource.Namespace(request.user.token.access_token, project_id, data["cluster_id"])
+            client.update_or_create_resource_quota(data["name"], data["name"], data["quota"])
+
         return response.Response(result)
 
     def _compose_res_names(self, res_data):

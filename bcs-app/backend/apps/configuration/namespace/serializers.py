@@ -50,6 +50,8 @@ class BaseNamespaceSLZ(serializers.Serializer):
 
 
 class CreateNamespaceSLZ(BaseNamespaceSLZ):
+    use_resource_quota = serializers.BooleanField(default=False)
+    quota = serializers.DictField(default={})
 
     def validate_name(self, name):
         project_kind = self.context['request'].project.kind
@@ -71,3 +73,7 @@ class CreateNamespaceSLZ(BaseNamespaceSLZ):
 
 class UpdateNSVariableSLZ(serializers.Serializer):
     ns_vars = serializers.JSONField(required=False)
+    cluster_id = serializers.CharField()
+    name = serializers.CharField()
+    use_resource_quota = serializers.BooleanField(default=False)
+    quota = serializers.DictField(default={})

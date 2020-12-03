@@ -41,3 +41,49 @@ class Namespace(K8SClient):
         self._create_namespace(name)
         ns = utils.create_cc_namespace(self.access_token, self.project_id, self.cluster_id, name, creator)
         return {"name": name, "namespace_id": ns["id"]}
+
+    def _ns_quota_conf(self, name, quota):
+        return {
+            "apiVersion": "v1",
+            "kind": "ResourceQuota",
+            "metadata": {
+                "name": name
+            },
+            "spec": {
+                "hard": quota
+            }
+        }
+
+    def create_resource_quota(self, namespace, quota):
+        """创建命名空间下资源配额
+        """
+        # 资源配额名称和命名空间名称设置为相同
+        data = self._ns_quota_conf(namespace, quota)
+        return self.client.create_resource_quota(namespace, data)
+
+    def list_resource_quota(self, namespace):
+        """获取命名空间下的资源配额
+        """
+        resource_quota_list = self.client.list_resource_quota(namespace=namespace)
+        # 解析获取基本数据
+        if resource_quota_list:
+            return [
+                {
+                    "name": i.metadata.name,
+                    "namespace": i.metadata.namespace,
+                    "quota": {"hard": i.status.hard, "used": i.status.used}
+                }
+                for i in resource_quota_list
+            ]
+        return []
+
+    def delete_resource_quota(self, name, namespace):
+        """通过名称和命名空间删除资源配额
+        """
+        return self.client.delete_resource_quota(name, namespace)
+
+    def update_or_create_resource_quota(self, name, namespace, quota):
+        """更新或创建资源配额
+        """
+        data = self._ns_quota_conf(name, quota)
+        return self.client.update_or_create_resource_quota(name, namespace, data)
