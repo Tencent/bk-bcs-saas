@@ -17,3 +17,6 @@ K8S_SYS_NAMESPACE = ["kube-system", "kube-public"]
 
 # k8s 平台服务用的命名空间
 K8S_PLAT_NAMESPACE = ["web-console", "gitlab-ci", "thanos", "bcs-system"]
+
+# 平台和系统使用的命名空间
+K8S_SYS_PLAT_NAMESPACES = K8S_SYS_NAMESPACE + K8S_PLAT_NAMESPACE
