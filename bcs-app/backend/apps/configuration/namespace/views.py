@@ -45,6 +45,7 @@ from backend.utils.renderers import BKAPIRenderer
 from backend.resources.namespace.utils import get_namespace_by_id
 from backend.resources.cluster.utils import get_clusters
 from backend.apps.utils import get_cluster_env_name
+from backend.resources.namespace.constants import K8S_SYS_PLAT_NAMESPACES
 
 logger = logging.getLogger(__name__)
 
@@ -230,6 +231,15 @@ class NamespaceView(NamespaceBase, viewsets.ViewSet):
             clusters_without_ns.append(item)
         return clusters_without_ns
 
+    def _ignore_ns_for_k8s(self, ns_list):
+        """针对k8s集群，过滤掉系统和平台命名空间
+        """
+        return [
+            ns
+            for ns in ns_list
+            if ns["name"] not in K8S_SYS_PLAT_NAMESPACES
+        ]
+
     def list(self, request, project_id):
         """命名空间列表
         权限控制: 必须有对应集群的使用权限
@@ -254,7 +264,10 @@ class NamespaceView(NamespaceBase, viewsets.ViewSet):
         if result.get('code') != 0:
             raise error_codes.APIError.f(result.get('message', ''))
 
-        results = result['data']['results'] or []
+        results = result["data"]["results"] or []
+        # 针对k8s集群过滤掉系统和平台命名空间
+        if request.project.kind == ProjectKind.K8S.value:
+            results = self._ignore_ns_for_k8s(results)
 
         # 是否有创建权限
         perm = bcs_perm.Namespace(request, project_id, bcs_perm.NO_RES)
