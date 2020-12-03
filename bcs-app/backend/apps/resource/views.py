@@ -55,6 +55,7 @@ from backend.apps import utils as app_utils
 from backend.apps.constants import ProjectKind
 from backend.apps.instance import constants as inst_constants
 from backend.apps.configuration.constants import MesosResourceName
+from backend.resources.namespace.constants import K8S_SYS_NAMESPACE, K8S_PLAT_NAMESPACE
 
 logger = logging.getLogger(__name__)
 DEFAULT_ERROR_CODE = ErrorCode.UnknownError
@@ -96,7 +97,7 @@ class ConfigMapBase:
                 'cluster_name': cluster['name']
             }
             for info in data
-            if info['namespace'] not in constants.K8S_SYS_NAMESPACE
+            if info['namespace'] not in K8S_SYS_NAMESPACE
         ]
 
 
@@ -122,10 +123,10 @@ class ResourceOperate(object):
             resp = curr_func(namespace, name)
             s_cate = self.mesos_cate
         else:
-            if namespace in constants.K8S_SYS_NAMESPACE:
+            if namespace in K8S_SYS_NAMESPACE:
                 return {
                     "code": 400,
-                    "message": _("不允许操作系统命名空间[{}]").format(','.join(constants.K8S_SYS_NAMESPACE)),
+                    "message": _("不允许操作系统命名空间[{}]").format(','.join(K8S_SYS_NAMESPACE)),
                 }
             client = k8s.K8SClient(
                 access_token, project_id, cluster_id, env=None)
@@ -286,10 +287,10 @@ class ResourceOperate(object):
             s_sys_con = self.mesos_sys_config
             s_cate = self.mesos_cate
         else:
-            if namespace in constants.K8S_SYS_NAMESPACE:
+            if namespace in K8S_SYS_NAMESPACE:
                 return Response({
                     "code": 400,
-                    "message": _("不允许操作系统命名空间[{}]").format(','.join(constants.K8S_SYS_NAMESPACE)),
+                    "message": _("不允许操作系统命名空间[{}]").format(','.join(K8S_SYS_NAMESPACE)),
                     "data": {}
                 })
             # k8s 相关数据
@@ -456,13 +457,13 @@ class ResourceOperate(object):
 
             if project_kind == 1:
                 # 处理 k8s 的系统命名空间的数据
-                if _s['namespace'] in constants.K8S_SYS_NAMESPACE:
+                if _s['namespace'] in K8S_SYS_NAMESPACE:
                     _s['can_update'] = _s['can_delete'] = False
                     _s['can_update_msg'] = _s['can_delete_msg'] = _("不允许操作系统命名空间")
                     continue
 
                 # 处理平台集群和命名空间下的数据
-                if _s['namespace'] in constants.K8S_PLAT_NAMESPACE and cluster_id in constants.K8S_PLAT_CLUSTER_ID:
+                if _s['namespace'] in K8S_PLAT_NAMESPACE and cluster_id in constants.K8S_PLAT_CLUSTER_ID:
                     _s['can_update'] = _s['can_delete'] = False
                     _s['can_update_msg'] = _s['can_delete_msg'] = _("不允许操作平台命名空间")
                     continue

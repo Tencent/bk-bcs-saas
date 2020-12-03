@@ -405,6 +405,8 @@ class GetInstances(object):
     def compose_data(self, request, instance_info, all_status, cluster_id, ns_id, cluster_env_map, ns_name_id):
         """组装返回数据
         """
+        # 默认时间
+        default_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         update_create_error_id_list = []
         for key, val in all_status.items():
             if key in instance_info:
@@ -419,8 +421,9 @@ class GetInstances(object):
                 val["from_platform"] = False
                 val["oper_type"] = "create"
                 instance_info[key] = val
-                val["create_at"] = val["create_time"]
-                val["update_at"] = val["update_time"]
+                # NOTE: 兼容通过storage查询不到数据的情况，默认取当前时间
+                val["create_at"] = val.get("create_time") or default_time
+                val["update_at"] = val.get("update_time") or default_time
             cluster_name_env_map = cluster_env_map.get(cluster_id) or {}
             instance_info[key].update({
                 "namespace_id": ns_id,

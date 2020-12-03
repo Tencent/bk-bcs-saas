@@ -16,7 +16,7 @@ from rest_framework.exceptions import ValidationError
 
 from backend.apps import utils as app_utils
 from backend.apps.constants import ProjectKind, EnvType
-from backend.apps.constants import K8S_SYS_NAMESPACE
+from backend.resources.namespace.constants import K8S_SYS_NAMESPACE
 
 
 class BaseNamespaceSLZ(serializers.Serializer):
