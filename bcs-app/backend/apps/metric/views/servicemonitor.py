@@ -357,7 +357,7 @@ class ServiceMonitor(viewsets.ViewSet):
         names = ",".join(i["name"] for i in successes)
         message = _("删除Metrics:{}成功, [命名空间:{}]").format(names, ",".join(i["namespace"] for i in successes))
         self._activity_log(project_id, request.user.username, names, message, True)
-        return Response({"succeeds": successes})
+        return Response({"successes": successes})
 
 
 class Targets(viewsets.ViewSet):
