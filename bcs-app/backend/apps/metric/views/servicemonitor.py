@@ -336,28 +336,28 @@ class ServiceMonitor(viewsets.ViewSet):
         """
         slz = serializers.ServiceMonitorBatchDeleteSLZ(data=request.data)
         slz.is_valid(raise_exception=True)
-        data = slz.validated_data["servicemonitors"]
+        svc_monitors = slz.validated_data["servicemonitors"]
 
-        ns_list = [(cluster_id, i["namespace"]) for i in data]
+        ns_list = [(cluster_id, i["namespace"]) for i in svc_monitors]
         self._validate_namespace_use_perm(request, project_id, ns_list)
 
         client = self._get_client(request, project_id, cluster_id)
-        succeed = []
-        for servicemonitor in data:
-            result = client.delete_service_monitor(servicemonitor["namespace"], servicemonitor["name"])
+        successes = []
+        for monitor in svc_monitors:
+            result = client.delete_service_monitor(monitor["namespace"], monitor["name"])
             if result.get("status") == "Failure":
                 message = _("删除Metrics:{}失败, [命名空间:{}], {}").format(
-                    servicemonitor["name"], servicemonitor["namespace"], result.get("message", "")
+                    monitor["name"], monitor["namespace"], result.get("message", "")
                 )
-                self._activity_log(project_id, request.user.username, servicemonitor["name"], message, False)
+                self._activity_log(project_id, request.user.username, monitor["name"], message, False)
                 raise error_codes.APIError(result.get("message", ""))
             else:
-                succeed.append(servicemonitor)
+                successes.append(monitor)
 
-        names = ",".join(i["name"] for i in succeed)
-        message = _("删除Metrics:{}成功, [命名空间:{}]").format(names, ",".join(i["namespace"] for i in succeed))
+        names = ",".join(i["name"] for i in successes)
+        message = _("删除Metrics:{}成功, [命名空间:{}]").format(names, ",".join(i["namespace"] for i in successes))
         self._activity_log(project_id, request.user.username, names, message, True)
-        return Response({"succeed": succeed})
+        return Response({"succeeds": successes})
 
 
 class Targets(viewsets.ViewSet):
