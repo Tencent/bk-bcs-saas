@@ -21,9 +21,9 @@ from backend.components import paas_cc
 from backend.components.bcs.k8s import K8SClient
 from backend.utils.error_codes import error_codes
 from backend.utils.errcodes import ErrorCode
-from backend.apps.constants import K8S_SYS_NAMESPACE, K8S_PLAT_NAMESPACE
 from backend.apps.depot.api import get_jfrog_account, get_bk_jfrog_auth
 from backend.apps.instance.constants import K8S_IMAGE_SECRET_PRFIX
+from backend.resources.namespace.constants import K8S_SYS_NAMESPACE, K8S_PLAT_NAMESPACE
 
 logger = logging.getLogger(__name__)
 
