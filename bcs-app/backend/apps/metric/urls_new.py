@@ -22,9 +22,7 @@ cluster_urlpatterns = [
     # Mesos metrics, 依赖BCS 1.18.3 版本
     url(r"^mesos_cpu_resource_remain/$", views.performance.MesosCluster.as_view({"get": "mesos_cpu_resource_remain"})),
     url(r"^mesos_cpu_resource_total/$", views.performance.MesosCluster.as_view({"get": "mesos_cpu_resource_total"})),
-    url(
-        r"^mesos_cpu_resource_used/$", views.performance.MesosCluster.as_view({"get": "mesos_cpu_resource_used"})
-    ),
+    url(r"^mesos_cpu_resource_used/$", views.performance.MesosCluster.as_view({"get": "mesos_cpu_resource_used"})),
     url(
         r"^mesos_memory_resource_remain/$",
         views.performance.MesosCluster.as_view({"get": "mesos_memory_resource_remain"}),
@@ -34,8 +32,7 @@ cluster_urlpatterns = [
         views.performance.MesosCluster.as_view({"get": "mesos_memory_resource_total"}),
     ),
     url(
-        r"^mesos_memory_resource_used/$",
-        views.performance.MesosCluster.as_view({"get": "mesos_memory_resource_used"})
+        r"^mesos_memory_resource_used/$", views.performance.MesosCluster.as_view({"get": "mesos_memory_resource_used"})
     ),
     url(r"^disk_usage/$", views.performance.Cluster.as_view({"get": "disk_usage"})),
     url(r"^node/overview/$", views.performance.Node.as_view({"get": "overview"})),
@@ -66,7 +63,10 @@ cluster_urlpatterns = [
     ),
     url(r"^container/disk_read/$", views.performance.Container.as_view({"get": "disk_read", "post": "disk_read"})),
     url(r"^container/disk_write/$", views.performance.Container.as_view({"get": "disk_write", "post": "disk_write"})),
-    url(r"^servicemonitors/$", views.servicemonitor.ServiceMonitor.as_view({"get": "list", "post": "create"})),
+    url(
+        r"^servicemonitors/$",
+        views.servicemonitor.ServiceMonitor.as_view({"get": "list", "post": "create", "delete": "bacth_delete"}),
+    ),
     url(r"^targets/$", views.servicemonitor.Targets.as_view({"get": "list_instance"})),
     url(r"^services/$", views.servicemonitor.Services.as_view({"get": "list"})),
     url(r"^prometheus/update/$", views.servicemonitor.PrometheusUpdate.as_view({"get": "get", "put": "update"})),

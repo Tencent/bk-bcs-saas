@@ -296,3 +296,23 @@ class ServiceMonitorCreateSLZ(ServiceMonitorUpdateSLZ):
         if not NAME_PATTERN.match(name):
             raise ValidationError(NAME_PATTERN_MSG)
         return name
+
+
+class ServiceMonitorDeleteSLZ(serializers.Serializer):
+    """ServiceMonitor删除
+    """
+
+    name = serializers.CharField()
+    namespace = serializers.CharField()
+
+    def validate_name(self, name):
+        if not NAME_PATTERN.match(name):
+            raise ValidationError(NAME_PATTERN_MSG)
+        return name
+
+
+class ServiceMonitorBatchDeleteSLZ(serializers.Serializer):
+    """ServiceMonitor批量删除
+    """
+
+    servicemonitors = serializers.ListField(child=ServiceMonitorDeleteSLZ(), min_length=1)

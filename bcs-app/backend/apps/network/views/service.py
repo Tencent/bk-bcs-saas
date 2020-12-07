@@ -48,6 +48,7 @@ from backend.apps.application.constants import SOURCE_TYPE_MAP
 from backend.apps import utils as app_utils
 from backend.apps.constants import ProjectKind
 from backend.apps.configuration.constants import TemplateEditMode
+from backend.resources.namespace.constants import K8S_SYS_NAMESPACE, K8S_PLAT_NAMESPACE
 
 logger = logging.getLogger(__name__)
 DEFAULT_ERROR_CODE = ErrorCode.UnknownError
@@ -261,8 +262,8 @@ class Services(viewsets.ViewSet, BaseAPI):
             project_id=project_id, edit_mode=TemplateEditMode.PageForm.value
         ).values_list('id', flat=True)
         all_template_id_list = [str(template_id) for template_id in all_template_id_list]
-        skip_namespace_list = list(constants.K8S_SYS_NAMESPACE)
-        skip_namespace_list.extend(constants.K8S_PLAT_NAMESPACE)
+        skip_namespace_list = list(K8S_SYS_NAMESPACE)
+        skip_namespace_list.extend(K8S_PLAT_NAMESPACE)
 
         extended_routes = {}
         if project_kind == ProjectKind.K8S.value:
@@ -351,10 +352,10 @@ class Services(viewsets.ViewSet, BaseAPI):
             resp = client.delete_service(namespace, name)
             s_cate = 'service'
         else:
-            if namespace in constants.K8S_SYS_NAMESPACE:
+            if namespace in K8S_SYS_NAMESPACE:
                 return {
                     "code": 400,
-                    "message": _("不允许操作系统命名空间[{}]").format(','.join(constants.K8S_SYS_NAMESPACE)),
+                    "message": _("不允许操作系统命名空间[{}]").format(','.join(K8S_SYS_NAMESPACE)),
                 }
             client = k8s.K8SClient(
                 access_token, project_id, cluster_id, env=None)
@@ -518,10 +519,10 @@ class Services(viewsets.ViewSet, BaseAPI):
             s_sys_con = SEVICE_SYS_CONFIG
             s_cate = 'service'
         else:
-            if namespace in constants.K8S_SYS_NAMESPACE:
+            if namespace in K8S_SYS_NAMESPACE:
                 return Response({
                     "code": 400,
-                    "message": _("不允许操作系统命名空间[{}]").format(','.join(constants.K8S_SYS_NAMESPACE)),
+                    "message": _("不允许操作系统命名空间[{}]").format(','.join(K8S_SYS_NAMESPACE)),
                     "data": {}
                 })
             # k8s 相关数据
