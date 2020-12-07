@@ -18,6 +18,7 @@ import logging
 
 from kubernetes import client
 from kubernetes.client.rest import ApiException
+from django.utils.translation import ugettext_lazy as _
 
 from backend.utils.basic import getitems
 from backend.utils.error_codes import error_codes
@@ -49,14 +50,14 @@ class ReplicaSet(Resource):
             owner_ref_name = re.split(r',|;', owner_ref_name)
         return owner_ref_name
 
-    def _request_api(self, func, *args, **kwargs):
+    def _request_api(self, func_name, *args, **kwargs):
         for api_version in self.api_versions:
             try:
                 api_instance = getattr(client, api_version)(self.api_client)
-                return getattr(api_instance, func)(*args, **kwargs)
+                return getattr(api_instance, func_name)(*args, **kwargs)
             except Exception as e:
-                logger.error("call %s error, apiversion: %s, error: %s", func, api_version, e)
-        raise error_codes.APIError("request k8s replicaset api error")
+                logger.error("call %s error, apiversion: %s, error: %s", func_name, api_version, e)
+        raise error_codes.APIError(_("K8S Api SDK中没有查询到合适的版本"))
 
     @response(format_data=False)
     def get_replicaset(self, params):
