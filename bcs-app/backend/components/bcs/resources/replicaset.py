@@ -57,7 +57,7 @@ class ReplicaSet(Resource):
                 return getattr(api_instance, func_name)(*args, **kwargs)
             except Exception as e:
                 logger.error("call %s error, apiversion: %s, error: %s", func_name, api_version, e)
-        raise error_codes.APIError(_("K8S Api SDK中没有查询到合适的版本"))
+        raise error_codes.APIError(_("查询RS失败：K8S SDK中未查询到合适的版本"))
 
     @response(format_data=False)
     def get_replicaset(self, params):
