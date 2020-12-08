@@ -388,7 +388,7 @@
             </div>
         </bk-dialog>
 
-        <tip-dialog v-if="curCluster && curCluster.state === 'existing'"
+        <tip-dialog v-if="curCluster && curCluster.state !== 'existing'"
             ref="clusterNoticeDialog"
             icon="bk-icon icon-exclamation-triangle"
             :title="$t('确定删除集群？')"
@@ -980,7 +980,9 @@
                 }
                 this.curCluster = cluster
                 this.curClusterIndex = index
-                this.$refs.clusterNoticeDialog.show()
+                this.$nextTick(() => {
+                    this.$refs.clusterNoticeDialog.show()
+                })
             },
 
             /**

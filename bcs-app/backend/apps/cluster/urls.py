@@ -186,7 +186,7 @@ urlpatterns += [
 urlpatterns += [
     url(
         r'^api/projects/(?P<project_id>[\w\-]+)/clusters/(?P<cluster_id>[\w\-]+)/nodes/(?P<node_id>\d+)/$',
-        views.DeleteNotReadyNode.as_view({'delete': 'delete'})
+        views.DeleteNodeRecordViewSet.as_view({'delete': 'delete'})
     ),
     url(
         r"^api/cluster_mgr/projects/(?P<project_id>\w{32})/nodes/-/labels/$",

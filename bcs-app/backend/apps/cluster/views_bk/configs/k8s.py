@@ -105,6 +105,32 @@ class ClusterConfig(object):
     def _get_etcd_vars(self, etcd_legal_host):
         self.k8s_config['etcd'].update({'legal_hosts': etcd_legal_host})
 
+    def _add_kube_agent_config(self, cluster_id, params):
+        """针对纳管集群，需要在创建集群时，传递kube client组件需要的配置信息
+        """
+        if params.get("cluster_state") == constants.ClusterState.BCSNew.value:
+            return
+        # get bcs agent info
+        bcs_client = BCSClusterClient(
+            host=BCS_SERVER_HOST,
+            access_token=params["access_token"],
+            project_id=params["project_id"],
+            cluster_id=cluster_id
+        )
+        bcs_cluster_info = bcs_client.get_or_register_bcs_cluster()
+        if not bcs_cluster_info.get("result"):
+            err_msg = bcs_cluster_info.get("message", "request bcs agent api error")
+            raise error_codes.APIError(err_msg)
+        bcs_cluster_data = bcs_cluster_info.get("data", {})
+        if not bcs_cluster_data:
+            raise error_codes.APIError("bcs agent api response is null")
+
+        self.k8s_config["bcs.kube_agent"].update({
+            "register_token": bcs_cluster_data["token"],
+            "bcs_api_server": BCS_SERVER_HOST,
+            "register_cluster_id": bcs_cluster_data["bcs_cluster_id"]
+        })
+
     def get_request_config(self, cluster_id, master_ips, need_nat=True, **kwargs):
         # 获取master和etcd ip列表
         kube_master_list, etcd_list = self._split_ip_by_role(master_ips)
@@ -115,6 +141,7 @@ class ClusterConfig(object):
         master_legal_host, etcd_legal_host = list(masters.keys()), list(etcdpeers.keys())
         self._get_node_vars(master_legal_host)
         self._get_etcd_vars(etcd_legal_host)
+        self._add_kube_agent_config(cluster_id, kwargs)
 
         return self.k8s_config
 
