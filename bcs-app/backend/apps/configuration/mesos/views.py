@@ -75,21 +75,12 @@ class ApplicationView(viewsets.ViewSet, GetVersionedEntity):
         ventity = self.get_versioned_entity(project_id, version_id)
         return Response(ventity.get_secrets_by_kind(MESOS_KIND))
 
-    def get_loadbalance(self, request, project_id, ns_id):
-        """ 查询 namespace 下的 loadbalance 信息
+    def get_loadbalance(self, request, project_id, cluster_id):
+        """查询 namespace 下的 loadbalance 信息
+        NOTE: 允许使用集群下的所有的LB，因此，不需要传递命名空间信息
         """
-        access_token = request.user.token.access_token
-        lb_info = MesosLoadBlance.objects.filter(project_id=project_id)
-        lb_list = []
-        for lb in lb_info:
-            # 已经调用 bcs api 创建过的，才继续查询状态
-            if lb.status == 'created':
-                # 查询 lb 的ns，TODO 配置平台 /namespace/?group_by=env_type&with_lb=1 该API 直接返回 ns
-                lb_res, lb_data = get_lb_status(
-                    access_token, project_id, lb.name, lb.cluster_id, None)
-                if lb_res:
-                    lb_list.append({'lb_id': lb.id, 'lb_name': lb.name})
-        return Response(lb_list)
+        lb_records = MesosLoadBlance.objects.filter(project_id=project_id, cluster_id=cluster_id)
+        return Response([{"lb_id": lb.id, "lb_name": lb.name} for lb in lb_records])
 
 
 class DeploymentView(viewsets.ViewSet, GetVersionedEntity):
