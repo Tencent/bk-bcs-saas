@@ -233,6 +233,19 @@
                                                 <td v-if="curClusterInPage.type === 'k8s'"></td>
                                                 <td style="text-align: left;">
                                                     <a href="javascript:void(0);" class="bk-text-button" @click.stop="showLog(node)">{{$t('查看日志')}}</a>
+                                                    <bk-dropdown-menu class="dropdown-menu ml10" :align="'center'" ref="dropdown">
+                                                        <a href="javascript:void(0);" slot="dropdown-trigger" class="bk-text-button">
+                                                            {{$t('更多')}}
+                                                            <i class="bk-icon icon-angle-down dropdown-menu-angle-down"></i>
+                                                        </a>
+                                                        <ul class="bk-dropdown-list" slot="dropdown-content">
+                                                            <li>
+                                                                <a href="javascript:void(0);" class="bk-text-button" @click.stop="showRecordRemove(node, index)">
+                                                                    {{$t('仅移除记录')}}
+                                                                </a>
+                                                            </li>
+                                                        </ul>
+                                                    </bk-dropdown-menu>
                                                 </td>
                                             </template>
 
@@ -309,6 +322,19 @@
                                                         <a href="javascript:void(0);" class="bk-text-button" @click.stop="showDelNode(node, index)">{{$t('删除')}}</a>
                                                         <a href="javascript:void(0);" class="bk-text-button" @click.stop="reInitializationNode(node, index)">{{$t('重试')}}</a>
                                                     </template>
+                                                    <bk-dropdown-menu class="dropdown-menu ml10" :align="'center'" ref="dropdown">
+                                                        <a href="javascript:void(0);" slot="dropdown-trigger" class="bk-text-button">
+                                                            {{$t('更多')}}
+                                                            <i class="bk-icon icon-angle-down dropdown-menu-angle-down"></i>
+                                                        </a>
+                                                        <ul class="bk-dropdown-list" slot="dropdown-content">
+                                                            <li>
+                                                                <a href="javascript:void(0);" class="bk-text-button" @click.stop="showRecordRemove(node, index)">
+                                                                    {{$t('仅移除记录')}}
+                                                                </a>
+                                                            </li>
+                                                        </ul>
+                                                    </bk-dropdown-menu>
                                                 </td>
                                             </template>
 
@@ -390,6 +416,11 @@
                                                             <li>
                                                                 <a href="javascript:void(0);" class="bk-text-button" @click.stop="schedulerNode(node, index)">
                                                                     {{(curClusterInPage.type === 'k8s' || curProject.kind === 3) ? $t('pod迁移') : $t('taskgroup迁移')}}
+                                                                </a>
+                                                            </li>
+                                                            <li>
+                                                                <a href="javascript:void(0);" class="bk-text-button" @click.stop="showRecordRemove(node, index)">
+                                                                    {{$t('仅移除记录')}}
                                                                 </a>
                                                             </li>
                                                         </ul>
@@ -475,6 +506,11 @@
                                                                     {{(curClusterInPage.type === 'k8s' || curProject.kind === 3) ? $t('pod迁移') : $t('taskgroup迁移')}}
                                                                 </a>
                                                             </li>
+                                                            <li>
+                                                                <a href="javascript:void(0);" class="bk-text-button" @click.stop="showRecordRemove(node, index)">
+                                                                    {{$t('仅移除记录')}}
+                                                                </a>
+                                                            </li>
                                                         </ul>
                                                     </bk-dropdown-menu>
                                                 </td>
@@ -538,6 +574,19 @@
                                                     <!-- <a href="javascript:void(0);" class="bk-text-button" @click.stop="showDelNode(node, index)">{{$t('删除')}}</a>
                                                     <a href="javascript:void(0);" class="bk-text-button" @click.stop="showForceDelNode(node, index)">{{$t('强制删除')}}</a> -->
                                                     <a href="javascript:void(0);" class="bk-text-button" @click.stop="showFaultRemove(node, index)">{{$t('故障移除')}}</a>
+                                                    <bk-dropdown-menu class="dropdown-menu ml10" :align="'center'" ref="dropdown">
+                                                        <a href="javascript:void(0);" slot="dropdown-trigger" class="bk-text-button">
+                                                            {{$t('更多')}}
+                                                            <i class="bk-icon icon-angle-down dropdown-menu-angle-down"></i>
+                                                        </a>
+                                                        <ul class="bk-dropdown-list" slot="dropdown-content">
+                                                            <li>
+                                                                <a href="javascript:void(0);" class="bk-text-button" @click.stop="showRecordRemove(node, index)">
+                                                                    {{$t('仅移除记录')}}
+                                                                </a>
+                                                            </li>
+                                                        </ul>
+                                                    </bk-dropdown-menu>
                                                 </td>
                                             </template>
 
@@ -603,6 +652,19 @@
 
                                                 <td style="text-align: left;">
                                                     <a href="javascript:void(0);" class="bk-text-button" @click.stop="stopNode(node, index)">{{$t('停止调度')}}</a>
+                                                    <bk-dropdown-menu class="dropdown-menu ml10" :align="'center'" ref="dropdown">
+                                                        <a href="javascript:void(0);" slot="dropdown-trigger" class="bk-text-button">
+                                                            {{$t('更多')}}
+                                                            <i class="bk-icon icon-angle-down dropdown-menu-angle-down"></i>
+                                                        </a>
+                                                        <ul class="bk-dropdown-list" slot="dropdown-content">
+                                                            <li>
+                                                                <a href="javascript:void(0);" class="bk-text-button" @click.stop="showRecordRemove(node, index)">
+                                                                    {{$t('仅移除记录')}}
+                                                                </a>
+                                                            </li>
+                                                        </ul>
+                                                    </bk-dropdown-menu>
                                                 </td>
                                             </template>
                                         </tr>
@@ -944,6 +1006,19 @@
             :canceling-btn-text="$t('取消')"
             :confirm-callback="confirmFaultRemove"
             :cancel-callback="cancelFaultRemove">
+        </tip-dialog>
+
+        <tip-dialog
+            ref="recordRemoveDialog"
+            icon="bk-icon icon-exclamation-triangle"
+            :sub-title="$t('请确认: ') "
+            :show-close="false"
+            :check-list="recordRemoveNoticeList"
+            :confirm-btn-text="$t('确定')"
+            :confirming-btn-text="$t('删除中...')"
+            :canceling-btn-text="$t('取消')"
+            :confirm-callback="confirmRecordRemove"
+            :cancel-callback="cancelRecordRemove">
         </tip-dialog>
 
         <bk-dialog
