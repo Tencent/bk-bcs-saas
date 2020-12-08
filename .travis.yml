@@ -2,6 +2,9 @@ language: python
 python:
   - '3.6.7'
 
+install:
+  - pip install -r bcs-app/requirements-dev.txt
+
 script:
   - cd bcs-app
   - flake8 --config=.flake8 .
