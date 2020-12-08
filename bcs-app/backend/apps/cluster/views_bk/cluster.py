@@ -530,7 +530,8 @@ class DeleteCluster(BaseCluster):
                 platform=self.config.pop("platform", "gcloud_v3")
             )
             if task_info.get("code") != ErrorCode.NoError:
-                logger.warning("调用删除集群流程失败，error: %s", task_info.get("message"))
+                logger.warning("调用删除集群流程失败，项目ID: %s, 集群ID: %s, error: %s",
+                               self.project_id, self.cluster_id, task_info.get("message"))
                 self.delete_cluster(self.cluster_id)
                 return
         except Exception as e:
