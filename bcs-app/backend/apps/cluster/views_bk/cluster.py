@@ -521,16 +521,23 @@ class DeleteCluster(BaseCluster):
             oper_type=ClusterOperType.ClusterRemove,
             is_polling=True,
         )
-        task_info = ops.delete_cluster(
-            self.access_token, self.project_id, self.kind_name,
-            self.cluster_id, master_ip_list, self.control_ip,
-            self.cc_app_id, self.username, self.websvr, self.config,
-            platform=self.config.pop("platform", "gcloud_v3")
-        )
-        if task_info.get('code') != ErrorCode.NoError:
-            log.set_finish_polling_status(True, False, CommonStatus.RemoveFailed)
-            self.update_cluster_status(status=CommonStatus.RemoveFailed)
-            raise error_codes.APIError(task_info.get('message'))
+        # NOTE: 因为后端的任务调度引擎针对删除集群的流程，跳过异常；因此，当出现调用接口异常时，也跳过异常处理
+        try:
+            task_info = ops.delete_cluster(
+                self.access_token, self.project_id, self.kind_name,
+                self.cluster_id, master_ip_list, self.control_ip,
+                self.cc_app_id, self.username, self.websvr, self.config,
+                platform=self.config.pop("platform", "gcloud_v3")
+            )
+            if task_info.get("code") != ErrorCode.NoError:
+                logger.warning("调用删除集群流程失败，error: %s", task_info.get("message"))
+                self.delete_cluster(self.cluster_id)
+                return
+        except Exception as e:
+            logger.error("调用删除集群流程异常，error: %s", e)
+            self.delete_cluster(self.cluster_id)
+            return
+
         data = task_info.get('data') or {}
         task_id = data.get('task_id')
         if not task_id:
@@ -582,8 +589,8 @@ class DeleteCluster(BaseCluster):
             self.config = json.loads(snapshot.get('configure', '{}'))
             self.control_ip = self.config.pop('control_ip', [])
             self.websvr = self.config.pop('websvr', [])
-            log = self.delete_cluster_via_bcs()
-            if not log.is_finished and log.is_polling:
-                log.polling_task()
+            task = self.delete_cluster_via_bcs()
+            if task and not task.is_finished and task.is_polling:
+                task.polling_task()
 
         return Response({})
