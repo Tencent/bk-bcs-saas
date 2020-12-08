@@ -331,6 +331,34 @@ class ServiceMonitor(viewsets.ViewSet):
         self._activity_log(project_id, request.user.username, name, message, True)
         return Response(result)
 
+    def bacth_delete(self, request, project_id, cluster_id):
+        """批量删除
+        """
+        slz = serializers.ServiceMonitorBatchDeleteSLZ(data=request.data)
+        slz.is_valid(raise_exception=True)
+        svc_monitors = slz.validated_data["servicemonitors"]
+
+        ns_list = [(cluster_id, i["namespace"]) for i in svc_monitors]
+        self._validate_namespace_use_perm(request, project_id, ns_list)
+
+        client = self._get_client(request, project_id, cluster_id)
+        successes = []
+        for monitor in svc_monitors:
+            result = client.delete_service_monitor(monitor["namespace"], monitor["name"])
+            if result.get("status") == "Failure":
+                message = _("删除Metrics:{}失败, [命名空间:{}], {}").format(
+                    monitor["name"], monitor["namespace"], result.get("message", "")
+                )
+                self._activity_log(project_id, request.user.username, monitor["name"], message, False)
+                raise error_codes.APIError(result.get("message", ""))
+            else:
+                successes.append(monitor)
+
+        names = ",".join(i["name"] for i in successes)
+        message = _("删除Metrics:{}成功, [命名空间:{}]").format(names, ",".join(i["namespace"] for i in successes))
+        self._activity_log(project_id, request.user.username, names, message, True)
+        return Response({"successes": successes})
+
 
 class Targets(viewsets.ViewSet):
     renderer_classes = (BKAPIRenderer, BrowsableAPIRenderer)
