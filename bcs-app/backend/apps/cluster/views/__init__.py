@@ -43,5 +43,5 @@ from .node_views.query_apis import (
 )
 
 from .node_views.operation_apis import (
-    DeleteNotReadyNode, BatchReinstallNodes, NodelabelsViewSets
+    DeleteNodeRecordViewSet, BatchReinstallNodes, NodelabelsViewSets
 )
