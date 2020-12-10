@@ -11,7 +11,34 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
+from functools import lru_cache
+
+from django.utils.translation import ugettext_lazy as _
+from kubernetes import client
+
+from backend.utils.error_codes import error_codes
 from backend.components.bcs import k8s
+from backend.components.bcs import k8s_client
+
+
+@lru_cache(maxsize=64)
+def create_api_client(access_token, project_id, cluster_id):
+    client = k8s_client.K8SAPIClient(access_token, project_id, cluster_id, None)
+    return client.api_client
+
+
+class APIInstance:
+    def __init__(self, access_token, project_id, cluster_id):
+        self.api_client = create_api_client(access_token, project_id, cluster_id)
+        for api_cls in self.get_api_cls_list(self.api_client):
+            try:
+                self.api_instance = getattr(client, api_cls)(self.api_client)
+                return
+            except AttributeError:
+                continue
+            except Exception as e:
+                raise error_codes.APIError(f"kubernetes-python error: {e}")
+        raise error_codes.APIError(_("kubernetes-python库中，未找到适合当前集群版本的的api version"))
 
 
 class K8SClient:
