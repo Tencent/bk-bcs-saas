@@ -213,7 +213,7 @@ def get_app_names_by_deployment(deployment):
     return app_name_list
 
 
-def get_mesos_lb_status_detail(access_token, project_id, cluster_id, namespace, name, op_status):
+def get_mesos_lb_status_detail(access_token, project_id, cluster_id, namespace, name, op_status, lb_obj=None):
     client = MesosClient(access_token, project_id, cluster_id, None)
     lb_status_detail = {
         "status": op_status,
@@ -230,6 +230,9 @@ def get_mesos_lb_status_detail(access_token, project_id, cluster_id, namespace, 
     # 针对删除操作时，如果deployment数据为空，认为已经删除
     if op_status == lb_constants.MESOS_LB_STATUS.STOPPING.value and not deployment:
         lb_status_detail["status"] = lb_constants.MESOS_LB_STATUS.STOPPED.value
+        # 兼容处理
+        if lb_obj:
+            lb_obj.update_status(lb_constants.MESOS_LB_STATUS.STOPPED.value)
         return lb_status_detail
 
     # 如果有空，直接返回，并记录日志
@@ -259,5 +262,7 @@ def get_mesos_lb_status_detail(access_token, project_id, cluster_id, namespace, 
     if op_status == lb_constants.MESOS_LB_STATUS.DEPLOYING.value:
         if application_status in lb_constants.MESOS_APP_STABLE_STATUS:
             lb_status_detail["status"] = lb_constants.MESOS_LB_STATUS.DEPLOYED.value
+            if lb_obj:
+                lb_obj.update_status(lb_constants.MESOS_LB_STATUS.DEPLOYED.value)
 
     return lb_status_detail
