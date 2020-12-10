@@ -42,6 +42,7 @@ class LoadBalancersViewSet(viewsets.ViewSet):
             queryset = queryset.filter(cluster_id=cluster_id)
         slz = lb_slz.MesosLBSLZ(queryset, many=True)
         data = slz.data
+        lbs = {lb.id: lb for lb in queryset}
         # 添加lb对应的deployment和application状态
         access_token = request.user.token.access_token
         for lb in data:
@@ -52,7 +53,7 @@ class LoadBalancersViewSet(viewsets.ViewSet):
                 lb["namespace"],
                 lb["name"],
                 lb["status"],
-                lb_obj=lb
+                lb_obj=lbs[lb["id"]]
             ))
         return Response(data)
 
