@@ -38,7 +38,7 @@ urlpatterns = [
         views.ApplicationView.as_view({'get': 'list_secrets'})),
     # 查询 namespace 下的 loadbalance 信息
     url(r'^api/configuration/projects/(?P<project_id>\w{32})/clusters/(?P<cluster_id>[\w\-]+)/lbs/$',
-        views.ApplicationView.as_view({'get': 'get_loadbalance'})),
+        views.ApplicationView.as_view({'get': 'get_lbs'})),
     # 查询指定版本的 Service 信息
     url(r'^api/projects/(?P<project_id>\w{32})/mesos/service/(?P<version_id>\-?\d+)/$',
         views.ServiceView.as_view({'get': 'list_services'})),

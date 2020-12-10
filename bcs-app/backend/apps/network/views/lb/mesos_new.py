@@ -51,7 +51,8 @@ class LoadBalancersViewSet(viewsets.ViewSet):
                 lb["cluster_id"],
                 lb["namespace"],
                 lb["name"],
-                lb["status"]
+                lb["status"],
+                lb_obj=lb
             ))
         return Response(data)
 
