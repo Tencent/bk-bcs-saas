@@ -11,6 +11,8 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
+import logging
+
 from functools import lru_cache
 
 from django.utils.translation import ugettext_lazy as _
@@ -19,6 +21,8 @@ from kubernetes import client
 from backend.utils.error_codes import error_codes
 from backend.components.bcs import k8s
 from backend.components.bcs import k8s_client
+
+logger = logging.getLogger(__name__)
 
 
 @lru_cache(maxsize=64)
@@ -37,6 +41,7 @@ class APIInstance:
             except AttributeError:
                 continue
             except Exception as e:
+                logger.error("")
                 raise error_codes.APIError(f"kubernetes-python error: {e}")
         raise error_codes.APIError(_("kubernetes-python库中，未找到适合当前集群版本的的api version"))
 
