@@ -232,7 +232,7 @@ def get_mesos_lb_status_detail(access_token, project_id, cluster_id, namespace, 
         lb_status_detail["status"] = lb_constants.MESOS_LB_STATUS.STOPPED.value
         # 兼容处理
         if lb_obj:
-            lb_obj.save(lb_constants.MESOS_LB_STATUS.STOPPED.value)
+            lb_obj.update_status(lb_constants.MESOS_LB_STATUS.STOPPED.value)
         return lb_status_detail
 
     # 如果有空，直接返回，并记录日志
@@ -263,6 +263,6 @@ def get_mesos_lb_status_detail(access_token, project_id, cluster_id, namespace, 
         if application_status in lb_constants.MESOS_APP_STABLE_STATUS:
             lb_status_detail["status"] = lb_constants.MESOS_LB_STATUS.DEPLOYED.value
             if lb_obj:
-                lb_obj.save(lb_constants.MESOS_LB_STATUS.DEPLOYED.value)
+                lb_obj.update_status(lb_constants.MESOS_LB_STATUS.DEPLOYED.value)
 
     return lb_status_detail
