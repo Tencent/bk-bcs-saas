@@ -248,7 +248,7 @@ MESOS_TEMPLATE = {
                                                 "value": "20"
                                             }
                                         ],
-                                        "imageName": f"{image_path_prefix}/mesos/rumpetroll",
+                                        "imageName": f"{image_path_prefix}/mesos/rumpetroll:{image_path_prefix}/mesos/rumpetroll", # noqa
                                         "imageVersion": "3.1",
                                         "image": f"{image_prefix}/mesos/rumpetroll:3.1",
                                         "imagePullPolicy": "Always",
@@ -409,7 +409,7 @@ MESOS_TEMPLATE = {
                                                 "value": ""
                                             }
                                         ],
-                                        "imageName": f"{image_path_prefix}/mesos/rumpetrol-redis",
+                                        "imageName": f"{image_path_prefix}/mesos/rumpetrol-redis:{image_path_prefix}/mesos/rumpetrol-redis", # noqa
                                         "imageVersion": "latest",
                                         "image": f"{image_prefix}/mesos/rumpetrol-redis:latest",
                                         "imagePullPolicy": "Always",
