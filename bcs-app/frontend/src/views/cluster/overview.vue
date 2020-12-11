@@ -145,32 +145,6 @@
                                 </div>
                             </Ring>
                         </div>
-
-                        <div class="chart-box bottom">
-                            <div class="info">
-                                <div class="left">{{$t('集群IP')}}</div>
-                                <div class="right">
-                                    <div>
-                                        <i class="bk-icon icon-circle"></i>
-                                        <span>{{$t('可用')}}</span>
-                                        <span>{{ipTotal}}</span>
-                                    </div>
-                                    <div>
-                                        <i class="bk-icon icon-circle"></i>
-                                        <span>{{$t('已使用')}}</span>
-                                        <span>{{ipUsed}}</span>
-                                    </div>
-                                </div>
-                            </div>
-                            <Ring :percent="ipPercent" :size="210" :text="'none'"
-                                :stroke-width="10" :fill-width="10" :fill-color="'#3ede78'"
-                                :percent-change-handler="percentChangeHandler('ip')"
-                                :ext-cls="'biz-cluster-ring'">
-                                <div slot="text" class="ring-text-inner">
-                                    <div class="number">{{ipPercentStr}}</div>
-                                </div>
-                            </Ring>
-                        </div>
                     </div>
                 </div>
             </div>
