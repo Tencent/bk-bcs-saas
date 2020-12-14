@@ -146,14 +146,17 @@
                                                                 </bk-tooltip>
                                                             </td>
                                                             <td class="version">
-                                                                <bk-tooltip placement="top" :delay="500">
-                                                                    <p class="tpl-version">
-                                                                        {{template.defaultChartVersion.version}}
-                                                                    </p>
-                                                                    <template slot="content">
-                                                                        <p>{{template.defaultChartVersion.version}}</p>
-                                                                    </template>
-                                                                </bk-tooltip>
+                                                                <template v-if="template.defaultChartVersion">
+                                                                    <bk-tooltip placement="top" :delay="500">
+                                                                        <p class="tpl-version">
+                                                                            {{template.defaultChartVersion.version}}
+                                                                        </p>
+                                                                        <template slot="content">
+                                                                            <p>{{template.defaultChartVersion.version}}</p>
+                                                                        </template>
+                                                                    </bk-tooltip>
+                                                                </template>
+                                                                <template v-else>--</template>
                                                             </td>
                                                             <td class="description">
                                                                 <p class="text">{{template.description}}</p>
