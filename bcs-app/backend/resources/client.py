@@ -41,7 +41,7 @@ class APIInstance:
             except AttributeError:
                 continue
             except Exception as e:
-                logger.error("")
+                logger.error("Create an instance of the K8S API class error，%s", str(e))
                 raise error_codes.APIError(f"kubernetes-python error: {e}")
         raise error_codes.APIError(_("kubernetes-python库中，未找到适合当前集群版本的的api version"))
 

@@ -146,8 +146,8 @@ class NamespaceBase:
                                  project_id, project_code, data)
         # 如果需要使用资源配额，创建配额
         if data.get("use_resource_quota"):
-            k8s_client = ns_resource.Namespace(access_token, project_id, data["cluster_id"])
-            k8s_client.create_resource_quota(name, data["quota"])
+            client = ns_resource.ResourceQuota(access_token, project_id, data["cluster_id"])
+            client.create_resource_quota(name, data["quota"])
 
     def check_ns_image_secret(self, client, access_token, project_id, cluster_id, ns_name):
         """检查命名空间下是否已经有secret文件
@@ -420,6 +420,24 @@ class NamespaceView(NamespaceBase, viewsets.ViewSet):
 
         return response.Response(result)
 
+    def get_namespace(self, request, project_id, cluster_id, namespace):
+        """获取命名空间信息
+        TODO: 这里现阶段仅包含namespace+对应的配额数据，后续考虑添加变量数据
+        """
+        # 获取配额
+        client = ns_resource.ResourceQuota(
+            access_token=request.user.token.access_token, project_id=project_id, cluster_id=cluster_id
+        )
+        # NOTE: 资源配额的名称和命名空间名称一样
+        quota = client.get_namespace_quota(namespace, namespace)
+        ns = {
+            "project_id": project_id,
+            "cluster_id": cluster_id,
+            "name": namespace,
+            "quota": quota
+        }
+        return response.Response(ns)
+
     def update(self, request, project_id, namespace_id, is_validate_perm=True):
         """修改命名空间
         不允许修改命名空间信息，只能修改变量信息
@@ -444,7 +462,7 @@ class NamespaceView(NamespaceBase, viewsets.ViewSet):
 
         # 针对k8s，允许添加或更新资源配额
         if request.project.kind == ProjectKind.K8S.value and data.get("use_resource_quota"):
-            client = ns_resource.Namespace(request.user.token.access_token, project_id, data["cluster_id"])
+            client = ns_resource.ResourceQuota(request.user.token.access_token, project_id, data["cluster_id"])
             client.update_or_create_resource_quota(data["name"], data["name"], data["quota"])
 
         return response.Response(result)

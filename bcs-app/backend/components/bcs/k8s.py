@@ -588,26 +588,6 @@ class K8SClient(BCSClientBase):
         api_client = resources.Node(self.k8s_raw_client)
         return api_client.list_node(label_selector=label_selector)
 
-    @property
-    def resource_quota(self):
-        api_client = resources.ResourceQuota(self.k8s_raw_client)
-        return api_client
-
-    def list_resource_quota(self, namespace=None):
-        return self.resource_quota.list_resource_quota(namespace=namespace)
-
-    def create_resource_quota(self, namespace, data):
-        return self.resource_quota.create_resource_quota(namespace, data)
-
-    def update_resource_quota(self, name, namespace, data):
-        return self.resource_quota.update_resource_quota(name, namespace, data)
-
-    def delete_resource_quota(self, name, namespace):
-        return self.resource_quota.delete_resource_quota(name, namespace)
-
-    def update_or_create_resource_quota(self, name, namespace, data):
-        return self.resource_quota.update_or_create(name, namespace, data)
-
 
 class K8SClientWithJWT(K8SClient):
     def __init__(self, access_token, jwt, project_id, cluster_id, env):

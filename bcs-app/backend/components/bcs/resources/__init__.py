@@ -45,5 +45,3 @@ from .storageclass import StorageClass
 from .pv import PersistentVolume
 
 from .pvc import PersistentVolumeClaim
-
-from .resource_quota import ResourceQuota
