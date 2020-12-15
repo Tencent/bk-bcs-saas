@@ -225,6 +225,7 @@ class VueTemplateView(TemplateView):
             "BK_CC_HOST": settings.BK_CC_HOST,
             "SITE_URL": settings.SITE_URL[:-1],
             "BK_IAM_APP_URL": settings.BK_IAM_APP_URL,
+            "SUPPORT_MESOS": settings.SUPPORT_MESOS
         }
         response = super(VueTemplateView, self).get(request, **context)
         return response
