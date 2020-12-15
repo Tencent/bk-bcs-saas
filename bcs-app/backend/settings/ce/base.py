@@ -13,8 +13,6 @@
 #
 import sys
 
-from backend.utils.funutils import str2bool
-
 from ..base import *  # noqa
 from ..base import BASE_DIR, REST_FRAMEWORK
 
