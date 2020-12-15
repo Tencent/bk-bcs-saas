@@ -126,3 +126,19 @@ def normalize_time(time):
     # create_time format: '2019-12-16T09:10:59Z'
     d_time = arrow.get(time).datetime
     return timezone.localtime(d_time).strftime(settings.REST_FRAMEWORK['DATETIME_FORMAT'])
+
+
+def str2bool(source):
+    """str转换为bool
+    True: "true", "True", "1"
+    False: "false", "False", "0"
+    """
+    if not isinstance(source, str):
+        raise TypeError(f"{source} not string type")
+
+    mapping = {"true": True, "1": True, "false": False, "0": False}
+    source = source.lower()
+    if source in mapping:
+        return mapping[source]
+
+    raise ValueError(f"{source} can not convert to bool")
