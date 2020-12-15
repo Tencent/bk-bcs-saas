@@ -35,8 +35,7 @@
                                         <input type="radio" value="1" name="kind" v-model="kind">
                                         <i class="bk-radio-text">BCS-K8S</i>
                                     </label>
-                                    <!-- 针对社区版，不展示编排类型，向后端传递参数是标识k8s即可 -->
-                                    <label class="bk-form-radio" v-if="runVersion !== 'ce'">
+                                    <label class="bk-form-radio" v-if="supportMesos === 'true'">
                                         <input type="radio" value="2" name="kind" v-model="kind">
                                         <i class="bk-radio-text">BCS-Mesos</i>
                                     </label>
@@ -138,7 +137,8 @@
                     title: this.$t('帮助'),
                     closeIcon: true
                 },
-                fullscreenImg: ''
+                fullscreenImg: '',
+                supportMesos: (window.SUPPORT_MESOS || '').toLowerCase()
             }
         },
         computed: {
