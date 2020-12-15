@@ -12,23 +12,12 @@
 # specific language governing permissions and limitations under the License.
 #
 
-import logging
+# k8s 中系统的命名空间，不允许用户创建，也不能操作上面的资源 kube-system, kube-public
+K8S_SYS_NAMESPACE = ["kube-system", "kube-public"]
 
-from unittest import TestCase
+# k8s 平台服务用的命名空间
+# TODO: bcs-system命名空间后续处理
+K8S_PLAT_NAMESPACE = ["web-console", "gitlab-ci", "thanos"]
 
-from celery.exceptions import TimeoutError
-
-from . import tasks
-
-logger = logging.getLogger(__name__)
-
-
-class TestHealthz(TestCase):
-    def test_healthz(self):
-        n = id(self)
-        proxy = tasks.healthz.delay(n)
-        try:
-            self.assertEqual(-n, proxy.get(0.1))
-        except TimeoutError:
-            logger.warning("celery is not runing")
-            return
+# 平台和系统使用的命名空间
+K8S_SYS_PLAT_NAMESPACES = K8S_SYS_NAMESPACE + K8S_PLAT_NAMESPACE

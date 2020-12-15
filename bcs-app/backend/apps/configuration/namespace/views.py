@@ -26,7 +26,7 @@ from .tasks import sync_namespace as sync_ns_task
 from .resources import Namespace
 from backend.accounts import bcs_perm
 from backend.apps import constants
-from backend.apps.constants import K8S_SYS_NAMESPACE, ClusterType
+from backend.apps.constants import ClusterType
 from backend.apps.depot.api import get_jfrog_account, get_bk_jfrog_auth
 from backend.apps.instance.constants import K8S_IMAGE_SECRET_PRFIX, MESOS_IMAGE_SECRET, OLD_MESOS_IMAGE_SECRET
 from backend.apps.variable.models import NameSpaceVariable
@@ -46,6 +46,8 @@ from backend.resources.namespace.utils import get_namespace_by_id
 from backend.resources.cluster.utils import get_clusters
 from backend.apps.utils import get_cluster_env_name
 from backend.resources import namespace as ns_resource
+from backend.resources.namespace.constants import K8S_SYS_PLAT_NAMESPACES
+
 
 logger = logging.getLogger(__name__)
 
@@ -146,8 +148,8 @@ class NamespaceBase:
                                  project_id, project_code, data)
         # 如果需要使用资源配额，创建配额
         if data.get("use_resource_quota"):
-            client = ns_resource.ResourceQuota(access_token, project_id, data["cluster_id"])
-            client.create_resource_quota(name, data["quota"])
+            client = ns_resource.NamespaceQuota(access_token, project_id, data["cluster_id"])
+            client.create_namespace_quota(name, data["quota"])
 
     def check_ns_image_secret(self, client, access_token, project_id, cluster_id, ns_name):
         """检查命名空间下是否已经有secret文件
@@ -235,6 +237,15 @@ class NamespaceView(NamespaceBase, viewsets.ViewSet):
             clusters_without_ns.append(item)
         return clusters_without_ns
 
+    def _ignore_ns_for_k8s(self, ns_list):
+        """针对k8s集群，过滤掉系统和平台命名空间
+        """
+        return [
+            ns
+            for ns in ns_list
+            if ns["name"] not in K8S_SYS_PLAT_NAMESPACES
+        ]
+
     def list(self, request, project_id):
         """命名空间列表
         权限控制: 必须有对应集群的使用权限
@@ -259,7 +270,10 @@ class NamespaceView(NamespaceBase, viewsets.ViewSet):
         if result.get('code') != 0:
             raise error_codes.APIError.f(result.get('message', ''))
 
-        results = result['data']['results'] or []
+        results = result["data"]["results"] or []
+        # 针对k8s集群过滤掉系统和平台命名空间
+        if request.project.kind == ProjectKind.K8S.value:
+            results = self._ignore_ns_for_k8s(results)
 
         # 是否有创建权限
         perm = bcs_perm.Namespace(request, project_id, bcs_perm.NO_RES)
@@ -425,7 +439,7 @@ class NamespaceView(NamespaceBase, viewsets.ViewSet):
         TODO: 这里现阶段仅包含namespace+对应的配额数据，后续考虑添加变量数据
         """
         # 获取配额
-        client = ns_resource.ResourceQuota(
+        client = ns_resource.NamespaceQuota(
             access_token=request.user.token.access_token, project_id=project_id, cluster_id=cluster_id
         )
         # NOTE: 资源配额的名称和命名空间名称一样
@@ -462,8 +476,8 @@ class NamespaceView(NamespaceBase, viewsets.ViewSet):
 
         # 针对k8s，允许添加或更新资源配额
         if request.project.kind == ProjectKind.K8S.value and data.get("use_resource_quota"):
-            client = ns_resource.ResourceQuota(request.user.token.access_token, project_id, data["cluster_id"])
-            client.update_or_create_resource_quota(data["name"], data["name"], data["quota"])
+            client = ns_resource.NamespaceQuota(request.user.token.access_token, project_id, data["cluster_id"])
+            client.update_or_create_namespace_quota(data["name"], data["name"], data["quota"])
 
         return response.Response(result)
 

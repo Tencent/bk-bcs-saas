@@ -797,7 +797,7 @@ export default {
          * @return {Promise} promise 对象
          */
         getChartVersions (context, { projectId, params = {} }, config = {}) {
-            const url = `${DEVOPS_BCS_API_URL}/api/k8s_lb/projects/${projectId}/chart/versions/?${json2Query(params)}`
+            const url = `${DEVOPS_BCS_API_URL}/api/network/projects/${projectId}/chart/versions/?${json2Query(params)}`
             return http.get(url, {}, config)
         },
 
@@ -811,7 +811,7 @@ export default {
          * @return {Promise} promise 对象
          */
         getChartDetails (context, { projectId, params }, config = {}) {
-            const url = `${DEVOPS_BCS_API_URL}/api/k8s_lb/projects/${projectId}/chart/versions/-/detail/`
+            const url = `${DEVOPS_BCS_API_URL}/api/network/projects/${projectId}/chart/versions/-/detail/`
             return http.post(url, params, config)
         }
     }

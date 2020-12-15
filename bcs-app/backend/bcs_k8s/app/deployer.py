@@ -26,6 +26,7 @@ from backend.utils.basic import ChoicesEnum
 from backend.utils import client as bcs_client
 from backend.bcs_k8s import utils as bcs_helm_utils
 from backend.bcs_k8s.app.utils import get_cc_app_id
+from backend.bcs_k8s.helm.bcs_variable import get_valuefile_with_bcs_variable_injected
 
 logger = logging.getLogger(__name__)
 
@@ -163,12 +164,20 @@ class AppDeployer:
                     stdlog_data_id=bcs_helm_utils.get_stdlog_data_id(project_id),
                     image_pull_secret=bcs_helm_utils.provide_image_pull_secrets(namespace)
                 )
+                # 追加系统和用户渲染的变量
+                values_with_bcs_variables = get_valuefile_with_bcs_variable_injected(
+                    access_token=self.access_token,
+                    project_id=project_id,
+                    namespace_id=self.app.namespace_id,
+                    valuefile=self.app.release.valuefile,
+                    cluster_id=self.app.cluster_id,
+                )
                 # 获取执行的操作命令
                 cmd_out = getattr(client, operation)(
                     name=name,
                     namespace=namespace,
                     files=self.app.release.chartVersionSnapshot.files,
-                    chart_values=self.app.release.valuefile,
+                    chart_values=values_with_bcs_variables,
                     bcs_inject_data=bcs_inject_data,
                     cmd_flags=json.loads(self.app.cmd_flags)
                 )[0]

@@ -193,7 +193,7 @@ func handleMesosNodes(projectID string, clusterList []map[string]string, accessT
 func handleK8sNodes(projectID string, clusterList []map[string]string, accessToken string, creator string) error {
 	for _, info := range clusterList {
 		ipResource, err := bcs.K8sIPResource(
-			projectID, info["cluster_id"], bcsEnv[info["env"]], accessToken, info["clusterState"],
+			projectID, info["cluster_id"], bcsEnv[info["env"]], accessToken, info["state"],
 		)
 		if err != nil {
 			return err

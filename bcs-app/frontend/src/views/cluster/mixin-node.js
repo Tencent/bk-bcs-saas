@@ -82,6 +82,18 @@ export default {
                     isChecked: false
                 }
             ],
+            recordRemoveNoticeList: [
+                {
+                    id: 1,
+                    text: this.$t('当前节点必须为已故障或已从集群移除，否则，平台会重新同步该节点数据'),
+                    isChecked: false
+                },
+                {
+                    id: 2,
+                    text: this.$t('此操作不会删除集群中的节点，仅移除当前节点在平台中的记录'),
+                    isChecked: false
+                }
+            ],
             // nodeList 分页配置
             nodeListPageConf: {
                 // 总数
@@ -1688,6 +1700,71 @@ export default {
             this.curNode = null
             this.curNodeIndex = -1
             this.$refs.faultRemoveDialog.isConfirming = false
+            this.cancelLoop = false
+            this.refreshWithCurCondition()
+        },
+
+        /**
+         * 显示移除记录弹框
+         *
+         * @param {Object} node 节点对象
+         * @param {number} index 节点对象在节点管理中的索引
+         */
+        async showRecordRemove (node, index) {
+            if (!node.permissions.edit) {
+                await this.$store.dispatch('getResourcePermissions', {
+                    project_id: this.projectId,
+                    policy_code: 'edit',
+                    resource_code: this.curClusterInPage.cluster_id,
+                    resource_name: this.curClusterInPage.name,
+                    resource_type: `cluster_${this.curClusterInPage.environment === 'stag' ? 'test' : 'prod'}`
+                })
+            }
+
+            this.curNode = Object.assign({}, node)
+            this.curNodeIndex = index
+            this.$refs.recordRemoveDialog.show()
+        },
+
+        /**
+         * 移除记录
+         */
+        async confirmRecordRemove () {
+            const node = this.curNode
+
+            this.$refs.recordRemoveDialog.isConfirming = true
+            try {
+                await this.$store.dispatch('cluster/faultRemoveNode', {
+                    projectId: node.project_id,
+                    clusterId: node.cluster_id,
+                    nodeId: node.id
+                })
+                this.$refs.recordRemoveDialog.isConfirming = false
+
+                this.$set(this.nodeList, this.curNodeIndex, this.curNode)
+                this.$set(this.nodeListTmp, this.curNodeIndex, this.curNode)
+                this.cancelLoop = false
+                this.refreshWithCurCondition()
+
+                this.resetBatchStatus()
+
+                setTimeout(() => {
+                    this.curNode = null
+                    this.curNodeIndex = -1
+                }, 200)
+            } catch (e) {
+                this.$refs.recordRemoveDialog.isConfirming = false
+                catchErrorHandler(e, this)
+            }
+        },
+
+        /**
+         * 移除记录弹层取消
+         */
+        cancelRecordRemove () {
+            this.curNode = null
+            this.curNodeIndex = -1
+            this.$refs.recordRemoveDialog.isConfirming = false
             this.cancelLoop = false
             this.refreshWithCurCondition()
         },

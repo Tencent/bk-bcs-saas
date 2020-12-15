@@ -44,7 +44,7 @@ class Namespace(K8SClient):
         return {"name": name, "namespace_id": ns["id"]}
 
 
-class ResourceQuota:
+class NamespaceQuota:
 
     def __init__(self, access_token, project_id, cluster_id):
         self.client = resource_quota.ResourceQuota(
@@ -63,7 +63,7 @@ class ResourceQuota:
             }
         }
 
-    def create_resource_quota(self, namespace, quota):
+    def create_namespace_quota(self, namespace, quota):
         """创建命名空间下资源配额
         """
         # 资源配额名称和命名空间名称设置为相同
@@ -77,7 +77,7 @@ class ResourceQuota:
         except Exception:
             return {}
 
-    def list_resource_quota(self, namespace):
+    def list_namespace_quota(self, namespace):
         """获取命名空间下的资源配额
         """
         resource_quota_list = self.client.list_resource_quota(namespace=namespace)
@@ -93,12 +93,12 @@ class ResourceQuota:
             ]
         return []
 
-    def delete_resource_quota(self, name, namespace):
+    def delete_namespace_quota(self, name, namespace):
         """通过名称和命名空间删除资源配额
         """
         return self.client.delete_resource_quota(name, namespace)
 
-    def update_or_create_resource_quota(self, name, namespace, quota):
+    def update_or_create_namespace_quota(self, name, namespace, quota):
         """更新或创建资源配额
         """
         data = self._ns_quota_conf(name, quota)

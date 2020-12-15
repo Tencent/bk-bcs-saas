@@ -106,6 +106,8 @@ class ClusterConfig(object):
         self.k8s_config['etcd'].update({'legal_hosts': etcd_legal_host})
 
     def _add_kube_agent_config(self, cluster_id, params):
+        """针对纳管集群，需要在创建集群时，传递kube client组件需要的配置信息
+        """
         if params.get("cluster_state") == constants.ClusterState.BCSNew.value:
             return
         # get bcs agent info
@@ -123,17 +125,9 @@ class ClusterConfig(object):
         if not bcs_cluster_data:
             raise error_codes.APIError("bcs agent api response is null")
 
-        # 通过api server domain, 解析到host ip
-        raw_url = urlparse(BCS_SERVER_HOST)
-        host, port = raw_url.netloc.split(":")
-        # 使用getaddrinfo，是因为后续支持多个ip
-        # getaddrinfo 返回: [(2, 1, 6, '', ('127.0.0.1', 80))]
-        addr_info = socket.getaddrinfo(host, port)
-        api_server_domain = f"{raw_url.scheme}://{addr_info[0][4][0]}:{port}"
-
         self.k8s_config["bcs.kube_agent"].update({
             "register_token": bcs_cluster_data["token"],
-            "bcs_api_server": api_server_domain,
+            "bcs_api_server": BCS_SERVER_HOST,
             "register_cluster_id": bcs_cluster_data["bcs_cluster_id"]
         })
 

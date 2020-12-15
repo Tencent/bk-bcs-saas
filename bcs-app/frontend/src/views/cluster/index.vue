@@ -55,9 +55,7 @@
                                 <bk-tooltip :content="cluster.cluster_id" :delay="500" placement="top">
                                     <span class="cluster-id">{{cluster.cluster_id}}</span>
                                 </bk-tooltip>
-                                <span v-if="cluster.state === 'existing'" class="prod">
-                                    {{$t('导入集群')}}
-                                </span>
+                                <span v-if="cluster.state === 'existing'" class="prod">Imported</span>
                             </p>
                             <bk-dropdown-menu
                                 v-if="
@@ -390,12 +388,23 @@
             </div>
         </bk-dialog>
 
-        <tip-dialog
+        <tip-dialog v-if="curCluster && curCluster.state !== 'existing'"
             ref="clusterNoticeDialog"
             icon="bk-icon icon-exclamation-triangle"
             :title="$t('确定删除集群？')"
             :sub-title="$t('此操作无法撤回，请确认：')"
             :check-list="clusterNoticeList"
+            :confirm-btn-text="$t('确定')"
+            :cancel-btn-text="$t('取消')"
+            :confirm-callback="deleteCluster">
+        </tip-dialog>
+
+        <tip-dialog v-else
+            ref="clusterNoticeDialog"
+            icon="bk-icon icon-exclamation-triangle"
+            :title="$t('确定删除集群？')"
+            :sub-title="' '"
+            :check-list="[]"
             :confirm-btn-text="$t('确定')"
             :cancel-btn-text="$t('取消')"
             :confirm-callback="deleteCluster">
@@ -971,7 +980,9 @@
                 }
                 this.curCluster = cluster
                 this.curClusterIndex = index
-                this.$refs.clusterNoticeDialog.show()
+                this.$nextTick(() => {
+                    this.$refs.clusterNoticeDialog.show()
+                })
             },
 
             /**
