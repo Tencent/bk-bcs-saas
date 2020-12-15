@@ -210,13 +210,6 @@ def with_code_wrapper(func):
 class VueTemplateView(TemplateView):
     template_name = f"{settings.REGION}/index.html"
 
-    @property
-    def support_mesos(self):
-        try:
-            return str2bool(settings.SUPPORT_MESOS)
-        except Exception:
-            return False
-
     @xframe_options_exempt
     def get(self, request):
         context = {
@@ -233,7 +226,7 @@ class VueTemplateView(TemplateView):
             "BK_CC_HOST": settings.BK_CC_HOST,
             "SITE_URL": settings.SITE_URL[:-1],
             "BK_IAM_APP_URL": settings.BK_IAM_APP_URL,
-            "SUPPORT_MESOS": self.support_mesos
+            "SUPPORT_MESOS": settings.SUPPORT_MESOS
         }
         response = super(VueTemplateView, self).get(request, **context)
         return response

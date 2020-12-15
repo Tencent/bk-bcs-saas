@@ -13,6 +13,8 @@
 #
 import sys
 
+from backend.utils.funutils import str2bool
+
 from ..base import *  # noqa
 from ..base import BASE_DIR, REST_FRAMEWORK
 
@@ -236,5 +238,8 @@ BK_IAM_MIGRATION_APP_NAME = "bcs_iam_migration"
 BK_IAM_RESOURCE_API_HOST = BK_PAAS_INNER_HOST or "http://paas.service.consul"
 BK_IAM_INNER_HOST = BK_IAM_HOST
 
-# 支持mesos
-SUPPORT_MESOS = os.environ.get("BKAPP_SUPPORT_MESOS", "false")
+# 是否支持mesos功能，默认False: 不支持
+try:
+    SUPPORT_MESOS = str2bool(os.environ.get("BKAPP_SUPPORT_MESOS", "false"))
+except Exception:
+    SUPPORT_MESOS = False
