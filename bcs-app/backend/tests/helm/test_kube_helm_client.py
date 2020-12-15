@@ -14,11 +14,11 @@ settings.HELM3_BIN = "/bin/helm3"
 
 
 def mock_run_command_with_retry(max_retries, *args, **kwargs):
-    assert (
-        " ".join(kwargs.get("cmd_args"))
-        == f"/bin/helm3 install {RELEASE_NAME} --namespace {NAMESPACE} {CHART_URL} --values bcs.yaml "
-        f"--values bcs-saas.yaml --username admin --password admin --atomic"
+    expected_command = (
+        f"/bin/helm3 install {RELEASE_NAME} --namespace {NAMESPACE} {CHART_URL} "
+        f"--values bcs.yaml --values bcs-saas.yaml --username admin --password admin --atomic"
     )
+    assert " ".join(kwargs.get("cmd_args")) == expected_command
     return None, None
 
 
