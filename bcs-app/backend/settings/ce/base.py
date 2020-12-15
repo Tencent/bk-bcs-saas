@@ -237,9 +237,3 @@ BK_IAM_SYSTEM_ID = APP_ID
 BK_IAM_MIGRATION_APP_NAME = "bcs_iam_migration"
 BK_IAM_RESOURCE_API_HOST = BK_PAAS_INNER_HOST or "http://paas.service.consul"
 BK_IAM_INNER_HOST = BK_IAM_HOST
-
-# 是否支持mesos功能，默认False: 不支持
-try:
-    SUPPORT_MESOS = str2bool(os.environ.get("BKAPP_SUPPORT_MESOS", "false"))
-except Exception:
-    SUPPORT_MESOS = False

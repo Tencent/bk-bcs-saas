@@ -33,19 +33,3 @@ def num_transform(num, format='to_zore'):
     return {
         'to_zore': lambda x: x if x > 0 else 0
     }.get(format)(num)
-
-
-def str2bool(source):
-    """str转换为bool
-    True: "true", "True", "1"
-    False: "false", "False", "0"
-    """
-    if not isinstance(source, str):
-        raise TypeError(f"{source} not string type")
-
-    mapping = {"true": True, "1": True, "false": False, "0": False}
-    source = source.lower()
-    if source in mapping:
-        return mapping[source]
-
-    raise ValueError(f"{source} can not convert to bool")

@@ -11,6 +11,7 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
+import os
 import logging
 
 from django.conf import settings
@@ -226,7 +227,7 @@ class VueTemplateView(TemplateView):
             "BK_CC_HOST": settings.BK_CC_HOST,
             "SITE_URL": settings.SITE_URL[:-1],
             "BK_IAM_APP_URL": settings.BK_IAM_APP_URL,
-            "SUPPORT_MESOS": settings.SUPPORT_MESOS
+            "SUPPORT_MESOS": str2bool(os.environ.get("BKAPP_SUPPORT_MESOS", "false"))
         }
         response = super(VueTemplateView, self).get(request, **context)
         return response
