@@ -273,13 +273,15 @@ class KubeHelmClient:
         rollback_cmd_args = [settings.HELM3_BIN, "rollback", name, str(revision), "--namespace", namespace]
         return self._uninstall_or_rollback(rollback_cmd_args)
 
-    def _compose_args_and_run(self, cmd_args, **kwargs):
-        for key, value in kwargs:
+    def _compose_args_and_run(self, cmd_args, options):
+        for key, value in options.items():
             if isinstance(value, str):
                 cmd_args += [key, value]
             elif isinstance(value, list):
                 for v in value:
                     cmd_args += [key, v]
+            elif value is None:
+                cmd_args.append(key)
 
         try:
             cmd_out, cmd_err = self._run_command_with_retry(max_retries=0, cmd_args=cmd_args)
@@ -289,10 +291,10 @@ class KubeHelmClient:
 
         return cmd_out, cmd_err
 
-    def do_install(self, name, namespace, chart, **kwargs):
+    def do_install_or_upgrade(self, operation, name, namespace, chart, options):
         # e.g. helm install mynginx https://example.com/charts/nginx-1.2.3.tgz --username xxx --password xxx
-        cmd_args = [settings.HELM3_BIN, "install", name, "--namespace", namespace, chart]
-        return self._compose_args_and_run(cmd_args, **kwargs)
+        cmd_args = [settings.HELM3_BIN, operation, name, "--namespace", namespace, chart]
+        return self._compose_args_and_run(cmd_args, options)
 
     def _run_command_with_retry(self, max_retries=1, *args, **kwargs):
         for i in range(max_retries + 1):
@@ -332,35 +334,6 @@ class KubeHelmClient:
         except Exception as err:
             logger.exception("Unable to run helm command")
             raise HelmError("run helm command failed: {}".format(err))
-
-
-@contextlib.contextmanager
-def write_chart_dir(tmpl_content, chart_name, chart_version, chart_values, chart_api_version):
-    """创建chart结构
-    - Chart.yaml
-    - templates/xxx.yaml
-    """
-    with tempfile.TemporaryDirectory() as temp_dir:
-        chart_config_path = os.path.join(temp_dir, "Chart.yaml")
-        # 写chart内容
-        with open(chart_config_path, "w") as f:
-            chart_config = f"apiVersion: {chart_api_version}\nname: {chart_name}\nversion: {chart_version}"
-            f.write(chart_config)
-
-        tmpl_path = os.path.join(temp_dir, "templates")
-        if not os.path.exists(tmpl_path):
-            os.makedirs(tmpl_path)
-        tmpl_content_path = os.path.join(tmpl_path, "content.yaml")
-        # 写templates下的内容
-        with open(tmpl_content_path, "w") as f:
-            f.write(tmpl_content)
-
-        values_path = os.path.join(temp_dir, "values.yaml")
-        # 写values是可选的，写入的目的主要是因为helm get values，获取线上的相关信息
-        with open(values_path, "w") as f:
-            f.write(chart_values)
-
-        yield temp_dir
 
 
 @contextlib.contextmanager
