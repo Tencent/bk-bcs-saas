@@ -33,5 +33,5 @@ from backend.utils.basic import str2bool
         ("2", False)
     ]
 )
-def test_str2bool_success(source, value):
+def test_str2bool(source, value):
     assert str2bool(source) == value
