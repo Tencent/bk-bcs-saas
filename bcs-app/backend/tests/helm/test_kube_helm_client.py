@@ -1,12 +1,8 @@
 # -*- coding: utf-8 -*-
-from django.conf import settings
-
 from backend.bcs_k8s.kubehelm.helm import KubeHelmClient
 
-settings.HELM3_BIN = "/bin/helm3"
 
-
-def test_do_install(mock_run_command_with_retry):
+def test_do_install(settings, mock_run_command_with_retry):
     release_name = "test-example"
     namespace = "test"
     chart_url = "http://repo.example.com/charts/example-0.1.0.tgz"
