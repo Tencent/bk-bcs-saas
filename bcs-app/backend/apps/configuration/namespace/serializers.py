@@ -71,7 +71,7 @@ class CreateNamespaceSLZ(BaseNamespaceSLZ):
         return name
 
 
-class UpdateNSVariableSLZ(serializers.Serializer):
+class UpdateNamespaceSLZ(serializers.Serializer):
     ns_vars = serializers.JSONField(required=False)
     cluster_id = serializers.CharField()
     name = serializers.CharField()
