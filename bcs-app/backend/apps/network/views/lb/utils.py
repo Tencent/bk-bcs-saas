@@ -117,7 +117,6 @@ class MesosLBConfig:
         deploy_conf["metadata"]["labels"] = {"loadbalancer": self.lb.name}
         deploy_conf["spec"]["instance"] = data["instance_num"]
         # 向labels添加ip信息，格式为: io.tencent.bcs.netsvc.requestip.x: 127.0.0.1
-        # NOTE: `x`需要支持从0开始
         deploy_conf["spec"]["template"]["metadata"]["labels"] = {
             f"io.tencent.bcs.netsvc.requestip.{i}": ip
             for i, ip in enumerate(data["ip_list"], 1)
