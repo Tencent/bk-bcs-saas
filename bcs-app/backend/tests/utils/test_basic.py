@@ -13,8 +13,6 @@
 #
 import pytest
 
-from rest_framework.exceptions import ValidationError
-
 from backend.utils.basic import str2bool
 
 
@@ -30,7 +28,8 @@ from backend.utils.basic import str2bool
         ("False", False),
         (0, False),
         (2, False),
-        ("2", False)
+        ("2", False),
+        (None, False)
     ]
 )
 def test_str2bool(source, value):

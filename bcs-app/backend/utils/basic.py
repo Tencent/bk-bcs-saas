@@ -20,6 +20,7 @@ from django.conf import settings
 from django.utils import timezone
 from enum import Enum
 from rest_framework import fields
+from rest_framework.exceptions import ValidationError
 
 
 import logging
@@ -136,5 +137,5 @@ def str2bool(source, default=False):
     """
     try:
         return fields.BooleanField().to_internal_value(source)
-    except Exception:
+    except ValidationError:
         return default
