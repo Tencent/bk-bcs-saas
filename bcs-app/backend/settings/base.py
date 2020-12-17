@@ -78,7 +78,6 @@ INSTALLED_APPS = [
     "backend.apps.metric",
     "backend.apps.variable",
     "backend.apps.ticket",
-    "backend.apps.paas_monitor",
     "backend.bcs_k8s.app",
     "backend.bcs_k8s.helm",
     "backend.bcs_k8s.authtoken",
