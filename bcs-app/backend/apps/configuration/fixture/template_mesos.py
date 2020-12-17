@@ -248,6 +248,7 @@ MESOS_TEMPLATE = {
                                                 "value": "20"
                                             }
                                         ],
+                                        # NOTE: imageName仅供前端匹配镜像使用，格式是镜像列表中name:value
                                         "imageName": f"{image_path_prefix}/mesos/rumpetroll:{image_path_prefix}/mesos/rumpetroll", # noqa
                                         "imageVersion": "3.1",
                                         "image": f"{image_prefix}/mesos/rumpetroll:3.1",
@@ -409,6 +410,7 @@ MESOS_TEMPLATE = {
                                                 "value": ""
                                             }
                                         ],
+                                        # NOTE: imageName仅供前端匹配镜像使用，格式是镜像列表中name:value
                                         "imageName": f"{image_path_prefix}/mesos/rumpetrol-redis:{image_path_prefix}/mesos/rumpetrol-redis", # noqa
                                         "imageVersion": "latest",
                                         "image": f"{image_prefix}/mesos/rumpetrol-redis:latest",

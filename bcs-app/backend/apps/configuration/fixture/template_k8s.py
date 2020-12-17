@@ -229,6 +229,7 @@ K8S_TEMPLATE = {
                                         "name": "container-rumpetroll-v1",
                                         "webCache": {
                                             "desc": "",
+                                            # NOTE: imageName仅供前端匹配镜像使用，格式是镜像列表中name:value
                                             "imageName": f"{image_path_prefix}/k8s/pyrumpetroll:{image_path_prefix}/k8s/pyrumpetroll", # noqa
                                             "imageVersion": "",
                                             "containerType": "container",
@@ -473,6 +474,7 @@ K8S_TEMPLATE = {
                                         "name": "container-redis-default",
                                         "webCache": {
                                             "desc": "",
+                                            # NOTE: imageName仅供前端匹配镜像使用，格式是镜像列表中name:value
                                             "imageName": f"{image_path_prefix}/k8s/redis:{image_path_prefix}/k8s/redis", # noqa
                                             "imageVersion": "",
                                             "args_text": "",
@@ -689,6 +691,7 @@ K8S_TEMPLATE = {
                                         "name": "container-nginx-default",
                                         "webCache": {
                                             "desc": "",
+                                            # NOTE: imageName仅供前端匹配镜像使用，格式是镜像列表中name:value
                                             "imageName": f"{image_path_prefix}/k8s/rumpetroll-openresty:{image_path_prefix}/k8s/rumpetroll-openresty", # noqa
                                             "imageVersion": "",
                                             "args_text": "",

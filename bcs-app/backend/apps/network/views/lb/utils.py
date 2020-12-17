@@ -120,7 +120,7 @@ class MesosLBConfig:
         # NOTE: `x`需要支持从0开始
         deploy_conf["spec"]["template"]["metadata"]["labels"] = {
             f"io.tencent.bcs.netsvc.requestip.{i}": ip
-            for i, ip in enumerate(data["ip_list"])
+            for i, ip in enumerate(data["ip_list"], 1)
         }
         # 添加container信息
         self._update_containers(deploy_conf, data)
