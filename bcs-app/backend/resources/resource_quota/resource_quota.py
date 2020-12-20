@@ -23,7 +23,6 @@ logger = logging.getLogger(__name__)
 
 
 class ResourceQuota(CoreAPIClassMixins, APIInstance):
-
     def list_namespaced_resource_quota(self, namespace):
         return self.api_instance.list_namespaced_resource_quota(namespace)
 
@@ -53,12 +52,18 @@ class ResourceQuota(CoreAPIClassMixins, APIInstance):
             raise
 
     def delete_resource_quota(self, name, namespace):
-        return self.api_instance.delete_namespaced_resource_quota(name, namespace)
+        try:
+            return self.api_instance.delete_namespaced_resource_quota(name, namespace)
+        except ApiException as e:
+            logger.error("delete resource quota error, %s", e)
+            if e.status == 404:
+                return
+            raise
 
     def update_resource_quota(self, name, namespace, body):
         return self.api_instance.replace_namespaced_resource_quota(name, namespace, body)
 
-    def update_or_create(self, name, namespace, body):
+    def update_or_create_resource_quota(self, name, namespace, body):
         try:
             return self.update_resource_quota(name, namespace, body)
         except ApiException as e:

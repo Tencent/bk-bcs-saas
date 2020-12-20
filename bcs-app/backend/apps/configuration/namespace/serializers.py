@@ -22,11 +22,9 @@ from backend.resources.namespace.constants import K8S_SYS_PLAT_NAMESPACES
 class BaseNamespaceSLZ(serializers.Serializer):
     cluster_id = serializers.CharField()
     # TODO: 不确定是否可以删除，先保留
-    env_type = serializers.ChoiceField(
-        choices=[i.value for i in EnvType], required=False)
+    env_type = serializers.ChoiceField(choices=[i.value for i in EnvType], required=False)
     # k8s同样限制长度为[2, 30]，只是为了前端显示使用
-    name = serializers.RegexField(
-        r'[a-z0-9]([-a-z0-9]*[a-z0-9])?', min_length=2, max_length=63)
+    name = serializers.RegexField(r'[a-z0-9]([-a-z0-9]*[a-z0-9])?', min_length=2, max_length=63)
     # 支持编辑环境变量
     ns_vars = serializers.JSONField(required=False)
 
@@ -50,7 +48,6 @@ class BaseNamespaceSLZ(serializers.Serializer):
 
 
 class CreateNamespaceSLZ(BaseNamespaceSLZ):
-    use_resource_quota = serializers.BooleanField(default=False)
     quota = serializers.DictField(default={})
 
     def validate_name(self, name):
@@ -71,9 +68,11 @@ class CreateNamespaceSLZ(BaseNamespaceSLZ):
         return name
 
 
-class UpdateNamespaceSLZ(serializers.Serializer):
+class UpdateNSVariableSLZ(serializers.Serializer):
     ns_vars = serializers.JSONField(required=False)
-    cluster_id = serializers.CharField()
-    name = serializers.CharField()
-    use_resource_quota = serializers.BooleanField(default=False)
+
+
+class UpdateNamespaceQuotaSLZ(serializers.Serializer):
+    """更新命名空间下资源配置的参数
+    """
     quota = serializers.DictField(default={})

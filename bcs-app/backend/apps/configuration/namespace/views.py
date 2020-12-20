@@ -38,7 +38,6 @@ from backend.utils.error_codes import error_codes
 from backend.utils.response import APIResult
 from backend.activity_log import client
 from backend.apps.constants import ProjectKind
-from backend.apps.configuration.namespace.serializers import CreateNamespaceSLZ, UpdateNamespaceSLZ
 from backend.apps.whitelist_bk import enabled_sync_namespace
 from backend.apps.configuration.constants import MesosResourceName
 from backend.utils.renderers import BKAPIRenderer
@@ -47,6 +46,7 @@ from backend.resources.cluster.utils import get_clusters
 from backend.apps.utils import get_cluster_env_name
 from backend.resources import namespace as ns_resource
 from backend.resources.namespace.constants import K8S_SYS_PLAT_NAMESPACES
+from backend.apps.configuration.namespace import serializers as slz
 
 
 logger = logging.getLogger(__name__)
@@ -147,7 +147,7 @@ class NamespaceBase:
         self.create_jfrog_secret(client, access_token,
                                  project_id, project_code, data)
         # 如果需要使用资源配额，创建配额
-        if data.get("use_resource_quota"):
+        if data.get("quota"):
             client = ns_resource.NamespaceQuota(access_token, project_id, data["cluster_id"])
             client.create_namespace_quota(name, data["quota"])
 
@@ -411,7 +411,7 @@ class NamespaceView(NamespaceBase, viewsets.ViewSet):
         k8s 流程：新建namespace配置文件并下发 -> 新建包含仓库账号信息的sercret配置文件并下发 -> 在paas-cc上注册
         mesos流程：新建包含仓库账号信息的sercret配置文件并下发 -> 在paas-cc上注册
         """
-        serializer = CreateNamespaceSLZ(data=request.data, context={
+        serializer = slz.CreateNamespaceSLZ(data=request.data, context={
             'request': request, 'project_id': project_id})
         serializer.is_valid(raise_exception=True)
 
@@ -434,30 +434,12 @@ class NamespaceView(NamespaceBase, viewsets.ViewSet):
 
         return response.Response(result)
 
-    def get_namespace(self, request, project_id, cluster_id, namespace):
-        """获取命名空间信息
-        TODO: 这里现阶段仅包含namespace+对应的配额数据，后续考虑添加变量数据
-        """
-        # 获取配额
-        client = ns_resource.NamespaceQuota(
-            access_token=request.user.token.access_token, project_id=project_id, cluster_id=cluster_id
-        )
-        # NOTE: 资源配额的名称和命名空间名称一样
-        quota = client.get_namespace_quota(namespace, namespace)
-        ns = {
-            "project_id": project_id,
-            "cluster_id": cluster_id,
-            "name": namespace,
-            "quota": quota
-        }
-        return response.Response(ns)
-
     def update(self, request, project_id, namespace_id, is_validate_perm=True):
         """修改命名空间
         不允许修改命名空间信息，只能修改变量信息
         TODO: 在wesley提供集群下使用的命名空间后，允许命名空间修改名称
         """
-        serializer = UpdateNamespaceSLZ(data=request.data, context={
+        serializer = slz.UpdateNSVariableSLZ(data=request.data, context={
             'request': request, 'project_id': project_id, 'ns_id': namespace_id})
         serializer.is_valid(raise_exception=True)
         data = serializer.data
@@ -473,12 +455,6 @@ class NamespaceView(NamespaceBase, viewsets.ViewSet):
                 result['message'] = _("以下变量不存在:{}").format(";".join(not_exist_show_msg))
             result['data']['ns_vars'] = NameSpaceVariable.get_ns_vars(
                 namespace_id, project_id)
-
-        # 针对k8s，允许添加或更新资源配额
-        if request.project.kind == ProjectKind.K8S.value and data.get("use_resource_quota"):
-            client = ns_resource.NamespaceQuota(request.user.token.access_token, project_id, data["cluster_id"])
-            client.update_or_create_namespace_quota(data["name"], data["name"], data["quota"])
-
         return response.Response(result)
 
     def _compose_res_names(self, res_data):
@@ -577,3 +553,44 @@ class NamespaceView(NamespaceBase, viewsets.ViewSet):
             request.user.username
         )
         return response.Response({'code': 0, 'message': 'task is running'})
+
+
+class NamespaceQuotaViewSet(viewsets.ViewSet):
+    renderer_classes = (BKAPIRenderer, BrowsableAPIRenderer)
+
+    def get_namespace_quota(self, request, project_id, cluster_id, namespace):
+        """获取命名空间信息
+        """
+        # TODO: 权限需要梳理，先不添加权限限制
+        # 获取配额
+        client = ns_resource.NamespaceQuota(
+            access_token=request.user.token.access_token, project_id=project_id, cluster_id=cluster_id
+        )
+        quota = client.get_namespace_quota(namespace)
+        ns = {
+            "project_id": project_id,
+            "cluster_id": cluster_id,
+            "name": namespace,
+            "quota": quota
+        }
+        return response.Response(ns)
+
+    def update_namespace_quota(self, request, project_id, cluster_id, namespace):
+        """更新命名空间下的资源配额
+        当传递资源配额为空时，进行资源配额的删除操作
+        """
+        serializer = slz.UpdateNamespaceQuotaSLZ(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        data = serializer.data
+
+        quota = data["quota"]
+        quota_client = ns_resource.NamespaceQuota(
+            request.user.token.access_token, project_id, cluster_id
+        )
+        # 存在时，更新集群内命名空间配额
+        if quota:
+            quota_client.update_or_create_namespace_quota(namespace, quota)
+            return response.Response()
+        # 否则，删除命名空间下的资源配置
+        quota_client.delete_namespace_quota(namespace)
+        return response.Response()

@@ -27,5 +27,5 @@ urlpatterns = [
         views.NamespaceView.as_view({"get": "get_ns_resources"})),
     url(r"^api/namespaces/projects/(?P<project_id>\w{32})/"
         "clusters/(?P<cluster_id>[\w-]+)/namespaces/(?P<namespace>[\w-]+)/$",
-        views.NamespaceView.as_view({"get": "get_namespace"}))
+        views.NamespaceQuotaViewSet.as_view({"get": "get_namespace_quota", "put": "update_namespace_quota"}))
 ]

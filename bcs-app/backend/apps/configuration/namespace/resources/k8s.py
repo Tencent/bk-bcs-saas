@@ -24,6 +24,7 @@ from backend.utils.errcodes import ErrorCode
 from backend.apps.depot.api import get_jfrog_account, get_bk_jfrog_auth
 from backend.apps.instance.constants import K8S_IMAGE_SECRET_PRFIX
 from backend.resources.namespace.constants import K8S_SYS_NAMESPACE, K8S_PLAT_NAMESPACE
+from backend.resources.namespace import NamespaceQuota
 
 logger = logging.getLogger(__name__)
 
@@ -35,6 +36,10 @@ def delete(access_token, project_id, cluster_id, ns_name):
         return
     if 'not found' in resp.get('message'):
         return
+    # k8s 删除资源配额
+    quota_client = NamespaceQuota(access_token, project_id, cluster_id)
+    quota_client.delete_namespace_quota(ns_name)
+
     raise error_codes.APIError(f'delete namespace error, name: {ns_name}, {resp.get("message")}')
 
 
