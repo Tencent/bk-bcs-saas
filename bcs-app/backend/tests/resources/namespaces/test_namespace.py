@@ -18,7 +18,7 @@ from dataclasses import make_dataclass
 
 from kubernetes import client
 
-from backend.resources.namespace import namespace
+from backend.resources.namespace import NamespaceQuota
 
 
 def test_list_namespace_quota():
@@ -49,7 +49,7 @@ def test_list_namespace_quota():
         api_client = client.ApiClient(client.Configuration())
         mock_create_api_client.return_value = api_client
         mock_api_cls_list.return_value = [f"CoreV1Api"]
-        quota_client = namespace.NamespaceQuota("access_token", "project_id", "cluster_id")
+        quota_client = NamespaceQuota("access_token", "project_id", "cluster_id")
 
         quota_client.client.list_namespaced_resource_quota = MagicMock(return_value=return_value)
         quota_list = quota_client.list_namespace_quota("namespace")
