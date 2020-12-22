@@ -73,6 +73,6 @@ class UpdateNSVariableSLZ(serializers.Serializer):
 
 
 class UpdateNamespaceQuotaSLZ(serializers.Serializer):
-    """更新命名空间下资源配置的参数
-    """
-    quota = serializers.DictField(default={})
+    """更新命名空间下资源配置的参数"""
+
+    quota = serializers.DictField()
