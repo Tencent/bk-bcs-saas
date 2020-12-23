@@ -393,7 +393,7 @@ class NamespaceView(NamespaceBase, viewsets.ViewSet):
             data=request.data, context={'request': request, 'project_id': project_id, 'ns_id': namespace_id}
         )
         serializer.is_valid(raise_exception=True)
-        data = serializer.data
+        data = serializer.validated_data
 
         result = {'code': 0, 'data': data, 'message': _("更新成功")}
         # 更新成功后需要保存变量信息
@@ -523,7 +523,7 @@ class NamespaceQuotaViewSet(viewsets.ViewSet):
         """更新命名空间下的资源配额"""
         serializer = slz.UpdateNamespaceQuotaSLZ(data=request.data)
         serializer.is_valid(raise_exception=True)
-        data = serializer.data
+        data = serializer.validated_data
 
         client = self._ns_quota_client(request.user.token.access_token, project_id, cluster_id)
         client.update_or_create_namespace_quota(namespace, data["quota"])
