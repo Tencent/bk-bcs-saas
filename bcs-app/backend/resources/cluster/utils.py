@@ -12,7 +12,6 @@
 # specific language governing permissions and limitations under the License.
 #
 import json
-from typing import Dict
 
 from django.utils.translation import ugettext_lazy as _
 
@@ -162,28 +161,3 @@ def set_mesos_node_labels(access_token, project_id, labels):
 def update_cc_nodes_status(access_token, project_id, cluster_id, nodes):
     """更新记录的节点状态"""
     return paas_cc.update_node_list(access_token, project_id, cluster_id, data=nodes)
-
-
-def _refine_labels_key_val(labels: list, key_val: dict) -> None:
-    """获取labels中key及对应的val
-    同一个key，不同节点，val可能不同，返回格式{key: [val1, val2]}
-    """
-    for label in labels:
-        for key, vals in label.get("strings", {}).items():
-            val = vals.get("value", "")
-            if key in key_val:
-                key_val[key].add(val)
-            else:
-                key_val[key] = set([val])
-
-
-def get_mesos_labels(access_token: str, project_id: str, cluster_id_list: list) -> Dict:
-    """查询mesos下的labels，包含key和value"""
-    key_val = {}
-    for cluster_id in cluster_id_list:
-        client = mesos.MesosClient(access_token, project_id, cluster_id, None)
-        # data 格式: [{"innerIP": xxx, "strings": {key: {"value": val}}}]
-        data = client.get_agent_attrs()
-        _refine_labels_key_val(data, key_val)
-
-    return key_val

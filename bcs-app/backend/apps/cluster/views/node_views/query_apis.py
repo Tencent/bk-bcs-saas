@@ -29,6 +29,8 @@ from backend.apps.cluster.models import NodeLabel, NodeStatus
 from backend.apps.cluster import serializers as node_serializers
 from backend.apps.cluster.views.node_views import serializers as node_slz
 
+from .utils import get_label_querier
+
 
 class QueryNodeBase:
     pass
@@ -165,12 +167,6 @@ class ListNodelabelsViewSets(viewsets.ViewSet):
 class QueryNodeLabelsViewSet(viewsets.ViewSet):
     renderer_classes = (BKAPIRenderer, BrowsableAPIRenderer)
 
-    def _query_mesos_labels(self, access_token, project_id, cluster_id_list):
-        return node_utils.get_mesos_labels(access_token, project_id, cluster_id_list)
-
-    def _query_k8s_labels(self, access_token, project_id, cluster_id_list):
-        pass
-
     def query_labels(self, request, project_id):
         """查询节点下的labels
         NOTE: 允许查询项目下所有集群中的节点的label
@@ -183,9 +179,7 @@ class QueryNodeLabelsViewSet(viewsets.ViewSet):
         else:
             cluster_id_list = [cluster_id]
         # 查询label对应的key-val
-        project_kind_name = ProjectKind.get_choice_label(request.project.kind)
-        labels = getattr(self, f"_query_{project_kind_name.lower()}_labels")(
-            request.user.token.access_token, project_id, cluster_id_list
-        )
+        querier = get_label_querier(request.project.kind, access_token, project_id)
+        labels = querier.query_labels(cluster_id_list)
 
         return response.Response(labels)

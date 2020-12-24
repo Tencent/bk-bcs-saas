@@ -16,7 +16,7 @@ from unittest.mock import patch
 
 from backend.components.paas_cc import get_cluster
 from backend.components.bcs.mesos import MesosClient
-from backend.resources.cluster.utils import get_mesos_labels
+from backend.apps.cluster.views.node_views.utils import MesosNodeLabelsQuerier
 
 
 @patch("backend.components.paas_cc.get_cluster")
@@ -25,14 +25,13 @@ from backend.resources.cluster.utils import get_mesos_labels
 def test_get_mesos_labels(mock_get_agent_attrs, mock_get_cluster, access_token, project_id, cluster_id):
     mock_get_cluster.return_value = {"code": 0, "data": {"environment": "stag"}}
     attrs = [
-        {"strings": {"test": {"value": "test"}}},
-        {"strings": {"test1": {"value": "test1"}}},
-        {"strings": {"test": {"value": "test1"}}},
-        {"strings": {"test1": {"value": "test1"}}},
+        {"strings": {"test": {"value": "val"}}},
+        {"strings": {"test1": {"value": "val1"}}},
+        {"strings": {"test": {"value": "val1"}}},
+        {"strings": {"test1": {"value": "val1"}}},
     ]
     mock_get_agent_attrs.return_value = attrs
 
-    key_vals = get_mesos_labels(access_token, project_id, [cluster_id])
-    assert len(key_vals) == 2
-    assert len(key_vals["test"]) == 2
-    assert len(key_vals["test1"]) == 1
+    key_vals = MesosNodeLabelsQuerier(access_token, project_id).query_labels([cluster_id])
+    expect_result = {"test": set(["val", "val1"]), "test1": set(["val1"])}
+    assert key_vals == expect_result
