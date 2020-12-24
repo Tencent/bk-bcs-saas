@@ -20,9 +20,6 @@ from kubernetes.client.rest import ApiException
 
 logger = logging.getLogger(__name__)
 
-DEFAULT_ERROR_CODE = 4001
-DEFAULT_SUCCESS_CODE = 0
-
 
 def response(format_data=True):
     # TODO: format_data 参数现在已经没有作用了，因为 KubeResponseTransformer 的实现会自动判断，结果是否可以调用 to_dict 方法
