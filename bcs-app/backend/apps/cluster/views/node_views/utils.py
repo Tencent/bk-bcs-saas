@@ -24,7 +24,7 @@ class NodeLabelsQuerier:
         self.project_id = project_id
 
     def query_labels(self, cluster_id_list: List[str]) -> Dict:
-        pass
+        return {}
 
 
 class MesosNodeLabelsQuerier(NodeLabelsQuerier):
@@ -56,7 +56,7 @@ class K8sNodeLabelsQuerier(NodeLabelsQuerier):
         raise NotImplementedError
 
 
-def get_label_querier(project_kind, access_token, project_id):
+def get_label_querier(project_kind: int, access_token: str, project_id: str):
     if project_kind == ProjectKind.MESOS.value:
         return MesosNodeLabelsQuerier(access_token=access_token, project_id=project_id)
     return K8sNodeLabelsQuerier(access_token=access_token, project_id=project_id)
