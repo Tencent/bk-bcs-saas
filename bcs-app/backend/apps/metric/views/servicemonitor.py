@@ -534,37 +534,10 @@ class PrometheusUpdate(viewsets.ViewSet):
         return version
 
     def get(self, request, project_id, cluster_id):
-        """获取targets列表
+        """是否需要更新 thano-sidecar 版本
+        Deprecated 已经统一升级到 v2.5.0 版本
         """
         data = {"need_update": False, "update_tooltip": ""}
-
-        # Mesos不存在Prometheus CRD, 直接返回
-        if request.project.kind == ProjectKind.MESOS.value:
-            return Response(data)
-
-        access_token = request.user.token.access_token
-        client = k8s.K8SClient(access_token, project_id, cluster_id, env=None)
-        resp = client.get_prometheus("thanos", "po-prometheus-operator-prometheus")
-        spec = resp.get("spec") or {}
-        if not spec:
-            raise error_codes.APIError(_("Prometheus未安装，请联系管理员解决"))
-
-        for container in spec.get("containers") or []:
-            if container["name"] not in settings.PROMETHEUS_VERSIONS:
-                continue
-
-            image = settings.PROMETHEUS_VERSIONS[container["name"]]
-            if semantic_version.Version(self._get_version(image)) <= semantic_version.Version(
-                self._get_version(container["image"])
-            ):
-                continue
-
-            update_tooltip = _("当前【{}】版本较低, 查询 Endpoints 功能将不可用, 请升级到最新版本").format(container["name"])
-            need_update = True
-            data["need_update"] = need_update
-            data["update_tooltip"] = update_tooltip
-            break
-
         return Response(data)
 
     def _activity_log(self, project_id, username, resource_name, description, status):
