@@ -40,16 +40,14 @@ def get_cluster_versions(access_token, kind="", ver_id="", env=""):
     data.sort(key=lambda info: info["id"])
     for info in data:
         configure = json.loads(info.get("configure") or "{}")
-        version_list.append({
-            "version_id": info["version"],
-            "version_name": configure.get("version_name") or info["version"]
-        })
+        version_list.append(
+            {"version_id": info["version"], "version_name": configure.get("version_name") or info["version"]}
+        )
     return version_list
 
 
 def get_cluster_masters(access_token, project_id, cluster_id):
-    """获取集群下的master信息
-    """
+    """获取集群下的master信息"""
     resp = paas_cc.get_master_node_list(access_token, project_id, cluster_id)
     if resp.get("code") != ErrorCode.NoError:
         raise error_codes.APIError(_("获取集群master ip失败，{}").format(resp.get("message")))
@@ -60,8 +58,7 @@ def get_cluster_masters(access_token, project_id, cluster_id):
 
 
 def get_cluster_nodes(access_token, project_id, cluster_id, raise_exception=True):
-    """获取集群下的node信息
-    """
+    """获取集群下的node信息"""
     resp = paas_cc.get_node_list(access_token, project_id, cluster_id)
     if resp.get("code") != ErrorCode.NoError:
         raise error_codes.APIError(_("获取集群node ip失败，{}").format(resp.get("message")))
@@ -72,8 +69,7 @@ def get_cluster_nodes(access_token, project_id, cluster_id, raise_exception=True
 
 
 def get_cluster_snapshot(access_token, project_id, cluster_id):
-    """获取集群快照
-    """
+    """获取集群快照"""
     resp = paas_cc.get_cluster_snapshot(access_token, project_id, cluster_id)
     if resp.get("code") != ErrorCode.NoError:
         raise error_codes.APIError(_("获取集群快照失败，{}").format(resp.get("message")))
@@ -88,8 +84,7 @@ def get_cluster_info(access_token, project_id, cluster_id):
 
 
 def update_cluster_status(access_token, project_id, cluster_id, status):
-    """更新集群状态
-    """
+    """更新集群状态"""
     data = {"status": status}
     resp = paas_cc.update_cluster(access_token, project_id, cluster_id, data)
     if resp.get("code") != ErrorCode.NoError:
@@ -145,8 +140,7 @@ def query_mesos_node_labels(access_token, project_id, cluster_nodes):
         # 现阶段查询标签仅接口仅支持get请求，而get请求有长度限制，因此，先查询集群下的所有节点的属性，然后通过inner_ip进行匹配
         data = client.get_agent_attrs()
         ip_labels_map = {
-            node["innerIP"]: [{key: val["value"]} for key, val in (node.get("strings") or {}).items()]
-            for node in data
+            node["innerIP"]: [{key: val["value"]} for key, val in (node.get("strings") or {}).items()] for node in data
         }
         for ip in node_ips:
             node_labels[cluster_id][ip] = ip_labels_map.get(ip) or []
@@ -165,6 +159,5 @@ def set_mesos_node_labels(access_token, project_id, labels):
 
 @parse_response_data()
 def update_cc_nodes_status(access_token, project_id, cluster_id, nodes):
-    """更新记录的节点状态
-    """
+    """更新记录的节点状态"""
     return paas_cc.update_node_list(access_token, project_id, cluster_id, data=nodes)

@@ -39,7 +39,7 @@ from .metrics import (  # noqa
 )
 
 from .node_views.query_apis import (
-    QueryNodeLabelKeys, ExportNodes, ListNodelabelsViewSets
+    QueryNodeLabelKeys, ExportNodes, ListNodelabelsViewSets, QueryNodeLabelsViewSet
 )
 
 from .node_views.operation_apis import (
