@@ -18,16 +18,15 @@ from backend.components.bcs import mesos
 from backend.resources.project.constants import ProjectKind
 
 
-@dataclass
 class NodeLabelsQuerier:
-    project_id: str
-    access_token: str
+    def __init__(self, access_token: str, project_id: str):
+        self.access_token = access_token
+        self.project_id = project_id
 
-    def query_labels(self):
+    def query_labels(self, cluster_id_list: List[str]) -> Dict:
         pass
 
 
-@dataclass
 class MesosNodeLabelsQuerier(NodeLabelsQuerier):
     def _refine_labels_key_val(self, labels: List) -> Dict:
         """组装格式: {key: [val1, val2]}，便于前端通过key，展示不同节点的value"""
@@ -52,7 +51,6 @@ class MesosNodeLabelsQuerier(NodeLabelsQuerier):
         return self._refine_labels_key_val(labels)
 
 
-@dataclass
 class K8sNodeLabelsQuerier(NodeLabelsQuerier):
     def query_labels(self, cluster_id_list: List[str]) -> Dict:
         raise NotImplementedError
