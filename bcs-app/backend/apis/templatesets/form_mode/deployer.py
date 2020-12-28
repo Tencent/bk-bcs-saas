@@ -20,7 +20,7 @@ from backend.apps.instance.utils import save_all_config, generate_namespace_conf
 from backend.apps.instance.constants import InsState
 from backend.apps.instance.drivers import get_scheduler_driver
 from backend.resources.namespace.utils import get_namespace_by_id
-from backend.resources.deployment.deployment import Deployment
+from backend.resources.deployment import Deployment
 from backend.activity_log import client
 
 
