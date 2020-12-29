@@ -1,5 +1,5 @@
 [flake8]
-ignore = W292,E116,C901,E302,F401,W605
+ignore = W292,E116,E302,F401,W605,C901,F405,F403,W504,E741,E125,W503,F841,E203,E231,F541
 exclude =
     *migrations*,
     *.pyc,
