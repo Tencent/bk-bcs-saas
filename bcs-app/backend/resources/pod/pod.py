@@ -12,23 +12,23 @@
 # specific language governing permissions and limitations under the License.
 #
 from backend.resources.resource import ResourceClient
-from backend.utils.basic import base64_encode_params
+from backend.utils.basic import b64encode_json
 
 
 class Pod(ResourceClient):
     def get_pod(self, pod_name):
         extra_data = {'resourceName': pod_name}
 
-        resp = self.k8s_client.get_pod(params={'extra': base64_encode_params(extra_data), 'namespace': self.namespace})
+        resp = self.k8s_client.get_pod(params={'extra': b64encode_json(extra_data), 'namespace': self.namespace})
         return self._to_data(resp)
 
     def get_pod_by_labels(self, selector_labels):
         # TODO 支持k中包含.号的场景
         extra_data = {f'data.metadata.labels.{k}': v for k, v in selector_labels.items()}
-        resp = self.k8s_client.get_pod(params={'extra': base64_encode_params(extra_data), 'namespace': self.namespace})
+        resp = self.k8s_client.get_pod(params={'extra': b64encode_json(extra_data), 'namespace': self.namespace})
         return self._to_data(resp)
 
     def get_pods_by_rs(self, rs_name):
         extra_data = {'data.metadata.ownerReferences.name': rs_name}
-        resp = self.k8s_client.get_pod(params={'extra': base64_encode_params(extra_data), 'namespace': self.namespace})
+        resp = self.k8s_client.get_pod(params={'extra': b64encode_json(extra_data), 'namespace': self.namespace})
         return self._to_data(resp)

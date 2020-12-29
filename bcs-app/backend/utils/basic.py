@@ -15,6 +15,7 @@ import re
 import json
 import base64
 from functools import reduce
+from typing import Any
 
 import arrow
 
@@ -142,8 +143,7 @@ def str2bool(source, default=False):
         return default
 
 
-def base64_encode_params(info):
-    """base64编码
+def b64encode_json(data: Any) -> bytes:
+    """返回base64.b64encode(bytes(json.dumps(data), 'utf-8'))
     """
-    json_extra = bytes(json.dumps(info), 'utf-8')
-    return base64.b64encode(json_extra)
+    return base64.b64encode(bytes(json.dumps(data), 'utf-8'))

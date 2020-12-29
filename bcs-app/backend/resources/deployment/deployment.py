@@ -13,7 +13,7 @@
 #
 from backend.resources.resource import ResourceClient
 from backend.resources.pod import Pod
-from backend.utils.basic import getitems, base64_encode_params
+from backend.utils.basic import getitems, b64encode_json
 
 
 class Deployment(ResourceClient):
@@ -44,7 +44,7 @@ class Deployment(ResourceClient):
             'data.metadata.ownerReferences.name': deploy_name,
             'data.metadata.ownerReferences.kind': 'Deployment',
         }
-        params = {'extra': base64_encode_params(extra_data), 'namespace': self.namespace, 'field': 'resourceName'}
+        params = {'extra': b64encode_json(extra_data), 'namespace': self.namespace, 'field': 'resourceName'}
         resp = self.k8s_client.get_rs(params)
 
         return [rs.get('resourceName') for rs in self._to_data(resp)]
