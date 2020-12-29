@@ -11,14 +11,5 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-from backend.utils.basic import ChoicesEnum
-
-
-# 项目类型
-# TODO 替换backend.apps.constants_bk中的ProjectKind
-class ProjectKind(ChoicesEnum):
-    K8S = 1
-    MESOS = 2
-    TKE = 3
-
-    _choices_labels = ((K8S, "Kubernetes"), (MESOS, "Mesos"), (TKE, "TKE"))
+from .crd import *  # noqa
+from .custom_object import *  # noqa
