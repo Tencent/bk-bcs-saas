@@ -12,7 +12,10 @@
 # specific language governing permissions and limitations under the License.
 #
 import re
+import json
+import base64
 from functools import reduce
+from typing import Any
 
 import arrow
 
@@ -90,7 +93,6 @@ class RequestProject(object):
 
 
 class RequestClass(object):
-
     def __init__(self, username, access_token, project_code):
         self.user = RequestUser(username, access_token)
         self.project = RequestProject(project_code)
@@ -139,3 +141,9 @@ def str2bool(source, default=False):
         return fields.BooleanField().to_internal_value(source)
     except ValidationError:
         return default
+
+
+def b64encode_json(data: Any) -> bytes:
+    """返回base64.b64encode(bytes(json.dumps(data), 'utf-8'))
+    """
+    return base64.b64encode(bytes(json.dumps(data), 'utf-8'))
