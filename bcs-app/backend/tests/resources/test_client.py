@@ -1,4 +1,16 @@
 # -*- coding: utf-8 -*-
+#
+# Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community Edition) available.
+# Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+# Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://opensource.org/licenses/MIT
+#
+# Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+# an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+# specific language governing permissions and limitations under the License.
+#
 """Test codes for backend.resources module"""
 import pytest
 from unittest import mock
@@ -28,8 +40,8 @@ class TestBcsKubeAddressesProvider:
     @mock.patch('backend.resources.client.paas_cc.get_cluster', return_value=fake_cc_get_cluster_result_ok)
     def test_normal(self, project_id, cluster_id):
         addresses = BcsKubeAddressesProvider('token', project_id, cluster_id)
-        stag_name = addresses._query_stag_name()
-        assert stag_name == 'my_stag'
+        api_env_name = addresses._query_api_env_name()
+        assert api_env_name == 'my_stag'
         assert addresses.get_api_base_url() == 'https://bcs-api.example.com/my_stag'
         assert addresses.get_clusters_base_url() == 'https://bcs-api.example.com/my_stag/rest/clusters'
         assert addresses.get_kube_apiservers_host() == 'https://my-stag-bcs-server.example.com'

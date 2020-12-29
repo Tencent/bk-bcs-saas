@@ -71,14 +71,14 @@ class BcsKubeAddressesProvider:
         self.project_id = project_id
         self.cluster_id = cluster_id
 
-    def _query_stag_name(self) -> str:
-        """通过 PaaS-CC 服务查询获取集群 stag 名称，stag 名称可用于拼装 API 地址
+    def _query_api_env_name(self) -> str:
+        """通过 PaaS-CC 服务查询查询集群环境名称，然后找到其对应的 API 网关环境名称
 
         :raises ComponentError: 从 PaaS-CC 返回了错误响应
         """
         # Cache
-        if hasattr(self, '_stag_name'):
-            return self._stag_name
+        if hasattr(self, '_api_env_name'):
+            return self._api_env_name
 
         cluster = paas_cc.get_cluster(self.access_token, self.project_id, self.cluster_id)
         # TODO: 封装异常，不使用模糊的 ComponentError
@@ -86,13 +86,13 @@ class BcsKubeAddressesProvider:
             raise exceptions.ComponentError(cluster.get('message'))
 
         environment = cluster['data']['environment']
-        self._stag_name = settings.BCS_API_ENV[environment]
-        return self._stag_name
+        self._api_env_name = settings.BCS_API_ENV[environment]
+        return self._api_env_name
 
     def get_api_base_url(self) -> str:
         """获取 BCS API 服务基础 URL 地址"""
-        stag_name = self._query_stag_name()
-        return f"{settings.BCS_API_PRE_URL}/{stag_name}"
+        api_env_name = self._query_api_env_name()
+        return f"{settings.BCS_API_PRE_URL}/{api_env_name}"
 
     def get_clusters_base_url(self) -> str:
         """获取通过 BCS API 查询集群信息的基础 URL 地址"""
@@ -101,8 +101,8 @@ class BcsKubeAddressesProvider:
 
     def get_kube_apiservers_host(self) -> str:
         """获取 Kubernetes 集群 apiserver 基础地址"""
-        stag_name = self._query_stag_name()
-        return settings.BCS_SERVER_HOST[stag_name]
+        api_env_name = self._query_api_env_name()
+        return settings.BCS_SERVER_HOST[api_env_name]
 
 
 class BcsKubeConfigurationService:
