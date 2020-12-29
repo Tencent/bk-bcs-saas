@@ -20,6 +20,7 @@ from django.conf import settings
 from kubernetes.client.configuration import Configuration
 from kubernetes import client
 
+from backend.utils.errcodes import ErrorCode
 from backend.utils.error_codes import error_codes
 from backend.components.utils import http_get
 from backend.components.bcs import k8s
@@ -82,7 +83,7 @@ class BcsKubeAddressesProvider:
 
         cluster = paas_cc.get_cluster(self.access_token, self.project_id, self.cluster_id)
         # TODO: 封装异常，不使用模糊的 ComponentError
-        if cluster.get('code') != 0:
+        if cluster.get('code') != ErrorCode.NoError:
             raise exceptions.ComponentError(cluster.get('message'))
 
         environment = cluster['data']['environment']
