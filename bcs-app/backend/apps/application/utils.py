@@ -96,6 +96,7 @@ def get_k8s_resource_status(resource_name, resource, replicas, available):
     """获取资源(deployment/sts/job/ds)运行状态"""
     zero_replicas = 0
     status = constants.ResourceStatus.Unready.value
+    # 期望的数量和可用的数量都为0时，认为也是正常的
     if (available == replicas and available > zero_replicas) or (available == replicas == zero_replicas):
         status = constants.ResourceStatus.Running.value
     # 针对job添加complete状态的判断
