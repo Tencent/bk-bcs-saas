@@ -29,7 +29,6 @@ logger = logging.getLogger(__name__)
 
 
 class MesosLBConfig:
-
     def __init__(self, access_token, project_id, cluster_id, lb):
         self.access_token = access_token
         self.project_id = project_id
@@ -37,8 +36,7 @@ class MesosLBConfig:
         self.lb = lb
 
     def _service_config(self):
-        """组装要下发的service配置
-        """
+        """组装要下发的service配置"""
         svc_conf = copy.deepcopy(lb_constants.MESOS_LB_SERVICE)
         svc_conf["metadata"].update({"name": self.lb.name, "namespace": self.lb.namespace})
         svc_conf["spec"]["selector"].update({"loadbalancer": self.lb.name})
@@ -65,16 +63,15 @@ class MesosLBConfig:
             "--bcszkaddr",
             zk_conf["bcs_zookeeper"],
             "--clusterid",
-            self.cluster_id
+            self.cluster_id,
         ]
         return args
 
     def _image_path(self, data):
-        """添加image
-        """
+        """添加image"""
         # 使用用户自定义的镜像地址
         if data["use_custom_image_url"]:
-            return f"{data['image_url']:data['image_tag']}"
+            return f"{data['image_url']}:{data['image_tag']}"
 
         # 通过集群获取对应的平台domain
         repo_domain = cluster_resource.get_cc_repo_domain(self.access_token, self.project_id, self.cluster_id)
@@ -100,14 +97,13 @@ class MesosLBConfig:
                     "name": "lb-port",
                     "hostPort": data["host_port"],
                     "containerPort": data["container_port"],
-                    "protocol": "TCP"
+                    "protocol": "TCP",
                 }
             ]
         deploy_conf["spec"]["template"]["spec"]["containers"] = [container_conf]
 
     def _deployment_config(self):
-        """组装deployment的配置
-        """
+        """组装deployment的配置"""
         data = json.loads(self.lb.data_dict)
         deploy_conf = copy.deepcopy(lb_constants.MESOS_LB_DEPLOYMENT)
         deploy_conf["metadata"].update({"name": self.lb.name, "namespace": self.lb.namespace})
@@ -119,16 +115,17 @@ class MesosLBConfig:
         # 向labels添加ip信息，格式为: io.tencent.bcs.netsvc.requestip.x: 127.0.0.1
         # NOTE: io.tencent.bcs.netsvc.requestip.x 中 x 支持从0开始
         deploy_conf["spec"]["template"]["metadata"]["labels"] = {
-            f"io.tencent.bcs.netsvc.requestip.{index}": ip
-            for index, ip in enumerate(data["ip_list"])
+            f"io.tencent.bcs.netsvc.requestip.{index}": ip for index, ip in enumerate(data["ip_list"])
         }
         # 添加container信息
         self._update_containers(deploy_conf, data)
 
-        deploy_conf["spec"]["template"]["spec"].update({
-            "networkMode": data["network_mode"] if data["network_mode"] != "CUSTOM" else data["custom_value"],
-            "networkType": data["network_type"]
-        })
+        deploy_conf["spec"]["template"]["spec"].update(
+            {
+                "networkMode": data["network_mode"] if data["network_mode"] != "CUSTOM" else data["custom_value"],
+                "networkType": data["network_type"],
+            }
+        )
 
         return deploy_conf
 
@@ -221,7 +218,7 @@ def get_mesos_lb_status_detail(access_token, project_id, cluster_id, namespace, 
         "deployment_status": "",
         "deployment_message": "",
         "application_status": "",
-        "application_message": ""
+        "application_message": "",
     }
     # 查询deployment
     deployment = get_deployment(namespace, name, client=client)
@@ -243,10 +240,9 @@ def get_mesos_lb_status_detail(access_token, project_id, cluster_id, namespace, 
 
     deployment = deployment[0]
     # 更新deployment状态
-    lb_status_detail.update({
-        "deployment_status": deployment["data"]["status"],
-        "deployment_message": deployment["data"]["message"]
-    })
+    lb_status_detail.update(
+        {"deployment_status": deployment["data"]["status"], "deployment_message": deployment["data"]["message"]}
+    )
     app_name_list = get_app_names_by_deployment(deployment)
     # 查询application
     application = get_application(namespace, app_name_list, client=client)
@@ -255,10 +251,9 @@ def get_mesos_lb_status_detail(access_token, project_id, cluster_id, namespace, 
     # 更新状态
     application = application[0]
     application_status = application["data"]["status"]
-    lb_status_detail.update({
-        "application_status": application_status,
-        "application_message": application["data"]["message"]
-    })
+    lb_status_detail.update(
+        {"application_status": application_status, "application_message": application["data"]["message"]}
+    )
     # 如果是部署中，则更新为DEPLOYED
     if op_status == lb_constants.MESOS_LB_STATUS.DEPLOYING.value:
         if application_status in lb_constants.MESOS_APP_STABLE_STATUS:
