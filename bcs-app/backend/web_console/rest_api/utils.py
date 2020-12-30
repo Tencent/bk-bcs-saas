@@ -158,8 +158,8 @@ def get_username_slug(username: str) -> str:
 def allowed_login_web_console(username: str) -> bool:
     """是否允许登入 web_console 白名单
     """
-    # 允许项目同步命名空间项目的白名单
     func_code = "LOGIN_WEB_CONSOLE"
+
     enabled, wlist = get_func_controller(func_code)
     # 必须是开启, 且在白名单内才可使用
     if enabled and username in wlist:
