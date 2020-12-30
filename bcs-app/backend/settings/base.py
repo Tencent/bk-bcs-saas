@@ -345,6 +345,9 @@ WEB_CONSOLE_KUBECTLD_IMAGE_PATH = ""
 WEB_CONSOLE_POD_SPEC = {}
 WEB_CONSOLE_PORT = int(os.environ.get("WEB_CONSOLE_PORT", 28800))
 
+# WEB_CONSOLE_MODE 为 external时, 指定的集群ID, token, api_host
+WEB_CONSOLE_EXTERNAL_CLUSTER = {"ID": "", "API_TOKEN": "", "API_HOST": ""}
+
 # thanos 查询API
 THANOS_HOST = ""
 THANOS_AUTH = None
