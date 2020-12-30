@@ -163,14 +163,16 @@ class WebConsoleSession(views.APIView):
         cluster_data = cluster.get_cluster(request.user.token.access_token, project_id, cluster_id)
         self.cluster_name = cluster_data.get("name", "")[:32]
 
-        perm = bcs_perm.Cluster(request, project_id, cluster_id)
-        try:
-            perm.can_use(raise_exception=True)
-        except Exception as error:
-            utils.activity_log(
-                project_id, cluster_id, self.cluster_name, request.user.username, False, _("集群不正确或没有集群使用权限")
-            )
-            raise error
+        # 检查白名单控制 或 权限中心
+        if not utils.allowed_login_web_console(request.user.username):
+            perm = bcs_perm.Cluster(request, project_id, cluster_id)
+            try:
+                perm.can_use(raise_exception=True)
+            except Exception as error:
+                utils.activity_log(
+                    project_id, cluster_id, self.cluster_name, request.user.username, False, _("集群不正确或没有集群使用权限")
+                )
+                raise error
 
         # 获取web-console context信息
         if request.project.kind == ProjectKind.MESOS.value:
