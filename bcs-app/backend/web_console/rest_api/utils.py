@@ -103,10 +103,10 @@ def get_k8s_admin_context(client, context, mode):
     if mode == WebConsoleMode.EXTERNAL.value:
         context["mode"] = k8s.KubectlExternalClient.MODE
         # 外部模式使用固定的admin_token和集群ID
-        context["admin_user_token"] = settings.WEB_CONSOLE_USER_TOKEN
-        context["admin_cluster_identifier"] = settings.WEB_CONSOLE_CLUSTER_ID
+        context["admin_user_token"] = settings.WEB_CONSOLE_EXTERNAL_CLUSTER["API_TOKEN"]
+        context["admin_cluster_identifier"] = settings.WEB_CONSOLE_EXTERNAL_CLUSTER["ID"]
         context["admin_server_address"] = "{}/tunnels/clusters/{}".format(
-            settings.WEB_CONSOLE_BCS_SERVER_HOST, settings.WEB_CONSOLE_CLUSTER_ID
+            settings.WEB_CONSOLE_EXTERNAL_CLUSTER["API_HOST"], settings.WEB_CONSOLE_EXTERNAL_CLUSTER["ID"]
         )
 
     else:
