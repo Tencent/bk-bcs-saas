@@ -35,7 +35,6 @@ PROD_ENV = 1
 
 
 class APIResponse(Response):
-
     def __init__(self, data, *args, **kwargs):
         data.setdefault('code', 0)
         data.setdefault('message', '')
@@ -43,19 +42,17 @@ class APIResponse(Response):
 
 
 def image_handler(image):
-    """处理镜像，只展示用户填写的一部分
-    """
+    """处理镜像，只展示用户填写的一部分"""
     for env in constants.SPLIT_IMAGE:
         info_split = image.split("/")
         if env in info_split:
-            image = "/" + "/".join(info_split[info_split.index(env):])
+            image = "/" + "/".join(info_split[info_split.index(env) :])
             break
     return image
 
 
 def get_k8s_desired_ready_instance_count(info, resource_name):
-    """获取应用期望/正常的实例数量
-    """
+    """获取应用期望/正常的实例数量"""
     filter_keys = constants.RESOURCE_REPLICAS_KEYS[resource_name]
     # 针对不同的模板获取不同key对应的值
     ready_replicas = getitems(info, filter_keys['ready_replicas_keys'], default=0)
@@ -64,8 +61,7 @@ def get_k8s_desired_ready_instance_count(info, resource_name):
 
 
 def cluster_env(env, ret_num_flag=True):
-    """集群环境匹配
-    """
+    """集群环境匹配"""
     all_env = settings.CLUSTER_ENV_FOR_FRONT
     front_env = all_env.get(env)
     if ret_num_flag:
@@ -91,19 +87,21 @@ def get_namespace_name_map(access_token, project_id):
 
 
 def base64_encode_params(info):
-    """base64编码
-    """
+    """base64编码"""
     json_extra = bytes(json.dumps(info), 'utf-8')
     return base64.b64encode(json_extra)
 
 
-def get_k8s_resource_status(resource_name, resource_info, replicas, available):
-    # NOTE: add completed status for job
+def get_k8s_resource_status(resource_kind, resource, replicas, available):
+    """获取资源(deployment/sts/job/ds)运行状态"""
     status = constants.ResourceStatus.Unready.value
-    if available == replicas and available > 0:
+    # 期望的数量和可用的数量都为0时，认为也是正常的
+    if (available == replicas and available > 0) or (available == replicas == 0):
         status = constants.ResourceStatus.Running.value
-    if resource_name == constants.REVERSE_CATEGORY_MAP[K8sResourceName.K8sJob.value]:
-        completed_replicas = getitems(resource_info, ['data', 'spec', 'completions'], default=0)
+    # 针对job添加complete状态的判断
+    if resource_kind == constants.REVERSE_CATEGORY_MAP[K8sResourceName.K8sJob.value]:
+        # 获取completed的replica的数量
+        completed_replicas = getitems(resource, ['data', 'spec', 'completions'], default=0)
         if completed_replicas == replicas and available > 0:
             status = constants.ResourceStatus.Completed.value
     return status
@@ -112,11 +110,9 @@ def get_k8s_resource_status(resource_name, resource_info, replicas, available):
 def delete_instance_records(online_instances, local_instances):
     diff_insts = set(local_instances) - set(online_instances.keys())
     instance_id_list = [local_instances[key].get('id') for key in diff_insts]
-    InstanceConfig.objects.filter(
-        id__in=instance_id_list
-    ).exclude(
-        oper_type=constants.REBUILD_INSTANCE
-    ).update(is_deleted=True, deleted_time=timezone.now())
+    InstanceConfig.objects.filter(id__in=instance_id_list).exclude(oper_type=constants.REBUILD_INSTANCE).update(
+        is_deleted=True, deleted_time=timezone.now()
+    )
 
 
 def get_instance_version_name(annotations, labels):
@@ -132,10 +128,7 @@ def get_instance_version_id(annotations, labels):
 def get_instance_version(annotations, labels):
     name = get_instance_version_name(annotations, labels)
     id = get_instance_version_id(annotations, labels)
-    return {
-        'version': name,
-        'version_id': id
-    }
+    return {'version': name, 'version_id': id}
 
 
 def retry_requests(func, params=None, data=None, max_retries=2):
