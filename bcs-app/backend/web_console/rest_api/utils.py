@@ -105,7 +105,7 @@ def get_k8s_admin_context(client, context, mode):
         context["admin_user_token"] = settings.WEB_CONSOLE_USER_TOKEN
         context["admin_cluster_identifier"] = settings.WEB_CONSOLE_CLUSTER_ID
         context["admin_server_address"] = "{}/tunnels/clusters/{}".format(
-            client._bcs_server_host, settings.WEB_CONSOLE_CLUSTER_ID
+            settings.WEB_CONSOLE_BCS_SERVER_HOST, settings.WEB_CONSOLE_CLUSTER_ID
         )
 
     else:
