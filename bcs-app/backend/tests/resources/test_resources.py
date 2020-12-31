@@ -13,19 +13,21 @@
 #
 from unittest import mock
 
-from .conftest import TESTING_API_SERVER_URL
 from backend.components.bcs.k8s import K8SClient
 from backend.components.bcs.resources.namespace import Namespace
+
+from .conftest import TESTING_API_SERVER_URL
 
 
 class TestNamespace:
     def test_get_namespace(self, cluster_id, testing_kubernetes_apiclient):
         namespace = Namespace(testing_kubernetes_apiclient)
-        namespace.get_namespace({'cluster_id': cluster_id})
+        resp = namespace.get_namespace({'cluster_id': cluster_id})
+        assert resp.get("code") == 0
 
 
 class TestK8SClient:
-    def test_normal(cluster_id, project_id):
+    def test_normal(self, cluster_id, project_id):
         fake_cluster_info = {
             'id': cluster_id,
             'provider': 2,
