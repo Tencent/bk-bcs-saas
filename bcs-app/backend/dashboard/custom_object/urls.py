@@ -11,14 +11,21 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-from django.conf.urls import include, url
+from django.conf.urls import url
+
+from .views import CRDViewSet, CustomObjectViewSet
 
 urlpatterns = [
-    # cd部分api
-    url(r"^cd_api/", include("backend.apps.apis.urls", namespace="cd_api")),
-    url(r"^apis/", include("backend.apis.urls")),
+    url(r"^$", CRDViewSet.as_view({"get": "list"})),
+    url(r"^(?P<crd_name>[\w\.]+)/custom_objects/$", CustomObjectViewSet.as_view({"get": "list_custom_objects"})),
     url(
-        r"^api/dashboard/projects/(?P<project_id>\w{32})/clusters/(?P<cluster_id>[\w\-]+)/",
-        include("backend.dashboard.urls"),
+        r"^(?P<crd_name>[\w\.]+)/custom_objects/(?P<name>[\w\-]+)/$",
+        CustomObjectViewSet.as_view(
+            {"get": "get_custom_object", "patch": "patch_custom_object", "delete": "delete_custom_object"}
+        ),
+    ),
+    url(
+        r"^(?P<crd_name>[\w\.]+)/custom_objects/(?P<name>[\w\-]+)/scale/$",
+        CustomObjectViewSet.as_view({"patch": "patch_custom_object_scale"}),
     ),
 ]
