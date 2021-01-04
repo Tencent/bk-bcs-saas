@@ -25,7 +25,7 @@ def project_id():
 def testing_kubernetes_apiclient():
     """返回连接单元测试 apiserver 的 ApiClient 实例"""
     configuration = client.Configuration()
-    configuration.api_key = {"authorization": f'Bearer {os.environ.get("api_key")}'}
+    configuration.api_key = {"authorization": f'Bearer {os.environ.get("TESTING_SERVER_API_KEY")}'}
     configuration.verify_ssl = False
     configuration.host = TESTING_API_SERVER_URL
     return client.ApiClient(configuration)
