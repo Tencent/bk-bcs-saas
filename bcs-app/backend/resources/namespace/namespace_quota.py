@@ -11,11 +11,16 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
+import json
 import logging
 from typing import Dict, List
 from dataclasses import dataclass
+from kubernetes import client
+from kubernetes.client.exceptions import ApiException
+from kubernetes.dynamic import DynamicClient
 
-from backend.resources import resource_quota
+from backend.resources.client import BcsKubeConfigurationService
+from backend.resources.utils.kube_client import update_or_create, delete_ignore_nonexistent
 
 logger = logging.getLogger(__name__)
 
@@ -29,48 +34,51 @@ class NamespaceQuota:
     cluster_id: str
 
     def __post_init__(self):
-        self.client = resource_quota.ResourceQuota(
-            access_token=self.access_token, project_id=self.project_id, cluster_id=self.cluster_id
-        )
+        config = BcsKubeConfigurationService(self.access_token, self.project_id, self.cluster_id).make_configuration()
+        self.dynamic_client = DynamicClient(client.ApiClient(config))
+        self.api = self.dynamic_client.resources.get(kind='ResourceQuota')
 
     def _ns_quota_conf(self, name: str, quota: dict) -> Dict:
         return {"apiVersion": "v1", "kind": "ResourceQuota", "metadata": {"name": name}, "spec": {"hard": quota}}
 
-    def create_namespace_quota(self, name: str, quota: dict) -> None:
-        """创建命名空间下资源配额"""
-        # 资源配额名称和命名空间名称设置为相同
-        data = self._ns_quota_conf(name, quota)
-        self.client.create_resource_quota(name, data)
+    def create_namespace_quota(self, name: str, quota: Dict) -> None:
+        """创建命名空间下资源配额
+
+        :param name: 资源配额名称，也会用做 namespace
+        :param quota: 资源配额内容
+        """
+        body = self._ns_quota_conf(name, quota)
+        update_or_create(self.api, body=body, name=name, namespace=name)
 
     def get_namespace_quota(self, name: str) -> Dict:
+        """获取命名空间资源配额，当请求出错时，返回空字典
+
+        :param name: 资源名称，也会用做 namespace
+        """
         try:
-            # 命名空间配额，配额名称和命名空间名称一样
-            quota = self.client.get_namespaced_resource_quota(name, name)
+            quota = self.api.get(name=name, namespace=name)
             return {"hard": quota.status.hard, "used": quota.status.used}
-        except Exception as e:
+        except ApiException as e:
             logger.error("query namespace quota error, namespace: %s, name: %s, error: %s", name, name, e)
             return {}
 
-    def list_namespace_quota(self, name: str) -> List:
-        """获取命名空间下的资源配额"""
-        resource_quota_list = self.client.list_resource_quota(name)
-        # 解析获取基本数据
-        if resource_quota_list:
-            return [
-                {
-                    "name": i.metadata.name,
-                    "namespace": i.metadata.namespace,
-                    "quota": {"hard": i.status.hard, "used": i.status.used},
-                }
-                for i in resource_quota_list
-            ]
-        return []
+    def list_namespace_quota(self, namespace: str) -> List:
+        """获取命名空间下的所有资源配额"""
+        items = self.api.get(namespace=namespace).items
+        return [
+            {
+                "name": i.metadata.name,
+                "namespace": i.metadata.namespace,
+                "quota": {"hard": i.status.hard, "used": i.status.used},
+            }
+            for i in items
+        ]
 
     def delete_namespace_quota(self, name: str) -> None:
-        """通过名称和命名空间删除资源配额"""
-        self.client.delete_resource_quota(name, name)
+        """通过名称和命名空间删除资源配额，当资源不存在时忽略"""
+        delete_ignore_nonexistent(self.api, name=name, namespace=name)
 
-    def update_or_create_namespace_quota(self, name: str, quota: dict) -> None:
+    def update_or_create_namespace_quota(self, name: str, quota: Dict) -> None:
         """更新或创建资源配额"""
-        data = self._ns_quota_conf(name, quota)
-        self.client.update_or_create_resource_quota(name, name, data)
+        body = self._ns_quota_conf(name, quota)
+        update_or_create(self.api, body=body, name=name, namespace=name)

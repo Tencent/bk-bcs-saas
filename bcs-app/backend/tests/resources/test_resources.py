@@ -25,7 +25,7 @@ class TestNamespace:
 
 
 class TestK8SClient:
-    def test_normal(cluster_id, project_id):
+    def test_normal(self, cluster_id, project_id):
         fake_cluster_info = {
             'id': cluster_id,
             'provider': 2,
