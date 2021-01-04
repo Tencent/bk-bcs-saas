@@ -11,6 +11,7 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
+from django.utils.translation import ugettext_lazy as _
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
@@ -33,11 +34,13 @@ class PatchCustomObjectScaleSLZ(PatchCustomObjectSLZ):
 
     def validate_body(self, body):
         try:
-            int(body["spec"]["replicas"])
-        except KeyError as e:
-            raise ValidationError(f"body key error: {e}")
-        except TypeError as e:
-            raise ValidationError(f"body type error: {e}")
-        except ValueError as e:
-            raise ValidationError(e)
+            replicas = int(body["spec"]["replicas"])
+            if replicas < 0:
+                raise ValueError(".spec.replicas must be a non-negative integer")
+        except KeyError:
+            raise ValidationError(_('body 参数格式不合法, 合法格式如 {"spec": {"replicas": 1}}'))
+        except TypeError:
+            raise ValidationError(_('body 参数格式不合法, 合法格式如 {"spec": {"replicas": 1}}'))
+        except ValueError:
+            raise ValidationError(_(".spec.replicas 必须设置为一个非负整数"))
         return body
