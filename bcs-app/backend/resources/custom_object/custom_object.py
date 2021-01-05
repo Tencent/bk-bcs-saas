@@ -17,13 +17,13 @@ from backend.utils.error_codes import error_codes
 
 from ..client import APIInstance
 from ..mixins import CustomObjectsAPIClassMixins
-from .constants import gamestatefulset_name
+from .constants import gamestatefulset_name, gamedeployment_name
 from .crd import CustomResourceDefinition
 from .custom_objects_api import CustomObjectsApi
 
 
 def use_json_patch(crd_name):
-    if crd_name in [gamestatefulset_name]:
+    if crd_name in [gamestatefulset_name, gamedeployment_name]:
         return True
     return False
 
