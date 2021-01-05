@@ -22,6 +22,12 @@ def project_id():
 
 
 @pytest.fixture
+def random_name():
+    """生成一个随机 name"""
+    return generate_random_string(8)
+
+
+@pytest.fixture
 def testing_kubernetes_apiclient():
     """返回连接单元测试 apiserver 的 ApiClient 实例"""
     configuration = client.Configuration()
@@ -29,3 +35,16 @@ def testing_kubernetes_apiclient():
     configuration.verify_ssl = False
     configuration.host = TESTING_API_SERVER_URL
     return client.ApiClient(configuration)
+
+
+class FakeBcsKubeConfigurationService:
+    """Fake configuration service which return local apiserver as config"""
+
+    def __init__(self, *args, **kwargs):
+        pass
+
+    def make_configuration(self):
+        configuration = client.Configuration()
+        configuration.verify_ssl = False
+        configuration.host = TESTING_API_SERVER_URL
+        return configuration
