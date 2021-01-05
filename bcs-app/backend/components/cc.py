@@ -78,7 +78,7 @@ def get_application_name(username, bk_biz_id, bk_supplier_account=None):
     return biz_info[0].get("bk_biz_name") or ""
 
 
-def get_all_application(username, bk_supplier_account=None, condition={}):
+def get_all_application(username, bk_supplier_account=None, condition=None):
     """获取用户有权限的所有业务"""
     resp_data = {"data": [], "message": "", "code": ErrorCode.NoError}
     # 设置初始值
@@ -327,7 +327,7 @@ def search_set_module(username, bk_biz_id, bk_set_id, bk_module_name=None, bk_su
     return cmdb_base_request(url, username, data, bk_supplier_account=bk_supplier_account)
 
 
-def get_application_with_page(username, bk_supplier_account=None, condition={}, fields=[], start=0, limit=200):
+def get_application_with_page(username, bk_supplier_account=None, condition=None, fields=None, start=0, limit=200):
     """分页查询业务"""
     url = "{host}{prefix_path}{path}".format(
         host=CC_HOST, prefix_path=PREFIX_PATH, path=FUNCTION_PATH_MAP["get_application"]
