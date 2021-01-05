@@ -20,6 +20,7 @@ class WorkloadTypes(ChoicesEnum):
     DaemonSet = "DaemonSet"
     Job = "Job"
     GameStatefulSet = "GameStatefulSet"
+    GameDeployment = "GameDeployment"
 
     _choices_labels = (
         (Deployment, "Deployment"),
@@ -27,6 +28,7 @@ class WorkloadTypes(ChoicesEnum):
         (DaemonSet, "DaemonSet"),
         (Job, "Job"),
         (GameStatefulSet, "GameStatefulSet"),
+        (GameDeployment, "GameDeployment"),
     )
 
 
