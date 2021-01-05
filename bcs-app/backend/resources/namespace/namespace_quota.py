@@ -11,10 +11,10 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-import json
 import logging
 from typing import Dict, List
 from dataclasses import dataclass
+
 from kubernetes import client
 from kubernetes.client.exceptions import ApiException
 from kubernetes.dynamic import DynamicClient
@@ -38,7 +38,7 @@ class NamespaceQuota:
         self.dynamic_client = DynamicClient(client.ApiClient(config))
         self.api = self.dynamic_client.resources.get(kind='ResourceQuota')
 
-    def _ns_quota_conf(self, name: str, quota: dict) -> Dict:
+    def _ns_quota_conf(self, name: str, quota: Dict) -> Dict:
         return {"apiVersion": "v1", "kind": "ResourceQuota", "metadata": {"name": name}, "spec": {"hard": quota}}
 
     def create_namespace_quota(self, name: str, quota: Dict) -> None:

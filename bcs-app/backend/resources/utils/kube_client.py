@@ -11,7 +11,6 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-import json
 import logging
 from typing import Dict, Optional, Tuple
 
@@ -22,13 +21,30 @@ from kubernetes.client.exceptions import ApiException
 logger = logging.getLogger(__name__)
 
 
-def delete_ignore_nonexistent(resource: Resource, *args, **kwargs) -> ResourceInstance:
+def delete_ignore_nonexistent(
+    resource: Resource,
+    name: Optional[str] = None,
+    namespace: Optional[str] = None,
+    body: Optional[Dict] = None,
+    label_selector: Optional[str] = None,
+    field_selector: Optional[str] = None,
+    **kwargs,
+) -> ResourceInstance:
     """删除资源，但是当资源不存在时忽略错误"""
     try:
-        return resource.delete(*args, **kwargs)
+        return resource.delete(
+            name=name,
+            namespace=namespace,
+            body=body,
+            label_selector=label_selector,
+            field_selector=field_selector,
+            **kwargs,
+        )
     except ApiException as e:
         if e.status == 404:
-            logger.info(f'Delete a non-existent resource {resource.kind}, error captured.')
+            logger.info(
+                f'Delete a non-existent resource {resource.kind}:{name} in namespace:{namespace}, error captured.'
+            )
             return
         raise
 
@@ -51,8 +67,8 @@ def update_or_create(
         raise ValueError("Invalid update_method {}".format(update_method))
 
     try:
-        update_method = getattr(resource, update_method)
-        obj = update_method(body=body, name=name, namespace=namespace, **kwargs)
+        update_func_obj = getattr(resource, update_method)
+        obj = update_func_obj(body=body, name=name, namespace=namespace, **kwargs)
         return obj, False
     except ApiException as e:
         # Only continue when resource is not found
