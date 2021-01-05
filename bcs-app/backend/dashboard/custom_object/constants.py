@@ -11,14 +11,11 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-from django.conf.urls import include, url
+from backend.resources.custom_object.constants import gamestatefulset_name, gamedeployment_name
+from backend.utils.basic import ChoicesEnum
 
-urlpatterns = [
-    # cd部分api
-    url(r"^cd_api/", include("backend.apps.apis.urls", namespace="cd_api")),
-    url(r"^apis/", include("backend.apis.urls")),
-    url(
-        r"^api/dashboard/projects/(?P<project_id>\w{32})/clusters/(?P<cluster_id>[\w\-]+)/",
-        include("backend.dashboard.urls"),
-    ),
-]
+
+class SupportedScaleCRDs(ChoicesEnum):
+    GameStatefulSet = gamestatefulset_name
+    GameDeployment = gamedeployment_name
+    _choices_labels = ((GameStatefulSet, gamestatefulset_name), (GameDeployment, gamedeployment_name))

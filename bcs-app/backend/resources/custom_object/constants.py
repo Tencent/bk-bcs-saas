@@ -11,14 +11,5 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-from django.conf.urls import include, url
-
-urlpatterns = [
-    # cd部分api
-    url(r"^cd_api/", include("backend.apps.apis.urls", namespace="cd_api")),
-    url(r"^apis/", include("backend.apis.urls")),
-    url(
-        r"^api/dashboard/projects/(?P<project_id>\w{32})/clusters/(?P<cluster_id>[\w\-]+)/",
-        include("backend.dashboard.urls"),
-    ),
-]
+gamestatefulset_name = "gamestatefulsets.tkex.tencent.com"
+gamedeployment_name = "gamedeployments.tkex.tencent.com"

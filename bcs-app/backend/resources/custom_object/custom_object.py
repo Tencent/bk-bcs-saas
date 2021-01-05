@@ -17,12 +17,13 @@ from backend.utils.error_codes import error_codes
 
 from ..client import APIInstance
 from ..mixins import CustomObjectsAPIClassMixins
+from .constants import gamestatefulset_name, gamedeployment_name
 from .crd import CustomResourceDefinition
 from .custom_objects_api import CustomObjectsApi
 
 
 def use_json_patch(crd_name):
-    if crd_name in ["gamestatefulsets.tkex.tencent.com"]:
+    if crd_name in [gamestatefulset_name, gamedeployment_name]:
         return True
     return False
 
@@ -73,6 +74,14 @@ class CustomObject(CustomObjectsAPIClassMixins, APIInstance):
             )
         except Exception as e:
             raise error_codes.APIError(f"patch_namespaced_custom_object error: {e}")
+
+    def patch_namespaced_custom_object_scale(self, namespace, name, body):
+        try:
+            return self.api_instance.patch_namespaced_custom_object_scale(
+                self.api_group, self.api_version, namespace, self.api_plural, name, body
+            )
+        except Exception as e:
+            raise error_codes.APIError(f"patch_namespaced_custom_object_scale error: {e}")
 
     def delete_cluster_custom_object(self, name):
         try:

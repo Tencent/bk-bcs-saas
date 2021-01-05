@@ -13,12 +13,4 @@
 #
 from django.conf.urls import include, url
 
-urlpatterns = [
-    # cd部分api
-    url(r"^cd_api/", include("backend.apps.apis.urls", namespace="cd_api")),
-    url(r"^apis/", include("backend.apis.urls")),
-    url(
-        r"^api/dashboard/projects/(?P<project_id>\w{32})/clusters/(?P<cluster_id>[\w\-]+)/",
-        include("backend.dashboard.urls"),
-    ),
-]
+urlpatterns = [url(r"^crds/", include("backend.dashboard.custom_object.urls"))]
