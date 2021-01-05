@@ -371,7 +371,7 @@ def search_host_with_page(username, bk_biz_id, bk_supplier_account=None, ip=None
     url = "{host}{prefix_path}{path}".format(
         host=CC_HOST, prefix_path=PREFIX_PATH, path=FUNCTION_PATH_MAP["search_host"]
     )
-    data = {"bk_biz_id": bk_biz_id}
+    data = {"bk_biz_id": bk_biz_id, "page": {"start": start, "limit": limit}}
     if ip:
         data["ip"] = ip
     if condition:
