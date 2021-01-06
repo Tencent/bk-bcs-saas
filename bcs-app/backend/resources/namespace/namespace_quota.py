@@ -13,30 +13,28 @@
 #
 import logging
 from typing import Dict, List
-from dataclasses import dataclass
 
 from kubernetes import client
 from kubernetes.client.exceptions import ApiException
 from kubernetes.dynamic import DynamicClient
 
 from backend.resources.client import BcsKubeConfigurationService
-from backend.resources.utils.kube_client import update_or_create, delete_ignore_nonexistent
+from backend.resources.utils.kube_client import update_or_create, delete_ignore_nonexistent, get_preferred_resource
 
 logger = logging.getLogger(__name__)
 
 
-@dataclass
 class NamespaceQuota:
     """命名空间下资源配额相关功能"""
 
-    access_token: str
-    project_id: str
-    cluster_id: str
+    def __init__(self, access_token: str, project_id: str, cluster_id: str):
+        self.access_token = access_token
+        self.project_id = project_id
+        self.cluster_id = cluster_id
 
-    def __post_init__(self):
         config = BcsKubeConfigurationService(self.access_token, self.project_id, self.cluster_id).make_configuration()
         self.dynamic_client = DynamicClient(client.ApiClient(config))
-        self.api = self.dynamic_client.resources.get(kind='ResourceQuota')
+        self.api = get_preferred_resource(self.dynamic_client, 'ResourceQuota')
 
     def _ns_quota_conf(self, name: str, quota: Dict) -> Dict:
         return {"apiVersion": "v1", "kind": "ResourceQuota", "metadata": {"name": name}, "spec": {"hard": quota}}

@@ -33,8 +33,7 @@ MOSAIC_REG = re.compile(r"(?<=\d{3})(\d{4})(?=\d{4})")
 
 
 class ChoicesEnum(Enum):
-    """Enum with choices
-    """
+    """Enum with choices"""
 
     @classmethod
     def get_choices(cls):
@@ -56,8 +55,7 @@ class ChoicesEnum(Enum):
 
 
 def get_client_ip(request):
-    """获取客户端IP
-    """
+    """获取客户端IP"""
     x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
     if x_forwarded_for:
         ip = x_forwarded_for.split(',')[0]
@@ -71,8 +69,7 @@ def mosaic_phone(phone):
 
 
 def normalize_metric(metric):
-    """监控返回标准，保留两位小数
-    """
+    """监控返回标准，保留两位小数"""
     return float('%.2f' % float(metric))
 
 
@@ -99,15 +96,18 @@ class RequestClass(object):
 
 
 def normalize_datetime(time):
-    """time format is YYYY-MM-DD HH:mm:ss
-    """
+    """time format is YYYY-MM-DD HH:mm:ss"""
     arrow_time = arrow.get(time, tzinfo=settings.TIME_ZONE)
     return arrow_time.datetime.strftime(settings.REST_FRAMEWORK['DATETIME_FORMAT'])
 
 
 def getitems(obj, items, default=None):
     """递归获取数据
+
+    :param items: 键列表：['foo', 'bar']，或者用 "." 连接的键路径： "foo.bar"
     """
+    if isinstance(items, str):
+        items = items.split('.')
     try:
         return reduce(lambda x, i: x[i], items, obj)
     except (IndexError, KeyError, TypeError):
@@ -144,6 +144,5 @@ def str2bool(source, default=False):
 
 
 def b64encode_json(data: Any) -> bytes:
-    """返回base64.b64encode(bytes(json.dumps(data), 'utf-8'))
-    """
+    """返回base64.b64encode(bytes(json.dumps(data), 'utf-8'))"""
     return base64.b64encode(bytes(json.dumps(data), 'utf-8'))
