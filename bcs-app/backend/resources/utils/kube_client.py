@@ -14,11 +14,43 @@
 import logging
 from typing import Dict, Optional, Tuple
 
-from kubernetes.dynamic import Resource, ResourceInstance
+from kubernetes.dynamic import Resource, ResourceInstance, DynamicClient
 from kubernetes.client.exceptions import ApiException
+from kubernetes.dynamic.exceptions import ResourceNotUniqueError
 
 
 logger = logging.getLogger(__name__)
+
+
+def get_preferred_resource(dynamic_client: DynamicClient, kind: str, api_version: Optional[str] = None) -> Resource:
+    """尝试获取动态 Resource 对象，优先使用 preferred=True 的 ApiGroup
+
+    :param kind: 资源种类，比如 Deployment
+    :param api_version: 假如指定，将会使用该 ApiGroup 版本获取
+    """
+    if api_version:
+        return dynamic_client.resources.get(kind=kind, api_version=api_version)
+    try:
+        return dynamic_client.resources.get(kind=kind, preferred=True)
+    except ResourceNotUniqueError:
+        # 如果使用 preferred=True 仍然能匹配到多个 ApiGroup，使用第一个结果
+        resources = dynamic_client.resources.search(kind=kind, preferred=True)
+        return resources[0]
+
+
+def get_or_none(
+    resource: Resource,
+    name: Optional[str] = None,
+    namespace: Optional[str] = None,
+    **kwargs,
+) -> Optional[ResourceInstance]:
+    """查询资源，当资源不存在抛出 404 错误时返回 None"""
+    try:
+        return resource.get(name=name, namespace=namespace, **kwargs)
+    except ApiException as e:
+        if e.status != 404:
+            return None
+        raise
 
 
 def delete_ignore_nonexistent(
