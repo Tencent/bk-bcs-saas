@@ -39,15 +39,12 @@ class CoreDynamicClient(DynamicClient):
         body = self.client.sanitize_for_serialization(body)
         return body or {}
 
-    def get_preferred_resource(self, kind: str, api_version: Optional[str] = None) -> Resource:
+    def get_preferred_resource(self, kind: str) -> Resource:
         """尝试获取动态 Resource 对象，优先使用 preferred=True 的 ApiGroup
 
         :param kind: 资源种类，比如 Deployment
-        :param api_version: 假如指定，将会使用该 ApiGroup 版本获取
         :raises: ResourceNotUniqueError 匹配到多个不同版本资源，ResourceNotFoundError 没有找到资源
         """
-        if api_version:
-            return self.resources.get(kind=kind, api_version=api_version)
         try:
             return self.resources.get(kind=kind, preferred=True)
         except ResourceNotUniqueError:
