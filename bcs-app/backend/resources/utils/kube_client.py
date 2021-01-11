@@ -44,6 +44,7 @@ class CoreDynamicClient(DynamicClient):
 
         :param kind: 资源种类，比如 Deployment
         :param api_version: 假如指定，将会使用该 ApiGroup 版本获取
+        :raises: ResourceNotUniqueError 匹配到多个不同版本资源，ResourceNotFoundError 没有找到资源
         """
         if api_version:
             return self.resources.get(kind=kind, api_version=api_version)
@@ -61,7 +62,7 @@ class CoreDynamicClient(DynamicClient):
         try:
             return self.get(resource, name=name, namespace=namespace, **kwargs)
         except ApiException as e:
-            if e.status != 404:
+            if e.status == 404:
                 return None
             raise
 
@@ -74,7 +75,7 @@ class CoreDynamicClient(DynamicClient):
         label_selector: Optional[str] = None,
         field_selector: Optional[str] = None,
         **kwargs,
-    ) -> ResourceInstance:
+    ) -> Optional[ResourceInstance]:
         """删除资源，但是当资源不存在时忽略错误"""
         try:
             return resource.delete(

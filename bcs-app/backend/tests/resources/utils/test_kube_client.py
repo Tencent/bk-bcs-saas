@@ -11,16 +11,30 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
+from kubernetes.dynamic.resource import ResourceInstance
 from backend.resources.utils.kube_client import CoreDynamicClient
 
 
-def test_delete_ignore_nonexistent(testing_kubernetes_apiclient, random_name):
-    resource = CoreDynamicClient(testing_kubernetes_apiclient).resources.get(kind='ConfigMap')
-    resource.delete_ignore_nonexistent(namespace='default', name=random_name)
+class TestCoreDynamicClient:
+    def test_get_or_none_nonexistent(self, testing_kubernetes_apiclient, random_name):
+        resource = CoreDynamicClient(testing_kubernetes_apiclient).resources.get(kind='ConfigMap')
+        result = resource.get_or_none(namespace='default', name=random_name)
+        assert result is None
 
+    def test_delete_ignore_nonexistent_existed(self, testing_kubernetes_apiclient, random_name):
+        resource = CoreDynamicClient(testing_kubernetes_apiclient).resources.get(kind='ConfigMap')
+        body = {"apiVersion": "v1", "kind": "ConfigMap", "metadata": {"name": random_name}, "spec": {}}
+        resource.create(body=body, name=random_name, namespace='default')
 
-class TestUpdateOrCreate:
-    def test_create(self, testing_kubernetes_apiclient, random_name):
+        result = resource.delete_ignore_nonexistent(namespace='default', name=random_name)
+        assert isinstance(result, ResourceInstance)
+
+    def test_delete_ignore_nonexistent_nonexistent(self, testing_kubernetes_apiclient, random_name):
+        resource = CoreDynamicClient(testing_kubernetes_apiclient).resources.get(kind='ConfigMap')
+        result = resource.delete_ignore_nonexistent(namespace='default', name=random_name)
+        assert result is None
+
+    def test_update_or_create_create(self, testing_kubernetes_apiclient, random_name):
         resource = CoreDynamicClient(testing_kubernetes_apiclient).resources.get(kind='ConfigMap')
         body = {"apiVersion": "v1", "kind": "ConfigMap", "metadata": {"name": random_name}, "spec": {}}
         obj, created = resource.update_or_create(body=body, name=random_name, namespace='default')
@@ -28,7 +42,7 @@ class TestUpdateOrCreate:
         assert obj.metadata.name == random_name
         assert created is True
 
-    def test_update(self, testing_kubernetes_apiclient, random_name):
+    def test_update_or_create_update(self, testing_kubernetes_apiclient, random_name):
         resource = CoreDynamicClient(testing_kubernetes_apiclient).resources.get(kind='ConfigMap')
         body = {"apiVersion": "v1", "kind": "ConfigMap", "metadata": {"name": random_name}, "data": {'foo': 'bar'}}
 
