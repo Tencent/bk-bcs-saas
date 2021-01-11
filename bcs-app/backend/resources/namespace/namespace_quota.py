@@ -13,30 +13,24 @@
 #
 import logging
 from typing import Dict, List
-from dataclasses import dataclass
 
-from kubernetes import client
 from kubernetes.client.exceptions import ApiException
-from kubernetes.dynamic import DynamicClient
 
-from backend.resources.client import BcsKubeConfigurationService
-from backend.resources.utils.kube_client import update_or_create, delete_ignore_nonexistent
+from backend.resources.utils.kube_client import get_dynamic_client
 
 logger = logging.getLogger(__name__)
 
 
-@dataclass
 class NamespaceQuota:
     """命名空间下资源配额相关功能"""
 
-    access_token: str
-    project_id: str
-    cluster_id: str
+    def __init__(self, access_token: str, project_id: str, cluster_id: str):
+        self.access_token = access_token
+        self.project_id = project_id
+        self.cluster_id = cluster_id
 
-    def __post_init__(self):
-        config = BcsKubeConfigurationService(self.access_token, self.project_id, self.cluster_id).make_configuration()
-        self.dynamic_client = DynamicClient(client.ApiClient(config))
-        self.api = self.dynamic_client.resources.get(kind='ResourceQuota')
+        self.dynamic_client = get_dynamic_client(access_token, project_id, cluster_id)
+        self.api = self.dynamic_client.get_preferred_resource('ResourceQuota')
 
     def _ns_quota_conf(self, name: str, quota: Dict) -> Dict:
         return {"apiVersion": "v1", "kind": "ResourceQuota", "metadata": {"name": name}, "spec": {"hard": quota}}
@@ -48,7 +42,7 @@ class NamespaceQuota:
         :param quota: 资源配额内容
         """
         body = self._ns_quota_conf(name, quota)
-        update_or_create(self.api, body=body, name=name, namespace=name)
+        self.api.update_or_create(body=body, name=name, namespace=name)
 
     def get_namespace_quota(self, name: str) -> Dict:
         """获取命名空间资源配额，当请求出错时，返回空字典
@@ -76,9 +70,9 @@ class NamespaceQuota:
 
     def delete_namespace_quota(self, name: str) -> None:
         """通过名称和命名空间删除资源配额，当资源不存在时忽略"""
-        delete_ignore_nonexistent(self.api, name=name, namespace=name)
+        self.api.delete_ignore_nonexistent(name=name, namespace=name)
 
     def update_or_create_namespace_quota(self, name: str, quota: Dict) -> None:
         """更新或创建资源配额"""
         body = self._ns_quota_conf(name, quota)
-        update_or_create(self.api, body=body, name=name, namespace=name)
+        self.api.update_or_create(body=body, name=name, namespace=name)
