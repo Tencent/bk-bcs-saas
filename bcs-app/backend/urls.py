@@ -50,8 +50,6 @@ urlpatterns = [
     url(r"^", include("backend.activity_log.urls", namespace="activity_log")),
     # 权限验证
     url(r"^", include("backend.apps.verfy.urls", namespace="verfy")),
-    # 监控中心, 有个controller_list api
-    url(r"^", include("backend.apps.paas_monitor.urls", namespace="paas_monitor")),
     url(r"^api-auth/", include("rest_framework.urls", namespace="rest_framework")),
     # BCS K8S special urls
     url(r"^", include("backend.bcs_k8s.helm.urls", namespace="bcs_k8s_app")),

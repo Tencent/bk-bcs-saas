@@ -12,13 +12,18 @@
 # specific language governing permissions and limitations under the License.
 #
 import re
+import json
+import base64
 from functools import reduce
+from typing import Any
 
 import arrow
 
 from django.conf import settings
 from django.utils import timezone
 from enum import Enum
+from rest_framework import fields
+from rest_framework.exceptions import ValidationError
 
 
 import logging
@@ -88,7 +93,6 @@ class RequestProject(object):
 
 
 class RequestClass(object):
-
     def __init__(self, username, access_token, project_code):
         self.user = RequestUser(username, access_token)
         self.project = RequestProject(project_code)
@@ -126,3 +130,20 @@ def normalize_time(time):
     # create_time format: '2019-12-16T09:10:59Z'
     d_time = arrow.get(time).datetime
     return timezone.localtime(d_time).strftime(settings.REST_FRAMEWORK['DATETIME_FORMAT'])
+
+
+def str2bool(source, default=False):
+    """str转换为bool
+    True: "true", "True", "1", 1
+    False: "false", "False", "0", 0
+    """
+    try:
+        return fields.BooleanField().to_internal_value(source)
+    except ValidationError:
+        return default
+
+
+def b64encode_json(data: Any) -> bytes:
+    """返回base64.b64encode(bytes(json.dumps(data), 'utf-8'))
+    """
+    return base64.b64encode(bytes(json.dumps(data), 'utf-8'))

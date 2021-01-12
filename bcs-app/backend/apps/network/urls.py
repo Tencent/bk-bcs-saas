@@ -13,7 +13,7 @@
 #
 from django.conf.urls import url
 from .views import service
-from .views.lb import k8s, mesos
+from .views.lb import k8s
 from .views.ingress import mesos as mesos_ingress
 from .views.charts import versions
 from .views.lb import mesos_new
@@ -22,25 +22,6 @@ MESOS_CLUSTER_ID_REGEX = "BCS-((?!K8S)\w)+-[0-9]{5,7}"
 
 
 urlpatterns = [
-    # lb：列表/创建 API
-    url(r'^api/network/(?P<project_id>\w{32})/lb/$',
-        mesos.LoadBalances.as_view({'get': 'list', 'post': 'create'})),
-    # lb: 列表 后台分页
-    url(r'^api/network/(?P<project_id>\w{32})/lbs/$',
-        mesos.LoadBalances.as_view({'get': 'list_by_paging'})),
-    # lb：查询／修改 API
-    url(r'^api/network/(?P<project_id>\w{32})/lb/(?P<lb_id>\d+)/$',
-        mesos.LoadBalances.as_view({'get': 'get', 'put': 'update', 'delete': 'delete', 'post': 'create_by_bcs'})),
-    # 单个 LB 详情
-    url(r'^api/network/(?P<project_id>\w{32})/lb/detail/(?P<lb_id>\d+)/$',
-        mesos.LoadBalances.as_view({'get': 'get_detail'})),
-    # lb：删除bcs API
-    url(r'^api/network/(?P<project_id>\w{32})/lb/bcs/(?P<lb_id>\d+)/$',
-        mesos.LoadBalances.as_view({'delete': 'delete_by_bcs'})),
-    # lb 详情
-    url(r'^api/network/(?P<project_id>\w{32})/lb/taskgroup/(?P<lb_id>\d+)/$',
-        mesos.LoadBalances.as_view({'get': 'get_taskgroup'})),
-
     # services：列表
     url(r'^api/network/(?P<project_id>\w{32})/services/$',
         service.Services.as_view({'get': 'get'})),

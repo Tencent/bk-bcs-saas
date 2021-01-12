@@ -46,6 +46,10 @@ class MesosLoadBlance(BaseLoadBalance):
     status = models.CharField(_("状态"), max_length=16, null=True, blank=True)
     namespace = models.CharField(_("命名空间名称"), max_length=32, null=True, blank=True)
 
+    def update_status(self, status):
+        self.status = status
+        self.save(update_fields=["status"])
+
     class Meta:
         db_table = "mesos_load_blance"
         unique_together = (("cluster_id", "namespace_id", "name"))

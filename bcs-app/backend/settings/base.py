@@ -78,7 +78,6 @@ INSTALLED_APPS = [
     "backend.apps.metric",
     "backend.apps.variable",
     "backend.apps.ticket",
-    "backend.apps.paas_monitor",
     "backend.bcs_k8s.app",
     "backend.bcs_k8s.helm",
     "backend.bcs_k8s.authtoken",
@@ -361,7 +360,7 @@ BK_APP_WHITELIST = {}
 
 # 覆盖配置
 try:
-    from .base_bk import DATABASE_ROUTERS, TEMPLATES, STATICFILES_DIRS
+    from .base_bk import TEMPLATES, STATICFILES_DIRS
 except Exception:
     pass
 

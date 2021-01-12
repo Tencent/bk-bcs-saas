@@ -179,6 +179,10 @@ urlpatterns += [
     url(
         r"^api/cluster_mgr/projects/(?P<project_id>\w{32})/nodes/-/labels/detail/$",
         views.ListNodelabelsViewSets.as_view({"post": "list_labels_details"})
+    ),
+    url(
+        r"^api/cluster_mgr/projects/(?P<project_id>\w{32})/nodes/labels/$",
+        views.QueryNodeLabelsViewSet.as_view({"get": "query_labels"})
     )
 ]
 

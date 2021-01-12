@@ -11,11 +11,26 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-from django.conf.urls import url
-from . import views
+import pytest
 
-urlpatterns = [
-    # api
-    url(r'^api/monitor/(?P<project_id>\w{32})/controller_list/$',
-        views.ControllerList.as_view()),
-]
+from backend.utils.basic import str2bool
+
+
+@pytest.mark.parametrize(
+    "source, value",
+    [
+        ("true", True),
+        ("True", True),
+        ("1", True),
+        (1, True),
+        ("0", False),
+        ("false", False),
+        ("False", False),
+        (0, False),
+        (2, False),
+        ("2", False),
+        (None, False)
+    ]
+)
+def test_str2bool(source, value):
+    assert str2bool(source) == value

@@ -71,7 +71,7 @@ def get_targets(project_id, cluster_id, dedup=True):
     """
     url = "{host}/api/v1/targets".format(host=settings.THANOS_HOST)
     # 同时限制项目ID，集群ID，防止越权
-    headers = {"X-Tenant-Project-Id": project_id, "X-Tenant-Cluster-Id": cluster_id}
+    headers = {"X-Tenant-Project-Id": project_id, "X-Scope-Cluster-Id": cluster_id}
     params = {"dedup": dedup, "state": "active"}
     resp = http_get(url, params=params, headers=headers, timeout=30, auth=AUTH)
     return resp
