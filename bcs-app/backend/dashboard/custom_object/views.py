@@ -16,7 +16,9 @@ from rest_framework.response import Response
 from rest_framework.renderers import BrowsableAPIRenderer
 
 from backend.utils.renderers import BKAPIRenderer
+
 from backend.resources.custom_object import CustomResourceDefinition, CustomObject
+from backend.resources.utils.kube_client import get_dynamic_client
 
 from .serializers import PatchCustomObjectSLZ, PatchCustomObjectScaleSLZ
 from .utils import to_table_format
@@ -26,43 +28,31 @@ class CRDViewSet(viewsets.ViewSet):
     renderer_classes = (BKAPIRenderer, BrowsableAPIRenderer)
 
     def list(self, request, project_id, cluster_id):
-        crd_client = CustomResourceDefinition(
-            access_token=request.user.token.access_token, project_id=project_id, cluster_id=cluster_id,
-        )
-        crds = crd_client.list_custom_resource_definition()
-        return Response([{"name": crd.metadata.name, "scope": crd.spec.scope} for crd in crds.items])
+        crd_api = CustomResourceDefinition(request.user.token.access_token, project_id, cluster_id)
+        return Response(crd_api.list(is_format=True))
 
 
 class CustomObjectViewSet(viewsets.ViewSet):
     renderer_classes = (BKAPIRenderer, BrowsableAPIRenderer)
 
     def list_custom_objects(self, request, project_id, cluster_id, crd_name):
-        crd_client = CustomResourceDefinition(
-            access_token=request.user.token.access_token, project_id=project_id, cluster_id=cluster_id,
-        )
-        crd = crd_client.get_custom_resource_definition(crd_name)
+        dynamic_client = get_dynamic_client(request.user.token.access_token, project_id, cluster_id)
+        crd_api = dynamic_client.resources.get_preferred_resource(kind="CustomResourceDefinition")
+        crd = crd_api.get(name=crd_name)
+        cobj_api = dynamic_client.resources.get(kind=crd.spec.names.kind)
 
-        cobj_client = CustomObject(
-            access_token=request.user.token.access_token,
-            project_id=project_id,
-            cluster_id=cluster_id,
-            crd_name=crd_name,
-        )
         query_ns = request.query_params.get("namespace")
         if query_ns:
-            cobjs = cobj_client.list_namespaced_custom_object(query_ns)
+            cobjs = cobj_api.get(namespace=query_ns)
         else:
-            cobjs = cobj_client.list_cluster_custom_object()
+            cobjs = cobj_api.get()
 
         return Response(to_table_format(crd, cobjs, cluster_id=cluster_id))
 
     def get_custom_object(self, request, project_id, cluster_id, crd_name, name):
-        cobj_client = CustomObject(
-            access_token=request.user.token.access_token,
-            project_id=project_id,
-            cluster_id=cluster_id,
-            crd_name=crd_name,
-        )
+
+        dynamic_client = get_dynamic_client(request.user.token.access_token, project_id, cluster_id)
+        cobj_client = dynamic_client.resources.get(name=crd_name)
         query_ns = request.query_params.get("namespace")
         if query_ns:
             cobj = cobj_client.get_namespaced_custom_object(query_ns, name)

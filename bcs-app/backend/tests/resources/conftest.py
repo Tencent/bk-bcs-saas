@@ -46,6 +46,7 @@ class FakeBcsKubeConfigurationService:
 
     def make_configuration(self):
         configuration = client.Configuration()
+        configuration.api_key = {"authorization": f'Bearer {os.environ.get("TESTING_SERVER_API_KEY")}'}
         configuration.verify_ssl = False
         configuration.host = TESTING_API_SERVER_URL
         return configuration

@@ -13,7 +13,7 @@
 #
 import arrow
 import copy
-from typing import Dict, List, Union, Any
+from typing import Dict, List, Union, Any, Optional
 
 from django.utils import timezone
 from kubernetes.dynamic.resource import ResourceInstance, ResourceField
@@ -47,13 +47,17 @@ class InstanceAccessor:
 class ResourceDefaultFormatter:
     """格式化 Kubernetes 资源为通用资源格式"""
 
-    def format_list(self, resources: Union[ResourceInstance, List[Dict]]) -> List[Dict]:
+    def format_list(self, resources: Union[ResourceInstance, List[Dict], None]) -> List[Dict]:
         if isinstance(resources, (list, tuple)):
             return [self.format_dict(res) for res in resources]
+        if resources is None:
+            return []
         # Type: ResourceInstance with multiple results returned by DynamicClient
         return [self.format_dict(res) for res in resources.to_dict()['items']]
 
-    def format(self, resource: ResourceInstance) -> Dict:
+    def format(self, resource: Optional[ResourceInstance]) -> Dict:
+        if resource is None:
+            return {}
         return self.format_dict(resource.to_dict())
 
     def format_dict(self, resource_dict: Dict) -> Dict:

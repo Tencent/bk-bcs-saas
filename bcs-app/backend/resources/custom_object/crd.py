@@ -11,24 +11,25 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-from django.utils.translation import ugettext_lazy as _
+from backend.resources.utils.kube_client import get_dynamic_client
 
-from backend.utils.error_codes import error_codes
-
-from ..mixins import APIExtensionsAPIClassMixins
-from ..client import APIInstance
+from .format import CRDFormatter
 
 
-class CustomResourceDefinition(APIExtensionsAPIClassMixins, APIInstance):
-    def list_custom_resource_definition(self):
-        try:
-            return self.api_instance.list_custom_resource_definition()
-        except Exception:
-            raise error_codes.APIError(_("当前集群版本过低，不支持页面展示CRD，请通过WebConsole查看"))
+class CustomResourceDefinition:
+    def __init__(self, access_token: str, project_id: str, cluster_id: str):
+        self.dynamic_client = get_dynamic_client(access_token, project_id, cluster_id)
+        self.api = self.dynamic_client.get_preferred_resource("CustomResourceDefinition")
+        self.formatter = CRDFormatter()
 
-    def get_custom_resource_definition(self, name):
-        crds = self.list_custom_resource_definition()
-        for crd in crds.items:
-            if crd.metadata.name == name:
-                return crd
-        raise error_codes.ResNotFoundError(f"no crd {name}")
+    def list(self, is_format: bool = False, **kwargs):
+        resp = self.api.get_or_none(**kwargs)
+        if is_format:
+            return self.formatter.format_list(resp)
+        return resp
+
+    def get(self, name, is_format: bool = False, **kwargs):
+        resp = self.api.get_or_none(name=name, **kwargs)
+        if is_format:
+            return self.formatter.format(resp)
+        return resp

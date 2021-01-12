@@ -28,6 +28,11 @@ def use_json_patch(crd_name):
     return False
 
 
+# class CustomObject1:
+#     def __init__(self, access_token: str, project_id: str, cluster_id: str, crd_name: str):
+#         crd_api =
+
+
 class CustomObject(CustomObjectsAPIClassMixins, APIInstance):
     def __init__(self, access_token, project_id, cluster_id, crd_name):
         crd_client = CustomResourceDefinition(access_token, project_id, cluster_id)
