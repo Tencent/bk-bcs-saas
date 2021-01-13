@@ -11,19 +11,82 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-from backend.components.bcs.k8s import K8SClient
-from backend.utils.error_codes import error_codes
-from backend.utils.errcodes import ErrorCode
+from typing import Dict, List, Union, Optional, Tuple
+
+from kubernetes.dynamic.resource import ResourceInstance
+
+from backend.resources.utils.kube_client import get_dynamic_client
+
+from .utils.format import ResourceDefaultFormatter
+from .constants import PatchTypes
 
 
-class ResourceClient:
-    def __init__(self, access_token, project_id, cluster_id, namespace):
-        self.project_id = project_id
-        self.cluster_id = cluster_id
-        self.namespace = namespace
-        self.k8s_client = K8SClient(access_token, project_id, cluster_id, None)
+class Resource:
+    """
+    资源基类
+    """
 
-    def _to_data(self, resp):
-        if resp.get("code") != ErrorCode.NoError:
-            raise error_codes.APIError(f"requests bcs api error: {resp.get('message')}")
-        return resp.get("data")
+    kind = "Resource"
+    formatter = ResourceDefaultFormatter()
+
+    def __init__(self, access_token: str, project_id: str, cluster_id: str, api_version: Optional[str] = None):
+        self.dynamic_client = get_dynamic_client(access_token, project_id, cluster_id)
+        if api_version:
+            self.api = self.dynamic_client.resources.get(kind=self.kind, api_version=api_version)
+        else:
+            self.api = self.dynamic_client.get_preferred_resource(self.kind)
+
+    def list(self, is_format: bool = False, **kwargs) -> Union[ResourceInstance, List]:
+        resp = self.api.get_or_none(**kwargs)
+        if is_format:
+            return self.formatter.format_list(resp)
+        return resp
+
+    def get(self, name, is_format: bool = False, **kwargs) -> Union[ResourceInstance, Dict]:
+        resp = self.api.get_or_none(name=name, **kwargs)
+        if is_format:
+            return self.formatter.format(resp)
+        return resp
+
+    def update_or_create(
+        self,
+        body: Optional[Dict] = None,
+        name: Optional[str] = None,
+        namespace: Optional[str] = None,
+        is_format: bool = False,
+        **kwargs,
+    ) -> Tuple[Union[ResourceInstance, Dict], bool]:
+        obj, created = self.api.update_or_create(
+            body=body, name=name, namespace=namespace, update_method="replace", **kwargs
+        )
+        if is_format:
+            return self.formatter.format(obj), created
+        return obj, created
+
+    def patch(
+        self,
+        body: Optional[Dict] = None,
+        name: Optional[str] = None,
+        namespace: Optional[str] = None,
+        is_format: bool = False,
+        **kwargs,
+    ) -> Union[ResourceInstance, Dict]:
+        if kwargs.get("content_type") == PatchTypes.JsonPatchJson.value:
+            if not isinstance(body, list):
+                kwargs["content_type"] = PatchTypes.StrategicMergePatchJson.value
+
+        obj, _ = self.api.update_or_create(body=body, name=name, namespace=namespace, update_method="patch", **kwargs)
+        if is_format:
+            return self.formatter.format(obj)
+        return obj
+
+    def delete_ignore_nonexistent(
+        self,
+        name: Optional[str] = None,
+        namespace: Optional[str] = None,
+        body: Optional[Dict] = None,
+        label_selector: Optional[str] = None,
+        field_selector: Optional[str] = None,
+        **kwargs,
+    ) -> Optional[ResourceInstance]:
+        return self.api.delete_ignore_nonexistent(name, namespace, body, label_selector, field_selector, **kwargs)

@@ -11,25 +11,10 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-from backend.resources.utils.kube_client import get_dynamic_client
-
+from ..resource import Resource
 from .format import CRDFormatter
 
 
-class CustomResourceDefinition:
-    def __init__(self, access_token: str, project_id: str, cluster_id: str):
-        self.dynamic_client = get_dynamic_client(access_token, project_id, cluster_id)
-        self.api = self.dynamic_client.get_preferred_resource("CustomResourceDefinition")
-        self.formatter = CRDFormatter()
-
-    def list(self, is_format: bool = False, **kwargs):
-        resp = self.api.get_or_none(**kwargs)
-        if is_format:
-            return self.formatter.format_list(resp)
-        return resp
-
-    def get(self, name, is_format: bool = False, **kwargs):
-        resp = self.api.get_or_none(name=name, **kwargs)
-        if is_format:
-            return self.formatter.format(resp)
-        return resp
+class CustomResourceDefinition(Resource):
+    kind = "CustomResourceDefinition"
+    formatter = CRDFormatter()

@@ -20,3 +20,7 @@ from backend.resources.utils.format import ResourceDefaultFormatter
 class CRDFormatter(ResourceDefaultFormatter):
     def format_dict(self, resource_dict: Dict) -> Dict:
         return {"name": getitems(resource_dict, "metadata.name"), "scope": getitems(resource_dict, "spec.scope")}
+
+
+class CustomObjectFormatter(ResourceDefaultFormatter):
+    pass

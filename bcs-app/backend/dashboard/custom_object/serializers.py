@@ -15,12 +15,15 @@ from django.utils.translation import ugettext_lazy as _
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
+from backend.resources.constants import PatchTypes
+
 from .constants import SupportedScaleCRDs
 
 
 class PatchCustomObjectSLZ(serializers.Serializer):
     namespace = serializers.CharField(required=False)
     body = serializers.JSONField()
+    patch_type = serializers.ChoiceField(choices=PatchTypes.get_choices(), default=PatchTypes.MergePatchJson.value)
 
 
 class PatchCustomObjectScaleSLZ(PatchCustomObjectSLZ):

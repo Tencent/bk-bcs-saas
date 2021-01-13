@@ -67,3 +67,17 @@ class K8sServiceTypes(ChoicesEnum):
     LoadBalancer = "LoadBalancer"
 
     _choices_labels = ((ClusterIP, "ClusterIP"), (NodePort, "NodePort"), (LoadBalancer, "LoadBalancer"))
+
+
+class PatchTypes(ChoicesEnum):
+    JsonPatchJson = "application/json-patch+json"
+    MergePatchJson = "application/merge-patch+json"
+    StrategicMergePatchJson = "application/strategic-merge-patch+json"
+    ApplyPatchYaml = "application/apply-patch+yaml"
+
+    _choices_labels = (
+        (JsonPatchJson, "application/json-patch+json"),
+        (MergePatchJson, "application/merge-patch+json"),
+        (StrategicMergePatchJson, "application/strategic-merge-patch+json"),
+        (ApplyPatchYaml, "application/apply-patch+yaml"),
+    )
