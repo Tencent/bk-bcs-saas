@@ -19,33 +19,26 @@ from backend.components.bcs.mesos import MesosClient
 from backend.apps.cluster.views.node_views.utils import MesosNodeLabelsQuerier
 
 
-@patch("backend.components.paas_cc.get_cluster")
-@patch("backend.components.bcs.mesos.MesosClient.get_agent_attrs")
-@pytest.mark.parametrize("access_token, project_id, cluster_id", [("access_token", "project_id", "cluster_id")])
-def test_get_mesos_labels(mock_get_agent_attrs, mock_get_cluster, access_token, project_id, cluster_id):
-    mock_get_cluster.return_value = {"code": 0, "data": {"environment": "stag"}}
-    attrs = [
-        {"strings": {"test": {"value": "val"}}},
-        {"strings": {"test1": {"value": "val1"}}},
-        {"strings": {"test": {"value": "val1"}}},
-        {"strings": {"test1": {"value": "val1"}}},
-    ]
-    mock_get_agent_attrs.return_value = attrs
+fake_cc_get_cluster_result = {"code": 0, "data": {"environment": "stag"}}
+fake_mesos_agent_attrs_result = [
+    {"strings": {"test": {"value": "val"}}},
+    {"strings": {"test1": {"value": "val1"}}},
+    {"strings": {"test": {"value": "val1"}}},
+    {"strings": {"test1": {"value": "val1"}}},
+]
+fake_mesos_agent_attrs_null_result = [{"strings": None}]
 
-    key_vals = MesosNodeLabelsQuerier(access_token, project_id).query_labels([cluster_id])
+
+@patch("backend.components.paas_cc.get_cluster", return_value=fake_cc_get_cluster_result)
+@patch("backend.components.bcs.mesos.MesosClient.get_agent_attrs", return_value=fake_mesos_agent_attrs_result)
+def test_get_mesos_labels(mock_get_agent_attrs, mock_get_cluster):
+    key_vals = MesosNodeLabelsQuerier("access_token", "project_id").query_labels(["cluster_id"])
     expect_result = {"test": set(["val", "val1"]), "test1": set(["val1"])}
     assert key_vals == expect_result
 
 
-@patch("backend.components.paas_cc.get_cluster")
-@patch("backend.components.bcs.mesos.MesosClient.get_agent_attrs")
-@pytest.mark.parametrize("access_token, project_id, cluster_id", [("access_token", "project_id", "cluster_id")])
-def test_get_mesos_null_labels(mock_get_agent_attrs, mock_get_cluster, access_token, project_id, cluster_id):
-    mock_get_cluster.return_value = {"code": 0, "data": {"environment": "stag"}}
-    attrs = [
-        {"strings": None},
-    ]
-    mock_get_agent_attrs.return_value = attrs
-
-    key_vals = MesosNodeLabelsQuerier(access_token, project_id).query_labels([cluster_id])
+@patch("backend.components.paas_cc.get_cluster", return_value=fake_mesos_agent_attrs_null_result)
+@patch("backend.components.bcs.mesos.MesosClient.get_agent_attrs", return_value=fake_mesos_agent_attrs_null_result)
+def test_get_mesos_null_labels(mock_get_agent_attrs, mock_get_cluster):
+    key_vals = MesosNodeLabelsQuerier("access_token", "project_id").query_labels(["cluster_id"])
     assert key_vals == {}

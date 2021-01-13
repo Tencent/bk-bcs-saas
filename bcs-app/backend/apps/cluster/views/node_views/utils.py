@@ -33,7 +33,8 @@ class MesosNodeLabelsQuerier(NodeLabelsQuerier):
         key_val = {}
         for label in labels:
             # NOTE: 当节点label为空时，返回格式为{"string": None}
-            for key, vals in (label.get("strings") or {}).items():
+            label_strings = label.get("strings") or {}
+            for key, vals in label_strings.items():
                 val = vals.get("value", "")
                 if key in key_val:
                     key_val[key].add(val)
