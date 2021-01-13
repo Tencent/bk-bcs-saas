@@ -13,6 +13,7 @@
 #
 import json
 import logging
+from typing import Dict
 from django.conf import settings
 from django.utils.translation import ugettext_lazy as _
 
@@ -32,7 +33,8 @@ BCS_CC_API_PRE_URL = settings.BCS_CC_API_PRE_URL
 DEFAULT_TIMEOUT = 20
 
 
-def get_project(access_token, project_id):
+def get_project(access_token: str, project_id: str) -> Dict:
+    """获取项目信息"""
     url = f"{BCS_CC_API_PRE_URL}/projects/{project_id}/"
     params = {"access_token": access_token}
     project = http_get(url, params=params, timeout=20)
