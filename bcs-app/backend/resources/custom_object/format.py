@@ -13,6 +13,7 @@
 #
 from typing import Dict
 
+
 from backend.utils.basic import getitems
 from backend.resources.utils.format import ResourceDefaultFormatter
 
@@ -23,4 +24,5 @@ class CRDFormatter(ResourceDefaultFormatter):
 
 
 class CustomObjectFormatter(ResourceDefaultFormatter):
-    pass
+    def format_dict(self, resource_dict: Dict) -> Dict:
+        return resource_dict

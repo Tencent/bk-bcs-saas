@@ -87,7 +87,7 @@ class CoreDynamicClient(DynamicClient):
         except ApiException as e:
             if e.status == 404:
                 logger.info(
-                    f'Delete a non-existent resource {resource.kind}:{name} in namespace:{namespace}, error captured.'
+                    f"Delete a non-existent resource {resource.kind}:{name} in namespace:{namespace}, error captured."
                 )
                 return
             raise

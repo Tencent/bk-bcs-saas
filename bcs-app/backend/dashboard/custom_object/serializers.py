@@ -27,13 +27,7 @@ class PatchCustomObjectSLZ(serializers.Serializer):
 
 
 class PatchCustomObjectScaleSLZ(PatchCustomObjectSLZ):
-    """
-    暂时先支持scope=Namespaced的CustomObject
-    """
-
     crd_name = serializers.ChoiceField(choices=SupportedScaleCRDs.get_choices())
-    namespace = serializers.CharField()
-    body = serializers.JSONField()
 
     def validate_body(self, body):
         try:

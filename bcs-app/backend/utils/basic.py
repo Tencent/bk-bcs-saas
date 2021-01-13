@@ -56,11 +56,11 @@ class ChoicesEnum(Enum):
 
 def get_client_ip(request):
     """获取客户端IP"""
-    x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+    x_forwarded_for = request.META.get("HTTP_X_FORWARDED_FOR")
     if x_forwarded_for:
-        ip = x_forwarded_for.split(',')[0]
+        ip = x_forwarded_for.split(",")[0]
     else:
-        ip = request.META.get('REMOTE_ADDR', '')
+        ip = request.META.get("REMOTE_ADDR", "")
     return ip
 
 
@@ -70,7 +70,7 @@ def mosaic_phone(phone):
 
 def normalize_metric(metric):
     """监控返回标准，保留两位小数"""
-    return float('%.2f' % float(metric))
+    return float("%.2f" % float(metric))
 
 
 class RequestToken(object):
@@ -98,16 +98,16 @@ class RequestClass(object):
 def normalize_datetime(time):
     """time format is YYYY-MM-DD HH:mm:ss"""
     arrow_time = arrow.get(time, tzinfo=settings.TIME_ZONE)
-    return arrow_time.datetime.strftime(settings.REST_FRAMEWORK['DATETIME_FORMAT'])
+    return arrow_time.datetime.strftime(settings.REST_FRAMEWORK["DATETIME_FORMAT"])
 
 
 def getitems(obj, items, default=None):
     """递归获取数据
 
-    :param items: 键列表：['foo', 'bar']，或者用 "." 连接的键路径： "foo.bar"
+    :param items: 键列表：['foo', 'bar']，或者用 "." 连接的键路径： ".foo.bar" 或 "foo.bar"
     """
     if isinstance(items, str):
-        items = items.split('.')
+        items = items.strip(".").split(".")
     try:
         return reduce(lambda x, i: x[i], items, obj)
     except (IndexError, KeyError, TypeError):
@@ -129,7 +129,7 @@ def get_bcs_component_version(cluster_version, bcs_component_version_info, defau
 def normalize_time(time):
     # create_time format: '2019-12-16T09:10:59Z'
     d_time = arrow.get(time).datetime
-    return timezone.localtime(d_time).strftime(settings.REST_FRAMEWORK['DATETIME_FORMAT'])
+    return timezone.localtime(d_time).strftime(settings.REST_FRAMEWORK["DATETIME_FORMAT"])
 
 
 def str2bool(source, default=False):
@@ -145,4 +145,4 @@ def str2bool(source, default=False):
 
 def b64encode_json(data: Any) -> bytes:
     """返回base64.b64encode(bytes(json.dumps(data), 'utf-8'))"""
-    return base64.b64encode(bytes(json.dumps(data), 'utf-8'))
+    return base64.b64encode(bytes(json.dumps(data), "utf-8"))

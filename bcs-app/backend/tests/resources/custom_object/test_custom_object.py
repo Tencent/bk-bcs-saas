@@ -16,7 +16,7 @@ import pytest
 
 from backend.utils.basic import getitems
 from backend.resources.custom_object.crd import CustomResourceDefinition
-from backend.resources.custom_object.custom_object import get_custom_object_api
+from backend.resources.custom_object.custom_object import get_custom_object_api_by_crd
 from backend.resources.constants import PatchTypes
 
 from ..conftest import FakeBcsKubeConfigurationService
@@ -69,7 +69,7 @@ class TestCRDAndCustomObject:
 
     @pytest.fixture
     def cobj_api(self, project_id, cluster_id):
-        return get_custom_object_api('token', project_id, cluster_id, crd_name=getitems(sample_crd, "metadata.name"))
+        return get_custom_object_api_by_crd('token', project_id, cluster_id, crd_name=getitems(sample_crd, "metadata.name"))
 
     @pytest.fixture
     def update_or_create_custom_object(self, cobj_api):

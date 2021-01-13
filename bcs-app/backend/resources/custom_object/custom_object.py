@@ -15,14 +15,7 @@ from typing import Optional
 
 from ..resource import Resource
 from .format import CustomObjectFormatter
-from .constants import gamestatefulset_name, gamedeployment_name
 from .crd import CustomResourceDefinition
-
-
-def use_json_patch(crd_name):
-    if crd_name in [gamestatefulset_name, gamedeployment_name]:
-        return True
-    return False
 
 
 class CustomObject(Resource):
@@ -35,7 +28,7 @@ class CustomObject(Resource):
         super().__init__(access_token, project_id, cluster_id, api_version)
 
 
-def get_custom_object_api(access_token: str, project_id: str, cluster_id: str, crd_name: str) -> CustomObject:
+def get_custom_object_api_by_crd(access_token: str, project_id: str, cluster_id: str, crd_name: str) -> CustomObject:
     crd_api = CustomResourceDefinition(access_token, project_id, cluster_id)
     crd = crd_api.get(name=crd_name)
     return CustomObject(access_token, project_id, cluster_id, kind=crd.spec.names.kind)

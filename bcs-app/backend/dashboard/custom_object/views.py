@@ -16,9 +16,7 @@ from rest_framework.response import Response
 from rest_framework.renderers import BrowsableAPIRenderer
 
 from backend.utils.renderers import BKAPIRenderer
-
-from backend.resources.custom_object import CustomResourceDefinition, get_custom_object_api
-from backend.resources.utils.kube_client import get_dynamic_client
+from backend.resources.custom_object import CustomResourceDefinition, get_custom_object_api_by_crd
 
 from .serializers import PatchCustomObjectSLZ, PatchCustomObjectScaleSLZ
 from .utils import to_table_format
@@ -36,40 +34,26 @@ class CustomObjectViewSet(viewsets.ViewSet):
     renderer_classes = (BKAPIRenderer, BrowsableAPIRenderer)
 
     def list_custom_objects(self, request, project_id, cluster_id, crd_name):
-        dynamic_client = get_dynamic_client(request.user.token.access_token, project_id, cluster_id)
-        crd_api = dynamic_client.resources.get_preferred_resource(kind="CustomResourceDefinition")
-        crd = crd_api.get(name=crd_name)
-        cobj_api = dynamic_client.resources.get(kind=crd.spec.names.kind)
+        crd_api = CustomResourceDefinition(request.user.token.access_token, project_id, cluster_id)
+        crd_dict = crd_api.get(name=crd_name, is_format=True)
 
-        query_ns = request.query_params.get("namespace")
-        if query_ns:
-            cobjs = cobj_api.get(namespace=query_ns)
-        else:
-            cobjs = cobj_api.get()
+        cobj_api = get_custom_object_api_by_crd(request.user.token.access_token, project_id, cluster_id, crd_name)
+        cobjs_list = cobj_api.list(namespace=request.query_params.get("namespace"), is_format=True)
 
-        return Response(to_table_format(crd, cobjs, cluster_id=cluster_id))
+        return Response(to_table_format(crd_dict, cobjs_list))
 
     def get_custom_object(self, request, project_id, cluster_id, crd_name, name):
-        cobj_api = get_custom_object_api(request.user.token.access_token, project_id, cluster_id, crd_name)
-        query_ns = request.query_params.get("namespace")
-        if query_ns:
-            cobj = cobj_api.get(namespace=query_ns, name=name)
-        else:
-            cobj = cobj_api.get(name=name)
-        return Response(cobj)
+        cobj_api = get_custom_object_api_by_crd(request.user.token.access_token, project_id, cluster_id, crd_name)
+        cobj_dict = cobj_api.get(namespace=request.query_params.get("namespace"), name=name, is_format=True)
+        return Response(cobj_dict)
 
     def patch_custom_object(self, request, project_id, cluster_id, crd_name, name):
         serializer = PatchCustomObjectSLZ(data=request.data)
         serializer.is_valid(raise_exception=True)
 
         validated_data = serializer.validated_data
-        cobj_api = get_custom_object_api(request.user.token.access_token, project_id, cluster_id, crd_name)
-        namespace = validated_data.get("namespace")
-
-        if namespace:
-            cobj_api.patch(namespace=namespace, name=name, body=validated_data["body"])
-        else:
-            cobj_api.patch(name=name, body=validated_data["body"])
+        cobj_api = get_custom_object_api_by_crd(request.user.token.access_token, project_id, cluster_id, crd_name)
+        cobj_api.patch(namespace=validated_data.get("namespace"), name=name, body=validated_data["body"])
 
         return Response()
 
@@ -80,17 +64,12 @@ class CustomObjectViewSet(viewsets.ViewSet):
         serializer.is_valid(raise_exception=True)
 
         validated_data = serializer.validated_data
-        cobj_api = get_custom_object_api(request.user.token.access_token, project_id, cluster_id, crd_name)
-        # TODO 支持 cluster scope 的 custom object 扩缩容
-        cobj_api.patch(name=name, namespace=validated_data["namespace"], body=validated_data["body"])
+        cobj_api = get_custom_object_api_by_crd(request.user.token.access_token, project_id, cluster_id, crd_name)
+        cobj_api.patch(name=name, namespace=validated_data.get("namespace"), body=validated_data["body"])
 
         return Response()
 
     def delete_custom_object(self, request, project_id, cluster_id, crd_name, name):
-        cobj_api = get_custom_object_api(request.user.token.access_token, project_id, cluster_id, crd_name)
-        namespace = request.query_params.get("namespace")
-        if namespace:
-            cobj_api.delete_ignore_nonexistent(namespace=namespace, name=name)
-        else:
-            cobj_api.delete_ignore_nonexistent(name=name)
+        cobj_api = get_custom_object_api_by_crd(request.user.token.access_token, project_id, cluster_id, crd_name)
+        cobj_api.delete_ignore_nonexistent(namespace=request.query_params.get("namespace"), name=name)
         return Response()
