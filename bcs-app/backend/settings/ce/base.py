@@ -189,12 +189,17 @@ HELM3_BIN = os.path.join(HELM_BASE_DIR, "bin/helm3")
 YTT_BIN = os.path.join(HELM_BASE_DIR, "bin/ytt")
 KUBECTL_BIN = os.path.join(HELM_BASE_DIR, "bin/kubectl-v1.12.3")  # default kubectl bin filename
 DASHBOARD_CTL_BIN = os.path.join(HELM_BASE_DIR, "bin/dashboard-ctl")  # default dashboard ctl filename
+# dashboard 仅有一个版本
+DASHBOARD_CTL_BIN_PATH = {
+    "v1": os.path.join(HELM_BASE_DIR, "bin/dashboard-ctl"),
+    "v2": os.path.join(HELM_BASE_DIR, "bin/dashboard-ctl"),
+}
 KUBECTL_BIN_MAP = {
     "1.8.3": os.path.join(HELM_BASE_DIR, "bin/kubectl-v1.12.3"),
     "1.12.3": os.path.join(HELM_BASE_DIR, "bin/kubectl-v1.12.3"),
     "1.14.9": os.path.join(HELM_BASE_DIR, "bin/kubectl-v1.14.9"),
     "1.16.3": os.path.join(HELM_BASE_DIR, "bin/kubectl-v1.16.3"),
-    "1.18.12": os.path.join(HELM_BASE_DIR, "bin/kubectl-v1.18.12")
+    "1.18.12": os.path.join(HELM_BASE_DIR, "bin/kubectl-v1.18.12"),
 }
 
 # BKE企业版证书

@@ -11,5 +11,21 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
+import re
+from collections import OrderedDict
 
 CLUSTER_IMPORT_TPL = ""
+
+DEFAULT_DASHBOARD_CTL_VERSION = "v1"
+
+DASHBOARD_CTL_VERSION = OrderedDict(
+    {
+        "v1": [
+            re.compile(r"^[vV]?1\.8\.\S+$"),
+            re.compile(r"^[vV]?1\.12\.\S+$"),
+            re.compile(r"^[vV]?1\.14\.\S+$"),
+            re.compile(r"^[vV]?1\.16\.\S+$"),
+        ],
+        "v2": [re.compile(r"^[vV]?1\.18\.\S+$")],
+    }
+)
