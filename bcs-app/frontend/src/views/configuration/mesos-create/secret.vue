@@ -136,7 +136,7 @@
                                             <div class="bk-form-item is-required">
                                                 <label class="bk-label" style="width: 105px;">{{$t('值')}}：</label>
                                                 <div class="bk-form-content" style="margin-left: 105px;">
-                                                    <textarea class="bk-form-textarea biz-resize-textarea" style="height: 300px;" :placeholder="$t('请输入键') + curKeyParams.key + $t('的内容')" v-model="curKeyParams.content"></textarea>
+                                                    <textarea class="bk-form-textarea" style="height: 300px;" :placeholder="$t('请输入键') + curKeyParams.key + $t('的内容')" v-model="curKeyParams.content"></textarea>
                                                     <p class="biz-tip mt10 f14">{{$t('实例化时会将值的内容做base64编码')}}</p>
                                                 </div>
                                             </div>

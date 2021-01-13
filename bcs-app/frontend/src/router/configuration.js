@@ -36,7 +36,7 @@ const MesosCreateSecret = () => import(/* webpackChunkName: 'mesosTemplateset' *
 const MesosCreateConfigmap = () => import(/* webpackChunkName: 'mesosTemplateset' */'@open/views/configuration/mesos-create/configmap')
 
 // 添加模板集 - ingress
-const MesosCreateIngress = () => import(/* webpackChunkName: 'k8sTemplateset' */'@/views/configuration/mesos-create/ingress')
+const MesosCreateIngress = () => import(/* webpackChunkName: 'k8sTemplateset' */'@open/views/configuration/mesos-create/ingress')
 
 // 添加模板集 - HPA
 const MesosCreateHPA = () => import(/* webpackChunkName: 'k8sTemplateset' */'@open/views/configuration/mesos-create/hpa')

@@ -6,7 +6,7 @@
                     <div class="bk-form-item is-required">
                         <label class="bk-label" style="width: 130px;">{{$t('名称')}}：</label>
                         <div class="bk-form-content" style="margin-left: 130px;">
-                            <input type="text" :class="['bk-form-input',{ 'is-danger': errors.has('applicationName') }]" placeholder="请输入64个字符以内" style="width: 310px;" v-model="curIngress.config.metadata.name" maxlength="64" name="applicationName" v-validate="{ required: true, regex: /^[a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*$/ }">
+                            <input type="text" :class="['bk-form-input',{ 'is-danger': errors.has('applicationName') }]" :placeholder="$t('请输入64个字符以内')" style="width: 310px;" v-model="curIngress.config.metadata.name" maxlength="64" name="applicationName" v-validate="{ required: true, regex: /^[a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*$/ }">
                         </div>
                         <div class="bk-form-tip is-danger" style="margin-left: 130px;" v-if="errors.has('applicationName')">
                             <p class="bk-tip-text">{{$t('名称必填，以小写字母或数字开头和结尾，只能包含：小写字母、数字、连字符(-)、点(.)')}}</p>
@@ -671,6 +671,9 @@
             }
 
             >.bk-button {
+                max-width: 200px;
+                overflow: hidden;
+                text-overflow: ellipsis;
                 border-radius: 0;
                 &.is-selected {
                     background-color: #c3cdd7 !important;

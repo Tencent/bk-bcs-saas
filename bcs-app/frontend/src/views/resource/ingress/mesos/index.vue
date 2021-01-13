@@ -149,7 +149,12 @@
                                     <td>{{rule.serviceName || '--'}}</td>
                                     <td>{{rule.protocol || '--'}}</td>
                                     <td>{{rule.servicePort || '--'}}</td>
-                                    <td>{{rule.clbPort || '--'}}</td>
+                                    <td v-if="rule.type === 'service'">{{rule.clbPort || '--'}}</td>
+                                    <td v-else>
+                                        {{$t('起始端口')}}：{{rule.startPort || 0}}<br />
+                                        {{$t('起始索引')}}：{{rule.startIndex || 0}}<br />
+                                        {{$t('终止索引')}}：{{rule.endIndex || 0}}
+                                    </td>
                                 </tr>
                             </template>
                             <template v-else>
@@ -272,6 +277,21 @@
                             <div class="bk-form-item">
                                 <div class="bk-form-content" style="margin-left: 0;">
                                     <div class="bk-form-inline-item is-required">
+                                        <label class="bk-label" style="width: 130px;">{{$t('类型')}}：</label>
+                                        <div class="bk-form-content" style="margin-left: 130px;">
+                                            <bk-selector
+                                                style="width: 170px;"
+                                                :placeholder="$t('请选择')"
+                                                :selected.sync="curRule.type"
+                                                :list="typeList">
+                                            </bk-selector>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="bk-form-item">
+                                <div class="bk-form-content" style="margin-left: 0;">
+                                    <div class="bk-form-inline-item is-required">
                                         <label class="bk-label" style="width: 130px;">{{$t('Service名称')}}：</label>
                                         <div class="bk-form-content" style="margin-left: 130px;">
                                             <bk-selector
@@ -291,7 +311,7 @@
                                             <bk-selector
                                                 style="width: 170px;"
                                                 :placeholder="$t('请选择')"
-                                                :disabled="!curRule.serviceName"
+                                                :disabled="curRule.type === 'service' && !curRule.serviceName"
                                                 :setting-key="'id'"
                                                 :selected.sync="curRule.serviceType"
                                                 :list="curProtocol.protocolList"
@@ -300,7 +320,7 @@
                                         </div>
                                     </div>
 
-                                    <div class="bk-form-inline-item is-required">
+                                    <div class="bk-form-inline-item is-required" v-if="isServiceType">
                                         <label class="bk-label" style="width: 130px;">{{$t('端口')}}：</label>
                                         <div class="bk-form-content" style="margin-left: 130px;">
                                             <bk-selector
@@ -327,7 +347,7 @@
                                                 style="width: 170px;"
                                                 :placeholder="$t('请输入')"
                                                 :value.sync="curRule.host"
-                                                :disabled="true">
+                                                :disabled="isServiceType">
                                             </bk-input>
                                         </div>
                                     </div>
@@ -339,7 +359,7 @@
                                                 style="width: 170px;"
                                                 :placeholder="$t('请输入')"
                                                 :value.sync="curRule.path"
-                                                :disabled="true">
+                                                :disabled="isServiceType">
                                             </bk-input>
                                         </div>
                                     </div>
@@ -348,7 +368,7 @@
 
                             <div class="bk-form-item">
                                 <div class="bk-form-content" style="margin-left: 0;">
-                                    <div class="bk-form-inline-item is-required">
+                                    <div class="bk-form-inline-item is-required" v-if="isServiceType">
                                         <label class="bk-label" style="width: 130px;">{{$t('监听CLB端口')}}：</label>
                                         <div class="bk-form-content" style="margin-left: 130px;">
                                             <bk-input
@@ -371,10 +391,11 @@
                                                     type="number"
                                                     :placeholder="'30-3600'"
                                                     style="width: 134px;"
-                                                    :min="30"
+                                                    :min="0"
                                                     :max="3600"
                                                     :value.sync="curRule.sessionTime"
-                                                    :list="varList">
+                                                    :list="varList"
+                                                    @change="handleSessionTimeChange">
                                                 </bk-input>
                                                 <span class="input-group-addon">
                                                     {{$t('秒')}}
@@ -393,6 +414,49 @@
                                                 :selected.sync="curRule.lbPolicy.strategy"
                                                 :list="strategyList">
                                             </bk-selector>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="bk-form-item" v-if="!isServiceType">
+                                <div class="bk-form-content" style="margin-left: 0;">
+                                    <div class="bk-form-inline-item is-required">
+                                        <label class="bk-label" style="width: 130px;">{{$t('CLB起始端口')}}：</label>
+                                        <div class="bk-form-content" style="margin-left: 130px;">
+                                            <bk-input
+                                                type="number"
+                                                :placeholder="$t('请输入')"
+                                                style="width: 170px;"
+                                                :max="32000"
+                                                :value.sync="curRule.startPort">
+                                            </bk-input>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="bk-form-inline-item is-required">
+                                        <label class="bk-label" style="width: 130px;">{{$t('起始索引')}}：</label>
+                                        <div class="bk-form-content" style="margin-left: 130px;">
+                                            <bk-input
+                                                type="number"
+                                                :placeholder="$t('请输入')"
+                                                style="width: 170px;"
+                                                :min="0"
+                                                :value.sync="curRule.startIndex">
+                                            </bk-input>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="bk-form-inline-item is-required">
+                                        <label class="bk-label" style="width: 130px;">{{$t('终止索引')}}：</label>
+                                        <div class="bk-form-content" style="margin-left: 130px;">
+                                            <bk-input
+                                                type="number"
+                                                :placeholder="$t('请输入')"
+                                                style="width: 170px;"
+                                                :min="0"
+                                                :value.sync="curRule.endIndex">
+                                            </bk-input>
                                         </div>
                                     </div>
                                 </div>
@@ -678,6 +742,16 @@
                 curRule: JSON.parse(JSON.stringify(ruleParams)),
                 clbList: [],
                 serviceList: [],
+                typeList: [
+                    {
+                        id: 'service',
+                        name: this.$t('service转发')
+                    },
+                    {
+                        id: 'port',
+                        name: this.$t('端口段映射')
+                    }
+                ],
                 strategyList: [
                     {
                         id: 'wrr',
@@ -803,8 +877,24 @@
                     }
 
                     // 将数据扁平化
+                    const flatSpec = {}
                     for (const key in ingress.config.spec) {
-                        const types = ingress.spec[key]
+                        if (key === 'statefulset') continue
+                        flatSpec[key] ? flatSpec[key].push(...ingress.spec[key]) : (flatSpec[key] = JSON.parse(JSON.stringify(ingress.spec[key])))
+                    }
+                    
+                    if (ingress.config.spec['statefulset']) {
+                        for (const childKey in ingress.config.spec['statefulset']) {
+                            flatSpec[childKey] = flatSpec[childKey] || []
+                            flatSpec[childKey] = JSON.parse(JSON.stringify(flatSpec[childKey]))
+                            ingress.config.spec['statefulset'][childKey].forEach(rule => {
+                                rule.type = 'port'
+                                flatSpec[childKey].push(rule)
+                            })
+                        }
+                    }
+                    for (const key in flatSpec) {
+                        const types = flatSpec[key]
                         types.forEach(item => {
                             // 将少的字段通过和模板json合并补全
                             ruleParams.sessionTime = ''
@@ -823,13 +913,26 @@
                         })
                     }
                 })
-
                 return JSON.parse(JSON.stringify(list))
             },
             varList () {
                 return this.$store.state.variable.varList
             },
             curProtocol () {
+                if (this.curRule.type === 'port') {
+                    return {
+                        protocolList: [{
+                            id: 'TCP',
+                            name: 'TCP'
+                        }, {
+                            id: 'UDP',
+                            name: 'UDP'
+                        }, {
+                            id: 'HTTP',
+                            name: 'HTTP'
+                        }]
+                    }
+                }
                 const serviceName = this.curRule.serviceName
                 const emptyObj = {
                     protocolList: [],
@@ -845,6 +948,9 @@
             },
             isClusterDataReady () {
                 return this.$store.state.cluster.isClusterDataReady
+            },
+            isServiceType () {
+                return this.curRule.type === 'service'
             }
         },
         watch: {
@@ -1048,11 +1154,22 @@
 
                 const rules = []
                 const labels = []
-
                 for (const key in ingress.config.spec) {
+                    if (key === 'statefulset') {
+                        for (const childKey in ingress.spec[key]) {
+                            const childTypes = ingress.spec[key][childKey]
+                            childTypes.forEach(item => {
+                                item.type = 'port'
+                                item.protocol = key + ': ' + childKey
+                                rules.push(item)
+                            })
+                        }
+                        continue
+                    }
                     const types = ingress.spec[key]
                     types.forEach(item => {
                         item.protocol = key
+                        item.type = 'service'
                         rules.push(item)
                     })
                 }
@@ -1063,7 +1180,6 @@
                         value: ingress.config.metadata.labels[key]
                     })
                 }
-
                 ingress.rules = rules
                 ingress.labels = labels
                 this.ingressSlider.title = ingress.name
@@ -1281,6 +1397,12 @@
                     certId: ''
                 }
             },
+            handleSessionTimeChange (value) {
+                // sessionTime 为 0 表示关闭，取值范围 30 - 3600
+                if (value > 0 && value < 30) {
+                    this.curRule.sessionTime = 30
+                }
+            },
 
             async initServiceList () {
                 const templateId = this.templateId
@@ -1353,6 +1475,7 @@
             checkIngressData (ingress) {
                 const ingressName = ingress.config.metadata.name
                 const nameReg1 = /^[a-z]{1}[a-z0-9-]{0,29}$/
+                const empty = ['', undefined]
                 let megPrefix = `"${ingressName}"${this.$t('中')}`
 
                 if (ingressName === '') {
@@ -1412,7 +1535,7 @@
                         return false
                     }
 
-                    if (!rule.servicePort) {
+                    if (!rule.servicePort && rule.type === 'service') {
                         this.$bkMessage({
                             theme: 'error',
                             message: megPrefix + this.$t('规则"{name}"的端口：请选择端口', rule),
@@ -1421,10 +1544,36 @@
                         return false
                     }
 
-                    if (!rule.clbPort) {
+                    if (!rule.clbPort && rule.type === 'service') {
                         this.$bkMessage({
                             theme: 'error',
                             message: megPrefix + this.$t('规则"{name}"的监听CLB端口：请输入监听CLB端口', rule),
+                            delay: 8000
+                        })
+                        return false
+                    }
+                    if (empty.includes(rule.startPort) && rule.type === 'port') {
+                        this.$bkMessage({
+                            theme: 'error',
+                            message: megPrefix + this.$t('规则"{name}"的CLB起始端口：请输入CLB起始端口', rule),
+                            delay: 8000
+                        })
+                        return false
+                    }
+
+                    if (empty.includes(rule.startIndex) && rule.type === 'port') {
+                        this.$bkMessage({
+                            theme: 'error',
+                            message: megPrefix + this.$t('规则"{name}"的起始索引：请输入起始索引', rule),
+                            delay: 8000
+                        })
+                        return false
+                    }
+
+                    if (empty.includes(rule.endIndex) && rule.type === 'port') {
+                        this.$bkMessage({
+                            theme: 'error',
+                            message: megPrefix + this.$t('规则"{name}"的终止索引：请输入终止索引', rule),
                             delay: 8000
                         })
                         return false
@@ -1459,8 +1608,16 @@
                 spec.udp = []
                 spec.http = []
                 spec.https = []
+                spec.statefulset = {
+                    tcp: [],
+                    udp: [],
+                    http: [],
+                    https: []
+                }
                 params.config.webCache.rules.forEach(data => {
                     const rule = JSON.parse(JSON.stringify(data))
+                    const type = rule.type
+                    delete rule.type
 
                     if (rule.sessionTime === '') {
                         delete rule.sessionTime
@@ -1474,7 +1631,18 @@
                             delete rule.healthCheck.httpCode
                             delete rule.healthCheck.httpCheckPath
                             delete rule.httpsEnabled
-                            spec.tcp.push(rule)
+                            if (type === 'service') {
+                                delete rule.startPort
+                                delete rule.startIndex
+                                delete rule.endIndex
+
+                                spec.tcp.push(rule)
+                            } else {
+                                delete rule.clbPort
+                                delete rule.servicePort
+
+                                spec.statefulset.tcp.push(rule)
+                            }
                             break
 
                         case 'UDP':
@@ -1485,25 +1653,56 @@
                             delete rule.healthCheck.httpCode
                             delete rule.healthCheck.httpCheckPath
                             delete rule.httpsEnabled
-                            spec.udp.push(rule)
+                            if (type === 'service') {
+                                delete rule.startPort
+                                delete rule.startIndex
+                                delete rule.endIndex
+
+                                spec.udp.push(rule)
+                            } else {
+                                delete rule.clbPort
+                                delete rule.servicePort
+
+                                spec.statefulset.udp.push(rule)
+                            }
                             break
 
                         case 'HTTP':
+                            const httpsEnabled = rule.httpsEnabled
                             delete rule.serviceType
-                            if (rule.httpsEnabled) {
+                            if (httpsEnabled) {
                                 delete rule.httpsEnabled
-                                spec.https.push(rule)
                             } else {
                                 delete rule.httpsEnabled
                                 delete rule.tls
-                                spec.http.push(rule)
+                            }
+                            if (type === 'service') {
+                                delete rule.startPort
+                                delete rule.startIndex
+                                delete rule.endIndex
+                                httpsEnabled ? spec.https.push(rule) : spec.http.push(rule)
+                            } else {
+                                delete rule.clbPort
+                                delete rule.servicePort
+                                httpsEnabled ? spec.statefulset.https.push(rule) : spec.statefulset.http.push(rule)
                             }
                             break
 
                         case 'HTTPS':
                             delete rule.serviceType
                             delete rule.httpsEnabled
-                            spec.https.push(rule)
+                            if (type === 'service') {
+                                delete rule.startPort
+                                delete rule.startIndex
+                                delete rule.endIndex
+
+                                spec.https.push(rule)
+                            } else {
+                                delete rule.clbPort
+                                delete rule.servicePort
+
+                                spec.statefulset.https.push(rule)
+                            }
                             break
                     }
                 })

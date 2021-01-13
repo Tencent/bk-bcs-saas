@@ -1137,7 +1137,7 @@
 }
 
 .bk-tab2 .bk-tab2-head .bk-tab2-nav>.tab2-nav-item {
-    max-width: 220px;
+    max-width: 150px;
 }
 
 .biz-scroll-tab {
@@ -1228,4 +1228,16 @@
 .bk-selector .bk-selector-node .text {
     height: 42px;
     line-height: 42px;
+}
+
+.bk-text-button {
+    .bk-icon {
+        transition: all ease 0.3s;
+    }
+
+    &.rotate {
+        .bk-icon {
+            transform: rotate(180deg);
+        }
+    }
 }

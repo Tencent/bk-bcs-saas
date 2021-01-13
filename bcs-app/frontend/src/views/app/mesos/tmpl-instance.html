@@ -105,7 +105,6 @@
                                 </bk-dropdown-menu>
                             </div>
                         </div>
-                        
                         <chart :options="podMemChartOptsInternal" ref="instanceMemLine" auto-resize></chart>
                     </div>
                     <div class="part">
@@ -242,6 +241,16 @@
             <div class="biz-app-instance-table-wrapper">
                 <bk-tab :type="'fill'" :active-name="tabActiveName" @tab-changed="tabChanged">
                     <bk-tabpanel name="taskgroup" :title="$t('Taskgroup管理')">
+                        <div slot="tag" style="height: 20px; line-height: 20px; margin-top: 19px;">
+                            <bk-tooltip placement="top" :transfer="true">
+                                <span class="bk-icon icon-exclamation-circle"></span>
+                                <template slot="content">
+                                    <p style="text-align: left; white-space: normal;word-break: break-all;font-weight: 400;">
+                                        {{PROJECT_CONFIG.str.taskgroupAndPodTips}}
+                                    </p>
+                                </template>
+                            </bk-tooltip>
+                        </div>
                         <div v-bkloading="{isLoading: taskgroupLoading}">
                             <div class="biz-app-instance-taskgroup-data" v-if="taskgroupList.length">
                                 <div class="taskgroup-item-wrapper" v-for="(taskgroup, index) in taskgroupList" :key="index">
@@ -330,7 +339,7 @@
                                         </div>
                                     </div>
                                     <div class="taskgroup-container-table" v-if="taskgroup.isOpen">
-                                        <table class="bk-table has-table-hover biz-table" style="overflow: hidden;" v-bkloading="{isLoading: taskgroup.containerLoading}">
+                                        <table class="bk-table has-table-hover biz-table" v-bkloading="{isLoading: taskgroup.containerLoading}">
                                             <tbody>
                                                 <template v-if="taskgroup.containerList.length">
                                                     <tr v-for="(container, containerIndex) in taskgroup.containerList">
@@ -342,7 +351,7 @@
                                                                         {{container.name}}
                                                                     </a>
                                                                     <template slot="content">
-                                                                        <p style="text-align: left; white-space: normal;word-break: break-all;font-weight: 400;">{{container.name}}</p>
+                                                                        <p style="text-align: left; white-space: normal;word-break: break-all;font-weight: 400;">{{container.container_id}}</p>
                                                                     </template>
                                                                 </bk-tooltip>
                                                             </template>
@@ -369,12 +378,46 @@
                                                             </bk-tooltip>
                                                         </td>
                                                         <td class="act" style="width: 250px;">
-                                                            <a href="javascript:void(0);" class="bk-text-button" v-if="container.container_id && taskgroup.status !== 'Starting'" @click="showLog(container)">
-                                                                {{$t('日志')}}
-                                                            </a>
-                                                            <a href="javascript:void(0);" class="bk-text-button is-disabled" v-else>
-                                                                {{$t('日志')}}
-                                                            </a>
+                                                            <template v-if="container.status === 'Running'">
+                                                                <a href="javascript:void(0);" class="bk-text-button" @click="showTerminal(container)">
+                                                                    WebConsole
+                                                                </a>
+                                                            </template>
+                                                            <template v-else>
+                                                                <bk-tooltip content="容器状态不是Running" placement="right">
+                                                                    <a href="javascript: void(0);" class="bk-text-button is-disabled mr15">WebConsole</a>
+                                                                </bk-tooltip>
+                                                            </template>
+                                                            <bk-dropdown-menu align="right" v-if="container.container_id">
+                                                                <span style="color: #3c96ff; margin-left: 15px;" slot="dropdown-trigger">{{$t('日志')}}</span>
+                                                                <ul class="bk-dropdown-list" slot="dropdown-content">
+                                                                    <li>
+                                                                        <a href="javascript:void(0);" class="bk-text-button" v-if="taskgroup.status !== 'Starting'" @click="showLog(container)">
+                                                                            {{$t('标准输出')}}
+                                                                        </a>
+                                                                        <a href="javascript:void(0);" class="bk-text-button is-disabled" v-else>
+                                                                            {{$t('标准输出')}}
+                                                                        </a>
+                                                                    </li>
+                                                                    <li>
+                                                                        <a v-if="container.std_log_link" :href="container.std_log_link" target="_blank" class="bk-text-button">
+                                                                            {{$t('标准输出检索')}}
+                                                                        </a>
+                                                                        <a href="javascript:void(0);" class="bk-text-button is-disabled" v-else>
+                                                                            {{$t('标准输出检索')}}
+                                                                        </a>
+                                                                    </li>
+                                                                    <li>
+                                                                        <a v-if="container.file_log_link" :href="container.file_log_link" target="_blank" class="bk-text-button">
+                                                                            {{$t('文件日志检索')}}
+                                                                        </a>
+                                                                        <a href="javascript:void(0);" class="bk-text-button is-disabled" v-else>
+                                                                            {{$t('文件日志检索')}}
+                                                                        </a>
+                                                                    </li>
+                                                                </ul>
+                                                            </bk-dropdown-menu>
+                                                            <a href="javascript:void(0);" class="bk-text-button is-disabled" v-else>{{$t('日志')}}</a>
                                                         </td>
                                                     </tr>
                                                 </template>
@@ -423,7 +466,7 @@
                                                 <p>{{event.obj}}</p>
                                                 <p>{{event.level}}</p>
                                             </td>
-                                            <td>{{event.describe}}</td>
+                                            <td style="word-break: break-word;">{{event.describe}}</td>
                                         </tr>
                                     </template>
                                     <template v-else>
@@ -511,6 +554,45 @@
                                             <td colspan="2">
                                                 <div class="bk-message-box no-data">
                                                     <p class="message empty-message" v-if="!annotationListLoading">{{$t('无数据')}}</p>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    </template>
+                                </tbody>
+                            </table>
+                        </div>
+                    </bk-tabpanel>
+                    <bk-tabpanel name="metric" :title="$t('Metric信息')">
+                        <div v-bkloading="{isLoading: metricListLoading}">
+                            <table class="bk-table has-table-hover biz-table biz-app-instance-metric-table">
+                                <thead>
+                                    <tr>
+                                        <th style="text-align: left;padding-left: 27px; width: 200px">
+                                            {{$t('名称')}}
+                                        </th>
+                                        <th style="width: 260px">{{$t('端口')}}</th>
+                                        <th style="width: 260px">URI</th>
+                                        <th style="width: 260px">{{$t('采集频率（个/分）')}}</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <template v-if="metricList.length">
+                                        <tr v-for="(metric, index) in metricList">
+                                            <td style="text-align: left;padding-left: 27px;">
+                                                {{metric.name}}
+                                            </td>
+                                            <td>{{metric.port}}</td>
+                                            <td>{{metric.uri}}</td>
+                                            <td>{{metric.frequency}}</td>
+                                        </tr>
+                                    </template>
+                                    <template v-else>
+                                        <tr>
+                                            <td colspan="4">
+                                                <div class="bk-message-box no-data">
+                                                    <p class="message empty-message" v-if="!metricListLoading">
+                                                        {{metricListErrorMessage}}
+                                                    </p>
                                                 </div>
                                             </td>
                                         </tr>

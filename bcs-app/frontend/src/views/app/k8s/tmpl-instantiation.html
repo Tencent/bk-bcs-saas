@@ -73,13 +73,7 @@
                                         <div class="content-trigger">
                                             <div class="left-area" style="border-right: none; width: auto;">
                                                 <div class="label">
-                                                    <template v-if="REGION === 'ieod'">
-                                                        <template v-if="cluster.environment !== 'prod'">
-                                                            <span class="biz-env-label mr5 stag">{{$t('测试')}}</span>
-                                                        </template>
-                                                        <template v-else>
-                                                            <span class="biz-env-label mr5 prod">{{$t('正式')}}</span>
-                                                        </template>
+
                                                     </template>
                                                     <span class="biz-text-wrapper">{{cluster.cluster_name}}</span>
                                                     <span class="choose-num">{{cluster.namespaceList.length}} {{$t('个')}}</span>
@@ -235,9 +229,7 @@
                     <div class="content-trigger" @click="triggerHandler(item, index)">
                         <div class="left-area" style="border-right: none;">
                             <div class="label">
-                                <template v-if="REGION === 'ieod'">
-                                    <span :class="['biz-env-label mr5', {'stag': item.environment !== 'prod', 'prod': item.environment === 'prod'}]">{{item.environment_name}}</span>
-                                </template>
+
                                 <span class="biz-text-wrapper" style="max-width: 300px;">{{item.name}}</span>
                                 <span class="choose-num" v-if="isEn">Selected: {{item.results.filter(ns => ns.isChoose).length}}</span>
                                 <span class="choose-num" v-else>已经选择 {{item.results.filter(ns => ns.isChoose).length}} 个</span>

@@ -67,7 +67,6 @@
         font-size: 14px;
         color: $fontWeightColor;
         list-style: none;
-        margin-bottom: 25px;
 
         li {
             margin-bottom: 5px;
@@ -76,6 +75,7 @@
     }
 
     .dialog-action {
+        margin-top: 25px;
         text-align: center;
     }
 

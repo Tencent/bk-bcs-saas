@@ -13,12 +13,23 @@
                 </a>
             </div>
             <transition name="fade">
-                <div :class="['bk-dropdown-content is-show']" style="bottom: 44px; right: 0;" v-if="isShow">
-                    <ul class="bk-dropdown-list">
+                <div :class="['bk-dropdown-content is-show']" style="bottom: 44px; right: 0;" v-show="isShow">
+                    <div class="search-box">
+                        <bk-input
+                            v-model="keyword"
+                            :placeholder="$t('请输入集群名或ID')"
+                            @focus="isFocus = true"
+                            @blur="isFocus = false">
+                        </bk-input>
+                    </div>
+                    <ul class="bk-dropdown-list" v-if="searchList.length">
                         <li>
-                            <a href="javascript:;" v-for="(cluster, index) in clusterList" :key="index" @click="goWebConsole(cluster)" style="padding: 0 10px;">{{cluster.name}}</a>
+                            <a href="javascript:;" v-for="(cluster, index) in searchList" :key="index" @click="goWebConsole(cluster)" style="padding: 0 10px;" :title="cluster.name">{{cluster.name}}</a>
                         </li>
                     </ul>
+                    <div v-else class="no-result">
+                        {{$t('无数据')}}
+                    </div>
                 </div>
             </transition>
         </div>
@@ -33,17 +44,25 @@
                 isActive: false,
                 isShow: false,
                 showTimer: 0,
-                activeTimer: 0
+                activeTimer: 0,
+                keyword: '',
+                isFocus: false
             }
         },
         computed: {
-            clusterList () {
-                const clusterList = []
-                this.$store.state.cluster.clusterList.forEach(item => {
-                    clusterList.push(item)
+            searchList () {
+                const clusterList = [...this.$store.state.cluster.clusterList]
+                const list = clusterList.filter(item => {
+                    const name = item.name.toLowerCase()
+                    const clusterId = item.cluster_id.toLowerCase()
+                    const keyword = this.keyword.toLowerCase()
+                    return name.indexOf(keyword) > -1 || clusterId.indexOf(keyword) > -1
                 })
 
-                return clusterList
+                return list
+            },
+            clusterList () {
+                return [...this.$store.state.cluster.clusterList]
             },
             curProject () {
                 return this.$store.state.curProject
@@ -55,6 +74,13 @@
                 return this.$route.name
             }
         },
+        // watch: {
+        //     isFocus (newVal, oldVal) {
+        //         if (oldVal && !newVal) {
+        //             this.isShow = false
+        //         }
+        //     }
+        // },
         mounted () {
             if (!this.clusterList.length && this.routeName !== 'clusterMain') {
                 this.getClusters()
@@ -65,6 +91,9 @@
                 clearTimeout(this.showTimer)
                 clearTimeout(this.activeTimer)
                 this.isActive = true
+                if (!this.isFocus) {
+                    this.keyword = ''
+                }
                 this.showTimer = setTimeout(() => {
                     this.isShow = true
                 }, 200)
@@ -72,6 +101,9 @@
             handlerMouseout () {
                 clearTimeout(this.showTimer)
                 clearTimeout(this.activeTimer)
+                if (this.isFocus) {
+                    return false
+                }
                 this.showTimer = setTimeout(() => {
                     this.isShow = false
                 }, 100)
@@ -137,7 +169,7 @@
         z-index: 1100;
         &.active {
             .biz-terminal-trigger {
-                width: 142px;
+                width: 200px;
                 border-radius: 2px;
                 .text {
                     display: inline-block;
@@ -148,9 +180,8 @@
             }
         }
         .biz-terminal-trigger {
-            width: 42px;
             height: 42px;
-            text-align: center;
+            text-align: left;
             line-height: 40px;
             background: #fff;
             overflow: hidden;
@@ -159,6 +190,8 @@
             box-shadow: 0 0 12px rgba(0, 0, 0, 0.1);
             cursor: pointer;
             z-index: 10;
+            padding: 0 10px;
+
             .icon {
                 width: 16px;
                 vertical-align: middle;
@@ -189,14 +222,25 @@
 
         .bk-dropdown-list {
             > li {
-                width: 140px;
+                width: 200px;
                 a {
                     display: block;
                     vertical-align: middle;
-                    width: 140px;
-                    @mixin ellipsis 140px;
+                    width: 200px;
+                    @mixin ellipsis 200px;
                 }
             }
+        }
+
+        .no-result {
+            line-height: 82px;
+            text-align: center;
+            font-size: 14px;
+        }
+
+        .search-box {
+            padding: 10px;
+            border-bottom: 1px solid #eee;
         }
     }
 </style>

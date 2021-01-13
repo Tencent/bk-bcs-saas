@@ -341,13 +341,13 @@
 
                                             <bk-tabpanel name="ta7" :title="$t('卷')">
                                                 <div class="bk-form m20">
-                                                    <table class="biz-simple-table" style="width: 720px;" v-if="curApplication.config.webCache.volumes.length">
+                                                    <table class="biz-simple-table" v-if="curApplication.config.webCache.volumes.length">
                                                         <thead>
                                                             <tr>
                                                                 <th style="width: 200px;">{{$t('类型')}}</th>
                                                                 <th style="width: 220px;">{{$t('挂载名')}}</th>
-                                                                <th style="width: 220px;">{{$t('挂载源')}}</th>
-                                                                <th></th>
+                                                                <th>{{$t('挂载源')}}</th>
+                                                                <th style="width: 100px;"></th>
                                                             </tr>
                                                         </thead>
                                                         <tbody>
@@ -3075,8 +3075,6 @@
             },
             watchChange () {
                 this.compareTimer = setInterval(() => {
-                    if (!this.curApplication || !this.curApplication.cache) return
-                    
                     const appCopy = JSON.parse(JSON.stringify(this.curApplication))
                     const cacheCopy = JSON.parse(JSON.stringify(this.curApplication.cache))
                     // 删除无用属性

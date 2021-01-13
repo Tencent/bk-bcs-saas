@@ -10,7 +10,7 @@
  */
 
 export default function (options) {
-    (function diffview__options () {
+    (function diffviewOptions () {
         if (typeof options.diff === 'string') {
             if (options.functions !== undefined) {
                 options.diff = options
@@ -63,7 +63,7 @@ export default function (options) {
     // diffline is a count of lines that are not equal
     let diffline = 0
     // tab is a construct of a standard indentation for code
-    const tab = (function diffview__tab () {
+    const tab = (function diffviewTab () {
         let a = 0
         const output = []
         if (options.inchar === '') {
@@ -75,7 +75,7 @@ export default function (options) {
         return output.join('')
     }())
     // translates source code from a string to an array by splitting on line breaks
-    const stringAsLines = function diffview__stringAsLines (str) {
+    const stringAsLines = function diffviewStringAsLines (str) {
         const lines = (options.diffcli === true)
             ? str
             : str
@@ -95,7 +95,7 @@ export default function (options) {
         ? stringAsLines(options.diff)
         : options.diff
     let opcodes = []
-    const codeBuild = function diffview__opcodes () {
+    const codeBuild = function diffviewOpcodes () {
         const table = {}
         const one = (typeof options.source === 'string')
             ? options.source.split('\n')
@@ -110,7 +110,7 @@ export default function (options) {
         let c = 0
         let d = 0
         const codes = []
-        const fix = function diffview__opcodes_fix (code) {
+        const fix = function diffviewOpcodesFix (code) {
             let prior = codes[codes.length - 1]
             if (prior !== undefined) {
                 if (prior[0] === code[0]) {
@@ -240,7 +240,7 @@ export default function (options) {
             }
             codes.push(code)
         }
-        const equality = function diffview__opcodes_equality () {
+        const equality = function diffviewOpcodesEquality () {
             do {
                 table[one[c]][0] = table[one[c]][0] - 1
                 table[one[c]][1] = table[one[c]][1] - 1
@@ -251,7 +251,7 @@ export default function (options) {
             b = d - 1
             a = c - 1
         }
-        const deletion = function diffview__opcodes_deletion () {
+        const deletion = function diffviewOpcodesDeletion () {
             do {
                 table[one[c]][0] = table[one[c]][0] - 1
                 c = c + 1
@@ -260,7 +260,7 @@ export default function (options) {
             a = c - 1
             b = d - 1
         }
-        const deletionStatic = function diffview__opcodes_deletionStatic () {
+        const deletionStatic = function diffviewOpcodesDeletionStatic () {
             table[one[a]][0] = table[one[a]][0] - 1
             fix([
                 'delete', a, a + 1,
@@ -270,7 +270,7 @@ export default function (options) {
             a = c
             b = d - 1
         }
-        const insertion = function diffview__opcodes_insertion () {
+        const insertion = function diffviewOpcodesInsertion () {
             do {
                 table[two[d]][1] = table[two[d]][1] - 1
                 d = d + 1
@@ -279,7 +279,7 @@ export default function (options) {
             a = c - 1
             b = d - 1
         }
-        const insertionStatic = function diffview__opcodes_insertionStatic () {
+        const insertionStatic = function diffviewOpcodesInsertionStatic () {
             table[two[b]][1] = table[two[b]][1] - 1
             fix([
                 'insert', -1, -1, b, b + 1
@@ -287,7 +287,7 @@ export default function (options) {
             a = c - 1
             b = d
         }
-        const replacement = function diffview__opcodes_replacement () {
+        const replacement = function diffviewOpcodesReplacement () {
             do {
                 table[one[c]][0] = table[one[c]][0] - 1
                 table[two[d]][1] = table[two[d]][1] - 1
@@ -298,7 +298,7 @@ export default function (options) {
             a = c - 1
             b = d - 1
         }
-        const replaceUniques = function diffview__opcodes_replaceUniques () {
+        const replaceUniques = function diffviewOpcodesReplaceUniques () {
             do {
                 table[one[c]][0] = table[one[c]][0] - 1
                 c = c + 1
@@ -400,7 +400,7 @@ export default function (options) {
     // 3.  The construction of the output into the 'node' array errorout is a count
     // of differences after the opcodes generate the other two core pieces of logic
     // are quaranteened into an anonymous function.
-    return (function diffview__report () {
+    return (function diffviewReport () {
         let a = 0
         let i = 0
         const node = ["<div class='diff'>"]
@@ -423,7 +423,7 @@ export default function (options) {
         const tabFix = (tab === '')
             ? ''
             : new RegExp('^((' + tab.replace(/\\/g, '\\') + ')+)')
-        const noTab = function diffview__report_noTab (str) {
+        const noTab = function diffviewReportNoTab (str) {
             let b = 0
             const strLen = str.length
             const output = []
@@ -432,7 +432,7 @@ export default function (options) {
             }
             return output
         }
-        const htmlfix = function diffview__report_htmlfix (item) {
+        const htmlfix = function diffviewReportHtmlfix (item) {
             return item.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
         }
         let baseTab = (tab === '')
@@ -451,7 +451,7 @@ export default function (options) {
         let charcompOutput = []
         // this is the character comparison logic that performs the 'largest common
         // subsequence' between two lines of code
-        const charcomp = function diffview__report_charcomp (lineA, lineB) {
+        const charcomp = function diffviewReportCharcomp (lineA, lineB) {
             let b = 0
             let dataA = []
             let dataB = []
@@ -481,7 +481,7 @@ export default function (options) {
             const regEnd = (/_epdiffdiff\u005f/g)
             const strStart = '_pdiffdiff\u005f'
             const strEnd = '_epdiffdiff\u005f'
-            const tabdiff = (function diffview__report_charcomp_tabdiff () {
+            const tabdiff = (function diffviewReportCharcompTabdiff () {
                 let tabMatchA = ''
                 let tabMatchB = ''
                 let splitA = ''
@@ -507,7 +507,7 @@ export default function (options) {
                 }
                 return [tabMatchA, tabMatchB, splitA, splitB]
             }())
-            const whiteout = function diffview__report_charcomp_whiteout (whitediff) {
+            const whiteout = function diffviewReportCharcompWhiteout (whitediff) {
                 const spacetest = (/<((em)|(pd))>\u0020+<\/((em)|(pd))>/)
                 const crtest = (/<((em)|(pd))>\r+<\/((em)|(pd))>/)
                 if (spacetest.test(whitediff) === true) {
@@ -519,18 +519,18 @@ export default function (options) {
                 return whitediff.replace(/\s+/, '(white space differences)')
             }
             // compare is the fuzzy string comparison algorithm
-            const compare = function diffview__report_charcomp_compare (start) {
+            const compare = function diffviewReportCharcompCompare (start) {
                 let x = 0
                 let y = 0
                 const max = Math.max(dataA.length, dataB.length)
                 let store = []
-                const sorta = function diffview__report_charcomp_compare_sorta (a, b) {
+                const sorta = function diffviewReportCharcompCompareSorta (a, b) {
                     if (a[1] - a[0] < b[1] - b[0]) {
                         return 1
                     }
                     return -1
                 }
-                const sortb = function diffview__report_charcomp_compare_sortb (a, b) {
+                const sortb = function diffviewReportCharcompCompareSortb (a, b) {
                     if (a[0] + a[1] > b[0] + b[1]) {
                         return 1
                     }

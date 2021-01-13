@@ -170,7 +170,7 @@
                                             {{$t('预览')}}：
                                         </label>
                                         <div class="form-item-inner" style="width: 100px">
-                                            <bk-tab class="biz-scroll-tab" :type="'fill'" :size="'small'" :active-name="previewList[0].name" :key="renderTabIndex" @tab-changed="tabChange">
+                                            <bk-tab class="biz-scroll-tab" :type="'fill'" :size="'small'" :active-name="previewList[0].name" :key="previewList.length" @tab-changed="tabChange">
                                                 <bk-tabpanel :key="index" :name="item.name" :title="item.title" :tag="item.tag" v-for="(item, index) in previewList">
                                                     <div class="biz-code-wrapper">
                                                         <div class="build-code-fullscreen" :title="$t('全屏')"
@@ -399,7 +399,6 @@
                 selectedNamespaceCluster: {},
                 previewTitle: '',
                 previewList: [],
-                renderTabIndex: 0,
                 previewLoading: false,
                 previewShow: false,
                 previewNs: null,
@@ -753,7 +752,6 @@
                 this.editorConfig.editors.splice(0, this.editorConfig.editors.length, ...[])
                 this.editorConfig.values.splice(0, this.editorConfig.values.length, ...[])
                 this.previewShow = false
-                this.renderTabIndex++
 
                 // 清空已经选择的 namespace
                 this.selectedNamespaceList.splice(0, this.selectedNamespaceList.length, ...[])
@@ -811,7 +809,6 @@
                 this.editorConfig.editors.splice(0, this.editorConfig.editors.length, ...[])
                 this.editorConfig.values.splice(0, this.editorConfig.values.length, ...[])
                 this.previewShow = false
-                this.renderTabIndex++
 
                 // 清空已经选择的 namespace
                 this.selectedNamespaceList.splice(0, this.selectedNamespaceList.length, ...[])
@@ -889,7 +886,6 @@
                 this.editorConfig.editors.splice(0, this.editorConfig.editors.length, ...[])
                 this.editorConfig.values.splice(0, this.editorConfig.values.length, ...[])
                 this.previewShow = false
-                this.renderTabIndex++
 
                 // 清空已经选择的 namespace
                 this.selectedNamespaceList.splice(0, this.selectedNamespaceList.length, ...[])
@@ -1174,7 +1170,6 @@
                         namespaces: namespaces.join(','),
                         instanceEntity: this.instanceEntity
                     })
-
                     this.lbServiceList.splice(0, this.lbServiceList.length, ...(res.data.lb_services || []))
 
                     // 前一次的 lbSelectData
@@ -1221,7 +1216,6 @@
                     this.editorConfig.editors.splice(0, this.editorConfig.editors.length, ...[])
                     this.editorConfig.values.splice(0, this.editorConfig.values.length, ...[])
                     this.previewShow = false
-                    this.renderTabIndex++
 
                     this.previewNamespace(alreadySelected || this.selectedNamespaceList[0], 0, true)
                 } catch (e) {
@@ -1270,7 +1264,6 @@
                 this.previewShow = true
 
                 this.previewErrorMessage = ''
-                this.renderTabIndex++
             },
 
             previewNamespace (ns, index, forceSelect) {
@@ -1350,7 +1343,6 @@
                     this.previewList.forEach((preview, index) => {
                         this.editorConfig.values[index] = preview.content
                     })
-                    this.renderTabIndex++
                     setTimeout(() => {
                         // 这里触发一次 change 为了让初始值也显示
                         this.variableValChange()
@@ -1391,7 +1383,7 @@
                     if (this.lbServiceList.length) {
                         const lbRes = await this.$store.dispatch('configuration/getLbInfo', {
                             projectId: this.projectId,
-                            namespaceId: ns.id
+                            clusterId: ns.cluster_id
                         })
 
                         const lbData = lbRes.data || []
@@ -1451,7 +1443,6 @@
                             this.previewList.splice(0, this.previewList.length, ...[])
                             this.editorConfig.editors.splice(0, this.editorConfig.editors.length, ...[])
                             this.editorConfig.values.splice(0, this.editorConfig.values.length, ...[])
-                            this.renderTabIndex++
                             return
                         }
 
@@ -1496,7 +1487,6 @@
                                 ? yamljs.dump(JSON.parse(preview.content, null, 4))
                                 : preview.content
                         })
-                        this.renderTabIndex++
                         setTimeout(() => {
                             // 这里触发一次 change 为了让初始值也显示
                             this.variableValChange()
@@ -1591,7 +1581,6 @@
                 const scrollTopList = []
                 const previewList = []
                 previewList.splice(0, 0, ...this.previewList)
-                this.renderTabIndex++
 
                 const keys = {}
                 this.previewNs.variableList.forEach(variable => {
@@ -1619,7 +1608,6 @@
 
                 this.editorConfig.values.splice(0, this.editorConfig.values.length, ...values)
                 this.previewList.splice(0, this.previewList.length, ...previewList)
-                this.renderTabIndex++
                 this.$nextTick(() => {
                     this.previewList.forEach((preview, previewIndex) => {
                         this.editorConfig.editors[previewIndex]
@@ -1763,7 +1751,7 @@
                             ? yamljs.dump(JSON.parse(preview.content, null, 4))
                             : preview.content
                     })
-                    this.renderTabIndex++
+
                     setTimeout(() => {
                         // 这里触发一次 change 为了让初始值也显示
                         this.variableValChange()
