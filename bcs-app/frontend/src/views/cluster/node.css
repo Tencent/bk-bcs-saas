@@ -266,7 +266,6 @@
         .remain-tip {
             font-size: 12px;
             margin-left: 10px;
-            color: $dangerColor;
         }
     }
 
@@ -505,7 +504,6 @@
 .biz-node-re-initialization-dialog {
     .len,
     .operate {
-        color: red;
         font-weight:700;
     }
     button.disabled {
