@@ -33,13 +33,11 @@ class APIError(APIException):
         super(APIError, self).__init__(str(self))
 
     def __str__(self):
-        """%s, print(), 使用
-        """
+        """%s, print(), 使用"""
         return "%s: %s" % (self.code, self.message)
 
     def __repr__(self):
-        """命令行查看使用
-        """
+        """命令行查看使用"""
         return "<%s,%s>" % (self.code_obj.code_name, self.code)
 
     @property
@@ -77,8 +75,7 @@ class APIError(APIException):
         return self.format(message=message, **kwargs)
 
     def __call__(self, message=None, *args, **kwargs):
-        """init api error
-        """
+        """init api error"""
         self.code_obj = copy.copy(self.code_obj)
         if message:
             self.code_obj.message = message
@@ -137,6 +134,7 @@ error_codes.add_codes(
         ErrorCode("ParamMissError", 40005, _("参数缺失")),
         ErrorCode("CheckFailed", 40006, _("校验失败")),
         ErrorCode("ExpiredError", 40007, _("资源已过期")),
+        ErrorCode("IPPermissionDenied", 40008, _("没有主机使用权限")),
         # Helm相关错误码(前端已经在使用)
         ErrorCode("HelmNoRegister", 40031, _("集群未注册")),
         ErrorCode("HelmNoNode", 40032, _("集群下没有节点")),

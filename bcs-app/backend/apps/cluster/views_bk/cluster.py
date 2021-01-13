@@ -26,7 +26,6 @@ from backend.components import paas_cc, cc
 from backend.components import ops
 from backend.utils.error_codes import error_codes
 from backend.apps.cluster import serializers
-from backend.utils import cc as cc_utils
 from backend.activity_log import client
 from backend.apps.cluster import constants
 from backend.utils.errcodes import ErrorCode
@@ -45,6 +44,7 @@ from backend.accounts.bcs_perm import Cluster, Namespace
 from backend.bcs_k8s.app.models import App
 from backend.resources import cluster as cluster_utils
 from backend.apps.cluster.constants import ClusterState
+from backend.apps.cluster.utils import check_use_hosts
 
 logger = logging.getLogger(__name__)
 ACTIVITY_RESOURCE_TYPE = 'cluster'
@@ -241,7 +241,7 @@ class CreateCluster(BaseCluster):
         # NOTE: 选择第一个master节点作为中控机IP
         self.control_ip = self.data['master_ips'][:1]
         # 检查是否有权限操作IP
-        cc_utils.check_ips(self.cc_app_id, self.username, self.data['master_ips'])
+        check_use_hosts(self.cc_app_id, self.username, self.data["master_ips"])
         self.area_info = self.get_area_info()
         self.data['area_id'] = self.area_info['id']
 
