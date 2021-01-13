@@ -78,7 +78,7 @@ Please enter updated data for the list structure, as shown in:
 </template>
 
 <script>
-    import MonacoEditor from '@open/components/monaco-editor/editor'
+    import MonacoEditor from '@open/components/monaco-editor/editor.vue'
 
     import { catchErrorHandler } from '@open/common/util'
 

@@ -51,9 +51,9 @@
                     </div>
                     <div class="part top-right">
                         <div class="info">
-                            <div class="left">{{$t('内存')}}</div>
+                            <div class="left">{{$t('内存使用率')}}</div>
                         </div>
-                        <chart :options="memLine" ref="instanceMemLine" auto-resize></chart>
+                        <chart :options="memLineInternal" ref="instanceMemLine" auto-resize></chart>
                     </div>
                 </div>
             </div>

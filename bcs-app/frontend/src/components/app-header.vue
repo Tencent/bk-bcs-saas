@@ -320,6 +320,56 @@
                         },
                         query: this.$route.query || {}
                     })
+                } else if (this.mesosAppRouters.indexOf(routeName) > -1) {
+                    this.$router.push({
+                        name: 'mesos',
+                        params: {
+                            projectId: projectId,
+                            projectCode: projectCode,
+                            needCheckPermission: true
+                        },
+                        query: this.$route.query || {}
+                    })
+                } else if (this.deploymentsRouters.indexOf(routeName) > -1) {
+                    this.$router.push({
+                        name: 'deployments',
+                        params: {
+                            projectId: projectId,
+                            projectCode: projectCode,
+                            needCheckPermission: true
+                        },
+                        query: this.$route.query || {}
+                    })
+                } else if (this.daemonsetRouters.indexOf(routeName) > -1) {
+                    this.$router.push({
+                        name: 'daemonset',
+                        params: {
+                            projectId: projectId,
+                            projectCode: projectCode,
+                            needCheckPermission: true
+                        },
+                        query: this.$route.query || {}
+                    })
+                } else if (this.jobRouters.indexOf(routeName) > -1) {
+                    this.$router.push({
+                        name: 'job',
+                        params: {
+                            projectId: projectId,
+                            projectCode: projectCode,
+                            needCheckPermission: true
+                        },
+                        query: this.$route.query || {}
+                    })
+                } else if (this.statefulsetRouters.indexOf(routeName) > -1) {
+                    this.$router.push({
+                        name: 'statefulset',
+                        params: {
+                            projectId: projectId,
+                            projectCode: projectCode,
+                            needCheckPermission: true
+                        },
+                        query: this.$route.query || {}
+                    })
                 } else if (this.metricRouters.indexOf(routeName) > -1) {
                     this.$router.push({
                         name: 'metricManage',

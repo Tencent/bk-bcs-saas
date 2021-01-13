@@ -322,7 +322,7 @@
                         </div>
 
                         <div class="bk-form-item">
-                            <label class="bk-label">{{$t('备注管理')}}：</label>
+                            <label class="bk-label">{{$t('注解管理')}}：</label>
                             <div class="bk-form-content">
                                 <bk-keyer :key-list.sync="curRemarkList" ref="labelKeyer" @change="updateRemarkList"></bk-keyer>
                             </div>
@@ -435,7 +435,7 @@
 
                             <template v-else>
                                 <tr>
-                                    <td colspan="4">
+                                    <td colspan="3">
                                         <div class="biz-app-list">
                                             <div class="bk-message-box" style="min-height: auto;">
                                                 <p class="message empty-message" style="margin: 30px; font-size: 14px;">{{$t('无数据')}}</p>
@@ -649,6 +649,10 @@
                     {
                         id: 'NodePort',
                         name: 'NodePort'
+                    },
+                    {
+                        id: 'LoadBalancer',
+                        name: 'LoadBalancer'
                     }
                 ],
                 serviceType: -1,
@@ -765,7 +769,6 @@
         },
         created () {
             this.initPageConf()
-            // this.getServiceList()
             this.userInfo = Object.assign({}, window.$userInfo)
         },
         methods: {

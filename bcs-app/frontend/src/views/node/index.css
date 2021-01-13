@@ -106,6 +106,16 @@
             }
         }
 
+        .cluster-selector {
+            float: left;
+            right: 493px;
+            width: 200px;
+            /deep/ .bk-selector-input {
+                height: 38px;
+                border-color: #dde4eb !important;
+            }
+        }
+
         .toggle-filter {
             width: 200px;
             padding-left: 15px;

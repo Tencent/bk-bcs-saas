@@ -87,23 +87,20 @@
                                         </div>
                                     </div>
                                     <div class="inner">
-                                        <label class="title">
-                                            {{$t('命名空间')}}
-                                            <span class="ml10 biz-error-tip" v-if="!isNamespaceMatch && !isNamespaceLoading">
-                                                （{{$t('命名空间')}} {{curApp.namespace}} {{$t('不存在')}}）
-                                            </span>
-                                        </label>
-                                        <div>
-                                            <bk-selector
-                                                style="width: 557px;"
-                                                :placeholder="$t('请选择')"
-                                                :selected.sync="curApp.namespace_id"
-                                                :disabled="true"
-                                                :is-loading="isNamespaceLoading"
-                                                :list="namespaceList"
-                                                :setting-key="'id'"
-                                                :display-key="'name'">
-                                            </bk-selector>
+                                        <div class="inner-item">
+                                            <label class="title">{{$t('所属集群')}}</label>
+                                            <input type="text" class="bk-form-input" :value="curClusterName" readonly="readonly">
+                                        </div>
+                                        <div class="inner-item">
+                                            <label class="title">
+                                                {{$t('命名空间')}}
+                                                <span class="ml10 biz-error-tip" v-if="!isNamespaceMatch && !isNamespaceLoading">
+                                                    （{{$t('此命名空间不存在')}}）
+                                                </span>
+                                            </label>
+                                            <div>
+                                                <input type="text" class="bk-form-input" :value="curApp.namespace" readonly="readonly">
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -210,6 +207,7 @@
                                     {{$t('您更改了Chart版本，')}}<span class="bk-text-button" @click="showCodeDiffDialog">{{$t('点击查看')}}</span> Helm Release参数与选中的Chart Version中values.yaml区别
                                 </div>
                                 <ace
+                                    ref="codeViewer"
                                     :value="curTplYaml"
                                     :width="yamlConfig.width"
                                     :height="yamlConfig.height"
@@ -327,12 +325,12 @@
                     </div>
                     
                     <div :class="['diff-editor-box', { 'editor-fullscreen': yamlDiffEditorOptions.fullScreen }]" style="position: relative;">
-                        <div title="关闭全屏" class="fullscreen-close" v-if="yamlDiffEditorOptions.fullScreen" @click="cancelFullScreen">
+                        <!-- <div title="关闭全屏" class="fullscreen-close" v-if="yamlDiffEditorOptions.fullScreen" @click="cancelFullScreen">
                             <i class="bk-icon icon-close"></i>
                         </div>
                         <div title="全屏" class="fullscreen-use" v-else @click="setFullScreen">
                             <i class="bk-icon icon-full-screen"></i>
-                        </div>
+                        </div> -->
                         <monaco-editor
                             ref="yamlEditor"
                             class="editor"
@@ -457,7 +455,7 @@
     import baseMixin from '@open/mixins/helm/mixin-base'
     import { catchErrorHandler } from '@open/common/util'
     import Clipboard from 'clipboard'
-    import MonacoEditor from '@open/components/monaco-editor/editor'
+    import MonacoEditor from '@open/components/monaco-editor/editor.vue'
     import resizer from '@open/components/resize'
 
     export default {
@@ -585,6 +583,7 @@
                 curAppVersions: [],
                 namespaceId: '',
                 answers: {},
+                clusterList: [],
                 namespaceList: [],
                 appAction: {
                     create: this.$t('部署'),
@@ -637,6 +636,13 @@
             },
             diffEditorHeight () {
                 return this.yamlDiffEditorOptions.fullScreen ? window.innerHeight : 315
+            },
+            curClusterName () {
+                if (this.curApp.cluster_id !== undefined) {
+                    const match = this.clusterList.find(item => item.id === this.curApp.cluster_id)
+                    return match ? match.name : this.curApp.cluster_id
+                }
+                return ''
             },
             curLabelList () {
                 const customs = this.curApp.release.customs
@@ -947,6 +953,10 @@
                     this.curTplFiles = files
                     this.initValuesFileData(tplName, files, result.valuefile_name)
 
+                    this.$nextTick(() => {
+                        this.$refs.codeViewer.$ace.scrollToLine(1, true, true)
+                    })
+
                     if (result.cmd_flags && result.cmd_flags.length) {
                         result.cmd_flags.forEach(key => {
                             this.helmCommandParams[key] = true
@@ -1163,10 +1173,23 @@
                     })
                     const curNamespaceId = this.curApp.namespace_id
                     this.isNamespaceMatch = false
+
+                    this.clusterList = []
                     res.data.forEach(item => {
+                        const obj = {}
+                        const match = item.name.match(/^([\s\S]*)\(([\w-]*)\)/)
+                        if (match && match.length > 2) {
+                            obj.name = match[1]
+                            obj.id = match[2]
+                            item.id = match[2]
+                        } else {
+                            obj.name = item.name
+                            obj.id = item.name
+                        }
+                        this.clusterList.push(obj)
+
                         if (item.children) {
                             item.children.forEach(child => {
-                                child.name = `${item.name} / ${child.name}`
                                 if (child.id === curNamespaceId) {
                                     this.isNamespaceMatch = true
                                 }

@@ -212,7 +212,6 @@ export default {
          * @return {Promise} promise 对象
          */
         getLbInfo (context, { projectId, namespaceId }, config = {}) {
-            // return http.get(`/api/configuration/configuration?invoke=getLbInfo`).then(
             return http.get(`${DEVOPS_BCS_API_URL}/api/configuration/${projectId}/loadbalance/${namespaceId}/`).then(
                 response => response.data
             )

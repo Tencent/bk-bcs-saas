@@ -488,10 +488,9 @@ export default {
          *
          * @return {Promise} promise 对象
          */
-        getLbInfo (context, { projectId, namespaceId }, config = {}) {
-            // return http.get(`/api/configuration/configuration?invoke=getLbInfo`).then(
+        getLbInfo (context, { projectId, clusterId }, config = {}) {
             return http.get(
-                `${DEVOPS_BCS_API_URL}/api/configuration/${projectId}/loadbalance/${namespaceId}/`,
+                `${DEVOPS_BCS_API_URL}/api/configuration/projects/${projectId}/clusters/${clusterId}/lbs/`,
                 {},
                 config
             )
@@ -662,6 +661,57 @@ export default {
         deleteMesosNamespace (context, { projectId, namespaceId }, config = {}) {
             return http.delete(
                 `${DEVOPS_BCS_API_URL}/api/projects/${projectId}/namespaces/${namespaceId}/resources/`,
+                {},
+                config
+            )
+        },
+
+        /**
+         * 获取配额数据
+         *
+         * @param {Object} context store 上下文对象
+         * @param {string} projectId 项目 id
+         * @param {string} tplVerId template version id
+         *
+         * @return {Promise} promise 对象
+         */
+        getQuota (context, { projectId, clusterId, namespaceName }, config = {}) {
+            return http.get(
+                `${DEVOPS_BCS_API_URL}/api/resources/projects/${projectId}/clusters/${clusterId}/namespaces/${namespaceName}/`,
+                {},
+                config
+            )
+        },
+
+        /**
+         * 获取配额数据
+         *
+         * @param {Object} context store 上下文对象
+         * @param {string} projectId 项目 id
+         * @param {string} tplVerId template version id
+         *
+         * @return {Promise} promise 对象
+         */
+        editQuota (context, params, config = {}) {
+            const { projectId, clusterId, namespaceName, data } = params
+            return http.put(
+                `${DEVOPS_BCS_API_URL}/api/resources/projects/${projectId}/clusters/${clusterId}/namespaces/${namespaceName}/`,
+                data,
+                config
+            )
+        },
+
+        /**
+         * 删除配额
+         *
+         * @param {Object} context store 上下文对象
+         * @param {Object} params 参数
+         *
+         * @return {Promise} promise 对象
+         */
+        delQuota (context, { projectId, clusterId, namespaceName }, config = {}) {
+            return http.delete(
+                `${DEVOPS_BCS_API_URL}/api/resources/projects/${projectId}/clusters/${clusterId}/namespaces/${namespaceName}/`,
                 {},
                 config
             )
