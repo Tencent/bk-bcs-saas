@@ -249,9 +249,9 @@ class ChartVersion(BaseChartVersion):
 
     @classmethod
     def update_or_create_version(cls, chart, version):
-        chart_version, _ = cls.objects.update_or_create(chart=chart, version=version.get("version"))
+        chart_version, created = cls.objects.update_or_create(chart=chart, version=version.get("version"))
         chart_version.update_from_import_version(chart, version)
-        return chart_version
+        return chart_version, created
 
 
 class ChartVersionSnapshot(BaseChartVersion):
