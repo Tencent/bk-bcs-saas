@@ -69,7 +69,9 @@ class TestCRDAndCustomObject:
 
     @pytest.fixture
     def cobj_api(self, project_id, cluster_id):
-        return get_custom_object_api_by_crd('token', project_id, cluster_id, crd_name=getitems(sample_crd, "metadata.name"))
+        return get_custom_object_api_by_crd(
+            'token', project_id, cluster_id, crd_name=getitems(sample_crd, "metadata.name")
+        )
 
     @pytest.fixture
     def update_or_create_custom_object(self, cobj_api):

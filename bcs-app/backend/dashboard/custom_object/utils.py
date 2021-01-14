@@ -39,7 +39,7 @@ def calculate_age(create_at):
     return f"{d_seconds // 60}m{d_seconds % 60}s"
 
 
-def parse_column_data(co_item, columns: List[Dict]) -> Dict:
+def parse_column_data(co_item: Dict, columns: List[Dict]) -> Dict:
     column_data = {}
     for col in columns:
         col_name = col["col_name"]
@@ -61,7 +61,7 @@ def parse_columns(crd_dict: Dict) -> List[Dict]:
         {"col_name": "namespace", "json_path": ".metadata.namespace"},
     ]
 
-    additional_printer_columns = getitems(crd_dict, "spec.additional_printer_columns")
+    additional_printer_columns = getitems(crd_dict, "spec.additionalPrinterColumns")
 
     if not additional_printer_columns:
         columns.append({"col_name": "AGE", "json_path": creation_timestamp_path})
@@ -70,21 +70,21 @@ def parse_columns(crd_dict: Dict) -> List[Dict]:
     creation_timestamp_exist = False
 
     for add_col in additional_printer_columns:
-        if add_col.json_path == creation_timestamp_path:
+        if add_col["JSONPath"] == creation_timestamp_path:
             creation_timestamp_exist = True
-        columns.append({"col_name": add_col.name, "json_path": add_col.json_path})
+        columns.append({"col_name": add_col["name"], "json_path": add_col["JSONPath"]})
 
     if not creation_timestamp_exist:
         columns.append({"col_name": "AGE", "json_path": creation_timestamp_path})
     return columns
 
 
-def to_table_format(crd_dict: Dict, cobjs_list: List) -> Dict:
+def to_table_format(crd_dict: Dict, cobj_list: List) -> Dict:
     """
     :return: 返回给前端约定的表格结构，th_list是表头内容，td_list是对应的表格内容
     """
     columns = parse_columns(crd_dict)
-    column_data_list = [parse_column_data(co_item, columns) for co_item in cobjs_list]
+    column_data_list = [parse_column_data(co_item, columns) for co_item in cobj_list]
     if column_data_list:
         return {"th_list": [col["col_name"] for col in columns], "td_list": column_data_list}
     return {"th_list": [], "td_list": []}

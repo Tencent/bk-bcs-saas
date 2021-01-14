@@ -34,13 +34,16 @@ class CustomObjectViewSet(viewsets.ViewSet):
     renderer_classes = (BKAPIRenderer, BrowsableAPIRenderer)
 
     def list_custom_objects(self, request, project_id, cluster_id, crd_name):
-        crd_api = CustomResourceDefinition(request.user.token.access_token, project_id, cluster_id)
+        # 指定api_version是因为当前to_table_format解析的是apiextensions.k8s.io/v1beta1版本的结构
+        crd_api = CustomResourceDefinition(
+            request.user.token.access_token, project_id, cluster_id, api_version="apiextensions.k8s.io/v1beta1"
+        )
         crd_dict = crd_api.get(name=crd_name, is_format=True)
 
         cobj_api = get_custom_object_api_by_crd(request.user.token.access_token, project_id, cluster_id, crd_name)
-        cobjs_list = cobj_api.list(namespace=request.query_params.get("namespace"), is_format=True)
+        cobj_list = cobj_api.list(namespace=request.query_params.get("namespace"), is_format=True)
 
-        return Response(to_table_format(crd_dict, cobjs_list))
+        return Response(to_table_format(crd_dict, cobj_list))
 
     def get_custom_object(self, request, project_id, cluster_id, crd_name, name):
         cobj_api = get_custom_object_api_by_crd(request.user.token.access_token, project_id, cluster_id, crd_name)
