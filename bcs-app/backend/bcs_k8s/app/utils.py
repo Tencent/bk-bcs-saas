@@ -27,7 +27,6 @@ from django.conf import settings
 from backend.bcs_k8s.helm.utils.util import fix_rancher_value_by_type, EmptyVaue
 from backend.utils.client import make_dashboard_ctl_client
 from backend.bcs_k8s.diff import parser
-
 from backend.bcs_k8s.dashboard.exceptions import DashboardExecutionError
 from backend.components import paas_cc, bcs
 from backend.utils.basic import get_bcs_component_version
@@ -405,7 +404,7 @@ def get_helm_dashboard_path(access_token: str, project_id: str, cluster_id: str)
     # TODO: 后续调整为新的client
     bcs_api_client = bcs.k8s.K8SClient(access_token, project_id, cluster_id, None)
     # 获取版本
-    version = get_bcs_component_version(
-        bcs_api_client.version, DEFAULT_DASHBOARD_CTL_VERSION, DEFAULT_DASHBOARD_CTL_VERSION
-    )
-    return settings.DASHBOARD_CTL_BIN_PATH[version]
+    version = get_bcs_component_version(bcs_api_client.version, DASHBOARD_CTL_VERSION, DEFAULT_DASHBOARD_CTL_VERSION)
+
+    bin_path_map = getattr(settings, "DASHBOARD_CTL_BIN_PATH", {})
+    return bin_path_map.get(version, settings.DASHBOARD_CTL_BIN)
