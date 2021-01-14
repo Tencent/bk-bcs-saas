@@ -406,5 +406,5 @@ def get_helm_dashboard_path(access_token: str, project_id: str, cluster_id: str)
     # 获取版本
     version = get_bcs_component_version(bcs_api_client.version, DASHBOARD_CTL_VERSION, DEFAULT_DASHBOARD_CTL_VERSION)
 
-    bin_path_map = getattr(settings, "DASHBOARD_CTL_BIN_PATH", {})
+    bin_path_map = getattr(settings, "DASHBOARD_CTL_VERSION_MAP", {})
     return bin_path_map.get(version, settings.DASHBOARD_CTL_BIN)
