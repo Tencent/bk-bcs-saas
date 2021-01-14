@@ -56,7 +56,12 @@ class CustomObjectViewSet(viewsets.ViewSet):
 
         validated_data = serializer.validated_data
         cobj_api = get_custom_object_api_by_crd(request.user.token.access_token, project_id, cluster_id, crd_name)
-        cobj_api.patch(namespace=validated_data.get("namespace"), name=name, body=validated_data["body"])
+        cobj_api.patch(
+            namespace=validated_data.get("namespace"),
+            name=name,
+            body=validated_data["body"],
+            content_type=validated_data["patch_type"],
+        )
 
         return Response()
 
@@ -68,7 +73,12 @@ class CustomObjectViewSet(viewsets.ViewSet):
 
         validated_data = serializer.validated_data
         cobj_api = get_custom_object_api_by_crd(request.user.token.access_token, project_id, cluster_id, crd_name)
-        cobj_api.patch(name=name, namespace=validated_data.get("namespace"), body=validated_data["body"])
+        cobj_api.patch(
+            name=name,
+            namespace=validated_data.get("namespace"),
+            body=validated_data["body"],
+            content_type=validated_data["patch_type"],
+        )
 
         return Response()
 
