@@ -134,7 +134,6 @@ error_codes.add_codes(
         ErrorCode("ParamMissError", 40005, _("参数缺失")),
         ErrorCode("CheckFailed", 40006, _("校验失败")),
         ErrorCode("ExpiredError", 40007, _("资源已过期")),
-        ErrorCode("IPPermissionDenied", 40008, _("没有主机使用权限")),
         # Helm相关错误码(前端已经在使用)
         ErrorCode("HelmNoRegister", 40031, _("集群未注册")),
         ErrorCode("HelmNoNode", 40032, _("集群下没有节点")),
