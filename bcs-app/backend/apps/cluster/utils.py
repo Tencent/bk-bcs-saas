@@ -13,12 +13,15 @@
 #
 import json
 from datetime import datetime
+from typing import List
 
 from django.conf import settings
 from django.core.paginator import Paginator
 from django.utils.translation import ugettext_lazy as _
 
 from backend.utils.error_codes import error_codes
+from backend.infras.host_service import perms as host_perms
+from backend.utils.exceptions import PermissionDeniedError
 
 DEFAULT_PAGE_LIMIT = 5
 RoleNodeTag = 'N'
@@ -92,6 +95,7 @@ def status_transfer(status, running_status_list, failed_status_list):
         return "failed"
     return "success"
 
+
 def use_prometheus_source(request):
     """是否使用prometheus数据源
     """
@@ -100,3 +104,11 @@ def use_prometheus_source(request):
     if request.project.project_code in settings.DEFAULT_METRIC_SOURCE_PROM_WLIST:
         return True
     return False
+
+
+def can_use_hosts(bk_biz_id: int, username: str, host_ips: List):
+    has_perm = host_perms.can_use_hosts(bk_biz_id, username, host_ips)
+    if not has_perm:
+        raise PermissionDeniedError(
+            _("用户{}没有主机:{}的权限，请联系管理员在【配置平台】添加为业务运维人员角色").format(username, host_ips), ""
+        )

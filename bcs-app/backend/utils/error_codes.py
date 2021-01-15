@@ -33,13 +33,11 @@ class APIError(APIException):
         super(APIError, self).__init__(str(self))
 
     def __str__(self):
-        """%s, print(), 使用
-        """
+        """%s, print(), 使用"""
         return "%s: %s" % (self.code, self.message)
 
     def __repr__(self):
-        """命令行查看使用
-        """
+        """命令行查看使用"""
         return "<%s,%s>" % (self.code_obj.code_name, self.code)
 
     @property
@@ -77,8 +75,7 @@ class APIError(APIException):
         return self.format(message=message, **kwargs)
 
     def __call__(self, message=None, *args, **kwargs):
-        """init api error
-        """
+        """init api error"""
         self.code_obj = copy.copy(self.code_obj)
         if message:
             self.code_obj.message = message

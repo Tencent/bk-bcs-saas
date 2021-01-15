@@ -180,12 +180,13 @@ class GetAllNamespaces(BaseFilter):
         """组装数据
         """
         ret_data = []
-        for key, val in all_namespaces.items():
-            curr_env = cluster_env_map.get(key[0])
+        for (cluster_id, ns_id), ns_name in all_namespaces.items():
+            curr_env = cluster_env_map.get(cluster_id)
             if curr_env and str(cluster_env(curr_env)) == str(cluster_type):
                 ret_data.append({
-                    "ns_id": key[1],
-                    "ns_name": val
+                    "ns_id": ns_id,
+                    "ns_name": ns_name,
+                    "cluster_id": cluster_id,
                 })
         return ret_data
 
