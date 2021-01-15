@@ -15,6 +15,7 @@ import json
 import datetime
 import yaml
 import logging
+from typing import Dict, Tuple
 
 from django.db import models
 from django.utils.crypto import get_random_string
@@ -248,7 +249,7 @@ class ChartVersion(BaseChartVersion):
         return chart_version_changed
 
     @classmethod
-    def update_or_create_version(cls, chart, version):
+    def update_or_create_version(cls, chart: Chart, version: Dict) -> Tuple["ChartVersion", bool]:
         chart_version, created = cls.objects.update_or_create(chart=chart, version=version.get("version"))
         chart_version.update_from_import_version(chart, version)
         return chart_version, created
