@@ -285,6 +285,30 @@ class ChartVersionSnapshot(BaseChartVersion):
         else:
             return "unchanged" if chart_version.digest == self.digest else "changed"
 
+    @property
+    def version_detail(self):
+        from django.forms.models import model_to_dict
+
+        values = model_to_dict(
+            self,
+            fields=[
+                "version",
+                "digest",
+                "name",
+                "home",
+                "description",
+                "engine",
+                "created",
+                "maintainers",
+                "sources",
+                "urls",
+                "files",
+                "questions",
+            ],
+        )
+
+        return values
+
 
 class ChartReleaseManager(models.Manager):
     def create(self, **kwargs):
