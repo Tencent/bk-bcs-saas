@@ -15,7 +15,7 @@ from django.utils.translation import ugettext_lazy as _
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
-from backend.resources.constants import PatchTypes
+from backend.resources.constants import PatchType
 
 from .constants import SupportedScaleCRDs
 
@@ -23,7 +23,7 @@ from .constants import SupportedScaleCRDs
 class PatchCustomObjectSLZ(serializers.Serializer):
     namespace = serializers.CharField(required=False)
     body = serializers.JSONField()
-    patch_type = serializers.ChoiceField(choices=PatchTypes.get_choices(), default=PatchTypes.MergePatchJson.value)
+    patch_type = serializers.ChoiceField(choices=PatchType.get_choices(), default=PatchType.MERGE_PATCH_JSON.value)
 
 
 class PatchCustomObjectScaleSLZ(PatchCustomObjectSLZ):

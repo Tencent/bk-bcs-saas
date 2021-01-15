@@ -17,13 +17,12 @@ import pytest
 from backend.utils.basic import getitems
 from backend.resources.custom_object.crd import CustomResourceDefinition
 from backend.resources.custom_object.custom_object import get_custom_object_api_by_crd
-from backend.resources.constants import PatchTypes
+from backend.resources.constants import PatchType
 
 from ..conftest import FakeBcsKubeConfigurationService
 
 
 # https://github.com/kubernetes/sample-controller
-# 运行单元测试时，确保测试集群中已部署sample-controller
 sample_crd = {
     "apiVersion": "apiextensions.k8s.io/v1beta1",
     "kind": "CustomResourceDefinition",
@@ -82,14 +81,14 @@ class TestCRDAndCustomObject:
         cobj_api.delete_ignore_nonexistent(name=getitems(sample_custom_object, "metadata.name"), namespace="default")
 
     def test_crd_list(self, crd_api, update_or_create_crd):
-        crd_lists = crd_api.list(is_format=True)
+        crd_lists = crd_api.list()
         assert isinstance(crd_lists, list)
 
     def test_crd_get(self, crd_api, update_or_create_crd):
-        crd = crd_api.get(name=getitems(sample_crd, "metadata.name"))
+        crd = crd_api.get(name=getitems(sample_crd, "metadata.name"), is_format=False)
         assert crd.spec.scope == "Namespaced"
 
-        crd = crd_api.get(name="no.k3s.cattle.io")
+        crd = crd_api.get(name="no.k3s.cattle.io", is_format=False)
         assert crd is None
 
     def test_custom_object_patch(self, update_or_create_crd, cobj_api, update_or_create_custom_object):
@@ -97,6 +96,7 @@ class TestCRDAndCustomObject:
             name=getitems(sample_custom_object, "metadata.name"),
             namespace="default",
             body={"spec": {"replicas": 2}},
-            content_type=PatchTypes.MergePatchJson.value,
+            is_format=False,
+            content_type=PatchType.MERGE_PATCH_JSON.value,
         )
         assert cobj.spec.replicas == 2

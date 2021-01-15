@@ -27,7 +27,7 @@ class CRDViewSet(viewsets.ViewSet):
 
     def list(self, request, project_id, cluster_id):
         crd_api = CustomResourceDefinition(request.user.token.access_token, project_id, cluster_id)
-        return Response(crd_api.list(is_format=True))
+        return Response(crd_api.list())
 
 
 class CustomObjectViewSet(viewsets.ViewSet):
@@ -38,16 +38,16 @@ class CustomObjectViewSet(viewsets.ViewSet):
         crd_api = CustomResourceDefinition(
             request.user.token.access_token, project_id, cluster_id, api_version="apiextensions.k8s.io/v1beta1"
         )
-        crd_dict = crd_api.get(name=crd_name, is_format=True)
+        crd_dict = crd_api.get(name=crd_name)
 
         cobj_api = get_custom_object_api_by_crd(request.user.token.access_token, project_id, cluster_id, crd_name)
-        cobj_list = cobj_api.list(namespace=request.query_params.get("namespace"), is_format=True)
+        cobj_list = cobj_api.list(namespace=request.query_params.get("namespace"))
 
         return Response(to_table_format(crd_dict, cobj_list))
 
     def get_custom_object(self, request, project_id, cluster_id, crd_name, name):
         cobj_api = get_custom_object_api_by_crd(request.user.token.access_token, project_id, cluster_id, crd_name)
-        cobj_dict = cobj_api.get(namespace=request.query_params.get("namespace"), name=name, is_format=True)
+        cobj_dict = cobj_api.get(namespace=request.query_params.get("namespace"), name=name)
         return Response(cobj_dict)
 
     def patch_custom_object(self, request, project_id, cluster_id, crd_name, name):
@@ -57,8 +57,8 @@ class CustomObjectViewSet(viewsets.ViewSet):
         validated_data = serializer.validated_data
         cobj_api = get_custom_object_api_by_crd(request.user.token.access_token, project_id, cluster_id, crd_name)
         cobj_api.patch(
-            namespace=validated_data.get("namespace"),
             name=name,
+            namespace=validated_data.get("namespace"),
             body=validated_data["body"],
             content_type=validated_data["patch_type"],
         )

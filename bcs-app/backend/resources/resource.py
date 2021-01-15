@@ -18,10 +18,10 @@ from kubernetes.dynamic.resource import ResourceInstance
 from backend.resources.utils.kube_client import get_dynamic_client
 
 from .utils.format import ResourceDefaultFormatter
-from .constants import PatchTypes
+from .constants import PatchType
 
 
-class Resource:
+class ResourceClient:
     """
     资源基类
     """
@@ -36,13 +36,13 @@ class Resource:
         else:
             self.api = self.dynamic_client.get_preferred_resource(self.kind)
 
-    def list(self, is_format: bool = False, **kwargs) -> Union[ResourceInstance, List]:
+    def list(self, is_format: bool = True, **kwargs) -> Union[ResourceInstance, List]:
         resp = self.api.get_or_none(**kwargs)
         if is_format:
             return self.formatter.format_list(resp)
         return resp
 
-    def get(self, name, is_format: bool = False, **kwargs) -> Union[ResourceInstance, Dict]:
+    def get(self, name, is_format: bool = True, **kwargs) -> Union[ResourceInstance, Dict]:
         resp = self.api.get_or_none(name=name, **kwargs)
         if is_format:
             return self.formatter.format(resp)
@@ -53,7 +53,7 @@ class Resource:
         body: Optional[Dict] = None,
         name: Optional[str] = None,
         namespace: Optional[str] = None,
-        is_format: bool = False,
+        is_format: bool = True,
         **kwargs,
     ) -> Tuple[Union[ResourceInstance, Dict], bool]:
         obj, created = self.api.update_or_create(
@@ -68,12 +68,14 @@ class Resource:
         body: Optional[Dict] = None,
         name: Optional[str] = None,
         namespace: Optional[str] = None,
-        is_format: bool = False,
+        is_format: bool = True,
         **kwargs,
     ) -> Union[ResourceInstance, Dict]:
-        if kwargs.get("content_type") == PatchTypes.JsonPatchJson.value:
+        # 参考kubernetes/client/rest.py中RESTClientObject类的request方法中对PATCH的处理
+        # 如果指定的是json-patch+json但body不是list，则设置为strategic-merge-patch+json
+        if kwargs.get("content_type") == PatchType.JSON_PATCH_JSON.value:
             if not isinstance(body, list):
-                kwargs["content_type"] = PatchTypes.StrategicMergePatchJson.value
+                kwargs["content_type"] = PatchType.STRATEGIC_MERGE_PATCH_JSON.value
 
         obj, _ = self.api.update_or_create(body=body, name=name, namespace=namespace, update_method="patch", **kwargs)
         if is_format:
