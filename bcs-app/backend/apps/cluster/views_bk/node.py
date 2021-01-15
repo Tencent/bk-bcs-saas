@@ -36,7 +36,7 @@ from backend.utils.error_codes import error_codes
 from backend.accounts.bcs_perm import Cluster
 from backend.resources.cluster import get_cluster
 from backend.apps.cluster.constants import ClusterState
-from backend.apps.cluster.utils import check_use_hosts
+from backend.apps.cluster.utils import can_use_hosts
 
 logger = logging.getLogger(__name__)
 
@@ -275,7 +275,7 @@ class CreateNode(BaseNode):
         self.check_data()
         self.ip_list = [ip.split(',')[0] for ip in self.data['ip']]
         # 检测IP是否被占用
-        check_use_hosts(self.project_info["cc_app_id"], self.username, self.ip_list)
+        can_use_hosts(self.project_info["cc_app_id"], self.username, self.ip_list)
         self.project_nodes = paas_cc.get_all_cluster_hosts(self.access_token)
         self.check_node_ip()
         # 获取已经存在的IP，直接更新使用
