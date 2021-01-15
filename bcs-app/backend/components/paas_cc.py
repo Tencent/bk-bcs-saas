@@ -14,6 +14,7 @@
 import json
 import logging
 from typing import Dict
+
 from django.conf import settings
 from django.utils.translation import ugettext_lazy as _
 
@@ -54,8 +55,7 @@ def create_project(access_token, data):
 
 
 def update_project_new(access_token, project_id, data):
-    """更新项目信息
-    """
+    """更新项目信息"""
     url = f"{BCS_CC_API_PRE_URL}/projects/{project_id}/"
     params = {"access_token": access_token}
     project = http_put(url, params=params, json=data)
@@ -103,24 +103,21 @@ def get_cluster_list(access_token, project_id, cluster_ids):
 
 
 def verify_cluster_exist(access_token, project_id, cluster_name):
-    """校验cluster name是否存在
-    """
+    """校验cluster name是否存在"""
     url = f"{BCS_CC_API_PRE_URL}/projects/{project_id}/clusters/"
     params = {"name": cluster_name, "access_token": access_token}
     return http_get(url, params=params)
 
 
 def get_cluster_by_name(access_token, project_id, cluster_name):
-    """get cluster info by cluster name
-    """
+    """get cluster info by cluster name"""
     url = f"{BCS_CC_API_PRE_URL}/projects/{project_id}/clusters/"
     params = {"name": cluster_name, "access_token": access_token}
     return http_get(url, params=params)
 
 
 def get_cluster_snapshot(access_token, project_id, cluster_id):
-    """ 获取集群快照
-    """
+    """获取集群快照"""
     if getattr(settings, "BCS_CC_CLUSTER_CONFIG", None):
         path = settings.BCS_CC_CLUSTER_CONFIG.format(cluster_id=cluster_id)
         url = f"{BCS_CC_API_PRE_URL}{path}"
@@ -137,8 +134,7 @@ def get_area_list(access_token):
 
 
 def get_area_info(access_token, area_id):
-    """查询指定区域的信息
-    """
+    """查询指定区域的信息"""
     url = f"{BCS_CC_API_PRE_URL}/areas/{area_id}/"
     headers = {"X-BKAPI-AUTHORIZATION": json.dumps({"access_token": access_token})}
     return http_get(url, headers=headers)
@@ -212,16 +208,14 @@ def update_node_list(access_token, project_id, cluster_id, data):
 
 
 def get_cluster_history_data(access_token, project_id, cluster_id, metric, start_at, end_at):
-    """获取集群概览历史数据
-    """
+    """获取集群概览历史数据"""
     url = f"{BCS_CC_API_PRE_URL}/projects/{project_id}/clusters/{cluster_id}/history_data/"
     params = {"access_token": access_token, "start_at": start_at, "end_at": end_at, "metric": metric}
     return http_get(url, params=params)
 
 
 def get_all_masters(access_token):
-    """获取配置中心所有Master
-    """
+    """获取配置中心所有Master"""
     url = f"{BCS_CC_API_PRE_URL}/v1/masters/all_master_list/"
     params = {"desire_all_data": 1}
     headers = {"X-BKAPI-AUTHORIZATION": json.dumps({"access_token": access_token})}
@@ -229,8 +223,7 @@ def get_all_masters(access_token):
 
 
 def get_all_nodes(access_token):
-    """获取配置中心所有Node
-    """
+    """获取配置中心所有Node"""
     url = f"{BCS_CC_API_PRE_URL}/v1/nodes/all_node_list/"
     params = {"desire_all_data": 1}
     headers = {"X-BKAPI-AUTHORIZATION": json.dumps({"access_token": access_token})}
@@ -254,8 +247,7 @@ def get_all_cluster_hosts(access_token, exclude_status_list=None):
 
 
 def get_project_nodes(access_token, project_id, is_master=False):
-    """获取项目下已经添加的Master和Node
-    """
+    """获取项目下已经添加的Master和Node"""
     # add filter for master or node
     # node filter
     # filter_status = [CommonStatus.InitialCheckFailed, CommonStatus.InitialFailed, CommonStatus.Removed]
@@ -283,8 +275,7 @@ def get_project_nodes(access_token, project_id, is_master=False):
 
 
 def get_namespace_list(access_token, project_id, with_lb=None, limit=None, offset=None, desire_all_data=None):
-    """获取namespace列表
-    """
+    """获取namespace列表"""
     if getattr(settings, "BCS_CC_OPER_PROJECT_NAMESPACES", None):
         path = settings.BCS_CC_OPER_PROJECT_NAMESPACES.format(project_id=project_id)
         url = f"{BCS_CC_API_PRE_URL}{path}"
@@ -305,8 +296,7 @@ def get_namespace_list(access_token, project_id, with_lb=None, limit=None, offse
 def get_cluster_namespace_list(
     access_token, project_id, cluster_id, with_lb=None, limit=None, offset=None, desire_all_data=None
 ):
-    """查询集群下命名空间的信息
-    """
+    """查询集群下命名空间的信息"""
     url = f"{BCS_CC_API_PRE_URL}/projects/{project_id}/clusters/{cluster_id}/namespaces/"
     params = {"access_token": access_token}
     if desire_all_data:
@@ -324,8 +314,7 @@ def get_cluster_namespace_list(
 def create_namespace(
     access_token, project_id, cluster_id, name, description, creator, env_type, has_image_secret=None
 ):
-    """创建namespace
-    """
+    """创建namespace"""
     url = f"{BCS_CC_API_PRE_URL}/projects/{project_id}/clusters/{cluster_id}/namespaces/"
     params = {"access_token": access_token}
     payload = {"name": name, "description": description, "creator": creator, "env_type": env_type}
@@ -335,8 +324,7 @@ def create_namespace(
 
 
 def get_namespace(access_token, project_id, namespace_id, with_lb=None):
-    """获取单个namespace
-    """
+    """获取单个namespace"""
     if getattr(settings, "BCS_CC_OPER_PROJECT_NAMESPACE", None):
         path = settings.BCS_CC_OPER_PROJECT_NAMESPACE.format(project_id=project_id, namespace_id=namespace_id)
         url = f"{BCS_CC_API_PRE_URL}{path}"
@@ -349,8 +337,7 @@ def get_namespace(access_token, project_id, namespace_id, with_lb=None):
 
 
 def update_node_with_cluster(access_token, project_id, data):
-    """批量更新节点所属集群及状态
-    """
+    """批量更新节点所属集群及状态"""
     url = "{host}/projects/{project_id}/nodes/".format(host=BCS_CC_API_PRE_URL, project_id=project_id)
 
     headers = {"X-BKAPI-AUTHORIZATION": json.dumps({"access_token": access_token})}
@@ -371,8 +358,7 @@ def get_zk_config(access_token, project_id, cluster_id, environment=None):
 
 
 def get_jfrog_domain(access_token, project_id, cluster_id):
-    """
-    """
+    """"""
     url = f"{BCS_CC_API_PRE_URL}/clusters/{cluster_id}/related/areas/info/"
     params = {"access_token": access_token}
     res = http_get(url, params=params)
@@ -447,24 +433,21 @@ def get_auth_project(access_token):
 
 
 def delete_cluster(access_token, project_id, cluster_id):
-    """删除集群
-    """
+    """删除集群"""
     url = f"{BCS_CC_API_PRE_URL}/projects/{project_id}/clusters/{cluster_id}/"
     params = {"access_token": access_token}
     return http_delete(url, params=params)
 
 
 def delete_cluster_namespace(access_token, project_id, cluster_id):
-    """删除集群下的命名空间
-    """
+    """删除集群下的命名空间"""
     url = f"{BCS_CC_API_PRE_URL}/projects/{project_id}/clusters/{cluster_id}/batch_delete_namespaces/"
     headers = {"X-BKAPI-AUTHORIZATION": json.dumps({"access_token": access_token, "project_id": project_id})}
     return http_delete(url, headers=headers)
 
 
 def get_base_cluster_config(access_token, project_id, params):
-    """获取集群基本配置
-    """
+    """获取集群基本配置"""
     if getattr(settings, "BCS_CC_CLUSTER_CONFIG", None):
         path = settings.BCS_CC_CLUSTER_CONFIG.format(cluster_id="null")
         url = f"{BCS_CC_API_PRE_URL}{path}"
@@ -475,8 +458,7 @@ def get_base_cluster_config(access_token, project_id, params):
 
 
 def save_cluster_snapshot(access_token, data):
-    """存储集群快照
-    """
+    """存储集群快照"""
     if getattr(settings, "BCS_CC_CLUSTER_CONFIG", None):
         path = settings.BCS_CC_CLUSTER_CONFIG.format(cluster_id=data["cluster_id"])
         url = f"{BCS_CC_API_PRE_URL}{path}"
@@ -487,16 +469,14 @@ def save_cluster_snapshot(access_token, data):
 
 
 def get_project_cluster_resource(access_token):
-    """获取所有项目、集群信息
-    """
+    """获取所有项目、集群信息"""
     url = f"{BCS_CC_API_PRE_URL}/v1/projects/resource/"
     headers = {"X-BKAPI-AUTHORIZATION": json.dumps({"access_token": access_token})}
     return http_get(url, headers=headers)
 
 
 def update_master(access_token, project_id, cluster_id, data):
-    """更新master信息
-    """
+    """更新master信息"""
     url = f"{BCS_CC_API_PRE_URL}/projects/{project_id}/clusters/{cluster_id}/masters/"
     headers = {"X-BKAPI-AUTHORIZATION": json.dumps({"access_token": access_token})}
     return http_put(url, json=data, headers=headers)
