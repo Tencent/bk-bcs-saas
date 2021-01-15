@@ -12,6 +12,7 @@
 # specific language governing permissions and limitations under the License.
 #
 import logging
+from functools import lru_cache
 from typing import Dict, Optional, Tuple, Any
 
 from kubernetes import client
@@ -86,7 +87,7 @@ class CoreDynamicClient(DynamicClient):
         except ApiException as e:
             if e.status == 404:
                 logger.info(
-                    f'Delete a non-existent resource {resource.kind}:{name} in namespace:{namespace}, error captured.'
+                    f"Delete a non-existent resource {resource.kind}:{name} in namespace:{namespace}, error captured."
                 )
                 return
             raise
@@ -127,6 +128,7 @@ class CoreDynamicClient(DynamicClient):
         return super().request(method, path, body=body, **params)
 
 
+@lru_cache(maxsize=64)
 def get_dynamic_client(access_token: str, project_id: str, cluster_id: str) -> CoreDynamicClient:
     """根据 token、cluster_id 等参数，构建访问 Kubernetes 集群的 Client 对象"""
     config = BcsKubeConfigurationService(access_token, project_id, cluster_id).make_configuration()

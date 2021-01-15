@@ -12,44 +12,20 @@
 # specific language governing permissions and limitations under the License.
 #
 import logging
-from functools import lru_cache
 from typing import Dict, Any
 
-from django.utils.translation import ugettext_lazy as _
 from django.conf import settings
 from kubernetes.client.configuration import Configuration
 from kubernetes import client
 
 from backend.utils.errcodes import ErrorCode
-from backend.utils.error_codes import error_codes
 from backend.components.utils import http_get
 from backend.components.bcs import k8s
-from backend.components.bcs import k8s_client
 from backend.components import paas_cc
 from backend.utils import exceptions
 
+
 logger = logging.getLogger(__name__)
-
-
-@lru_cache(maxsize=64)
-def create_api_client(access_token, project_id, cluster_id):
-    client = k8s_client.K8SAPIClient(access_token, project_id, cluster_id, None)
-    return client.api_client
-
-
-class APIInstance:
-    def __init__(self, access_token, project_id, cluster_id):
-        self.api_client = create_api_client(access_token, project_id, cluster_id)
-        for api_cls in self.get_api_cls_list(self.api_client):
-            try:
-                self.api_instance = getattr(client, api_cls)(self.api_client)
-                return
-            except AttributeError:
-                continue
-            except Exception as e:
-                logger.error("Create an instance of the K8S API class error，%s", str(e))
-                raise error_codes.APIError(f"kubernetes-python error: {e}")
-        raise error_codes.APIError(_("kubernetes-python库中，未找到适合当前集群版本的的api version"))
 
 
 class K8SClient:
@@ -152,11 +128,7 @@ class BcsKubeConfigurationService:
         _query_cluster_url = f"{self.addresses.get_clusters_base_url()}/bcs/query_by_id/"
         result = http_get(
             _query_cluster_url,
-            params={
-                "access_token": self.access_token,
-                "project_id": self.project_id,
-                "cluster_id": self.cluster_id,
-            },
+            params={"access_token": self.access_token, "project_id": self.project_id, "cluster_id": self.cluster_id},
             raise_for_status=False,
             headers=self.bcs_request_headers,
         )
