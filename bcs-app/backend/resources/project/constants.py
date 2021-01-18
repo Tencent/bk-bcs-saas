@@ -15,8 +15,10 @@ from backend.utils.basic import ChoicesEnum
 
 
 # 项目类型
+# TODO 替换backend.apps.constants_bk中的ProjectKind
 class ProjectKind(ChoicesEnum):
     K8S = 1
     MESOS = 2
+    TKE = 3
 
-    _choices_labels = ((K8S, "K8S"), (MESOS, "Mesos"))
+    _choices_labels = ((K8S, "Kubernetes"), (MESOS, "Mesos"), (TKE, "TKE"))

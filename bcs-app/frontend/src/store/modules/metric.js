@@ -237,6 +237,23 @@ export default {
         },
 
         /**
+         * 批量删除 metric
+         *
+         * @param {Object} context store 上下文对象
+         * @param {Object} params 请求参数
+         * @param {Object} config 请求的配置
+         *
+         * @return {Promise} promise 对象
+         */
+        batchDeleteServiceMonitor (context, { projectId, clusterId, data }, config = {}) {
+            return http.delete(
+                `${DEVOPS_BCS_API_URL}/api/projects/${projectId}/clusters/${clusterId}/metrics/servicemonitors/`,
+                { data },
+                config
+            )
+        },
+
+        /**
          * 修改 metric
          *
          * @param {Object} context store 上下文对象

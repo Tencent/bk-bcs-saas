@@ -6,6 +6,8 @@
 	"serviceType": "",
 	"clbPort": "",
 	"servicePort": "",
+	"startIndex": 0,
+	"endIndex": 0,
 	"sessionTime": 30,
 	"httpsEnabled": false,
 	"lbPolicy": {

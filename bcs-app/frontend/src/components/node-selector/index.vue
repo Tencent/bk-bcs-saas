@@ -419,7 +419,6 @@
             .remain-tip {
                 font-size: 12px;
                 margin-left: 10px;
-                color: $dangerColor;
             }
         }
         .right {

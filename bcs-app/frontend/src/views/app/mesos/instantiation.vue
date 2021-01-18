@@ -6,8 +6,7 @@
     export default {
         mixins: [mixinBaseInstantiation],
         data () {
-            return {
-            }
+            return {}
         },
         methods: {
             /**

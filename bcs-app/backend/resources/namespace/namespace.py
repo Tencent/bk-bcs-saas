@@ -16,10 +16,6 @@ from backend.resources.client import K8SClient
 from . import utils
 
 
-def get_namespaces_by_cluster_id(user, project_id, cluster_id):
-    return utils.get_namespaces_by_cluster_id(user.token.access_token, project_id, cluster_id)
-
-
 class Namespace(K8SClient):
     def get_namespace(self, name):
         # 假定cc中有，集群中也存在

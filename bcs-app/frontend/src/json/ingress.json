@@ -6,6 +6,7 @@
 		"webCache": {
 			"rules": [
 				{
+					"type": "service",
 					"name": "rule-1",
 					"host": "",
 					"path": "/",
@@ -14,6 +15,8 @@
 					"clbPort": "",
 					"servicePort": "",
 					"sessionTime": 30,
+					"startIndex": 0,
+					"endIndex": 0,
 					"httpsEnabled": false,
 					"lbPolicy": {
 						"strategy": "wrr"

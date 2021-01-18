@@ -12,3 +12,5 @@
 # specific language governing permissions and limitations under the License.
 #
 from .namespace import *  # noqa
+from .namespace_quota import *  # noqa
+from .utils import *  # noqa

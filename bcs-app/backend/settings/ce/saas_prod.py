@@ -156,8 +156,6 @@ WEB_CONSOLE_KUBECTLD_IMAGE_PATH = f"{DEVOPS_ARTIFACTORY_HOST}/public/bcs/k8s/kub
 
 # web_console监听地址
 WEB_CONSOLE_PORT = int(os.environ.get("WEB_CONSOLE_PORT", 28800))
-WEB_CONSOLE_CLUSTER_ID = ""
-WEB_CONSOLE_USER_TOKEN = ""
 
 THANOS_HOST = os.environ.get("BKAPP_THANOS_HOST")
 # 默认指标数据来源，现在支持bk-data, prometheus

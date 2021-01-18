@@ -248,10 +248,12 @@
                                     this.searchScope = clusterId
                                 }
                             }
-                            this.getServiceList()
                         }, 1000)
                     }
                 }
+            },
+            searchScope () {
+                this.searchHPA()
             }
         },
         mounted () {

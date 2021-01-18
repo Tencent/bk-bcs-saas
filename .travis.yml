@@ -4,7 +4,6 @@ python:
 
 install:
   - pip install -r bcs-app/requirements-dev.txt
-  - pip install -r bcs-app/requirements.txt
 
 script:
   - cd bcs-app

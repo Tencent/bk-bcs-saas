@@ -23,10 +23,7 @@
                 ]
 
                 hljsLanguageConfig.forEach(lang => {
-                    import(
-                        /* webpackChunkName: 'hljs' */
-                        `highlight.js/lib/languages/${lang}`
-                    ).then(langModule => {
+                    require([`highlight.js/lib/languages/${lang}`], langModule => {
                         hljs.registerLanguage(
                             lang,
                             (langModule.default && typeof langModule.default === 'function')
@@ -34,6 +31,18 @@
                                 : langModule
                         )
                     })
+
+                    // import(
+                    //     /* webpackChunkName: 'hljs' */
+                    //     `highlight.js/lib/languages/${lang}`
+                    // ).then(langModule => {
+                    //     hljs.registerLanguage(
+                    //         lang,
+                    //         (langModule.default && typeof langModule.default === 'function')
+                    //             ? langModule.default
+                    //             : langModule
+                    //     )
+                    // })
                 })
 
                 const blocks = el.querySelectorAll('code')

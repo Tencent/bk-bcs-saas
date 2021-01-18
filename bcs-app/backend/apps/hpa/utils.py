@@ -65,7 +65,7 @@ def get_metric_name_value(metric, field):
     else:
         # Pod等自定义类型
         name = metric[metric_type.lower()]["metric"]["name"]
-        metric_value = metric[metric_type.lower()][field]["averageValue"]
+        metric_value = metric[metric_type.lower()][field].get("averageValue")
     return name, metric_value
 
 
@@ -134,6 +134,7 @@ def slz_mesos_hpa_info(hpa, project_code, cluster_name, cluster_env, cluster_id)
             "current_replicas": _config["status"].get("CurrentInstance", "-"),
             "current_metrics_display": get_current_metrics_display(current_metrics),
             "current_metrics": current_metrics,
+            "conditions": [],  # mesos 暂时置空
             "source_type": application_constants.SOURCE_TYPE_MAP.get(source_type),
             "creator": annotations.get(instance_constants.ANNOTATIONS_CREATOR, ""),
             "create_time": annotations.get(instance_constants.ANNOTATIONS_CREATE_TIME, ""),
@@ -175,6 +176,7 @@ def slz_k8s_hpa_info(hpa, project_code, cluster_name, cluster_env, cluster_id):
             "current_replicas": _config["status"]["currentReplicas"],
             "current_metrics_display": get_current_metrics_display(current_metrics),
             "current_metrics": current_metrics,
+            "conditions": _config["status"].get("conditions", []),  # k8s 注意需要调用 autoscaling/v2beta2 版本 api
             "source_type": application_constants.SOURCE_TYPE_MAP.get(source_type),
             "creator": annotations.get(instance_constants.ANNOTATIONS_CREATOR, ""),
             "create_time": annotations.get(instance_constants.ANNOTATIONS_CREATE_TIME, ""),

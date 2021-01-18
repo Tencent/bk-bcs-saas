@@ -15,7 +15,7 @@ from backend.components import paas_cc
 from backend.utils.decorators import parse_response_data
 
 
-@parse_response_data()
+@parse_response_data(default_data={})
 def get_project(access_token, project_id):
     return paas_cc.get_project(access_token, project_id)
 

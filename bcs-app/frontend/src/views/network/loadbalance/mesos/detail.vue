@@ -19,8 +19,8 @@
                         <div class="biz-metadata-box mb20">
                             <div class="data-item" style="width: 200px;">
                                 <p class="key">{{$t('所属集群')}}：</p>
-                                <p class="value" :title="loadBalanceDetail.cluster_name">
-                                    {{loadBalanceDetail.cluster_name}}
+                                <p class="value" :title="loadBalanceDetail.cluster_id">
+                                    {{loadBalanceDetail.cluster_id}}
                                 </p>
                             </div>
                             <div class="data-item">
@@ -215,6 +215,12 @@
             loadBalanceId () {
                 return this.$route.params.lbId
             },
+            clusterIdForLoadBalance () {
+                return this.$route.params.clusterId
+            },
+            namespaceForLoadBalance () {
+                return this.$route.params.namespace
+            },
             curProject () {
                 return this.$store.state.curProject
             },
@@ -310,8 +316,9 @@
             async initLoadBalanceTaskGroup () {
                 const projectId = this.projectId
                 const loadBalanceId = this.loadBalanceId
+                const projectKind = this.curProject.kind
                 try {
-                    const res = await this.$store.dispatch('network/getTaskGroup', { projectId, loadBalanceId })
+                    const res = await this.$store.dispatch('network/getTaskGroup', { projectId, loadBalanceId, projectKind })
                     if (res.data) {
                         Object.keys(res.data).forEach(key => {
                             res.data[key].isOpen = false
@@ -329,11 +336,16 @@
             async initLoadBalanceDetail () {
                 const projectId = this.projectId
                 const loadBalanceId = this.loadBalanceId
-                const projectKind = this.curProject.kind
+                const clusterId = this.clusterIdForLoadBalance
+                const namespace = this.namespaceForLoadBalance
                 this.isDataLoading = true
                 try {
-                    const res = await this.$store.dispatch('network/getLoadBalanceDetail', { projectId, loadBalanceId, projectKind })
-                    this.loadBalanceDetail = res.data
+                    const res = await this.$store.dispatch('network/getMesosLoadBalanceDetail', { projectId, loadBalanceId, clusterId, namespace })
+                    const data = {
+                        ...res.data,
+                        ...res.data.data
+                    }
+                    this.loadBalanceDetail = data
                     this.$nextTick(() => {
                         this.renderChart()
                     })

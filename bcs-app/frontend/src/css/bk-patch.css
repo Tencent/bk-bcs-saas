@@ -1137,7 +1137,7 @@
 }
 
 .bk-tab2 .bk-tab2-head .bk-tab2-nav>.tab2-nav-item {
-    max-width: 220px;
+    max-width: 150px;
 }
 
 .biz-scroll-tab {
@@ -1228,4 +1228,55 @@
 .bk-selector .bk-selector-node .text {
     height: 42px;
     line-height: 42px;
+}
+
+.bk-text-button {
+    .bk-icon {
+        transition: all ease 0.3s;
+    }
+
+    &.rotate {
+        .bk-icon {
+            transform: rotate(180deg);
+        }
+    }
+}
+
+.scale-dialog {
+    .bk-dialog-tool {
+        position: absolute;
+        top: 0;
+        right: 0;
+    }
+    .bk-dialog-header {
+        background: #fafbfd;
+        border-radius: 2px;
+        color: #737987;
+        height: 50px;
+        line-height: 50px;
+        padding: 0 20px;
+        .bk-dialog-title {
+            color: #737987;
+            text-align: left;
+            font-size: 18px;
+        }
+    }
+    button.disabled {
+        background-color: #fafafa;
+        border-color: $borderLightColor;
+        color: #ccc;
+        cursor: not-allowed;
+
+        &:hover {
+            background-color: #fafafa;
+            border-color: $borderLightColor;
+        }
+    }
+
+    .scale-wrapper {
+        position: relative;
+        .bk-number .bk-number-content.bk-number-larger .bk-number-icon-content {
+            margin-top: 0 !important;
+        }
+    }
 }

@@ -29,6 +29,8 @@ from backend.apps.cluster.models import NodeLabel, NodeStatus
 from backend.apps.cluster import serializers as node_serializers
 from backend.apps.cluster.views.node_views import serializers as node_slz
 
+from .utils import get_label_querier
+
 
 class QueryNodeBase:
     pass
@@ -38,16 +40,14 @@ class QueryNodeLabelKeys(QueryNodeBase, viewsets.ViewSet):
     renderer_classes = (BKAPIRenderer, BrowsableAPIRenderer)
 
     def get_queryset(self, project_id, cluster_id):
-        """filter the labels record
-        """
+        """filter the labels record"""
         labels_queryset = NodeLabel.objects.filter(project_id=project_id)
         if cluster_id != node_constants.PROJECT_ALL_CLUSTER:
             labels_queryset = labels_queryset.filter(cluster_id=cluster_id)
         return labels_queryset
 
     def compose_data(self, labels_queryset, key_name=None):
-        """compose the label keys or values
-        """
+        """compose the label keys or values"""
         data = set([])
         for info in labels_queryset:
             labels = info.node_labels
@@ -59,8 +59,7 @@ class QueryNodeLabelKeys(QueryNodeBase, viewsets.ViewSet):
         return data
 
     def label_keys(self, request, project_id):
-        """get node label keys
-        """
+        """get node label keys"""
         # cluster id may be 'all'
         slz = node_serializers.QueryLabelKeysSLZ(data=request.query_params)
         slz.is_valid(raise_exception=True)
@@ -71,8 +70,7 @@ class QueryNodeLabelKeys(QueryNodeBase, viewsets.ViewSet):
         return response.Response(keys)
 
     def label_values(self, request, project_id):
-        """get node label values
-        """
+        """get node label values"""
         slz = node_serializers.QueryLabelValuesSLZ(data=request.query_params)
         slz.is_valid(raise_exception=True)
         params = slz.validated_data
@@ -90,7 +88,7 @@ class ExportNodes(viewsets.ViewSet):
         NodeStatus.Initializing: "Initializing",
         NodeStatus.InitialFailed: "InitilFailed",
         NodeStatus.Removing: "Removing",
-        NodeStatus.RemoveFailed: "RemoveFailed"
+        NodeStatus.RemoveFailed: "RemoveFailed",
     }
 
     def get_nodes(self, request, project_id):
@@ -127,8 +125,7 @@ class ExportNodes(viewsets.ViewSet):
         buffer = BytesIO()
         wb.save(buffer)
         response = HttpResponse(
-            content=buffer.getvalue(),
-            content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+            content=buffer.getvalue(), content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
         )
         # add username in filename
         response['Content-Disposition'] = f'attachment; filename=export-node-{request.user.username}.xlsx'
@@ -161,6 +158,28 @@ class ListNodelabelsViewSets(viewsets.ViewSet):
         # 查询节点labels
         project_kind_name = ProjectKind.get_choice_label(request.project.kind)
         labels = getattr(self, f"query_{project_kind_name.lower()}_node_labels")(
-            request.user.token.access_token, project_id, cluster_nodes)
+            request.user.token.access_token, project_id, cluster_nodes
+        )
+
+        return response.Response(labels)
+
+
+class QueryNodeLabelsViewSet(viewsets.ViewSet):
+    renderer_classes = (BKAPIRenderer, BrowsableAPIRenderer)
+
+    def query_labels(self, request, project_id):
+        """查询节点下的labels
+        NOTE: 允许查询项目下所有集群中的节点的label
+        """
+        access_token = request.user.token.access_token
+        cluster_id = request.query_params.get("cluster_id")
+        if not cluster_id:
+            clusters = node_utils.get_clusters(access_token, project_id)
+            cluster_id_list = [cluster["cluster_id"] for cluster in clusters]
+        else:
+            cluster_id_list = [cluster_id]
+        # 查询label对应的key-val
+        querier = get_label_querier(request.project.kind, access_token, project_id)
+        labels = querier.query_labels(cluster_id_list)
 
         return response.Response(labels)

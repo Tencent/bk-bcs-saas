@@ -40,20 +40,16 @@
                         </bk-dropdown-menu>
                     </div>
                     <div class="right">
-                        <bk-dropdown-menu :align="'left'" :trigger="'click'" ref="toggleFilterDropdownMenu">
-                            <a href="javascript:void(0);" slot="dropdown-trigger" class="bk-text-button toggle-filter">
-                                <span class="label">{{curSelectedClusterName === 'all' ? $t('全部集群') : curSelectedClusterName}}</span>
-                                <i class="bk-icon icon-angle-down dropdown-menu-angle-down"></i>
-                            </a>
-                            <ul class="bk-dropdown-list" slot="dropdown-content">
-                                <li @click.stop="changeCluster({ name: 'all' })">
-                                    <a href="javascript:void(0)" :title="$t('全部集群')">{{$t('全部集群')}}</a>
-                                </li>
-                                <li v-for="(cluster, index) in clusterList" @click.stop="changeCluster(cluster)" :key="index">
-                                    <a href="javascript:void(0)" :title="cluster.name">{{cluster.name}}</a>
-                                </li>
-                            </ul>
-                        </bk-dropdown-menu>
+                        <bk-selector
+                            class="cluster-selector"
+                            :placeholder="$t('请选择')"
+                            :searchable="true"
+                            :setting-key="'cluster_id'"
+                            :display-key="'name'"
+                            :selected.sync="curSelectedClusterId"
+                            :list="clusterList"
+                            @item-selected="changeCluster">
+                        </bk-selector>
                         <div class="biz-searcher-wrapper">
                             <!-- <bk-ip-searcher @search="searchNodeList" ref="searcher" /> -->
                             <node-searcher :cluster-id="clusterId" :project-id="projectId" ref="searcher" @search="searchNodeList"></node-searcher>
@@ -608,11 +604,10 @@
                 showMixinTip: false,
                 enableSetLabel: false,
                 exceptionCode: null,
-                cancelLoop: false,
                 timer: null,
                 clusterList: [],
-                curSelectedClusterName: 'all',
-                curSelectedClusterId: 'all',
+                curSelectedClusterName: '',
+                curSelectedClusterId: '',
                 alreadySelectedNums: 0,
                 searchParams: [],
                 clipboardInstance: null
@@ -625,9 +620,14 @@
             projectCode () {
                 return this.$route.params.projectCode
             },
+            curProject () {
+                return this.$store.state.curProject
+            },
             labelDocUrl () {
-                const curProject = this.$store.state.curProject
-                return curProject.kind === 1 ? this.PROJECT_CONFIG.doc.nodeLabelK8s : this.PROJECT_CONFIG.doc.nodeLabelMesos
+                return this.curProject.kind === window.PROJECT_K8S ? this.PROJECT_CONFIG.doc.nodeLabelK8s : this.PROJECT_CONFIG.doc.nodeLabelMesos
+            },
+            isMesosProject () {
+                return this.curProject.kind === window.PROJECT_MESOS
             },
             isEn () {
                 return this.$store.state.isEn
@@ -641,7 +641,6 @@
         },
         beforeDestroy () {
             clearTimeout(this.timer) && (this.timer = null)
-            this.cancelLoop = true
 
             this.clipboardInstance && this.clipboardInstance.destroy()
             if (this.clipboardInstance && this.clipboardInstance.off) {
@@ -650,7 +649,6 @@
         },
         destroyed () {
             clearTimeout(this.timer) && (this.timer = null)
-            this.cancelLoop = true
 
             this.clipboardInstance && this.clipboardInstance.destroy()
             if (this.clipboardInstance && this.clipboardInstance.off) {
@@ -673,6 +671,14 @@
                     const list = res.data.results || []
                     this.$store.commit('cluster/forceUpdateClusterList', list)
 
+                    this.curSelectedClusterName = list.length ? list[0].name : this.$t('全部集群')
+                    this.curSelectedClusterId = list.length ? list[0].cluster_id : 'all'
+
+                    list.unshift({
+                        name: this.$t('全部集群'),
+                        cluster_id: 'all'
+                    })
+
                     this.clusterList.splice(0, this.clusterList.length, ...list)
                 } catch (e) {
                     catchErrorHandler(e, this)
@@ -684,14 +690,16 @@
              *
              * @param {Object} cluster 集群
              */
-            changeCluster (cluster) {
-                setTimeout(() => {
-                    this.$refs.toggleFilterDropdownMenu && this.$refs.toggleFilterDropdownMenu.hide()
-                }, 0)
+            async changeCluster (clusterId, cluster) {
                 this.curSelectedClusterName = cluster.name
-                this.curSelectedClusterId = cluster.cluster_id
+                this.curSelectedClusterId = clusterId
                 this.pageConf.curPage = 1
-                this.searchNodeList()
+                if (this.isMesosProject) {
+                    this.showLoading = true
+                    await this.fetchData(true)
+                } else {
+                    this.searchNodeList()
+                }
             },
 
             /**
@@ -733,9 +741,12 @@
                     await this.getClusters()
                 }
                 try {
-                    const res = await this.$store.dispatch('cluster/getAllNodeList', {
-                        projectId: this.projectId
-                    })
+                    const api = this.isMesosProject ? 'cluster/getMesosNodeList' : 'cluster/getAllNodeList'
+                    const params = { projectId: this.projectId }
+                    if (this.isMesosProject && this.curSelectedClusterId !== 'all') {
+                        params.clusterId = this.curSelectedClusterId
+                    }
+                    const res = await this.$store.dispatch(api, params)
 
                     const data = res.data || {}
 
@@ -763,7 +774,7 @@
                     this.nodeList.splice(0, this.nodeList.length, ...nodeList)
                     this.nodeListTmp.splice(0, this.nodeListTmp.length, ...nodeList)
 
-                    if (this.curSelectedClusterName !== 'all') {
+                    if (this.curSelectedClusterId !== 'all') {
                         const newNodeList = []
                         newNodeList.splice(0, 0, ...this.nodeListTmp.filter(
                             node => node.cluster_name === this.curSelectedClusterName
@@ -811,14 +822,11 @@
                     )
                     this.isCheckAllNode = selectedNodeList.length === validList.length
 
-                    if (this.cancelLoop) {
-                        clearTimeout(this.timer)
-                        this.timer = null
-                    } else {
-                        this.timer = setTimeout(() => {
-                            this.fetchData(true)
-                        }, 10000)
-                    }
+                    clearTimeout(this.timer)
+                    this.timer = null
+                    this.timer = setTimeout(() => {
+                        this.fetchData(true)
+                    }, 30000)
                 } catch (e) {
                     catchErrorHandler(e, this)
                 } finally {
@@ -914,8 +922,6 @@
              */
             async refresh () {
                 this.showLoading = true
-                this.curSelectedClusterName = 'all'
-                this.curSelectedClusterId = 'all'
                 this.clearSearchParams()
                 await this.fetchData()
             },
@@ -970,7 +976,7 @@
                 this.showLoading = false
 
                 const newNodeList = []
-                if (this.curSelectedClusterName === 'all') {
+                if (this.curSelectedClusterId === 'all') {
                     newNodeList.splice(0, 0, ...this.nodeListTmp)
                 } else {
                     newNodeList.splice(0, 0, ...this.nodeListTmp.filter(
@@ -1180,6 +1186,42 @@
             },
 
             /**
+             * 处理 mesosLabels
+             */
+            getMesosLabls (list = []) {
+                const mixinValue = '*****-----$$$$$'
+                const mesosLabls = {}
+                let isFirst = true
+                // 取labels合集
+                list.forEach(item => {
+                    const nodeMap = item || {}
+                    const nodeKeys = Object.keys(nodeMap)
+                    for (let i = 0, len = nodeKeys.length; i < len; i++) {
+                        const nodeKey = nodeKeys[i]
+                        const nodeLabels = nodeMap[nodeKey].reduce((res, label) => Object.assign(res, label), {})
+                        if (isFirst) {
+                            Object.assign(mesosLabls, nodeLabels)
+                            isFirst = false
+                            continue
+                        }
+                        const labelKeys = Object.keys(nodeLabels)
+                        labelKeys.forEach(key => {
+                            if (mesosLabls[key] === undefined || mesosLabls[key] !== nodeLabels[key]) {
+                                mesosLabls[key] = mixinValue
+                            }
+                        })
+                        // 获取非混合值keys且不属于当前节点的labels
+                        const resKeys = Object.keys(mesosLabls).filter(key => mesosLabls[key] !== mixinValue && !nodeLabels[key])
+                        // 剩余key确认为混合值
+                        for (let j = 0, resLen = resKeys.length; j < resLen; j++) {
+                            mesosLabls[resKeys[j]] = mixinValue
+                        }
+                    }
+                })
+                return mesosLabls
+            },
+
+            /**
              * 显示设置节点标签 sideslider
              */
             async showSetLabel () {
@@ -1195,12 +1237,23 @@
                 try {
                     this.setLabelConf.isShow = true
                     this.setLabelConf.loading = true
-                    const res = await this.$store.dispatch('cluster/getNodeLabel', {
+
+                    const api = this.isMesosProject ? 'cluster/getMesosNodeLabel' : 'cluster/getNodeLabel'
+                    const params = {
                         projectId: this.projectId,
                         nodeIds: this.checkedNodeList.map(checkedNode => checkedNode.id)
-                    })
+                    }
+                    if (this.isMesosProject) {
+                        params.node_labels = this.checkedNodeList.map(checkedNode => ({
+                            cluster_id: checkedNode.cluster_id,
+                            inner_ip: checkedNode.inner_ip
+                        }))
+                        delete params.nodeIds
+                    }
+                    
+                    const res = await this.$store.dispatch(api, params)
 
-                    const labels = res.data || {}
+                    const labels = this.isMesosProject ? this.getMesosLabls(res.data || []) : res.data || {}
                     const list = Object.keys(labels)
                     const labelList = []
                     if (list.length) {
@@ -1255,12 +1308,21 @@
                 try {
                     this.setLabelConf.isShow = true
                     this.setLabelConf.loading = true
-                    const res = await this.$store.dispatch('cluster/getNodeLabel', {
+                    const api = this.isMesosProject ? 'cluster/getMesosNodeLabel' : 'cluster/getNodeLabel'
+                    const params = {
                         projectId: this.projectId,
                         nodeIds: node.id
-                    })
+                    }
+                    if (this.isMesosProject) {
+                        params.node_labels = [{
+                            cluster_id: node.cluster_id,
+                            inner_ip: node.inner_ip
+                        }]
+                        delete params.nodeIds
+                    }
+                    const res = await this.$store.dispatch(api, params)
 
-                    const labels = res.data || {}
+                    const labels = this.isMesosProject ? this.getMesosLabls(res.data || []) : res.data || {}
                     const list = Object.keys(labels)
                     const labelList = []
                     if (list.length) {
@@ -1360,22 +1422,48 @@
                 }
 
                 const nodeIdList = []
+                const resNodeList = []
 
                 if (this.curRowNode && Object.keys(this.curRowNode).length) {
-                    nodeIdList.push(this.curRowNode.id)
+                    this.isMesosProject ? resNodeList.push(this.curRowNode) : nodeIdList.push(this.curRowNode.id)
                 } else {
                     if (this.checkedNodeList.length) {
-                        nodeIdList.push(...this.checkedNodeList.map(checkedNode => checkedNode.id))
+                        this.isMesosProject ? resNodeList.push(...this.checkedNodeList) : nodeIdList.push(...this.checkedNodeList.map(checkedNode => checkedNode.id))
                     }
                 }
 
                 try {
                     this.setLabelConf.loading = true
-                    await this.$store.dispatch('cluster/updateLabel', {
+                    let api = 'cluster/updateLabel'
+                    let params = {
                         projectId: this.projectId,
                         node_id_list: nodeIdList,
                         node_label_info: labelInfo
-                    })
+                    }
+                    if (this.isMesosProject) {
+                        api = 'cluster/updateMesosNodeLabel'
+                        const keys = Object.keys(labelInfo)
+                        params = {
+                            projectId: this.projectId,
+                            node_labels: resNodeList.map(item => {
+                                const originalLabels = item.labels.reduce((res, label) => Object.assign(res, label), {})
+                                const labels = []
+                                for (const key of keys) {
+                                    if (labelInfo[key] === '*****-----$$$$$' && originalLabels[key]) {
+                                        labels.push({ [key]: originalLabels[key] })
+                                    } else if (labelInfo[key] !== '*****-----$$$$$') {
+                                        labels.push({ [key]: labelInfo[key] })
+                                    }
+                                }
+                                return {
+                                    cluster_id: item.cluster_id,
+                                    inner_ip: item.inner_ip,
+                                    labels
+                                }
+                            })
+                        }
+                    }
+                    await this.$store.dispatch(api, params)
 
                     this.hideSetLabel()
                     this.checkedNodeList.splice(0, this.checkedNodeList.length, ...[])

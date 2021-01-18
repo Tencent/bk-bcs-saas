@@ -18,13 +18,14 @@
                 </div>
                 <div class="dialog-content">
                     <strong>{{subTitleRender}}</strong>
-                    <ul class="update-list" v-if="noticeList.length">
+                    <ul class="update-list">
                         <li v-for="(item, index) of noticeList" :key="index">
-                            <label :class="['bk-form-checkbox']">
+                            <label :class="['bk-form-checkbox']" v-if="!item.isText">
                                 <input v-if="!isConfirming" type="checkbox" name="check" v-model="item.isChecked" @change="changeCheck(item)">
                                 <input v-else disabled="disabled" type="checkbox" name="check" v-model="item.isChecked">
                                 {{item.text}}
                             </label>
+                            <div v-else>{{item.text}}</div>
                         </li>
                     </ul>
                     <template v-if="canConfirm">

@@ -31,19 +31,13 @@ from backend.apps.cluster.views.node_views import serializers as node_slz
 
 from .base import Nodes, ClusterPerm
 
-NotReadyNodeStatus = ['not_ready', CommonStatus.DeleteFailed]
 
-
-class DeleteNotReadyNode(Nodes, viewsets.ViewSet):
+class DeleteNodeRecordViewSet(Nodes, viewsets.ViewSet):
     renderer_classes = (BKAPIRenderer, BrowsableAPIRenderer)
 
     def delete(self, request, project_id, cluster_id, node_id):
         access_token = request.user.token.access_token
         node_info = self.get_node_by_id(access_token, project_id, cluster_id, node_id)
-        # check node allow operation
-        if node_info.get('status') not in NotReadyNodeStatus:
-            raise error_codes.CheckFailed(
-                'current node does not allow delete operation, please check node status!')
         # set current node status is removed
         self.update_nodes_in_cluster(
             access_token, project_id, cluster_id, [node_info['inner_ip']], CommonStatus.Removed)

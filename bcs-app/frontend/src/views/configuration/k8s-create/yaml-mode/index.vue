@@ -44,7 +44,16 @@
                                     <i class="bk-icon icon-info-circle-shape"></i>
                                     <strong class="desc">
                                         {{$t('您已经对此模板集加锁，只有解锁后，其他用户才可操作此模板集。')}}
-                                        <span v-if="lateShowVersionName">（{{$t('当前版本号')}}：{{lateShowVersionName}}）</span>
+                                        <span v-if="lateShowVersionName">
+                                            （{{$t('当前版本号')}}：{{lateShowVersionName}}
+                                            <bk-tooltip
+                                                :delay="300"
+                                                :content="displayVersionNotes || '--'"
+                                                style="padding-left: 6px;"
+                                                placement="bottom">
+                                                <span style="color: #3c96ff;">{{$t('版本说明')}}</span>
+                                            </bk-tooltip>）
+                                        </span>
                                     </strong>
                                     <div class="action" @click="updateTemplateLockStatus">
                                         <bk-switcher
@@ -61,7 +70,16 @@
                                     <i class="bk-icon icon-info-circle-shape"></i>
                                     <strong class="desc">
                                         {{$t('{locker}正在操作，您如需编辑请联系{locker}解锁。', templateLockStatus)}}
-                                        <span v-if="lateShowVersionName">（{{$t('当前版本号')}}：{{lateShowVersionName}}）</span>
+                                        <span v-if="lateShowVersionName">
+                                            （{{$t('当前版本号')}}：{{lateShowVersionName}}
+                                            <bk-tooltip
+                                                :delay="300"
+                                                :content="displayVersionNotes || '--'"
+                                                style="padding-left: 6px;"
+                                                placement="bottom">
+                                                <span style="color: #3c96ff;">{{$t('版本说明')}}</span>
+                                            </bk-tooltip>）
+                                        </span>
                                     </strong>
                                     <div class="action">
                                         <a href="javascript: void(0);" class="bk-text-button" @click="reloadTemplateLockStatus">{{$t('点击刷新')}}</a>
@@ -76,7 +94,16 @@
                                 <i class="bk-icon icon-info-circle-shape"></i>
                                 <strong class="desc">
                                     {{$t('为避免多成员同时编辑，引起内容或版本冲突，建议在编辑时，开启保护功能。')}}
-                                    <span v-if="lateShowVersionName">（{{$t('当前版本号')}}：{{lateShowVersionName}}）</span>
+                                    <span v-if="lateShowVersionName">
+                                        （{{$t('当前版本号')}}：{{lateShowVersionName}}
+                                        <bk-tooltip
+                                            :delay="300"
+                                            :content="displayVersionNotes || '--'"
+                                            style="padding-left: 6px;"
+                                            placement="bottom">
+                                            <span style="color: #3c96ff;">{{$t('版本说明')}}</span>
+                                        </bk-tooltip>）
+                                    </span>
                                 </strong>
                                 <div class="action" @click="updateTemplateLockStatus">
                                     <bk-switcher
@@ -323,7 +350,7 @@
         </section>
         <bk-dialog
             :is-show.sync="versionDialogConf.isShow"
-            :width="isEn ? 450 : 400"
+            :width="600"
             :has-header="false"
             :quick-close="false"
             :ext-cls="'create-project-dialog'"
@@ -332,25 +359,25 @@
             <template slot="content">
                 <div class="version-box">
                     <p class="title">{{$t('保存修改到')}}：</p>
-                    <ul class="version-list">
-                        <template v-if="allVersionList.length && curShowVersionId !== -1">
+                    <ul :class="['version-list', { 'is-en': isEn }]">
+                        <template v-if="!isNewVersion">
                             <li class="item">
-                                <label class="bk-form-radio">
+                                <label class="bk-form-radio label-item">
                                     <input type="radio" name="save-version-way" value="cur" v-model="saveVersionWay">
-                                    <i class="bk-radio-text" style="display: inline-block; min-width: 70px;">{{$t('当前版本：')}}{{curShowVersionName}}</i>
+                                    <i class="bk-radio-text" style="display: inline-block; min-width: 70px;">{{$t('当前版本号')}}：{{lateShowVersionName}}</i>
                                 </label>
                             </li>
 
                             <li class="item">
-                                <label class="bk-form-radio" style="margin-right: 0;">
+                                <label class="bk-form-radio label-item" style="margin-right: 0;">
                                     <input type="radio" name="save-version-way" value="new" v-model="saveVersionWay">
-                                    <i class="bk-radio-text" style="display: inline-block; min-width: 70px;">{{$t('新建版本')}}：</i>
+                                    <i class="bk-radio-text" style="display: inline-block; min-width: 70px;">{{$t('新版本')}}：</i>
                                     <input type="text" class="bk-form-input" :placeholder="$t('请输入版本号')" @focus="saveVersionWay = 'new'" style="display: inline-block; width: 176px;" v-model="versionKeyword" />
                                 </label>
                             </li>
 
                             <li class="item" v-if="withoutCurVersionList.length">
-                                <label class="bk-form-radio" style="margin-right: 0;">
+                                <label class="bk-form-radio label-item" style="margin-right: 0;">
                                     <input type="radio" name="save-version-way" value="old" v-model="saveVersionWay">
                                     <i class="bk-radio-text" style="display: inline-block; min-width: 70px;">{{$t('其它版本')}}：</i>
                                     <bk-selector
@@ -358,26 +385,26 @@
                                         :placeholder="$t('请选择版本号')"
                                         :setting-key="'show_version_id'"
                                         :selected.sync="selectedVersion"
-                                        :list="withoutCurVersionList">
+                                        :list="withoutCurVersionList"
+                                        @item-selected="selectVersion">
                                     </bk-selector>
                                 </label>
                             </li>
                         </template>
                         <template v-else>
                             <li class="item">
-                                <label class="bk-form-radio" style="margin-right: 0;">
-                                    <i class="bk-radio-text">{{$t('新版本')}}：</i>
-                                    <input type="text"
-                                        class="bk-form-input"
-                                        ref="versionInput"
-                                        maxlength="45"
-                                        :placeholder="$t('请输入版本号')"
-                                        @focus="saveVersionWay = 'new'"
-                                        style="display: inline-block; width: 217px;"
-                                        v-model="versionKeyword" />
+                                <label class="bk-form-radio label-item" style="margin-right: 0;">
+                                    <i class="bk-radio-text" style="display: inline-block; width: 70px;">{{$t('新版本')}}：</i>
+                                    <input type="text" class="bk-form-input" :placeholder="$t('请输入版本号')" @focus="saveVersionWay = 'new'" style="display: inline-block; width: 203px;" v-model="versionKeyword" />
                                 </label>
                             </li>
                         </template>
+                        <li class="item">
+                            <label :class="['notes', 'label-item', { 'new-item': isNewVersion }]" style="margin-right: 0;">
+                                <i :class="['notes-text', { 'is-en-text': isEn, 'is-new': isNewVersion }]" :style="{ 'padding-left': isNewVersion ? 0 : '29px' }">{{$t('版本说明')}}：</i>
+                                <bk-textarea class="notes-input" :style="{ width: isNewVersion ? '203px' : '176px' }" :placeholder="$t('请输入版本说明')" :value.sync="curVersionNotes" />
+                            </label>
+                        </li>
                     </ul>
                 </div>
             </template>
@@ -414,7 +441,7 @@
             :quick-close="true"
             :is-show.sync="versionSidePanel.isShow"
             :title="versionSidePanel.title"
-            :width="'640'">
+            :width="'840'">
             <div class="p30" slot="content" v-bkloading="{ isLoading: isVersionListLoading }">
                 <table class="bk-table biz-data-table has-table-bordered">
                     <thead>
@@ -429,8 +456,18 @@
                         <template v-if="allVersionList.length">
                             <tr v-for="(versionData, index) in allVersionList" :key="index">
                                 <td>
-                                    <span>{{versionData.name}}</span>
-                                    <span v-if="versionData.show_version_id === curShowVersionId">{{$t('(当前)')}}</span>
+                                    <p>
+                                        <span>{{versionData.name}}</span>
+                                        <span v-if="versionData.show_version_id === curShowVersionId">{{$t('(当前)')}}</span>
+                                    </p>
+
+                                    <bk-tooltip
+                                        v-if="versionData.comment"
+                                        :delay="300"
+                                        :content="versionData.comment"
+                                        placement="right">
+                                        <span style="color: #3c96ff; font-size: 12px;">{{$t('版本说明')}}</span>
+                                    </bk-tooltip>
                                 </td>
                                 <td>{{versionData.updated}}</td>
                                 <td>{{versionData.updator}}</td>
@@ -504,7 +541,7 @@
 
 <script>
     import yamljs from 'js-yaml'
-    import MonacoEditor from './editor.js'
+    import MonacoEditor from './editor'
     // import CollapseTransition from '@open/components/menu/collapse-transition'
     import { catchErrorHandler, uuid } from '@open/common/util'
     import Clipboard from 'clipboard'
@@ -629,7 +666,9 @@
                     isShow: false,
                     fileName: ''
                 },
-                zipTooltipText: this.$t('请选择zip压缩包导入，包中的文件名以.yaml结尾。其中的yaml文件(非"_常用Manifest"目录下的文件)将会统一导入到自定义Manifest分类下。注意：同名文件会被覆盖')
+                zipTooltipText: this.$t('请选择zip压缩包导入，包中的文件名以.yaml结尾。其中的yaml文件(非"_常用Manifest"目录下的文件)将会统一导入到自定义Manifest分类下。注意：同名文件会被覆盖'),
+                curVersionNotes: '',
+                displayVersionNotes: '--'
             }
         },
         computed: {
@@ -746,6 +785,9 @@
                 } else {
                     return this.customTemplateFiles
                 }
+            },
+            isNewVersion () {
+                return !(this.allVersionList.length && this.curShowVersionId !== -1)
             }
         },
 
@@ -798,6 +840,28 @@
                         this.customTreeData = [customTree]
                     }, 500)
                 }
+            },
+            'curShowVersionId' () {
+                this.allVersionList.forEach(item => {
+                    if (item.show_version_id === this.curShowVersionId) {
+                        this.curVersionNotes = item.comment
+                        this.displayVersionNotes = item.comment
+                    }
+                })
+            },
+            'saveVersionWay' (val, old) {
+                if (val && val === old) return
+                if (val === 'new') {
+                    this.curVersionNotes = ''
+                    return
+                }
+                let item = null
+                if (val === 'cur') {
+                    item = this.allVersionList.find(item => item.show_version_id === this.curShowVersionId)
+                } else if (val === 'old' && this.selectedVersion) {
+                    item = this.allVersionList.find(item => item.show_version_id === this.selectedVersion)
+                }
+                item && (this.curVersionNotes = item.comment)
             }
         },
 
@@ -1678,6 +1742,7 @@
              */
             async createYamlTemplate () {
                 const params = this.getYamlParams()
+                params.show_version.comment = this.curVersionNotes
 
                 this.isTemplateSaving = true
                 try {
@@ -1713,6 +1778,7 @@
              */
             async updateYamlTemplate () {
                 const params = this.getYamlParams()
+                params.show_version.comment = this.curVersionNotes
 
                 this.isTemplateSaving = true
                 try {
@@ -1909,6 +1975,8 @@
                                             name: item.name,
                                             real_version_id: item.real_version_id
                                         }
+                                        this.curVersionNotes = item.comment
+                                        this.displayVersionNotes = item.comment
                                     }
                                 })
                             }
@@ -2619,6 +2687,8 @@
                 this.$set(this.curTreeNode, 'selected', false) // 把上次选择取消
                 this.curTreeNode = node
                 tree.nodeSelected(node)
+                this.useEditorDiff = false
+                this.reRenderEditor++
             },
 
             handleRemoveNode (node, type) {
@@ -2662,6 +2732,10 @@
             handleRenameBlur (node) {
                 const input = document.getElementById(node.value.id)
                 alert(input.value)
+            },
+
+            selectVersion (id, item) {
+                this.curVersionNotes = item.comment
             }
             // removeVersion (data) {
             //     const self = this

@@ -78,7 +78,6 @@ INSTALLED_APPS = [
     "backend.apps.metric",
     "backend.apps.variable",
     "backend.apps.ticket",
-    "backend.apps.paas_monitor",
     "backend.bcs_k8s.app",
     "backend.bcs_k8s.helm",
     "backend.bcs_k8s.authtoken",
@@ -135,17 +134,30 @@ WSGI_APPLICATION = "wsgi.application"
 # Database
 # https://docs.djangoproject.com/en/1.11/ref/settings/#databases
 
-DATABASES = {"default": {"ENGINE": "django.db.backends.sqlite3", "NAME": os.path.join(BASE_DIR, "db.sqlite3"),}}
+DATABASES = {
+    "default": {
+        "ENGINE": "django.db.backends.sqlite3",
+        "NAME": os.path.join(BASE_DIR, "db.sqlite3"),
+    }
+}
 
 
 # Password validation
 # https://docs.djangoproject.com/en/1.11/ref/settings/#auth-password-validators
 
 AUTH_PASSWORD_VALIDATORS = [
-    {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",},
-    {"NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",},
-    {"NAME": "django.contrib.auth.password_validation.CommonPasswordValidator",},
-    {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",},
+    {
+        "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
+    },
+    {
+        "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
+    },
+    {
+        "NAME": "django.contrib.auth.password_validation.CommonPasswordValidator",
+    },
+    {
+        "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",
+    },
 ]
 
 
@@ -228,7 +240,10 @@ def get_logging_config(log_level, rds_hander_settings=None, log_path="app.log"):
         },
         "filters": {"request_id": {"()": "backend.utils.log.RequestIdFilter"}},
         "handlers": {
-            "null": {"level": "DEBUG", "class": "logging.NullHandler",},
+            "null": {
+                "level": "DEBUG",
+                "class": "logging.NullHandler",
+            },
             "mail_admins": {"level": "ERROR", "class": "django.utils.log.AdminEmailHandler"},
             "file": {
                 "class": "logging.handlers.WatchedFileHandler",
@@ -251,7 +266,11 @@ def get_logging_config(log_level, rds_hander_settings=None, log_path="app.log"):
             },
         },
         "loggers": {
-            "django": {"handlers": ["null"], "level": "INFO", "propagate": True,},
+            "django": {
+                "handlers": ["null"],
+                "level": "INFO",
+                "propagate": True,
+            },
             "django.request": {
                 "handlers": ["console", "logstash_redis", "file"],
                 "level": "ERROR",
@@ -263,7 +282,11 @@ def get_logging_config(log_level, rds_hander_settings=None, log_path="app.log"):
                 "propagate": True,
             },
             "django.security": {"handlers": ["console", "logstash_redis", "file"], "level": "INFO", "propagate": True},
-            "root": {"handlers": ["console", "logstash_redis", "file"], "level": log_level, "propagate": False,},
+            "root": {
+                "handlers": ["console", "logstash_redis", "file"],
+                "level": log_level,
+                "propagate": False,
+            },
             "console": {  # 打印redis日志错误，防止循环错误
                 "handlers": ["console", "file"],
                 "level": log_level,
@@ -277,7 +300,10 @@ def get_logging_config(log_level, rds_hander_settings=None, log_path="app.log"):
                 "handlers": ["console", "logstash_redis", "file"],
                 "level": os.getenv("DJANGO_LOG_LEVEL", "INFO"),
             },
-            "bkpaas_auth": {"handlers": ["console", "logstash_redis", "file"], "level": "DEBUG",},
+            "bkpaas_auth": {
+                "handlers": ["console", "logstash_redis", "file"],
+                "level": "DEBUG",
+            },
             "sentry_logger": {"handlers": ["sentry"], "level": "ERROR"},
         },
     }
@@ -295,11 +321,13 @@ HELM3_BIN = "/bin/helm3"
 YTT_BIN = "/bin/ytt"
 KUBECTL_BIN = "/bin/kubectl"  # default kubectl bin filename
 DASHBOARD_CTL_BIN = "/bin/dashboard-ctl"  # default dashboard ctl filename
+DASHBOARD_CTL_VERSION_MAP = {"v1": "/bin/dashboard-ctl", "v2": "/bin/dashboard-ctl-v2"}
 KUBECTL_BIN_MAP = {
     "1.8.3": "/bin/kubectl",
     "1.12.3": "/bin/kubectl-v1.12.3",
     "1.14.9": "/bin/kubectl-v1.14.9",
     "1.16.3": "/bin/kubectl-v1.16.3",
+    "1.18.12": "/bin/kubectl-v1.18.12",
 }
 KUBECFG = "/root/.kube/config"  # kubectl config path, ex: ~/.kube/config
 BKE_SERVER_HOST = None  # example: http://127.0.0.1:44321
@@ -346,6 +374,9 @@ WEB_CONSOLE_KUBECTLD_IMAGE_PATH = ""
 WEB_CONSOLE_POD_SPEC = {}
 WEB_CONSOLE_PORT = int(os.environ.get("WEB_CONSOLE_PORT", 28800))
 
+# WEB_CONSOLE_MODE 为 external时, 指定的集群ID, token, api_host
+WEB_CONSOLE_EXTERNAL_CLUSTER = {"ID": "", "API_TOKEN": "", "API_HOST": ""}
+
 # thanos 查询API
 THANOS_HOST = ""
 THANOS_AUTH = None
@@ -361,7 +392,7 @@ BK_APP_WHITELIST = {}
 
 # 覆盖配置
 try:
-    from .base_bk import DATABASE_ROUTERS, TEMPLATES, STATICFILES_DIRS
+    from .base_bk import TEMPLATES, STATICFILES_DIRS
 except Exception:
     pass
 

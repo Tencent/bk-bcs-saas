@@ -179,6 +179,10 @@ urlpatterns += [
     url(
         r"^api/cluster_mgr/projects/(?P<project_id>\w{32})/nodes/-/labels/detail/$",
         views.ListNodelabelsViewSets.as_view({"post": "list_labels_details"})
+    ),
+    url(
+        r"^api/cluster_mgr/projects/(?P<project_id>\w{32})/nodes/labels/$",
+        views.QueryNodeLabelsViewSet.as_view({"get": "query_labels"})
     )
 ]
 
@@ -186,7 +190,7 @@ urlpatterns += [
 urlpatterns += [
     url(
         r'^api/projects/(?P<project_id>[\w\-]+)/clusters/(?P<cluster_id>[\w\-]+)/nodes/(?P<node_id>\d+)/$',
-        views.DeleteNotReadyNode.as_view({'delete': 'delete'})
+        views.DeleteNodeRecordViewSet.as_view({'delete': 'delete'})
     ),
     url(
         r"^api/cluster_mgr/projects/(?P<project_id>\w{32})/nodes/-/labels/$",

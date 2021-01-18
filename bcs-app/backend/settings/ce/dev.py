@@ -17,6 +17,7 @@ import redis
 
 from .base import *  # noqa
 
+SECRET_KEY = "jllc(^rzpe8_udv)oadny2j3ym#qd^x^3ns11_8kq(1rf8qpd2"
 
 DATABASES["default"] = {
     "ENGINE": "django.db.backends.mysql",
@@ -35,6 +36,8 @@ INSTALLED_APPS += [
 LOG_LEVEL = "DEBUG"
 LOGGING = get_logging_config(LOG_LEVEL)
 
+# 设置搭建的社区版域名
+BK_PAAS_HOST = os.environ.get("BK_PAAS_HOST", "")
 SESSION_COOKIE_DOMAIN = "." + parse.urlparse(BK_PAAS_HOST).netloc.split(":")[0]
 CSRF_COOKIE_DOMAIN = SESSION_COOKIE_DOMAIN
 
