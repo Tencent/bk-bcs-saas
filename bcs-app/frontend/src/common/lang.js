@@ -22,7 +22,7 @@ export default {
     '当前账号没有管理员权限，不可编辑，': ['Current account has no administrator rights and cannot be edited. '],
     '请': ['Please'],
     '点击申请权限': [' Apply permission'],
-    '该项目下已有集群信息，如需更改编排类型和绑定业务信息，请先删除已有集群': ['Cluster information is available under this project. If you need to change the arrange type and bind the service information, delete the existing cluster first.'],
+    '该项目下已有集群信息，如需更改项目绑定的业务信息，请先删除已有集群': ['Cluster information is available under this project. If you need to change the business information bound to the project, delete the existing cluster first.'],
     '当前账号在蓝鲸配置平台无业务，请联系运维在蓝鲸配置平台关联业务，': ['Current account has no business on the CMDB. Please contact Operations Engineer on the CMDB to associate business. '],
     '点击查看业务和运维信息': ['View Business and Operations information'],
     '当前账号在蓝鲸CMDB无业务运维权限，请联系要关联的CMDB业务的运维[{openService}]': ['Current account has no business on the CMDB. Please contact Operations Engineer on the CMDB to [{openService}].'],

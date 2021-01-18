@@ -76,7 +76,7 @@
                     <div class="bk-form-item" v-if="isHasCluster">
                         <label class="bk-label" style="width:150px;"></label>
                         <div class="bk-form-content" style="margin-left: 150px; width: 260px;">
-                            {{$t('该项目下已有集群信息，如需更改编排类型和绑定业务信息，请先删除已有集群')}}
+                            {{$t('该项目下已有集群信息，如需更改项目绑定的业务信息，请先删除已有集群')}}
                         </div>
                     </div>
                 </form>
