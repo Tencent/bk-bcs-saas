@@ -86,12 +86,14 @@ export default {
                 {
                     id: 1,
                     text: this.$t('当前节点必须为已故障或已从集群移除，否则，平台会重新同步该节点数据'),
-                    isChecked: true
+                    isChecked: true,
+                    isText: true
                 },
                 {
                     id: 2,
                     text: this.$t('此操作不会删除集群中的节点，仅移除当前节点在平台中的记录'),
-                    isChecked: true
+                    isChecked: true,
+                    isText: true
                 }
             ],
             // nodeList 分页配置
