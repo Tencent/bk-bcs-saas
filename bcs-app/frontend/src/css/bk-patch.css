@@ -1241,3 +1241,42 @@
         }
     }
 }
+
+.scale-dialog {
+    .bk-dialog-tool {
+        position: absolute;
+        top: 0;
+        right: 0;
+    }
+    .bk-dialog-header {
+        background: #fafbfd;
+        border-radius: 2px;
+        color: #737987;
+        height: 50px;
+        line-height: 50px;
+        padding: 0 20px;
+        .bk-dialog-title {
+            color: #737987;
+            text-align: left;
+            font-size: 18px;
+        }
+    }
+    button.disabled {
+        background-color: #fafafa;
+        border-color: $borderLightColor;
+        color: #ccc;
+        cursor: not-allowed;
+
+        &:hover {
+            background-color: #fafafa;
+            border-color: $borderLightColor;
+        }
+    }
+
+    .scale-wrapper {
+        position: relative;
+        .bk-number .bk-number-content.bk-number-larger .bk-number-icon-content {
+            margin-top: 0 !important;
+        }
+    }
+}

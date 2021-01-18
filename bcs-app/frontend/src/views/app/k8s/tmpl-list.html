@@ -519,7 +519,9 @@
                         <!-- list-item-tpl -->
                         <template v-if="namespace.isOpen">
                             <div class="list-item-tpl">
-                                <div class="list-item-tpl-table" v-bkloading="{isLoading: namespace.appLoading}" v-if="namespace.isOpen">
+                                <div class="list-item-tpl-table loading" v-if="namespace.appLoading" v-bkloading="{ isLoading: true }">
+                                </div>
+                                <div class="list-item-tpl-table" v-else v-bkloading="{ isLoading: false }">
                                     <table class="bk-table has-table-hover biz-table" style="overflow: hidden;">
                                         <thead>
                                             <tr>
@@ -1158,26 +1160,26 @@
         :is-show.sync="instanceNumDialogConf.isShow"
         :width="instanceNumDialogConf.width"
         :title="instanceNumDialogConf.title"
-        :close-icon="instanceNumDialogConf.closeIcon"
-        :ext-cls="'adjust-instance-dialog'"
+        :close-icon="!isUpdating"
+        :ext-cls="'scale-dialog'"
         :quick-close="false">
         <template slot="content">
-            <form class="bk-form bk-form-vertical biz-instance-num-form">
+            <div class="scale-wrapper" v-bkloading="{ isLoading: isLoading, opacity: 1 }">
                 <div class="bk-form-item">
                     <label class="bk-label">
                         {{$t('实例数量')}}
                     </label>
-                    <div class="bk-form-content">
+                    <div class="bk-form-content" style="display: inline-block; margin-left: 10px;">
                         <bk-number-input
                             :value.sync="instanceNum"
-                            :min="1"
+                            :min="0"
                             :max="1000"
-                            :ex-style="{'width': '260px'}"
+                            :ex-style="{ 'width': '260px' }"
                             :placeholder="$t('请输入')">
                         </bk-number-input>
                     </div>
                 </div>
-            </form>
+            </div>
         </template>
         <template slot="footer">
             <div class="bk-dialog-outer">
