@@ -467,7 +467,8 @@ export default {
                 list.forEach(item => {
                     if (isNs) {
                         item.id = item.ns_id
-                        item.text = item.ns_name
+                        const clusterId = item.cluster_id || ''
+                        item.text = item.ns_name + (clusterId ? ` (${clusterId})` : '')
                     }
                     if (isApp) {
                         item.id = item.app_id
