@@ -15,15 +15,13 @@ from backend.components import gse
 
 
 class GSEClient:
-
     @classmethod
     def get_agent_status(cls, request, ip_list):
         hosts = []
         for info in ip_list:
             plat_info = info.get('bk_cloud_id') or []
             plat_id = plat_info[0]['id'] if plat_info else 0
-            hosts.extend([
-                {'plat_id': plat_id, 'bk_cloud_id': plat_id, 'ip': ip}
-                for ip in info.get('inner_ip', '').split(',')
-            ])
+            hosts.extend(
+                [{'plat_id': plat_id, 'bk_cloud_id': plat_id, 'ip': ip} for ip in info.get('inner_ip', '').split(',')]
+            )
         return gse.get_agent_status(request.user.username, hosts)

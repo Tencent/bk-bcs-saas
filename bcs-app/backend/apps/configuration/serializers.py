@@ -11,23 +11,26 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-import logging
 import json
+import logging
 import re
 
-from django.utils import timezone
 from django.conf import settings
+from django.utils import timezone
+from django.utils.translation import ugettext_lazy as _
+from jsonschema import SchemaError
+from jsonschema import ValidationError as JsonValidationError
+from jsonschema import validate as json_validate
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
-from jsonschema import ValidationError as JsonValidationError, SchemaError, validate as json_validate
-from django.utils.translation import ugettext_lazy as _
+
+from backend.apps.configuration.utils import check_var_by_config, to_bcs_res_name
+from backend.apps.instance.constants import InsState
+from backend.apps.instance.models import InstanceConfig, VersionInstance
 
 from . import models
-from .constants_bak import SERVICE_SCHEM, CONFIGMAP_SCHEM, SECRET_SCHEM
-from .constants_k8s import K8S_SECRET_SCHEM, K8S_CONFIGMAP_SCHEM, K8S_SERVICE_SCHEM
-from backend.apps.instance.constants import InsState
-from backend.apps.configuration.utils import to_bcs_res_name, check_var_by_config
-from backend.apps.instance.models import VersionInstance, InstanceConfig
+from .constants_bak import CONFIGMAP_SCHEM, SECRET_SCHEM, SERVICE_SCHEM
+from .constants_k8s import K8S_CONFIGMAP_SCHEM, K8S_SECRET_SCHEM, K8S_SERVICE_SCHEM
 
 logger = logging.getLogger(__name__)
 
@@ -79,8 +82,7 @@ def check_app_id(data, data_app_id):
 
 
 def is_tempalte_instance(template_id):
-    """模板是否被实例化过
-    """
+    """模板是否被实例化过"""
     ins_id_list = VersionInstance.objects.filter(
         template_id=template_id, is_bcs_success=True, is_deleted=False
     ).values_list("id", flat=True)
@@ -93,8 +95,7 @@ def is_tempalte_instance(template_id):
 
 
 def filter_instance_resource_by_version(data, version_id):
-    """只返回实例化过的版本内的资源
-    """
+    """只返回实例化过的版本内的资源"""
     exist_instance_ids = VersionInstance.objects.filter(
         version_id=version_id, is_bcs_success=True, is_deleted=False
     ).values_list("id", flat=True)
@@ -117,8 +118,7 @@ def filter_instance_resource_by_version(data, version_id):
 
 
 def get_template_info(tpl, kind):
-    """获取模板的基本信息（模板&模板列表）,不再使用 TemplateSLZ
-    """
+    """获取模板的基本信息（模板&模板列表）,不再使用 TemplateSLZ"""
     show_version = models.ShowVersion.objects.filter(template_id=tpl.id).order_by("-updated").first()
     if show_version:
         latest_show_version = show_version.name
@@ -162,8 +162,7 @@ def get_template_info(tpl, kind):
 
 
 class ResourceSLZ(serializers.ModelSerializer):
-    """模板集版本中的资源信息
-    """
+    """模板集版本中的资源信息"""
 
     data = serializers.SerializerMethodField()
     lb_services = serializers.JSONField(source="get_lb_services", read_only=True)
@@ -189,8 +188,7 @@ class ResourceSLZ(serializers.ModelSerializer):
 
 
 class ResourceRequstSLZ(serializers.Serializer):
-    """资源的请求参数
-    """
+    """资源的请求参数"""
 
     category = serializers.CharField(required=False, allow_blank=True)
     tmpl_app_name = serializers.CharField(required=False, allow_blank=True)
@@ -202,8 +200,7 @@ class ResourceRequstSLZ(serializers.Serializer):
 
 
 class TemplateCreateSLZ(serializers.Serializer):
-    """创建／更新模板集基本信息
-    """
+    """创建／更新模板集基本信息"""
 
     name = serializers.CharField(max_length=30, required=True)
     desc = serializers.CharField(max_length=50, required=False, allow_blank=True)
@@ -272,8 +269,7 @@ class ServiceCreateOrUpdateSLZ(serializers.Serializer):
 
 
 class ConfigMapCreateOrUpdateSLZ(serializers.Serializer):
-    """
-    """
+    """"""
 
     config = serializers.JSONField(required=True)
     version_id = serializers.IntegerField(required=False)
@@ -305,8 +301,7 @@ class ConfigMapCreateOrUpdateSLZ(serializers.Serializer):
 
 
 class SecretCreateOrUpdateSLZ(serializers.Serializer):
-    """
-    """
+    """"""
 
     config = serializers.JSONField(required=True)
     version_id = serializers.IntegerField(required=False)
@@ -343,8 +338,7 @@ K8S_NAME_ERROR_MSG = _("名称格式错误，以小写字母或数字开头，�
 
 
 def check_k8s_deployment_id(data, deploy_tag_list):
-    """检查 k8s Service 中关联的 Deployment 是否合法
-    """
+    """检查 k8s Service 中关联的 Deployment 是否合法"""
     if not data["version_id"]:
         raise ValidationError(_("请先创建 Deplpyment ，再创建 Service"))
 

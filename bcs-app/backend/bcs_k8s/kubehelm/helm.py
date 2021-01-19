@@ -17,22 +17,23 @@ this is the operations for helm cli
 required: helm 2.9.1+
 """
 
-import os
-import stat
-import time
-import subprocess
-import logging
-import tempfile
-import shutil
-import json
 import contextlib
+import json
+import logging
+import os
+import shutil
+import stat
+import subprocess
+import tempfile
+import time
 from dataclasses import asdict
 
 from django.conf import settings
 from django.template.loader import render_to_string
 
-from .exceptions import HelmError, HelmExecutionError
 from backend.apps.whitelist_bk import enable_helm_v3
+
+from .exceptions import HelmError, HelmExecutionError
 
 logger = logging.getLogger(__name__)
 
@@ -136,7 +137,11 @@ class KubeHelmClient:
                     "do helm template fail: namespace={namespace}, name={name}\n"
                     "parameters={parameters}\nvaluefile={valuefile}\nfiles={files}"
                 ).format(
-                    namespace=namespace, name=name, parameters=parameters, valuefile=valuefile, files=files,
+                    namespace=namespace,
+                    name=name,
+                    parameters=parameters,
+                    valuefile=valuefile,
+                    files=files,
                 )
             )
             raise e
@@ -190,7 +195,11 @@ class KubeHelmClient:
                     "do helm template fail: namespace={namespace}, name={name}\n"
                     "parameters={parameters}\nvaluefile={valuefile}\nfiles={files}"
                 ).format(
-                    namespace=namespace, name=name, parameters=parameters, valuefile=valuefile, files=files,
+                    namespace=namespace,
+                    name=name,
+                    parameters=parameters,
+                    valuefile=valuefile,
+                    files=files,
                 )
             )
             raise e
@@ -312,8 +321,7 @@ class KubeHelmClient:
         raise ValueError(max_retries)
 
     def _run_command(self, cmd_args):
-        """Run the helm command with wrapped exceptions
-        """
+        """Run the helm command with wrapped exceptions"""
         try:
             logger.info("Calling helm cmd, cmd: (%s)", " ".join(cmd_args))
 

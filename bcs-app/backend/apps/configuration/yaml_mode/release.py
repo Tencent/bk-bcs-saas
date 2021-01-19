@@ -12,9 +12,9 @@
 # specific language governing permissions and limitations under the License.
 #
 import datetime
+from dataclasses import dataclass
 
 import jinja2
-from dataclasses import dataclass
 from rest_framework.exceptions import ParseError
 
 from backend.apps.configuration.constants import FileResourceName

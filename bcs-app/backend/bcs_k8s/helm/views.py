@@ -13,28 +13,36 @@
 #
 import logging
 
-from rest_framework import viewsets, status
-from rest_framework.response import Response
-from rest_framework.pagination import PageNumberPagination
 from django.conf import settings
-from rest_framework.renderers import BrowsableAPIRenderer
-from rest_framework.exceptions import ValidationError
 from django.utils.translation import ugettext_lazy as _
+from rest_framework import status, viewsets
+from rest_framework.exceptions import ValidationError
+from rest_framework.pagination import PageNumberPagination
+from rest_framework.renderers import BrowsableAPIRenderer
+from rest_framework.response import Response
 
-from backend.utils.error_codes import error_codes
-from backend.utils.views import ActionSerializerMixin, FilterByProjectMixin, with_code_wrapper
-from .models.chart import (Chart, ChartVersion, ChartVersionSnapshot)
-from .models.repo import Repository
-from .serializers import (
-    ChartSLZ, ChartVersionSLZ, ChartDetailSLZ,
-    CreateRepoSLZ, RepoSLZ, MinimalRepoSLZ, ChartVersionTinySLZ, RepositorySyncSLZ)
-from backend.bcs_k8s.authtoken.authentication import TokenAuthentication
-from .providers.repo_provider import add_repo, add_plain_repo
-from .tasks import sync_helm_repo
 from backend.apps.whitelist_bk import enabled_force_sync_chart_repo
-from backend.utils.renderers import BKAPIRenderer
 from backend.bcs_k8s.app.models import App
+from backend.bcs_k8s.authtoken.authentication import TokenAuthentication
 from backend.components.helm_chart import delete_chart_version
+from backend.utils.error_codes import error_codes
+from backend.utils.renderers import BKAPIRenderer
+from backend.utils.views import ActionSerializerMixin, FilterByProjectMixin, with_code_wrapper
+
+from .models.chart import Chart, ChartVersion, ChartVersionSnapshot
+from .models.repo import Repository
+from .providers.repo_provider import add_plain_repo, add_repo
+from .serializers import (
+    ChartDetailSLZ,
+    ChartSLZ,
+    ChartVersionSLZ,
+    ChartVersionTinySLZ,
+    CreateRepoSLZ,
+    MinimalRepoSLZ,
+    RepositorySyncSLZ,
+    RepoSLZ,
+)
+from .tasks import sync_helm_repo
 
 logger = logging.getLogger(__name__)
 
@@ -42,8 +50,8 @@ logger = logging.getLogger(__name__)
 # for debug purpose
 # from rest_framework.authentication import SessionAuthentication
 # class CsrfExemptSessionAuthentication(SessionAuthentication):
-    # def enforce_csrf(self, request):
-        # return  # To not perform the csrf check previously happening
+# def enforce_csrf(self, request):
+# return  # To not perform the csrf check previously happening
 
 
 class StandardResultsSetPagination(PageNumberPagination):
@@ -109,8 +117,8 @@ class ChartVersionView(ActionSerializerMixin, viewsets.ModelViewSet):
 
 @with_code_wrapper
 class RepositoryView(FilterByProjectMixin, viewsets.ModelViewSet):
-    """Viewset for helm chart repository management
-    """
+    """Viewset for helm chart repository management"""
+
     serializer_class = RepoSLZ
     queryset = Repository.objects.all()
 
@@ -121,33 +129,23 @@ class RepositoryView(FilterByProjectMixin, viewsets.ModelViewSet):
         return queryset
 
     def list_detailed(self, request, *args, **kwargs):
-        """List all repositories
-        """
+        """List all repositories"""
         serializer = RepoSLZ(self.get_queryset(), many=True)
-        return Response({
-            'count': self.get_queryset().count(),
-            'results': serializer.data
-        })
+        return Response({'count': self.get_queryset().count(), 'results': serializer.data})
 
     def list_minimal(self, request, *args, **kwargs):
-        """List all repositories minimally
-        """
+        """List all repositories minimally"""
         serializer = MinimalRepoSLZ(self.get_queryset(), many=True)
-        return Response({
-            'count': self.get_queryset().count(),
-            'results': serializer.data
-        })
+        return Response({'count': self.get_queryset().count(), 'results': serializer.data})
 
     def retrieve(self, request, project_id, *args, **kwargs):
-        """Retrieve certain Chart Repository
-        """
+        """Retrieve certain Chart Repository"""
         repo_id = kwargs.get('repo_id')
         serializer = RepoSLZ(self.queryset.get(project_id=project_id, id=repo_id))
         return Response(data=serializer.data)
 
     def destroy(self, request, project_id, *args, **kwargs):
-        """Destroy Chart Repository
-        """
+        """Destroy Chart Repository"""
         repo_id = kwargs.get('repo_id')
         try:
             self.queryset.get(project_id=project_id, id=repo_id).delete()
@@ -158,13 +156,12 @@ class RepositoryView(FilterByProjectMixin, viewsets.ModelViewSet):
 
 @with_code_wrapper
 class RepositoryCreateView(FilterByProjectMixin, viewsets.ViewSet):
-    """Viewset for creating helm chart repository management
-    """
+    """Viewset for creating helm chart repository management"""
+
     serializer_class = CreateRepoSLZ
 
     def create(self, request, project_id, *args, **kwargs):
-        """Create Repository (support all kind of repo create)
-        """
+        """Create Repository (support all kind of repo create)"""
         serializer = CreateRepoSLZ(data=request.data)
         serializer.is_valid(raise_exception=True)
 
@@ -174,47 +171,36 @@ class RepositoryCreateView(FilterByProjectMixin, viewsets.ViewSet):
             provider_name=data.get('provider'),
             user=self.request.user,
             name=data["name"],
-            url=data.get("url")
+            url=data.get("url"),
         )
 
-        return Response(
-            status=status.HTTP_201_CREATED,
-            data=RepoSLZ(new_chart_repo).data
-        )
+        return Response(status=status.HTTP_201_CREATED, data=RepoSLZ(new_chart_repo).data)
 
 
 @with_code_wrapper
 class RepositorySyncView(FilterByProjectMixin, viewsets.ViewSet):
-    """RepositorySyncView call sync_helm_repo directly
-    """
+    """RepositorySyncView call sync_helm_repo directly"""
+
     serializer_class = RepositorySyncSLZ
 
     def create(self, request, project_id, repo_id, *args, **kwargs):
-        """Sync Chart Repository
-        """
+        """Sync Chart Repository"""
         # 默认不需要设置为强制同步
         sync_helm_repo(repo_id, request.data.get("force_sync") or False)
 
-        data = {
-            "code": 0,
-            "message": "repo sync success"
-        }
+        data = {"code": 0, "message": "repo sync success"}
 
-        return Response(
-            status=status.HTTP_200_OK,
-            data=data
-        )
+        return Response(status=status.HTTP_200_OK, data=data)
 
 
 @with_code_wrapper
 class RepositorySyncByProjectView(FilterByProjectMixin, viewsets.ViewSet):
-    """RepositorySyncByProjectView call sync_helm_repo directly
-    """
+    """RepositorySyncByProjectView call sync_helm_repo directly"""
+
     serializer_class = RepositorySyncSLZ
 
     def create(self, request, project_id, *args, **kwargs):
-        """Sync Chart Repository
-        """
+        """Sync Chart Repository"""
         id_name_list = list(Repository.objects.filter(project_id=project_id).values_list("id", "name"))
         # 白名单控制强制同步项目仓库，不强制同步公共仓库
         force_sync_repo = False
@@ -228,15 +214,9 @@ class RepositorySyncByProjectView(FilterByProjectMixin, viewsets.ViewSet):
             else:
                 sync_helm_repo(repo_id, force_sync_repo)
 
-        data = {
-            "code": 0,
-            "message": "success sync %s repositories" % len(id_name_list)
-        }
+        data = {"code": 0, "message": "success sync %s repositories" % len(id_name_list)}
 
-        return Response(
-            status=status.HTTP_200_OK,
-            data=data
-        )
+        return Response(status=status.HTTP_200_OK, data=data)
 
 
 class RepositorySyncByProjectAPIView(RepositorySyncByProjectView):
@@ -245,29 +225,24 @@ class RepositorySyncByProjectAPIView(RepositorySyncByProjectView):
 
     def create(self, request, sync_project_id, *args, **kwargs):
         project_id = sync_project_id
-        return super(RepositorySyncByProjectAPIView, self).create(
-            request, project_id, *args, **kwargs)
+        return super(RepositorySyncByProjectAPIView, self).create(request, project_id, *args, **kwargs)
 
 
 @with_code_wrapper
 class PlainChartMuseumProviderCreateView(FilterByProjectMixin, viewsets.ViewSet):
-    """Viewset for plain chart repository, this kind of repo don't provide chartmuseum
-    """
+    """Viewset for plain chart repository, this kind of repo don't provide chartmuseum"""
+
     serializer_class = CreateRepoSLZ
 
     def create(self, request, project_id, *args, **kwargs):
-        """Create Chart Repository
-        """
+        """Create Chart Repository"""
         serializer = CreateRepoSLZ(data=request.data)
         serializer.is_valid(raise_exception=True)
 
         data = serializer.data
         new_chart_repo = add_plain_repo(project_id=project_id, name=data["name"], url=data["url"])
 
-        return Response(
-            status=status.HTTP_200_OK,
-            data=RepoSLZ(new_chart_repo).data
-        )
+        return Response(status=status.HTTP_200_OK, data=RepoSLZ(new_chart_repo).data)
 
 
 class ChartVersionViewSet(viewsets.ViewSet):
@@ -298,15 +273,12 @@ class ChartVersionViewSet(viewsets.ViewSet):
         # version id
         version_id = request.query_params.get("version_id")
         release_qs = self.get_release_queryset(chart_id, version_id)
-        data = release_qs.values(
-            "id", "name", "cluster_id", "namespace", "namespace_id"
-        )
+        data = release_qs.values("id", "name", "cluster_id", "namespace", "namespace_id")
 
         return Response(data)
 
     def delete(self, request, project_id, chart_id):
-        """删除chart或指定的chart版本
-        """
+        """删除chart或指定的chart版本"""
         version_id = request.query_params.get("version_id")
         release_qs = self.get_release_queryset(chart_id, version_id)
         # 如果release不为空，则不能进行删除
@@ -340,8 +312,6 @@ class ChartVersionViewSet(viewsets.ViewSet):
             chart.update(defaultChartVersion=chart_all_versions.order_by("-created")[0])
 
         # 设置commit id为空，以防出现相同版本digest不变动的情况
-        Repository.objects.filter(
-            project_id=project_id
-        ).exclude(name="public-repo").update(commit=None)
+        Repository.objects.filter(project_id=project_id).exclude(name="public-repo").update(commit=None)
 
         return Response()

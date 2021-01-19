@@ -12,10 +12,12 @@
 # specific language governing permissions and limitations under the License.
 #
 from unittest import mock
+
 import pytest
 
-from ..conftest import FakeBcsKubeConfigurationService
 from backend.resources.namespace.namespace_quota import NamespaceQuota
+
+from ..conftest import FakeBcsKubeConfigurationService
 
 
 class TestNamespaceQuota:

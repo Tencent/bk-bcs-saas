@@ -11,40 +11,34 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-import json
 import copy
+import json
 import logging
 from datetime import datetime
 
 from django.conf import settings
-from rest_framework.response import Response
-from rest_framework.renderers import BrowsableAPIRenderer
 from django.utils.translation import ugettext_lazy as _
+from rest_framework.renderers import BrowsableAPIRenderer
+from rest_framework.response import Response
+
+from backend.accounts.bcs_perm import Cluster, Namespace
+from backend.activity_log import client
+from backend.apps.cluster import constants, serializers
+from backend.apps.cluster.constants import ClusterState
+from backend.apps.cluster.models import ClusterInstallLog, ClusterOperType, ClusterStatus, CommonStatus
+from backend.apps.instance.models import InstanceConfig, InstanceEvent, MetricConfig, VersionInstance
+from backend.apps.network.models import K8SLoadBlance, MesosLoadBlance
+from backend.bcs_k8s.app.models import App
+from backend.components import cc, ops, paas_cc
+from backend.resources import cluster as cluster_utils
+from backend.utils import cc as cc_utils
+from backend.utils.cache import rd_client
+from backend.utils.errcodes import ErrorCode
+from backend.utils.error_codes import bk_error_codes, error_codes
+from backend.utils.ratelimit import RateLimiter
+from backend.utils.renderers import BKAPIRenderer
 
 from .configs import k8s, mesos
-from backend.components import paas_cc, cc
-from backend.components import ops
-from backend.utils.error_codes import error_codes
-from backend.apps.cluster import serializers
-from backend.utils import cc as cc_utils
-from backend.activity_log import client
-from backend.apps.cluster import constants
-from backend.utils.errcodes import ErrorCode
-from backend.apps.cluster.models import (
-    ClusterInstallLog, ClusterStatus, CommonStatus, ClusterOperType
-)
-from backend.utils.cache import rd_client
-from backend.utils.ratelimit import RateLimiter
-from backend.utils.error_codes import bk_error_codes
-from backend.apps.instance.models import (
-    VersionInstance, InstanceConfig, InstanceEvent, MetricConfig
-)
-from backend.apps.network.models import K8SLoadBlance, MesosLoadBlance
-from backend.utils.renderers import BKAPIRenderer
-from backend.accounts.bcs_perm import Cluster, Namespace
-from backend.bcs_k8s.app.models import App
-from backend.resources import cluster as cluster_utils
-from backend.apps.cluster.constants import ClusterState
 
 logger = logging.getLogger(__name__)
 ACTIVITY_RESOURCE_TYPE = 'cluster'
@@ -58,16 +52,13 @@ class BaseCluster:
     render_classes = (BKAPIRenderer, BrowsableAPIRenderer)
 
     def update_cluster_status(self, status=CommonStatus.Initializing):
-        cluster_info = paas_cc.update_cluster(
-            self.access_token, self.project_id, self.cluster_id, {'status': status}
-        )
+        cluster_info = paas_cc.update_cluster(self.access_token, self.project_id, self.cluster_id, {'status': status})
         if cluster_info.get('code') != ErrorCode.NoError:
             raise error_codes.APIError(cluster_info.get('message'))
         return cluster_info.get('data', {})
 
     def delete_cluster(self, cluster_id):
-        """未请求到ops api，异常出现时，删除集群
-        """
+        """未请求到ops api，异常出现时，删除集群"""
         resp = paas_cc.delete_cluster(self.access_token, self.project_id, cluster_id)
         if resp.get('code') != ErrorCode.NoError:
             logger.error('Request paas cc api error, resp: %s' % json.dumps(resp))
@@ -83,21 +74,16 @@ class BaseCluster:
         kwargs = {
             "access_token": self.access_token,
             "project_id": self.project_id,
-            "cluster_state": self.data["cluster_state"]
+            "cluster_state": self.data["cluster_state"],
         }
-        return client.get_request_config(
-            cluster_id,
-            self.data['master_ips'],
-            need_nat=self.data['need_nat'],
-            **kwargs
-        )
+        return client.get_request_config(cluster_id, self.data['master_ips'], need_nat=self.data['need_nat'], **kwargs)
 
     def save_snapshot(self, cluster_id, config):
         data = {
             'cluster_id': cluster_id,
             'configure': json.dumps(config),
             'creator': self.username,
-            'project_id': self.project_id
+            'project_id': self.project_id,
         }
         resp = paas_cc.save_cluster_snapshot(self.access_token, data)
         if resp.get('code') != ErrorCode.NoError:
@@ -118,17 +104,16 @@ class BaseCluster:
         return "gcloud_v3_contain"
 
     def create_cluster_via_bcs(
-            self, cluster_id, cc_module, config=None, version='1.12.3', environment='prod', websvr=None):  # noqa
-        """调用bcs接口创建集群
-        """
+        self, cluster_id, cc_module, config=None, version='1.12.3', environment='prod', websvr=None
+    ):  # noqa
+        """调用bcs接口创建集群"""
         self.cluster_id = cluster_id
         kind_version_map = {
             'k8s': DEFAULT_K8S_VERSION,
             'mesos': DEFAULT_MESOS_VERSION,
         }
         if not config:
-            config = self.get_request_config(
-                cluster_id, kind_version_map[self.kind_name], environment)
+            config = self.get_request_config(cluster_id, kind_version_map[self.kind_name], environment)
         # 下发配置时，去除version
         config.pop('control_ip', None)
         websvr = config.pop('websvr', []) or websvr
@@ -152,7 +137,7 @@ class BaseCluster:
             'cc_app_id': self.cc_app_id,
             'area_name': self.area_name,
             'project_name': self.project_info['project_name'],
-            'websvr': websvr
+            'websvr': websvr,
         }
 
         log = ClusterInstallLog.objects.create(
@@ -163,18 +148,24 @@ class BaseCluster:
             params=json.dumps(params),
             operator=self.request.user.username,
             oper_type=ClusterOperType.ClusterInstall,
-            is_polling=True
+            is_polling=True,
         )
 
         platform = self.get_ops_backend(self.data["cluster_state"])
         try:
             task_info = ops.create_cluster(
-                self.access_token, self.project_id,
-                self.kind_name, cluster_id,
-                self.data['master_ips'], config,
-                cc_module, self.control_ip,
-                self.cc_app_id, self.username, websvr,
-                platform=platform
+                self.access_token,
+                self.project_id,
+                self.kind_name,
+                cluster_id,
+                self.data['master_ips'],
+                config,
+                cc_module,
+                self.control_ip,
+                self.cc_app_id,
+                self.username,
+                websvr,
+                platform=platform,
             )
         except Exception as err:
             logger.exception('Create cluster error: %s', err)
@@ -210,7 +201,6 @@ class BaseCluster:
 
 
 class CreateCluster(BaseCluster):
-
     def __init__(self, request, project_id):
         self.request = request
         self.project_id = project_id
@@ -223,11 +213,7 @@ class CreateCluster(BaseCluster):
     def check_data(self):
         slz = serializers.CreateClusterSLZ(
             data=self.request.data,
-            context={
-                "project_id": self.project_id,
-                "access_token": self.access_token,
-                "default_coes": self.kind_name
-            }
+            context={"project_id": self.project_id, "access_token": self.access_token, "default_coes": self.kind_name},
         )
         slz.is_valid(raise_exception=True)
         self.data = slz.validated_data
@@ -246,8 +232,7 @@ class CreateCluster(BaseCluster):
         self.data['area_id'] = self.area_info['id']
 
     def get_area_info(self):
-        """获取指定区域配置
-        """
+        """获取指定区域配置"""
         area_info = paas_cc.get_area_list(self.access_token)
         if area_info.get('code') != ErrorCode.NoError:
             raise error_codes.APIError(area_info.get('message'))
@@ -261,14 +246,8 @@ class CreateCluster(BaseCluster):
         return data
 
     def get_cluster_base_config(self, cluster_id, version, environment='prod'):
-        params = {
-            'ver_id': version,
-            'environment': environment,
-            'kind': self.kind_name
-        }
-        base_cluster_config = paas_cc.get_base_cluster_config(
-            self.access_token, self.project_id, params
-        )
+        params = {'ver_id': version, 'environment': environment, 'kind': self.kind_name}
+        base_cluster_config = paas_cc.get_base_cluster_config(self.access_token, self.project_id, params)
         if base_cluster_config.get('code') != ErrorCode.NoError:
             # delete created cluster record
             self.delete_cluster(cluster_id)
@@ -294,10 +273,7 @@ class CreateCluster(BaseCluster):
         # 权限校验
         self.check_cluster_perm()
         cluster_data = copy.deepcopy(self.data)
-        cluster_data['master_ips'] = [
-            {'inner_ip': ip}
-            for ip in self.data['master_ips']
-        ]
+        cluster_data['master_ips'] = [{'inner_ip': ip} for ip in self.data['master_ips']]
         cluster_data["state"] = cluster_data["cluster_state"]
         # 添加类型参数
         cluster_data["type"] = cluster_data["coes"]
@@ -307,7 +283,7 @@ class CreateCluster(BaseCluster):
             project_id=self.project_id,
             user=self.username,
             resource_type=ACTIVITY_RESOURCE_TYPE,
-            resource=cluster_data['name']
+            resource=cluster_data['name'],
         ).log_add() as ual:
             resp = paas_cc.create_cluster(self.access_token, self.project_id, cluster_data)
             if resp.get('code') != ErrorCode.NoError or not resp.get('data'):
@@ -329,7 +305,6 @@ class CreateCluster(BaseCluster):
 
 
 class ReinstallCluster(BaseCluster):
-
     def __init__(self, request, project_id, cluster_id):
         self.request = request
         self.project_id = project_id
@@ -350,9 +325,7 @@ class ReinstallCluster(BaseCluster):
             raise error_codes.CheckFailed(_("已经触发操作，请勿重复操作"))
 
     def get_cluster_info(self):
-        cluster_info = paas_cc.get_cluster(
-            self.access_token, self.project_id, self.cluster_id
-        )
+        cluster_info = paas_cc.get_cluster(self.access_token, self.project_id, self.cluster_id)
         if cluster_info.get('code') != ErrorCode.NoError:
             raise error_codes.APIError(cluster_info.get('message'))
         if not cluster_info.get('data'):
@@ -361,7 +334,8 @@ class ReinstallCluster(BaseCluster):
 
     def get_cluster_last_log(self):
         log = ClusterInstallLog.objects.filter(
-            project_id=self.project_id, cluster_id=self.cluster_id,
+            project_id=self.project_id,
+            cluster_id=self.cluster_id,
         ).last()
         if not log:
             raise error_codes.CheckFailed(_("没有查询对应的任务日志"))
@@ -390,7 +364,7 @@ class ReinstallCluster(BaseCluster):
             user=self.username,
             resource_type=ACTIVITY_RESOURCE_TYPE,
             resource=self.cluster_id,
-            resource_id=self.cluster_id
+            resource_id=self.cluster_id,
         ).log_modify():
             self.data = {
                 'master_ips': params['master_ips'],
@@ -398,7 +372,7 @@ class ReinstallCluster(BaseCluster):
                 'environment': params['environment'],
                 'cluster_id': self.cluster_id,
                 'name': params['cluster_name'],
-                "cluster_state": data.get("state") or constants.ClusterState.BCSNew.value
+                "cluster_state": data.get("state") or constants.ClusterState.BCSNew.value,
             }
             self.cluster_name = params['cluster_name']
             self.kind_name = params['kind_name']
@@ -416,7 +390,6 @@ class ReinstallCluster(BaseCluster):
 
 
 class DeleteCluster(BaseCluster):
-
     def __init__(self, request, project_id, cluster_id):
         self.request = request
         self.project_id = project_id
@@ -428,9 +401,7 @@ class DeleteCluster(BaseCluster):
         self.cc_app_id = request.project.get('cc_app_id')
 
     def get_cluster_snapshot(self):
-        snapshot_info = paas_cc.get_cluster_snapshot(
-            self.access_token, self.project_id, self.cluster_id
-        )
+        snapshot_info = paas_cc.get_cluster_snapshot(self.access_token, self.project_id, self.cluster_id)
         if snapshot_info.get('code') != ErrorCode.NoError:
             self.update_cluster_status(status=CommonStatus.RemoveFailed)
             raise error_codes.APIError(snapshot_info.get('message'))
@@ -451,18 +422,14 @@ class DeleteCluster(BaseCluster):
         return [int(info['id']) for info in data]
 
     def delete_namespaces(self):
-        """删除集群下的命名空间
-        """
-        resp = paas_cc.delete_cluster_namespace(
-            self.access_token, self.project_id, self.cluster_id
-        )
+        """删除集群下的命名空间"""
+        resp = paas_cc.delete_cluster_namespace(self.access_token, self.project_id, self.cluster_id)
         if resp.get('code') != ErrorCode.NoError:
             self.update_cluster_status(status=CommonStatus.RemoveFailed)
             raise error_codes.APIError(resp.get('message'))
 
     def clean_instance(self, ns_id_list):
-        """调整命名空间对应的实例等信息的删除状态
-        """
+        """调整命名空间对应的实例等信息的删除状态"""
         instance_info = InstanceConfig.objects.filter(namespace__in=ns_id_list)
         version_instance_id_list = [info.instance_id for info in instance_info]
         # 更新instance为已删除
@@ -477,23 +444,21 @@ class DeleteCluster(BaseCluster):
             deleted_time=datetime_now, is_deleted=True
         )
         # 更新metric config为已删除
-        MetricConfig.objects.filter(
-            instance_id__in=version_instance_id_list, namespace__in=ns_id_list
-        ).update(deleted_time=datetime_now, is_deleted=True)
+        MetricConfig.objects.filter(instance_id__in=version_instance_id_list, namespace__in=ns_id_list).update(
+            deleted_time=datetime_now, is_deleted=True
+        )
 
     def clean_lb(self):
         model = K8SLoadBlance if self.request.project['kind'] == 1 else MesosLoadBlance
-        model.objects.filter(
-            project_id=self.project_id, cluster_id=self.cluster_id
-        ).update(is_deleted=True, deleted_time=datetime.now())
+        model.objects.filter(project_id=self.project_id, cluster_id=self.cluster_id).update(
+            is_deleted=True, deleted_time=datetime.now()
+        )
 
     def delete_helm_release(self):
         App.objects.filter(project_id=self.project_id, cluster_id=self.cluster_id).delete()
 
     def get_cluster_master(self):
-        cluster_masters = paas_cc.get_master_node_list(
-            self.access_token, self.project_id, self.cluster_id
-        )
+        cluster_masters = paas_cc.get_master_node_list(self.access_token, self.project_id, self.cluster_id)
         if cluster_masters.get('code') != ErrorCode.NoError:
             raise error_codes.APIError(cluster_masters.get('message'))
         results = cluster_masters.get('data', {}).get('results') or []
@@ -508,7 +473,7 @@ class DeleteCluster(BaseCluster):
             'cc_app_id': self.cc_app_id,
             'host_ips': master_ip_list,
             'project_code': self.project_info['english_name'],
-            'username': self.username
+            'username': self.username,
         }
         # 创建记录
         log = ClusterInstallLog.objects.create(
@@ -524,14 +489,25 @@ class DeleteCluster(BaseCluster):
         # NOTE: 因为后端的任务调度引擎针对删除集群的流程，跳过异常；因此，当出现调用接口异常时，也跳过异常处理
         try:
             task_info = ops.delete_cluster(
-                self.access_token, self.project_id, self.kind_name,
-                self.cluster_id, master_ip_list, self.control_ip,
-                self.cc_app_id, self.username, self.websvr, self.config,
-                platform=self.config.pop("platform", "gcloud_v3")
+                self.access_token,
+                self.project_id,
+                self.kind_name,
+                self.cluster_id,
+                master_ip_list,
+                self.control_ip,
+                self.cc_app_id,
+                self.username,
+                self.websvr,
+                self.config,
+                platform=self.config.pop("platform", "gcloud_v3"),
             )
             if task_info.get("code") != ErrorCode.NoError:
-                logger.warning("调用删除集群流程失败，项目ID: %s, 集群ID: %s, error: %s",
-                               self.project_id, self.cluster_id, task_info.get("message"))
+                logger.warning(
+                    "调用删除集群流程失败，项目ID: %s, 集群ID: %s, error: %s",
+                    self.project_id,
+                    self.cluster_id,
+                    task_info.get("message"),
+                )
                 self.delete_cluster(self.cluster_id)
                 return
         except Exception as e:
@@ -552,16 +528,12 @@ class DeleteCluster(BaseCluster):
         cluster_perm.can_delete(raise_exception=True)
 
     def delete_cluster_nodes(self, access_token, project_id, cluster_id):
-        """删除集群下的节点
-        """
+        """删除集群下的节点"""
         # 查询集群下节点
         nodes = cluster_utils.get_cluster_nodes(access_token, project_id, cluster_id, raise_exception=False)
         if not nodes:
             return
-        node_status = [
-            {"inner_ip": node["inner_ip"], "status": CommonStatus.Removed}
-            for node in nodes
-        ]
+        node_status = [{"inner_ip": node["inner_ip"], "status": CommonStatus.Removed} for node in nodes]
         cluster_utils.update_cc_nodes_status(access_token, project_id, cluster_id, node_status)
 
     def delete(self):
@@ -584,7 +556,7 @@ class DeleteCluster(BaseCluster):
             user=self.username,
             resource_type=ACTIVITY_RESOURCE_TYPE,
             resource=data['name'],
-            resource_id=self.cluster_id
+            resource_id=self.cluster_id,
         ).log_delete():
             snapshot = self.get_cluster_snapshot()
             self.config = json.loads(snapshot.get('configure', '{}'))

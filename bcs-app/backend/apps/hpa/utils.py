@@ -34,8 +34,7 @@ class DeleteHPAError(Exception):
 
 
 def get_mesos_current_metrics(instance):
-    """获取当前监控值
-    """
+    """获取当前监控值"""
     current_metrics = {}
     for metric in instance["spec"].get("metrics") or []:
         name = metric["Name"]
@@ -55,8 +54,7 @@ def get_mesos_current_metrics(instance):
 
 
 def get_metric_name_value(metric, field):
-    """获取metrics名称, 值
-    """
+    """获取metrics名称, 值"""
     metric_type = metric["type"]
     # CPU/MEM 等系统类型
     if metric_type == "Resource":
@@ -70,8 +68,7 @@ def get_metric_name_value(metric, field):
 
 
 def get_k8s_current_metrics(instance):
-    """获取当前监控值
-    """
+    """获取当前监控值"""
     current_metrics = {}
     for metric in instance["spec"].get("metrics") or []:
         name, target = get_metric_name_value(metric, field="target")
@@ -85,8 +82,7 @@ def get_k8s_current_metrics(instance):
 
 
 def get_current_metrics_display(_current_metrics):
-    """当前监控值前端显示
-    """
+    """当前监控值前端显示"""
     current_metrics = []
 
     for name, value in _current_metrics.items():
@@ -189,8 +185,7 @@ def slz_k8s_hpa_info(hpa, project_code, cluster_name, cluster_env, cluster_id):
 
 
 def get_cluster_hpa_list(request, project_id, cluster_id, cluster_env, cluster_name, namespace=None):
-    """获取基础hpa列表
-    """
+    """获取基础hpa列表"""
     access_token = request.user.token.access_token
     project_code = request.project.english_name
     hpa_list = []
@@ -267,8 +262,7 @@ def get_mesos_deployment_hpa(request, project_id, cluster_id, ns_name):
 
 
 def get_deployment_hpa(request, project_id, cluster_id, ns_name, deployments):
-    """通过deployment查询HPA关联信息
-    """
+    """通过deployment查询HPA关联信息"""
     hpa_list = get_cluster_hpa_list(
         request, project_id, cluster_id, cluster_env=None, cluster_name=None, namespace=ns_name
     )
@@ -285,8 +279,7 @@ def get_deployment_hpa(request, project_id, cluster_id, ns_name, deployments):
 
 
 def activity_log(project_id, username, resource_name, description, status):
-    """操作记录
-    """
+    """操作记录"""
     client = activity_client.ContextActivityLogClient(
         project_id=project_id, user=username, resource_type="hpa", resource=resource_name
     )

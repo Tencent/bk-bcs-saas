@@ -14,8 +14,8 @@
 import io
 import logging
 import sys
-
 from difflib import Differ
+
 from . import parser
 
 logger = logging.getLogger(__name__)
@@ -122,7 +122,7 @@ def simple_diff(content_old, content_new, namespace):
         new_index=parser.parse(content_new, namespace),
         suppressed_kinds=[-1],
         context=-1,
-        to=output
+        to=output,
     )
 
     differnece = output.getvalue()

@@ -13,9 +13,8 @@
 #
 from typing import Dict
 
-
-from backend.utils.basic import getitems
 from backend.resources.utils.format import ResourceDefaultFormatter
+from backend.utils.basic import getitems
 
 
 class CRDFormatter(ResourceDefaultFormatter):

@@ -14,7 +14,7 @@
 import json
 import logging
 from functools import wraps
-from typing import Callable, Dict, Any
+from typing import Any, Callable, Dict
 
 from kubernetes.client.rest import ApiException
 

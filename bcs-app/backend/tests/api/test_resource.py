@@ -15,7 +15,7 @@ from unittest import mock
 
 import pytest
 
-from backend.tests.bcs_mocks.misc import FakeProjectPermissionAllowAll, FakePaaSCCMod
+from backend.tests.bcs_mocks.misc import FakePaaSCCMod, FakeProjectPermissionAllowAll
 
 pytestmark = pytest.mark.django_db
 

@@ -12,19 +12,19 @@
 # specific language governing permissions and limitations under the License.
 #
 import json
+
 from django.utils.translation import ugettext_lazy as _
 
 from backend.apps.application.base_views import BaseAPI, error_codes
-from backend.apps.configuration.models import Template
-from backend.apps.instance.models import VersionInstance, InstanceConfig
 from backend.apps.application.constants import CATEGORY_MAP
+from backend.apps.configuration.models import Template
+from backend.apps.instance.models import InstanceConfig, VersionInstance
 
 CLUSTER_TYPE = [1, 2, "1", "2"]
 APP_STATUS = [1, 2, "1", "2"]
 
 
 class BaseMetricAPI(BaseAPI):
-
     def get_namespace_id(self, request, project_id, ns_id, ns_name):
         if ns_id:
             return ns_id
@@ -38,14 +38,14 @@ class BaseMetricAPI(BaseAPI):
             return None
 
     def get_app_id(self, request, project_id, app_id, app_name):
-        """获取应用ID
-        """
+        """获取应用ID"""
         if app_id:
             return app_id
         elif app_name:
             tmpl_id_list = Template.objects.filter(project_id=project_id).values_list("id", flat=True)
-            version_inst_list = VersionInstance.objects.filter(
-                template_id__in=tmpl_id_list).values_list("id", flat=True)
+            version_inst_list = VersionInstance.objects.filter(template_id__in=tmpl_id_list).values_list(
+                "id", flat=True
+            )
             insts = InstanceConfig.objects.filter(name=app_name, instance_id__in=version_inst_list)
             category = request.GET.get('category')
             if category:
@@ -57,8 +57,7 @@ class BaseMetricAPI(BaseAPI):
         return None
 
     def get_category(self, request, kind):
-        """获取类型
-        """
+        """获取类型"""
         category = request.GET.get("category")
         if kind == 1:
             if not category:
@@ -73,10 +72,8 @@ class BaseMetricAPI(BaseAPI):
 
 
 class BaseMusterMetric(BaseMetricAPI):
-
     def get_muster_id(self, project_id, muster_id, muster_name):
-        """获取模板集ID
-        """
+        """获取模板集ID"""
         if muster_id:
             return muster_id
         elif muster_name:
@@ -89,48 +86,35 @@ class BaseMusterMetric(BaseMetricAPI):
             return None
 
     def get_filter_params(self, request, project_id):
-        """获取过滤参数
-        """
+        """获取过滤参数"""
         cluster_type = request.GET.get("cluster_type")
         if not cluster_type or cluster_type not in CLUSTER_TYPE:
             raise error_codes.CheckFailed(_("集群类型不正确，请确认"))
         app_status = request.GET.get("app_status")
         if app_status and app_status not in APP_STATUS:
             raise error_codes.CheckFailed(_("应用状态不正确，请确认"))
-        muster_id = self.get_muster_id(
-            project_id, request.GET.get("muster_id"), request.GET.get("muster_name"))
-        app_id = self.get_app_id(
-            request, project_id, request.GET.get("app_id"), request.GET.get("app_name"))
-        ns_id = self.get_namespace_id(
-            request, project_id, request.GET.get("ns_id"), request.GET.get("ns_name"))
+        muster_id = self.get_muster_id(project_id, request.GET.get("muster_id"), request.GET.get("muster_name"))
+        app_id = self.get_app_id(request, project_id, request.GET.get("app_id"), request.GET.get("app_name"))
+        ns_id = self.get_namespace_id(request, project_id, request.GET.get("ns_id"), request.GET.get("ns_name"))
 
         return cluster_type, app_status, muster_id, app_id, ns_id
 
     def get_filter_muster(self, project_id, muster_id):
-        """获取模板集
-        """
+        """获取模板集"""
         all_musters = Template.objects.filter(project_id=project_id, is_deleted=False)
         if muster_id:
             all_musters = all_musters.filter(id=muster_id)
-        muster_id_name_map = {
-            info.id: info.name
-            for info in all_musters
-        }
+        muster_id_name_map = {info.id: info.name for info in all_musters}
         return muster_id_name_map
 
     def get_filter_version_instances(self, muster_id_list):
-        """根据模板集获取相应的版本实例
-        """
+        """根据模板集获取相应的版本实例"""
         version_inst = VersionInstance.objects.filter(template_id__in=muster_id_list, is_deleted=False)
-        version_inst_id_muster_id_map = {
-            info.id: info.template_id
-            for info in version_inst
-        }
+        version_inst_id_muster_id_map = {info.id: info.template_id for info in version_inst}
         return version_inst_id_muster_id_map
 
     def get_filter_insts(self, version_inst_ids, category=None):
-        """获取实例
-        """
+        """获取实例"""
         all_insts = InstanceConfig.objects.filter(instance_id__in=version_inst_ids, is_deleted=False)
         if category:
             all_insts.filter(category__in=category)
@@ -142,17 +126,13 @@ class BaseMusterMetric(BaseMetricAPI):
             cluster_id = labels.get("io.tencent.bcs.clusterid")
             if not cluster_id:
                 continue
-            ret_data.append({
-                "id": info.id,
-                "version_inst_id": info.instance_id,
-                "cluster_id": cluster_id,
-                "name": info.name
-            })
+            ret_data.append(
+                {"id": info.id, "version_inst_id": info.instance_id, "cluster_id": cluster_id, "name": info.name}
+            )
         return ret_data
 
     def get_inst_name(self, inst_id):
-        """根据实例ID获取实例名称
-        """
+        """根据实例ID获取实例名称"""
         if not inst_id:
             return None
         inst_info = InstanceConfig.objects.filter(id=inst_id, is_deleted=False)
@@ -163,25 +143,20 @@ class BaseMusterMetric(BaseMetricAPI):
 
 
 class BaseNamespaceMetric(BaseMetricAPI):
-
     def get_filter_params(self, request, project_id):
-        """获取过滤参数
-        """
+        """获取过滤参数"""
         cluster_type = request.GET.get("cluster_type")
         if not cluster_type or cluster_type not in CLUSTER_TYPE:
             raise error_codes.CheckFailed(_("集群类型不正确，请确认"))
         app_status = request.GET.get("app_status")
         if app_status and app_status not in APP_STATUS:
             raise error_codes.CheckFailed(_("应用状态不正确，请确认"))
-        app_id = self.get_app_id(
-            request, project_id, request.GET.get("app_id"), request.GET.get("app_name"))
-        ns_id = self.get_namespace_id(
-            request, project_id, request.GET.get("ns_id"), request.GET.get("ns_name"))
+        app_id = self.get_app_id(request, project_id, request.GET.get("app_id"), request.GET.get("app_name"))
+        ns_id = self.get_namespace_id(request, project_id, request.GET.get("ns_id"), request.GET.get("ns_name"))
         return cluster_type, app_status, app_id, ns_id
 
     def get_inst_name(self, inst_id):
-        """获取实例名称
-        """
+        """获取实例名称"""
         inst_info = InstanceConfig.objects.filter(id=inst_id, is_deleted=False)
         if not inst_info:
             raise error_codes.CheckFailed(_("实例不存在，请确认!"))

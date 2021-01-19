@@ -41,8 +41,7 @@ class K8SClientBase(BCSClientBase):
         self.ws.write_message(message)
 
     def set_pty_size(self, rows: int, cols: int):
-        """自动宽度适应
-        """
+        """自动宽度适应"""
         if not self.ws or self.ws.stream.closed():
             logger.info("session %s, close, set_pty_size just ignore", self)
             return
@@ -53,8 +52,7 @@ class K8SClientBase(BCSClientBase):
         self.ws.write_message(message)
 
     def handle_message(self, message):
-        """消息处理
-        """
+        """消息处理"""
         # 登入业务容器会cat或者curl下二进制的文件，utf-8解码失败后，使用latin1解码
         channel = message[0]
         if channel not in [constants.STDOUT_CHANNEL, constants.STDERR_CHANNEL]:
@@ -65,14 +63,12 @@ class K8SClientBase(BCSClientBase):
 
 
 class KubectlInternalClient(K8SClientBase):
-    """kubectl容器启动在用户自己集群
-    """
+    """kubectl容器启动在用户自己集群"""
 
     MODE = "k8s_kubectl_internal"
 
     def post_connected(self):
-        """k8s client添加心跳
-        """
+        """k8s client添加心跳"""
         self.msg_handler.heartbeat()
 
         super().post_connected()
@@ -94,8 +90,7 @@ class KubectlInternalClient(K8SClientBase):
 
 
 class KubectlExternalClient(KubectlInternalClient):
-    """kubectl容器启动在公共集群
-    """
+    """kubectl容器启动在公共集群"""
 
     MODE = "k8s_kubectl_external"
 
@@ -105,8 +100,7 @@ class ContainerDirectClient(K8SClientBase):
 
     @classmethod
     def create_client(cls, msg_handler, context, rows, cols):
-        """k8s单个容器web_socket
-        """
+        """k8s单个容器web_socket"""
         host = urlparse(context["server_address"])
         if host.scheme == "https":
             scheme = "wss"

@@ -11,10 +11,12 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 #
 from unittest import mock
+
 import pytest
 
-from ..conftest import FakeBcsKubeConfigurationService, construct_pod, construct_replica_set, construct_deployment
 from backend.resources.deployment.deployment import Deployment
+
+from ..conftest import FakeBcsKubeConfigurationService, construct_deployment, construct_pod, construct_replica_set
 
 
 class TestDeployment:

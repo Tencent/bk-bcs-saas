@@ -17,8 +17,8 @@ Usage: python manage.py init_mesos_image_secret -n '合法的 access_token'
 from django.core.management.base import BaseCommand
 
 from backend.apps import constants
-from backend.components import paas_auth, paas_cc
 from backend.apps.configuration.namespace.views import NamespaceBase
+from backend.components import paas_auth, paas_cc
 
 
 class Command(BaseCommand):
@@ -36,8 +36,7 @@ class Command(BaseCommand):
         )
 
     def handle(self, *args, **options):
-        """用到了 paas_cc 的两个API，必须要带用户登录态的accesstoken才可以
-        """
+        """用到了 paas_cc 的两个API，必须要带用户登录态的accesstoken才可以"""
         print(options)
         if options.get('access_token'):
             access_token = options['access_token']
@@ -79,13 +78,15 @@ class Command(BaseCommand):
                     ns_base.init_mesos_ns_by_bcs(access_token, project_id, project_code, cluster_id, ns_name)
                 except Exception:
                     error_list.append('%s[%s]' % (ns_name, namespace_id))
-                    self.stdout.write(self.style.WARNING("error init image secret in ns: %s[%s]" % (
-                                      ns_name, namespace_id)))
+                    self.stdout.write(
+                        self.style.WARNING("error init image secret in ns: %s[%s]" % (ns_name, namespace_id))
+                    )
                 else:
                     # 更新
                     paas_cc.update_namespace(access_token, project_id, namespace_id, has_image_secret=True)
                     self.stdout.write(self.style.SUCCESS("init image secret in ns: %s[%s]" % (ns_name, namespace_id)))
                     init_ns = init_ns + 1
         self.stdout.write(self.style.WARNING("error_list:%s" % ','.join(error_list)))
-        self.stdout.write(self.style.SUCCESS("init end, init_ns:%s, has_init:%s, error:%s" % (init_ns, has_init,
-                          len(error_list))))
+        self.stdout.write(
+            self.style.SUCCESS("init end, init_ns:%s, has_init:%s, error:%s" % (init_ns, has_init, len(error_list)))
+        )

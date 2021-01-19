@@ -13,46 +13,46 @@
 #
 from django.conf.urls import url
 
+from backend.apps.configuration.instance.urls import urlpatterns as inst_patterns
 from backend.apps.configuration.k8s.urls import urlpatterns as k8s_patterns
 from backend.apps.configuration.mesos.urls import urlpatterns as mesos_patterns
-from backend.apps.configuration.showversion.urls import urlpatterns as sversion_patterns
-from backend.apps.configuration.instance.urls import urlpatterns as inst_patterns
 from backend.apps.configuration.namespace.urls import urlpatterns as ns_patterns
+from backend.apps.configuration.showversion.urls import urlpatterns as sversion_patterns
 from backend.apps.configuration.yaml_mode.urls import urlpatterns as yaml_patterns
+
 from . import views
 
 urlpatterns = [
     # 模板集：列表/创建 API
-    url(r'^api/configuration/(?P<project_id>\w{32})/templates/$',
-        views.TemplatesView.as_view()),
+    url(r'^api/configuration/(?P<project_id>\w{32})/templates/$', views.TemplatesView.as_view()),
     # 模板：查询／修改 API
-    url(r'^api/configuration/(?P<project_id>\w{32})/template/(?P<pk>\d+)/$',
-        views.SingleTempalteView.as_view()),
-
-    url(r'^api/configuration/(?P<project_id>\w{32})/template/lock/(?P<template_id>\d+)/$',
-        views.LockTemplateView.as_view({'post': 'lock_template'})),
-
-    url(r'^api/configuration/(?P<project_id>\w{32})/template/unlock/(?P<template_id>\d+)/$',
-        views.LockTemplateView.as_view({'post': 'unlock_template'})),
-
+    url(r'^api/configuration/(?P<project_id>\w{32})/template/(?P<pk>\d+)/$', views.SingleTempalteView.as_view()),
+    url(
+        r'^api/configuration/(?P<project_id>\w{32})/template/lock/(?P<template_id>\d+)/$',
+        views.LockTemplateView.as_view({'post': 'lock_template'}),
+    ),
+    url(
+        r'^api/configuration/(?P<project_id>\w{32})/template/unlock/(?P<template_id>\d+)/$',
+        views.LockTemplateView.as_view({'post': 'unlock_template'}),
+    ),
     # 保存草稿
-    url(r'^api/configuration/(?P<project_id>\w{32})/template/(?P<template_id>\d+)/draft/$',
-        views.CreateTemplateDraftView.as_view()),
-
+    url(
+        r'^api/configuration/(?P<project_id>\w{32})/template/(?P<template_id>\d+)/draft/$',
+        views.CreateTemplateDraftView.as_view(),
+    ),
     # 资源 : 创建
     url(
         r'^api/configuration/(?P<project_id>\w{32})/template/(?P<template_id>\d+)/(?P<resource_name>\w+)/$',
-        views.CreateAppResourceView.as_view()),
-
+        views.CreateAppResourceView.as_view(),
+    ),
     # 资源：更新/删除，即创建新的版本
     url(
         r'^api/configuration/(?P<project_id>\w{32})/version/(?P<version_id>\d+)/(?P<resource_name>\w+)/'
-        r'(?P<resource_id>\d+)/$', views.UpdateDestroyAppResourceView.as_view()),
-
+        r'(?P<resource_id>\d+)/$',
+        views.UpdateDestroyAppResourceView.as_view(),
+    ),
     # 根据版本id查询所有的资源id
-    url(r'^api/configuration/(?P<project_id>\w{32})/resource/(?P<pk>\d+)/$',
-        views.TempalteResourceView.as_view()),
-
+    url(r'^api/configuration/(?P<project_id>\w{32})/resource/(?P<pk>\d+)/$', views.TempalteResourceView.as_view()),
 ]
 
 urlpatterns += sversion_patterns

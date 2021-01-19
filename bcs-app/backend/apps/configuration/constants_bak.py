@@ -19,7 +19,6 @@ TODO
 """
 from django.utils.translation import ugettext_lazy as _
 
-
 # 资源名称 & 端口名称
 # RES_NAME_PATTERN = "^[a-z{]{1}[a-z0-9-{}]{0,254}$"
 

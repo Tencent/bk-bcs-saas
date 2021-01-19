@@ -14,10 +14,10 @@
 import logging
 
 from django.conf import settings
+from django.utils.translation import ugettext as _
 from rest_framework import viewsets
 from rest_framework.renderers import BrowsableAPIRenderer
 from rest_framework.response import Response
-from django.utils.translation import ugettext as _
 
 from backend.accounts import bcs_perm
 from backend.apps.configuration.models import POD_RES_LIST
@@ -27,24 +27,23 @@ from backend.apps.instance.constants import InsState
 from backend.apps.instance.models import InstanceConfig
 from backend.apps.metric import serializers, tasks
 from backend.apps.metric.models import Metric as MetricModel
+from backend.apps.metric.utils import get_metric_instances
 from backend.components import paas_cc
 from backend.utils.error_codes import error_codes
 from backend.utils.renderers import BKAPIRenderer
 from backend.utils.response import BKAPIResponse
-from backend.apps.metric.utils import get_metric_instances
 
 logger = logging.getLogger(__name__)
 PAUSE = 'pause'
 
 
 class Metric(viewsets.ViewSet):
-    """metric列表
-    """
+    """metric列表"""
+
     renderer_classes = (BKAPIRenderer, BrowsableAPIRenderer)
 
     def list(self, request, project_id):
-        """获取metric列表
-        """
+        """获取metric列表"""
         refs = MetricModel.objects.filter(project_id=project_id).order_by('-updated')
         data = [i.to_json() for i in refs]
 
@@ -63,14 +62,14 @@ class Metric(viewsets.ViewSet):
         return BKAPIResponse(data, message=_('获取metric列表成功'), permissions={'create': can_create})
 
     def create(self, request, project_id):
-        """创建metric
-        """
+        """创建metric"""
         cc_app_id = request.project.get('cc_app_id')
         if not cc_app_id:
             raise error_codes.APIError(_('必须绑定业务'))
 
         serializer = serializers.CreateMetricSLZ(
-            data=request.data, context={'request': request, 'project_id': project_id})
+            data=request.data, context={'request': request, 'project_id': project_id}
+        )
         serializer.is_valid(raise_exception=True)
 
         # 校验权限
@@ -109,13 +108,12 @@ class Metric(viewsets.ViewSet):
 
 
 class MetricDetail(viewsets.ViewSet):
-    """单个metric操作
-    """
+    """单个metric操作"""
+
     renderer_classes = (BKAPIRenderer, BrowsableAPIRenderer)
 
     def get(self, request, project_id, metric_id):
-        """获取metric
-        """
+        """获取metric"""
         ref = MetricModel.objects.filter(project_id=project_id, pk=metric_id).first()
         if not ref:
             raise error_codes.ResNotFoundError(_('metric不存在'))
@@ -127,10 +125,10 @@ class MetricDetail(viewsets.ViewSet):
         return BKAPIResponse(ref.to_json(), message=_('获取metric成功'))
 
     def put(self, request, project_id, metric_id):
-        """更新put
-        """
+        """更新put"""
         serializer = serializers.UpdateMetricSLZ(
-            data=request.data, context={'request': request, 'project_id': project_id})
+            data=request.data, context={'request': request, 'project_id': project_id}
+        )
         serializer.is_valid(raise_exception=True)
 
         queryset = MetricModel.objects.filter(project_id=project_id, pk=metric_id)
@@ -147,22 +145,15 @@ class MetricDetail(viewsets.ViewSet):
         perm.can_edit(raise_exception=True)
 
         # 更新version
-        queryset.update(
-            updator=request.user.username,
-            version=ref.update_version(),
-            **serializer.data)
+        queryset.update(updator=request.user.username, version=ref.update_version(), **serializer.data)
 
         # 异步下发metric
-        tasks.set_metric.delay(
-            request.user.token.access_token, project_id,
-            request.project['kind'], metric_id
-        )
+        tasks.set_metric.delay(request.user.token.access_token, project_id, request.project['kind'], metric_id)
 
         return BKAPIResponse({}, message=_('修改metric成功'))
 
     def get_metric_info(self, project_id, metric_id):
-        """获取metric信息
-        """
+        """获取metric信息"""
         resource = MetricModel.objects.filter(project_id=project_id, pk=metric_id).first()
         if not resource:
             raise error_codes.ResNotFoundError(_('metric 不存在'))
@@ -185,8 +176,12 @@ class MetricDetail(viewsets.ViewSet):
         op_type = data.get('op_type')
         ns_id_list = data.get('ns_id_list') or []
         tasks.delete_metric.delay(
-            request.user.token.access_token, project_id, request.project['kind'],
-            metric_id, op_type=op_type, ns_id_list=ns_id_list
+            request.user.token.access_token,
+            project_id,
+            request.project['kind'],
+            metric_id,
+            op_type=op_type,
+            ns_id_list=ns_id_list,
         )
         # 针对暂停操作，添加 op_type 参数
         if op_type == PAUSE:
@@ -217,8 +212,11 @@ class MetricDetail(viewsets.ViewSet):
 
         # 重新下发配置
         tasks.set_metric.delay(
-            request.user.token.access_token, project_id, request.project['kind'],
-            metric_id, ns_id_list=request.data.get('ns_id_list', [])
+            request.user.token.access_token,
+            project_id,
+            request.project['kind'],
+            metric_id,
+            ns_id_list=request.data.get('ns_id_list', []),
         )
 
         return BKAPIResponse({'metric_id': ref.pk}, message=_('创建metric成功'))
@@ -228,8 +226,7 @@ class MetricIns(viewsets.ViewSet):
     renderer_classes = (BKAPIRenderer, BrowsableAPIRenderer)
 
     def get_instance(self, request, project_id, metric_id):
-        """查询Metric实例化的详细信息
-        """
+        """查询Metric实例化的详细信息"""
         ref = MetricModel.objects.filter(project_id=project_id, pk=metric_id).first()
         if not ref:
             raise error_codes.ResNotFoundError(_('metric不存在'))
@@ -263,17 +260,16 @@ class MetricIns(viewsets.ViewSet):
         else:
             category_list = POD_RES_LIST
 
-        instance_info = InstanceConfig.objects.filter(
-            is_deleted=False,
-            category__in=category_list
-        ).exclude(ins_state=InsState.NO_INS.value)
+        instance_info = InstanceConfig.objects.filter(is_deleted=False, category__in=category_list).exclude(
+            ins_state=InsState.NO_INS.value
+        )
 
         data = []
         # 根据集群的环境不同调用不同环境的storageAPI
         for env, cluster_id_list in cluster_dict.items():
             metric_instance_list = get_metric_instances(
-                access_token, project_id, metric_name,
-                env, cluster_id_list, ns_dict, instance_info)
+                access_token, project_id, metric_name, env, cluster_id_list, ns_dict, instance_info
+            )
             data.extend(metric_instance_list)
 
         return Response(data)

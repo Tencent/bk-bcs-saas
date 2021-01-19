@@ -14,24 +14,25 @@
 import json
 
 from django.utils import timezone
-from rest_framework import viewsets
-from rest_framework.response import Response
-from rest_framework.renderers import BrowsableAPIRenderer
-from rest_framework.exceptions import ValidationError
 from django.utils.translation import ugettext_lazy as _
+from rest_framework import viewsets
+from rest_framework.exceptions import ValidationError
+from rest_framework.renderers import BrowsableAPIRenderer
+from rest_framework.response import Response
 
 from backend.activity_log import client
 from backend.apps.configuration import models
 from backend.apps.configuration.mixins import TemplatePermission
 from backend.apps.instance.utils import has_instance_of_show_version
 from backend.utils.renderers import BKAPIRenderer
+
 from .serializers import (
+    GetShowVersionSLZ,
+    ListShowVersionISLZ,
+    ListShowVersionSLZ,
+    ResourceConfigSLZ,
     ShowVersionCreateSLZ,
     ShowVersionWithEntitySLZ,
-    GetShowVersionSLZ,
-    ResourceConfigSLZ,
-    ListShowVersionSLZ,
-    ListShowVersionISLZ,
 )
 
 
@@ -128,8 +129,7 @@ class ShowVersionViewSet(viewsets.ViewSet, TemplatePermission):
         return Response({"results": serializer.data})
 
     def save_with_ventity(self, request, project_id, template_id):
-        """保存用户可见的版本信息
-        """
+        """保存用户可见的版本信息"""
         data = request.data
         data.update({"project_id": project_id, "template_id": template_id})
         serializer = ShowVersionWithEntitySLZ(data=data)
@@ -149,8 +149,7 @@ class ShowVersionViewSet(viewsets.ViewSet, TemplatePermission):
         return Response({"show_version_id": show_version.id, "real_version_id": show_version.real_version_id})
 
     def save_without_ventity(self, request, project_id, template_id):
-        """仅仅创建可见版本
-        """
+        """仅仅创建可见版本"""
         template = models.get_template_by_project_and_id(project_id, template_id)
         self.can_edit_template(request, template)
 

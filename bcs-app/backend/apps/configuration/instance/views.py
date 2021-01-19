@@ -26,40 +26,48 @@ TODO:
 - 实例化失败，再次实例化时，应该更新而不是创建数据
 - mesos/k8s 创建分开调用底层API
 """
-import logging
 import json
+import logging
 
+from django.utils.translation import ugettext_lazy as _
 from rest_framework import viewsets
-from rest_framework.response import Response
 from rest_framework.exceptions import ValidationError
 from rest_framework.renderers import BrowsableAPIRenderer
-from django.utils.translation import ugettext_lazy as _
+from rest_framework.response import Response
 
-from backend.apps.instance.constants import InsState
 from backend.accounts import bcs_perm
-from backend.apps.configuration.models import CATE_SHOW_NAME
-from backend.apps.instance.models import VersionInstance, InstanceConfig
-from backend.apps.instance.utils import validate_template_id
-from backend.apps.instance.serializers import (VersionInstanceCreateOrUpdateSLZ, PreviewInstanceSLZ,
-                                               InstanceNamespaceSLZ)
-from backend.apps.instance.utils import (validate_version_id, preview_config_json, handle_all_config,
-                                         validate_ns_by_tempalte_id, validate_lb_info_by_version_id,
-                                         validate_instance_entity)
 from backend.activity_log import client
-from backend.apps.datalog.utils import create_data_project, create_and_start_standard_data_flow
-from backend.apps.configuration.models import MODULE_DICT
 from backend.apps.application.base_views import error_codes
-from backend.apps.configuration.tasks import check_instance_status
-from backend.utils.renderers import BKAPIRenderer
 from backend.apps.configuration.constants import K8sResourceName, MesosResourceName
+from backend.apps.configuration.models import CATE_SHOW_NAME, MODULE_DICT
+from backend.apps.configuration.tasks import check_instance_status
+from backend.apps.datalog.utils import create_and_start_standard_data_flow, create_data_project
+from backend.apps.instance.constants import InsState
+from backend.apps.instance.models import InstanceConfig, VersionInstance
+from backend.apps.instance.serializers import (
+    InstanceNamespaceSLZ,
+    PreviewInstanceSLZ,
+    VersionInstanceCreateOrUpdateSLZ,
+)
+from backend.apps.instance.utils import (
+    handle_all_config,
+    preview_config_json,
+    validate_instance_entity,
+    validate_lb_info_by_version_id,
+    validate_ns_by_tempalte_id,
+    validate_template_id,
+    validate_version_id,
+)
+from backend.utils.renderers import BKAPIRenderer
 
 logger = logging.getLogger(__name__)
 
 
 def get_ins_by_template_id(template_id):
     # 获取模板集下所有实例化过的 verison
-    show_version_name_list = VersionInstance.objects.filter(
-        template_id=template_id, is_deleted=False).values('show_version_name', 'id')
+    show_version_name_list = VersionInstance.objects.filter(template_id=template_id, is_deleted=False).values(
+        'show_version_name', 'id'
+    )
 
     # 将 instance_id 按 show_version_name 分组
     show_name_ins_dict = {}
@@ -94,10 +102,7 @@ def get_res_by_show_name(template_id, show_version_name):
 
             res_name_list = [_r['name'] for _r in res_data_list]
             if _name not in res_name_list:
-                res_data_list.append({
-                    'name': _name,
-                    'id': _name
-                })
+                res_data_list.append({'name': _name, 'id': _name})
         else:
             data[_cate] = [{'name': _name, 'id': _name}]
     return data
@@ -107,8 +112,7 @@ class TemplateInstView(viewsets.ViewSet):
     renderer_classes = (BKAPIRenderer, BrowsableAPIRenderer)
 
     def get_exist_showver_name(self, request, project_id, template_id):
-        """查询模板集下所有已经实例化过的可见版本名称
-        """
+        """查询模板集下所有已经实例化过的可见版本名称"""
         validate_template_id(project_id, template_id)
         # 因为没有回滚操作，需要去掉versioninstance中的is_bcs_success为True
         valid_instance = VersionInstance.objects.filter(template_id=template_id, is_deleted=False)
@@ -123,26 +127,23 @@ class TemplateInstView(viewsets.ViewSet):
                 show_version_name_list.append(_show_name)
                 # 判断版本下是否还有未删除的资源
                 _ins_id_list = valid_instance.filter(show_version_name=_show_name).values_list('id', flat=True)
-                is_exists = InstanceConfig.objects.filter(
-                    instance_id__in=_ins_id_list, is_deleted=False, is_bcs_success=True
-                ).exclude(ins_state=InsState.NO_INS.value).exists()
+                is_exists = (
+                    InstanceConfig.objects.filter(instance_id__in=_ins_id_list, is_deleted=False, is_bcs_success=True)
+                    .exclude(ins_state=InsState.NO_INS.value)
+                    .exists()
+                )
                 if is_exists:
-                    data.append({
-                        'id': _show_name,
-                        'version': _show_name,
-                        'template_id': template_id,
-                        'show_version_id': _show_version_id
-                    })
+                    data.append(
+                        {
+                            'id': _show_name,
+                            'version': _show_name,
+                            'template_id': template_id,
+                            'show_version_id': _show_version_id,
+                        }
+                    )
         # 根据 show_version_id（创建时间） 降序排列
-        data = sorted(
-            data, key=lambda x: x['show_version_id'], reverse=True)
-        return Response({
-            "code": 0,
-            "message": "OK",
-            "data": {
-                "results": data
-            }
-        })
+        data = sorted(data, key=lambda x: x['show_version_id'], reverse=True)
+        return Response({"code": 0, "message": "OK", "data": {"results": data}})
 
     def get_resource_by_show_name(self, request, project_id, template_id):
         validate_template_id(project_id, template_id)
@@ -150,13 +151,7 @@ class TemplateInstView(viewsets.ViewSet):
         data = get_res_by_show_name(template_id, show_version_name)
         # 传给前端的资源类型统一
         new_data = {CATE_SHOW_NAME.get(x, x): data[x] for x in data}
-        return Response({
-            "code": 0,
-            "message": "OK",
-            "data": {
-                "data": new_data
-            }
-        })
+        return Response({"code": 0, "message": "OK", "data": {"data": new_data}})
 
     def get_exist_version(self, request, project_id, template_id):
         validate_template_id(project_id, template_id)
@@ -166,18 +161,14 @@ class TemplateInstView(viewsets.ViewSet):
         exist_version = {}
         for show_name in show_name_ins_dict:
             ins_id_list = show_name_ins_dict.get(show_name)
-            _ins_count = InstanceConfig.objects.filter(
-                instance_id__in=ins_id_list, is_deleted=False, is_bcs_success=True
-            ).exclude(ins_state=InsState.NO_INS.value).count()
+            _ins_count = (
+                InstanceConfig.objects.filter(instance_id__in=ins_id_list, is_deleted=False, is_bcs_success=True)
+                .exclude(ins_state=InsState.NO_INS.value)
+                .count()
+            )
             if _ins_count > 0:
                 exist_version[show_name] = _ins_count
-        return Response({
-            "code": 0,
-            "message": "OK",
-            "data": {
-                "exist_version": exist_version
-            }
-        })
+        return Response({"code": 0, "message": "OK", "data": {"exist_version": exist_version}})
 
 
 class VersionInstanceView(viewsets.ViewSet):
@@ -185,8 +176,7 @@ class VersionInstanceView(viewsets.ViewSet):
 
     def preview_config(self, request, project_id):
         project_kind = request.project.kind
-        serializer = PreviewInstanceSLZ(data=request.data, context={
-            'project_kind': project_kind})
+        serializer = PreviewInstanceSLZ(data=request.data, context={'project_kind': project_kind})
         serializer.is_valid(raise_exception=True)
         slz_data = serializer.data
 
@@ -195,7 +185,8 @@ class VersionInstanceView(viewsets.ViewSet):
         show_version_id = slz_data['show_version_id']
 
         template, version_entity = validate_version_id(
-            project_id, version_id, is_return_all=True, show_version_id=show_version_id)
+            project_id, version_id, is_return_all=True, show_version_id=show_version_id
+        )
         # 验证用户是否有使用权限
         perm = bcs_perm.Templates(request, project_id, template.id, template.name)
         perm.can_use(raise_exception=True)
@@ -206,8 +197,7 @@ class VersionInstanceView(viewsets.ViewSet):
 
         # 验证前端传过了的预览资源是否在该版本的资源
         req_instance_entity = slz_data.get('instance_entity') or {}
-        instance_entity = validate_instance_entity(
-            req_instance_entity, tem_instance_entity)
+        instance_entity = validate_instance_entity(req_instance_entity, tem_instance_entity)
 
         access_token = self.request.user.token.access_token
         username = self.request.user.username
@@ -217,13 +207,10 @@ class VersionInstanceView(viewsets.ViewSet):
         # 验证关联lb情况下，lb 是否都已经选中
         service_id_list = instance_entity.get('service') or []
         v_res, err_list, err_msg = validate_lb_info_by_version_id(
-            access_token, project_id, version_entity, [namespace], lb_info, service_id_list)
+            access_token, project_id, version_entity, [namespace], lb_info, service_id_list
+        )
         if not v_res:
-            return Response({
-                "code": 400,
-                "message": err_msg,
-                "data": err_list
-            })
+            return Response({"code": 400, "message": err_msg, "data": err_list})
         # 在数据平台创建项目信息
         cc_app_id = request.project.cc_app_id
         english_name = request.project.english_name
@@ -242,15 +229,10 @@ class VersionInstanceView(viewsets.ViewSet):
             "username": username,
             "lb_info": lb_info,
             "variable_dict": variable_dict,
-            "is_preview": True
+            "is_preview": True,
         }
-        data = preview_config_json(
-            namespace, instance_entity, **params)
-        return Response({
-            "code": 0,
-            "message": "OK",
-            "data": data
-        })
+        data = preview_config_json(namespace, instance_entity, **params)
+        return Response({"code": 0, "message": "OK", "data": data})
 
     def get_tmpl_name(self, instance_entity):
         all_tmpl_name_dict = {}
@@ -271,15 +253,15 @@ class VersionInstanceView(viewsets.ViewSet):
         return all_tmpl_name_dict
 
     def post(self, request, project_id):
-        """实例化模板
-        """
+        """实例化模板"""
         # 参数验证
         self.project_id = project_id
         version_id = request.data.get('version_id')
         show_version_id = request.data.get('show_version_id')
 
         template, version_entity = validate_version_id(
-            project_id, version_id, is_return_all=True, show_version_id=show_version_id)
+            project_id, version_id, is_return_all=True, show_version_id=show_version_id
+        )
         # 验证用户是否有使用权限
         perm = bcs_perm.Templates(request, project_id, template.id, template.name)
         perm.can_use(raise_exception=True)
@@ -288,15 +270,13 @@ class VersionInstanceView(viewsets.ViewSet):
         tem_instance_entity = version_entity.get_version_instance_resource_ids
 
         project_kind = request.project.kind
-        self.slz = VersionInstanceCreateOrUpdateSLZ(
-            data=request.data, context={'project_kind': project_kind})
+        self.slz = VersionInstanceCreateOrUpdateSLZ(data=request.data, context={'project_kind': project_kind})
         self.slz.is_valid(raise_exception=True)
         slz_data = self.slz.data
 
         # 验证前端传过了的预览资源是否在该版本的资源
         req_instance_entity = slz_data.get('instance_entity') or {}
-        self.instance_entity = validate_instance_entity(
-            req_instance_entity, tem_instance_entity)
+        self.instance_entity = validate_instance_entity(req_instance_entity, tem_instance_entity)
 
         namespaces = slz_data['namespaces']
         ns_list = namespaces.split(',') if namespaces else []
@@ -307,23 +287,23 @@ class VersionInstanceView(viewsets.ViewSet):
         # 验证关联lb情况下，lb 是否都已经选中
         service_id_list = self.instance_entity.get('service') or []
         v_res, err_list, err_msg = validate_lb_info_by_version_id(
-            access_token, project_id, version_entity, ns_list, slz_data.get('lb_info', {}), service_id_list)
+            access_token, project_id, version_entity, ns_list, slz_data.get('lb_info', {}), service_id_list
+        )
         if not v_res:
-            return Response({
-                "code": 400,
-                "message": err_msg,
-                "data": err_list
-            })
+            return Response({"code": 400, "message": err_msg, "data": err_list})
 
         # 判断 template 下 前台传过来的 namespace 是否已经实例化过
         res, ns_name_list, namespace_dict = validate_ns_by_tempalte_id(
-            self.template_id, ns_list, access_token, project_id, req_instance_entity)
+            self.template_id, ns_list, access_token, project_id, req_instance_entity
+        )
         if not res:
-            return Response({
-                "code": 400,
-                "message": _("以下命名空间已经实例化过，不能再实例化\n{}").format("\n".join(ns_name_list)),
-                "data": ns_name_list
-            })
+            return Response(
+                {
+                    "code": 400,
+                    "message": _("以下命名空间已经实例化过，不能再实例化\n{}").format("\n".join(ns_name_list)),
+                    "data": ns_name_list,
+                }
+            )
 
         # 在数据平台创建项目信息
         cc_app_id = request.project.cc_app_id
@@ -353,7 +333,7 @@ class VersionInstanceView(viewsets.ViewSet):
                 resource=temp_name,
                 resource_id=self.template_id,
                 extra=json.dumps(self.instance_entity),
-                description=_("实例化模板集[{}]命名空间[{}]").format(temp_name, i['ns_name'])
+                description=_("实例化模板集[{}]命名空间[{}]").format(temp_name, i['ns_name']),
             ).log_add(activity_status="succeed")
 
         failed_ns_name_list = []
@@ -362,18 +342,20 @@ class VersionInstanceView(viewsets.ViewSet):
         # 针对createError的触发后台任务轮训
         if result.get('failed'):
             check_instance_status.delay(
-                request.user.token.access_token, project_id,
-                request.project.get("kind"), all_tmpl_name_dict, result['failed']
+                request.user.token.access_token,
+                project_id,
+                request.project.get("kind"),
+                all_tmpl_name_dict,
+                result['failed'],
             )
         for i in result['failed']:
             if i['res_type']:
                 description = _("实例化模板集[{}]命名空间[{}]，在实例化{}时失败，错误消息：{}").format(
-                    temp_name, i['ns_name'], i['res_type'], i['err_msg'])
-                failed_ns_name_list.append(
-                    _("{}(实例化{}时)").format(i['ns_name'], i['res_type']))
+                    temp_name, i['ns_name'], i['res_type'], i['err_msg']
+                )
+                failed_ns_name_list.append(_("{}(实例化{}时)").format(i['ns_name'], i['res_type']))
             else:
-                description = _("实例化模板集[{}]命名空间[{}]失败，错误消息：{}").format(
-                    temp_name, i['ns_name'], i['err_msg'])
+                description = _("实例化模板集[{}]命名空间[{}]失败，错误消息：{}").format(temp_name, i['ns_name'], i['err_msg'])
                 failed_ns_name_list.append(i['ns_name'])
                 if i.get('show_err_msg'):
                     failed_msg.append(i['err_msg'])
@@ -386,42 +368,37 @@ class VersionInstanceView(viewsets.ViewSet):
                 resource=temp_name,
                 resource_id=self.template_id,
                 extra=json.dumps(self.instance_entity),
-                description=description
+                description=description,
             ).log_add(activity_status="failed")
 
             if is_show_failed_msg:
                 msg = '\n'.join(failed_msg)
             else:
-                msg = _("以下命名空间实例化失败，\n{}，请联系集群管理员解决").format("\n".join(
-                    failed_ns_name_list))
+                msg = _("以下命名空间实例化失败，\n{}，请联系集群管理员解决").format("\n".join(failed_ns_name_list))
             if failed_ns_name_list:
-                return Response({
-                    "code": 400,
-                    "message": msg,
-                    "data": failed_ns_name_list
-                })
+                return Response({"code": 400, "message": msg, "data": failed_ns_name_list})
 
-        return Response({
-            "code": 0,
-            "message": "OK",
-            "data": {
-                "version_id": version_id,
-                "template_id": self.template_id,
+        return Response(
+            {
+                "code": 0,
+                "message": "OK",
+                "data": {
+                    "version_id": version_id,
+                    "template_id": self.template_id,
+                },
             }
-        })
+        )
 
 
 class InstanceNameSpaceView(viewsets.ViewSet):
     renderer_classes = (BKAPIRenderer, BrowsableAPIRenderer)
 
     def post(self, request, project_id, version_id):
-        version_entity = validate_version_id(
-            project_id, version_id, is_version_entity_retrun=True)
+        version_entity = validate_version_id(project_id, version_id, is_version_entity_retrun=True)
         template_id = version_entity.template_id
 
         project_kind = request.project.kind
-        self.slz = InstanceNamespaceSLZ(data=request.data, context={
-            'project_kind': project_kind})
+        self.slz = InstanceNamespaceSLZ(data=request.data, context={'project_kind': project_kind})
         self.slz.is_valid(raise_exception=True)
         slz_data = self.slz.data
 
@@ -430,8 +407,9 @@ class InstanceNameSpaceView(viewsets.ViewSet):
         instance_entity = slz_data['instance_entity']
 
         # 根据template_id 查询已经被实例化过的 ns
-        exist_instance_id = VersionInstance.objects.filter(
-            template_id=template_id, is_deleted=False).values_list('id', flat=True)
+        exist_instance_id = VersionInstance.objects.filter(template_id=template_id, is_deleted=False).values_list(
+            'id', flat=True
+        )
         filter_ns = InstanceConfig.objects.filter(
             instance_id__in=exist_instance_id, is_deleted=False, is_bcs_success=True
         ).exclude(ins_state=InsState.NO_INS.value)
@@ -440,8 +418,7 @@ class InstanceNameSpaceView(viewsets.ViewSet):
         # 查询每类资源已经实例化的ns，求合集，这些已经实例化过的ns不能再被实例化
         for cate in instance_entity:
             cate_data = instance_entity[cate]
-            cate_name_list = [i.get('name')
-                              for i in cate_data if i.get('name')]
+            cate_name_list = [i.get('name') for i in cate_data if i.get('name')]
             cate_ns = filter_ns.filter(category=cate, name__in=cate_name_list)
             exist_ns.extend(list(cate_ns))
 
@@ -454,17 +431,13 @@ class InstanceNameSpaceView(viewsets.ViewSet):
                 continue
 
             if ns_id not in ns_resources:
-                ns_resources[ns_id] = [inst_config.category, ]
+                ns_resources[ns_id] = [
+                    inst_config.category,
+                ]
             else:
                 ns_resources[ns_id].append(inst_config.category)
 
         for ns_id, resources in ns_resources.items():
             ns_resources[ns_id] = list(set(resources))
 
-        return Response({
-            "code": 0,
-            "message": "OK",
-            "data": {
-                "ns_resources": ns_resources
-            }
-        })
+        return Response({"code": 0, "message": "OK", "data": {"ns_resources": ns_resources}})

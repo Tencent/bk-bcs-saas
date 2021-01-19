@@ -16,31 +16,32 @@ import logging
 import traceback
 
 from django.db import models
-from picklefield.fields import PickledObjectField
-from jsonfield import JSONField
-from rest_framework.exceptions import ValidationError
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
+from jsonfield import JSONField
+from picklefield.fields import PickledObjectField
+from rest_framework.exceptions import ValidationError
 
-from backend.activity_log.client import get_log_client_by_activity_log_id
-from backend.bcs_k8s.helm.models import (Chart, ChartRelease)
-from backend.bcs_k8s.helm.constants import KEEP_TEMPLATE_UNCHANGED, DEFAULT_VALUES_FILE_NAME
-from backend.bcs_k8s.diff.revision import AppRevisionDiffer
-from .managers import AppManager
-from .deployer import AppDeployer
 from backend.activity_log import client
-from . import bcs_info_injector
-from backend.bcs_k8s.kubehelm import exceptions as helm_exceptions
+from backend.activity_log.client import get_log_client_by_activity_log_id
 from backend.apps.whitelist_bk import enable_helm_v3
 from backend.bcs_k8s import utils as bcs_helm_utils
 from backend.bcs_k8s.app.utils import get_cc_app_id
+from backend.bcs_k8s.diff.revision import AppRevisionDiffer
+from backend.bcs_k8s.helm.constants import DEFAULT_VALUES_FILE_NAME, KEEP_TEMPLATE_UNCHANGED
+from backend.bcs_k8s.helm.models import Chart, ChartRelease
+from backend.bcs_k8s.kubehelm import exceptions as helm_exceptions
+
+from . import bcs_info_injector
+from .deployer import AppDeployer
+from .managers import AppManager
 
 logger = logging.getLogger(__name__)
 
 
 class App(models.Model):
-    """App is an instance of templateset
-    """
+    """App is an instance of templateset"""
+
     TRANSITIONING_ACTION_CHOICE = (
         ("noop", "Noop"),
         ("create", "Create"),
@@ -68,8 +69,11 @@ class App(models.Model):
     transitioning_message = models.TextField("Transitioning Messages", help_text="transitioning messages")
     transitioning_action = models.CharField(
         "Transitioning Action",
-        max_length=10, default="noop",
-        choices=TRANSITIONING_ACTION_CHOICE, help_text="now or latest transitioning action")
+        max_length=10,
+        default="noop",
+        choices=TRANSITIONING_ACTION_CHOICE,
+        help_text="now or latest transitioning action",
+    )
     transitioning_on = models.BooleanField("Transitioning On", default=False, help_text="is transitioning now?")
 
     version = models.CharField("Current Version", max_length=64, null=True, default="")
@@ -114,15 +118,14 @@ class App(models.Model):
         return self.release.valuefile_name
 
     def render_context(self):
-        return {
-            "version": self.get_current_version()
-        }
+        return {"version": self.get_current_version()}
 
     def get_cmd_flags(self):
         return json.loads(self.cmd_flags)
 
-    def _template_with_ytt_renderer(self, username, access_token,
-                                    ignore_empty_access_token=False, extra_inject_source=None):
+    def _template_with_ytt_renderer(
+        self, username, access_token, ignore_empty_access_token=False, extra_inject_source=None
+    ):
 
         try:
             # 组装注入的参数
@@ -136,7 +139,7 @@ class App(models.Model):
                 cluster_id=self.cluster_id,
                 namespace=self.namespace,
                 stdlog_data_id=bcs_helm_utils.get_stdlog_data_id(self.project_id),
-                image_pull_secret=bcs_helm_utils.provide_image_pull_secrets(self.namespace)
+                image_pull_secret=bcs_helm_utils.provide_image_pull_secrets(self.namespace),
             )
             content, notes = self.release.render(namespace=self.namespace, bcs_inject_data=bcs_inject_data)
             content = str(content, encoding="utf-8")
@@ -148,8 +151,9 @@ class App(models.Model):
             return None, None
         return content, notes
 
-    def _template_with_bcs_renderer(self, username, access_token,
-                                    ignore_empty_access_token=False, extra_inject_source=None):
+    def _template_with_bcs_renderer(
+        self, username, access_token, ignore_empty_access_token=False, extra_inject_source=None
+    ):
         try:
             content, notes = self.release.render(namespace=self.namespace)
             content = str(content, encoding="utf-8")
@@ -159,10 +163,7 @@ class App(models.Model):
             return None, None
         except Exception as e:
             logger.exception("render app failed, {}".format(e))
-            message = "render_app failed, {error}.\n{stack}".format(
-                error=e,
-                stack=traceback.format_exc()
-            )
+            message = "render_app failed, {error}.\n{stack}".format(error=e, stack=traceback.format_exc())
             self.set_transitioning(False, message)
             return None, None
 
@@ -179,7 +180,7 @@ class App(models.Model):
             updator=username,
             created_at=self.created,
             updated_at=self.updated,
-            version=self.release.chartVersionSnapshot.version
+            version=self.release.chartVersionSnapshot.version,
         )
 
         # save inject config after update
@@ -188,9 +189,7 @@ class App(models.Model):
 
         resources_list = bcs_info_injector.parse_manifest(content)
         manager = bcs_info_injector.InjectManager(
-            configs=configs,
-            resources=resources_list,
-            context=self.render_context()
+            configs=configs, resources=resources_list, context=self.render_context()
         )
         resources_list = manager.do_inject()
         content = bcs_info_injector.join_manifest(resources_list)
@@ -206,10 +205,12 @@ class App(models.Model):
         extra_inject_source 用于提供无 access_token 时, 提供注入需要的数据，不要用于有 access_token 的情况
         """
         content, notes = self._template_with_ytt_renderer(
-            username, access_token, ignore_empty_access_token=False, extra_inject_source=None)
+            username, access_token, ignore_empty_access_token=False, extra_inject_source=None
+        )
         if not content:
             return self._template_with_bcs_renderer(
-                username, access_token, ignore_empty_access_token=False, extra_inject_source=None)
+                username, access_token, ignore_empty_access_token=False, extra_inject_source=None
+            )
         return content, notes
 
     def reset_transitioning(self, action):
@@ -219,11 +220,11 @@ class App(models.Model):
         self.transitioning_message = ""
         self.updated = timezone.now()
         if not App.objects.filter(id=self.id, transitioning_on=False).update(
-                transitioning_on=True,
-                transitioning_action=action,
-                transitioning_result=True,
-                updated=timezone.now(),
-                version=self.release.chartVersionSnapshot.version
+            transitioning_on=True,
+            transitioning_action=action,
+            transitioning_result=True,
+            updated=timezone.now(),
+            version=self.release.chartVersionSnapshot.version,
         ):
             raise ValidationError(detail=_("Helm Release部署中，请稍后再试！"))
 
@@ -243,20 +244,32 @@ class App(models.Model):
         self.transitioning_message = message
         self.save(update_fields=["transitioning_result", "transitioning_message", "transitioning_on", "updated"])
 
-    def record_upgrade_app(self, chart_version_id, answers, customs, updator, access_token,
-                           valuefile=None, sys_variables=None, valuefile_name=DEFAULT_VALUES_FILE_NAME, **kwargs):
+    def record_upgrade_app(
+        self,
+        chart_version_id,
+        answers,
+        customs,
+        updator,
+        access_token,
+        valuefile=None,
+        sys_variables=None,
+        valuefile_name=DEFAULT_VALUES_FILE_NAME,
+        **kwargs
+    ):
         # operation record
-        extra = json.dumps(dict(
-            access_token=access_token,
-            chart_version_id=chart_version_id,
-            answers=answers,
-            customs=customs,
-            valuefile=valuefile,
-            updator=updator,
-            sys_variables=sys_variables,
-            valuefile_name=valuefile_name,
-            **kwargs
-        ))
+        extra = json.dumps(
+            dict(
+                access_token=access_token,
+                chart_version_id=chart_version_id,
+                answers=answers,
+                customs=customs,
+                valuefile=valuefile,
+                updator=updator,
+                sys_variables=sys_variables,
+                valuefile_name=valuefile_name,
+                **kwargs
+            )
+        )
         logger_client = client.UserActivityLogClient(
             project_id=self.project_id,
             user=updator,
@@ -270,7 +283,7 @@ class App(models.Model):
                 app_name=self.name,
                 namespace=self.namespace,
                 cluster_id=self.cluster_id,
-            )
+            ),
         )
         logger_client.log(activity_status="busy")
         return logger_client
@@ -287,7 +300,7 @@ class App(models.Model):
                 app_id=self.id,
                 access_token=access_token,
                 activity_log_id=activity_log_id,
-                deploy_options=deploy_options
+                deploy_options=deploy_options,
             )
         )
         return self
@@ -312,35 +325,61 @@ class App(models.Model):
             activity_status = "succeed" if self.transitioning_result else "failed"
             log_client.update_log(activity_status=activity_status)
 
-    def upgrade_app(self, chart_version_id, answers, customs, updator, access_token, valuefile=None,
-                    kubeconfig_content=None, ignore_empty_access_token=None, extra_inject_source=None,
-                    sys_variables=None, valuefile_name=DEFAULT_VALUES_FILE_NAME, **kwargs):
-        from .tasks import upgrade_app, sync_or_async
+    def upgrade_app(
+        self,
+        chart_version_id,
+        answers,
+        customs,
+        updator,
+        access_token,
+        valuefile=None,
+        kubeconfig_content=None,
+        ignore_empty_access_token=None,
+        extra_inject_source=None,
+        sys_variables=None,
+        valuefile_name=DEFAULT_VALUES_FILE_NAME,
+        **kwargs
+    ):
+        from .tasks import sync_or_async, upgrade_app
 
         # if self.transitioning_on:
         #    raise ValidationError("helm app is on transitioning, please try a later.")
 
         self.reset_transitioning("update")
-        sync_or_async(upgrade_app)(kwargs={
-            "app_id": self.id,
-            "chart_version_id": chart_version_id,
-            "answers": answers,
-            "customs": customs,
-            "updator": updator,
-            "access_token": access_token,
-            "valuefile": valuefile,
-            "kubeconfig_content": kubeconfig_content,
-            "ignore_empty_access_token": ignore_empty_access_token,
-            "extra_inject_source": extra_inject_source,
-            "sys_variables": sys_variables,
-            "valuefile_name": valuefile_name,
-            **kwargs
-        })
+        sync_or_async(upgrade_app)(
+            kwargs={
+                "app_id": self.id,
+                "chart_version_id": chart_version_id,
+                "answers": answers,
+                "customs": customs,
+                "updator": updator,
+                "access_token": access_token,
+                "valuefile": valuefile,
+                "kubeconfig_content": kubeconfig_content,
+                "ignore_empty_access_token": ignore_empty_access_token,
+                "extra_inject_source": extra_inject_source,
+                "sys_variables": sys_variables,
+                "valuefile_name": valuefile_name,
+                **kwargs,
+            }
+        )
         return self
 
-    def upgrade_app_task(self, chart_version_id, answers, customs, updator, access_token, valuefile=None,
-                         kubeconfig_content=None, ignore_empty_access_token=None, extra_inject_source=None,
-                         sys_variables=None, valuefile_name=DEFAULT_VALUES_FILE_NAME, **kwargs):
+    def upgrade_app_task(
+        self,
+        chart_version_id,
+        answers,
+        customs,
+        updator,
+        access_token,
+        valuefile=None,
+        kubeconfig_content=None,
+        ignore_empty_access_token=None,
+        extra_inject_source=None,
+        sys_variables=None,
+        valuefile_name=DEFAULT_VALUES_FILE_NAME,
+        **kwargs
+    ):
         # make upgrade
         # `chart_version_id` indicate the target chartverion for app,
         # it can also use KEEP_TEMPLATE_UNCHANGED to keep app template unchanged.
@@ -359,7 +398,8 @@ class App(models.Model):
         )
 
         self.release = ChartRelease.objects.make_upgrade_release(
-            self, chart_version_id, answers, customs, valuefile=valuefile, valuefile_name=valuefile_name)
+            self, chart_version_id, answers, customs, valuefile=valuefile, valuefile_name=valuefile_name
+        )
         self.version = self.release.chartVersionSnapshot.version
         self.updator = updator
         self.cmd_flags = json.dumps(kwargs.get("cmd_flags") or [])
@@ -392,10 +432,12 @@ class App(models.Model):
 
     def record_rollback_app(self, username, release_id, access_token):
         # operation record
-        extra = json.dumps(dict(
-            access_token=access_token,
-            release_id=release_id,
-        ))
+        extra = json.dumps(
+            dict(
+                access_token=access_token,
+                release_id=release_id,
+            )
+        )
         logger_client = client.UserActivityLogClient(
             project_id=self.project_id,
             user=username,
@@ -409,7 +451,7 @@ class App(models.Model):
                 app_name=self.name,
                 namespace=self.namespace,
                 cluster_id=self.cluster_id,
-            )
+            ),
         )
         logger_client.log(activity_status="busy")
         return logger_client
@@ -421,12 +463,14 @@ class App(models.Model):
         #    raise ValidationError("helm app is on transitioning, please try a later.")
 
         self.reset_transitioning("rollback")
-        sync_or_async(rollback_app)(kwargs={
-            "app_id": self.id,
-            "access_token": access_token,
-            "username": username,
-            "release_id": release_id,
-        })
+        sync_or_async(rollback_app)(
+            kwargs={
+                "app_id": self.id,
+                "access_token": access_token,
+                "username": username,
+                "release_id": release_id,
+            }
+        )
         return self
 
     def rollback_app_task(self, username, release_id, access_token):
@@ -467,21 +511,27 @@ class App(models.Model):
         if enable_helm_v3(self.cluster_id):
             releases = releases.exclude(revision=0)
 
-        releases = [dict(id=item.id,
-                         short_name=item.short_name,
-                         version=item.chartVersionSnapshot.version,
-                         created_at=item.created_at,
-                         revision=item.revision
-                         ) for item in releases]
+        releases = [
+            dict(
+                id=item.id,
+                short_name=item.short_name,
+                version=item.chartVersionSnapshot.version,
+                created_at=item.created_at,
+                revision=item.revision,
+            )
+            for item in releases
+        ]
         return releases
 
     def get_upgrade_version_selections(self):
         options = list(self.chart.versions.values("id", "version").order_by("-created"))
         release = self.release
-        current_version = [{
-            "id": KEEP_TEMPLATE_UNCHANGED,
-            "version": "(current-%s) %s" % (release.snapshot_state, release.version),
-        }]
+        current_version = [
+            {
+                "id": KEEP_TEMPLATE_UNCHANGED,
+                "version": "(current-%s) %s" % (release.snapshot_state, release.version),
+            }
+        ]
         options = current_version + options
         return options
 
@@ -496,9 +546,11 @@ class App(models.Model):
 
     def record_destroy(self, username, access_token):
         # operation record
-        extra = json.dumps(dict(
-            access_token=access_token,
-        ))
+        extra = json.dumps(
+            dict(
+                access_token=access_token,
+            )
+        )
         logger_client = client.UserActivityLogClient(
             project_id=self.project_id,
             user=username,
@@ -512,7 +564,7 @@ class App(models.Model):
                 app_name=self.name,
                 namespace=self.namespace,
                 cluster_id=self.cluster_id,
-            )
+            ),
         )
         logger_client.log(activity_status="busy")
         return logger_client
@@ -524,15 +576,16 @@ class App(models.Model):
         #    raise ValidationError("helm app is on transitioning, please try a later.")
 
         self.reset_transitioning("delete")
-        sync_or_async(destroy_app)(kwargs={
-            "app_id": self.id,
-            "access_token": access_token,
-            "username": username,
-        })
+        sync_or_async(destroy_app)(
+            kwargs={
+                "app_id": self.id,
+                "access_token": access_token,
+                "username": username,
+            }
+        )
 
     def destroy_app_task(self, username, access_token):
-        """ destroy app in cluster, then remove record from db
-        """
+        """destroy app in cluster, then remove record from db"""
         # operation record
         log_client = self.record_destroy(username=username, access_token=access_token)
 

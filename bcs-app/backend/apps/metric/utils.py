@@ -22,8 +22,9 @@ from backend.components.bcs.mesos import MesosClient
 logger = logging.getLogger(__name__)
 
 
-def get_metric_instances(access_token: str, project_id: str, metric_name: str, env: str,
-                         cluster_id_list: list, ns_dict: dict, instance_info) -> list:
+def get_metric_instances(
+    access_token: str, project_id: str, metric_name: str, env: str, cluster_id_list: list, ns_dict: dict, instance_info
+) -> list:
     metric_instance_list = []
 
     stag = settings.BCS_API_ENV[env]
@@ -45,15 +46,16 @@ def get_metric_instances(access_token: str, project_id: str, metric_name: str, e
         selector_str = f'"{s_key}": "{metric_name}"'
         # 查询跟metric相关的应用
         ns_id = ns_dict.get(namespace)
-        ins_list = instance_info.filter(
-            namespace=ns_id, config__contains=selector_str).values_list('name', 'category')
+        ins_list = instance_info.filter(namespace=ns_id, config__contains=selector_str).values_list('name', 'category')
         for _ins in ins_list:
 
-            metric_instance_list.append({
-                'ns_id': ns_id,
-                'namespace': namespace,
-                'name': _ins[0],
-                'category': CATE_SHOW_NAME.get(_ins[1], _ins[1])
-            })
+            metric_instance_list.append(
+                {
+                    'ns_id': ns_id,
+                    'namespace': namespace,
+                    'name': _ins[0],
+                    'category': CATE_SHOW_NAME.get(_ins[1], _ins[1]),
+                }
+            )
 
     return metric_instance_list

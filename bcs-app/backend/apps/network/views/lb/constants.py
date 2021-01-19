@@ -20,28 +20,17 @@ from .constants_bk import MESOS_LB_ENV_CONFIG
 MESOS_LB_SERVICE = {
     "apiVersion": "v4",
     "kind": "service",
-    "metadata": {
-        "name": "",
-        "namespace": ""
-    },
-    "spec": {
-        "selector": {}
-    }
+    "metadata": {"name": "", "namespace": ""},
+    "spec": {"selector": {}},
 }
 
 # mesos lb deployment manifest
 MESOS_LB_DEPLOYMENT = {
     "apiVersion": "v4",
     "kind": "deployment",
-    "restartPolicy": {
-        "policy": "OnFailure",
-        "interval": 10
-    },
+    "restartPolicy": {"policy": "OnFailure", "interval": 10},
     "constraint": {},
-    "metadata": {
-        "name": "",
-        "namespace": ""
-    },
+    "metadata": {"name": "", "namespace": ""},
     "spec": {
         "instance": 1,
         "strategy": {
@@ -51,13 +40,11 @@ MESOS_LB_DEPLOYMENT = {
                 "maxSurge": 1,
                 "upgradeDuration": 20,
                 "rollingOrder": "DeleteFirst",
-                "rollingManually": False
-            }
+                "rollingManually": False,
+            },
         },
         "template": {
-            "metadata": {
-                "labels": {}
-            },
+            "metadata": {"labels": {}},
             "spec": {
                 "containers": [
                     {
@@ -69,14 +56,14 @@ MESOS_LB_DEPLOYMENT = {
                         "privileged": True,
                         "resources": {},
                         "configmaps": [],
-                        "env": MESOS_LB_ENV_CONFIG
+                        "env": MESOS_LB_ENV_CONFIG,
                     }
                 ],
                 "networkMode": "",
-                "networkType": ""
-            }
-        }
-    }
+                "networkType": "",
+            },
+        },
+    },
 }
 
 # mesos lb的状态
@@ -92,7 +79,7 @@ class MESOS_LB_STATUS(ChoicesEnum):
         (DEPLOYING, "deploying"),
         (DEPLOYED, "deployed"),
         (STOPPING, "stopping"),
-        (STOPPED, "stopped")
+        (STOPPED, "stopped"),
     )
 
 

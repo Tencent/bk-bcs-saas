@@ -11,20 +11,20 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-import json
 import base64
+import json
 import logging
 
 from django.conf import settings
 
+from backend.apps.depot.api import get_bk_jfrog_auth, get_jfrog_account
+from backend.apps.instance.constants import K8S_IMAGE_SECRET_PRFIX
 from backend.components import paas_cc
 from backend.components.bcs.k8s import K8SClient
-from backend.utils.error_codes import error_codes
-from backend.utils.errcodes import ErrorCode
-from backend.apps.depot.api import get_jfrog_account, get_bk_jfrog_auth
-from backend.apps.instance.constants import K8S_IMAGE_SECRET_PRFIX
-from backend.resources.namespace.constants import K8S_SYS_NAMESPACE, K8S_PLAT_NAMESPACE
 from backend.resources.namespace import NamespaceQuota
+from backend.resources.namespace.constants import K8S_PLAT_NAMESPACE, K8S_SYS_NAMESPACE
+from backend.utils.errcodes import ErrorCode
+from backend.utils.error_codes import error_codes
 
 logger = logging.getLogger(__name__)
 
@@ -82,21 +82,15 @@ def create_dept_account(access_token, project_id, project_code, cluster_id):
 
 
 def create_imagepullsecret(access_token, project_id, project_code, cluster_id, namespace):
-    """先和先前逻辑保持一致
-    """
+    """先和先前逻辑保持一致"""
     dept_auth = {'auths': create_dept_account(access_token, project_id, project_code, cluster_id)}
     auth_bytes = bytes(json.dumps(dept_auth), 'utf-8')
     secret_config = {
         "apiVersion": "v1",
         "kind": "Secret",
-        "metadata": {
-            "name": f"{K8S_IMAGE_SECRET_PRFIX}{namespace}",
-            "namespace": namespace
-        },
-        "data": {
-            ".dockerconfigjson": base64.b64encode(auth_bytes).decode()
-        },
-        "type": "kubernetes.io/dockerconfigjson"
+        "metadata": {"name": f"{K8S_IMAGE_SECRET_PRFIX}{namespace}", "namespace": namespace},
+        "data": {".dockerconfigjson": base64.b64encode(auth_bytes).decode()},
+        "type": "kubernetes.io/dockerconfigjson",
     }
     #
     client = K8SClient(access_token, project_id, cluster_id, env=None)

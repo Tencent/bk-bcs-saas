@@ -11,28 +11,26 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
+import re
+import tempfile
+from urllib.parse import urlparse
+
 import dpath
 import yaml
 import yaml.reader
-import re
-import tempfile
-
-from urllib.parse import urlparse
-from ruamel.yaml import YAML
-from ruamel.yaml.compat import StringIO
-from ruamel.yaml.compat import ordereddict
 from django.utils.translation import ugettext_lazy as _
-
-from backend.bcs_k8s.helm.utils.util import fix_rancher_value_by_type, EmptyVaue
-from backend.utils.client import make_dashboard_ctl_client
-from backend.bcs_k8s.diff import parser
+from ruamel.yaml import YAML
+from ruamel.yaml.compat import StringIO, ordereddict
 
 from backend.bcs_k8s.dashboard.exceptions import DashboardExecutionError
+from backend.bcs_k8s.diff import parser
+from backend.bcs_k8s.helm.utils.util import EmptyVaue, fix_rancher_value_by_type
 from backend.components import paas_cc
-
+from backend.utils.client import make_dashboard_ctl_client
 
 yaml.reader.Reader.NON_PRINTABLE = re.compile(
-    '[^\x09\x0A\x0D\x20-\x7E\x85\xA0-\uD7FF\uE000-\uFFFD\U00010000-\U0010FFFF]')
+    '[^\x09\x0A\x0D\x20-\x7E\x85\xA0-\uD7FF\uE000-\uFFFD\U00010000-\U0010FFFF]'
+)
 
 
 def represent_none(self, _):
@@ -114,10 +112,8 @@ def sync_dict2yaml(obj_list, yaml_content):
             update = dict()
             dpath.util.new(update, item["name"], value, separator=".")
             dpath.util.merge(
-                dst=yaml_obj,
-                src=update,
-                separator=".",
-                flags=dpath.util.MERGE_REPLACE | dpath.util.MERGE_ADDITIVE)
+                dst=yaml_obj, src=update, separator=".", flags=dpath.util.MERGE_REPLACE | dpath.util.MERGE_ADDITIVE
+            )
 
     content = ruamel_yaml_dump(yaml_obj)
     return content
@@ -203,15 +199,9 @@ def collect_resource_state(kube_client, namespace, content):
         f.write(content)
         f.flush()
 
-        res = kube_client.get_by_file(
-            filename=f.name,
-            namespace=namespace
-        )
+        res = kube_client.get_by_file(filename=f.name, namespace=namespace)
 
-    result = {
-        "summary": {},
-        "items": []
-    }
+    result = {"summary": {}, "items": []}
     for item in res["items"]:
         state = extract_state_info(item)
         result["items"].append(state)
@@ -233,13 +223,8 @@ def merge_valuefile(source, new):
 
 
 def dashboard_get_overview(kubeconfig, namespace):
-    dashboard_client = make_dashboard_ctl_client(
-        kubeconfig=kubeconfig
-    )
-    dashboard_overview = dashboard_client.overview(
-        namespace=namespace,
-        parameters=dict()
-    )
+    dashboard_client = make_dashboard_ctl_client(kubeconfig=kubeconfig)
+    dashboard_overview = dashboard_client.overview(namespace=namespace, parameters=dict())
     return dashboard_overview
 
 
@@ -307,10 +292,7 @@ def collect_resource_status(base_url, kubeconfig, app, project_code):
     resources = resources.values()
     release_name = app.name
 
-    dashboard_overview = dashboard_get_overview(
-        kubeconfig=kubeconfig,
-        namespace=namespace
-    )
+    dashboard_overview = dashboard_get_overview(kubeconfig=kubeconfig, namespace=namespace)
 
     result = {}
     structure = app.release.extract_structure(namespace)
@@ -319,10 +301,7 @@ def collect_resource_status(base_url, kubeconfig, app, project_code):
         name = item["name"]
 
         status = extract_state_info_from_dashboard_overview(
-            overview_status=dashboard_overview,
-            kind=kind,
-            namespace=namespace,
-            name=name
+            overview_status=dashboard_overview, kind=kind, namespace=namespace, name=name
         )
         """
         status = {}
@@ -349,7 +328,7 @@ def collect_resource_status(base_url, kubeconfig, app, project_code):
                 project_code=project_code,
                 name=name,
                 namespace=namespace,
-                release_name=release_name
+                release_name=release_name,
             )
         else:
             link = None
@@ -365,7 +344,7 @@ def collect_resource_status(base_url, kubeconfig, app, project_code):
             "kind": kind,
             "status": status,
             "status_sumary": status_sumary(status, app),
-            "link": link
+            "link": link,
         }
     return result
 
@@ -388,21 +367,21 @@ def resource_link(base_url, kind, project_code, name, namespace, release_name):
         return None
 
     fix_kind = kind_map[kind]
-    url = ("/console/bcs/{project_code}/app/{fix_kind}/{resource_name}/{namespace}/{kind}"
-           "?name={resource_name}&namespace={namespace}&category={kind}").format(
-               base_url=base_url,
-               kind=kind.lower(),
-               fix_kind=fix_kind,
-               instance_name=release_name,
-               resource_name=name,
-               project_code=project_code,
-               namespace=namespace)
+    url = (
+        "/console/bcs/{project_code}/app/{fix_kind}/{resource_name}/{namespace}/{kind}"
+        "?name={resource_name}&namespace={namespace}&category={kind}"
+    ).format(
+        kind=kind.lower(),
+        fix_kind=fix_kind,
+        resource_name=name,
+        project_code=project_code,
+        namespace=namespace,
+    )
     return url
 
 
 def compose_url_with_scheme(url, scheme="http"):
-    """组装URL
-    """
+    """组装URL"""
     url_split_info = url.split('//')
     return '{scheme}://{domain}'.format(scheme=scheme, domain=url_split_info[-1])
 

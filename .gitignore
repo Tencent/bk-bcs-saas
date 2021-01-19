@@ -169,3 +169,5 @@ bcs-cc/bin
 /data/
 
 bcs-app/backend/settings/ce/dev_*.py
+
+.mypy_cache

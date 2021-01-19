@@ -12,12 +12,12 @@
 # specific language governing permissions and limitations under the License.
 #
 import json
-import os
-import time
-import subprocess
 import logging
-import tempfile
+import os
 import shutil
+import subprocess
+import tempfile
+import time
 from pathlib import Path
 
 from .exceptions import DashboardError, DashboardExecutionError
@@ -44,11 +44,7 @@ class DashboardClient:
         name = name.lower()
         kind = kind.lower()
 
-        url_path = "/api/v1/{kind}/{namespace}/{name}".format(
-            namespace=namespace,
-            name=name,
-            kind=kind
-        )
+        url_path = "/api/v1/{kind}/{namespace}/{name}".format(namespace=namespace, name=name, kind=kind)
         return self.run(
             namespace=namespace,
             url_path=url_path,
@@ -89,15 +85,13 @@ class DashboardClient:
                 "--url-path",
                 url_path,
                 "--api-log-level",
-                str(api_log_level)
+                str(api_log_level),
             ]
             if parameters:
                 import base64
+
                 b64parameters = base64.standard_b64encode(json.dumps(parameters))
-                cmd_args += [
-                    "--parameters-base64-encode",
-                    b64parameters
-                ]
+                cmd_args += ["--parameters-base64-encode", b64parameters]
 
             template_out, _ = self._run_command_with_retry(max_retries=0, cmd_args=cmd_args)
             with open(output_file, "r") as f:
@@ -107,12 +101,10 @@ class DashboardClient:
             raise
         except Exception as e:
             logger.exception(
-                ("run dashboard ctl fail: namespace={namespace}, "
-                 "parameters={parameters}, error:{error}").format(
-                    namespace=namespace,
-                    parameters=parameters,
-                    error=e
-                ))
+                ("run dashboard ctl fail: namespace={namespace}, " "parameters={parameters}, error:{error}").format(
+                    namespace=namespace, parameters=parameters, error=e
+                )
+            )
             raise
         finally:
             shutil.rmtree(temp_dir)
@@ -137,8 +129,7 @@ class DashboardClient:
         raise ValueError(max_retries)
 
     def _run_command(self, cmd_args):
-        """Run the dashboard ctl command with wrapped exceptions
-        """
+        """Run the dashboard ctl command with wrapped exceptions"""
         try:
             logger.info("Calling dashboard ctl cmd, cmd: (%s)", " ".join(cmd_args))
 
@@ -146,8 +137,9 @@ class DashboardClient:
 
         except subprocess.CalledProcessError as e:
             logger.info("Calling dashboard ctl cmd result: output: %s\n" % e.output.decode("utf-8"))
-            logger.exception("Unable to run dashboard ctl command, return code: %s, output: %s",
-                             e.returncode, e.output)
+            logger.exception(
+                "Unable to run dashboard ctl command, return code: %s, output: %s", e.returncode, e.output
+            )
             raise DashboardExecutionError(e.returncode, e.output)
         except Exception as err:
             logger.exception("Unable to run dashboard ctl command, %s", err)

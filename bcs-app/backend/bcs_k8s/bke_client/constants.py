@@ -13,7 +13,6 @@
 #
 from .constants_bk import *  # noqa
 
-
 BCS_USER_NAME = "bke-dynamic-user"
 
 # cluster not found code

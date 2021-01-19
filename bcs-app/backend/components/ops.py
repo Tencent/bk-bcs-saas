@@ -33,25 +33,18 @@ FUNCTION_PATH_MAP = {
     'add_cluster_node': '/v1/add_node',
     'delete_cluster_node': '/v1/remove_node',
     'delete_cluster': '/v1/uninstall_cluster',
-    'get_task_result': '/v1/query'
+    'get_task_result': '/v1/query',
 }
 
 
 def get_request_url(function_name):
-    api_host = API_HOST.format(
-        APIGW_HOST=settings.APIGW_HOST, APIGW=APIGW, STAG=ENV
-    )
+    api_host = API_HOST.format(APIGW_HOST=settings.APIGW_HOST, APIGW=APIGW, STAG=ENV)
     path = FUNCTION_PATH_MAP[function_name]
     return '{api_host}{path}'.format(api_host=api_host, path=path)
 
 
 def get_headers(access_token, project_id):
-    return {
-        "X-BKAPI-AUTHORIZATION": json.dumps({
-            "access_token": access_token,
-            "project_id": project_id
-        })
-    }
+    return {"X-BKAPI-AUTHORIZATION": json.dumps({"access_token": access_token, "project_id": project_id})}
 
 
 def base_ops_request(function_name, access_token, project_id, method, json=None, params=None):
@@ -62,10 +55,20 @@ def base_ops_request(function_name, access_token, project_id, method, json=None,
 
 
 def create_cluster(
-        access_token, project_id, k8s_mesos, cluster_id, master_ip_list,
-        config, cc_module, control_ip, biz_id, username, websvr, platform): # noqa
-    """集群初始化流程
-    """
+    access_token,
+    project_id,
+    k8s_mesos,
+    cluster_id,
+    master_ip_list,
+    config,
+    cc_module,
+    control_ip,
+    biz_id,
+    username,
+    websvr,
+    platform,
+):  # noqa
+    """集群初始化流程"""
     data = {
         'type': k8s_mesos,
         'cluster_id': cluster_id,
@@ -77,16 +80,26 @@ def create_cluster(
         'biz_id': str(biz_id),
         'username': username,
         'websvr': websvr,
-        "platform": platform
+        "platform": platform,
     }
     return base_ops_request('create_cluster', access_token, project_id, 'post', json=data)
 
 
 def add_cluster_node(
-        access_token, project_id, k8s_mesos, cluster_id, master_ip_list, node_ip_list,
-        config, control_ip, biz_id, username, cc_module, websvr): # noqa
-    """节点初始化流程
-    """
+    access_token,
+    project_id,
+    k8s_mesos,
+    cluster_id,
+    master_ip_list,
+    node_ip_list,
+    config,
+    control_ip,
+    biz_id,
+    username,
+    cc_module,
+    websvr,
+):  # noqa
+    """节点初始化流程"""
     data = {
         'type': k8s_mesos,
         'cluster_id': cluster_id,
@@ -97,16 +110,25 @@ def add_cluster_node(
         'biz_id': str(biz_id),
         'username': username,
         'cc_module_id': cc_module,
-        'websvr': websvr
+        'websvr': websvr,
     }
     return base_ops_request('add_cluster_node', access_token, project_id, 'post', json=data)
 
 
 def delete_cluster_node(
-        access_token, project_id, k8s_mesos, cluster_id, master_ip_list, node_ip_list,
-        config, control_ip, biz_id, username, websvr): # noqa
-    """节点删除流程
-    """
+    access_token,
+    project_id,
+    k8s_mesos,
+    cluster_id,
+    master_ip_list,
+    node_ip_list,
+    config,
+    control_ip,
+    biz_id,
+    username,
+    websvr,
+):  # noqa
+    """节点删除流程"""
     data = {
         'type': k8s_mesos,
         'cluster_id': cluster_id,
@@ -116,16 +138,25 @@ def delete_cluster_node(
         'control_ip': control_ip,
         'biz_id': str(biz_id),
         'username': username,
-        'websvr': websvr
+        'websvr': websvr,
     }
     return base_ops_request('delete_cluster_node', access_token, project_id, 'post', json=data)
 
 
 def delete_cluster(
-        access_token, project_id, k8s_mesos, cluster_id, master_ip_list,
-        control_ip, biz_id, username, websvr, config=None, platform=None): # noqa
-    """集群删除流程
-    """
+    access_token,
+    project_id,
+    k8s_mesos,
+    cluster_id,
+    master_ip_list,
+    control_ip,
+    biz_id,
+    username,
+    websvr,
+    config=None,
+    platform=None,
+):  # noqa
+    """集群删除流程"""
     data = {
         'type': k8s_mesos,
         'cluster_id': cluster_id,
@@ -135,13 +166,12 @@ def delete_cluster(
         'biz_id': str(biz_id),
         'username': username,
         'websvr': websvr,
-        "platform": platform
+        "platform": platform,
     }
     return base_ops_request('delete_cluster', access_token, project_id, 'post', json=data)
 
 
 def get_task_result(access_token, project_id, task_id, biz_id, username):
-    """查询任务状态
-    """
+    """查询任务状态"""
     params = {'task_id': task_id, 'biz_id': str(biz_id), 'username': username}
     return base_ops_request('get_task_result', access_token, project_id, 'get', params=params)

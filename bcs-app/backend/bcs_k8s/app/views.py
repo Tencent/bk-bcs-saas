@@ -11,61 +11,81 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-import os
-import json
 import base64
-import urllib
+import json
 import logging
-
-from operator import itemgetter
-from itertools import groupby
+import os
 import tempfile
-from django.utils import timezone
-from rest_framework.exceptions import ValidationError
+import urllib
+from itertools import groupby
+from operator import itemgetter
 
 import yaml
-from rest_framework import viewsets
-from rest_framework.serializers import Serializer
-from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
-from rest_framework.exceptions import APIException
 from django.conf import settings
 from django.core.cache import cache
-from django.http import HttpResponse
 from django.db import IntegrityError
-from jinja2 import Template
+from django.http import HttpResponse
 from django.template.loader import render_to_string
+from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
+from jinja2 import Template
+from rest_framework import viewsets
+from rest_framework.exceptions import APIException, ValidationError
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from rest_framework.serializers import Serializer
+
+from backend.accounts import bcs_perm
+from backend.bcs_k8s.app.serializers import FilterNamespacesSLZ
+from backend.bcs_k8s.app.utils import compose_url_with_scheme
+from backend.bcs_k8s.app.utils_bk import get_or_create_private_repo
+from backend.bcs_k8s.authtoken.authentication import TokenAuthentication
+from backend.bcs_k8s.bke_client.client import BCSClusterCredentialsNotFound, BCSClusterNotFound
+from backend.bcs_k8s.dashboard.exceptions import DashboardError, DashboardExecutionError
+from backend.bcs_k8s.diff import parser
+from backend.bcs_k8s.helm.models.chart import ChartVersion
+from backend.bcs_k8s.helm.models.repo import Repository
+from backend.bcs_k8s.helm.providers.repo_provider import add_plain_repo, add_platform_public_repos, add_repo
+from backend.bcs_k8s.helm.serializers import ChartVersionSLZ
+from backend.bcs_k8s.permissions import check_cluster_perm
+from backend.components import paas_cc
+from backend.components.bcs import k8s
+from backend.resources.namespace.constants import K8S_SYS_PLAT_NAMESPACES
+from backend.utils import client as bcs_utils_client
+from backend.utils.errcodes import ErrorCode
+from backend.utils.views import (
+    AccessTokenMixin,
+    ActionSerializerMixin,
+    AppMixin,
+    FilterByProjectMixin,
+    ProjectMixin,
+    with_code_wrapper,
+)
 
 from .models import App
 from .serializers import (
-    AppSLZ, AppUpgradeSLZ, AppRollbackSLZ, NamespaceSLZ, AppDetailSLZ,
-    AppUpgradeVersionsSLZ, AppRollbackSelectionsSLZ, AppReleaseDiffSLZ,
-    AppReleasePreviewSLZ, AppCreatePreviewSLZ, AppRollbackPreviewSLZ, AppPreviewSLZ,
-    ClusterImportSLZ, ClusterKubeConfigSLZ, SyncDict2YamlToolSLZ, SyncYaml2DictToolSLZ,
-    ClusterHelmInitSLZ, AppCreatePreviewDiffWithClusterSLZ, AppStateSLZ, AppUpgradeByAPISLZ
+    AppCreatePreviewDiffWithClusterSLZ,
+    AppCreatePreviewSLZ,
+    AppDetailSLZ,
+    AppPreviewSLZ,
+    AppReleaseDiffSLZ,
+    AppReleasePreviewSLZ,
+    AppRollbackPreviewSLZ,
+    AppRollbackSelectionsSLZ,
+    AppRollbackSLZ,
+    AppSLZ,
+    AppStateSLZ,
+    AppUpgradeByAPISLZ,
+    AppUpgradeSLZ,
+    AppUpgradeVersionsSLZ,
+    ClusterHelmInitSLZ,
+    ClusterImportSLZ,
+    ClusterKubeConfigSLZ,
+    NamespaceSLZ,
+    SyncDict2YamlToolSLZ,
+    SyncYaml2DictToolSLZ,
 )
-from backend.bcs_k8s.helm.serializers import ChartVersionSLZ
-from backend.bcs_k8s.helm.models.chart import ChartVersion
-from backend.bcs_k8s.helm.models.repo import Repository
-from backend.bcs_k8s.diff import parser
-from backend.bcs_k8s.permissions import check_cluster_perm
-from backend.bcs_k8s.helm.providers.repo_provider import add_platform_public_repos, add_repo, add_plain_repo
-from backend.utils.views import ActionSerializerMixin, FilterByProjectMixin
-from backend.components import paas_cc
-from backend.utils.views import AccessTokenMixin, ProjectMixin, AppMixin, with_code_wrapper
-from backend.bcs_k8s.authtoken.authentication import TokenAuthentication
-from backend.utils import client as bcs_utils_client
-from backend.components.bcs import k8s
 from .utils import collect_resource_state, collect_resource_status, get_base_url, resource_link
-from backend.accounts import bcs_perm
-from backend.bcs_k8s.bke_client.client import BCSClusterNotFound, BCSClusterCredentialsNotFound
-from backend.bcs_k8s.dashboard.exceptions import DashboardError, DashboardExecutionError
-from backend.bcs_k8s.app.utils import compose_url_with_scheme
-from backend.utils.errcodes import ErrorCode
-from backend.bcs_k8s.app.serializers import FilterNamespacesSLZ
-from backend.bcs_k8s.app.utils_bk import get_or_create_private_repo
-from backend.resources.namespace.constants import K8S_SYS_PLAT_NAMESPACES
 
 logger = logging.getLogger(__name__)
 
@@ -92,10 +112,8 @@ class AppView(ActionSerializerMixin, AppViewBase):
     }
 
     def get_project_cluster(self, request, project_id):
-        """获取项目下集群信息
-        """
-        project_cluster = paas_cc.get_all_clusters(
-            request.user.token.access_token, project_id, desire_all_data=True)
+        """获取项目下集群信息"""
+        project_cluster = paas_cc.get_all_clusters(request.user.token.access_token, project_id, desire_all_data=True)
         if project_cluster.get('code') != ErrorCode.NoError:
             logger.error('Request cluster info error, detail: %s' % project_cluster.get('message'))
             return {}
@@ -104,8 +122,7 @@ class AppView(ActionSerializerMixin, AppViewBase):
         return {info['cluster_id']: info for info in results} if results else {}
 
     def list(self, request, project_id, *args, **kwargs):
-        """
-        """
+        """"""
         project_cluster = self.get_project_cluster(request, project_id)
         qs = self.get_queryset()
         # 获取过滤参数
@@ -119,11 +136,26 @@ class AppView(ActionSerializerMixin, AppViewBase):
                 raise ValidationError(_("命名空间作为过滤参数时，需要提供集群ID"))
             qs = qs.filter(namespace=namespace)
 
-        data = list(qs.values(
-            "name", "id", "cluster_id", "project_id", "namespace", "namespace_id", "version",
-            "created", "creator", "chart__id", "transitioning_action", "transitioning_message",
-            "transitioning_on", "transitioning_result", "updated", "updator"
-        ))
+        data = list(
+            qs.values(
+                "name",
+                "id",
+                "cluster_id",
+                "project_id",
+                "namespace",
+                "namespace_id",
+                "version",
+                "created",
+                "creator",
+                "chart__id",
+                "transitioning_action",
+                "transitioning_message",
+                "transitioning_on",
+                "transitioning_result",
+                "updated",
+                "updator",
+            )
+        )
 
         # do fix on the data which version is emtpy
         datetime_format = "%Y-%m-%d %H:%M:%S"
@@ -138,7 +170,8 @@ class AppView(ActionSerializerMixin, AppViewBase):
             item["current_version"] = item.pop("version")
             if not item["current_version"]:
                 version = App.objects.filter(id=item["id"]).values_list(
-                    "release__chartVersionSnapshot__version", flat=True)[0]
+                    "release__chartVersionSnapshot__version", flat=True
+                )[0]
                 App.objects.filter(id=item["id"]).update(version=version)
                 item["current_version"] = version
 
@@ -157,12 +190,7 @@ class AppView(ActionSerializerMixin, AppViewBase):
             item["updated"] = item["updated"].astimezone().strftime(datetime_format)
             app_list.append(item)
 
-        result = {
-            "count": len(app_list),
-            "next": None,
-            "previous": None,
-            "results": app_list
-        }
+        result = {"count": len(app_list), "next": None, "previous": None, "results": app_list}
         return Response(data=result)
 
     def retrieve(self, request, *args, **kwargs):
@@ -176,31 +204,34 @@ class AppView(ActionSerializerMixin, AppViewBase):
             return super(AppView, self).create(request, *args, **kwargs)
         except IntegrityError as e:
             logger.warning("helm app create IntegrityError, %s", e)
-            return Response(status=400, data={
-                "code": 400,
-                "message": "helm app name already exists in this cluster",
-            })
+            return Response(
+                status=400,
+                data={
+                    "code": 400,
+                    "message": "helm app name already exists in this cluster",
+                },
+            )
         except BCSClusterNotFound:
-            return Response(data={
-                "code": 40031,
-                "message": _("集群未注册"),
-            })
+            return Response(
+                data={
+                    "code": 40031,
+                    "message": _("集群未注册"),
+                }
+            )
         except BCSClusterCredentialsNotFound:
-            return Response(data={
-                "code": 40031,
-                "message": _("集群证书未上报"),
-            })
+            return Response(
+                data={
+                    "code": 40031,
+                    "message": _("集群证书未上报"),
+                }
+            )
 
     def destroy(self, request, *args, **kwargs):
-        """ 重载默认的 destroy 方法，用于实现判断是否删除成功
-        """
+        """重载默认的 destroy 方法，用于实现判断是否删除成功"""
         instance = self.get_object()
 
         check_cluster_perm(
-            user=request.user,
-            project_id=instance.project_id,
-            cluster_id=instance.cluster_id,
-            request=request
+            user=request.user, project_id=instance.project_id, cluster_id=instance.cluster_id, request=request
         )
 
         self.perform_destroy(instance)
@@ -212,17 +243,11 @@ class AppView(ActionSerializerMixin, AppViewBase):
                 "transitioning_message": instance.transitioning_message,
             }
         else:
-            data = {
-                "transitioning_result": True,
-                "transitioning_message": "success deleted"
-            }
+            data = {"transitioning_result": True, "transitioning_message": "success deleted"}
         return Response(data)
 
     def perform_destroy(self, instance):
-        instance.destroy(
-            username=self.request.user.username,
-            access_token=self.access_token
-        )
+        instance.destroy(username=self.request.user.username, access_token=self.access_token)
 
 
 @with_code_wrapper
@@ -242,8 +267,7 @@ class AppNamespaceView(AccessTokenMixin, ProjectMixin, viewsets.ReadOnlyModelVie
             return []
         # 补充cluster_name字段
         cluster_ids = [i['cluster_id'] for i in results]
-        cluster_list = paas_cc.get_cluster_list(
-            self.access_token, self.project_id, cluster_ids).get('data') or []
+        cluster_list = paas_cc.get_cluster_list(self.access_token, self.project_id, cluster_ids).get('data') or []
         # cluster_list = bcs_perm.Cluster.hook_perms(request, project_id, cluster_list)
         cluster_dict = {i['cluster_id']: i for i in cluster_list}
 
@@ -284,9 +308,11 @@ class AppNamespaceView(AccessTokenMixin, ProjectMixin, viewsets.ReadOnlyModelVie
         namespace_ids = []
         chart_id = params.get("chart_id")
         if chart_id:
-            namespace_ids = set(App.objects.filter(
-                project_id=self.project_id, chart__id=chart_id
-            ).values_list("namespace_id", flat=True))
+            namespace_ids = set(
+                App.objects.filter(project_id=self.project_id, chart__id=chart_id).values_list(
+                    "namespace_id", flat=True
+                )
+            )
 
         serializer = self.serializer_class(ns_list, many=True)
         data = serializer.data
@@ -299,10 +325,7 @@ class AppNamespaceView(AccessTokenMixin, ProjectMixin, viewsets.ReadOnlyModelVie
         # Iterate in groups
         result = []
         for cluster_id, items in groupby(data, key=itemgetter('cluster_id')):
-            result.append({
-                "name": "%s(%s)" % (cluster_id_name_map[cluster_id], cluster_id),
-                "children": list(items)
-            })
+            result.append({"name": "%s(%s)" % (cluster_id_name_map[cluster_id], cluster_id), "children": list(items)})
         return Response(result)
 
 
@@ -345,14 +368,8 @@ class AppPreviewView(AppMixin, AccessTokenMixin, ProjectMixin, viewsets.ModelVie
 
     def get_object(self):
         instance = App.objects.get(id=self.app_id)
-        content, notes = instance.render_app(
-            username=self.request.user.username,
-            access_token=self.access_token)
-        return {
-            "content": content,
-            "notes": notes,
-            "token": self.access_token
-        }
+        content, notes = instance.render_app(username=self.request.user.username, access_token=self.access_token)
+        return {"content": content, "notes": notes, "token": self.access_token}
 
 
 @with_code_wrapper
@@ -374,7 +391,7 @@ class AppStructureView(AppMixin, AccessTokenMixin, ProjectMixin, viewsets.ModelV
                 kind=resource.kind.lower(),
                 name=resource_dict["metadata"]["name"],
                 namespace=instance.namespace,
-                release_name=instance.name
+                release_name=instance.name,
             )
             item = {
                 "link": url,
@@ -444,7 +461,7 @@ def render_bcs_agent_template(token, bcs_cluster_id, namespace, access_token, pr
         'token': str(token, encoding='utf-8'),
         'bcs_address': bcs_server_host,
         'bcs_cluster_id': str(bcs_cluster_id),
-        'hub_host': settings.DEVOPS_ARTIFACTORY_HOST
+        'hub_host': settings.DEVOPS_ARTIFACTORY_HOST,
     }
     return render_to_string('bcs_agent_tmpl.yaml', render_context)
 
@@ -463,17 +480,10 @@ class ClusterImporterView(AccessTokenMixin, viewsets.ReadOnlyModelViewSet):
 
         cluster_id = serializer.data["cluster_id"]
 
-        check_cluster_perm(
-            user=request.user,
-            project_id=project_id,
-            cluster_id=cluster_id,
-            request=request
-        )
+        check_cluster_perm(user=request.user, project_id=project_id, cluster_id=cluster_id, request=request)
 
         bcs_client = bcs_utils_client.get_bcs_client(
-            project_id=project_id,
-            cluster_id=cluster_id,
-            access_token=self.access_token
+            project_id=project_id, cluster_id=cluster_id, access_token=self.access_token
         )
         bcs_cluster_info = bcs_client.get_or_register_bcs_cluster()
         if not bcs_cluster_info["result"]:
@@ -486,7 +496,7 @@ class ClusterImporterView(AccessTokenMixin, viewsets.ReadOnlyModelViewSet):
             namespace=self.bcs_agent_namespace,
             access_token=self.access_token,
             project_id=project_id,
-            cluster_id=cluster_id
+            cluster_id=cluster_id,
         )
 
         response = HttpResponse(content=content, content_type='text/plain; charset=UTF-8')
@@ -504,17 +514,10 @@ class ClusterKubeConfigView(AccessTokenMixin, viewsets.ReadOnlyModelViewSet):
 
         cluster_id = serializer.data["cluster_id"]
 
-        check_cluster_perm(
-            user=request.user,
-            project_id=project_id,
-            cluster_id=cluster_id,
-            request=request
-        )
+        check_cluster_perm(user=request.user, project_id=project_id, cluster_id=cluster_id, request=request)
 
         kubeconfig = bcs_utils_client.get_kubectl_config_context(
-            access_token=self.access_token,
-            project_id=project_id,
-            cluster_id=cluster_id
+            access_token=self.access_token, project_id=project_id, cluster_id=cluster_id
         )
 
         response = HttpResponse(content=kubeconfig, content_type='text/plain; charset=UTF-8')
@@ -562,15 +565,12 @@ class ClusterHelmInitView(ClusterImporterView):
                 "credentials": {
                     "username": settings.HELM_MERELY_REPO_USERNAME,
                     "password": settings.HELM_MERELY_REPO_PASSWORD,
-                }
+                },
             }
             english_name = project['data']['english_name']
             url = '%s/chartrepo/%s/' % (settings.HELM_MERELY_REPO_URL, english_name)
             private_repo = add_plain_repo(
-                target_project_id=project_id,
-                name=english_name,
-                url=url,
-                repo_auth=repo_auth
+                target_project_id=project_id, name=english_name, url=url, repo_auth=repo_auth
             )
         return [private_repo]
 
@@ -581,34 +581,25 @@ class ClusterHelmInitView(ClusterImporterView):
 
         cluster_id = serializer.data["cluster_id"]
 
-        check_cluster_perm(
-            user=request.user,
-            project_id=project_id,
-            cluster_id=cluster_id,
-            request=request
-        )
+        check_cluster_perm(user=request.user, project_id=project_id, cluster_id=cluster_id, request=request)
 
         if settings.HELM_HAS_ABILITY_SUPPLY_CHART_REPO_SERVICE:
             bcs_client = bcs_utils_client.get_bcs_client(
-                project_id=project_id,
-                cluster_id=cluster_id,
-                access_token=self.access_token
+                project_id=project_id, cluster_id=cluster_id, access_token=self.access_token
             )
 
             bcs_cluster_info = bcs_client.get_cluster()
             if bcs_cluster_info is None or not bcs_cluster_info.get("bcs_cluster_id"):
-                result = {
-                    "code": 17602,
-                    "message": "cluster does not regist to bcs yet.",
-                    "initialized": False
-                }
+                result = {"code": 17602, "message": "cluster does not regist to bcs yet.", "initialized": False}
                 return Response(result)
 
-        serializer = self.serializer_class({
-            "public_repos": self.get_or_add_public_repos(project_id),
-            "private_repos": self.get_or_add_private_repos(project_id, request.user),
-            "initialized": True
-        })
+        serializer = self.serializer_class(
+            {
+                "public_repos": self.get_or_add_public_repos(project_id),
+                "private_repos": self.get_or_add_private_repos(project_id, request.user),
+                "initialized": True,
+            }
+        )
         return Response(data=serializer.data)
 
     def create(self, request, project_id, *args, **kwargs):
@@ -617,20 +608,12 @@ class ClusterHelmInitView(ClusterImporterView):
 
         cluster_id = serializer.data["cluster_id"]
 
-        check_cluster_perm(
-            user=request.user,
-            project_id=project_id,
-            cluster_id=cluster_id,
-            request=request
-        )
+        check_cluster_perm(user=request.user, project_id=project_id, cluster_id=cluster_id, request=request)
 
         # 检查是否有 node, 没有node时，bcs-agent无法启动
         nodes_info = paas_cc.get_node_list(self.access_token, project_id, cluster_id)
         if not nodes_info["data"]["results"]:
-            return Response(data={
-                "code": 40032,
-                "message": _("集群下没有Node节点，无法启用，请先添加")
-            })
+            return Response(data={"code": 40032, "message": _("集群下没有Node节点，无法启用，请先添加")})
         data = helm_init(self.access_token, project_id, cluster_id, self.bcs_agent_namespace)
 
         return Response(data=data)
@@ -649,17 +632,11 @@ def helm_init(access_token, project_id, cluster_id, bcs_agent_namespace):
     # 1. do registering to bcs
     # need to be re-entrant
     bcs_client = bcs_utils_client.get_bcs_client(
-        project_id=project_id,
-        cluster_id=cluster_id,
-        access_token=access_token
+        project_id=project_id, cluster_id=cluster_id, access_token=access_token
     )
     bcs_cluster_info = bcs_client.get_or_register_bcs_cluster()
     if not bcs_cluster_info.get("result"):
-        data = {
-            "code": 10601,
-            "message": "failed to regist to bcs.",
-            "data": bcs_cluster_info
-        }
+        data = {"code": 10601, "message": "failed to regist to bcs.", "data": bcs_cluster_info}
         return Response(data=data)
 
     bcs_cluster_info = bcs_cluster_info["data"]
@@ -669,7 +646,7 @@ def helm_init(access_token, project_id, cluster_id, bcs_agent_namespace):
         namespace="kube-system",  # namespace for bcs agent
         access_token=access_token,
         project_id=project_id,
-        cluster_id=cluster_id
+        cluster_id=cluster_id,
     )
     resources = parser.parse(content, bcs_agent_namespace).values()
 
@@ -750,25 +727,17 @@ class AppStateView(AppMixin, AccessTokenMixin, viewsets.ReadOnlyModelViewSet):
     def retrieve(self, request, app_id, *args, **kwargs):
         app = App.objects.get(id=self.app_id)
 
-        check_cluster_perm(
-            user=request.user,
-            project_id=app.project_id,
-            cluster_id=app.cluster_id,
-            request=request
-        )
+        check_cluster_perm(user=request.user, project_id=app.project_id, cluster_id=app.cluster_id, request=request)
 
         content = app.release.content
         # resources = parser.parse(content, app.namespace)
         with bcs_utils_client.make_kubectl_client(
-            access_token=self.access_token,
-            project_id=app.project_id,
-            cluster_id=app.cluster_id
+            access_token=self.access_token, project_id=app.project_id, cluster_id=app.cluster_id
         ) as (client, err):
             if err:
                 raise APIException(str(err))
 
-            state = collect_resource_state(
-                kube_client=client, namespace=app.namespace, content=content)
+            state = collect_resource_state(kube_client=client, namespace=app.namespace, content=content)
 
         return Response(state)
 
@@ -789,30 +758,21 @@ class AppStatusView(AppMixin, AccessTokenMixin, viewsets.ReadOnlyModelViewSet, P
             # get_project_name
             resp = paas_cc.get_project(self.access_token, self.project_id)
             if resp.get('code') != 0:
-                logger.error("查询project的信息出错(project_id:{project_id}):{message}".format(
-                    project_id=self.project_id,
-                    message=resp.get('message'))
+                logger.error(
+                    "查询project的信息出错(project_id:{project_id}):{message}".format(
+                        project_id=self.project_id, message=resp.get('message')
+                    )
                 )
-                return Response({
-                    "code": 500,
-                    "message": _("后台接口异常，根据项目ID获取项目英文名失败！")
-                })
+                return Response({"code": 500, "message": _("后台接口异常，根据项目ID获取项目英文名失败！")})
 
             cache.set(project_code_cache_key, resp, 60 * 15)
 
         project_code = resp["data"]["english_name"]
 
-        check_cluster_perm(
-            user=request.user,
-            project_id=app.project_id,
-            cluster_id=app.cluster_id,
-            request=request
-        )
+        check_cluster_perm(user=request.user, project_id=app.project_id, cluster_id=app.cluster_id, request=request)
 
         kubeconfig = bcs_utils_client.get_kubectl_config_context(
-            access_token=self.access_token,
-            project_id=app.project_id,
-            cluster_id=app.cluster_id
+            access_token=self.access_token, project_id=app.project_id, cluster_id=app.cluster_id
         )
 
         base_url = get_base_url(request)
@@ -822,34 +782,36 @@ class AppStatusView(AppMixin, AccessTokenMixin, viewsets.ReadOnlyModelViewSet, P
                 f.flush()
 
                 data = collect_resource_status(
-                    base_url=base_url,
-                    kubeconfig=f.name,
-                    app=app,
-                    project_code=project_code
+                    base_url=base_url, kubeconfig=f.name, app=app, project_code=project_code
                 )
         except DashboardExecutionError as e:
             message = "get helm app status failed, error_no: {error_no}\n{output}".format(
-                error_no=e.error_no,
-                output=e.output
+                error_no=e.error_no, output=e.output
             )
-            return Response({
-                "code": 400,
-                "message": message,
-            })
+            return Response(
+                {
+                    "code": 400,
+                    "message": message,
+                }
+            )
         except DashboardError as e:
             message = "get helm app status failed, dashboard ctl error: {err}".format(err=e)
             logger.exception(message)
-            return Response({
-                "code": 400,
-                "message": message,
-            })
+            return Response(
+                {
+                    "code": 400,
+                    "message": message,
+                }
+            )
         except Exception as e:
             message = "get helm app status failed, {err}".format(err=e)
             logger.exception(message)
-            return Response({
-                "codee": 500,
-                "message": message,
-            })
+            return Response(
+                {
+                    "codee": 500,
+                    "message": message,
+                }
+            )
 
         response = {
             "status": data,
@@ -873,7 +835,6 @@ class AppAPIView(viewsets.ModelViewSet):
 
 
 class HowToPushHelmChartView(AccessTokenMixin, viewsets.GenericViewSet):
-
     def get_private_repo_info(self, user, project):
         private_repo = get_or_create_private_repo(user, project)
 
@@ -905,7 +866,7 @@ class HowToPushHelmChartView(AccessTokenMixin, viewsets.GenericViewSet):
             "base_url": base_url,
             "repo_url": repo_url,
             "helm_push_parameters": "",
-            "rumpetroll_demo_url": settings.RUMPETROLL_DEMO_DOWNLOAD_URL
+            "rumpetroll_demo_url": settings.RUMPETROLL_DEMO_DOWNLOAD_URL,
         }
 
         file_prefix = 'backend/bcs_k8s/app/documentation'
@@ -929,34 +890,31 @@ class ContainerRegistryDomainView(AccessTokenMixin, ProjectMixin, viewsets.ViewS
     def retrieve(self, request, project_id, *args, **kwargs):
         cluster_id = request.query_params.get("cluster_id")
 
-        check_cluster_perm(
-            user=request.user,
-            project_id=project_id,
-            cluster_id=cluster_id,
-            request=request
-        )
+        check_cluster_perm(user=request.user, project_id=project_id, cluster_id=cluster_id, request=request)
 
         # 获取镜像地址
         jfrog_domain = paas_cc.get_jfrog_domain(
-            access_token=self.access_token,
-            project_id=self.project_id,
-            cluster_id=cluster_id
+            access_token=self.access_token, project_id=self.project_id, cluster_id=cluster_id
         )
 
-        cluster_info = paas_cc.get_cluster(
-            request.user.token.access_token, project_id, cluster_id)["data"]
+        cluster_info = paas_cc.get_cluster(request.user.token.access_token, project_id, cluster_id)["data"]
 
         context = dict(
             cluster_id=cluster_id,
             cluster_name=cluster_info["name"],
             jfrog_domain=jfrog_domain,
             expr="{{ .Values.__BCS__.SYS_JFROG_DOMAIN }}",
-            link=settings.HELM_DOC_TRICKS
+            link=settings.HELM_DOC_TRICKS,
         )
-        note = _('''集群: {cluster}({cluster_id})的容器仓库域名为:{dept_domain},
-        可在Chart直接引用 {expr} 更加方便, [详细说明]({link})''').format(
-            cluster=context['cluster_name'], cluster_id=context['cluster_id'], dept_domain=context['jfrog_domain'],
-            expr=context['expr'], link=context['link']
+        note = _(
+            '''集群: {cluster}({cluster_id})的容器仓库域名为:{dept_domain},
+        可在Chart直接引用 {expr} 更加方便, [详细说明]({link})'''
+        ).format(
+            cluster=context['cluster_name'],
+            cluster_id=context['cluster_id'],
+            dept_domain=context['jfrog_domain'],
+            expr=context['expr'],
+            link=context['link'],
         )
         context["note"] = note
         return Response(data=context)
@@ -971,12 +929,7 @@ class ClearAppInjectDataView(AccessTokenMixin, ProjectMixin, viewsets.ModelViewS
     def update(self, request, project_id, app_id, *args, **kwargs):
         app = self.queryset.get(project_id=project_id, id=app_id)
 
-        check_cluster_perm(
-            user=request.user,
-            project_id=app.project_id,
-            cluster_id=app.cluster_id,
-            request=request
-        )
+        check_cluster_perm(user=request.user, project_id=app.project_id, cluster_id=app.cluster_id, request=request)
 
         app.inject_configs = None
         app.save(update_fields=["inject_configs"])

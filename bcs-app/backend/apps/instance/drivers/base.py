@@ -15,10 +15,10 @@ import logging
 import math
 
 from backend.apps.constants import NodeStatus
-from backend.apps.instance.models import InstanceConfig, VersionInstance, InstanceEvent, MetricConfig
-from backend.components import paas_cc
-from backend.utils.exceptions import Rollback, APIError, ConfigError
 from backend.apps.instance.constants import EventType, InsState
+from backend.apps.instance.models import InstanceConfig, InstanceEvent, MetricConfig, VersionInstance
+from backend.components import paas_cc
+from backend.utils.exceptions import APIError, ConfigError, Rollback
 
 logger = logging.getLogger(__name__)
 
@@ -62,8 +62,7 @@ class SchedulerBase(object):
         self.is_rollback = False
 
     def instantiation_ns(self, ns_id, config, is_update):
-        """单个命名空间实例化
-        """
+        """单个命名空间实例化"""
         # 创建必须按顺序执行
         config = sorted(config.items(), key=lambda x: self.INIT_ORDERING.get(x[0], math.inf))
         for res, specs in config:
@@ -138,8 +137,7 @@ class SchedulerBase(object):
                     raise BCSRollback(result)
 
     def cluster_ready(self, cluster_id):
-        """集群状态检查，至少有一个节点状态为Normal
-        """
+        """集群状态检查，至少有一个节点状态为Normal"""
         result = paas_cc.get_node_list(self.access_token, self.project_id, cluster_id)
         if result.get("code") != 0:
             raise ClusterNotReady("获取状态失败，请联系蓝鲸管理员解决")
@@ -150,8 +148,7 @@ class SchedulerBase(object):
             raise ClusterNotReady("没有可用节点，请添加或启用节点")
 
     def instantiation(self, is_update=False):
-        """实例化
-        """
+        """实例化"""
         instantiation_result = {"success": [], "failed": []}
         for ns_id, config in self.configuration.items():
             cluster_id = [i for i in config.values()][0][0]["context"]["SYS_CLUSTER_ID"]
@@ -212,8 +209,7 @@ class SchedulerBase(object):
         return instantiation_result
 
     def handler_rollback(self, ns_id):
-        """
-        """
+        """"""
         roll_back_list = self.rollback_stack[ns_id]
         # k8s中最后一个资源不需要回滚
         if self.kind == "Kubernetes":
@@ -244,8 +240,7 @@ class SchedulerPluginCC(SchedulerPlugin):
         pass
 
     def handler_lb(self, ns, cluster_id, spec):
-        """负载均衡
-        """
+        """负载均衡"""
 
     def handler_configmap(self, ns, cluster_id, spec):
         pass

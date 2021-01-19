@@ -12,23 +12,22 @@
 # specific language governing permissions and limitations under the License.
 #
 import logging
+from urllib.parse import ParseResult, urlparse
 
 import jinja2
 from django.conf import settings
-from urllib.parse import urlparse, ParseResult
 from rest_framework.exceptions import APIException
 
-from .constants import CURATOR_VALUES_TEMPLATE
-from ..models.repo import Repository, RepositoryAuth
-from ..models.chart import Chart, ChartVersion
-from ..utils.auth import BasicAuthGenerator
-from backend.utils.error_codes import error_codes
-
 from backend.bcs_k8s.app.models import App
-from .storage_provider import RGWProvider
 from backend.bcs_k8s.app.utils import compose_url_with_scheme
 from backend.bcs_k8s.helm.providers.constants import PUBLIC_REPO_URL
+from backend.utils.error_codes import error_codes
 
+from ..models.chart import Chart, ChartVersion
+from ..models.repo import Repository, RepositoryAuth
+from ..utils.auth import BasicAuthGenerator
+from .constants import CURATOR_VALUES_TEMPLATE
+from .storage_provider import RGWProvider
 
 logger = logging.getLogger(__name__)
 
@@ -38,6 +37,7 @@ class ChartRepoProvider:
     Base Provider
     Chart Repo Provider, represented different repo backends, such as ChartMuseum、JFrog、Git
     """
+
     def provision(self, create_info):
         """
         transform ChartRepo model into real instance
@@ -51,6 +51,7 @@ class PlainChartMuseumProvider:
     Plain ChartMuseum Provider
     Support adding a third-part chartmuseum provider
     """
+
     def provision(self, create_info):
         """
         transform ChartRepo model into real instance
@@ -96,7 +97,7 @@ class ChartMuseumProvider(ChartRepoProvider):
         url = "http://{platform_repo_domain}/{repo_env}/{repo_name}".format(
             platform_repo_domain=settings.PLATFORM_REPO_DOMAIN,
             repo_env=settings.HELM_REPO_ENV,
-            repo_name=create_info["name"]
+            repo_name=create_info["name"],
         )
         create_info["url"] = url
         try:
@@ -146,12 +147,7 @@ class ChartMuseumProvider(ChartRepoProvider):
         # now only support basic auth
         for role in role_list:
             basic_auth = BasicAuthGenerator().generate_basic_auth_by_role(role)
-            params = {
-                "type": "basic",
-                "role": role,
-                "repo": self.chart_repo_instance,
-                "credentials": basic_auth
-            }
+            params = {"type": "basic", "role": role, "repo": self.chart_repo_instance, "credentials": basic_auth}
             RepositoryAuth.objects.create(**params)
 
     def _provision(self, operator=None):
@@ -169,27 +165,33 @@ class ChartMuseumProvider(ChartRepoProvider):
                 logger.error(u"chartmuseum only support auth now.")
                 return
 
-            values.update({
-                auth.role + "_username": auth.credentials.get('username'),
-                auth.role + "_password": auth.credentials.get('password')
-            })
+            values.update(
+                {
+                    auth.role + "_username": auth.credentials.get('username'),
+                    auth.role + "_password": auth.credentials.get('password'),
+                }
+            )
 
         # FIXME 需要去掉 chartmuseum 中的 readonly 账户之后移除这部分代码
-        values.update({
-            "readonly_username": "disabled",
-            "readonly_password": "disabled",
-        })
+        values.update(
+            {
+                "readonly_username": "disabled",
+                "readonly_password": "disabled",
+            }
+        )
 
         # 3. insert url info
         url_result = urlparse(self.chart_repo_instance.url)
         repo_url_without_scheme = self.chart_repo_instance.url.lstrip(url_result.scheme + "://")
-        values.update({
-            "repo_url": self.chart_repo_instance.url,
-            "repo_name": self.chart_repo_instance.name,
-            "repo_url_without_scheme": repo_url_without_scheme,
-            "platform_repo_domain": settings.PLATFORM_REPO_DOMAIN,
-            "repo_env": settings.HELM_REPO_ENV,
-        })
+        values.update(
+            {
+                "repo_url": self.chart_repo_instance.url,
+                "repo_name": self.chart_repo_instance.name,
+                "repo_url_without_scheme": repo_url_without_scheme,
+                "platform_repo_domain": settings.PLATFORM_REPO_DOMAIN,
+                "repo_env": settings.HELM_REPO_ENV,
+            }
+        )
 
         # 4. render context
         rendered = jinja2.Template(CURATOR_VALUES_TEMPLATE).render(values)
@@ -208,17 +210,15 @@ class ChartMuseumProvider(ChartRepoProvider):
             creator=operator.username,
             updator=operator.username,
             customs=[],
-
             # 当用户点启用Helm时，这是用户的access_token, 无法用于部署repo到平台集群
             # 因此chartmuseum的部署需要使用独立的bke_token
             access_token=None,
             deploy_options={
                 "kubeconfig_content": settings.KUBECOFNIG4REPO_DEPLOY,
                 "extra_inject_source": settings.INJECTED_DATA_FOR_REPO,
-                "ignore_empty_access_token": True
+                "ignore_empty_access_token": True,
             },
-
-            unique_ns=App.objects.new_unique_ns()  # escape unique restriction
+            unique_ns=App.objects.new_unique_ns(),  # escape unique restriction
         )
 
         self.chart_repo_instance.is_provisioned = True
@@ -228,18 +228,14 @@ class ChartMuseumProvider(ChartRepoProvider):
     def _fetch_chart_museum():
         # 1. fetch platform repo
         repo = Repository.objects.get(
-            name=settings.PLATFORM_REPO_INFO.get('name'),
-            project_id=settings.DEFAULT_MANAGE_CLUSTER.get('project_id'))
+            name=settings.PLATFORM_REPO_INFO.get('name'), project_id=settings.DEFAULT_MANAGE_CLUSTER.get('project_id')
+        )
 
         # 2. get chart instance
-        chart = Chart.objects.get(
-            name=settings.DEFAULT_CURATOR_CHART.get('name'),
-            repository=repo)
+        chart = Chart.objects.get(name=settings.DEFAULT_CURATOR_CHART.get('name'), repository=repo)
 
         # 3. return chart version
-        chart_version = ChartVersion.objects.get(
-            chart=chart,
-            version=settings.DEFAULT_CURATOR_CHART.get('version'))
+        chart_version = ChartVersion.objects.get(chart=chart, version=settings.DEFAULT_CURATOR_CHART.get('version'))
 
         return chart_version
 
@@ -256,10 +252,7 @@ def fetch_provider(provider_name):
 def add_platform_public_repos(target_project_id, repo_auth=None):
     """ 将平台提供的公用集群信息加入 target_project_id 对应的项目中 """
     repo = add_plain_repo(
-        url=PUBLIC_REPO_URL,
-        name="public-repo",
-        target_project_id=target_project_id,
-        repo_auth=repo_auth
+        url=PUBLIC_REPO_URL, name="public-repo", target_project_id=target_project_id, repo_auth=repo_auth
     )
 
     return [repo]
@@ -294,18 +287,13 @@ def add_plain_repo(target_project_id, name, url, repo_auth=None):
 
 
 def add_repo(target_project_id, provider_name, user, name, url):
-    """ add repo for target_project_id
+    """add repo for target_project_id
     Provider_name can be chartmuseum and plain_chartmuseum.
     For plain_chartmueum type, it will just add one record to database.
     For provider of type `chartmuseum` it will deploy a chartmuseum instance for project_id,
     in platform project/cluster settings.DEFAULT_MANAGE_CLUSTER
     """
-    repo_info = {
-        "url": url,
-        "name": name,
-        "project_id": target_project_id,
-        "provider": provider_name
-    }
+    repo_info = {"url": url, "name": name, "project_id": target_project_id, "provider": provider_name}
 
     if Repository.objects.filter(name=name, project_id=target_project_id).exists():
         return Repository.objects.get(name=name, project_id=target_project_id)
@@ -318,9 +306,7 @@ def add_repo(target_project_id, provider_name, user, name, url):
         raise error_codes.CheckFailed.f("Provider: {} not supported yet".format(provider_name))
 
     repo_info["target_project_id"] = target_project_id
-    repo_info.update({
-        'operator': user
-    })
+    repo_info.update({'operator': user})
 
     try:
         new_chart_repo = provider_instance.provision(create_info=repo_info)

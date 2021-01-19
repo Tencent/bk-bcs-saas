@@ -15,18 +15,18 @@
 this is the functions for fetch content from repo
 """
 
+import base64
+import hashlib
 import io
+import logging
+import tarfile
 
 import requests
 import yaml
-import logging
-import hashlib
-import base64
-import tarfile
 
-from backend.utils.cache import rd_client
+from backend.bcs_k8s.helm.utils.repo_bk import get_charts_info, make_requests_auth
 from backend.components.utils import http_get
-from backend.bcs_k8s.helm.utils.repo_bk import make_requests_auth, get_charts_info
+from backend.utils.cache import rd_client
 
 logger = logging.getLogger(__name__)
 
@@ -71,8 +71,7 @@ def download_icon_data(url, auths):
     content_type = resp.headers.get("Content-Type")
     b64_content = base64.b64encode(resp.content).decode()
 
-    data = "data:{content_type};base64,{content}".format(content_type=content_type,
-                                                         content=b64_content)
+    data = "data:{content_type};base64,{content}".format(content_type=content_type, content=b64_content)
     return True, data
 
 
@@ -80,7 +79,7 @@ SUPPORT_FILES = ["questions.yml", "questions.yaml"]
 
 
 def is_binary_string(bytes):
-    textchars = bytearray({7, 8, 9, 10, 12, 13, 27} | set(range(0x20, 0x100)) - {0x7f})
+    textchars = bytearray({7, 8, 9, 10, 12, 13, 27} | set(range(0x20, 0x100)) - {0x7F})
     return bool(bytes.translate(None, textchars))
 
 
@@ -106,10 +105,7 @@ def download_template_data(chart_name, url, auths):
 
     tar = tarfile.open(mode="r:*", fileobj=io.BytesIO(resp.content))
 
-    support_file_list = {
-        "{chart}/{file}".format(chart=chart_name, file=f): 1
-        for f in SUPPORT_FILES
-    }
+    support_file_list = {"{chart}/{file}".format(chart=chart_name, file=f): 1 for f in SUPPORT_FILES}
 
     files = {}
     questions = {}
@@ -123,8 +119,9 @@ def download_template_data(chart_name, url, auths):
         file_content = tar.extractfile(file_path).read()
 
         if is_binary_string(file_content[:1024]):
-            logger.warning("file %s seems to be a binary file, skipped it. content: %s",
-                           file_path, file_content[:1024])
+            logger.warning(
+                "file %s seems to be a binary file, skipped it. content: %s", file_path, file_content[:1024]
+            )
             continue
 
         if file_path in support_file_list:
@@ -132,8 +129,9 @@ def download_template_data(chart_name, url, auths):
         try:
             files[file_path] = file_content.decode()
         except Exception as e:
-            logger.exception("download_template_data failed %s, file_path=%s, file_content: %s",
-                             e, file_path, file_content)
+            logger.exception(
+                "download_template_data failed %s, file_path=%s, file_content: %s", e, file_path, file_content
+            )
             return False, None, None
 
     if not questions:

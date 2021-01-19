@@ -18,8 +18,7 @@ from backend.components.iam.permissions import ProjectActions
 
 
 class UpdateProjectNewSLZ(serializers.Serializer):
-    """更新项目的参数
-    """
+    """更新项目的参数"""
 
     kind = serializers.ChoiceField(choices=constants.PROJECT_KIND_LIST, required=False)
     cc_app_id = serializers.IntegerField(required=False, min_value=1)

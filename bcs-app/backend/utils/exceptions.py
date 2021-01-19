@@ -20,8 +20,7 @@ from backend.utils.exceptions_bk import get_auth_url
 
 
 class APIError(Exception):
-    """所有API继承的基础
-    """
+    """所有API继承的基础"""
 
     # 返回的http状态
     status_code = 200
@@ -48,8 +47,7 @@ class APIError(Exception):
 
 
 class ResNotFoundError(APIError):
-    """资源未找到，可以让前端显示404页面
-    """
+    """资源未找到，可以让前端显示404页面"""
 
     code = 404
 
@@ -92,13 +90,11 @@ class ValidateError(APIError):
 
 
 class Rollback(APIError):
-    """API回滚使用,需要捕获使用
-    """
+    """API回滚使用,需要捕获使用"""
 
 
 class ConfigError(APIError):
-    """配置文件异常,需要捕获使用
-    """
+    """配置文件异常,需要捕获使用"""
 
 
 class NoAuthPermError(APIError):

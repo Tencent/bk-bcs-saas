@@ -12,13 +12,11 @@
 # specific language governing permissions and limitations under the License.
 #
 from django.conf.urls import url
+
 from . import views
 
 urlpatterns = [
-    url(r'^api/ticket/(?P<project_id>\w{32})/tls/certs/$',
-        views.TLSCertView.as_view()),
-    url(r'^api/ticket/(?P<project_id>\w{32})/bcs/tls/certs/$',
-        views.BCSTLSCertView.as_view()),
-    url(r'^api/ticket/(?P<project_id>\w{32})/bcs/tls/cert/(?P<pk>\d+)/$',
-        views.SingleBCSTLSCertView.as_view()),
+    url(r'^api/ticket/(?P<project_id>\w{32})/tls/certs/$', views.TLSCertView.as_view()),
+    url(r'^api/ticket/(?P<project_id>\w{32})/bcs/tls/certs/$', views.BCSTLSCertView.as_view()),
+    url(r'^api/ticket/(?P<project_id>\w{32})/bcs/tls/cert/(?P<pk>\d+)/$', views.SingleBCSTLSCertView.as_view()),
 ]

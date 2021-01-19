@@ -13,16 +13,17 @@
 #
 import logging
 import time
-import six
-
-from celery import shared_task
 from enum import Enum
+
+import six
+from celery import shared_task
 
 logger = logging.getLogger(__name__)
 
 
 class PollResultStatus(Enum):
     """一次轮询结果的状态"""
+
     SHOULD_RETRY = 1
     DOING = 2
     DONE = 3
@@ -33,6 +34,7 @@ PRS = PollResultStatus
 
 class FinalState(Enum):
     """最终状态"""
+
     FINISHED = 0
     EXCEPTION = 1
     START_TIMEOUT = 2
@@ -41,17 +43,11 @@ class FinalState(Enum):
 
     @classmethod
     def exception_status(cls):
-        return (
-            cls.EXCEPTION,
-            cls.START_TIMEOUT,
-            cls.EXECUTE_TIMEOUT,
-            cls.MAX_RETRIES
-        )
+        return (cls.EXCEPTION, cls.START_TIMEOUT, cls.EXECUTE_TIMEOUT, cls.MAX_RETRIES)
 
 
 def get_operations_map():
-    """获取当前operation到poll_class的对应关系表
-    """
+    """获取当前operation到poll_class的对应关系表"""
     return PollerRegister.operation_map
 
 
@@ -86,8 +82,7 @@ class PollStatus(object):
         return cls(status=PRS.SHOULD_RETRY.value, result={}, is_exception=True)
 
     def __str__(self):
-        return 'stauts=%s result=%s is_exception=%s' % (
-            self.status, self.result, self.is_exception())
+        return 'stauts=%s result=%s is_exception=%s' % (self.status, self.result, self.is_exception())
 
 
 class PollResult(object):
@@ -108,15 +103,10 @@ class PollResult(object):
         return FinalState(self.code) in FinalState.exception_status()
 
     def to_dict(self):
-        return {
-            'code': self.code,
-            'message': self.message,
-            'data': self.data
-        }
+        return {'code': self.code, 'message': self.message, 'data': self.data}
 
     def __str__(self):
-        return '<%s: %s is_exception=%s>' % (
-            self.__class__.__name__, self.to_dict(), self.is_exception())
+        return '<%s: %s is_exception=%s>' % (self.__class__.__name__, self.to_dict(), self.is_exception())
 
 
 class ResultHandlerRegister(type):
@@ -153,20 +143,14 @@ class BasePollerTaskStatus(six.with_metaclass(PollerRegister)):
     def get_timeout_result(self):
         return PollResult(
             code=FinalState.EXECUTE_TIMEOUT.value,
-            message='Status query has exceeded total timeout, will not query anymore.'
+            message='Status query has exceeded total timeout, will not query anymore.',
         )
 
     def get_exception_result(self):
-        return PollResult(
-            code=FinalState.EXCEPTION.value,
-            message='Exception when query status.'
-        )
+        return PollResult(code=FinalState.EXCEPTION.value, message='Exception when query status.')
 
     def exceeded_max_retries(self):
-        return PollResult(
-            code=FinalState.MAX_RETRIES.value,
-            message='poll status exceed max retries'
-        )
+        return PollResult(code=FinalState.MAX_RETRIES.value, message='poll status exceed max retries')
 
     def get_retry_delay(self, queried_times, retries):
         """获取下一次任务应该被延迟的秒数"""
@@ -182,12 +166,10 @@ class BasePollerTaskStatus(six.with_metaclass(PollerRegister)):
             status_result = self.query_status()
         except Exception:
             # 出错时使用一个特殊的result来替代
-            logger.exception(
-                'Exception when query status, poll_class=%s' % self)
+            logger.exception('Exception when query status, poll_class=%s' % self)
             status_result = PollStatus.exception_result()
 
-        logger.debug('Query status result, poll_class=%s, Status result: %s' % (
-            self, status_result))
+        logger.debug('Query status result, poll_class=%s, Status result: %s' % (self, status_result))
         return status_result
 
     # 解析状态为结果
@@ -205,8 +187,7 @@ class BasePollerTaskStatus(six.with_metaclass(PollerRegister)):
             try:
                 return self.parse_status(status_result.result)
             except Exception:
-                logger.exception(
-                    'Exception when parse status, poll_class=%s' % self)
+                logger.exception('Exception when parse status, poll_class=%s' % self)
                 return self.get_exception_result()
 
     def exceeded_timeout(self, ts_query_started):
@@ -230,11 +211,7 @@ class BasePollerTaskStatus(six.with_metaclass(PollerRegister)):
         elif status_result.status == PRS.DOING.value:
             return True, None
         elif status_result.status == PRS.DONE.value:
-            return False, PollResult(
-                code=FinalState.FINISHED.value,
-                data=status_result.result,
-                message='finished'
-            )
+            return False, PollResult(code=FinalState.FINISHED.value, data=status_result.result, message='finished')
 
     def should_reset_retries(self, status_result):
         """是否应该重置重试次数
@@ -252,8 +229,7 @@ class BasePollerTaskStatus(six.with_metaclass(PollerRegister)):
             assert issubclass(result_handle_cls, BaseResultHandler)
             result_handle_cls_signature = result_handle_cls.__name__
 
-        check_status_until_finished.delay(
-            cls.__name__, result_handle_cls_signature, params)
+        check_status_until_finished.delay(cls.__name__, result_handle_cls_signature, params)
 
 
 @shared_task(acks_late=True, name='poll_task.check_status_until_finished')
@@ -265,8 +241,7 @@ def check_status_until_finished(poller_name, result_handler_name, params, queue=
     :param poll_class: 用来处理轮询的class
     """
     retries = check_status_until_finished.request.retries
-    ts_query_started = check_status_until_finished.request.get(
-        'ts_query_started', time.time())
+    ts_query_started = check_status_until_finished.request.get('ts_query_started', time.time())
     request_headers = check_status_until_finished.request.headers or {}
 
     queried_times = request_headers.get('queried_times', 0)
@@ -276,40 +251,34 @@ def check_status_until_finished(poller_name, result_handler_name, params, queue=
 
     # 检查该任务轮询是否已经超时
     if poller.exceeded_timeout(ts_query_started=ts_query_started):
-        logger.info('Status query for %s has exceeded total timeout, will not query anymore.'
-                    'ts_query_started=%s' % (poller, ts_query_started))
+        logger.info(
+            'Status query for %s has exceeded total timeout, will not query anymore.'
+            'ts_query_started=%s' % (poller, ts_query_started)
+        )
         if result_handler_name is not None:
             result_handler_cls = ResultHandlerRegister.handler_map[result_handler_name]
-            result_handler_cls(params).final_result_handler(
-                poller.get_timeout_result())
+            result_handler_cls(params).final_result_handler(poller.get_timeout_result())
         return
 
     status_result = poller.safe_query_status()
     # 检查是否应该过一段时间后重新查询
-    should_retry, poll_result = poller.should_query_again(
-        status_result, retries)
+    should_retry, poll_result = poller.should_query_again(status_result, retries)
     if should_retry:
         countdown = poller.get_retry_delay(queried_times, retries)
         # 判断是否需要重置重试次数
-        retries = 0 if poller.should_reset_retries(
-            status_result) else retries + 1
-        logger.debug('Will retry query status for %s after %s seconds. retries=%s' % (
-            poller, countdown, retries))
+        retries = 0 if poller.should_reset_retries(status_result) else retries + 1
+        logger.debug('Will retry query status for %s after %s seconds. retries=%s' % (poller, countdown, retries))
         check_status_until_finished.subtask(
             args=(poller_name, result_handler_name, params),
             kwargs={'queue': queue},
             countdown=countdown,
             retries=retries,
             queue=queue,
-        ).apply_async(headers={
-            'queried_times': queried_times + 1,
-            'ts_query_started': ts_query_started
-        })
+        ).apply_async(headers={'queried_times': queried_times + 1, 'ts_query_started': ts_query_started})
         return
 
     # 将查询结果转换为最终结果
-    logger.info('Status query for %s finished, result=%s.' %
-                (poller, poll_result))
+    logger.info('Status query for %s finished, result=%s.' % (poller, poll_result))
     if result_handler_name is not None:
         result_handler_cls = ResultHandlerRegister.handler_map[result_handler_name]
         result_handler_cls(params).final_result_handler(poll_result)
@@ -322,5 +291,4 @@ class Healthz(BasePollerTaskStatus):
 
     def query_status(self):
         n = self.params.get("n", 0)
-        return PollStatus(
-            status=PollResultStatus.DONE.value, result=n + 1, is_exception=False)
+        return PollStatus(status=PollResultStatus.DONE.value, result=n + 1, is_exception=False)

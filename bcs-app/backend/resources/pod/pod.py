@@ -11,11 +11,11 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-from typing import List, Dict
+from typing import Dict, List
 
-from backend.resources.utils.kube_client import get_dynamic_client, make_labels_string
-from backend.resources.utils.format import ResourceDefaultFormatter
 from backend.resources.utils.filters import filter_by_owners
+from backend.resources.utils.format import ResourceDefaultFormatter
+from backend.resources.utils.kube_client import get_dynamic_client, make_labels_string
 
 
 class Pod:

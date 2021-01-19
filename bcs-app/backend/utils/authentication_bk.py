@@ -17,9 +17,9 @@ from django.conf import settings
 from django.contrib.auth import get_user_model
 from rest_framework.authentication import BaseAuthentication
 
-from backend.utils import cache
-from backend.components.utils import http_get
 from backend.components import ssm
+from backend.components.utils import http_get
+from backend.utils import cache
 from backend.utils.authentication import NoAuthError
 
 logger = logging.getLogger(__name__)
@@ -27,8 +27,7 @@ logger = logging.getLogger(__name__)
 
 @cache.region.cache_on_arguments(expiration_time=240)
 def get_access_token_by_credentials(bk_token):
-    """Request a new request token by credentials
-    """
+    """Request a new request token by credentials"""
     return ssm.get_bk_login_access_token(bk_token)
 
 
@@ -44,12 +43,10 @@ class SSMAccessToken(object):
 
 
 class BKTokenAuthentication(BaseAuthentication):
-    """企业版bk_token校验
-    """
+    """企业版bk_token校验"""
 
     def verify_bk_token(self, bk_token):
-        """校验是否
-        """
+        """校验是否"""
         url = f"{settings.BK_PAAS_INNER_HOST}/login/accounts/is_login/"
         params = {"bk_token": bk_token}
         resp = http_get(url, params=params)

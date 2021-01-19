@@ -12,9 +12,10 @@
 # specific language governing permissions and limitations under the License.
 #
 import logging
-import boto
-from .rgw_admin import RGWAdminClient
 
+import boto
+
+from .rgw_admin import RGWAdminClient
 
 logger = logging.getLogger(__name__)
 
@@ -24,6 +25,7 @@ class StorageProvider:
     Base Provider
     Storage Provider, now mainly for repo storage backend
     """
+
     def provision(self, param):
         raise NotImplementedError
 
@@ -34,6 +36,7 @@ class RGWProvider(StorageProvider):
     provider bucket
     the name of repo will be named to bucket and user
     """
+
     def __init__(self, config):
         self.access_key = config['access_key']
         self.secret_key = config['secret_key']
@@ -49,7 +52,7 @@ class RGWProvider(StorageProvider):
             secret_key=self.secret_key,
             admin_host=self.admin_host,
             admin_endpoint=self.admin_endpoint,
-            tenant=self.tenant
+            tenant=self.tenant,
         )
         return client
 
@@ -92,7 +95,7 @@ class RGWProvider(StorageProvider):
             'rgw_host': self.admin_host,
             'rgw_url': "http://%s/" % self.admin_host,
             'bucket': bucket,
-            'max_size': self.max_size
+            'max_size': self.max_size,
         }
 
         return raw_credentials

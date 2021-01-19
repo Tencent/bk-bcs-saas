@@ -13,9 +13,9 @@
 #
 import re
 
+from django.utils.translation import ugettext_lazy as _
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
-from django.utils.translation import ugettext_lazy as _
 
 
 class StringListField(serializers.ListField):
@@ -34,23 +34,17 @@ class BaseParams(serializers.Serializer):
 
 class InstanceParams(BaseParams):
     version_id = serializers.CharField(label=u"模板版本", required=True)
-    namespace = StringListField(
-        child=serializers.CharField(min_length=1),
-        min_length=1,
-        required=True
-    )
+    namespace = StringListField(child=serializers.CharField(min_length=1), min_length=1, required=True)
 
 
 class UpdateInstanceParams(BaseParams):
-    """滚动升级需要参数
-    """
-    oper_type = serializers.ChoiceField(
-        label=u"操作类型", choices=[("Recreate", u"重新创建"), ("RollingUpdate", u"滚动升级")])
+    """滚动升级需要参数"""
+
+    oper_type = serializers.ChoiceField(label=u"操作类型", choices=[("Recreate", u"重新创建"), ("RollingUpdate", u"滚动升级")])
     delete_num = serializers.IntegerField(label=u"周期删除数", required=True)
     add_num = serializers.IntegerField(label=u"周期新增数", required=True)
     interval_time = serializers.IntegerField(label=u"更新间隔", required=True)
-    oper_order = serializers.ChoiceField(
-        label=u"滚动顺序", choices=[("CreateFirst", u"先创建"), ("DeleteFirst", u"先删除")])
+    oper_order = serializers.ChoiceField(label=u"滚动顺序", choices=[("CreateFirst", u"先创建"), ("DeleteFirst", u"先删除")])
     version_id = serializers.IntegerField(label=u"版本ID", required=True)
     version = serializers.CharField(label=u"版本号", required=False)
     show_version_id = serializers.IntegerField(required=True)
@@ -66,20 +60,13 @@ class ResourceInfoSLZ(serializers.Serializer):
         if not data.get("name"):
             return data
         if not (data.get("resource_kind") and data.get("namespace") and data.get("cluster_id")):
-            raise ValidationError(
-                _("参数【name】的值不为空时，参数【resource_kind】【namespace】【cluster_id】的值不能为空"))
+            raise ValidationError(_("参数【name】的值不为空时，参数【resource_kind】【namespace】【cluster_id】的值不能为空"))
         return data
 
 
 class BatchDeleteResourceSLZ(serializers.Serializer):
-    resource_list = serializers.ListField(
-        child=ResourceInfoSLZ(),
-        required=False
-    )
-    inst_id_list = serializers.ListField(
-        child=serializers.IntegerField(required=False),
-        required=False
-    )
+    resource_list = serializers.ListField(child=ResourceInfoSLZ(), required=False)
+    inst_id_list = serializers.ListField(child=serializers.IntegerField(required=False), required=False)
 
     def validate(self, data):
         if not (data.get("resource_list") or data.get("inst_id_list")):

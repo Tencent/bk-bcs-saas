@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
+import os
 import uuid
+
 from kubernetes import client
 
 from backend.tests.conftest import TESTING_API_SERVER_URL

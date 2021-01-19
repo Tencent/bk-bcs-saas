@@ -31,7 +31,7 @@ app.conf.beat_schedule = {
     'helm_force_sync_repo_tasks': {
         'task': 'backend.bcs_k8s.helm.tasks.force_sync_all_repo',
         'schedule': crontab(hour=3),
-    }
+    },
 }
 
 
@@ -40,12 +40,13 @@ class CeleryConfig(AppConfig):
     verbose_name = "celery_app"
 
     def ready(self):
-        from . import periodic_tasks  # noqa
-        from backend.apps.metric import tasks as metric_tasks  # noqa
-        from backend.utils import notify  # noqa
         from backend.accounts.bcs_perm import tasks as bcs_tasks  # noqa
-        from backend.apps.configuration import tasks as backend_instance_status  # noqa
         from backend.apps.cluster import node_tasks  # noqa
-        from backend.bcs_k8s.helm import tasks as helm_chart_tasks  # noqa
-        from backend.bcs_k8s.app import tasks as helm_app_tasks  # noqa
         from backend.apps.cluster.views_bk import tasks as cluster_node_tasks
+        from backend.apps.configuration import tasks as backend_instance_status  # noqa
+        from backend.apps.metric import tasks as metric_tasks  # noqa
+        from backend.bcs_k8s.app import tasks as helm_app_tasks  # noqa
+        from backend.bcs_k8s.helm import tasks as helm_chart_tasks  # noqa
+        from backend.utils import notify  # noqa
+
+        from . import periodic_tasks  # noqa

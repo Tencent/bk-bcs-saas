@@ -18,7 +18,6 @@ from backend.components.utils import http_post
 from backend.utils.errcodes import ErrorCode
 from backend.utils.error_codes import error_codes
 
-
 GSE_HOST = settings.BK_PAAS_INNER_HOST
 BK_APP_CODE = settings.APP_ID
 BK_APP_SECRET = settings.APP_TOKEN

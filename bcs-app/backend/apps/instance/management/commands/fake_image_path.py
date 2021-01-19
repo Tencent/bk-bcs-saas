@@ -18,7 +18,7 @@ Usage: python manage.py fake_image_path
 
 from django.core.management.base import BaseCommand
 
-from backend.apps.configuration.models import Application, VersionedEntity, Template
+from backend.apps.configuration.models import Application, Template, VersionedEntity
 
 
 class Command(BaseCommand):
@@ -41,8 +41,7 @@ class Command(BaseCommand):
                     id_list = app_ids.split(',') if app_ids else []
                     app_id_list.extend(id_list)
 
-            applications = Application.objects.filter(
-                id__in=app_id_list)
+            applications = Application.objects.filter(id__in=app_id_list)
             for _app in applications:
                 _config = _app.config
                 # 替换项目镜像的路径
@@ -52,5 +51,8 @@ class Command(BaseCommand):
                 _app.save()
 
             if len(app_id_list) > 0:
-                self.stdout.write(self.style.SUCCESS(
-                    '%s[%s]: [%s] -> [%s]' % (project_id, len(app_id_list), old_public_path, new_public_path)))
+                self.stdout.write(
+                    self.style.SUCCESS(
+                        '%s[%s]: [%s] -> [%s]' % (project_id, len(app_id_list), old_public_path, new_public_path)
+                    )
+                )
