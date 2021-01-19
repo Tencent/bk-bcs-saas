@@ -13,12 +13,12 @@
 #
 from typing import Optional
 
-from ..resource import ResourceClient
+from ..resource import ResourceApi
 from .format import CustomObjectFormatter
 from .crd import CustomResourceDefinition
 
 
-class CustomObject(ResourceClient):
+class CustomObject(ResourceApi):
     formatter = CustomObjectFormatter()
 
     def __init__(

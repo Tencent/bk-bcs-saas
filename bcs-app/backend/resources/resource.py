@@ -21,7 +21,7 @@ from .utils.format import ResourceDefaultFormatter
 from .constants import PatchType
 
 
-class ResourceClient:
+class ResourceApi:
     """
     资源基类
     """

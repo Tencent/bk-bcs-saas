@@ -11,10 +11,10 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-from ..resource import ResourceClient
+from ..resource import ResourceApi
 from .format import CRDFormatter
 
 
-class CustomResourceDefinition(ResourceClient):
+class CustomResourceDefinition(ResourceApi):
     kind = "CustomResourceDefinition"
     formatter = CRDFormatter()
