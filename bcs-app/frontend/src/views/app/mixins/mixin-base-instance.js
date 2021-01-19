@@ -252,14 +252,25 @@ export default {
                 message: this.$t('复制成功')
             })
         })
+        window.addEventListener('resize', this.resizeHandler)
     },
     destroyed () {
         this.bkMessageInstance && this.bkMessageInstance.close()
         clearTimeout(this.taskgroupTimer)
         this.taskgroupTimer = null
         this.openTaskgroup = Object.assign({}, {})
+        window.removeEventListener('resize', this.resizeHandler)
     },
     methods: {
+        resizeHandler () {
+            this.$refs.instanceCpuLine && this.$refs.instanceCpuLine.resize()
+            this.$refs.instanceMemLine && this.$refs.instanceMemLine.resize()
+            this.$refs.instanceNetLine && this.$refs.instanceNetLine.resize()
+            this.$refs.instanceCpuLineContainerView && this.$refs.instanceCpuLineContainerView.resize()
+            this.$refs.instanceMemLineContainerView && this.$refs.instanceMemLineContainerView.resize()
+            this.$refs.instanceNetLineContainerView && this.$refs.instanceNetLineContainerView.resize()
+        },
+
         /**
          * 分页大小更改
          *
