@@ -29,8 +29,8 @@ from backend.utils.basic import str2bool
         (0, False),
         (2, False),
         ("2", False),
-        (None, False)
-    ]
+        (None, False),
+    ],
 )
 def test_str2bool(source, value):
     assert str2bool(source) == value

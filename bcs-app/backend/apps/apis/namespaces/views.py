@@ -16,12 +16,12 @@ import json
 from rest_framework.response import Response
 
 from backend.apps.apis.applications.views import BaseHandleInstance
-from backend.apps.configuration.namespace.views import NamespaceView
 from backend.apps.apis.base_serializers import BaseParamsSLZ
-from backend.apps.instance.models import VersionInstance, InstanceConfig
-from backend.apps.configuration.models import Template
-from backend.utils.renderers import BKAPIRenderer
 from backend.apps.apis.utils import skip_authentication
+from backend.apps.configuration.models import Template
+from backend.apps.configuration.namespace.views import NamespaceView
+from backend.apps.instance.models import InstanceConfig, VersionInstance
+from backend.utils.renderers import BKAPIRenderer
 
 
 class NamespaceApiView(BaseHandleInstance, NamespaceView):

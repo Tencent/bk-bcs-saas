@@ -11,22 +11,23 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-import logging
 import contextlib
-from dataclasses import dataclass
 import json
+import logging
+from dataclasses import dataclass
 
 import requests
 from django.conf import settings
-from rest_framework.exceptions import PermissionDenied, APIException
 from django.utils.translation import ugettext_lazy as _
+from rest_framework.exceptions import APIException, PermissionDenied
+
+from backend.bcs_k8s import kubectl
+from backend.bcs_k8s.kubehelm.helm import KubeHelmClient
+from backend.bcs_k8s.utils import get_kubectl_version
+from backend.components import bcs, paas_cc
+from backend.components.utils import http_post
 
 from . import constants
-from backend.components import paas_cc, bcs
-from backend.components.utils import http_post
-from backend.bcs_k8s import kubectl
-from backend.bcs_k8s.utils import get_kubectl_version
-from backend.bcs_k8s.kubehelm.helm import KubeHelmClient
 
 logger = logging.getLogger(__name__)
 
@@ -47,6 +48,7 @@ class BCSClusterClient:
     - 注册集群，同时给集群申请 register token
     - 生成 kubectl 连接信息
     """
+
     host: str  # rest apis are apigw, other apis are settings.BCS_SERVER_HOST
     access_token: str
     project_id: str
@@ -59,7 +61,8 @@ class BCSClusterClient:
             return {}
         if code_name in constants.CLUSTER_PERM_FAIL_CODE_NAMES:
             raise PermissionDenied(
-                bcs_cluster_data.get('message', "You do not have permission to perform this action."))
+                bcs_cluster_data.get('message', "You do not have permission to perform this action.")
+            )
         # 防止后面更新时, 被替换
         bcs_cluster_data['bcs_cluster_id'] = bcs_cluster_data['id']
         return bcs_cluster_data
@@ -104,11 +107,7 @@ class BCSClusterClient:
         if bcs_cluster_data is None:
             bcs_cluster_data = self.register_cluster()
         # TODO: 如果更改为raise，会导致前端也需要变动，先不调整
-        return {
-            'result': True,
-            'message': 'success',
-            'data': bcs_cluster_data
-        }
+        return {'result': True, 'message': 'success', 'data': bcs_cluster_data}
 
     def get_cluster_credential(self):
         bcs_api_client = bcs.k8s.K8SClient(self.access_token, self.project_id, self.cluster_id, None)
@@ -119,7 +118,8 @@ class BCSClusterClient:
         credentials_data = bcs_api_client.get_client_credentials(bcs_cluster_data['bcs_cluster_id'])
         if credentials_data.get('code_name') == constants.CREDENTIALS_NOT_FOUND_CODE_NAME:
             raise BCSClusterCredentialsNotFound(
-                _("bcs-agent还没有上报apiserver信息,请检查集群')}[{}]中的kube-system/bcs-agent日志否正常").format(self.cluster_id))
+                _("bcs-agent还没有上报apiserver信息,请检查集群')}[{}]中的kube-system/bcs-agent日志否正常").format(self.cluster_id)
+            )
         # 添加 identifier 信息，web-console使用
         credentials_data['identifier'] = bcs_cluster_data['identifier']
         return credentials_data
@@ -127,11 +127,13 @@ class BCSClusterClient:
     def get_access_cluster_context(self):
         """ 获取访问集群需要的信息 """
         context = self.get_cluster_credential()
-        context.update(**{
-            'host': self.host,
-            'source_cluster_id': self.cluster_id,
-            'source_project_id': self.project_id,
-        })
+        context.update(
+            **{
+                'host': self.host,
+                'source_cluster_id': self.cluster_id,
+                'source_project_id': self.project_id,
+            }
+        )
         return context
 
     def make_kubectl_options(self):
@@ -139,10 +141,7 @@ class BCSClusterClient:
 
         # NOTE: 先兼容两个字段，防止bcs调整发布间隙的问题
         if context.get('server_address_path'):
-            server = '{host}{path}'.format(
-                host=self.host,
-                path=context['server_address_path']
-            )
+            server = '{host}{path}'.format(host=self.host, path=context['server_address_path'])
         else:
             server = context['server_address']
 
@@ -165,44 +164,26 @@ class BCSClusterClient:
             cert=options.pop('client-certificate'),
             server=options.pop('server'),
         )
-        user = kubectl.User(
-            name=constants.BCS_USER_NAME,
-            token=options['token'])
-        context = kubectl.Context(
-            name=constants.BCS_USER_NAME,
-            user=user,
-            cluster=cluster
-        )
-        kubectl_bin_file, version = get_cluster_proper_kubectl(
-            self.access_token, self.project_id, self.cluster_id)
+        user = kubectl.User(name=constants.BCS_USER_NAME, token=options['token'])
+        context = kubectl.Context(name=constants.BCS_USER_NAME, user=user, cluster=cluster)
+        kubectl_bin_file, version = get_cluster_proper_kubectl(self.access_token, self.project_id, self.cluster_id)
         self.k8s_version = version
         kube_config = kubectl.KubeConfig(contexts=[context])
         with kube_config.as_tempfile() as filename:
-            kubectl_client = kubectl.KubectlClusterClient(
-                kubectl_bin=kubectl_bin_file,
-                kubeconfig=filename,
-                **options
-            )
+            kubectl_client = kubectl.KubectlClusterClient(kubectl_bin=kubectl_bin_file, kubeconfig=filename, **options)
             yield kubectl_client
 
     @contextlib.contextmanager
     def make_helm_client(self):
-        """组装携带kubeconfig的helm client
-        """
+        """组装携带kubeconfig的helm client"""
         options = self.make_kubectl_options()
         cluster = kubectl.Cluster(
             name=self.cluster_id,
             cert=options.pop('client-certificate'),
             server=options.pop('server'),
         )
-        user = kubectl.User(
-            name=constants.BCS_USER_NAME,
-            token=options['token'])
-        context = kubectl.Context(
-            name=constants.BCS_USER_NAME,
-            user=user,
-            cluster=cluster
-        )
+        user = kubectl.User(name=constants.BCS_USER_NAME, token=options['token'])
+        context = kubectl.Context(name=constants.BCS_USER_NAME, user=user, cluster=cluster)
         # NOTE: 这里直接使用helm3 client bin
         kube_config = kubectl.KubeConfig(contexts=[context])
         with kube_config.as_tempfile() as filename:
@@ -217,7 +198,8 @@ def get_cluster_proper_kubectl(access_token, project_id, cluster_id):
     bcs_api_client = bcs.k8s.K8SClient(access_token, project_id, cluster_id, None)
 
     kubectl_version = get_kubectl_version(
-        bcs_api_client.version, constants.KUBECTL_VERSION, constants.DEFAULT_KUBECTL_VERSION)
+        bcs_api_client.version, constants.KUBECTL_VERSION, constants.DEFAULT_KUBECTL_VERSION
+    )
 
     try:
         kubectl_bin = settings.KUBECTL_BIN_MAP[kubectl_version]

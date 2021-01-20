@@ -12,8 +12,10 @@
 # specific language governing permissions and limitations under the License.
 #
 
+from backend.components.bcs import k8s as bcs_k8s
+from backend.components.bcs import mesos as bcs_mesos
+
 from . import k8s, mesos
-from backend.components.bcs import k8s as bcs_k8s, mesos as bcs_mesos
 
 
 class BCSDriver:
@@ -21,7 +23,7 @@ class BCSDriver:
     # 1：k8s 2: mesos
     KIND_BCS_CLIENT_AND_DRIVER = {
         1: {'bcs_client': bcs_k8s.K8SClient, 'driver': k8s.Driver},
-        2: {'bcs_client': bcs_mesos.MesosClient, 'driver': mesos.Driver}
+        2: {'bcs_client': bcs_mesos.MesosClient, 'driver': mesos.Driver},
     }
 
     def __init__(self, request, project_id, cluster_id):
@@ -30,19 +32,17 @@ class BCSDriver:
         self.cluster_id = cluster_id
         self.k8s_mesos_kind_info = self.KIND_BCS_CLIENT_AND_DRIVER[request.project.kind]
         self.bcs_client = self.k8s_mesos_kind_info['bcs_client'](
-            request.user.token.access_token,
-            project_id, cluster_id, None
+            request.user.token.access_token, project_id, cluster_id, None
         )
         self.driver = self.k8s_mesos_kind_info['driver']
 
     def get_unit_info_by_name(self, params=None):
-        """获取pod或taskgroup信息
-        """
+        """获取pod或taskgroup信息"""
         return self.driver.get_unit_info_by_name(
             self.bcs_client,
             ns_name=params.get('namespace'),
             pod_name=params.get('unit_name'),
-            field=params.get('field')
+            field=params.get('field'),
         )
 
     def get_events(self, params):

@@ -11,19 +11,18 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-import re
-
 import json
 import logging
+import re
 
-from .resource import Resource, CoreAPIClassMixins
 from backend.utils.basic import getitems
+
+from .resource import CoreAPIClassMixins, Resource
 
 logger = logging.getLogger(__name__)
 
 
 class Event(Resource, CoreAPIClassMixins):
-
     def get_res_name_list(self, params):
         res_name_list = params.get('extraInfo.name', '')
         if isinstance(res_name_list, str):
@@ -54,7 +53,7 @@ class Event(Resource, CoreAPIClassMixins):
                 'level': info['type'],
                 'eventTime': info['metadata']['creationTimestamp'],
                 'compoent': info['source']['component'],
-                'env': 'k8s'
+                'env': 'k8s',
             }
             event_list.append(item)
         return {'code': 0, 'data': event_list, 'count': len(event_list)}

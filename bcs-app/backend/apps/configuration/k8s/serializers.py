@@ -12,13 +12,18 @@
 # specific language governing permissions and limitations under the License.
 #
 from django.conf import settings
+from django.utils.translation import ugettext_lazy as _
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
-from django.utils.translation import ugettext_lazy as _
 
 from backend.apps.configuration.constants import K8sResourceName
-from backend.apps.configuration.validator import validate_variable_inconfig, get_name_from_config, \
-    validate_res_config, validate_name_duplicate
+from backend.apps.configuration.validator import (
+    get_name_from_config,
+    validate_name_duplicate,
+    validate_res_config,
+    validate_variable_inconfig,
+)
+
 from .validator import get_config_schema, validate_k8s_res_name, validate_pod_selector
 
 

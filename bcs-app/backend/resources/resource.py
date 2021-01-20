@@ -11,14 +11,14 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-from typing import Dict, List, Union, Optional, Tuple
+from typing import Dict, List, Optional, Tuple, Union
 
 from kubernetes.dynamic.resource import ResourceInstance
 
 from backend.resources.utils.kube_client import get_dynamic_client
 
-from .utils.format import ResourceDefaultFormatter
 from .constants import PatchType
+from .utils.format import ResourceDefaultFormatter
 
 
 class ResourceClient:

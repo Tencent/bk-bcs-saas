@@ -13,9 +13,9 @@
 #
 import json
 
+from django.utils.translation import ugettext_lazy as _
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
-from django.utils.translation import ugettext_lazy as _
 
 from backend.apps.network.models import MesosLoadBlance as MesosLoadBalancer
 
@@ -32,15 +32,7 @@ class MesosLBSLZ(serializers.ModelSerializer):
 
     class Meta:
         model = MesosLoadBalancer
-        fields = [
-            "id",
-            "name",
-            "cluster_id",
-            "namespace",
-            "ip_list",
-            "status",
-            "data"
-        ]
+        fields = ["id", "name", "cluster_id", "namespace", "ip_list", "status", "data"]
 
 
 class CreateOrUpdateMesosLBSLZ(serializers.Serializer):

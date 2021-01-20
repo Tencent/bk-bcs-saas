@@ -11,14 +11,15 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-import json
 import base64
+import json
 import logging
 
-from .api_response import response
-from .resource import Resource, CoreAPIClassMixins
-from backend.utils.basic import getitems
 from backend.resources.constants import K8sResourceKinds
+from backend.utils.basic import getitems
+
+from .api_response import response
+from .resource import CoreAPIClassMixins, Resource
 
 logger = logging.getLogger(__name__)
 

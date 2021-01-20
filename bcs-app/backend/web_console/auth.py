@@ -15,17 +15,18 @@ import logging
 from functools import wraps
 
 import tornado.web
-from backend.components.utils import http_get
 from django.conf import settings
 from django.utils.translation import ugettext_lazy as _
+
+from backend.components.utils import http_get
+
 from .session import session_mgr
 
 logger = logging.getLogger(__name__)
 
 
 def authenticated(view_func):
-    """权限认证装饰器
-    """
+    """权限认证装饰器"""
 
     @wraps(view_func)
     def _wrapped_view(self, *args, **kwargs):

@@ -11,22 +11,19 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-import re
-import json
 import base64
+import json
+import logging
+import re
+from enum import Enum
 from functools import reduce
 from typing import Any
 
 import arrow
-
 from django.conf import settings
 from django.utils import timezone
-from enum import Enum
 from rest_framework import fields
 from rest_framework.exceptions import ValidationError
-
-
-import logging
 
 logger = logging.getLogger(__name__)
 MOSAIC_REG = re.compile(r"(?<=\d{3})(\d{4})(?=\d{4})")

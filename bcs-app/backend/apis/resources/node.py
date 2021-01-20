@@ -13,13 +13,12 @@
 #
 from rest_framework.response import Response
 
-from backend.resources.cluster.utils import set_mesos_node_labels
-from backend.apis.views import NoAccessTokenBaseAPIViewSet
 from backend.apis.resources.serializers import CreateNodeLabelsSLZ
+from backend.apis.views import NoAccessTokenBaseAPIViewSet
+from backend.resources.cluster.utils import set_mesos_node_labels
 
 
 class NodeLabelsViewSet(NoAccessTokenBaseAPIViewSet):
-
     def set_labels(self, request, project_id_or_code, cluster_id):
         slz = CreateNodeLabelsSLZ(data=request.data)
         slz.is_valid(raise_exception=True)

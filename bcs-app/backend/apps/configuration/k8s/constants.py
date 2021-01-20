@@ -11,8 +11,8 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
+from backend.apps.configuration.constants import FILE_DIR_PATTERN, KRESOURCE_NAMES, NUM_VAR_PATTERN
 from backend.apps.instance.funutils import update_nested_dict
-from backend.apps.configuration.constants import NUM_VAR_PATTERN, FILE_DIR_PATTERN, KRESOURCE_NAMES
 
 # 资源名称
 K8S_RES_NAME_PATTERN = "^[a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*$"

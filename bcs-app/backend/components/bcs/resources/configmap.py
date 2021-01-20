@@ -15,9 +15,10 @@ import logging
 
 from kubernetes import client
 
-from .api_response import response
-from .resource import Resource, CoreAPIClassMixins
 from backend.resources.constants import K8sResourceKinds
+
+from .api_response import response
+from .resource import CoreAPIClassMixins, Resource
 
 logger = logging.getLogger(__name__)
 
@@ -43,7 +44,8 @@ class ConfigMap(Resource, CoreAPIClassMixins):
         configmap_list = []
         for info in resp.items:
             item = self.render_resource_for_preload_content(
-                self.resource_kind, info, info.metadata.name, info.metadata.namespace)
+                self.resource_kind, info, info.metadata.name, info.metadata.namespace
+            )
             params_name = params.get('name')
             if params_name:
                 if info.metadata.name == params_name:
@@ -58,7 +60,8 @@ class ConfigMap(Resource, CoreAPIClassMixins):
         resp = self.api_instance.list_config_map_for_all_namespaces()
         for info in resp.items:
             item = self.render_resource_for_preload_content(
-                self.resource_kind, info, info.metadata.name, info.metadata.namespace)
+                self.resource_kind, info, info.metadata.name, info.metadata.namespace
+            )
             configmap_list.append(item)
         return configmap_list
 

@@ -16,22 +16,26 @@ from django.conf.urls import url
 from . import views
 
 urlpatterns = [
-
-    url(r'^api/projects/(?P<project_id>\w{32})/configuration/yaml_templates/$',
-        views.YamlTemplateViewSet.as_view({'post': 'create_template'})),
-
-    url(r'^api/projects/(?P<project_id>\w{32})/configuration/yaml_templates/(?P<template_id>\d+)/$',
-        views.YamlTemplateViewSet.as_view({'get': 'get_template', 'put': 'update_template'})),
-
-    url(r'^api/projects/(?P<project_id>\w{32})/configuration/yaml_templates/(?P<template_id>\d+)/'
+    url(
+        r'^api/projects/(?P<project_id>\w{32})/configuration/yaml_templates/$',
+        views.YamlTemplateViewSet.as_view({'post': 'create_template'}),
+    ),
+    url(
+        r'^api/projects/(?P<project_id>\w{32})/configuration/yaml_templates/(?P<template_id>\d+)/$',
+        views.YamlTemplateViewSet.as_view({'get': 'get_template', 'put': 'update_template'}),
+    ),
+    url(
+        r'^api/projects/(?P<project_id>\w{32})/configuration/yaml_templates/(?P<template_id>\d+)/'
         r'show_versions/(?P<show_version_id>\d+)/$',
-        views.YamlTemplateViewSet.as_view({'get': 'get_template_by_show_version'})),
-
-    url(r'^api/projects/(?P<project_id>\w{32})/configuration/yaml_templates/(?P<template_id>\d+)/'
+        views.YamlTemplateViewSet.as_view({'get': 'get_template_by_show_version'}),
+    ),
+    url(
+        r'^api/projects/(?P<project_id>\w{32})/configuration/yaml_templates/(?P<template_id>\d+)/'
         r'show_versions/(?P<show_version_id>\d+)/releases/$',
-        views.TemplateReleaseViewSet.as_view({'post': 'preview_or_apply'})),
-
-    url(r'^api/projects/(?P<project_id>\w{32})/configuration/yaml_templates/initial_templates/$',
-        views.InitialTemplatesViewSet.as_view({'get': 'get_initial_templates'}))
-
+        views.TemplateReleaseViewSet.as_view({'post': 'preview_or_apply'}),
+    ),
+    url(
+        r'^api/projects/(?P<project_id>\w{32})/configuration/yaml_templates/initial_templates/$',
+        views.InitialTemplatesViewSet.as_view({'get': 'get_initial_templates'}),
+    ),
 ]

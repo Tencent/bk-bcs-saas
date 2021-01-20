@@ -14,12 +14,12 @@
 """
 Harbor 仓库API
 """
-import logging
 import json
+import logging
 
 from django.conf import settings
 
-from backend.utils.requests import http_post, http_get
+from backend.utils.requests import http_get, http_post
 
 logger = logging.getLogger(__name__)
 
@@ -107,8 +107,7 @@ class HarborClient:
         return resp
 
     def create_project_path(self):
-        """创建项目仓库路径
-        """
+        """创建项目仓库路径"""
         self.url = f"{DEPOT_API_PREFIX}/project/{self.project_code}"
         resp = http_post(self.url, **self.kwargs)
         self.method = "POST"

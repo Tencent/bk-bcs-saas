@@ -12,16 +12,17 @@
 # specific language governing permissions and limitations under the License.
 #
 import abc
+import copy
 import json
 import logging
 import uuid
-import copy
 
 from backend.utils.cache import rd_client
 
 logger = logging.getLogger(__name__)
 
 DEFAULT_SESSION_TYPE = 'redis'
+
 
 class SessionBase(abc.ABC):
     CACHE_KEY = 'WebConsole:{project_id}:{cluster_id}:{session_id}'
@@ -35,13 +36,12 @@ class SessionBase(abc.ABC):
 
     @abc.abstractmethod
     def set(self, ctx: dict) -> str:
-        """保存ctx到session
-        """
+        """保存ctx到session"""
 
     @abc.abstractmethod
     def get(self, session_id: str) -> dict:
-        """通过session_id获取ctx
-        """
+        """通过session_id获取ctx"""
+
 
 class RedisSession(SessionBase):
     def set(self, ctx: dict) -> str:
@@ -52,10 +52,7 @@ class RedisSession(SessionBase):
 
         ctx['session_id'] = session_id
 
-        key = self.CACHE_KEY.format(
-            project_id=self.project_id,
-            cluster_id=self.cluster_id,
-            session_id=session_id)
+        key = self.CACHE_KEY.format(project_id=self.project_id, cluster_id=self.cluster_id, session_id=session_id)
 
         rd_client.set(key, json.dumps(ctx), ex=self.EXPIRE)
 
@@ -76,8 +73,8 @@ class RedisSession(SessionBase):
 
         return ctx
 
-class SessionMgr:
 
+class SessionMgr:
     def __init__(self):
         self._session_cls = {}
 

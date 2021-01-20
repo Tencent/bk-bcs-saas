@@ -19,9 +19,8 @@ DONE:
 
 TODO:
 """
+from backend.apps.configuration.constants import FILE_DIR_PATTERN, NUM_VAR_PATTERN
 from backend.apps.instance.funutils import update_nested_dict
-from backend.apps.configuration.constants import NUM_VAR_PATTERN, FILE_DIR_PATTERN
-
 
 # 资源名称
 K8S_RES_NAME_PATTERN = "^[a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*$"
@@ -46,34 +45,27 @@ AFFINITY_MATCH_EXPRESSION_SCHNEA = {
         "required": ["key", "operator"],
         "properties": {
             "key": {"type": "string", "minLength": 1},
-            "operator": {"type": "string", "enum": ["In", "NotIn", "Exists",
-                                                    "DoesNotExist", "Gt", "Lt"
-                                                    ]},
-            "values": {"type": "array", "items": {"type": "string", "minLength": 1}}
+            "operator": {"type": "string", "enum": ["In", "NotIn", "Exists", "DoesNotExist", "Gt", "Lt"]},
+            "values": {"type": "array", "items": {"type": "string", "minLength": 1}},
         },
-        "additionalProperties": False
-    }
+        "additionalProperties": False,
+    },
 }
 
 POD_AFFINITY_TERM_SCHNEA = {
     "type": "object",
     "properties": {
-        "labelSelector": {"type": "object", "properties": {
-            "matchExpressions": AFFINITY_MATCH_EXPRESSION_SCHNEA
-        }},
+        "labelSelector": {"type": "object", "properties": {"matchExpressions": AFFINITY_MATCH_EXPRESSION_SCHNEA}},
         "namespaces": {"type": "array", "items": {"type": "string"}},
-        "topologyKey": {"type": "string"}
+        "topologyKey": {"type": "string"},
     },
-    "additionalProperties": False
+    "additionalProperties": False,
 }
 
 POD_AFFINITY_SCHNEA = {
     "type": "object",
     "properties": {
-        "requiredDuringSchedulingIgnoredDuringExecution": {
-            "type": "array",
-            "items": POD_AFFINITY_TERM_SCHNEA
-        },
+        "requiredDuringSchedulingIgnoredDuringExecution": {"type": "array", "items": POD_AFFINITY_TERM_SCHNEA},
         "preferredDuringSchedulingIgnoredDuringExecution": {
             "type": "array",
             "items": {
@@ -86,12 +78,12 @@ POD_AFFINITY_SCHNEA = {
                             {"type": "number", "minimum": 1, "maximum": 100},
                         ]
                     },
-                    "podAffinityTerm": POD_AFFINITY_TERM_SCHNEA
-                }
-            }
-        }
+                    "podAffinityTerm": POD_AFFINITY_TERM_SCHNEA,
+                },
+            },
+        },
     },
-    "additionalProperties": False
+    "additionalProperties": False,
 }
 
 AFFINITY_SCHNEA = {
@@ -109,12 +101,10 @@ AFFINITY_SCHNEA = {
                             "items": {
                                 "type": "object",
                                 "required": ["matchExpressions"],
-                                "properties": {
-                                    "matchExpressions": AFFINITY_MATCH_EXPRESSION_SCHNEA
-                                }
-                            }
+                                "properties": {"matchExpressions": AFFINITY_MATCH_EXPRESSION_SCHNEA},
+                            },
                         }
-                    }
+                    },
                 },
                 "preferredDuringSchedulingIgnoredDuringExecution": {
                     "type": "array",
@@ -131,20 +121,18 @@ AFFINITY_SCHNEA = {
                             "preference": {
                                 "type": "object",
                                 "required": ["matchExpressions"],
-                                "properties": {
-                                    "matchExpressions": AFFINITY_MATCH_EXPRESSION_SCHNEA
-                                }
-                            }
-                        }
-                    }
+                                "properties": {"matchExpressions": AFFINITY_MATCH_EXPRESSION_SCHNEA},
+                            },
+                        },
+                    },
                 },
             },
-            "additionalProperties": False
+            "additionalProperties": False,
         },
         "podAffinity": POD_AFFINITY_SCHNEA,
-        "podAntiAffinity": POD_AFFINITY_SCHNEA
+        "podAntiAffinity": POD_AFFINITY_SCHNEA,
     },
-    "additionalProperties": False
+    "additionalProperties": False,
 }
 
 K8S_SECRET_SCHEM = {
@@ -154,23 +142,14 @@ K8S_SECRET_SCHEM = {
         "metadata": {
             "type": "object",
             "required": ["name"],
-            "properties": {
-                "name": {
-                    "type": "string",
-                    "pattern": K8S_RES_NAME_PATTERN
-                }
-            }
+            "properties": {"name": {"type": "string", "pattern": K8S_RES_NAME_PATTERN}},
         },
         "data": {
             "type": "object",
-            "patternProperties": {
-                KEY_NAME_PATTERN: {
-                    "type": "string"
-                }
-            },
-            "additionalProperties": False
-        }
-    }
+            "patternProperties": {KEY_NAME_PATTERN: {"type": "string"}},
+            "additionalProperties": False,
+        },
+    },
 }
 
 K8S_CONFIGMAP_SCHEM = {
@@ -180,38 +159,21 @@ K8S_CONFIGMAP_SCHEM = {
         "metadata": {
             "type": "object",
             "required": ["name"],
-            "properties": {
-                "name": {
-                    "type": "string",
-                    "pattern": K8S_RES_NAME_PATTERN
-                }
-            }
+            "properties": {"name": {"type": "string", "pattern": K8S_RES_NAME_PATTERN}},
         },
         "data": {
             "type": "object",
-            "patternProperties": {
-                KEY_NAME_PATTERN: {
-                    "type": "string"
-                }
-            },
-            "additionalProperties": False
-        }
-    }
+            "patternProperties": {KEY_NAME_PATTERN: {"type": "string"}},
+            "additionalProperties": False,
+        },
+    },
 }
 
 K8S_SERVICE_SCHEM = {
     "type": "object",
     "required": ["metadata", "spec"],
     "properties": {
-        "metadata": {
-            "type": "object",
-            "required": ["name"],
-            "properties": {
-                "name": {
-                    "type": "string"
-                }
-            }
-        },
+        "metadata": {"type": "object", "required": ["name"], "properties": {"name": {"type": "string"}}},
         "spec": {
             "type": "object",
             "required": ["type", "clusterIP", "ports"],
@@ -224,43 +186,40 @@ K8S_SERVICE_SCHEM = {
                         "type": "object",
                         "required": ["port", "protocol"],
                         "properties": {
-                            "name": {"oneOf": [
-                                {"type": "string",
-                                 "pattern": "^$"},
-                                {"type": "string",
-                                 "pattern": PORT_NAME_PATTERN}
-                            ]},
+                            "name": {
+                                "oneOf": [
+                                    {"type": "string", "pattern": "^$"},
+                                    {"type": "string", "pattern": PORT_NAME_PATTERN},
+                                ]
+                            },
                             "port": {
                                 "oneOf": [
                                     {"type": "string", "pattern": "^$"},
                                     {"type": "string", "pattern": NUM_VAR_PATTERN},
-                                    {"type": "number", "minimum": 1,
-                                        "maximum": 65535},
+                                    {"type": "number", "minimum": 1, "maximum": 65535},
                                 ]
                             },
                             "protocol": {"type": "string", "enmu": ["TCP", "UDP"]},
                             "targetPort": {
                                 "anyof": [
-                                    {"type": "number", "minimum": 1,
-                                        "maximum": 65535},
+                                    {"type": "number", "minimum": 1, "maximum": 65535},
                                     {"type": "string", "pattern": NUM_VAR_PATTERN},
-                                    {"type": "string", "minLength": 1}
+                                    {"type": "string", "minLength": 1},
                                 ]
                             },
                             "nodePort": {
                                 "oneOf": [
                                     {"type": "string", "pattern": "^$"},
                                     {"type": "string", "pattern": NUM_VAR_PATTERN},
-                                    {"type": "number", "minimum": 30000,
-                                        "maximum": 32767},
+                                    {"type": "number", "minimum": 30000, "maximum": 32767},
                                 ]
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
+                            },
+                        },
+                    },
+                },
+            },
+        },
+    },
 }
 
 # 健康检查 & 就绪检查
@@ -304,32 +263,12 @@ K8S_CHECK_SCHEMA = {
                 {"type": "number", "minimum": 1},
             ]
         },
-        "exec": {
-            "type": "object",
-            "properties": {
-                "command": {"type": "string"}
-            }
-        },
-        "tcpSocket": {
-            "type": "object",
-            "properties": {
-                "port": {
-                    "oneOf": [
-                        {"type": "number"},
-                        {"type": "string"}
-                    ]
-                }
-            }
-        },
+        "exec": {"type": "object", "properties": {"command": {"type": "string"}}},
+        "tcpSocket": {"type": "object", "properties": {"port": {"oneOf": [{"type": "number"}, {"type": "string"}]}}},
         "httpGet": {
             "type": "object",
             "properties": {
-                "port": {
-                    "oneOf": [
-                        {"type": "number"},
-                        {"type": "string"}
-                    ]
-                },
+                "port": {"oneOf": [{"type": "number"}, {"type": "string"}]},
                 "path": {"type": "string"},
                 "httpHeaders": {
                     "type": "array",
@@ -338,25 +277,33 @@ K8S_CHECK_SCHEMA = {
                         "properties": {
                             "name": {"type": "string"},
                             "value": {"type": "string"},
-                        }
-                    }
-                }
-            }
-        }
-    }
+                        },
+                    },
+                },
+            },
+        },
+    },
 }
 
 CONTAINER_SCHNEA = {
     "type": "array",
     "items": {
         "type": "object",
-        "required": ["name", "image", "imagePullPolicy", "volumeMounts", "ports",
-                     "resources", "livenessProbe", "readinessProbe", "lifecycle"],
+        "required": [
+            "name",
+            "image",
+            "imagePullPolicy",
+            "volumeMounts",
+            "ports",
+            "resources",
+            "livenessProbe",
+            "readinessProbe",
+            "lifecycle",
+        ],
         "properties": {
             "name": {"type": "string", "minLength": 1},
             "image": {"type": "string", "minLength": 1},
-            "imagePullPolicy": {"type": "string",
-                                "enum": ["Always", "IfNotPresent", "Never"]},
+            "imagePullPolicy": {"type": "string", "enum": ["Always", "IfNotPresent", "Never"]},
             "volumeMounts": {
                 "type": "array",
                 "items": {
@@ -364,13 +311,10 @@ CONTAINER_SCHNEA = {
                     "required": ["name", "mountPath", "readOnly"],
                     "properties": {
                         "name": {"type": "string", "pattern": VOLUMR_NAME_PATTERN},
-                        "mountPath": {
-                            "type": "string",
-                            "pattern": FILE_DIR_PATTERN
-                        },
-                        "readOnly": {"type": "boolean"}
-                    }
-                }
+                        "mountPath": {"type": "string", "pattern": FILE_DIR_PATTERN},
+                        "readOnly": {"type": "boolean"},
+                    },
+                },
             },
             "ports": {
                 "type": "array",
@@ -378,25 +322,21 @@ CONTAINER_SCHNEA = {
                     "type": "object",
                     "required": ["name", "containerPort"],
                     "properties": {
-                        "name": {"oneOf": [
-                            {"type": "string",
-                                "pattern": "^$"},
-                            {"type": "string",
-                                "pattern": PORT_NAME_PATTERN}
-                        ]},
+                        "name": {
+                            "oneOf": [
+                                {"type": "string", "pattern": "^$"},
+                                {"type": "string", "pattern": PORT_NAME_PATTERN},
+                            ]
+                        },
                         "containerPort": {
                             "oneOf": [
-                                {"type": "string",
-                                    "pattern": "^$"},
-                                {"type": "string",
-                                    "pattern": NUM_VAR_PATTERN},
-                                {"type": "number",
-                                    "minimum": 1,
-                                    "maximum": 65535}
+                                {"type": "string", "pattern": "^$"},
+                                {"type": "string", "pattern": NUM_VAR_PATTERN},
+                                {"type": "number", "minimum": 1, "maximum": 65535},
                             ]
-                        }
-                    }
-                }
+                        },
+                    },
+                },
             },
             "command": {"type": "string"},
             "args": {"type": "string"},
@@ -415,9 +355,7 @@ CONTAINER_SCHNEA = {
                                 "fieldRef": {
                                     "type": "object",
                                     "required": ["fieldPath"],
-                                    "properties": {
-                                        "fieldPath": {"type": "string"}
-                                    }
+                                    "properties": {"fieldPath": {"type": "string"}},
                                 },
                                 "configMapKeyRef": {
                                     "type": "object",
@@ -425,7 +363,7 @@ CONTAINER_SCHNEA = {
                                     "properties": {
                                         "name": {"type": "string", "minLength": 1},
                                         "key": {"type": "string", "minLength": 1},
-                                    }
+                                    },
                                 },
                                 "secretKeyRef": {
                                     "type": "object",
@@ -433,11 +371,11 @@ CONTAINER_SCHNEA = {
                                     "properties": {
                                         "name": {"type": "string", "minLength": 1},
                                         "key": {"type": "string", "minLength": 1},
-                                    }
-                                }
-                            }
-                        }
-                    }
+                                    },
+                                },
+                            },
+                        },
+                    },
                 },
             },
             "envFrom": {
@@ -449,16 +387,16 @@ CONTAINER_SCHNEA = {
                             "type": "object",
                             "properties": {
                                 "name": {"type": "string", "minLength": 1},
-                            }
+                            },
                         },
                         "secretRef": {
                             "type": "object",
                             "properties": {
                                 "name": {"type": "string", "minLength": 1},
-                            }
-                        }
-                    }
-                }
+                            },
+                        },
+                    },
+                },
             },
             "resources": {
                 "type": "object",
@@ -468,52 +406,40 @@ CONTAINER_SCHNEA = {
                         "properties": {
                             "cpu": {
                                 "oneOf": [
-                                    {"type": "string",
-                                        "pattern": "^$"},
-                                    {"type": "string",
-                                        "pattern": NUM_VAR_PATTERN},
-                                    {"type": "number",
-                                        "minimum": 0}
+                                    {"type": "string", "pattern": "^$"},
+                                    {"type": "string", "pattern": NUM_VAR_PATTERN},
+                                    {"type": "number", "minimum": 0},
                                 ]
                             },
                             "memory": {
                                 "oneOf": [
-                                    {"type": "string",
-                                        "pattern": "^$"},
-                                    {"type": "number",
-                                        "minimum": 0},
-                                    {"type": "string",
-                                        "pattern": NUM_VAR_PATTERN},
+                                    {"type": "string", "pattern": "^$"},
+                                    {"type": "number", "minimum": 0},
+                                    {"type": "string", "pattern": NUM_VAR_PATTERN},
                                 ]
-                            }
-                        }
+                            },
+                        },
                     },
                     "requests": {
                         "type": "object",
                         "properties": {
                             "cpu": {
                                 "oneOf": [
-                                    {"type": "string",
-                                        "pattern": "^$"},
-                                    {"type": "number",
-                                        "minimum": 0},
-                                    {"type": "string",
-                                        "pattern": NUM_VAR_PATTERN}
+                                    {"type": "string", "pattern": "^$"},
+                                    {"type": "number", "minimum": 0},
+                                    {"type": "string", "pattern": NUM_VAR_PATTERN},
                                 ]
                             },
                             "memory": {
                                 "oneOf": [
-                                    {"type": "string",
-                                        "pattern": "^$"},
-                                    {"type": "number",
-                                        "minimum": 0},
-                                    {"type": "string",
-                                        "pattern": NUM_VAR_PATTERN}
+                                    {"type": "string", "pattern": "^$"},
+                                    {"type": "number", "minimum": 0},
+                                    {"type": "string", "pattern": NUM_VAR_PATTERN},
                                 ]
-                            }
-                        }
-                    }
-                }
+                            },
+                        },
+                    },
+                },
             },
             "livenessProbe": K8S_CHECK_SCHEMA,
             "readinessProbe": K8S_CHECK_SCHEMA,
@@ -521,24 +447,16 @@ CONTAINER_SCHNEA = {
                 "type": "object",
                 "required": ["preStop", "postStart"],
                 "properties": {
-                    "preStop": {
-                        "type": "object",
-                        "required": ["exec"],
-                        "properties": {
-                            "command": {"type": "string"}
-                        }
-                    },
+                    "preStop": {"type": "object", "required": ["exec"], "properties": {"command": {"type": "string"}}},
                     "postStart": {
                         "type": "object",
                         "required": ["exec"],
-                        "properties": {
-                            "command": {"type": "string"}
-                        }
+                        "properties": {"command": {"type": "string"}},
                     },
-                }
-            }
-        }
-    }
+                },
+            },
+        },
+    },
 }
 
 K8S_DEPLPYMENT_SCHNEA = {
@@ -548,12 +466,7 @@ K8S_DEPLPYMENT_SCHNEA = {
         "metadata": {
             "type": "object",
             "required": ["name"],
-            "properties": {
-                "name": {
-                    "type": "string",
-                    "pattern": K8S_RES_NAME_PATTERN
-                }
-            }
+            "properties": {"name": {"type": "string", "pattern": K8S_RES_NAME_PATTERN}},
         },
         "spec": {
             "type": "object",
@@ -561,8 +474,7 @@ K8S_DEPLPYMENT_SCHNEA = {
             "properties": {
                 "replicas": {
                     "oneOf": [
-                        {"type": "string",
-                            "pattern": NUM_VAR_PATTERN},
+                        {"type": "string", "pattern": NUM_VAR_PATTERN},
                         {"type": "number", "minimum": 0},
                     ]
                 },
@@ -571,11 +483,8 @@ K8S_DEPLPYMENT_SCHNEA = {
                     "required": ["type"],
                     "properties": {
                         "type": {"type": "string", "enum": ["RollingUpdate", "Recreate"]},
-                        "rollingUpdate": {
-                            "type": "object",
-                            "required": ["maxUnavailable", "maxSurge"]
-                        }
-                    }
+                        "rollingUpdate": {"type": "object", "required": ["maxUnavailable", "maxSurge"]},
+                    },
                 },
                 "template": {
                     "type": "object",
@@ -583,37 +492,32 @@ K8S_DEPLPYMENT_SCHNEA = {
                     "properties": {
                         "metadata": {
                             "type": "object",
-                            "properties": {
-                                "lables": {"type": "object"},
-                                "annotations": {"type": "object"}
-                            }
+                            "properties": {"lables": {"type": "object"}, "annotations": {"type": "object"}},
                         },
                         "spec": {
                             "type": "object",
-                            "required": ["restartPolicy", "terminationGracePeriodSeconds", "nodeSelector",
-                                         "hostNetwork", "dnsPolicy", "volumes", "containers"],
+                            "required": [
+                                "restartPolicy",
+                                "terminationGracePeriodSeconds",
+                                "nodeSelector",
+                                "hostNetwork",
+                                "dnsPolicy",
+                                "volumes",
+                                "containers",
+                            ],
                             "properties": {
-                                "restartPolicy": {
-                                    "type": "string",
-                                    "enum": ["Always", "OnFailure", "Never"]
-                                },
+                                "restartPolicy": {"type": "string", "enum": ["Always", "OnFailure", "Never"]},
                                 "terminationGracePeriodSeconds": {
                                     "oneOf": [
-                                        {"type": "string",
-                                            "pattern": NUM_VAR_PATTERN},
+                                        {"type": "string", "pattern": NUM_VAR_PATTERN},
                                         {"type": "number", "minimum": 0},
                                     ]
                                 },
                                 "nodeSelector": {"type": "object"},
-                                "hostNetwork": {
-                                    "oneOf": [
-                                        {"type": "number"},
-                                        {"type": "string"}
-                                    ]
-                                },
+                                "hostNetwork": {"oneOf": [{"type": "number"}, {"type": "string"}]},
                                 "dnsPolicy": {
                                     "type": "string",
-                                    "enum": ["ClusterFirst", "Default", "None", "ClusterFirstWithHostNet"]
+                                    "enum": ["ClusterFirst", "Default", "None", "ClusterFirstWithHostNet"],
                                 },
                                 "volumes": {
                                     "type": "array",
@@ -622,16 +526,12 @@ K8S_DEPLPYMENT_SCHNEA = {
                                         "required": ["name"],
                                         "properties": {
                                             "name": {"type": "string", "pattern": VOLUMR_NAME_PATTERN},
-                                            "hostPath":
-                                            {
+                                            "hostPath": {
                                                 "type": "object",
                                                 "required": ["path"],
                                                 "properties": {
-                                                    "path": {
-                                                        "type": "string",
-                                                        "pattern": FILE_DIR_PATTERN
-                                                    },
-                                                }
+                                                    "path": {"type": "string", "pattern": FILE_DIR_PATTERN},
+                                                },
                                             },
                                             "emptyDir": {
                                                 "type": "object",
@@ -639,36 +539,30 @@ K8S_DEPLPYMENT_SCHNEA = {
                                             "configMap": {
                                                 "type": "object",
                                                 "required": ["name"],
-                                                "properties": {
-                                                    "name": {"type": "string", "minLength": 1}
-                                                }
+                                                "properties": {"name": {"type": "string", "minLength": 1}},
                                             },
                                             "secret": {
                                                 "type": "object",
                                                 "required": ["secretName"],
-                                                "properties": {
-                                                    "secretName": {"type": "string", "minLength": 1}
-                                                }
+                                                "properties": {"secretName": {"type": "string", "minLength": 1}},
                                             },
                                             "persistentVolumeClaim": {
                                                 "type": "object",
                                                 "required": ["claimName"],
-                                                "properties": {
-                                                    "claimName": {"type": "string", "minLength": 1}
-                                                }
-                                            }
-                                        }
-                                    }
+                                                "properties": {"claimName": {"type": "string", "minLength": 1}},
+                                            },
+                                        },
+                                    },
                                 },
                                 "containers": CONTAINER_SCHNEA,
-                                "initContainers": CONTAINER_SCHNEA
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
+                                "initContainers": CONTAINER_SCHNEA,
+                            },
+                        },
+                    },
+                },
+            },
+        },
+    },
 }
 
 # DS 与 Deployment 的差异项:滚动升级策略 中 选择 RollingUpdate 时，只可以选择 maxUnavailable
@@ -677,20 +571,11 @@ K8S_DAEMONSET_DIFF = {
     "properties": {
         "spec": {
             "required": ["updateStrategy", "template"],
-            "properties": {
-                "updateStrategy": {
-                    "properties": {
-                        "rollingUpdate": {
-                            "required": ["maxUnavailable"]
-                        }
-                    }
-                }
-            }
+            "properties": {"updateStrategy": {"properties": {"rollingUpdate": {"required": ["maxUnavailable"]}}}},
         }
     }
 }
-K8S_DAEMONSET_SCHNEA = update_nested_dict(
-    K8S_DEPLPYMENT_SCHNEA, K8S_DAEMONSET_DIFF)
+K8S_DAEMONSET_SCHNEA = update_nested_dict(K8S_DEPLPYMENT_SCHNEA, K8S_DAEMONSET_DIFF)
 
 # Job 与 Deployment 的差异项: Pod 运行时设置
 # TODO： raymond 确认 job 中 replicas 和 parallelism 怎么配置
@@ -698,8 +583,7 @@ K8S_JOB_DIFF = {
     "properties": {
         "spec": {
             "type": "object",
-            "required": ["template",
-                         "completions", "parallelism", "backoffLimit", "activeDeadlineSeconds"],
+            "required": ["template", "completions", "parallelism", "backoffLimit", "activeDeadlineSeconds"],
             "properties": {
                 "parallelism": {
                     "oneOf": [
@@ -725,8 +609,7 @@ K8S_JOB_DIFF = {
                         {"type": "number", "minimum": 0},
                     ]
                 },
-
-            }
+            },
         }
     }
 }
@@ -736,55 +619,79 @@ K8S_JOB_SCHNEA = update_nested_dict(K8S_DEPLPYMENT_SCHNEA, K8S_JOB_DIFF)
 K8S_STATEFULSET_DIFF = {
     "properties": {
         "spec": {
-            "required": ["template",
-                         "updateStrategy", "podManagementPolicy", "volumeClaimTemplates"],
+            "required": ["template", "updateStrategy", "podManagementPolicy", "volumeClaimTemplates"],
             "properties": {
-                "updateStrategy": {"type": "object", "required": ["type"], "properties": {
-                    "type": {"type": "string", "enum": ["OnDelete", "RollingUpdate"]},
-                    "rollingUpdate": {"type": "object", "required": ["partition"], "properties": {
-                        "partition": {
-                            "oneOf": [
-                                {"type": "string", "pattern": NUM_VAR_PATTERN},
-                                {"type": "number", "minimum": 0},
-                            ]
-                        }
-                    }}
-                }},
+                "updateStrategy": {
+                    "type": "object",
+                    "required": ["type"],
+                    "properties": {
+                        "type": {"type": "string", "enum": ["OnDelete", "RollingUpdate"]},
+                        "rollingUpdate": {
+                            "type": "object",
+                            "required": ["partition"],
+                            "properties": {
+                                "partition": {
+                                    "oneOf": [
+                                        {"type": "string", "pattern": NUM_VAR_PATTERN},
+                                        {"type": "number", "minimum": 0},
+                                    ]
+                                }
+                            },
+                        },
+                    },
+                },
                 "podManagementPolicy": {"type": "string", "enum": ["OrderedReady", "Parallel"]},
                 "serviceName": {"type": "string", "minLength": 1},
-                "volumeClaimTemplates": {"type": "array", "items": {
-                    "type": "object",
-                    "required": ["metadata", "spec"],
-                    "properties": {
-                        "metadata": {"type": "object", "required": ["name"], "properties": {
-                            # "name": {"type": "string", "minLength": 1}
-                        }},
-                        "spec": {"type": "object", "required": ["accessModes", "storageClassName", "resources"],
-                                 "properties": {
-                            #  "storageClassName": {"type": "string", "minLength": 1},
-                                     "accessModes": {"type": "array", "items": {
-                                         "type": "string",
-                                         "enum": ["ReadWriteOnce", "ReadOnlyMany", "ReadWriteMany"]
-                                     }},
-                                     "resources": {"type": "object", "required": ["requests"], "properties": {
-                                         "requests": {"type": "object", "required": ["storage"], "properties": {
-                                             "storage": {
-                                                 "oneOf": [
-                                                     {"type": "string",
-                                                         "pattern": NUM_VAR_PATTERN},
-                                                     {"type": "number",
-                                                         "minimum": 0},
-                                                 ]
-                                             }
-                                         }}
-                                     }}
-                        }}
-                    }
-                }},
-
-            }
+                "volumeClaimTemplates": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "required": ["metadata", "spec"],
+                        "properties": {
+                            "metadata": {
+                                "type": "object",
+                                "required": ["name"],
+                                "properties": {
+                                    # "name": {"type": "string", "minLength": 1}
+                                },
+                            },
+                            "spec": {
+                                "type": "object",
+                                "required": ["accessModes", "storageClassName", "resources"],
+                                "properties": {
+                                    #  "storageClassName": {"type": "string", "minLength": 1},
+                                    "accessModes": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string",
+                                            "enum": ["ReadWriteOnce", "ReadOnlyMany", "ReadWriteMany"],
+                                        },
+                                    },
+                                    "resources": {
+                                        "type": "object",
+                                        "required": ["requests"],
+                                        "properties": {
+                                            "requests": {
+                                                "type": "object",
+                                                "required": ["storage"],
+                                                "properties": {
+                                                    "storage": {
+                                                        "oneOf": [
+                                                            {"type": "string", "pattern": NUM_VAR_PATTERN},
+                                                            {"type": "number", "minimum": 0},
+                                                        ]
+                                                    }
+                                                },
+                                            }
+                                        },
+                                    },
+                                },
+                            },
+                        },
+                    },
+                },
+            },
         }
     }
 }
-K8S_STATEFULSET_SCHNEA = update_nested_dict(
-    K8S_DEPLPYMENT_SCHNEA, K8S_STATEFULSET_DIFF)
+K8S_STATEFULSET_SCHNEA = update_nested_dict(K8S_DEPLPYMENT_SCHNEA, K8S_STATEFULSET_DIFF)

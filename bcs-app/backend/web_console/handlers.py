@@ -34,8 +34,7 @@ logger = logging.getLogger(__name__)
 
 
 class LocaleHandlerMixin:
-    """国际化Mixin
-    """
+    """国际化Mixin"""
 
     def get_user_locale(self):
         bk_lang = self.get_cookie(settings.LANGUAGE_COOKIE_NAME)
@@ -48,8 +47,7 @@ class LocaleHandlerMixin:
 
 
 class IndexPageHandler(LocaleHandlerMixin, tornado.web.RequestHandler):
-    """首页处理
-    """
+    """首页处理"""
 
     def get(self, project_id, cluster_id):
         session_url = f"{settings.DEVOPS_BCS_API_URL}/api/projects/{project_id}/clusters/{cluster_id}/web_console/session/"  # noqa
@@ -64,8 +62,7 @@ class IndexPageHandler(LocaleHandlerMixin, tornado.web.RequestHandler):
 
 
 class SessionPageHandler(LocaleHandlerMixin, tornado.web.RequestHandler):
-    """开放的页面WebConsole页面
-    """
+    """开放的页面WebConsole页面"""
 
     def get(self):
         # session_id通过参数获取
@@ -78,8 +75,7 @@ class SessionPageHandler(LocaleHandlerMixin, tornado.web.RequestHandler):
 
 
 class MgrHandler(LocaleHandlerMixin, tornado.web.RequestHandler):
-    """管理页
-    """
+    """管理页"""
 
     def get(self, project_id):
         data = {"settings": settings, "project_id": project_id}
@@ -87,8 +83,7 @@ class MgrHandler(LocaleHandlerMixin, tornado.web.RequestHandler):
 
 
 class BCSWebSocketHandler(LocaleHandlerMixin, tornado.websocket.WebSocketHandler):
-    """WebSocket处理
-    """
+    """WebSocket处理"""
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -113,8 +108,7 @@ class BCSWebSocketHandler(LocaleHandlerMixin, tornado.websocket.WebSocketHandler
 
     @authenticated
     def get(self, *args, **kwargs):
-        """只鉴权使用
-        """
+        """只鉴权使用"""
         return super().get(*args, **kwargs)
 
     def open(self, project_id, cluster_id, context):
@@ -136,8 +130,7 @@ class BCSWebSocketHandler(LocaleHandlerMixin, tornado.websocket.WebSocketHandler
         WEBSOCKET_HANDLER_SET.add(self)
 
     def is_exit_command(self, message):
-        """判断是否主动退出
-        """
+        """判断是否主动退出"""
         # 去除空格
         message = message.strip()
 
@@ -185,15 +178,13 @@ class BCSWebSocketHandler(LocaleHandlerMixin, tornado.websocket.WebSocketHandler
         logger.info("on_close, code: %s, reason: %s, pod: %s", self.close_code, self.close_reason, self.user_pod_name)
 
     def flush_input_record(self):
-        """获取输出记录
-        """
+        """获取输出记录"""
         record = self.input_record[:]
         self.input_record = []
         return record
 
     def tick_timeout(self):
-        """主动停止掉session
-        """
+        """主动停止掉session"""
         self.tick_callback = PeriodicCallback(self.periodic_tick, self.record_interval * 1000)
         self.tick_callback.start()
 
@@ -218,8 +209,7 @@ class BCSWebSocketHandler(LocaleHandlerMixin, tornado.websocket.WebSocketHandler
         logger.info("tick active %s, login time, %.2f", self.user_pod_name, login_time)
 
     def heartbeat(self):
-        """每秒钟上报心跳
-        """
+        """每秒钟上报心跳"""
         self.heartbeat_callback = PeriodicCallback(lambda: self.pod_life_cycle.heartbeat(self.user_pod_name), 1000)
         self.heartbeat_callback.start()
 
@@ -229,8 +219,7 @@ class BCSWebSocketHandler(LocaleHandlerMixin, tornado.websocket.WebSocketHandler
         self.record_callback.start()
 
     def periodic_record(self):
-        """周期上报操作记录
-        """
+        """周期上报操作记录"""
         input_record = self.flush_input_record()
         output_record = self.bcs_client.flush_output_record()
 

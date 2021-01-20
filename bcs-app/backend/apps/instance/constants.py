@@ -66,7 +66,7 @@ BCS_LABELS = {
     "io.tencent.bcs.cluster": "{{SYS_CLUSTER_ID}}",
     "io.tencent.bcs.namespace": "{{SYS_NAMESPACE}}",
     "io.tencent.bcs.app.appid": "{{SYS_CC_APP_ID}}",
-    "io.tencent.bcs.kind": "{{SYS_PROJECT_KIND}}"
+    "io.tencent.bcs.kind": "{{SYS_PROJECT_KIND}}",
 }
 BCS_LABELS.update(BKDATA_LABEL)
 
@@ -90,7 +90,7 @@ PAAS_LABLES = {
     LABLE_VERSION: "{{SYS_VERSION}}",
     LABLE_INSTANCE_ID: "{{SYS_INSTANCE_ID}}",
     LABLE_PROJECT_ID: "{{SYS_PROJECT_ID}}",
-    SOURCE_TYPE_LABEL_KEY: "template"
+    SOURCE_TYPE_LABEL_KEY: "template",
 }
 # 公共的lable
 PUBLIC_LABELS = BCS_LABELS.copy()
@@ -107,7 +107,7 @@ PUBLIC_ANNOTATIONS = {
     ANNOTATIONS_INSTANCE_ID: "{{SYS_INSTANCE_ID}}",
     ANNOTATIONS_PROJECT_ID: "{{SYS_PROJECT_ID}}",
     ANNOTATIONS_TEMPLATE_ID: "{{SYS_TEMPLATE_ID}}",
-    SOURCE_TYPE_LABEL_KEY: "template"
+    SOURCE_TYPE_LABEL_KEY: "template",
 }
 
 # TODO: 先添加上，不影响先前使用
@@ -117,20 +117,10 @@ PUBLIC_ANNOTATIONS.update(BCS_ANNOTATIONS)
 APPLICATION_SYS_CONFIG = {
     "apiVersion": "v4",
     "kind": "application",
-    "metadata": {
-        "labels": PUBLIC_LABELS,
-        "annotations": PUBLIC_ANNOTATIONS,
-        "namespace": "{{SYS_NAMESPACE}}"
-    }
+    "metadata": {"labels": PUBLIC_LABELS, "annotations": PUBLIC_ANNOTATIONS, "namespace": "{{SYS_NAMESPACE}}"},
 }
 
-DEPLPYMENT_SYS_CONFIG = {
-    "apiVersion": "v4",
-    "kind": "deployment",
-    "spec": {
-        "strategy": {}
-    }
-}
+DEPLPYMENT_SYS_CONFIG = {"apiVersion": "v4", "kind": "deployment", "spec": {"strategy": {}}}
 
 SEVICE_WEIGHT_LABEL_PREFIX = 'BCS-WEIGHT-'
 SEVICE_SYS_CONFIG = {
@@ -140,7 +130,7 @@ SEVICE_SYS_CONFIG = {
         "namespace": "{{SYS_NAMESPACE}}",
         "labels": PUBLIC_LABELS,
         "annotations": PUBLIC_ANNOTATIONS,
-    }
+    },
 }
 
 CONFIGMAP_SYS_CONFIG = {
@@ -151,7 +141,7 @@ CONFIGMAP_SYS_CONFIG = {
         "namespace": "{{SYS_NAMESPACE}}",
         "labels": PUBLIC_LABELS,
         "annotations": PUBLIC_ANNOTATIONS,
-    }
+    },
 }
 
 SECRET_SYS_CONFIG = {
@@ -161,7 +151,7 @@ SECRET_SYS_CONFIG = {
         "namespace": "{{SYS_NAMESPACE}}",
         "labels": PUBLIC_LABELS,
         "annotations": PUBLIC_ANNOTATIONS,
-    }
+    },
 }
 
 HPA_SYS_CONFIG = {
@@ -171,7 +161,7 @@ HPA_SYS_CONFIG = {
         "namespace": "{{SYS_NAMESPACE}}",
         "labels": PUBLIC_LABELS,
         "annotations": PUBLIC_ANNOTATIONS,
-    }
+    },
 }
 
 INGRESS_SYS_CONFIG = {
@@ -181,7 +171,7 @@ INGRESS_SYS_CONFIG = {
         "namespace": "{{SYS_NAMESPACE}}",
         "labels": PUBLIC_LABELS,
         "annotations": PUBLIC_ANNOTATIONS,
-    }
+    },
 }
 
 # ############################## k8s 相关资源
@@ -193,7 +183,7 @@ K8S_SECRET_SYS_CONFIG = {
         "namespace": "{{SYS_NAMESPACE}}",
         "labels": PUBLIC_LABELS,
         "annotations": PUBLIC_ANNOTATIONS,
-    }
+    },
 }
 
 K8S_CONFIGMAP_SYS_CONFIG = {
@@ -202,7 +192,7 @@ K8S_CONFIGMAP_SYS_CONFIG = {
         "namespace": "{{SYS_NAMESPACE}}",
         "labels": PUBLIC_LABELS,
         "annotations": PUBLIC_ANNOTATIONS,
-    }
+    },
 }
 
 K8S_INGRESS_SYS_CONFIG = {
@@ -211,7 +201,7 @@ K8S_INGRESS_SYS_CONFIG = {
         "namespace": "{{SYS_NAMESPACE}}",
         "labels": PUBLIC_LABELS,
         "annotations": PUBLIC_ANNOTATIONS,
-    }
+    },
 }
 
 K8S_SEVICE_SYS_CONFIG = {
@@ -220,16 +210,10 @@ K8S_SEVICE_SYS_CONFIG = {
         "namespace": "{{SYS_NAMESPACE}}",
         "labels": PUBLIC_LABELS,
         "annotations": PUBLIC_ANNOTATIONS,
-    }
+    },
 }
 
-POD_SYS_CONFIG = {
-    "template": {
-        "metadata": {
-            "labels": PUBLIC_LABELS
-        }
-    }
-}
+POD_SYS_CONFIG = {"template": {"metadata": {"labels": PUBLIC_LABELS}}}
 
 K8S_DEPLPYMENT_SYS_CONFIG = {
     "kind": "Deployment",
@@ -238,7 +222,7 @@ K8S_DEPLPYMENT_SYS_CONFIG = {
         "labels": PUBLIC_LABELS,
         "annotations": PUBLIC_ANNOTATIONS,
     },
-    "spec": POD_SYS_CONFIG
+    "spec": POD_SYS_CONFIG,
 }
 
 K8S_DAEMONSET_SYS_CONFIG = {
@@ -248,7 +232,7 @@ K8S_DAEMONSET_SYS_CONFIG = {
         "labels": PUBLIC_LABELS,
         "annotations": PUBLIC_ANNOTATIONS,
     },
-    "spec": POD_SYS_CONFIG
+    "spec": POD_SYS_CONFIG,
 }
 
 K8S_JOB_SYS_CONFIG = {
@@ -258,7 +242,7 @@ K8S_JOB_SYS_CONFIG = {
         "labels": PUBLIC_LABELS,
         "annotations": PUBLIC_ANNOTATIONS,
     },
-    "spec": POD_SYS_CONFIG
+    "spec": POD_SYS_CONFIG,
 }
 
 K8S_STATEFULSET_SYS_CONFIG = {
@@ -268,7 +252,7 @@ K8S_STATEFULSET_SYS_CONFIG = {
         "labels": PUBLIC_LABELS,
         "annotations": PUBLIC_ANNOTATIONS,
     },
-    "spec": POD_SYS_CONFIG
+    "spec": POD_SYS_CONFIG,
 }
 
 K8S_HPA_SYS_CONFIG = {
@@ -281,16 +265,13 @@ K8S_HPA_SYS_CONFIG = {
 }
 
 # k8s 资源限制单位
-K8S_RESOURCE_UNIT = {
-    'cpu': 'm',
-    'memory': 'Mi'
-}
+K8S_RESOURCE_UNIT = {'cpu': 'm', 'memory': 'Mi'}
 # k8s 环境变量key
 K8S_ENV_KEY = {
     'configmapKey': 'configMapKeyRef',
     'secretKey': 'secretKeyRef',
     'configmapFile': 'configMapRef',
-    'secretFile': 'secretRef'
+    'secretFile': 'secretRef',
 }
 
 # k8s 镜像仓库Secret名称前缀
@@ -315,10 +296,7 @@ LB_LABLES[LABLE_PROJECT_ID] = "{{SYS_PROJECT_ID}}"
 LB_SYS_CONFIG = {
     "apiVersion": "v4",
     "kind": "deployment",
-    "restartPolicy": {
-        "policy": "Always",
-        "interval": 10
-    },
+    "restartPolicy": {"policy": "Always", "interval": 10},
     "metadata": {
         "namespace": "{{SYS_NAMESPACE}}",
         "labels": LB_LABLES,
@@ -335,13 +313,11 @@ LB_SYS_CONFIG = {
                 "maxSurge": 1,
                 "upgradeDuration": 60,
                 "rollingOrder": "DeleteFirst",
-                "rollingManually": False
-            }
+                "rollingManually": False,
+            },
         },
         "template": {
-            "metadata": {
-                "labels": {}
-            },
+            "metadata": {"labels": {}},
             "spec": {
                 "containers": [
                     {
@@ -357,41 +333,25 @@ LB_SYS_CONFIG = {
                             "--bcszkaddr",
                             "{{SYS_BCS_ZK}}",  # noqa,逗号(,)分隔
                             "--clusterid",
-                            "{{SYS_CLUSTER_ID}}"
+                            "{{SYS_CLUSTER_ID}}",
                         ],
                         "type": "MESOS",
                         "image": "{{LB_IMAGE_URL}}:{{IMAGE_VERSION}}",
                         "imagePullPolicy": "Always",
                         "privileged": True,
-                        "ports": [{
-                            "name": "lb-port",
-                            "hostPort": 31000,
-                            "containerPort": 80,
-                            "protocol": "TCP"
-                        }],
+                        "ports": [{"name": "lb-port", "hostPort": 31000, "containerPort": 80, "protocol": "TCP"}],
                         "env": [
-                            {
-                                "name": "LB_NETWORKCARD",
-                                "value": "{{ETH_VALUE}}"
-                            },
-                            {
-                                "name": "LB_HAPROXYMONITORPORT",
-                                "value": "{{LB_ADMIN_PORT}}"
-                            }
+                            {"name": "LB_NETWORKCARD", "value": "{{ETH_VALUE}}"},
+                            {"name": "LB_HAPROXYMONITORPORT", "value": "{{LB_ADMIN_PORT}}"},
                         ],
-                        "resources": {
-                            "limits": {
-                                "cpu": "{{CPU}}",
-                                "memory": "{{MEMORY}}"
-                            }
-                        }
+                        "resources": {"limits": {"cpu": "{{CPU}}", "memory": "{{MEMORY}}"}},
                     }
                 ],
                 "networkMode": "HOST",
-                "networkType": "cnm"
-            }
-        }
-    }
+                "networkType": "cnm",
+            },
+        },
+    },
 }
 # TODO: DEFAUT_LB_JFROG_DOMAIN 这个变量使用，先不调整
 DEFAUT_LB_JFROG_DOMAIN = settings.DEFAUT_MESOS_LB_JFROG_DOMAIN
@@ -410,15 +370,9 @@ METRIC_SYS_CONFIG = [
         "uri": "/xxx/xxx/xxx",
         "method": "POST|GET",
         "frequency": 0,
-        "head": {
-            "key": "val"
-        },
-        "selector": {
-            "key": "val"
-        },
-        "parameters": {
-            "key": "val"
-        }
+        "head": {"key": "val"},
+        "selector": {"key": "val"},
+        "parameters": {"key": "val"},
     }
 ]
 
@@ -432,8 +386,8 @@ INGRESS_ID_SEPARATOR = '_INGRESS-'
 
 
 class EventType(ChoicesEnum):
-    """InstanceEvent类型定义
-    """
+    """InstanceEvent类型定义"""
+
     REQ_FAILED = 1
     REQ_ERROR = 2
     ROLLBACK_FAILED = 3
@@ -441,7 +395,6 @@ class EventType(ChoicesEnum):
 
     _choices_labels = (
         (REQ_FAILED, _("请求失败")),
-
         (REQ_ERROR, _("请求异常")),  # 这个现在应该无法记录
         (ROLLBACK_FAILED, _("回滚失败")),
         (ROLLBACK_ERROR, _("回滚异常")),  # 这个现在应该无法记录
@@ -449,8 +402,8 @@ class EventType(ChoicesEnum):
 
 
 class InsState(ChoicesEnum):
-    """实例化状态
-    """
+    """实例化状态"""
+
     # 未实例化
     NO_INS = 0
 
@@ -493,7 +446,6 @@ API_VERSION = {
         'Service': 'v1',
         'ConfigMap': 'v1',
         'Secret': 'v1',
-
         'CronJob': 'batch/v1',
         'Pod': 'v1',
         'Endpoints': 'v1',
@@ -507,7 +459,7 @@ API_VERSION = {
         'Node': 'v1',
         'PersistentVolume': 'v1',
         'Role': 'rbac.authorization.k8s.io/v1alpha1',
-        'HorizontalPodAutoscaler': ''
+        'HorizontalPodAutoscaler': '',
     },
     '1.12.3': {
         'DaemonSet': 'apps/v1',
@@ -518,7 +470,6 @@ API_VERSION = {
         'Service': 'v1',
         'ConfigMap': 'v1',
         'Secret': 'v1',
-
         'CronJob': 'batch/v1',
         'Pod': 'v1',
         'Endpoints': 'v1',
@@ -532,8 +483,8 @@ API_VERSION = {
         'Node': 'v1',
         'PersistentVolume': 'v1',
         'Role': 'rbac.authorization.k8s.io/v1',
-        'HorizontalPodAutoscaler': 'autoscaling/v2beta2'
-    }
+        'HorizontalPodAutoscaler': 'autoscaling/v2beta2',
+    },
 }
 
 DEFAULT_MESOS_LB_IMAGE_PATH = "/paas/public/mesos/bcs-loadbalance"

@@ -17,7 +17,6 @@ from .utils import render_helm_values
 
 
 class TestRenderHelmValue(TestCase):
-
     def test_http_protocol(self):
         protocol_type = "http"
         print(render_helm_values(protocol_type, 1))

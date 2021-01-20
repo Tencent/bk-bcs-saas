@@ -11,12 +11,12 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-import arrow
 import copy
-from typing import Dict, List, Union, Any, Optional
+from typing import Any, Dict, List, Optional, Union
 
+import arrow
 from django.utils import timezone
-from kubernetes.dynamic.resource import ResourceInstance, ResourceField
+from kubernetes.dynamic.resource import ResourceField, ResourceInstance
 
 from backend.utils.basic import normalize_datetime
 

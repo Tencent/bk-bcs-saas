@@ -32,8 +32,7 @@ class FancyDict(dict):
 
 
 def show_toolbar_callback(request):
-    """是否显示DEBUG面板
-    """
+    """是否显示DEBUG面板"""
     if request.META.get('REMOTE_ADDR', None) not in settings.INTERNAL_IPS:
         return False
     return True

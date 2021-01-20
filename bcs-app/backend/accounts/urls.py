@@ -12,6 +12,7 @@
 # specific language governing permissions and limitations under the License.
 #
 from django.conf.urls import url
+
 from . import views
 
 app_name = 'user'
@@ -19,6 +20,5 @@ app_name = 'user'
 urlpatterns = [
     url(r'^api/user/$', views.UserInfoViewSet.as_view(), name='api.accounts.user'),
     url(r'^api/accounts/userinfo/$', views.UserInfoViewSet.as_view(), name='api.accounts.userinfo'),
-
     url(r'^api/bklogin/users/$', views.BkLoginUser.as_view()),
 ]

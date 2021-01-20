@@ -12,7 +12,8 @@
 # specific language governing permissions and limitations under the License.
 #
 import pytest
-from backend.resources.utils.format import ResourceDefaultFormatter, InstanceAccessor
+
+from backend.resources.utils.format import InstanceAccessor, ResourceDefaultFormatter
 
 
 @pytest.fixture

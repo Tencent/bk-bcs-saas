@@ -11,14 +11,13 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
+from backend.apps.datalog.data_collect import create_and_start_standard_data_flow  # noqa; noqa
+from backend.apps.datalog.data_collect import create_and_start_non_standard_data_flow, create_data_project
 from backend.apps.datalog.models import ProjectDataInfo
-from backend.apps.datalog.data_collect import (create_data_project, create_and_start_standard_data_flow,  # noqa
-                                               create_and_start_non_standard_data_flow)  # noqa
 
 
 def get_data_id_by_project_id(project_id):
-    """获取项目标准日志采集的dataid
-    """
+    """获取项目标准日志采集的dataid"""
     try:
         project = ProjectDataInfo.objects.get(project_id=project_id)
     except Exception:
@@ -30,7 +29,7 @@ def get_data_id_by_project_id(project_id):
 
     return {
         'standard_data_id': standard_data_id if standard_data_id else 0,
-        'non_standard_data_id': non_standard_data_id if non_standard_data_id else 0
+        'non_standard_data_id': non_standard_data_id if non_standard_data_id else 0,
     }
 
 

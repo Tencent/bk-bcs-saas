@@ -11,9 +11,9 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
+from django.conf import settings
 from django.utils.functional import cached_property
 from kubernetes import client
-from django.conf import settings
 
 from backend.components.bcs import BCSClientBase, resources
 from backend.components.utils import http_get
@@ -35,8 +35,7 @@ class K8SAPIClient(BCSClientBase):
         return result
 
     def get_client_credentials(self, bke_cluster_id):
-        """获取证书, user_token, server_address_path
-        """
+        """获取证书, user_token, server_address_path"""
         url = f"{self.rest_host}/{bke_cluster_id}/client_credentials"
         params = {"access_token": self.access_token}
         result = http_get(url, params=params, raise_for_status=False, headers=self._headers_for_bcs_agent_api)
@@ -69,8 +68,7 @@ class K8SProxyClient(K8SAPIClient):
         return namespace.delete_namespace(name)
 
     def get_namespace(self, params=None):
-        """获取namesapce，计算数量使用
-        """
+        """获取namesapce，计算数量使用"""
         if not params:
             params = {"cluster_id": self.cluster_id}
         if isinstance(params, dict):
@@ -155,8 +153,7 @@ class K8SProxyClient(K8SAPIClient):
         return ingress.get_ingress(params)
 
     def delete_pod(self, namespace, name):
-        """删除pod
-        """
+        """删除pod"""
         pod = resources.Pod(self.api_client)
         return pod.delete_pod(namespace, name)
 
@@ -171,8 +168,7 @@ class K8SProxyClient(K8SAPIClient):
         pass
 
     def get_rs(self, params):
-        """查询rs
-        """
+        """查询rs"""
         replicaset = resources.ReplicaSet(self.api_client)
         return replicaset.get_replicaset(params)
 

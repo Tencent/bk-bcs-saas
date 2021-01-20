@@ -12,28 +12,31 @@
 # specific language governing permissions and limitations under the License.
 #
 from django.conf.urls import url
-from . import views
 
+from . import views
 
 urlpatterns = [
     # 镜像库
     url(r'^api/depot/images/public/$', views.PublicImages.as_view()),
     # 项目镜像
     url(r'^api/depot/images/project/(?P<project_id>\w{32})/$', views.ProjectImage.as_view(), name='project_images'),
-
     # 镜像库 + 项目镜像 : 提供给模板配置页面使用
-    url('^api/depot/available/images/(?P<project_id>\w{32})/$',
-        views.AvailableImage.as_view(), name='available_image'),
+    url(
+        '^api/depot/available/images/(?P<project_id>\w{32})/$', views.AvailableImage.as_view(), name='available_image'
+    ),
     # 根据 镜像标识（repo） 查询 tags
-    url('^api/depot/available/tags/(?P<project_id>\w{32})/$',
-        views.AvailableTag.as_view(), name='available_tag'),
-
-    url(r'^api/depot/images/project/(?P<project_id>\w{32})/upload/$',
-        views.UploadImages.as_view({'post': 'upload_images'})),
-    url(r'^api/depot/images/project/(?P<project_id>\w{32})/upload/status/(?P<task_id>[-\w]+)/$',
-        views.UploadImages.as_view({'get': 'get_upload_status'})),
-
+    url('^api/depot/available/tags/(?P<project_id>\w{32})/$', views.AvailableTag.as_view(), name='available_tag'),
+    url(
+        r'^api/depot/images/project/(?P<project_id>\w{32})/upload/$',
+        views.UploadImages.as_view({'post': 'upload_images'}),
+    ),
+    url(
+        r'^api/depot/images/project/(?P<project_id>\w{32})/upload/status/(?P<task_id>[-\w]+)/$',
+        views.UploadImages.as_view({'get': 'get_upload_status'}),
+    ),
     # 镜像详情API
-    url(r'^api/depot/images/project/(?P<project_id>\w{32})/info/image/$',
-        views.ImagesInfo.as_view({'get': 'get_image_detail'})),
+    url(
+        r'^api/depot/images/project/(?P<project_id>\w{32})/info/image/$',
+        views.ImagesInfo.as_view({'get': 'get_image_detail'}),
+    ),
 ]

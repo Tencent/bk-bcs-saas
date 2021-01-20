@@ -13,8 +13,9 @@
 #
 from rest_framework.authentication import BaseAuthentication
 
-from .constants import APIGW_JWT_KEY_NAME, BCS_APP_APIGW_PUBLIC_KEY, USERNAME_KEY_NAME
 from backend.utils.authentication import JWTClient, JWTUser
+
+from .constants import APIGW_JWT_KEY_NAME, BCS_APP_APIGW_PUBLIC_KEY, USERNAME_KEY_NAME
 
 # 受信任的app可以从header获取用户名.(私有化版本apigw不支持bk_username传参)
 trusted_app_list = ["bk_bcs_monitor", "bk_harbor", "bk_bcs", "workbench"]

@@ -12,6 +12,7 @@
 # specific language governing permissions and limitations under the License.
 #
 from enum import Enum
+
 from django.utils.translation import ugettext_lazy as _
 
 from backend.utils.basic import ChoicesEnum
@@ -55,7 +56,7 @@ PolicyLabelOrdering = [_("容器服务"), _("仓库管理"), _("项目管理")]
 PolicyOrdering = {
     'jfrog': [_("prod环境拉取"), _("prod环境推送"), _("test环境拉取"), _("test环境推送"), _("dev环境拉取"), _("dev环境推送")],
     'paas_backend': [_("集群管理"), _("节点管理"), _("应用管理"), _("网络管理"), _("仓库管理"), _("资源管理")],
-    'apigw': []
+    'apigw': [],
 }
 
 
@@ -74,5 +75,5 @@ class StaffInfoStatus(ChoicesEnum):
         (RESIGN, _("已离职")),
         (TRIAL, _("试用")),
         (WAITING_ENTRY, _("待入职")),
-        (NOT_ENTRY, _("待入职"))
+        (NOT_ENTRY, _("待入职")),
     )

@@ -12,60 +12,70 @@
 # specific language governing permissions and limitations under the License.
 #
 from django.conf.urls import url
-from . import views
-from . import views_ingress
+
+from . import views, views_ingress
 
 K8S_CLUSTER_ID_REGEX = "BCS-K8S-[0-9]{5,7}"
 
 
 urlpatterns = [
     # ConfigMap：列表
-    url(r'^api/resource/(?P<project_id>\w{32})/configmaps/$',
-        views.ConfigMaps.as_view({'get': 'get'})),
+    url(r'^api/resource/(?P<project_id>\w{32})/configmaps/$', views.ConfigMaps.as_view({'get': 'get'})),
     # Secrets：列表
-    url(r'^api/resource/(?P<project_id>\w{32})/secrets/$',
-        views.Secrets.as_view({'get': 'get'})),
+    url(r'^api/resource/(?P<project_id>\w{32})/secrets/$', views.Secrets.as_view({'get': 'get'})),
     # ConfigMap 更新时展示的数据
-    url(r'^api/resource/(?P<project_id>\w{32})/configmaps/update/$',
-        views.ConfigMaps.as_view({'get': 'get'})),
+    url(r'^api/resource/(?P<project_id>\w{32})/configmaps/update/$', views.ConfigMaps.as_view({'get': 'get'})),
     # Secrets 更新时展示的数据
-    url(r'^api/resource/(?P<project_id>\w{32})/secrets/update/$',
-        views.Secrets.as_view({'get': 'get'})),
+    url(r'^api/resource/(?P<project_id>\w{32})/secrets/update/$', views.Secrets.as_view({'get': 'get'})),
     # endpoints：detail
-    url(r'^api/resource/(?P<project_id>\w{32})/clusters/(?P<cluster_id>[\w\-]+)/namespaces/(?P<namespace>[\w\-]+)'\
+    url(
+        r'^api/resource/(?P<project_id>\w{32})/clusters/(?P<cluster_id>[\w\-]+)/namespaces/(?P<namespace>[\w\-]+)'
         '/endpoints/(?P<name>[\w.\-]+)/$',
-        views.Endpoints.as_view()),
+        views.Endpoints.as_view(),
+    ),
     # configmaps 操作
-    url(r'^api/resource/(?P<project_id>\w{32})/configmaps/clusters/(?P<cluster_id>[\w\-]+)/'\
+    url(
+        r'^api/resource/(?P<project_id>\w{32})/configmaps/clusters/(?P<cluster_id>[\w\-]+)/'
         'namespaces/(?P<namespace>[\w\-]+)/endpoints/(?P<name>[\w.\-]+)/$',
-        views.ConfigMaps.as_view({'post': 'update_configmap', 'delete': 'delete_configmap'})),
+        views.ConfigMaps.as_view({'post': 'update_configmap', 'delete': 'delete_configmap'}),
+    ),
     # secrets 操作
-    url(r'^api/resource/(?P<project_id>\w{32})/secrets/clusters/(?P<cluster_id>[\w\-]+)/'\
+    url(
+        r'^api/resource/(?P<project_id>\w{32})/secrets/clusters/(?P<cluster_id>[\w\-]+)/'
         'namespaces/(?P<namespace>[\w\-]+)/endpoints/(?P<name>[\w.\-]+)/$',
-        views.Secrets.as_view({'post': 'update_secret', 'delete': 'delete_secret'})),
+        views.Secrets.as_view({'post': 'update_secret', 'delete': 'delete_secret'}),
+    ),
     # 批量删除configmap
-    url(r'^api/resource/(?P<project_id>\w{32})/configmaps/batch/$',
-        views.ConfigMaps.as_view({'post': 'batch_delete_configmaps'})),
+    url(
+        r'^api/resource/(?P<project_id>\w{32})/configmaps/batch/$',
+        views.ConfigMaps.as_view({'post': 'batch_delete_configmaps'}),
+    ),
     # 批量删除 secrets
-    url(r'^api/resource/(?P<project_id>\w{32})/secrets/batch/$',
-        views.Secrets.as_view({'post': 'batch_delete_secrets'})),
-
+    url(
+        r'^api/resource/(?P<project_id>\w{32})/secrets/batch/$',
+        views.Secrets.as_view({'post': 'batch_delete_secrets'}),
+    ),
     # Ingress 列表
-    url(r'^api/resource/(?P<project_id>\w{32})/ingresses/$',
-        views_ingress.IngressResource.as_view({'get': 'get'})),
+    url(r'^api/resource/(?P<project_id>\w{32})/ingresses/$', views_ingress.IngressResource.as_view({'get': 'get'})),
     # 删除单个Ingress
-    url(r'^api/resource/(?P<project_id>\w{32})/ingresses/clusters/(?P<cluster_id>[\w\-]+)/'\
+    url(
+        r'^api/resource/(?P<project_id>\w{32})/ingresses/clusters/(?P<cluster_id>[\w\-]+)/'
         'namespaces/(?P<namespace>[\w\-]+)/endpoints/(?P<name>[\w.\-]+)/$',
-        views_ingress.IngressResource.as_view({'delete': 'delete_ingress'})),
+        views_ingress.IngressResource.as_view({'delete': 'delete_ingress'}),
+    ),
     # 批量删除
-    url(r'^api/resource/(?P<project_id>\w{32})/ingresses/batch/$',
-        views_ingress.IngressResource.as_view({'post': 'batch_delete_ingress'})),
-
+    url(
+        r'^api/resource/(?P<project_id>\w{32})/ingresses/batch/$',
+        views_ingress.IngressResource.as_view({'post': 'batch_delete_ingress'}),
+    ),
     # search exist configmap
-    url(r'^api/resource/projects/(?P<project_id>\w{32})/configmap/exist/list/$',
-        views.ConfigMapListView.as_view({'get': 'exist_list'})),
-
-    url(r'^api/projects/(?P<project_id>\w{32})/clusters/(?P<cluster_id>%s)/'\
+    url(
+        r'^api/resource/projects/(?P<project_id>\w{32})/configmap/exist/list/$',
+        views.ConfigMapListView.as_view({'get': 'exist_list'}),
+    ),
+    url(
+        r'^api/projects/(?P<project_id>\w{32})/clusters/(?P<cluster_id>%s)/'
         r'namespaces/(?P<namespace>[\w\-]+)/ingresses/(?P<name>[\w.\-]+)/$' % K8S_CLUSTER_ID_REGEX,
-        views_ingress.IngressResource.as_view({"put": "update_ingress"})),
+        views_ingress.IngressResource.as_view({"put": "update_ingress"}),
+    ),
 ]

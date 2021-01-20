@@ -14,10 +14,10 @@
 from django.http import JsonResponse
 
 from backend.apps.apis.base_views import BaseAPIViews
+from backend.apps.apis.projects import serializers
+from backend.components import paas_cc
 from backend.utils.errcodes import ErrorCode
 from backend.utils.error_codes import error_codes
-from backend.components import paas_cc
-from backend.apps.apis.projects import serializers
 
 
 class ProjectList(BaseAPIViews):

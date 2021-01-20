@@ -13,15 +13,14 @@
 #
 import logging
 from functools import lru_cache
-from typing import Dict, Optional, Tuple, Any
+from typing import Any, Dict, Optional, Tuple
 
 from kubernetes import client
-from kubernetes.dynamic import Resource, ResourceInstance, DynamicClient
 from kubernetes.client.exceptions import ApiException
+from kubernetes.dynamic import DynamicClient, Resource, ResourceInstance
 from kubernetes.dynamic.exceptions import ResourceNotUniqueError
 
 from backend.resources.client import BcsKubeConfigurationService
-
 
 logger = logging.getLogger(__name__)
 

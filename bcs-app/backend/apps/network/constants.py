@@ -12,9 +12,7 @@
 # specific language governing permissions and limitations under the License.
 #
 from django.conf import settings
-
 from django.utils.translation import ugettext_lazy as _
-
 
 LB_DEFAULT_STATUS = "notCreated"
 LB_STATUS_DICT = {
@@ -29,9 +27,7 @@ K8S_LB_CHART_NAME = "blueking-nginx-ingress"
 
 
 # k8s lb label
-K8S_LB_LABEL = {
-    "nodetype": "lb"
-}
+K8S_LB_LABEL = {"nodetype": "lb"}
 
 # k8s nginx ingress controller helm chart values
 K8S_NGINX_INGRESS_CONTROLLER_CHART_VALUES = """

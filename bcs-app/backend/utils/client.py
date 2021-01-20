@@ -16,12 +16,12 @@ import logging
 import tempfile
 
 from django.conf import settings
-from rest_framework.exceptions import APIException
 from kubernetes.client.rest import ApiException
+from rest_framework.exceptions import APIException
 
 from backend.bcs_k8s.bke_client import BCSClusterClient
-from backend.bcs_k8s.kubectl import KubectlClusterClient
 from backend.bcs_k8s.dashboard import DashboardClient
+from backend.bcs_k8s.kubectl import KubectlClusterClient
 from backend.components import bcs
 from backend.utils.error_codes import error_codes
 
@@ -50,8 +50,7 @@ def get_bcs_host(access_token, project_id, cluster_id):
 
 @contextlib.contextmanager
 def make_kubectl_client(access_token=None, project_id=None, cluster_id=None):
-    """make a kubectl client for connection to k8s, it return a tuple of kubectl client and exception
-    """
+    """make a kubectl client for connection to k8s, it return a tuple of kubectl client and exception"""
     options = dict()
     host = get_bcs_host(access_token, project_id, cluster_id)
     if host:
@@ -78,7 +77,10 @@ def get_bcs_client(project_id, cluster_id, access_token):
         raise ValueError(host)
 
     bcs_client = BCSClusterClient(
-        host=host, access_token=access_token, project_id=project_id, cluster_id=target_cluster_id,
+        host=host,
+        access_token=access_token,
+        project_id=project_id,
+        cluster_id=target_cluster_id,
     )
     return bcs_client
 
@@ -135,8 +137,7 @@ class KubectlClient:
 
 @contextlib.contextmanager
 def make_helm_client(access_token=None, project_id=None, cluster_id=None):
-    """创建连接k8s集群的client
-    """
+    """创建连接k8s集群的client"""
     host = get_bcs_host(access_token, project_id, cluster_id)
     if host:
         bcs_client = get_bcs_client(project_id=project_id, cluster_id=cluster_id, access_token=access_token)

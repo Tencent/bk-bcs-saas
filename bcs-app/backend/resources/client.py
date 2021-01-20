@@ -12,18 +12,17 @@
 # specific language governing permissions and limitations under the License.
 #
 import logging
-from typing import Dict, Any
+from typing import Any, Dict
 
 from django.conf import settings
-from kubernetes.client.configuration import Configuration
 from kubernetes import client
+from kubernetes.client.configuration import Configuration
 
-from backend.utils.errcodes import ErrorCode
-from backend.components.utils import http_get
-from backend.components.bcs import k8s
 from backend.components import paas_cc
+from backend.components.bcs import k8s
+from backend.components.utils import http_get
 from backend.utils import exceptions
-
+from backend.utils.errcodes import ErrorCode
 
 logger = logging.getLogger(__name__)
 

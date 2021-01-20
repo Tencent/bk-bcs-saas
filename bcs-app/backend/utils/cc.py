@@ -21,8 +21,7 @@ from backend.utils.error_codes import error_codes
 
 
 def get_application_staff(username, bk_biz_id, fields=None):
-    """获取业务的成员列表
-    """
+    """获取业务的成员列表"""
     if not fields:
         fields = ['bk_biz_developer', 'bk_biz_maintainer', 'bk_biz_tester', 'bk_biz_productor']
     resp = cmdb.get_application_with_page(username, fields=fields, condition={'bk_biz_id': bk_biz_id})
@@ -36,8 +35,7 @@ def get_application_staff(username, bk_biz_id, fields=None):
 
 
 def get_host_by_operator(bk_biz_id, username, bk_supplier_account=None):
-    """获取业务下主备负责人为username的机器
-    """
+    """获取业务下主备负责人为username的机器"""
     resp = cmdb.search_host(username, bk_biz_id, bk_supplier_account=bk_supplier_account)
     if not resp.get('result'):
         return resp
@@ -58,9 +56,7 @@ def get_host_by_operator(bk_biz_id, username, bk_supplier_account=None):
 
 
 def get_app_hosts(username, bk_biz_id, bk_supplier_account=None):
-    resp = cmdb.search_host(
-        username, bk_biz_id, bk_supplier_account=bk_supplier_account
-    )
+    resp = cmdb.search_host(username, bk_biz_id, bk_supplier_account=bk_supplier_account)
     if not resp.get('result'):
         return resp
     data = resp.get('data') or []
@@ -78,11 +74,12 @@ def get_app_hosts(username, bk_biz_id, bk_supplier_account=None):
 
 
 def get_app_maintainers(username, bk_biz_id, bk_supplier_account=None):
-    """获取业务下的所有运维
-    """
+    """获取业务下的所有运维"""
     resp = cmdb.get_application_with_page(
-        username, bk_supplier_account=bk_supplier_account,
-        fields=['bk_biz_maintainer'], condition={'bk_biz_id': bk_biz_id}
+        username,
+        bk_supplier_account=bk_supplier_account,
+        fields=['bk_biz_maintainer'],
+        condition={'bk_biz_id': bk_biz_id},
     )
     if resp.get('code') != ErrorCode.NoError:
         return []
@@ -94,8 +91,7 @@ def get_app_maintainers(username, bk_biz_id, bk_supplier_account=None):
 
 
 def get_cc_hosts(bk_biz_id, username):
-    """查询业务下有权限的主机
-    """
+    """查询业务下有权限的主机"""
     all_maintainers = get_app_maintainers(username, bk_biz_id)
     if username in all_maintainers:
         return get_app_hosts(username, bk_biz_id)
@@ -103,8 +99,7 @@ def get_cc_hosts(bk_biz_id, username):
 
 
 def check_ips(bk_biz_id, username, req_ip_list):
-    """检查用户是都有权限使用请求的IP
-    """
+    """检查用户是都有权限使用请求的IP"""
     all_ip_info = get_cc_hosts(bk_biz_id, username)
     if not all_ip_info.get('result'):
         raise error_codes.APIError(_('用户{username}没有权限使用主机').format(username=username))

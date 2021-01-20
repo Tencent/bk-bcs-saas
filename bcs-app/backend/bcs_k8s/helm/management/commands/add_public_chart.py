@@ -19,12 +19,11 @@ from django.core.management.base import BaseCommand
 from django.utils.translation import ugettext_lazy as _
 
 from backend.accounts import bcs_perm
-from backend.components import paas_cc
 from backend.bcs_k8s.helm.providers import repo_provider
+from backend.components import paas_cc
 
 
 class Command(BaseCommand):
-
     def get_client_access_token(self):
         access_token = bcs_perm.get_access_token().get('access_token')
         if not access_token:
@@ -33,8 +32,7 @@ class Command(BaseCommand):
         return access_token
 
     def get_all_projects(self, access_token):
-        """获取所有项目信息
-        """
+        """获取所有项目信息"""
         projects = paas_cc.get_projects(access_token)
         if projects.get('code') != 0:
             self.stdout.write(projects.get('message'))
@@ -49,11 +47,7 @@ class Command(BaseCommand):
         projects = self.get_all_projects(access_token)
         if not projects:
             return
-        project_id_list = [
-            info['project_id']
-            for info in projects
-            if info['kind'] == 1 and info['is_offlined'] == 0
-        ]
+        project_id_list = [info['project_id'] for info in projects if info['kind'] == 1 and info['is_offlined'] == 0]
         # 注册db记录
         try:
             for project_id in project_id_list:

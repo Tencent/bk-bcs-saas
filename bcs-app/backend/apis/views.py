@@ -49,8 +49,7 @@ class NoAccessTokenBaseAPIViewSet(BaseAPIViewSet):
 
 
 class ProjectBaseAPIViewSet(viewsets.ViewSet):
-    """对流水线等外部调用API URL不定参数, 转换为内部的project_id, project_code等
-    """
+    """对流水线等外部调用API URL不定参数, 转换为内部的project_id, project_code等"""
 
     authentication_classes = (JWTAuthentication,)
     permission_classes = (AccessTokenPermission, HasIAMProject, ProjectHasBCS)

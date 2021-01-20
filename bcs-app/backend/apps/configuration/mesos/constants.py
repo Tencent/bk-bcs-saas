@@ -11,7 +11,7 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-from backend.apps.configuration.constants import NUM_VAR_PATTERN, FILE_DIR_PATTERN, MRESOURCE_NAMES, KEY_NAME_PATTERN
+from backend.apps.configuration.constants import FILE_DIR_PATTERN, KEY_NAME_PATTERN, MRESOURCE_NAMES, NUM_VAR_PATTERN
 
 # 验证变量的情况，并且支持BCS变量标识 $
 RES_NAME_PATTERN = "^[a-zA-Z{\$]{1}[a-zA-Z0-9-{}_\$]{0,254}$"

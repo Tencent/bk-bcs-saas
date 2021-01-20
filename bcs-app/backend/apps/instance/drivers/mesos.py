@@ -27,7 +27,6 @@ logger = logging.getLogger(__name__)
 
 
 class Scheduler(SchedulerBase):
-
     def clean_ports(self, ports):
         """
         - containerPort
@@ -78,12 +77,8 @@ class Scheduler(SchedulerBase):
         spec = {
             'apiVersion': 'v4',
             'kind': 'configmap',
-            'metadata': {
-                'name': configmap['name'],
-                'namespace': ns,
-                'labels': {}
-            },
-            'datas': datas
+            'metadata': {'name': configmap['name'], 'namespace': ns, 'labels': {}},
+            'datas': datas,
         }
         self.handler_configmap(ns, cluster_id, spec)
 
@@ -98,13 +93,9 @@ class Scheduler(SchedulerBase):
         spec = {
             'apiVersion': 'v4',
             'kind': 'secret',
-            'metadata': {
-                'name': secret['secretName'],
-                'namespace': ns,
-                'labels': {}
-            },
+            'metadata': {'name': secret['secretName'], 'namespace': ns, 'labels': {}},
             'type': '',
-            'datas': datas
+            'datas': datas,
         }
         self.handler_secret(ns, cluster_id, spec)
 
@@ -117,43 +108,35 @@ class Scheduler(SchedulerBase):
         """
         # for container in spec['spec']['template']['spec']['containers']:
         #     container['ports'] = self.clean_ports(container['ports'])
-        client = mesos.MesosClient(
-            self.access_token, self.project_id, cluster_id, env=None)
+        client = mesos.MesosClient(self.access_token, self.project_id, cluster_id, env=None)
         result = client.create_application(ns, spec)
         if result.get('code') != 0:
-            logger.warning(
-                'create application failed, %s, will try rollback.', result)
+            logger.warning('create application failed, %s, will try rollback.', result)
             raise Rollback(result)
 
     def rollback_application(self, ns, cluster_id, spec):
         name = spec['metadata']['name']
-        client = mesos.MesosClient(
-            self.access_token, self.project_id, cluster_id, env=None)
+        client = mesos.MesosClient(self.access_token, self.project_id, cluster_id, env=None)
         result = client.delete_mesos_app_instance(ns, name)
         if result.get('code') != 0:
             raise ComponentError(result.get('message', ''))
 
     def handler_update_application(self, ns, cluster_id, spec):
-        client = mesos.MesosClient(
-            self.access_token, self.project_id, cluster_id, env=None)
+        client = mesos.MesosClient(self.access_token, self.project_id, cluster_id, env=None)
         result = client.update_application(cluster_id, ns, spec)
         if result.get('code') != 0:
-            raise error_codes.ComponentError(
-                _("更新application失败，{}").format(result.get('message')))
+            raise error_codes.ComponentError(_("更新application失败，{}").format(result.get('message')))
 
     def handler_deployment(self, ns, cluster_id, spec):
-        client = mesos.MesosClient(
-            self.access_token, self.project_id, cluster_id, env=None)
+        client = mesos.MesosClient(self.access_token, self.project_id, cluster_id, env=None)
         result = client.create_deployment(ns, spec)
         if result.get('code') != 0:
-            logger.warning(
-                'create deployment failed, %s, will try rollback.', result)
+            logger.warning('create deployment failed, %s, will try rollback.', result)
             raise Rollback(result)
 
     def rollback_deployment(self, ns, cluster_id, spec):
         name = spec['metadata']['name']
-        client = mesos.MesosClient(
-            self.access_token, self.project_id, cluster_id, env=None)
+        client = mesos.MesosClient(self.access_token, self.project_id, cluster_id, env=None)
         result = client.delete_deployment(ns, name)
         if result.get('code') != 0:
             raise ComponentError(result.get('message', ''))
@@ -162,127 +145,100 @@ class Scheduler(SchedulerBase):
         """
         - ports必须是有效值
         """
-        client = mesos.MesosClient(
-            self.access_token, self.project_id, cluster_id, env=None)
+        client = mesos.MesosClient(self.access_token, self.project_id, cluster_id, env=None)
         result = client.create_service(ns, spec)
         if result.get('code') != 0:
-            logger.warning(
-                'create service failed, %s, will try rollback.', result)
+            logger.warning('create service failed, %s, will try rollback.', result)
             raise Rollback(result)
 
     def handler_update_service(self, ns, cluster_id, spec):
-        """
-        """
-        client = mesos.MesosClient(
-            self.access_token, self.project_id, cluster_id, env=None)
+        """"""
+        client = mesos.MesosClient(self.access_token, self.project_id, cluster_id, env=None)
         result = client.update_service(ns, spec)
         if result.get('code') != 0:
-            raise error_codes.ComponentError(
-                _("更新service失败，{}".format(result.get('message'))))
+            raise error_codes.ComponentError(_("更新service失败，{}".format(result.get('message'))))
 
     def rollback_service(self, ns, cluster_id, spec):
-        client = mesos.MesosClient(
-            self.access_token, self.project_id, cluster_id, env=None)
+        client = mesos.MesosClient(self.access_token, self.project_id, cluster_id, env=None)
         name = spec['metadata']['name']
         result = client.delete_service(ns, name)
         if result.get('code') != 0:
             raise ComponentError(result.get('message', ''))
 
     def handler_lb(self, ns, cluster_id, spec):
-        """负载均衡
-        """
+        """负载均衡"""
 
     def handler_configmap(self, ns, cluster_id, spec):
-        client = mesos.MesosClient(
-            self.access_token, self.project_id, cluster_id, env=None)
+        client = mesos.MesosClient(self.access_token, self.project_id, cluster_id, env=None)
         result = client.create_configmap(ns, spec)
         if result.get('code') != 0:
-            logger.warning(
-                'create configmap failed, %s, will try rollback.', result)
+            logger.warning('create configmap failed, %s, will try rollback.', result)
             raise Rollback(result)
 
     def handler_update_configmap(self, ns, cluster_id, spec):
-        client = mesos.MesosClient(
-            self.access_token, self.project_id, cluster_id, env=None)
+        client = mesos.MesosClient(self.access_token, self.project_id, cluster_id, env=None)
         result = client.update_configmap(ns, spec)
         if result.get('code') != 0:
-            raise ComponentError(
-                _("更新configmap失败，{}".format(result.get('message'))))
+            raise ComponentError(_("更新configmap失败，{}".format(result.get('message'))))
 
     def rollback_configmap(self, ns, cluster_id, spec):
         name = spec['metadata']['name']
-        client = mesos.MesosClient(
-            self.access_token, self.project_id, cluster_id, env=None)
+        client = mesos.MesosClient(self.access_token, self.project_id, cluster_id, env=None)
         result = client.delete_configmap(ns, name)
         if result.get('code') != 0:
             raise ComponentError(result.get('message', ''))
 
     def handler_secret(self, ns, cluster_id, spec):
-        client = mesos.MesosClient(
-            self.access_token, self.project_id, cluster_id, env=None)
+        client = mesos.MesosClient(self.access_token, self.project_id, cluster_id, env=None)
         result = client.create_secret(ns, spec)
         if result.get('code') != 0:
-            logger.warning(
-                'create secret failed, %s, will try rollback.', result)
+            logger.warning('create secret failed, %s, will try rollback.', result)
             raise Rollback(result)
 
     def handler_update_secret(self, ns, cluster_id, spec):
-        client = mesos.MesosClient(
-            self.access_token, self.project_id, cluster_id, env=None)
+        client = mesos.MesosClient(self.access_token, self.project_id, cluster_id, env=None)
         result = client.update_secret(ns, spec)
         if result.get('code') != 0:
-            raise ComponentError(
-                _("更新secret失败，{}").format(result.get('message')))
+            raise ComponentError(_("更新secret失败，{}").format(result.get('message')))
 
     def rollback_secret(self, ns, cluster_id, spec):
-        """删除使用
-        """
-        client = mesos.MesosClient(
-            self.access_token, self.project_id, cluster_id, env=None)
+        """删除使用"""
+        client = mesos.MesosClient(self.access_token, self.project_id, cluster_id, env=None)
         name = spec['metadata']['name']
         result = client.delete_secret(ns, name)
         if result.get('code') != 0:
             raise ComponentError(result.get('message', ''))
 
     def handler_metric(self, ns, cluster_id, spec):
-        """绑定metric
-        """
-        client = mesos.MesosClient(
-            self.access_token, self.project_id, cluster_id, env=None)
+        """绑定metric"""
+        client = mesos.MesosClient(self.access_token, self.project_id, cluster_id, env=None)
         result = client.set_metrics(data=spec)
         if result.get('code') != 0:
             logger.warning('set metric failed, %s, will try rollback.', result)
             raise Rollback(result)
 
     def handler_hpa(self, ns, cluster_id, spec):
-        """绑定metric
-        """
-        client = mesos.MesosClient(
-            self.access_token, self.project_id, cluster_id, env=None)
+        """绑定metric"""
+        client = mesos.MesosClient(self.access_token, self.project_id, cluster_id, env=None)
         result = client.apply_hpa(ns, spec=spec)
         if result.get('code') != 0:
             logger.warning('set metric failed, %s, will try rollback.', result)
             raise ComponentError(result.get('message', ''))
 
     def rollback_metric(self, ns, cluster_id, spec):
-        """回滚metric
-        """
-        client = mesos.MesosClient(
-            self.access_token, self.project_id, cluster_id, env=None)
+        """回滚metric"""
+        client = mesos.MesosClient(self.access_token, self.project_id, cluster_id, env=None)
         name = spec['name']
         result = client.delete_metrics(namespace=ns, metric_name=name)
         if result.get('code') != 0:
             raise ComponentError(result.get('message', ''))
 
     def handler_ingress(self, namespace, cluster_id, spec):
-        client = mesos.MesosClient(
-            self.access_token, self.project_id, cluster_id, env=None)
+        client = mesos.MesosClient(self.access_token, self.project_id, cluster_id, env=None)
         client.create_custom_resource(namespace, spec)
 
     def rollback_ingress(self, namespace, cluster_id, spec):
-        """回滚metric
-        """
-        client = mesos.MesosClient(
-            self.access_token, self.project_id, cluster_id, env=None)
+        """回滚metric"""
+        client = mesos.MesosClient(self.access_token, self.project_id, cluster_id, env=None)
         name = spec['metadata']['name']
         client.delete_custom_resource(name, namespace)

@@ -14,13 +14,12 @@ from unittest import mock
 
 import pytest
 
-from backend.utils.basic import getitems
-from backend.resources.custom_object.crd import CustomResourceDefinition
-from backend.resources.custom_object.custom_object import get_custom_object_client_by_crd
 from backend.resources.constants import PatchType
+from backend.resources.custom_object.crd import CustomResourceDefinition
+from backend.resources.custom_object.custom_object import get_custom_object_api_by_crd
+from backend.utils.basic import getitems
 
 from ..conftest import FakeBcsKubeConfigurationService
-
 
 # https://github.com/kubernetes/sample-controller
 sample_crd = {
@@ -52,49 +51,48 @@ class TestCRDAndCustomObject:
     def use_faked_configuration(self):
         """Replace ConfigurationService with fake object"""
         with mock.patch(
-            'backend.resources.utils.kube_client.BcsKubeConfigurationService', new=FakeBcsKubeConfigurationService,
+            'backend.resources.utils.kube_client.BcsKubeConfigurationService',
+            new=FakeBcsKubeConfigurationService,
         ):
             yield
 
     @pytest.fixture
-    def crd_client(self, project_id, cluster_id):
+    def crd_api(self, project_id, cluster_id):
         return CustomResourceDefinition('token', project_id, cluster_id, api_version=sample_crd["apiVersion"])
 
     @pytest.fixture
-    def update_or_create_crd(self, crd_client):
-        crd_client.update_or_create(body=sample_crd)
+    def update_or_create_crd(self, crd_api):
+        crd_api.update_or_create(body=sample_crd)
         yield
-        crd_client.delete_ignore_nonexistent(name=getitems(sample_crd, "metadata.name"), namespace="default")
+        crd_api.delete_ignore_nonexistent(name=getitems(sample_crd, "metadata.name"), namespace="default")
 
     @pytest.fixture
-    def cobj_client(self, project_id, cluster_id):
-        return get_custom_object_client_by_crd(
+    def cobj_api(self, project_id, cluster_id):
+        return get_custom_object_api_by_crd(
             'token', project_id, cluster_id, crd_name=getitems(sample_crd, "metadata.name")
         )
 
     @pytest.fixture
-    def update_or_create_custom_object(self, cobj_client):
-        cobj_client.update_or_create(
+    def update_or_create_custom_object(self, cobj_api):
+        cobj_api.update_or_create(
             body=sample_custom_object, namespace="default", name=getitems(sample_custom_object, "metadata.name")
         )
         yield
-        cobj_client.delete_ignore_nonexistent(
-            name=getitems(sample_custom_object, "metadata.name"), namespace="default"
-        )
+        cobj_api.delete_ignore_nonexistent(name=getitems(sample_custom_object, "metadata.name"), namespace="default")
 
-    def test_crd_list(self, crd_client, update_or_create_crd):
-        crd_lists = crd_client.list()
+    def test_crd_list(self, crd_api, update_or_create_crd):
+        crd_lists = crd_api.list()
         assert isinstance(crd_lists, list)
 
-    def test_crd_get(self, crd_client, update_or_create_crd):
-        crd = crd_client.get(name=getitems(sample_crd, "metadata.name"), is_format=False)
+    def test_crd_get(self, crd_api, update_or_create_crd):
+        crd = crd_api.get(name=getitems(sample_crd, "metadata.name"), is_format=False)
         assert crd.spec.scope == "Namespaced"
 
-        crd = crd_client.get(name="no.k3s.cattle.io", is_format=False)
+        crd = crd_api.get(name="no.k3s.cattle.io", is_format=False)
         assert crd is None
 
-    def test_custom_object_patch(self, update_or_create_crd, cobj_client, update_or_create_custom_object):
-        cobj = cobj_client.patch(
+    def test_custom_object_patch(self, update_or_create_crd, cobj_api, update_or_create_custom_object):
+        cobj = cobj_api.patch(
             name=getitems(sample_custom_object, "metadata.name"),
             namespace="default",
             body={"spec": {"replicas": 2}},

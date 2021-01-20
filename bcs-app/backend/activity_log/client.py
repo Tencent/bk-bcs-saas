@@ -11,8 +11,8 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-import json
 import copy
+import json
 import logging
 from contextlib import contextmanager
 
@@ -23,7 +23,6 @@ undefined = object()
 
 
 class UserActivityLogClient(object):
-
     def __init__(
         self,
         user=undefined,
@@ -53,11 +52,7 @@ class UserActivityLogClient(object):
         self.activity_log = None
 
     def remove_undefined(self, params):
-        return {
-            k: v
-            for k, v in params.items()
-            if v is not undefined
-        }
+        return {k: v for k, v in params.items() if v is not undefined}
 
     def update_log(self, **params):
         activity_log = self.activity_log
@@ -76,11 +71,7 @@ class UserActivityLogClient(object):
             activity_status = "error"
             description = str(err)
             if not self.update_log(activity_status=activity_status, description=description):
-                self.log_note(
-                    user="system",
-                    activity_status=activity_status,
-                    description=description
-                )
+                self.log_note(user="system", activity_status=activity_status, description=description)
             raise err
 
     def get_params(self, params):
@@ -383,7 +374,6 @@ class UserActivityLogClient(object):
 
 
 class ContextActivityLogClient(UserActivityLogClient):
-
     def log(self, **kwargs):
         super().log(**kwargs)
         return self.context_log()

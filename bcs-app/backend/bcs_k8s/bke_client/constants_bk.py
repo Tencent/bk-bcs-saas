@@ -18,8 +18,4 @@ from collections import OrderedDict
 DEFAULT_KUBECTL_VERSION = '1.12.3'
 
 # KUBECTL VERSION
-KUBECTL_VERSION = OrderedDict({
-    '1.12.3': [
-        re.compile(r'^[vV]?1\.12\.\w+$')
-    ]
-})
+KUBECTL_VERSION = OrderedDict({'1.12.3': [re.compile(r'^[vV]?1\.12\.\w+$')]})

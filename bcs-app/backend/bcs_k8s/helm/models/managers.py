@@ -47,6 +47,7 @@ class ChartVersionSnapshotManager(models.Manager):
                 "version": chart_version.version,
                 "digest": chart_version.digest,
                 "created": chart_version.created,
-                "version_id": chart_version.id
-            })
+                "version_id": chart_version.id,
+            },
+        )
         return snapshot

@@ -13,11 +13,12 @@
 #
 import re
 
-from rest_framework.exceptions import ValidationError
 from django.utils.translation import ugettext_lazy as _
+from rest_framework.exceptions import ValidationError
 
-from backend.utils.basic import getitems
 from backend.apps.configuration import models
+from backend.utils.basic import getitems
+
 from .constants import CONFIG_SCHEMA_MAP
 
 K8S_NAME_REGEX = re.compile(r'^[a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*$')
@@ -34,8 +35,7 @@ def validate_k8s_res_name(name):
 
 
 def validate_pod_selector(config):
-    """检查 selector 是否在label中
-    """
+    """检查 selector 是否在label中"""
     spec = config.get('spec', {})
     selector_labels = getitems(spec, ['selector', 'matchLabels'])
     if selector_labels:

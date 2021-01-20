@@ -22,6 +22,7 @@ from rest_framework.renderers import BrowsableAPIRenderer
 
 from backend.accounts import bcs_perm
 from backend.apps import constants as app_constants
+from backend.apps.cluster import serializers
 from backend.apps.cluster import serializers as cluster_serializers
 from backend.apps.cluster.utils import use_prometheus_source
 from backend.apps.cluster.views.metric_handler import get_namespace_metric, get_node_metric
@@ -32,29 +33,23 @@ from backend.utils.errcodes import ErrorCode
 from backend.utils.error_codes import error_codes
 from backend.utils.funutils import num_transform
 from backend.utils.renderers import BKAPIRenderer
-from backend.apps.cluster import serializers
 
 logger = logging.getLogger(__name__)
 
 
 class ClusterMetricsBase:
-
     def can_view_cluster(self, request, project_id, cluster_id):
         perm = bcs_perm.Cluster(request, project_id, cluster_id)
         perm.can_view(raise_exception=True)
 
     def get_cluster(self, request, project_id, cluster_id):
-        cluster_resp = paas_cc.get_cluster(
-            request.user.token.access_token,
-            project_id, cluster_id
-        )
+        cluster_resp = paas_cc.get_cluster(request.user.token.access_token, project_id, cluster_id)
         if cluster_resp.get('code') != ErrorCode.NoError:
             raise error_codes.APIError.f(cluster_resp.get('message'))
         return cluster_resp.get('data') or {}
 
 
 class MetricsParamsBase:
-
     def get_params(self, request):
         slz = cluster_serializers.MetricsSLZ(data=request.GET)
         slz.is_valid(raise_exception=True)
@@ -71,14 +66,14 @@ class ClusterMetrics(ClusterMetricsBase, MetricsParamsBase, viewsets.ViewSet):
 
     def get_history_data(self, request, project_id, cluster_id, metric, start_at, end_at):
         resp = paas_cc.get_cluster_history_data(
-            request.user.token.access_token, project_id, cluster_id, metric, start_at, end_at)
+            request.user.token.access_token, project_id, cluster_id, metric, start_at, end_at
+        )
         if resp.get('code') != 0:
             raise error_codes.APIError.f(resp.get('message'))
         return resp.get('data') or {}
 
     def get_prom_disk_data(self, request, cluster_id, metrics_disk):
-        """update metric disk by prometheus
-        """
+        """update metric disk by prometheus"""
         try:
             metrics_disk = prometheus.fixed_disk_usage_history(cluster_id)
         except Exception as err:
@@ -90,7 +85,8 @@ class ClusterMetrics(ClusterMetricsBase, MetricsParamsBase, viewsets.ViewSet):
         for i in cluster_data['results']:
             time = arrow.get(i['capacity_updated_at']).timestamp * 1000
             metrics_cpu.append(
-                {'time': time, 'remain_cpu': num_transform(i['remain_cpu']), 'total_cpu': i['total_cpu']})
+                {'time': time, 'remain_cpu': num_transform(i['remain_cpu']), 'total_cpu': i['total_cpu']}
+            )
             if request.project.kind == app_constants.ProjectKind.MESOS.value:
                 # transfer GB
                 total_mem = normalize_metric(i['total_mem'] / 1024)
@@ -98,24 +94,25 @@ class ClusterMetrics(ClusterMetricsBase, MetricsParamsBase, viewsets.ViewSet):
             else:
                 total_mem = normalize_metric(i['total_mem'])
                 remain_mem = normalize_metric(num_transform(i['remain_mem']))
-            metrics_mem.append(
-                {'time': time, 'remain_mem': remain_mem, 'total_mem': total_mem})
+            metrics_mem.append({'time': time, 'remain_mem': remain_mem, 'total_mem': total_mem})
             # add disk metric
-            metrics_disk.append({'time': time,
-                                 'remain_disk': normalize_metric(num_transform(i['remain_disk']) / 1024),
-                                 'total_disk': normalize_metric(i['total_disk'] / 1024)})
+            metrics_disk.append(
+                {
+                    'time': time,
+                    'remain_disk': normalize_metric(num_transform(i['remain_disk']) / 1024),
+                    'total_disk': normalize_metric(i['total_disk'] / 1024),
+                }
+            )
         return metrics_cpu, metrics_mem, metrics_disk
 
     def list(self, request, project_id):
-        """get cluster metric info
-        """
+        """get cluster metric info"""
         params = self.get_params(request)
         cluster_id = params['res_id']
         self.can_view_cluster(request, project_id, cluster_id)
         start_at, end_at = self.get_start_end_time(params['start_at'], params['end_at'])
         # get cluster history data between start_at and end_at
-        cluster_data = self.get_history_data(
-            request, project_id, cluster_id, params['metric'], start_at, end_at)
+        cluster_data = self.get_history_data(request, project_id, cluster_id, params['metric'], start_at, end_at)
         if not cluster_data.get('results'):
             return response.Response({'cpu': [], 'mem': [], 'disk': []})
         metrics_cpu, metrics_mem, metrics_disk = self.compose_metric(request, cluster_data)
@@ -130,8 +127,7 @@ class DockerMetrics(MetricsParamsBase, viewsets.ViewSet):
     renderer_classes = (BKAPIRenderer, BrowsableAPIRenderer)
 
     def list(self, request, project_id):
-        """get docker monitor info
-        """
+        """get docker monitor info"""
         params = self.get_params(request)
 
         if use_prometheus_source(request):
@@ -166,16 +162,21 @@ class DockerMetrics(MetricsParamsBase, viewsets.ViewSet):
 
     def get_bk_data(self, data, cc_app_id):
         _data = apigw_data.get_docker_metrics(
-            data['metric'], cc_app_id, data['res_id'], data['start_at'], data['end_at'])
+            data['metric'], cc_app_id, data['res_id'], data['start_at'], data['end_at']
+        )
 
         metrics_data = []
         if data['metric'] == 'disk':
-            metric_list = groupby(sorted(_data['list'],
-                                         key=lambda x: x['device_name']), key=lambda x: x['device_name'])
+            metric_list = groupby(
+                sorted(_data['list'], key=lambda x: x['device_name']), key=lambda x: x['device_name']
+            )
             for device_name, metrics in metric_list:
-                metrics_data.append({'device_name': device_name, 'metrics': [
-                                    {'used_pct': normalize_metric(i['used_pct']),
-                                     'time': i['time']} for i in metrics]})
+                metrics_data.append(
+                    {
+                        'device_name': device_name,
+                        'metrics': [{'used_pct': normalize_metric(i['used_pct']), 'time': i['time']} for i in metrics],
+                    }
+                )
             _data['list'] = metrics_data
         elif data['metric'] == 'cpu_summary':
             for i in _data['list']:
@@ -198,8 +199,7 @@ class DockerMetrics(MetricsParamsBase, viewsets.ViewSet):
         return slz.validated_data
 
     def multi(self, request, project_id):
-        """get multiple docker info
-        """
+        """get multiple docker info"""
         data = self.get_multi_params(request)
 
         if use_prometheus_source(request):
@@ -226,27 +226,28 @@ class DockerMetrics(MetricsParamsBase, viewsets.ViewSet):
 
     def get_multi_bk_data(self, data, cc_app_id):
         _data = apigw_data.get_docker_metrics(
-            data['metric'], cc_app_id, data['res_id_list'], data['start_at'], data['end_at'])
+            data['metric'], cc_app_id, data['res_id_list'], data['start_at'], data['end_at']
+        )
 
         metrics_data = []
         if data['metric'] == 'cpu_summary':
-            metric_list = groupby(sorted(_data['list'],
-                                         key=lambda x: x['id']), key=lambda x: x['id'])
+            metric_list = groupby(sorted(_data['list'], key=lambda x: x['id']), key=lambda x: x['id'])
             for _id, metrics in metric_list:
                 container_name = ''
                 _metrics = []
                 for i in metrics:
                     container_name = i['container_name']
-                    _metrics.append({
-                        'usage': normalize_metric(i.get('cpu_totalusage')),
-                        'time': i['time'],
-                    })
+                    _metrics.append(
+                        {
+                            'usage': normalize_metric(i.get('cpu_totalusage')),
+                            'time': i['time'],
+                        }
+                    )
                 metrics_data.append({'id': _id, 'container_name': container_name, 'metrics': _metrics})
             _data['list'] = metrics_data
 
         elif data['metric'] == 'mem':
-            metric_list = groupby(sorted(_data['list'],
-                                         key=lambda x: x['id']), key=lambda x: x['id'])
+            metric_list = groupby(sorted(_data['list'], key=lambda x: x['id']), key=lambda x: x['id'])
             for _id, metrics in metric_list:
                 container_name = ''
                 _metrics = []
@@ -263,11 +264,8 @@ class NodeMetrics(ClusterMetricsBase, MetricsParamsBase, viewsets.ViewSet):
     renderer_classes = (BKAPIRenderer, BrowsableAPIRenderer)
 
     def get_node_list(self, request, project_id):
-        """get node list
-        """
-        resp = paas_cc.get_node_list(
-            request.user.token.access_token, project_id, None
-        )
+        """get node list"""
+        resp = paas_cc.get_node_list(request.user.token.access_token, project_id, None)
         if resp.get('code') != ErrorCode.NoError:
             raise error_codes.APIError.f(resp.get('message'))
         return resp.get('data') or {}
@@ -279,8 +277,7 @@ class NodeMetrics(ClusterMetricsBase, MetricsParamsBase, viewsets.ViewSet):
             raise error_codes.CheckFailed.f('node ip is illegal')
 
     def list(self, request, project_id):
-        """get node metrics info
-        """
+        """get node metrics info"""
         params = self.get_params(request)
         # compatible logic
         try:
@@ -295,8 +292,7 @@ class NodeMetrics(ClusterMetricsBase, MetricsParamsBase, viewsets.ViewSet):
         return response.Response(data)
 
     def get_prom_data(self, data):
-        """prometheus数据
-        """
+        """prometheus数据"""
         _data = []
         if data['metric'] == 'io':
             metric_data = prometheus.get_node_diskio_usage(data['res_id'], data['start_at'], data['end_at'])
@@ -316,32 +312,48 @@ class NodeMetrics(ClusterMetricsBase, MetricsParamsBase, viewsets.ViewSet):
         return _data
 
     def get_bk_data(self, data, cc_app_id):
-        """数据平台返回
-        """
+        """数据平台返回"""
         _data = apigw_data.get_node_metrics(
-            data['metric'], cc_app_id, data['res_id'], data['start_at'], data['end_at'])
+            data['metric'], cc_app_id, data['res_id'], data['start_at'], data['end_at']
+        )
 
         metrics_data = []
         if data['metric'] == 'io':
-            metric_list = groupby(sorted(_data['list'],
-                                         key=lambda x: x['device_name']), key=lambda x: x['device_name'])
+            metric_list = groupby(
+                sorted(_data['list'], key=lambda x: x['device_name']), key=lambda x: x['device_name']
+            )
             for device_name, metrics in metric_list:
-                metrics_data.append({'device_name': device_name,
-                                     'metrics': [{'rkb_s': normalize_metric(i['rkb_s']),
-                                                  'wkb_s': normalize_metric(i['wkb_s']),
-                                                  'time': i['time']} for i in metrics]})
+                metrics_data.append(
+                    {
+                        'device_name': device_name,
+                        'metrics': [
+                            {
+                                'rkb_s': normalize_metric(i['rkb_s']),
+                                'wkb_s': normalize_metric(i['wkb_s']),
+                                'time': i['time'],
+                            }
+                            for i in metrics
+                        ],
+                    }
+                )
             _data['list'] = metrics_data
         elif data['metric'] == 'cpu_summary':
             for i in _data['list']:
                 i['usage'] = normalize_metric(i['usage'])
         elif data['metric'] == 'net':
-            metric_list = groupby(sorted(_data['list'],
-                                         key=lambda x: x['device_name']), key=lambda x: x['device_name'])
+            metric_list = groupby(
+                sorted(_data['list'], key=lambda x: x['device_name']), key=lambda x: x['device_name']
+            )
             for device_name, metrics in metric_list:
-                metrics_data.append({'device_name': device_name,
-                                     'metrics': [{'speedSent': i['speedSent'],
-                                                  'speedRecv': i['speedRecv'],
-                                                  'time': i['time']} for i in metrics]})
+                metrics_data.append(
+                    {
+                        'device_name': device_name,
+                        'metrics': [
+                            {'speedSent': i['speedSent'], 'speedRecv': i['speedRecv'], 'time': i['time']}
+                            for i in metrics
+                        ],
+                    }
+                )
             _data['list'] = metrics_data
         return _data
 
@@ -355,8 +367,7 @@ class NodeSummaryMetrics(viewsets.ViewSet):
         return slz.validated_data
 
     def list(self, request, project_id):
-        """get cpu/mem/disk info
-        """
+        """get cpu/mem/disk info"""
         params = self.get_params(request)
         if use_prometheus_source(request):
             data = self.get_prom_data(params['res_id'])
@@ -366,8 +377,7 @@ class NodeSummaryMetrics(viewsets.ViewSet):
         return response.Response(data)
 
     def get_prom_data(self, res_id):
-        """prometheus数据
-        """
+        """prometheus数据"""
         end_at = int(time.time()) * 1000
         start_at = end_at - 60 * 10 * 1000
 
@@ -393,8 +403,7 @@ class NodeSummaryMetrics(viewsets.ViewSet):
         return data
 
     def get_bk_data(self, res_id, cc_app_id):
-        """数据平台
-        """
+        """数据平台"""
         cpu_metrics = apigw_data.get_node_metrics('cpu_summary', cc_app_id, res_id, limit=1)
         if cpu_metrics['list']:
             cpu_metrics = normalize_metric(cpu_metrics['list'][0]['usage'])
@@ -428,30 +437,19 @@ class ClusterSummaryMetrics(ClusterMetricsBase, viewsets.ViewSet):
         return slz.validated_data
 
     def compose_cluster_resource(self, request, project_id, cluster, ip_resource):
-        """compose the cluster response with
-        """
-        data = {
-            'ip_resource': {
-                'total': cluster['ip_resource_total'],
-                'used': cluster['ip_resource_used']
-            }
-        }
+        """compose the cluster response with"""
+        data = {'ip_resource': {'total': cluster['ip_resource_total'], 'used': cluster['ip_resource_used']}}
         if not ip_resource:
             node_data = get_node_metric(
-                request, request.user.token.access_token,
-                project_id, cluster['cluster_id'], cluster['type']
+                request, request.user.token.access_token, project_id, cluster['cluster_id'], cluster['type']
             )
             namespace_data = get_namespace_metric(request, project_id, cluster['cluster_id'])
-            data.update({
-                'node': node_data,
-                'namespace': namespace_data
-            })
+            data.update({'node': node_data, 'namespace': namespace_data})
 
         return data
 
     def list(self, request, project_id):
-        """get cluster summary info
-        """
+        """get cluster summary info"""
         params = self.get_params(request)
         self.can_view_cluster(request, project_id, params['res_id'])
         # get cluster data by paas cc

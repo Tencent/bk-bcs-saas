@@ -15,6 +15,7 @@
 Usage: python manage.py init_version
 """
 import json
+
 from django.core.management.base import BaseCommand
 
 from backend.apps.configuration.models import ShowVersion, VersionedEntity
@@ -30,19 +31,21 @@ class Command(BaseCommand):
         for ins in init_ins_sets:
             version_id = ins.version_id
             template_id = ins.template_id
-            show_ver = ShowVersion.default_objects.filter(
-                real_version_id=version_id, template_id=template_id).first()
+            show_ver = ShowVersion.default_objects.filter(real_version_id=version_id, template_id=template_id).first()
             if not show_ver:
                 version_entity = VersionedEntity.objects.get(id=version_id)
                 show_ver = ShowVersion.objects.create(
                     template_id=template_id,
                     real_version_id=version_id,
                     name=version_entity.version,
-                    history=json.dumps([version_id])
+                    history=json.dumps([version_id]),
                 )
             ins.show_version_id = show_ver.id
             ins.show_version_name = show_ver.name
             ins.save()
-            self.stdout.write(self.style.SUCCESS(
-                'Successfully initialize template_id[%s] version_id[%s] name[%s]' % (
-                    template_id, version_id, show_ver.name)))
+            self.stdout.write(
+                self.style.SUCCESS(
+                    'Successfully initialize template_id[%s] version_id[%s] name[%s]'
+                    % (template_id, version_id, show_ver.name)
+                )
+            )

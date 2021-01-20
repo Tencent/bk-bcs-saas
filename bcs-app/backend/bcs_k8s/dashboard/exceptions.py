@@ -22,8 +22,8 @@ class DashboardError(DashboardBaseException):
 
 
 class DashboardExecutionError(DashboardBaseException):
-    """Error when running dashboard ctl command failed
-    """
+    """Error when running dashboard ctl command failed"""
+
     def __init__(self, error_no: int, output: bytes):
         self.error_no = error_no
         self.output = output.decode().strip()

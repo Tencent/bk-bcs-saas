@@ -11,12 +11,10 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-from backend.apps.instance.resources import BCSResource
-from backend.apps.instance.resources import utils
+from backend.apps.instance.resources import BCSResource, utils
 
 
 class Pod(BCSResource):
-
     def _strategy_params_to_int(self, roll_update_strategy, resource_name, metadata_name, is_preview, is_validate):
         strategy_params = ['maxUnavailable', 'maxSurge']
         for p in strategy_params:

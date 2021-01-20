@@ -11,38 +11,36 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-import re
-import json
 import copy
+import json
 import logging
+import re
 
-from rest_framework import response, viewsets
-from rest_framework.renderers import BrowsableAPIRenderer
-from rest_framework.exceptions import ValidationError
 from django.utils.translation import ugettext_lazy as _
+from rest_framework import response, viewsets
+from rest_framework.exceptions import ValidationError
+from rest_framework.renderers import BrowsableAPIRenderer
 
+from backend.accounts import bcs_perm
 from backend.activity_log import client
-from backend.components import paas_cc, data as data_api
+from backend.apps.cluster import constants as cluster_constants
+from backend.apps.cluster import serializers as node_serializers
+from backend.apps.cluster import utils as cluster_utils
+from backend.apps.cluster.constants import DEFAULT_SYSTEM_LABEL_KEYS
+from backend.apps.cluster.driver import BaseDriver
+from backend.apps.cluster.models import CommonStatus, NodeLabel, NodeStatus, NodeUpdateLog
+from backend.apps.cluster.serializers import NodeLabelParamsSLZ
+from backend.apps.cluster.utils import cluster_env_transfer, custom_paginator, status_transfer
+from backend.apps.cluster.views_bk import node
+from backend.apps.cluster.views_bk.tools import cmdb, gse
+from backend.components import data as data_api
+from backend.components import paas_cc
 from backend.components.bcs import k8s, mesos
+from backend.resources.cluster.utils import get_cluster_nodes
 from backend.utils.errcodes import ErrorCode
 from backend.utils.error_codes import error_codes
 from backend.utils.funutils import convert_mappings
-
-from backend.apps.cluster.models import (
-    NodeUpdateLog, NodeStatus, CommonStatus, NodeLabel
-)
-from backend.apps.cluster.utils import custom_paginator, status_transfer, cluster_env_transfer
-from backend.apps.cluster import utils as cluster_utils
-from backend.accounts import bcs_perm
-from backend.apps.cluster.constants import DEFAULT_SYSTEM_LABEL_KEYS
-from backend.apps.cluster.serializers import NodeLabelParamsSLZ
-from backend.apps.cluster import constants as cluster_constants
-from backend.apps.cluster.driver import BaseDriver
-from backend.apps.cluster import serializers as node_serializers
 from backend.utils.renderers import BKAPIRenderer
-from backend.apps.cluster.views_bk import node
-from backend.apps.cluster.views_bk.tools import cmdb, gse
-from backend.resources.cluster.utils import get_cluster_nodes
 
 logger = logging.getLogger(__name__)
 
@@ -50,10 +48,8 @@ DEFAULT_MIX_VALUE = cluster_constants.DEFAULT_MIX_VALUE
 
 
 class NodeBase:
-
     def can_view_cluster(self, request, project_id, cluster_id):
-        """has view cluster perm
-        """
+        """has view cluster perm"""
         cluster_perm = bcs_perm.Cluster(request, project_id, cluster_id)
         cluster_perm.can_view(raise_exception=True)
 
@@ -62,80 +58,60 @@ class NodeBase:
         return cluster_perm.can_edit(raise_exception=True)
 
     def get_node_list(self, request, project_id, cluster_id):
-        """get cluster node list
-        """
+        """get cluster node list"""
         node_resp = paas_cc.get_node_list(
-            request.user.token.access_token, project_id, cluster_id,
-            params={'limit': cluster_constants.DEFAULT_NODE_LIMIT}
+            request.user.token.access_token,
+            project_id,
+            cluster_id,
+            params={'limit': cluster_constants.DEFAULT_NODE_LIMIT},
         )
         if node_resp.get('code') != ErrorCode.NoError:
             raise error_codes.APIError(node_resp.get('message'))
         return node_resp.get('data') or {}
 
     def get_all_cluster(self, request, project_id):
-        resp = paas_cc.get_all_clusters(
-            request.user.token.access_token, project_id
-        )
+        resp = paas_cc.get_all_clusters(request.user.token.access_token, project_id)
         if (resp.get('code') != ErrorCode.NoError) or (not resp.get('data')):
             raise error_codes.APIError('search cluster error')
         return resp.get('data') or {}
 
     def get_cluster_env(self, request, project_id):
-        """get cluster env map
-        """
+        """get cluster env map"""
         data = self.get_all_cluster(request, project_id)
         results = data.get('results') or []
         return {
-            info['cluster_id']: cluster_env_transfer(info['environment'])
-            for info in results
-            if info.get('cluster_id')
+            info['cluster_id']: cluster_env_transfer(info['environment']) for info in results if info.get('cluster_id')
         }
 
     def get_node_by_id(self, request, project_id, cluster_id, node_id):
-        """get node info by node id
-        """
-        resp = paas_cc.get_node(
-            request.user.token.access_token,
-            project_id, node_id, cluster_id=cluster_id
-        )
+        """get node info by node id"""
+        resp = paas_cc.get_node(request.user.token.access_token, project_id, node_id, cluster_id=cluster_id)
         if resp.get('code') != ErrorCode.NoError:
             raise error_codes.APIError(resp.get('message'))
         return resp.get('data') or {}
 
     def get_project_cluster(self, request, project_id):
-        """get cluster info
-        """
+        """get cluster info"""
         data = self.get_all_cluster(request, project_id)
         results = data.get('results') or []
-        return {
-            info['cluster_id']: info['name']
-            for info in results
-        }
+        return {info['cluster_id']: info['name'] for info in results}
 
     def update_nodes_in_cluster(self, request, project_id, cluster_id, node_ips, status):
-        """update nodes with same cluster
-        """
-        data = [
-            {'inner_ip': ip, 'status': status}
-            for ip in node_ips
-        ]
-        resp = paas_cc.update_node_list(
-            request.user.token.access_token, project_id, cluster_id, data=data)
+        """update nodes with same cluster"""
+        data = [{'inner_ip': ip, 'status': status} for ip in node_ips]
+        resp = paas_cc.update_node_list(request.user.token.access_token, project_id, cluster_id, data=data)
         if resp.get('code') != ErrorCode.NoError:
             raise error_codes.APIError(resp.get('message'))
         return resp.get('data') or []
 
     def get_cluster(self, request, project_id, cluster_id):
-        cluster_resp = paas_cc.get_cluster(
-            request.user.token.access_token, project_id, cluster_id
-        )
+        cluster_resp = paas_cc.get_cluster(request.user.token.access_token, project_id, cluster_id)
         if cluster_resp.get('code') != ErrorCode.NoError:
             raise error_codes.APIError.f(cluster_resp.get('message'))
         return cluster_resp.get('data') or {}
 
 
 class NodeHandler:
-
     def filter_node(self, data, filter_ip, filter_key='InnerIP'):
         """filter rule:
         - single ip: fuzzy search
@@ -192,15 +168,14 @@ class NodeHandler:
                 return order_by.index(ip)
             except ValueError:
                 return 0
+
         data['results'] = sorted(data['results'], key=lambda x: (index(x['inner_ip']), x['inner_ip']), reverse=True)
         return data
 
 
 class NodeLabelBase:
-
     def get_labels_by_node(self, request, project_id, node_id_list):
-        node_label_info = NodeLabel.objects.filter(
-            node_id__in=node_id_list, project_id=project_id, is_deleted=False)
+        node_label_info = NodeLabel.objects.filter(node_id__in=node_id_list, project_id=project_id, is_deleted=False)
         return node_label_info.values("id", "project_id", "node_id", "cluster_id", "labels")
 
     def delete_node_label(self, request, node_id):
@@ -240,13 +215,10 @@ class NodeCreateListViewSet(NodeBase, NodeHandler, viewsets.ViewSet):
         if not (with_containers and data):
             return data
         # add container count
-        return self.add_container_count(
-            request, project_id, cluster_id, request.project['kind'], data)
+        return self.add_container_count(request, project_id, cluster_id, request.project['kind'], data)
 
     def add_env_perm(self, request, project_id, cluster_id, data, cluster_env_info):
-        nodes_results = bcs_perm.Cluster.hook_perms(
-            request, project_id, [{'cluster_id': cluster_id}]
-        )
+        nodes_results = bcs_perm.Cluster.hook_perms(request, project_id, [{'cluster_id': cluster_id}])
         for info in data.get('results') or []:
             info['permissions'] = nodes_results[0]['permissions']
             info['cluster_env'] = cluster_env_info.get(cluster_id, '')
@@ -305,15 +277,10 @@ class NodeCreateListViewSet(NodeBase, NodeHandler, viewsets.ViewSet):
         self.add_env_perm(request, project_id, cluster_id, pagination_data, cluster_env_info)
 
         has_create_perm = self.get_create_node_perm(request, project_id, cluster_id)
-        return {
-            'code': ErrorCode.NoError,
-            'data': pagination_data,
-            'permissions': {'create': has_create_perm}
-        }
+        return {'code': ErrorCode.NoError, 'data': pagination_data, 'permissions': {'create': has_create_perm}}
 
     def post_node_list(self, request, project_id, cluster_id):
-        """post request for node list
-        """
+        """post request for node list"""
         data = self.get_post_data(request)
         node_list_with_perm = self.data_handler_for_nodes(request, project_id, cluster_id, data)
         return response.Response(node_list_with_perm)
@@ -332,8 +299,7 @@ class NodeCreateListViewSet(NodeBase, NodeHandler, viewsets.ViewSet):
         return node_client.create()
 
     def list_nodes_ip(self, request, project_id, cluster_id):
-        """获取集群下节点的IP
-        """
+        """获取集群下节点的IP"""
         nodes = get_cluster_nodes(request.user.token.access_token, project_id, cluster_id, raise_exception=False)
         return response.Response([info["inner_ip"] for info in nodes if info["status"] != CommonStatus.Removed])
 
@@ -357,11 +323,12 @@ class NodeGetUpdateDeleteViewSet(NodeBase, NodeLabelBase, viewsets.ViewSet):
 
     def allow_oper_node(self, node_info, curr_node_status):
         not_allow_msg = "some nodes of the selected nodes do not allow operation, please check the nodes status!"
-        if node_info['status'] == NodeStatus.ToRemoved \
-                and curr_node_status in [node_info['status'], NodeStatus.Removable]:
+        if node_info['status'] == NodeStatus.ToRemoved and curr_node_status in [
+            node_info['status'],
+            NodeStatus.Removable,
+        ]:
             raise error_codes.CheckFailed(not_allow_msg)
-        if node_info['status'] == NodeStatus.Normal \
-                and curr_node_status in [node_info['status'], NodeStatus.Normal]:
+        if node_info['status'] == NodeStatus.Normal and curr_node_status in [node_info['status'], NodeStatus.Normal]:
             raise error_codes.CheckFailed(not_allow_msg)
 
     def node_handler(self, request, project_id, cluster_id, node_info):
@@ -399,16 +366,16 @@ class NodeGetUpdateDeleteViewSet(NodeBase, NodeLabelBase, viewsets.ViewSet):
             resource_type='node',
             resource=node_info['inner_ip'],
             resource_id=node_id,
-            description=log_desc
+            description=log_desc,
         ).log_modify():
             self.node_handler(request, project_id, cluster_id, node_info)
-            container_num = self.get_node_container_num(
-                request, project_id, cluster_id, node_info['inner_ip'])
+            container_num = self.get_node_container_num(request, project_id, cluster_id, node_info['inner_ip'])
             # update node status to removable, when container num in the host is zore
             if container_num == 0 and node_info['status'] == NodeStatus.ToRemoved:
                 node_info['status'] = NodeStatus.Removable
             data = self.update_nodes_in_cluster(
-                request, project_id, cluster_id, [node_info['inner_ip']], node_info['status'])
+                request, project_id, cluster_id, [node_info['inner_ip']], node_info['status']
+            )
         node = data[0] if data else {}
         return response.Response(node)
 
@@ -437,30 +404,23 @@ class CCHostListViewSet(NodeBase, NodeHandler, viewsets.ViewSet):
     renderer_classes = (BKAPIRenderer, BrowsableAPIRenderer)
 
     def get_data(self, request):
-        """serialize request data
-        """
+        """serialize request data"""
         slz = node_serializers.ListNodeSLZ(data=request.data)
         slz.is_valid(raise_exception=True)
         return dict(slz.validated_data)
 
     def get_all_nodes(self, request, project_id):
         data = paas_cc.get_all_cluster_hosts(
-            request.user.token.access_token, exclude_status_list=[CommonStatus.Removed])
-        return {
-            info['inner_ip']: info
-            for info in data
-        }
+            request.user.token.access_token, exclude_status_list=[CommonStatus.Removed]
+        )
+        return {info['inner_ip']: info for info in data}
 
     def get_cc_host_mappings(self, host_list):
-        data = {
-            info['InnerIP']: convert_mappings(cluster_constants.CCHostKeyMappings, info)
-            for info in host_list
-        }
+        data = {info['InnerIP']: convert_mappings(cluster_constants.CCHostKeyMappings, info) for info in host_list}
         return data
 
     def get_project_cluster_resource(self, request):
-        """get all master/node info
-        """
+        """get all master/node info"""
         resp = paas_cc.get_project_cluster_resource(request.user.token.access_token)
         if resp.get('code') != ErrorCode.NoError:
             raise error_codes.APIError(resp.get('message'))
@@ -468,8 +428,10 @@ class CCHostListViewSet(NodeBase, NodeHandler, viewsets.ViewSet):
         # return format: {cluster_id: {project_name: xxx, cluster_name: xxx}}
         format_data = {
             cluster['id']: {'project_name': project['name'], 'cluster_name': cluster['name']}
-            for project in data if project
-            for cluster in project['cluster_list'] if cluster
+            for project in data
+            if project
+            for cluster in project['cluster_list']
+            if cluster
         }
         return format_data
 
@@ -512,16 +474,17 @@ class CCHostListViewSet(NodeBase, NodeHandler, viewsets.ViewSet):
                 cluster_name = project_cluster_name.get('cluster_name', '')
                 break
             # update fields and value
-            ip_info.update({
-                'project_name': project_name,
-                'cluster_name': cluster_name,
-                'cluster_id': cluster_id,
-                'is_used': used_status,
-                # 添加是否docker机类型，docker机不允许使用
-                # 判断条件为，以`D`开头则为docker机
-                "is_valid": False if ip_info.get("DeviceClass", "").startswith("D") else True
-
-            })
+            ip_info.update(
+                {
+                    'project_name': project_name,
+                    'cluster_name': cluster_name,
+                    'cluster_id': cluster_id,
+                    'is_used': used_status,
+                    # 添加是否docker机类型，docker机不允许使用
+                    # 判断条件为，以`D`开头则为docker机
+                    "is_valid": False if ip_info.get("DeviceClass", "").startswith("D") else True,
+                }
+            )
             if used_status:
                 used_node_list.append(ip_info)
             else:
@@ -531,8 +494,7 @@ class CCHostListViewSet(NodeBase, NodeHandler, viewsets.ViewSet):
         return node_list
 
     def post(self, request, project_id):
-        """get cmdb host info, include gse status, use status
-        """
+        """get cmdb host info, include gse status, use status"""
         # get request data
         data = self.get_data(request)
         cmdb_client = cmdb.CMDBClient(request)
@@ -542,16 +504,12 @@ class CCHostListViewSet(NodeBase, NodeHandler, viewsets.ViewSet):
         self.cc_application_name = cmdb_client.get_cc_application_name()
         # get host list, return as soon as possible when empty
         if not host_list:
-            return response.Response({
-                'results': [],
-                'cc_application_name': self.cc_application_name
-            })
+            return response.Response({'results': [], 'cc_application_name': self.cc_application_name})
         # get resource from bcs cc
         project_cluster_resource = self.get_project_cluster_resource(request)
         exist_node_info = self.get_all_nodes(request, project_id)
         # add node use status, in order to display for frontend
-        host_list = self.render_node_with_use_status(
-            host_list, exist_node_info, project_cluster_resource)
+        host_list = self.render_node_with_use_status(host_list, exist_node_info, project_cluster_resource)
         # 获取不可用节点的数量，返回供前端使用
         unavailable_ip_count = len([info for info in host_list if info.get("is_used") or not info.get("is_valid")])
         # paginator the host list
@@ -562,12 +520,14 @@ class CCHostListViewSet(NodeBase, NodeHandler, viewsets.ViewSet):
         # compose the host list with gse status and host status
         self.update_agent_status(cc_host_map, gse_host_status)
 
-        return response.Response({
-            'results': list(cc_host_map.values()),
-            'count': pagination_data['count'],
-            'cc_application_name': self.cc_application_name,
-            "unavailable_ip_count": unavailable_ip_count
-        })
+        return response.Response(
+            {
+                'results': list(cc_host_map.values()),
+                'count': pagination_data['count'],
+                'cc_application_name': self.cc_application_name,
+                "unavailable_ip_count": unavailable_ip_count,
+            }
+        )
 
 
 class NodeUpdateLogView(NodeBase, viewsets.ModelViewSet):
@@ -576,15 +536,16 @@ class NodeUpdateLogView(NodeBase, viewsets.ModelViewSet):
     queryset = NodeUpdateLog.objects.all()
 
     def get_queryset(self, project_id, cluster_id, node_id):
-        return super().get_queryset().filter(
-            project_id=project_id, cluster_id=cluster_id, node_id__icontains='[%s]' % node_id
-        ).order_by('-create_at')
+        return (
+            super()
+            .get_queryset()
+            .filter(project_id=project_id, cluster_id=cluster_id, node_id__icontains='[%s]' % node_id)
+            .order_by('-create_at')
+        )
 
     def get_display_status(self, curr_status):
         return status_transfer(
-            curr_status,
-            cluster_constants.NODE_RUNNING_STATUS,
-            cluster_constants.NODE_FAILED_STATUS
+            curr_status, cluster_constants.NODE_RUNNING_STATUS, cluster_constants.NODE_FAILED_STATUS
         )
 
     def get_node_ip(self, access_token, project_id, cluster_id, node_id):
@@ -605,7 +566,7 @@ class NodeUpdateLogView(NodeBase, viewsets.ModelViewSet):
             'status': status,
             'log': [],
             "task_url": latest_log.log_params.get("task_url") or "",
-            "error_msg_list": []
+            "error_msg_list": [],
         }
         for info in logs:
             info.status = self.get_display_status(info.status)
@@ -626,8 +587,7 @@ class NodeInfo(NodeBase, viewsets.ViewSet):
     renderer_classes = (BKAPIRenderer, BrowsableAPIRenderer)
 
     def get_node_id(self, inner_ip, node_list):
-        """get node id by bcs cc
-        """
+        """get node id by bcs cc"""
         node_id = 0
         for info in node_list:
             if info['inner_ip'] != inner_ip:
@@ -639,8 +599,7 @@ class NodeInfo(NodeBase, viewsets.ViewSet):
         return node_id
 
     def info(self, request, project_id, cluster_id):
-        """get host info by cmdb
-        """
+        """get host info by cmdb"""
         self.can_view_cluster(request, project_id, cluster_id)
         inner_ip = request.GET.get('res_id')
         if not inner_ip:
@@ -664,15 +623,13 @@ class NodeContainers(NodeBase, viewsets.ViewSet):
 
     def get_params(self, request, project_id, cluster_id):
         slz = node_serializers.NodeSLZ(
-            data=request.GET,
-            context={'request': request, 'project_id': project_id, 'cluster_id': cluster_id}
+            data=request.GET, context={'request': request, 'project_id': project_id, 'cluster_id': cluster_id}
         )
         slz.is_valid(raise_exception=True)
         return slz.data
 
     def list(self, request, project_id, cluster_id):
-        """获取节点下的容器列表
-        """
+        """获取节点下的容器列表"""
         self.can_view_cluster(request, project_id, cluster_id)
         # get params
         params = self.get_params(request, project_id, cluster_id)
@@ -684,10 +641,8 @@ class NodeContainers(NodeBase, viewsets.ViewSet):
 
 
 class NodeLabelQueryCreateViewSet(NodeBase, NodeLabelBase, viewsets.ViewSet):
-
     def label_key_handler(self, pre_labels, curr_labels):
-        """处理label的key
-        """
+        """处理label的key"""
         ret_data = {}
         pre_label_keys = pre_labels.keys()
         curr_keys = curr_labels.keys()
@@ -727,8 +682,7 @@ class NodeLabelQueryCreateViewSet(NodeBase, NodeLabelBase, viewsets.ViewSet):
         return ret_data
 
     def get_node_labels(self, request, project_id):
-        """获取节点标签
-        """
+        """获取节点标签"""
         # 获取节点ID
         node_ids = request.GET.get("node_ids")
         cluster_id = request.GET.get("cluster_id")
@@ -743,10 +697,12 @@ class NodeLabelQueryCreateViewSet(NodeBase, NodeLabelBase, viewsets.ViewSet):
         all_node_id_list = [info["id"] for info in all_nodes]
         diff_node_id_list = set(node_id_list) - set(all_node_id_list)
         if diff_node_id_list:
-            return response.Response({
-                "code": ErrorCode.UserError,
-                "message": _("节点ID [{}] 不属于当前项目，请确认").format(",".join(diff_node_id_list))
-            })
+            return response.Response(
+                {
+                    "code": ErrorCode.UserError,
+                    "message": _("节点ID [{}] 不属于当前项目，请确认").format(",".join(diff_node_id_list)),
+                }
+            )
 
         node_label_list = self.get_labels_by_node(request, project_id, node_id_list)
         # 校验权限
@@ -765,10 +721,7 @@ class NodeLabelQueryCreateViewSet(NodeBase, NodeLabelBase, viewsets.ViewSet):
             if not info.get("labels"):
                 exist_node_without_label = True
         ret_data = self.label_syntax(node_label_list, exist_node_without_label=exist_node_without_label)
-        return response.Response({
-            "code": ErrorCode.NoError,
-            "data": ret_data
-        })
+        return response.Response({"code": ErrorCode.NoError, "data": ret_data})
 
     def get_create_label_params(self, request):
         slz = NodeLabelParamsSLZ(data=request.data)
@@ -777,8 +730,7 @@ class NodeLabelQueryCreateViewSet(NodeBase, NodeLabelBase, viewsets.ViewSet):
         return node_id_labels.get("node_id_list"), node_id_labels.get("node_label_info")
 
     def label_regex(self, node_label_info, project_kind):
-        """校验label满足正则
-        """
+        """校验label满足正则"""
         # 由于mesos没有限制，因此可以直接跳过
         if project_kind != 1:
             return
@@ -804,8 +756,7 @@ class NodeLabelQueryCreateViewSet(NodeBase, NodeLabelBase, viewsets.ViewSet):
                     raise error_codes.APIError(_("键[{}]不符合规范，请参考帮助文档!").format(key))
             # 针对val的校验
             if val != DEFAULT_MIX_VALUE and not val_regex.match(val):
-                raise error_codes.APIError(
-                    _("键[{}]对应的值[{}]不符合规范，请参考帮助文档!").format(key, val))
+                raise error_codes.APIError(_("键[{}]对应的值[{}]不符合规范，请参考帮助文档!").format(key, val))
 
     def get_label_operation(self, exist_node_labels, post_data, node_id_list, all_node_id_ip_map):
         """获取节点标签，并且和数据库中作对比，识别到添加、删除、更新操作对应的key:value
@@ -839,12 +790,13 @@ class NodeLabelQueryCreateViewSet(NodeBase, NodeLabelBase, viewsets.ViewSet):
                 "add": {},
                 "update": {},
                 "delete": {},
-                "existed": {}
+                "existed": {},
             }
             labels = json.loads(info["labels"] or "{}")
             if not labels:
                 label_operation_map[node_id]["add"] = {
-                    key: val for key, val in post_data.items() if val != DEFAULT_MIX_VALUE}
+                    key: val for key, val in post_data.items() if val != DEFAULT_MIX_VALUE
+                }
             else:
                 post_data_copy = copy.deepcopy(post_data)
                 for key, val in labels.items():
@@ -857,9 +809,10 @@ class NodeLabelQueryCreateViewSet(NodeBase, NodeLabelBase, viewsets.ViewSet):
                         label_operation_map[node_id]["existed"][key] = val
                     post_data_copy.pop(key, None)
                 label_operation_map[node_id]["add"].update(
-                    {key: val for key, val in post_data_copy.items() if val != DEFAULT_MIX_VALUE})
+                    {key: val for key, val in post_data_copy.items() if val != DEFAULT_MIX_VALUE}
+                )
         # 新添加的node调整
-        for node_id in (set(node_id_list) - set(existed_node_id_list)):
+        for node_id in set(node_id_list) - set(existed_node_id_list):
             item = {key: val for key, val in post_data.items() if val != DEFAULT_MIX_VALUE}
             if not item:
                 continue
@@ -870,24 +823,21 @@ class NodeLabelQueryCreateViewSet(NodeBase, NodeLabelBase, viewsets.ViewSet):
                 "add": item,
                 "update": {},
                 "delete": {},
-                "existed": {}
+                "existed": {},
             }
         return label_operation_map
 
     def check_perm(self, request, project_id, all_node_id_ip_map, node_id_list):
         # 校验权限
         cluster_id_list = [
-            info["cluster_id"]
-            for node_id, info in all_node_id_ip_map.items()
-            if node_id in node_id_list
+            info["cluster_id"] for node_id, info in all_node_id_ip_map.items() if node_id in node_id_list
         ]
         for cluster_id in set(cluster_id_list):
             perm_client = bcs_perm.Cluster(request, project_id, cluster_id)
             perm_client.can_view(raise_exception=True)
 
     def create_node_label_via_k8s(self, request, project_id, label_operation_map):
-        """K8S打Label
-        """
+        """K8S打Label"""
         for node_id, info in label_operation_map.items():
             client = k8s.K8SClient(request.user.token.access_token, project_id, info["cluster_id"], None)
             online_node_info = client.get_node_detail(info["ip"])
@@ -906,8 +856,7 @@ class NodeLabelQueryCreateViewSet(NodeBase, NodeLabelBase, viewsets.ViewSet):
                 raise error_codes.APIError(k8s_resp.get("message"))
 
     def create_node_label_via_mesos(self, request, project_id, label_operation_map):
-        """Mesos打tag
-        """
+        """Mesos打tag"""
         # 调整为全量更新
         cluster_node_map = {}
         for node_id, info in label_operation_map.items():
@@ -921,7 +870,7 @@ class NodeLabelQueryCreateViewSet(NodeBase, NodeLabelBase, viewsets.ViewSet):
             ip_label_info = {
                 'innerIP': inner_ip,
                 'disable': False,
-                'strings': {key: {"value": val} for key, val in labels.items()}
+                'strings': {key: {"value": val} for key, val in labels.items()},
             }
             if cluster_id in cluster_node_map:
                 cluster_node_map[cluster_id].append(ip_label_info)
@@ -929,8 +878,7 @@ class NodeLabelQueryCreateViewSet(NodeBase, NodeLabelBase, viewsets.ViewSet):
                 cluster_node_map[cluster_id] = [ip_label_info]
 
         for cluster_id, ip_label_info in cluster_node_map.items():
-            client = mesos.MesosClient(
-                request.user.token.access_token, project_id, cluster_id, None)
+            client = mesos.MesosClient(request.user.token.access_token, project_id, cluster_id, None)
             resp = client.update_agent_attrs(ip_label_info)
             if resp.get("code") != ErrorCode.NoError:
                 raise error_codes.APIError(resp.get("message"))
@@ -946,7 +894,7 @@ class NodeLabelQueryCreateViewSet(NodeBase, NodeLabelBase, viewsets.ViewSet):
                         project_id=project_id,
                         cluster_id=info["cluster_id"],
                         labels=json.dumps(info["add"]),
-                        is_deleted=False
+                        is_deleted=False,
                     )
                 else:
                     NodeLabel.objects.create(
@@ -954,7 +902,7 @@ class NodeLabelQueryCreateViewSet(NodeBase, NodeLabelBase, viewsets.ViewSet):
                         project_id=project_id,
                         cluster_id=info["cluster_id"],
                         node_id=node_id,
-                        labels=json.dumps(info["add"])
+                        labels=json.dumps(info["add"]),
                     )
             else:
                 node_label_info = NodeLabel.objects.get(node_id=node_id, is_deleted=False)
@@ -968,8 +916,7 @@ class NodeLabelQueryCreateViewSet(NodeBase, NodeLabelBase, viewsets.ViewSet):
                 node_label_info.save()
 
     def create_node_labels(self, request, project_id):
-        """添加节点标签
-        """
+        """添加节点标签"""
         project_kind = request.project["kind"]
         # 解析参数
         node_id_list, node_label_info = self.get_create_label_params(request)
@@ -995,7 +942,8 @@ class NodeLabelQueryCreateViewSet(NodeBase, NodeLabelBase, viewsets.ViewSet):
         # 匹配数据
         pre_node_labels = self.get_labels_by_node(request, project_id, node_id_list)
         label_operation_map = self.get_label_operation(
-            pre_node_labels, node_label_info, node_id_list, all_node_id_ip_map)
+            pre_node_labels, node_label_info, node_id_list, all_node_id_ip_map
+        )
         # 针对k8s和mesos做不同的处理
         # k8s 是以节点为维度；mesos是label为维度
         if project_kind == 1:
@@ -1012,12 +960,9 @@ class NodeLabelQueryCreateViewSet(NodeBase, NodeLabelBase, viewsets.ViewSet):
             resource=str(node_id_list),
             resource_id=str(node_id_list),
             extra=json.dumps(node_label_info),
-            description=_("节点打标签")
+            description=_("节点打标签"),
         ).log_add(activity_status="succeed")
-        return response.Response({
-            "code": 0,
-            "message": _("创建成功!")
-        })
+        return response.Response({"code": 0, "message": _("创建成功!")})
 
 
 class NodeLabelListViewSet(NodeBase, NodeLabelBase, viewsets.ViewSet):
@@ -1057,7 +1002,7 @@ class NodeLabelListViewSet(NodeBase, NodeLabelBase, viewsets.ViewSet):
         return {
             info['cluster_id']: {
                 'cluster_env': cluster_env_transfer(info['environment']),
-                'cluster_name': info['name']
+                'cluster_name': info['name'],
             }
             for info in results
             if info.get('cluster_id')
@@ -1077,7 +1022,8 @@ class NodeLabelListViewSet(NodeBase, NodeLabelBase, viewsets.ViewSet):
         # render cluster id, cluster name and cluster environment
         cluster_name_env = self.get_cluster_id_info_map(request, project_id)
         node_list = self.compose_node_with_label(
-            node_id_info_map, node_label_list, request.project['english_name'], cluster_name_env)
+            node_id_info_map, node_label_list, request.project['english_name'], cluster_name_env
+        )
         # add perm for node
         nodes_results = bcs_perm.Cluster.hook_perms(request, project_id, node_list)
 
@@ -1089,8 +1035,7 @@ class RescheduleNodePods(NodeBase, viewsets.ViewSet):
 
     def validate_node_status(self, node_info):
         # NOTE: 需要注意，mesos not ready 状态需要list/watch功能上线后，支持
-        if node_info.get('status') not in [
-                NodeStatus.ToRemoved, NodeStatus.Removable, NodeStatus.NotReady]:
+        if node_info.get('status') not in [NodeStatus.ToRemoved, NodeStatus.Removable, NodeStatus.NotReady]:
             raise ValidationError(_("节点必须为不可调度状态，请点击【停止调度】按钮！"))
 
     def reschedule_pods_taskgroups(self, request, project_id, cluster_id, node_info):
@@ -1119,14 +1064,13 @@ class RescheduleNodePods(NodeBase, viewsets.ViewSet):
             resource_type='node',
             resource=node_info['inner_ip'],
             resource_id=node_id,
-            description=log_desc
+            description=log_desc,
         ).log_modify():
             # reschedule the pod or taskgroup
             self.reschedule_pods_taskgroups(request, project_id, cluster_id, node_info)
-        return response.Response({
-            "code": 0,
-            "message": "task started, please pay attention to the change of container count"
-        })
+        return response.Response(
+            {"code": 0, "message": "task started, please pay attention to the change of container count"}
+        )
 
 
 class NodeForceDeleteViewSet(NodeBase, NodeLabelBase, viewsets.ViewSet):
@@ -1157,8 +1101,7 @@ class BatchUpdateDeleteNodeViewSet(NodeGetUpdateDeleteViewSet):
         return slz.validated_data
 
     def get_node_without_removed(self, node_list):
-        node_list = [
-            node for node in node_list if node['status'] != CommonStatus.Removed]
+        node_list = [node for node in node_list if node['status'] != CommonStatus.Removed]
         if not node_list:
             raise error_codes.CheckFailed('there are not node in cluster')
         return node_list
@@ -1200,8 +1143,7 @@ class BatchUpdateDeleteNodeViewSet(NodeGetUpdateDeleteViewSet):
             if curr_node_container_count == 0 and info['status'] == NodeStatus.ToRemoved:
                 info['status'] = NodeStatus.Removable
             update_data.append({'inner_ip': info['inner_ip'], 'status': info['status']})
-        resp = paas_cc.update_node_list(
-            request.user.token.access_token, project_id, cluster_id, data=update_data)
+        resp = paas_cc.update_node_list(request.user.token.access_token, project_id, cluster_id, data=update_data)
         if resp.get('code') != ErrorCode.NoError:
             raise error_codes.APIError(resp.get('message'))
         return resp.get('data') or []
@@ -1228,7 +1170,7 @@ class BatchUpdateDeleteNodeViewSet(NodeGetUpdateDeleteViewSet):
             resource_type='node',
             resource=req_ip_str[:200],
             resource_id=','.join(req_id_list)[:200],
-            description=log_desc
+            description=log_desc,
         ).log_modify():
             self.node_list_handler(request, project_id, cluster_id, node_list)
             # update node status for bcs cc
@@ -1242,13 +1184,12 @@ class BatchUpdateDeleteNodeViewSet(NodeGetUpdateDeleteViewSet):
         return slz.validated_data
 
     def get_delete_status(self, force_delete=False):
-        """compose the status, in order to allow to delete node
-        """
+        """compose the status, in order to allow to delete node"""
         delete_status_list = [
             NodeStatus.Removable,
             NodeStatus.RemoveFailed,
             NodeStatus.InitialFailed,
-            CommonStatus.ScheduleFailed
+            CommonStatus.ScheduleFailed,
         ]
         if force_delete:
             delete_status_list.append(NodeStatus.ToRemoved)
@@ -1271,10 +1212,10 @@ class BatchUpdateDeleteNodeViewSet(NodeGetUpdateDeleteViewSet):
                 exist_node_list.append(info)
         if illegle_status_nodes:
             raise error_codes.CheckFailed(
-                "some nodes of the selected nodes do not allow deletion, please check the nodes status!")
+                "some nodes of the selected nodes do not allow deletion, please check the nodes status!"
+            )
         if len(exist_node_list) != len(req_node_id_list):
-            raise error_codes.CheckFailed(
-                "some nodes of the selected nodes do not belong the current cluster!")
+            raise error_codes.CheckFailed("some nodes of the selected nodes do not belong the current cluster!")
         return exist_node_list
 
     def delete_flow(self, request, project_id, cluster_id, node_list):
@@ -1289,7 +1230,7 @@ class BatchUpdateDeleteNodeViewSet(NodeGetUpdateDeleteViewSet):
             resource_type='node',
             resource=req_ip_str[:200],
             resource_id=','.join(id_list)[:200],
-            description=log_desc
+            description=log_desc,
         ).log_delete():
             cluster_utils.delete_node_labels_record(NodeLabel, id_list, request.user.username)
             node_client = node.BatchDeleteNode(request, project_id, cluster_id, node_list)

@@ -12,6 +12,7 @@
 # specific language governing permissions and limitations under the License.
 #
 from kubernetes.dynamic.resource import ResourceInstance
+
 from backend.resources.utils.kube_client import CoreDynamicClient
 
 

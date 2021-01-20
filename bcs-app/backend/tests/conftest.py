@@ -12,16 +12,15 @@
 # specific language governing permissions and limitations under the License.
 #
 import os
-import pytest
 from unittest import mock
 
+import pytest
 from django.contrib.auth import get_user_model
 from kubernetes import client
 from rest_framework.test import APIClient
 
-from backend.tests.testing_utils.base import generate_random_string
 from backend.resources.project.constants import ProjectKind
-
+from backend.tests.testing_utils.base import generate_random_string
 
 TESTING_API_SERVER_URL = os.environ.get("TESTING_API_SERVER_URL", 'http://localhost:28180')
 

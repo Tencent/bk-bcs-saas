@@ -17,6 +17,7 @@ from rest_framework.exceptions import ValidationError
 from backend.apps.variable.models import Variable
 from backend.apps.variable.serializers import RE_KEY
 
+
 class VariablesSLZ(serializers.Serializer):
     id = serializers.IntegerField(required=False)
     key = serializers.RegexField(RE_KEY, max_length=64)
@@ -24,8 +25,7 @@ class VariablesSLZ(serializers.Serializer):
 
 
 class CreateNamespaceParamsSLZ(serializers.Serializer):
-    name = serializers.RegexField(
-        r'[a-z0-9]([-a-z0-9]*[a-z0-9])?', min_length=2, max_length=63)
+    name = serializers.RegexField(r'[a-z0-9]([-a-z0-9]*[a-z0-9])?', min_length=2, max_length=63)
     variables = serializers.ListField(child=VariablesSLZ(), default=[])
 
     def validate_variables(self, variables):

@@ -15,8 +15,8 @@ from rest_framework.response import Response
 
 from backend.apis.views import BaseAPIViewSet
 from backend.apps.configuration import models
-from backend.apps.configuration.showversion import views as show_version_view
 from backend.apps.configuration.serializers_new import ListTemplateSLZ
+from backend.apps.configuration.showversion import views as show_version_view
 
 
 class TemplatesViewSet(BaseAPIViewSet):

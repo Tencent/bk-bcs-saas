@@ -42,20 +42,17 @@ class TLSCertManagerFactory:
 
 
 class TLSCertManagerBase(abc.ABC):
-
     def __init__(self, request, project_id):
         self.request = request
         self.project_id = project_id
 
     @abc.abstractmethod
     def get_certs(self):
-        """获取证书列表
-        """
+        """获取证书列表"""
 
     @property
     def cert_list_url(self):
-        """跳转链接
-        """
+        """跳转链接"""
         return ''
 
 
@@ -64,16 +61,9 @@ class BCSTLSCertManager(TLSCertManagerBase):
         tls_sets = TlsCert.objects.filter(project_id=self.project_id)
         tls_records = []
         for _tls in tls_sets:
-            tls_records.append({
-                'certId': _tls.id,
-                'certName': _tls.name,
-                'certType': 'bcstls'
-            })
+            tls_records.append({'certId': _tls.id, 'certName': _tls.name, 'certType': 'bcstls'})
 
-        data = {
-            'records': tls_records,
-            'cert_list_url': self.cert_list_url
-        }
+        data = {'records': tls_records, 'cert_list_url': self.cert_list_url}
         return data
 
 
