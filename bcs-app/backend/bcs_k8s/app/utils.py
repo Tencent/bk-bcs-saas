@@ -234,7 +234,7 @@ def dashboard_get_overview(kubeconfig, namespace, bin_path=settings.DASHBOARD_CT
     return dashboard_overview
 
 
-def add_pods_status(resource: Dict) -> Dict:
+def update_pods_status(resource: Dict) -> Dict:
     """添加pods的状态信息"""
     # TODO：优化调整为通过helm和kubectl获取状态，现阶段先兼容处理
     # 新版本的 dashboard，返回的部分资源的 pods 字段调整为了 podInfo 字段
@@ -260,7 +260,7 @@ def extract_state_info_from_dashboard_overview(overview_status, kind, namespace,
 
         for item in obj_list:
             if item["objectMeta"]["name"].lower() == name.lower():
-                item = add_pods_status(item)
+                item = update_pods_status(item)
                 return item
 
     return dict()
