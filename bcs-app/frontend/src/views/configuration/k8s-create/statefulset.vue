@@ -4005,7 +4005,7 @@
                         // image = imageBase + imageName + ':' + imageVersion
                         const imageName = this.curContainer.webCache.imageName
                         this.curContainer.imageVersion = value
-                        this.curContainer.image = `${DEVOPS_ARTIFACTORY_HOST}/${imageName}:${value}`
+                        this.curContainer.image = `${DEVOPS_ARTIFACTORY_HOST}/${imageName.split(':')[1]}:${value}`
                     } else {
                         // 镜像和版本是变量
                         // image = imageBase +  'paas/' + projectCode + '/' + imageName + ':' + imageVersion
