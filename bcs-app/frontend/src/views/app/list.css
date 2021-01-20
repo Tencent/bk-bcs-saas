@@ -190,6 +190,10 @@
             .list-item-tpl-table {
                 padding: 0 0 0 15px;
 
+                &.loading {
+                    height: 200px;
+                }
+
                 .bk-table {
                     border-bottom: none;
                 }

@@ -173,7 +173,7 @@
             cursor: default;
 
             &.hide {
-                /* display: none; */
+                display: none;
             }
         }
     }
