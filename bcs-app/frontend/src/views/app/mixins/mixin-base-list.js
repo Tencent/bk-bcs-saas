@@ -312,6 +312,8 @@ export default {
             }
         }
 
+        this.clusterType = '2'
+
         // 设置 bkSearch fixedSearchParams 的选中状态
         if (this.bkSearcherFixedSearchParams.length) {
             this.bkSearcherFixedSearchParams[0].list.forEach(item => {
@@ -2555,37 +2557,77 @@ export default {
          * 扩缩容弹层更新按钮
          */
         async instanceNumConfirm () {
-            const params = {
-                projectId: this.projectId,
-                instanceId: this.curInstance.id,
-                name: this.curInstance.name,
-                instanceNum: this.instanceNum,
-                cluster_id: this.curInstance.cluster_id
-            }
-            if (!this.curInstance.from_platform && this.curInstance.id === 0) {
-                params.namespace = this.curInstance.namespace
-                params.category = this.curInstance.category
-            }
-            if (this.CATEGORY) {
-                params.category = this.CATEGORY
-            }
+            const me = this
 
-            this.isUpdating = true
-            this.curInstance.state && this.curInstance.state.lock()
-            try {
-                await this.$store.dispatch('app/scaleInstanceNum', params)
-            } catch (e) {
-                this.bkMessageInstance = this.$bkMessage({
-                    theme: 'error',
-                    message: e.message || e.data.msg || e.statusText
+            const originalNum = parseFloat(me.curInstance.build_instance)
+            const instanceNum = parseFloat(me.instanceNum)
+            if (originalNum === instanceNum) {
+                me.bkMessageInstance = me.$bkMessage({
+                    theme: 'primary',
+                    message: me.$t('实例数量没有变化'),
+                    delay: 1500
                 })
-            } finally {
-                this.isUpdating = false
-                this.hideInstanceNum()
-                setTimeout(() => {
-                    this.curInstance.state && this.curInstance.state.unlock()
-                }, 1000)
+                return
             }
+            let msg = ''
+            if (this.isEn) {
+                if (instanceNum > originalNum) {
+                    msg = `Confirm to scale up ${instanceNum} instances`
+                } else {
+                    msg = `Confirm to scale down ${instanceNum} instances`
+                }
+            } else {
+                if (instanceNum > originalNum) {
+                    msg = `确定扩容到 ${instanceNum} 个实例`
+                } else {
+                    msg = `确定缩容到 ${instanceNum} 个实例`
+                }
+            }
+            me.$bkInfo({
+                title: ``,
+                clsName: 'biz-confirm-dialog',
+                content: me.$createElement('p', {
+                    style: {
+                        color: '#666',
+                        fontSize: '14px',
+                        marginLeft: '-7px'
+                    }
+                // }, me.$t('确定扩缩容【{instanceName}】？', { instanceName: me.curInstance.name })),
+                }, msg),
+                async confirmFn () {
+                    const params = {
+                        projectId: me.projectId,
+                        instanceId: me.curInstance.id,
+                        name: me.curInstance.name,
+                        instanceNum: instanceNum,
+                        cluster_id: me.curInstance.cluster_id
+                    }
+                    if (!me.curInstance.from_platform && me.curInstance.id === 0) {
+                        params.namespace = me.curInstance.namespace
+                        params.category = me.curInstance.category
+                    }
+                    if (me.CATEGORY) {
+                        params.category = me.CATEGORY
+                    }
+
+                    me.isUpdating = true
+                    me.curInstance.state && me.curInstance.state.lock()
+                    try {
+                        await me.$store.dispatch('app/scaleInstanceNum', params)
+                    } catch (e) {
+                        me.bkMessageInstance = me.$bkMessage({
+                            theme: 'error',
+                            message: e.message || e.data.msg || e.statusText
+                        })
+                    } finally {
+                        me.isUpdating = false
+                        me.hideInstanceNum()
+                        setTimeout(() => {
+                            me.curInstance.state && me.curInstance.state.unlock()
+                        }, 1000)
+                    }
+                }
+            })
         },
 
         /**

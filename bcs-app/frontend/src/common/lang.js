@@ -1605,5 +1605,7 @@ export default {
     '仅移除记录': ['Only remove records'],
     '当前节点必须为已故障或已从集群移除，否则，平台会重新同步该节点数据': ['The current node must be faulty or removed from the cluster, otherwise, the platform will resynchronize the node data'],
     '此操作不会删除集群中的节点，仅移除当前节点在平台中的记录': ['This operation will not delete the nodes in the cluster, only the record of the current node in the platform'],
-    '请确认: ': ['Please confirm: ']
+    '请确认: ': ['Please confirm: '],
+    'CPU 管理策略：': ['CPU Management: '],
+    '实例数量没有变化': ['Instances not Change']
 }
