@@ -25,6 +25,7 @@ from backend.apps.constants import ProjectKind
 from backend.apps.instance import constants as instance_constants
 from backend.apps.instance.models import InstanceConfig
 from backend.components.bcs import k8s, mesos
+from backend.utils import basic
 
 logger = logging.getLogger(__name__)
 
@@ -148,6 +149,27 @@ def slz_mesos_hpa_info(hpa, project_code, cluster_name, cluster_env, cluster_id)
     return hpa_list
 
 
+def get_normalize_conditions(config):
+    """获取 hpa conditions
+    """
+    # k8s 注意需要调用 autoscaling/v2beta2 版本 api
+    conditions = config["status"].get("conditions", [])
+
+    def normalize_condition(condition):
+        """格式时间 lambda 函数
+        """
+        condition["lastTransitionTime"] = basic.normalize_time(condition["lastTransitionTime"])
+        return condition
+
+    # lastTransitionTime 转换为本地时间
+    conditions = map(normalize_condition, conditions)
+
+    # 按时间倒序排序
+    conditions = sorted(conditions, key=lambda x: x["lastTransitionTime"], reverse=True)
+
+    return conditions
+
+
 def slz_k8s_hpa_info(hpa, project_code, cluster_name, cluster_env, cluster_id):
     hpa_list = []
     for _config in hpa:
@@ -176,7 +198,7 @@ def slz_k8s_hpa_info(hpa, project_code, cluster_name, cluster_env, cluster_id):
             "current_replicas": _config["status"]["currentReplicas"],
             "current_metrics_display": get_current_metrics_display(current_metrics),
             "current_metrics": current_metrics,
-            "conditions": _config["status"].get("conditions", []),  # k8s 注意需要调用 autoscaling/v2beta2 版本 api
+            "conditions": get_normalize_conditions(_config),
             "source_type": application_constants.SOURCE_TYPE_MAP.get(source_type),
             "creator": annotations.get(instance_constants.ANNOTATIONS_CREATOR, ""),
             "create_time": annotations.get(instance_constants.ANNOTATIONS_CREATE_TIME, ""),
