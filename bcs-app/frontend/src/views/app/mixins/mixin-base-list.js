@@ -312,8 +312,6 @@ export default {
             }
         }
 
-        this.clusterType = '2'
-
         // 设置 bkSearch fixedSearchParams 的选中状态
         if (this.bkSearcherFixedSearchParams.length) {
             this.bkSearcherFixedSearchParams[0].list.forEach(item => {

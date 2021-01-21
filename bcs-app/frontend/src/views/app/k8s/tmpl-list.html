@@ -1164,11 +1164,17 @@
     <bk-dialog
         :is-show.sync="instanceNumDialogConf.isShow"
         :width="instanceNumDialogConf.width"
-        :title="instanceNumDialogConf.title"
         :close-icon="!isUpdating"
         :ext-cls="'scale-dialog'"
         :quick-close="false"
         @cancel="hideInstanceNum">
+        <template slot="header">
+            <bk-tooltip class="refresh" :content="instanceNumDialogConf.title" :delay="500" placement="top">
+                <h3 class="bk-dialog-title">
+                    {{instanceNumDialogConf.title}}
+                </h3>
+            </bk-tooltip>
+        </template>
         <template slot="content">
             <div class="scale-wrapper" v-bkloading="{ isLoading: isLoading, opacity: 1 }">
                 <div class="bk-form-item">
