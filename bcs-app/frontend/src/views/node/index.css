@@ -514,7 +514,7 @@
 }
 
 
-@media screen and (max-width: 1280px) {
+@media screen and (max-width: 1430px) {
     .bk-text-button {
         vertical-align: bottom;
         @mixin ellipsis 200px;
@@ -539,12 +539,15 @@
         right: 94px;
     }
 
-
     .biz-node-query {
         .right {
             width: 320px;
 
             .bk-dropdown-menu {
+                right: 393px;
+            }
+
+            .cluster-selector {
                 right: 393px;
             }
         }
