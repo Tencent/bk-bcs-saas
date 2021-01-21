@@ -12,6 +12,7 @@
 @charset 'utf-8';
 @import './variable.css';
 @import './mixins/scroller.css';
+@import './mixins/ellipsis.css';
 
 .bk-table {
     width: 100%;
@@ -1259,6 +1260,7 @@
             color: #737987;
             text-align: left;
             font-size: 18px;
+            @mixin ellipsis 300px;
         }
     }
     button.disabled {
