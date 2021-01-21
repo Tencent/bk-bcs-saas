@@ -69,9 +69,12 @@ class Repository(BaseTSModel):
 
     @property
     def username_password(self) -> Tuple[str, str]:
-        credentials = list(self.auths.values("credentials"))
-        credential = json.loads(credentials[0]["credentials"])
-        return (credential["username"], credential["password"])
+        try:
+            credentials = list(self.auths.values("credentials"))
+            credential = json.loads(credentials[0]["credentials"])
+            return (credential["username"], credential["password"])
+        except Exception:
+            return ("", "")
 
 
 class RepositoryAuth(models.Model):
