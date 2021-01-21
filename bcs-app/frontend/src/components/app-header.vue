@@ -57,6 +57,46 @@
                 ],
                 metricRouters: [
                     'metricManage'
+                ],
+                // mesos 应用 router
+                mesosAppRouters: [
+                    'instanceDetail',
+                    'instanceDetail2',
+                    'containerDetail',
+                    'containerDetail2',
+                    'mesosInstantiation'
+                ],
+                // k8s 应用 deployments router
+                deploymentsRouters: [
+                    'deploymentsInstanceDetail',
+                    'deploymentsInstanceDetail2',
+                    'deploymentsContainerDetail',
+                    'deploymentsContainerDetail2',
+                    'deploymentsInstantiation'
+                ],
+                // k8s 应用 daemonset router
+                daemonsetRouters: [
+                    'daemonsetInstanceDetail',
+                    'daemonsetInstanceDetail2',
+                    'daemonsetContainerDetail',
+                    'daemonsetContainerDetail2',
+                    'daemonsetInstantiation'
+                ],
+                // k8s 应用 job router
+                jobRouters: [
+                    'jobInstanceDetail',
+                    'jobInstanceDetail2',
+                    'jobContainerDetail',
+                    'jobContainerDetail2',
+                    'jobInstantiation'
+                ],
+                // k8s 应用 statefulset router
+                statefulsetRouters: [
+                    'statefulsetInstanceDetail',
+                    'statefulsetInstanceDetail2',
+                    'statefulsetContainerDetail',
+                    'statefulsetContainerDetail2',
+                    'statefulsetInstantiation'
                 ]
             }
         },
