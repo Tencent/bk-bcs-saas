@@ -760,3 +760,12 @@
         }
     }
 }
+
+@media screen and (max-width: 1430px) {
+    .biz-cluster-node-header {
+
+        .biz-searcher-wrapper {
+            width: 500px;
+        }
+    }
+}

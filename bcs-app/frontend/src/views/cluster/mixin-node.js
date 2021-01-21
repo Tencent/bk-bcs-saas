@@ -85,13 +85,7 @@ export default {
             recordRemoveNoticeList: [
                 {
                     id: 1,
-                    text: this.$t('当前节点必须为已故障或已从集群移除，否则，平台会重新同步该节点数据'),
-                    isChecked: true,
-                    isText: true
-                },
-                {
-                    id: 2,
-                    text: this.$t('此操作不会删除集群中的节点，仅移除当前节点在平台中的记录'),
+                    text: this.$t('此操作仅移除节点在平台中的记录；如果集群中节点处于正常状态，会再次同步到平台的记录中'),
                     isChecked: true,
                     isText: true
                 }
