@@ -107,11 +107,9 @@
                     <table class="bk-table biz-templateset-table" id="templateset-table">
                         <thead>
                             <tr>
-                                <!-- <th class="template-logo center">图标</th> -->
                                 <th class="template-name">{{$t('模板集名称')}}</th>
                                 <th class="template-type">{{$t('类型')}}</th>
                                 <th class="template-container">{{$t('容器')}} / {{$t('镜像')}}</th>
-                                <!-- <th style="padding-left: 0;">镜像</th> -->
                                 <th class="template-action">{{$t('操作')}}</th>
                             </tr>
                         </thead>
@@ -127,7 +125,7 @@
                                                 <tr>
                                                     <td class="data">
                                                         <div class="data-wrapper">
-                                                            <a href="javascript:void(0);" class="title" @click.stop.prevent="goTemplateIndex(template)">
+                                                            <a href="javascript:void(0);" class="title" style="font-weight: normal;" @click.stop.prevent="goTemplateIndex(template)">
                                                                 {{template.name}}
                                                             </a>
 
@@ -136,7 +134,7 @@
                                                     </td>
                                                     <td class="type">
                                                         <div class="type-wrapper">
-                                                            <strong class="type-name">{{editMode[template.edit_mode]}}</strong>
+                                                            <span class="type-name">{{editMode[template.edit_mode]}}</span>
                                                         </div>
                                                     </td>
                                                     <td class="service">
@@ -225,8 +223,7 @@
                     </div>
                 </div>
             </template>
-            <div class="scroll-loading" v-bkloading="{ isLoading: isScrollLoading }" v-if="isScrollLoading && !isListReload">
-            </div>
+            <p :class="['biz-more-btn f13', { actived: isScrollLoading }]" v-bkloading="{ isLoading: isScrollLoading, opacity: 1 }" v-show="pageConf.hasNext && templateList.length" @click="loadNextPage">{{$t('点击加载更多')}}</p>
             <p class="biz-no-data" v-if="!pageConf.hasNext && templateList.length">{{$t('全部数据加载完成')}}</p>
         </div>
         <bk-dialog
@@ -400,10 +397,10 @@
             :has-header="false"
             :quick-close="false">
             <div slot="content" style="padding: 0 20px;">
-                <div style="color: #333; font-size: 20px">
+                <div style="color: #63656e; font-size: 20px">
                     {{$t('模板集')}}【{{delTemplateDialogConf.title}}】{{$t('版本')}}：
                 </div>
-                <ul style="margin: 10px 0; font-size: 14px; color: #333;">
+                <ul style="margin: 10px 0; font-size: 14px; color: #63656e;">
                     <li v-for="(key, index) in Object.keys(delTemplateDialogConf.existVersion)" :key="index">
                         <span>{{key}}：</span>
                         <span>{{$t('有')}} {{delTemplateDialogConf.existVersion[key]}} {{$t('个实例')}}</span>
