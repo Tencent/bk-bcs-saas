@@ -1608,5 +1608,6 @@ export default {
     '请确认: ': ['Please confirm: '],
     'CPU 管理策略：': ['CPU Management: '],
     '实例数量没有变化': ['Instances not Change'],
-    '此操作仅移除节点在平台中的记录；如果集群中节点处于正常状态，会再次同步到平台的记录中': ['This operation only removes the record of the node in the platform; if the node in the cluster is in a normal state, it will be synchronized to the record of the platform again.']
+    '此操作仅移除节点在平台中的记录；如果集群中节点处于正常状态，会再次同步到平台的记录中': ['This operation only removes the record of the node in the platform; if the node in the cluster is in a normal state, it will be synchronized to the record of the platform again.'],
+    '自有集群': ['Imported']
 }
