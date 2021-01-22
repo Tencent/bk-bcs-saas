@@ -321,7 +321,6 @@ HELM3_BIN = "/bin/helm3"
 YTT_BIN = "/bin/ytt"
 KUBECTL_BIN = "/bin/kubectl"  # default kubectl bin filename
 DASHBOARD_CTL_BIN = "/bin/dashboard-ctl"  # default dashboard ctl filename
-DASHBOARD_CTL_VERSION_MAP = {"v1": "/bin/dashboard-ctl", "v2": "/bin/dashboard-ctl-v2"}
 KUBECTL_BIN_MAP = {
     "1.8.3": "/bin/kubectl",
     "1.12.3": "/bin/kubectl-v1.12.3",

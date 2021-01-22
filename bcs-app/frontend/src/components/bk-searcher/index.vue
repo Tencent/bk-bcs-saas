@@ -47,7 +47,7 @@
             <div class="bk-searcher-dropdown-content" ref="filterValueListNode" :class="showFilterValue ? 'is-show' : ''" :style="{ left: `${searcherDropdownLeft}px` }">
                 <ul class="bk-searcher-dropdown-list" v-if="filterValueList && filterValueList.length">
                     <li v-for="(fv, fvIndex) in filterValueList" :key="fvIndex">
-                        <a href="javascript:void(0);" :class="fvIndex === filterValueKeyboardIndex ? 'active' : ''" @click="selectFilterValue(fv)">{{fv.text}}</a>
+                        <a href="javascript:void(0);" :title="fv.text" :class="fvIndex === filterValueKeyboardIndex ? 'active' : ''" @click="selectFilterValue(fv)">{{fv.text}}</a>
                     </li>
                 </ul>
                 <ul class="bk-searcher-dropdown-list" v-else>

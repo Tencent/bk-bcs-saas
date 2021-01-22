@@ -55,7 +55,7 @@
                                 <bk-tooltip :content="cluster.cluster_id" :delay="500" placement="top">
                                     <span class="cluster-id">{{cluster.cluster_id}}</span>
                                 </bk-tooltip>
-                                <span v-if="cluster.state === 'existing'" class="prod">Imported</span>
+                                <span v-if="cluster.state === 'existing'" class="prod">{{$t('自有集群')}}</span>
                             </p>
                             <bk-dropdown-menu
                                 v-if="

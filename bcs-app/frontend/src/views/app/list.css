@@ -190,6 +190,10 @@
             .list-item-tpl-table {
                 padding: 0 0 0 15px;
 
+                &.loading {
+                    height: 200px;
+                }
+
                 .bk-table {
                     border-bottom: none;
                 }
@@ -476,16 +480,7 @@
 
             .list-item-tpl-table {
                 padding: 0 20px;
-                overflow-y: scroll;
-                &::-webkit-scrollbar {
-                    width: 4px;
-                    background-color: #fff;
-                }
-                &::-webkit-scrollbar-thumb {
-                    height: 5px;
-                    border-radius: 2px;
-                    background-color: #e6e9ea;
-                }
+
                 &.loading {
                     height: 200px;
                 }

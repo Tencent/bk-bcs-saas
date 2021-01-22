@@ -17,7 +17,7 @@
                     <span v-if="showClose" class="close-btn" title="关闭" @click="cancel">╳</span>
                 </div>
                 <div class="dialog-content">
-                    <strong>{{subTitleRender}}</strong>
+                    <strong v-if="hasSubTitle">{{subTitleRender}}</strong>
                     <ul class="update-list">
                         <li v-for="(item, index) of noticeList" :key="index">
                             <label :class="['bk-form-checkbox']" v-if="!item.isText">
@@ -70,6 +70,10 @@
             subTitle: {
                 type: String,
                 default: ''
+            },
+            hasSubTitle: {
+                type: Boolean,
+                default: true
             },
             checkList: {
                 type: Array,
