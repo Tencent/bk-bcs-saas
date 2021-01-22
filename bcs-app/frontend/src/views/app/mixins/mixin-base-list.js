@@ -2525,7 +2525,7 @@ export default {
                 instanceName: instance.name
             })
 
-            this.instanceNum = this.curInstance.build_instance
+            this.instanceNum = this.curInstance.instance
 
             if (this.viewMode === 'namespace') {
                 this.cancelLoopAppList()
@@ -2557,7 +2557,7 @@ export default {
         async instanceNumConfirm () {
             const me = this
 
-            const originalNum = parseFloat(me.curInstance.build_instance)
+            const originalNum = parseFloat(me.curInstance.instance)
             const instanceNum = parseFloat(me.instanceNum)
             if (originalNum === instanceNum) {
                 me.bkMessageInstance = me.$bkMessage({
