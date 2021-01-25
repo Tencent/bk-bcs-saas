@@ -1270,11 +1270,9 @@ class BatchUpdateDeleteNodeViewSet(NodeGetUpdateDeleteViewSet):
                     continue
                 exist_node_list.append(info)
         if illegle_status_nodes:
-            raise error_codes.CheckFailed(
-                "some nodes of the selected nodes do not allow deletion, please check the nodes status!")
+            raise ValidationError(_("请先确认节点处于【不可调度】状态并且节点上业务的POD数量等于0，然后再执行删除"))
         if len(exist_node_list) != len(req_node_id_list):
-            raise error_codes.CheckFailed(
-                "some nodes of the selected nodes do not belong the current cluster!")
+            raise ValidationError(_("节点不属于当前集群，请确认后重试"))
         return exist_node_list
 
     def delete_flow(self, request, project_id, cluster_id, node_list):
