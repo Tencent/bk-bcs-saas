@@ -62,7 +62,7 @@
                                                 <div class="rotate rotate7"></div>
                                                 <div class="rotate rotate8"></div>
                                             </div>
-                                            <a href="javascript:void(0)" class="bk-text-button biz-table-title" @click="goLoadBalanceDetail(loadBalance)">{{loadBalance.name || '--'}}</a>
+                                            <a href="javascript:void(0)" class="bk-text-button" @click="goLoadBalanceDetail(loadBalance)">{{loadBalance.name || '--'}}</a>
                                         </td>
                                         <td>
                                             <bk-tooltip :content="loadBalance.cluster_id" placement="top">
@@ -286,7 +286,7 @@
                         <div class="biz-expand-panel mt20 mb10" style="width: 560px; clear: both;">
                             <div class="panel" style="cursor: default;">
                                 <div class="header">
-                                    <span class="f13">{{$t('使用自定义镜像')}}：</span>
+                                    <span class="f12">{{$t('使用自定义镜像')}}：</span>
                                     <span @click="handleChangeImageMode">
                                         <bk-switcher
                                             :selected.sync="curLoadBalance.use_custom_image_url"

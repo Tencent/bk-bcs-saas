@@ -48,6 +48,11 @@
         padding-left: 25px;
     }
 
+    >tbody>tr>th,
+    >tbody>tr>td {
+        height: 50px;
+    }
+
     .cluster-wrapper {
         width: 280px;
     }

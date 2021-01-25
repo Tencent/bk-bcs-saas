@@ -453,13 +453,13 @@ biz-actions {
     }
 
     .empty-message {
-        font-size: 16px;
-        color: #999;
+        font-size: 14px;
+        color: #fontColor;
     }
 
     .empty {
-        font-size: 16px;
-        color: #999;
+        font-size: 14px;
+        color: #fontColor;
     }
 
     &.danger {
@@ -654,11 +654,11 @@ biz-actions {
     background-color: #fff;
     font-size: 14px;
     padding: 20px 20px 100px 20px;
-    color: #737987;
+    color: #fontColor;
 }
 
 .biz-tip {
-    font-size: 14px;
+    font-size: 12px;
     color: #a6b5ca;
     margin: 0;
 }
@@ -952,7 +952,7 @@ biz-actions {
 
 .biz-side-title {
     font-size: 16px;
-    color: #737987;
+    color: #fontWeightColor;
     height: 60px;
     line-height: 60px;
     border-bottom: 1px solid #dde4eb;
