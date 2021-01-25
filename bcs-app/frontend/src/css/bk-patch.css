@@ -27,13 +27,12 @@
 
             >th,
             >td {
-                height: 60px;
-                line-height: 20px;
+                height: 46px;
                 vertical-align: middle;
                 border-color: #E9EDF2;
                 color: $fontColor;
                 font-size: 14px;
-                padding: 10px;
+                padding: 0 10px;
                 border-top: 1px solid $borderLightColor;
             }
         }
@@ -200,7 +199,7 @@
 
 .bk-form .bk-label {
     font-weight: bold;
-    color: #737987;
+    color: #fontColor;
     padding-right: 20px;
 }
 
@@ -248,6 +247,9 @@
 
 .bk-selector {
     display: inline-block;
+    .bk-selector-input {
+        color: $fontColor;
+    }
 
     &.is-danger {
         .bk-selector-input {
@@ -307,6 +309,7 @@
 }
 
 .bk-dialog-body {
+    color: $fontColor;
     p {
         text-align: center;
     }
@@ -458,6 +461,9 @@
 
         >li {
             display: block !important;
+            a {
+                color: $fontColor;
+            }
         }
 
         .link {
@@ -523,6 +529,7 @@
 }
 
 .bk-button {
+    color: $fontColor;
     .biz-update-dot {
         width: 4px;
         height: 4px;
@@ -834,8 +841,8 @@
     overflow-x: hidden;
 
     .message {
-        font-size: 16px;
-        color: #999;
+        font-size: 14px;
+        color: $fontColor;
 
         &.warning-message {
             margin-top: 60px;

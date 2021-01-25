@@ -76,7 +76,7 @@
                                                     <span v-if="app.transitioning_on" class="f14 fb app-name">
                                                         {{app.name}}
                                                     </span>
-                                                    <a @click="showAppDetail(app)" href="javascript:void(0)" class="bk-text-button app-name f14 fb" v-else v-bktooltips="app.name">
+                                                    <a @click="showAppDetail(app)" href="javascript:void(0)" class="bk-text-button app-name f14" v-else v-bktooltips="app.name">
                                                         {{app.name}}
                                                     </a>
                                                     <div class="mt5">

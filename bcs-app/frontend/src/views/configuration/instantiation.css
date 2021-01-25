@@ -152,7 +152,7 @@
                 }
 
                 .tip {
-                    font-size: 14px;
+                    font-size: 12px;
                     margin-top: 7px;
                     display: inline-block;
                     color: $fnMinorColor;

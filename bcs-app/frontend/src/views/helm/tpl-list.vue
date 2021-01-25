@@ -49,7 +49,7 @@
                 <div class="biz-panel-header" style="padding: 20px;">
                     <div class="left">
                         <bk-button type="primary" @click="syncHelmTpl" :loading="isTplSynLoading">{{$t('同步仓库')}}</bk-button>
-                        <span class="biz-tip f13 ml5">{{$t('同步仓库中的Helm Chart')}}</span>
+                        <span class="biz-tip ml5">{{$t('同步仓库中的Helm Chart')}}</span>
                         <a class="bk-text-button f13 ml10" href="javascript:void(0);" @click="getHelmDeops">{{$t('查看项目Chart仓库配置信息')}}</a>
                     </div>
                     <div class="right">

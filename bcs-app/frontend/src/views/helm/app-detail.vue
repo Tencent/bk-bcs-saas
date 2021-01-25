@@ -44,7 +44,7 @@
                             <div class="bk-collapse-item-header" style="cursor: default;">
                                 {{$t('配置选项')}}
                             </div>
-                            <div class="bk-collapse-item-content f13" style="padding: 15px;">
+                            <div class="bk-collapse-item-content f12" style="padding: 15px;">
                                 <div class="config-box">
                                     <div class="inner">
                                         <div class="inner-item">

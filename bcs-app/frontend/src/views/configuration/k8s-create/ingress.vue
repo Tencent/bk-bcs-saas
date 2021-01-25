@@ -47,7 +47,7 @@
                                     </div>
                                 </div>
                             </div>
-                            <p class="pb30 f13 biz-danger-text">{{$t('提示：调度引擎为BCS-K8S的集群，需在左侧菜单“网络” => “LoadBalancer”中新建LoadBalancer，Ingress规则才能生效（通常单个集群只需要创建一个LoadBalancer）')}}</p>
+                            <p class="pb30 f12 biz-danger-text">{{$t('提示：调度引擎为BCS-K8S的集群，需在左侧菜单“网络” => “LoadBalancer”中新建LoadBalancer，Ingress规则才能生效（通常单个集群只需要创建一个LoadBalancer）')}}</p>
                         </div>
                     </div>
                 </bk-dialog>

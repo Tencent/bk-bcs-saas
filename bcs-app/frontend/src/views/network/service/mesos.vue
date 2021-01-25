@@ -82,7 +82,7 @@
                                                 <div class="rotate rotate7"></div>
                                                 <div class="rotate rotate8"></div>
                                             </div>
-                                            <a href="javascript: void(0)" class="bk-text-button biz-table-title biz-resource-title" @click.stop.prevent="showServiceDetail(service, index)">{{service.resourceName ? service.resourceName : '--'}}</a>
+                                            <a href="javascript: void(0)" class="bk-text-button biz-resource-title" @click.stop.prevent="showServiceDetail(service, index)">{{service.resourceName ? service.resourceName : '--'}}</a>
                                         </td>
                                         <td>
                                             <bk-tooltip :content="service.clusterId || '--'" placement="top">

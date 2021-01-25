@@ -91,3 +91,10 @@
         line-height: 34px;
     }
 }
+
+.biz-crd-instance-table {
+    >tbody>tr>th,
+    >tbody>tr>td {
+        height: 50px;
+    }
+}
