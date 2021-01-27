@@ -11,16 +11,19 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
+from dataclasses import dataclass, field, asdict
 from typing import Dict, List
 
 from backend.components import cc, gse
 
 
-def get_cc_hosts(cc_app_id: str, username: str, request_data: Dict = None) -> List:
+def get_cc_hosts(cc_app_id: str, username: str, **extra_data) -> List[Dict]:
     """获取主机信息
     :param cc_app_id: 业务 ID
     :param username: 当前请求的用户名
-    :param request_data: 包含资源池信息，集群信息、access_token，可以为空
+    :param extra_data: 资源池信息，默认为空
+
+    :returns: 返回列表，列表中包含主机的属性信息，比如IP、所属区域、机房、机架等
     """
     resp = cc.get_app_hosts(username, cc_app_id)
     if not resp.get("result"):
@@ -28,17 +31,51 @@ def get_cc_hosts(cc_app_id: str, username: str, request_data: Dict = None) -> Li
     return resp.get("data") or []
 
 
-def get_agent_status(username: str, ip_list: List) -> List:
+@dataclass
+class BKCloudInfo:
+    id: int = 0
+
+
+@dataclass
+class HostData:
+    inner_ip: str
+    bk_cloud_id: List[BKCloudInfo] = field(default_factory=list)
+
+    @property
+    def inner_ip_list(self):
+        """拆分inner_ip
+        因为可能存在多个网卡的主机，需要拆分单独处理
+        """
+        return self.inner_ip.split(",")
+
+
+@dataclass
+class HostAgentData:
+    ip: str
+    bk_cloud_id: int = 0
+    bk_agent_alive: int = 1
+
+
+def get_agent_status(username: str, host_list: List[HostData]) -> List[Dict]:
     """查询主机 agent 状态
     :param username: 当前请求的用户名
     :param ip_list: IP 列表，用于查询主机的 agent 状态
     """
     hosts = []
-    for info in ip_list:
+    for info in host_list:
         # 查询所属区域云区域
-        plat_info = info.get("bk_cloud_id") or []
-        plat_id = plat_info[0]["id"] if plat_info else 0
+        plat_info = info.bk_cloud_id
+        plat_id = plat_info[0].id if plat_info else 0
         hosts.extend(
             [{"plat_id": plat_id, "bk_cloud_id": plat_id, "ip": ip} for ip in info.get("inner_ip", "").split(",")]
         )
-    return gse.get_agent_status(username, hosts)
+    # 处理返回数据
+    data = gse.get_agent_status(username, hosts)
+    return [
+        asdict(
+            HostAgentData(
+                ip=info.get("ip"), bk_cloud_id=info.get("bk_cloud_id"), bk_agent_alive=info.get("bk_agent_alive")
+            )
+        )
+        for info in data
+    ]
