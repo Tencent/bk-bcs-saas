@@ -142,5 +142,51 @@
         .bk-icon {
             display: none;
         }
+
+        .label-item {
+            display: flex;
+            align-items: center;
+            input[type="radio"] {
+                margin-right: 10px;
+            }
+            .bk-form-input, .bk-selector, .notes-input {
+                flex: 1;
+            }
+        }
+    }
+    
+    .notes {
+        display: inline-block;
+        padding: 7px 0;
+        &:not(.new-item) {
+            padding: 17px 0 7px;
+            margin-top: 10px;
+            border-top: 1px solid #dde4eb;
+        }
+        .notes-text {
+            align-self: start;
+            display: inline-block;
+            color: #666666;
+            font-size: 14px;
+            font-style: normal;
+            &.is-en-text {
+                min-width: 110px;
+                &:not(.is-new) {
+                    min-width: 138px;
+                }
+            }
+        }
+        .notes-input {
+            display: inline-block;
+            vertical-align: top;
+            width: 176px;
+            height: 80px;
+        }
+    }
+    
+    .is-en {
+        .bk-radio-text {
+            min-width: 110px !important;
+        }
     }
 }

@@ -17,14 +17,15 @@
                     <span v-if="showClose" class="close-btn" title="关闭" @click="cancel">╳</span>
                 </div>
                 <div class="dialog-content">
-                    <strong>{{subTitleRender}}</strong>
-                    <ul class="update-list" v-if="noticeList.length">
+                    <strong v-if="hasSubTitle">{{subTitleRender}}</strong>
+                    <ul class="update-list">
                         <li v-for="(item, index) of noticeList" :key="index">
-                            <label :class="['bk-form-checkbox']">
+                            <label :class="['bk-form-checkbox']" v-if="!item.isText">
                                 <input v-if="!isConfirming" type="checkbox" name="check" v-model="item.isChecked" @change="changeCheck(item)">
                                 <input v-else disabled="disabled" type="checkbox" name="check" v-model="item.isChecked">
                                 {{item.text}}
                             </label>
+                            <div v-else>{{item.text}}</div>
                         </li>
                     </ul>
                     <template v-if="canConfirm">
@@ -69,6 +70,10 @@
             subTitle: {
                 type: String,
                 default: ''
+            },
+            hasSubTitle: {
+                type: Boolean,
+                default: true
             },
             checkList: {
                 type: Array,

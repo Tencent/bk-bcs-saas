@@ -48,7 +48,16 @@
                                     <i class="bk-icon icon-info-circle-shape"></i>
                                     <strong class="desc">
                                         {{$t('您已经对此模板集加锁，只有解锁后，其他用户才可操作此模板集。')}}
-                                        <span v-if="lateShowVersionName">（{{$t('当前版本号')}}：{{lateShowVersionName}}）</span>
+                                        <span v-if="lateShowVersionName">
+                                            （{{$t('当前版本号')}}：{{lateShowVersionName}}
+                                            <bk-tooltip
+                                                :delay="300"
+                                                :content="displayVersionNotes || '--'"
+                                                style="padding-left: 6px;"
+                                                placement="bottom">
+                                                <span style="color: #3c96ff;">{{$t('版本说明')}}</span>
+                                            </bk-tooltip>）
+                                        </span>
                                     </strong>
                                     <div class="action">
                                         <bk-switcher
@@ -66,7 +75,15 @@
                                     <i class="bk-icon icon-info-circle-shape"></i>
                                     <strong class="desc">
                                         {{$t('{locker}正在操作，您如需编辑请联系{locker}解锁。', templateLockStatus)}}
-                                        <span v-if="lateShowVersionName">（{{$t('当前版本号')}}：{{lateShowVersionName}}）</span>
+                                        <span v-if="lateShowVersionName">
+                                            （{{$t('当前版本号')}}：{{lateShowVersionName}}
+                                            <bk-tooltip
+                                                :delay="300"
+                                                :content="displayVersionNotes || '--'"
+                                                style="padding-left: 6px;"
+                                                placement="bottom">
+                                                <span style="color: #3c96ff;">{{$t('版本说明')}}</span>
+                                            </bk-tooltip>）</span>
                                     </strong>
                                     <div class="action">
                                         <a href="javascript: void(0);" class="bk-text-button" @click="reloadTemplateset">{{$t('点击刷新')}}</a>
@@ -81,7 +98,15 @@
                                 <i class="bk-icon icon-info-circle-shape"></i>
                                 <strong class="desc">
                                     {{$t('为避免多成员同时编辑，引起内容或版本冲突，建议在编辑时，开启保护功能。')}}
-                                    <span v-if="lateShowVersionName">（{{$t('当前版本号')}}：{{lateShowVersionName}}）</span>
+                                    <span v-if="lateShowVersionName">
+                                        （{{$t('当前版本号')}}：{{lateShowVersionName}}
+                                        <bk-tooltip
+                                            :delay="300"
+                                            :content="displayVersionNotes || '--'"
+                                            style="padding-left: 6px;"
+                                            placement="bottom">
+                                            <span style="color: #3c96ff;">{{$t('版本说明')}}</span>
+                                        </bk-tooltip>）</span>
                                 </strong>
                                 <div class="action">
                                     <bk-switcher
@@ -187,17 +212,17 @@
             <template slot="content">
                 <div class="version-box">
                     <p class="title">{{$t('保存修改到')}}：</p>
-                    <ul class="version-list">
-                        <template v-if="allVersionList.length && curShowVersionId !== -1">
+                    <ul :class="['version-list', { 'is-en': isEn }]">
+                        <template v-if="!isNewVersion">
                             <li class="item">
-                                <label class="bk-form-radio">
+                                <label class="bk-form-radio label-item">
                                     <input type="radio" name="save-version-way" value="cur" v-model="saveVersionWay">
-                                    <i class="bk-radio-text" style="display: inline-block; min-width: 70px;">{{$t('当前版本')}}：{{lateShowVersionName}}</i>
+                                    <i class="bk-radio-text" style="display: inline-block; min-width: 70px;">{{$t('当前版本号')}}：{{lateShowVersionName}}</i>
                                 </label>
                             </li>
 
                             <li class="item">
-                                <label class="bk-form-radio" style="margin-right: 0;">
+                                <label class="bk-form-radio label-item" style="margin-right: 0;">
                                     <input type="radio" name="save-version-way" value="new" v-model="saveVersionWay">
                                     <i class="bk-radio-text" style="display: inline-block; min-width: 70px;">{{$t('新版本')}}：</i>
                                     <input type="text" class="bk-form-input" :placeholder="$t('请输入版本号')" @focus="saveVersionWay = 'new'" style="display: inline-block; width: 176px;" v-model="versionKeyword" />
@@ -205,7 +230,7 @@
                             </li>
 
                             <li class="item" v-if="withoutCurVersionList.length">
-                                <label class="bk-form-radio" style="margin-right: 0;">
+                                <label class="bk-form-radio label-item" style="margin-right: 0;">
                                     <input type="radio" name="save-version-way" value="old" v-model="saveVersionWay">
                                     <i class="bk-radio-text" style="display: inline-block; min-width: 70px;">{{$t('其它版本')}}：</i>
                                     <bk-selector
@@ -221,12 +246,18 @@
                         </template>
                         <template v-else>
                             <li class="item">
-                                <label class="bk-form-radio" style="margin-right: 0;">
-                                    <i class="bk-radio-text">{{$t('新版本')}}：</i>
-                                    <input type="text" class="bk-form-input" :placeholder="$t('请输入版本号')" @focus="saveVersionWay = 'new'" style="display: inline-block; width: 217px;" v-model="versionKeyword" />
+                                <label class="bk-form-radio label-item" style="margin-right: 0;">
+                                    <i class="bk-radio-text" style="display: inline-block; width: 70px;">{{$t('新版本')}}：</i>
+                                    <input type="text" class="bk-form-input" :placeholder="$t('请输入版本号')" @focus="saveVersionWay = 'new'" style="display: inline-block; width: 203px;" v-model="versionKeyword" />
                                 </label>
                             </li>
                         </template>
+                        <li class="item">
+                            <label :class="['notes', 'label-item', { 'new-item': isNewVersion }]" style="margin-right: 0;">
+                                <i :class="['notes-text', { 'is-en-text': isEn, 'is-new': isNewVersion }]" :style="{ 'padding-left': isNewVersion ? 0 : '29px' }">{{$t('版本说明')}}：</i>
+                                <bk-textarea class="notes-input" :style="{ width: isNewVersion ? '203px' : '176px' }" :placeholder="$t('请输入版本说明')" :value.sync="curVersionNotes" />
+                            </label>
+                        </li>
                     </ul>
                 </div>
             </template>
@@ -299,12 +330,12 @@
             :quick-close="true"
             :is-show.sync="versionSidePanel.isShow"
             :title="versionSidePanel.title"
-            :width="'800'">
+            :width="'900'">
             <div class="p30" slot="content" v-bkloading="{ isLoading: isVersionListLoading }">
                 <table class="bk-table biz-data-table has-table-bordered">
                     <thead>
                         <tr>
-                            <th>{{$t('版本号')}}</th>
+                            <th style="width: 250px;">{{$t('版本号')}}</th>
                             <th>{{$t('更新时间')}}</th>
                             <th>{{$t('最后更新人')}}</th>
                             <th style="width: 220px;">{{$t('操作')}}</th>
@@ -314,8 +345,18 @@
                         <template v-if="versionList.length">
                             <tr v-for="(versionData, index) in versionList" :key="index">
                                 <td>
-                                    <span>{{versionData.name}}</span>
-                                    <span v-if="versionData.show_version_id === curShowVersionId">{{$t('(当前)')}}</span>
+                                    <p>
+                                        <span>{{versionData.name}}</span>
+                                        <span v-if="versionData.show_version_id === curShowVersionId">{{$t('(当前)')}}</span>
+                                    </p>
+
+                                    <bk-tooltip
+                                        v-if="versionData.comment"
+                                        :delay="300"
+                                        :content="versionData.comment"
+                                        placement="right">
+                                        <span style="color: #3c96ff; font-size: 12px;">{{$t('版本说明')}}</span>
+                                    </bk-tooltip>
                                 </td>
                                 <td>{{versionData.updated}}</td>
                                 <td>{{versionData.updator}}</td>
@@ -432,7 +473,7 @@
                 },
                 versionDialogConf: {
                     isShow: false,
-                    width: 400,
+                    width: 600,
                     closeIcon: false
                 },
                 versionMetadata: {
@@ -446,7 +487,9 @@
                 versionKeyword: '',
                 canCreateInstance: false,
                 selectedVersion: '',
-                curApplicationCache: null
+                curApplicationCache: null,
+                curVersionNotes: '',
+                displayVersionNotes: '--'
             }
         },
         computed: {
@@ -654,6 +697,9 @@
                 return this.$store.state.k8sTemplate.linkServices.map(item => {
                     return item.service_name
                 })
+            },
+            isNewVersion () {
+                return !(this.allVersionList.length && this.curShowVersionId !== -1)
             }
         },
         watch: {
@@ -664,6 +710,28 @@
             },
             '$route' () {
                 this.getVersionList()
+            },
+            'curShowVersionId' () {
+                this.allVersionList.forEach(item => {
+                    if (item.show_version_id === this.curShowVersionId) {
+                        this.curVersionNotes = item.comment
+                        this.displayVersionNotes = item.comment
+                    }
+                })
+            },
+            'saveVersionWay' (val, old) {
+                if (val && val === old) return
+                if (val === 'new') {
+                    this.curVersionNotes = ''
+                    return
+                }
+                let item = null
+                if (val === 'cur' && this.curVersion) {
+                    item = this.allVersionList.find(item => item.show_version_id === this.curShowVersionId)
+                } else if (val === 'old' && this.selectedVersion) {
+                    item = this.allVersionList.find(item => item.show_version_id === this.selectedVersion)
+                }
+                item && (this.curVersionNotes = item.comment)
             }
         },
         mounted () {
@@ -1059,6 +1127,8 @@
                                             name: item.name,
                                             real_version_id: item.real_version_id
                                         }
+                                        this.curVersionNotes = item.comment
+                                        this.displayVersionNotes = item.comment
                                     }
                                 })
                             }
@@ -1655,6 +1725,7 @@
                 this.versionMetadata.show_version_id = versionData.show_version_id
                 this.versionMetadata.name = versionData.name
                 this.versionMetadata.real_version_id = this.curVersion
+                this.curVersionNotes = versionData.comment
             },
             initResources (callback) {
                 const templateId = this.curTemplateId
@@ -1728,7 +1799,6 @@
                 const labelKeyReg = /^([A-Za-z0-9][-A-Za-z0-9_./]*)?[A-Za-z0-9]$/
                 const envKeyReg = /^([A-Za-z0-9][-A-Za-z0-9_.]*)?[A-Za-z0-9]$/
                 const varReg = /\{\{([^\{\}]+)?\}\}/g
-                // const ipReg = /^((2(5[0-5]|[0-4]\d))|[0-1]?\d{1,2})(\.((2(5[0-5]|[0-4]\d))|[0-1]?\d{1,2})){3}$/
                 let megPrefix = `"${appName}"${this.$t('中')}`
 
                 if (appName === '') {
@@ -2747,7 +2817,6 @@
                 this.$store.commit('k8sTemplate/updateIsTemplateSaving', false)
                 await this.getVersionList()
                 this.versionSidePanel.isShow = false
-                this.versionDialogConf.width = this.isEn ? 450 : 400
                 this.versionDialogConf.isShow = true
                 this.isDataSaveing = false
             },
@@ -2826,6 +2895,7 @@
                 }
 
                 const params = this.versionMetadata
+                params.comment = this.curVersionNotes
                 await this.$store.dispatch('k8sTemplate/saveVersion', { projectId, templateId, params }).then(res => {
                     this.$bkMessage({
                         theme: 'success',
@@ -2854,6 +2924,7 @@
                     this.versionKeyword = ''
                     this.selectedVersion = ''
                     this.versionDialogConf.isShow = false
+                    this.getVersionList()
                 }, res => {
                     this.$store.commit('k8sTemplate/updateIsTemplateSaving', false)
                     this.$bkMessage({
@@ -3263,7 +3334,7 @@
                     }
 
                     if (!nameReg.test(rule.host)) {
-                        megPrefix += `${this.$t('规则主机名')}：`
+                        megPrefix += `${rule.host}的${this.$t('规则主机名')}：`
                         this.$bkMessage({
                             theme: 'error',
                             message: megPrefix + this.$t('名称错误，只能包含：小写字母、数字、连字符(-)，首字母必须是字母，长度小于30个字符'),
@@ -3276,7 +3347,7 @@
 
                     for (const path of paths) {
                         if (path.path && !pathReg.test(path.path)) {
-                            megPrefix += `${this.$t('路径组')}：`
+                            megPrefix += `${rule.host}的${this.$t('路径组')}：`
                             this.$bkMessage({
                                 theme: 'error',
                                 message: megPrefix + this.$t('路径不正确'),
@@ -3286,7 +3357,7 @@
                         }
 
                         if (path.backend.serviceName && !path.backend.servicePort) {
-                            megPrefix += `${this.$t('路径组')}：`
+                            megPrefix += `${rule.host}的${this.$t('路径组')}：`
                             this.$bkMessage({
                                 theme: 'error',
                                 message: megPrefix + this.$t('请关联服务端口'),
@@ -3296,7 +3367,7 @@
                         }
 
                         if (path.backend.serviceName && !this.linkServices.includes(path.backend.serviceName)) {
-                            megPrefix += `${this.$t('路径组')}：`
+                            megPrefix += `${rule.host}的${this.$t('路径组')}：`
                             this.$bkMessage({
                                 theme: 'error',
                                 message: megPrefix + this.$t('关联的Service【{serviceName}】不存在，请重新绑定', {

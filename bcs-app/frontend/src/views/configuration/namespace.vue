@@ -52,7 +52,7 @@
                             <tbody>
                                 <template v-if="curPageData.length && !isInitLoading">
                                     <tr v-for="(ns, index) in curPageData" :class="ns.isEdit ? 'is-edit' : ''" :key="ns.id">
-                                        <td style="white-space: nowrap;" class="biz-table-title">
+                                        <td style="white-space: nowrap;">
                                             <span class="text">{{ns.name}}</span>
                                         </td>
                                         <td style="white-space: nowrap;line-height: 10px;">
@@ -270,8 +270,8 @@
                         <template v-if="editNamespaceConf.variableList && editNamespaceConf.variableList.length">
                             <div class="bk-form-item flex-item">
                                 <div class="left">
-                                    <label class="bk-label label" v-if="isEn">Variables: <span class="biz-tip f13 fn">(You can create more variables in the namespace through <router-link class="bk-text-button" :to="{ name: 'var', params: { projectCode: projectCode } }">Variables</router-link>)</span></label>
-                                    <label class="bk-label label" v-else>变量：<span class="biz-tip f13 fn">（可通过 <router-link class="bk-text-button" :to="{ name: 'var', params: { projectCode: projectCode } }">变量管理</router-link> 创建更多作用在命名空间的变量）</span></label>
+                                    <label class="bk-label label" v-if="isEn">Variables: <span class="biz-tip fn">(You can create more variables in the namespace through <router-link class="bk-text-button" :to="{ name: 'var', params: { projectCode: projectCode } }">Variables</router-link>)</span></label>
+                                    <label class="bk-label label" v-else>变量：<span class="biz-tip fn">（可通过 <router-link class="bk-text-button" :to="{ name: 'var', params: { projectCode: projectCode } }">变量管理</router-link> 创建更多作用在命名空间的变量）</span></label>
                                 </div>
                             </div>
                             <div class="bk-form-item">

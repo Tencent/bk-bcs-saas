@@ -24,21 +24,22 @@ from rest_framework.response import Response
 from backend.accounts.bcs_perm import Cluster, Namespace
 from backend.activity_log import client
 from backend.apps.cluster import constants, serializers
-from backend.apps.cluster.constants import ClusterState
-from backend.apps.cluster.models import ClusterInstallLog, ClusterOperType, ClusterStatus, CommonStatus
+from backend.apps.cluster.models import ClusterInstallLog, ClusterOperType, CommonStatus
 from backend.apps.instance.models import InstanceConfig, InstanceEvent, MetricConfig, VersionInstance
 from backend.apps.network.models import K8SLoadBlance, MesosLoadBlance
 from backend.bcs_k8s.app.models import App
-from backend.components import cc, ops, paas_cc
+from backend.components import ops, paas_cc
 from backend.resources import cluster as cluster_utils
-from backend.utils import cc as cc_utils
 from backend.utils.cache import rd_client
 from backend.utils.errcodes import ErrorCode
 from backend.utils.error_codes import bk_error_codes, error_codes
 from backend.utils.ratelimit import RateLimiter
 from backend.utils.renderers import BKAPIRenderer
+from backend.apps.cluster.constants import ClusterState
+from backend.apps.cluster.utils import can_use_hosts
 
 from .configs import k8s, mesos
+
 
 logger = logging.getLogger(__name__)
 ACTIVITY_RESOURCE_TYPE = 'cluster'
@@ -227,7 +228,7 @@ class CreateCluster(BaseCluster):
         # NOTE: 选择第一个master节点作为中控机IP
         self.control_ip = self.data['master_ips'][:1]
         # 检查是否有权限操作IP
-        cc_utils.check_ips(self.cc_app_id, self.username, self.data['master_ips'])
+        can_use_hosts(self.cc_app_id, self.username, self.data["master_ips"])
         self.area_info = self.get_area_info()
         self.data['area_id'] = self.area_info['id']
 
@@ -333,10 +334,7 @@ class ReinstallCluster(BaseCluster):
         return cluster_info
 
     def get_cluster_last_log(self):
-        log = ClusterInstallLog.objects.filter(
-            project_id=self.project_id,
-            cluster_id=self.cluster_id,
-        ).last()
+        log = ClusterInstallLog.objects.filter(project_id=self.project_id, cluster_id=self.cluster_id,).last()
         if not log:
             raise error_codes.CheckFailed(_("没有查询对应的任务日志"))
         return log

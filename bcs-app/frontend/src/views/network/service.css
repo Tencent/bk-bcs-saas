@@ -17,6 +17,11 @@
 
 .biz-service-table {
     min-width: 1200px;
+    >tbody>tr>th,
+    >tbody>tr>td {
+        height: 50px;
+    }
+
     .cluster-name {
         @mixin ellipsis 160px;
         vertical-align: bottom;

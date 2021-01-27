@@ -10,8 +10,8 @@
             <table class="bk-table has-table-hover biz-table biz-apply-perm-table">
                 <thead>
                     <tr>
-                        <th style="width: 260px; padding-left: 20px;">资源</th>
-                        <th style="width: 180px;">需要的权限</th>
+                        <th style="width: 260px; padding-left: 20px;">{{$t('资源')}}</th>
+                        <th style="width: 180px;">{{$t('需要的权限')}}</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -26,8 +26,8 @@
         </template>
         <template slot="footer">
             <div class="bk-dialog-outer">
-                <button type="button" class="bk-dialog-btn bk-dialog-btn-confirm bk-btn-primary" @click="goApplyUrl">去申请</button>
-                <button type="button" class="bk-dialog-btn bk-dialog-btn-cancel" @click="hide">取消</button>
+                <button type="button" class="bk-dialog-btn bk-dialog-btn-confirm bk-btn-primary" @click="goApplyUrl">{{$t('去申请')}}</button>
+                <button type="button" class="bk-dialog-btn bk-dialog-btn-cancel" @click="hide">{{$t('取消')}}</button>
             </div>
         </template>
     </bk-dialog>
@@ -41,7 +41,7 @@
                 dialogConf: {
                     isShow: false,
                     width: 640,
-                    title: '无权限操作',
+                    title: this.$t('无权限操作'),
                     closeIcon: false
                 },
                 applyUrl: '',
@@ -56,7 +56,7 @@
                 this.dialogConf.isShow = false
             },
             show (projectCode, data) {
-                this.applyUrl = `${data.apply_url}`
+                this.applyUrl = `${data.apply_url}&project_code=${projectCode}`
 
                 this.permList.splice(0, this.permList.length, ...(data.perms || []))
                 this.$nextTick(() => {

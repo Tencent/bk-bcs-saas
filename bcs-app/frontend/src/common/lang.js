@@ -22,7 +22,7 @@ export default {
     '当前账号没有管理员权限，不可编辑，': ['Current account has no administrator rights and cannot be edited. '],
     '请': ['Please'],
     '点击申请权限': [' Apply permission'],
-    '该项目下已有集群信息，如需更改编排类型和绑定业务信息，请先删除已有集群': ['Cluster information is available under this project. If you need to change the arrange type and bind the service information, delete the existing cluster first.'],
+    '该项目下已有集群信息，如需更改项目绑定的业务信息，请先删除已有集群': ['Cluster information is available under this project. If you need to change the business information bound to the project, delete the existing cluster first.'],
     '当前账号在蓝鲸配置平台无业务，请联系运维在蓝鲸配置平台关联业务，': ['Current account has no business on the CMDB. Please contact Operations Engineer on the CMDB to associate business. '],
     '点击查看业务和运维信息': ['View Business and Operations information'],
     '当前账号在蓝鲸CMDB无业务运维权限，请联系要关联的CMDB业务的运维[{openService}]': ['Current account has no business on the CMDB. Please contact Operations Engineer on the CMDB to [{openService}].'],
@@ -1605,5 +1605,10 @@ export default {
     '仅移除记录': ['Only remove records'],
     '当前节点必须为已故障或已从集群移除，否则，平台会重新同步该节点数据': ['The current node must be faulty or removed from the cluster, otherwise, the platform will resynchronize the node data'],
     '此操作不会删除集群中的节点，仅移除当前节点在平台中的记录': ['This operation will not delete the nodes in the cluster, only the record of the current node in the platform'],
-    '请确认: ': ['Please confirm: ']
+    '请确认: ': ['Please confirm: '],
+    'CPU 管理策略：': ['CPU Management: '],
+    '实例数量没有变化': ['Instances not Change'],
+    '此操作仅移除节点在平台中的记录；如果集群中节点处于正常状态，会再次同步到平台的记录中': ['This operation only removes the record of the node in the platform; if the node in the cluster is in a normal state, it will be synchronized to the record of the platform again.'],
+    '自有集群': ['Imported'],
+    '自有集群不支持通过平台添加节点': ['The imported cluster does not support adding nodes through the platform']
 }

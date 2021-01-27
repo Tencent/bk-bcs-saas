@@ -109,6 +109,7 @@ class NoAuthPermError(APIError):
 
 
 class PermissionDeniedError(APIError):
+    # TODO: 后续根据场景再考虑是否支持 status_code == 403
     code = 4003
 
     @property

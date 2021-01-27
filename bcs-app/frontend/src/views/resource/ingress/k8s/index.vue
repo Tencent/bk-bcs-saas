@@ -78,7 +78,7 @@
                                             </div>
                                         </td>
                                         <td>
-                                            <a href="javascript: void(0)" class="bk-text-button biz-table-title biz-resource-title" @click.stop.prevent="showIngressDetail(ingress, index)">{{ingress.resourceName}}</a>
+                                            <a href="javascript: void(0)" class="bk-text-button biz-resource-title" @click.stop.prevent="showIngressDetail(ingress, index)">{{ingress.resourceName}}</a>
                                         </td>
                                         <td>
                                             <bk-tooltip :content="ingress.cluster_id || '--'" placement="top">

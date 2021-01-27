@@ -11,7 +11,8 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-from .constants_bk import *  # noqa
+import re
+from collections import OrderedDict
 
 BCS_USER_NAME = "bke-dynamic-user"
 
@@ -29,3 +30,17 @@ CLUSTER_EXIST_CODE_NAME = 'CLUSTER_ALREADY_EXISTS'
 
 # credentials not found code
 CREDENTIALS_NOT_FOUND_CODE_NAME = 'CREDENTIALS_NOT_FOUND'
+
+# default kubectl version
+DEFAULT_KUBECTL_VERSION = '1.12.3'
+
+# KUBECTL VERSION
+KUBECTL_VERSION = OrderedDict(
+    {
+        "1.18.12": [re.compile(r"^[vV]?1\.18\.\S+$")],
+        "1.16.3": [re.compile(r"^[vV]?1\.16\.\S+$")],
+        "1.14.9": [re.compile(r"^[vV]?1\.14\.\S+$")],
+        "1.12.3": [re.compile(r"^[vV]?1\.12\.\S+$")],
+        "1.8.3": [re.compile(r"^[vV]?1\.8\.\S+$")],
+    }
+)

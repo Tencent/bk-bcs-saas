@@ -19,28 +19,28 @@ from django.utils.translation import ugettext_lazy as _
 from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 
-from backend.accounts.bcs_perm import Cluster
 from backend.activity_log import client
-from backend.apps.cluster import constants, serializers
-from backend.apps.cluster.constants import ClusterState
+from backend.apps.cluster import serializers, constants
 from backend.apps.cluster.models import (
-    ClusterInstallLog,
     CommonStatus,
     NodeLabel,
     NodeOperType,
     NodeStatus,
     NodeUpdateLog,
 )
-from backend.components import cc, ops, paas_cc
+from backend.components import ops, paas_cc
 from backend.components.bcs import k8s as bcs_k8s
 from backend.components.bcs import mesos as bcs_mesos
-from backend.resources.cluster import get_cluster
-from backend.utils import cc as cc_utils
 from backend.utils.cache import rd_client
 from backend.utils.errcodes import ErrorCode
-from backend.utils.error_codes import bk_error_codes, error_codes
+from backend.utils.error_codes import bk_error_codes
 from backend.utils.ratelimit import RateLimiter
 from backend.utils.renderers import BKAPIRenderer
+from backend.utils.error_codes import error_codes
+from backend.accounts.bcs_perm import Cluster
+from backend.resources.cluster import get_cluster
+from backend.apps.cluster.constants import ClusterState
+from backend.apps.cluster.utils import can_use_hosts
 
 from .configs import k8s, mesos
 
@@ -255,8 +255,8 @@ class CreateNode(BaseNode):
         # 校验数据
         self.check_data()
         self.ip_list = [ip.split(',')[0] for ip in self.data['ip']]
-        cc_utils.check_ips(self.project_info['cc_app_id'], self.username, self.ip_list)
         # 检测IP是否被占用
+        can_use_hosts(self.project_info["cc_app_id"], self.username, self.ip_list)
         self.project_nodes = paas_cc.get_all_cluster_hosts(self.access_token)
         self.check_node_ip()
         # 获取已经存在的IP，直接更新使用

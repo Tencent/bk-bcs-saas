@@ -13,20 +13,24 @@
 #
 import re
 import tempfile
-from urllib.parse import urlparse
-
 import dpath
+from typing import Dict
+
 import yaml
 import yaml.reader
-from django.utils.translation import ugettext_lazy as _
 from ruamel.yaml import YAML
-from ruamel.yaml.compat import StringIO, ordereddict
+from ruamel.yaml.compat import StringIO
+from ruamel.yaml.compat import ordereddict
+from django.utils.translation import ugettext_lazy as _
+from django.conf import settings
 
-from backend.bcs_k8s.dashboard.exceptions import DashboardExecutionError
-from backend.bcs_k8s.diff import parser
-from backend.bcs_k8s.helm.utils.util import EmptyVaue, fix_rancher_value_by_type
-from backend.components import paas_cc
+from backend.bcs_k8s.helm.utils.util import fix_rancher_value_by_type, EmptyVaue
 from backend.utils.client import make_dashboard_ctl_client
+from backend.bcs_k8s.diff import parser
+from backend.components import paas_cc, bcs
+from backend.utils.basic import get_bcs_component_version
+
+from .constants import DASHBOARD_CTL_VERSION, DEFAULT_DASHBOARD_CTL_VERSION
 
 yaml.reader.Reader.NON_PRINTABLE = re.compile(
     '[^\x09\x0A\x0D\x20-\x7E\x85\xA0-\uD7FF\uE000-\uFFFD\U00010000-\U0010FFFF]'
@@ -222,10 +226,21 @@ def merge_valuefile(source, new):
     return ruamel_yaml_dump(source)
 
 
-def dashboard_get_overview(kubeconfig, namespace):
-    dashboard_client = make_dashboard_ctl_client(kubeconfig=kubeconfig)
+def dashboard_get_overview(kubeconfig, namespace, bin_path=settings.DASHBOARD_CTL_BIN):
+    dashboard_client = make_dashboard_ctl_client(kubeconfig=kubeconfig, bin_path=bin_path)
     dashboard_overview = dashboard_client.overview(namespace=namespace, parameters=dict())
     return dashboard_overview
+
+
+def update_pods_status(resource: Dict) -> Dict:
+    """添加pods的状态信息"""
+    # TODO：优化调整为通过helm和kubectl获取状态，现阶段先兼容处理
+    # 新版本的 dashboard，返回的部分资源的 pods 字段调整为了 podInfo 字段
+    if ("pods" not in resource) and ("podInfo" in resource):
+        resource["pods"] = resource["podInfo"]
+        return resource
+
+    return resource
 
 
 def extract_state_info_from_dashboard_overview(overview_status, kind, namespace, name):
@@ -243,19 +258,20 @@ def extract_state_info_from_dashboard_overview(overview_status, kind, namespace,
 
         for item in obj_list:
             if item["objectMeta"]["name"].lower() == name.lower():
+                item = update_pods_status(item)
                 return item
 
     return dict()
 
 
-def collect_resource_status(base_url, kubeconfig, app, project_code):
+def collect_resource_status(base_url, kubeconfig, app, project_code, bin_path=settings.DASHBOARD_CTL_BIN):
     """
     dashboard_client = make_dashboard_ctl_client(
         kubeconfig=kubeconfig
     )
     """
 
-    def status_sumary(status, app):
+    def status_sumary(status, app, bin_path=settings.DASHBOARD_CTL_BIN):
         if not status and not app.transitioning_result:
             return {
                 "messages": _("未找到资源，可能未部署成功，请在Helm Release列表也查看失败原因."),
@@ -292,7 +308,7 @@ def collect_resource_status(base_url, kubeconfig, app, project_code):
     resources = resources.values()
     release_name = app.name
 
-    dashboard_overview = dashboard_get_overview(kubeconfig=kubeconfig, namespace=namespace)
+    dashboard_overview = dashboard_get_overview(kubeconfig=kubeconfig, namespace=namespace, bin_path=bin_path)
 
     result = {}
     structure = app.release.extract_structure(namespace)
@@ -333,11 +349,7 @@ def collect_resource_status(base_url, kubeconfig, app, project_code):
         else:
             link = None
 
-        key = "{kind}/{namespace}/{name}".format(
-            name=name,
-            namespace=namespace,
-            kind=kind,
-        )
+        key = "{kind}/{namespace}/{name}".format(name=name, namespace=namespace, kind=kind,)
         result[key] = {
             "namespace": namespace,
             "name": name,
@@ -371,8 +383,10 @@ def resource_link(base_url, kind, project_code, name, namespace, release_name):
         "/console/bcs/{project_code}/app/{fix_kind}/{resource_name}/{namespace}/{kind}"
         "?name={resource_name}&namespace={namespace}&category={kind}"
     ).format(
+        base_url=base_url,
         kind=kind.lower(),
         fix_kind=fix_kind,
+        instance_name=release_name,
         resource_name=name,
         project_code=project_code,
         namespace=namespace,
@@ -390,3 +404,14 @@ def get_cc_app_id(access_token, project_id):
     resp = paas_cc.get_project(access_token, project_id)
     project_info = resp.get("data") or {}
     return str(project_info.get("cc_app_id") or "")
+
+
+def get_helm_dashboard_path(access_token: str, project_id: str, cluster_id: str) -> str:
+    """获取dashboard的路径"""
+    # TODO: 后续调整为新的client
+    bcs_api_client = bcs.k8s.K8SClient(access_token, project_id, cluster_id, None)
+    # 获取版本
+    version = get_bcs_component_version(bcs_api_client.version, DASHBOARD_CTL_VERSION, DEFAULT_DASHBOARD_CTL_VERSION)
+
+    bin_path_map = getattr(settings, "DASHBOARD_CTL_VERSION_MAP", {})
+    return bin_path_map.get(version, settings.DASHBOARD_CTL_BIN)

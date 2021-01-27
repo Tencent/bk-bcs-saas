@@ -74,7 +74,7 @@
                                                 <div class="cell">
                                                     <bk-tooltip :content="item[column] || ''" placement="top">
                                                         <template v-if="column === 'name'">
-                                                            <a href="javascript:void(0);" class="bk-text-button name-col" style="font-weight: 700;" @click="showSideslider(item[column], item['namespace'])">{{item[column] || '--'}}</a>
+                                                            <a href="javascript:void(0);" class="bk-text-button name-col" @click="showSideslider(item[column], item['namespace'])">{{item[column] || '--'}}</a>
                                                         </template>
                                                         <template v-else>
                                                             {{item[column] || '--'}}

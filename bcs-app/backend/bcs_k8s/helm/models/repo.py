@@ -12,6 +12,7 @@
 # specific language governing permissions and limitations under the License.
 #
 import json
+from typing import Tuple
 
 from django.db import models
 from django.utils import timezone
@@ -57,13 +58,18 @@ class Repository(BaseTSModel):
     def plain_auths(self):
         auths = list(self.auths.values("credentials", "type", "role"))
         return [
-            {
-                "type": auth["type"],
-                "role": auth["role"],
-                "credentials": json.loads(auth["credentials"]),
-            }
+            {"type": auth["type"], "role": auth["role"], "credentials": json.loads(auth["credentials"]),}
             for auth in auths
         ]
+
+    @property
+    def username_password(self) -> Tuple[str, str]:
+        try:
+            credentials = list(self.auths.values("credentials"))
+            credential = json.loads(credentials[0]["credentials"])
+            return (credential["username"], credential["password"])
+        except Exception:
+            return ("", "")
 
 
 class RepositoryAuth(models.Model):

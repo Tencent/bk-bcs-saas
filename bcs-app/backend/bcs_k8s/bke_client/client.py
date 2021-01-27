@@ -16,18 +16,19 @@ import json
 import logging
 from dataclasses import dataclass
 
-import requests
 from django.conf import settings
 from django.utils.translation import ugettext_lazy as _
 from rest_framework.exceptions import APIException, PermissionDenied
 
 from backend.bcs_k8s import kubectl
+from backend.resources.cluster.utils import get_cluster_coes
+from backend.resources.cluster.constants import ClusterCOES
 from backend.bcs_k8s.kubehelm.helm import KubeHelmClient
 from backend.bcs_k8s.utils import get_kubectl_version
-from backend.components import bcs, paas_cc
-from backend.components.utils import http_post
+from backend.components import bcs
 
 from . import constants
+
 
 logger = logging.getLogger(__name__)
 
@@ -75,11 +76,15 @@ class BCSClusterClient:
             return None
 
         # step-2 get bcs register token
-        register_token_data = bcs_api_client.get_register_tokens(bcs_cluster_data['bcs_cluster_id'])
-        if isinstance(register_token_data, list):
-            register_token_data = register_token_data[0]
-        if register_token_data.get('code_name') == constants.TOKEN_NOT_FOUND_CODE_NAME:
-            return None
+        if get_cluster_coes(self.access_token, self.project_id, self.cluster_id) == ClusterCOES.BCS_K8S.value:
+            register_token_data = bcs_api_client.get_register_tokens(bcs_cluster_data['bcs_cluster_id'])
+            if isinstance(register_token_data, list):
+                register_token_data = register_token_data[0]
+            if register_token_data.get('code_name') == constants.TOKEN_NOT_FOUND_CODE_NAME:
+                return None
+        else:
+            # tke not use token
+            register_token_data = {'token': ''}
         # compose the bcs cluster info
         bcs_cluster_data.update(**register_token_data)
         return bcs_cluster_data
@@ -128,11 +133,7 @@ class BCSClusterClient:
         """ 获取访问集群需要的信息 """
         context = self.get_cluster_credential()
         context.update(
-            **{
-                'host': self.host,
-                'source_cluster_id': self.cluster_id,
-                'source_project_id': self.project_id,
-            }
+            **{'host': self.host, 'source_cluster_id': self.cluster_id, 'source_project_id': self.project_id,}
         )
         return context
 
@@ -160,9 +161,7 @@ class BCSClusterClient:
     def make_kubectl_client(self):
         options = self.make_kubectl_options()
         cluster = kubectl.Cluster(
-            name=self.cluster_id,
-            cert=options.pop('client-certificate'),
-            server=options.pop('server'),
+            name=self.cluster_id, cert=options.pop('client-certificate'), server=options.pop('server'),
         )
         user = kubectl.User(name=constants.BCS_USER_NAME, token=options['token'])
         context = kubectl.Context(name=constants.BCS_USER_NAME, user=user, cluster=cluster)
@@ -178,19 +177,14 @@ class BCSClusterClient:
         """组装携带kubeconfig的helm client"""
         options = self.make_kubectl_options()
         cluster = kubectl.Cluster(
-            name=self.cluster_id,
-            cert=options.pop('client-certificate'),
-            server=options.pop('server'),
+            name=self.cluster_id, cert=options.pop('client-certificate'), server=options.pop('server'),
         )
         user = kubectl.User(name=constants.BCS_USER_NAME, token=options['token'])
         context = kubectl.Context(name=constants.BCS_USER_NAME, user=user, cluster=cluster)
         # NOTE: 这里直接使用helm3 client bin
         kube_config = kubectl.KubeConfig(contexts=[context])
         with kube_config.as_tempfile() as filename:
-            helm_client = KubeHelmClient(
-                helm_bin=settings.HELM3_BIN,
-                kubeconfig=filename,
-            )
+            helm_client = KubeHelmClient(helm_bin=settings.HELM3_BIN, kubeconfig=filename,)
             yield helm_client
 
 

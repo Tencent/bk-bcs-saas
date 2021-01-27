@@ -80,7 +80,7 @@
         font-size: 20px;
         position: absolute;
         top: 14px;
-        color: #737987;
+        color: $fontWeightColor;
 
         &.selected {
             color: $primaryColor;

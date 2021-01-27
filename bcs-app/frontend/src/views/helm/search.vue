@@ -145,6 +145,7 @@
                 this.curScope = data
                 this.$emit('update:searchScope', this.curScope.id)
                 this.$emit('update:searchNamespace', '')
+                this.$emit('cluster-change')
                 this.handleSearch()
             },
             handleSechNamespace (index, data) {

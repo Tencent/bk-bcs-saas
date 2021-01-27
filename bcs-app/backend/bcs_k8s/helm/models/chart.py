@@ -14,6 +14,7 @@
 import datetime
 import json
 import logging
+from typing import Dict, Tuple
 
 import yaml
 from django.conf import settings
@@ -29,7 +30,7 @@ from backend.utils.models import BaseTSModel
 
 from .. import constants
 from ..utils.repo import download_icon_data, download_template_data
-from ..utils.util import fix_chart_url, merge_rancher_answers, parse_chart_time
+from ..utils.util import fix_chart_url, merge_rancher_answers
 from .managers import ChartManager, ChartVersionManager, ChartVersionSnapshotManager
 
 logger = logging.getLogger(__name__)
@@ -78,11 +79,7 @@ class Chart(BaseTSModel):
         fields = {}
         fields.update(chart_version_fields)
         fields.update(
-            {
-                "name": self.name,
-                "repository_id": self.repository.id,
-                "icon": self.icon,
-            }
+            {"name": self.name, "repository_id": self.repository.id, "icon": self.icon,}
         )
         return fields
 
@@ -247,6 +244,12 @@ class ChartVersion(BaseChartVersion):
         self.save()
         return chart_version_changed
 
+    @classmethod
+    def update_or_create_version(cls, chart: Chart, version: Dict) -> Tuple["ChartVersion", bool]:
+        chart_version, created = cls.objects.update_or_create(chart=chart, version=version.get("version"))
+        chart_version.update_from_import_version(chart, version)
+        return chart_version, created
+
 
 class ChartVersionSnapshot(BaseChartVersion):
     """
@@ -278,6 +281,30 @@ class ChartVersionSnapshot(BaseChartVersion):
             return "deleted"
         else:
             return "unchanged" if chart_version.digest == self.digest else "changed"
+
+    @property
+    def version_detail(self):
+        from django.forms.models import model_to_dict
+
+        values = model_to_dict(
+            self,
+            fields=[
+                "version",
+                "digest",
+                "name",
+                "home",
+                "description",
+                "engine",
+                "created",
+                "maintainers",
+                "sources",
+                "urls",
+                "files",
+                "questions",
+            ],
+        )
+
+        return values
 
 
 class ChartReleaseManager(models.Manager):
@@ -379,10 +406,7 @@ class ChartRelease(BaseTSModel):
         resources = parser.parse(self.content, namespace).values()
         for resource in resources:
             structure.append(
-                {
-                    "name": resource.name.split("/")[-1],
-                    "kind": resource.kind,
-                }
+                {"name": resource.name.split("/")[-1], "kind": resource.kind,}
             )
         self.structure = structure
         self.save(update_fields=["structure"])

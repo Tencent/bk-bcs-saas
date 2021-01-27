@@ -532,11 +532,6 @@
                                                 <div class="header">
                                                     <div class="topic">
                                                         {{$t('镜像凭证')}}
-                                                        <!-- <bk-tooltip :content="$t('附加的日志标签会以KV的形式追加到采集日志中')" placement="top">
-                                                            <span class="bk-badge">
-                                                                <i class="bk-icon icon-question"></i>
-                                                            </span>
-                                                        </bk-tooltip> -->
                                                     </div>
                                                 </div>
                                                 <div class="bk-form-item content">
@@ -2416,7 +2411,7 @@
             setCurContainer (container, index) {
                 // 利用setTimeout事件来先让当前容器的blur事件执行完才切换
                 setTimeout(() => {
-                    // this.resetPreContainerParams()
+                    this.resetPreContainerParams()
                     // 保存当前container数据
                     const httpHeaders = this.$refs.headerKeyer.getKeyObject()
                     this.curContainer.healthChecks[0].http.headers = httpHeaders
@@ -2813,7 +2808,7 @@
                         // image = imageBase + imageName + ':' + imageVersion
                         const imageName = this.curContainer.imageName
                         this.curContainer.imageVersion = value
-                        this.curContainer.image = `${DEVOPS_ARTIFACTORY_HOST}/${imageName}:${value}`
+                        this.curContainer.image = `${DEVOPS_ARTIFACTORY_HOST}/${imageName.split(':')[1]}:${value}`
                     } else {
                         // 镜像和版本是变量
                         // image = imageBase +  'paas/' + projectCode + '/' + imageName + ':' + imageVersion

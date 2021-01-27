@@ -12,10 +12,23 @@
 # specific language governing permissions and limitations under the License.
 #
 import re
-from collections import OrderedDict
+from typing import List
 
-# default kubectl version
-DEFAULT_KUBECTL_VERSION = '1.12.3'
+from backend.components.cc import get_cc_hosts
 
-# KUBECTL VERSION
-KUBECTL_VERSION = OrderedDict({'1.12.3': [re.compile(r'^[vV]?1\.12\.\w+$')]})
+
+def can_use_hosts(bk_biz_id: int, username: str, host_ip_list: List) -> bool:
+    """校验用户是否有使用主机的权限"""
+    resp = get_cc_hosts(bk_biz_id, username)
+    ip_list = []
+    for info in resp.get("data") or []:
+        inner_ip = info.get("bk_host_innerip", "")
+        # 因为有多网卡的主机，因此需要拆分，便于后续的判断是否包含
+        inner_ip_list = re.findall(r'[^;,]+', inner_ip)
+        ip_list.extend(inner_ip_list)
+
+    # 判断申请使用的主机是否全包含在有权限的主机列表中
+    if set(host_ip_list) - set(ip_list):
+        return False
+
+    return True

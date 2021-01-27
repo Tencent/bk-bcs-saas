@@ -20,7 +20,7 @@ from backend.apps.application.constants import CATEGORY_MAP
 from backend.apps.application.utils import APIResponse, cluster_env
 from backend.apps.configuration.models import Template
 from backend.apps.instance.constants import InsState
-from backend.apps.instance.models import InstanceConfig, InstanceEvent, MetricConfig, VersionInstance
+from backend.apps.instance.models import InstanceConfig, VersionInstance
 
 
 class BaseFilter(BaseAPI):
@@ -152,10 +152,12 @@ class GetAllNamespaces(BaseFilter):
     def compose_data(self, all_namespaces, cluster_env_map, cluster_type):
         """组装数据"""
         ret_data = []
-        for key, val in all_namespaces.items():
-            curr_env = cluster_env_map.get(key[0])
+        for (cluster_id, ns_id), ns_name in all_namespaces.items():
+            curr_env = cluster_env_map.get(cluster_id)
             if curr_env and str(cluster_env(curr_env)) == str(cluster_type):
-                ret_data.append({"ns_id": key[1], "ns_name": val})
+                ret_data.append(
+                    {"ns_id": ns_id, "ns_name": ns_name, "cluster_id": cluster_id,}
+                )
         return ret_data
 
     def get(self, request, project_id):

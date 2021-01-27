@@ -82,7 +82,7 @@
                                                 <div class="rotate rotate7"></div>
                                                 <div class="rotate rotate8"></div>
                                             </div>
-                                            <a href="javascript: void(0)" class="bk-text-button biz-table-title biz-resource-title" @click.stop.prevent="showServiceDetail(service, index)">{{service.resourceName ? service.resourceName : '--'}}</a>
+                                            <a href="javascript: void(0)" class="bk-text-button biz-resource-title" @click.stop.prevent="showServiceDetail(service, index)">{{service.resourceName ? service.resourceName : '--'}}</a>
                                         </td>
                                         <td>
                                             <bk-tooltip :content="service.clusterId || '--'" placement="top">
@@ -760,7 +760,7 @@
                     this.curServiceDetail = service
                     this.curVersion = service.version
                     this.getApplications(this.curVersion)
-                    this.getLoadBalanceList(service.namespace_id)
+                    this.getLoadBalanceList(service.cluster_id)
                     this.updateServiceSliderConf.isShow = true
                     this.checkTotalPercent()
                     this.getPorts(appIds)
@@ -935,15 +935,15 @@
 
             /**
              * 获取LB列表
-             * @param  {number} namespace 命名空间ID
+             * @param  {number} clusterId 集群ID
              */
-            async getLoadBalanceList (namespace) {
+            async getLoadBalanceList (clusterId) {
                 const projectId = this.projectId
                 this.loadBalanceList = []
-                if (!namespace) return
+                if (!clusterId) return
 
                 try {
-                    const res = await this.$store.dispatch('network/getLoadBalanceByNamespace', { projectId, namespace })
+                    const res = await this.$store.dispatch('network/getLoadBalanceByNamespace', { projectId, clusterId })
                     this.loadBalanceList = res.data
                 } catch (e) {
                     catchErrorHandler(e, this)

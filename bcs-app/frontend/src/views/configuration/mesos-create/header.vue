@@ -38,7 +38,16 @@
                                     <i class="bk-icon icon-info-circle-shape"></i>
                                     <strong class="desc">
                                         {{$t('您已经对此模板集加锁，只有解锁后，其他用户才可操作此模板集。')}}
-                                        <span v-if="lateShowVersionName">（{{$t('当前版本号')}}：{{lateShowVersionName}}）</span>
+                                        <span v-if="lateShowVersionName">
+                                            （{{$t('当前版本号')}}：{{lateShowVersionName}}
+                                            <bk-tooltip
+                                                :delay="300"
+                                                :content="displayVersionNotes || '--'"
+                                                style="padding-left: 6px;"
+                                                placement="bottom">
+                                                <span style="color: #3c96ff;">{{$t('版本说明')}}</span>
+                                            </bk-tooltip>）
+                                        </span>
                                     </strong>
                                     <div class="action">
                                         <bk-switcher
@@ -56,7 +65,16 @@
                                     <i class="bk-icon icon-info-circle-shape"></i>
                                     <strong class="desc">
                                         {{$t('{locker}正在操作，您如需编辑请联系{locker}解锁。', templateLockStatus)}}
-                                        <span v-if="lateShowVersionName">（{{$t('当前版本号')}}：{{lateShowVersionName}}）</span>
+                                        <span v-if="lateShowVersionName">
+                                            （{{$t('当前版本号')}}：{{lateShowVersionName}}
+                                            <bk-tooltip
+                                                :delay="300"
+                                                :content="displayVersionNotes || '--'"
+                                                style="padding-left: 6px;"
+                                                placement="bottom">
+                                                <span style="color: #3c96ff;">{{$t('版本说明')}}</span>
+                                            </bk-tooltip>）
+                                        </span>
                                     </strong>
                                     <div class="action">
                                         <a href="javascript: void(0);" class="bk-text-button" @click="reloadTemplateset">{{$t('点击刷新')}}</a>
@@ -71,7 +89,16 @@
                                 <i class="bk-icon icon-info-circle-shape"></i>
                                 <strong class="desc">
                                     {{$t('为避免多成员同时编辑，引起内容或版本冲突，建议在编辑时，开启保护功能。')}}
-                                    <span v-if="lateShowVersionName">（{{$t('当前版本号')}}：{{lateShowVersionName}}）</span>
+                                    <span v-if="lateShowVersionName">
+                                        （{{$t('当前版本号')}}：{{lateShowVersionName}}
+                                        <bk-tooltip
+                                            :delay="300"
+                                            :content="displayVersionNotes || '--'"
+                                            style="padding-left: 6px;"
+                                            placement="bottom">
+                                            <span style="color: #3c96ff;">{{$t('版本说明')}}</span>
+                                        </bk-tooltip>）
+                                    </span>
                                 </strong>
                                 <div class="action">
                                     <bk-switcher
@@ -192,17 +219,17 @@
             <template slot="content">
                 <div class="version-box">
                     <p class="title">{{$t('保存修改到')}}：</p>
-                    <ul class="version-list">
-                        <template v-if="allVersionList.length && curShowVersionId !== -1">
+                    <ul :class="['version-list', { 'is-en': isEn }]">
+                        <template v-if="!isNewVersion">
                             <li class="item">
-                                <label class="bk-form-radio">
+                                <label class="bk-form-radio label-item">
                                     <input type="radio" name="save-version-way" value="cur" v-model="saveVersionWay">
                                     <i class="bk-radio-text" style="display: inline-block; min-width: 70px;">{{$t('当前版本号')}}：{{lateShowVersionName}}</i>
                                 </label>
                             </li>
 
                             <li class="item">
-                                <label class="bk-form-radio" style="margin-right: 0;">
+                                <label class="bk-form-radio label-item" style="margin-right: 0;">
                                     <input type="radio" name="save-version-way" value="new" v-model="saveVersionWay">
                                     <i class="bk-radio-text" style="display: inline-block; min-width: 70px;">{{$t('新版本')}}：</i>
                                     <input type="text" class="bk-form-input" :placeholder="$t('请输入版本号')" @focus="saveVersionWay = 'new'" style="display: inline-block; width: 176px;" v-model="versionKeyword" />
@@ -210,7 +237,7 @@
                             </li>
 
                             <li class="item" v-if="withoutCurVersionList.length">
-                                <label class="bk-form-radio" style="margin-right: 0;">
+                                <label class="bk-form-radio label-item" style="margin-right: 0;">
                                     <input type="radio" name="save-version-way" value="old" v-model="saveVersionWay">
                                     <i class="bk-radio-text" style="display: inline-block; min-width: 70px;">{{$t('其它版本')}}：</i>
                                     <bk-selector
@@ -226,12 +253,18 @@
                         </template>
                         <template v-else>
                             <li class="item">
-                                <label class="bk-form-radio" style="margin-right: 0;">
-                                    <i class="bk-radio-text">{{$t('新版本')}}：</i>
-                                    <input type="text" class="bk-form-input" :placeholder="$t('请输入版本号')" @focus="saveVersionWay = 'new'" style="display: inline-block; width: 217px;" v-model="versionKeyword" />
+                                <label class="bk-form-radio label-item" style="margin-right: 0;">
+                                    <i class="bk-radio-text" style="display: inline-block; width: 70px;">{{$t('新版本')}}：</i>
+                                    <input type="text" class="bk-form-input" :placeholder="$t('请输入版本号')" @focus="saveVersionWay = 'new'" style="display: inline-block; width: 203px;" v-model="versionKeyword" />
                                 </label>
                             </li>
                         </template>
+                        <li class="item">
+                            <label :class="['notes', 'label-item', { 'new-item': isNewVersion }]" style="margin-right: 0;">
+                                <i :class="['notes-text', { 'is-en-text': isEn, 'is-new': isNewVersion }]" :style="{ 'padding-left': isNewVersion ? 0 : '29px' }">{{$t('版本说明')}}：</i>
+                                <bk-textarea class="notes-input" :style="{ width: isNewVersion ? '203px' : '176px' }" :placeholder="$t('请输入版本说明')" :value.sync="curVersionNotes" />
+                            </label>
+                        </li>
                     </ul>
                 </div>
             </template>
@@ -268,12 +301,12 @@
             :quick-close="true"
             :is-show.sync="versionSidePanel.isShow"
             :title="versionSidePanel.title"
-            :width="'640'">
+            :width="'840'">
             <div class="p30" slot="content" v-bkloading="{ isLoading: isVersionListLoading }">
                 <table class="bk-table biz-data-table has-table-bordered">
                     <thead>
                         <tr>
-                            <th>{{$t('版本号')}}</th>
+                            <th style="width: 250px;">{{$t('版本号')}}</th>
                             <th>{{$t('更新时间')}}</th>
                             <th>{{$t('最后更新人')}}</th>
                             <th style="width: 128px;">{{$t('操作')}}</th>
@@ -283,8 +316,17 @@
                         <template v-if="versionList.length">
                             <tr v-for="versionData in versionList" :key="versionData.show_version_id">
                                 <td>
-                                    <span>{{versionData.name}}</span>
-                                    <span v-if="versionData.show_version_id === curShowVersionId">{{$t('(当前)')}}</span>
+                                    <p>
+                                        <span>{{versionData.name}}</span>
+                                        <span v-if="versionData.show_version_id === curShowVersionId">{{$t('(当前)')}}</span>
+                                    </p>
+                                    <bk-tooltip
+                                        v-if="versionData.comment"
+                                        :delay="300"
+                                        :content="versionData.comment"
+                                        placement="right">
+                                        <span style="color: #3c96ff; font-size: 12px;">{{$t('版本说明')}}</span>
+                                    </bk-tooltip>
                                 </td>
                                 <td>{{versionData.updated}}</td>
                                 <td>{{versionData.updator}}</td>
@@ -386,7 +428,7 @@
                 },
                 versionDialogConf: {
                     isShow: false,
-                    width: 400,
+                    width: 600,
                     closeIcon: false
                 },
                 versionMetadata: {
@@ -401,7 +443,9 @@
                 canCreateInstance: false,
                 selectedVersion: '',
                 fileImportIndex: 0,
-                zipTooltipText: this.$t('请选择zip压缩包导入，包中的文件名以.yaml结尾。其中的yaml文件(非"_常用Manifest"目录下的文件)将会统一导入到自定义Manifest分类下。注意：同名文件会被覆盖')
+                zipTooltipText: this.$t('请选择zip压缩包导入，包中的文件名以.yaml结尾。其中的yaml文件(非"_常用Manifest"目录下的文件)将会统一导入到自定义Manifest分类下。注意：同名文件会被覆盖'),
+                curVersionNotes: '',
+                displayVersionNotes: '--'
             }
         },
         computed: {
@@ -596,6 +640,9 @@
             },
             imageList () {
                 return this.$store.state.mesosTemplate.imageList
+            },
+            isNewVersion () {
+                return !(this.allVersionList.length && this.curShowVersionId !== -1)
             }
         },
         watch: {
@@ -606,6 +653,28 @@
             },
             '$route' () {
                 this.getVersionList()
+            },
+            'curShowVersionId' () {
+                this.allVersionList.forEach(item => {
+                    if (item.show_version_id === this.curShowVersionId) {
+                        this.curVersionNotes = item.comment
+                        this.displayVersionNotes = item.comment
+                    }
+                })
+            },
+            'saveVersionWay' (val, old) {
+                if (val && val === old) return
+                if (val === 'new') {
+                    this.curVersionNotes = ''
+                    return
+                }
+                let item = null
+                if (val === 'cur' && this.curVersion) {
+                    item = this.allVersionList.find(item => item.show_version_id === this.curShowVersionId)
+                } else if (val === 'old' && this.selectedVersion) {
+                    item = this.allVersionList.find(item => item.show_version_id === this.selectedVersion)
+                }
+                item && (this.curVersionNotes = item.comment)
             }
         },
         mounted () {
@@ -924,6 +993,8 @@
                                         name: item.name,
                                         real_version_id: item.real_version_id
                                     }
+                                    this.curVersionNotes = item.comment
+                                    this.displayVersionNotes = item.comment
                                 }
                             })
                         }
@@ -941,6 +1012,14 @@
                 const projectId = this.projectId
                 const templateId = this.curTemplateId
                 this.$store.dispatch('mesosTemplate/getTemplateByVersion', { projectId, templateId, versionId }).then(res => {
+                    // 兼容旧数据添加rule.type
+                    if (res.data.ingress) {
+                        for (const ingress of res.data.ingress) {
+                            ingress.config.webCache.rules.forEach(rule => {
+                                rule.type === undefined && (rule.type = 'service')
+                            })
+                        }
+                    }
                     this.$emit('switchVersion', res.data)
                     // 如果不是操作删除版本，则可隐藏
                     if (!isVersionRemove) {
@@ -1250,6 +1329,14 @@
                 if (version) {
                     this.$store.dispatch('mesosTemplate/getTemplateResource', { projectId, templateId, version }).then(res => {
                         const data = res.data
+                        // 兼容旧数据添加rule.type
+                        if (res.data.ingress) {
+                            for (const ingress of res.data.ingress) {
+                                ingress.config.webCache.rules.forEach(rule => {
+                                    rule.type === undefined && (rule.type = 'service')
+                                })
+                            }
+                        }
                         if (data.version) {
                             this.$store.commit('mesosTemplate/updateCurVersion', data.version)
                         }
@@ -2224,7 +2311,6 @@
                 this.$store.commit('mesosTemplate/updateIsTemplateSaving', false)
                 await this.getVersionList()
                 this.versionSidePanel.isShow = false
-                this.versionDialogConf.width = this.isEn ? 450 : 400
                 this.versionDialogConf.isShow = true
                 this.isDataSaveing = false
                 // messager.close()
@@ -2267,6 +2353,9 @@
                 }
                 return true
             },
+            selectVersion (id, item) {
+                this.curVersionNotes = item.comment
+            },
             async saveVersion (version) {
                 const projectId = this.projectId
                 const templateId = this.curTemplateId
@@ -2297,6 +2386,7 @@
                 }
 
                 const params = this.versionMetadata
+                params.comment = this.curVersionNotes
                 await this.$store.dispatch('mesosTemplate/saveVersion', { projectId, templateId, params }).then(res => {
                     this.$bkMessage({
                         theme: 'success',
@@ -3144,6 +3234,7 @@
             async checkIngressData (ingress) {
                 const ingressName = ingress.config.metadata.name
                 const nameReg1 = /^[a-z]{1}[a-z0-9-]{0,63}$/
+                const empty = ['', undefined]
                 // const nameReg2 = /^[a-zA-Z]{1}[a-zA-Z0-9-_.]{0,29}$/
                 // const varReg = /\{\{([^\{\}]+)?\}\}/g
                 // const keys = ingress.ingressKeyList
@@ -3206,7 +3297,7 @@
                         return false
                     }
 
-                    if (!rule.servicePort) {
+                    if (!rule.servicePort && rule.type === 'service') {
                         this.$bkMessage({
                             theme: 'error',
                             message: megPrefix + this.$t('规则"{name}"的端口：请选择端口', rule),
@@ -3215,10 +3306,36 @@
                         return false
                     }
 
-                    if (!rule.clbPort) {
+                    if (!rule.clbPort && rule.type === 'service') {
                         this.$bkMessage({
                             theme: 'error',
                             message: megPrefix + this.$t('规则"{name}"的监听CLB端口：请输入监听CLB端口', rule),
+                            delay: 8000
+                        })
+                        return false
+                    }
+                    if (empty.includes(rule.startPort) && rule.type === 'port') {
+                        this.$bkMessage({
+                            theme: 'error',
+                            message: megPrefix + this.$t('规则"{name}"的CLB起始端口：请输入CLB起始端口', rule),
+                            delay: 8000
+                        })
+                        return false
+                    }
+
+                    if (empty.includes(rule.startIndex) && rule.type === 'port') {
+                        this.$bkMessage({
+                            theme: 'error',
+                            message: megPrefix + this.$t('规则"{name}"的起始索引：请输入起始索引', rule),
+                            delay: 8000
+                        })
+                        return false
+                    }
+
+                    if (empty.includes(rule.endIndex) && rule.type === 'port') {
+                        this.$bkMessage({
+                            theme: 'error',
+                            message: megPrefix + this.$t('规则"{name}"的终止索引：请输入终止索引', rule),
                             delay: 8000
                         })
                         return false
@@ -3259,8 +3376,17 @@
                 spec.udp = []
                 spec.http = []
                 spec.https = []
+                spec.statefulset = {
+                    tcp: [],
+                    udp: [],
+                    http: [],
+                    https: []
+                }
                 params.config.webCache.rules.forEach(data => {
                     const rule = JSON.parse(JSON.stringify(data))
+                    const type = rule.type
+                    delete rule.type
+
                     if (rule.sessionTime === '') {
                         delete rule.sessionTime
                     }
@@ -3273,7 +3399,18 @@
                             delete rule.healthCheck.httpCode
                             delete rule.healthCheck.httpCheckPath
                             delete rule.httpsEnabled
-                            spec.tcp.push(rule)
+                            if (type === 'service') {
+                                delete rule.startPort
+                                delete rule.startIndex
+                                delete rule.endIndex
+
+                                spec.tcp.push(rule)
+                            } else {
+                                delete rule.clbPort
+                                delete rule.servicePort
+
+                                spec.statefulset.tcp.push(rule)
+                            }
                             break
 
                         case 'UDP':
@@ -3284,18 +3421,39 @@
                             delete rule.healthCheck.httpCode
                             delete rule.healthCheck.httpCheckPath
                             delete rule.httpsEnabled
-                            spec.udp.push(rule)
+
+                            if (type === 'service') {
+                                delete rule.startPort
+                                delete rule.startIndex
+                                delete rule.endIndex
+
+                                spec.udp.push(rule)
+                            } else {
+                                delete rule.clbPort
+                                delete rule.servicePort
+
+                                spec.statefulset.udp.push(rule)
+                            }
                             break
 
                         case 'HTTP':
+                            const httpsEnabled = rule.httpsEnabled
                             delete rule.serviceType
-                            if (rule.httpsEnabled) {
+                            if (httpsEnabled) {
                                 delete rule.httpsEnabled
-                                spec.https.push(rule)
                             } else {
                                 delete rule.httpsEnabled
                                 delete rule.tls
-                                spec.http.push(rule)
+                            }
+                            if (type === 'service') {
+                                delete rule.startPort
+                                delete rule.startIndex
+                                delete rule.endIndex
+                                httpsEnabled ? spec.https.push(rule) : spec.http.push(rule)
+                            } else {
+                                delete rule.clbPort
+                                delete rule.servicePort
+                                httpsEnabled ? spec.statefulset.https.push(rule) : spec.statefulset.http.push(rule)
                             }
                             break
                     }
@@ -3828,6 +3986,51 @@
                 display: none;
             }
 
+            .label-item {
+                display: flex;
+                align-items: center;
+                input[type="radio"] {
+                    margin-right: 10px;
+                }
+                .bk-form-input, .bk-selector, .notes-input {
+                    flex: 1;
+                }
+            }
+
+        }
+        .notes {
+            display: inline-block;
+            padding: 7px 0;
+            &:not(.new-item) {
+                padding: 17px 0 7px;
+                margin-top: 10px;
+                border-top: 1px solid #dde4eb;
+            }
+            .notes-text {
+                align-self: start;
+                display: inline-block;
+                color: #666666;
+                font-size: 14px;
+                font-style: normal;
+                &.is-en-text {
+                    min-width: 110px;
+                    &:not(.is-new) {
+                        min-width: 138px;
+                    }
+                }
+            }
+            .notes-input {
+                display: inline-block;
+                vertical-align: top;
+                width: 176px;
+                height: 80px;
+            }
+        }
+    
+        .is-en {
+            .bk-radio-text {
+                min-width: 110px !important;
+            }
         }
     }
 

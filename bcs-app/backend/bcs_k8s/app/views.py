@@ -16,7 +16,6 @@ import json
 import logging
 import os
 import tempfile
-import urllib
 from itertools import groupby
 from operator import itemgetter
 
@@ -35,21 +34,20 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.serializers import Serializer
 
-from backend.accounts import bcs_perm
-from backend.bcs_k8s.app.serializers import FilterNamespacesSLZ
-from backend.bcs_k8s.app.utils import compose_url_with_scheme
-from backend.bcs_k8s.app.utils_bk import get_or_create_private_repo
 from backend.bcs_k8s.authtoken.authentication import TokenAuthentication
-from backend.bcs_k8s.bke_client.client import BCSClusterCredentialsNotFound, BCSClusterNotFound
-from backend.bcs_k8s.dashboard.exceptions import DashboardError, DashboardExecutionError
 from backend.bcs_k8s.diff import parser
 from backend.bcs_k8s.helm.models.chart import ChartVersion
-from backend.bcs_k8s.helm.models.repo import Repository
 from backend.bcs_k8s.helm.providers.repo_provider import add_plain_repo, add_platform_public_repos, add_repo
 from backend.bcs_k8s.helm.serializers import ChartVersionSLZ
 from backend.bcs_k8s.permissions import check_cluster_perm
 from backend.components import paas_cc
 from backend.components.bcs import k8s
+from backend.accounts import bcs_perm
+from backend.bcs_k8s.bke_client.client import BCSClusterNotFound, BCSClusterCredentialsNotFound
+from backend.bcs_k8s.dashboard.exceptions import DashboardError, DashboardExecutionError
+from backend.bcs_k8s.app.utils import get_helm_dashboard_path
+from backend.bcs_k8s.app.serializers import FilterNamespacesSLZ
+from backend.bcs_k8s.app.utils_bk import get_or_create_private_repo
 from backend.resources.namespace.constants import K8S_SYS_PLAT_NAMESPACES
 from backend.utils import client as bcs_utils_client
 from backend.utils.errcodes import ErrorCode
@@ -57,7 +55,6 @@ from backend.utils.views import (
     AccessTokenMixin,
     ActionSerializerMixin,
     AppMixin,
-    FilterByProjectMixin,
     ProjectMixin,
     with_code_wrapper,
 )
@@ -177,9 +174,7 @@ class AppView(ActionSerializerMixin, AppViewBase):
 
             if item["transitioning_on"] and (timezone.now() - item["updated"]) > HELM_TASK_TIMEOUT:
                 App.objects.filter(id=item["id"]).update(
-                    transitioning_on=False,
-                    transitioning_result=False,
-                    transitioning_message=_("Helm操作超时，请重试!"),
+                    transitioning_on=False, transitioning_result=False, transitioning_message=_("Helm操作超时，请重试!"),
                 )
                 item["transitioning_result"] = False
                 item["transitioning_on"] = False
@@ -205,26 +200,12 @@ class AppView(ActionSerializerMixin, AppViewBase):
         except IntegrityError as e:
             logger.warning("helm app create IntegrityError, %s", e)
             return Response(
-                status=400,
-                data={
-                    "code": 400,
-                    "message": "helm app name already exists in this cluster",
-                },
+                status=400, data={"code": 400, "message": "helm app name already exists in this cluster",},
             )
         except BCSClusterNotFound:
-            return Response(
-                data={
-                    "code": 40031,
-                    "message": _("集群未注册"),
-                }
-            )
+            return Response(data={"code": 40031, "message": _("集群未注册"),})
         except BCSClusterCredentialsNotFound:
-            return Response(
-                data={
-                    "code": 40031,
-                    "message": _("集群证书未上报"),
-                }
-            )
+            return Response(data={"code": 40031, "message": _("集群证书未上报"),})
 
     def destroy(self, request, *args, **kwargs):
         """重载默认的 destroy 方法，用于实现判断是否删除成功"""
@@ -775,6 +756,10 @@ class AppStatusView(AppMixin, AccessTokenMixin, viewsets.ReadOnlyModelViewSet, P
             access_token=self.access_token, project_id=app.project_id, cluster_id=app.cluster_id
         )
 
+        # 获取dashboard对应的path
+        bin_path = get_helm_dashboard_path(
+            access_token=self.access_token, project_id=app.project_id, cluster_id=app.cluster_id
+        )
         base_url = get_base_url(request)
         try:
             with tempfile.NamedTemporaryFile("w") as f:
@@ -782,36 +767,21 @@ class AppStatusView(AppMixin, AccessTokenMixin, viewsets.ReadOnlyModelViewSet, P
                 f.flush()
 
                 data = collect_resource_status(
-                    base_url=base_url, kubeconfig=f.name, app=app, project_code=project_code
+                    base_url=base_url, kubeconfig=f.name, app=app, project_code=project_code, bin_path=bin_path
                 )
         except DashboardExecutionError as e:
             message = "get helm app status failed, error_no: {error_no}\n{output}".format(
                 error_no=e.error_no, output=e.output
             )
-            return Response(
-                {
-                    "code": 400,
-                    "message": message,
-                }
-            )
+            return Response({"code": 400, "message": message,})
         except DashboardError as e:
             message = "get helm app status failed, dashboard ctl error: {err}".format(err=e)
             logger.exception(message)
-            return Response(
-                {
-                    "code": 400,
-                    "message": message,
-                }
-            )
+            return Response({"code": 400, "message": message,})
         except Exception as e:
             message = "get helm app status failed, {err}".format(err=e)
             logger.exception(message)
-            return Response(
-                {
-                    "codee": 500,
-                    "message": message,
-                }
-            )
+            return Response({"codee": 500, "message": message,})
 
         response = {
             "status": data,

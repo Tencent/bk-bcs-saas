@@ -94,8 +94,8 @@ def make_kubectl_client_from_kubeconfig(kubeconfig_content, **options):
         yield kubectl_client
 
 
-def make_dashboard_ctl_client(kubeconfig):
-    return DashboardClient(dashboard_ctl_bin=settings.DASHBOARD_CTL_BIN, kubeconfig=kubeconfig)
+def make_dashboard_ctl_client(kubeconfig, bin_path=settings.DASHBOARD_CTL_BIN):
+    return DashboardClient(dashboard_ctl_bin=bin_path, kubeconfig=kubeconfig)
 
 
 class KubectlClient:

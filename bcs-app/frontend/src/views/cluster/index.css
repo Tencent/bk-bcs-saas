@@ -320,7 +320,7 @@
 
 .cluster-opera-btn {
     .bk-icon.icon-more {
-        color: #979BA5;
+        color: $fontColor;
         font-size: 26px;
         width: 32px;
         height: 32px;

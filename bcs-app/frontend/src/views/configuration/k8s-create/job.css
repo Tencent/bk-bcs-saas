@@ -231,6 +231,17 @@
     padding: 130px 40px;
 }
 
+.source-flex-box {
+    display: flex;
+
+    .bk-form-input-group {
+        flex: 1;
+        display: flex;
+        margin-left: 5px;
+    }
+}
+
+
 @keyframes flash {
     0% {
         width: 3px;
