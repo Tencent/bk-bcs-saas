@@ -11,22 +11,19 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-import logging
 import json
+import logging
 
 from rest_framework import response, viewsets
 from rest_framework.renderers import BrowsableAPIRenderer
 
-from backend.utils.renderers import BKAPIRenderer
-from backend.apps.application import constants
-from backend.apps.application import utils
-from backend.apps.application import base_perm_views
+from backend.apps.application import base_perm_views, constants, drivers, utils
 from backend.apps.application.base_views import BaseInstanceView
-from backend.apps.application import drivers
-from backend.utils.basic import getitems
-from backend.web_console.api import exec_command
-from backend.utils.error_codes import error_codes
 from backend.apps.application.common_views import serializers as common_serializers
+from backend.utils.basic import getitems
+from backend.utils.error_codes import error_codes
+from backend.utils.renderers import BKAPIRenderer
+from backend.web_console.api import exec_command
 
 logger = logging.getLogger(__name__)
 
@@ -35,8 +32,7 @@ class K8SContainerInfo(BaseInstanceView, viewsets.ViewSet):
     renderer_classes = (BKAPIRenderer, BrowsableAPIRenderer)
 
     def get_params_from_no_tmpl_type(self, request, project_id):
-        """获取非模板集
-        """
+        """获取非模板集"""
         slz = common_serializers.BaseNotTemplateInstanceParamsSLZ(data=request.query_params)
         slz.is_valid(raise_exception=True)
         params = dict(slz.validated_data)
@@ -66,7 +62,8 @@ class K8SContainerInfo(BaseInstanceView, viewsets.ViewSet):
         labels = metadata.get('labels') or {}
         # 校验权限
         base_perm_views.InstancePerm.can_use_instance(
-            request, project_id, inst_info.namespace, labels.get(constants.LABEL_TEMPLATE_ID))
+            request, project_id, inst_info.namespace, labels.get(constants.LABEL_TEMPLATE_ID)
+        )
         params['cluster_id'] = labels.get(constants.LABEL_CLUSTER_ID)
         return params
 
@@ -77,14 +74,14 @@ class K8SContainerInfo(BaseInstanceView, viewsets.ViewSet):
                 {
                     'hostPath': info.get('name', ''),
                     'mountPath': info.get('mountPath', ''),
-                    'readOnly': info.get('readOnly', '')
+                    'readOnly': info.get('readOnly', ''),
                 }
                 for info in container_spec.get('volumeMounts') or []
             ],
             'ports': container_spec.get('ports') or [],
             'command': {
                 'command': container_spec.get('command', ''),
-                'args': ' '.join(container_spec.get('args', ''))
+                'args': ' '.join(container_spec.get('args', '')),
             },
             'network_mode': spec.get('dnsPolicy', ''),
             'labels': [{'key': key, 'val': val} for key, val in labels.items()],
@@ -98,12 +95,11 @@ class K8SContainerInfo(BaseInstanceView, viewsets.ViewSet):
             'container_id': container_id,
             'image': utils.image_handler(container_status.get('image', '')),
             # 先保留env, 因为前端还没有适配
-            'env_args': container_spec.get('env', [])
+            'env_args': container_spec.get('env', []),
         }
 
     def compose_data(self, pod_info, container_id):
-        """根据container id处理数据
-        """
+        """根据container id处理数据"""
         ret_data = {}
         if not (pod_info and container_id):
             return ret_data
@@ -153,16 +149,12 @@ class K8SContainerInfo(BaseInstanceView, viewsets.ViewSet):
         container_id = self.get_container_id(request)
 
         params = self.compose_pod_params(request, project_id, instance_id)
-        env_resp = exec_command(
-            request.user.token.access_token, project_id, params['cluster_id'], container_id, 'env')
+        env_resp = exec_command(request.user.token.access_token, project_id, params['cluster_id'], container_id, 'env')
 
         # parse and compose the return data
         try:
             # docker env format: key=val
-            data = [
-                dict(zip(['name', 'value'], info.split('=', 1)))
-                for info in env_resp.splitlines() if info
-            ]
+            data = [dict(zip(['name', 'value'], info.split('=', 1))) for info in env_resp.splitlines() if info]
         except Exception as err:
             # not raise error, record log
             logger.error('parse the env data error, detial: %s', err)

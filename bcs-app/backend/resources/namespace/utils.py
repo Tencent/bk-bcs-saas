@@ -63,8 +63,7 @@ def get_namespace_by_id(access_token, project_id, namespace_id):
 
 @parse_response_data(default_data=[])
 def get_k8s_namespaces(access_token, project_id, cluster_id):
-    """获取集群中实时的namespace
-    """
+    """获取集群中实时的namespace"""
     client = K8SClient(access_token, project_id, cluster_id, env=None)
     return client.get_namespace()
 
@@ -77,7 +76,4 @@ def delete_cc_namespace(access_token, project_id, cluster_id, namespace_id):
 
 @parse_response_data()
 def create_cc_namespace(access_token, project_id, cluster_id, namespace, creator):
-    return paas_cc.create_namespace(
-        access_token, project_id, cluster_id,
-        namespace, None, creator, "prod", False
-    )
+    return paas_cc.create_namespace(access_token, project_id, cluster_id, namespace, None, creator, "prod", False)

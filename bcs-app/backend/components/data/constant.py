@@ -14,7 +14,6 @@
 
 from django.conf import settings
 
-
 # 是否开启数据平台功能
 IS_DATA_OPEN = False
 

@@ -16,10 +16,11 @@ import logging
 
 from kubernetes import client
 
-from .api_response import response
-from .resource import Resource, ExtensionsAPIClassMixins
-from backend.utils.basic import getitems
 from backend.resources.constants import K8sResourceKinds
+from backend.utils.basic import getitems
+
+from .api_response import response
+from .resource import ExtensionsAPIClassMixins, Resource
 
 logger = logging.getLogger(__name__)
 
@@ -42,8 +43,7 @@ class Ingress(Resource, ExtensionsAPIClassMixins):
         ingress_list = []
         for info in data.get('items') or []:
             resource_name = getitems(info, ['metadata', 'name'], '')
-            item = self.render_resource(
-                'Ingress', info, resource_name, getitems(info, ['metadata', 'namespace'], ''))
+            item = self.render_resource('Ingress', info, resource_name, getitems(info, ['metadata', 'namespace'], ''))
             if params.get('name'):
                 if resource_name == params['name']:
                     ingress_list.append(item)
@@ -58,9 +58,10 @@ class Ingress(Resource, ExtensionsAPIClassMixins):
         data = json.loads(resp.data)
         for info in data.get('items') or []:
             item = self.render_resource(
-                'Ingress', info,
+                'Ingress',
+                info,
                 getitems(info, ['metadata', 'name'], ''),
-                getitems(info, ['metadata', 'namespace'], '')
+                getitems(info, ['metadata', 'namespace'], ''),
             )
             ingress_list.append(item)
         return ingress_list

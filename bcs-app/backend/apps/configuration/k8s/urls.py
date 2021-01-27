@@ -18,41 +18,55 @@ from . import views
 # ###### K8s 页面依赖的API
 urlpatterns = [
     # 查询指定版本的  configmap 信息
-    url(r'^api/configuration/(?P<project_id>\w{32})/K8sConfigMap/(?P<version_id>\-?\d+)/$',
-        views.TemplateResourceView.as_view({'get': 'list_configmaps'})),
+    url(
+        r'^api/configuration/(?P<project_id>\w{32})/K8sConfigMap/(?P<version_id>\-?\d+)/$',
+        views.TemplateResourceView.as_view({'get': 'list_configmaps'}),
+    ),
     # 查询指定版本的  secret 信息
-    url(r'^api/configuration/(?P<project_id>\w{32})/K8sSecret/(?P<version_id>\-?\d+)/$',
-        views.TemplateResourceView.as_view({'get': 'list_secrets'})),
+    url(
+        r'^api/configuration/(?P<project_id>\w{32})/K8sSecret/(?P<version_id>\-?\d+)/$',
+        views.TemplateResourceView.as_view({'get': 'list_secrets'}),
+    ),
     # 查询指定版本的 Deployment 信息
-    url(r'^api/configuration/(?P<project_id>\w{32})/K8sDeployment/(?P<version_id>\-?\d+)/$',
-        views.TemplateResourceView.as_view({'get': 'list_deployments'})),
+    url(
+        r'^api/configuration/(?P<project_id>\w{32})/K8sDeployment/(?P<version_id>\-?\d+)/$',
+        views.TemplateResourceView.as_view({'get': 'list_deployments'}),
+    ),
     # 查询指定版本的 Pod 信息
-    url(r'^api/configuration/(?P<project_id>\w{32})/pods/(?P<version_id>\-?\d+)/$',
-        views.TemplateResourceView.as_view({'get': 'list_pod_resources'})),
+    url(
+        r'^api/configuration/(?P<project_id>\w{32})/pods/(?P<version_id>\-?\d+)/$',
+        views.TemplateResourceView.as_view({'get': 'list_pod_resources'}),
+    ),
     # 查询指定版本的已经被Service关联的label信息
-    url(r'^api/configuration/(?P<project_id>\w{32})/labels/(?P<version_id>\-?\d+)/$',
-        views.TemplateResourceView.as_view({'get': 'list_svc_selector_labels'})),
+    url(
+        r'^api/configuration/(?P<project_id>\w{32})/labels/(?P<version_id>\-?\d+)/$',
+        views.TemplateResourceView.as_view({'get': 'list_svc_selector_labels'}),
+    ),
     # 查询指定版本的 K8sService 信息
-    url(r'^api/configuration/(?P<project_id>\w{32})/K8sService/(?P<version_id>\-?\d+)/$',
-        views.TemplateResourceView.as_view({'get': 'list_services'})),
-
+    url(
+        r'^api/configuration/(?P<project_id>\w{32})/K8sService/(?P<version_id>\-?\d+)/$',
+        views.TemplateResourceView.as_view({'get': 'list_services'}),
+    ),
     # 查询模板集指定版本中 Deployment/Statefulset等资源的container的port信息
-    url(r'^api/configuration/projects/(?P<project_id>\w{32})/versions/(?P<version_id>\-?\d+)/K8sContainerPorts/$',
-        views.TemplateResourceView.as_view({'get': 'list_container_ports'})),
-
+    url(
+        r'^api/configuration/projects/(?P<project_id>\w{32})/versions/(?P<version_id>\-?\d+)/K8sContainerPorts/$',
+        views.TemplateResourceView.as_view({'get': 'list_container_ports'}),
+    ),
     # 检查指定的 port 是否被 service 关联 TODO mark refactor 前端似乎未用
     url(
         r'^api/configuration/(?P<project_id>\w{32})/K8sDeployment/check/version/(?P<version_id>\d+)/port/'
         r'(?P<port_id>\-?\d+)/$',
         # noqa
-        views.TemplateResourceView.as_view({'get': 'check_port_associated_with_service'})),
-
+        views.TemplateResourceView.as_view({'get': 'check_port_associated_with_service'}),
+    ),
     # 查询指定deployment 中 label 信息
-    url(r'^api/configuration/(?P<project_id>\w{32})/K8sDeployment/labels/(?P<version_id>\-?\d+)/$',
-        views.TemplateResourceView.as_view({'get': 'list_pod_res_labels'})),
-
+    url(
+        r'^api/configuration/(?P<project_id>\w{32})/K8sDeployment/labels/(?P<version_id>\-?\d+)/$',
+        views.TemplateResourceView.as_view({'get': 'list_pod_res_labels'}),
+    ),
     url(
         r'^api/configuration/projects/(?P<project_id>\w{32})/versions/(?P<version_id>\-?\d+)/'
         r'K8sStatefulSet/(?P<sts_deploy_tag>\d{16})/service-tag/$',
-        views.TemplateResourceView.as_view({'put': 'update_sts_service_tag'}))
+        views.TemplateResourceView.as_view({'put': 'update_sts_service_tag'}),
+    ),
 ]

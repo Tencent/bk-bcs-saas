@@ -11,38 +11,35 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-import json
 import datetime
+import json
 import subprocess
 
 from django.conf import settings
-from rest_framework import serializers
-from rest_framework.exceptions import ValidationError, ParseError
 from django.utils.translation import ugettext_lazy as _
+from rest_framework import serializers
+from rest_framework.exceptions import ParseError, ValidationError
 
-from backend.utils.error_codes import error_codes
-from backend.components import paas_cc
-
-from .models import App
+from backend.bcs_k8s import utils as bcs_helm_utils
+from backend.bcs_k8s.diff.diff import simple_diff
+from backend.bcs_k8s.diff.parser import parse
+from backend.bcs_k8s.helm.bcs_variable import collect_system_variable, get_valuefile_with_bcs_variable_injected
+from backend.bcs_k8s.helm.constants import DEFAULT_VALUES_FILE_NAME, KEEP_TEMPLATE_UNCHANGED, RESOURCE_NAME_REGEX
 from backend.bcs_k8s.helm.models import ChartVersion
 from backend.bcs_k8s.helm.serializers import ChartReleaseSLZ, RepoSLZ
-from backend.bcs_k8s.kubehelm.helm import KubeHelmClient
-from backend.bcs_k8s.kubehelm import exceptions as helm_exceptions
-from backend.bcs_k8s.diff.parser import parse
-from backend.bcs_k8s.diff.diff import simple_diff
-from backend.utils.serializers import YamlField, HelmValueField
-from backend.utils.tempfile import save_to_temporary_dir
-from backend.utils.client import make_kubectl_client, get_bcs_client
-from backend.bcs_k8s.helm.constants import KEEP_TEMPLATE_UNCHANGED, RESOURCE_NAME_REGEX, DEFAULT_VALUES_FILE_NAME
 from backend.bcs_k8s.helm.utils.util import merge_rancher_answers
+from backend.bcs_k8s.kubehelm import exceptions as helm_exceptions
+from backend.bcs_k8s.kubehelm.helm import KubeHelmClient
 from backend.bcs_k8s.permissions import check_cluster_perm
-from backend.bcs_k8s.helm.bcs_variable import (
-    collect_system_variable,
-    get_valuefile_with_bcs_variable_injected)
+from backend.components import paas_cc
+from backend.utils.client import get_bcs_client, make_kubectl_client
+from backend.utils.error_codes import error_codes
+from backend.utils.serializers import HelmValueField, YamlField
+from backend.utils.tempfile import save_to_temporary_dir
+
+from . import bcs_info_injector, utils
 from .deployer import AppDeployer
-from . import bcs_info_injector
-from . import utils
-from backend.bcs_k8s import utils as bcs_helm_utils
+from .models import App
 
 
 def preview_parse(manifest, namespace):
@@ -56,6 +53,7 @@ def preview_parse(manifest, namespace):
 
 class AppMixin:
     """ app serializer 公用方法 """
+
     @property
     def project_id(self):
         return self.context["request"].parser_context["kwargs"]["project_id"]
@@ -143,7 +141,7 @@ class NamespaceInfoField(serializers.RelatedField):
 class AppSLZ(AppBaseSLZ):
     name = serializers.RegexField(
         RESOURCE_NAME_REGEX,
-        error_messages={"invalid": _('不符合k8s资源名规范, 只能由小写字母数字或者-组成，正则:{}').format(RESOURCE_NAME_REGEX)}
+        error_messages={"invalid": _('不符合k8s资源名规范, 只能由小写字母数字或者-组成，正则:{}').format(RESOURCE_NAME_REGEX)},
     )
     namespace_info = NamespaceInfoField(write_only=True, label="Namespace")
     chart_version = serializers.PrimaryKeyRelatedField(queryset=ChartVersion.objects.all(), write_only=True)
@@ -153,10 +151,7 @@ class AppSLZ(AppBaseSLZ):
         label="Answers",
         help_text="JSON format data",
         source="get_answers",
-        style={
-            "base_template": "textarea.html",
-            "rows": 10
-        }
+        style={"base_template": "textarea.html", "rows": 10},
     )
 
     customs = HelmValueField(
@@ -165,10 +160,7 @@ class AppSLZ(AppBaseSLZ):
         label="Customs",
         help_text="JSON format data",
         source="get_customs",
-        style={
-            "base_template": "textarea.html",
-            "rows": 10
-        }
+        style={"base_template": "textarea.html", "rows": 10},
     )
 
     valuefile = YamlField(
@@ -179,13 +171,11 @@ class AppSLZ(AppBaseSLZ):
         label="ValueFile",
         help_text="Yaml format data",
         source="get_valuefile",
-        style={
-            "base_template": "textarea.html",
-            "rows": 10
-        }
+        style={"base_template": "textarea.html", "rows": 10},
     )
     valuefile_name = serializers.CharField(
-        source="get_valuefile_name", write_only=True, default=DEFAULT_VALUES_FILE_NAME)
+        source="get_valuefile_name", write_only=True, default=DEFAULT_VALUES_FILE_NAME
+    )
 
     current_version = serializers.CharField(source="get_current_version", read_only=True)
     cmd_flags = serializers.JSONField(required=False, default=[])
@@ -197,21 +187,22 @@ class AppSLZ(AppBaseSLZ):
             user=self.context["request"].user,
             project_id=namespace_info["project_id"],
             cluster_id=namespace_info["cluster_id"],
-            request=self.context["request"]
+            request=self.context["request"],
         )
 
         # 检查集群已经成功注册到 bcs, 否则让用户先完成注册逻辑
         bcs_client = get_bcs_client(
             project_id=namespace_info["project_id"],
             cluster_id=namespace_info["cluster_id"],
-            access_token=self.context["request"].user.token.access_token
+            access_token=self.context["request"].user.token.access_token,
         )
         bcs_client.get_cluster_credential()
 
         sys_variables = collect_system_variable(
             access_token=self.context["request"].user.token.access_token,
             project_id=namespace_info["project_id"],
-            namespace_id=namespace_info["id"])
+            namespace_id=namespace_info["id"],
+        )
 
         return App.objects.initialize_app(
             access_token=self.access_token,
@@ -228,7 +219,7 @@ class AppSLZ(AppBaseSLZ):
             updator=self.request_username,
             sys_variables=sys_variables,
             valuefile_name=validated_data.get('get_valuefile_name'),
-            cmd_flags=validated_data["cmd_flags"]
+            cmd_flags=validated_data["cmd_flags"],
         )
 
     def validate_name(self, value):
@@ -264,7 +255,7 @@ class AppSLZ(AppBaseSLZ):
             "current_version",
             "id",
             "valuefile_name",
-            "cmd_flags"
+            "cmd_flags",
         )
         read_only_fields = (
             "namespace",
@@ -296,10 +287,7 @@ class AppDetailSLZ(AppBaseSLZ):
         label="Answers",
         help_text="JSON format data",
         source="get_answers",
-        style={
-            "base_template": "textarea.html",
-            "rows": 10
-        }
+        style={"base_template": "textarea.html", "rows": 10},
     )
 
     customs = HelmValueField(
@@ -308,10 +296,7 @@ class AppDetailSLZ(AppBaseSLZ):
         label="Customs",
         help_text="JSON format data",
         source="get_customs",
-        style={
-            "base_template": "textarea.html",
-            "rows": 10
-        }
+        style={"base_template": "textarea.html", "rows": 10},
     )
 
     valuefile = YamlField(
@@ -321,10 +306,7 @@ class AppDetailSLZ(AppBaseSLZ):
         label="ValueFile",
         help_text="Yaml format data",
         source="get_valuefile",
-        style={
-            "base_template": "textarea.html",
-            "rows": 10
-        }
+        style={"base_template": "textarea.html", "rows": 10},
     )
     valuefile_name = serializers.CharField(source="get_valuefile_name", read_only=True)
     cmd_flags = serializers.JSONField(source="get_cmd_flags", read_only=True)
@@ -355,7 +337,7 @@ class AppDetailSLZ(AppBaseSLZ):
             "created",
             "updated",
             "valuefile_name",
-            "cmd_flags"
+            "cmd_flags",
         )
 
 
@@ -383,19 +365,13 @@ class AppUpgradeSLZ(AppBaseSLZ):
         label="Answers",
         help_text="JSON format data",
         source="get_answers",
-        style={
-            "base_template": "textarea.html",
-            "rows": 10
-        }
+        style={"base_template": "textarea.html", "rows": 10},
     )
     customs = HelmValueField(
         label="Customs",
         help_text="JSON format data",
         source="get_customs",
-        style={
-            "base_template": "textarea.html",
-            "rows": 10
-        }
+        style={"base_template": "textarea.html", "rows": 10},
     )
 
     valuefile = YamlField(
@@ -405,13 +381,11 @@ class AppUpgradeSLZ(AppBaseSLZ):
         allow_blank=True,
         help_text="Yaml format data",
         source="get_valuefile",
-        style={
-            "base_template": "textarea.html",
-            "rows": 10
-        }
+        style={"base_template": "textarea.html", "rows": 10},
     )
     valuefile_name = serializers.CharField(
-        source="get_valuefile_name", write_only=True, default=DEFAULT_VALUES_FILE_NAME)
+        source="get_valuefile_name", write_only=True, default=DEFAULT_VALUES_FILE_NAME
+    )
     cmd_flags = serializers.JSONField(required=False, default=[])
 
     def update(self, instance, validated_data):
@@ -419,7 +393,8 @@ class AppUpgradeSLZ(AppBaseSLZ):
         sys_variables = collect_system_variable(
             access_token=self.context["request"].user.token.access_token,
             project_id=instance.project_id,
-            namespace_id=instance.namespace_id)
+            namespace_id=instance.namespace_id,
+        )
 
         return instance.upgrade_app(
             access_token=self.access_token,
@@ -430,7 +405,7 @@ class AppUpgradeSLZ(AppBaseSLZ):
             updator=self.request_username,
             sys_variables=sys_variables,
             valuefile_name=validated_data.get("get_valuefile_name"),
-            cmd_flags=validated_data["cmd_flags"]
+            cmd_flags=validated_data["cmd_flags"],
         )
 
     class Meta:
@@ -451,7 +426,7 @@ class AppUpgradeSLZ(AppBaseSLZ):
             "transitioning_action",
             "id",
             "valuefile_name",
-            "cmd_flags"
+            "cmd_flags",
         )
         read_only_fields = (
             "name",
@@ -465,21 +440,11 @@ class AppUpgradeSLZ(AppBaseSLZ):
             "transitioning_action",
         )
         extra_kwargs = {
-            "answers": {
-                "write_only": True
-            },
-            "customs": {
-                "write_only": True
-            },
-            "valuefile": {
-                "write_only": True
-            },
-            "upgrade_verion": {
-                "write_only": True
-            },
-            "valuefile_name": {
-                "write_only": True
-            },
+            "answers": {"write_only": True},
+            "customs": {"write_only": True},
+            "valuefile": {"write_only": True},
+            "upgrade_verion": {"write_only": True},
+            "valuefile_name": {"write_only": True},
         }
 
 
@@ -510,7 +475,7 @@ class AppRollbackSLZ(AppBaseSLZ):
             user=self.context["request"].user,
             project_id=instance.project_id,
             cluster_id=instance.cluster_id,
-            request=self.context["request"]
+            request=self.context["request"],
         )
 
         # operation record
@@ -590,6 +555,7 @@ class AppReleaseDiffSLZ(serializers.Serializer):
 
 class AppReleasePreviewSLZ(AppMixin, serializers.Serializer):
     """ 发布预览 """
+
     upgrade_verion = UpgradeVersionField(write_only=True, required=True)
     answers = HelmValueField(
         initial=[],
@@ -597,10 +563,7 @@ class AppReleasePreviewSLZ(AppMixin, serializers.Serializer):
         label="Answers",
         help_text="JSON format data",
         source="get_answers",
-        style={
-            "base_template": "textarea.html",
-            "rows": 10
-        }
+        style={"base_template": "textarea.html", "rows": 10},
     )
 
     customs = HelmValueField(
@@ -609,10 +572,7 @@ class AppReleasePreviewSLZ(AppMixin, serializers.Serializer):
         label="Customs",
         help_text="JSON format data",
         source="get_customs",
-        style={
-            "base_template": "textarea.html",
-            "rows": 10
-        }
+        style={"base_template": "textarea.html", "rows": 10},
     )
 
     valuefile = YamlField(
@@ -623,10 +583,7 @@ class AppReleasePreviewSLZ(AppMixin, serializers.Serializer):
         default="",
         label="ValueFile",
         help_text="Yaml format data",
-        style={
-            "base_template": "textarea.html",
-            "rows": 10
-        }
+        style={"base_template": "textarea.html", "rows": 10},
     )
 
     content = serializers.JSONField(read_only=True)
@@ -645,7 +602,7 @@ class AppReleasePreviewSLZ(AppMixin, serializers.Serializer):
             user=self.context["request"].user,
             project_id=instance.project_id,
             cluster_id=instance.cluster_id,
-            request=self.context["request"]
+            request=self.context["request"],
         )
 
         # 标记Chart中的values.yaml是否发生变化，用于提醒用户
@@ -668,7 +625,7 @@ class AppReleasePreviewSLZ(AppMixin, serializers.Serializer):
             project_id=instance.project_id,
             namespace_id=instance.namespace_id,
             valuefile=validated_data["valuefile"],
-            cluster_id=instance.cluster_id
+            cluster_id=instance.cluster_id,
         )
 
         now = datetime.datetime.now()
@@ -684,7 +641,7 @@ class AppReleasePreviewSLZ(AppMixin, serializers.Serializer):
             cluster_id=instance.cluster_id,
             namespace=instance.namespace,
             stdlog_data_id=bcs_helm_utils.get_stdlog_data_id(self.project_id),
-            image_pull_secret=bcs_helm_utils.provide_image_pull_secrets(instance.namespace)
+            image_pull_secret=bcs_helm_utils.provide_image_pull_secrets(instance.namespace),
         )
         # 默认为使用helm3 client
         client = KubeHelmClient(helm_bin=settings.HELM3_BIN)
@@ -696,7 +653,7 @@ class AppReleasePreviewSLZ(AppMixin, serializers.Serializer):
                 parameters=parameters,
                 valuefile=valuefile,
                 cluster_id=instance.cluster_id,
-                bcs_inject_data=bcs_inject_data
+                bcs_inject_data=bcs_inject_data,
             )
         except helm_exceptions.HelmBaseException:
             # raise ParseError(str(e))
@@ -710,18 +667,19 @@ class AppReleasePreviewSLZ(AppMixin, serializers.Serializer):
                 parameters,
                 valuefile,
                 instance.cluster_id,
-                username, now,
+                username,
+                now,
                 instance.release.chartVersionSnapshot.version,
                 self.access_token,
-                instance.project_id
+                instance.project_id,
             )
 
         # compute diff
         old_content = instance.release.content
         if not old_content:
             old_content, _ = instance.render_app(
-                username=self.context["request"].user.username,
-                access_token=self.access_token)
+                username=self.context["request"].user.username, access_token=self.access_token
+            )
         difference = simple_diff(old_content, content, instance.namespace)
         return {
             "content": preview_parse(content, instance.namespace),
@@ -729,7 +687,7 @@ class AppReleasePreviewSLZ(AppMixin, serializers.Serializer):
             "difference": difference,
             "chart_version_changed": chart_version_changed,
             "old_content": old_content,
-            "new_content": content
+            "new_content": content,
         }
 
     class Meta:
@@ -754,6 +712,7 @@ class AppReleasePreviewSLZ(AppMixin, serializers.Serializer):
 
 class AppRollbackPreviewSLZ(AppMixin, serializers.Serializer):
     """ 回滚预览 """
+
     release = HistoryReleaseField(write_only=True, required=True)
 
     # response fields
@@ -769,13 +728,13 @@ class AppRollbackPreviewSLZ(AppMixin, serializers.Serializer):
             user=self.context["request"].user,
             project_id=instance.project_id,
             cluster_id=instance.cluster_id,
-            request=self.context["request"]
+            request=self.context["request"],
         )
 
         difference = instance.diff_release(release_id=validated_data["release"])
         content, notes = instance.render_app(
-            username=self.context["request"].user.username,
-            access_token=self.access_token)
+            username=self.context["request"].user.username, access_token=self.access_token
+        )
         return {
             "difference": difference,
             "content": preview_parse(content, instance.namespace),
@@ -798,6 +757,7 @@ class AppRollbackPreviewSLZ(AppMixin, serializers.Serializer):
 
 class AppPreviewSLZ(serializers.Serializer):
     """ 获取 app 的预览信息 """
+
     content = serializers.JSONField(read_only=True)
     notes = serializers.JSONField(read_only=True)
     token = serializers.CharField(read_only=True)
@@ -817,6 +777,7 @@ class AppPreviewSLZ(serializers.Serializer):
 
 class AppCreatePreviewSLZ(AppMixin, serializers.Serializer):
     """ 创建预览 """
+
     name = serializers.CharField(write_only=True)
     namespace_info = NamespaceInfoField(write_only=True, label="Namespace")
     chart_version = serializers.PrimaryKeyRelatedField(queryset=ChartVersion.objects.all(), write_only=True)
@@ -826,10 +787,7 @@ class AppCreatePreviewSLZ(AppMixin, serializers.Serializer):
         label="Answers",
         help_text="JSON format data",
         source="get_answers",
-        style={
-            "base_template": "textarea.html",
-            "rows": 10
-        }
+        style={"base_template": "textarea.html", "rows": 10},
     )
 
     customs = HelmValueField(
@@ -838,10 +796,7 @@ class AppCreatePreviewSLZ(AppMixin, serializers.Serializer):
         label="Customs",
         help_text="JSON format data",
         source="get_customs",
-        style={
-            "base_template": "textarea.html",
-            "rows": 10
-        }
+        style={"base_template": "textarea.html", "rows": 10},
     )
 
     valuefile = YamlField(
@@ -851,10 +806,7 @@ class AppCreatePreviewSLZ(AppMixin, serializers.Serializer):
         default="",
         label="ValueFile",
         help_text="Yaml format data",
-        style={
-            "base_template": "textarea.html",
-            "rows": 10
-        }
+        style={"base_template": "textarea.html", "rows": 10},
     )
 
     content = serializers.JSONField(read_only=True)
@@ -870,7 +822,7 @@ class AppCreatePreviewSLZ(AppMixin, serializers.Serializer):
             user=self.context["request"].user,
             project_id=namespace_info["project_id"],
             cluster_id=cluster_id,
-            request=self.context["request"]
+            request=self.context["request"],
         )
 
         # prepare parameters
@@ -881,7 +833,7 @@ class AppCreatePreviewSLZ(AppMixin, serializers.Serializer):
             project_id=namespace_info["project_id"],
             namespace_id=namespace_info["id"],
             valuefile=validated_data["valuefile"],
-            cluster_id=cluster_id
+            cluster_id=cluster_id,
         )
 
         # inject bcs info
@@ -899,7 +851,7 @@ class AppCreatePreviewSLZ(AppMixin, serializers.Serializer):
             cluster_id=cluster_id,
             namespace=namespace_info["name"],
             stdlog_data_id=bcs_helm_utils.get_stdlog_data_id(self.project_id),
-            image_pull_secret=bcs_helm_utils.provide_image_pull_secrets(namespace_info["name"])
+            image_pull_secret=bcs_helm_utils.provide_image_pull_secrets(namespace_info["name"]),
         )
         client = KubeHelmClient(helm_bin=settings.HELM3_BIN)
         try:
@@ -930,13 +882,10 @@ class AppCreatePreviewSLZ(AppMixin, serializers.Serializer):
                 now,
                 validated_data["chart_version"].version,
                 self.access_token,
-                self.project_id
+                self.project_id,
             )
 
-        return {
-            "content": preview_parse(content, namespace_info["name"]),
-            "notes": notes
-        }
+        return {"content": preview_parse(content, namespace_info["name"]), "notes": notes}
 
     class Meta:
         fields = (
@@ -948,7 +897,7 @@ class AppCreatePreviewSLZ(AppMixin, serializers.Serializer):
             "valuefile",
             "content",
             "notes",
-            "cmd_flags"
+            "cmd_flags",
         )
         read_only_fields = (
             "content",
@@ -965,29 +914,14 @@ class ClusterKubeConfigSLZ(serializers.Serializer):
 
 
 class SyncDict2YamlToolSLZ(serializers.Serializer):
-    dict = serializers.JSONField(
-        initial={},
-        style={
-            "base_template": "textarea.html",
-            "rows": 10
-        }
-    )
+    dict = serializers.JSONField(initial={}, style={"base_template": "textarea.html", "rows": 10})
     yaml = YamlField(
-        initial=[],
-        label="Yaml",
-        help_text="Yaml format data",
-        style={
-            "base_template": "textarea.html",
-            "rows": 10
-        }
+        initial=[], label="Yaml", help_text="Yaml format data", style={"base_template": "textarea.html", "rows": 10}
     )
 
     def create(self, validated_data):
         content = utils.sync_dict2yaml(validated_data["dict"], validated_data["yaml"])
-        return {
-            "yaml": content,
-            "dict": validated_data["dict"]
-        }
+        return {"yaml": content, "dict": validated_data["dict"]}
 
     class Meta:
         fields = (
@@ -997,29 +931,14 @@ class SyncDict2YamlToolSLZ(serializers.Serializer):
 
 
 class SyncYaml2DictToolSLZ(serializers.Serializer):
-    dict = serializers.JSONField(
-        initial={},
-        style={
-            "base_template": "textarea.html",
-            "rows": 10
-        }
-    )
+    dict = serializers.JSONField(initial={}, style={"base_template": "textarea.html", "rows": 10})
     yaml = YamlField(
-        initial=[],
-        label="Yaml",
-        help_text="Yaml format data",
-        style={
-            "base_template": "textarea.html",
-            "rows": 10
-        }
+        initial=[], label="Yaml", help_text="Yaml format data", style={"base_template": "textarea.html", "rows": 10}
     )
 
     def create(self, validated_data):
         dict_list = utils.sync_yaml2dict(validated_data["dict"], validated_data["yaml"])
-        return {
-            "yaml": validated_data["yaml"],
-            "dict": dict_list
-        }
+        return {"yaml": validated_data["yaml"], "dict": dict_list}
 
     class Meta:
         fields = (
@@ -1072,14 +991,12 @@ class AppCreatePreviewDiffWithClusterSLZ(AppCreatePreviewSLZ):
             user=self.context["request"].user,
             project_id=namespace_info["project_id"],
             cluster_id=namespace_info["cluster_id"],
-            request=self.context["request"]
+            request=self.context["request"],
         )
 
         with save_to_temporary_dir(data["content"]) as tempdir:
             with make_kubectl_client(
-                project_id=self.project_id,
-                cluster_id=namespace_info["cluster_id"],
-                access_token=self.access_token
+                project_id=self.project_id, cluster_id=namespace_info["cluster_id"], access_token=self.access_token
             ) as (client, err):
                 if err:
                     raise serializers.ValidationError("make kubectl client failed, %s", err)
@@ -1105,6 +1022,7 @@ class AppStateSLZ(serializers.Serializer):
             "availableReplicas",
             "updatedReplicas",
         )
+
 
 class AppUpgradeByAPISLZ(AppUpgradeSLZ):
     def update(self, instance, validated_data, *args, **kwargs):
@@ -1164,31 +1082,31 @@ class AppUpgradeByAPISLZ(AppUpgradeSLZ):
             "transitioning_action",
         )
         extra_kwargs = {
-            "answers": {
-                "write_only": True
-            },
-            "customs": {
-                "write_only": True
-            },
-            "valuefile": {
-                "write_only": True
-            },
-            "upgrade_verion": {
-                "write_only": True
-            },
+            "answers": {"write_only": True},
+            "customs": {"write_only": True},
+            "valuefile": {"write_only": True},
+            "upgrade_verion": {"write_only": True},
         }
 
 
-def _template_with_bcs_renderer(client, files, name, namespace, ns_id, parameters, valuefile, cluster_id,
-                                username, now_time, version, access_token, project_id):
+def _template_with_bcs_renderer(
+    client,
+    files,
+    name,
+    namespace,
+    ns_id,
+    parameters,
+    valuefile,
+    cluster_id,
+    username,
+    now_time,
+    version,
+    access_token,
+    project_id,
+):
     try:
         content, notes = client.template(
-            files=files,
-            namespace=name,
-            name=name,
-            parameters=parameters,
-            valuefile=valuefile,
-            cluster_id=cluster_id
+            files=files, namespace=name, name=name, parameters=parameters, valuefile=valuefile, cluster_id=cluster_id
         )
     except helm_exceptions.HelmBaseException as e:
         raise ParseError(str(e))
@@ -1204,7 +1122,7 @@ def _template_with_bcs_renderer(client, files, name, namespace, ns_id, parameter
         created_at=now_time,
         updated_at=now_time,
         resources=content,
-        version=version
+        version=version,
     )
     return content, notes
 

@@ -14,15 +14,15 @@
 from django.conf import settings
 
 try:
-    from iam import IAM, Request, Subject, Action, Resource, OP, MultiActionRequest
-    from iam.exceptions import AuthInvalidRequest, AuthAPIError
-    from iam.apply import models
+    from iam import IAM, OP, Action, MultiActionRequest, Request, Resource, Subject
     from iam.api.client import Client
     from iam.api.http import http_get, http_post
+    from iam.apply import models
+    from iam.exceptions import AuthAPIError, AuthInvalidRequest
 except Exception:
     pass
-from backend.utils.exceptions import PermissionDeniedError
 from backend.utils.basic import ChoicesEnum
+from backend.utils.exceptions import PermissionDeniedError
 
 
 class IAMClient(Client):
@@ -191,7 +191,13 @@ class Permission:
         return url
 
     def _make_request_with_resources(self, username, action_id, resources=None):
-        request = Request(settings.APP_ID, Subject("user", username), Action(action_id), resources, None,)
+        request = Request(
+            settings.APP_ID,
+            Subject("user", username),
+            Action(action_id),
+            resources,
+            None,
+        )
         return request
 
     def allowed_do_resource_type(self, username, action_id):

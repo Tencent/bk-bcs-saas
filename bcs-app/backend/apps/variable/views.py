@@ -11,38 +11,38 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-import time
 import json
 import re
+import time
 
 from django.db import transaction
-from django.utils import timezone
 from django.db.models import Q
+from django.utils import timezone
+from django.utils.translation import ugettext_lazy as _
 from rest_framework import generics, views, viewsets
-from rest_framework.response import Response
 from rest_framework.exceptions import ValidationError
 from rest_framework.renderers import BrowsableAPIRenderer
-from django.utils.translation import ugettext_lazy as _
+from rest_framework.response import Response
+
+from backend.accounts import bcs_perm
+from backend.activity_log import client
+from backend.apps import constants
+from backend.apps.configuration.models import MODULE_DICT, VersionedEntity
+from backend.apps.configuration.utils import check_var_by_config, get_all_template_info_by_project
+from backend.apps.constants import ALL_LIMIT
+from backend.apps.instance.constants import APPLICATION_ID_SEPARATOR
+from backend.apps.instance.generator import handel_custom_network_mode
+from backend.apps.instance.serializers import VariableNamespaceSLZ
+from backend.apps.instance.utils import validate_version_id
+from backend.apps.metric.models import Metric
+from backend.apps.variable.models import ClusterVariable, NameSpaceVariable, Variable
+from backend.components import paas_cc
+from backend.utils.error_codes import error_codes
+from backend.utils.renderers import BKAPIRenderer
+from backend.utils.views import FinalizeResponseMixin
 
 from . import serializers
 from .import_vars import import_vars
-from backend.accounts import bcs_perm
-from backend.activity_log import client
-from backend.utils.views import FinalizeResponseMixin
-from backend.apps.configuration.utils import get_all_template_info_by_project
-from backend.apps.variable.models import Variable, ClusterVariable, NameSpaceVariable
-from backend.apps.instance.utils import validate_version_id
-from backend.apps.instance.constants import APPLICATION_ID_SEPARATOR
-from backend.apps.instance.serializers import VariableNamespaceSLZ
-from backend.apps.configuration.models import MODULE_DICT, VersionedEntity
-from backend.apps.configuration.utils import check_var_by_config
-from backend.apps.constants import ALL_LIMIT
-from backend.components import paas_cc
-from backend.utils.error_codes import error_codes
-from backend.apps import constants
-from backend.apps.metric.models import Metric
-from backend.utils.renderers import BKAPIRenderer
-from backend.apps.instance.generator import handel_custom_network_mode
 
 
 class ListCreateVariableView(generics.ListCreateAPIView):
@@ -75,43 +75,43 @@ class ListCreateVariableView(generics.ListCreateAPIView):
             resource=instance.name,
             resource_id=instance.id,
             extra=json.dumps(serializer.data),
-            description=_("新增变量")
+            description=_("新增变量"),
         ).log_add()
 
     def post(self, request, project_id):
-        """创建变量
-        """
+        """创建变量"""
         request.data['project_id'] = project_id
         return super().create(request)
 
     def list(self, request, project_id):
-        """
-        """
+        """"""
         serializer = serializers.SearchVariableSLZ(data=request.query_params)
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
 
         offset, limit = data['offset'], data['limit']
         variables = self.get_variables_by_search_params(data)
-        serializer = serializers.ListVariableSLZ(variables[offset:limit + offset], many=True,
-                                                 context={'search_type': data['type'], 'project_id': project_id})
+        serializer = serializers.ListVariableSLZ(
+            variables[offset : limit + offset],
+            many=True,
+            context={'search_type': data['type'], 'project_id': project_id},
+        )
         num_of_variables = variables.count()
-        return Response({
-            'count': num_of_variables,
-            'has_previous': True if offset != 0 else False,
-            'has_next': True if (offset + limit) < num_of_variables else False,
-            'results': serializer.data
-        })
+        return Response(
+            {
+                'count': num_of_variables,
+                'has_previous': True if offset != 0 else False,
+                'has_next': True if (offset + limit) < num_of_variables else False,
+                'results': serializer.data,
+            }
+        )
 
 
 class RetrieveUpdateVariableView(FinalizeResponseMixin, generics.RetrieveUpdateDestroyAPIView):
     serializer_class = serializers.UpdateVariableSLZ
 
     def get_object(self):
-        return Variable.objects.get_by_id_with_projects(
-            project_id=self.kwargs['project_id'],
-            id=self.kwargs['pk']
-        )
+        return Variable.objects.get_by_id_with_projects(project_id=self.kwargs['project_id'], id=self.kwargs['pk'])
 
     def perform_update(self, serializer):
         instance = serializer.save(
@@ -125,19 +125,17 @@ class RetrieveUpdateVariableView(FinalizeResponseMixin, generics.RetrieveUpdateD
             resource=instance.name,
             resource_id=instance.id,
             extra=json.dumps(serializer.data),
-            description=_("更新变量")
+            description=_("更新变量"),
         ).log_modify()
 
     # TODO mark refactor 改成put方法, 需要前端同步调整
     def post(self, request, project_id, pk):
-        """更新变量
-        """
+        """更新变量"""
         request.data.update({'project_id': project_id, 'id': pk})
         return super().update(request, project_id, pk)
 
 
 class ResourceVariableView(FinalizeResponseMixin, views.APIView):
-
     def get_metric_confg(self, resource_id):
         name_list = str(resource_id).split(APPLICATION_ID_SEPARATOR)
         application_id = name_list[0]
@@ -150,25 +148,21 @@ class ResourceVariableView(FinalizeResponseMixin, views.APIView):
         api_json = met.to_api_json()
         if resourse_type == 'application':
             try:
-                application = MODULE_DICT.get(
-                    resourse_type).objects.get(id=application_id)
+                application = MODULE_DICT.get(resourse_type).objects.get(id=application_id)
             except Exception:
                 raise ValidationError(_('应用[id:{}]:不存在').format(application_id))
             app_config = application.get_config()
             app_config_new = handel_custom_network_mode(app_config)
-            app_spec = app_config_new.get('spec', {}).get(
-                'template', {}).get('spec', {})
+            app_spec = app_config_new.get('spec', {}).get('template', {}).get('spec', {})
             api_json['networkMode'] = app_spec.get('networkMode')
             api_json['networkType'] = app_spec.get('networkType')
         return json.dumps(api_json)
 
     def post(self, request, project_id, version_id):
-        version_entity = validate_version_id(
-            project_id, version_id, is_version_entity_retrun=True)
+        version_entity = validate_version_id(project_id, version_id, is_version_entity_retrun=True)
 
         project_kind = request.project.kind
-        self.slz = VariableNamespaceSLZ(data=request.data, context={
-            'project_kind': project_kind})
+        self.slz = VariableNamespaceSLZ(data=request.data, context={'project_kind': project_kind})
         self.slz.is_valid(raise_exception=True)
         slz_data = self.slz.data
 
@@ -202,26 +196,21 @@ class ResourceVariableView(FinalizeResponseMixin, views.APIView):
 
             # mesos service 查询需要lb的列表
             if project_kind == 2 and cate == 'service':
-                lb_services = version_entity.get_lb_services_by_ids(
-                    cate_id_list)
+                lb_services = version_entity.get_lb_services_by_ids(cate_id_list)
 
         key_list = list(set(key_list))
         variable_dict = {}
         if key_list:
             # 验证变量名是否符合规范，不符合抛出异常，否则后续用 django 模板渲染变量也会抛出异常
 
-            var_objects = Variable.objects.filter(
-                Q(project_id=project_id) | Q(project_id=0))
+            var_objects = Variable.objects.filter(Q(project_id=project_id) | Q(project_id=0))
 
             access_token = request.user.token.access_token
-            namespace_res = paas_cc.get_namespace_list(
-                access_token, project_id, limit=ALL_LIMIT)
+            namespace_res = paas_cc.get_namespace_list(access_token, project_id, limit=ALL_LIMIT)
             namespace_data = namespace_res.get('data', {}).get('results') or []
-            namespace_dict = {str(i['id']): i['cluster_id']
-                              for i in namespace_data}
+            namespace_dict = {str(i['id']): i['cluster_id'] for i in namespace_data}
 
-            ns_list = slz_data['namespaces'].split(
-                ',') if slz_data['namespaces'] else []
+            ns_list = slz_data['namespaces'].split(',') if slz_data['namespaces'] else []
             for ns_id in ns_list:
                 _v_list = []
                 for _key in key_list:
@@ -231,26 +220,15 @@ class ResourceVariableView(FinalizeResponseMixin, views.APIView):
                         # 只显示自定义变量
                         if _obj.category == 'custom':
                             cluster_id = namespace_dict.get(ns_id, 0)
-                            _v_list.append({
-                                "key": _obj.key,
-                                "name": _obj.name,
-                                "value": _obj.get_show_value(cluster_id, ns_id)
-                            })
+                            _v_list.append(
+                                {"key": _obj.key, "name": _obj.name, "value": _obj.get_show_value(cluster_id, ns_id)}
+                            )
                     else:
-                        _v_list.append({
-                            "key": _key,
-                            "name": _key,
-                            "value": ""
-                        })
+                        _v_list.append({"key": _key, "name": _key, "value": ""})
                 variable_dict[ns_id] = _v_list
-        return Response({
-            "code": 0,
-            "message": "OK",
-            "data": {
-                "lb_services": lb_services,
-                "variable_dict": variable_dict
-            }
-        })
+        return Response(
+            {"code": 0, "message": "OK", "data": {"lb_services": lb_services, "variable_dict": variable_dict}}
+        )
 
 
 class VariableOverView(viewsets.ViewSet):
@@ -262,22 +240,18 @@ class VariableOverView(viewsets.ViewSet):
         self.slz.is_valid(raise_exception=True)
         id_list = self.slz.data['id_list']
 
-        query_sets = Variable.objects.filter(
-            project_id=project_id,
-            category='custom',
-            id__in=id_list
-        )
+        query_sets = Variable.objects.filter(project_id=project_id, category='custom', id__in=id_list)
         name_list = query_sets.values_list('name', flat=True)
         del_id_list = list(query_sets.values_list('id', flat=True))
 
         deled_id_list = []
         with client.ContextActivityLogClient(
-                project_id=project_id,
-                user=request.user.username,
-                resource_type="variable",
-                resource=','.join(name_list),
-                resource_id=json.dumps(del_id_list),
-                description=_("删除变量")
+            project_id=project_id,
+            user=request.user.username,
+            resource_type="variable",
+            resource=','.join(name_list),
+            resource_id=json.dumps(del_id_list),
+            description=_("删除变量"),
         ).log_delete():
             for _s in query_sets:
                 # 删除后KEY添加 [deleted]前缀
@@ -287,19 +261,10 @@ class VariableOverView(viewsets.ViewSet):
                 _s.deleted_time = timezone.now()
                 _s.save()
                 deled_id_list.append(_s.id)
-        return Response({
-            "code": 0,
-            "message": "OK",
-            "data": {
-                "deled_id_list": deled_id_list
-            }
-        })
+        return Response({"code": 0, "message": "OK", "data": {"deled_id_list": deled_id_list}})
 
     def get_quote_info(self, request, project_id, pk):
-        qs = Variable.objects.filter(
-            (Q(project_id=project_id) | Q(project_id=0)),
-            id=pk
-        )
+        qs = Variable.objects.filter((Q(project_id=project_id) | Q(project_id=0)), id=pk)
         if not qs:
             raise ValidationError(u"not found")
         qs = qs.first()
@@ -308,38 +273,47 @@ class VariableOverView(viewsets.ViewSet):
         for tem in all_template_info:
             config = tem.get('config') or ''
 
-            key_pattern = re.compile(
-                r'"([^"]+)":\s*"([^"]*{{%s}}[^"]*)"' % qs.key)
+            key_pattern = re.compile(r'"([^"]+)":\s*"([^"]*{{%s}}[^"]*)"' % qs.key)
             search_list = key_pattern.findall(config)
 
             for _q in search_list:
                 quote_key = _q[0]
                 context = _q[1]
-                quote_list.append({
-                    "context": context,
-                    "quote_location": "%s/%s/%s/%s/%s" % (tem['template_name'], tem['show_version_name'],
-                                                          tem['category_name'], tem['resource_name'], quote_key),
-                    "key": qs.key,
-                    'template_id': tem['template_id'],
-                    'template_name': tem['template_name'],
-                    'show_version_id': tem['show_version_id'],
-                    'category': tem['category'],
-                    'resource_id': tem['resource_id'],
-                })
+                quote_list.append(
+                    {
+                        "context": context,
+                        "quote_location": "%s/%s/%s/%s/%s"
+                        % (
+                            tem['template_name'],
+                            tem['show_version_name'],
+                            tem['category_name'],
+                            tem['resource_name'],
+                            quote_key,
+                        ),
+                        "key": qs.key,
+                        'template_id': tem['template_id'],
+                        'template_name': tem['template_name'],
+                        'show_version_id': tem['show_version_id'],
+                        'category': tem['category'],
+                        'resource_id': tem['resource_id'],
+                    }
+                )
         # 添加模板集的权限信息
         if quote_list:
             perm = bcs_perm.Templates(request, project_id, bcs_perm.NO_RES)
             quote_list = perm.hook_perms(quote_list, id_flag='template_id')
-        return Response({
-            "code": 0,
-            "message": "OK",
-            "data": {
-                'quote_list': quote_list,
-                'project_kind': request.project.kind,
-                'project_id': request.project.project_id,
-                'project_code': request.project.english_name,
+        return Response(
+            {
+                "code": 0,
+                "message": "OK",
+                "data": {
+                    'quote_list': quote_list,
+                    'project_kind': request.project.kind,
+                    'project_id': request.project.project_id,
+                    'project_code': request.project.english_name,
+                },
             }
-        })
+        )
 
     def batch_import(self, request, project_id):
         try:
@@ -349,7 +323,7 @@ class VariableOverView(viewsets.ViewSet):
 
         serializer = serializers.ImportVariableSLZ(
             data={'variables': variables},
-            context={'project_id': project_id, 'access_token': request.user.token.access_token}
+            context={'project_id': project_id, 'access_token': request.user.token.access_token},
         )
         serializer.is_valid(raise_exception=True)
         validated_data = serializer.validated_data
@@ -363,23 +337,15 @@ class VariableOverView(viewsets.ViewSet):
 
 class NameSpaceVariableView(viewsets.ViewSet):
     def get_variables(self, request, project_id, ns_id):
-        """获取命名空间下所有的变量信息
-        """
+        """获取命名空间下所有的变量信息"""
         variables = NameSpaceVariable.get_ns_vars(ns_id, project_id)
-        return Response({
-            "code": 0,
-            "message": "OK",
-            "count": len(variables),
-            "data": variables
-        })
+        return Response({"code": 0, "message": "OK", "count": len(variables), "data": variables})
 
     def get_ns_list_by_user_perm(self, request, project_id):
-        """获取用户所有有使用权限的命名空间
-        """
+        """获取用户所有有使用权限的命名空间"""
         access_token = request.user.token.access_token
         # 获取全部namespace，前台分页
-        result = paas_cc.get_namespace_list(
-            access_token, project_id, with_lb=0, limit=constants.ALL_LIMIT)
+        result = paas_cc.get_namespace_list(access_token, project_id, with_lb=0, limit=constants.ALL_LIMIT)
         if result.get('code') != 0:
             raise error_codes.APIError.f(result.get('message', ''))
 
@@ -389,8 +355,7 @@ class NameSpaceVariableView(viewsets.ViewSet):
 
         # 补充cluster_name字段
         cluster_ids = [i['cluster_id'] for i in ns_list]
-        cluster_list = paas_cc.get_cluster_list(
-            access_token, project_id, cluster_ids).get('data') or []
+        cluster_list = paas_cc.get_cluster_list(access_token, project_id, cluster_ids).get('data') or []
         cluster_dict = {i['cluster_id']: i for i in cluster_list}
         # 命名空间列表补充集群信息，过来权限时需要
         for i in ns_list:
@@ -409,18 +374,14 @@ class NameSpaceVariableView(viewsets.ViewSet):
         return ns_list
 
     def get_var_obj(self, project_id, var_id):
-        qs = Variable.objects.filter(
-            (Q(project_id=project_id) | Q(project_id=0)),
-            id=var_id
-        )
+        qs = Variable.objects.filter((Q(project_id=project_id) | Q(project_id=0)), id=var_id)
         if not qs:
             raise ValidationError(u"not found")
         qs = qs.first()
         return qs
 
     def get_batch_variables(self, request, project_id, var_id):
-        """查询变量在所有命名空间下的值
-        """
+        """查询变量在所有命名空间下的值"""
         qs = self.get_var_obj(project_id, var_id)
         default_value = qs.default_value
 
@@ -432,11 +393,7 @@ class NameSpaceVariableView(viewsets.ViewSet):
             else:
                 _n['variable_value'] = default_value
 
-        return Response({
-            "code": 0,
-            "message": "OK",
-            "data": ns_list
-        })
+        return Response({"code": 0, "message": "OK", "data": ns_list})
 
     def save_batch_variables(self, request, project_id, var_id):
         """批量保存
@@ -446,24 +403,14 @@ class NameSpaceVariableView(viewsets.ViewSet):
         self.slz.is_valid(raise_exception=True)
         qs = self.get_var_obj(project_id, var_id)
         NameSpaceVariable.batch_save_by_var_id(qs, self.slz.data['ns_vars'])
-        return Response({
-            "code": 0,
-            "message": 'ok',
-            "data": []
-        })
+        return Response({"code": 0, "message": 'ok', "data": []})
 
 
 class ClusterVariableView(viewsets.ViewSet):
     def get_variables(self, request, project_id, cluster_id):
-        """获取集群下所有的变量信息
-        """
+        """获取集群下所有的变量信息"""
         variables = ClusterVariable.get_cluster_vars(cluster_id, project_id)
-        return Response({
-            "code": 0,
-            "message": "OK",
-            "count": len(variables),
-            "data": variables
-        })
+        return Response({"code": 0, "message": "OK", "count": len(variables), "data": variables})
 
     def batch_save(self, request, project_id, cluster_id):
         """批量保存集群变量
@@ -471,36 +418,25 @@ class ClusterVariableView(viewsets.ViewSet):
         """
         self.slz = serializers.ClusterVariableSLZ(data=request.data)
         self.slz.is_valid(raise_exception=True)
-        res, not_exist_vars = ClusterVariable.batch_save(
-            cluster_id, self.slz.data['cluster_vars'])
+        res, not_exist_vars = ClusterVariable.batch_save(cluster_id, self.slz.data['cluster_vars'])
         msg = 'OK'
         if not_exist_vars:
-            not_exist_show_msg = ['%s[id:%s]' %
-                                  (i['key'], i['id']) for i in not_exist_vars]
+            not_exist_show_msg = ['%s[id:%s]' % (i['key'], i['id']) for i in not_exist_vars]
             msg = _('以下变量不存在:{}').format(';'.join(not_exist_show_msg))
-        return Response({
-            "code": 0,
-            "message": msg,
-            "data": not_exist_vars
-        })
+        return Response({"code": 0, "message": msg, "data": not_exist_vars})
 
     def get_var_obj(self, project_id, var_id):
-        qs = Variable.objects.filter(
-            (Q(project_id=project_id) | Q(project_id=0)),
-            id=var_id
-        )
+        qs = Variable.objects.filter((Q(project_id=project_id) | Q(project_id=0)), id=var_id)
         if not qs:
             raise ValidationError(u"not found")
         qs = qs.first()
         return qs
 
     def get_cluser_list_by_user_perm(self, request, project_id):
-        """获取用户所有有使用权限的命名空间
-        """
+        """获取用户所有有使用权限的命名空间"""
         access_token = request.user.token.access_token
 
-        cluster_data = paas_cc.get_all_clusters(
-            access_token, project_id).get('data') or {}
+        cluster_data = paas_cc.get_all_clusters(access_token, project_id).get('data') or {}
         cluster_list = cluster_data.get('results') or []
 
         perm = bcs_perm.Cluster(request, project_id, bcs_perm.NO_RES)
@@ -508,8 +444,7 @@ class ClusterVariableView(viewsets.ViewSet):
         return cluster_list
 
     def get_batch_variables(self, request, project_id, var_id):
-        """查询变量在所有集群下的值
-        """
+        """查询变量在所有集群下的值"""
         qs = self.get_var_obj(project_id, var_id)
         default_value = qs.default_value
 
@@ -521,11 +456,7 @@ class ClusterVariableView(viewsets.ViewSet):
             else:
                 _n['variable_value'] = default_value
 
-        return Response({
-            "code": 0,
-            "message": "OK",
-            "data": cluster_list
-        })
+        return Response({"code": 0, "message": "OK", "data": cluster_list})
 
     def save_batch_variables(self, request, project_id, var_id):
         """批量保存
@@ -535,8 +466,4 @@ class ClusterVariableView(viewsets.ViewSet):
         self.slz.is_valid(raise_exception=True)
         qs = self.get_var_obj(project_id, var_id)
         ClusterVariable.batch_save_by_var_id(qs, self.slz.data['cluster_vars'])
-        return Response({
-            "code": 0,
-            "message": 'ok',
-            "data": []
-        })
+        return Response({"code": 0, "message": 'ok', "data": []})

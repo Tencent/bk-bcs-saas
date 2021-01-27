@@ -15,8 +15,8 @@ try:
     from iam.resource.provider import ListResult, ResourceProvider
 except Exception:
     pass
-from backend.resources.project import filter_projects
 from backend.components import ssm
+from backend.resources.project import filter_projects
 
 
 class ProjectProvider(ResourceProvider):

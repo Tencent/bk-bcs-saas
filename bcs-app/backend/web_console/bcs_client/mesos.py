@@ -41,8 +41,7 @@ class MesosClientBase(BCSClientBase):
 
     @run_on_executor
     def set_pty_size(self, rows: int, cols: int):
-        """设置长宽高
-        """
+        """设置长宽高"""
         try:
             self.api_client.resize_container_exec(self.host_ip, self.exec_id, rows, cols)
         except Exception as error:
@@ -54,8 +53,7 @@ class ContainerDirectClient(MesosClientBase):
 
     @classmethod
     def create_client(cls, msg_handler, context, rows, cols):
-        """获取mesos client
-        """
+        """获取mesos client"""
         host = urlparse(context["server_address"])
         if host.scheme == "https":
             scheme = "wss"

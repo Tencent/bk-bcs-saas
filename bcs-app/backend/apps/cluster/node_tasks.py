@@ -16,12 +16,12 @@ import json
 from celery import shared_task
 from django.utils.translation import ugettext_lazy as _
 
+from backend.apps import constants
+from backend.apps.cluster import models
+from backend.apps.cluster.constants import K8S_SKIP_NS_LIST
+from backend.components import paas_cc
 from backend.components.bcs import k8s, mesos
 from backend.utils.errcodes import ErrorCode
-from backend.apps.cluster import models
-from backend.apps import constants
-from backend.components import paas_cc
-from backend.apps.cluster.constants import K8S_SKIP_NS_LIST
 
 
 @shared_task
@@ -51,15 +51,12 @@ def reschedule_node_pods(access_token, project_id, project_kind, cluster_id, dat
 def update_node(access_token, project_id, node_id, status=None):
     if not status:
         status = models.CommonStatus.Scheduling
-    resp = paas_cc.update_node(
-        access_token, project_id, node_id, {"status": status}
-    )
+    resp = paas_cc.update_node(access_token, project_id, node_id, {"status": status})
     return resp
 
 
 def get_taskgroup_info(access_token, project_id, cluster_id, data, log):
-    """获取taskgroup下容器数量
-    """
+    """获取taskgroup下容器数量"""
     # host_ip 下container为空，如果为空，则设置status为removable
     client = mesos.MesosClient(access_token, project_id, cluster_id, None)
     rsp_bcs = client.get_taskgroup(
@@ -76,7 +73,7 @@ def get_taskgroup_info(access_token, project_id, cluster_id, data, log):
         item = {
             "namespace": i.get("namespace"),
             "app_name": i.get("data", {}).get("rcname"),
-            "taskgroup_name": i.get("resourceName")
+            "taskgroup_name": i.get("resourceName"),
         }
         if cluster_id in cluster_ns_taskgroup_data:
             cluster_ns_taskgroup_data[cluster_id].append(item)
@@ -86,15 +83,9 @@ def get_taskgroup_info(access_token, project_id, cluster_id, data, log):
 
 
 def get_pod_info(access_token, project_id, cluster_id, data, log):
-    """获取pod下数量
-    """
-    k8s_client = k8s.K8SClient(
-        access_token, project_id, cluster_id, None
-    )
-    rsp_bcs = k8s_client.get_pod(
-        host_ips=[data["inner_ip"]],
-        field="namespace,resourceName,clusterId"
-    )
+    """获取pod下数量"""
+    k8s_client = k8s.K8SClient(access_token, project_id, cluster_id, None)
+    rsp_bcs = k8s_client.get_pod(host_ips=[data["inner_ip"]], field="namespace,resourceName,clusterId")
     if rsp_bcs.get("code") != ErrorCode.NoError:
         update_log_info(log, models.CommonStatus.ScheduleFailed, rsp_bcs.get("message"))
         return None
@@ -104,10 +95,7 @@ def get_pod_info(access_token, project_id, cluster_id, data, log):
         namespace = i.get("namespace")
         if namespace not in K8S_SKIP_NS_LIST:
             pod_name = i.get("resourceName")
-            item = {
-                "namespace": namespace,
-                "pod_name": pod_name
-            }
+            item = {"namespace": namespace, "pod_name": pod_name}
             if cluster_id in cluster_ns_pod_data:
                 cluster_ns_pod_data[cluster_id].append(item)
             else:
@@ -116,26 +104,19 @@ def get_pod_info(access_token, project_id, cluster_id, data, log):
 
 
 def reschedule_pod_taskgroup(access_token, project_id, data, kind, log):
-    """重新调度pod or taskgroup
-    """
+    """重新调度pod or taskgroup"""
     if kind == 2:
         for cluster_id, taskgroup_info in data.items():
-            client = mesos.MesosClient(
-                access_token, project_id, cluster_id, None
-            )
+            client = mesos.MesosClient(access_token, project_id, cluster_id, None)
             for info in taskgroup_info:
-                resp = client.rescheduler_mesos_taskgroup(
-                    info["namespace"], info["app_name"], info["taskgroup_name"]
-                )
+                resp = client.rescheduler_mesos_taskgroup(info["namespace"], info["app_name"], info["taskgroup_name"])
                 # 如果删除失败，直接报错
                 if resp.get("code") != ErrorCode.NoError:
                     update_log_info(log, models.CommonStatus.ScheduleFailed, resp.get("message"))
                     return False
     else:
         for cluster_id, pod_info in data.items():
-            client = k8s.K8SClient(
-                access_token, project_id, cluster_id, None
-            )
+            client = k8s.K8SClient(access_token, project_id, cluster_id, None)
             for info in pod_info:
                 resp = client.delete_pod(info["namespace"], info["pod_name"])
                 if resp.get("code") != ErrorCode.NoError:
@@ -150,14 +131,8 @@ def update_log_info(log, status, message):
     log.is_finished = True
     if status == models.CommonStatus.ScheduleFailed:
         log.status = models.CommonStatus.ScheduleFailed
-        log.log = json.dumps({
-            "state": "FAILURE",
-            "node_tasks": [{"state": "FAILURE", "name": message}]
-        })
+        log.log = json.dumps({"state": "FAILURE", "node_tasks": [{"state": "FAILURE", "name": message}]})
     else:
         log.status = models.CommonStatus.ScheduleFailed
-        log.log = json.dumps({
-            "state": "SUCCESS",
-            "node_tasks": [{"state": "SUCCESS", "name": _("调度结束!")}]
-        })
+        log.log = json.dumps({"state": "SUCCESS", "node_tasks": [{"state": "SUCCESS", "name": _("调度结束!")}]})
     log.save()

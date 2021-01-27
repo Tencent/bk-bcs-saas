@@ -14,7 +14,6 @@
 import re
 from collections import OrderedDict
 
-
 BCS_USER_NAME = "bke-dynamic-user"
 
 # cluster not found code

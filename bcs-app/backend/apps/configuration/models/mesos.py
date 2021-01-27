@@ -11,15 +11,16 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-import time
 import json
+import time
 
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
 
-from .mixins import MConfigMapAndSecretMixin, PodMixin, ResourceMixin
-from .base import BaseModel, logger
 from backend.utils.basic import getitems
+
+from .base import BaseModel, logger
+from .mixins import MConfigMapAndSecretMixin, PodMixin, ResourceMixin
 
 
 class MesosResource(BaseModel):
@@ -75,6 +76,7 @@ class ConfigMap(MesosResource, MConfigMapAndSecretMixin):
     """
     Application ->挂在卷/环境变量 ->ConfigMap
     """
+
     pass
 
 
@@ -82,23 +84,22 @@ class Secret(MesosResource, MConfigMapAndSecretMixin):
     """
     Application ->挂在卷/环境变量 ->Secret
     """
+
     pass
 
 
 class HPA(MesosResource, MConfigMapAndSecretMixin):
-    """HPA数据表
-    """
+    """HPA数据表"""
+
     pass
 
 
 class Application(MesosResource, PodMixin):
-    """
-    """
+    """"""
+
     desc = models.TextField("描述", help_text="前台展示字段，bcs api 中无该信息")
-    config = models.TextField(
-        "配置信息", help_text="包含：实例数量\ restart策略\kill策略\备注\调度约束\网络\容器信息")
-    app_id = models.CharField("应用ID", max_length=32,
-                              help_text="每次保存时会生成新的应用记录，用app_id来记录与其他资源的关联关系")
+    config = models.TextField("配置信息", help_text="包含：实例数量\ restart策略\kill策略\备注\调度约束\网络\容器信息")
+    app_id = models.CharField("应用ID", max_length=32, help_text="每次保存时会生成新的应用记录，用app_id来记录与其他资源的关联关系")
 
     @classmethod
     def perform_create(cls, **kwargs):
@@ -146,10 +147,7 @@ class Application(MesosResource, PodMixin):
             if 'volumeUsers' not in c['config']['webCache']:
                 self._set_default_volume_users(c['config'])
 
-            c.update({
-                'desc': self.desc,
-                'app_id': self.app_id
-            })
+            c.update({'desc': self.desc, 'app_id': self.app_id})
         return c
 
     def get_instance(self):
@@ -172,8 +170,7 @@ class Application(MesosResource, PodMixin):
         return list(set(resource_list))
 
     def get_related_resource(self, instance_entity):
-        """获取 Application 依赖的资源
-        """
+        """获取 Application 依赖的资源"""
         # Application 依赖的资源在挂载卷/环境变量 的 configmap & secret 中
         configmap_name_list = []
         secret_name_list = []
@@ -187,10 +184,7 @@ class Application(MesosResource, PodMixin):
         resource_data = []
         robj_qsets = cls.objects.filter(id__in=resource_id_list)
         for robj in robj_qsets:
-            resource_data.append({
-                'app_id': robj.app_id,
-                'app_name': robj.name
-            })
+            resource_data.append({'app_id': robj.app_id, 'app_name': robj.name})
         return resource_data
 
 
@@ -217,6 +211,7 @@ class Deplpyment(MesosResource, ResourceMixin):
         }
     }
     """
+
     name = models.CharField("名称", max_length=255)
     app_id = models.CharField("关联的Application ID", max_length=32)
     desc = models.TextField("描述", help_text="前台展示字段，bcs api 中无该信息")
@@ -231,10 +226,7 @@ class Deplpyment(MesosResource, ResourceMixin):
     def get_res_config(self, is_simple):
         c = super().get_res_config(is_simple)
         if not is_simple:
-            c.update({
-                'app_id': self.app_id,
-                'desc': self.desc
-            })
+            c.update({'app_id': self.app_id, 'desc': self.desc})
         return c
 
     # TODO refactor 保留get_name仅仅为了兼容，因为太多模块这么用了，后面去掉
@@ -247,9 +239,7 @@ class Deplpyment(MesosResource, ResourceMixin):
         resource_data = []
         robj_qsets = cls.objects.filter(id__in=resource_id_list)
         for robj in robj_qsets:
-            resource_data.append({
-                'deployment_name': robj.name
-            })
+            resource_data.append({'deployment_name': robj.name})
         return resource_data
 
 
@@ -257,6 +247,7 @@ class Service(MesosResource, ResourceMixin):
     """
     service 中的 ports 一定是在 application 中有的。application(ports) 大于等于 service(ports)
     """
+
     app_id = models.TextField("关联的Application ID", help_text="可以关联多个Application")
 
     def save(self, *args, **kwargs):
@@ -302,10 +293,12 @@ class Service(MesosResource, ResourceMixin):
     def get_res_config(self, is_simple):
         c = super().get_res_config(is_simple)
         if not is_simple:
-            c.update({
-                'app_id': self.get_app_id_list(),
-                'app_weight': self.get_app_weight(),
-            })
+            c.update(
+                {
+                    'app_id': self.get_app_id_list(),
+                    'app_weight': self.get_app_weight(),
+                }
+            )
         return c
 
     def get_ports_config(self):
@@ -333,15 +326,12 @@ class Service(MesosResource, ResourceMixin):
         svc_list = []
         svc_qsets = cls.objects.filter(id__in=resource_id_list)
         for svc in svc_qsets:
-            svc_info = {
-                'name': svc.name,
-                'port': svc.get_ports_config()
-            }
+            svc_info = {'name': svc.name, 'port': svc.get_ports_config()}
             svc_list.append(svc_info)
         return svc_list
 
 
 class Ingress(MesosResource, MConfigMapAndSecretMixin):
-    """mesos ingress表
-    """
+    """mesos ingress表"""
+
     pass

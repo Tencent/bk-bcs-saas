@@ -13,13 +13,4 @@
 #
 from django.utils.translation import ugettext_lazy as _
 
-
-__ = [
-    _("项目ID"),
-    _("业务ID"),
-    _("集群ID"),
-    _("命名空间"),
-    _("仓库域名"),
-    _("非标准日志采集DataId"),
-    _("标准日志采集DataId")
-]
+__ = [_("项目ID"), _("业务ID"), _("集群ID"), _("命名空间"), _("仓库域名"), _("非标准日志采集DataId"), _("标准日志采集DataId")]

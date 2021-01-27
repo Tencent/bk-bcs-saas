@@ -18,8 +18,8 @@ import abc
 
 from django.utils.translation import ugettext_lazy as _
 
-from backend.components.ssm import get_client_access_token
 from backend.components.enterprise.bk_login import get_all_users
+from backend.components.ssm import get_client_access_token
 
 # 与资源无关
 NO_RES = "**"
@@ -30,8 +30,7 @@ CLUSTER_NAMESPACE_RESOURCE_TYPE = ["cluster", "namespace"]
 
 
 class PermissionMeta(object):
-    """权限元类
-    """
+    """权限元类"""
 
     __metaclass__ = abc.ABCMeta
 
@@ -55,58 +54,49 @@ class PermissionMeta(object):
         pass
 
     def had_perm(self, action_id):
-        """判断是否有权限
-        """
+        """判断是否有权限"""
         return True
 
     def can_create(self, raise_exception):
-        """创建权限不做判断
-        """
+        """创建权限不做判断"""
         # 创建权限都默认开放
         return True
 
     def can_edit(self, raise_exception):
-        """是否编辑权限
-        """
+        """是否编辑权限"""
         return True
 
     def can_delete(self, raise_exception):
-        """是否使用删除
-        """
+        """是否使用删除"""
         return True
 
     def can_view(self, raise_exception):
         return True
 
     def can_use(self, raise_exception):
-        """是否使用权限
-        """
+        """是否使用权限"""
         return True
 
     def get_msg_key(self, cmd):
         return f"{cmd}_msg"
 
     def get_msg(self, cmd):
-        """获取消息
-        """
+        """获取消息"""
         return ""
 
     def register(self, resource_id, resource_name):
-        """注册资源到权限中心
-        """
+        """注册资源到权限中心"""
         return {"code": 0}
 
     def delete(self):
-        """删除资源
-        """
+        """删除资源"""
         return {"code": 0}
 
     def update_name(self, resource_name, raise_exception=False):
         return {"code": 0}
 
     def hook_perms(self, data_list, filter_use=False, id_flag="id"):
-        """资源列表，添加permissions
-        """
+        """资源列表，添加permissions"""
         # NOTE: 现阶段有项目权限，那么就有所有权限
         default_perms = {perm: True for perm in self.POLICY_LIST}
         data_list = data_list or []
@@ -119,8 +109,7 @@ class PermissionMeta(object):
 
 
 class Cluster(PermissionMeta):
-    """集群权限
-    """
+    """集群权限"""
 
     # 资源类型
     RESOURCE_TYPE = "cluster"
@@ -141,18 +130,15 @@ class Cluster(PermissionMeta):
         return cluster_list
 
     def register(self, cluster_id, cluster_name, environment=None):
-        """注册集群
-        """
+        """注册集群"""
         return super(Cluster, self).register(cluster_id, cluster_name)
 
     def delete_cluster(self, cluster_id, environment=None):
-        """删除集群
-        """
+        """删除集群"""
         return {"code": 0}
 
     def update_cluster(self, cluster_id, cluster_name):
-        """更新注册集群的名称
-        """
+        """更新注册集群的名称"""
         return {"code": 0}
 
 
@@ -172,26 +158,22 @@ class Namespace(PermissionMeta):
         pass
 
     def register(self, resource_id, resource_name):
-        """注册资源到权限中心
-        """
+        """注册资源到权限中心"""
         return {"code": 0}
 
     def delete(self):
         return {"code": 0}
 
     def can_create(self, raise_exception=True):
-        """是否编辑命名空间权限
-        """
+        """是否编辑命名空间权限"""
         return True
 
     def can_use(self, raise_exception=True):
-        """命名空间的使用权限，需要先判断集群的使用权限
-        """
+        """命名空间的使用权限，需要先判断集群的使用权限"""
         return True
 
     def can_edit(self, raise_exception=True):
-        """命名空间的编辑权限，需要先判断集群的使用权限
-        """
+        """命名空间的编辑权限，需要先判断集群的使用权限"""
         return True
 
     def hook_base_perms(
@@ -207,8 +189,7 @@ class Namespace(PermissionMeta):
     def hook_perms(
         self, ns_list, filter_use=False, ns_id_flag="id", cluster_id_flag="cluster_id", ns_name_flag="name"
     ):  # noqa
-        """批量添加权限
-        """
+        """批量添加权限"""
         filter_parms = {}
         if filter_use:
             filter_parms["is_filter"] = True
@@ -219,8 +200,7 @@ class Namespace(PermissionMeta):
 
 
 class Templates(PermissionMeta):
-    """模板集权限
-    """
+    """模板集权限"""
 
     # 资源类型
     RESOURCE_TYPE = "templates"
@@ -231,8 +211,7 @@ class Templates(PermissionMeta):
 
 
 class Metric(PermissionMeta):
-    """metric权限
-    """
+    """metric权限"""
 
     # 资源类型
     RESOURCE_TYPE = "metric"

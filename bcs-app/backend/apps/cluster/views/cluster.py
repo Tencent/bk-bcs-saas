@@ -45,8 +45,7 @@ logger = logging.getLogger(__name__)
 
 class ClusterBase:
     def get_cluster(self, request, project_id, cluster_id):
-        """get cluster info
-        """
+        """get cluster info"""
         cluster_resp = paas_cc.get_cluster(request.user.token.access_token, project_id, cluster_id)
         if cluster_resp.get("code") != ErrorCode.NoError:
             raise error_codes.APIErrorf(cluster_resp.get("message"))
@@ -54,8 +53,7 @@ class ClusterBase:
         return cluster_data
 
     def get_cluster_node(self, request, project_id, cluster_id):
-        """get cluster node list
-        """
+        """get cluster node list"""
         cluster_node_resp = paas_cc.get_node_list(
             request.user.token.access_token,
             project_id,
@@ -106,8 +104,7 @@ class ClusterCreateListViewSet(viewsets.ViewSet):
         return can_create_test, can_create_prod
 
     def list(self, request, project_id):
-        """get project cluster list
-        """
+        """get project cluster list"""
         cluster_info = self.get_cluster_list(request, project_id)
         cluster_data = cluster_info.get("results") or []
         cluster_node_map = self.cluster_has_node(request, project_id)
@@ -141,8 +138,7 @@ class ClusterCreateListViewSet(viewsets.ViewSet):
         return response.Response({"clusters": cluster_data})
 
     def create(self, request, project_id):
-        """create cluster
-        """
+        """create cluster"""
         cluster_client = cluster.CreateCluster(request, project_id)
         return cluster_client.create()
 
@@ -160,8 +156,7 @@ class ClusterCheckDeleteViewSet(ClusterBase, viewsets.ViewSet):
         return response.Response({"allow": allow})
 
     def delete(self, request, project_id, cluster_id):
-        """删除项目下集群
-        """
+        """删除项目下集群"""
         cluster_client = cluster.DeleteCluster(request, project_id, cluster_id)
         return cluster_client.delete()
 
@@ -170,8 +165,7 @@ class ClusterFilterViewSet(viewsets.ViewSet):
     renderer_classes = (BKAPIRenderer, BrowsableAPIRenderer)
 
     def get(self, request, project_id):
-        """check cluster name exist
-        """
+        """check cluster name exist"""
         name = request.GET.get("name")
         cluster_resp = paas_cc.get_cluster_by_name(request.user.token.access_token, project_id, name)
         if cluster_resp.get("code") != ErrorCode.NoError:
@@ -219,7 +213,10 @@ class ClusterCreateGetUpdateViewSet(ClusterBase, viewsets.ViewSet):
         data = self.update_data(data, project_id, cluster_id, cluster_perm)
         # update cluster info
         with client.ContextActivityLogClient(
-            project_id=project_id, user=request.user.username, resource_type="cluster", resource_id=cluster_id,
+            project_id=project_id,
+            user=request.user.username,
+            resource_type="cluster",
+            resource_id=cluster_id,
         ).log_modify():
             cluster_info = self.update_cluster(request, project_id, cluster_id, data)
         # render environment for frontend
@@ -248,7 +245,7 @@ class ClusterInstallLogView(ClusterBase, viewsets.ModelViewSet):
             "cluster_id": cluster_id,
             "status": self.get_display_status(logs[0].status),
             "log": [],
-            "task_url": logs.first().log_params.get("task_url") or ""
+            "task_url": logs.first().log_params.get("task_url") or "",
         }
         for info in logs:
             info.status = self.get_display_status(info.status)
@@ -257,8 +254,7 @@ class ClusterInstallLogView(ClusterBase, viewsets.ModelViewSet):
         return data
 
     def can_view_cluster(self, request, project_id, cluster_id):
-        """has view cluster perm
-        """
+        """has view cluster perm"""
         # when cluster exist, check view perm
         try:
             self.get_cluster(request, project_id, cluster_id)
@@ -282,8 +278,7 @@ class ClusterInfo(ClusterPermBase, ClusterBase, viewsets.ViewSet):
     renderer_classes = (BKAPIRenderer, BrowsableAPIRenderer)
 
     def get_master_count(self, request, project_id, cluster_id):
-        """获取集群master信息
-        """
+        """获取集群master信息"""
         master_info = paas_cc.get_master_node_list(request.user.token.access_token, project_id, cluster_id)
         if master_info.get("code") != ErrorCode.NoError:
             raise error_codes.APIError(master_info.get("message"))
@@ -296,8 +291,7 @@ class ClusterInfo(ClusterPermBase, ClusterBase, viewsets.ViewSet):
         return len([info for info in node_results if info["status"] not in [CommonStatus.Removed]])
 
     def get_area(self, request, area_id):
-        """get area info
-        """
+        """get area info"""
         area_info = paas_cc.get_area_info(request.user.token.access_token, area_id)
         if area_info.get("code") != ErrorCode.NoError:
             raise error_codes.APIError(area_info.get("message"))
@@ -333,8 +327,7 @@ class ClusterMasterInfo(ClusterPermBase, viewsets.ViewSet):
     renderer_classes = (BKAPIRenderer, BrowsableAPIRenderer)
 
     def get_master_ips(self, request, project_id, cluster_id):
-        """get master inner ip info
-        """
+        """get master inner ip info"""
         master_resp = paas_cc.get_master_node_list(request.user.token.access_token, project_id, cluster_id)
         if master_resp.get("code") != ErrorCode.NoError:
             raise error_codes.APIError(master_resp.get("message"))

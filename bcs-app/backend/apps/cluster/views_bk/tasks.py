@@ -11,19 +11,17 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-import logging
 import json
+import logging
 import time
 from datetime import datetime, timedelta
 
 from celery import shared_task
 from django.conf import settings
 
-from backend.components import ops
 from backend.apps.cluster import models
+from backend.components import ops, paas_cc, ssm
 from backend.utils.errcodes import ErrorCode
-from backend.components import paas_cc, ssm
-
 
 logger = logging.getLogger(__name__)
 POLLING_TIMEOUT = timedelta(seconds=getattr(settings, "POLLING_TIMEOUT_SECONDS", 3600))
@@ -83,8 +81,7 @@ def _polling_once(model, log):
 
 
 def delete_iam_cluster_resource(log):
-    """删除iam集群信息
-    """
+    """删除iam集群信息"""
     pass
 
 

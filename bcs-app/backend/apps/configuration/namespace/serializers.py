@@ -15,7 +15,7 @@ from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
 from backend.apps import utils as app_utils
-from backend.apps.constants import ProjectKind, EnvType
+from backend.apps.constants import EnvType, ProjectKind
 from backend.resources.namespace.constants import K8S_SYS_PLAT_NAMESPACES
 
 

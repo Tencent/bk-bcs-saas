@@ -11,14 +11,13 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-import dpath
-import yaml
-import yaml.reader
 import re
 import tempfile
+import dpath
 from typing import Dict
 
-from urllib.parse import urlparse
+import yaml
+import yaml.reader
 from ruamel.yaml import YAML
 from ruamel.yaml.compat import StringIO
 from ruamel.yaml.compat import ordereddict
@@ -28,7 +27,6 @@ from django.conf import settings
 from backend.bcs_k8s.helm.utils.util import fix_rancher_value_by_type, EmptyVaue
 from backend.utils.client import make_dashboard_ctl_client
 from backend.bcs_k8s.diff import parser
-from backend.bcs_k8s.dashboard.exceptions import DashboardExecutionError
 from backend.components import paas_cc, bcs
 from backend.utils.basic import get_bcs_component_version
 
@@ -351,11 +349,7 @@ def collect_resource_status(base_url, kubeconfig, app, project_code, bin_path=se
         else:
             link = None
 
-        key = "{kind}/{namespace}/{name}".format(
-            name=name,
-            namespace=namespace,
-            kind=kind,
-        )
+        key = "{kind}/{namespace}/{name}".format(name=name, namespace=namespace, kind=kind,)
         result[key] = {
             "namespace": namespace,
             "name": name,

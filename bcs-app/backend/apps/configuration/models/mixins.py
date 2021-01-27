@@ -11,7 +11,7 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-from backend.apps.instance.constants import LOG_CONFIG_MAP_SUFFIX, APPLICATION_ID_SEPARATOR
+from backend.apps.instance.constants import APPLICATION_ID_SEPARATOR, LOG_CONFIG_MAP_SUFFIX
 from backend.apps.metric.models import Metric
 
 

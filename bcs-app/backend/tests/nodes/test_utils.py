@@ -11,12 +11,13 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-import pytest
 from unittest.mock import patch
 
-from backend.components.paas_cc import get_cluster
-from backend.components.bcs.mesos import MesosClient
+import pytest
+
 from backend.apps.cluster.views.node_views.utils import MesosNodeLabelsQuerier
+from backend.components.bcs.mesos import MesosClient
+from backend.components.paas_cc import get_cluster
 
 
 fake_cc_get_cluster_result = {"code": 0, "data": {"environment": "stag"}}

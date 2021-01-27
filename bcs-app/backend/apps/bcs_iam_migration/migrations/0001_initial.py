@@ -1,11 +1,10 @@
 # -*- coding: utf-8 -*-
-import os
-import json
 import codecs
+import json
+import os
 
-from django.db import migrations
 from django.conf import settings
-
+from django.db import migrations
 from iam.contrib.iam_migration.migrator import IAMMigrator
 
 

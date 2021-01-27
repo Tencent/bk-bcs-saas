@@ -12,12 +12,11 @@
 # specific language governing permissions and limitations under the License.
 #
 """Test codes for backend.resources module"""
-import pytest
 from unittest import mock
-from backend.resources.client import (
-    BcsKubeAddressesProvider,
-    BcsKubeConfigurationService,
-)
+
+import pytest
+
+from backend.resources.client import BcsKubeAddressesProvider, BcsKubeConfigurationService
 from backend.utils.exceptions import ComponentError
 
 

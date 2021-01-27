@@ -19,23 +19,23 @@ from backend.utils.response import APIResult
 
 
 class LimitOffsetPagination(_LimitOffsetPagination):
-    """backend的分页封装
-    """
+    """backend的分页封装"""
 
     def paginate_queryset(self, queryset, request, view=None):
-        """赋值view，用于下面获取message
-        """
+        """赋值view，用于下面获取message"""
         self.view = view
         return super(LimitOffsetPagination, self).paginate_queryset(queryset, request, view=view)
 
     def get_paginated_response(self, data):
 
-        data = OrderedDict([
-            ('count', self.count),
-            ('next', self.get_next_link()),
-            ('previous', self.get_previous_link()),
-            ('results', data)
-        ])
+        data = OrderedDict(
+            [
+                ('count', self.count),
+                ('next', self.get_next_link()),
+                ('previous', self.get_previous_link()),
+                ('results', data),
+            ]
+        )
 
         # 按约定返回数据格式, message需要对象指定赋值
         return APIResult(data, message=getattr(self.view, 'message', ''))

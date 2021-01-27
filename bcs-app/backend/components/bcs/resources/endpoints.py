@@ -14,9 +14,10 @@
 import json
 import logging
 
-from .api_response import response
-from .resource import Resource, CoreAPIClassMixins
 from backend.resources.constants import K8sResourceKinds
+
+from .api_response import response
+from .resource import CoreAPIClassMixins, Resource
 
 logger = logging.getLogger(__name__)
 
@@ -27,7 +28,6 @@ class Endpoints(Resource, CoreAPIClassMixins):
     @response(format_data=False)
     def get_endpoints(self, params):
         name, namespace = params['name'], params['namespace']
-        resp = self.api_instance.read_namespaced_endpoints(
-            params['name'], params['namespace'], _preload_content=False)
+        resp = self.api_instance.read_namespaced_endpoints(params['name'], params['namespace'], _preload_content=False)
         data = json.loads(resp.data)
         return [self.render_resource(self.resource_kind, data, name, namespace)]

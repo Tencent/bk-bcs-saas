@@ -12,12 +12,11 @@
 # specific language governing permissions and limitations under the License.
 #
 from backend.components import cc
-from backend.utils.error_codes import error_codes
 from backend.utils.errcodes import ErrorCode
+from backend.utils.error_codes import error_codes
 
 
 class CMDBClient:
-
     def __init__(self, request):
         self.request = request
         self.cc_app_id = request.project.cc_app_id

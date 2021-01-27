@@ -13,34 +13,31 @@
 #
 import logging
 
-from rest_framework import viewsets
 from django.utils.translation import ugettext_lazy as _
+from rest_framework import viewsets
 
 from backend.accounts import bcs_perm
 from backend.apps.verfy import constants, serializers
 from backend.components import paas_cc
 from backend.utils import FancyDict
-from backend.utils.exceptions import APIError, NoAuthPermError, VerifyAuthPermError, VerifyAuthPermErrorWithNoRaise
-from backend.utils.response import APIResult
 from backend.utils.errcodes import ErrorCode
 from backend.utils.error_codes import error_codes
+from backend.utils.exceptions import APIError, NoAuthPermError, VerifyAuthPermError, VerifyAuthPermErrorWithNoRaise
+from backend.utils.response import APIResult
 
 logger = logging.getLogger(__name__)
 
 
 class Perm(viewsets.ViewSet):
-
     def get_project_info(self, request, project_id):
-        """获取项目信息
-        """
+        """获取项目信息"""
         resp = paas_cc.get_project(request.user.token.access_token, project_id)
         if resp.get('code') != ErrorCode.NoError:
             raise error_codes.APIError.f(resp.get('message'))
         request.project = FancyDict(resp.get('data', {}))
 
     def verify(self, request):
-        """权限判断接口，前端使用
-        """
+        """权限判断接口，前端使用"""
         # serializer在设置字段required为false时，如果参数为None，会提示字段为null
         if not request.data.get('resource_code'):
             request.data.pop('resource_code', '')
@@ -56,11 +53,8 @@ class Perm(viewsets.ViewSet):
 
         try:
             perm = bcs_perm.get_perm_cls(
-                data['resource_type'],
-                request,
-                data['project_id'],
-                resource_code,
-                resource_name)
+                data['resource_type'], request, data['project_id'], resource_code, resource_name
+            )
         except (AttributeError, TypeError):
             raise APIError(_("resource_code不合法"))
 
@@ -77,8 +71,7 @@ class Perm(viewsets.ViewSet):
         return APIResult({}, _("验证权限成功"))
 
     def verify_multi(self, request):
-        """权限判断接口，前端使用, 批量接口
-        """
+        """权限判断接口，前端使用, 批量接口"""
         serializer = serializers.PermMultiVerifySLZ(data=request.data, context={'request': request})
         serializer.is_valid(raise_exception=True)
 
@@ -93,11 +86,8 @@ class Perm(viewsets.ViewSet):
             resource_name = res.get('resource_name')
             try:
                 perm = bcs_perm.get_perm_cls(
-                    res['resource_type'],
-                    request,
-                    data['project_id'],
-                    resource_code,
-                    resource_name)
+                    res['resource_type'], request, data['project_id'], resource_code, resource_name
+                )
             except (AttributeError, TypeError):
                 raise APIError(_("resource_code不合法"))
 

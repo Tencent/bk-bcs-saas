@@ -21,4 +21,5 @@ class ActivaityLogConfig(AppConfig):
 
     def ready(self):
         from .hooks import SignalActivityLogHook
+
         SignalActivityLogHook.setup_hook()

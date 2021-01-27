@@ -26,8 +26,7 @@ class ProjectUser(models.Model):
 
     joined_at = models.DateTimeField()
     leave_at = models.DateTimeField(null=True, blank=True)
-    status = models.IntegerField(default=StaffInfoStatus.NORMAL.value,
-                                 choices=StaffInfoStatus.get_choices())
+    status = models.IntegerField(default=StaffInfoStatus.NORMAL.value, choices=StaffInfoStatus.get_choices())
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -38,7 +37,8 @@ class ProjectUser(models.Model):
 
     def __unicode__(self):
         return u'<{project_id},{user_id}({joined_at})>'.format(
-            project_id=self.project_id, user_id=self.user_id, joined_at=self.joined_at)
+            project_id=self.project_id, user_id=self.user_id, joined_at=self.joined_at
+        )
 
     def to_dict(self):
         joined_at = timezone.localtime(self.joined_at).strftime('%Y-%m-%d')
@@ -46,7 +46,7 @@ class ProjectUser(models.Model):
             'status': self.status,
             'status_desc': self.get_status_display(),
             'joined_at': joined_at,
-            'department': self.department or '-'
+            'department': self.department or '-',
         }
         return data
 
@@ -60,6 +60,7 @@ class FunctionController(BaseModel):
     """
     功能开启控制器
     """
+
     func_code = models.CharField(_("功能code"), max_length=64, unique=True)
     func_name = models.CharField(_("功能名称"), max_length=64)
     enabled = models.BooleanField(_("是否开启该功能"), help_text=_("控制功能是否对外开放，若选择，则该功能将对外开放"), default=False)
@@ -74,8 +75,8 @@ class FunctionController(BaseModel):
 
 
 class Conf(BaseModel):
-    """平台配置
-    """
+    """平台配置"""
+
     key = models.CharField(_("标识"), max_length=64, unique=True)
     name = models.CharField(_("名称"), max_length=128)
     value = models.TextField(_("值"))

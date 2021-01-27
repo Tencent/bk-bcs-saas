@@ -11,18 +11,18 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
+import base64
 import json
 import logging
 import shlex
 import time
-import base64
 from concurrent.futures import ThreadPoolExecutor
 
 import yaml
 from django.conf import settings
 from django.template.loader import render_to_string
-from django.utils.translation import ugettext_lazy as _
 from django.utils.encoding import smart_text
+from django.utils.translation import ugettext_lazy as _
 from kubernetes import client
 from kubernetes.client.rest import ApiException
 from kubernetes.stream import stream
@@ -49,8 +49,7 @@ class PodLifeCycle:
 
     @classmethod
     def heartbeat(cls, name):
-        """定时上报存活, 清理时需要使用
-        """
+        """定时上报存活, 清理时需要使用"""
         logger.debug("heartbeat: %s", name)
 
         result = rd_client.zadd(constants.WEB_CONSOLE_HEARTBEAT_KEY, name, time.time())
@@ -58,8 +57,7 @@ class PodLifeCycle:
         return result
 
     def get_active_user_pod(self):
-        """获取存活节点
-        """
+        """获取存活节点"""
         now = time.time()
         start = now - constants.USER_POD_EXPIRE_TIME
         expired_pods = rd_client.zremrangebyscore(constants.WEB_CONSOLE_HEARTBEAT_KEY, "-inf", start)
@@ -85,8 +83,7 @@ class PodLifeCycle:
             logger.error("clean user pod error: %s", error)
 
     def _clean_user_pod(self):
-        """单个集群清理
-        """
+        """单个集群清理"""
         alive_pods = self.get_active_user_pod()
 
         for v1, cluster_id in K8SClient.iter_client():
@@ -207,8 +204,7 @@ class K8SClient(object):
         return rbac
 
     def exec_command(self, command: str) -> str:
-        """执行命令，返回输出结果
-        """
+        """执行命令，返回输出结果"""
         command = shlex.split(command)
         resp = stream(
             self.v1.connect_get_namespaced_pod_exec,
@@ -254,8 +250,7 @@ def wait_user_pod_ready(ctx, name):
 
 
 def get_service_account_token(k8s_client):
-    """获取web-console token
-    """
+    """获取web-console token"""
     if settings.REGION not in ["ee", "ce"]:
         return
 
@@ -268,8 +263,7 @@ def get_service_account_token(k8s_client):
 
 
 def create_service_account_rbac(k8s_client, ctx):
-    """创建serviceAccount, 绑定Role
-    """
+    """创建serviceAccount, 绑定Role"""
     if settings.REGION not in ["ee", "ce"]:
         return
 
@@ -281,8 +275,7 @@ def create_service_account_rbac(k8s_client, ctx):
 
 
 def ensure_namespace(ctx):
-    """创建命名空间
-    """
+    """创建命名空间"""
     k8s_client = K8SClient(ctx)
 
     def _add_token_to_ctx(k8s_client, ctx):
@@ -311,8 +304,7 @@ def ensure_namespace(ctx):
 
 
 def ensure_configmap(ctx):
-    """创建configmap
-    """
+    """创建configmap"""
     name = "kube-config-%s-u%s" % (ctx["source_cluster_id"], ctx["username_slug"])
     name = name.lower()
 
@@ -334,8 +326,7 @@ def ensure_configmap(ctx):
 
 
 def ensure_pod(ctx):
-    """创建configmap
-    """
+    """创建configmap"""
     name = "kubectld-%s-u%s" % (ctx["source_cluster_id"], ctx["username_slug"])
     name = name.lower()
 

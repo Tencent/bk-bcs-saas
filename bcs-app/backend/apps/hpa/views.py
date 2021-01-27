@@ -36,13 +36,13 @@ from backend.utils.response import BKAPIResponse
 
 logger = logging.getLogger(__name__)
 
+
 class HPA(viewsets.ViewSet, BaseAPI, ResourceOperate):
     renderer_classes = (BKAPIRenderer, BrowsableAPIRenderer)
     category = K8sResourceName.K8sHPA.value
 
     def list(self, request, project_id):
-        """获取所有HPA数据
-        """
+        """获取所有HPA数据"""
         access_token = request.user.token.access_token
         cluster_dicts = self.get_project_cluster_info(request, project_id)
         cluster_data = cluster_dicts.get('results', {}) or {}
@@ -68,13 +68,11 @@ class HPA(viewsets.ViewSet, BaseAPI, ResourceOperate):
         return Response(k8s_hpa_list)
 
     def check_namespace_use_perm(self, request, project_id, namespace_list):
-        """检查是否有命名空间的使用权限
-        """
+        """检查是否有命名空间的使用权限"""
         access_token = request.user.token.access_token
 
         # 根据 namespace  查询 ns_id
-        namespace_res = paas_cc.get_namespace_list(
-            access_token, project_id, limit=ALL_LIMIT)
+        namespace_res = paas_cc.get_namespace_list(access_token, project_id, limit=ALL_LIMIT)
         namespace_data = namespace_res.get('data', {}).get('results') or []
         namespace_dict = {i['name']: i['id'] for i in namespace_data}
         for namespace in namespace_list:
@@ -102,8 +100,7 @@ class HPA(viewsets.ViewSet, BaseAPI, ResourceOperate):
         return Response({})
 
     def batch_delete(self, request, project_id):
-        """批量删除资源
-        """
+        """批量删除资源"""
         username = request.user.username
 
         slz = BatchResourceSLZ(data=request.data)
@@ -124,15 +121,9 @@ class HPA(viewsets.ViewSet, BaseAPI, ResourceOperate):
             try:
                 utils.delete_hpa(request, project_id, cluster_id, ns_name, ns_id, name)
             except utils.DeleteHPAError as error:
-                failed_list.append({
-                    'name': name,
-                    'desc': "{}[命名空间:{}]:{}".format(name, ns_name, error)
-                })
+                failed_list.append({'name': name, 'desc': "{}[命名空间:{}]:{}".format(name, ns_name, error)})
             else:
-                success_list.append({
-                    'name': name,
-                    'desc': "{}[命名空间:{}]".format(name, ns_name)
-                })
+                success_list.append({'name': name, 'desc': "{}[命名空间:{}]".format(name, ns_name)})
 
         # 添加操作审计
         if success_list:
@@ -159,10 +150,10 @@ class HPA(viewsets.ViewSet, BaseAPI, ResourceOperate):
 
         return BKAPIResponse({}, message=message)
 
+
 class HPAMetrics(views.APIView):
     renderer_classes = (BKAPIRenderer, BrowsableAPIRenderer)
 
     def get(self, request, project_id):
-        """获取支持的HPA metric列表
-        """
+        """获取支持的HPA metric列表"""
         return Response(constants.HPA_METRICS)

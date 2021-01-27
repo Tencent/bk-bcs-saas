@@ -13,22 +13,11 @@
 #
 
 # *********************************** Helm Config Begin *****************************
-DEFAULT_MANAGE_CLUSTER = {
-    'id': '',
-    'project_id': ''
-}
+DEFAULT_MANAGE_CLUSTER = {'id': '', 'project_id': ''}
 
-DEFAULT_REPO_NAMESPACE_INFO = {
-    'name': '',
-    'id': ''
-}
+DEFAULT_REPO_NAMESPACE_INFO = {'name': '', 'id': ''}
 
-PLATFORM_REPO_INFO = {
-    'name': 'platform',
-    'url': '',
-    'provider': 'chartmuseum',
-    'project_id': ''
-}
+PLATFORM_REPO_INFO = {'name': 'platform', 'url': '', 'provider': 'chartmuseum', 'project_id': ''}
 
 RGW_CONFIG = {
     "admin_host": "",
@@ -37,7 +26,7 @@ RGW_CONFIG = {
     "admin_endpoint": "",
     "tenant": "",
     "default_policy": "",
-    "max_size": 1048576
+    "max_size": 1048576,
 }
 
 # 用于区分chart路径

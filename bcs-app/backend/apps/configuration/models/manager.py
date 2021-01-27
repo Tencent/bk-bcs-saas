@@ -15,16 +15,14 @@ from django.db import models
 
 
 class TemplateManager(models.Manager):
-    """Manager for Template
-    """
+    """Manager for Template"""
 
     def get_queryset(self):
         return super().get_queryset().filter(is_deleted=False)
 
 
 class ShowVersionManager(models.Manager):
-    """Manager for ShowVersionManager
-    """
+    """Manager for ShowVersionManager"""
 
     def get_queryset(self):
         return super().get_queryset().filter(is_deleted=False)
@@ -34,6 +32,5 @@ class ShowVersionManager(models.Manager):
 
 
 class VersionedEntityManager(models.Manager):
-
     def get_latest_by_template(self, template_id):
         return self.filter(template_id=template_id).order_by('-updated').first()

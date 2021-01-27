@@ -20,7 +20,6 @@ logger = logging.getLogger(__name__)
 
 
 class K8SDriver:
-
     @classmethod
     def backend_create_helm_info(cls, project_id):
         try:

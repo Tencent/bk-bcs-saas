@@ -13,7 +13,6 @@
 #
 from django.conf import settings
 
-
 CURATOR_VALUES_TEMPLATE = ""
 
 # public repo url

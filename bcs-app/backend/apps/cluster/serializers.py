@@ -15,20 +15,18 @@ import json
 import time
 
 import arrow
-
+from django.utils.translation import ugettext_lazy as _
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
-from django.utils.translation import ugettext_lazy as _
 
 from backend.apps import constants
-from backend.apps.cluster.models import (
-    NodeLabel, ClusterInstallLog, NodeUpdateLog, NodeStatus
-)
-from backend.components import paas_cc, data as data_api
+from backend.apps.cluster import constants as cluster_constants
+from backend.apps.cluster.models import ClusterInstallLog, NodeLabel, NodeStatus, NodeUpdateLog
+from backend.components import data as data_api
+from backend.components import paas_cc
 from backend.utils import cc
 from backend.utils.errcodes import ErrorCode
 from backend.utils.error_codes import error_codes
-from backend.apps.cluster import constants as cluster_constants
 from backend.utils.exceptions import ResNotFoundError
 
 
@@ -42,15 +40,7 @@ class NodeLabelSLZ(serializers.ModelSerializer):
 
     class Meta:
         model = NodeLabel
-        fields = (
-            'id',
-            'project_id',
-            'cluster_id',
-            'node_id',
-            'labels',
-            'creator',
-            'updator'
-        )
+        fields = ('id', 'project_id', 'cluster_id', 'node_id', 'labels', 'creator', 'updator')
 
 
 class NodeLabelUpdateSLZ(serializers.ModelSerializer):
@@ -60,30 +50,18 @@ class NodeLabelUpdateSLZ(serializers.ModelSerializer):
 
     class Meta:
         model = NodeLabel
-        fields = (
-            'id',
-            'project_id',
-            'cluster_id',
-            'node_id',
-            'labels',
-            'creator',
-            'updator'
-        )
+        fields = ('id', 'project_id', 'cluster_id', 'node_id', 'labels', 'creator', 'updator')
 
 
 class CreateClusterSLZ(serializers.Serializer):
     cluster_state = serializers.ChoiceField(
-        choices=cluster_constants.ClusterState.get_choices(),
-        default=cluster_constants.ClusterState.BCSNew.value
+        choices=cluster_constants.ClusterState.get_choices(), default=cluster_constants.ClusterState.BCSNew.value
     )
     name = serializers.CharField(max_length=64)
     description = serializers.CharField(default="")
     area_id = serializers.IntegerField(default=1)
     environment = serializers.CharField(max_length=8)
-    master_ips = serializers.ListField(
-        child=serializers.CharField(min_length=1),
-        min_length=1
-    )
+    master_ips = serializers.ListField(child=serializers.CharField(min_length=1), min_length=1)
     need_nat = serializers.BooleanField(default=True)
     coes = serializers.CharField(default="")
 
@@ -93,9 +71,7 @@ class CreateClusterSLZ(serializers.Serializer):
             raise ValidationError(_("集群Master节点数量必须为不大于5的奇数"))
         # 可能有多IP的节点，只取第一个即可
         ip_list = [info.split(',')[0] for info in value if info]
-        resp = paas_cc.get_project_nodes(
-            self.context['access_token'], self.context['project_id'], is_master=True
-        )
+        resp = paas_cc.get_project_nodes(self.context['access_token'], self.context['project_id'], is_master=True)
         # 检查是否被占用
         intersection = set(resp.keys()) & set(ip_list)
         if intersection:
@@ -104,9 +80,7 @@ class CreateClusterSLZ(serializers.Serializer):
         return ip_list
 
     def validate_name(self, value):
-        resp = paas_cc.verify_cluster_exist(
-            self.context['access_token'], self.context['project_id'], value
-        )
+        resp = paas_cc.verify_cluster_exist(self.context['access_token'], self.context['project_id'], value)
         if resp.get('data', {}).get('count'):
             raise ValidationError(_("集群名称已经存在，请修改后重试"))
         return value
@@ -127,26 +101,28 @@ class UpdateClusterSLZ(serializers.Serializer):
 class UpdateNodeSLZ(serializers.Serializer):
     name = serializers.CharField(required=False)
     description = serializers.CharField(required=False)
-    status = serializers.ChoiceField(required=False, choices=[
-        NodeStatus.Normal, NodeStatus.ToRemoved,
-    ])
+    status = serializers.ChoiceField(
+        required=False,
+        choices=[
+            NodeStatus.Normal,
+            NodeStatus.ToRemoved,
+        ],
+    )
 
 
 class BatchUpdateNodesSLZ(UpdateNodeSLZ):
-    status = serializers.ChoiceField(required=True, choices=[
-        NodeStatus.Normal, NodeStatus.ToRemoved,
-    ])
-    node_id_list = serializers.ListField(
-        child=serializers.IntegerField(),
-        required=True
+    status = serializers.ChoiceField(
+        required=True,
+        choices=[
+            NodeStatus.Normal,
+            NodeStatus.ToRemoved,
+        ],
     )
+    node_id_list = serializers.ListField(child=serializers.IntegerField(), required=True)
 
 
 class BatchReinstallNodesSLZ(serializers.Serializer):
-    node_id_list = serializers.ListField(
-        child=serializers.IntegerField(),
-        required=True
-    )
+    node_id_list = serializers.ListField(child=serializers.IntegerField(), required=True)
 
     def validate_node_id_list(self, node_id_list):
         cluster_nodes = self.context['cluster_nodes']
@@ -161,23 +137,15 @@ class BatchReinstallNodesSLZ(serializers.Serializer):
 
 
 class BatchDeleteNodesSLZ(serializers.Serializer):
-    node_id_list = serializers.ListField(
-        child=serializers.IntegerField(),
-        required=True
-    )
+    node_id_list = serializers.ListField(child=serializers.IntegerField(), required=True)
 
 
 class CreateNodeSLZ(serializers.Serializer):
-    ip = serializers.ListField(
-        child=serializers.CharField(min_length=1),
-        min_length=1
-    )
+    ip = serializers.ListField(child=serializers.CharField(min_length=1), min_length=1)
 
 
 class NodeLabelParamsSLZ(serializers.Serializer):
-    node_id_list = serializers.ListField(
-        child=serializers.IntegerField(min_value=1, required=True), required=True
-    )
+    node_id_list = serializers.ListField(child=serializers.IntegerField(min_value=1, required=True), required=True)
     node_label_info = serializers.DictField()
 
     def validate_node_id_list(self, val):
@@ -187,36 +155,25 @@ class NodeLabelParamsSLZ(serializers.Serializer):
 
 
 class InstallLogBaseSLZ(serializers.ModelSerializer):
-
     def to_representation(self, instance):
         data = super().to_representation(instance)
         log = data.get('log') or '{}'
         data['prefix_message'] = '{oper_time}  {operator}  {oper_type_name}'.format(
             oper_time=data['create_at'],
             operator=data.get('operator') or '',
-            oper_type_name=self.instance.get_oper_type_display())
+            oper_type_name=self.instance.get_oper_type_display(),
+        )
         data['log'] = json.loads(log)
         return data
 
 
 class ClusterInstallLogSLZ(InstallLogBaseSLZ):
-
     class Meta:
         model = ClusterInstallLog
-        fields = (
-            'project_id',
-            'cluster_id',
-            'is_finished',
-            'status',
-            'log',
-            'create_at',
-            'update_at',
-            'operator'
-        )
+        fields = ('project_id', 'cluster_id', 'is_finished', 'status', 'log', 'create_at', 'update_at', 'operator')
 
 
 class NodeInstallLogSLZ(InstallLogBaseSLZ):
-
     class Meta:
         model = NodeUpdateLog
         fields = (
@@ -228,7 +185,7 @@ class NodeInstallLogSLZ(InstallLogBaseSLZ):
             'log',
             'create_at',
             'update_at',
-            'operator'
+            'operator',
         )
 
 
@@ -240,9 +197,7 @@ def get_order_choices():
 
 
 class ListNodeSLZ(serializers.Serializer):
-    limit = serializers.IntegerField(
-        required=False, default=cluster_constants.DEFAULT_NODE_LIMIT
-    )
+    limit = serializers.IntegerField(required=False, default=cluster_constants.DEFAULT_NODE_LIMIT)
     offset = serializers.IntegerField(required=False, default=0)
     ip = serializers.CharField(required=False)
     ip_list = serializers.ListField(required=False)
@@ -256,11 +211,12 @@ class NodeSLZ(serializers.Serializer):
     res_id = serializers.CharField(required=True)
 
     def get_node_list(self, request, project_id, cluster_id):
-        """get cluster node list
-        """
+        """get cluster node list"""
         node_resp = paas_cc.get_node_list(
-            request.user.token.access_token, project_id, cluster_id,
-            params={'limit': cluster_constants.DEFAULT_NODE_LIMIT}
+            request.user.token.access_token,
+            project_id,
+            cluster_id,
+            params={'limit': cluster_constants.DEFAULT_NODE_LIMIT},
         )
         if node_resp.get('code') != ErrorCode.NoError:
             raise ValidationError(node_resp.get('message'))
@@ -286,8 +242,7 @@ class SummaryMetricsSLZ(SearchResourceBaseSLZ):
 
 
 class MetricsSLZBase(serializers.Serializer):
-    metric = serializers.ChoiceField(
-        choices=list(data_api.NodeMetricFields.keys()))
+    metric = serializers.ChoiceField(choices=list(data_api.NodeMetricFields.keys()))
     start_at = serializers.DateTimeField(required=False)
     end_at = serializers.DateTimeField(required=False)
 

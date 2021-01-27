@@ -12,36 +12,20 @@
 # specific language governing permissions and limitations under the License.
 #
 
-from .node import Node
-
-from .namespace import Namespace
-
-from .service import Service
-
-from .secret import Secret
-
 from .configmap import ConfigMap
-
-from .ingress import Ingress
-
-from .deployment import Deployment
-
 from .daemonset import DaemonSet
-
-from .job import Job
-
-from .statefulset import StatefulSet
-
-from .replicaset import ReplicaSet
-
-from .pod import Pod
-
-from .event import Event
-
+from .deployment import Deployment
 from .endpoints import Endpoints
-
-from .storageclass import StorageClass
-
+from .event import Event
+from .ingress import Ingress
+from .job import Job
+from .namespace import Namespace
+from .node import Node
+from .pod import Pod
 from .pv import PersistentVolume
-
 from .pvc import PersistentVolumeClaim
+from .replicaset import ReplicaSet
+from .secret import Secret
+from .service import Service
+from .statefulset import StatefulSet
+from .storageclass import StorageClass

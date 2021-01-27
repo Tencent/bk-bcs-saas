@@ -17,5 +17,8 @@ from . import views
 
 urlpatterns = [
     url(r"^$", views.TemplatesViewSet.as_view({"get": "list_templates"})),
-    url(r"^(?P<template_id>\d+)/show_versions/$", views.ShowVersionViewSet.as_view({"get": "list_show_versions"}),),
+    url(
+        r"^(?P<template_id>\d+)/show_versions/$",
+        views.ShowVersionViewSet.as_view({"get": "list_show_versions"}),
+    ),
 ]

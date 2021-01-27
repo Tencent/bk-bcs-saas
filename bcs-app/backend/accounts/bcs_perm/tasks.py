@@ -12,7 +12,7 @@
 # specific language governing permissions and limitations under the License.
 #
 
+
 def sync_bcs_perm():
-    """同步资源到权限中心
-    """
+    """同步资源到权限中心"""
     pass

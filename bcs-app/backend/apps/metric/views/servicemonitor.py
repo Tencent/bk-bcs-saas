@@ -53,8 +53,7 @@ FILTERED_METADATA = [
 
 
 class ServiceMonitor(viewsets.ViewSet):
-    """集群ServiceMonitor
-    """
+    """集群ServiceMonitor"""
 
     serializer_class = serializers.ServiceMonitorCreateSLZ
     renderer_classes = (BKAPIRenderer, BrowsableAPIRenderer)
@@ -84,8 +83,7 @@ class ServiceMonitor(viewsets.ViewSet):
         return client
 
     def get_duration(self, duration, default=None):
-        """解析普罗米修斯时间范围
-        """
+        """解析普罗米修斯时间范围"""
         if not duration:
             return default
 
@@ -143,8 +141,7 @@ class ServiceMonitor(viewsets.ViewSet):
             d["permissions"] = self.NO_PERM_MAP
 
     def _validate_namespace_use_perm(self, request, project_id, namespace_list):
-        """检查是否有命名空间的使用权限
-        """
+        """检查是否有命名空间的使用权限"""
         namespace_map = self._get_namespace_map(project_id)
         for namespace in namespace_list:
             if namespace in self.NO_PERM_NS:
@@ -156,8 +153,7 @@ class ServiceMonitor(viewsets.ViewSet):
             perm.can_use(raise_exception=True)
 
     def _activity_log(self, project_id, username, resource_name, description, status):
-        """操作记录
-        """
+        """操作记录"""
         client = activity_client.ContextActivityLogClient(
             project_id=project_id, user=username, resource_type="metric", resource=resource_name
         )
@@ -167,8 +163,7 @@ class ServiceMonitor(viewsets.ViewSet):
             client.log_delete(activity_status="failed", description=description)
 
     def _get_cluster_map(self, project_id):
-        """获取集群dict
-        """
+        """获取集群dict"""
         resp = paas_cc.get_all_clusters(self.request.user.token.access_token, project_id, desire_all_data=1)
         data = resp.get("data") or {}
         cluster_list = data.get("results") or []
@@ -176,8 +171,7 @@ class ServiceMonitor(viewsets.ViewSet):
         return cluster_map
 
     def _get_namespace_map(self, project_id):
-        """获取命名空间dict
-        """
+        """获取命名空间dict"""
         resp = paas_cc.get_namespace_list(self.request.user.token.access_token, project_id, limit=ALL_LIMIT)
         namespace_list = resp.get("data", {}).get("results") or []
         namespace_map = {(i["cluster_id"], i["name"]): i["id"] for i in namespace_list}
@@ -253,8 +247,7 @@ class ServiceMonitor(viewsets.ViewSet):
         return Response(result)
 
     def get(self, request, project_id, cluster_id, namespace, name):
-        """获取单个serviceMonitor
-        """
+        """获取单个serviceMonitor"""
         client = self._get_client(request, project_id, cluster_id)
         result = client.get_service_monitor(namespace, name)
         if result.get("status") == "Failure":
@@ -270,8 +263,7 @@ class ServiceMonitor(viewsets.ViewSet):
         return Response(result)
 
     def delete(self, request, project_id, cluster_id, namespace, name):
-        """删除servicemonitor
-        """
+        """删除servicemonitor"""
         self._validate_namespace_use_perm(request, project_id, [(cluster_id, namespace)])
         client = self._get_client(request, project_id, cluster_id)
         result = client.delete_service_monitor(namespace, name)
@@ -332,8 +324,7 @@ class ServiceMonitor(viewsets.ViewSet):
         return Response(result)
 
     def bacth_delete(self, request, project_id, cluster_id):
-        """批量删除
-        """
+        """批量删除"""
         slz = serializers.ServiceMonitorBatchDeleteSLZ(data=request.data)
         slz.is_valid(raise_exception=True)
         svc_monitors = slz.validated_data["servicemonitors"]
@@ -367,8 +358,7 @@ class Targets(viewsets.ViewSet):
     job_pattern = re.compile(r"^(?P<namespace>[\w-]+)/(?P<name>[\w-]+)/(?P<port_idx>\d+)$")
 
     def _filter_targets(self, data, namespace, name, show_discovered):
-        """servicemonitor通过job名称过滤
-        """
+        """servicemonitor通过job名称过滤"""
 
         res = []
         for d in data:
@@ -410,16 +400,14 @@ class Targets(viewsets.ViewSet):
         return jobs
 
     def list(self, request, project_id, cluster_id, namespace=None, name=None):
-        """获取targets列表
-        """
+        """获取targets列表"""
         show_discovered = request.GET.get("show_discovered") == "1"
         result = prometheus.get_targets(project_id, cluster_id).get("data") or []
         targets = self._filter_targets(result, namespace, name, show_discovered)
         return Response(targets)
 
     def list_instance(self, request, project_id, cluster_id):
-        """targets列表, 按instance_id聚合
-        """
+        """targets列表, 按instance_id聚合"""
         show_discovered = request.GET.get("show_discovered") == "1"
         result = prometheus.get_targets(project_id, cluster_id).get("data") or []
         targets = self._filter_targets(result, None, None, show_discovered)
@@ -447,8 +435,7 @@ class Targets(viewsets.ViewSet):
         return Response(targets_dict)
 
     def graph(self, request, project_id, cluster_id, namespace, name):
-        """获取下面所有targets的job, 跳转到容器监控
-        """
+        """获取下面所有targets的job, 跳转到容器监控"""
         result = prometheus.get_targets(project_id, cluster_id).get("data") or []
         jobs = self._filter_jobs(result, namespace, name)
 
@@ -466,8 +453,7 @@ class Targets(viewsets.ViewSet):
 
 
 class Services(viewsets.ViewSet):
-    """可监控的services
-    """
+    """可监控的services"""
 
     renderer_classes = (BKAPIRenderer, BrowsableAPIRenderer)
 
@@ -505,8 +491,7 @@ class Services(viewsets.ViewSet):
         return service_list
 
     def list(self, request, project_id, cluster_id):
-        """获取targets列表
-        """
+        """获取targets列表"""
         access_token = request.user.token.access_token
 
         if request.project.kind == ProjectKind.MESOS.value:
@@ -522,8 +507,7 @@ class Services(viewsets.ViewSet):
 
 
 class PrometheusUpdate(viewsets.ViewSet):
-    """可监控的services
-    """
+    """可监控的services"""
 
     renderer_classes = (BKAPIRenderer, BrowsableAPIRenderer)
 
@@ -541,8 +525,7 @@ class PrometheusUpdate(viewsets.ViewSet):
         return Response(data)
 
     def _activity_log(self, project_id, username, resource_name, description, status):
-        """操作记录
-        """
+        """操作记录"""
         client = activity_client.ContextActivityLogClient(
             project_id=project_id, user=username, resource_type="metric", resource=resource_name
         )

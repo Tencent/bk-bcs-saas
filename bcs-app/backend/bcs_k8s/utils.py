@@ -13,9 +13,9 @@
 #
 from dataclasses import dataclass
 
-from backend.utils.basic import get_bcs_component_version
 from backend.apps.datalog.utils import get_data_id_by_project_id
 from backend.apps.instance import constants as instance_constants
+from backend.utils.basic import get_bcs_component_version
 
 
 def get_kubectl_version(cluster_version, kubectl_version_info, default_kubectl_version):

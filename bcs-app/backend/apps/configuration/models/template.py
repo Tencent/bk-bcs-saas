@@ -19,15 +19,15 @@ from django.utils.functional import cached_property
 from django.utils.translation import ugettext_lazy as _
 from rest_framework.exceptions import ValidationError
 
-from backend.apps.metric.models import Metric
-from backend.apps.configuration import constants
 from backend.apps.application.constants import K8S_KIND, MESOS_KIND
-from backend.apps.instance.constants import LOG_CONFIG_MAP_SUFFIX, APPLICATION_ID_SEPARATOR, INGRESS_ID_SEPARATOR
+from backend.apps.configuration import constants
+from backend.apps.instance.constants import APPLICATION_ID_SEPARATOR, INGRESS_ID_SEPARATOR, LOG_CONFIG_MAP_SUFFIX
+from backend.apps.metric.models import Metric
 
-from .base import BaseModel, POD_RES_LIST, logger, get_default_version
-from .manager import TemplateManager, ShowVersionManager, VersionedEntityManager
-from .utils import get_model_class_by_resource_name, get_secret_name_by_certid, MODULE_DICT
 from . import k8s, mesos, resfile
+from .base import POD_RES_LIST, BaseModel, get_default_version, logger
+from .manager import ShowVersionManager, TemplateManager, VersionedEntityManager
+from .utils import MODULE_DICT, get_model_class_by_resource_name, get_secret_name_by_certid
 
 TemplateCategory = constants.TemplateCategory
 TemplateEditMode = constants.TemplateEditMode
@@ -48,8 +48,7 @@ def get_template_by_project_and_id(project_id, template_id):
 
 
 def _get_tls_secret_list(ingress_qsets):
-    """k8s原生ingress需要
-    """
+    """k8s原生ingress需要"""
     tls_secret_list = []
     for ingress in ingress_qsets:
         tls_secret_list.extend(ingress.get_tls_secret_list())
@@ -109,8 +108,7 @@ class Template(BaseModel):
             raise ValidationError(detail=detail)
 
     def get_draft(self):
-        """获取模板集的草稿信息
-        """
+        """获取模板集的草稿信息"""
         if not self.draft:
             return {}
         try:
@@ -141,8 +139,7 @@ class Template(BaseModel):
         return container_list
 
     def get_containers(self, project_kind, show_version):
-        """容器名称和容器镜像
-        """
+        """容器名称和容器镜像"""
         # 只有草稿的情况
         if not show_version:
             return self.get_containers_from_draft(project_kind)
@@ -159,8 +156,7 @@ class Template(BaseModel):
 
     @property
     def log_url(self):
-        """图标，返回 None 时，前端使用默认图标
-        """
+        """图标，返回 None 时，前端使用默认图标"""
         return None
 
     @property
@@ -214,8 +210,7 @@ class Template(BaseModel):
 
     # TODO mark refactor
     def copy_tempalte(self, project_id, new_template_name, username):
-        """复制模板集
-        """
+        """复制模板集"""
         old_show_version = ShowVersion.objects.filter(template_id=self.id).order_by("-updated").first()
         # 新建模板集
         new_tem = Template.objects.create(
@@ -271,8 +266,7 @@ class Template(BaseModel):
 
     @classmethod
     def check_resource_name(cls, project_id, resource_name, resource_id, name, version_id):
-        """同一类资源的名称不能重复
-        """
+        """同一类资源的名称不能重复"""
         # 判断新名称与老名称是否一致
         old_res = MODULE_DICT.get(resource_name).objects.filter(id=resource_id).first()
         if old_res:
@@ -302,8 +296,7 @@ class Template(BaseModel):
 
 
 class ShowVersion(BaseModel):
-    """展示给用户的版本
-    """
+    """展示给用户的版本"""
 
     template_id = models.IntegerField("关联的模板 ID")
     name = models.CharField("版本名称", max_length=255)
@@ -419,20 +412,17 @@ class VersionedEntity(BaseModel):
         return k8s.K8sService.get_resources_info(svc_id_list)
 
     def get_k8s_deploys(self):
-        """获取模板集版本的 Deployment 列表
-        """
+        """获取模板集版本的 Deployment 列表"""
         deploy_id_list = self.get_resource_id_list(K8sResourceName.K8sDeployment.value)
         return k8s.K8sDeployment.get_resources_info(deploy_id_list)
 
     def get_mesos_apps(self):
-        """获取模板集版本的 Application 列表
-        """
+        """获取模板集版本的 Application 列表"""
         app_id_list = self.get_resource_id_list(MesosResourceName.application.value)
         return mesos.Application.get_resources_info(app_id_list)
 
     def get_mesos_deploys(self):
-        """获取mesos deploys 列表
-        """
+        """获取mesos deploys 列表"""
         deploy_id_list = self.get_resource_id_list(MesosResourceName.deployment.value)
         return mesos.Deplpyment.get_resources_info(deploy_id_list)
 
@@ -472,8 +462,7 @@ class VersionedEntity(BaseModel):
         return resource_config
 
     def get_resource_config(self):
-        """获取版本对应的所有配置信息
-        """
+        """获取版本对应的所有配置信息"""
         return self._get_resource_config(is_simple=False)
 
     def get_k8s_containers(self):
@@ -528,8 +517,7 @@ class VersionedEntity(BaseModel):
         return container_list
 
     def get_k8s_pod_resources(self):
-        """获取模板集版本的 Pod 资源列表
-        """
+        """获取模板集版本的 Pod 资源列表"""
         pod_resource_map = {}
         entity = self.resource_entity
         for resource_name in POD_RES_LIST:
@@ -551,8 +539,7 @@ class VersionedEntity(BaseModel):
 
     @classmethod
     def update_for_new_ventity(cls, ventity_id, resource_name, resource_id, new_resource_id, **kwargs):
-        """更新版本资源
-        """
+        """更新版本资源"""
         ventity = cls.objects.get(id=ventity_id)
         resource_id_list = ventity.get_resource_id_list(resource_name)
         try:
@@ -637,8 +624,7 @@ class VersionedEntity(BaseModel):
 
     @classmethod
     def get_related_apps_by_service(cls, versioned_entity_id, service_id):
-        """获取service关联的应用信息
-        """
+        """获取service关联的应用信息"""
         try:
             ver_entity = cls.objects.get(id=versioned_entity_id)
         except Exception:
@@ -721,8 +707,7 @@ class VersionedEntity(BaseModel):
         return container_list
 
     def get_secret_info_by_k8s_ingress(self, item, item_objects):
-        """k8s原生ingress需要
-        """
+        """k8s原生ingress需要"""
         tls_secret_list = []
         for item_app in item_objects:
             _item_config = item_app.get_config()
@@ -970,8 +955,7 @@ class VersionedEntity(BaseModel):
         return res_id_map
 
     def get_version_app_resource(self, category, resources_name, is_related_res=False):
-        """获取应用实例化所需要的资源
-        """
+        """获取应用实例化所需要的资源"""
         instance_entity = self.get_version_instance_resources()
         new_entity = get_app_resource(instance_entity, category, resources_name, is_related_res, self.id)
         return new_entity
@@ -995,8 +979,7 @@ class VersionedEntity(BaseModel):
 
     @property
     def get_lb_services(self):
-        """版本中关联 lb 的service
-        """
+        """版本中关联 lb 的service"""
         entity = self.resource_entity
         if not entity:
             return []
@@ -1006,8 +989,7 @@ class VersionedEntity(BaseModel):
         return service_list
 
     def get_version_ports(self, app_id_list):
-        """mesos Service 页面上的可选择的关联的 Application 的 端口信息
-        """
+        """mesos Service 页面上的可选择的关联的 Application 的 端口信息"""
         return self.get_version_all_container(type="port", project_kind=2, **{"req_app_id_list": app_id_list})
 
     def get_mesos_services(self):

@@ -12,9 +12,9 @@
 # specific language governing permissions and limitations under the License.
 #
 """Module for generating kubeconfig file"""
+import contextlib
 import logging
 import tempfile
-import contextlib
 from dataclasses import dataclass
 from typing import List
 
@@ -31,6 +31,7 @@ class Cluster:
     :param cert: path of certification
     :param cert_data: certification in base64 format, will be ignored if cert is provided
     """
+
     name: str
     server: str
     cert: str = ""
@@ -41,6 +42,7 @@ class Cluster:
 @dataclass
 class User:
     """Kubernetes user info"""
+
     name: str
     token: str
 
@@ -48,6 +50,7 @@ class User:
 @dataclass
 class Context:
     """kube config context"""
+
     name: str
     user: User
     cluster: Cluster
@@ -72,22 +75,13 @@ class KubeConfig:
 
         return {
             "name": cluster.name,
-            "cluster": {
-                "server": cluster.server,
-                "api-version": cluster.api_version,
-                **cert_info
-            }
+            "cluster": {"server": cluster.server, "api-version": cluster.api_version, **cert_info},
         }
 
     @staticmethod
     def format_user(user):
         """Format an user as kubeconfig format"""
-        return {
-            "name": user.name,
-            "user": {
-                "token": user.token
-            }
-        }
+        return {"name": user.name, "user": {"token": user.token}}
 
     @staticmethod
     def format_context(context):
@@ -97,7 +91,7 @@ class KubeConfig:
             "context": {
                 "user": context.user.name,
                 "cluster": context.cluster.name,
-            }
+            },
         }
 
     def dumps(self, current_context: str = ""):
@@ -124,8 +118,7 @@ class KubeConfig:
 
     @contextlib.contextmanager
     def as_tempfile(self):
-        """A context manager which dump current config to a temp kubeconfig file
-        """
+        """A context manager which dump current config to a temp kubeconfig file"""
 
         with tempfile.NamedTemporaryFile() as fp:
             fp.write(self.dumps().encode())

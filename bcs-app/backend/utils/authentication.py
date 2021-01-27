@@ -27,7 +27,6 @@ User = get_user_model()
 
 
 class JWTUser(User):
-
     @property
     def is_authenticated(self):
         return True
@@ -37,7 +36,6 @@ class JWTUser(User):
 
 
 class JWTClient(object):
-
     def __init__(self, content):
         self.content = content
         self.payload = {}

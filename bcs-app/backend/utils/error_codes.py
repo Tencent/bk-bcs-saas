@@ -11,13 +11,13 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-import re
 import copy
+import re
 
+from django.conf import settings
 from django.utils.translation import gettext as _
 from rest_framework import status
 from rest_framework.exceptions import APIException
-from django.conf import settings
 
 
 class APIError(APIException):

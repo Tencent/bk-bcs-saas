@@ -25,12 +25,11 @@ https://docs.djangoproject.com/en/1.11/ref/settings/
 
 import os
 
+# Apply pymysql patch
+import pymysql
 from django.conf.global_settings import gettext_noop as _
 
 from .base_bk import *  # noqa
-
-# Apply pymysql patch
-import pymysql
 
 pymysql.install_as_MySQLdb()
 # Patch version info to forcely pass Django client check
@@ -391,7 +390,7 @@ BK_APP_WHITELIST = {}
 
 # 覆盖配置
 try:
-    from .base_bk import TEMPLATES, STATICFILES_DIRS
+    from .base_bk import STATICFILES_DIRS, TEMPLATES
 except Exception:
     pass
 

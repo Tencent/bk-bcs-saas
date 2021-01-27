@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
-import pytest
 from typing import Dict
 
-from backend.apps.application.utils import get_k8s_resource_status
+import pytest
+
 from backend.apps.application import constants
+from backend.apps.application.utils import get_k8s_resource_status
 from backend.utils import FancyDict
 
 running = constants.ResourceStatus.Running.value

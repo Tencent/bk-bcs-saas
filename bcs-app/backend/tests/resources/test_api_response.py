@@ -12,9 +12,9 @@
 # specific language governing permissions and limitations under the License.
 #
 import pytest
-from urllib3.response import HTTPResponse
 from kubernetes.client import V1Namespace, V1ObjectMeta
 from kubernetes.client.rest import ApiException, RESTResponse
+from urllib3.response import HTTPResponse
 
 from backend.components.bcs.resources.api_response import response
 from backend.tests.testing_utils.base import dict_is_subequal
