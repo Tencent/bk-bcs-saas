@@ -31,41 +31,39 @@ TODO:
 """
 import json
 
-from rest_framework import viewsets
-from rest_framework.response import Response
-from rest_framework.renderers import BrowsableAPIRenderer
 from django.utils.translation import ugettext_lazy as _
+from rest_framework import viewsets
+from rest_framework.renderers import BrowsableAPIRenderer
+from rest_framework.response import Response
 
-from backend.utils.error_codes import error_codes
-from backend.utils.renderers import BKAPIRenderer
 from backend.apps.application.constants import K8S_KIND
-from backend.apps.configuration.models import K8sService, get_pod_qsets_by_tag, get_k8s_container_ports, K8sStatefulSet
 from backend.apps.configuration.constants import K8sResourceName
 from backend.apps.configuration.mixins import GetVersionedEntity
+from backend.apps.configuration.models import K8sService, K8sStatefulSet, get_k8s_container_ports, get_pod_qsets_by_tag
+from backend.utils.error_codes import error_codes
+from backend.utils.renderers import BKAPIRenderer
 
 
 class TemplateResourceView(viewsets.ViewSet, GetVersionedEntity):
     """页面上依赖关系的API
-       - K8sConfigMap 列表 （Deployment/DaemonSet/Job/StatefulSet 页面使用）
-       - K8sSecret 列表 （Deployment/DaemonSet/Job/StatefulSet 页面使用）
+    - K8sConfigMap 列表 （Deployment/DaemonSet/Job/StatefulSet 页面使用）
+    - K8sSecret 列表 （Deployment/DaemonSet/Job/StatefulSet 页面使用）
     """
+
     renderer_classes = (BKAPIRenderer, BrowsableAPIRenderer)
 
     def list_configmaps(self, request, project_id, version_id):
-        """查看模板集指定版本的configmap信息
-        """
+        """查看模板集指定版本的configmap信息"""
         ventity = self.get_versioned_entity(project_id, version_id)
         return Response(ventity.get_configmaps_by_kind(K8S_KIND))
 
     def list_secrets(self, request, project_id, version_id):
-        """查看模板集指定版本的secret信息
-        """
+        """查看模板集指定版本的secret信息"""
         ventity = self.get_versioned_entity(project_id, version_id)
         return Response(ventity.get_secrets_by_kind(K8S_KIND))
 
     def list_svc_selector_labels(self, request, project_id, version_id):
-        """查看模板集指定版本的 label 信息
-        """
+        """查看模板集指定版本的 label 信息"""
         ventity = self.get_versioned_entity(project_id, version_id)
         return Response(ventity.get_k8s_svc_selector_labels())
 
@@ -74,14 +72,12 @@ class TemplateResourceView(viewsets.ViewSet, GetVersionedEntity):
         return Response(ventity.get_k8s_pod_resources())
 
     def list_deployments(self, request, project_id, version_id):
-        """查看模板集指定版本的k8s_deployment信息
-        """
+        """查看模板集指定版本的k8s_deployment信息"""
         ventity = self.get_versioned_entity(project_id, version_id)
         return Response(ventity.get_k8s_deploys())
 
     def list_services(self, request, project_id, version_id):
-        """查看模板集指定版本的k8s_service信息
-        """
+        """查看模板集指定版本的k8s_service信息"""
         ventity = self.get_versioned_entity(project_id, version_id)
         return Response(ventity.get_k8s_services())
 
@@ -94,8 +90,7 @@ class TemplateResourceView(viewsets.ViewSet, GetVersionedEntity):
         return tag_list
 
     def list_pod_res_labels(self, request, project_id, version_id):
-        """查看模板集指定版本的label信息
-        """
+        """查看模板集指定版本的label信息"""
         ventity = self.get_versioned_entity(project_id, version_id)
         tag_list = self._get_tag_list(request)
 
@@ -112,8 +107,7 @@ class TemplateResourceView(viewsets.ViewSet, GetVersionedEntity):
         return Response(label_map)
 
     def list_container_ports(self, request, project_id, version_id):
-        """查看模板集指定版本的端口信息
-        """
+        """查看模板集指定版本的端口信息"""
         ventity = self.get_versioned_entity(project_id, version_id)
         tag_list = self._get_tag_list(request)
 
@@ -122,8 +116,7 @@ class TemplateResourceView(viewsets.ViewSet, GetVersionedEntity):
         return Response(ports)
 
     def check_port_associated_with_service(self, request, project_id, version_id, port_id):
-        """检查指定的 port 是否被 service 关联
-        """
+        """检查指定的 port 是否被 service 关联"""
         ventity = self.get_versioned_entity(project_id, version_id)
         svc_id_list = ventity.get_resource_id_list(K8sResourceName.K8sService.value)
         svc_qsets = K8sService.objects.filter(id__in=svc_id_list)

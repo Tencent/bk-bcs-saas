@@ -34,13 +34,12 @@ class redis_lock(object):  # noqa
     def __call__(self, task_definition):
         @functools.wraps(task_definition)
         def wrapper(*args, **kwargs):
-            key = "BACKEND::LOCK::{env}::{key}".format(
-                env=settings.PAAS_ENV, key=self.key)
+            key = "BACKEND::LOCK::{env}::{key}".format(env=settings.PAAS_ENV, key=self.key)
             value = "--lock--"
-            if self.redis_client.set(
-                    key, value, self.timeout, nx=True):
+            if self.redis_client.set(key, value, self.timeout, nx=True):
                 return task_definition(*args, **kwargs)
 
             logger.info('locked %s, %s, just return', key, task_definition)
             return False
+
         return wrapper

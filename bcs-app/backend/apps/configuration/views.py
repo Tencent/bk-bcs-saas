@@ -11,19 +11,21 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-import time
 import json
+import time
 
 from django.db import transaction
 from django.utils import timezone
-from rest_framework import viewsets, generics
-from rest_framework.views import APIView
-from rest_framework.response import Response
+from django.utils.translation import ugettext_lazy as _
+from rest_framework import generics, viewsets
 from rest_framework.exceptions import ValidationError
 from rest_framework.renderers import BrowsableAPIRenderer
-from django.utils.translation import ugettext_lazy as _
+from rest_framework.response import Response
+from rest_framework.views import APIView
 
 from backend.accounts import bcs_perm
+from backend.activity_log import client
+from backend.apps.configuration import serializers_new
 from backend.apps.configuration.models import (
     Template,
     VersionedEntity,
@@ -31,18 +33,17 @@ from backend.apps.configuration.models import (
     get_model_class_by_resource_name,
     get_template_by_project_and_id,
 )
-from backend.apps.configuration import serializers_new
 from backend.apps.configuration.serializers import (
-    ResourceSLZ,
     ResourceRequstSLZ,
+    ResourceSLZ,
     TemplateCreateSLZ,
     get_template_info,
     is_tempalte_instance,
 )
-from backend.apps.configuration.utils import validate_resource_name, create_template_with_perm_check
+from backend.apps.configuration.utils import create_template_with_perm_check, validate_resource_name
 from backend.apps.instance.utils import check_tempalte_available, validate_template_id
 from backend.utils.renderers import BKAPIRenderer
-from backend.activity_log import client
+
 from .mixins import TemplatePermission
 
 
@@ -75,7 +76,7 @@ class TemplatesView(APIView):
         kind = request.project.kind
         # 添加分页信息
         limit, offset = data["limit"], data["offset"]
-        templates = templates[offset: limit + offset]
+        templates = templates[offset : limit + offset]
 
         serializer = serializers_new.ListTemplateSLZ(templates, many=True, context={"kind": kind})
         template_list = serializer.data
@@ -203,8 +204,7 @@ class UpdateDestroyAppResourceView(APIView, TemplatePermission):
         return data
 
     def put(self, request, project_id, version_id, resource_name, resource_id):
-        """模板集中有 version 信息时，从 version 版本创建新的版本信息
-        """
+        """模板集中有 version 信息时，从 version 版本创建新的版本信息"""
         validate_resource_name(resource_name)
 
         serializer = serializers_new.VentityWithTemplateSLZ(data=self.kwargs)
@@ -431,8 +431,7 @@ class SingleTempalteView(generics.RetrieveUpdateDestroyAPIView):
 
     @transaction.atomic
     def put(self, request, project_id, pk):
-        """复制模板
-        """
+        """复制模板"""
         self.request = request
         # 验证用户是否使用权限
         template = validate_template_id(project_id, pk, is_return_tempalte=True)
@@ -475,6 +474,6 @@ class SingleTempalteView(generics.RetrieveUpdateDestroyAPIView):
             {
                 "code": 0,
                 "message": "OK",
-                "data": {"template_id": template_id, "version_id": version_id, "show_version_id": show_version_id}
+                "data": {"template_id": template_id, "version_id": version_id, "show_version_id": show_version_id},
             }
         )

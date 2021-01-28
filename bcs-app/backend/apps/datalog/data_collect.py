@@ -17,10 +17,10 @@ import logging
 from django.utils.crypto import get_random_string
 from django.utils.translation import ugettext_lazy as _
 
-from backend.utils.error_codes import error_codes
 from backend.apps.datalog.models import ProjectDataInfo
+from backend.components.data import IS_DATA_OPEN, DataType, create_data_bus, deploy_plan, get_data_id_by_name
+from backend.utils.error_codes import error_codes
 from backend.utils.notify import notify_manager
-from backend.components.data import deploy_plan, create_data_bus, DataType, IS_DATA_OPEN, get_data_id_by_name
 
 logger = logging.getLogger(__name__)
 
@@ -132,8 +132,7 @@ def _create_and_start_data_flow(username, project_id, cc_biz_id, data_type):
 
 
 def create_prometheus_data_flow(username, project_id, cc_app_id, english_name, dataset):
-    """prometheus 类型的Metric申请数据平台的dataid，并配置默认的清洗入库规则
-    """
+    """prometheus 类型的Metric申请数据平台的dataid，并配置默认的清洗入库规则"""
     return True, _("数据平台功能暂未开启")
 
 

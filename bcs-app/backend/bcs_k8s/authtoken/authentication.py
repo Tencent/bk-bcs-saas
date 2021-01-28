@@ -15,8 +15,9 @@ import rest_framework.authentication
 import rest_framework.exceptions
 from django.utils.translation import ugettext_lazy as _
 
-from .models import Token
 from backend.utils import FancyDict
+
+from .models import Token
 
 
 class TokenAuthentication(rest_framework.authentication.TokenAuthentication):

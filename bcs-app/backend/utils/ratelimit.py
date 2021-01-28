@@ -17,10 +17,8 @@ from redis import WatchError
 
 
 class BaseRateLimiter(object):
-
     def __init__(self, redisdb, identifier, tokens=None, period=None):
-        """Init a RateLimiter class
-        """
+        """Init a RateLimiter class"""
         self.redisdb = redisdb
         self.identifier = identifier
         self.rules = []
@@ -32,13 +30,11 @@ class BaseRateLimiter(object):
         self.prepare()
 
     def prepare(self):
-        """Prepare to work
-        """
+        """Prepare to work"""
         pass
 
     def add_rule(self, tokens, period):
-        """Add multiple rules for this limiter, see `__init__` for parameter details
-        """
+        """Add multiple rules for this limiter, see `__init__` for parameter details"""
         rule = Rule(tokens, Rule.period_to_seonds(period))
         self.rules.append(rule)
 
@@ -57,39 +53,30 @@ class BaseRateLimiter(object):
                 return ret
 
             rets.append(ret)
-        return {
-            'allowed': True,
-            'remaining_tokens': min(x['remaining_tokens'] for x in rets)
-        }
+        return {'allowed': True, 'remaining_tokens': min(x['remaining_tokens'] for x in rets)}
 
 
 class RateLimiter(BaseRateLimiter):
-
     def prepare(self):
-        self.simple_incr = self.redisdb.register_script('''\
+        self.simple_incr = self.redisdb.register_script(
+            '''\
 local current
 current = redis.call("incr", KEYS[1])
 if tonumber(current) == 1 then
     redis.call("expire", KEYS[1], ARGV[1])
 end
-return current''')
+return current'''
+        )
 
     def acquire_by_single_rule(self, rule, tokens=1):
-        """Acquire an request quota from limiter
-        """
+        """Acquire an request quota from limiter"""
         rk_counter = 'rlim::identifier::%s::rule::%s' % (self.identifier, rule.to_string())
         old_cnt = self.redisdb.get(rk_counter)
         if old_cnt is not None and int(old_cnt) >= rule.tokens:
-            return {
-                'allowed': False,
-                'remaining_tokens': 0.0
-            }
+            return {'allowed': False, 'remaining_tokens': 0.0}
 
         new_cnt = self.simple_incr(keys=[rk_counter], args=[rule.period_seconds])
-        return {
-            'allowed': True,
-            'remaining_tokens': max(0, rule.tokens - new_cnt)
-        }
+        return {'allowed': True, 'remaining_tokens': max(0, rule.tokens - new_cnt)}
 
 
 class Rule(object):
@@ -109,8 +96,7 @@ class Rule(object):
                 period_seconds = period[unit] * seconds
                 break
         else:
-            raise ValueError(('Invalid period %s given, should be '
-                              '{"second/minute/hour/day": NUMBER}') % period)
+            raise ValueError(('Invalid period %s given, should be ' '{"second/minute/hour/day": NUMBER}') % period)
         return period_seconds
 
     def __init__(self, tokens, period_seconds):

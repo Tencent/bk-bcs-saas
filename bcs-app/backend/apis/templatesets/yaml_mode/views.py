@@ -15,9 +15,9 @@ from rest_framework.response import Response
 
 from backend.apis.views import NoAccessTokenBaseAPIViewSet
 from backend.apps.configuration.mixins import TemplatePermission
-from backend.apps.configuration.yaml_mode.release import ReleaseDataProcessor, ReleaseData
 from backend.apps.configuration.yaml_mode.deployer import DeployController
-from backend.apps.datalog.utils import create_data_project, create_and_start_standard_data_flow
+from backend.apps.configuration.yaml_mode.release import ReleaseData, ReleaseDataProcessor
+from backend.apps.datalog.utils import create_and_start_standard_data_flow, create_data_project
 
 from .serializers import TemplateReleaseSLZ
 

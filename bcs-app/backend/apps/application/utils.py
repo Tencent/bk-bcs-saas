@@ -11,24 +11,24 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-import time
-import json
 import base64
 import functools
+import json
+import time
 
-from rest_framework.response import Response
 from django.conf import settings
 from django.utils import timezone
+from rest_framework.response import Response
 
-from backend.components.bcs.mesos import MesosClient
 from backend.apps.application import constants
+from backend.apps.configuration.constants import K8sResourceName
+from backend.apps.instance import constants as instance_constants
+from backend.apps.instance.models import InstanceConfig
+from backend.components import paas_cc
+from backend.components.bcs.mesos import MesosClient
 from backend.utils.basic import getitems
 from backend.utils.errcodes import ErrorCode
-from backend.components import paas_cc
 from backend.utils.error_codes import error_codes
-from backend.apps.configuration.constants import K8sResourceName
-from backend.apps.instance.models import InstanceConfig
-from backend.apps.instance import constants as instance_constants
 
 STAG_ENV = 2
 PROD_ENV = 1

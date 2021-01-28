@@ -12,34 +12,47 @@
 # specific language governing permissions and limitations under the License.
 #
 from django.conf.urls import url
+
 from . import views
 
 urlpatterns = [
     # 查询指定版本的 Application 信息
-    url(r'^api/configuration/(?P<project_id>\w{32})/apps/(?P<version_id>\-?\d+)/$',
-        views.ApplicationView.as_view({'get': 'list_apps'})),
-
-    url(r'^api/configuration/projects/(?P<project_id>\w{32})/deployment/(?P<version_id>\-?\d+)/$',
-        views.DeploymentView.as_view({'get': 'list'})),
-
+    url(
+        r'^api/configuration/(?P<project_id>\w{32})/apps/(?P<version_id>\-?\d+)/$',
+        views.ApplicationView.as_view({'get': 'list_apps'}),
+    ),
+    url(
+        r'^api/configuration/projects/(?P<project_id>\w{32})/deployment/(?P<version_id>\-?\d+)/$',
+        views.DeploymentView.as_view({'get': 'list'}),
+    ),
     # 查询指定版本的 port 信息
-    url(r'^api/configuration/(?P<project_id>\w{32})/ports/(?P<version_id>\-?\d+)/$',
-        views.ApplicationView.as_view({'get': 'list_container_ports'})),
+    url(
+        r'^api/configuration/(?P<project_id>\w{32})/ports/(?P<version_id>\-?\d+)/$',
+        views.ApplicationView.as_view({'get': 'list_container_ports'}),
+    ),
     # 检查端口是否已经被关联
     url(
         r'^api/configuration/(?P<project_id>\w{32})/check/version/(?P<version_id>\d+)/port/(?P<port_id>\-?\d+)/$',
-        views.ApplicationView.as_view({'get': 'check_port_associated_with_service'})),
-
+        views.ApplicationView.as_view({'get': 'check_port_associated_with_service'}),
+    ),
     # 查询 configmap 信息
-    url(r'^api/configuration/(?P<project_id>\w{32})/configmap/(?P<version_id>\-?\d+)/$',
-        views.ApplicationView.as_view({'get': 'list_configmaps'})),
+    url(
+        r'^api/configuration/(?P<project_id>\w{32})/configmap/(?P<version_id>\-?\d+)/$',
+        views.ApplicationView.as_view({'get': 'list_configmaps'}),
+    ),
     # 查询 secret 信息
-    url(r'^api/configuration/(?P<project_id>\w{32})/secret/(?P<version_id>\-?\d+)/$',
-        views.ApplicationView.as_view({'get': 'list_secrets'})),
+    url(
+        r'^api/configuration/(?P<project_id>\w{32})/secret/(?P<version_id>\-?\d+)/$',
+        views.ApplicationView.as_view({'get': 'list_secrets'}),
+    ),
     # 查询 namespace 下的 loadbalance 信息
-    url(r'^api/configuration/projects/(?P<project_id>\w{32})/clusters/(?P<cluster_id>[\w\-]+)/lbs/$',
-        views.ApplicationView.as_view({'get': 'get_lbs'})),
+    url(
+        r'^api/configuration/projects/(?P<project_id>\w{32})/clusters/(?P<cluster_id>[\w\-]+)/lbs/$',
+        views.ApplicationView.as_view({'get': 'get_lbs'}),
+    ),
     # 查询指定版本的 Service 信息
-    url(r'^api/projects/(?P<project_id>\w{32})/mesos/service/(?P<version_id>\-?\d+)/$',
-        views.ServiceView.as_view({'get': 'list_services'})),
+    url(
+        r'^api/projects/(?P<project_id>\w{32})/mesos/service/(?P<version_id>\-?\d+)/$',
+        views.ServiceView.as_view({'get': 'list_services'}),
+    ),
 ]

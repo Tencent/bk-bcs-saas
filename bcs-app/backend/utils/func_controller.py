@@ -13,8 +13,9 @@
 #
 """平台功能开关
 """
-from django.conf import settings
 import logging
+
+from django.conf import settings
 
 from backend.apps.projects.models import FunctionController
 

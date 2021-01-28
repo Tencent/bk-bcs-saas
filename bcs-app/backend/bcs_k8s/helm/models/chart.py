@@ -11,27 +11,27 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-import json
 import datetime
-import yaml
+import json
 import logging
 from typing import Dict, Tuple
 
+import yaml
+from django.conf import settings
 from django.db import models
 from django.utils.crypto import get_random_string
 from jsonfield import JSONField
-from django.conf import settings
-
-from .. import constants
-from .managers import ChartManager, ChartVersionManager, ChartVersionSnapshotManager
-from ..utils.repo import download_template_data, download_icon_data
-from ..utils.util import parse_chart_time, merge_rancher_answers, fix_chart_url
 
 from backend.bcs_k8s.diff import parser
-from backend.utils.models import BaseTSModel
-from backend.bcs_k8s.kubehelm.helm import KubeHelmClient
 from backend.bcs_k8s.helm.bcs_variable import get_bcs_variables, merge_valuefile_with_bcs_variables
+from backend.bcs_k8s.kubehelm.helm import KubeHelmClient
 from backend.utils.basic import normalize_time
+from backend.utils.models import BaseTSModel
+
+from .. import constants
+from ..utils.repo import download_icon_data, download_template_data
+from ..utils.util import fix_chart_url, merge_rancher_answers
+from .managers import ChartManager, ChartVersionManager, ChartVersionSnapshotManager
 
 logger = logging.getLogger(__name__)
 ALLOWED_CHARS = 'abcdefghijklmnopqrstuvwxyz0123456789'
@@ -79,11 +79,7 @@ class Chart(BaseTSModel):
         fields = {}
         fields.update(chart_version_fields)
         fields.update(
-            {
-                "name": self.name,
-                "repository_id": self.repository.id,
-                "icon": self.icon,
-            }
+            {"name": self.name, "repository_id": self.repository.id, "icon": self.icon,}
         )
         return fields
 
@@ -410,10 +406,7 @@ class ChartRelease(BaseTSModel):
         resources = parser.parse(self.content, namespace).values()
         for resource in resources:
             structure.append(
-                {
-                    "name": resource.name.split("/")[-1],
-                    "kind": resource.kind,
-                }
+                {"name": resource.name.split("/")[-1], "kind": resource.kind,}
             )
         self.structure = structure
         self.save(update_fields=["structure"])

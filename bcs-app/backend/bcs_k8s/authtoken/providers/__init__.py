@@ -13,9 +13,6 @@
 #
 from .app_provider import SingleHelmAppUpdateProvider
 
-
-provider_map = {
-    "single-helm-app-update": SingleHelmAppUpdateProvider
-}
+provider_map = {"single-helm-app-update": SingleHelmAppUpdateProvider}
 
 provider_choice = ((key, provider.NAME) for key, provider in provider_map.items())

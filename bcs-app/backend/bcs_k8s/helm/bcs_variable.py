@@ -11,14 +11,14 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-import logging
 import json
+import logging
 
 from backend.apps.datalog.utils import get_data_id_by_project_id
-from backend.apps.variable.models import NameSpaceVariable, Variable, ClusterVariable
+from backend.apps.variable.constants import VariableScope
+from backend.apps.variable.models import ClusterVariable, NameSpaceVariable, Variable
 from backend.bcs_k8s.app.utils import yaml_dump, yaml_load
 from backend.components import paas_cc
-from backend.apps.variable.constants import VariableScope
 
 logger = logging.getLogger(__name__)
 
@@ -33,9 +33,10 @@ def collect_system_variable(access_token, project_id, namespace_id):
 
     resp = paas_cc.get_project(access_token, project_id)
     if resp.get('code') != 0:
-        logger.error("查询project的信息出错(project_id:{project_id}):{message}".format(
-            project_id=project_id,
-            message=resp.get('message'))
+        logger.error(
+            "查询project的信息出错(project_id:{project_id}):{message}".format(
+                project_id=project_id, message=resp.get('message')
+            )
         )
     project_info = resp["data"]
     sys_variables["SYS_CC_APP_ID"] = project_info["cc_app_id"]
@@ -44,10 +45,10 @@ def collect_system_variable(access_token, project_id, namespace_id):
 
     resp = paas_cc.get_namespace(access_token, project_id, namespace_id)
     if resp.get('code') != 0:
-        logger.error("查询命名空间的信息出错(namespace_id:{project_id}-{namespace_id}):{message}".format(
-            namespace_id=namespace_id,
-            project_id=project_id,
-            message=resp.get('message'))
+        logger.error(
+            "查询命名空间的信息出错(namespace_id:{project_id}-{namespace_id}):{message}".format(
+                namespace_id=namespace_id, project_id=project_id, message=resp.get('message')
+            )
         )
     namespace_info = resp["data"]
 
@@ -58,8 +59,7 @@ def collect_system_variable(access_token, project_id, namespace_id):
     # SYS_NON_STANDARD_DATA_ID
 
     # 获取镜像地址
-    jfrog_domain = paas_cc.get_jfrog_domain(
-        access_token, project_id, sys_variables['SYS_CLUSTER_ID'])
+    jfrog_domain = paas_cc.get_jfrog_domain(access_token, project_id, sys_variables['SYS_CLUSTER_ID'])
     sys_variables['SYS_JFROG_DOMAIN'] = jfrog_domain
 
     return sys_variables
@@ -89,12 +89,14 @@ def get_namespace_variables(project_id, namespace_id):
     for _var in project_var:
         _ns_values = _var['ns_values']
         _ns_value_ids = _ns_values.keys()
-        namespace_vars.append({
-            'id': _var['id'],
-            'key': _var['key'],
-            'name': _var['name'],
-            'value': _ns_values.get(namespace_id) if namespace_id in _ns_value_ids else _var['default_value'],
-        })
+        namespace_vars.append(
+            {
+                'id': _var['id'],
+                'key': _var['key'],
+                'name': _var['name'],
+                'value': _ns_values.get(namespace_id) if namespace_id in _ns_value_ids else _var['default_value'],
+            }
+        )
 
     ns_vars = NameSpaceVariable.get_ns_vars(namespace_id, project_id)
     namespace_vars += ns_vars
@@ -104,8 +106,7 @@ def get_namespace_variables(project_id, namespace_id):
 
 
 def get_cluster_variables(project_id, cluster_id):
-    """查询集群下的变量
-    """
+    """查询集群下的变量"""
     cluster_vars = ClusterVariable.get_cluster_vars(cluster_id, project_id)
     return {info["key"]: info["value"] for info in cluster_vars}
 
@@ -142,9 +143,8 @@ def merge_valuefile_with_bcs_variables(valuefile, bcs_variables, sys_variables):
 
 def get_valuefile_with_bcs_variable_injected(access_token, project_id, namespace_id, valuefile, cluster_id):
     sys_variables = collect_system_variable(
-        access_token=access_token,
-        project_id=project_id,
-        namespace_id=namespace_id)
+        access_token=access_token, project_id=project_id, namespace_id=namespace_id
+    )
     bcs_variables = get_bcs_variables(project_id, cluster_id, namespace_id)
     valuefile = merge_valuefile_with_bcs_variables(valuefile, bcs_variables, sys_variables)
     return valuefile

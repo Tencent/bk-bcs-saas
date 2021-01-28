@@ -15,9 +15,9 @@
 from __future__ import unicode_literals
 
 from django.db import migrations
-from backend.apps.instance.models import InstanceConfig
-from backend.apps.instance.models import MetricConfig
+
 from backend.apps.instance import constants
+from backend.apps.instance.models import InstanceConfig, MetricConfig
 
 
 def init_metric_state(apps, schema_editor):

@@ -38,10 +38,12 @@
                     <div class="biz-cluster-node-tip" v-else>{{$t('集群就绪后，您可以创建命名空间、推送项目镜像到仓库，然后通过服务配置模板集部署服务')}}</div>
                     <div class="biz-cluster-node-content" v-if="!isInitLoading">
                         <div class="biz-cluster-node-header">
-                            <button v-if="curClusterInPage.state === 'existing'" class="bk-button bk-primary is-disabled">
-                                <i class="bk-icon icon-plus"></i>
-                                <span>{{$t('添加节点')}}</span>
-                            </button>
+                            <bk-tooltip v-if="curClusterInPage.state === 'existing'" :content="$t('自有集群不支持通过平台添加节点')" placement="top">
+                                <button class="bk-button bk-primary is-disabled">
+                                    <i class="bk-icon icon-plus"></i>
+                                    <span>{{$t('添加节点')}}</span>
+                                </button>
+                            </bk-tooltip>
                             <button v-else class="bk-button bk-primary" @click.stop="openDialog">
                                 <i class="bk-icon icon-plus"></i>
                                 <span>{{$t('添加节点')}}</span>

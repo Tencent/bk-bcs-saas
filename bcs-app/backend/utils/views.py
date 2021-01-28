@@ -11,40 +11,37 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-import os
 import logging
+import os
 
 from django.conf import settings
-from django.views.generic.base import TemplateView
 from django.http import Http404
+from django.utils.translation import ugettext_lazy as _
 from django.views.decorators.clickjacking import xframe_options_exempt
-from rest_framework.renderers import JSONRenderer
+from django.views.generic.base import TemplateView
 from rest_framework.compat import set_rollback
 from rest_framework.exceptions import (
     AuthenticationFailed,
     MethodNotAllowed,
     NotAuthenticated,
+    ParseError,
     PermissionDenied,
     ValidationError,
-    ParseError,
 )
+from rest_framework.renderers import BrowsableAPIRenderer, JSONRenderer
 from rest_framework.response import Response
 from rest_framework.views import exception_handler
-from rest_framework.renderers import BrowsableAPIRenderer
-from django.utils.translation import ugettext_lazy as _
 
 from backend.utils import exceptions as backend_exceptions
-from backend.utils.error_codes import APIError
-from backend.utils.local import local
-from backend.utils.error_codes import error_codes
 from backend.utils.basic import str2bool
+from backend.utils.error_codes import APIError, error_codes
+from backend.utils.local import local
 
 logger = logging.getLogger(__name__)
 
 
 def one_line_error(detail):
-    """Extract one line error from error dict
-    """
+    """Extract one line error from error dict"""
     try:
         for field, errmsg in detail.items():
             if field == "non_field_errors":
@@ -227,7 +224,7 @@ class VueTemplateView(TemplateView):
             "BK_CC_HOST": settings.BK_CC_HOST,
             "SITE_URL": settings.SITE_URL[:-1],
             "BK_IAM_APP_URL": settings.BK_IAM_APP_URL,
-            "SUPPORT_MESOS": str2bool(os.environ.get("BKAPP_SUPPORT_MESOS", "false"))
+            "SUPPORT_MESOS": str2bool(os.environ.get("BKAPP_SUPPORT_MESOS", "false")),
         }
         response = super(VueTemplateView, self).get(request, **context)
         return response

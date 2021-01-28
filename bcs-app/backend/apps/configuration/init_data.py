@@ -12,20 +12,20 @@
 # specific language governing permissions and limitations under the License.
 #
 import json
-import time
 import logging
+import time
 
-from django.utils import timezone
-from django.db import transaction
 from celery import shared_task
+from django.db import transaction
+from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 
-from backend.apps.constants import ClusterType
 from backend.accounts import bcs_perm
-from backend.apps.configuration.models import Template, VersionedEntity, ShowVersion, MODULE_DICT, get_default_version
 from backend.apps.application.constants import K8S_KIND, MESOS_KIND
 from backend.apps.configuration.fixture.template_k8s import K8S_TEMPLATE
 from backend.apps.configuration.fixture.template_mesos import MESOS_TEMPLATE
+from backend.apps.configuration.models import MODULE_DICT, ShowVersion, Template, VersionedEntity, get_default_version
+from backend.apps.constants import ClusterType
 from backend.utils.basic import RequestClass
 
 logger = logging.getLogger(__name__)

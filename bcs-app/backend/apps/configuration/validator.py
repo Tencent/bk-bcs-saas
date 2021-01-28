@@ -13,12 +13,14 @@
 #
 import json
 
-from jsonschema import ValidationError as JsonValidationError, SchemaError, validate as json_validate
-from rest_framework.exceptions import ValidationError
 from django.utils.translation import ugettext_lazy as _
+from jsonschema import SchemaError
+from jsonschema import ValidationError as JsonValidationError
+from jsonschema import validate as json_validate
+from rest_framework.exceptions import ValidationError
 
-from backend.apps.configuration.constants import KEY_PATTERN, REAL_NUM_VAR_PATTERN, NUM_VAR_ERROR_MSG
-from backend.apps.configuration.models import get_model_class_by_resource_name, VersionedEntity
+from backend.apps.configuration.constants import KEY_PATTERN, NUM_VAR_ERROR_MSG, REAL_NUM_VAR_PATTERN
+from backend.apps.configuration.models import VersionedEntity, get_model_class_by_resource_name
 
 
 def get_name_from_config(config):
@@ -26,8 +28,7 @@ def get_name_from_config(config):
 
 
 def is_name_duplicate(resource_name, resource_id, name, version_id):
-    """同一类资源的名称不能重复
-    """
+    """同一类资源的名称不能重复"""
     # 判断新名称与老名称是否一致，如果一致，则不会重复
     model_class = get_model_class_by_resource_name(resource_name)
     try:
@@ -53,8 +54,7 @@ def is_name_duplicate(resource_name, resource_id, name, version_id):
 
 
 def validate_variable_inconfig(config):
-    """校验配置文件中的变量名是否合法
-    """
+    """校验配置文件中的变量名是否合法"""
     search_list = KEY_PATTERN.findall(json.dumps(config))
     search_keys = set(search_list)
     for ikey in search_keys:

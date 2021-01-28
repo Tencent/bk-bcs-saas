@@ -15,5 +15,4 @@ from django.conf.urls import url
 
 from backend.apps.apis.projects import views
 
-
 urlpatterns = [url(r"^cc_app_ids/(?P<cc_app_id>\d+)/list/$", views.ProjectList.as_view({"get": "get"}))]

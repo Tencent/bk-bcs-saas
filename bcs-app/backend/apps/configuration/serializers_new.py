@@ -15,22 +15,36 @@ import json
 import logging
 
 from django.utils import timezone
+from django.utils.translation import ugettext_lazy as _
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
-from django.utils.translation import ugettext_lazy as _
 
-from .constants import RESOURCE_NAMES, MesosResourceName
-from backend.utils.exceptions import ResNotFoundError
 from backend.apps.configuration import models
 from backend.apps.configuration.constants import TemplateEditMode
 from backend.apps.configuration.k8s import serializers as kserializers
 from backend.apps.configuration.mesos import serializers as mserializers
+from backend.utils.exceptions import ResNotFoundError
 
-SLZ_CLASS = [kserializers.K8sDeploymentSLZ, kserializers.K8sDaemonsetSLZ, kserializers.K8sJobSLZ,
-             kserializers.K8sStatefulSetSLZ, kserializers.K8sServiceSLZ, kserializers.K8sConfigMapSLZ,
-             kserializers.K8sSecretSLZ, kserializers.K8sIngressSLZ, kserializers.K8sHPASLZ, mserializers.ApplicationSLZ,
-             mserializers.DeploymentSLZ, mserializers.ServiceSLZ,
-             mserializers.ConfigMapSLZ, mserializers.SecretSLZ, mserializers.HPASLZ, mserializers.IngressSLZ]
+from .constants import RESOURCE_NAMES, MesosResourceName
+
+SLZ_CLASS = [
+    kserializers.K8sDeploymentSLZ,
+    kserializers.K8sDaemonsetSLZ,
+    kserializers.K8sJobSLZ,
+    kserializers.K8sStatefulSetSLZ,
+    kserializers.K8sServiceSLZ,
+    kserializers.K8sConfigMapSLZ,
+    kserializers.K8sSecretSLZ,
+    kserializers.K8sIngressSLZ,
+    kserializers.K8sHPASLZ,
+    mserializers.ApplicationSLZ,
+    mserializers.DeploymentSLZ,
+    mserializers.ServiceSLZ,
+    mserializers.ConfigMapSLZ,
+    mserializers.SecretSLZ,
+    mserializers.HPASLZ,
+    mserializers.IngressSLZ,
+]
 RESOURCE_SLZ_MAP = dict(zip(RESOURCE_NAMES, SLZ_CLASS))
 
 logger = logging.getLogger(__name__)
@@ -45,23 +59,27 @@ def can_delete_resource(ventity, resource_name, resource_id):
     if resource_name in models.POD_RES_LIST:
         pod_res_name, related_svc_names = models.get_pod_related_service(ventity, resource_name, resource_id)
         if related_svc_names:
-            raise ValidationError('{resource_name}[{pod_res_name}]{msg}:{svc_names}'.format(
-                resource_name=resource_name,
-                pod_res_name=pod_res_name,
-                msg=_("被以下资源关联，不能删除"),
-                svc_names=','.join(related_svc_names)
-            ))
+            raise ValidationError(
+                '{resource_name}[{pod_res_name}]{msg}:{svc_names}'.format(
+                    resource_name=resource_name,
+                    pod_res_name=pod_res_name,
+                    msg=_("被以下资源关联，不能删除"),
+                    svc_names=','.join(related_svc_names),
+                )
+            )
 
     # 删除 Application 时，需要先判断 Deployment 和 service 的依赖关系
     if resource_name == MesosResourceName.application.value:
         app_name, related_resource_names = models.get_application_related_resource(ventity, resource_id)
         if related_resource_names:
-            raise ValidationError('{resource_name}[{app_name}]{msg}:{related_names}'.format(
-                resource_name=resource_name,
-                app_name=app_name,
-                msg=_("被以下资源关联，不能删除"),
-                related_names=','.join(related_resource_names)
-            ))
+            raise ValidationError(
+                '{resource_name}[{app_name}]{msg}:{related_names}'.format(
+                    resource_name=resource_name,
+                    app_name=app_name,
+                    msg=_("被以下资源关联，不能删除"),
+                    related_names=','.join(related_resource_names),
+                )
+            )
 
 
 class TemplateSLZ(serializers.ModelSerializer):
@@ -102,11 +120,10 @@ class CreateTemplateSLZ(serializers.ModelSerializer):
 
 
 class UpdateTemplateSLZ(serializers.Serializer):
-    """更新模板集基本信息
-    """
+    """更新模板集基本信息"""
+
     name = serializers.CharField(max_length=30, required=True)
-    desc = serializers.CharField(
-        max_length=50, required=False, allow_blank=True)
+    desc = serializers.CharField(max_length=50, required=False, allow_blank=True)
 
 
 class TemplateDraftSLZ(serializers.ModelSerializer):
@@ -124,12 +141,14 @@ class TemplateDraftSLZ(serializers.ModelSerializer):
             try:
                 models.VersionedEntity.objects.get(id=real_version_id, template_id=template_id)
             except models.VersionedEntity.DoesNotExist:
-                raise ValidationError('{prefix_msg}id:{real_version_id}{suffix_msg}id:{tmpl_id}'.format(
-                    prefix_msg=_("模板集版本"),
-                    real_version_id=real_version_id,
-                    suffix_msg=_("不属于该模板"),
-                    tmpl_id=template_id
-                ))
+                raise ValidationError(
+                    '{prefix_msg}id:{real_version_id}{suffix_msg}id:{tmpl_id}'.format(
+                        prefix_msg=_("模板集版本"),
+                        real_version_id=real_version_id,
+                        suffix_msg=_("不属于该模板"),
+                        tmpl_id=template_id,
+                    )
+                )
         return data
 
     def update(self, instance, validated_data):
@@ -147,8 +166,21 @@ class ListTemplateSLZ(serializers.ModelSerializer):
 
     class Meta:
         model = models.Template
-        fields = ('id', 'name', 'category', 'desc', 'creator', 'updator', 'created', 'updated',
-                  'logo', 'is_locked', 'locker', 'category_name', 'edit_mode')
+        fields = (
+            'id',
+            'name',
+            'category',
+            'desc',
+            'creator',
+            'updator',
+            'created',
+            'updated',
+            'logo',
+            'is_locked',
+            'locker',
+            'category_name',
+            'edit_mode',
+        )
 
     def to_representation(self, instance):
         data = super().to_representation(instance)
@@ -164,13 +196,15 @@ class ListTemplateSLZ(serializers.ModelSerializer):
             latest_show_version = show_version.name
             latest_show_version_id = show_version.id
 
-        data.update({
-            "latest_version": latest_version,
-            "latest_version_id": latest_version_id,
-            "latest_show_version": latest_show_version,
-            "latest_show_version_id": latest_show_version_id,
-            "containers": instance.get_containers(self.context['kind'], show_version),
-        })
+        data.update(
+            {
+                "latest_version": latest_version,
+                "latest_version_id": latest_version_id,
+                "latest_show_version": latest_show_version,
+                "latest_show_version_id": latest_show_version_id,
+                "containers": instance.get_containers(self.context['kind'], show_version),
+            }
+        )
         return data
 
 
@@ -183,11 +217,11 @@ class VentityWithTemplateSLZ(serializers.Serializer):
         try:
             ventity = models.VersionedEntity.objects.get(id=version_id)
         except models.VersionedEntity.DoesNotExist:
-            raise ResNotFoundError('{prefix_msg}id:{version_id}{suffix_msg}'.format(
-                prefix_msg=_("模板集版本"),
-                version_id=version_id,
-                suffix_msg=_("不存在")
-            ))
+            raise ResNotFoundError(
+                '{prefix_msg}id:{version_id}{suffix_msg}'.format(
+                    prefix_msg=_("模板集版本"), version_id=version_id, suffix_msg=_("不存在")
+                )
+            )
         else:
             data['ventity'] = ventity
 
@@ -195,12 +229,11 @@ class VentityWithTemplateSLZ(serializers.Serializer):
         try:
             template = models.get_template_by_project_and_id(project_id, ventity.template_id)
         except ValidationError:
-            raise ValidationError('{prefix_msg}id:{version_id}{suffix_msg}id:{project_id}'.format(
-                prefix_msg=_("模板集版本"),
-                version_id=version_id,
-                suffix_msg=_("不属于该项目"),
-                project_id=project_id
-            ))
+            raise ValidationError(
+                '{prefix_msg}id:{version_id}{suffix_msg}id:{project_id}'.format(
+                    prefix_msg=_("模板集版本"), version_id=version_id, suffix_msg=_("不属于该项目"), project_id=project_id
+                )
+            )
         else:
             data['template'] = template
 

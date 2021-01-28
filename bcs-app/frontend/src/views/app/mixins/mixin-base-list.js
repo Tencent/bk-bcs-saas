@@ -23,6 +23,7 @@ export default {
     data () {
         return {
             bkSearcherFixedSearchParams: [],
+            bkSearcherMask: false,
             bkSearcherFilterList: [],
             showLoading: false,
             instanceLoading: false,
@@ -205,6 +206,9 @@ export default {
             if (body) {
                 body.style.overflow = v ? 'hidden' : 'auto'
             }
+        },
+        showLoading (v) {
+            this.bkSearcherMask = v
         }
     },
     computed: {
@@ -384,6 +388,9 @@ export default {
          * bk-search 搜索事件回调
          */
         bkSearch (data) {
+            if (this.showLoading) {
+                return
+            }
             const p = []
             p.splice(0, 0, ...data)
             if (this.bkSearcherFixedSearchParams.length === 0) {
@@ -554,6 +561,9 @@ export default {
          * @param {boolean} autoExpand 是否需要自动展开对应的模板集或者 namespace
          */
         async fetchData (autoExpand) {
+            if (this.showLoading) {
+                return
+            }
             this.showLoading = true
             this.cancelLoop = false
             this.search = ''

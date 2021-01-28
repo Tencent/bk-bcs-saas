@@ -11,14 +11,14 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-import re
-import json
 import base64
+import json
 import logging
+import re
 
+from django.utils.translation import ugettext_lazy as _
 from kubernetes import client
 from kubernetes.client.rest import ApiException
-from django.utils.translation import ugettext_lazy as _
 
 from backend.utils.basic import getitems
 from backend.utils.error_codes import error_codes
@@ -30,14 +30,10 @@ logger = logging.getLogger(__name__)
 
 
 class ReplicaSet(Resource):
-
     @property
     def api_versions(self):
         resp = client.AppsApi(self.api_client).get_api_group()
-        return [
-            f"{''.join([i.capitalize() for i in ver.group_version.split('/')])}Api"
-            for ver in resp.versions
-        ]
+        return [f"{''.join([i.capitalize() for i in ver.group_version.split('/')])}Api" for ver in resp.versions]
 
     def _parse_owner_ref_name(self, params):
         owner_ref_name = None
@@ -72,7 +68,7 @@ class ReplicaSet(Resource):
             return [
                 {
                     "resourceName": info.metadata.name,
-                    "data": {"status": {"replicas": getattr(info.status, "replicas", 0)}}
+                    "data": {"status": {"replicas": getattr(info.status, "replicas", 0)}},
                 }
                 for info in resp.items
             ]
@@ -85,8 +81,10 @@ class ReplicaSet(Resource):
                 continue
             owner_ref_name_list = [ref.name for ref in info.metadata.owner_references]
             if set(owner_ref_name) & set(owner_ref_name_list):
-                replicaset_list.append({
-                    "resourceName": info.metadata.name,
-                    "data": {"status": {"replicas": getattr(info.status, "replicas", 0)}}
-                })
+                replicaset_list.append(
+                    {
+                        "resourceName": info.metadata.name,
+                        "data": {"status": {"replicas": getattr(info.status, "replicas", 0)}},
+                    }
+                )
         return replicaset_list

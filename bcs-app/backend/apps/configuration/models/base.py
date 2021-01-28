@@ -25,14 +25,13 @@ POD_RES_LIST = ['K8sDeployment', 'K8sDaemonSet', 'K8sJob', 'K8sStatefulSet']
 
 
 def get_default_version():
-    """版本号：默认为时间戳
-    """
+    """版本号：默认为时间戳"""
     return timezone.localtime().strftime('%Y%m%d-%H%M%S')
 
 
 class BaseModel(models.Model):
-    """Model with 'created' and 'updated' fields.
-    """
+    """Model with 'created' and 'updated' fields."""
+
     creator = models.CharField("创建者", max_length=32)
     updator = models.CharField("更新者", max_length=32)
     created = models.DateTimeField(auto_now_add=True)

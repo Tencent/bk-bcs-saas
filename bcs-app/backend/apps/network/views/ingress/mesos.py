@@ -11,27 +11,27 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-import json
 import copy
-import arrow
+import json
 import logging
 
+import arrow
 from django.utils import timezone
-from rest_framework import viewsets, response
+from django.utils.translation import ugettext_lazy as _
+from rest_framework import response, viewsets
 from rest_framework.exceptions import ValidationError
 from rest_framework.renderers import BrowsableAPIRenderer
-from django.utils.translation import ugettext_lazy as _
 
-from backend.activity_log import client as log_client
 from backend.accounts import bcs_perm
+from backend.activity_log import client as log_client
+from backend.apps.instance.constants import INGRESS_SYS_CONFIG
+from backend.apps.instance.funutils import render_mako_context, update_nested_dict
+from backend.apps.instance.generator import IngressProfileGenerator
+from backend.apps.instance.models import InstanceConfig
+from backend.apps.network import utils as network_utils
 from backend.components.bcs import mesos
 from backend.utils.basic import getitems
 from backend.utils.renderers import BKAPIRenderer
-from backend.apps.network import utils as network_utils
-from backend.apps.instance.models import InstanceConfig
-from backend.apps.instance.generator import IngressProfileGenerator
-from backend.apps.instance.constants import INGRESS_SYS_CONFIG
-from backend.apps.instance.funutils import update_nested_dict, render_mako_context
 
 logger = logging.getLogger(__name__)
 
@@ -41,7 +41,6 @@ CLB_REGION_LABEL = 'io.tencent.bcs.clb.region'
 
 
 class BaseIngress(viewsets.ViewSet):
-
     def get_project_namespaces(self, request, project_id):
         namespaces = network_utils.get_project_namespaces(request.user.token.access_token, project_id)
         return {(info['cluster_id'], info['name']): info for info in namespaces}
@@ -59,8 +58,7 @@ class IngressListViewSet(BaseIngress):
         return {info['cluster_id']: info for info in clusters}
 
     def list(self, request, project_id):
-        """通过项目或集群拉取ingress
-        """
+        """通过项目或集群拉取ingress"""
         cluster_id = request.query_params.get('cluster_id')
         project_clusters = self.get_clusters(request, project_id)
         project_namespaces = self.get_project_namespaces(request, project_id)
@@ -82,18 +80,20 @@ class IngressListViewSet(BaseIngress):
                 update_time = getitems(info, ['metadata', 'annotations', 'io.tencent.paas.updateTime'])
                 namespace_name = getitems(info, ['metadata', 'namespace'], default='')
                 namespace_id = project_namespaces.get((cluster_id, namespace_name), {}).get('id', DEFAULT_NAMESPACE_ID)
-                ingress_list.append({
-                    'name': getitems(info, ['metadata', 'name'], default=''),
-                    'namespace': namespace_name,
-                    'namespace_id': namespace_id,
-                    'cluster_id': cluster_id,
-                    'spec': info['spec'],
-                    'config': info,
-                    'cluster_name': project_clusters[cluster_id]['name'],
-                    'environment': project_clusters[cluster_id]['environment'],
-                    'create_time': create_time,
-                    'update_time': update_time if update_time else create_time
-                })
+                ingress_list.append(
+                    {
+                        'name': getitems(info, ['metadata', 'name'], default=''),
+                        'namespace': namespace_name,
+                        'namespace_id': namespace_id,
+                        'cluster_id': cluster_id,
+                        'spec': info['spec'],
+                        'config': info,
+                        'cluster_name': project_clusters[cluster_id]['name'],
+                        'environment': project_clusters[cluster_id]['environment'],
+                        'create_time': create_time,
+                        'update_time': update_time if update_time else create_time,
+                    }
+                )
         if ingress_list:
             # 检查是否用命名空间的使用权限
             perm = bcs_perm.Namespace(request, project_id, bcs_perm.NO_RES)
@@ -126,8 +126,7 @@ class IngressRetrieveOperateViewSet(BaseIngress):
         namespace_id = self.get_namespace_id(request, project_id, cluster_id, namespace, name)
         # 校验查看权限
         self.can_view(request, project_id, cluster_id, namespace_id)
-        client = mesos.MesosClient(
-            request.user.token.access_token, project_id, cluster_id, env=None)
+        client = mesos.MesosClient(request.user.token.access_token, project_id, cluster_id, env=None)
         result = client.get_custom_resource(name, namespace)
         data = {
             'name': name,
@@ -137,7 +136,7 @@ class IngressRetrieveOperateViewSet(BaseIngress):
             'clb_name': getitems(result, ['metadata', 'labels', CLB_NAME_LABEL], default=''),
             'clb_region': getitems(result, ['metadata', 'labels', CLB_REGION_LABEL], default=''),
             'spec': result['spec'],
-            'config': result
+            'config': result,
         }
         return response.Response(data)
 
@@ -150,21 +149,18 @@ class IngressRetrieveOperateViewSet(BaseIngress):
             user=request.user.username,
             resource_type='ingress',
             resource=name,
-            description=_("集群:{}, 删除mesos ingress:{}").format(cluster_id, name)
+            description=_("集群:{}, 删除mesos ingress:{}").format(cluster_id, name),
         ).log_delete():
-            client = mesos.MesosClient(
-                request.user.token.access_token, project_id, cluster_id, env=None)
+            client = mesos.MesosClient(request.user.token.access_token, project_id, cluster_id, env=None)
             client.delete_custom_resource(name, namespace)
         # 删除成功则更新记录
         now_time = timezone.now()
-        InstanceConfig.objects.filter(
-            namespace=namespace_id, category='ingress', name=name
-        ).update(
+        InstanceConfig.objects.filter(namespace=namespace_id, category='ingress', name=name).update(
             updator=request.user.username,
             updated=now_time,
             deleted_time=now_time,
             is_deleted=True,
-            is_bcs_success=True
+            is_bcs_success=True,
         )
 
         return response.Response()
@@ -180,18 +176,12 @@ class IngressRetrieveOperateViewSet(BaseIngress):
             user=request.user.username,
             resource_type='ingress',
             resource=name,
-            description=_("集群:{}, 更新mesos ingress:{}").format(cluster_id, name)
+            description=_("集群:{}, 更新mesos ingress:{}").format(cluster_id, name),
         ).log_modify():
-            client = mesos.MesosClient(
-                request.user.token.access_token, project_id, cluster_id, env=None)
+            client = mesos.MesosClient(request.user.token.access_token, project_id, cluster_id, env=None)
             client.update_custom_resource(name, namespace, config)
         # 集群，命名空间，ingress确定唯一
-        InstanceConfig.objects.filter(
-            namespace=namespace_id, category='ingress', name=name, is_deleted=False
-        ).update(
-            updator=request.user.username,
-            updated=timezone.now(),
-            is_bcs_success=True,
-            config=config
+        InstanceConfig.objects.filter(namespace=namespace_id, category='ingress', name=name, is_deleted=False).update(
+            updator=request.user.username, updated=timezone.now(), is_bcs_success=True, config=config
         )
         return response.Response()

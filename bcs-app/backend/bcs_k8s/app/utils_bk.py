@@ -13,8 +13,8 @@
 #
 from django.conf import settings
 
-from backend.bcs_k8s.helm.models.repo import Repository
 from backend.apps.depot.api import get_jfrog_account
+from backend.bcs_k8s.helm.models.repo import Repository
 from backend.bcs_k8s.helm.providers.repo_provider import add_plain_repo
 
 
@@ -30,16 +30,8 @@ def get_or_create_private_repo(user, project):
     repo_auth = {
         "type": "basic",
         "role": "admin",
-        "credentials": {
-            "username": account.get("user"),
-            "password": account.get("password")
-        }
+        "credentials": {"username": account.get("user"), "password": account.get("password")},
     }
     url = f"{settings.HELM_MERELY_REPO_URL}/chartrepo/{project_code}/"
-    private_repo = add_plain_repo(
-        target_project_id=project_id,
-        name=project_code,
-        url=url,
-        repo_auth=repo_auth
-    )
+    private_repo = add_plain_repo(target_project_id=project_id, name=project_code, url=url, repo_auth=repo_auth)
     return private_repo

@@ -15,9 +15,7 @@ from django.conf import settings
 
 
 def global_settings(request):
-    data = {
-        'settings': settings
-    }
+    data = {'settings': settings}
     return data
 
 

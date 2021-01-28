@@ -15,7 +15,6 @@ from django.utils.translation import ugettext_lazy as _
 
 from backend.utils.basic import ChoicesEnum
 
-
 # Application status
 """
 staging：资源不足等导致处于这个状态
@@ -28,7 +27,16 @@ rollingupdate: 滚动更新中
 unnormal: 分正常状态，主要是没有正常销毁等
 """
 # Application非正常状态,因为deployment关联application，所以检测application
-UNNORMAL_STATUS = ["Error", "Unnormal", "Failed", "Lost", "UpdateSuspend", "BackendError", "Abnormal", "Unready"] # noqa
+UNNORMAL_STATUS = [
+    "Error",
+    "Unnormal",
+    "Failed",
+    "Lost",
+    "UpdateSuspend",
+    "BackendError",
+    "Abnormal",
+    "Unready",
+]  # noqa
 NORMAL_STATUS = ["Running", "Finish", "UpdatePaused"]
 
 # deployment 状态
@@ -59,7 +67,7 @@ CATEGORY_MAP = {
     "deployment": "K8sDeployment",
     "job": "K8sJob",
     "daemonset": "K8sDaemonSet",
-    "statefulset": "K8sStatefulSet"
+    "statefulset": "K8sStatefulSet",
 }
 
 FUNC_MAP = {
@@ -74,25 +82,25 @@ FUNC_MAP = {
     "K8sSecret": "%s_secret",
     "K8sConfigMap": "%s_configmap",
     "K8sService": "%s_service",
-    "K8sIngress": "%s_ingress"
+    "K8sIngress": "%s_ingress",
 }
 
 REVERSE_CATEGORY_MAP = {
     "K8sDeployment": "deployment",
     "K8sJob": "job",
     "K8sDaemonSet": "daemonset",
-    "K8sStatefulSet": "statefulset"
+    "K8sStatefulSet": "statefulset",
 }
 
 # resource and replicas key匹配
 RESOURCE_REPLICAS_KEYS = {
     'deployment': {
         'desired_replicas_keys': ['data', 'spec', 'replicas'],
-        'ready_replicas_keys': ['data', 'status', 'availableReplicas']
+        'ready_replicas_keys': ['data', 'status', 'availableReplicas'],
     },
     'daemonset': {
         'desired_replicas_keys': ['data', 'status', 'desiredNumberScheduled'],
-        'ready_replicas_keys': ['data', 'status', 'numberReady']
+        'ready_replicas_keys': ['data', 'status', 'numberReady'],
     },
     'job': {
         'desired_replicas_keys': ['data', 'spec', 'parallelism'],
@@ -100,15 +108,12 @@ RESOURCE_REPLICAS_KEYS = {
     },
     'statefulset': {
         'desired_replicas_keys': ['data', 'spec', 'replicas'],
-        'ready_replicas_keys': ['data', 'status', 'readyReplicas']
-    }
+        'ready_replicas_keys': ['data', 'status', 'readyReplicas'],
+    },
 }
 
 
-MESOS_FUNC_MAP = {
-    "application": "get_mesos_app_instances",
-    "deployment": "get_deployment"
-}
+MESOS_FUNC_MAP = {"application": "get_mesos_app_instances", "deployment": "get_deployment"}
 
 ALL_CATEGORY_LIST = ["application", "deployment", "K8sDeployment", "K8sDaemonSet", "K8sJob", "K8sStatefulSet"]
 
@@ -124,11 +129,7 @@ APP_STATUS = [1, 2, "1", "2"]
 MESOS_APPLICATION_TYPE = ["application", "deployment"]
 
 # SOURCE TYPE MAP
-SOURCE_TYPE_MAP = {
-    "template": _("模板集"),
-    "helm": _("Helm模板"),
-    "other": _("Client")
-}
+SOURCE_TYPE_MAP = {"template": _("模板集"), "helm": _("Helm模板"), "other": _("Client")}
 
 NOT_TMPL_SOURCE_TYPE = _("非模板集")
 
@@ -141,11 +142,7 @@ class SourceType(ChoicesEnum):
     HELM = 'helm'
     OTHER = 'other'
 
-    _choices_labels = (
-        ('template', _("模板集")),
-        ('helm', _("Helm模板")),
-        ('other', _('Client'))
-    )
+    _choices_labels = (('template', _("模板集")), ('helm', _("Helm模板")), ('other', _('Client')))
 
 
 # instance config labels
@@ -162,8 +159,9 @@ STORAGE_FIELD_LIST = [
     'data.status.podIP',
     'data.status.hostIP',
     'data.status.phase',
-    'data.status.containerStatuses'
+    'data.status.containerStatuses',
 ]
+
 
 class ResourceStatus(ChoicesEnum):
     Running = 'Running'
@@ -181,7 +179,7 @@ RESOURCE_STATUS_FIELD_LIST = [
     'updateTime',
     'data.metadata.labels',
     'data.spec.replicas',
-    'data.spec.completions'
+    'data.spec.completions',
 ]
 
 # 兼容前端传递参数内容
@@ -194,5 +192,5 @@ OWENER_REFERENCE_MAP = {
     "statefulset": "StatefulSet",
     "K8sStatefulSet": "StatefulSet",
     "job": "Job",
-    "K8sJob": "Job"
+    "K8sJob": "Job",
 }

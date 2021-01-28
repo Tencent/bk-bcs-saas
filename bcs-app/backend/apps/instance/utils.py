@@ -43,20 +43,18 @@ logger = logging.getLogger(__name__)
 
 # TODO mark refactor
 def check_tempalte_available(tem, username):
-    """检查模板集是否可操作（即未被加锁）
-    """
+    """检查模板集是否可操作（即未被加锁）"""
     is_locked = tem.is_locked
     if not is_locked:
         return True
     locker = tem.locker
     # 加锁者为当前用户，则可以操作;否则不可以操作
     if locker != username:
-        raise ValidationError('{locker}{prefix_msg},{link_msg}{locker}{suffix_msg}'.format(
-            locker=locker,
-            prefix_msg=_("正在操作"),
-            link_msg=_("您如需操作请联系"),
-            suffix_msg=_("解锁")
-        ))
+        raise ValidationError(
+            '{locker}{prefix_msg},{link_msg}{locker}{suffix_msg}'.format(
+                locker=locker, prefix_msg=_("正在操作"), link_msg=_("您如需操作请联系"), suffix_msg=_("解锁")
+            )
+        )
     return True
 
 
@@ -81,8 +79,9 @@ def validate_template_id(project_id, template_id, is_return_tempalte=False):
 
 
 # TODO mark refactor
-def validate_version_id(project_id, version_id, is_version_entity_retrun=False,
-                        show_version_id=None, is_return_all=False):
+def validate_version_id(
+    project_id, version_id, is_version_entity_retrun=False, show_version_id=None, is_return_all=False
+):
     if not project_id:
         raise ValidationError(_("请选择项目"))
     if not version_id:
@@ -100,9 +99,8 @@ def validate_version_id(project_id, version_id, is_version_entity_retrun=False,
     # 验证用户可见版本号
     if show_version_id:
         is_show_version_id = ShowVersion.objects.filter(
-            id=show_version_id,
-            real_version_id=version_id,
-            template_id=template_id).exists()
+            id=show_version_id, real_version_id=version_id, template_id=template_id
+        ).exists()
         if not is_show_version_id:
             raise ValidationError('{}[{}]{}'.format(_("模板集"), template.name, _("内容已经被更新,请刷新页面后重试")))
 
@@ -115,8 +113,7 @@ def validate_version_id(project_id, version_id, is_version_entity_retrun=False,
 
 
 def validate_lb_info_by_version_id(access_token, project_id, version_entity, ns_list, lb_info, service_id_list):
-    """检查预览/实例化 service 时，关联lb情况下，lb 是否都已经选中
-    """
+    """检查预览/实例化 service 时，关联lb情况下，lb 是否都已经选中"""
     # 1. 判断是否需要关联lb
     lb_services = version_entity.get_lb_services_by_ids(service_id_list)
     if not lb_services:
@@ -140,30 +137,29 @@ def validate_lb_info_by_version_id(access_token, project_id, version_entity, ns_
     if not err_list:
         return True, [], ''
 
-    namespace = paas_cc.get_namespace_list(
-        access_token, project_id, limit=ALL_LIMIT)
+    namespace = paas_cc.get_namespace_list(access_token, project_id, limit=ALL_LIMIT)
     namespace = namespace.get('data', {}).get('results') or []
     namespace_dict = {str(i['id']): i['name'] for i in namespace}
-    err_list = ["namespace[%s]:%s" %
-                (namespace_dict.get(_e['ns_id']), _e['service']) for _e in err_list]
+    err_list = ["namespace[%s]:%s" % (namespace_dict.get(_e['ns_id']), _e['service']) for _e in err_list]
     err_msg = _('请选择 service 关联的 LoadBalance: {}').format(' '.join(err_list))
     return False, err_list, err_msg
 
 
 def validate_ns_by_tempalte_id(template_id, ns_list, access_token, project_id, instance_entity={}):
-    """实例化，参数 ns_list 不能与 db 中已经实例化过的 ns 重复
-    """
-    namespace = paas_cc.get_namespace_list(
-        access_token, project_id, limit=ALL_LIMIT)
+    """实例化，参数 ns_list 不能与 db 中已经实例化过的 ns 重复"""
+    namespace = paas_cc.get_namespace_list(access_token, project_id, limit=ALL_LIMIT)
     namespace = namespace.get('data', {}).get('results') or []
     namespace_dict = {str(i['id']): i['name'] for i in namespace}
 
     # 查看模板下已经实例化过的 ns
-    exist_instance_id = VersionInstance.objects.filter(
-        template_id=template_id, is_deleted=False).values_list('id', flat=True)
-    filter_ns = InstanceConfig.objects.filter(
-        instance_id__in=exist_instance_id, is_deleted=False, is_bcs_success=True
-    ).exclude(ins_state=InsState.NO_INS.value).values_list('namespace', flat=True)
+    exist_instance_id = VersionInstance.objects.filter(template_id=template_id, is_deleted=False).values_list(
+        'id', flat=True
+    )
+    filter_ns = (
+        InstanceConfig.objects.filter(instance_id__in=exist_instance_id, is_deleted=False, is_bcs_success=True)
+        .exclude(ins_state=InsState.NO_INS.value)
+        .values_list('namespace', flat=True)
+    )
     exist_ns = []
     # 查询每类资源已经实例化的ns，求合集，这些已经实例化过的ns不能再被实例化
     for cate in instance_entity:
@@ -172,8 +168,7 @@ def validate_ns_by_tempalte_id(template_id, ns_list, access_token, project_id, i
             continue
         cate_data = instance_entity[cate]
         cate_name_list = [i.get('name') for i in cate_data if i.get('name')]
-        cate_ns = filter_ns.filter(
-            category=cate, name__in=cate_name_list).values_list('namespace', flat=True)
+        cate_ns = filter_ns.filter(category=cate, name__in=cate_name_list).values_list('namespace', flat=True)
         exist_ns.extend(list(cate_ns))
 
     new_ns_list = [str(_i) for _i in ns_list]
@@ -197,16 +192,13 @@ def validate_ns_by_tempalte_id(template_id, ns_list, access_token, project_id, i
 
 
 def validate_update_ns_by_tempalte_id(template_id, ns_list, access_token, project_id):
-    """更新，参数 ns_list 必须全部为 db 中已经实例化过的 ns
-    """
-    namespace = paas_cc.get_namespace_list(
-        access_token, project_id, limit=ALL_LIMIT)
+    """更新，参数 ns_list 必须全部为 db 中已经实例化过的 ns"""
+    namespace = paas_cc.get_namespace_list(access_token, project_id, limit=ALL_LIMIT)
     namespace = namespace.get('data', {}).get('results') or []
     namespace_dict = {str(i['id']): i['name'] for i in namespace}
 
     # 查看模板下已经实例化过的 ns
-    exist_ns = VersionInstance.objects.filter(
-        template_id=template_id).values_list('ns_id', flat=True)
+    exist_ns = VersionInstance.objects.filter(template_id=template_id).values_list('ns_id', flat=True)
     new_ns_list = [int(_i) for _i in ns_list]
 
     wrong_list = [_n for _n in new_ns_list if _n not in exist_ns]
@@ -221,8 +213,7 @@ def validate_update_ns_by_tempalte_id(template_id, ns_list, access_token, projec
 
 
 def validate_instance_entity(req_instance_entity, tem_instance_entity):
-    """验证前端传过了的预览资源是否在该版本的资源
-    """
+    """验证前端传过了的预览资源是否在该版本的资源"""
     # 前端不传参数，则查询模板版本所有的资源
     if not req_instance_entity:
         instance_entity = tem_instance_entity
@@ -232,14 +223,12 @@ def validate_instance_entity(req_instance_entity, tem_instance_entity):
             for _data in req_instance_entity[_cate]:
                 if _data['id'] not in tem_instance_entity[_cate]:
                     raise ValidationError(_('{}[{}]不在当前选择的模板中').format(_cate, _data['name']))
-            instance_entity[_cate] = [_i['id']
-                                      for _i in req_instance_entity[_cate]]
+            instance_entity[_cate] = [_i['id'] for _i in req_instance_entity[_cate]]
     return instance_entity
 
 
 def get_ns_variable(access_token, project_id, namespace_id):
-    """获取命名空间相关的变量信息
-    """
+    """获取命名空间相关的变量信息"""
     context = {}
     # 获取命名空间的信息
     resp = paas_cc.get_namespace(access_token, project_id, namespace_id)
@@ -261,8 +250,7 @@ def get_ns_variable(access_token, project_id, namespace_id):
 
 
 def generate_namespace_config(namespace_id, instance_entity, is_save, is_validate=True, **params):
-    """生成单个namespace下的所有配置文件
-    """
+    """生成单个namespace下的所有配置文件"""
     # 将版本修改为可见版本
     show_version_id = params.get('show_version_id')
     show_version_name = ShowVersion.objects.get(id=show_version_id).name
@@ -281,8 +269,7 @@ def generate_namespace_config(namespace_id, instance_entity, is_save, is_validat
         item_id_list = instance_entity[item]
         item_config = []
         for item_id in item_id_list:
-            generator = GENERATOR_DICT.get(item)(
-                item_id, namespace_id, is_validate, **params)
+            generator = GENERATOR_DICT.get(item)(item_id, namespace_id, is_validate, **params)
             file_content = generator.get_config_profile()
             file_name = generator.resource_show_name
 
@@ -320,24 +307,22 @@ def generate_namespace_config(namespace_id, instance_entity, is_save, is_validat
                     save_kwargs['ref_id'] = metric_id
                     obj_module = MetricConfig
                 else:
-                    save_kwargs.update({
-                        "oper_type": "create",
-                        "status": "Running",
-                        "last_config": "",
-                    })
+                    save_kwargs.update(
+                        {
+                            "oper_type": "create",
+                            "status": "Running",
+                            "last_config": "",
+                        }
+                    )
                     obj_module = InstanceConfig
                 # 判断db中是否已经有记录，有则做更新操作
-                _exist_ins_confg = obj_module.objects.filter(
-                    name=file_name, namespace=namespace_id, category=item)
+                _exist_ins_confg = obj_module.objects.filter(name=file_name, namespace=namespace_id, category=item)
                 if _exist_ins_confg.exists():
                     # 更新第一条数据
                     _instance_config = _exist_ins_confg.first()
                     update_id = _instance_config.id
                     # 将其他数据设置为 is_deleted：True
-                    _exist_ins_confg.exclude(id=update_id).update(
-                        is_deleted=True,
-                        deleted_time=timezone.now()
-                    )
+                    _exist_ins_confg.exclude(id=update_id).update(is_deleted=True, deleted_time=timezone.now())
                     is_update_save_kwargs = True
                     # db中已经有记录，则实例化前不更新，实例化成功、失败后再更新
                     # _exist_ins_confg.filter(id=update_id).update(**save_kwargs)
@@ -357,10 +342,8 @@ def preview_config_json(namespace_id, instance_entity, **params):
     """
     预览配置文件
     """
-    config_data = generate_namespace_config(
-        namespace_id, instance_entity, is_save=False, **params)
-    config_data = {CATE_ABBR_NAME.get(
-        x, x): config_data[x] for x in config_data}
+    config_data = generate_namespace_config(namespace_id, instance_entity, is_save=False, **params)
+    config_data = {CATE_ABBR_NAME.get(x, x): config_data[x] for x in config_data}
     return config_data
 
 
@@ -371,12 +354,14 @@ def save_all_config(slz_data, access_token="", username="", is_update=False):
     """
     ns_list = slz_data['ns_list']
     instance_entity = slz_data['instance_entity']
-    history = [{
-        'version_id': slz_data['version_id'],
-        'instance_entity': slz_data['instance_entity'],
-        'creator': username,
-        'created': timezone.now().strftime('%Y-%m-%d %H:%M:%S')
-    }]
+    history = [
+        {
+            'version_id': slz_data['version_id'],
+            'instance_entity': slz_data['instance_entity'],
+            'creator': username,
+            'created': timezone.now().strftime('%Y-%m-%d %H:%M:%S'),
+        }
+    ]
     # 添加用户可见的版本号
     show_version_id = slz_data['show_version_id']
     show_version_name = ShowVersion.objects.get(id=show_version_id).name
@@ -410,7 +395,7 @@ def save_all_config(slz_data, access_token="", username="", is_update=False):
                 is_start=slz_data['is_start'],
                 ns_id=ns,
                 template_id=slz_data['template_id'],
-                history=json.dumps(history)
+                history=json.dumps(history),
             )
         variable_dict = slz_data.get('variable_info', {}).get(ns) or {}
         params = {
@@ -423,25 +408,21 @@ def save_all_config(slz_data, access_token="", username="", is_update=False):
             "access_token": access_token,
             "username": username,
             "lb_info": slz_data.get('lb_info', {}),
-            "variable_dict": variable_dict
+            "variable_dict": variable_dict,
         }
-        configuration[ns] = generate_namespace_config(
-            ns, instance_entity, is_save=True, **params)
+        configuration[ns] = generate_namespace_config(ns, instance_entity, is_save=True, **params)
     return configuration
 
 
 def handle_all_config(slz_data, access_token="", username="", is_update=False, project_kind=None):
-    """
-    """
+    """"""
     project_id = slz_data['project_id']
     is_start = slz_data['is_start']
 
-    configuration = save_all_config(
-        slz_data, access_token, username, is_update)
+    configuration = save_all_config(slz_data, access_token, username, is_update)
     # 调用 bcs API
     if is_start:
-        driver = get_scheduler_driver(
-            access_token, project_id, configuration, project_kind)
+        driver = get_scheduler_driver(access_token, project_id, configuration, project_kind)
         instantiation_result = driver.instantiation(is_update)
         return instantiation_result
 
@@ -451,15 +432,9 @@ def get_k8s_app_status(access_token, project_id, cluster_id, instance_name, name
         "resourceName",
         "namespace",
     ]
-    client = K8SClient(
-        access_token, project_id, cluster_id, None
-    )
+    client = K8SClient(access_token, project_id, cluster_id, None)
     curr_func = getattr(client, "%s_with_post" % (FUNC_MAP[category] % "get"))
-    params = {
-        "name": instance_name,
-        "namespace": namespace,
-        "field": ",".join(field)
-    }
+    params = {"name": instance_name, "namespace": namespace, "field": ",".join(field)}
     resp = curr_func(params)
     if resp.get("code") != ErrorCode.NoError:
         return []
@@ -467,9 +442,7 @@ def get_k8s_app_status(access_token, project_id, cluster_id, instance_name, name
 
 
 def get_mesos_app_status(access_token, project_id, cluster_id, instance_name, namespace, category):
-    client = MesosClient(
-        access_token, project_id, cluster_id, None
-    )
+    client = MesosClient(access_token, project_id, cluster_id, None)
     field = [
         "data.metadata.name",
         "data.metadata.namespace",
@@ -509,12 +482,13 @@ def get_app_status(access_token, project_id, project_kind, cluster_id, instance_
 
 
 def has_instance_of_show_version(template_id, show_version_id):
-    """模板版本是否被实例化过
-    """
+    """模板版本是否被实例化过"""
     ins_id_list = VersionInstance.objects.filter(
         template_id=template_id, show_version_id=show_version_id, is_bcs_success=True, is_deleted=False
     ).values_list('id', flat=True)
-    is_exists = InstanceConfig.objects.filter(
-        instance_id__in=ins_id_list, is_deleted=False, is_bcs_success=True
-    ).exclude(ins_state=InsState.NO_INS.value).exists()
+    is_exists = (
+        InstanceConfig.objects.filter(instance_id__in=ins_id_list, is_deleted=False, is_bcs_success=True)
+        .exclude(ins_state=InsState.NO_INS.value)
+        .exists()
+    )
     return is_exists

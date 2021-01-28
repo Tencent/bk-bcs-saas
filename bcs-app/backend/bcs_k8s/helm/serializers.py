@@ -12,16 +12,16 @@
 # specific language governing permissions and limitations under the License.
 #
 from urllib.parse import urlparse
+
+from django.conf import settings
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
-from django.conf import settings
 
-from .models.chart import (Chart, ChartVersion, ChartRelease, ChartVersionSnapshot)
+from .models.chart import Chart, ChartRelease, ChartVersion, ChartVersionSnapshot
 from .models.repo import Repository, RepositoryAuth
 
 
 class MinimalRepoSLZ(serializers.ModelSerializer):
-
     class Meta:
         model = Repository
         fields = ('name', 'url')
@@ -39,7 +39,6 @@ class ChartVersionSLZ(serializers.ModelSerializer):
 
 
 class ChartVersionTinySLZ(serializers.ModelSerializer):
-
     class Meta:
         model = ChartVersion
         fields = ('id', 'name', 'version', 'created')
@@ -106,8 +105,18 @@ class RepoSLZ(serializers.ModelSerializer):
     class Meta:
         model = Repository
         fields = (
-            'id', 'name', 'url', 'description', 'project_id',
-            'provider', 'is_provisioned', 'auths', 'branch', 'refreshed_at', 'commit')
+            'id',
+            'name',
+            'url',
+            'description',
+            'project_id',
+            'provider',
+            'is_provisioned',
+            'auths',
+            'branch',
+            'refreshed_at',
+            'commit',
+        )
         read_only_fields = ("project_id", "refreshed_at", "commit")
 
 
@@ -131,10 +140,7 @@ class ChartReleaseSLZ(serializers.ModelSerializer):
         initial=[],
         label="Values File",
         help_text="Yaml format data",
-        style={
-            "base_template": "textarea.html",
-            "rows": 10
-        }
+        style={"base_template": "textarea.html", "rows": 10},
     )
 
     class Meta:

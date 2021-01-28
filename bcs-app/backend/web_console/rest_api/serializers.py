@@ -12,8 +12,8 @@
 # specific language governing permissions and limitations under the License.
 #
 from django.conf import settings
-from rest_framework import serializers
 from django.utils.translation import ugettext_lazy as _
+from rest_framework import serializers
 
 from backend.utils.error_codes import error_codes
 

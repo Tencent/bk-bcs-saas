@@ -11,8 +11,9 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-from . import base, k8s, mesos
 from backend.apps.configuration.constants import RESOURCE_NAMES, K8sResourceName, MesosResourceName
+
+from . import base, k8s, mesos
 
 MODEL_CLASS_LIST = [
     k8s.K8sDeployment,
@@ -61,8 +62,7 @@ def get_model_class_by_resource_name(resource_name):
 
 
 def get_pod_related_service(ventity, resource_name, resource_id):
-    """检查包含 pod 的资源是否被模板内的 Service 关联
-    """
+    """检查包含 pod 的资源是否被模板内的 Service 关联"""
     model_class = get_model_class_by_resource_name(resource_name)
     pod_res = model_class.objects.get(id=resource_id)
 
@@ -85,8 +85,7 @@ def get_pod_related_service(ventity, resource_name, resource_id):
 
 
 def get_service_related_statefulset(ventity, service_id):
-    """获取 关联 Service 的 statefulset 列表
-    """
+    """获取 关联 Service 的 statefulset 列表"""
     svc = k8s.K8sService.objects.get(id=service_id)
     svc_tag = svc.service_tag
 
@@ -128,8 +127,7 @@ def get_application_related_resource(ventity, app_id):
 
 
 def _to_resource_tags_map(tag_list):
-    """处理前端传的 deploy_tag ，需要判断 deploy_tag 是属于 Deployment/StatefulSet/job/DaemonSet
-    """
+    """处理前端传的 deploy_tag ，需要判断 deploy_tag 是属于 Deployment/StatefulSet/job/DaemonSet"""
     resource_tag_map = {}
     for tag in tag_list:
         if not tag:

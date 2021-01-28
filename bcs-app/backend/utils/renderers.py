@@ -20,6 +20,7 @@ class BKAPIRenderer(JSONRenderer):
     """
     采用统一的结构封装返回内容
     """
+
     SUCCESS_CODE = 0
     SUCCESS_MESSAGE = 'OK'
 
@@ -31,7 +32,7 @@ class BKAPIRenderer(JSONRenderer):
                 'data': data,
                 'code': self.SUCCESS_CODE,
                 'message': self.SUCCESS_MESSAGE,
-                'request_id': local.request_id
+                'request_id': local.request_id,
             }
 
         if renderer_context and renderer_context.get('permissions'):

@@ -11,40 +11,43 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
+import copy
 import json
 import logging
-import copy
 from datetime import datetime
 
 from django.utils.translation import ugettext_lazy as _
 
-from backend.apps.instance.models import (
-    VersionInstance, InstanceConfig, InstanceEvent, MetricConfig
-)
-from backend.apps.instance.constants import InsState
-from backend.utils.error_codes import error_codes
-from backend.utils.errcodes import ErrorCode
+from backend.apps.application import utils
 from backend.apps.application.constants import (
-    REVERSE_CATEGORY_MAP, FUNC_MAP, DELETE_INSTANCE,
-    UNNORMAL_STATUS, RESUME_INSTANCE, SOURCE_TYPE_MAP
+    DELETE_INSTANCE,
+    FUNC_MAP,
+    RESUME_INSTANCE,
+    REVERSE_CATEGORY_MAP,
+    SOURCE_TYPE_MAP,
+    UNNORMAL_STATUS,
 )
 from backend.apps.configuration.models import Template
-from backend.celery_app.tasks.application import update_create_error_record
 from backend.apps.hpa.utils import get_mesos_deployment_hpa
-from backend.apps.application import utils
+from backend.apps.instance.constants import InsState
+from backend.apps.instance.models import InstanceConfig, InstanceEvent, MetricConfig, VersionInstance
+from backend.celery_app.tasks.application import update_create_error_record
+from backend.utils.errcodes import ErrorCode
+from backend.utils.error_codes import error_codes
 
 logger = logging.getLogger(__name__)
 
 
 class GetNamespace(object):
-
     def get_ns_app_info(self, ns_id_list, inst_name):
-        """获取命名空间下的应用列表
-        """
-        all_info = InstanceConfig.objects.filter(
-            namespace__in=ns_id_list, is_deleted=False,
-            category__in=["application", "deployment"]
-        ).exclude(ins_state=InsState.NO_INS.value).order_by("-updated")
+        """获取命名空间下的应用列表"""
+        all_info = (
+            InstanceConfig.objects.filter(
+                namespace__in=ns_id_list, is_deleted=False, category__in=["application", "deployment"]
+            )
+            .exclude(ins_state=InsState.NO_INS.value)
+            .order_by("-updated")
+        )
         if inst_name:
             all_info = all_info.filter(name=inst_name)
         ret_data = {}
@@ -70,8 +73,7 @@ class GetNamespace(object):
         return ret_data, ns_inst, create_error
 
     def compose_cluster_ns_inst(self, ns_map, ns_inst):
-        """组装集群、命名空间、实例
-        """
+        """组装集群、命名空间、实例"""
         ret_data = {}
         for key, val in ns_map.items():
             if not ns_inst.get(key[0]):
@@ -86,10 +88,8 @@ class GetNamespace(object):
                     ret_data[cluster_id] = [app_id]
         return ret_data
 
-    def get_ns_inst_error_count(
-            self, func, request, project_id, kind, ns_name_list, inst_name, cluster_id_list):
-        """获取实例异常数量
-        """
+    def get_ns_inst_error_count(self, func, request, project_id, kind, ns_name_list, inst_name, cluster_id_list):
+        """获取实例异常数量"""
         # 针对deployment，需要获取application的状态
         ret_data = {}
         all_data = {}
@@ -100,11 +100,14 @@ class GetNamespace(object):
             # app_ns_list = []
             # if "deployment" in info:
             flag, resp = func(
-                request, project_id, cluster_id,
+                request,
+                project_id,
+                cluster_id,
                 instance_name=inst_name,
-                category="deployment", project_kind=kind,
+                category="deployment",
+                project_kind=kind,
                 namespace=",".join(set(ns_name_list)),
-                field="data.status,resourceName,namespace,data.application,data.application_ext"
+                field="data.status,resourceName,namespace,data.application,data.application_ext",
             )
             if not flag:
                 logger.error("请求storage接口出现异常，详情: %s" % resp)
@@ -122,11 +125,14 @@ class GetNamespace(object):
                     application_deployment_map[(ns_name, application_data_ext["name"])] = item.get("resourceName")
 
             flag, resp = func(
-                request, project_id, cluster_id,
+                request,
+                project_id,
+                cluster_id,
                 instance_name=inst_name,
-                category="application", project_kind=kind,
+                category="application",
+                project_kind=kind,
                 namespace=",".join(set(ns_name_list)),
-                field="data.status,resourceName,namespace"
+                field="data.status,resourceName,namespace",
             )
             if not flag:
                 logger.error("请求storage接口出现异常，详情: %s" % resp)
@@ -141,8 +147,9 @@ class GetNamespace(object):
                         all_data[(cluster_id, ns_name)] += 1
                     else:
                         all_data[(cluster_id, ns_name)] = 1
-                app_name_status[(info["namespace"], info["resourceName"])] = \
-                    (info.get("data") or {}).get("status") or "Deploying"
+                app_name_status[(info["namespace"], info["resourceName"])] = (info.get("data") or {}).get(
+                    "status"
+                ) or "Deploying"
             # 进行application和deployment的适配
             exist_name = []
             for ns_inst, status in app_name_status.items():
@@ -158,8 +165,7 @@ class GetNamespace(object):
         return ret_data, all_data
 
     def get(self, request, ns_id_list, ns_map, project_id, kind, func, inst_name, ns_name_list, cluster_id_list):
-        ns_app_info, ns_inst, create_error = self.get_ns_app_info(
-            ns_id_list, inst_name)
+        ns_app_info, ns_inst, create_error = self.get_ns_app_info(ns_id_list, inst_name)
         ns_inst_error_count, all_ns_inst_count = self.get_ns_inst_error_count(
             func, request, project_id, kind, ns_name_list, inst_name, cluster_id_list
         )
@@ -167,7 +173,6 @@ class GetNamespace(object):
 
 
 class GetInstances(object):
-
     def get_muster_info(self, tmpl_id):
         tmpl_info = Template.objects.filter(id=tmpl_id).first()
         if not tmpl_info:
@@ -175,19 +180,19 @@ class GetInstances(object):
         return tmpl_info.name
 
     def get_insts(self, ns_id, inst_name):
-        """获取实例
-        """
+        """获取实例"""
         category = ["application", "deployment"]
-        all_inst_list = InstanceConfig.objects.filter(
-            namespace=ns_id, is_deleted=False, category__in=category
-        ).exclude(ins_state=InsState.NO_INS.value).order_by("-updated")
+        all_inst_list = (
+            InstanceConfig.objects.filter(namespace=ns_id, is_deleted=False, category__in=category)
+            .exclude(ins_state=InsState.NO_INS.value)
+            .order_by("-updated")
+        )
         if inst_name:
             all_inst_list = all_inst_list.filter(name=inst_name)
         return all_inst_list
 
     def compose_inst_info(self, all_inst_list, cluster_env_map):
-        """组装实例信息
-        """
+        """组装实例信息"""
         ret_data = {}
         category_data = {"application": {}, "deployment": {}}
         for info in all_inst_list:
@@ -241,15 +246,14 @@ class GetInstances(object):
                 "build_instance": 0,
                 "instance": 0,
                 "muster_id": muster_id,
-                "muster_name": self.get_muster_info(muster_id)
+                "muster_name": self.get_muster_info(muster_id),
             }
             annotations = metadata.get("annotations") or {}
             ret_data[key_name].update(utils.get_instance_version(annotations, labels))
         return ret_data, category_data
 
     def get_cluster_namespace_inst(self, instance_info):
-        """获取集群、命名空间和deployment
-        """
+        """获取集群、命名空间和deployment"""
         ret_data = {}
         for id, info in instance_info.items():
             if info["cluster_id"] in ret_data:
@@ -263,8 +267,7 @@ class GetInstances(object):
         return ret_data
 
     def get_cluster_namespace_deployment(self, instance_info, deploy_app_info):
-        """针对deployment组装请求taskgroup信息
-        """
+        """针对deployment组装请求taskgroup信息"""
         ret_data = {}
         for key, info in instance_info.items():
             app_name = deploy_app_info.get((info["namespace"], info["name"]), [])
@@ -272,23 +275,24 @@ class GetInstances(object):
                 ret_data[info["cluster_id"]]["inst_list"].extend(app_name)
                 ret_data[info["cluster_id"]]["ns_list"].append(info["namespace"])
             else:
-                ret_data[info["cluster_id"]] = {
-                    "inst_list": [],
-                    "ns_list": [info["namespace"]]
-                }
+                ret_data[info["cluster_id"]] = {"inst_list": [], "ns_list": [info["namespace"]]}
                 ret_data[info["cluster_id"]]["inst_list"].extend(app_name)
         return ret_data
 
     def get_application_by_deployment(
-            self, request, cluster_id, kind=2, project_id=None, func=None, ns_name=None, inst_name=None):
-        """通过deployment获取application
-        """
+        self, request, cluster_id, kind=2, project_id=None, func=None, ns_name=None, inst_name=None
+    ):
+        """通过deployment获取application"""
         ret_data = {}
         flag, resp = func(
-            request, project_id, cluster_id, inst_name,
-            category="deployment", project_kind=kind,
+            request,
+            project_id,
+            cluster_id,
+            inst_name,
+            category="deployment",
+            project_kind=kind,
             namespace=ns_name,
-            field="data.application,data.application_ext,data.metadata"
+            field="data.application,data.application_ext,data.metadata",
         )
         if not flag:
             raise error_codes.APIError.f(resp.data.get("message"))
@@ -306,15 +310,27 @@ class GetInstances(object):
         return ret_data
 
     def get_application_status(
-            self, request, cluster_id, project_id=None, category="application",
-            kind=2, func=None, ns_name=None, inst_name=None):
-        """获取application的状态
-        """
+        self,
+        request,
+        cluster_id,
+        project_id=None,
+        category="application",
+        kind=2,
+        func=None,
+        ns_name=None,
+        inst_name=None,
+    ):
+        """获取application的状态"""
         ret_data = {}
         flag, resp = func(
-            request, project_id, cluster_id, inst_name,
-            category=category, project_kind=kind, namespace=ns_name,
-            field="data.metadata.name,data.metadata.namespace,data.status,data.message,data.buildedInstance,data.instance,updateTime,createTime,data.metadata.labels"  # noqa
+            request,
+            project_id,
+            cluster_id,
+            inst_name,
+            category=category,
+            project_kind=kind,
+            namespace=ns_name,
+            field="data.metadata.name,data.metadata.namespace,data.status,data.message,data.buildedInstance,data.instance,updateTime,createTime,data.metadata.labels",  # noqa
         )
 
         if not flag:
@@ -346,19 +362,25 @@ class GetInstances(object):
                 "create_time": val.get("updateTime"),
                 "source_type": SOURCE_TYPE_MAP.get(source_type),
                 "version": utils.get_instance_version_name(annotations, labels),
-                'hpa': False  # Application 默认都是未绑定
+                'hpa': False,  # Application 默认都是未绑定
             }
         return ret_data
 
     def get_deployment_status(
-            self, request, cluster_id, project_id=None, category="deployment",
-            kind=2, func=None, ns_name=None, inst_name=None):
-        """获取deployment的状态
-        """
+        self,
+        request,
+        cluster_id,
+        project_id=None,
+        category="deployment",
+        kind=2,
+        func=None,
+        ns_name=None,
+        inst_name=None,
+    ):
+        """获取deployment的状态"""
         ret_data = {}
         flag, resp = func(
-            request, project_id, cluster_id, inst_name,
-            category=category, project_kind=kind, namespace=ns_name
+            request, project_id, cluster_id, inst_name, category=category, project_kind=kind, namespace=ns_name
         )
         if not flag:
             raise error_codes.APIError.f(resp.data.get("message"))
@@ -380,31 +402,27 @@ class GetInstances(object):
                 "deployemnt_status_message": data.get("message"),
                 "source_type": labels.get("io.tencent.paas.source_type"),
                 "version": utils.get_instance_version_name(annotations, labels),
-                "hpa": True if key_name in hpa_list else False
+                "hpa": True if key_name in hpa_list else False,
             }
         return ret_data
 
     def update_inst_label(self, inst_id_list):
-        """更新删除的实例标识
-        """
+        """更新删除的实例标识"""
         all_inst_conf = InstanceConfig.objects.filter(id__in=inst_id_list)
-        all_inst_conf.update(
-            is_deleted=True, deleted_time=datetime.now(), status="Deleted"
-        )
+        all_inst_conf.update(is_deleted=True, deleted_time=datetime.now(), status="Deleted")
         # 更新metric config状态
         inst_ns = {info.instance_id: info.namespace for info in all_inst_conf}
         inst_ver_ids = inst_ns.keys()
         inst_ns_ids = inst_ns.values()
         try:
-            MetricConfig.objects.filter(
-                instance_id__in=inst_ver_ids, namespace__in=inst_ns_ids
-            ).update(ins_state=InsState.INS_DELETED.value)
+            MetricConfig.objects.filter(instance_id__in=inst_ver_ids, namespace__in=inst_ns_ids).update(
+                ins_state=InsState.INS_DELETED.value
+            )
         except Exception as err:
             logger.error(u"更新metric删除状态失败，详情: %s" % err)
 
     def compose_data(self, request, instance_info, all_status, cluster_id, ns_id, cluster_env_map, ns_name_id):
-        """组装返回数据
-        """
+        """组装返回数据"""
         # 默认时间
         default_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         update_create_error_id_list = []
@@ -425,13 +443,15 @@ class GetInstances(object):
                 val["create_at"] = val.get("create_time") or default_time
                 val["update_at"] = val.get("update_time") or default_time
             cluster_name_env_map = cluster_env_map.get(cluster_id) or {}
-            instance_info[key].update({
-                "namespace_id": ns_id,
-                "cluster_id": cluster_id,
-                "cluster_name": cluster_name_env_map.get("cluster_name"),
-                "cluster_env": cluster_name_env_map.get("cluster_env"),
-                "environment": cluster_name_env_map.get("cluster_env_str")
-            })
+            instance_info[key].update(
+                {
+                    "namespace_id": ns_id,
+                    "cluster_id": cluster_id,
+                    "cluster_name": cluster_name_env_map.get("cluster_name"),
+                    "cluster_env": cluster_name_env_map.get("cluster_env"),
+                    "environment": cluster_name_env_map.get("cluster_env_str"),
+                }
+            )
             val.pop("create_time", None)
             val.pop("update_time", None)
         if update_create_error_id_list:
@@ -445,9 +465,11 @@ class GetInstances(object):
         instance_list = list(instance_list)
         inst_list_copy = copy.deepcopy(instance_list)
         for val in inst_list_copy:
-            if (val["backend_status"] in UNNORMAL_STATUS) or \
-                    (val.get("application_status") in UNNORMAL_STATUS) or \
-                    (val.get("deployment_status") in UNNORMAL_STATUS):
+            if (
+                (val["backend_status"] in UNNORMAL_STATUS)
+                or (val.get("application_status") in UNNORMAL_STATUS)
+                or (val.get("deployment_status") in UNNORMAL_STATUS)
+            ):
                 if app_status in [2, "2", None]:
                     ret_data["error_num"] += 1
                 else:
@@ -455,31 +477,54 @@ class GetInstances(object):
             else:
                 if app_status not in [1, "1", None]:
                     instance_list.remove(val)
-        ret_data.update({
-            "total_num": len(instance_list),
-            "instance_list": instance_list
-        })
+        ret_data.update({"total_num": len(instance_list), "instance_list": instance_list})
         return ret_data
 
     def get(
-            self, request, project_id, ns_id, project_kind, func_app,
-            func_deploy, inst_name, app_status, cluster_env_map, cluster_id, ns_name, ns_name_id):
-        """获取命名空间下的实例
-        """
+        self,
+        request,
+        project_id,
+        ns_id,
+        project_kind,
+        func_app,
+        func_deploy,
+        inst_name,
+        app_status,
+        cluster_env_map,
+        cluster_id,
+        ns_name,
+        ns_name_id,
+    ):
+        """获取命名空间下的实例"""
         all_status = {}
         deploy_application_info = self.get_application_by_deployment(
-            request, cluster_id, kind=project_kind, project_id=project_id,
-            func=func_deploy, ns_name=ns_name, inst_name=inst_name
+            request,
+            cluster_id,
+            kind=project_kind,
+            project_id=project_id,
+            func=func_deploy,
+            ns_name=ns_name,
+            inst_name=inst_name,
         )
         deployment_status = self.get_deployment_status(
-            request, cluster_id, project_id=project_id, kind=project_kind,
-            func=func_app, ns_name=ns_name, inst_name=inst_name
+            request,
+            cluster_id,
+            project_id=project_id,
+            kind=project_kind,
+            func=func_app,
+            ns_name=ns_name,
+            inst_name=inst_name,
         )
         if deploy_application_info and inst_name:
             inst_name = ",".join(list(deploy_application_info.values())[-1])
         application_status = self.get_application_status(
-            request, cluster_id, project_id=project_id, kind=project_kind,
-            func=func_app, ns_name=ns_name, inst_name=inst_name
+            request,
+            cluster_id,
+            project_id=project_id,
+            kind=project_kind,
+            func=func_app,
+            ns_name=ns_name,
+            inst_name=inst_name,
         )
         # 整合状态
         copy_application_status = copy.deepcopy(application_status)

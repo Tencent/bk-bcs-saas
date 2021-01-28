@@ -12,19 +12,19 @@
 # specific language governing permissions and limitations under the License.
 #
 from django.http import JsonResponse
-from backend.apps.apis.applications import serializers
-
-from backend.apps.application import views as app_views
-from backend.apps.apis.base_views import BaseAPIViews, APIUser
-from backend.apps.apis.applications.views import BaseBatchHandleInstance
-from backend.components.bcs.mesos import MesosClient
-from backend.utils.errcodes import ErrorCode
-from backend.utils.error_codes import error_codes
 from rest_framework.response import Response
-from backend.utils.renderers import BKAPIRenderer
+
+from backend.apps.apis.applications import serializers
+from backend.apps.apis.applications.views import BaseBatchHandleInstance
+from backend.apps.apis.base_views import APIUser, BaseAPIViews
 from backend.apps.apis.utils import check_user_project
+from backend.apps.application import views as app_views
+from backend.components.bcs.mesos import MesosClient
 from backend.utils import FancyDict
 from backend.utils.basic import getitems
+from backend.utils.errcodes import ErrorCode
+from backend.utils.error_codes import error_codes
+from backend.utils.renderers import BKAPIRenderer
 
 DEFAULT_MSG_TYPE = "signal"
 
@@ -99,8 +99,7 @@ class SendDeploymentSignal(BaseSendSignal):
     CATEGORY = "deployment"
 
     def get_rc_name_by_deployment(self, request, project_id, cluster_id, namespace, name, project_kind=2):
-        """根据deployment获取到application name
-        """
+        """根据deployment获取到application name"""
         flag, resp = self.get_application_deploy_info(
             request,
             project_id,
@@ -217,8 +216,7 @@ class SendCommand(BaseInstanceAPI):
         }
 
     def get_image_path(self, env_list):
-        """获取image path
-        """
+        """获取image path"""
         image_path = ""
         # 传递image的key的标识
         image_env_name = "image"

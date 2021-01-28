@@ -17,10 +17,11 @@ from django.utils.translation import ugettext_lazy as _
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
-from backend.utils.error_codes import error_codes
-from backend.apps.configuration.constants import FileResourceName, TemplateEditMode, FileAction
-from backend.apps.configuration.showversion.serializers import ShowVersionNameSLZ, GetShowVersionSLZ
 from backend.apps.configuration import utils
+from backend.apps.configuration.constants import FileAction, FileResourceName, TemplateEditMode
+from backend.apps.configuration.showversion.serializers import GetShowVersionSLZ, ShowVersionNameSLZ
+from backend.utils.error_codes import error_codes
+
 from . import files2res, res2files
 
 

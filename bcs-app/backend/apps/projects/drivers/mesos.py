@@ -14,7 +14,6 @@
 
 
 class MesosDriver:
-
     @classmethod
     def backend_create_helm_info(cls, project_id):
         pass

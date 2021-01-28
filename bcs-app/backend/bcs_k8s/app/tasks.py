@@ -11,9 +11,8 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-from django.conf import settings
-
 from celery import shared_task
+from django.conf import settings
 
 from .models import App
 
@@ -25,11 +24,7 @@ def destroy_app(app_id, access_token, username):
 
 @shared_task
 def rollback_app(app_id, access_token, username, release_id):
-    App.objects.get(id=app_id).rollback_app_task(
-        username=username,
-        access_token=access_token,
-        release_id=release_id
-    )
+    App.objects.get(id=app_id).rollback_app_task(username=username, access_token=access_token, release_id=release_id)
 
 
 @shared_task

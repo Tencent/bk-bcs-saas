@@ -15,15 +15,15 @@ from rest_framework.exceptions import PermissionDenied
 
 
 class BaseProvider:
-    """ base token kind provider
-    """
+    """base token kind provider"""
+
     NAME = ""
     CONFIG_SCHEMA = {}
     REQUEST_SCHEMA = {}
 
     @staticmethod
     def provide(user, project_id, config):
-        """ this method validate whether the user could provide this kind of token with config.
+        """this method validate whether the user could provide this kind of token with config.
         if user doesn't have the priority, this method must raise a `rest_framework.exceptions.PermissionDenied`
         ex: config contains helm app id, provider must validate user can operate it.
         params user: user of UnionAuth type

@@ -13,11 +13,11 @@
 #
 from rest_framework.response import Response
 
+from backend.apis.resources.serializers import CreateNamespaceParamsSLZ
+from backend.apis.views import NoAccessTokenBaseAPIViewSet
+from backend.apps.variable.models import NameSpaceVariable
 from backend.resources.namespace import utils as ns_utils
 from backend.resources.project.constants import ProjectKind
-from backend.apis.views import NoAccessTokenBaseAPIViewSet
-from backend.apis.resources.serializers import CreateNamespaceParamsSLZ
-from backend.apps.variable.models import NameSpaceVariable
 from backend.utils.error_codes import error_codes
 
 
