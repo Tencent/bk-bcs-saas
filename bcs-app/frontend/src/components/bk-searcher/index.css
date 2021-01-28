@@ -83,6 +83,31 @@
         }
     }
 
+    .bk-searcher-mask {
+        height: 34px;
+        border-radius: 2px;
+        background-color: #fff;
+        overflow: hidden;
+        overflow-x: scroll;
+        cursor: not-allowed;
+        position: absolute;
+        z-index: 3;
+        width: 100%;
+        opacity: 0.4;
+
+        &::-webkit-scrollbar {
+            display: none;
+        }
+
+        &::-webkit-scrollbar-thumb {
+            display: none;
+        }
+
+        &.disable {
+            cursor: not-allowed;
+        }
+    }
+
     .bk-searcher {
         height: 34px;
         border-radius: 2px;
