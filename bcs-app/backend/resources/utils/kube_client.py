@@ -11,18 +11,47 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
+import json
 import logging
-from functools import lru_cache
+import os
+import tempfile
+from functools import lru_cache, partial
 from typing import Any, Dict, Optional, Tuple
 
-from kubernetes import client
+from kubernetes import __version__, client
 from kubernetes.client.exceptions import ApiException
 from kubernetes.dynamic import DynamicClient, Resource, ResourceInstance
+from kubernetes.dynamic.discovery import CacheDecoder, LazyDiscoverer
 from kubernetes.dynamic.exceptions import ResourceNotUniqueError
 
 from backend.resources.client import BcsKubeConfigurationService
 
 logger = logging.getLogger(__name__)
+
+
+class BcsLazyDiscoverer(LazyDiscoverer):
+    """
+    override Discoverer 中的 __init_cache 方法，修复 'CacheDecoder' object is not callable
+    """
+
+    def _Discoverer__init_cache(self, refresh=False):
+        if refresh or not os.path.exists(self._Discoverer__cache_file):
+            self._cache = {'library_version': __version__}
+            refresh = True
+        else:
+            try:
+                with open(self._Discoverer__cache_file, 'r') as f:
+                    self._cache = json.load(f, cls=partial(CacheDecoder, self.client))
+                if self._cache.get('library_version') != __version__:
+                    # Version mismatch, need to refresh cache
+                    self.invalidate_cache()
+            except Exception as e:
+                logging.error("load cache error: %s", e)
+                self.invalidate_cache()
+        self._load_server_info()
+        self.discover()
+        if refresh:
+            self._write_cache()
 
 
 class CoreDynamicClient(DynamicClient):
@@ -127,11 +156,13 @@ class CoreDynamicClient(DynamicClient):
         return super().request(method, path, body=body, **params)
 
 
-@lru_cache(maxsize=64)
+@lru_cache(maxsize=128)
 def get_dynamic_client(access_token: str, project_id: str, cluster_id: str) -> CoreDynamicClient:
     """根据 token、cluster_id 等参数，构建访问 Kubernetes 集群的 Client 对象"""
     config = BcsKubeConfigurationService(access_token, project_id, cluster_id).make_configuration()
-    return CoreDynamicClient(client.ApiClient(config))
+    # TODO 考虑集群可能升级k8s版本的情况, 缓存文件会失效
+    cache_file = os.path.join(tempfile.gettempdir(), f"osrcp-{cluster_id}.json")
+    return CoreDynamicClient(client.ApiClient(config), cache_file=cache_file, discoverer=BcsLazyDiscoverer)
 
 
 def make_labels_string(labels: Dict) -> str:

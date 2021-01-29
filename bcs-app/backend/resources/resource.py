@@ -36,13 +36,13 @@ class ResourceClient:
         else:
             self.api = self.dynamic_client.get_preferred_resource(self.kind)
 
-    def list(self, is_format: bool = True, **kwargs) -> Union[ResourceInstance, List]:
+    def list(self, is_format: bool = True, **kwargs) -> Union[ResourceInstance, List, None]:
         resp = self.api.get_or_none(**kwargs)
         if is_format:
             return self.formatter.format_list(resp)
         return resp
 
-    def get(self, name, is_format: bool = True, **kwargs) -> Union[ResourceInstance, Dict]:
+    def get(self, name, is_format: bool = True, **kwargs) -> Union[ResourceInstance, Dict, None]:
         resp = self.api.get_or_none(name=name, **kwargs)
         if is_format:
             return self.formatter.format(resp)

@@ -13,6 +13,10 @@
 #
 from typing import Optional
 
+from django.utils.translation import ugettext_lazy as _
+
+from backend.utils.error_codes import error_codes
+
 from ..resource import ResourceClient
 from .crd import CustomResourceDefinition
 from .format import CustomObjectFormatter
@@ -28,7 +32,11 @@ class CustomObject(ResourceClient):
         super().__init__(access_token, project_id, cluster_id, api_version)
 
 
-def get_custom_object_api_by_crd(access_token: str, project_id: str, cluster_id: str, crd_name: str) -> CustomObject:
-    crd_api = CustomResourceDefinition(access_token, project_id, cluster_id)
-    crd = crd_api.get(name=crd_name, is_format=False)
-    return CustomObject(access_token, project_id, cluster_id, kind=crd.spec.names.kind)
+def get_custom_object_client_by_crd(
+    access_token: str, project_id: str, cluster_id: str, crd_name: str
+) -> CustomObject:
+    crd_client = CustomResourceDefinition(access_token, project_id, cluster_id)
+    crd = crd_client.get(name=crd_name, is_format=False)
+    if crd:
+        return CustomObject(access_token, project_id, cluster_id, kind=crd.spec.names.kind)
+    raise error_codes.ResNotFoundError(_("集群({})中未注册自定义资源({})").format(cluster_id, crd_name))
