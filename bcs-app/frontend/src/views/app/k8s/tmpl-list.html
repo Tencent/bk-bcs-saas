@@ -928,8 +928,8 @@
                                         :value.sync="rollingUpdateDialogConf.newVersion.instance_num"
                                         :min="1"
                                         :max="1000"
-                                        :hide-operation="!!((rollingUpdateDialogConf.oldVariableList && rollingUpdateDialogConf.oldVariableList.length) || (rollingUpdateDialogConf.newVariableList && rollingUpdateDialogConf.newVariableList.length))"
-                                        :disabled="!!((rollingUpdateDialogConf.oldVariableList && rollingUpdateDialogConf.oldVariableList.length) || (rollingUpdateDialogConf.newVariableList && rollingUpdateDialogConf.newVariableList.length))"
+                                        :hide-operation="true"
+                                        :disabled="true"
                                         :ex-style="{width: '80px'}"
                                         :placeholder="$t('请输入')">
                                     </bk-number-input>
@@ -954,8 +954,8 @@
                                         :value.sync="rollingUpdateDialogConf.newVersion.instance_num"
                                         :min="1"
                                         :max="1000"
-                                        :hide-operation="!!((rollingUpdateDialogConf.oldVariableList && rollingUpdateDialogConf.oldVariableList.length) || (rollingUpdateDialogConf.newVariableList && rollingUpdateDialogConf.newVariableList.length))"
-                                        :disabled="!!((rollingUpdateDialogConf.oldVariableList && rollingUpdateDialogConf.oldVariableList.length) || (rollingUpdateDialogConf.newVariableList && rollingUpdateDialogConf.newVariableList.length))"
+                                        :hide-operation="true"
+                                        :disabled="true"
                                         :ex-style="{width: '80px'}"
                                         :placeholder="$t('请输入')"
                                         @change="instanceNumChange">
