@@ -79,7 +79,11 @@ class Chart(BaseTSModel):
         fields = {}
         fields.update(chart_version_fields)
         fields.update(
-            {"name": self.name, "repository_id": self.repository.id, "icon": self.icon,}
+            {
+                "name": self.name,
+                "repository_id": self.repository.id,
+                "icon": self.icon,
+            }
         )
         return fields
 
@@ -246,7 +250,9 @@ class ChartVersion(BaseChartVersion):
 
     @classmethod
     def update_or_create_version(cls, chart: Chart, version: Dict) -> Tuple["ChartVersion", bool]:
-        chart_version, created = cls.objects.update_or_create(chart=chart, version=version.get("version"))
+        chart_version, created = cls.objects.update_or_create(
+            chart=chart, version=version.get("version"), created=normalize_time(version.get("created"))
+        )
         chart_version.update_from_import_version(chart, version)
         return chart_version, created
 
@@ -406,7 +412,10 @@ class ChartRelease(BaseTSModel):
         resources = parser.parse(self.content, namespace).values()
         for resource in resources:
             structure.append(
-                {"name": resource.name.split("/")[-1], "kind": resource.kind,}
+                {
+                    "name": resource.name.split("/")[-1],
+                    "kind": resource.kind,
+                }
             )
         self.structure = structure
         self.save(update_fields=["structure"])
