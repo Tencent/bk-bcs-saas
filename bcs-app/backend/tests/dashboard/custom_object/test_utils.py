@@ -56,8 +56,8 @@ no_additional_printer_columns = {
         }
     ],
     "table_format": {
-        "th_list": ["name", "namespace", "AGE"],
-        "td_list": [{"name": "example-foo", "namespace": "default", "AGE": "2h1m"}],
+        "th_list": ["name", "cluster_id", "namespace", "AGE"],
+        "td_list": [{"name": "example-foo", "cluster_id": "", "namespace": "default", "AGE": "2h1m"}],
     },
 }
 
@@ -136,9 +136,16 @@ with_additional_printer_columns = {
         },
     ],
     "table_format": {
-        'th_list': ["name", "namespace", "DESIRED", "UPDATED", "AGE"],
+        'th_list': ["name", "cluster_id", "namespace", "DESIRED", "UPDATED", "AGE"],
         'td_list': [
-            {"name": "test-gamedeployment", "namespace": "default", "DESIRED": 2, "UPDATED": 2, "AGE": "2h1m"}
+            {
+                "name": "test-gamedeployment",
+                "cluster_id": "",
+                "namespace": "default",
+                "DESIRED": 2,
+                "UPDATED": 2,
+                "AGE": "2h1m",
+            }
         ],
     },
 }
