@@ -49,7 +49,7 @@ class CustomObjectViewSet(viewsets.ViewSet):
 
         cobj_client = get_cobj_client_by_crd(cluster_auth, crd_name)
         cobj_list = cobj_client.list(namespace=request.query_params.get("namespace"))
-        return Response(to_table_format(crd.to_dict(), cobj_list))
+        return Response(to_table_format(crd.to_dict(), cobj_list, cluster_id=cluster_id))
 
     def get_custom_object(self, request, project_id, cluster_id, crd_name, name):
         cobj_client = get_cobj_client_by_crd(
