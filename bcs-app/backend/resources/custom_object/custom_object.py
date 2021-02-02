@@ -13,7 +13,12 @@
 #
 from typing import Optional
 
+from django.utils.translation import ugettext_lazy as _
+
+from backend.utils.error_codes import error_codes
+
 from ..resource import ResourceClient
+from ..utils.auths import ClusterAuth
 from .crd import CustomResourceDefinition
 from .format import CustomObjectFormatter
 
@@ -21,14 +26,14 @@ from .format import CustomObjectFormatter
 class CustomObject(ResourceClient):
     formatter = CustomObjectFormatter()
 
-    def __init__(
-        self, access_token: str, project_id: str, cluster_id: str, kind: str, api_version: Optional[str] = None
-    ):
+    def __init__(self, cluster_auth: ClusterAuth, kind: str, api_version: Optional[str] = None):
         self.kind = kind
-        super().__init__(access_token, project_id, cluster_id, api_version)
+        super().__init__(cluster_auth, api_version)
 
 
-def get_custom_object_api_by_crd(access_token: str, project_id: str, cluster_id: str, crd_name: str) -> CustomObject:
-    crd_api = CustomResourceDefinition(access_token, project_id, cluster_id)
-    crd = crd_api.get(name=crd_name, is_format=False)
-    return CustomObject(access_token, project_id, cluster_id, kind=crd.spec.names.kind)
+def get_cobj_client_by_crd(cluster_auth: ClusterAuth, crd_name: str) -> CustomObject:
+    crd_client = CustomResourceDefinition(cluster_auth)
+    crd = crd_client.get(name=crd_name, is_format=False)
+    if crd:
+        return CustomObject(cluster_auth, kind=crd.spec.names.kind)
+    raise error_codes.ResNotFoundError(_("集群({})中未注册自定义资源({})").format(cluster_auth.cluster_id, crd_name))
