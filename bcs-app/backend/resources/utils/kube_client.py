@@ -11,57 +11,19 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-import json
 import logging
-from functools import lru_cache, partial
+from functools import lru_cache
 from typing import Any, Dict, Optional, Tuple
 
-from kubernetes import __version__, client
+from kubernetes import client
 from kubernetes.client.exceptions import ApiException
 from kubernetes.dynamic import DynamicClient, Resource, ResourceInstance
-from kubernetes.dynamic.discovery import CacheDecoder, CacheEncoder, LazyDiscoverer
 from kubernetes.dynamic.exceptions import ResourceNotUniqueError
 
-from backend.resources.client import BcsKubeConfigurationService
-from backend.utils.cache import rd_client
+from ..client import BcsKubeConfigurationService
+from .discovery import BcsLazyDiscoverer, DiscovererCache
 
 logger = logging.getLogger(__name__)
-
-
-class BcsLazyDiscoverer(LazyDiscoverer):
-    """
-    - override Discoverer 中的 __init_cache 方法，修复 'CacheDecoder' object is not callable
-    - 用redis替代文件缓存
-    """
-
-    def _Discoverer__init_cache(self, refresh=False):
-        cache_key = self._Discoverer__cache_file
-
-        if refresh or not rd_client.exists(cache_key):
-            self._cache = {'library_version': __version__}
-            refresh = True
-        else:
-            try:
-                self._cache = json.loads(rd_client.get(cache_key), cls=partial(CacheDecoder, self.client))
-                if self._cache.get('library_version') != __version__:
-                    # Version mismatch, need to refresh cache
-                    self.invalidate_cache()
-            except Exception as e:
-                logging.error("load cache error: %s", e)
-                self.invalidate_cache()
-        self._load_server_info()
-        self.discover()
-        if refresh:
-            self._write_cache()
-
-    def _write_cache(self):
-        try:
-            cache_key = self._Discoverer__cache_file
-            cache_content = json.dumps(self._cache, cls=CacheEncoder)
-            rd_client.set(cache_key, cache_content)
-        except Exception as e:
-            # Failing to write the cache isn't a big enough error to crash on
-            logging.error("write cache error: %s", e)
 
 
 class CoreDynamicClient(DynamicClient):
@@ -171,8 +133,8 @@ def get_dynamic_client(access_token: str, project_id: str, cluster_id: str) -> C
     """根据 token、cluster_id 等参数，构建访问 Kubernetes 集群的 Client 对象"""
     config = BcsKubeConfigurationService(access_token, project_id, cluster_id).make_configuration()
     # TODO 考虑集群可能升级k8s版本的情况, 缓存文件会失效
-    cache_key = f"osrcp-{cluster_id}.json"
-    return CoreDynamicClient(client.ApiClient(config), cache_file=cache_key, discoverer=BcsLazyDiscoverer)
+    discoverer_cache = DiscovererCache(cache_key=f"osrcp-{cluster_id}.json")
+    return CoreDynamicClient(client.ApiClient(config), cache_file=discoverer_cache, discoverer=BcsLazyDiscoverer)
 
 
 def make_labels_string(labels: Dict) -> str:

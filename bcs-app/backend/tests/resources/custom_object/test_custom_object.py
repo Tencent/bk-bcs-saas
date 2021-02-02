@@ -16,7 +16,8 @@ import pytest
 
 from backend.resources.constants import PatchType
 from backend.resources.custom_object.crd import CustomResourceDefinition
-from backend.resources.custom_object.custom_object import get_custom_object_client_by_crd
+from backend.resources.custom_object.custom_object import get_cobj_client_by_crd
+from backend.resources.utils.auths import ClusterAuth
 from backend.utils.basic import getitems
 
 from ..conftest import FakeBcsKubeConfigurationService
@@ -58,7 +59,9 @@ class TestCRDAndCustomObject:
 
     @pytest.fixture
     def crd_client(self, project_id, cluster_id):
-        return CustomResourceDefinition('token', project_id, cluster_id, api_version=sample_crd["apiVersion"])
+        return CustomResourceDefinition(
+            ClusterAuth('token', project_id, cluster_id), api_version=sample_crd["apiVersion"]
+        )
 
     @pytest.fixture
     def update_or_create_crd(self, crd_client):
@@ -68,8 +71,8 @@ class TestCRDAndCustomObject:
 
     @pytest.fixture
     def cobj_client(self, project_id, cluster_id):
-        return get_custom_object_client_by_crd(
-            'token', project_id, cluster_id, crd_name=getitems(sample_crd, "metadata.name")
+        return get_cobj_client_by_crd(
+            ClusterAuth('token', project_id, cluster_id), crd_name=getitems(sample_crd, "metadata.name")
         )
 
     @pytest.fixture
