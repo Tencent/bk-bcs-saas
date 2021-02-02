@@ -49,8 +49,8 @@ class TestGetAgentStatus:
     )
     def test_get_agent_status(self):
         host_list = [
-            host.HostData(inner_ip="127.0.0.1", bk_cloud_id=[host.BKCloudInfo(id=0)]),
-            host.HostData(inner_ip="127.0.0.2,127.0.0.3", bk_cloud_id=[host.BKCloudInfo(id=0)]),
+            host.HostData(inner_ip="127.0.0.1", bk_cloud_id_list=[host.BKCloudInfo(id=0)]),
+            host.HostData(inner_ip="127.0.0.2,127.0.0.3", bk_cloud_id_list=[host.BKCloudInfo(id=0)]),
         ]
         agent_data = host.get_agent_status("admin", host_list)
         # 因为有一个主机两个网卡: 127.0.0.2, 127.0.0.3

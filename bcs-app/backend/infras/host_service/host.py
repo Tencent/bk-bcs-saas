@@ -40,7 +40,7 @@ class BKCloudInfo:
 @dataclass
 class HostData:
     inner_ip: str
-    bk_cloud_id: List[BKCloudInfo] = field(default_factory=list)
+    bk_cloud_id_list: List[BKCloudInfo] = field(default_factory=list)
 
     @property
     def inner_ip_list(self):
@@ -70,7 +70,7 @@ def get_agent_status(username: str, host_list: List[HostData]) -> List[Dict]:
     hosts = []
     for info in host_list:
         # 查询所属区域云区域
-        plat_info = info.bk_cloud_id
+        plat_info = info.bk_cloud_id_list
         plat_id = plat_info[0].id if plat_info else 0
         hosts.extend([{"plat_id": plat_id, "bk_cloud_id": plat_id, "ip": ip} for ip in info.inner_ip.split(",")])
     # 处理返回数据
