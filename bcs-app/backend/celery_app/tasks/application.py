@@ -215,24 +215,24 @@ def update_create_error_record(id_list):
     VersionInstance.objects.filter(id__in=version_instance_id_list).update(is_bcs_success=True)
 
 
-class MesosRebuildAppTaskStatus(BasePollerTaskStatus):
-    """Mesos应用的重建操作
-    NOTE: mesos的重建操作流程是，先删除资源，轮训资源删除后，再进行资源下发
-    """
+class MesosDeleteAppStatusPoller(BasePollerTaskStatus):
+    """Mesos删除应用后，轮训删除资源的状态"""
 
     default_retry_delay_seconds = 5
     overall_timeout_seconds = 3600 * 24 * 2  # 超时时间设置为2天
 
-    def query_status(self):
-        # 查询mesos deployment或application对应的状态
+    def query_app_status(self):
         params = self.params
         mesos_client = mesos.MesosClient(params["access_token"], params["project_id"], params["cluster_id"], None)
         name, namespace = params["name"], params["namespace"]
         search_field = "data.status"
-        if self.params["kind"] == "application":
-            resp = mesos_client.get_mesos_app_instances(app_name=name, field=search_field, namespace=namespace)
-        else:
-            resp = mesos_client.get_deployment(name=name, field=search_field, namespace=namespace)
+        if params["kind"] == "application":
+            return mesos_client.get_mesos_app_instances(app_name=name, field=search_field, namespace=namespace)
+        return mesos_client.get_deployment(name=name, field=search_field, namespace=namespace)
+
+    def query_status(self):
+        # 查询mesos deployment或application对应的状态
+        resp = self._query_status()
         # 当查询不到时，认为已经删除，轮训结束
         status = PRS.DOING.value
         if resp.get("code") == ErrorCode.NoError and not resp.get("data"):
@@ -242,6 +242,30 @@ class MesosRebuildAppTaskStatus(BasePollerTaskStatus):
 
 
 class MesosCreateAppHandler(BaseResultHandler):
+    def final_result_handler(self, poll_result: PollResult) -> bool:
+        # 非正常结束轮训，直接返回
+        if poll_result.code != FinalState.FINISHED.value:
+            return False
+        # mesos需要从db中获取执行app的配置记录
+        params = self.params
+        instance_id = str(params["instance_id"])
+        from_platform = self._from_platform(instance_id)
+        # 获取资源的配置信息
+        manifest = self.get_manifest(instance_id, from_platform, manifest=params["manifest"])
+        # 下发配置
+        resp = self.create_app(
+            params["access_token"],
+            params["project_id"],
+            params["cluster_id"],
+            params["namespace"],
+            manifest,
+            params["kind"],
+        )
+        # 处理创建资源的状态
+        status, is_bcs_success = self.get_status(resp.get("code"))
+        self.update_db_record(instance_id, from_platform, status, is_bcs_success)
+        return True
+
     def create_app(
         self, access_token: str, project_id: str, cluster_id: str, namespace: str, manifest: dict, kind: str
     ) -> Dict:
@@ -281,27 +305,3 @@ class MesosCreateAppHandler(BaseResultHandler):
         InstanceConfig.objects.filter(id=instance_id).update(
             oper_type="rebuild", status=status, is_bcs_success=is_bcs_success
         )
-
-    def final_result_handler(self, poll_result: PollResult) -> bool:
-        # 非正常结束轮训，直接返回
-        if poll_result.code != FinalState.FINISHED.value:
-            return False
-        # mesos需要从db中获取执行app的配置记录
-        params = self.params
-        instance_id = str(params["instance_id"])
-        from_platform = self._from_platform(instance_id)
-        # 获取资源的配置信息
-        manifest = self.get_manifest(instance_id, from_platform, manifest=params["manifest"])
-        # 下发配置
-        resp = self.create_app(
-            params["access_token"],
-            params["project_id"],
-            params["cluster_id"],
-            params["namespace"],
-            manifest,
-            params["kind"],
-        )
-        # 处理创建资源的状态
-        status, is_bcs_success = self.get_status(resp.get("code"))
-        self.update_db_record(instance_id, from_platform, status, is_bcs_success)
-        return True
