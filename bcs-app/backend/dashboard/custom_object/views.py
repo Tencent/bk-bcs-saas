@@ -38,11 +38,7 @@ class CustomObjectViewSet(viewsets.ViewSet):
 
     def list_custom_objects(self, request, project_id, cluster_id, crd_name):
         cluster_auth = ClusterAuth(request.user.token.access_token, project_id, cluster_id)
-        # 指定api_version是因为当前to_table_format解析的是apiextensions.k8s.io/v1beta1版本的结构
-        crd_client = CustomResourceDefinition(
-            cluster_auth,
-            api_version="apiextensions.k8s.io/v1beta1",
-        )
+        crd_client = CustomResourceDefinition(cluster_auth)
         crd = crd_client.get(name=crd_name, is_format=False)
         if not crd:
             raise error_codes.ResNotFoundError(_("集群({})中未注册自定义资源({})").format(cluster_id, crd_name))
