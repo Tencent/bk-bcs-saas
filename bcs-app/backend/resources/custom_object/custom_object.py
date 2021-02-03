@@ -45,6 +45,5 @@ def get_cobj_client_by_crd(cluster_auth: ClusterAuth, crd_name: str) -> CustomOb
     crd = crd_client.get(name=crd_name, is_format=False)
     if crd:
         # https://kubernetes.io/docs/tasks/extend-kubernetes/custom-resources/custom-resource-definition-versioning/#specify-multiple-versions
-        api_version = _get_cobj_api_version(crd)
-        return CustomObject(cluster_auth, kind=crd.spec.names.kind, api_version=api_version)
+        return CustomObject(cluster_auth, kind=crd.spec.names.kind, api_version=_get_cobj_api_version(crd))
     raise error_codes.ResNotFoundError(_("集群({})中未注册自定义资源({})").format(cluster_auth.cluster_id, crd_name))
