@@ -34,11 +34,19 @@ class CustomObject(ResourceClient):
 
 def _get_cobj_api_version(crd: ResourceInstance) -> str:
     # https://kubernetes.io/docs/tasks/extend-kubernetes/custom-resources/custom-resource-definition-versioning/#specify-multiple-versions
+    group = crd.spec.group
     versions = crd.spec.versions
-    for v in versions:
-        if v.served:
-            return f"{crd.spec.group}/{v.name}"
-    return f"{crd.spec.group}/{versions[0].name}"
+
+    if versions:
+        for v in versions:
+            if v.served:
+                return f"{group}/{v.name}"
+        return f"{group}/{versions[0].name}"
+
+    if crd.spec.version:
+        return f"{group}/{crd.spec.version}"
+
+    return f"{group}/v1alpha1"
 
 
 def get_cobj_client_by_crd(cluster_auth: ClusterAuth, crd_name: str) -> CustomObject:
