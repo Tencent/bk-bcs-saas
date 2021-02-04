@@ -140,7 +140,7 @@
     }
 
     .bk-button, .bk-text-button {
-        vertical-align: middle;
+        /* vertical-align: middle; */
     }
 }
 
@@ -199,7 +199,7 @@
 
 .bk-form .bk-label {
     font-weight: bold;
-    color: #fontColor;
+    color: $fontColor;
     padding-right: 20px;
 }
 
