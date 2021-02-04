@@ -14,6 +14,7 @@
 from rest_framework.permissions import BasePermission
 
 from backend.apps.constants import SKIP_REQUEST_NAMESPACE, ClusterType
+from backend.apps.whitelist_bk import is_bcs_administrator
 from backend.components import paas_cc
 from backend.components.iam import permissions
 from backend.utils import FancyDict
@@ -27,6 +28,9 @@ class HasProject(BasePermission):
         if not project_id:
             return True
 
+        if is_bcs_administrator(request.user.username):
+            return True
+
         user_id = request.user.username
         perm = permissions.ProjectPermission()
         return perm.can_view(user_id, project_id)
@@ -36,6 +40,9 @@ class HasIAMProject(BasePermission):
     def has_permission(self, request, view):
         project_id = view.kwargs.get("project_id")
         if not project_id:
+            return True
+
+        if is_bcs_administrator(request.user.username):
             return True
 
         access_token = request.user.token.access_token
