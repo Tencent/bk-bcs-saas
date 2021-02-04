@@ -28,7 +28,7 @@ class HasProject(BasePermission):
         if not project_id:
             return True
 
-        if is_bcs_administrator(request.user.username):
+        if request.user.is_superuser:
             return True
 
         user_id = request.user.username
@@ -42,7 +42,7 @@ class HasIAMProject(BasePermission):
         if not project_id:
             return True
 
-        if is_bcs_administrator(request.user.username):
+        if request.user.is_superuser:
             return True
 
         access_token = request.user.token.access_token

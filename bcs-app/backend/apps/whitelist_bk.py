@@ -37,9 +37,3 @@ def enable_helm_v3(cluster_id: str) -> bool:
 def enable_incremental_sync_chart_repo(project_id: str) -> bool:
     """是否开启增量同步仓库数据"""
     return False
-
-
-def is_bcs_administrator(username: str) -> bool:
-    """是否允许进入 BCS 白名单"""
-
-    return False
