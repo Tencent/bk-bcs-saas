@@ -15,6 +15,7 @@ from typing import Optional
 
 from ..resource import ResourceClient
 from ..utils.auths import ClusterAuth
+from .constants import PREFERRED_CRD_API_VERSION
 from .format import CRDFormatter
 
 
@@ -22,5 +23,5 @@ class CustomResourceDefinition(ResourceClient):
     kind = "CustomResourceDefinition"
     formatter = CRDFormatter()
 
-    def __init__(self, cluster_auth: ClusterAuth, api_version: Optional[str] = "apiextensions.k8s.io/v1beta1"):
+    def __init__(self, cluster_auth: ClusterAuth, api_version: Optional[str] = PREFERRED_CRD_API_VERSION):
         super().__init__(cluster_auth, api_version)
