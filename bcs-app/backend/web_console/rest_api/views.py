@@ -21,6 +21,7 @@ from rest_framework.renderers import BrowsableAPIRenderer
 
 from backend.accounts import bcs_perm
 from backend.apps.constants import ProjectKind
+from backend.apps.whitelist_bk import is_bcs_administrator
 from backend.components import paas_auth, paas_cc
 from backend.components.bcs.k8s import K8SClient
 from backend.components.bcs.mesos import MesosClient
@@ -159,7 +160,7 @@ class WebConsoleSession(views.APIView):
         self.cluster_name = cluster_data.get("name", "")[:32]
 
         # 检查白名单, 不在名单中再通过权限中心校验
-        if not utils.allowed_login_web_console(request.user.username):
+        if not is_bcs_administrator(request.user.username):
             perm = bcs_perm.Cluster(request, project_id, cluster_id)
             try:
                 perm.can_use(raise_exception=True)
