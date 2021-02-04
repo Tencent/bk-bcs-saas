@@ -158,7 +158,8 @@ def _update_default_chart_version(chart, full_chart_versions):
         return
     # 以created逆序
     all_versions = list(full_chart_versions.values())
-    all_versions.sort(key=lambda info: info.created, reverse=True)
+    # 防止出现string和datatime的格式时间对比，统一为字符串
+    all_versions.sort(key=lambda info: str(info.created), reverse=True)
 
     # 如果latest_chart_version和先前的版本一致，则无需更新
     latest_chart_version = all_versions[0]
