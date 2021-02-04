@@ -66,7 +66,7 @@
                                                 <input type="checkbox" name="check-variable" v-model="variable.isChecked" @click="rowClick(variable)" :disabled="variable.category === 'sys'">
                                             </label>
                                         </td>
-                                        <td class="biz-table-title">
+                                        <td>
                                             {{variable.name}}
                                         </td>
                                         <td>

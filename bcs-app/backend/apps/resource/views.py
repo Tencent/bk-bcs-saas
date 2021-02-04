@@ -17,56 +17,73 @@
 import base64
 import copy
 import datetime
-import re
-import logging
 import json
-from rest_framework.response import Response
-from rest_framework.exceptions import ValidationError
-from rest_framework import viewsets
+import logging
+import re
+
 from django.utils.translation import ugettext_lazy as _
+from rest_framework import viewsets
+from rest_framework.exceptions import ValidationError
+from rest_framework.response import Response
 
 from backend.accounts import bcs_perm
-from backend.utils.errcodes import ErrorCode
-from backend.utils.error_codes import error_codes
-from backend.apps.application.utils import APIResponse
-from backend.apps.application.base_views import BaseAPI
-from backend.apps.instance.models import InstanceConfig
-from backend.components import paas_cc
-from backend.components.bcs import k8s, mesos
-from backend.apps import constants
-from backend.apps.application.constants import DELETE_INSTANCE
 from backend.activity_log import client as activity_client
-from backend.apps.instance.generator import GENERATOR_DICT
-from backend.apps.instance.funutils import update_nested_dict, render_mako_context
-from backend.apps.instance.drivers import get_scheduler_driver
-from backend.apps.instance.constants import (ANNOTATIONS_UPDATE_TIME, ANNOTATIONS_UPDATOR,
-                                             K8S_CONFIGMAP_SYS_CONFIG, CONFIGMAP_SYS_CONFIG, SECRET_SYS_CONFIG,
-                                             K8S_SECRET_SYS_CONFIG, LABLE_TEMPLATE_ID, LABLE_INSTANCE_ID,
-                                             K8S_IMAGE_SECRET_PRFIX, ANNOTATIONS_CREATOR, SOURCE_TYPE_LABEL_KEY,
-                                             MESOS_IMAGE_SECRET)
-from backend.apps.configuration.serializers import (ConfigMapCreateOrUpdateSLZ, SecretCreateOrUpdateSLZ,
-                                                    K8sConfigMapCreateOrUpdateSLZ, K8sSecretCreateOrUpdateSLZ)
-from backend.apps.configuration.models import Template
-from backend.apps.network.serializers import BatchResourceSLZ
-from backend.apps.application.constants import SOURCE_TYPE_MAP
-from backend.utils.renderers import BKAPIRenderer
-from backend.utils.basic import getitems
+from backend.apps import constants
 from backend.apps import utils as app_utils
+from backend.apps.application.base_views import BaseAPI
+from backend.apps.application.constants import DELETE_INSTANCE, SOURCE_TYPE_MAP
+from backend.apps.application.utils import APIResponse
+from backend.apps.configuration.constants import MesosResourceName
+from backend.apps.configuration.models import Template
+from backend.apps.configuration.serializers import (
+    ConfigMapCreateOrUpdateSLZ,
+    K8sConfigMapCreateOrUpdateSLZ,
+    K8sSecretCreateOrUpdateSLZ,
+    SecretCreateOrUpdateSLZ,
+)
 from backend.apps.constants import ProjectKind
 from backend.apps.instance import constants as inst_constants
-from backend.apps.configuration.constants import MesosResourceName
-from backend.resources.namespace.constants import K8S_SYS_NAMESPACE, K8S_PLAT_NAMESPACE
+from backend.apps.instance.constants import (
+    ANNOTATIONS_CREATOR,
+    ANNOTATIONS_UPDATE_TIME,
+    ANNOTATIONS_UPDATOR,
+    CONFIGMAP_SYS_CONFIG,
+    K8S_CONFIGMAP_SYS_CONFIG,
+    K8S_IMAGE_SECRET_PRFIX,
+    K8S_SECRET_SYS_CONFIG,
+    LABLE_INSTANCE_ID,
+    LABLE_TEMPLATE_ID,
+    MESOS_IMAGE_SECRET,
+    SECRET_SYS_CONFIG,
+    SOURCE_TYPE_LABEL_KEY,
+)
+from backend.apps.instance.drivers import get_scheduler_driver
+from backend.apps.instance.funutils import render_mako_context, update_nested_dict
+from backend.apps.instance.generator import GENERATOR_DICT
+from backend.apps.instance.models import InstanceConfig
+from backend.apps.network.serializers import BatchResourceSLZ
+from backend.components import paas_cc
+from backend.components.bcs import k8s, mesos
+from backend.resources.namespace.constants import K8S_PLAT_NAMESPACE, K8S_SYS_NAMESPACE
+from backend.utils.basic import getitems
+from backend.utils.errcodes import ErrorCode
+from backend.utils.error_codes import error_codes
+from backend.utils.renderers import BKAPIRenderer
 
 logger = logging.getLogger(__name__)
 DEFAULT_ERROR_CODE = ErrorCode.UnknownError
-DEFAULT_SEARCH_FIELDS = ["data.metadata.labels", "data.metadata.annotations",
-                         "createTime", "namespace", "resourceName"]
+DEFAULT_SEARCH_FIELDS = [
+    "data.metadata.labels",
+    "data.metadata.annotations",
+    "createTime",
+    "namespace",
+    "resourceName",
+]
 RE_COMPILE = re.compile(r'[^T.]+')
 MESOS_VALUE = ProjectKind.MESOS.value
 
 
 class ConfigMapBase:
-
     def k8s_configmaps(self, access_token, project_id, cluster_id, fields):
         client = k8s.K8SClient(access_token, project_id, cluster_id, env=None)
         return client.get_configmap(fields)
@@ -76,15 +93,12 @@ class ConfigMapBase:
         return client.get_configmaps(fields)
 
     def get_configmaps(self, request, project_id, cluster, project_kind):
-        """get configmap from project and cluster
-        """
+        """get configmap from project and cluster"""
         fields = ','.join(['namespace', 'resorceName'])
-        k8s_mesos_map = {
-            1: self.k8s_configmaps,
-            2: self.mesos_configmaps
-        }
+        k8s_mesos_map = {1: self.k8s_configmaps, 2: self.mesos_configmaps}
         configmap_resp = k8s_mesos_map[project_kind](
-            request.user.token.access_token, project_id, cluster['cluster_id'], fields)
+            request.user.token.access_token, project_id, cluster['cluster_id'], fields
+        )
         if configmap_resp.get('code') != ErrorCode.NoError:
             logger.error('request bcs api error, %s' % configmap_resp.get('message'))
             return []
@@ -94,7 +108,7 @@ class ConfigMapBase:
                 'name': info['resourceName'],
                 'namespace': info['namespace'],
                 'cluster_id': cluster['cluster_id'],
-                'cluster_name': cluster['name']
+                'cluster_name': cluster['name'],
             }
             for info in data
             if info['namespace'] not in K8S_SYS_NAMESPACE
@@ -117,8 +131,7 @@ class ResourceOperate(object):
         access_token = request.user.token.access_token
 
         if project_kind == MESOS_VALUE:
-            client = mesos.MesosClient(
-                access_token, project_id, cluster_id, env=None)
+            client = mesos.MesosClient(access_token, project_id, cluster_id, env=None)
             curr_func = getattr(client, "delete_%s" % self.category)
             resp = curr_func(namespace, name)
             s_cate = self.mesos_cate
@@ -128,8 +141,7 @@ class ResourceOperate(object):
                     "code": 400,
                     "message": _("不允许操作系统命名空间[{}]").format(','.join(K8S_SYS_NAMESPACE)),
                 }
-            client = k8s.K8SClient(
-                access_token, project_id, cluster_id, env=None)
+            client = k8s.K8SClient(access_token, project_id, cluster_id, env=None)
             curr_func = getattr(client, "delete_%s" % self.category)
             resp = curr_func(namespace, name)
             s_cate = self.k8s_cate
@@ -137,18 +149,14 @@ class ResourceOperate(object):
         if resp.get("code") == ErrorCode.NoError:
             # 删除成功则更新状态
             now_time = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-            InstanceConfig.objects.filter(
-                namespace=namespace_id,
-                category=s_cate,
-                name=name,
-            ).update(
+            InstanceConfig.objects.filter(namespace=namespace_id, category=s_cate, name=name,).update(
                 creator=username,
                 updator=username,
                 oper_type=DELETE_INSTANCE,
                 updated=now_time,
                 deleted_time=now_time,
                 is_deleted=True,
-                is_bcs_success=True
+                is_bcs_success=True,
             )
         return {
             "code": resp.get("code"),
@@ -161,11 +169,13 @@ class ResourceOperate(object):
 
         # 检查用户是否有命名空间的使用权限
         namespace_id = app_utils.get_namespace_id(
-            request.user.token.access_token, project_id, (cluster_id, namespace), cluster_id=cluster_id)
+            request.user.token.access_token, project_id, (cluster_id, namespace), cluster_id=cluster_id
+        )
         app_utils.can_use_namespace(request, project_id, namespace_id)
 
-        resp = self.delete_single_resource(request, project_id, project_kind,
-                                           cluster_id, namespace, namespace_id, name)
+        resp = self.delete_single_resource(
+            request, project_id, project_kind, cluster_id, namespace, namespace_id, name
+        )
         # 添加操作审计
         activity_client.ContextActivityLogClient(
             project_id=project_id,
@@ -175,7 +185,8 @@ class ResourceOperate(object):
             resource_id=0,
             extra=json.dumps({}),
             description=self.desc.format(
-                cluster_id=cluster_id, namespace=namespace, resource_name=self.category, name=name)
+                cluster_id=cluster_id, namespace=namespace, resource_name=self.category, name=name
+            ),
         ).log_modify(activity_status="succeed" if resp.get("code") == ErrorCode.NoError else "failed")
 
         # 已经删除的，需要将错误信息翻译一下
@@ -183,15 +194,10 @@ class ResourceOperate(object):
         is_delete_before = True if 'node does not exist' in message or 'not found' in message else False
         if is_delete_before:
             message = _("{}[命名空间:{}]已经被删除，请手动刷新数据").format(name, namespace)
-        return Response({
-            "code": resp.get("code"),
-            "message": message,
-            "data": {}
-        })
+        return Response({"code": resp.get("code"), "message": message, "data": {}})
 
     def batch_delete_resource(self, request, project_id):
-        """批量删除资源
-        """
+        """批量删除资源"""
         username = request.user.username
         project_kind = request.project.kind
 
@@ -216,26 +222,33 @@ class ResourceOperate(object):
             namespace = _d.get('namespace')
             namespace_id = namespace_dict.get((cluster_id, namespace))
             # 删除service
-            resp = self.delete_single_resource(request, project_id, project_kind,
-                                               cluster_id, namespace, namespace_id, name)
+            resp = self.delete_single_resource(
+                request, project_id, project_kind, cluster_id, namespace, namespace_id, name
+            )
             # 处理已经删除，但是storage上报数据延迟的问题
             message = resp.get('message', '')
             is_delete_before = True if 'node does not exist' in message or 'not found' in message else False
             if resp.get("code") == ErrorCode.NoError:
-                success_list.append({
-                    'name': name,
-                    'desc': self.desc.format(
-                        cluster_id=cluster_id, namespace=namespace, resource_name=self.category, name=name)
-                })
+                success_list.append(
+                    {
+                        'name': name,
+                        'desc': self.desc.format(
+                            cluster_id=cluster_id, namespace=namespace, resource_name=self.category, name=name
+                        ),
+                    }
+                )
             else:
                 if is_delete_before:
                     message = _('已经被删除，请手动刷新数据')
                 desc = self.desc.format(
-                    cluster_id=cluster_id, namespace=namespace, resource_name=self.category, name=name)
-                failed_list.append({
-                    'name': name,
-                    'desc': f'{desc}, message: {message}',
-                })
+                    cluster_id=cluster_id, namespace=namespace, resource_name=self.category, name=name
+                )
+                failed_list.append(
+                    {
+                        'name': name,
+                        'desc': f'{desc}, message: {message}',
+                    }
+                )
         code = 0
         message = ''
         # 添加操作审计
@@ -250,7 +263,7 @@ class ResourceOperate(object):
                 resource=';'.join(name_list),
                 resource_id=0,
                 extra=json.dumps({}),
-                description=";".join(desc_list)
+                description=";".join(desc_list),
             ).log_modify(activity_status="succeed")
 
         if failed_list:
@@ -266,18 +279,13 @@ class ResourceOperate(object):
                 resource=';'.join(name_list),
                 resource_id=0,
                 extra=json.dumps({}),
-                description=message
+                description=message,
             ).log_modify(activity_status="failed")
 
-        return Response({
-            "code": code,
-            "message": message,
-            "data": {}
-        })
+        return Response({"code": code, "message": message, "data": {}})
 
     def update_resource(self, request, project_id, cluster_id, namespace, name):
-        """更新
-        """
+        """更新"""
         access_token = request.user.token.access_token
         project_kind = request.project.kind
 
@@ -288,11 +296,9 @@ class ResourceOperate(object):
             s_cate = self.mesos_cate
         else:
             if namespace in K8S_SYS_NAMESPACE:
-                return Response({
-                    "code": 400,
-                    "message": _("不允许操作系统命名空间[{}]").format(','.join(K8S_SYS_NAMESPACE)),
-                    "data": {}
-                })
+                return Response(
+                    {"code": 400, "message": _("不允许操作系统命名空间[{}]").format(','.join(K8S_SYS_NAMESPACE)), "data": {}}
+                )
             # k8s 相关数据
             slz_class = self.k8s_slz
             s_sys_con = self.k8s_sys_config
@@ -317,22 +323,20 @@ class ResourceOperate(object):
         perm.can_use(raise_exception=True)
 
         # 对配置文件做处理
-        gparams = {
-            "access_token": access_token,
-            "project_id": project_id,
-            "username": username
-        }
+        gparams = {"access_token": access_token, "project_id": project_id, "username": username}
         generator = GENERATOR_DICT.get(s_cate)(0, namespace_id, **gparams)
         config = generator.handle_db_config(db_config=config)
         # 获取上下文信息
         context = generator.context
         now_time = context.get('SYS_UPDATE_TIME')
         instance_id = data.get('instance_id', 0)
-        context.update({
-            'SYS_CREATOR': data.get('creator', ''),
-            'SYS_CREATE_TIME': data.get('create_time', ''),
-            'SYS_INSTANCE_ID': instance_id
-        })
+        context.update(
+            {
+                'SYS_CREATOR': data.get('creator', ''),
+                'SYS_CREATE_TIME': data.get('create_time', ''),
+                'SYS_INSTANCE_ID': instance_id,
+            }
+        )
 
         # 生成配置文件
         sys_config = copy.deepcopy(s_sys_con)
@@ -341,18 +345,13 @@ class ResourceOperate(object):
         try:
             config_profile = render_mako_context(resource_config, context)
         except Exception:
-            logger.exception(u"配置文件变量替换出错\nconfig:%s\ncontext:%s" %
-                             (resource_config, context))
+            logger.exception(u"配置文件变量替换出错\nconfig:%s\ncontext:%s" % (resource_config, context))
             raise ValidationError(_("配置文件中有未替换的变量"))
 
         config_profile = generator.format_config_profile(config_profile)
 
         service_name = config.get('metadata', {}).get('name')
-        _config_content = {
-            'name': service_name,
-            'config': json.loads(config_profile),
-            'context': context
-        }
+        _config_content = {'name': service_name, 'config': json.loads(config_profile), 'context': context}
 
         # 更新db中的数据
         config_objs = InstanceConfig.objects.filter(
@@ -380,17 +379,12 @@ class ResourceOperate(object):
                 updator=username,
                 oper_type='update',
                 updated=now_time,
-                is_deleted=False
+                is_deleted=False,
             )
         _config_content['instance_config_id'] = _instance_config.id
-        configuration = {
-            namespace_id: {
-                s_cate: [_config_content]
-            }
-        }
+        configuration = {namespace_id: {s_cate: [_config_content]}}
 
-        driver = get_scheduler_driver(
-            access_token, project_id, configuration, request.project.kind)
+        driver = get_scheduler_driver(access_token, project_id, configuration, request.project.kind)
         result = driver.instantiation(is_update=True)
 
         failed = []
@@ -404,33 +398,39 @@ class ResourceOperate(object):
             resource=service_name,
             resource_id=_instance_config.id,
             extra=json.dumps(configuration),
-            description=_("更新{}[{}]命名空间[{}]").format(
-                self.category, service_name, namespace)
+            description=_("更新{}[{}]命名空间[{}]").format(self.category, service_name, namespace),
         ).log_modify(activity_status="failed" if failed else "succeed")
 
         if failed:
-            return Response({
-                "code": 400,
-                "message": _("{}[{}]在命名空间[{}]更新失败，请联系集群管理员解决").format(self.category, service_name, namespace),
-                "data": {}
-            })
-        return Response({
-            "code": 0,
-            "message": "OK",
-            "data": {
-            }
-        })
+            return Response(
+                {
+                    "code": 400,
+                    "message": _("{}[{}]在命名空间[{}]更新失败，请联系集群管理员解决").format(self.category, service_name, namespace),
+                    "data": {},
+                }
+            )
+        return Response({"code": 0, "message": "OK", "data": {}})
 
-    def handle_data(self, request, data, project_kind, s_cate, access_token,
-                    project_id, cluster_id, is_decode, cluster_env, cluster_name, namespace_dict=None):
+    def handle_data(
+        self,
+        request,
+        data,
+        project_kind,
+        s_cate,
+        access_token,
+        project_id,
+        cluster_id,
+        is_decode,
+        cluster_env,
+        cluster_name,
+        namespace_dict=None,
+    ):
         for _s in data:
             _config = _s.get('data', {})
-            annotations = _config.get(
-                'metadata', {}).get('annotations', {})
+            annotations = _config.get('metadata', {}).get('annotations', {})
             _s['creator'] = annotations.get(ANNOTATIONS_CREATOR, '')
             _s['create_time'] = _s.get('createTime', '')
-            _s['update_time'] = annotations.get(
-                ANNOTATIONS_UPDATE_TIME, _s['create_time'])
+            _s['update_time'] = annotations.get(ANNOTATIONS_UPDATE_TIME, _s['create_time'])
             _s['updator'] = annotations.get(ANNOTATIONS_UPDATOR, _s['creator'])
             _s['status'] = 'Running'
 
@@ -481,8 +481,10 @@ class ResourceOperate(object):
                 is_k8s_image_sercret = False
 
             is_mesos_image_sercret = False
-            if s_cate == MesosResourceName.secret.value \
-                    and _s['name'] in [MESOS_IMAGE_SECRET, inst_constants.OLD_MESOS_IMAGE_SECRET]:
+            if s_cate == MesosResourceName.secret.value and _s['name'] in [
+                MESOS_IMAGE_SECRET,
+                inst_constants.OLD_MESOS_IMAGE_SECRET,
+            ]:
                 is_mesos_image_sercret = True
 
             if is_k8s_image_sercret or is_mesos_image_sercret or is_namespace_default_token:
@@ -512,8 +514,7 @@ class ResourceOperate(object):
                     for _key in _d:
                         if _d[_key]:
                             try:
-                                _d[_key] = base64.b64decode(
-                                    _d[_key]).decode("utf-8")
+                                _d[_key] = base64.b64decode(_d[_key]).decode("utf-8")
                             except Exception:
                                 pass
                 elif s_cate in ['secret', 'configmap']:
@@ -522,8 +523,7 @@ class ResourceOperate(object):
                         _type = _d[_key].get('type')
                         if _type != 'http' and _d[_key]['content']:
                             try:
-                                _d[_key]['content'] = base64.b64decode(
-                                    _d[_key]['content']).decode("utf-8")
+                                _d[_key]['content'] = base64.b64decode(_d[_key]['content']).decode("utf-8")
                             except Exception:
                                 pass
 
@@ -542,19 +542,13 @@ class ConfigMaps(viewsets.ViewSet, BaseAPI, ResourceOperate):
 
         if project_kind == MESOS_VALUE:
             search_fields.append("data.datas")
-            params.update({
-                "field": ",".join(search_fields)
-            })
-            client = mesos.MesosClient(
-                access_token, project_id, cluster_id, env=None)
+            params.update({"field": ",".join(search_fields)})
+            client = mesos.MesosClient(access_token, project_id, cluster_id, env=None)
             resp = client.get_configmaps(params)
         else:
             search_fields.append("data.data")
-            params.update({
-                "field": ",".join(search_fields)
-            })
-            client = k8s.K8SClient(
-                access_token, project_id, cluster_id, env=None)
+            params.update({"field": ",".join(search_fields)})
+            client = k8s.K8SClient(access_token, project_id, cluster_id, env=None)
             resp = client.get_configmap(params)
 
         if resp.get("code") != ErrorCode.NoError:
@@ -591,33 +585,36 @@ class ConfigMaps(viewsets.ViewSet, BaseAPI, ResourceOperate):
                 continue
             cluster_env = cluster_info.get('environment')
             code, cluster_configmaps = self.get_configmaps_by_cluster_id(
-                request, params, project_id, cluster_id, project_kind=project_kind)
+                request, params, project_id, cluster_id, project_kind=project_kind
+            )
             # 单个集群错误时，不抛出异常信息
             if code != ErrorCode.NoError:
                 continue
-            self.handle_data(request, cluster_configmaps, project_kind, s_cate,
-                             access_token, project_id, cluster_id,
-                             is_decode, cluster_env, cluster_info.get('name', ''), namespace_dict=namespace_dict)
+            self.handle_data(
+                request,
+                cluster_configmaps,
+                project_kind,
+                s_cate,
+                access_token,
+                project_id,
+                cluster_id,
+                is_decode,
+                cluster_env,
+                cluster_info.get('name', ''),
+                namespace_dict=namespace_dict,
+            )
             data += cluster_configmaps
 
         # 按时间倒序排列
         data.sort(key=lambda x: x.get('createTime', ''), reverse=True)
 
-        return APIResponse({
-            "code": ErrorCode.NoError,
-            "data": {
-                "data": data,
-                "length": len(data)
-            },
-            "message": "ok"
-        })
+        return APIResponse({"code": ErrorCode.NoError, "data": {"data": data, "length": len(data)}, "message": "ok"})
 
     def delete_configmap(self, request, project_id, cluster_id, namespace, name):
         self.category = 'configmap'
         self.mesos_cate = 'configmap'
         self.k8s_cate = 'K8sConfigMap'
-        return self.delete_resource(
-            request, project_id, cluster_id, namespace, name)
+        return self.delete_resource(request, project_id, cluster_id, namespace, name)
 
     def batch_delete_configmaps(self, request, project_id):
         self.category = 'configmap'
@@ -662,26 +659,19 @@ class ConfigMapListView(ConfigMapBase, viewsets.ViewSet):
 
 class Secrets(viewsets.ViewSet, BaseAPI, ResourceOperate):
     def get_secrets_by_cluster_id(self, request, params, project_id, cluster_id, project_kind=MESOS_VALUE):
-        """查询secrets
-        """
+        """查询secrets"""
         access_token = request.user.token.access_token
         search_fields = copy.deepcopy(DEFAULT_SEARCH_FIELDS)
 
         if project_kind == MESOS_VALUE:
             search_fields.append("data.datas")
-            params.update({
-                "field": ",".join(search_fields)
-            })
-            client = mesos.MesosClient(
-                access_token, project_id, cluster_id, env=None)
+            params.update({"field": ",".join(search_fields)})
+            client = mesos.MesosClient(access_token, project_id, cluster_id, env=None)
             resp = client.get_secrets(params)
         else:
             search_fields.append("data.data")
-            params.update({
-                "field": ",".join(search_fields)
-            })
-            client = k8s.K8SClient(
-                access_token, project_id, cluster_id, env=None)
+            params.update({"field": ",".join(search_fields)})
+            client = k8s.K8SClient(access_token, project_id, cluster_id, env=None)
             resp = client.get_secret(params)
 
         if resp.get("code") != ErrorCode.NoError:
@@ -717,25 +707,29 @@ class Secrets(viewsets.ViewSet, BaseAPI, ResourceOperate):
                 continue
             cluster_env = cluster_info.get('environment')
             code, cluster_secrets = self.get_secrets_by_cluster_id(
-                request, params, project_id, cluster_id, project_kind=project_kind)
+                request, params, project_id, cluster_id, project_kind=project_kind
+            )
             # 单个集群错误时，不抛出异常信息
             if code != ErrorCode.NoError:
                 continue
-            self.handle_data(request, cluster_secrets, project_kind, s_cate,
-                             access_token, project_id, cluster_id,
-                             is_decode, cluster_env, cluster_info.get('name', ''), namespace_dict=namespace_dict)
+            self.handle_data(
+                request,
+                cluster_secrets,
+                project_kind,
+                s_cate,
+                access_token,
+                project_id,
+                cluster_id,
+                is_decode,
+                cluster_env,
+                cluster_info.get('name', ''),
+                namespace_dict=namespace_dict,
+            )
             data += cluster_secrets
 
         # 按时间倒序排列
         data.sort(key=lambda x: x.get('createTime', ''), reverse=True)
-        return APIResponse({
-            "code": ErrorCode.NoError,
-            "data": {
-                "data": data,
-                "length": len(data)
-            },
-            "message": "ok"
-        })
+        return APIResponse({"code": ErrorCode.NoError, "data": {"data": data, "length": len(data)}, "message": "ok"})
 
     def delete_secret(self, request, project_id, cluster_id, namespace, name):
         self.category = 'secret'
@@ -770,38 +764,27 @@ class Endpoints(BaseAPI):
             return project_kind
 
         access_token = request.user.token.access_token
-        params = {
-            "name": name,
-            "namespace": namespace
-        }
+        params = {"name": name, "namespace": namespace}
         if project_kind == MESOS_VALUE:
-            client = mesos.MesosClient(
-                access_token, project_id, cluster_id, env=None)
+            client = mesos.MesosClient(access_token, project_id, cluster_id, env=None)
             resp = client.get_endpoints(params)
         else:
-            client = k8s.K8SClient(
-                access_token, project_id, cluster_id, env=None)
+            client = k8s.K8SClient(access_token, project_id, cluster_id, env=None)
             resp = client.get_endpoints(params)
 
         if resp.get("code") != ErrorCode.NoError:
-            return APIResponse({
-                "code": resp.get("code", DEFAULT_ERROR_CODE),
-                "message": resp.get("message", _("请求出现异常!"))
-            })
+            return APIResponse(
+                {"code": resp.get("code", DEFAULT_ERROR_CODE), "message": resp.get("message", _("请求出现异常!"))}
+            )
 
-        return APIResponse({
-            "code": ErrorCode.NoError,
-            "data": resp.get("data"),
-            "message": "ok"
-        })
+        return APIResponse({"code": ErrorCode.NoError, "data": resp.get("data"), "message": "ok"})
 
 
 def data_handler(data):
     ret_data = []
     for info in data:
         if 'createTime' in info:
-            info["createTime"] = ' '.join(
-                RE_COMPILE.findall(info["createTime"])[:2])
+            info["createTime"] = ' '.join(RE_COMPILE.findall(info["createTime"])[:2])
         # mesos configmap/secret获取的是datas中的数据
         info_datas = getitems(info, ['data', 'datas'], {})
         if info_datas:

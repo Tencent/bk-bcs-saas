@@ -11,8 +11,8 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-import time
 import json
+import time
 
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
@@ -20,7 +20,7 @@ from django.utils.translation import ugettext_lazy as _
 from backend.apps.instance.constants import INGRESS_ID_SEPARATOR
 
 from .base import BaseModel, logger
-from .mixins import ResourceMixin, ConfigMapAndSecretMixin, PodMixin
+from .mixins import ConfigMapAndSecretMixin, PodMixin, ResourceMixin
 
 
 def get_secret_name_by_certid(cert_id, ingress_name):
@@ -233,8 +233,7 @@ class K8sService(K8sResource, ResourceMixin):
         return config.get("spec", {}).get("selector")
 
     def is_headless_service(self):
-        """spec.clusterIP 为 "None"
-        """
+        """spec.clusterIP 为 "None" """
         config = self.get_config() or {}
         cluster_ip = config.get("spec", {}).get("clusterIP", "")
         if cluster_ip == "None":

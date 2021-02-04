@@ -92,6 +92,7 @@
                                     <div class="resource-box">
                                         <div class="biz-code-wrapper">
                                             <ace
+                                                ref="codeViewer"
                                                 :value="curReourceFile.value"
                                                 :width="editorConfig.width"
                                                 :height="editorConfig.height"
@@ -228,6 +229,9 @@
             getFileDetail (file) {
                 if (file.hasOwnProperty('value')) {
                     this.curReourceFile = file
+                    this.$nextTick(() => {
+                        this.$refs.codeViewer.$ace.scrollToLine(1, true, true)
+                    })
                 }
             },
 
@@ -301,6 +305,10 @@
                     // default: 显示第一个
                     if (this.previewList.length) {
                         this.curReourceFile = this.previewList[0]
+                        
+                        this.$nextTick(() => {
+                            this.$refs.codeViewer.$ace.scrollToLine(1, true, true)
+                        })
                     }
                 } catch (e) {
                     catchErrorHandler(e, this)

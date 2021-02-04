@@ -15,7 +15,8 @@
 from __future__ import unicode_literals
 
 from django.db import migrations, models
-from backend.apps.configuration.models import Service, ConfigMap, Secret
+
+from backend.apps.configuration.models import ConfigMap, Secret, Service
 
 
 def init_resource_name(apps, schema_editor):

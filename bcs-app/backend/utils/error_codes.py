@@ -11,13 +11,13 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-import re
 import copy
+import re
 
+from django.conf import settings
 from django.utils.translation import gettext as _
 from rest_framework import status
 from rest_framework.exceptions import APIException
-from django.conf import settings
 
 
 class APIError(APIException):
@@ -33,13 +33,11 @@ class APIError(APIException):
         super(APIError, self).__init__(str(self))
 
     def __str__(self):
-        """%s, print(), 使用
-        """
+        """%s, print(), 使用"""
         return "%s: %s" % (self.code, self.message)
 
     def __repr__(self):
-        """命令行查看使用
-        """
+        """命令行查看使用"""
         return "<%s,%s>" % (self.code_obj.code_name, self.code)
 
     @property
@@ -77,8 +75,7 @@ class APIError(APIException):
         return self.format(message=message, **kwargs)
 
     def __call__(self, message=None, *args, **kwargs):
-        """init api error
-        """
+        """init api error"""
         self.code_obj = copy.copy(self.code_obj)
         if message:
             self.code_obj.message = message

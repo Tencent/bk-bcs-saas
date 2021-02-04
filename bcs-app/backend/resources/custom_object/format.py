@@ -11,15 +11,17 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-import re
-from collections import OrderedDict
+from typing import Dict
 
-# default kubectl version
-DEFAULT_KUBECTL_VERSION = '1.12.3'
+from backend.resources.utils.format import ResourceDefaultFormatter
+from backend.utils.basic import getitems
 
-# KUBECTL VERSION
-KUBECTL_VERSION = OrderedDict({
-    '1.12.3': [
-        re.compile(r'^[vV]?1\.12\.\w+$')
-    ]
-})
+
+class CRDFormatter(ResourceDefaultFormatter):
+    def format_dict(self, resource_dict: Dict) -> Dict:
+        return {"name": getitems(resource_dict, "metadata.name"), "scope": getitems(resource_dict, "spec.scope")}
+
+
+class CustomObjectFormatter(ResourceDefaultFormatter):
+    def format_dict(self, resource_dict: Dict) -> Dict:
+        return resource_dict

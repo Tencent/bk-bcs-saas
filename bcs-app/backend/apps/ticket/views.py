@@ -26,6 +26,7 @@ from backend.utils.error_codes import error_codes
 from backend.utils.renderers import BKAPIRenderer
 from backend.utils.response import BKAPIResponse
 from backend.utils.views import FinalizeResponseMixin
+
 from . import manager
 
 logger = logging.getLogger(__name__)
@@ -48,10 +49,7 @@ class BCSTLSCertView(generics.CreateAPIView):
         slz = TlsCertSlZ(data=self.request.data, context={'project_id': self.kwargs['project_id']})
         slz.is_valid(raise_exception=True)
 
-        serializer.save(
-            creator=self.request.user.username,
-            project_id=self.kwargs['project_id']
-        )
+        serializer.save(creator=self.request.user.username, project_id=self.kwargs['project_id'])
 
 
 class SingleBCSTLSCertView(generics.RetrieveUpdateDestroyAPIView):
@@ -62,18 +60,15 @@ class SingleBCSTLSCertView(generics.RetrieveUpdateDestroyAPIView):
         return TlsCert.objects.filter(project_id=self.kwargs['project_id'])
 
     def perform_update(self, serializer):
-        slz = TlsCertSlZ(data=self.request.data,
-                         context={"pk": self.kwargs['pk'], 'project_id': self.kwargs['project_id']})
+        slz = TlsCertSlZ(
+            data=self.request.data, context={"pk": self.kwargs['pk'], 'project_id': self.kwargs['project_id']}
+        )
         slz.is_valid(raise_exception=True)
 
-        serializer.save(
-            updator=self.request.user.username,
-            project_id=self.kwargs['project_id']
-        )
+        serializer.save(updator=self.request.user.username, project_id=self.kwargs['project_id'])
 
     def post(self, request, project_id, pk):
-        """前端是post请求，直接alias put方法
-        """
+        """前端是post请求，直接alias put方法"""
         return super().put(request, project_id, pk)
 
     def perform_destroy(self, instance):

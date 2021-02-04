@@ -13,15 +13,15 @@
 #
 import re
 
+from django.core.validators import MaxValueValidator, MinValueValidator
+from django.utils.translation import ugettext_lazy as _
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
-from django.utils.translation import ugettext_lazy as _
 
+from backend.apps.configuration.serializers import RE_NAME
+from backend.apps.network.constants import K8S_LB_NAMESPACE, MESOS_LB_NAMESPACE
 from backend.apps.network.models import K8SLoadBlance
 from backend.utils.error_codes import error_codes
-from backend.apps.configuration.serializers import RE_NAME
-from backend.apps.network.constants import MESOS_LB_NAMESPACE, K8S_LB_NAMESPACE
-from django.core.validators import MaxValueValidator, MinValueValidator
 
 
 class BatchResourceSLZ(serializers.Serializer):
@@ -66,7 +66,7 @@ class NginxIngressSLZ(serializers.ModelSerializer):
             "creator",
             "updator",
             "is_deleted",
-            "namespace"
+            "namespace",
         )
 
 
@@ -78,15 +78,13 @@ class UpdateK8SLoadBalancerSLZ(serializers.Serializer):
 
 
 class LoadBalancesSLZ(serializers.Serializer):
-    """创建LB
-    """
+    """创建LB"""
+
     name = serializers.RegexField(
         RE_NAME,
         max_length=256,
         required=True,
-        error_messages={
-            'invalid': _('名称格式错误，只能包含：小写字母、数字、中划线(-)，首字母必须是字母，长度小于256个字符')
-        }
+        error_messages={'invalid': _('名称格式错误，只能包含：小写字母、数字、中划线(-)，首字母必须是字母，长度小于256个字符')},
     )
     cluster_id = serializers.CharField(required=True)
     instance = serializers.IntegerField(required=False, default=1)
@@ -105,20 +103,16 @@ class LoadBalancesSLZ(serializers.Serializer):
     forward_mode = serializers.CharField(required=True)
     eth_value = serializers.CharField(required=True)
     host_port = serializers.IntegerField(
-        required=False,
-        default=31000,
-        validators=[MaxValueValidator(32000), MinValueValidator(31000)]
+        required=False, default=31000, validators=[MaxValueValidator(32000), MinValueValidator(31000)]
     )
     use_custom_image_url = serializers.BooleanField(required=False, default=False)
 
     def validate_constraints(self, constraints):
-        """测试数据
-        """
+        """测试数据"""
         return constraints
 
     def validate_instance(self, instance):
-        """当instance和ip_list都存在时，要校验两者数量相同
-        """
+        """当instance和ip_list都存在时，要校验两者数量相同"""
         data = self._kwargs.get('data', {})
         ip_list = data.get('ip_list')
         if not ip_list:
@@ -129,8 +123,7 @@ class LoadBalancesSLZ(serializers.Serializer):
 
 
 class UpdateLoadBalancesSLZ(LoadBalancesSLZ):
-    """更新值
-    """
+    """更新值"""
 
     def validate(self, data):
         if not data:

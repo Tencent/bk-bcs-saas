@@ -159,6 +159,21 @@ const childRoutes = [
                         name: 'statefulsetInstantiation'
                     }
                 ]
+            },
+            // k8s gamestatefulset 应用
+            {
+                path: 'gamestatefulset',
+                name: 'gamestatefulset'
+            },
+            // k8s gamedeployments 应用
+            {
+                path: 'gamedeployments',
+                name: 'gamedeployments'
+            },
+            // k8s gamestatefulset 应用
+            {
+                path: 'customobjects',
+                name: 'customobjects'
             }
         ]
     }

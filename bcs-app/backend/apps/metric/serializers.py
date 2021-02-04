@@ -33,8 +33,7 @@ NAME_PATTERN_MSG = _("名称由小写英文字母、中划线或数字组成，�
 
 
 def validate_http_body(body):
-    """验证http_body
-    """
+    """验证http_body"""
     try:
         body = json.loads(body)
     except Exception:
@@ -97,8 +96,7 @@ class UpdateMetricSLZ(serializers.Serializer):
             return http_body
 
     def validate_metric_type(self, metric_type):
-        """只能为空或者为'prometheus'
-        """
+        """只能为空或者为'prometheus'"""
         if not metric_type:
             return ""
         if metric_type in ["prometheus"]:
@@ -160,8 +158,7 @@ class PromMetricSLZ(PromMetricSLZBase):
 
 
 class PromPodMetricSLZ(PromMetricSLZBase):
-    """Pod数据查询
-    """
+    """Pod数据查询"""
 
     res_id_list = serializers.CharField(required=True)
 
@@ -171,8 +168,7 @@ class PromPodMetricSLZ(PromMetricSLZBase):
 
 
 class PromContainerMetricSLZ(PromMetricSLZBase):
-    """容器数据查询
-    """
+    """容器数据查询"""
 
     res_id_list = serializers.CharField(required=False)
     pod_name = serializers.CharField(required=False)
@@ -251,8 +247,7 @@ class PromContainerMetricSLZ(PromMetricSLZBase):
 
 
 class ServiceMonitorUpdateSLZ(serializers.Serializer):
-    """ServiceMonitor更新
-    """
+    """ServiceMonitor更新"""
 
     port = serializers.CharField()
     path = serializers.CharField()
@@ -284,8 +279,7 @@ class ServiceMonitorUpdateSLZ(serializers.Serializer):
 
 
 class ServiceMonitorCreateSLZ(ServiceMonitorUpdateSLZ):
-    """ServiceMonitor创建
-    """
+    """ServiceMonitor创建"""
 
     name = serializers.CharField()
     cluster_id = serializers.CharField()
@@ -299,8 +293,7 @@ class ServiceMonitorCreateSLZ(ServiceMonitorUpdateSLZ):
 
 
 class ServiceMonitorDeleteSLZ(serializers.Serializer):
-    """ServiceMonitor删除
-    """
+    """ServiceMonitor删除"""
 
     name = serializers.CharField()
     namespace = serializers.CharField()
@@ -312,7 +305,6 @@ class ServiceMonitorDeleteSLZ(serializers.Serializer):
 
 
 class ServiceMonitorBatchDeleteSLZ(serializers.Serializer):
-    """ServiceMonitor批量删除
-    """
+    """ServiceMonitor批量删除"""
 
     servicemonitors = serializers.ListField(child=ServiceMonitorDeleteSLZ(), min_length=1)

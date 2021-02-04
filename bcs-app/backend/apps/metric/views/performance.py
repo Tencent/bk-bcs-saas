@@ -29,8 +29,7 @@ logger = logging.getLogger(__name__)
 
 
 class Cluster(base.MetricViewMixin, viewsets.ViewSet):
-    """集群相关metrics数据
-    """
+    """集群相关metrics数据"""
 
     renderer_classes = (BKAPIRenderer, BrowsableAPIRenderer)
 
@@ -117,15 +116,13 @@ class MesosCluster(base.MetricViewMixin, viewsets.ViewSet):
 
 
 class Node(base.MetricViewMixin, viewsets.ViewSet):
-    """节点相关Metrics
-    """
+    """节点相关Metrics"""
 
     renderer_classes = (BKAPIRenderer, BrowsableAPIRenderer)
     serializer_class = serializers.PromMetricSLZ
 
     def overview(self, request, project_id, cluster_id):
-        """节点列表快照数据
-        """
+        """节点列表快照数据"""
         data = self.get_validated_data(request)
         ip = data["res_id"]
 
@@ -227,15 +224,13 @@ class Node(base.MetricViewMixin, viewsets.ViewSet):
 
 
 class Pod(base.MetricViewMixin, viewsets.ViewSet):
-    """Pod相关
-    """
+    """Pod相关"""
 
     renderer_classes = (BKAPIRenderer, BrowsableAPIRenderer)
     serializer_class = serializers.PromContainerMetricSLZ
 
     def _update_result(self, result, res_id_map):
-        """mesos转换pod_name
-        """
+        """mesos转换pod_name"""
         if not res_id_map:
             return result
 
@@ -280,8 +275,7 @@ class Pod(base.MetricViewMixin, viewsets.ViewSet):
 
 
 class Container(base.MetricViewMixin, viewsets.ViewSet):
-    """容器相关Metrics
-    """
+    """容器相关Metrics"""
 
     renderer_classes = (BKAPIRenderer, BrowsableAPIRenderer)
     serializer_class = serializers.PromContainerMetricSLZ

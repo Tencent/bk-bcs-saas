@@ -14,13 +14,13 @@
 """
 数据平台元数据相关API
 """
-import logging
 import json
+import logging
 
-from backend.utils import cache
 from backend.components.utils import http_get
-from .constant import DATA_API_V3_PREFIX, APP_CODE, APP_SECRET
+from backend.utils import cache
 
+from .constant import APP_CODE, APP_SECRET, DATA_API_V3_PREFIX
 
 logger = logging.getLogger(__name__)
 
@@ -28,8 +28,7 @@ DATA_API_STAGE = 'prod'
 
 
 def tsdb_list_fields(cc_app_id, table_name):
-    """获取列表
-    """
+    """获取列表"""
     result_table_id = '{app_id}_{table_name}'.format(app_id=cc_app_id, table_name=table_name)
     return tsdb_list_fields_by_id(result_table_id)
 
@@ -59,11 +58,7 @@ def get_result_table(resutl_table_id, stage=DATA_API_STAGE):
     该API暂未使用
     """
     url = f'{DATA_API_V3_PREFIX}/meta/result_tables/{resutl_table_id}/'
-    params = {
-        "bk_app_code": APP_CODE,
-        "bk_app_secret": APP_SECRET,
-        "includes_children": False
-    }
+    params = {"bk_app_code": APP_CODE, "bk_app_secret": APP_SECRET, "includes_children": False}
     resp = http_get(url, params=params)
     if resp.get('result'):
         return True, resp.get('data')
@@ -91,8 +86,7 @@ def get_result_table_detail_by_biz(cc_app_id, stage=DATA_API_STAGE):
 
 
 def get_es_index(cc_app_id):
-    """获取ES索引列表
-    """
+    """获取ES索引列表"""
     url = f'{DATA_API_V3_PREFIX}/meta/result_tables/'
 
     params = {
@@ -100,7 +94,7 @@ def get_es_index(cc_app_id):
         'bk_app_secret': APP_SECRET,
         'bk_biz_id': cc_app_id,
         'related': 'storages',
-        'related_filter': '{"type": "storages" ,"attr_name": "common_cluster.cluster_type","attr_value": "es"}'
+        'related_filter': '{"type": "storages" ,"attr_name": "common_cluster.cluster_type","attr_value": "es"}',
     }
     resp = http_get(url, params=params)
     # 处理数据，保持兼容老API格式

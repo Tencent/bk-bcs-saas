@@ -142,7 +142,18 @@ export default class State {
                     })
                 }
             }
-        } else if (this.status === 'Running' || (this.category === 'job' && this.status === 'Completed')) {
+        } else if (this.status === 'Running') {
+            ret = Object.assign({}, OPERATE_MAP, {
+                // 滚动升级可用
+                rollingupdate: 1,
+                // 扩缩容可用
+                scale: 1,
+                // 重建可用
+                rebuild: 1,
+                // 删除可用
+                delete: 1
+            })
+        } else if (this.category === 'job' && this.status === 'Completed') {
             // 允许删除和重建，Running 时 instance 不可能是 0
             if (this.instance === 0) {
                 ret = Object.assign({}, OPERATE_MAP, {

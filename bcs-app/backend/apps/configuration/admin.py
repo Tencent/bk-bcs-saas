@@ -12,9 +12,25 @@
 # specific language governing permissions and limitations under the License.
 #
 from django.contrib import admin
-from .models import (Template, Application, Deplpyment, Service, ConfigMap, Secret, VersionedEntity, ShowVersion,
-                     K8sDeployment, K8sService, K8sConfigMap, K8sSecret, K8sDaemonSet, K8sJob, K8sStatefulSet,
-                     ResourceFile)
+
+from .models import (
+    Application,
+    ConfigMap,
+    Deplpyment,
+    K8sConfigMap,
+    K8sDaemonSet,
+    K8sDeployment,
+    K8sJob,
+    K8sSecret,
+    K8sService,
+    K8sStatefulSet,
+    ResourceFile,
+    Secret,
+    Service,
+    ShowVersion,
+    Template,
+    VersionedEntity,
+)
 
 
 class ShowVersionAdmin(admin.ModelAdmin):

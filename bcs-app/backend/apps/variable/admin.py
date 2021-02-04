@@ -12,14 +12,13 @@
 # specific language governing permissions and limitations under the License.
 #
 from django.contrib import admin
-from .models import Variable, ClusterVariable, NameSpaceVariable
+
+from .models import ClusterVariable, NameSpaceVariable, Variable
 
 
 class VariableAdmin(admin.ModelAdmin):
-    list_display = ('project_id', 'key', 'name',
-                    'category', 'scope')
-    search_fields = ('project_id', 'key', 'name',
-                     'category', 'scope')
+    list_display = ('project_id', 'key', 'name', 'category', 'scope')
+    search_fields = ('project_id', 'key', 'name', 'category', 'scope')
 
 
 admin.site.register(Variable, VariableAdmin)

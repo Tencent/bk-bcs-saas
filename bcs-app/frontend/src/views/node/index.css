@@ -106,6 +106,16 @@
             }
         }
 
+        .cluster-selector {
+            float: left;
+            right: 493px;
+            width: 200px;
+            /deep/ .bk-selector-input {
+                height: 38px;
+                border-color: #dde4eb !important;
+            }
+        }
+
         .toggle-filter {
             width: 200px;
             padding-left: 15px;
@@ -211,7 +221,7 @@
                 }
 
                 td {
-                    height: 60px;
+                    height: 46px;
                 }
 
                 .tip {
@@ -504,7 +514,7 @@
 }
 
 
-@media screen and (max-width: 1280px) {
+@media screen and (max-width: 1430px) {
     .bk-text-button {
         vertical-align: bottom;
         @mixin ellipsis 200px;
@@ -529,12 +539,15 @@
         right: 94px;
     }
 
-
     .biz-node-query {
         .right {
             width: 320px;
 
             .bk-dropdown-menu {
+                right: 393px;
+            }
+
+            .cluster-selector {
                 right: 393px;
             }
         }

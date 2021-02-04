@@ -15,13 +15,14 @@
 """
 数据平台查询相关API
 """
-import time
 import json
 import logging
+import time
 from enum import Enum
 
 from backend.components.utils import http_post
-from .constant import DATA_API_V3_PREFIX, APP_CODE, APP_SECRET, IS_DATA_OPEN
+
+from .constant import APP_CODE, APP_SECRET, DATA_API_V3_PREFIX, IS_DATA_OPEN
 
 logger = logging.getLogger(__name__)
 
@@ -69,8 +70,7 @@ class Ordering(Enum):
 
 
 def get_docker_metrics(metric, app_id, contain_id, start_at=None, end_at=None, limit=None, order_by="desc"):
-    """通过容器ID获取监控信息
-    """
+    """通过容器ID获取监控信息"""
 
     now = int(time.time() * 1000)
     if not start_at:
@@ -113,8 +113,7 @@ def get_docker_metrics(metric, app_id, contain_id, start_at=None, end_at=None, l
 
 
 def get_metric_query(table, fields, app_id, start_at, end_at, delta, where=None, groupby=None, order_by="desc"):
-    """数据平台裸接口,提供给metric使用
-    """
+    """数据平台裸接口,提供给metric使用"""
     _metric = "{app_id}_{table}".format(app_id=app_id, table=table)
     fields = ", ".join(fields)
     sql = "SELECT {fields} FROM {metric} WHERE time > {start_at} AND time < {end_at}"
@@ -143,8 +142,7 @@ def get_metric_query(table, fields, app_id, start_at, end_at, delta, where=None,
 
 
 def get_metric_query_agg(table, fields, app_id, start_at, end_at, where=None, groupby=None, order_by="desc"):
-    """数据平台裸接口,多次批量拉取
-    """
+    """数据平台裸接口,多次批量拉取"""
     _metric = "{app_id}_{table}".format(app_id=app_id, table=table)
     fields = ", ".join(fields)
     sql = "SELECT {fields} FROM {metric} WHERE time > {start_at} AND time < {end_at}"
@@ -187,8 +185,7 @@ def get_metric_query_agg(table, fields, app_id, start_at, end_at, where=None, gr
 
 
 def get_node_metrics(metric, app_id, ip, start_at=None, end_at=None, limit=None, order_by="desc"):
-    """节点监控
-    """
+    """节点监控"""
 
     now = int(time.time() * 1000)
     if not start_at:
@@ -265,8 +262,7 @@ def get_node_metrics_order(metric, app_id, ip, start_at=None, end_at=None, limit
 
 
 def get_container_logs(username, container_id=None, index=None):
-    """查询容器日志
-    """
+    """查询容器日志"""
     sql_payload = {
         "body": {
             "sort": [{"dtEventTimeStamp": {"order": "desc"}}],
@@ -297,8 +293,7 @@ def get_container_logs(username, container_id=None, index=None):
 
 
 def get_es_log(index="591_etl_paas_docker_stdout_*", start_at=None, end_at=None):
-    """获取容器日志
-    """
+    """获取容器日志"""
     now = int(time.time() * 1000)
     if not start_at:
         start_at = now - 12 * 3600 * 1000  # 时间单位是毫秒
@@ -335,8 +330,7 @@ def get_es_log(index="591_etl_paas_docker_stdout_*", start_at=None, end_at=None)
 
 
 def get_es_mapping(index_name):
-    """获取ES的mapping
-    """
+    """获取ES的mapping"""
     data = {"bk_app_code": APP_CODE, "bk_app_secret": APP_SECRET, "prefer_storage": "es"}
     sql = {"index": index_name, "mapping": True, "doc_type": 1}
     data["sql"] = json.dumps(sql)
@@ -344,16 +338,14 @@ def get_es_mapping(index_name):
 
 
 def get_es_data(sql):
-    """获取ES日志数据，监控使用
-    """
+    """获取ES日志数据，监控使用"""
     data = {"bk_app_code": APP_CODE, "bk_app_secret": APP_SECRET, "prefer_storage": "es"}
     data["sql"] = json.dumps(sql)
     return http_post(API_URL, json=data)
 
 
 def get_data(sql):
-    """获取数据平台
-    """
+    """获取数据平台"""
     data = {"sql": sql, "bk_app_code": APP_CODE, "bk_app_secret": APP_SECRET, "prefer_storage": ""}
     result = http_post_common(API_URL, json=data, timeout=60)
     data = result["data"] or {"list": []}

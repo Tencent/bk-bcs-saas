@@ -13,12 +13,15 @@
 #
 import json
 from datetime import datetime
+from typing import List
 
 from django.conf import settings
 from django.core.paginator import Paginator
 from django.utils.translation import ugettext_lazy as _
 
 from backend.utils.error_codes import error_codes
+from backend.infras.host_service import perms as host_perms
+from backend.utils.exceptions import PermissionDeniedError
 
 DEFAULT_PAGE_LIMIT = 5
 RoleNodeTag = 'N'
@@ -26,8 +29,7 @@ RoleMasterTag = 'M'
 
 
 def custom_paginator(raw_data, offset, limit=None):
-    """使用django paginator进行分页处理
-    """
+    """使用django paginator进行分页处理"""
     limit = limit or DEFAULT_PAGE_LIMIT
     page_cls = Paginator(raw_data, limit)
     curr_page = 1
@@ -36,27 +38,17 @@ def custom_paginator(raw_data, offset, limit=None):
     # 如果当前页大于总页数，返回为空
     count = page_cls.count
     if curr_page > page_cls.num_pages:
-        return {
-            "count": count,
-            "results": []
-        }
+        return {"count": count, "results": []}
     # 获取当前页的数据
     curr_page_info = page_cls.page(curr_page)
     curr_page_list = curr_page_info.object_list
-    return {
-        "count": count,
-        "results": curr_page_list
-    }
+    return {"count": count, "results": curr_page_list}
 
 
 def delete_node_labels_record(LabelModel, node_id_list, username):
-    """删除数据库中关于节点标签的处理
-    """
+    """删除数据库中关于节点标签的处理"""
     LabelModel.objects.filter(node_id__in=node_id_list, is_deleted=False).update(
-        is_deleted=True,
-        deleted_time=datetime.now(),
-        updator=username,
-        labels=json.dumps({})
+        is_deleted=True, deleted_time=datetime.now(), updator=username, labels=json.dumps({})
     )
 
 
@@ -72,8 +64,7 @@ def gen_hostname(ip, cluster_id, is_master):
 
 
 def cluster_env_transfer(env_name, b2f=True):
-    """tranfer name for frontend or cc
-    """
+    """tranfer name for frontend or cc"""
     if b2f:
         transfer_name = settings.CLUSTER_ENV_FOR_FRONT.get(env_name)
     else:
@@ -84,19 +75,26 @@ def cluster_env_transfer(env_name, b2f=True):
 
 
 def status_transfer(status, running_status_list, failed_status_list):
-    """status display for frontend
-    """
+    """status display for frontend"""
     if status in running_status_list:
         return "running"
     elif status in failed_status_list:
         return "failed"
     return "success"
 
+
 def use_prometheus_source(request):
-    """是否使用prometheus数据源
-    """
+    """是否使用prometheus数据源"""
     if settings.DEFAULT_METRIC_SOURCE == 'prometheus':
         return True
     if request.project.project_code in settings.DEFAULT_METRIC_SOURCE_PROM_WLIST:
         return True
     return False
+
+
+def can_use_hosts(bk_biz_id: int, username: str, host_ips: List):
+    has_perm = host_perms.can_use_hosts(bk_biz_id, username, host_ips)
+    if not has_perm:
+        raise PermissionDeniedError(
+            _("用户{}没有主机:{}的权限，请联系管理员在【配置平台】添加为业务运维人员角色").format(username, host_ips), ""
+        )

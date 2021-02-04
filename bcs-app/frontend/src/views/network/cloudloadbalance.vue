@@ -62,7 +62,7 @@
                                                 <div class="rotate rotate7"></div>
                                                 <div class="rotate rotate8"></div>
                                             </div>
-                                            <a href="javascript:void(0)" class="bk-text-button biz-table-title" @click="goLoadBalanceDetail(loadBalance)">{{loadBalance.clb_name || '--'}}</a>
+                                            <a href="javascript:void(0)" class="bk-text-button" @click="goLoadBalanceDetail(loadBalance)">{{loadBalance.clb_name || '--'}}</a>
                                         </td>
                                         <td>{{loadBalance.region || '--'}}</td>
                                         <td>{{loadBalance.clb_type || '--'}}</td>

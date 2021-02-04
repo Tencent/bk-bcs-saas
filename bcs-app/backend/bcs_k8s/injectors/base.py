@@ -11,24 +11,24 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-import logging
 import copy
-from dataclasses import dataclass
+import logging
 import re
+from dataclasses import dataclass
 
-from rest_framework.exceptions import ValidationError
 from django.utils.translation import ugettext_lazy as _
+from rest_framework.exceptions import ValidationError
+
+from backend.utils.basic import getitems
 
 from . import dpath
 from .constants import RESOURCE_FILEDS, RESOURCE_KINDS_FOR_MONITOR_INJECTOR
-from backend.utils.basic import getitems
 
 logger = logging.getLogger(__name__)
 
 
 class Matcher:
-    """ A matcher is used to indicate whether we should inject data to target resoruce.
-    """
+    """A matcher is used to indicate whether we should inject data to target resoruce."""
 
     def match(self, resource):
         raise NotImplementedError
@@ -39,8 +39,8 @@ class Matcher:
 
 @dataclass
 class KindMatcher(Matcher):
-    """Simple KindMatcher compare resource kind with self.kind
-    """
+    """Simple KindMatcher compare resource kind with self.kind"""
+
     kind: str
 
     PATTERN_TYPE = type(re.compile(""))
@@ -57,8 +57,8 @@ class KindMatcher(Matcher):
 
 @dataclass
 class ReKindMatcher(Matcher):
-    """Simple ReKindMatcher compare resource kind with self.kind of re expression
-    """
+    """Simple ReKindMatcher compare resource kind with self.kind of re expression"""
+
     kind: str
 
     PATTERN_TYPE = type(re.compile(""))
@@ -107,12 +107,13 @@ class BaseInjector:
 
     @staticmethod
     def ensure_value_str(data):
-        """ 确保所有的值字段最终都是str，对于可执行的类型，封装返回为str类型
-        """
+        """确保所有的值字段最终都是str，对于可执行的类型，封装返回为str类型"""
+
         def wrap_callable_with_ret_str(f):
             def func(*args, **kwargs):
                 result = f(*args, **kwargs)
                 return str(result)
+
             return func
 
         def recursive_wrap(data):
@@ -128,8 +129,8 @@ class BaseInjector:
         return recursive_wrap(data)
 
     def get_inject_data(self, resource, context):
-        """ replace all callable value with it's run result
-        """
+        """replace all callable value with it's run result"""
+
         def recursive_replace(d):
             if isinstance(d, dict):
                 return {k: recursive_replace(v) for k, v in d.items()}
@@ -208,11 +209,7 @@ class InjectManager:
                     logger.error("处理环境变量异常, %s", err)
                     raise ValidationError(_("请检查配置文件内容是否正确"))
                 matcher = self.make_matcher(matcher_cfg)
-                injector = BaseInjector(
-                    matcher=matcher,
-                    path=path,
-                    data=data
-                )
+                injector = BaseInjector(matcher=matcher, path=path, data=data)
                 if injector.filter(resource):
                     resource = injector.do_inject(resource, self.context)
 

@@ -12,12 +12,10 @@
 # specific language governing permissions and limitations under the License.
 #
 from django.conf.urls import url
+
 from . import views
 
 urlpatterns = [
-    url(r'^api/perm/verify/$',
-        views.Perm.as_view({'post': 'verify'})),
-
-    url(r'^api/perm/multi/verify/$',
-        views.Perm.as_view({'post': 'verify_multi'})),
+    url(r'^api/perm/verify/$', views.Perm.as_view({'post': 'verify'})),
+    url(r'^api/perm/multi/verify/$', views.Perm.as_view({'post': 'verify_multi'})),
 ]

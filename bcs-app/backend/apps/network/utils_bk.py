@@ -44,12 +44,8 @@ def get_svc_access_info(manifest, cluster_id, extended_routes):
         cluster_ip = getitems(manifest, ['spec', 'clusterIP'])
         if not cluster_ip or cluster_ip == 'None':
             cluster_ip = '--'
-        access_info['internal'] = {
-            'ClusterIP': [f"{cluster_ip}:{p['port']} {p['protocol']}" for p in ports]
-        }
+        access_info['internal'] = {'ClusterIP': [f"{cluster_ip}:{p['port']} {p['protocol']}" for p in ports]}
     elif svc_type == 'NodePort':
-        access_info['external'] = {
-            'NodePort': [f":{p['nodePort']}" for p in ports]
-        }
+        access_info['external'] = {'NodePort': [f":{p['nodePort']}" for p in ports]}
 
     return access_info

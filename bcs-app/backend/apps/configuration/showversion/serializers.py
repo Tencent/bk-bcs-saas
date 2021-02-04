@@ -13,12 +13,12 @@
 #
 import re
 
+from django.utils.translation import ugettext_lazy as _
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
-from django.utils.translation import ugettext_lazy as _
 
-from backend.utils.exceptions import ResNotFoundError
 from backend.apps.configuration import models
+from backend.utils.exceptions import ResNotFoundError
 
 RE_SHOW_NAME = re.compile(r"^[a-zA-Z0-9-_.]{1,45}$")
 

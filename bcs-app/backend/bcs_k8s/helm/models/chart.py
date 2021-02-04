@@ -11,26 +11,27 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-import json
 import datetime
-import yaml
+import json
 import logging
+from typing import Dict, Tuple
 
+import yaml
+from django.conf import settings
 from django.db import models
 from django.utils.crypto import get_random_string
 from jsonfield import JSONField
-from django.conf import settings
-
-from .. import constants
-from .managers import (ChartManager, ChartVersionManager, ChartVersionSnapshotManager)
-from ..utils.repo import download_template_data, download_icon_data
-from ..utils.util import parse_chart_time, merge_rancher_answers, fix_chart_url
 
 from backend.bcs_k8s.diff import parser
-from backend.utils.models import BaseTSModel
-from backend.bcs_k8s.kubehelm.helm import KubeHelmClient
 from backend.bcs_k8s.helm.bcs_variable import get_bcs_variables, merge_valuefile_with_bcs_variables
+from backend.bcs_k8s.kubehelm.helm import KubeHelmClient
 from backend.utils.basic import normalize_time
+from backend.utils.models import BaseTSModel
+
+from .. import constants
+from ..utils.repo import download_icon_data, download_template_data
+from ..utils.util import fix_chart_url, merge_rancher_answers
+from .managers import ChartManager, ChartVersionManager, ChartVersionSnapshotManager
 
 logger = logging.getLogger(__name__)
 ALLOWED_CHARS = 'abcdefghijklmnopqrstuvwxyz0123456789'
@@ -41,11 +42,13 @@ class Chart(BaseTSModel):
     Helm Chart
     unique: name + repository
     """
+
     name = models.CharField(max_length=50)
     repository = models.ForeignKey("Repository")
     description = models.CharField(max_length=1000, blank=True, null=True, default="")
-    defaultChartVersion = models.ForeignKey("ChartVersion", related_name="default_chart_version",
-                                            null=True, on_delete=models.SET_NULL)
+    defaultChartVersion = models.ForeignKey(
+        "ChartVersion", related_name="default_chart_version", null=True, on_delete=models.SET_NULL
+    )
     # base64, format: [data:{content-type};base64,b64string]
     icon = models.TextField()
 
@@ -62,8 +65,7 @@ class Chart(BaseTSModel):
         db_table = 'helm_chart'
 
     def __str__(self):
-        return "{repo}/{name}".format(repo=self.repository,
-                                      name=self.name)
+        return "{repo}/{name}".format(repo=self.repository, name=self.name)
 
     # TODO: change to SLZ
     def to_json(self):
@@ -76,11 +78,9 @@ class Chart(BaseTSModel):
 
         fields = {}
         fields.update(chart_version_fields)
-        fields.update({
-            "name": self.name,
-            "repository_id": self.repository.id,
-            "icon": self.icon,
-        })
+        fields.update(
+            {"name": self.name, "repository_id": self.repository.id, "icon": self.icon,}
+        )
         return fields
 
     def update_icon(self, icon_url):
@@ -106,6 +106,7 @@ class BaseChartVersion(BaseTSModel):
     """
     refer: https://github.com/kubernetes/helm/blob/master/pkg/proto/hapi/chart/metadata.pb.go#L75:6
     """
+
     name = models.CharField(max_length=50)
     home = models.CharField(max_length=200, null=True)
     description = models.CharField(max_length=1000, blank=True, null=True, default="")
@@ -122,25 +123,24 @@ class BaseChartVersion(BaseTSModel):
 
     def to_json(self):
         from django.forms.models import model_to_dict
-        values = model_to_dict(self, fields=[field.name for field in self._meta.fields
-                                             if not field.name.startswith("_")]
-                               )
-        values.update({
-            "maintainers": self.maintainers,
-            "sources": self.sources,
-            "urls": self.urls,
-            "files": self.files,
-            "questions": self.questions,
-        })
+
+        values = model_to_dict(
+            self, fields=[field.name for field in self._meta.fields if not field.name.startswith("_")]
+        )
+        values.update(
+            {
+                "maintainers": self.maintainers,
+                "sources": self.sources,
+                "urls": self.urls,
+                "files": self.files,
+                "questions": self.questions,
+            }
+        )
         return values
 
     @property
     def chart_info(self):
-        default = {
-            "description": "",
-            "name": self.name,
-            "version": self.version
-        }
+        default = {"description": "", "name": self.name, "version": self.version}
         for key in ["Chart.yaml", "%s/Chart.yaml" % self.name]:
             content = self.files.get(key)
             if content:
@@ -165,6 +165,7 @@ class ChartVersion(BaseChartVersion):
     project-repo唯一, 全局不唯一
     uniq: chart + version
     """
+
     chart = models.ForeignKey("Chart", related_name='versions')
     keywords = models.CharField(max_length=200, null=True, blank=True)
     version = models.CharField(max_length=255)
@@ -177,8 +178,7 @@ class ChartVersion(BaseChartVersion):
         unique_together = ('chart', 'version', 'digest')
 
     def __str__(self):
-        return "{chart}/{version}".format(chart=self.chart,
-                                          version=self.version)
+        return "{chart}/{version}".format(chart=self.chart, version=self.version)
 
     @staticmethod
     def gen_key(name, version, digest):
@@ -244,6 +244,12 @@ class ChartVersion(BaseChartVersion):
         self.save()
         return chart_version_changed
 
+    @classmethod
+    def update_or_create_version(cls, chart: Chart, version: Dict) -> Tuple["ChartVersion", bool]:
+        chart_version, created = cls.objects.update_or_create(chart=chart, version=version.get("version"))
+        chart_version.update_from_import_version(chart, version)
+        return chart_version, created
+
 
 class ChartVersionSnapshot(BaseChartVersion):
     """
@@ -251,10 +257,9 @@ class ChartVersionSnapshot(BaseChartVersion):
     只要digest, 就能确定引用的是同一个包, 全局唯一
     uniq: digest
     """
+
     version = models.CharField(max_length=255)
-    version_id = models.IntegerField(
-        default=-1,
-        help_text="record the chart version which this snapshot comes from")
+    version_id = models.IntegerField(default=-1, help_text="record the chart version which this snapshot comes from")
 
     # digest shouldn't be unique, as multi app may use same version.
     # Make digest unique must add foreignkey chart and index_together.
@@ -263,8 +268,7 @@ class ChartVersionSnapshot(BaseChartVersion):
     objects = ChartVersionSnapshotManager()
 
     def __str__(self):
-        return "{name}/{version}".format(name=self.name,
-                                         version=self.version)
+        return "{name}/{version}".format(name=self.name, version=self.version)
 
     class Meta:
         db_table = 'helm_chart_version_snapshot'
@@ -278,14 +282,39 @@ class ChartVersionSnapshot(BaseChartVersion):
         else:
             return "unchanged" if chart_version.digest == self.digest else "changed"
 
+    @property
+    def version_detail(self):
+        from django.forms.models import model_to_dict
+
+        values = model_to_dict(
+            self,
+            fields=[
+                "version",
+                "digest",
+                "name",
+                "home",
+                "description",
+                "engine",
+                "created",
+                "maintainers",
+                "sources",
+                "urls",
+                "files",
+                "questions",
+            ],
+        )
+
+        return values
+
 
 class ChartReleaseManager(models.Manager):
     def create(self, **kwargs):
         kwargs["short_name"] = get_random_string(constants.CHART_RELEASE_SHOT_NAME_LENGTH, allowed_chars=ALLOWED_CHARS)
         return super(ChartReleaseManager, self).create(**kwargs)
 
-    def make_upgrade_release(self, app, chart_version_id, answers, customs,
-                             valuefile="", valuefile_name=constants.DEFAULT_VALUES_FILE_NAME):
+    def make_upgrade_release(
+        self, app, chart_version_id, answers, customs, valuefile="", valuefile_name=constants.DEFAULT_VALUES_FILE_NAME
+    ):
         # make upgrade for app
         # `chart_version_id` indicate the target chartverion for app,
         # it can also use KEEP_TEMPLATE_UNCHANGED to keep app template unchanged.
@@ -323,7 +352,7 @@ class ChartReleaseManager(models.Manager):
             release_type=constants.ChartReleaseTypes.ROLLBACK.value,
             valuefile=release.valuefile,
             valuefile_name=release.valuefile_name,
-            revision=release.revision
+            revision=release.revision,
         )
 
 
@@ -333,6 +362,7 @@ class ChartRelease(BaseTSModel):
     repo -> chart -> release
     var priority: answers > values > values.yaml
     """
+
     # from which repo
     repository = models.ForeignKey("Repository", on_delete=models.PROTECT)
     # from which chart, maybe Null if the source chart has been deleted
@@ -344,12 +374,16 @@ class ChartRelease(BaseTSModel):
     customs = JSONField(null=True, default=[])
     valuefile = models.TextField(help_text="yaml format")
     valuefile_name = models.CharField(
-        max_length=64, default=constants.DEFAULT_VALUES_FILE_NAME, help_text="helm value file name")
+        max_length=64, default=constants.DEFAULT_VALUES_FILE_NAME, help_text="helm value file name"
+    )
 
     short_name = models.CharField(max_length=constants.CHART_RELEASE_SHOT_NAME_LENGTH)
     app_id = models.IntegerField("App ID", db_index=True, default=constants.TEMPORARY_APP_ID)
-    release_type = models.CharField(max_length=10, choices=constants.ChartReleaseTypes.get_choices(),
-                                    default=constants.ChartReleaseTypes.RELEASE.value)
+    release_type = models.CharField(
+        max_length=10,
+        choices=constants.ChartReleaseTypes.get_choices(),
+        default=constants.ChartReleaseTypes.RELEASE.value,
+    )
 
     # content generated when a release create
     # used for accelerate status query
@@ -371,10 +405,9 @@ class ChartRelease(BaseTSModel):
         structure = []
         resources = parser.parse(self.content, namespace).values()
         for resource in resources:
-            structure.append({
-                "name": resource.name.split("/")[-1],
-                "kind": resource.kind,
-            })
+            structure.append(
+                {"name": resource.name.split("/")[-1], "kind": resource.kind,}
+            )
         self.structure = structure
         self.save(update_fields=["structure"])
 
@@ -407,6 +440,7 @@ class ChartRelease(BaseTSModel):
             return None
         else:
             from backend.bcs_k8s.app.models import App
+
             return App.objects.get(id=self.app_id)
 
     def render(self, namespace="default", bcs_inject_data=None):
@@ -430,7 +464,7 @@ class ChartRelease(BaseTSModel):
                 valuefile=self.generate_valuesyaml(self.app.project_id, self.app.namespace_id, self.app.cluster_id),
                 cluster_id=self.app.cluster_id,
                 bcs_inject_data=bcs_inject_data,
-                cmd_flags=json.loads(self.app.cmd_flags)
+                cmd_flags=json.loads(self.app.cmd_flags),
             )
 
         return content, notes

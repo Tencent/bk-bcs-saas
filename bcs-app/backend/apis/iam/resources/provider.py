@@ -12,7 +12,7 @@
 # specific language governing permissions and limitations under the License.
 #
 try:
-    from iam.resource.utils import get_page_obj, get_filter_obj
+    from iam.resource.utils import get_filter_obj, get_page_obj
 except Exception:
     pass
 

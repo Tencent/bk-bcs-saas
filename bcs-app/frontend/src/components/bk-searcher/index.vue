@@ -1,5 +1,6 @@
 <template>
     <div class="bk-searcher-wrapper" ref="searchWrapper" v-clickoutside="hideFilterList">
+        <div class="bk-searcher-mask" v-if="showMask"></div>
         <div class="bk-searcher" @click="foucusSearcher($event)">
             <ul class="search-params-wrapper" ref="searchParamsWrapper">
                 <template v-if="fixedSearchParams && fixedSearchParams.length">
@@ -47,7 +48,7 @@
             <div class="bk-searcher-dropdown-content" ref="filterValueListNode" :class="showFilterValue ? 'is-show' : ''" :style="{ left: `${searcherDropdownLeft}px` }">
                 <ul class="bk-searcher-dropdown-list" v-if="filterValueList && filterValueList.length">
                     <li v-for="(fv, fvIndex) in filterValueList" :key="fvIndex">
-                        <a href="javascript:void(0);" :class="fvIndex === filterValueKeyboardIndex ? 'active' : ''" @click="selectFilterValue(fv)">{{fv.text}}</a>
+                        <a href="javascript:void(0);" :title="fv.text" :class="fvIndex === filterValueKeyboardIndex ? 'active' : ''" @click="selectFilterValue(fv)">{{fv.text}}</a>
                     </li>
                 </ul>
                 <ul class="bk-searcher-dropdown-list" v-else>
@@ -94,6 +95,11 @@
             maxInputWidth: {
                 type: Number,
                 default: 200
+            },
+            // 输入框的最大宽度
+            mask: {
+                type: Boolean,
+                default: false
             }
         },
         data () {
@@ -123,7 +129,8 @@
                 // search-params-wrapper 里的 li 元素的 margin 值
                 searchParamsItemMargin: 3,
                 // 过滤项下拉框的左偏移
-                searcherDropdownLeft: 0
+                searcherDropdownLeft: 0,
+                showMask: false
             }
         },
         computed: {
@@ -144,6 +151,9 @@
                     const filterValueListNode = this.$refs.filterValueListNode
                     filterValueListNode && filterValueListNode.scrollTo(0, 0)
                 }
+            },
+            mask (val) {
+                this.showMask = val
             }
         },
         mounted () {

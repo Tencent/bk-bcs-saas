@@ -16,9 +16,10 @@ import logging
 
 from kubernetes import client
 
-from .api_response import response
-from .resource import Resource, FilterResourceData, APPAPIClassMixins
 from backend.resources.constants import K8sResourceKinds
+
+from .api_response import response
+from .resource import APPAPIClassMixins, FilterResourceData, Resource
 
 logger = logging.getLogger(__name__)
 

@@ -13,7 +13,7 @@
                 @focus="focus"
                 @blur="blur"
                 @input="debounceHandleInput"
-                :value="currentValue">
+                :value="currentValue" />
             <div class="bk-number-icon-content" v-if="!hideOperation">
                 <div :class="['bk-number-icon-top', { 'btn-disabled': isMax }]" @click="add">
                     <i class="bk-icon icon-angle-up"></i>

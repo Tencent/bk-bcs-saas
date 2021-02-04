@@ -11,13 +11,12 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-from backend.apps.instance.resources.__resource import BCSResource  # noqa
-
-import pkgutil
 import importlib
 import os
+import pkgutil
 
-from backend.apps.instance.constants import MESOS_MODULE_NAME, K8S_MODULE_NAME
+from backend.apps.instance.constants import K8S_MODULE_NAME, MESOS_MODULE_NAME
+from backend.apps.instance.resources.__resource import BCSResource  # noqa
 
 pkgpath = os.path.dirname(__file__)
 for m in [MESOS_MODULE_NAME, K8S_MODULE_NAME]:

@@ -14,13 +14,12 @@
 import logging
 
 from django.conf import settings
-from rest_framework import views, response
-from rest_framework import viewsets
+from rest_framework import response, views, viewsets
 
-from backend.utils.views import FinalizeResponseMixin
-from backend.utils.funutils import convert_mappings
-from backend.apps.depot.serializers import (ImageQuerySLZ, AvailableTagSLZ, ImageDetailSLZ)
 from backend.apps.depot import api
+from backend.apps.depot.serializers import AvailableTagSLZ, ImageDetailSLZ, ImageQuerySLZ
+from backend.utils.funutils import convert_mappings
+from backend.utils.views import FinalizeResponseMixin
 
 logger = logging.getLogger(__name__)
 
@@ -49,18 +48,20 @@ class BaseImage:
         else:
             repo_prefix = f'{pro_name}/'
         for i in images:
-            data_list.append({
-                'name': i.get('repo').split(repo_prefix)[-1] if pro_name else i.get('repo'),
-                "repo": i.get("repo", ""),
-                "deployBy": i.get("createdBy", ""),
-                "type": i.get("type", ""),
-                "desc": i.get("desc", ""),
-                "repoType": i.get("repoType", ""),
-                "modified": i.get("modified", ""),
-                "modifiedBy": i.get("modifiedBy", "") or i.get("createdBy", ""),
-                "imagePath": i.get("imagePath", ""),
-                "downloadCount": i.get("downloadCount", "")
-            })
+            data_list.append(
+                {
+                    'name': i.get('repo').split(repo_prefix)[-1] if pro_name else i.get('repo'),
+                    "repo": i.get("repo", ""),
+                    "deployBy": i.get("createdBy", ""),
+                    "type": i.get("type", ""),
+                    "desc": i.get("desc", ""),
+                    "repoType": i.get("repoType", ""),
+                    "modified": i.get("modified", ""),
+                    "modifiedBy": i.get("modifiedBy", "") or i.get("createdBy", ""),
+                    "imagePath": i.get("imagePath", ""),
+                    "downloadCount": i.get("downloadCount", ""),
+                }
+            )
         data_list = sorted(data_list, key=lambda x: x['repo'])
         return data_list
 
@@ -70,16 +71,18 @@ class BaseImage:
         data = result.get("data", {}) or {}
         images = data.get('imageList', [])
         count = data.get("total")
-        return response.Response({
-            "code": 0,
-            "message": message,
-            "data": {
-                "count": count,
-                "next": None,
-                "previous": None,
-                "results": self.parse_images(images, username),
+        return response.Response(
+            {
+                "code": 0,
+                "message": message,
+                "data": {
+                    "count": count,
+                    "next": None,
+                    "previous": None,
+                    "results": self.parse_images(images, username),
+                },
             }
-        })
+        )
 
 
 class PublicImages(FinalizeResponseMixin, views.APIView, BaseImage):
@@ -90,7 +93,7 @@ class PublicImages(FinalizeResponseMixin, views.APIView, BaseImage):
         return api.get_public_image_list(query)
 
     def get(self, request):
-        '''
+        """
         GET /api/depot/images/public/?limit=5&projId=28aa9eda67644a6eb254d694d944307e&offset=0&search=
 
         HTTP 200 OK
@@ -122,7 +125,7 @@ class PublicImages(FinalizeResponseMixin, views.APIView, BaseImage):
                 ]
             }
         }
-        '''
+        """
         self.slz = ImageQuerySLZ(data=request.GET)
         self.slz.is_valid(raise_exception=True)
         result = self.get_images(self.slz.data)
@@ -140,7 +143,7 @@ class ProjectImage(FinalizeResponseMixin, views.APIView, BaseImage):
         return api.get_project_image_list(query)
 
     def get(self, request, project_id):
-        '''
+        """
         GET /api/depot/images/project/28aa9eda67644a6eb254d694d944307e/
         HTTP 200 OK
         Content-Type: application/json
@@ -171,7 +174,7 @@ class ProjectImage(FinalizeResponseMixin, views.APIView, BaseImage):
                 ]
             }
         }
-        '''
+        """
         self.project_id = project_id
         self.slz = ImageQuerySLZ(data=request.GET)
         self.slz.is_valid(raise_exception=True)
@@ -182,34 +185,29 @@ class ProjectImage(FinalizeResponseMixin, views.APIView, BaseImage):
 
 
 class AvailableImage(FinalizeResponseMixin, views.APIView):
-    """
-    """
+    """"""
 
     def get(self, request, project_id):
         image_list = []
         # 获取公共镜像
-        pub_query = {
-            'access_token': self.request.user.token.access_token
-        }
+        pub_query = {'access_token': self.request.user.token.access_token}
         pub_resp = api.get_public_image_list(pub_query)
 
         pub_image_data = pub_resp.get('data', {}) or {}
         pub_image_list = pub_image_data.get('imageList', [])
         for _pub in pub_image_list:
             _repo = _pub.get('repo')
-            image_list.append({
-                'name': _repo.split(settings.DEPOT_PREFIX)[-1] if settings.DEPOT_PREFIX else _repo,
-                'value': _repo,
-                'is_pub': True
-            })
+            image_list.append(
+                {
+                    'name': _repo.split(settings.DEPOT_PREFIX)[-1] if settings.DEPOT_PREFIX else _repo,
+                    'value': _repo,
+                    'is_pub': True,
+                }
+            )
 
         # 获取项目镜像
         access_token = self.request.user.token.access_token
-        pro_query = {
-            'repoType': 'all',
-            'projectId': project_id,
-            'access_token': access_token
-        }
+        pro_query = {'repoType': 'all', 'projectId': project_id, 'access_token': access_token}
         pro_query['project_code'] = self.request.project.english_name if 'english_name' in self.request.project else ''
         pro_resp = api.get_project_image_list(pro_query)
 
@@ -222,22 +220,19 @@ class AvailableImage(FinalizeResponseMixin, views.APIView):
         else:
             repo_prefix = f'{pro_name}/'
         for _pub in pro_image_list:
-            image_list.append({
-                'name': _pub.get('repo').split(repo_prefix)[-1] if pro_name else _pub.get('repo'),
-                'value': _pub.get('repo'),
-                'is_pub': False
-            })
+            image_list.append(
+                {
+                    'name': _pub.get('repo').split(repo_prefix)[-1] if pro_name else _pub.get('repo'),
+                    'value': _pub.get('repo'),
+                    'is_pub': False,
+                }
+            )
 
-        return response.Response({
-            "code": 0,
-            "message": "success",
-            "data": image_list
-        })
+        return response.Response({"code": 0, "message": "success", "data": image_list})
 
 
 class AvailableTag(FinalizeResponseMixin, views.APIView):
-    """
-    """
+    """"""
 
     def get(self, request, project_id):
         self.slz = AvailableTagSLZ(data=request.GET)
@@ -251,7 +246,7 @@ class AvailableTag(FinalizeResponseMixin, views.APIView):
             "projectId": '' if is_pub else req_project_id,
             "repoList": [repo],
             "imageRepo": repo,
-            "includeTags": True
+            "includeTags": True,
         }
         params["access_token"] = self.request.user.token.access_token
         params['project_code'] = self.request.project.english_name if 'english_name' in self.request.project else ''
@@ -263,30 +258,23 @@ class AvailableTag(FinalizeResponseMixin, views.APIView):
         try:
             tag_data = tag_resp.get('data', [])[0].get('tags', [])
             tag_data.sort(key=lambda item: item['modified'], reverse=True)
-            image_list = [{'value': tag.get('image'), 'text': tag.get(
-                'tag')} for tag in tag_data if tag.get('tag')]
+            image_list = [{'value': tag.get('image'), 'text': tag.get('tag')} for tag in tag_data if tag.get('tag')]
         except Exception:
             image_list = []
             logger.exception(u"解析镜像(repo:%s)的tag出错" % repo)
 
-        return response.Response({
-            "code": 0,
-            "message": "success",
-            "data": image_list
-        })
+        return response.Response({"code": 0, "message": "success", "data": image_list})
 
 
 class UploadImages(FinalizeResponseMixin, viewsets.ViewSet):
     def upload_images(self, request, project_id):
-        """上传镜像
-        """
+        """上传镜像"""
         image = request.FILES.get('image')
         resp = api.upload_image_api(request, project_id, image)
         return response.Response(resp)
 
     def get_upload_status(self, request, project_id, task_id):
-        """查看上传镜像的状态
-        """
+        """查看上传镜像的状态"""
         resp = api.get_upload_status_api(request, project_id, task_id)
         return response.Response(resp)
 
@@ -294,9 +282,9 @@ class UploadImages(FinalizeResponseMixin, viewsets.ViewSet):
 class ImagesInfo(FinalizeResponseMixin, viewsets.ViewSet):
     def get_image_detail(self, request, project_id):
         """查看镜像详情
-           分页查询，tag大小一块返回
-                           'has_previous': extra_data['page'] != 1,
-                'has_next': total > (extra_data['from_pos'] + extra_data['page_size']),
+        分页查询，tag大小一块返回
+                        'has_previous': extra_data['page'] != 1,
+             'has_next': total > (extra_data['from_pos'] + extra_data['page_size']),
         """
         access_token = request.user.token.access_token
         project_code = request.project.english_name if 'english_name' in self.request.project else ''

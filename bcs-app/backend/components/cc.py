@@ -15,11 +15,11 @@ import re
 
 from django.conf import settings
 from django.utils.translation import ugettext_lazy as _
+from rest_framework.exceptions import ValidationError
 
 from backend.components.utils import http_post
 from backend.utils.errcodes import ErrorCode
 from backend.utils.error_codes import error_codes
-
 
 CC_HOST = settings.BK_PAAS_INNER_HOST
 BK_APP_CODE = settings.APP_ID
@@ -60,6 +60,7 @@ def get_app_by_user_role(username, bk_supplier_account=None):
     # 组装数据
     if resp.get("code") != ErrorCode.NoError:
         return []
+
     return [{"id": biz["bk_biz_id"], "name": biz["bk_biz_name"]} for biz in resp.get("data") or []]
 
 
@@ -181,9 +182,10 @@ def get_cc_hosts(bk_biz_id, username):
 
 def check_ips(bk_biz_id, username, req_ip_list):
     """检查用户是都有权限使用请求的IP"""
+    msg_suffix = "请联系管理员在【配置中心】添加为业务的运维人员角色"
     all_ip_info = get_cc_hosts(bk_biz_id, username)
     if not all_ip_info.get("result"):
-        raise error_codes.APIError(_("用户{username}没有权限使用主机").format(username=username))
+        raise ValidationError(_("用户{username}没有权限使用主机,{suffix}").format(username=username, suffix=msg_suffix))
     perm_ip_list = []
     for info in all_ip_info.get("data") or []:
         inner_ip = info.get("bk_host_innerip", "")
@@ -192,7 +194,11 @@ def check_ips(bk_biz_id, username, req_ip_list):
 
     diff_ip_list = set(req_ip_list) - set(perm_ip_list)
     if diff_ip_list:
-        raise error_codes.CheckFailed(_("当前用户没有权限操作ip{}").format(",".join(diff_ip_list)))
+        raise ValidationError(
+            _("用户{username}没有权限操作主机:{ips},{suffix}").format(
+                username=username, ips=",".join(diff_ip_list), suffix=msg_suffix
+            )
+        )
 
 
 def get_application_host(username, bk_biz_id, inner_ip, bk_supplier_account=None):

@@ -17,9 +17,9 @@ import shlex
 from urllib.parse import urlencode
 
 import arrow
+import tornado.gen
 from django.utils.encoding import smart_text
 from django.utils.translation import ugettext_lazy as _
-import tornado.gen
 from tornado.httpclient import HTTPRequest
 from tornado.ioloop import IOLoop
 from tornado.websocket import websocket_connect
@@ -64,8 +64,7 @@ class BCSClientBase(abc.ABC):
         self.set_pty_size(self.init_rows, self.init_cols)
 
     def flush_output_record(self):
-        """获取输出记录
-        """
+        """获取输出记录"""
         record = self.output_record[:]
         self.output_record = []
         return record
@@ -80,19 +79,16 @@ class BCSClientBase(abc.ABC):
             logger.warning("close_transmission %s error: %s", self.msg_handler.user_pod_name, error)
 
     def handle_message(self, message):
-        """消息格式转换
-        """
+        """消息格式转换"""
         return message
 
     def write_message(self, message):
-        """写入消息
-        """
+        """写入消息"""
         self.ws.write_message(message)
 
     @classmethod
     def get_command_params(cls, context):
-        """获取k8s标准的命令参数
-        """
+        """获取k8s标准的命令参数"""
         command = context.get("command") or "sh"
         command_list = shlex.split(command)
         command_list = [("command", i) for i in command_list]
@@ -101,8 +97,7 @@ class BCSClientBase(abc.ABC):
 
     @abc.abstractmethod
     def set_pty_size(self, rows: int, cols: int):
-        """自动宽度适应
-        """
+        """自动宽度适应"""
 
     @tornado.gen.coroutine
     def run(self):

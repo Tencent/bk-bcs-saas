@@ -33,7 +33,7 @@
             },
             text: {
                 type: String,
-                default: 'hover'
+                default: 'always'
             },
             textStyle: {
                 type: Object,

@@ -15,22 +15,24 @@ import json
 
 from django.utils.translation import ugettext_lazy as _
 
-from .constants import VariableScope, VariableCategory
-from .models import Variable, NameSpaceVariable, ClusterVariable
+from .constants import VariableCategory, VariableScope
+from .models import ClusterVariable, NameSpaceVariable, Variable
 
 
 def _import_var(username, project_id, var):
     try:
         vobj = Variable.objects.get(project_id=project_id, key=var['key'])
     except Variable.DoesNotExist:
-        var.update({
-            'project_id': project_id,
-            'default': json.dumps({'value': var['value']}),
-            'category': VariableCategory.CUSTOM.value,
-            'scope': var['scope'],
-            'creator': username,
-            'updator': username
-        })
+        var.update(
+            {
+                'project_id': project_id,
+                'default': json.dumps({'value': var['value']}),
+                'category': VariableCategory.CUSTOM.value,
+                'scope': var['scope'],
+                'creator': username,
+                'updator': username,
+            }
+        )
         del var['value']
         vobj = Variable.objects.create(**var)
     else:
@@ -51,17 +53,13 @@ def _import_global_var(username, project_id, var):
 def _import_ns_var(username, project_id, var):
     ns_vars = var.pop('vars', [])
     vobj = _import_var(username, project_id, var)
-    NameSpaceVariable.batch_save_by_var_id(
-        vobj, var_dict={v['ns_id']: v.get('value') for v in ns_vars}
-    )
+    NameSpaceVariable.batch_save_by_var_id(vobj, var_dict={v['ns_id']: v.get('value') for v in ns_vars})
 
 
 def _import_cluster_var(username, project_id, var):
     cluster_vars = var.pop('vars', [])
     vobj = _import_var(username, project_id, var)
-    ClusterVariable.batch_save_by_var_id(
-        vobj, var_dict={v['cluster_id']: v['value'] for v in cluster_vars}
-    )
+    ClusterVariable.batch_save_by_var_id(vobj, var_dict={v['cluster_id']: v['value'] for v in cluster_vars})
 
 
 def import_vars(username, project_id, vars):

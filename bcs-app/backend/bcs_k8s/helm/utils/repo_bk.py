@@ -11,11 +11,12 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-import yaml
-import logging
-import hashlib
 import base64
+import hashlib
+import logging
+
 import requests
+import yaml
 
 logger = logging.getLogger(__name__)
 

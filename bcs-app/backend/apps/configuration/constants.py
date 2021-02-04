@@ -13,8 +13,9 @@
 #
 import re
 
-from backend.utils.basic import ChoicesEnum
 from django.utils.translation import ugettext_lazy as _
+
+from backend.utils.basic import ChoicesEnum
 
 # 变量的格式
 VARIABLE_PATTERN = "[A-Za-z][A-Za-z0-9_]"
@@ -37,20 +38,14 @@ class TemplateCategory(ChoicesEnum):
     SYSTEM = 'sys'
     CUSTOM = 'custom'
 
-    _choices_labels = (
-        (SYSTEM, _("系统")),
-        (CUSTOM, _("自定义"))
-    )
+    _choices_labels = ((SYSTEM, _("系统")), (CUSTOM, _("自定义")))
 
 
 class TemplateEditMode(ChoicesEnum):
     PageForm = 'page_form'
     YAML = 'yaml'
 
-    _choices_labels = (
-        (PageForm, "PageForm"),
-        (YAML, "YAML")
-    )
+    _choices_labels = ((PageForm, "PageForm"), (YAML, "YAML"))
 
 
 class FileAction(ChoicesEnum):
@@ -59,12 +54,7 @@ class FileAction(ChoicesEnum):
     DELETE = 'delete'
     UNCHANGE = 'unchange'
 
-    _choices_labels = (
-        (CREATE, 'create'),
-        (UPDATE, 'update'),
-        (DELETE, 'delete'),
-        (UNCHANGE, 'unchange')
-    )
+    _choices_labels = ((CREATE, 'create'), (UPDATE, 'update'), (DELETE, 'delete'), (UNCHANGE, 'unchange'))
 
 
 # TODO mark refactor 考虑用起来
@@ -108,7 +98,7 @@ class MesosResourceName(ChoicesEnum):
         (configmap, 'configmap'),
         (secret, 'secret'),
         (hpa, 'hpa'),
-        (ingress, 'ingress')
+        (ingress, 'ingress'),
     )
 
 
@@ -150,12 +140,16 @@ class FileResourceName(ChoicesEnum):
         (StorageClass, 'StorageClass'),
         (PersistentVolume, 'PersistentVolume'),
         (PersistentVolumeClaim, 'PersistentVolumeClaim'),
-        (CustomManifest, 'CustomManifest')
+        (CustomManifest, 'CustomManifest'),
     )
 
 
 KRESOURCE_NAMES = K8sResourceName.choice_values()
 MRESOURCE_NAMES = MesosResourceName.choice_values()
 RESOURCE_NAMES = KRESOURCE_NAMES + MRESOURCE_NAMES
-RESOURCES_WITH_POD = [FileResourceName.Deployment.value, FileResourceName.StatefulSet.value,
-                      FileResourceName.DaemonSet.value, FileResourceName.Job.value]
+RESOURCES_WITH_POD = [
+    FileResourceName.Deployment.value,
+    FileResourceName.StatefulSet.value,
+    FileResourceName.DaemonSet.value,
+    FileResourceName.Job.value,
+]

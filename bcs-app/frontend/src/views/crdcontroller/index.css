@@ -86,10 +86,9 @@
 .biz-inner-table {
     width: 100%;
     border: 1px solid $borderColor;
-    margin-bottom: 20px;
 
     tr {
-        height: 100px;
+        height: 80px;
     }
 
     td {
@@ -177,6 +176,12 @@
     &:first-child {
         >td {
             padding-top: 20px;
+        }
+    }
+
+    &:last-child {
+        >td {
+            padding-bottom: 20px;
         }
     }
 

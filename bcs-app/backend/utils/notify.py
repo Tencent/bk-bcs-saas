@@ -22,8 +22,7 @@ from backend.utils.send_msg import send_message
 
 @shared_task
 def notify_manager(message):
-    """管理员通知
-    """
+    """管理员通知"""
     wx_message = '[%s-%s] %s' % (settings.PLAT_SHOW_NAME, settings.PAAS_ENV, message)
     enabled, wlist = get_func_controller(constants.NOTIFY_MANAGER_FUNC_CODE)
 
@@ -33,8 +32,7 @@ def notify_manager(message):
 
 @shared_task
 def create_project_notify(project_name, creator, is_secrecy, biz_id):
-    """创建项目通知
-    """
+    """创建项目通知"""
     message = ['用户【%s】创建新项目【%s】' % (creator, project_name)]
     message.append("保密性：【%s】" % ('保密' if is_secrecy else '非保密'))
     if biz_id:

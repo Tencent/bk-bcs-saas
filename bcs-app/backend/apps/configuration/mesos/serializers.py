@@ -14,15 +14,22 @@
 import re
 
 from django.conf import settings
+from django.utils.translation import ugettext_lazy as _
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
-from django.utils.translation import ugettext_lazy as _
 
-from backend.apps.configuration.validator import validate_variable_inconfig, validate_res_config
-from backend.apps.configuration.k8s.serializers import BCSResourceSLZ
 from backend.apps.configuration.constants import MesosResourceName
-from .validator import MESOS_NAME_REGEX, get_config_schema, validate_mesos_res_name, validate_app_in_ventity, \
-    validate_res_duplicate, validate_port_duplicate_in_ventity
+from backend.apps.configuration.k8s.serializers import BCSResourceSLZ
+from backend.apps.configuration.validator import validate_res_config, validate_variable_inconfig
+
+from .validator import (
+    MESOS_NAME_REGEX,
+    get_config_schema,
+    validate_app_in_ventity,
+    validate_mesos_res_name,
+    validate_port_duplicate_in_ventity,
+    validate_res_duplicate,
+)
 
 NAME_REGEX = re.compile(r'^[a-z]{1}[a-z0-9-]{0,254}$')
 NAME_ERROR_MSG = _("名称格式错误，只能包含：小写字母、数字、连字符(-)，首字母必须是字母，长度小于256个字符")
@@ -55,8 +62,7 @@ class ApplicationSLZ(BCSResourceSLZ):
             validate_res_config(config, capitalize_name, get_config_schema(resource_name))
 
         # 检查单个 APP 中端口名称/挂载名 是否重复
-        containers = config.get('spec', {}).get(
-            'template', {}).get('spec', {}).get('containers', [])
+        containers = config.get('spec', {}).get('template', {}).get('spec', {}).get('containers', [])
         try:
             self._validate_volume_duplicate(containers)
         except ValidationError as e:
@@ -78,9 +84,7 @@ class DeploymentSLZ(BCSResourceSLZ):
         MESOS_NAME_REGEX,
         max_length=256,
         required=True,
-        error_messages={
-            'invalid': _("Deployment 名称格式错误，只能包含：小写字母、数字、连字符(-)，首字母必须是字母，长度小于256个字符")
-        }
+        error_messages={'invalid': _("Deployment 名称格式错误，只能包含：小写字母、数字、连字符(-)，首字母必须是字母，长度小于256个字符")},
     )
 
     def _validate_config(self, data):

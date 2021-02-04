@@ -12,8 +12,8 @@
 # specific language governing permissions and limitations under the License.
 #
 from django.conf import settings
-from rest_framework.authentication import BasicAuthentication
 from rest_framework import exceptions
+from rest_framework.authentication import BasicAuthentication
 
 try:
     from iam import IAM

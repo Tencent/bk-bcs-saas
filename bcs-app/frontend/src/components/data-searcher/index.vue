@@ -166,6 +166,7 @@
                 sessionStorage['bcs-cluster'] = this.curScope.id
                 this.$emit('update:searchScope', this.curScope.id)
                 this.$emit('update:searchKey', this.localKey)
+                this.localSearchScope = this.curScope.id
                 this.$emit('refresh')
             },
             clearSearch () {

@@ -31,6 +31,7 @@
                             :search-key.sync="searchKeyword"
                             :search-scope.sync="searchScope"
                             :search-namespace.sync="searchNamespace"
+                            @cluster-change="handleClusterChange"
                             @search="handleSearch"
                             @refresh="handleRefresh">
                         </search>
@@ -75,7 +76,7 @@
                                                     <span v-if="app.transitioning_on" class="f14 fb app-name">
                                                         {{app.name}}
                                                     </span>
-                                                    <a @click="showAppDetail(app)" href="javascript:void(0)" class="bk-text-button app-name f14 fb" v-else v-bktooltips="app.name">
+                                                    <a @click="showAppDetail(app)" href="javascript:void(0)" class="bk-text-button app-name f14" v-else v-bktooltips="app.name">
                                                         {{app.name}}
                                                     </a>
                                                     <div class="mt5">
@@ -523,11 +524,6 @@
             if (window.sessionStorage && window.sessionStorage['bcs-helm-namespace']) {
                 this.searchNamespace = window.sessionStorage['bcs-helm-namespace']
             }
-
-            this.$watch('searchScope', () => {
-                this.searchNamespace = ''
-                this.setNamespaceList()
-            })
 
             this.getAppList()
             this.getAllNamespaces()
@@ -983,7 +979,7 @@
                     clearTimeout(this.statusTimer)
                     const data = this.getParams()
                     const res = await this.$store.dispatch('helm/getAppList', data)
-
+                    this.searchScope = data.params.cluster_id
                     this.appList = res.data.results
                     this.appListCache = JSON.parse(JSON.stringify(res.data.results))
 
@@ -1034,15 +1030,22 @@
                 }
             },
 
+            handleClusterChange () {
+                this.searchNamespace = ''
+                this.setNamespaceList()
+            },
+
             setNamespaceList () {
                 if (this.searchScope) {
-                    this.allNamespaces.forEach(item => {
-                        if (item.id.indexOf(this.searchScope) > -1) {
-                            this.namespaceList = item.children
-                        } else {
-                            this.namespaceList = []
-                        }
+                    const match = this.allNamespaces.find(item => {
+                        return item.id.indexOf(this.searchScope) > -1
                     })
+
+                    if (match) {
+                        this.namespaceList = match.children
+                    } else {
+                        this.namespaceList = []
+                    }
                 } else {
                     this.namespaceList = this.allNamespaces
                 }

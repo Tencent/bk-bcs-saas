@@ -20,8 +20,9 @@ def render_tpls_to_string(resource_name):
     return render_to_string(f'{resource_name}.yaml')
 
 
-INITIAL_TEMPLATES = {resource_name: render_tpls_to_string(resource_name) for resource_name in
-                     FileResourceName.choice_values()}
+INITIAL_TEMPLATES = {
+    resource_name: render_tpls_to_string(resource_name) for resource_name in FileResourceName.choice_values()
+}
 
 
 def get_initial_templates():

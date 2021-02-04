@@ -16,10 +16,10 @@ import signal
 import time
 from functools import partial
 
-from django.conf import settings
 import tornado.gen
 import tornado.httpserver
 import tornado.ioloop
+from django.conf import settings
 
 from backend.web_console import constants
 from backend.web_console.handlers import WEBSOCKET_HANDLER_SET

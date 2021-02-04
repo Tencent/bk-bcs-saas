@@ -15,22 +15,19 @@ from django.utils.translation import ugettext_lazy as _
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
+from backend.resources.constants import PatchType
+
 from .constants import SupportedScaleCRDs
 
 
 class PatchCustomObjectSLZ(serializers.Serializer):
     namespace = serializers.CharField(required=False)
     body = serializers.JSONField()
+    patch_type = serializers.ChoiceField(choices=PatchType.get_choices(), default=PatchType.MERGE_PATCH_JSON.value)
 
 
 class PatchCustomObjectScaleSLZ(PatchCustomObjectSLZ):
-    """
-    暂时先支持scope=Namespaced的CustomObject
-    """
-
     crd_name = serializers.ChoiceField(choices=SupportedScaleCRDs.get_choices())
-    namespace = serializers.CharField()
-    body = serializers.JSONField()
 
     def validate_body(self, body):
         try:

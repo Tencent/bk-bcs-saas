@@ -23,6 +23,7 @@ export default {
     data () {
         return {
             bkSearcherFixedSearchParams: [],
+            bkSearcherMask: false,
             bkSearcherFilterList: [],
             showLoading: false,
             instanceLoading: false,
@@ -98,7 +99,7 @@ export default {
             loopInstanceListParams: [],
             instanceNumDialogConf: {
                 isShow: false,
-                width: 640,
+                width: 380,
                 title: '',
                 closeIcon: false
             },
@@ -205,6 +206,9 @@ export default {
             if (body) {
                 body.style.overflow = v ? 'hidden' : 'auto'
             }
+        },
+        showLoading (v) {
+            this.bkSearcherMask = v
         }
     },
     computed: {
@@ -384,6 +388,9 @@ export default {
          * bk-search 搜索事件回调
          */
         bkSearch (data) {
+            if (this.showLoading) {
+                return
+            }
             const p = []
             p.splice(0, 0, ...data)
             if (this.bkSearcherFixedSearchParams.length === 0) {
@@ -467,7 +474,8 @@ export default {
                 list.forEach(item => {
                     if (isNs) {
                         item.id = item.ns_id
-                        item.text = item.ns_name
+                        const clusterId = item.cluster_id || ''
+                        item.text = item.ns_name + (clusterId ? ` (${clusterId})` : '')
                     }
                     if (isApp) {
                         item.id = item.app_id
@@ -553,6 +561,9 @@ export default {
          * @param {boolean} autoExpand 是否需要自动展开对应的模板集或者 namespace
          */
         async fetchData (autoExpand) {
+            if (this.showLoading) {
+                return
+            }
             this.showLoading = true
             this.cancelLoop = false
             this.search = ''
@@ -639,11 +650,11 @@ export default {
 
                     // 展开 namespace 的逻辑
                     if (this.namespaceId && autoExpand) {
-                        setTimeout(() => {
+                        setTimeout(async () => {
                             const len = this.namespaceList.length
                             for (let i = 0; i < len; i++) {
                                 if (String(this.namespaceList[i].id) === String(this.namespaceId)) {
-                                    this.toggleNamespace(this.namespaceList[i], i)
+                                    await this.toggleNamespace(this.namespaceList[i], i)
                                     const scrollToDom = document.querySelectorAll('.list-item-tplset')[i]
                                     scrollToDom && window.scrollTo(0, scrollToDom.offsetTop)
                                     break
@@ -753,7 +764,7 @@ export default {
             if (namespace.prepareDeleteInstances && namespace.prepareDeleteInstances.length) {
                 namespace.prepareDeleteInstances.splice(0, namespace.prepareDeleteInstances.length, ...[])
             }
-            this.fetchAppListInNamespaceViewMode(namespace, index)
+            await this.fetchAppListInNamespaceViewMode(namespace, index)
         },
 
         /**
@@ -852,7 +863,7 @@ export default {
             const namespaceList = []
             namespaceList.splice(0, 0, ...this.namespaceList)
             namespaceList.forEach(item => {
-                if (item.timer) {
+                if (item && item.timer) {
                     clearTimeout(item.timer)
                     item.timer = null
                 }
@@ -1031,7 +1042,7 @@ export default {
                 templateList.splice(0, 0, ...tmplMuster.templateList)
                 if (templateList && templateList.length) {
                     templateList.forEach(tpl => {
-                        if (tpl.timer) {
+                        if (tpl && tpl.timer) {
                             clearTimeout(tpl.timer)
                             tpl.timer = null
                         }
@@ -2524,7 +2535,7 @@ export default {
                 instanceName: instance.name
             })
 
-            this.instanceNum = this.curInstance.build_instance
+            this.instanceNum = this.curInstance.instance
 
             if (this.viewMode === 'namespace') {
                 this.cancelLoopAppList()
@@ -2553,8 +2564,33 @@ export default {
         /**
          * 扩缩容弹层更新按钮
          */
-        instanceNumConfirm () {
+        async instanceNumConfirm () {
             const me = this
+
+            const originalNum = parseFloat(me.curInstance.instance)
+            const instanceNum = parseFloat(me.instanceNum)
+            if (originalNum === instanceNum) {
+                me.bkMessageInstance = me.$bkMessage({
+                    theme: 'primary',
+                    message: me.$t('实例数量没有变化'),
+                    delay: 1500
+                })
+                return
+            }
+            let msg = ''
+            if (this.isEn) {
+                if (instanceNum > originalNum) {
+                    msg = `Confirm to scale up ${instanceNum} instances`
+                } else {
+                    msg = `Confirm to scale down ${instanceNum} instances`
+                }
+            } else {
+                if (instanceNum > originalNum) {
+                    msg = `确定扩容到 ${instanceNum} 个实例`
+                } else {
+                    msg = `确定缩容到 ${instanceNum} 个实例`
+                }
+            }
             me.$bkInfo({
                 title: ``,
                 clsName: 'biz-confirm-dialog',
@@ -2564,13 +2600,14 @@ export default {
                         fontSize: '14px',
                         marginLeft: '-7px'
                     }
-                }, this.$t('确定扩缩容【{instanceName}】？', { instanceName: me.curInstance.name })),
+                // }, me.$t('确定扩缩容【{instanceName}】？', { instanceName: me.curInstance.name })),
+                }, msg),
                 async confirmFn () {
                     const params = {
                         projectId: me.projectId,
                         instanceId: me.curInstance.id,
                         name: me.curInstance.name,
-                        instanceNum: me.instanceNum,
+                        instanceNum: instanceNum,
                         cluster_id: me.curInstance.cluster_id
                     }
                     if (!me.curInstance.from_platform && me.curInstance.id === 0) {

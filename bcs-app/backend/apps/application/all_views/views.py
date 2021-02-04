@@ -19,40 +19,31 @@ import copy
 from django.conf import settings
 from django.utils.translation import ugettext_lazy as _
 
+from backend.accounts import bcs_perm
 from backend.apps.application.all_views import k8s_views, mesos_views
 from backend.apps.application.base_views import BaseAPI, error_codes
-from backend.apps.application.utils import APIResponse
+from backend.apps.application.constants import CATEGORY_MAP
+from backend.apps.application.filters.base_metrics import BaseNamespaceMetric
+from backend.apps.application.utils import APIResponse, cluster_env
+from backend.apps.instance.models import InstanceConfig
 from backend.components import paas_cc
 from backend.utils.errcodes import ErrorCode
-from backend.apps.application.constants import CATEGORY_MAP
-from backend.accounts import bcs_perm
-from backend.apps.instance.models import InstanceConfig
-from backend.apps.application.utils import cluster_env
-from backend.apps.application.filters.base_metrics import BaseNamespaceMetric
 
 CLUSTER_ENV_MAP = settings.CLUSTER_ENV_FOR_FRONT
 
 
 class GetProjectNamespace(BaseNamespaceMetric):
-
     def get_namespace(self, request, project_id):
-        """获取namespace
-        """
-        resp = paas_cc.get_namespace_list(
-            request.user.token.access_token, project_id, desire_all_data=True
-        )
+        """获取namespace"""
+        resp = paas_cc.get_namespace_list(request.user.token.access_token, project_id, desire_all_data=True)
         if resp.get("code") != ErrorCode.NoError:
             raise error_codes.APIError.f(resp.get("message"))
         data = resp.get("data") or {}
         return data.get("results") or []
 
     def get_cluster_list(self, request, project_id, cluster_ids):
-        """根据cluster_id获取集群信息
-        """
-        resp = paas_cc.get_cluster_list(
-            request.user.token.access_token,
-            project_id, cluster_ids
-        )
+        """根据cluster_id获取集群信息"""
+        resp = paas_cc.get_cluster_list(request.user.token.access_token, project_id, cluster_ids)
         if resp.get("code") != ErrorCode.NoError:
             raise error_codes.APIError.f(resp.get("message"))
         data = resp.get("data") or []
@@ -61,10 +52,9 @@ class GetProjectNamespace(BaseNamespaceMetric):
         return data
 
     def compose_data(
-            self, ns_map, cluster_env, ns_app, exist_app, ns_inst_error_count,
-            create_error, app_status, all_ns_inst_count):
-        """组装返回数据
-        """
+        self, ns_map, cluster_env, ns_app, exist_app, ns_inst_error_count, create_error, app_status, all_ns_inst_count
+    ):
+        """组装返回数据"""
         ns_map_copy = copy.deepcopy(ns_map)
         for key, val in ns_map_copy.items():
             cluster_id = val["cluster_id"]
@@ -88,21 +78,23 @@ class GetProjectNamespace(BaseNamespaceMetric):
                     ns_map.pop(key, None)
 
     def get_cluster_ns(self, ns_list, cluster_type, ns_id, cluster_env_map):
-        """组装集群、命名空间等信息
-        """
+        """组装集群、命名空间等信息"""
         ns_map = {}
         ns_id_list = []
         cluster_id_list = []
         ns_name_list = []
         for info in ns_list:
-            if str(cluster_env_map.get(info["cluster_id"], {}).get("cluster_env")) != str(cluster_type) or \
-                    ns_id and str(info["id"]) != str(ns_id):
+            if (
+                str(cluster_env_map.get(info["cluster_id"], {}).get("cluster_env")) != str(cluster_type)
+                or ns_id
+                and str(info["id"]) != str(ns_id)
+            ):
                 continue
             ns_map[(info["id"], info["name"])] = {
                 "cluster_id": info["cluster_id"],
                 "id": info["id"],
                 "name": info["name"],
-                "project_id": info["project_id"]
+                "project_id": info["project_id"],
             }
             ns_name_list.append(info["name"])
             # id和cluster_id肯定存在
@@ -119,15 +111,15 @@ class GetProjectNamespace(BaseNamespaceMetric):
             info["cluster_id"]: {
                 "cluster_name": info["name"],
                 "cluster_env": cluster_env(info["environment"]),
-                "cluster_env_str": cluster_env(info["environment"], ret_num_flag=False)
+                "cluster_env_str": cluster_env(info["environment"], ret_num_flag=False),
             }
-            for info in cluster_results if not info["disabled"]
+            for info in cluster_results
+            if not info["disabled"]
         }
         return cluster_results, cluster_env_map
 
     def get(self, request, project_id):
-        """获取项目下的所有命名空间
-        """
+        """获取项目下的所有命名空间"""
         # 获取过滤参数
         cluster_type, app_status, app_id, ns_id = self.get_filter_params(request, project_id)
         exist_app = request.GET.get("exist_app")
@@ -143,7 +135,8 @@ class GetProjectNamespace(BaseNamespaceMetric):
             return APIResponse({"data": []})
         # 组装命名空间数据、命名空间ID、项目下集群信息
         ns_map, ns_id_list, cluster_id_list, ns_name_list = self.get_cluster_ns(
-            ns_list, cluster_type, ns_id, cluster_env_map)
+            ns_list, cluster_type, ns_id, cluster_env_map
+        )
         # 匹配集群的环境
         cluster_env = {
             info["cluster_id"]: {'env_type': CLUSTER_ENV_MAP.get(info["environment"], "stag"), 'name': info['name']}
@@ -158,33 +151,42 @@ class GetProjectNamespace(BaseNamespaceMetric):
                 raise error_codes.CheckFailed(_("类型不正确"))
             client = k8s_views.GetNamespace()
             ns_app, ns_inst_error_count, create_error, all_ns_inst_count = client.get(
-                request, ns_id_list, category, ns_map, project_id,
-                project_kind, self.get_app_deploy_with_post, inst_name,
-                ns_name_list, cluster_id_list
+                request,
+                ns_id_list,
+                category,
+                ns_map,
+                project_id,
+                project_kind,
+                self.get_app_deploy_with_post,
+                inst_name,
+                ns_name_list,
+                cluster_id_list,
             )
         else:
             client = mesos_views.GetNamespace()
             ns_app, ns_inst_error_count, create_error, all_ns_inst_count = client.get(
-                request, ns_id_list, ns_map, project_id, project_kind,
-                self.get_app_deploy_with_post, inst_name, ns_name_list,
-                cluster_id_list
+                request,
+                ns_id_list,
+                ns_map,
+                project_id,
+                project_kind,
+                self.get_app_deploy_with_post,
+                inst_name,
+                ns_name_list,
+                cluster_id_list,
             )
         # 匹配数据
         self.compose_data(
-            ns_map, cluster_env, ns_app, exist_app, ns_inst_error_count,
-            create_error, app_status, all_ns_inst_count)
+            ns_map, cluster_env, ns_app, exist_app, ns_inst_error_count, create_error, app_status, all_ns_inst_count
+        )
         ret_data = ns_map.values()
         return APIResponse({"data": ret_data})
 
 
 class GetInstances(BaseNamespaceMetric):
-
     def check_ns_with_project(self, request, project_id, ns_id, cluster_type, cluster_env_map):
-        """判断命名空间属于项目
-        """
-        resp = paas_cc.get_namespace_list(
-            request.user.token.access_token, project_id, desire_all_data=True
-        )
+        """判断命名空间属于项目"""
+        resp = paas_cc.get_namespace_list(request.user.token.access_token, project_id, desire_all_data=True)
         if resp.get("code") != ErrorCode.NoError:
             raise error_codes.APIError.f(resp.get("message"))
         data = resp.get("data") or {}
@@ -212,8 +214,7 @@ class GetInstances(BaseNamespaceMetric):
         # 获取项目下集群类型
         cluster_env_map = self.get_cluster_id_env(request, project_id)
         # 检查命名空间属于项目
-        cluster_id, ns_name = self.check_ns_with_project(
-            request, project_id, ns_id, cluster_type, cluster_env_map)
+        cluster_id, ns_name = self.check_ns_with_project(request, project_id, ns_id, cluster_type, cluster_env_map)
         inst_name = None
         if app_id:
             inst_name = self.get_inst_name(app_id)
@@ -225,18 +226,34 @@ class GetInstances(BaseNamespaceMetric):
                 raise error_codes.CheckFailed(_("类型不正确"))
             client = k8s_views.GetInstances()
             ret_data = client.get(
-                request, project_id, ns_id, category,
-                inst_name, app_status, cluster_env_map,
-                cluster_id, ns_name, ns_name_id
+                request,
+                project_id,
+                ns_id,
+                category,
+                inst_name,
+                app_status,
+                cluster_env_map,
+                cluster_id,
+                ns_name,
+                ns_name_id,
             )
         else:
             func_app = self.get_application_deploy_status
             func_deploy = self.get_application_deploy_info
             client = mesos_views.GetInstances()
             ret_data = client.get(
-                request, project_id, ns_id, project_kind, func_app,
-                func_deploy, inst_name, app_status, cluster_env_map,
-                cluster_id, ns_name, ns_name_id
+                request,
+                project_id,
+                ns_id,
+                project_kind,
+                func_app,
+                func_deploy,
+                inst_name,
+                app_status,
+                cluster_env_map,
+                cluster_id,
+                ns_name,
+                ns_name_id,
             )
         # 拆分需要处理权限和默认权限
         auth_instance_list = []
@@ -251,7 +268,8 @@ class GetInstances(BaseNamespaceMetric):
         ret_instance_list = self.bcs_perm_handler(request, project_id, auth_instance_list)
         # 针对非模板集的权限解析
         default_ret_instance_list = self.bcs_perm_handler(
-            request, project_id, default_auth_instance_list, tmpl_view=False)
+            request, project_id, default_auth_instance_list, tmpl_view=False
+        )
         ret_instance_list.extend(default_ret_instance_list)
         ret_data["instance_list"] = ret_instance_list
         return APIResponse({"data": ret_data})

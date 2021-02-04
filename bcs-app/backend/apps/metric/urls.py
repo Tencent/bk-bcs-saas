@@ -12,15 +12,17 @@
 # specific language governing permissions and limitations under the License.
 #
 from django.conf.urls import url
+
 from . import views
 
 urlpatterns = [
-    url(r'^api/metric/(?P<project_id>\w{32})/$',
-        views.collector.Metric.as_view({'get': 'list', 'post': 'create'})),
-
-    url(r'^api/metric/(?P<project_id>\w{32})/(?P<metric_id>\d+)/$',
-        views.collector.MetricDetail.as_view({'get': 'get', 'put': 'put', 'post': 'recreate', 'delete': 'delete'})),
-
-    url(r'^api/metric/(?P<project_id>\w{32})/instances/(?P<metric_id>\d+)/$',
-        views.collector.MetricIns.as_view({'get': 'get_instance'})),
+    url(r'^api/metric/(?P<project_id>\w{32})/$', views.collector.Metric.as_view({'get': 'list', 'post': 'create'})),
+    url(
+        r'^api/metric/(?P<project_id>\w{32})/(?P<metric_id>\d+)/$',
+        views.collector.MetricDetail.as_view({'get': 'get', 'put': 'put', 'post': 'recreate', 'delete': 'delete'}),
+    ),
+    url(
+        r'^api/metric/(?P<project_id>\w{32})/instances/(?P<metric_id>\d+)/$',
+        views.collector.MetricIns.as_view({'get': 'get_instance'}),
+    ),
 ]

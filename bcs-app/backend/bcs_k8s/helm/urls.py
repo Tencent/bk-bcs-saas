@@ -12,8 +12,8 @@
 # specific language governing permissions and limitations under the License.
 #
 from django.conf.urls import url
-from . import views
 
+from . import views
 
 PROJECT_ID = "(?P<project_id>[\w\-]+)"
 REPO_NAME = "(?P<repo_name>[a-z0-9_-]{1,32})"
@@ -21,83 +21,101 @@ REPO_ID = "(?P<repo_id>[0-9]+)"
 
 urlpatterns = [
     # repository
-    url(r'^api/bcs/k8s/configuration/(?P<project_id>\w{32})/helm/repositories/$',
+    url(
+        r'^api/bcs/k8s/configuration/(?P<project_id>\w{32})/helm/repositories/$',
         views.RepositoryCreateView.as_view({'post': 'create'}),
-        name='api.bcs_k8s.helm_repositories_create'),
-
+        name='api.bcs_k8s.helm_repositories_create',
+    ),
     # FIXME merge this interface with the defualt
     # custom plain chartmuseum repository
-    url(r'^api/bcs/k8s/configuration/(?P<project_id>\w{32})/helm/repositories/plain/$',
+    url(
+        r'^api/bcs/k8s/configuration/(?P<project_id>\w{32})/helm/repositories/plain/$',
         views.PlainChartMuseumProviderCreateView.as_view({'post': 'create'}),
-        name='api.bcs_k8s.helm_plain_chartmuseum_repositories_create'),
-
-    url(r'^api/bcs/k8s/configuration/(?P<project_id>\w{32})/helm/repositories/lists/detailed',
+        name='api.bcs_k8s.helm_plain_chartmuseum_repositories_create',
+    ),
+    url(
+        r'^api/bcs/k8s/configuration/(?P<project_id>\w{32})/helm/repositories/lists/detailed',
         views.RepositoryView.as_view({'get': 'list_detailed'}),
-        name='api.bcs_k8s.helm_repositories_list_detailed'),
-
-    url(r'^api/bcs/k8s/configuration/(?P<project_id>\w{32})/helm/repositories/lists/minimal$',
+        name='api.bcs_k8s.helm_repositories_list_detailed',
+    ),
+    url(
+        r'^api/bcs/k8s/configuration/(?P<project_id>\w{32})/helm/repositories/lists/minimal$',
         views.RepositoryView.as_view({'get': 'list_minimal'}),
-        name='api.bcs_k8s.helm_repositories_list_minimal'),
-
-    url(r'^api/bcs/k8s/configuration/(?P<project_id>\w{32})/helm/repositories/(?P<repo_id>[0-9]+)/$',
+        name='api.bcs_k8s.helm_repositories_list_minimal',
+    ),
+    url(
+        r'^api/bcs/k8s/configuration/(?P<project_id>\w{32})/helm/repositories/(?P<repo_id>[0-9]+)/$',
         views.RepositoryView.as_view({'get': 'retrieve', 'delete': 'destroy', 'put': 'update'}),
-        name='api.bcs_k8s.helm_repositories_delete'),
-
+        name='api.bcs_k8s.helm_repositories_delete',
+    ),
     # chart
-    url(r'^api/bcs/k8s/configuration/(?P<project_id>\w{32})/helm/repositories/(?P<repo_id>[0-9]+)/charts/$',
+    url(
+        r'^api/bcs/k8s/configuration/(?P<project_id>\w{32})/helm/repositories/(?P<repo_id>[0-9]+)/charts/$',
         views.ChartView.as_view({"get": "list"}),
-        name='api.bcs_k8s.helm_repo_chart_list'),
-
-    url(r'^api/bcs/k8s/configuration/(?P<project_id>\w{32})/helm/repositories/(?P<repo_id>[0-9]+)/'
+        name='api.bcs_k8s.helm_repo_chart_list',
+    ),
+    url(
+        r'^api/bcs/k8s/configuration/(?P<project_id>\w{32})/helm/repositories/(?P<repo_id>[0-9]+)/'
         'charts/(?P<chart_id>[0-9]+)/$',
         views.ChartView.as_view({'get': 'retrieve'}),
-        name='api.bcs_k8s.helm_repo_chart_detail'),
-
+        name='api.bcs_k8s.helm_repo_chart_detail',
+    ),
     # 用户可能并不关心 chart 属于那个 repo，只是想从所有的chart中找某个chart
-    url(r'^api/bcs/k8s/configuration/(?P<project_id>\w{32})/helm/charts/$',
+    url(
+        r'^api/bcs/k8s/configuration/(?P<project_id>\w{32})/helm/charts/$',
         views.ChartView.as_view({"get": "list"}),
-        name='api.bcs_k8s.helm_repo_chart_list'),
-
-    url(r'^api/bcs/k8s/configuration/(?P<project_id>\w{32})/helm/'
-        'charts/(?P<chart_id>[0-9]+)/$',
+        name='api.bcs_k8s.helm_repo_chart_list',
+    ),
+    url(
+        r'^api/bcs/k8s/configuration/(?P<project_id>\w{32})/helm/' 'charts/(?P<chart_id>[0-9]+)/$',
         views.ChartView.as_view({'get': 'retrieve'}),
-        name='api.bcs_k8s.helm_repo_chart_detail'),
-
+        name='api.bcs_k8s.helm_repo_chart_detail',
+    ),
     # chart version
-    url(r'^api/bcs/k8s/configuration/(?P<project_id>\w{32})/helm/repositories/(?P<repo_id>[0-9]+)/'
+    url(
+        r'^api/bcs/k8s/configuration/(?P<project_id>\w{32})/helm/repositories/(?P<repo_id>[0-9]+)/'
         'charts/(?P<chart_id>[0-9]+)/versions/$',
         views.ChartVersionView.as_view({'get': 'list'}),
-        name='api.bcs_k8s.helm_repo_chart_version_list'),
-
-    url(r'^api/bcs/k8s/configuration/(?P<project_id>\w{32})/helm/repositories/(?P<repo_id>[0-9]+)/'
+        name='api.bcs_k8s.helm_repo_chart_version_list',
+    ),
+    url(
+        r'^api/bcs/k8s/configuration/(?P<project_id>\w{32})/helm/repositories/(?P<repo_id>[0-9]+)/'
         'charts/(?P<chart_id>[0-9]+)/versions/(?P<version_id>[0-9]+)/$',
         views.ChartVersionView.as_view({'get': 'retrieve'}),
-        name='api.bcs_k8s.helm_repo_chart_version_detail'),
-
-    url(r'^api/bcs/k8s/configuration/(?P<project_id>\w{32})/helm/'
-        'charts/(?P<chart_id>[0-9]+)/versions/$',
+        name='api.bcs_k8s.helm_repo_chart_version_detail',
+    ),
+    url(
+        r'^api/bcs/k8s/configuration/(?P<project_id>\w{32})/helm/' 'charts/(?P<chart_id>[0-9]+)/versions/$',
         views.ChartVersionView.as_view({'get': 'list'}),
-        name='api.bcs_k8s.helm_repo_chart_version_list'),
-
-    url(r'^api/bcs/k8s/configuration/(?P<project_id>\w{32})/helm/'
+        name='api.bcs_k8s.helm_repo_chart_version_list',
+    ),
+    url(
+        r'^api/bcs/k8s/configuration/(?P<project_id>\w{32})/helm/'
         'charts/(?P<chart_id>[0-9]+)/versions/(?P<version_id>[0-9]+)/$',
         views.ChartVersionView.as_view({'get': 'retrieve'}),
-        name='api.bcs_k8s.helm_repo_chart_version_detail'),
-
-    url(r'^api/bcs/k8s/configuration/(?P<project_id>\w{32})/helm/repositories/(?P<repo_id>[0-9]+)/sync/$',
+        name='api.bcs_k8s.helm_repo_chart_version_detail',
+    ),
+    url(
+        r'^api/bcs/k8s/configuration/(?P<project_id>\w{32})/helm/repositories/(?P<repo_id>[0-9]+)/sync/$',
         views.RepositorySyncView.as_view({'post': 'create'}),
-        name='api.bcs_k8s.helm_repositories_sync'),
-
-    url(r'^api/bcs/k8s/configuration/(?P<project_id>\w{32})/helm/repositories/sync/$',
+        name='api.bcs_k8s.helm_repositories_sync',
+    ),
+    url(
+        r'^api/bcs/k8s/configuration/(?P<project_id>\w{32})/helm/repositories/sync/$',
         views.RepositorySyncByProjectView.as_view({'post': 'create'}),
-        name='api.bcs_k8s.helm_repositories_sync_by_project'),
-
-    url(r'^api/bcs/k8s/configuration_noauth/(?P<sync_project_id>\w{32})/helm/repositories/sync/$',
+        name='api.bcs_k8s.helm_repositories_sync_by_project',
+    ),
+    url(
+        r'^api/bcs/k8s/configuration_noauth/(?P<sync_project_id>\w{32})/helm/repositories/sync/$',
         views.RepositorySyncByProjectAPIView.as_view({'post': 'create'}),
-        name='api.bcs_k8s.helm_repositories_sync_by_project'),
-
-    url(r'^api/projects/(?P<project_id>\w{32})/helm/charts/(?P<chart_id>\d+)/releases/$',
-        views.ChartVersionViewSet.as_view({"get": "release_list"})),
-    url(r'^api/projects/(?P<project_id>\w{32})/helm/charts/(?P<chart_id>\d+)/$',
-        views.ChartVersionViewSet.as_view({"delete": "delete"}))
+        name='api.bcs_k8s.helm_repositories_sync_by_project',
+    ),
+    url(
+        r'^api/projects/(?P<project_id>\w{32})/helm/charts/(?P<chart_id>\d+)/releases/$',
+        views.ChartVersionViewSet.as_view({"get": "release_list"}),
+    ),
+    url(
+        r'^api/projects/(?P<project_id>\w{32})/helm/charts/(?P<chart_id>\d+)/$',
+        views.ChartVersionViewSet.as_view({"delete": "delete"}),
+    ),
 ]

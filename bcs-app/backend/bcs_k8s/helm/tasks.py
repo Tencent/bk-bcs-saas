@@ -16,15 +16,16 @@ import datetime
 import logging
 
 from celery import shared_task
-from natsort import natsorted
 from django.utils import timezone
+from natsort import natsorted
 
-from .models.repo import Repository
-from .models.chart import Chart, ChartVersion
-from .utils.repo import (prepareRepoCharts, InProcessSign)
 from backend.apps.whitelist_bk import enable_incremental_sync_chart_repo
 from backend.bcs_k8s.helm.utils.repo_bk import get_incremental_charts_and_hash_value
 from backend.utils.basic import normalize_time
+
+from .models.chart import Chart, ChartVersion
+from .models.repo import Repository
+from .utils.repo import InProcessSign, prepareRepoCharts
 
 logger = logging.getLogger(__name__)
 
@@ -80,7 +81,9 @@ def sync_helm_repo(repo_id, force=False):
                 credentials = plain_auths[0]["credentials"]
                 username, password = credentials["username"], credentials["password"]
             start_time = normalize_time(repo.refreshed_at)
-            charts_info, charts_info_hash = get_incremental_charts_and_hash_value(repo_url, username, password, start_time)
+            charts_info, charts_info_hash = get_incremental_charts_and_hash_value(
+                repo_url, username, password, start_time
+            )
         else:
             charts_info, charts_info_hash = prepareRepoCharts(repo_url, repo_name, plain_auths)
     except Exception as e:
@@ -98,8 +101,12 @@ def sync_helm_repo(repo_id, force=False):
     # if the index_hash is the same as the commit in db
     # 现阶段兼容先前逻辑，仍然比对MD5，判断是否需要更新
     if not force and charts_info_hash == repo.commit:
-        logger.info("the chart index commit [%s] of repo %s not been update since last refresh: %s",
-                    repo.commit, repo_id, repo.refreshed_at)
+        logger.info(
+            "the chart index commit [%s] of repo %s not been update since last refresh: %s",
+            repo.commit,
+            repo_id,
+            repo.refreshed_at,
+        )
         return
 
     try:
@@ -114,8 +121,7 @@ def sync_helm_repo(repo_id, force=False):
 
 
 def _add_charts(repo, sign, charts, index_hash, force=False):
-    """添加charts
-    """
+    """添加charts"""
     for chart_name, versions in charts.items():
         chart, _created = Chart.objects.get_or_create(name=chart_name, repository=repo)
         # 开始添加版本
@@ -127,8 +133,7 @@ def _add_charts(repo, sign, charts, index_hash, force=False):
             try:
                 chart_version.update_from_import_version(chart, version, force)
             except Exception as e:
-                logger.exception(
-                    "save_chart_version fail: chart=%s, version=%s, error: %s", chart, version, e)
+                logger.exception("save_chart_version fail: chart=%s, version=%s, error: %s", chart, version, e)
                 continue
             # 更新chart icon
             icon_url = version.get("icon")
@@ -148,8 +153,7 @@ def _add_charts(repo, sign, charts, index_hash, force=False):
 
 
 def _update_default_chart_version(chart, full_chart_versions):
-    """更新chart对应的默认版本信息
-    """
+    """更新chart对应的默认版本信息"""
     if not full_chart_versions:
         return
     # 以created逆序
@@ -204,10 +208,7 @@ def _get_old_chart_version_data(chart, created):
     versions = ChartVersion.objects.filter(chart=chart).all()
 
     # {key => id}
-    old_chart_version_key_ids = {
-        ChartVersion.gen_key(v.name, v.version, v.digest): v.id
-        for v in versions
-    }
+    old_chart_version_key_ids = {ChartVersion.gen_key(v.name, v.version, v.digest): v.id for v in versions}
     # {id => object}
     old_chart_versions = {v.id: v for v in versions}
 
@@ -234,9 +235,9 @@ def _do_helm_repo_charts_update(repo, sign, charts, index_hash, force=False):
             sign.update()
 
             # 2.2 create chart version
-            key = ChartVersion.gen_key(name=version.get("name"),
-                                       version=version.get("version"),
-                                       digest=version.get("digest"))
+            key = ChartVersion.gen_key(
+                name=version.get("name"), version=version.get("version"), digest=version.get("digest")
+            )
             # 如果数据库中已经存在记录，并且不是强制同步，则不进行其它信息的变动
             chart_version_id = old_chart_version_key_ids.get(key)
             if chart_version_id:
@@ -254,7 +255,8 @@ def _do_helm_repo_charts_update(repo, sign, charts, index_hash, force=False):
                 version_changed = chart_version.update_from_import_version(chart, version, force)
             except Exception as e:
                 logger.exception(
-                    "_save_or_update_chart_version fail: chart=%s, version=%s, error: %s", chart, version, e)
+                    "_save_or_update_chart_version fail: chart=%s, version=%s, error: %s", chart, version, e
+                )
                 continue
             else:
                 chart_changed = chart_changed or version_changed

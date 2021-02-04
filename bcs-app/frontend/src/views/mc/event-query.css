@@ -44,6 +44,10 @@
 }
 
 .biz-event-query-table {
+    >tbody>tr>th,
+    >tbody>tr>td {
+        height: 50px;
+    }
     i.bk-icon {
         font-size: 16px;
         vertical-align: middle;

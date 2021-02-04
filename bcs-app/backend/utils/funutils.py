@@ -30,6 +30,4 @@ def num_transform(num, format='to_zore'):
     """数字转换
     to_zore: 标识负值转换为0
     """
-    return {
-        'to_zore': lambda x: x if x > 0 else 0
-    }.get(format)(num)
+    return {'to_zore': lambda x: x if x > 0 else 0}.get(format)(num)

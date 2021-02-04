@@ -15,10 +15,11 @@ import logging
 
 from kubernetes.client.rest import ApiException
 
-from .api_response import response
-from .resource import Resource, CoreAPIClassMixins
-from backend.utils.errcodes import ErrorCode
 from backend.resources.constants import K8sResourceKinds
+from backend.utils.errcodes import ErrorCode
+
+from .api_response import response
+from .resource import CoreAPIClassMixins, Resource
 
 logger = logging.getLogger(__name__)
 

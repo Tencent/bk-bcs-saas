@@ -47,7 +47,7 @@
                                     </div>
                                 </div>
                             </div>
-                            <p class="pb30 f13 biz-danger-text">{{$t('提示：调度引擎为BCS-K8S的集群，需在左侧菜单“网络” => “LoadBalancer”中新建LoadBalancer，Ingress规则才能生效（通常单个集群只需要创建一个LoadBalancer）')}}</p>
+                            <p class="pb30 f12 biz-danger-text">{{$t('提示：调度引擎为BCS-K8S的集群，需在左侧菜单“网络” => “LoadBalancer”中新建LoadBalancer，Ingress规则才能生效（通常单个集群只需要创建一个LoadBalancer）')}}</p>
                         </div>
                     </div>
                 </bk-dialog>
@@ -58,7 +58,7 @@
                             {{$t('Ingress是管理外部访问集群内服务的对象，可配置访问的URL、基于名称的虚拟主机等。 Ingress controller负责实现Ingress，BCS使用的是nginx-controller')}}，<a class="bk-text-button" :href="PROJECT_CONFIG.doc.k8sIngress" target="_blank">{{$t('详情查看文档')}}</a>
                         </p>
                         <div class="biz-guide-box mt0">
-                            <button class="bk-button bk-primary" @click.stop.prevent="showIngressTypeBox">
+                            <button class="bk-button bk-primary" @click.stop.prevent="addLocalIngress">
                                 <i class="bk-icon icon-plus"></i>
                                 <span style="margin-left: 0;">{{$t('添加')}}Ingress</span>
                             </button>
@@ -82,7 +82,7 @@
                                 </div>
 
                                 <bk-tooltip ref="applicationTooltip" :content="$t('添加Ingress')" placement="top">
-                                    <button class="bk-button bk-default is-outline is-icon" @click.stop="showIngressTypeBox">
+                                    <button class="bk-button bk-default is-outline is-icon" @click.stop="addLocalIngress">
                                         <i class="bk-icon icon-plus"></i>
                                     </button>
                                 </bk-tooltip>
@@ -324,7 +324,7 @@
                 this.ingresss.splice(index, 1)
             },
             showIngressTypeBox () {
-                this.addLocalIngress()
+                this.dialogConf.isShow = true
             },
             hideIngressTypeBox () {
                 this.isIngressTypeShow = false

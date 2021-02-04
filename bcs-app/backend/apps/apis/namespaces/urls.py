@@ -15,7 +15,6 @@ from django.conf.urls import url
 
 from backend.apps.apis.namespaces import views
 
-
 urlpatterns = [
     url(
         r"^cc_app_ids/(?P<cc_app_id>\d+)/projects/(?P<project_id>\w{32})/namespaces/$",

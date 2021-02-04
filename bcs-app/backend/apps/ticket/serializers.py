@@ -14,9 +14,9 @@
 import re
 
 from django.conf import settings
+from django.utils.translation import ugettext_lazy as _
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
-from django.utils.translation import ugettext_lazy as _
 
 from backend.apps.ticket.models import TlsCert
 
@@ -26,16 +26,7 @@ RE_TLS_NAME = re.compile(r'^[A-Za-z0-9_.]{1,64}$')
 class TlsCertModelSLZ(serializers.ModelSerializer):
     class Meta:
         model = TlsCert
-        fields = (
-            'id',
-            'name',
-            'cert',
-            'key',
-            "creator",
-            "created",
-            "updated",
-            "updator"
-        )
+        fields = ('id', 'name', 'cert', 'key', "creator", "created", "updated", "updator")
         read_only_fields = ("creator", "created", "updated", "updator")
 
 
@@ -44,9 +35,7 @@ class TlsCertSlZ(serializers.Serializer):
         RE_TLS_NAME,
         max_length=64,
         required=True,
-        error_messages={
-            'invalid': _('证书名称只能包含：英文大小写、数字、下划线和英文句号，最大长度为64个字符')
-        }
+        error_messages={'invalid': _('证书名称只能包含：英文大小写、数字、下划线和英文句号，最大长度为64个字符')},
     )
     cert = serializers.CharField(required=True)
     key = serializers.CharField(required=True)

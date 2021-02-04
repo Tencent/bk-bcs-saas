@@ -57,6 +57,46 @@
                 ],
                 metricRouters: [
                     'metricManage'
+                ],
+                // mesos 应用 router
+                mesosAppRouters: [
+                    'instanceDetail',
+                    'instanceDetail2',
+                    'containerDetail',
+                    'containerDetail2',
+                    'mesosInstantiation'
+                ],
+                // k8s 应用 deployments router
+                deploymentsRouters: [
+                    'deploymentsInstanceDetail',
+                    'deploymentsInstanceDetail2',
+                    'deploymentsContainerDetail',
+                    'deploymentsContainerDetail2',
+                    'deploymentsInstantiation'
+                ],
+                // k8s 应用 daemonset router
+                daemonsetRouters: [
+                    'daemonsetInstanceDetail',
+                    'daemonsetInstanceDetail2',
+                    'daemonsetContainerDetail',
+                    'daemonsetContainerDetail2',
+                    'daemonsetInstantiation'
+                ],
+                // k8s 应用 job router
+                jobRouters: [
+                    'jobInstanceDetail',
+                    'jobInstanceDetail2',
+                    'jobContainerDetail',
+                    'jobContainerDetail2',
+                    'jobInstantiation'
+                ],
+                // k8s 应用 statefulset router
+                statefulsetRouters: [
+                    'statefulsetInstanceDetail',
+                    'statefulsetInstanceDetail2',
+                    'statefulsetContainerDetail',
+                    'statefulsetContainerDetail2',
+                    'statefulsetInstantiation'
                 ]
             }
         },
@@ -313,6 +353,56 @@
                 } else if (this.helmRouters.indexOf(routeName) > -1) {
                     this.$router.push({
                         name: 'helms',
+                        params: {
+                            projectId: projectId,
+                            projectCode: projectCode,
+                            needCheckPermission: true
+                        },
+                        query: this.$route.query || {}
+                    })
+                } else if (this.mesosAppRouters.indexOf(routeName) > -1) {
+                    this.$router.push({
+                        name: 'mesos',
+                        params: {
+                            projectId: projectId,
+                            projectCode: projectCode,
+                            needCheckPermission: true
+                        },
+                        query: this.$route.query || {}
+                    })
+                } else if (this.deploymentsRouters.indexOf(routeName) > -1) {
+                    this.$router.push({
+                        name: 'deployments',
+                        params: {
+                            projectId: projectId,
+                            projectCode: projectCode,
+                            needCheckPermission: true
+                        },
+                        query: this.$route.query || {}
+                    })
+                } else if (this.daemonsetRouters.indexOf(routeName) > -1) {
+                    this.$router.push({
+                        name: 'daemonset',
+                        params: {
+                            projectId: projectId,
+                            projectCode: projectCode,
+                            needCheckPermission: true
+                        },
+                        query: this.$route.query || {}
+                    })
+                } else if (this.jobRouters.indexOf(routeName) > -1) {
+                    this.$router.push({
+                        name: 'job',
+                        params: {
+                            projectId: projectId,
+                            projectCode: projectCode,
+                            needCheckPermission: true
+                        },
+                        query: this.$route.query || {}
+                    })
+                } else if (this.statefulsetRouters.indexOf(routeName) > -1) {
+                    this.$router.push({
+                        name: 'statefulset',
                         params: {
                             projectId: projectId,
                             projectCode: projectCode,

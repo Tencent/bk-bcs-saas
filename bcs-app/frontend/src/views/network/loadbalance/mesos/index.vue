@@ -3,7 +3,7 @@
         <div class="biz-top-bar">
             <div class="biz-loadbalance-title">
                 LoadBalancer
-                <!-- <span class="biz-tip f12 ml10">{{$t('K8S官方维护的ingress-nginx')}}</span> -->
+                <span class="biz-tip f12 ml10">{{$t('LB镜像升级，不影响已运行实例；如出现无法编辑或者启用的情况，请联系容器助手处理')}}</span>
             </div>
             <bk-guide></bk-guide>
         </div>
@@ -40,9 +40,9 @@
                             <thead>
                                 <tr>
                                     <th style="width: 160px;">{{$t('名称')}}</th>
-                                    <th>{{$t('所属集群')}}</th>
-                                    <th>{{$t('网络类型')}}</th>
-                                    <th>{{$t('转发模式')}}</th>
+                                    <th style="min-width: 100px;">{{$t('所属集群')}}</th>
+                                    <th style="min-width: 100px;">{{$t('网络类型')}}</th>
+                                    <th style="min-width: 100px;">{{$t('转发模式')}}</th>
                                     <th style="min-width: 100px;">{{$t('状态')}}</th>
                                     <th style="min-width: 220px;">{{$t('操作')}}</th>
                                 </tr>
@@ -52,7 +52,7 @@
                                 <template v-if="loadBalanceList.length">
                                     <tr v-for="(loadBalance, index) in curPageData" :key="index">
                                         <td>
-                                            <div class="bk-spin-loading bk-spin-loading-mini bk-spin-loading-warning" v-if="loadBalanceFixStatus.indexOf(loadBalance.status) === -1" style="margin-left: -20px;">
+                                            <div class="bk-spin-loading bk-spin-loading-mini bk-spin-loading-warning" v-if="loadBalanceFixStatus.includes(loadBalance.status)" style="margin-left: -20px;">
                                                 <div class="rotate rotate1"></div>
                                                 <div class="rotate rotate2"></div>
                                                 <div class="rotate rotate3"></div>
@@ -62,48 +62,45 @@
                                                 <div class="rotate rotate7"></div>
                                                 <div class="rotate rotate8"></div>
                                             </div>
-                                            <a href="javascript:void(0)" class="bk-text-button biz-table-title" @click="goLoadBalanceDetail(loadBalance)">{{loadBalance.name || '--'}}</a>
+                                            <a href="javascript:void(0)" class="bk-text-button" @click="goLoadBalanceDetail(loadBalance)">{{loadBalance.name || '--'}}</a>
                                         </td>
                                         <td>
                                             <bk-tooltip :content="loadBalance.cluster_id" placement="top">
-                                                <div class="cluster-name biz-text-wrapper">{{loadBalance.cluster_name}}</div>
+                                                <div class="cluster-name biz-text-wrapper">{{loadBalance.cluster_id}}</div>
                                             </bk-tooltip>
                                         </td>
                                         <td>{{loadBalance.network_type || '--'}}</td>
                                         <td>{{loadBalance.forward_mode || '--'}}</td>
+                                        <!-- <td>
+                                            {{loadBalance.ip_list.length ? loadBalance.ip_list.join(', ') : '--'}}
+                                        </td> -->
                                         <td>
-                                            <template v-if="loadBalance.status_name && loadBalance.status_name.length">
-                                                <bk-tooltip placement="top">
-                                                    <p v-for="(item, itemIndex) in loadBalance.status_name" :key="itemIndex">
-                                                        {{item}}
-                                                    </p>
-                                                    <template slot="content">
-                                                        <p v-for="(tip, tipIndex) in loadBalance.status_tips" :key="tipIndex">
-                                                            {{tip}}
-                                                        </p>
-                                                    </template>
-                                                </bk-tooltip>
-                                            </template>
-                                            <template v-else>
-                                                --
-                                            </template>
+                                            <span class="vm mr10">{{statusMap[loadBalance.status] || '未部署'}}</span>
+                                            <div class="vm f12" style="display: inline-block;">
+                                                <p v-bktooltips="loadBalance.deployment_message || loadBalance.deployment_status" v-if="loadBalance.deployment_status">
+                                                    Deployment: <span :class="`lb-text ${loadBalance.deployment_status.toLowerCase()}`">{{loadBalance.deployment_status}}</span>
+                                                </p>
+                                                <p v-bktooltips="loadBalance.application_message || loadBalance.application_status" v-if="loadBalance.application_status">
+                                                    Application: <span :class="`lb-text ${loadBalance.application_status.toLowerCase()}`">{{loadBalance.application_status}}</span>
+                                                </p>
+                                            </div>
                                         </td>
                                         <td>
                                             <!--
-                                                1. "notCreated": u"未创建", "deleted": u"已停止"   : 操作：启动、编辑、删除
-                                                2. 'Deploying', 'Running', 'Update', 'UpdatePaused', 'UpdateSuspend'：操作：停止
-                                                3. Deleting : 操作：无
-                                                4. 为空，操作：无
-                                                5. 全部都可以查看
+                                                NOT_DEPLOYED = "not_deployed" : 没部署，操作：启动、编辑、删除
+                                                DEPLOYING = "deploying" : 部署中，操作：无
+                                                DEPLOYED = "deployed" : 已部署，操作：停止
+                                                STOPPING = "stopping" : 停止中，操作：无
+                                                STOPPED = "stopped" : 已停止，操作：启动、编辑、删除
                                             -->
-                                            <a href="javascript:void(0)" class="bk-text-button" @click="goLoadBalanceDetail(loadBalance)">{{$t('查看')}}</a>
-                                            <template v-if="loadBalance.status === 'notCreated' || loadBalance.status === 'deleted'">
+                                            <!-- <a href="javascript:void(0)" class="bk-text-button" @click="goLoadBalanceDetail(loadBalance)">{{$t('查看')}}</a> -->
+                                            <template v-if="!loadBalance.status || loadBalance.status === 'not_deployed' || loadBalance.status === 'stopped'">
                                                 <a href="javascript:void(0);" class="bk-text-button" @click.stop.prevent="runLoadBalance(loadBalance, index)">{{$t('启动')}}</a>
                                                 <a href="javascript:void(0);" class="bk-text-button" @click.stop.prevent="editLoadBalance(loadBalance, index)">{{$t('编辑')}}</a>
                                                 <a href="javascript:void(0);" class="bk-text-button" @click.stop.prevent="removeLoadBalance(loadBalance, index)">{{$t('删除')}}</a>
                                             </template>
-                                            <template v-else-if="loadBalance.status !== ''">
-                                                <a href="javascript:void(0);" class="bk-text-button" @click.stop.prevent="stopLoadBalance(loadBalance, index)" v-if="loadBalance.is_delete_lb">{{$t('停止')}}</a>
+                                            <template v-else-if="loadBalance.status === 'deployed'">
+                                                <a href="javascript:void(0);" class="bk-text-button" @click.stop.prevent="stopLoadBalance(loadBalance, index)">{{$t('停止')}}</a>
                                             </template>
                                         </td>
                                     </tr>
@@ -143,10 +140,10 @@
                 :quick-close="false"
                 :is-show.sync="loadBalanceSlider.isShow"
                 :title="loadBalanceSlider.title"
-                :width="'640'"
+                :width="'630'"
                 @shown="handlerShowSideslider"
                 @hidden="handlerHideSideslider">
-                <div class="p30" slot="content">
+                <div class="pt30 pr0 pb30 pl30" slot="content">
                     <div class="bk-form bk-form-vertical" @click="handlerHideSideslider">
                         <div class="bk-form-item">
                             <div class="bk-form-content">
@@ -158,10 +155,16 @@
                                             class="bk-form-input"
                                             placeholder="请输入30个以内的字符"
                                             v-model="curLoadBalance.name"
-                                            maxlength="30" />
+                                            maxlength="30"
+                                            :disabled="curLoadBalance.id" />
                                     </div>
                                 </div>
-                                <div class="bk-form-inline-item is-required" style="width: 260px; margin-left: 35px;">
+                            </div>
+                        </div>
+
+                        <div class="bk-form-item">
+                            <div class="bk-form-content">
+                                <div class="bk-form-inline-item is-required" style="width: 260px;">
                                     <label class="bk-label">{{$t('所属集群')}}：</label>
                                     <div class="bk-form-content">
                                         <bk-selector
@@ -172,63 +175,22 @@
                                             :is-link="true"
                                             :selected.sync="curLoadBalance.cluster_id"
                                             :list="clusterList"
+                                            :disabled="curLoadBalance.id"
                                             @item-selected="handlerSelectCluster">
                                         </bk-selector>
                                     </div>
                                 </div>
-                            </div>
-                        </div>
-
-                        <label class="bk-label mt10">{{$t('镜像及版本')}}：</label>
-                        <div class="biz-expand-panel mt20 mb10" style="width: 560px; clear: both;">
-                            <div class="panel" style="cursor: default;">
-                                <div class="header">
-                                    <span class="f13">{{$t('使用自定义镜像')}}：</span>
-                                    <span @click="handleChangeImageMode">
-                                        <bk-switcher
-                                            :selected.sync="curLoadBalance.use_custom_image_url"
-                                            size="small">
-                                        </bk-switcher>
-                                    </span>
-                                    <span class="biz-tip f12 ml5" style="font-weight: normal;">({{$t('启用后允许直接填写镜像信息')}})</span>
-                                </div>
-                                <div class="bk-form-item content">
-                                    <div class="bk-form-item">
-                                        <div class="bk-form-content">
-                                            <div class="bk-form-inline-item is-required" style="width: 239px;">
-                                                <label class="bk-label">{{$t('镜像地址')}}：</label>
-                                                <div class="bk-form-content">
-                                                    <input class="bk-form-input" :readonly="!curLoadBalance.use_custom_image_url" v-model="curLoadBalance.image_url" />
-                                                </div>
-                                            </div>
-                                            <div class="bk-form-inline-item is-required" style="width: 235px; margin-left: 35px;">
-                                                <label class="bk-label">{{$t('镜像版本')}}：</label>
-                                                <div class="bk-form-content">
-                                                    <template v-if="curLoadBalance.use_custom_image_url">
-                                                        <bk-input
-                                                            type="text"
-                                                            :placeholder="$t('版本号1')"
-                                                            :value.sync="curLoadBalance.image_version">
-                                                        </bk-input>
-                                                    </template>
-                                                    <template v-else>
-                                                        <bk-input
-                                                            ref="imageVersion"
-                                                            type="text"
-                                                            :placeholder="$t('版本号1')"
-                                                            :display-key="'_name'"
-                                                            :setting-key="'_id'"
-                                                            :search-key="'_name'"
-                                                            :value.sync="curLoadBalance.image_version"
-                                                            :list="varList"
-                                                            :is-select-mode="true"
-                                                            :is-custom="true"
-                                                            :default-list="imageVersionList">
-                                                        </bk-input>
-                                                    </template>
-                                                </div>
-                                            </div>
-                                        </div>
+                                <div class="bk-form-inline-item is-required" style="width: 260px; margin-left: 35px;">
+                                    <label class="bk-label">{{$t('命名空间')}}：</label>
+                                    <div class="bk-form-content">
+                                        <bk-selector
+                                            :placeholder="$t('请输入')"
+                                            :setting-key="'name'"
+                                            :display-key="'name'"
+                                            :selected.sync="curLoadBalance.namespace"
+                                            :list="nameSpaceList"
+                                            :disabled="curLoadBalance.id">
+                                        </bk-selector>
                                     </div>
                                 </div>
                             </div>
@@ -243,7 +205,7 @@
                                             type="number"
                                             :placeholder="$t('请输入')"
                                             style="width: 260px;"
-                                            :value.sync="curLoadBalance.instance">
+                                            :value.sync="curLoadBalance.instance_num">
                                         </bk-input>
                                     </div>
                                 </div>
@@ -255,7 +217,7 @@
                                 <label class="bk-label">{{$t('调度约束')}}：</label>
                                 <div class="bk-form-content">
                                     <div class="biz-keys-list mb10">
-                                        <div class="biz-key-item" v-for="(constraint, index) in curLoadBalance.constraints" :key="index">
+                                        <div class="biz-key-item" v-for="(constraint, index) in curLoadBalance.constraint.IntersectionItem" :key="index">
                                             <div class="bk-dropdown-box">
                                                 <bk-combobox
                                                     type="text"
@@ -293,7 +255,7 @@
                                                 <bk-input
                                                     type="text"
                                                     :placeholder="$t('多个值以管道符分隔')"
-                                                    style="width: 220px;"
+                                                    style="width: 250px;"
                                                     :disabled="constraint.unionData[0].operate === 'UNIQUE'"
                                                     :value.sync="constraint.unionData[0].arg_value"
                                                     :list="varList">
@@ -303,46 +265,105 @@
                                                 <bk-input
                                                     type="number"
                                                     :placeholder="$t('请输入')"
-                                                    style="width: 220px;"
+                                                    style="width: 190px;"
                                                     :value.sync="constraint.unionData[0].arg_value"
                                                     :list="varList">
                                                 </bk-input>
                                             </template>
-
-                                            <button class="action-btn" @click.stop.prevent="removeConstraint(constraint, index)" v-show="curLoadBalance.constraints.length > 1">
-                                                <i class="bk-icon icon-minus"></i>
-                                            </button>
                                             <button class="action-btn" @click.stop.prevent="addConstraint()">
                                                 <i class="bk-icon icon-plus"></i>
                                             </button>
+                                            <button class="action-btn" @click.stop.prevent="removeConstraint(constraint, index)" v-show="curLoadBalance.constraint.IntersectionItem.length > 1">
+                                                <i class="bk-icon icon-minus"></i>
+                                            </button>
                                         </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
 
-                        <div class="bk-form-item">
-                            <div class="bk-form-content">
-                                <div class="bk-form-inline-item" style="width: 260px;">
-                                    <label class="bk-label">CPU：</label>
-                                    <div class="bk-form-content">
-                                        <bk-input
-                                            type="number"
-                                            :placeholder="$t('请输入')"
-                                            style="width: 260px;"
-                                            :value.sync="curLoadBalance.resources.limits.cpu">
-                                        </bk-input>
-                                    </div>
+                        <label class="bk-label mt10">{{$t('镜像及版本')}}：</label>
+                        <div class="biz-expand-panel mt20 mb10" style="width: 560px; clear: both;">
+                            <div class="panel" style="cursor: default;">
+                                <div class="header">
+                                    <span class="f12">{{$t('使用自定义镜像')}}：</span>
+                                    <span @click="handleChangeImageMode">
+                                        <bk-switcher
+                                            :selected.sync="curLoadBalance.use_custom_image_url"
+                                            size="small">
+                                        </bk-switcher>
+                                    </span>
+                                    <span class="biz-tip f12 ml5" style="font-weight: normal;">({{$t('启用后允许直接填写镜像信息')}})</span>
                                 </div>
-                                <div class="bk-form-inline-item" style="width: 260px; margin-left: 35px;">
-                                    <label class="bk-label">{{$t('内存')}}：</label>
-                                    <div class="bk-form-content">
-                                        <bk-input
-                                            type="number"
-                                            :placeholder="$t('请输入')"
-                                            style="width: 260px;"
-                                            :value.sync="curLoadBalance.resources.limits.memory">
-                                        </bk-input>
+                                <div class="bk-form-item content">
+                                    <div class="bk-form-item">
+                                        <div class="bk-form-content">
+                                            <div class="bk-form-inline-item is-required" style="width: 239px;">
+                                                <label class="bk-label">{{$t('镜像地址')}}：</label>
+                                                <div class="bk-form-content">
+                                                    <input class="bk-form-input" :readonly="!curLoadBalance.use_custom_image_url" v-model="curLoadBalance.image_url" />
+                                                </div>
+                                            </div>
+                                            <div class="bk-form-inline-item is-required" style="width: 235px; margin-left: 35px;">
+                                                <label class="bk-label">{{$t('镜像版本')}}：</label>
+                                                <div class="bk-form-content">
+                                                    <template v-if="curLoadBalance.use_custom_image_url">
+                                                        <bk-input
+                                                            type="text"
+                                                            :placeholder="$t('版本号1')"
+                                                            :value.sync="curLoadBalance.image_tag">
+                                                        </bk-input>
+                                                    </template>
+                                                    <template v-else>
+                                                        <bk-input
+                                                            ref="imageVersion"
+                                                            type="text"
+                                                            :placeholder="$t('版本号1')"
+                                                            :display-key="'_name'"
+                                                            :setting-key="'_id'"
+                                                            :search-key="'_name'"
+                                                            :value.sync="curLoadBalance.image_tag"
+                                                            :list="varList"
+                                                            :is-select-mode="true"
+                                                            :is-custom="true"
+                                                            :default-list="imageVersionList">
+                                                        </bk-input>
+                                                    </template>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <label class="bk-form-checkbox mt5">
+                                            <input type="checkbox" name="image-get" value="Always" v-model="curLoadBalance.use_custom_imagesecret">
+                                            <i class="bk-checkbox-text">{{$t('添加镜像凭证')}}</i>
+                                        </label>
+
+                                        <template v-if="curLoadBalance.use_custom_imagesecret">
+                                            <div class="bk-form-item">
+                                                <label class="bk-label" style="width: 150px;">ImagePullUser：</label>
+                                                <div class="bk-form-content" style="margin-left: 150px;">
+                                                    <bk-input
+                                                        type="text"
+                                                        :placeholder="$t('请输入，格式是明文或secret语法(如secret::secret英文名称||user)')"
+                                                        style="width: 515px;"
+                                                        :value.sync="curLoadBalance.image_pull_user"
+                                                        :list="varList">
+                                                    </bk-input>
+                                                </div>
+                                            </div>
+                                            <div class="bk-form-item">
+                                                <label class="bk-label" style="width: 150px;">ImagePullPasswd：</label>
+                                                <div class="bk-form-content" style="margin-left: 150px;">
+                                                    <bk-input
+                                                        type="text"
+                                                        :placeholder="$t('请输入，格式是明文或secret语法(如secret::secret英文名称||pwd)')"
+                                                        style="width: 515px;"
+                                                        :value.sync="curLoadBalance.image_pull_password"
+                                                        :list="varList">
+                                                    </bk-input>
+                                                </div>
+                                            </div>
+                                        </template>
                                     </div>
                                 </div>
                             </div>
@@ -350,91 +371,228 @@
 
                         <div class="bk-form-item">
                             <div class="bk-form-content">
-                                <label class="bk-label">{{$t('网络类型')}}：</label>
+                                <label class="bk-label">{{$t('IP集')}}：</label>
                                 <div class="bk-form-content">
-                                    <label class="bk-form-radio">
-                                        <input type="radio" name="network_model" value="cni" v-model="curLoadBalance.network_type">
-                                        <i class="bk-radio-text">cni</i>
-                                    </label>
-                                    <label class="bk-form-radio">
-                                        <input type="radio" name="network_model" value="cnm" v-model="curLoadBalance.network_type" :disabled="curLoadBalance.network_mode === 'USER'">
-                                        <i class="bk-radio-text">cnm</i>
-                                    </label>
+                                    <textarea class="bk-form-textarea" placeholder="请输入IP，多个IP以空格或换行分隔" v-model="curLoadBalance.ips" style="width: 558px;"></textarea>
                                 </div>
                             </div>
                         </div>
 
                         <div class="bk-form-item">
                             <div class="bk-form-content">
-                                <div class="bk-form-inline-item is-required" style="width: 260px; ">
-                                    <label class="bk-label">{{$t('网络模式')}}：</label>
+                                <label class="bk-label">{{$t('挂载卷')}}：</label>
+                                <div class="bk-form-content">
+                                    <table class="biz-simple-table">
+                                        <tbody>
+                                            <tr v-for="(volumeItem, index) in curLoadBalance.volumes" :key="index">
+                                                <td style="width: 170px;">
+                                                    <bk-selector
+                                                        :placeholder="$t('挂载名')"
+                                                        :setting-key="'name'"
+                                                        :selected.sync="volumeItem.name"
+                                                        :list="configmapList">
+                                                    </bk-selector>
+                                                </td>
+                                                <td style="width: 130px;">
+                                                    <bk-input
+                                                        type="text"
+                                                        :placeholder="$t('挂载源')"
+                                                        maxlength="512"
+                                                        :value.sync="volumeItem.volume.hostPath"
+                                                        :list="varList">
+                                                    </bk-input>
+                                                </td>
+                                                <td style="width: 90px;">
+                                                    <bk-input
+                                                        type="text"
+                                                        :placeholder="$t('挂载目录')"
+                                                        maxlength="512"
+                                                        :value.sync="volumeItem.volume.mountPath"
+                                                        :list="varList">
+                                                    </bk-input>
+                                                </td>
+                                                <td style="width: 70px;">
+                                                    <bk-input
+                                                        type="text"
+                                                        :placeholder="$t('用户')"
+                                                        :value.sync="volumeItem.volume.user"
+                                                        :list="varList">
+                                                    </bk-input>
+                                                </td>
+                                                <td style="width: 70px;">
+                                                    <div class="biz-input-wrapper">
+                                                        <label class="bk-form-checkbox">
+                                                            <input type="checkbox" v-model="volumeItem.volume.readOnly">
+                                                            <i class="bk-checkbox-text">{{$t('只读')}}</i>
+                                                        </label>
+                                                    </div>
+                                                </td>
+                                                <div class="action-box">
+                                                    <button class="action-btn p0 mr5" @click.stop.prevent="addVolumn()">
+                                                        <i class="bk-icon icon-plus"></i>
+                                                    </button>
+                                                    <button class="action-btn p0" @click.stop.prevent="removeVolumn(volumeItem, index)" v-show="curLoadBalance.volumes.length > 1">
+                                                        <i class="bk-icon icon-minus"></i>
+                                                    </button>
+                                                </div>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bk-form-item">
+                            <div class="bk-form-content">
+                                <label class="bk-label">{{$t('关联的Service的Label')}}：</label>
+                                <div class="bk-form-content">
+                                    <div class="biz-keys-list mb10">
+                                        <div class="biz-key-item">
+                                            <div class="bk-input-box bk-selector" style="width: 257px;">
+                                                <input type="text" placeholder="键" autocomplete="off" class="bk-form-input" value="BCSGROUP" disabled style="width: 257px;" />
+                                            </div>
+                                            <span class="operator">=</span>
+                                            <div class="bk-input-box bk-selector" style="width: 257px;">
+                                                <input type="text" placeholder="值" autocomplete="off" class="bk-form-input" readonly style="width: 257px;" v-model="curLoadBalance.related_service_label" />
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <label class="bk-label mb10">{{$t('资源限制')}}：</label>
+                        <div class="bk-form-item">
+                            <div class="bk-form-content">
+                                <div class="bk-form-inline-item" style="width: 270px;">
                                     <div class="bk-form-content">
-                                        <div class="bk-dropdown-box" style="width: 260px;">
-                                            <bk-selector
+                                        <label class="bk-label">CPU：</label>
+
+                                        <div class="bk-form-input-group mr5">
+                                            <span class="input-group-addon is-left">
+                                                limits
+                                            </span>
+                                            <bk-input
+                                                type="number"
                                                 :placeholder="$t('请输入')"
-                                                :setting-key="'id'"
-                                                :display-key="'name'"
-                                                :selected.sync="curLoadBalance.network_mode"
-                                                :list="netList"
-                                                @item-selected="handlerSelectNetwork">
-                                            </bk-selector>
+                                                style="width: 110px;"
+                                                :value.sync="curLoadBalance.resources.limits.cpu">
+                                            </bk-input>
+                                            <span class="input-group-addon">
+                                                {{$t('核')}}
+                                            </span>
                                         </div>
-                                        <transition name="fade">
-                                            <input type="text" class="bk-form-input" style="width: 220px;" :placeholder="$t('自定义值')" v-model="curLoadBalance.custom_value" v-if="curLoadBalance.network_mode === 'CUSTOM'">
-                                        </transition>
                                     </div>
                                 </div>
-                                <div class="bk-form-inline-item is-required" style="width: 260px; margin-left: 35px;" v-if="curLoadBalance.network_mode === 'BRIDGE'">
-                                    <label class="bk-label">{{$t('端口')}}：</label>
+                                <div class="bk-form-inline-item" style="width: 270px; margin-left: 20px;">
                                     <div class="bk-form-content">
-                                        <bk-input
-                                            type="number"
-                                            :placeholder="$t('请输入')"
-                                            style="width: 260px;"
-                                            :min="31000"
-                                            :max="32000"
-                                            :value.sync="curLoadBalance.host_port">
-                                        </bk-input>
+                                        <label class="bk-label">{{$t('内存')}}：</label>
+                                        <div class="bk-form-input-group mr5">
+                                            <span class="input-group-addon is-left">
+                                                limits
+                                            </span>
+                                            <bk-input
+                                                type="number"
+                                                :placeholder="$t('请输入')"
+                                                style="width: 110px;"
+                                                :value.sync="curLoadBalance.resources.limits.memory">
+                                            </bk-input>
+                                            <span class="input-group-addon">
+                                                M
+                                            </span>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
 
-                        <div class="bk-form-item">
-                            <div class="bk-form-content">
-                                <label class="bk-label">{{$t('转发模式')}}：</label>
-                                <div class="bk-form-content">
-                                    <label class="bk-form-radio">
-                                        <input type="radio" name="forward_mode" value="haproxy" v-model="curLoadBalance.forward_mode" />
-                                        <i class="bk-radio-text">haproxy</i>
-                                    </label>
-                                    <label class="bk-form-radio">
-                                        <input type="radio" name="forward_mode" value="nginx" v-model="curLoadBalance.forward_mode" />
-                                        <i class="bk-radio-text">nginx</i>
-                                    </label>
-                                </div>
+                        <div class="biz-span mr30">
+                            <div class="title">
+                                <button :class="['bk-text-button fb', { 'rotate': isShowMore }]" @click.stop.prevent="toggleMore">
+                                    {{$t('更多设置')}}<i class="bk-icon icon-angle-double-down f12 ml5 mb10 fb"></i>
+                                </button>
                             </div>
                         </div>
 
-                        <div class="bk-form-item">
-                            <div class="bk-form-content">
-                                <div class="bk-form-inline-item is-required" style="width: 260px;">
-                                    <label class="bk-label">{{$t('网卡')}}：</label>
-                                    <div class="bk-form-content">
-                                        <bk-input
-                                            type="text"
-                                            :placeholder="$t('请输入')"
-                                            style="width: 260px;"
-                                            :value.sync="curLoadBalance.eth_value"
-                                            :list="varList">
-                                        </bk-input>
+                        <template v-if="isShowMore">
+                            <label class="bk-label mt10">{{$t('网络设置')}}：</label>
+                            <div class="biz-expand-panel mt20 mb10" style="width: 560px; clear: both;">
+                                <div class="panel" style="cursor: default;">
+                                    <div class="bk-form-item content">
+                                        <div class="bk-form-item">
+                                            <div class="bk-form-content">
+                                                <div class="bk-form-inline-item is-required" style="width: 235px; ">
+                                                    <label class="bk-label">{{$t('网络模式')}}：</label>
+                                                    <div class="bk-form-content" style="width: 500px;">
+                                                        <div class="bk-dropdown-box" style="width: 235px;">
+                                                            <bk-selector
+                                                                :placeholder="$t('请输入')"
+                                                                :setting-key="'id'"
+                                                                :display-key="'name'"
+                                                                :selected.sync="curLoadBalance.network_mode"
+                                                                :list="netList"
+                                                                @item-selected="handlerSelectNetwork">
+                                                            </bk-selector>
+                                                        </div>
+                                                        <transition name="fade">
+                                                            <input type="text" class="bk-form-input" style="width: 220px;" :placeholder="$t('自定义值')" v-model="curLoadBalance.custom_value" v-if="curLoadBalance.network_mode === 'CUSTOM'">
+                                                        </transition>
+                                                    </div>
+                                                </div>
+                                                <div class="bk-form-inline-item is-required" style="width: 235px; margin-left: 35px;" v-if="curLoadBalance.network_mode === 'BRIDGE'">
+                                                    <label class="bk-label">{{$t('端口')}}：</label>
+                                                    <div class="bk-form-content">
+                                                        <bk-input
+                                                            type="number"
+                                                            :placeholder="$t('请输入')"
+                                                            style="width: 235px;"
+                                                            :min="31000"
+                                                            :max="32000"
+                                                            :value.sync="curLoadBalance.host_port">
+                                                        </bk-input>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="bk-form-item">
+                                            <div class="bk-form-content">
+                                                <div class="bk-form-inline-item is-required" style="width: 235px; margin-right: 35px;">
+                                                    <label class="bk-label">{{$t('转发模式')}}：</label>
+                                                    <div class="bk-form-content">
+                                                        <label class="bk-form-radio">
+                                                            <input type="radio" name="forward_mode" value="haproxy" v-model="curLoadBalance.forward_mode" />
+                                                            <i class="bk-radio-text">haproxy</i>
+                                                        </label>
+                                                        <label class="bk-form-radio">
+                                                            <input type="radio" name="forward_mode" value="nginx" v-model="curLoadBalance.forward_mode" />
+                                                            <i class="bk-radio-text">nginx</i>
+                                                        </label>
+                                                    </div>
+                                                </div>
+
+                                                <div class="bk-form-inline-item is-required" style="width: 235px;">
+                                                    <label class="bk-label">{{$t('网络类型')}}：</label>
+                                                    <div class="bk-form-content">
+                                                        <label class="bk-form-radio">
+                                                            <input type="radio" name="network_model" value="cni" v-model="curLoadBalance.network_type">
+                                                            <i class="bk-radio-text">cni</i>
+                                                        </label>
+                                                        <label class="bk-form-radio">
+                                                            <input type="radio" name="network_model" value="cnm" v-model="curLoadBalance.network_type" :disabled="curLoadBalance.network_mode === 'USER'">
+                                                            <i class="bk-radio-text">cnm</i>
+                                                        </label>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-                        </div>
+                        </template>
 
                         <div class="bk-form-item mt25">
-                            <button class="bk-button bk-primary" @click.stop.prevent="saveLoadBalance">{{$t('保存')}}</button>
+                            <button :class="['bk-button bk-primary', { 'is-loading': isDataSaveing }]" @click.stop.prevent="saveLoadBalance">{{$t('保存')}}</button>
                             <button class="bk-button bk-default" @click.stop.prevent="hideLoadBalanceSlider">{{$t('取消')}}</button>
                         </div>
                     </div>
@@ -454,11 +612,11 @@
         },
         data () {
             return {
-
                 isInitLoading: true,
                 isPageLoading: false,
                 exceptionCode: null,
                 isNamespacePanelShow: false,
+                isShowMore: false,
                 curPageData: [],
                 isAllDataLoad: false,
                 isDataSaveing: false,
@@ -470,18 +628,31 @@
                     curPage: 1,
                     show: true
                 },
+                mountTypeList: [
+                    {
+                        id: 'custom',
+                        name: this.$t('自定义')
+                    },
+                    {
+                        id: 'configmap',
+                        name: 'Configmap'
+                    },
+                    {
+                        id: 'secret',
+                        name: 'Secret'
+                    }
+                ],
                 loadBalanceSlider: {
                     title: this.$t('新建LoadBalancer'),
                     isShow: false
                 },
                 clusterIndex: 0,
+                secretList: [],
+                configmapList: [],
                 constraintNameIndex: 'hostname',
                 loadBalanceFixStatus: [
-                    'notCreated',
-                    'deleted',
-                    'Running',
-                    'UpdateSuspend',
-                    'UpdatePaused'
+                    'deploying',
+                    'stopping'
                 ],
                 constraintNameList: [
                     {
@@ -498,6 +669,13 @@
                 searchKeyword: '',
                 searchScope: '',
                 operatorIndex: -1,
+                statusMap: {
+                    'not_deployed': '未部署',
+                    'deploying': '部署中',
+                    'deployed': '已部署',
+                    'stopping': '停止中',
+                    'stopped': '已停止'
+                },
                 operatorList: [
                     {
                         id: 'CLUSTER',
@@ -538,12 +716,16 @@
                 curLoadBalance: {
                     'name': '',
                     'cluster_id': '',
+                    'namespace': '',
                     'ips': '',
                     'ip_list': [],
-                    'instance': '',
+                    'instance_num': '',
+                    'related_service_label': '',
                     'network_mode': 'BRIDGE',
                     'custom_value': '',
                     'network_type': 'cnm',
+                    'volumes': [],
+                    'configmaps': [],
                     'resources': {
                         'limits': {
                             'cpu': '1',
@@ -553,27 +735,31 @@
                     'forward_mode': 'haproxy',
                     'use_custom_image_url': false,
                     'image_url': '/' + this.globalImageId,
-                    'image_version': '',
-                    'eth_value': 'eth1',
+                    'image_tag': '',
+                    'use_custom_imagesecret': false,
+                    'image_pull_user': '',
+                    'image_pull_password': '',
                     'host_port': 31000,
-                    'constraints': [
-                        {
-                            'unionData': [
-                                {
-                                    'name': 'hostname',
-                                    'operate': 'CLUSTER',
-                                    'type': 4,
-                                    'arg_value': '',
-                                    'text': {
-                                        value: ''
-                                    },
-                                    'set': {
-                                        item: []
+                    'constraint': {
+                        'IntersectionItem': [
+                            {
+                                'unionData': [
+                                    {
+                                        'name': 'hostname',
+                                        'operate': 'CLUSTER',
+                                        'type': 4,
+                                        'arg_value': '',
+                                        'text': {
+                                            value: ''
+                                        },
+                                        'set': {
+                                            item: []
+                                        }
                                     }
-                                }
-                            ]
-                        }
-                    ],
+                                ]
+                            }
+                        ]
+                    },
                     'type': 'append'
                 },
                 netList: [
@@ -613,11 +799,17 @@
             loadBalanceList () {
                 const list = Object.assign([], this.$store.state.network.loadBalanceList)
                 const keyword = this.searchKeyword.trim()
-                const results = list.filter(item => {
-                    if (item.name.indexOf(keyword) > -1 || item.cluster_name.indexOf(keyword) > -1 || item.ip_list.join(',').indexOf(keyword) > -1 || item.ns_name_list.join(',').indexOf(keyword) > -1) {
+                const filterList = list.filter(item => {
+                    if (item.name.indexOf(keyword) > -1 || item.cluster_id.indexOf(keyword) > -1 || item.ip_list.join(',').indexOf(keyword) > -1 || item.namespace.indexOf(keyword) > -1) {
                         return true
                     } else {
                         return false
+                    }
+                })
+                const results = filterList.map(item => {
+                    return {
+                        ...item,
+                        ...item.data
                     }
                 })
                 return results
@@ -660,12 +852,18 @@
                     this.curLoadBalance.network_type = 'cnm'
                 }
             },
+            'curLoadBalance.name' (val) {
+                // 新建lb的时候，name和BCSGROUP联动
+                if (this.curLoadBalance.id === undefined) {
+                    this.curLoadBalance.related_service_label = val
+                }
+            },
             loadBalanceList () {
                 this.curPageData = this.getDataByPage(this.pageConf.curPage)
             },
             curPageData () {
                 this.curPageData.forEach(item => {
-                    if (this.loadBalanceFixStatus.indexOf(item.status) === -1) {
+                    if (this.loadBalanceFixStatus.includes(item.status)) {
                         this.getLoadBalanceStatus(item)
                     }
                 })
@@ -686,6 +884,7 @@
                             }
                             
                             this.getLoadBalanceList()
+                            this.getConfigmapList()
                         }, 1000)
                     }
                 }
@@ -721,6 +920,25 @@
                         item._name = item.text
                     })
                     this.imageVersionList.splice(0, this.imageVersionList.length, ...data)
+                } catch (e) {
+                    catchErrorHandler(e, this)
+                }
+            },
+
+            /**
+             * 加载configmap列表数据
+             */
+            async getConfigmapList () {
+                const projectId = this.projectId
+                const params = {
+                    cluster_id: this.searchScope
+                }
+                try {
+                    const res = await this.$store.dispatch('resource/getConfigmapList', {
+                        projectId,
+                        params
+                    })
+                    this.configmapList = res.data
                 } catch (e) {
                     catchErrorHandler(e, this)
                 }
@@ -765,22 +983,19 @@
              * @param  {object} loadBalance loadBalance
              */
             async goLoadBalanceDetail (loadBalance) {
-                if (!loadBalance.permissions.view) {
-                    await this.$store.dispatch('getResourcePermissions', {
-                        project_id: this.projectId,
-                        policy_code: 'view',
-                        resource_code: loadBalance.namespace,
-                        resource_name: loadBalance.namespace_name,
-                        resource_type: 'namespace'
-                    })
-                }
-
-                this.$router.push({
-                    name: 'loadBalanceDetail',
-                    params: {
-                        lbId: loadBalance.id
-                    }
-                })
+                // if (!loadBalance.permissions.view) {
+                //     await this.$store.dispatch('getResourcePermissions', {
+                //         project_id: this.projectId,
+                //         policy_code: 'view',
+                //         resource_code: loadBalance.namespace,
+                //         resource_name: loadBalance.namespace_name,
+                //         resource_type: 'namespace'
+                //     })
+                // }
+                // ':instanceName/:instanceNamespace/:instanceCategory',
+                const projectName = this.curProject.project_code
+                const url = `${window.DEVOPS_HOST}/console/bcs/${projectName}/app/mesos/${loadBalance.name}/${loadBalance.namespace}/deployment?cluster_id=${loadBalance.cluster_id}`
+                window.open(url)
             },
 
             /**
@@ -789,16 +1004,16 @@
              * @param  {number} index 索引
              */
             removeConstraint (item, index) {
-                const constraints = this.curLoadBalance.constraints
-                constraints.splice(index, 1)
+                const constraint = this.curLoadBalance.constraint.IntersectionItem
+                constraint.splice(index, 1)
             },
 
             /**
              * 添加调度约束
              */
             addConstraint () {
-                const constraints = this.curLoadBalance.constraints
-                constraints.push({
+                const constraint = this.curLoadBalance.constraint.IntersectionItem
+                constraint.push({
                     unionData: [
                         {
                             name: 'hostname',
@@ -824,11 +1039,28 @@
                 this.curLoadBalance = {
                     'name': '',
                     'cluster_id': '',
+                    'namespace': '',
                     'ips': '',
                     'ip_list': [],
+                    'instance_num': '',
+                    'related_service_label': '',
                     'network_mode': 'BRIDGE',
                     'custom_value': '',
                     'network_type': 'cnm',
+                    'volumes': [
+                        {
+                            'volume': {
+                                'hostPath': '',
+                                'mountPath': '',
+                                'subPath': '',
+                                'user': '',
+                                'readOnly': false
+                            },
+                            'type': 'custom',
+                            'name': ''
+                        }
+                    ],
+                    'configmaps': [],
                     'resources': {
                         'limits': {
                             'cpu': '1',
@@ -838,28 +1070,31 @@
                     'forward_mode': 'haproxy',
                     'use_custom_image_url': false,
                     'image_url': '/' + this.globalImageId,
-                    'image_version': '',
-                    'eth_value': 'eth1',
+                    'image_tag': '',
+                    'use_custom_imagesecret': false,
+                    'image_pull_user': '',
+                    'image_pull_password': '',
                     'host_port': 31000,
-                    'constraints': [
-                        {
-                            'unionData': [
-                                {
-                                    'name': 'hostname',
-                                    'operate': 'CLUSTER',
-                                    'type': 4,
-                                    'arg_value': '',
-                                    'text': {
-                                        value: ''
-                                    },
-                                    'set': {
-                                        item: []
+                    'constraint': {
+                        'IntersectionItem': [
+                            {
+                                'unionData': [
+                                    {
+                                        'name': 'hostname',
+                                        'operate': 'CLUSTER',
+                                        'type': 4,
+                                        'arg_value': '',
+                                        'text': {
+                                            value: ''
+                                        },
+                                        'set': {
+                                            item: []
+                                        }
                                     }
-                                }
-                            ]
-                        }
-                    ],
-                    'ns_id_list': [],
+                                ]
+                            }
+                        ]
+                    },
                     'type': 'append'
                 }
 
@@ -872,33 +1107,53 @@
              * @param  {number} index 索引
              */
             async editLoadBalance (loadBalance, index) {
-                if (!loadBalance.permissions.use) {
-                    await this.$store.dispatch('getResourcePermissions', {
-                        project_id: this.projectId,
-                        policy_code: 'use',
-                        resource_code: loadBalance.namespace,
-                        resource_name: loadBalance.namespace_name,
-                        resource_type: 'namespace'
-                    })
-                }
+                // if (!loadBalance.permissions.use) {
+                //     await this.$store.dispatch('getResourcePermissions', {
+                //         project_id: this.projectId,
+                //         policy_code: 'use',
+                //         resource_code: loadBalance.namespace,
+                //         resource_name: loadBalance.namespace_name,
+                //         resource_type: 'namespace'
+                //     })
+                // }
                 const loadBalanceParams = Object.assign({}, loadBalance)
                 this.nameSpaceSelectedList = []
-                loadBalanceParams.ips = loadBalanceParams.ip_list.join(' ')
+                loadBalanceParams.ips = loadBalanceParams.ip_list.join('\n')
                 loadBalanceParams.type = 'append'
                 this.nameSpaceList.forEach(namespace => {
                     namespace.isSelected = false
                 })
-                loadBalanceParams.ns_id_list.forEach(id => {
-                    this.nameSpaceList.forEach(namespace => {
-                        if (namespace.id === id) {
-                            namespace.isSelected = true
-                            this.nameSpaceSelectedList.push(namespace)
-                        }
+                
+                loadBalanceParams.volumes = []
+                if (!loadBalanceParams.configmaps) {
+                    loadBalanceParams.configmaps = []
+                }
+                if (!loadBalanceParams.configmaps.length) {
+                    loadBalanceParams.volumes.push({
+                        'volume': {
+                            'hostPath': '',
+                            'mountPath': '',
+                            'user': '',
+                            'readOnly': false
+                        },
+                        'type': 'custom',
+                        'name': ''
                     })
-                })
-                // 自定义镜像
-                if (!loadBalanceParams.hasOwnProperty('use_custom_image_url')) {
-                    loadBalanceParams.use_custom_image_url = false
+                } else {
+                    loadBalanceParams.configmaps.forEach(configmap => {
+                        configmap.items.forEach(item => {
+                            loadBalanceParams.volumes.push({
+                                'volume': {
+                                    'hostPath': item.dataKey,
+                                    'mountPath': item.keyOrPath,
+                                    'user': item.user,
+                                    'readOnly': item.readOnly
+                                },
+                                'type': 'custom',
+                                'name': configmap.name
+                            })
+                        })
+                    })
                 }
                 this.curLoadBalance = loadBalanceParams
                 this.loadBalanceSlider.title = this.$t('编辑LoadBalancer')
@@ -918,31 +1173,38 @@
              * @param  {number} index 索引
              */
             async runLoadBalance (loadBalance, index) {
-                if (!loadBalance.permissions.use) {
-                    await this.$store.dispatch('getResourcePermissions', {
-                        project_id: this.projectId,
-                        policy_code: 'use',
-                        resource_code: loadBalance.namespace,
-                        resource_name: loadBalance.namespace_name,
-                        resource_type: 'namespace'
-                    })
-                }
-
+                // if (!loadBalance.permissions.use) {
+                //     await this.$store.dispatch('getResourcePermissions', {
+                //         project_id: this.projectId,
+                //         policy_code: 'use',
+                //         resource_code: loadBalance.namespace,
+                //         resource_name: loadBalance.namespace_name,
+                //         resource_type: 'namespace'
+                //     })
+                // }
                 const self = this
                 const projectId = this.projectId
-                const loadBalanceId = loadBalance.id
-                const loadBalanceName = loadBalance.name
+                const loadBalanceId = loadBalance.name
+                const clusterId = loadBalance.cluster_id
+                const namespace = loadBalance.namespace
 
                 this.$bkInfo({
-                    title: `${this.$t('确定要启动此LoadBalancer')}: ${loadBalanceName}`,
+                    title: `${this.$t('确定要操启动此LoadBalancer')}: ${loadBalanceId}`,
                     async confirmFn () {
-                        loadBalance.status = ''
                         try {
-                            await self.$store.dispatch('network/createBcsLoadBalance', { projectId, loadBalanceId })
+                            await self.$store.dispatch('network/runMesosLoadBalance', {
+                                projectId,
+                                loadBalanceId,
+                                clusterId,
+                                namespace
+                            })
                             self.$bkMessage({
                                 theme: 'success',
-                                message: self.$t('已经将配置文件下发到后台，请稍后再详情中查看')
+                                message: self.$t('已经将配置文件下发到后台')
                             })
+                            loadBalance.status = 'deploying'
+                            loadBalance.deployment_status = ''
+                            loadBalance.application_status = ''
                             self.getLoadBalanceStatus(loadBalance, index)
                         } catch (e) {
                             catchErrorHandler(e, this)
@@ -958,28 +1220,29 @@
              * @param  {number} index 索引
              */
             async stopLoadBalance (loadBalance, index) {
-                if (!loadBalance.permissions.use) {
-                    await this.$store.dispatch('getResourcePermissions', {
-                        project_id: this.projectId,
-                        policy_code: 'use',
-                        resource_code: loadBalance.namespace,
-                        resource_name: loadBalance.namespace_name,
-                        resource_type: 'namespace'
-                    })
-                }
-
+                // if (!loadBalance.permissions.use) {
+                //     await this.$store.dispatch('getResourcePermissions', {
+                //         project_id: this.projectId,
+                //         policy_code: 'use',
+                //         resource_code: loadBalance.namespace,
+                //         resource_name: loadBalance.namespace_name,
+                //         resource_type: 'namespace'
+                //     })
+                // }
                 const self = this
                 const projectId = this.projectId
-                const loadBalanceId = loadBalance.id
-                const loadBalanceName = loadBalance.name
+                const loadBalanceId = loadBalance.name
+                const clusterId = loadBalance.cluster_id
+                const namespace = loadBalance.namespace
 
                 this.$bkInfo({
-                    title: `${this.$t('确定要停止此LoadBalancer')}: ${loadBalanceName}`,
+                    title: `${this.$t('确定要停止此LoadBalancer')}: ${loadBalanceId}`,
                     async confirmFn () {
-                        loadBalance.status = ''
-
                         try {
-                            await self.$store.dispatch('network/stopBcsLoadBalance', { projectId, loadBalanceId })
+                            await self.$store.dispatch('network/stopMesosLoadBalance', { projectId, loadBalanceId, clusterId, namespace })
+                            loadBalance.status = 'stopping'
+                            loadBalance.deployment_status = ''
+                            loadBalance.application_status = ''
                             self.getLoadBalanceStatus(loadBalance, index)
                         } catch (e) {
                             catchErrorHandler(e, this)
@@ -1000,6 +1263,7 @@
                 if (!isInitTrigger) {
                     this.curLoadBalance.namespace = ''
                 }
+                this.nameSpaceList = []
                 if (projectId && clusterId) {
                     try {
                         const res = await this.$store.dispatch('network/getNameSpaceClusterList', { projectId, clusterId })
@@ -1023,30 +1287,30 @@
              * @param  {number} index 索引
              */
             async removeLoadBalance (loadBalance, index) {
-                if (!loadBalance.permissions.use) {
-                    await this.$store.dispatch('getResourcePermissions', {
-                        project_id: this.projectId,
-                        policy_code: 'use',
-                        resource_code: loadBalance.namespace,
-                        resource_name: loadBalance.namespace_name,
-                        resource_type: 'namespace'
-                    })
-                }
-
+                // if (!loadBalance.permissions.use) {
+                //     await this.$store.dispatch('getResourcePermissions', {
+                //         project_id: this.projectId,
+                //         policy_code: 'use',
+                //         resource_code: loadBalance.namespace,
+                //         resource_name: loadBalance.namespace_name,
+                //         resource_type: 'namespace'
+                //     })
+                // }
                 const self = this
                 const projectId = this.projectId
-                const loadBalanceId = loadBalance.id
-                const loadBalanceName = loadBalance.name
+                const loadBalanceId = loadBalance.name
+                const clusterId = loadBalance.cluster_id
+                const namespace = loadBalance.namespace
                 this.$bkInfo({
                     title: '',
                     clsName: 'biz-remove-dialog max-size',
                     content: this.$createElement('p', {
                         class: 'biz-confirm-desc'
-                    }, `${this.$t('确定要删除LoadBalancer')}【${loadBalance.cluster_name} / ${loadBalance.namespace_name} / ${loadBalanceName}】？`),
+                    }, `${this.$t('确定要删除LoadBalancer')}【${loadBalance.cluster_id} / ${loadBalance.namespace} / ${loadBalanceId}】？`),
                     async confirmFn () {
                         self.isPageLoading = true
                         try {
-                            await self.$store.dispatch('network/removeLoadBalance', { projectId, loadBalanceId })
+                            await self.$store.dispatch('network/removeMesosLoadBalance', { projectId, loadBalanceId, namespace, clusterId })
                             self.$bkMessage({
                                 theme: 'success',
                                 message: self.$t('删除成功')
@@ -1079,7 +1343,9 @@
              */
             getLoadBalanceStatus (loadBalance, index) {
                 const projectId = this.projectId
-                const loadBalanceId = loadBalance.id
+                const loadBalanceId = loadBalance.name
+                const clusterId = loadBalance.cluster_id
+                const namespace = loadBalance.namespace
                 const self = this
 
                 clearInterval(this.statusTimer[loadBalance.id])
@@ -1089,12 +1355,14 @@
                         return
                     }
                     try {
-                        const res = await this.$store.dispatch('network/getLoadBalanceStatus', {
+                        const res = await this.$store.dispatch('network/getMesosLoadBalanceStatus', {
                             projectId,
+                            clusterId,
+                            namespace,
                             loadBalanceId
                         }, { getCloudLoadBalanceDetail: true })
-                        const lb = res.results
-                        if (self.loadBalanceFixStatus.indexOf(lb.status) > -1) {
+                        const lb = res.data
+                        if (!self.loadBalanceFixStatus.includes(lb.status)) {
                             clearInterval(self.statusTimer[loadBalance.id])
                         }
                     } catch (e) {
@@ -1124,7 +1392,7 @@
                 }
 
                 results = list.filter(item => {
-                    if (item.name.indexOf(keyword) > -1 || item.cluster_name.indexOf(keyword) > -1 || item.ip_list.join(',').indexOf(keyword) > -1 || item.ns_name_list.join(',').indexOf(keyword) > -1) {
+                    if (item.name.indexOf(keyword) > -1 || item.cluster_id.indexOf(keyword) > -1 || item.ip_list.join(',').indexOf(keyword) > -1 || item.namespace.indexOf(keyword) > -1) {
                         return true
                     } else {
                         return false
@@ -1238,7 +1506,7 @@
                 this.isNamespacePanelShow = false
                 // 重启状态轮询
                 this.curPageData.forEach(item => {
-                    if (this.loadBalanceFixStatus.indexOf(item.status) === -1) {
+                    if (this.loadBalanceFixStatus.includes(item.status)) {
                         this.getLoadBalanceStatus(item)
                     }
                 })
@@ -1264,7 +1532,7 @@
                         cluster_id: this.searchScope
                     }
                     this.isPageLoading = true
-                    await this.$store.dispatch('network/getLoadBalanceList', {
+                    await this.$store.dispatch('network/getMesosLoadBalanceList', {
                         project,
                         params
                     })
@@ -1327,17 +1595,17 @@
              * 检查提交的数据
              * @return {boolean} true/false 是否合法
              */
-            checkData () {
+            checkData (params) {
                 const appNameReg = /^[a-z]{1}[a-z0-9-]{0,29}$/
-                const ipReg = /^((25[0-5]|2[0-4]\d|[01]?\d\d?)($|(?!\.$)\.)){4}$/
-                if (this.curLoadBalance.name === '') {
+                // const ipReg = /^((25[0-5]|2[0-4]\d|[01]?\d\d?)($|(?!\.$)\.)){4}$/
+                if (params.name === '') {
                     this.$bkMessage({
                         theme: 'error',
                         message: this.$t('请输入名称')
                     })
                     return false
                 }
-                if (!appNameReg.test(this.curLoadBalance.name)) {
+                if (!appNameReg.test(params.name)) {
                     this.$bkMessage({
                         theme: 'error',
                         message: this.$t('名称错误，只能包含：小写字母、数字、连字符(-)，必须是字母开头，长度小于30个字符'),
@@ -1346,7 +1614,7 @@
                     return false
                 }
 
-                if (!this.curLoadBalance.cluster_id) {
+                if (!params.cluster_id) {
                     this.$bkMessage({
                         theme: 'error',
                         message: this.$t('请选择所属集群'),
@@ -1355,7 +1623,16 @@
                     return false
                 }
 
-                if (!this.curLoadBalance.image_version) {
+                if (!params.namespace) {
+                    this.$bkMessage({
+                        theme: 'error',
+                        message: this.$t('请选择命名空间'),
+                        delay: 5000
+                    })
+                    return false
+                }
+
+                if (!params.image_tag) {
                     this.$bkMessage({
                         theme: 'error',
                         message: this.$t('请选择镜像版本'),
@@ -1364,19 +1641,38 @@
                     return false
                 }
 
-                if (this.curLoadBalance.ip_list.length) {
-                    for (const ip of this.curLoadBalance.ip_list) {
-                        if (!ipReg.test(ip)) {
-                            this.$bkMessage({
-                                theme: 'error',
-                                message: this.$t('请输入正确IP地址'),
-                                delay: 3000
-                            })
-                            return false
-                        }
+                // 镜像凭证
+                if (params.use_custom_imagesecret) {
+                    if (!params.image_pull_user) {
+                        this.$bkMessage({
+                            theme: 'error',
+                            message: this.$t('请填写镜像凭证ImagePullUser'),
+                            delay: 5000
+                        })
+                        return false
                     }
+                    if (!params.image_pull_password) {
+                        this.$bkMessage({
+                            theme: 'error',
+                            message: this.$t('请填写镜像凭证ImagePullPasswd'),
+                            delay: 5000
+                        })
+                        return false
+                    }
+                }
 
-                    if (this.curLoadBalance.ip_list.length !== Number(this.curLoadBalance.instance)) {
+                if (params.ip_list.length) {
+                    // for (const ip of params.ip_list) {
+                    //     if (!ipReg.test(ip)) {
+                    //         this.$bkMessage({
+                    //             theme: 'error',
+                    //             message: this.$t('请输入正确IP地址'),
+                    //             delay: 3000
+                    //         })
+                    //         return false
+                    //     }
+                    // }
+                    if (params.ip_list.length !== Number(params.instance_num)) {
                         this.$bkMessage({
                             theme: 'error',
                             message: this.$t('IP数量和实例数量不相等'),
@@ -1386,7 +1682,7 @@
                     }
                 }
 
-                if (!this.curLoadBalance.instance) {
+                if (!params.instance_num) {
                     this.$bkMessage({
                         theme: 'error',
                         message: this.$t('请填写实例数量'),
@@ -1395,16 +1691,25 @@
                     return false
                 }
 
-                if (!this.curLoadBalance.eth_value) {
+                if (!params.related_service_label) {
                     this.$bkMessage({
                         theme: 'error',
-                        message: this.$t('请填写网卡'),
+                        message: this.$t('请输入关联的Service的Label'),
                         delay: 5000
                     })
                     return false
                 }
 
-                if (this.curLoadBalance.network_mode === 'BRIDGE' && !this.curLoadBalance.host_port) {
+                // if (!params.eth_value) {
+                //     this.$bkMessage({
+                //         theme: 'error',
+                //         message: this.$t('请填写网卡'),
+                //         delay: 5000
+                //     })
+                //     return false
+                // }
+
+                if (params.network_mode === 'BRIDGE' && !params.host_port) {
                     this.$bkMessage({
                         theme: 'error',
                         message: this.$t('BRIDGE网络模式下，端口必填'),
@@ -1420,17 +1725,18 @@
              * 格式化数据，符合接口需要的格式
              */
             formatData () {
+                const params = JSON.parse(JSON.stringify(this.curLoadBalance))
                 // 转换ips
-                const ips = this.curLoadBalance.ips
+                const ips = params.ips
                 if (ips) {
-                    this.curLoadBalance.ip_list = ips.split(' ')
+                    params.ip_list = ips.split(/\n|\s+/)
                 } else {
-                    this.curLoadBalance.ip_list = []
+                    params.ip_list = []
                 }
 
                 // 转换调度约束
-                const constraints = this.curLoadBalance.constraints
-                constraints.forEach(item => {
+                const constraint = params.constraint.IntersectionItem
+                constraint.forEach(item => {
                     const data = item.unionData[0]
                     const operate = data.operate
                     switch (operate) {
@@ -1525,17 +1831,71 @@
                             break
                     }
                 })
+
+                // 镜像凭证
+                if (!params.use_custom_imagesecret) {
+                    delete params.image_pull_user
+                    delete params.image_pull_password
+                }
+
+                // 挂载卷
+                const volumes = params.volumes
+                const configmaps = []
+                volumes.forEach(volumeItem => {
+                    const match = configmaps.find(item => item.name === volumeItem.name)
+                    if (match) {
+                        match.items.push({
+                            'type': 'file',
+                            'dataKey': volumeItem.volume.hostPath,
+                            'dataKeyAlias': volumeItem.volume.hostPath,
+                            'keyOrPath': volumeItem.volume.mountPath,
+                            'readOnly': volumeItem.volume.readOnly,
+                            'user': volumeItem.volume.user
+                        })
+                    } else if (volumeItem.name) {
+                        configmaps.push({
+                            'name': volumeItem.name,
+                            'items': [
+                                {
+                                    'type': 'file',
+                                    'dataKey': volumeItem.volume.hostPath,
+                                    'dataKeyAlias': volumeItem.volume.hostPath,
+                                    'keyOrPath': volumeItem.volume.mountPath,
+                                    'readOnly': volumeItem.volume.readOnly,
+                                    'user': volumeItem.volume.user
+                                }
+                            ]
+                        })
+                    }
+                })
+
+                // 资源限制
+                params.resources.limits.cpu = String(params.resources.limits.cpu)
+                params.resources.limits.memory = String(params.resources.limits.memory)
+                
+                // 网络
+                if (params.network_mode !== 'BRIDGE') {
+                    delete params.host_port
+                }
+                if (params.network_mode !== 'CUSTOM') {
+                    delete params.custom_value
+                }
+
+                params.configmaps = configmaps
+                return params
             },
 
             /**
              * 保存新建的LB
              */
-            async createLoadBalance () {
+            async createLoadBalance (data) {
+                if (this.isDataSaveing) {
+                    return false
+                }
                 const projectId = this.projectId
-                const data = this.curLoadBalance
                 this.isDataSaveing = true
                 try {
-                    await this.$store.dispatch('network/addLoadBalance', { projectId, data })
+                    await this.$store.dispatch('network/addMesosLoadBalance', { projectId, data })
                     this.searchScope = data.cluster_id
                     this.$bkMessage({
                         theme: 'success',
@@ -1553,17 +1913,23 @@
             /**
              * 保存更新的LB
              */
-            async updateLoadBalance () {
-                const projectId = this.projectId
-                const data = this.curLoadBalance
-                const loadBalanceId = data.id
+            async updateLoadBalance (data) {
+                if (this.isDataSaveing) {
+                    return false
+                }
 
+                const projectId = this.projectId
+                const loadBalanceId = data.name
+                const clusterId = data.cluster_id
+                const namespace = data.namespace
                 this.isDataSaveing = true
 
                 try {
-                    await this.$store.dispatch('network/updateLoadBalance', {
+                    await this.$store.dispatch('network/updateMesosLoadBalance', {
                         projectId,
+                        clusterId,
                         loadBalanceId,
+                        namespace,
                         data
                     })
 
@@ -1585,14 +1951,12 @@
              */
             saveLoadBalance () {
                 setTimeout(() => {
-                    this.formatData()
-                    if (this.checkData()) {
-                        delete this.curLoadBalance.namespace
-
+                    const params = this.formatData()
+                    if (this.checkData(params)) {
                         if (this.curLoadBalance.id > 0) {
-                            this.updateLoadBalance()
+                            this.updateLoadBalance(params)
                         } else {
-                            this.createLoadBalance()
+                            this.createLoadBalance(params)
                         }
                     }
                 }, 500)
@@ -1614,8 +1978,111 @@
                 // 使用默认
                 if (!this.curLoadBalance.use_custom_image_url) {
                     this.curLoadBalance.image_url = `/${this.globalImageId}`
-                    this.curLoadBalance.image_version = ''
+                    this.curLoadBalance.image_tag = ''
                 }
+            },
+
+            getVolumeNameList (type) {
+                if (type === 'configmap') {
+                    return this.configmapList
+                } else if (type === 'secret') {
+                    return this.secretList
+                }
+            },
+
+            initVolumeConfigmaps () {
+                const version = this.curVersion
+                if (!version) {
+                    return false
+                }
+                const projectId = this.projectId
+
+                this.$store.dispatch('mesosTemplate/getConfigmaps', { projectId, version }).then(res => {
+                    const data = res.data
+                    const keyList = []
+
+                    data.forEach(item => {
+                        const list = []
+                        const name = item.name
+                        const keys = item.keys
+                        keys.forEach(key => {
+                            const params = {
+                                id: name + '.' + key,
+                                name: name + '.' + key
+                            }
+                            list.push(params)
+                            keyList.push(params)
+                        })
+                        item.childList = list
+                    })
+                    this.configmapKeyList.splice(0, this.configmapKeyList.length, ...keyList)
+                    this.configmapList.splice(0, this.configmapList.length, ...data)
+                }, res => {
+                    const message = res.message
+                    this.$bkMessage({
+                        theme: 'error',
+                        message: message
+                    })
+                })
+            },
+            initVloumeSelectets () {
+                const version = this.curVersion
+                if (!version) {
+                    return false
+                }
+                const projectId = this.projectId
+
+                this.$store.dispatch('mesosTemplate/getSecrets', { projectId, version }).then(res => {
+                    const data = res.data
+                    const keyList = []
+                    data.forEach(item => {
+                        const list = []
+                        const name = item.name
+                        const keys = item.keys
+                        keys.forEach(key => {
+                            const params = {
+                                id: name + '.' + key,
+                                name: name + '.' + key
+                            }
+                            list.push(params)
+                            keyList.push(params)
+                        })
+
+                        item.childList = list
+                    })
+                    this.secretKeyList.splice(0, this.secretKeyList.length, ...keyList)
+                    this.secretList.splice(0, this.secretList.length, ...data)
+                }, res => {
+                    const message = res.message
+                    this.$bkMessage({
+                        theme: 'error',
+                        message: message
+                    })
+                })
+            },
+
+            removeVolumn (item, index) {
+                const volumes = this.curLoadBalance.volumes
+                volumes.splice(index, 1)
+            },
+
+            addVolumn () {
+                const volumes = this.curLoadBalance.volumes
+                volumes.push({
+                    'volume': {
+                        'hostPath': '',
+                        'mountPath': '',
+                        'subPath': '',
+                        'user': '',
+                        'readOnly': false
+                    },
+                    'type': '',
+                    'name': ''
+                })
+            },
+
+            toggleMore () {
+                this.isShowMore = !this.isShowMore
             }
         }
     }
