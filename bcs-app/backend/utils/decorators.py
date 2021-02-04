@@ -18,15 +18,15 @@ from functools import wraps
 from urllib import parse
 
 import six
+from django.conf import settings
 from django.utils.encoding import force_str
 from django.utils.translation import ugettext_lazy as _
 from requests.models import Response
-from django.conf import settings
 
 from backend.apps.constants import SENSITIVE_KEYWORD
-from backend.utils.exceptions import ComponentError, APIError
-from backend.utils.error_codes import error_codes
 from backend.utils.errcodes import ErrorCode
+from backend.utils.error_codes import error_codes
+from backend.utils.exceptions import APIError, ComponentError
 
 logger = logging.getLogger(__name__)
 
@@ -44,8 +44,7 @@ MOSAIC_WORD = MOSAIC_CHAR * 3
 
 
 def get_desensitive_url(request, params):
-    """获取脱敏URL
-    """
+    """获取脱敏URL"""
     if not (isinstance(params, dict) and params):
         return request.url
 
@@ -62,8 +61,7 @@ def get_desensitive_url(request, params):
 
 
 def requests_curl_log(resp, st, params):
-    """记录requests curl log
-    """
+    """记录requests curl log"""
     if not isinstance(resp, Response):
         raise ValueError(_("返回值[{}]必须是Respose对象").format(resp))
 
@@ -107,8 +105,7 @@ def requests_curl_log(resp, st, params):
 
 
 def response(f=None, handle_resp=False):
-    """返回值格式化handle_resp
-    """
+    """返回值格式化handle_resp"""
 
     def decorator(func):
         @wraps(func)
@@ -170,8 +167,7 @@ def parse_response_data(default_data=None, err_msg_prefix=None):
 
 
 def handle_api_not_implemented(keyword, module):
-    """处理mesos API 为上线, 返回404 page not found的情况
-    """
+    """处理mesos API 为上线, 返回404 page not found的情况"""
 
     def decorate(func):
         @wraps(func)

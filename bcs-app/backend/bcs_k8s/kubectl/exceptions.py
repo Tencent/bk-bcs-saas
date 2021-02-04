@@ -22,8 +22,7 @@ class KubectlError(KubectlBaseException):
 
 
 class KubectlExecutionError(KubectlBaseException):
-    """Error when running kubectl command failed
-    """
+    """Error when running kubectl command failed"""
 
     def __init__(self, error_no: int, output: bytes):
         self.error_no = error_no

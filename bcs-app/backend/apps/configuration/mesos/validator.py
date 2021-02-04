@@ -14,11 +14,12 @@
 import json
 import re
 
-from rest_framework.exceptions import ValidationError
 from django.utils.translation import ugettext_lazy as _
+from rest_framework.exceptions import ValidationError
 
 from backend.apps.configuration import models
 from backend.apps.configuration.constants import MesosResourceName
+
 from .constants import CONFIG_SCHEMA_MAP
 
 MESOS_NAME_REGEX = re.compile(r'^[a-z]{1}[a-z0-9-]{0,254}$')
@@ -49,7 +50,9 @@ def validate_res_duplicate(containers, category):
                 continue
 
             if res_name not in res_containers_map:
-                res_containers_map[res_name] = [container_name, ]
+                res_containers_map[res_name] = [
+                    container_name,
+                ]
             else:
                 res_containers_map[res_name].append(container_name)
 
@@ -85,7 +88,9 @@ def get_port_info_from_containers(containers):
                 continue
 
             if res_name not in port_info:
-                port_info[res_name] = [container_name, ]
+                port_info[res_name] = [
+                    container_name,
+                ]
             else:
                 port_info[res_name].append(container_name)
 
@@ -110,7 +115,9 @@ def validate_port_duplicate_in_ventity(containers, application_id, version_id):
         for p in duplicate_port:
             info = f"应用[{app.name}容器[{','.join(iport_info[p])}]"
             if p not in duplicate_port_info:
-                duplicate_port_info[p] = [info, ]
+                duplicate_port_info[p] = [
+                    info,
+                ]
             else:
                 duplicate_port_info[p].append(info)
 

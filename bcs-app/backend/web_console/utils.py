@@ -41,8 +41,7 @@ class WebConsoleFormatter(LogstashFormatterBase):
 
 
 def zh_length(string):
-    """计算中文字符串长度, 中文为2个长度
-    """
+    """计算中文字符串长度, 中文为2个长度"""
     length = 0
     for i in string:
         if '\u4e00' <= i <= '\u9fff':
@@ -53,8 +52,7 @@ def zh_length(string):
 
 
 def hello_message(source=None):
-    """连接是显示的字符串
-    """
+    """连接是显示的字符串"""
     messages = []
     if source == 'mgr':
         guide_message = constants.MGR_GUIDE_MESSAGE
@@ -79,8 +77,7 @@ def hello_message(source=None):
 
 
 def clean_bash_escape(text):
-    """删除bash转义字符
-    """
+    """删除bash转义字符"""
     # 删除转移字符
     text = constants.ANSI_ESCAPE.sub('', text)
     # 再删除\x01字符
@@ -89,8 +86,7 @@ def clean_bash_escape(text):
 
 
 def get_auditor():
-    """操作审计记录
-    """
+    """操作审计记录"""
     try:
         # 复用redis的配置
         auditor_handler = copy.deepcopy(settings.RDS_HANDER_SETTINGS)
@@ -99,12 +95,9 @@ def get_auditor():
 
         # 初始化logger
         auditor = LogstashRedisHandler(
-            auditor_handler['redis_url'],
-            auditor_handler['queue_name'],
-            auditor_handler['tags'])
-        auditor.formatter = WebConsoleFormatter(
-            auditor_handler['message_type'],
-            auditor_handler['tags'], fqdn=False)
+            auditor_handler['redis_url'], auditor_handler['queue_name'], auditor_handler['tags']
+        )
+        auditor.formatter = WebConsoleFormatter(auditor_handler['message_type'], auditor_handler['tags'], fqdn=False)
     except Exception:
         # fallbck to normal logger
         auditor = logging.getLogger('auditor')
@@ -113,8 +106,7 @@ def get_auditor():
 
 
 def _setup_logging(verbose=None, filename=None):
-    """设置日志级别
-    """
+    """设置日志级别"""
     LOG_FORMAT = '[%(asctime)s] %(levelname)s %(name)s: %(message)s'
     if verbose:
         level = logging.DEBUG
@@ -124,8 +116,7 @@ def _setup_logging(verbose=None, filename=None):
 
 
 def get_kubectld_version(version):
-    """获取 kubectl 镜像版本
-    """
+    """获取 kubectl 镜像版本"""
     if not version:
         return constants.DEFAULT_KUBECTLD_VERSION
 
@@ -138,8 +129,7 @@ def get_kubectld_version(version):
 
 
 def format_term_size(size: str, default_size: int) -> int:
-    """格式term大小参数
-    """
+    """格式term大小参数"""
     if not size:
         return default_size
 

@@ -12,36 +12,31 @@
 # specific language governing permissions and limitations under the License.
 #
 import json
-import time
 import logging
+import time
 from datetime import datetime, timedelta
 
-from django.conf import settings
 from celery import shared_task
+from django.conf import settings
 from django.utils.translation import ugettext_lazy as _
 
-from backend.components.bcs import mesos, k8s
-from backend.utils.errcodes import ErrorCode
-from backend.apps.instance.models import InstanceConfig, InstanceEvent, VersionInstance
-from backend.apps.instance.constants import EventType
 from backend.apps.application.constants import FUNC_MAP, MESOS_FUNC_MAP
-from backend.apps.instance.constants import InsState
+from backend.apps.instance.constants import EventType, InsState
+from backend.apps.instance.models import InstanceConfig, InstanceEvent, VersionInstance
+from backend.components.bcs import k8s, mesos
+from backend.utils.errcodes import ErrorCode
 
 DEFAULT_RESPONSE = {"code": 0}
 POLLING_INTERVAL_SECONDS = getattr(settings, "POLLING_INTERVAL_SECONDS", 5)
-POLLING_TIMEOUT = timedelta(
-    seconds=getattr(settings, "POLLING_TIMEOUT_SECONDS", 600))
+POLLING_TIMEOUT = timedelta(seconds=getattr(settings, "POLLING_TIMEOUT_SECONDS", 600))
 logger = logging.getLogger(__name__)
 
 
 def get_mesos_application_deploy_status(
-        access_token, cluster_id, instance_name, project_id=None,
-        category="application", field=None, namespace=None):
-    """查询mesos下application和deployment的状态
-    """
-    mesos_client = mesos.MesosClient(
-        access_token, project_id, cluster_id, None
-    )
+    access_token, cluster_id, instance_name, project_id=None, category="application", field=None, namespace=None
+):
+    """查询mesos下application和deployment的状态"""
+    mesos_client = mesos.MesosClient(access_token, project_id, cluster_id, None)
     if category == "application":
         resp = mesos_client.get_mesos_app_instances(
             app_name=instance_name,
@@ -58,38 +53,31 @@ def get_mesos_application_deploy_status(
 
 
 def get_k8s_category_status(
-        access_token, cluster_id, instance_name, project_id=None,
-        category="application", field=None, namespace=None):
-    """查询mesos下application和deployment的状态
-    """
-    client = k8s.K8SClient(
-        access_token, project_id, cluster_id, None
-    )
+    access_token, cluster_id, instance_name, project_id=None, category="application", field=None, namespace=None
+):
+    """查询mesos下application和deployment的状态"""
+    client = k8s.K8SClient(access_token, project_id, cluster_id, None)
     curr_func = getattr(client, FUNC_MAP[category] % "get")
-    resp = curr_func({
-        "name": instance_name,
-        "field": field or "data.status",
-        "namespace": namespace,
-    })
+    resp = curr_func(
+        {
+            "name": instance_name,
+            "field": field or "data.status",
+            "namespace": namespace,
+        }
+    )
     return resp
 
 
-def create_instance(access_token, cluster_id, ns, data,
-                    project_id=None, category="application", kind=2):
-    """创建实例
-    """
+def create_instance(access_token, cluster_id, ns, data, project_id=None, category="application", kind=2):
+    """创建实例"""
     if kind == 2:
-        mesos_client = mesos.MesosClient(
-            access_token, project_id, cluster_id, None
-        )
+        mesos_client = mesos.MesosClient(access_token, project_id, cluster_id, None)
         if category == "application":
             resp = mesos_client.create_application(ns, data)
         else:
             resp = mesos_client.create_deployment(ns, data)
     else:
-        client = k8s.K8SClient(
-            access_token, project_id, cluster_id, None
-        )
+        client = k8s.K8SClient(access_token, project_id, cluster_id, None)
         curr_func = getattr(client, FUNC_MAP[category] % "create")
         resp = curr_func(ns, data)
         resp = DEFAULT_RESPONSE
@@ -97,8 +85,7 @@ def create_instance(access_token, cluster_id, ns, data,
 
 
 def update_instance_record_status(info, oper_type, status="Running", is_bcs_success=True):
-    """更新单条记录状态
-    """
+    """更新单条记录状态"""
     info.oper_type = oper_type
     info.status = status
     info.is_bcs_success = is_bcs_success
@@ -107,22 +94,18 @@ def update_instance_record_status(info, oper_type, status="Running", is_bcs_succ
 
 @shared_task
 def application_polling_task(
-        access_token, inst_id, cluster_id, instance_name,
-        category, kind, ns_name, project_id, username=None, conf=None):
-    """轮训任务状态，并启动创建任务
-    """
+    access_token, inst_id, cluster_id, instance_name, category, kind, ns_name, project_id, username=None, conf=None
+):
+    """轮训任务状态，并启动创建任务"""
     is_polling = True
-    while(is_polling):
+    while is_polling:
         if kind == 2:
             result = get_mesos_application_deploy_status(
-                access_token, cluster_id, instance_name, category=category,
-                namespace=ns_name, project_id=project_id
+                access_token, cluster_id, instance_name, category=category, namespace=ns_name, project_id=project_id
             )
         else:
             result = get_k8s_category_status(
-                access_token, cluster_id, instance_name,
-                category=category, namespace=ns_name,
-                project_id=project_id
+                access_token, cluster_id, instance_name, category=category, namespace=ns_name, project_id=project_id
             )
         if result.get("code") == 0 and not result.get("data"):
             is_polling = False
@@ -132,8 +115,8 @@ def application_polling_task(
         info = InstanceConfig.objects.get(id=inst_id)
         conf = json.loads(info.config)
     resp = create_instance(
-        access_token, cluster_id, ns_name, conf,
-        category=category, kind=kind, project_id=project_id)
+        access_token, cluster_id, ns_name, conf, category=category, kind=kind, project_id=project_id
+    )
     if str(inst_id) == "0":
         return
     # 更新instance状态
@@ -152,7 +135,7 @@ def application_polling_task(
                 msg=err_msg,
                 creator=username,
                 updator=username,
-                resp_snapshot=json.dumps(resp)
+                resp_snapshot=json.dumps(resp),
             ).save()
         except Exception as error:
             logger.error(u"存储实例化失败消息失败，详情: %s" % error)
@@ -172,14 +155,13 @@ def instance_polling_task(access_token, inst_id, cluster_id, category=None, kind
 
 @shared_task
 def delete_instance_task(access_token, inst_id_list, project_kind):
-    """后台更新删除实例是否被删除成功
-    """
+    """后台更新删除实例是否被删除成功"""
     # 通过instance id获取到相应的记录，然后查询mesos/k8s的实例状态
     inst_info = InstanceConfig.objects.filter(id__in=inst_id_list)
     is_polling = True
     all_count = len(inst_info)
     end_time = datetime.now() + POLLING_TIMEOUT
-    while(is_polling):
+    while is_polling:
         deleted_id_list = []
         time.sleep(POLLING_INTERVAL_SECONDS)
         for info in inst_info:
@@ -193,33 +175,21 @@ def delete_instance_task(access_token, inst_id_list, project_kind):
             name = metadata.get("name")
             # 根据类型获取查询
             if project_kind == 1:
-                client = k8s.K8SClient(
-                    access_token, project_id, cluster_id, None
-                )
+                client = k8s.K8SClient(access_token, project_id, cluster_id, None)
                 curr_func = getattr(client, FUNC_MAP[category] % "get")
-                resp = curr_func({
-                    "name": name,
-                    "namespace": namespace
-                })
+                resp = curr_func({"name": name, "namespace": namespace})
             else:
-                client = mesos.MesosClient(
-                    access_token, project_id, cluster_id, None
-                )
+                client = mesos.MesosClient(access_token, project_id, cluster_id, None)
                 curr_func = getattr(client, MESOS_FUNC_MAP[category])
                 if category == "deployment":
                     name_key = "name"
                 else:
                     name_key = "app_name"
-                resp = curr_func(**{
-                    "%s" % name_key: name,
-                    "namespace": namespace
-                })
+                resp = curr_func(**{"%s" % name_key: name, "namespace": namespace})
             if not resp.get("data"):
                 deleted_id_list.append(info.id)
                 # 删除名称+命名空间+类型
-                InstanceConfig.objects.filter(
-                    name=info.name, namespace=info.namespace, category=info.category
-                ).update(
+                InstanceConfig.objects.filter(name=info.name, namespace=info.namespace, category=info.category).update(
                     is_deleted=True, deleted_time=datetime.now()
                 )
 
@@ -230,10 +200,7 @@ def delete_instance_task(access_token, inst_id_list, project_kind):
 @shared_task
 def update_create_error_record(id_list):
     records = InstanceConfig.objects.filter(id__in=id_list)
-    records.update(
-        ins_state=InsState.INS_SUCCESS.value, is_bcs_success=True
-    )
+    records.update(ins_state=InsState.INS_SUCCESS.value, is_bcs_success=True)
     # 更新version instance
     version_instance_id_list = records.values_list("instance_id", flat=True)
-    VersionInstance.objects.filter(id__in=version_instance_id_list).update(
-        is_bcs_success=True)
+    VersionInstance.objects.filter(id__in=version_instance_id_list).update(is_bcs_success=True)

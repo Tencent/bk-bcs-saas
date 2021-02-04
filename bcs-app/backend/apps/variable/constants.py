@@ -34,7 +34,4 @@ class VariableCategory(ChoicesEnum):
     SYSTEM = 'sys'
     CUSTOM = 'custom'
 
-    _choices_labels = (
-        (SYSTEM, _("系统内置")),
-        (CUSTOM, _("自定义"))
-    )
+    _choices_labels = ((SYSTEM, _("系统内置")), (CUSTOM, _("自定义")))

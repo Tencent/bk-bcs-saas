@@ -30,8 +30,7 @@ SSL_VERIFY = False
 
 
 def request_factory(method, handle_resp=False):
-    """http请求封装
-    """
+    """http请求封装"""
 
     @response(f="json", handle_resp=handle_resp)
     def _request(url, params=None, data=None, json=None, **kwargs):

@@ -16,21 +16,21 @@ import logging
 
 from django.conf import settings
 from django.utils.translation import ugettext_lazy as _
-from rest_framework import viewsets, permissions
-from rest_framework.views import APIView
+from rest_framework import permissions, viewsets
 from rest_framework.renderers import BrowsableAPIRenderer
 from rest_framework.response import Response
+from rest_framework.views import APIView
 
 from backend.activity_log import client
+from backend.apps.projects.utils import get_app_by_user_role, get_application_name, update_bcs_service_for_project
 from backend.components import paas_cc
 from backend.components.iam.permissions import ProjectPermission
+from backend.resources import project as Project
+from backend.utils.basic import normalize_datetime
+from backend.utils.cache import region
 from backend.utils.errcodes import ErrorCode
 from backend.utils.error_codes import error_codes
 from backend.utils.renderers import BKAPIRenderer
-from backend.utils.cache import region
-from backend.apps.projects.utils import update_bcs_service_for_project, get_app_by_user_role, get_application_name
-from backend.utils.basic import normalize_datetime
-from backend.resources import project as Project
 
 from . import serializers
 
@@ -44,8 +44,7 @@ class Projects(viewsets.ViewSet):
         return normalize_datetime(created_at), normalize_datetime(updated_at)
 
     def deploy_type_list(self, deploy_type):
-        """转换deploy_type为list类型
-        """
+        """转换deploy_type为list类型"""
         if not deploy_type:
             return []
         if str.isdigit(str(deploy_type)):
@@ -59,8 +58,7 @@ class Projects(viewsets.ViewSet):
         return deploy_type_list
 
     def list(self, request):
-        """获取项目列表
-        """
+        """获取项目列表"""
         # 获取已经授权的项目
         access_token = request.user.token.access_token
         # 直接调用配置中心接口去获取信息
@@ -84,8 +82,7 @@ class Projects(viewsets.ViewSet):
         return Response(data)
 
     def has_cluster(self, request, project_id):
-        """判断项目下是否有集群
-        """
+        """判断项目下是否有集群"""
         resp = paas_cc.get_all_clusters(request.user.token.access_token, project_id)
         if resp.get("code") != ErrorCode.NoError:
             raise error_codes.APIError(resp.get("message"))
@@ -105,8 +102,7 @@ class Projects(viewsets.ViewSet):
         return True
 
     def info(self, request, project_id):
-        """单个项目信息
-        """
+        """单个项目信息"""
         project_resp = paas_cc.get_project(request.user.token.access_token, project_id)
         if project_resp.get("code") != ErrorCode.NoError:
             raise error_codes.APIError(f'not found project info, {project_resp.get("message")}')
@@ -125,13 +121,11 @@ class Projects(viewsets.ViewSet):
         return serializer.data
 
     def invalid_project_cache(self, project_id):
-        """当变更项目信息时，详细缓存信息失效
-        """
+        """当变更项目信息时，详细缓存信息失效"""
         region.delete(f"BK_DEVOPS_BCS:HAS_BCS_SERVICE:{project_id}")
 
     def update(self, request, project_id):
-        """更新项目信息
-        """
+        """更新项目信息"""
         if not self.can_edit(request, project_id):
             raise error_codes.CheckFailed(_("请确认有项目管理员权限，并且项目下无集群"))
         data = self.validate_update_project_data(request)
@@ -170,8 +164,7 @@ class CC(viewsets.ViewSet):
     renderer_classes = (BKAPIRenderer, BrowsableAPIRenderer)
 
     def list(self, request):
-        """获取当前用户CC列表
-        """
+        """获取当前用户CC列表"""
         data = get_app_by_user_role(request)
         return Response(data)
 

@@ -11,8 +11,8 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-import string
 import random
+import string
 
 
 class BasicAuthGenerator:
@@ -53,7 +53,4 @@ class BasicAuthGenerator:
         raise RuntimeError("Can not generate unique string after tried for %s times!" % self.max_retries)
 
     def generate_basic_auth_by_role(self, role):
-        return {
-            'username': '%s-%s' % (role, self.generate_username()),
-            'password': self.generate_password()
-        }
+        return {'username': '%s-%s' % (role, self.generate_username()), 'password': self.generate_password()}

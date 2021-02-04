@@ -12,15 +12,15 @@
 # specific language governing permissions and limitations under the License.
 #
 from django.conf import settings
-
 from rest_framework import viewsets
-from backend.apps.instance.models import InstanceConfig
-from backend.components.paas_cc import get_namespace_list, get_all_clusters, get_project
-from backend.utils.errcodes import ErrorCode
-from backend.utils.error_codes import error_codes
-from backend.utils import FancyDict
+
 from backend.apps.apis.utils import parse_jwt_info
 from backend.apps.configuration.models import ShowVersion, Template
+from backend.apps.instance.models import InstanceConfig
+from backend.components.paas_cc import get_all_clusters, get_namespace_list, get_project
+from backend.utils import FancyDict
+from backend.utils.errcodes import ErrorCode
+from backend.utils.error_codes import error_codes
 
 DEFAULT_USER = settings.DEFAULT_API_TEST_USER
 JWT_KEY_NAME = "HTTP_X_BKAPI_JWT"

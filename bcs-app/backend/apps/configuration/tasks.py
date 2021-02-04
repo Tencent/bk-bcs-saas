@@ -11,16 +11,16 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-import time
 import logging
-from datetime import timedelta, datetime
+import time
+from datetime import datetime, timedelta
 
 from celery import shared_task
 
-from backend.components.paas_cc import get_namespace_list
-from backend.apps.instance.utils import get_app_status
-from backend.apps.instance.models import InstanceConfig, VersionInstance
 from backend.apps.instance.constants import InsState
+from backend.apps.instance.models import InstanceConfig, VersionInstance
+from backend.apps.instance.utils import get_app_status
+from backend.components.paas_cc import get_namespace_list
 
 logger = logging.getLogger(__name__)
 POLLING_TIMEOUT = timedelta(seconds=30)
@@ -30,9 +30,7 @@ POLLING_INTERVAL_SECONDS = 5
 @shared_task
 def check_instance_status(access_token, project_id, project_kind, tmpl_name_dict, ns_info):
     # 通过命名空间获取集群信息
-    all_ns = get_namespace_list(
-        access_token, project_id, desire_all_data=True
-    )
+    all_ns = get_namespace_list(access_token, project_id, desire_all_data=True)
     all_ns_list = all_ns.get("data", {}).get("results") or []
     # 进行匹配命名空间和集群及模板
     ns_id_info_map = {info["ns_id"]: info for info in ns_info}
@@ -47,7 +45,7 @@ def check_instance_status(access_token, project_id, project_kind, tmpl_name_dict
                 ns_cluster[info["cluster_id"]].append(info["name"])
     end_time = datetime.now() + POLLING_TIMEOUT
     # 查询状态
-    while(datetime.now() < end_time):
+    while datetime.now() < end_time:
         time.sleep(POLLING_INTERVAL_SECONDS)
         for cluster_id, ns in ns_cluster.items():
             ns_name_str = ",".join(set(ns))
@@ -67,10 +65,7 @@ def update_data_record(name, ns_id, category):
     """更新db中相应记录状态"""
     records = InstanceConfig.objects.filter(name=name, namespace=ns_id, category=category)
     # 更新instance configure
-    records.update(
-        ins_state=InsState.INS_SUCCESS.value, is_bcs_success=True
-    )
+    records.update(ins_state=InsState.INS_SUCCESS.value, is_bcs_success=True)
     # 更新version instance
     version_instance_id_list = records.values_list("instance_id", flat=True)
-    VersionInstance.objects.filter(id__in=version_instance_id_list).update(
-        is_bcs_success=True)
+    VersionInstance.objects.filter(id__in=version_instance_id_list).update(is_bcs_success=True)

@@ -14,10 +14,10 @@
 """Operating kubernetes with kubectl command
 """
 import json
-import time
-import tempfile
-import subprocess
 import logging
+import subprocess
+import tempfile
+import time
 from pathlib import Path
 
 from .exceptions import KubectlError, KubectlExecutionError
@@ -183,8 +183,7 @@ class KubectlClusterClient:
         raise ValueError(max_retries)
 
     def _run_command(self, cmd_arguments):
-        """Run the kubectl command with wrapped exceptions
-        """
+        """Run the kubectl command with wrapped exceptions"""
         cmd_str = " ".join(cmd_arguments)
         logger.info("Calling kubectl cmd, cmd: (%s)", cmd_str)
         try:

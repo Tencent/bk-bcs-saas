@@ -15,19 +15,20 @@ import json
 import logging
 
 from rest_framework import viewsets
-from rest_framework.response import Response
 from rest_framework.renderers import BrowsableAPIRenderer
+from rest_framework.response import Response
 
-from . import serializers, init_tpls
-from .deployer import DeployController
-from .release import ReleaseData, ReleaseDataProcessor
-from backend.apps.datalog.utils import create_data_project, create_and_start_standard_data_flow
 from backend.apps.configuration.mixins import TemplatePermission
 from backend.apps.configuration.models import get_template_by_project_and_id
-from backend.apps.configuration.showversion.serializers import GetShowVersionSLZ, GetLatestShowVersionSLZ
+from backend.apps.configuration.showversion.serializers import GetLatestShowVersionSLZ, GetShowVersionSLZ
+from backend.apps.datalog.utils import create_and_start_standard_data_flow, create_data_project
 from backend.components import paas_cc
 from backend.utils.error_codes import error_codes
 from backend.utils.renderers import BKAPIRenderer
+
+from . import init_tpls, serializers
+from .deployer import DeployController
+from .release import ReleaseData, ReleaseDataProcessor
 
 logger = logging.getLogger(__name__)
 

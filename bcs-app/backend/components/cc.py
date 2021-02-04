@@ -21,7 +21,6 @@ from backend.components.utils import http_post
 from backend.utils.errcodes import ErrorCode
 from backend.utils.error_codes import error_codes
 
-
 CC_HOST = settings.BK_PAAS_INNER_HOST
 BK_APP_CODE = settings.APP_ID
 BK_APP_SECRET = settings.APP_TOKEN
@@ -52,8 +51,7 @@ def get_application(username, bk_supplier_account=None):
 
 
 def get_app_by_user_role(username, bk_supplier_account=None):
-    """获取运维和产品角色中包含username的业务
-    """
+    """获取运维和产品角色中包含username的业务"""
     username_regex_info = "^{username},|,{username},|,{username}$|^{username}$".format(username=username)
     regex_map = {"$regex": username_regex_info}
     maintainers_resp = get_all_application(
@@ -67,10 +65,7 @@ def get_app_by_user_role(username, bk_supplier_account=None):
         return []
     data = maintainers_resp.get("data") or []
     data.extend(productor_resp.get("data") or [])
-    return [
-        {"id": item["bk_biz_id"], "name": item["bk_biz_name"]}
-        for item in data
-    ]
+    return [{"id": item["bk_biz_id"], "name": item["bk_biz_name"]} for item in data]
 
 
 def get_application_name(username, bk_biz_id, bk_supplier_account=None):
@@ -89,8 +84,7 @@ def get_application_name(username, bk_biz_id, bk_supplier_account=None):
 
 
 def get_all_application(username, bk_supplier_account=None, condition={}):
-    """获取用户有权限的所有业务
-    """
+    """获取用户有权限的所有业务"""
     resp_data = {"data": [], "message": "", "code": ErrorCode.NoError}
     # 设置初始值
     start, limit = 0, 200
@@ -131,8 +125,7 @@ def get_app_hosts(username, bk_biz_id, bk_supplier_account=None):
 
 
 def get_application_staff(username, bk_biz_id, fields=None):
-    """获取业务的成员列表
-    """
+    """获取业务的成员列表"""
     if not fields:
         fields = ["bk_biz_developer", "bk_biz_maintainer", "bk_biz_tester", "bk_biz_productor"]
     resp = get_application_with_page(username, fields=fields, condition={"bk_biz_id": bk_biz_id})
@@ -146,8 +139,7 @@ def get_application_staff(username, bk_biz_id, fields=None):
 
 
 def get_host_by_operator(bk_biz_id, username, bk_supplier_account=None):
-    """获取业务下主备负责人为username的机器
-    """
+    """获取业务下主备负责人为username的机器"""
     resp = search_host(username, bk_biz_id, bk_supplier_account=bk_supplier_account)
     if resp.get("code") != ErrorCode.NoError:
         return resp
@@ -168,8 +160,7 @@ def get_host_by_operator(bk_biz_id, username, bk_supplier_account=None):
 
 
 def get_app_maintainers(username, bk_biz_id, bk_supplier_account=None):
-    """获取业务下的所有运维
-    """
+    """获取业务下的所有运维"""
     resp = get_application_with_page(
         username,
         bk_supplier_account=bk_supplier_account,
@@ -186,8 +177,7 @@ def get_app_maintainers(username, bk_biz_id, bk_supplier_account=None):
 
 
 def get_cc_hosts(bk_biz_id, username):
-    """查询业务下有权限的主机
-    """
+    """查询业务下有权限的主机"""
     all_maintainers = get_app_maintainers(username, bk_biz_id)
     if username in all_maintainers:
         return get_app_hosts(username, bk_biz_id)
@@ -256,8 +246,7 @@ def get_host_base_info(username, bk_biz_id, inner_ip):
 
 
 def host_lock(username, ip_list, bk_cloud_id=0):
-    """主机加锁
-    """
+    """主机加锁"""
     url = "{host}{prefix_path}{path}".format(
         host=CC_HOST, prefix_path=PREFIX_PATH, path=FUNCTION_PATH_MAP["add_host_lock"]
     )
@@ -268,8 +257,7 @@ def host_lock(username, ip_list, bk_cloud_id=0):
 
 
 def remove_host_lock(username, ip_list, bk_cloud_id=0):
-    """主机解锁
-    """
+    """主机解锁"""
     url = "{host}{prefix_path}{path}".format(
         host=CC_HOST, prefix_path=PREFIX_PATH, path=FUNCTION_PATH_MAP["delete_host_lock"]
     )
@@ -280,8 +268,7 @@ def remove_host_lock(username, ip_list, bk_cloud_id=0):
 
 
 def get_host_lock_status(username, ip_list, bk_cloud_id=0):
-    """查询主机锁状态
-    """
+    """查询主机锁状态"""
     url = "{host}{prefix_path}{path}".format(
         host=CC_HOST, prefix_path=PREFIX_PATH, path=FUNCTION_PATH_MAP["search_host_lock"]
     )
@@ -292,8 +279,7 @@ def get_host_lock_status(username, ip_list, bk_cloud_id=0):
 
 
 def cc_set_instance(username, bk_biz_id, bk_set_name, bk_supplier_account=None):
-    """实例化set
-    """
+    """实例化set"""
     url = "{host}{prefix_path}{path}".format(
         host=CC_HOST, prefix_path=PREFIX_PATH, path=FUNCTION_PATH_MAP["create_set"]
     )
@@ -303,8 +289,7 @@ def cc_set_instance(username, bk_biz_id, bk_set_name, bk_supplier_account=None):
 
 
 def get_set_id(username, bk_biz_id, bk_set_name, bk_supplier_account=None):
-    """查询set
-    """
+    """查询set"""
     url = "{host}{prefix_path}{path}".format(host=CC_HOST, prefix_path=PREFIX_PATH, path=FUNCTION_PATH_MAP["get_set"])
     data = {"bk_biz_id": bk_biz_id, "condition": {"bk_set_name": bk_set_name}, "fields": ["bk_set_id"]}
     resp = cmdb_base_request(url, username, data, bk_supplier_account=bk_supplier_account)
@@ -317,8 +302,7 @@ def get_set_id(username, bk_biz_id, bk_set_name, bk_supplier_account=None):
 
 
 def delete_set(username, bk_biz_id, bk_set_id, bk_supplier_account=None):
-    """删除set
-    """
+    """删除set"""
     url = "{host}{prefix_path}{path}".format(
         host=CC_HOST, prefix_path=PREFIX_PATH, path=FUNCTION_PATH_MAP["delete_set"]
     )
@@ -328,8 +312,7 @@ def delete_set(username, bk_biz_id, bk_set_id, bk_supplier_account=None):
 
 
 def cc_module_instance(username, bk_biz_id, bk_set_id, bk_module_name, bk_supplier_account=None):
-    """实例化模块
-    """
+    """实例化模块"""
     url = "{host}{prefix_path}{path}".format(
         host=CC_HOST, prefix_path=PREFIX_PATH, path=FUNCTION_PATH_MAP["create_module"]
     )
@@ -342,8 +325,7 @@ def cc_module_instance(username, bk_biz_id, bk_set_id, bk_module_name, bk_suppli
 
 
 def search_set_module(username, bk_biz_id, bk_set_id, bk_module_name=None, bk_supplier_account=None):
-    """查询set下module
-    """
+    """查询set下module"""
     url = "{host}{prefix_path}{path}".format(
         host=CC_HOST, prefix_path=PREFIX_PATH, path=FUNCTION_PATH_MAP["get_module"]
     )
@@ -357,8 +339,7 @@ def search_set_module(username, bk_biz_id, bk_set_id, bk_module_name=None, bk_su
 
 
 def get_application_with_page(username, bk_supplier_account=None, condition={}, fields=[], start=0, limit=200):
-    """分页查询业务
-    """
+    """分页查询业务"""
     url = "{host}{prefix_path}{path}".format(
         host=CC_HOST, prefix_path=PREFIX_PATH, path=FUNCTION_PATH_MAP["get_application"]
     )
@@ -367,8 +348,7 @@ def get_application_with_page(username, bk_supplier_account=None, condition={}, 
 
 
 def search_host(username, bk_biz_id, bk_supplier_account=None, ip=None, condition=None):
-    """查询所有主机
-    """
+    """查询所有主机"""
     resp_data = {"data": [], "message": "", "code": ErrorCode.NoError, "result": True}
     # 设置初始值
     start, limit = 0, 200
@@ -398,8 +378,7 @@ def search_host(username, bk_biz_id, bk_supplier_account=None, ip=None, conditio
 
 
 def search_host_with_page(username, bk_biz_id, bk_supplier_account=None, ip=None, condition=None, start=0, limit=200):
-    """获取业务下的主机
-    """
+    """获取业务下的主机"""
     url = "{host}{prefix_path}{path}".format(
         host=CC_HOST, prefix_path=PREFIX_PATH, path=FUNCTION_PATH_MAP["search_host"]
     )
@@ -413,8 +392,7 @@ def search_host_with_page(username, bk_biz_id, bk_supplier_account=None, ip=None
 
 
 def cmdb_base_request(url, username, data, bk_supplier_account=None):
-    """请求
-    """
+    """请求"""
     data.update({"bk_app_code": BK_APP_CODE, "bk_app_secret": BK_APP_SECRET, "bk_username": username})
     if bk_supplier_account:
         data["bk_supplier_account"] = bk_supplier_account

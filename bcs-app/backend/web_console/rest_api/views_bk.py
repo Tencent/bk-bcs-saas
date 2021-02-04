@@ -12,6 +12,5 @@
 # specific language governing permissions and limitations under the License.
 #
 def ensure_mesos_wlist(project_id: str, cluster_id: str, username: str) -> bool:
-    """Mesos按集群做白名单控制
-    """
+    """Mesos按集群做白名单控制"""
     return True

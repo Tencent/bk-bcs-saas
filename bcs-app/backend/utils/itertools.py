@@ -15,14 +15,12 @@ from itertools import groupby as _groupby
 
 
 def groupby(iterable, key, reverse=False):
-    """排序分组
-    """
+    """排序分组"""
     return _groupby(sorted(iterable, key=key, reverse=reverse), key=key)
 
 
 def recursive_groupby(iterable, keys, reverse=False):
-    """迭代分组
-    """
+    """迭代分组"""
     if not keys:
         yield ([], iterable)
     else:

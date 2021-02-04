@@ -38,10 +38,7 @@ class LogView(generics.ListAPIView):
         if end_time:
             params["activity_time__lt"] = arrow.get(end_time).datetime
 
-        return qs.filter(
-            project_id=self.project_id,
-            **params
-        )
+        return qs.filter(project_id=self.project_id, **params)
 
     def list(self, request, project_id):
         self.project_id = project_id
@@ -54,8 +51,7 @@ class ResourceTypesView(views.APIView):
     renderer_classes = (BKAPIRenderer, BrowsableAPIRenderer)
 
     def get(self, request):
-        """返回资源类型
-        """
+        """返回资源类型"""
         return Response(constants.ResourceTypes)
 
 
@@ -63,6 +59,5 @@ class MetaDataView(views.APIView):
     renderer_classes = (BKAPIRenderer, BrowsableAPIRenderer)
 
     def get(self, request):
-        """获取操作审计元数据
-        """
+        """获取操作审计元数据"""
         return BKAPIResponse(constants.MetaMap, message=_('获取操作审计元数据成功'))

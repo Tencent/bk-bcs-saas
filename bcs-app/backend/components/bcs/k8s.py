@@ -16,10 +16,10 @@ import logging
 
 from django.conf import settings
 from django.utils.functional import cached_property
+from django.utils.translation import ugettext_lazy as _
 from kubernetes import client
 from kubernetes.client.rest import ApiException
 from rest_framework.exceptions import ValidationError
-from django.utils.translation import ugettext_lazy as _
 
 from backend.components import paas_cc
 from backend.components.bcs import BCSClientBase
@@ -38,8 +38,7 @@ REST_PREFIX = "{apigw_host}/rest/clusters"
 
 
 class K8SClient(BCSClientBase):
-    """K8S Client
-    """
+    """K8S Client"""
 
     def __init__(self, access_token, project_id, cluster_id, env):
         super().__init__(access_token, project_id, cluster_id, env)
@@ -47,8 +46,7 @@ class K8SClient(BCSClientBase):
 
     @cached_property
     def context(self):
-        """BCS API Context信息
-        """
+        """BCS API Context信息"""
         context = {}
         cluster_info = self.query_cluster()
         context.update(cluster_info)
@@ -72,8 +70,7 @@ class K8SClient(BCSClientBase):
 
     @property
     def version(self):
-        """获取k8s版本, 使用git_version字段
-        """
+        """获取k8s版本, 使用git_version字段"""
         _client = client.VersionApi(self.k8s_raw_client)
         code = _client.get_code()
         return code.git_version
@@ -85,18 +82,15 @@ class K8SClient(BCSClientBase):
         return REST_PREFIX.format(apigw_host=self.api_host)
 
     def create_namespace(self, data):
-        """创建namespaces
-        """
+        """创建namespaces"""
         return self.proxy_client.create_namespace(data)
 
     def delete_namespace(self, name):
-        """删除namespaces
-        """
+        """删除namespaces"""
         return self.proxy_client.delete_namespace(name)
 
     def get_namespace(self, params=None):
-        """获取namesapce，计算数量使用
-        """
+        """获取namesapce，计算数量使用"""
         return self.proxy_client.get_namespace(params)
 
     def get_pod(self, host_ips=None, field=None, extra=None, params=None):
@@ -110,28 +104,23 @@ class K8SClient(BCSClientBase):
         return self.proxy_client.get_pod(host_ips, field, extra, params)
 
     def disable_agent(self, ip):
-        """停用，禁止被调度
-        """
+        """停用，禁止被调度"""
         return self.proxy_client.disable_agent(ip)
 
     def enable_agent(self, ip):
-        """启用agent
-        """
+        """启用agent"""
         return self.proxy_client.enable_agent(ip)
 
     def create_service(self, namespace, data):
-        """创建service
-        """
+        """创建service"""
         return self.proxy_client.create_service(namespace, data)
 
     def delete_service(self, namespace, name):
-        """删除service
-        """
+        """删除service"""
         return self.proxy_client.delete_service(namespace, name)
 
     def update_service(self, namespace, name, data):
-        """更新service
-        """
+        """更新service"""
         return self.proxy_client.update_service(namespace, name, data)
 
     def get_service(self, params):
@@ -141,87 +130,72 @@ class K8SClient(BCSClientBase):
         return self.proxy_client.get_endpoints(params)
 
     def create_configmap(self, namespace, data):
-        """创建configmap
-        """
+        """创建configmap"""
         return self.proxy_client.create_configmap(namespace, data)
 
     def delete_configmap(self, namespace, name):
-        """删除configmap
-        """
+        """删除configmap"""
         return self.proxy_client.delete_configmap(namespace, name)
 
     def update_configmap(self, namespace, name, data):
-        """更新configmap
-        """
+        """更新configmap"""
         return self.proxy_client.update_configmap(namespace, name, data)
 
     def get_configmap(self, params):
         return self.proxy_client.get_configmap(params)
 
     def create_secret(self, namespace, data):
-        """创建secrets
-        """
+        """创建secrets"""
         return self.proxy_client.create_secret(namespace, data)
 
     def delete_secret(self, namespace, name):
-        """删除secrets
-        """
+        """删除secrets"""
         return self.proxy_client.delete_secret(namespace, name)
 
     def update_secret(self, namespace, name, data):
-        """更新secrets
-        """
+        """更新secrets"""
         return self.proxy_client.update_secret(namespace, name, data)
 
     def get_secret(self, params):
         return self.proxy_client.get_secret(params)
 
     def create_ingress(self, namespace, data):
-        """创建 ingress
-        """
+        """创建 ingress"""
         return self.proxy_client.create_ingress(namespace, data)
 
     def delete_ingress(self, namespace, name):
-        """删除 ingress
-        """
+        """删除 ingress"""
         return self.proxy_client.delete_ingress(namespace, name)
 
     def update_ingress(self, namespace, name, data):
-        """更新 ingress
-        """
+        """更新 ingress"""
         return self.proxy_client.update_ingress(namespace, name, data)
 
     def get_ingress(self, params):
         return self.proxy_client.get_ingress(params)
 
     def scale_instance(self, namespace, name, instance_num):
-        """扩缩容
-        """
+        """扩缩容"""
         return self.proxy_client.scale_instance(namespace, name, instance_num)
 
     def delete_pod(self, namespace, name):
-        """删除pod
-        """
+        """删除pod"""
         return self.proxy_client.delete_pod(namespace, name)
 
     def get_rs(self, params):
-        """查询rs
-        """
+        """查询rs"""
         return self.proxy_client.get_rs(params)
 
     def create_deployment(self, namespace, data):
-        """创建deployment
-        """
+        """创建deployment"""
         return self.proxy_client.create_deployment(namespace, data)
 
     def delete_deployment(self, namespace, deployment_name):
-        """删除deployment
-        """
+        """删除deployment"""
         return self.proxy_client.delete_deployment(namespace, deployment_name)
 
     def deep_delete_deployment(self, namespace, name):
-        """删除Deployment，级联删除rs&pod
-        """
+        """删除Deployment，级联删除rs&pod"""
         return self.proxy_client.deep_delete_deployment(namespace, name)
 
     def update_deployment(self, namespace, deployment_name, data):
@@ -231,137 +205,112 @@ class K8SClient(BCSClientBase):
         return self.proxy_client.update_deployment(namespace, deployment_name, data)
 
     def patch_deployment(self, namespace, name, params):
-        """针对deployment的patch操作
-        """
+        """针对deployment的patch操作"""
         return self.proxy_client.patch_deployment(namespace, name, params)
 
     def get_deployment(self, params):
-        """查询deployment
-        """
+        """查询deployment"""
         return self.proxy_client.get_deployment(params)
 
     def get_deployment_with_post(self, data):
-        """通过post方法，查询deployment
-        """
+        """通过post方法，查询deployment"""
         return self.proxy_client.get_deployment_with_post(data)
 
     def create_daemonset(self, namespace, data):
-        """创建deamonset
-        """
+        """创建deamonset"""
         return self.proxy_client.create_daemonset(namespace, data)
 
     def delete_daemonset(self, namespace, name):
-        """删除deamonset
-        """
+        """删除deamonset"""
         return self.proxy_client.delete_daemonset(namespace, name)
 
     def deep_delete_daemonset(self, namespace, name):
         return self.proxy_client.deep_delete_daemonset(namespace, name)
 
     def update_daemonset(self, namespace, name, data):
-        """更新daemonset
-        """
+        """更新daemonset"""
         return self.proxy_client.update_daemonset(namespace, name, data)
 
     def patch_daemonset(self, namespace, name, params):
-        """针对daemonset的patch操作
-        """
+        """针对daemonset的patch操作"""
         return self.proxy_client.patch_daemonset(namespace, name, params)
 
     def get_daemonset(self, params):
-        """查询daemonset
-        """
+        """查询daemonset"""
         return self.proxy_client.get_daemonset(params)
 
     def get_daemonset_with_post(self, data):
-        """通过post方法，查询daemonset
-        """
+        """通过post方法，查询daemonset"""
         return self.proxy_client.get_daemonset_with_post(data)
 
     def create_statefulset(self, namespace, data):
-        """创建statefulset
-        """
+        """创建statefulset"""
         return self.proxy_client.create_statefulset(namespace, data)
 
     def delete_statefulset(self, namespace, name):
-        """删除statefulset
-        """
+        """删除statefulset"""
         return self.proxy_client.delete_statefulset(namespace, name)
 
     def deep_delete_statefulset(self, namespace, name):
         return self.proxy_client.deep_delete_statefulset(namespace, name)
 
     def update_statefulset(self, namespace, name, data):
-        """更新statefulset
-        """
+        """更新statefulset"""
         return self.proxy_client.update_statefulset(namespace, name, data)
 
     def patch_statefulset(self, namespace, name, params):
-        """针对statefulset的patch操作
-        """
+        """针对statefulset的patch操作"""
         return self.proxy_client.patch_statefulset(namespace, name, params)
 
     def get_statefulset(self, params):
-        """查询statefulset
-        """
+        """查询statefulset"""
         return self.proxy_client.get_statefulset(params)
 
     def get_statefulset_with_post(self, data):
-        """通过post方法，查询statefulset
-        """
+        """通过post方法，查询statefulset"""
         return self.proxy_client.get_statefulset_with_post(data)
 
     def create_job(self, namespace, data):
-        """创建job
-        """
+        """创建job"""
         return self.proxy_client.create_job(namespace, data)
 
     def delete_job(self, namespace, name):
-        """删除job
-        """
+        """删除job"""
         return self.proxy_client.delete_job(namespace, name)
 
     def deep_delete_job(self, namespace, name):
         return self.proxy_client.deep_delete_job(namespace, name)
 
     def update_job(self, namespace, name, data):
-        """更新job
-        """
+        """更新job"""
         return self.proxy_client.update_job(namespace, name, data)
 
     def patch_job(self, namespace, name, params):
-        """针对job的patch操作
-        """
+        """针对job的patch操作"""
         return self.proxy_client.patch_job(namespace, name, params)
 
     def get_job(self, params):
-        """查询job
-        """
+        """查询job"""
         return self.proxy_client.get_job(params)
 
     def get_job_with_post(self, data):
-        """通过post方法，查询job
-        """
+        """通过post方法，查询job"""
         return self.proxy_client.get_job_with_post(data)
 
     def create_node_labels(self, ip, labels):
-        """添加节点标签
-        """
+        """添加节点标签"""
         return self.proxy_client.create_node_labels(ip, labels)
 
     def get_node_detail(self, ip):
-        """获取节点详细配置
-        """
+        """获取节点详细配置"""
         return self.proxy_client.get_node_detail(ip)
 
     def create_serviceaccounts(self, namespace, data):
-        """创建 serviceaccounts
-        """
+        """创建 serviceaccounts"""
         return self.proxy_client.create_serviceaccounts(namespace, data)
 
     def create_clusterrolebindings(self, namespace, data):
-        """创建 ClusterRoleBinding
-        """
+        """创建 ClusterRoleBinding"""
         return self.proxy_client.create_clusterrolebindings(namespace, data)
 
     def get_events(self, params):
@@ -371,8 +320,7 @@ class K8SClient(BCSClientBase):
         return resp
 
     def get_used_namespace(self):
-        """获取已经使用的命名空间名称
-        """
+        """获取已经使用的命名空间名称"""
         params = {"used": 1}
         return self.get_namespace(params=params)
 
@@ -381,8 +329,7 @@ class K8SClient(BCSClientBase):
         return {"Authorization": getattr(settings, "BCS_AUTH_TOKEN", ""), "Content-Type": "application/json"}
 
     def query_cluster(self):
-        """获取bke_cluster_id, identifier
-        """
+        """获取bke_cluster_id, identifier"""
         url = f"{self.rest_host}/bcs/query_by_id/"
         params = {"access_token": self.access_token, "project_id": self.project_id, "cluster_id": self.cluster_id}
         result = http_get(url, params=params, raise_for_status=False, headers=self._headers_for_bcs_agent_api)
@@ -404,8 +351,7 @@ class K8SClient(BCSClientBase):
         return result
 
     def get_client_credentials(self, bke_cluster_id: str) -> dict:
-        """获取证书, user_token, server_address_path
-        """
+        """获取证书, user_token, server_address_path"""
         url = f"{self.rest_host}/{bke_cluster_id}/client_credentials"
 
         params = {"access_token": self.access_token}
@@ -450,14 +396,12 @@ class K8SClient(BCSClientBase):
         return self.hpa_client.read_namespaced_horizontal_pod_autoscaler(name, namespace)
 
     def create_hpa(self, namespace, spec):
-        """创建HPA
-        """
+        """创建HPA"""
         # _preload_content 设置为True, 修复kubernetes condition 异常
         return self.hpa_client.create_namespaced_horizontal_pod_autoscaler(namespace, spec, _preload_content=False)
 
     def update_hpa(self, namespace, name, spec):
-        """修改HPA
-        """
+        """修改HPA"""
         return self.hpa_client.patch_namespaced_horizontal_pod_autoscaler(name, namespace, spec)
 
     def delete_hpa(self, namespace, name):
@@ -468,8 +412,7 @@ class K8SClient(BCSClientBase):
                 return
 
     def apply_hpa(self, namespace, spec):
-        """部署HPA
-        """
+        """部署HPA"""
         name = spec["metadata"]["name"]
         try:
             self.get_hpa(namespace, name)
@@ -494,8 +437,7 @@ class K8SClient(BCSClientBase):
         return http_post(url, params=params, json=data, raise_for_status=False)
 
     def get_context_or_raise(self):
-        """老的逻辑不动, 如果集群不OK，抛出异常
-        """
+        """老的逻辑不动, 如果集群不OK，抛出异常"""
         if not self.context.get("server_address_path") or not self.context.get("user_token"):
             raise error_codes.APIError("查询集群失败，请确认集群状态正常或联系容器助手解决")
 

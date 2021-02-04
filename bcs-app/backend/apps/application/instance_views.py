@@ -11,40 +11,38 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-import re
 import json
 import logging
+import re
 import time
 from datetime import datetime
 
-from django.db.models import Q
 from django.conf import settings
-from rest_framework.response import Response
-from rest_framework.renderers import BrowsableAPIRenderer
+from django.db.models import Q
 from django.utils.translation import ugettext_lazy as _
+from rest_framework.renderers import BrowsableAPIRenderer
+from rest_framework.response import Response
 
-from backend.components import paas_cc
-from backend.apps.application.utils import APIResponse, image_handler
-from backend.apps.configuration.models import VersionedEntity, ShowVersion
-from backend.apps.instance.models import VersionInstance, InstanceConfig, InstanceEvent
-from backend.apps.variable.models import Variable
-from backend.utils.errcodes import ErrorCode
-from backend.apps.application.base_views import BaseAPI, error_codes, InstanceAPI
-from backend.apps.configuration.models import MODULE_DICT
-from backend.apps.application import constants as app_constants
-from backend.components import data
-from backend.apps.application import utils
 from backend.activity_log import client
+from backend.apps.application import constants as app_constants
+from backend.apps.application import utils
+from backend.apps.application.base_views import BaseAPI, InstanceAPI, error_codes
+from backend.apps.application.serializers import BatchDeleteResourceSLZ
+from backend.apps.application.utils import APIResponse, image_handler
+from backend.apps.application.views import UpdateInstanceNew
+from backend.apps.configuration.models import MODULE_DICT, ShowVersion, VersionedEntity
+from backend.apps.configuration.utils import check_var_by_config
+from backend.apps.constants import ProjectKind
+from backend.apps.datalog import utils as datalog_utils
 from backend.apps.instance import utils as inst_utils
 from backend.apps.instance.constants import ANNOTATIONS_WEB_CACHE
+from backend.apps.instance.models import InstanceConfig, InstanceEvent, VersionInstance
 from backend.apps.metric.models import Metric
-from backend.apps.configuration.utils import check_var_by_config
-from backend.apps.application.views import UpdateInstanceNew
+from backend.apps.variable.models import Variable
+from backend.components import data, paas_cc
 from backend.utils.basic import getitems
-from backend.apps.datalog import utils as datalog_utils
+from backend.utils.errcodes import ErrorCode
 from backend.utils.renderers import BKAPIRenderer
-from backend.apps.constants import ProjectKind
-from backend.apps.application.serializers import BatchDeleteResourceSLZ
 
 logger = logging.getLogger(__name__)
 
@@ -62,10 +60,8 @@ DEFAULT_INSTANCE_NUM = 0
 
 
 class BaseTaskgroupCls(InstanceAPI):
-
     def common_handler_for_platform(self, request, project_id, instance_id, project_kind, field=None):
-        """公共信息的处理
-        """
+        """公共信息的处理"""
         # 获取instnace info
         inst_info = self.get_instance_info(instance_id)
         # 获取namespace
@@ -79,12 +75,12 @@ class BaseTaskgroupCls(InstanceAPI):
         name = metadata.get("name")
         # 添加权限
         self.bcs_single_app_perm_handler(
-            request, project_id, labels.get("io.tencent.paas.templateid"), curr_inst.namespace)
+            request, project_id, labels.get("io.tencent.paas.templateid"), curr_inst.namespace
+        )
         # 针对deployment获取rcname
         if curr_inst.category == DEPLOYMENT_CATEGORY:
             rc_names = self.get_rc_name_by_deployment_base(
-                request, project_id, cluster_id, name,
-                project_kind=project_kind, namespace=namespace
+                request, project_id, cluster_id, name, project_kind=project_kind, namespace=namespace
             )
             rc_names = list(set(rc_names)) or ["None"]
         else:
@@ -99,16 +95,12 @@ class BaseTaskgroupCls(InstanceAPI):
     def common_handler(self, request, project_id, instance_id, project_kind, field=None):
         if not self._from_template(instance_id):
             return self.common_handler_for_client(request, project_id)
-        return self.common_handler_for_platform(
-            request, project_id, instance_id, project_kind, field=field
-        )
+        return self.common_handler_for_platform(request, project_id, instance_id, project_kind, field=field)
 
 
 class QueryAllTaskgroups(BaseTaskgroupCls):
-
     def get_taskgroup_info(self, data):
-        """获取taskgroup信息
-        """
+        """获取taskgroup信息"""
         ret_data = []
         for info in data:
             info_data = info.get("data", {})
@@ -123,8 +115,7 @@ class QueryAllTaskgroups(BaseTaskgroupCls):
         return ret_data
 
     def get_pod_conditions(self, data):
-        """处理pod conditions
-        """
+        """处理pod conditions"""
         if not data:
             return "", ""
         info = data[0]
@@ -164,27 +155,27 @@ class QueryAllTaskgroups(BaseTaskgroupCls):
             status = info_data.get("status") or {}
             condition = status.get("conditions") or []
             message, reason = self.get_pod_conditions(condition)
-            item.update({
-                "status": status.get("phase"),
-                "podIP": status.get("podIP"),
-                "host_ip": status.get("hostIP"),
-                "message": message,
-                "reason": reason,
-                "is_normal": self.is_pod_normal(status)
-            })
+            item.update(
+                {
+                    "status": status.get("phase"),
+                    "podIP": status.get("podIP"),
+                    "host_ip": status.get("hostIP"),
+                    "message": message,
+                    "reason": reason,
+                    "is_normal": self.is_pod_normal(status),
+                }
+            )
             ret_data.append(item)
         return ret_data
 
     def get(self, request, project_id, instance_id):
-        """查询所有taskgroup信息
-        """
+        """查询所有taskgroup信息"""
         # 获取kind
         project_kind = request.project.kind
-        cluster_id, namespace, rc_names, category = self.common_handler(
-            request, project_id, instance_id, project_kind)
+        cluster_id, namespace, rc_names, category = self.common_handler(request, project_id, instance_id, project_kind)
         # 获取taskagroup或者group
         if project_kind == 2:
-            field = "data.metadata.name,data.status,data.hostIP,data.podIP,data.startTime,data.message",  # noqa
+            field = ("data.metadata.name,data.status,data.hostIP,data.podIP,data.startTime,data.message",)  # noqa
         else:
             field = [
                 "resourceName,createTime",
@@ -192,14 +183,19 @@ class QueryAllTaskgroups(BaseTaskgroupCls):
                 "data.status.hostIP",
                 "data.status.phase",
                 "data.status.containerStatuses",
-                "data.status.conditions"
+                "data.status.conditions",
             ]
         if not rc_names:
             return APIResponse({"data": []})
         flag, resp = self.get_pod_or_taskgroup(
-            request, project_id, cluster_id, field=field,
-            app_name=",".join(rc_names), ns_name=namespace,
-            category=category, kind=project_kind
+            request,
+            project_id,
+            cluster_id,
+            field=field,
+            app_name=",".join(rc_names),
+            ns_name=namespace,
+            category=category,
+            kind=project_kind,
         )
         if not flag:
             return resp
@@ -207,35 +203,32 @@ class QueryAllTaskgroups(BaseTaskgroupCls):
             ret_data = self.get_taskgroup_info(resp)
         else:
             ret_data = self.get_pod_info(resp)
-        return APIResponse({
-            "data": ret_data
-        })
+        return APIResponse({"data": ret_data})
 
 
 class QueryContainersByTaskgroup(BaseTaskgroupCls):
-
     def get_container_info(self, data):
-        """
-        """
+        """"""
         if not data:
             return []
         ret_data = []
         data = data[0].get("data") or {}
         container_info = data.get("containerStatuses") or []
         for info in container_info:
-            ret_data.append({
-                "container_id": info.get("containerID"),
-                "image": image_handler(info.get("image", "")),
-                "message": info.get("message"),
-                "name": info.get("name"),
-                "status": info.get("status"),
-                "reason": info.get("reason") or ""
-            })
+            ret_data.append(
+                {
+                    "container_id": info.get("containerID"),
+                    "image": image_handler(info.get("image", "")),
+                    "message": info.get("message"),
+                    "name": info.get("name"),
+                    "status": info.get("status"),
+                    "reason": info.get("reason") or "",
+                }
+            )
         return ret_data
 
     def get_k8s_container_info(self, data):
-        """获取k8s下容器信息
-        """
+        """获取k8s下容器信息"""
         ret_data = []
         if not data:
             return ret_data
@@ -246,7 +239,7 @@ class QueryContainersByTaskgroup(BaseTaskgroupCls):
             item = {
                 "name": info.get("name"),
                 "container_id": (info.get("containerID") or "").split("//")[-1],
-                "image": image_handler(info.get("image", ""))
+                "image": image_handler(info.get("image", "")),
             }
             state = info.get("state") or {}
             for key, val in state.items():
@@ -257,28 +250,28 @@ class QueryContainersByTaskgroup(BaseTaskgroupCls):
         return ret_data
 
     def get(self, request, project_id, instance_id, taskgroup_name):
-        """获取某一个taskgroup下的容器信息
-        """
+        """获取某一个taskgroup下的容器信息"""
         # 获取kind
         flag, project_kind = self.get_project_kind(request, project_id)
         if not flag:
             return project_kind
-        cluster_id, namespace, rc_names, category = self.common_handler(
-            request, project_id, instance_id, project_kind)
+        cluster_id, namespace, rc_names, category = self.common_handler(request, project_id, instance_id, project_kind)
         # 获取taskagroup或者pod
         if project_kind == 2:
-            field = "data.containerStatuses",  # noqa
+            field = ("data.containerStatuses",)  # noqa
         else:
-            field = [
-                "data.status.containerStatuses",
-                "data.status.phase"
-            ]
+            field = ["data.status.containerStatuses", "data.status.phase"]
 
         flag, resp = self.get_pod_or_taskgroup(
-            request, project_id, cluster_id,
-            field=field, taskgroup_name=taskgroup_name,
-            app_name=",".join(rc_names), ns_name=namespace,
-            kind=project_kind, category=category
+            request,
+            project_id,
+            cluster_id,
+            field=field,
+            taskgroup_name=taskgroup_name,
+            app_name=",".join(rc_names),
+            ns_name=namespace,
+            kind=project_kind,
+            category=category,
         )
         if not flag:
             return resp
@@ -287,21 +280,21 @@ class QueryContainersByTaskgroup(BaseTaskgroupCls):
         else:
             ret_data = self.get_k8s_container_info(resp)
 
-        return APIResponse({
-            "data": ret_data
-        })
+        return APIResponse({"data": ret_data})
 
 
 class QueryTaskgroupInfo(BaseTaskgroupCls):
-
-    def get_app_and_update_strategy(
-            self, request, cluster_id, ns, instance_name, project_id, kind):
-        """通过deployment获取单个application信息
-        """
+    def get_app_and_update_strategy(self, request, cluster_id, ns, instance_name, project_id, kind):
+        """通过deployment获取单个application信息"""
         flag, resp = self.get_application_deploy_info(
-            request, project_id, cluster_id, instance_name,
-            category=DEPLOYMENT_CATEGORY, project_kind=kind, namespace=ns,
-            field="data.application,data.application_ext,data.metadata.name,data.strategy"  # noqa
+            request,
+            project_id,
+            cluster_id,
+            instance_name,
+            category=DEPLOYMENT_CATEGORY,
+            project_kind=kind,
+            namespace=ns,
+            field="data.application,data.application_ext,data.metadata.name,data.strategy",  # noqa
         )
         if not flag:
             raise error_codes.APIError.f(resp.data.get("message"))
@@ -321,8 +314,7 @@ class QueryTaskgroupInfo(BaseTaskgroupCls):
         return ret_data, strategy
 
     def get_taskgroup_info(self, data, namespace):
-        """获取当前taskgroup的信息
-        """
+        """获取当前taskgroup的信息"""
         ret_data = {}
         if not data:
             return ret_data
@@ -336,22 +328,17 @@ class QueryTaskgroupInfo(BaseTaskgroupCls):
             "start_time": data.get("startTime"),
             "status": "Running" if data.get("status") == "Running" else "Unready",
             "current_time": datetime.now(),
-            "namespace": namespace
+            "namespace": namespace,
         }
         ret_data["kill_policy"] = data.get("killPolicy") or {}
         ret_data["restart_policy"] = data.get("restartPolicy") or {}
         return ret_data
 
-    def get_category_rollupdate_info(
-            self, request, cluster_id, ns, inst_name, project_id, kind, category):
-        """通过名称查询滚动升级信息
-        """
-        field = [
-            "data.spec.strategy"
-        ]
+    def get_category_rollupdate_info(self, request, cluster_id, ns, inst_name, project_id, kind, category):
+        """通过名称查询滚动升级信息"""
+        field = ["data.spec.strategy"]
         flag, resp = self.get_application_deploy_info(
-            request, project_id, cluster_id, inst_name, category=category,
-            project_kind=kind, namespace=ns, field=field
+            request, project_id, cluster_id, inst_name, category=category, project_kind=kind, namespace=ns, field=field
         )
         if not flag:
             raise error_codes.APIError.f(resp.data.get("message"))
@@ -371,8 +358,7 @@ class QueryTaskgroupInfo(BaseTaskgroupCls):
         return ret_data
 
     def get_pod_info(self, data):
-        """组装pod信息
-        """
+        """组装pod信息"""
         ret_data = {}
         if not data:
             return ret_data
@@ -388,7 +374,7 @@ class QueryTaskgroupInfo(BaseTaskgroupCls):
             "current_time": datetime.now(),
             "namespace": data.get("namespace"),
             "pod_ip": status_info.get("podIP"),
-            "status": status_info.get("phase")
+            "status": status_info.get("phase"),
         }
         spec_info = other.get("spec") or {}
         ret_data["kill_policy"] = spec_info.get("terminationGracePeriodSeconds") or ""
@@ -396,14 +382,12 @@ class QueryTaskgroupInfo(BaseTaskgroupCls):
         return ret_data
 
     def get(self, request, project_id, instance_id, taskgroup_name):
-        """获取某一个taskgroup详细信息
-        """
+        """获取某一个taskgroup详细信息"""
         # 获取kind
         flag, project_kind = self.get_project_kind(request, project_id)
         if not flag:
             return project_kind
-        cluster_id, namespace, rc_names, category = self.common_handler(
-            request, project_id, instance_id, project_kind)
+        cluster_id, namespace, rc_names, category = self.common_handler(request, project_id, instance_id, project_kind)
         rolling_strategy = {}
         if self._from_template(instance_id):
             # 获取instnace info
@@ -416,7 +400,7 @@ class QueryTaskgroupInfo(BaseTaskgroupCls):
             category = curr_inst.category
         # 获取taskagroup或者group
         if project_kind == 2:
-            field = "data",  # noqa
+            field = ("data",)  # noqa
         else:
             field = [
                 "updateTime",
@@ -426,14 +410,19 @@ class QueryTaskgroupInfo(BaseTaskgroupCls):
                 "data.status.phase",
                 "data.status.podIP",
                 "data.spec.terminationGracePeriodSeconds",
-                "data.spec.restartPolicy"
+                "data.spec.restartPolicy",
             ]
 
         flag, resp = self.get_pod_or_taskgroup(
-            request, project_id, cluster_id,
-            field=field, taskgroup_name=taskgroup_name,
-            app_name=",".join(rc_names), ns_name=namespace,
-            kind=project_kind, category=category
+            request,
+            project_id,
+            cluster_id,
+            field=field,
+            taskgroup_name=taskgroup_name,
+            app_name=",".join(rc_names),
+            ns_name=namespace,
+            kind=project_kind,
+            category=category,
         )
         if not flag:
             return resp
@@ -442,73 +431,65 @@ class QueryTaskgroupInfo(BaseTaskgroupCls):
         else:
             ret_data = self.get_pod_info(resp)
             rolling_strategy = self.get_category_rollupdate_info(
-                request, cluster_id, namespace, rc_names[0], project_id,
-                project_kind, category
+                request, cluster_id, namespace, rc_names[0], project_id, project_kind, category
             )
         ret_data["update_strategy"] = rolling_strategy
 
-        return APIResponse({
-            "data": ret_data
-        })
+        return APIResponse({"data": ret_data})
 
 
 class QueryApplicationContainers(BaseTaskgroupCls):
-
     def get_container_info(self, data):
-        """组装container ID信息
-        """
+        """组装container ID信息"""
         ret_data = []
         for info in data:
             item = info.get("data") or {}
             container_status = item.get("containerStatuses") or []
             item_id_list = [
-                {
-                    "container_id": info["containerID"],
-                    "container_name": info["name"]
-                } for info in container_status if info.get("containerID")]
+                {"container_id": info["containerID"], "container_name": info["name"]}
+                for info in container_status
+                if info.get("containerID")
+            ]
             ret_data.extend(item_id_list)
         return ret_data
 
     def get_k8s_container_info(self, data):
-        """组装k8s id信息
-        """
+        """组装k8s id信息"""
         ret_data = []
         for info in data:
             item = info.get("data") or {}
             status = item.get("status") or {}
             container_status = status.get("containerStatuses") or []
             item_id_list = [
-                {
-                    "container_id": info["containerID"].split("//")[-1],
-                    "container_name": info["name"]
-                }
-                for info in container_status if info.get("containerID")
+                {"container_id": info["containerID"].split("//")[-1], "container_name": info["name"]}
+                for info in container_status
+                if info.get("containerID")
             ]
             ret_data.extend(item_id_list)
         return ret_data
 
     def get(self, request, project_id, instance_id):
-        """查询应用下所有的容器信息
-        """
+        """查询应用下所有的容器信息"""
         # 获取kind
         flag, project_kind = self.get_project_kind(request, project_id)
         if not flag:
             return project_kind
-        cluster_id, namespace, rc_names, category = self.common_handler(
-            request, project_id, instance_id, project_kind)
+        cluster_id, namespace, rc_names, category = self.common_handler(request, project_id, instance_id, project_kind)
         # 获取taskagroup或者gro
         if project_kind == 2:
-            field = "data.containerStatuses.containerID,data.containerStatuses.name",  # noqa
+            field = ("data.containerStatuses.containerID,data.containerStatuses.name",)  # noqa
         else:
-            field = [
-                "data.status.containerStatuses.containerID",
-                "data.status.containerStatuses.name"
-            ]
+            field = ["data.status.containerStatuses.containerID", "data.status.containerStatuses.name"]
 
         flag, resp = self.get_pod_or_taskgroup(
-            request, project_id, cluster_id, field=field,
-            app_name=",".join(rc_names), ns_name=namespace,
-            kind=project_kind, category=category
+            request,
+            project_id,
+            cluster_id,
+            field=field,
+            app_name=",".join(rc_names),
+            ns_name=namespace,
+            kind=project_kind,
+            category=category,
         )
         if not flag:
             return resp
@@ -517,16 +498,12 @@ class QueryApplicationContainers(BaseTaskgroupCls):
         else:
             ret_data = self.get_k8s_container_info(resp)
 
-        return APIResponse({
-            "data": ret_data
-        })
+        return APIResponse({"data": ret_data})
 
 
 class GetInstanceLabels(InstanceAPI):
-
     def get_instance_labels(self, info):
-        """获取instance labels
-        """
+        """获取instance labels"""
         try:
             conf = json.loads(info.config)
         except Exception as error:
@@ -536,8 +513,7 @@ class GetInstanceLabels(InstanceAPI):
         return conf.get("metadata", {}).get("labels", {})
 
     def get(self, request, project_id, instance_id, instance_name):
-        """获取instance 信息
-        """
+        """获取instance 信息"""
         if not self._from_template(instance_id):
             cluster_id, namespace, name, category = self.get_instance_resource(request, project_id)
             project_kind = request.project.kind
@@ -546,9 +522,14 @@ class GetInstanceLabels(InstanceAPI):
             if project_kind == 1:
                 field = ["data.metadata.labels"]
             ok, resp = self.get_application_deploy_info(
-                request, project_id, cluster_id, name, category=category,
+                request,
+                project_id,
+                cluster_id,
+                name,
+                category=category,
                 project_kind=project_kind,
-                namespace=namespace, field=field
+                namespace=namespace,
+                field=field,
             )
             if not ok:
                 return resp
@@ -566,18 +547,15 @@ class GetInstanceLabels(InstanceAPI):
             data = self.get_instance_labels(inst_info[0])
             # 添加权限
             self.bcs_single_app_perm_handler(
-                request, project_id, data.get("io.tencent.paas.templateid"), inst_info[0].namespace)
+                request, project_id, data.get("io.tencent.paas.templateid"), inst_info[0].namespace
+            )
         ret_data = [{"key": key, "val": val} for key, val in data.items()]
-        return APIResponse({
-            "data": ret_data
-        })
+        return APIResponse({"data": ret_data})
 
 
 class GetInstanceAnnotations(InstanceAPI):
-
     def get_instance_annotations(self, info):
-        """获取instance annotations
-        """
+        """获取instance annotations"""
         try:
             conf = json.loads(info.config)
         except Exception as error:
@@ -587,8 +565,7 @@ class GetInstanceAnnotations(InstanceAPI):
         return metadata.get("annotations") or {}, metadata.get("labels") or {}
 
     def get(self, request, project_id, instance_id, instance_name):
-        """获取注解信息
-        """
+        """获取注解信息"""
         if not self._from_template(instance_id):
             cluster_id, namespace, name, category = self.get_instance_resource(request, project_id)
             project_kind = request.project.kind
@@ -597,9 +574,14 @@ class GetInstanceAnnotations(InstanceAPI):
             if project_kind == 2:
                 field = ",".join(field)
             ok, resp = self.get_application_deploy_info(
-                request, project_id, cluster_id, name, category=category,
+                request,
+                project_id,
+                cluster_id,
+                name,
+                category=category,
                 project_kind=project_kind,
-                namespace=namespace, field=field
+                namespace=namespace,
+                field=field,
             )
             if not ok:
                 return resp
@@ -617,25 +599,24 @@ class GetInstanceAnnotations(InstanceAPI):
             data, labels = self.get_instance_annotations(inst_info[0])
             # 添加权限
             self.bcs_single_app_perm_handler(
-                request, project_id, labels.get("io.tencent.paas.templateid"), inst_info[0].namespace)
+                request, project_id, labels.get("io.tencent.paas.templateid"), inst_info[0].namespace
+            )
         ret_data = [{"key": key, "val": val} for key, val in data.items()]
-        return APIResponse({
-            "data": ret_data
-        })
+        return APIResponse({"data": ret_data})
 
 
 class GetInstanceStatus(BaseAPI):
-
     def get(self, request, project_id, instance_id, instance_name):
-        """获取实例状态
-        """
+        """获取实例状态"""
         # 类别不能为空
         category = request.GET.get("category")
         if not category:
-            return APIResponse({
-                "code": 400,
-                "message": _("参数[category]不能为空"),
-            })
+            return APIResponse(
+                {
+                    "code": 400,
+                    "message": _("参数[category]不能为空"),
+                }
+            )
         # 获取instance info
         inst_info = self.get_instance_info(instance_id)
         # 获取kind
@@ -653,10 +634,15 @@ class GetInstanceStatus(BaseAPI):
         name = metadata.get("name")
         # 添加权限
         self.bcs_single_app_perm_handler(
-            request, project_id, labels.get("io.tencent.paas.templateid"), curr_inst.namespace)
+            request, project_id, labels.get("io.tencent.paas.templateid"), curr_inst.namespace
+        )
         flag, resp = self.get_application_deploy_status(
-            request, project_id, cluster_id, name,
-            category=category, project_kind=project_kind,
+            request,
+            project_id,
+            cluster_id,
+            name,
+            category=category,
+            project_kind=project_kind,
             namespace=namespace,
         )
         if not flag:
@@ -665,16 +651,11 @@ class GetInstanceStatus(BaseAPI):
         if not data:
             ret_data = {"status": "none"}
         else:
-            ret_data = {
-                "status": resp["data"][0].get("data", {}).get("status")
-            }
-        return APIResponse({
-            "data": ret_data
-        })
+            ret_data = {"status": resp["data"][0].get("data", {}).get("status")}
+        return APIResponse({"data": ret_data})
 
 
 class GetInstanceInfo(InstanceAPI):
-
     def get_cluster_info(self, request, project_id, cluster_id):
         resp = paas_cc.get_cluster(request.user.token.access_token, project_id, cluster_id)
         if resp.get("code") != ErrorCode.NoError:
@@ -682,8 +663,7 @@ class GetInstanceInfo(InstanceAPI):
         return resp.get("data", {}).get("name")
 
     def get_instance_conf(self, info):
-        """获取instance conf
-        """
+        """获取instance conf"""
         try:
             conf = json.loads(info.config)
         except Exception as error:
@@ -692,18 +672,15 @@ class GetInstanceInfo(InstanceAPI):
         return conf
 
     def get_instance_name(self, conf):
-        """通过conf获取name
-        """
+        """通过conf获取name"""
         return conf.get("metadata", {}).get("name")
 
     def get_template_id(self, conf):
-        """通过conf获取template id
-        """
+        """通过conf获取template id"""
         return conf.get("metadata", {}).get("labels", {}).get("io.tencent.paas.templateid")
 
     def get(self, request, project_id, instance_id):
-        """获取instance信息
-        """
+        """获取instance信息"""
         # 获取instance info
         if not self._from_template(instance_id):
             cluster_id, namespace, name, category = self.get_instance_resource(request, project_id)
@@ -715,9 +692,14 @@ class GetInstanceInfo(InstanceAPI):
             else:
                 field = "updateTime,createTime"
             ok, resp = self.get_application_deploy_info(
-                request, project_id, cluster_id, name, category=category,
+                request,
+                project_id,
+                cluster_id,
+                name,
+                category=category,
                 project_kind=project_kind,
-                namespace=namespace, field=field
+                namespace=namespace,
+                field=field,
             )
             if not ok:
                 return resp
@@ -742,24 +724,27 @@ class GetInstanceInfo(InstanceAPI):
             namespace = metadata.get("namespace")
             # 添加权限
             self.bcs_single_app_perm_handler(
-                request, project_id, labels.get("io.tencent.paas.templateid"), curr_inst.namespace)
+                request, project_id, labels.get("io.tencent.paas.templateid"), curr_inst.namespace
+            )
             name = self.get_instance_name(instance_conf)
             create_time = curr_inst.created
             update_time = curr_inst.updated
             template_id = self.get_template_id(instance_conf)
         all_cluster_info = self.get_cluster_id_env(request, project_id)
         cluster_name = all_cluster_info.get(cluster_id).get("cluster_name") or cluster_id
-        return APIResponse({
-            "data": {
-                "name": name,
-                "create_time": create_time,
-                "update_time": update_time,
-                "namespace_name": namespace,
-                "template_id": template_id,
-                "cluster_id": cluster_id,
-                "cluster_name": cluster_name
+        return APIResponse(
+            {
+                "data": {
+                    "name": name,
+                    "create_time": create_time,
+                    "update_time": update_time,
+                    "namespace_name": namespace,
+                    "template_id": template_id,
+                    "cluster_id": cluster_id,
+                    "cluster_name": cluster_name,
+                }
             }
-        })
+        )
 
 
 class ReschedulerTaskgroup(InstanceAPI):
@@ -768,8 +753,7 @@ class ReschedulerTaskgroup(InstanceAPI):
     """
 
     def get_instance_conf(self, info):
-        """获取instance conf
-        """
+        """获取instance conf"""
         try:
             conf = json.loads(info.config)
         except Exception as error:
@@ -781,15 +765,11 @@ class ReschedulerTaskgroup(InstanceAPI):
         data = dict(request.data)
         taskgroup = data.get("taskgroup")
         if not taskgroup:
-            return APIResponse({
-                "code": 400,
-                "message": _("参数【taskgroup】不能为空")
-            })
+            return APIResponse({"code": 400, "message": _("参数【taskgroup】不能为空")})
         # 获取kind
         project_kind = self.project_kind(request)
         if not self._from_template(instance_id):
-            cluster_id, namespace_name, instance_name, category = \
-                self.get_instance_resource(request, project_id)
+            cluster_id, namespace_name, instance_name, category = self.get_instance_resource(request, project_id)
         else:
             # 获取instance info
             inst_info = self.get_instance_info(instance_id)
@@ -803,19 +783,17 @@ class ReschedulerTaskgroup(InstanceAPI):
             cluster_id = labels.get("io.tencent.bcs.clusterid")
             # 添加权限
             self.bcs_single_app_perm_handler(
-                request, project_id, labels.get("io.tencent.paas.templateid"), inst_info[0].namespace)
+                request, project_id, labels.get("io.tencent.paas.templateid"), inst_info[0].namespace
+            )
         resp = self.rescheduler_taskgroup(
-            request, project_id, cluster_id, namespace_name,
-            instance_name, taskgroup, kind=project_kind
+            request, project_id, cluster_id, namespace_name, instance_name, taskgroup, kind=project_kind
         )
         return resp
 
 
 class TaskgroupEvents(InstanceAPI):
-
     def get_instance_conf(self, info):
-        """获取instance conf
-        """
+        """获取instance conf"""
         try:
             conf = json.loads(info.config)
         except Exception as error:
@@ -823,14 +801,19 @@ class TaskgroupEvents(InstanceAPI):
             raise error_codes.JSONParseError(_("Instance config解析异常"))
         return conf
 
-    def get_rc_name_by_deployment(self, request, project_id, cluster_id, instance_name,
-                                  project_kind=2, namespace=None):
-        """如果是deployment，需要现根据deployment获取到application name
-        """
+    def get_rc_name_by_deployment(
+        self, request, project_id, cluster_id, instance_name, project_kind=2, namespace=None
+    ):
+        """如果是deployment，需要现根据deployment获取到application name"""
         flag, resp = self.get_application_deploy_info(
-            request, project_id, cluster_id, instance_name, category="deployment",
-            project_kind=project_kind, field="data.application,data.application_ext",
-            namespace=namespace
+            request,
+            project_id,
+            cluster_id,
+            instance_name,
+            category="deployment",
+            project_kind=project_kind,
+            field="data.application,data.application_ext",
+            namespace=namespace,
         )
         if not flag:
             raise error_codes.APIError.f(resp.data.get("message"))
@@ -846,8 +829,7 @@ class TaskgroupEvents(InstanceAPI):
         return ret_data
 
     def get_backend_record(self, cluster_id, instance_namespace, instance_id, instance_name, kind):
-        """获取backend记录的create error信息
-        """
+        """获取backend记录的create error信息"""
         all_events = InstanceEvent.objects.filter(
             instance_config_id=instance_id,
             category__in=[
@@ -856,9 +838,9 @@ class TaskgroupEvents(InstanceAPI):
                 K8SJOB_CATEGORY,
                 K8SDAEMONSET_CATEGORY,
                 K8SSTATEFULSET_CATEGORY,
-                K8SDEPLOYMENT_CATEGORY
+                K8SDEPLOYMENT_CATEGORY,
             ],
-            is_deleted=False
+            is_deleted=False,
         ).order_by("-updated")
         return [
             {
@@ -866,19 +848,14 @@ class TaskgroupEvents(InstanceAPI):
                 "component": "Scheduler",
                 "describe": info.msg,
                 "clusterId": cluster_id,
-                "extraInfo": {
-                    "kind": "",
-                    "name": instance_name,
-                    "namespace": instance_namespace
-                },
-                "type": "CreateError"
+                "extraInfo": {"kind": "", "name": instance_name, "namespace": instance_namespace},
+                "type": "CreateError",
             }
             for info in all_events
         ]
 
     def get_k8s_pod_events(self, data):
-        """拼装k8s pod事件
-        """
+        """拼装k8s pod事件"""
         pass
 
     def get(self, request, project_id, instance_id):
@@ -886,10 +863,7 @@ class TaskgroupEvents(InstanceAPI):
         offset = data.get("offset") or 0
         limit = data.get("limit") or 10
         if not (str(offset).isdigit() and str(limit).isdigit()):
-            return APIResponse({
-                "code": 400,
-                "message": _("参数[offset]和[limit]必须为整数!")
-            })
+            return APIResponse({"code": 400, "message": _("参数[offset]和[limit]必须为整数!")})
         offset = int(offset)
         limit = int(limit)
         if not self._from_template(instance_id):
@@ -910,7 +884,8 @@ class TaskgroupEvents(InstanceAPI):
             inst_name = metadata.get("name")
             # 添加权限
             self.bcs_single_app_perm_handler(
-                request, project_id, labels.get("io.tencent.paas.templateid"), curr_inst.namespace)
+                request, project_id, labels.get("io.tencent.paas.templateid"), curr_inst.namespace
+            )
             category = curr_inst.category
         # 获取kind
         project_kind = request.project.kind
@@ -918,51 +893,46 @@ class TaskgroupEvents(InstanceAPI):
         # NOTE: 针对mesos和k8s的deployment资源，前端传递的资源类型都是deployment，因此，需要添加容器服务编排类型进行区分
         if category == DEPLOYMENT_CATEGORY and project_kind == ProjectKind.MESOS.value:
             application_info = self.get_rc_name_by_deployment(
-                request, project_id, cluster_id, inst_name,
-                project_kind=project_kind, namespace=inst_namespace
+                request, project_id, cluster_id, inst_name, project_kind=project_kind, namespace=inst_namespace
             )
         else:
             application_info = [inst_name]
 
-        params = {
-            "offset": offset,
-            "length": limit,
-            "clusterId": cluster_id
-        }
+        params = {"offset": offset, "length": limit, "clusterId": cluster_id}
         if project_kind == 2:
-            params.update({
-                "env": "mesos",
-                "kind": "task",
-                "extraInfo.name": ",".join(application_info),
-                "extraInfo.namespace": inst_namespace
-            })
+            params.update(
+                {
+                    "env": "mesos",
+                    "kind": "task",
+                    "extraInfo.name": ",".join(application_info),
+                    "extraInfo.namespace": inst_namespace,
+                }
+            )
         else:
-            field = [
-                "resourceName"
-            ]
+            field = ["resourceName"]
             flag, pod_resp = self.get_pod_or_taskgroup(
-                request, project_id, cluster_id, kind=project_kind,
-                category=category, ns_name=inst_namespace,
-                app_name=application_info, field=field
+                request,
+                project_id,
+                cluster_id,
+                kind=project_kind,
+                category=category,
+                ns_name=inst_namespace,
+                app_name=application_info,
+                field=field,
             )
             if not flag:
                 return pod_resp
             pod_name = ",".join([info["resourceName"] for info in pod_resp if info.get("resourceName")])
-            params.update({
-                "env": "k8s",
-                "kind": "Pod",
-                "extraInfo.name": pod_name,
-                "extraInfo.namespace": inst_namespace
-            })
+            params.update(
+                {"env": "k8s", "kind": "Pod", "extraInfo.name": pod_name, "extraInfo.namespace": inst_namespace}
+            )
         # 添加创建失败的instance消息后，查询返回
         return self.query_events(request, project_id, cluster_id, params)
 
 
 class ContainerInfo(InstanceAPI):
-
     def get_instance_conf(self, info):
-        """获取instance conf
-        """
+        """获取instance conf"""
         try:
             conf = json.loads(info.config)
         except Exception as error:
@@ -970,14 +940,19 @@ class ContainerInfo(InstanceAPI):
             raise error_codes.JSONParseError(_("Instance config解析异常"))
         return conf
 
-    def get_rc_name_by_deployment(self, request, project_id, cluster_id, instance_name,
-                                  project_kind=2, namespace=None):
-        """如果是deployment，需要现根据deployment获取到application name
-        """
+    def get_rc_name_by_deployment(
+        self, request, project_id, cluster_id, instance_name, project_kind=2, namespace=None
+    ):
+        """如果是deployment，需要现根据deployment获取到application name"""
         flag, resp = self.get_application_deploy_info(
-            request, project_id, cluster_id, instance_name, category="deployment",
-            project_kind=project_kind, field="data.application,data.application_ext",
-            namespace=namespace
+            request,
+            project_id,
+            cluster_id,
+            instance_name,
+            category="deployment",
+            project_kind=project_kind,
+            field="data.application,data.application_ext",
+            namespace=namespace,
         )
         if not flag:
             raise error_codes.APIError.f(resp.data.get("message"))
@@ -993,8 +968,7 @@ class ContainerInfo(InstanceAPI):
         return ret_data
 
     def data_process(self, data, container_id):
-        """根据container id处理数据
-        """
+        """根据container id处理数据"""
         ret_data = {}
         if not data:
             return ret_data
@@ -1021,13 +995,12 @@ class ContainerInfo(InstanceAPI):
                     "image": image_split_str,
                     "container_ip": data.get("pod_ip", ""),
                     "host_name": data.get("hostName", ""),
-                    "container_name": info.get("name", "")
+                    "container_name": info.get("name", ""),
                 }
         return ret_data
 
     def get(self, request, project_id, instance_id, taskgroup_name, container_id):
-        """获取容器信息
-        """
+        """获取容器信息"""
         # 获取kind
         flag, project_kind = self.get_project_kind(request, project_id)
         if not flag:
@@ -1047,36 +1020,37 @@ class ContainerInfo(InstanceAPI):
             cluster_id = labels.get("io.tencent.bcs.clusterid")
             # 添加权限
             self.bcs_single_app_perm_handler(
-                request, project_id, labels.get("io.tencent.paas.templateid"), inst_info[0].namespace)
+                request, project_id, labels.get("io.tencent.paas.templateid"), inst_info[0].namespace
+            )
             # name = metadata.get("name")
             namespace = metadata.get("namespace")
             category = inst_info[0].category
         # 获取container信息
         if category == DEPLOYMENT_CATEGORY:
             app_info = self.get_rc_name_by_deployment(
-                request, project_id, cluster_id, instance_name,
-                project_kind=project_kind, namespace=namespace
+                request, project_id, cluster_id, instance_name, project_kind=project_kind, namespace=namespace
             )
             instance_name = ",".join(app_info)
         flag, taskgroup = self.get_pod_or_taskgroup(
-            request, project_id, cluster_id, field="data",
-            app_name=instance_name, taskgroup_name=taskgroup_name,
-            ns_name=namespace, category=category
+            request,
+            project_id,
+            cluster_id,
+            field="data",
+            app_name=instance_name,
+            taskgroup_name=taskgroup_name,
+            ns_name=namespace,
+            category=category,
         )
         if not flag:
             return taskgroup
         # 处理数据
         data = self.data_process(taskgroup, container_id)
-        return APIResponse({
-            "data": data
-        })
+        return APIResponse({"data": data})
 
 
 class K8sContainerInfo(InstanceAPI):
-
     def get_instance_conf(self, info):
-        """获取instance conf
-        """
+        """获取instance conf"""
         try:
             conf = json.loads(info.config)
         except Exception as error:
@@ -1085,16 +1059,11 @@ class K8sContainerInfo(InstanceAPI):
         return conf
 
     def match_container_info(self, container_data):
-        """匹配容器信息
-        """
-        return {
-            info.get("name"): info
-            for info in container_data
-        }
+        """匹配容器信息"""
+        return {info.get("name"): info for info in container_data}
 
     def data_process(self, data, container_id):
-        """根据container id处理数据
-        """
+        """根据container id处理数据"""
         ret_data = {}
         if not data:
             return ret_data
@@ -1130,14 +1099,13 @@ class K8sContainerInfo(InstanceAPI):
                     "image": image_split_str,
                     "container_ip": status.get("podIP", ""),
                     "host_name": spec.get("nodeName", ""),
-                    "container_name": info.get("name", "")
+                    "container_name": info.get("name", ""),
                 }
                 break
         return ret_data
 
     def post(self, request, project_id, instance_id, taskgroup_name):
-        """获取容器信息
-        """
+        """获取容器信息"""
         container_id = request.data.get("container_id")
         if not container_id:
             raise error_codes.CheckFailed(_("容器ID不能为空"))
@@ -1160,22 +1128,27 @@ class K8sContainerInfo(InstanceAPI):
             cluster_id = labels.get("io.tencent.bcs.clusterid")
             # 添加权限
             self.bcs_single_app_perm_handler(
-                request, project_id, labels.get("io.tencent.paas.templateid"), inst_info[0].namespace)
+                request, project_id, labels.get("io.tencent.paas.templateid"), inst_info[0].namespace
+            )
             curr_inst = inst_info[0]
             category = curr_inst.category
         # 获取container信息
         flag, taskgroup = self.get_pod_or_taskgroup(
-            request, project_id, cluster_id, field=["data"],
-            app_name=name, taskgroup_name=taskgroup_name,
-            ns_name=namespace, category=category, kind=project_kind
+            request,
+            project_id,
+            cluster_id,
+            field=["data"],
+            app_name=name,
+            taskgroup_name=taskgroup_name,
+            ns_name=namespace,
+            category=category,
+            kind=project_kind,
         )
         if not flag:
             return taskgroup
         # 处理数据
         data = self.data_process(taskgroup, container_id)
-        return APIResponse({
-            "data": data
-        })
+        return APIResponse({"data": data})
 
 
 class ContainerLogs(BaseAPI):
@@ -1206,25 +1179,23 @@ class ContainerLogs(BaseAPI):
         for info in standard_log:
             source = info.get('_source') or {}
             log = source.get('log') or ''
-            timestamp = int(source.get('dtEventTimeStamp')) / 1000 \
-                if str(source.get('dtEventTimeStamp')).isdigit() else None
-            localtime = time.strftime(
-                settings.REST_FRAMEWORK['DATETIME_FORMAT'], time.localtime(timestamp))
+            timestamp = (
+                int(source.get('dtEventTimeStamp')) / 1000 if str(source.get('dtEventTimeStamp')).isdigit() else None
+            )
+            localtime = time.strftime(settings.REST_FRAMEWORK['DATETIME_FORMAT'], time.localtime(timestamp))
             log_content.append({'log': log, 'localtime': localtime})
 
         return Response(log_content)
 
 
 class InstanceConfigInfo(InstanceAPI):
-    """获取应用实例配置文件信息
-    """
+    """获取应用实例配置文件信息"""
 
     def get_online_app_conf(self, request, project_id, project_kind):
         cluster_id, namespace, name, category = self.get_instance_resource(request, project_id)
         # get the online yaml
         online_app_conf = self.online_app_conf(
-            request, project_id, project_kind, cluster_id,
-            name, namespace, category
+            request, project_id, project_kind, cluster_id, name, namespace, category
         )
         return online_app_conf
 
@@ -1239,21 +1210,16 @@ class InstanceConfigInfo(InstanceAPI):
             labels = (conf.get("metadata") or {}).get("labels") or {}
             # 添加权限
             self.bcs_single_app_perm_handler(
-                request, project_id, labels.get("io.tencent.paas.templateid"), instance_info[0].namespace)
+                request, project_id, labels.get("io.tencent.paas.templateid"), instance_info[0].namespace
+            )
         except Exception as error:
-            return APIResponse({
-                "code": 400,
-                "data": {},
-                "message": "%s" % error.code.message
-            })
+            return APIResponse({"code": 400, "data": {}, "message": "%s" % error.code.message})
         # 针对不同的类型返回不同的格式
         # mesos: json
         # k8s: yaml
         # if project_kind == 1:
         #     conf = self.json2yaml(conf)
-        return APIResponse({
-            "data": conf
-        })
+        return APIResponse({"data": conf})
 
 
 class GetVersionList(BaseAPI):
@@ -1262,22 +1228,15 @@ class GetVersionList(BaseAPI):
     """
 
     def get_tmpl_info(self, name, category):
-        """通过名称获取模板信息
-        """
+        """通过名称获取模板信息"""
         tmpl_id_list = MODULE_DICT[category].objects.filter(name=name).values("id")
         return [info["id"] for info in tmpl_id_list]
 
     def get_version_info(self, muster_id, tmpl_id_list, category):
-        """获取版本信息
-        """
-        all_show_vers = ShowVersion.objects.filter(
-            template_id=muster_id, is_deleted=False
-        ).order_by("-updated")
+        """获取版本信息"""
+        all_show_vers = ShowVersion.objects.filter(template_id=muster_id, is_deleted=False).order_by("-updated")
         # 根据ID进行过滤
-        ret_data = {
-            "results": [],
-            "count": 0
-        }
+        ret_data = {"results": [], "count": 0}
         for show_ver in all_show_vers:
             real_version_id = show_ver.real_version_id
             info = VersionedEntity.objects.get(id=real_version_id)
@@ -1289,12 +1248,14 @@ class GetVersionList(BaseAPI):
                 continue
             category_id_list = [int(_info) for _info in category_id_info.split(",")]
             if set(tmpl_id_list) & set(category_id_list):
-                ret_data["results"].append({
-                    "id": info.id,
-                    "show_version_id": show_ver.id,
-                    "version": show_ver.name,
-                    "muster_id": info.template_id
-                })
+                ret_data["results"].append(
+                    {
+                        "id": info.id,
+                        "show_version_id": show_ver.id,
+                        "version": show_ver.name,
+                        "muster_id": info.template_id,
+                    }
+                )
                 ret_data["count"] += 1
         return ret_data
 
@@ -1316,26 +1277,26 @@ class GetVersionList(BaseAPI):
         muster_id = labels.get("io.tencent.paas.templateid")
         # 添加权限
         self.bcs_single_app_perm_handler(
-            request, project_id, labels.get("io.tencent.paas.templateid"), curr_inst.namespace)
+            request, project_id, labels.get("io.tencent.paas.templateid"), curr_inst.namespace
+        )
 
         # 根据模板集ID及版本过滤相应分类的信息
         version_data = self.get_version_info(muster_id, tmpl_id_list, category)
-        return APIResponse({
-            "data": version_data
-        })
+        return APIResponse({"data": version_data})
 
 
 class GetMetricInfo(BaseAPI):
-
     def get_metric_info(self, metric_id_list):
-        metric_info = Metric.objects.filter(id__in=metric_id_list). \
-            order_by("-created").values("name", "port", "uri", "frequency")
+        metric_info = (
+            Metric.objects.filter(id__in=metric_id_list)
+            .order_by("-created")
+            .values("name", "port", "uri", "frequency")
+        )
 
         return metric_info
 
     def get(self, request, project_id, instance_id):
-        """查询Metric配置
-        """
+        """查询Metric配置"""
         if str(instance_id) == "0":
             return APIResponse({"data": []})
         instance_info = self.get_instance_info(instance_id)
@@ -1347,14 +1308,12 @@ class GetMetricInfo(BaseAPI):
         labels = metadata.get("labels") or {}
         # 添加权限
         self.bcs_single_app_perm_handler(
-            request, project_id, labels.get("io.tencent.paas.templateid"), curr_inst.namespace)
+            request, project_id, labels.get("io.tencent.paas.templateid"), curr_inst.namespace
+        )
         metrc_info = annotations.get(ANNOTATIONS_WEB_CACHE)
         # 针对先前没有配置Metric的记录，直接返回为空
         if not metrc_info:
-            return APIResponse({
-                "data": [],
-                "message": _("没有查询到Metric配置!")
-            })
+            return APIResponse({"data": [], "message": _("没有查询到Metric配置!")})
         # 解析metric ID
         try:
             metrc_info = json.loads(metrc_info)
@@ -1364,36 +1323,21 @@ class GetMetricInfo(BaseAPI):
         use_metric = metrc_info.get("isMetric")
         ret_data = []
         if not use_metric:
-            return APIResponse({
-                "code": ErrorCode.NoError,
-                "data": ret_data
-            })
+            return APIResponse({"code": ErrorCode.NoError, "data": ret_data})
         metric_id_list = metrc_info.get("metricIdList") or []
         if not metric_id_list:
-            return APIResponse({
-                "code": ErrorCode.NoError,
-                "data": ret_data,
-                "message": _("应用无Metric信息")
-            })
+            return APIResponse({"code": ErrorCode.NoError, "data": ret_data, "message": _("应用无Metric信息")})
         # 通过metric ID获取metric信息
-        return APIResponse({
-            "data": self.get_metric_info(metric_id_list)
-        })
+        return APIResponse({"data": self.get_metric_info(metric_id_list)})
 
 
 class QueryContainerInfo(BaseAPI):
-
     def match_container_info(self, container_data):
-        """匹配容器信息
-        """
-        return {
-            info.get("name"): info
-            for info in container_data
-        }
+        """匹配容器信息"""
+        return {info.get("name"): info for info in container_data}
 
     def k8s_data_process(self, data, container_id):
-        """根据container id处理数据
-        """
+        """根据container id处理数据"""
         ret_data = {}
         if not data:
             return ret_data
@@ -1429,14 +1373,13 @@ class QueryContainerInfo(BaseAPI):
                         "image": image_split_str,
                         "container_ip": status.get("podIP", ""),
                         "host_name": spec.get("nodeName", ""),
-                        "container_name": info.get("name", "")
+                        "container_name": info.get("name", ""),
                     }
                     break
         return ret_data
 
     def data_process(self, data, container_id):
-        """根据container id处理数据
-        """
+        """根据container id处理数据"""
         ret_data = {}
         if not data:
             return ret_data
@@ -1466,14 +1409,13 @@ class QueryContainerInfo(BaseAPI):
                         "image": image_split_str,
                         "container_ip": curr_data.get("pod_ip", ""),
                         "host_name": curr_data.get("hostName", ""),
-                        "container_name": info.get("name", "")
+                        "container_name": info.get("name", ""),
                     }
                     break
         return ret_data
 
     def get(self, request, project_id, cluster_id):
-        """通过container id查询容器详情
-        """
+        """通过container id查询容器详情"""
         container_id = request.GET.get("container_id")
         # 获取kind
         flag, project_kind = self.get_project_kind(request, project_id)
@@ -1483,10 +1425,7 @@ class QueryContainerInfo(BaseAPI):
         if project_kind == 1:
             field = ["data"]
         # 通过集群查询下面所有的container信息
-        flag, resp = self.get_pod_or_taskgroup(
-            request, project_id, cluster_id,
-            field=field, kind=project_kind
-        )
+        flag, resp = self.get_pod_or_taskgroup(request, project_id, cluster_id, field=field, kind=project_kind)
         if not flag:
             return resp
         # 处理数据
@@ -1494,9 +1433,7 @@ class QueryContainerInfo(BaseAPI):
             data = self.data_process(resp, container_id)
         else:
             data = self.k8s_data_process(resp, container_id)
-        return APIResponse({
-            "data": data
-        })
+        return APIResponse({"data": data})
 
     def post(self, request, project_id, cluster_id):
         """针对k8s container id的处理
@@ -1512,10 +1449,7 @@ class QueryContainerInfo(BaseAPI):
         if project_kind == 1:
             field = ["data"]
         # 通过集群查询下面所有的container信息
-        flag, resp = self.get_pod_or_taskgroup(
-            request, project_id, cluster_id,
-            field=field, kind=project_kind
-        )
+        flag, resp = self.get_pod_or_taskgroup(request, project_id, cluster_id, field=field, kind=project_kind)
         if not flag:
             return resp
         # 处理数据
@@ -1523,13 +1457,10 @@ class QueryContainerInfo(BaseAPI):
             data = self.data_process(resp, container_id)
         else:
             data = self.k8s_data_process(resp, container_id)
-        return APIResponse({
-            "data": data
-        })
+        return APIResponse({"data": data})
 
 
 class BatchInstances(BaseAPI):
-
     def get_enforce(self, request):
         # 是否强制删除
         enforce = request.GET.get("enforce")
@@ -1540,21 +1471,14 @@ class BatchInstances(BaseAPI):
         return enforce
 
     def save_inst_event(self, data):
-        """保存实例操作的事件
-        """
+        """保存实例操作的事件"""
         try:
-            InstanceEvent.objects.bulk_create(
-                [
-                    InstanceEvent(**info)
-                    for info in data
-                ]
-            )
+            InstanceEvent.objects.bulk_create([InstanceEvent(**info) for info in data])
         except Exception as error:
             logger.error(u"记录实例操作事件失败，详情: %s" % error)
 
     def del_oper(self, request, project_id, need_delete_info, kind, enforce):
-        """通过bcs调用删除
-        """
+        """通过bcs调用删除"""
         error_message = []
         error_resp = []
         deleted_id_list = []
@@ -1562,57 +1486,52 @@ class BatchInstances(BaseAPI):
             curr_info = info.pop("info")
             # 针对0/0的情况先查询一次
             if not self.get_category_info(
-                    request, project_id, info["cluster_id"], kind, info["inst_name"],
-                    info["namespace"], info["category"]
+                request, project_id, info["cluster_id"], kind, info["inst_name"], info["namespace"], info["category"]
             ):
                 deleted_id_list.append(info["inst_id"])
                 continue
             with client.ContextActivityLogClient(
-                    project_id=project_id,
-                    user=request.user.username,
-                    resource_type="instance",
-                    resource=info.get("inst_name"),
-                    resource_id=info.get("inst_id"),
-                    extra=json.dumps(info),
-                    description=_("应用删除操作")
+                project_id=project_id,
+                user=request.user.username,
+                resource_type="instance",
+                resource=info.get("inst_name"),
+                resource_id=info.get("inst_id"),
+                extra=json.dumps(info),
+                description=_("应用删除操作"),
             ).log_delete():
                 resp = self.delete_instance(
-                    request, project_id, info["cluster_id"], info["namespace"],
-                    info["inst_name"], category=info["category"], kind=kind,
-                    inst_id_list=[info["inst_id"]], enforce=enforce
+                    request,
+                    project_id,
+                    info["cluster_id"],
+                    info["namespace"],
+                    info["inst_name"],
+                    category=info["category"],
+                    kind=kind,
+                    inst_id_list=[info["inst_id"]],
+                    enforce=enforce,
                 )
                 if resp.data.get("code") == ErrorCode.NoError:
-                    self.update_instance_record_status(
-                        curr_info, app_constants.DELETE_INSTANCE,
-                        status="Deleting"
-                    )
+                    self.update_instance_record_status(curr_info, app_constants.DELETE_INSTANCE, status="Deleting")
                 else:
-                    error_resp.append({
-                        "instance_id": info["inst_version_id"],
-                        "instance_config_id": info["inst_id"],
-                        "resp_snapshot": json.dumps(resp.data),
-                        "msg": resp.data.get("message"),
-                        "category": info["category"]
-                    })
-                    error_message.append(
-                        "%s: %s" % (info.get("inst_name"), resp.data.get("message"))
+                    error_resp.append(
+                        {
+                            "instance_id": info["inst_version_id"],
+                            "instance_config_id": info["inst_id"],
+                            "resp_snapshot": json.dumps(resp.data),
+                            "msg": resp.data.get("message"),
+                            "category": info["category"],
+                        }
                     )
+                    error_message.append("%s: %s" % (info.get("inst_name"), resp.data.get("message")))
         self.save_inst_event(error_resp)
         # 如果存在0/0的情况
         if deleted_id_list:
-            InstanceConfig.objects.filter(id__in=deleted_id_list).update(
-                is_deleted=True, deleted_time=datetime.now()
-            )
+            InstanceConfig.objects.filter(id__in=deleted_id_list).update(is_deleted=True, deleted_time=datetime.now())
         # 如果有错误，则返回异常信息
         if error_message:
-            return APIResponse({
-                "code": ErrorCode.SysError,
-                "message": ";".join(error_message)
-            })
+            return APIResponse({"code": ErrorCode.SysError, "message": ";".join(error_message)})
         else:
-            return APIResponse({
-                "message": _("删除成功!")
-            })
+            return APIResponse({"message": _("删除成功!")})
 
     def del_for_client(self, request, project_id, project_kind, category_name_list, namespace, enforce):
         """删除"""
@@ -1620,8 +1539,14 @@ class BatchInstances(BaseAPI):
         err_msg = []
         for info in category_name_list:
             resp = self.delete_instance(
-                request, project_id, cluster_id, namespace,
-                info["name"], category=info["category"], kind=project_kind, enforce=enforce
+                request,
+                project_id,
+                cluster_id,
+                namespace,
+                info["name"],
+                category=info["category"],
+                kind=project_kind,
+                enforce=enforce,
             )
             if resp.get("code") != ErrorCode.NoError:
                 err_msg.append(resp.get("message"))
@@ -1629,8 +1554,7 @@ class BatchInstances(BaseAPI):
             raise error_codes.CheckFailed(_("部分删除失败，详情: {}").format(",".join(err_msg)))
 
     def del_by_name_and_ns(self, request, project_id, project_kind, enforce, data):
-        """通过name+namespace+cluster_id+resource_kind
-        """
+        """通过name+namespace+cluster_id+resource_kind"""
         err_msg = []
         for res in data:
             resp = self.delete_instance(
@@ -1641,7 +1565,7 @@ class BatchInstances(BaseAPI):
                 res["name"],
                 category=res["resource_kind"],
                 kind=project_kind,
-                enforce=enforce
+                enforce=enforce,
             )
             if resp.get("code") != ErrorCode.NoError:
                 err_msg.append(resp.get("message"))
@@ -1649,8 +1573,7 @@ class BatchInstances(BaseAPI):
             raise error_codes.APIError(_("部分删除失败，详情: {}").format(",".join(err_msg)))
 
     def delete(self, request, project_id):
-        """批量删除实例接口
-        """
+        """批量删除实例接口"""
         req_data = request.data
         enforce = self.get_enforce(request)
         # 获取kind
@@ -1671,10 +1594,7 @@ class BatchInstances(BaseAPI):
         inst_id_list = [info for info in inst_id_list if info not in ["0", 0]]
         inst_info = InstanceConfig.objects.filter(id__in=inst_id_list, is_deleted=False)
         if not inst_info:
-            return APIResponse({
-                "code": 400,
-                "message": _("没有查询到实例信息")
-            })
+            return APIResponse({"code": 400, "message": _("没有查询到实例信息")})
         # 判断已经创建失败的实例，则只更新状态
         need_delete_inst_ids = []
         for info in inst_info:
@@ -1682,17 +1602,19 @@ class BatchInstances(BaseAPI):
             labels = (conf.get("metadata") or {}).get("labels") or {}
             # 添加权限
             self.bcs_single_app_perm_handler(
-                request, project_id, labels.get("io.tencent.paas.templateid"), info.namespace)
+                request, project_id, labels.get("io.tencent.paas.templateid"), info.namespace
+            )
 
             if info.is_deleted or info.oper_type == app_constants.DELETE_INSTANCE:
                 continue
-            if info.category in [APPLICATION_CATEGORY,
-                                 DEPLOYMENT_CATEGORY,
-                                 K8SDAEMONSET_CATEGORY,
-                                 K8SJOB_CATEGORY,
-                                 K8SDEPLOYMENT_CATEGORY,
-                                 K8SSTATEFULSET_CATEGORY
-                                 ]:
+            if info.category in [
+                APPLICATION_CATEGORY,
+                DEPLOYMENT_CATEGORY,
+                K8SDAEMONSET_CATEGORY,
+                K8SJOB_CATEGORY,
+                K8SDEPLOYMENT_CATEGORY,
+                K8SSTATEFULSET_CATEGORY,
+            ]:
                 # 包含cluster_id, namespace, inst_name, category
                 conf = self.get_common_instance_conf(info)
                 metadata = conf.get("metadata", {})
@@ -1707,18 +1629,15 @@ class BatchInstances(BaseAPI):
                     "inst_name": name,
                     "category": info.category,
                     "inst_id": info.id,
-                    "inst_version_id": info.instance_id
+                    "inst_version_id": info.instance_id,
                 }
                 need_delete_inst_ids.append(item)
         if not need_delete_inst_ids:
-            return APIResponse({
-                "message": _("删除成功!")
-            })
+            return APIResponse({"message": _("删除成功!")})
         return self.del_oper(request, project_id, need_delete_inst_ids, project_kind, enforce)
 
 
 class UpdateVersionConfig:
-
     def exclude_by_key_prefix(self, data):
         if not data:
             return data
@@ -1746,18 +1665,15 @@ class UpdateVersionConfig:
 
 
 class GetInstanceVersionConf(UpdateInstanceNew, UpdateVersionConfig, InstanceAPI):
-
     def get_show_version_info(self, show_version_id):
-        """获取展示版本ID
-        """
+        """获取展示版本ID"""
         show_version = ShowVersion.objects.filter(id=show_version_id)
         if not show_version:
             raise error_codes.CheckFailed(_("没有查询到展示版本信息"))
         return show_version[0]
 
     def get_version_info(self, category, version_id):
-        """获取真正的版本信息
-        """
+        """获取真正的版本信息"""
         info = VersionedEntity.objects.filter(id=version_id)
         if not info:
             raise error_codes.CheckFailed(_("没有查询到展示版本信息"))
@@ -1767,21 +1683,18 @@ class GetInstanceVersionConf(UpdateInstanceNew, UpdateVersionConfig, InstanceAPI
         return category_id_list
 
     def get_tmpl_info(self, category, category_id_list, name):
-        """根据名称获取相应的配置
-        """
+        """根据名称获取相应的配置"""
         return MODULE_DICT[category].objects.filter(id__in=category_id_list, name=name)
 
     def get_variables(self, request, project_id, config, cluster_id, ns_id):
-        """获取变量
-        """
+        """获取变量"""
         key_list = check_var_by_config(config)
         key_list = list(set(key_list))
         v_list = []
         if key_list:
             # 验证变量名是否符合规范，不符合抛出异常，否则后续用 django 模板渲染变量也会抛出异常
 
-            var_objects = Variable.objects.filter(
-                Q(project_id=project_id) | Q(project_id=0))
+            var_objects = Variable.objects.filter(Q(project_id=project_id) | Q(project_id=0))
 
             for _key in key_list:
                 key_obj = var_objects.filter(key=_key)
@@ -1789,17 +1702,21 @@ class GetInstanceVersionConf(UpdateInstanceNew, UpdateVersionConfig, InstanceAPI
                     _obj = key_obj.first()
                     # 只显示自定义变量
                     if _obj.category == 'custom':
-                        v_list.append({
-                            "key": _obj.key,
-                            # "name": _obj.name,
-                            "value": _obj.get_show_value(cluster_id, ns_id)
-                        })
+                        v_list.append(
+                            {
+                                "key": _obj.key,
+                                # "name": _obj.name,
+                                "value": _obj.get_show_value(cluster_id, ns_id),
+                            }
+                        )
                 else:
-                    v_list.append({
-                        "key": _key,
-                        # "name": _key,
-                        "value": ""
-                    })
+                    v_list.append(
+                        {
+                            "key": _key,
+                            # "name": _key,
+                            "value": "",
+                        }
+                    )
         return v_list
 
     def get_default_instance_value(self, variable_list, key, pre_instance_num):
@@ -1810,34 +1727,21 @@ class GetInstanceVersionConf(UpdateInstanceNew, UpdateVersionConfig, InstanceAPI
         return ret_val or pre_instance_num
 
     def generate_ns_config_info(self, request, ns_id, inst_entity, params, is_save=False):
-        """生成某一个命名空间下的配置
-        """
-        inst_conf = inst_utils.generate_namespace_config(
-            ns_id, inst_entity, is_save, is_validate=False, **params
-        )
+        """生成某一个命名空间下的配置"""
+        inst_conf = inst_utils.generate_namespace_config(ns_id, inst_entity, is_save, is_validate=False, **params)
         return inst_conf
 
     def get_online_app_conf(self, request, project_id, project_kind):
-        """针对非模板创建的应用，获取线上的配置
-        """
+        """针对非模板创建的应用，获取线上的配置"""
         cluster_id, namespace, name, category = self.get_instance_resource(request, project_id)
-        return self.online_app_conf(
-            request, project_id, project_kind, cluster_id,
-            name, namespace, category
-        )
+        return self.online_app_conf(request, project_id, project_kind, cluster_id, name, namespace, category)
 
     def get(self, request, project_id, inst_id):
-        """获取当前实例的版本配置信息
-        """
+        """获取当前实例的版本配置信息"""
         project_kind = self.project_kind(request)
         if not self._from_template(inst_id):
             json_conf = self.get_online_app_conf(request, project_id, project_kind)
-            return APIResponse({
-                "data": {
-                    "json": json_conf,
-                    "yaml": self.json2yaml(json_conf)
-                }
-            })
+            return APIResponse({"data": {"json": json_conf, "yaml": self.json2yaml(json_conf)}})
         inst_info = self.get_instance_info(inst_id)
         category = inst_info.category
         # inst_name = inst_info.name
@@ -1847,7 +1751,8 @@ class GetInstanceVersionConf(UpdateInstanceNew, UpdateVersionConfig, InstanceAPI
         cluster_id = labels.get("io.tencent.bcs.clusterid")
         # 添加权限
         self.bcs_single_app_perm_handler(
-            request, project_id, labels.get("io.tencent.paas.templateid"), inst_info.namespace)
+            request, project_id, labels.get("io.tencent.paas.templateid"), inst_info.namespace
+        )
         inst_version_info = VersionInstance.objects.filter(id=inst_version_id)
         if not inst_version_info:
             raise error_codes.APIError(_("没有查询到实例版本"))
@@ -1879,8 +1784,7 @@ class GetInstanceVersionConf(UpdateInstanceNew, UpdateVersionConfig, InstanceAPI
         if not app_category_id_list and project_kind == 2:
             raise error_codes.CheckFailed(_("没有查询到关联的application信息"))
         if project_kind == 2 and category == DEPLOYMENT_CATEGORY:
-            app_info = MODULE_DICT["application"].objects.filter(
-                app_id=curr_info.app_id, id__in=app_category_id_list)
+            app_info = MODULE_DICT["application"].objects.filter(app_id=curr_info.app_id, id__in=app_category_id_list)
             if not app_info:
                 raise error_codes.CheckFailed(_("没有查询到关联的application信息"))
             app_config = json.loads(app_info[0].config)
@@ -1927,58 +1831,66 @@ class GetInstanceVersionConf(UpdateInstanceNew, UpdateVersionConfig, InstanceAPI
                 variables_dict_info[info["key"]] = value
             # 渲染最终配置
             config_profile = self.generate_conf(
-                request, project_id, inst_info, show_version_info, inst_info.namespace,
-                tmpl_entity, category, instance_num or 0, project_kind, variables_dict_info
+                request,
+                project_id,
+                inst_info,
+                show_version_info,
+                inst_info.namespace,
+                tmpl_entity,
+                category,
+                instance_num or 0,
+                project_kind,
+                variables_dict_info,
             )
         else:
             config_profile = inst_conf
         # exclude the keys from platform
         config_profile = self.exclude_platform_injected_keys(config_profile)
         yaml_conf = self.json2yaml(config_profile)
-        return APIResponse({
-            "data": {
-                "json": config_profile,
-                "yaml": yaml_conf,
-                "variable": variables,
-                "instance_num": instance_num,
-                "instance_num_key": instance_num_key,
-                "instance_num_var_flag": instance_num_var_flag
+        return APIResponse(
+            {
+                "data": {
+                    "json": config_profile,
+                    "yaml": yaml_conf,
+                    "variable": variables,
+                    "instance_num": instance_num,
+                    "instance_num_key": instance_num_key,
+                    "instance_num_var_flag": instance_num_var_flag,
+                }
             }
-        })
+        )
 
 
 class GetInstanceVersions(BaseAPI):
-
     def get_inst_version_info(self, inst_version_id):
-        """获取实例版本信息
-        """
+        """获取实例版本信息"""
         inst_version_info = VersionInstance.objects.filter(id=inst_version_id)
         if not inst_version_info:
             raise error_codes.APIError(_("没有查询到实例版本"))
         return inst_version_info[0]
 
     def get_show_version_info(self, id_list):
-        """获取展示的版本信息
-        """
-        show_version_info = ShowVersion.objects.filter(
-            real_version_id__in=id_list, is_deleted=False
-        ).order_by("-updated")
+        """获取展示的版本信息"""
+        show_version_info = ShowVersion.objects.filter(real_version_id__in=id_list, is_deleted=False).order_by(
+            "-updated"
+        )
         if not show_version_info:
             raise error_codes.APIError(_("没有查询到实例版本"))
         ret_data = []
         for info in show_version_info:
-            ret_data.append({
-                "id": info.id,
-                "real_version_id": info.template_id,
-                "name": info.name,
-                "template_id": info.template_id,
-                "updated_time": info.updated
-            })
+            ret_data.append(
+                {
+                    "id": info.id,
+                    "real_version_id": info.template_id,
+                    "name": info.name,
+                    "template_id": info.template_id,
+                    "updated_time": info.updated,
+                }
+            )
         return ret_data
 
     def get_version_entity(self, tmpl_id, category, tmpl_id_list):
-        """获取所有对应的版本
-        """
+        """获取所有对应的版本"""
         ret_data = []
         version_entity = VersionedEntity.objects.filter(template_id=tmpl_id)
         tmpl_id_list = [str(id) for id in tmpl_id_list]
@@ -1991,19 +1903,18 @@ class GetInstanceVersions(BaseAPI):
         return ret_data
 
     def get_category_tmpl(self, category, name):
-        """获取相同名称的模板
-        """
+        """获取相同名称的模板"""
         return MODULE_DICT[category].objects.filter(name=name).values_list("id", flat=True)
 
     def get(self, request, project_id, inst_id):
-        """获取实例对应的版本
-        """
+        """获取实例对应的版本"""
         inst_info = self.get_instance_info(inst_id)[0]
         conf = json.loads(inst_info.config)
         labels = (conf.get("metadata") or {}).get("labels") or {}
         # 添加权限
         self.bcs_single_app_perm_handler(
-            request, project_id, labels.get("io.tencent.paas.templateid"), inst_info.namespace)
+            request, project_id, labels.get("io.tencent.paas.templateid"), inst_info.namespace
+        )
 
         category = inst_info.category
         inst_name = inst_info.name

@@ -15,8 +15,9 @@ import re
 
 from django.db import models
 
-from .base import BaseModel
 from backend.apps.configuration.constants import FileResourceName
+
+from .base import BaseModel
 
 IMAGES_PATTEN = re.compile('image:(.*)')
 

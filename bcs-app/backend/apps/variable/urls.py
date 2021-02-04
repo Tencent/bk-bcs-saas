@@ -17,38 +17,44 @@ from . import views
 
 urlpatterns = [
     # 变量：列表/创建 API
-    url(r'^api/configuration/(?P<project_id>\w{32})/variables/$',
-        views.ListCreateVariableView.as_view()),
-
+    url(r'^api/configuration/(?P<project_id>\w{32})/variables/$', views.ListCreateVariableView.as_view()),
     # 变量：批量删除 API
-    url(r'^api/configuration/(?P<project_id>\w{32})/variables/batch/$',
-        views.VariableOverView.as_view({"delete": "batch_delete", "post": "batch_import"})),
-
+    url(
+        r'^api/configuration/(?P<project_id>\w{32})/variables/batch/$',
+        views.VariableOverView.as_view({"delete": "batch_delete", "post": "batch_import"}),
+    ),
     # 变量：查询／修改 API
-    url(r'^api/configuration/(?P<project_id>\w{32})/variable/(?P<pk>\d+)/$',
-        views.RetrieveUpdateVariableView.as_view()),
-
+    url(
+        r'^api/configuration/(?P<project_id>\w{32})/variable/(?P<pk>\d+)/$', views.RetrieveUpdateVariableView.as_view()
+    ),
     # 变量被引用的信息
-    url(r'^api/configuration/(?P<project_id>\w{32})/variable/quotes/(?P<pk>\d+)/$',
-        views.VariableOverView.as_view({"get": "get_quote_info"})),
-
+    url(
+        r'^api/configuration/(?P<project_id>\w{32})/variable/quotes/(?P<pk>\d+)/$',
+        views.VariableOverView.as_view({"get": "get_quote_info"}),
+    ),
     # 查询集群变量信息
-    url(r'^api/configuration/(?P<project_id>\w{32})/variable/cluster/(?P<cluster_id>[\w\-]+)/$',
-        views.ClusterVariableView.as_view({"get": "get_variables", "post": "batch_save"})),
-
+    url(
+        r'^api/configuration/(?P<project_id>\w{32})/variable/cluster/(?P<cluster_id>[\w\-]+)/$',
+        views.ClusterVariableView.as_view({"get": "get_variables", "post": "batch_save"}),
+    ),
     # 查询命名空间变量信息
-    url(r'^api/configuration/(?P<project_id>\w{32})/variable/namespace/(?P<ns_id>\d+)/$',
-        views.NameSpaceVariableView.as_view({"get": "get_variables"})),
-
+    url(
+        r'^api/configuration/(?P<project_id>\w{32})/variable/namespace/(?P<ns_id>\d+)/$',
+        views.NameSpaceVariableView.as_view({"get": "get_variables"}),
+    ),
     # 查询模板版本所有的变量信息
-    url(r'^api/configuration/(?P<project_id>\w{32})/variable/resource/(?P<version_id>\d+)/$',
-        views.ResourceVariableView.as_view()),
-
+    url(
+        r'^api/configuration/(?P<project_id>\w{32})/variable/resource/(?P<version_id>\d+)/$',
+        views.ResourceVariableView.as_view(),
+    ),
     # 查询变量在所有命名空间上的值
-    url(r'^api/configuration/(?P<project_id>\w{32})/variable/batch/namespace/(?P<var_id>\d+)/$',
-        views.NameSpaceVariableView.as_view({"get": "get_batch_variables", 'post': 'save_batch_variables'})),
-
+    url(
+        r'^api/configuration/(?P<project_id>\w{32})/variable/batch/namespace/(?P<var_id>\d+)/$',
+        views.NameSpaceVariableView.as_view({"get": "get_batch_variables", 'post': 'save_batch_variables'}),
+    ),
     # 查询变量在所有集群上的值
-    url(r'^api/configuration/(?P<project_id>\w{32})/variable/batch/cluster/(?P<var_id>\d+)/$',
-        views.ClusterVariableView.as_view({"get": "get_batch_variables", 'post': 'save_batch_variables'})),
+    url(
+        r'^api/configuration/(?P<project_id>\w{32})/variable/batch/cluster/(?P<var_id>\d+)/$',
+        views.ClusterVariableView.as_view({"get": "get_batch_variables", 'post': 'save_batch_variables'}),
+    ),
 ]

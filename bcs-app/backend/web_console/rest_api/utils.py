@@ -20,16 +20,15 @@ from django.conf import settings
 from django.utils.encoding import smart_bytes
 
 from backend.activity_log import client as activity_client
+from backend.utils.func_controller import get_func_controller
 from backend.web_console.bcs_client import k8s
 from backend.web_console.constants import WebConsoleMode
-from backend.utils.func_controller import get_func_controller
 
 DNS_ALLOW_CHARS = string.ascii_lowercase + string.digits + "-"
 
 
 def get_mesos_context(client, container_id: str) -> dict:
-    """通过taskgroup和container_id过滤host_ip
-    """
+    """通过taskgroup和container_id过滤host_ip"""
     resp = client.get_mesos_app_taskgroup(
         field="data.containerStatuses.containerID,data.metadata.name,data.containerStatuses.name,data.hostIP",
     )
@@ -49,8 +48,7 @@ def get_mesos_context(client, container_id: str) -> dict:
 
 
 def get_k8s_context(client, container_id: str) -> dict:
-    """通过containder_id获取pod, namespace信息
-    """
+    """通过containder_id获取pod, namespace信息"""
     resp = client.get_pod(field="resourceName,data.status.containerStatuses,namespace")
     pods = resp.get("data") or []
     context = {}
@@ -74,8 +72,7 @@ def get_k8s_context(client, container_id: str) -> dict:
 
 
 def get_k8s_cluster_context(client, project_id, cluster_id):
-    """获取集群信息
-    """
+    """获取集群信息"""
     context = copy.deepcopy(client.context)
 
     # 原始集群ID
@@ -130,8 +127,7 @@ def get_k8s_pod_spec(client):
 
 
 def activity_log(project_id, cluster_id, cluster_name, username, status, message=None):
-    """操作记录
-    """
+    """操作记录"""
     with activity_client.ContextActivityLogClient(
         project_id=project_id,
         resource_id=cluster_id,
@@ -156,8 +152,7 @@ def get_username_slug(username: str) -> str:
 
 
 def allowed_login_web_console(username: str) -> bool:
-    """是否允许登入 web_console 白名单
-    """
+    """是否允许登入 web_console 白名单"""
     func_code = "LOGIN_WEB_CONSOLE"
 
     enabled, wlist = get_func_controller(func_code)

@@ -16,5 +16,4 @@ from backend.apps.metric.views import servicemonitor
 
 
 class ServiceMonitor(ProjectBaseAPIViewSet, servicemonitor.ServiceMonitor):
-    """继承servicemonitor
-    """
+    """继承servicemonitor"""

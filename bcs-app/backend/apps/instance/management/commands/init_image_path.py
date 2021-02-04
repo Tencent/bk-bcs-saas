@@ -19,10 +19,10 @@ paas/01b6ad17aafc49dcb5cb1aa3d6ee6e01/ -> paas_test/job/,paas/job/
 paas/public/ -> paas_test/public/   : 测试环境
 """
 import requests
+from django.conf import settings
 from django.core.management.base import BaseCommand
 
-from django.conf import settings
-from backend.apps.configuration.models import Application, VersionedEntity, Template
+from backend.apps.configuration.models import Application, Template, VersionedEntity
 
 
 class Command(BaseCommand):
@@ -46,8 +46,7 @@ class Command(BaseCommand):
         else:
             return False
         # 获取所有项目的id 和 英文名
-        cc_host = '%s/api/paas-cc/%s' % (settings.APIGW_HOST,
-                                         settings.APIGW_ENV)
+        cc_host = '%s/api/paas-cc/%s' % (settings.APIGW_HOST, settings.APIGW_ENV)
         url = '{host}/project/get_project_list/'.format(**{'host': cc_host})
         params = {'access_token': access_token}
         project_res = requests.request('get', url, params=params).json()
@@ -60,8 +59,7 @@ class Command(BaseCommand):
         for project_id in pro_dic:
             english_name = pro_dic[project_id]
             old_jfrog_path = 'paas/%s/' % project_id
-            new_jfrog_path = '%s/%s/' % (
-                settings.DEPOT_PREFIX, english_name)
+            new_jfrog_path = '%s/%s/' % (settings.DEPOT_PREFIX, english_name)
 
             old_public_path = 'paas/public/'
             new_public_path = '%s/public/' % settings.DEPOT_PREFIX
@@ -76,8 +74,7 @@ class Command(BaseCommand):
                     id_list = app_ids.split(',') if app_ids else []
                     app_id_list.extend(id_list)
 
-            applications = Application.objects.filter(
-                id__in=app_id_list)
+            applications = Application.objects.filter(id__in=app_id_list)
             for _app in applications:
                 _config = _app.config
                 # 替换项目镜像的路径
@@ -88,7 +85,11 @@ class Command(BaseCommand):
                 _app.save()
 
             if len(app_id_list) > 0:
-                self.stdout.write(self.style.SUCCESS(
-                    '%s[%s]: [%s] -> [%s]' % (project_id, len(app_id_list), old_jfrog_path, new_jfrog_path)))
-                self.stdout.write(self.style.SUCCESS(
-                    '%s: [%s] -> [%s]' % (project_id, old_public_path, new_public_path)))
+                self.stdout.write(
+                    self.style.SUCCESS(
+                        '%s[%s]: [%s] -> [%s]' % (project_id, len(app_id_list), old_jfrog_path, new_jfrog_path)
+                    )
+                )
+                self.stdout.write(
+                    self.style.SUCCESS('%s: [%s] -> [%s]' % (project_id, old_public_path, new_public_path))
+                )

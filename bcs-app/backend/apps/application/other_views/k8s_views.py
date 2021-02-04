@@ -15,26 +15,30 @@
 针对k8s的应用列表部分
 TODO: 状态流转需要明确
 """
-import logging
-import json
 import base64
+import json
+import logging
 from datetime import datetime
+
 from django.utils.translation import ugettext_lazy as _
 
-from backend.apps.instance.models import (
-    VersionInstance, InstanceConfig, InstanceEvent, MetricConfig
-)
+from backend.apps.application import constants as app_constants
+from backend.apps.application import utils
 from backend.apps.configuration.models import (
-    Template, VersionedEntity, Application,
-    Deplpyment, ShowVersion
+    MODULE_DICT,
+    Application,
+    Deplpyment,
+    ShowVersion,
+    Template,
+    VersionedEntity,
 )
-from backend.components.bcs.k8s import K8SClient
-from backend.utils.error_codes import error_codes, ErrorCode as ErrorCodeCls
-from backend.apps.configuration.models import MODULE_DICT
-from backend.utils.errcodes import ErrorCode
-from backend.apps.application import constants as app_constants, utils
 from backend.apps.instance.constants import InsState
+from backend.apps.instance.models import InstanceConfig, InstanceEvent, MetricConfig, VersionInstance
 from backend.celery_app.tasks.application import update_create_error_record
+from backend.components.bcs.k8s import K8SClient
+from backend.utils.errcodes import ErrorCode
+from backend.utils.error_codes import ErrorCode as ErrorCodeCls
+from backend.utils.error_codes import error_codes
 
 logger = logging.getLogger(__name__)
 
@@ -44,17 +48,18 @@ FUNC_MAP = app_constants.FUNC_MAP
 
 
 class K8SMuster(object):
-
     def get_version_instance(self, muster_id_list, category, cluster_type, app_name, ns_id, cluster_env_map):
-        """查询version instance
-        """
-        version_inst_info = VersionInstance.objects.filter(
-            template_id__in=muster_id_list, is_deleted=False
-        ).values("id", "template_id", "version_id", "instance_entity").order_by("-updated")
+        """查询version instance"""
+        version_inst_info = (
+            VersionInstance.objects.filter(template_id__in=muster_id_list, is_deleted=False)
+            .values("id", "template_id", "version_id", "instance_entity")
+            .order_by("-updated")
+        )
         instance_id_list = [info["id"] for info in version_inst_info]
         # 过滤数据
         instance_info = InstanceConfig.objects.filter(
-            instance_id__in=instance_id_list, is_deleted=False,
+            instance_id__in=instance_id_list,
+            is_deleted=False,
             category__in=[CATEGORY_MAP[category]],
         ).exclude(ins_state=InsState.NO_INS.value)
         if app_name:
@@ -75,7 +80,7 @@ class K8SMuster(object):
                     "id_list": [info["id"]],
                     "inst_num": 0,
                     "app_name_list": set([]),
-                    "tmpl_id_list": category_id_list
+                    "tmpl_id_list": category_id_list,
                 }
             else:
                 ret_data[info["template_id"]]["id_list"].append(info["id"])
@@ -90,14 +95,14 @@ class K8SMuster(object):
                 continue
             if info["instance_id"] in ret_data[muster_id]["id_list"]:
                 ret_data[muster_id]["inst_num"] += 1
-                ret_data[muster_id]["app_name_list"] = \
-                    ret_data[muster_id]["app_name_list"].union(set([info.get("name")]))
+                ret_data[muster_id]["app_name_list"] = ret_data[muster_id]["app_name_list"].union(
+                    set([info.get("name")])
+                )
 
         return ret_data
 
     def get_category_name(self, ids, category):
-        """获取category模板名称
-        """
+        """获取category模板名称"""
         resp = MODULE_DICT[CATEGORY_MAP[category]].objects.filter(id__in=ids, is_deleted=False)
         ret_name_list = set([info.name for info in resp])
         return ret_name_list
@@ -108,31 +113,41 @@ class K8SMuster(object):
             tmpl_num = len(info.get("app_name_list") or [])
             if tmpl_num == 0:
                 continue
-            ret_data.append({
-                "tmpl_muster_name": muster_id_name_map.get(muster_id, ""),
-                "tmpl_muster_id": muster_id,
-                "tmpl_num": tmpl_num,
-                "inst_num": (muster_num_map.get(muster_id) or {}).get("inst_num", 0)
-            })
+            ret_data.append(
+                {
+                    "tmpl_muster_name": muster_id_name_map.get(muster_id, ""),
+                    "tmpl_muster_id": muster_id,
+                    "tmpl_num": tmpl_num,
+                    "inst_num": (muster_num_map.get(muster_id) or {}).get("inst_num", 0),
+                }
+            )
         return ret_data
 
-    def get(self, request, project_id, all_muster_list, muster_id_list, category,
-            cluster_type, app_status, app_name, ns_id, cluster_env_map):
+    def get(
+        self,
+        request,
+        project_id,
+        all_muster_list,
+        muster_id_list,
+        category,
+        cluster_type,
+        app_status,
+        app_name,
+        ns_id,
+        cluster_env_map,
+    ):
         if category not in CATEGORY_MAP:
             raise error_codes.CheckFailed(_("类型不正确，请确认"))
         # 获取模板ID和名称的对应关系
-        muster_id_name_map = {
-            info["id"]: info["name"]
-            for info in all_muster_list
-        }
+        muster_id_name_map = {info["id"]: info["name"] for info in all_muster_list}
         # 获取version instance，用于展示模板集下是否有实例
         muster_num_map = self.get_version_instance(
-            muster_id_list, category, cluster_type, app_name, ns_id, cluster_env_map)
+            muster_id_list, category, cluster_type, app_name, ns_id, cluster_env_map
+        )
         return self.muster_tmpl_handler(muster_id_name_map, muster_num_map)
 
 
 class RetriveFilterFields:
-
     @property
     def filter_fields(self):
         field_list = [
@@ -141,14 +156,13 @@ class RetriveFilterFields:
             'namespace',
             'data.spec.parallelism',
             'data.spec.paused',
-            'data.spec.replicas'
+            'data.spec.replicas',
         ]
         return ','.join(field_list)
 
 
 class GetMusterTemplate(RetriveFilterFields):
-    """针对k8s获取模板
-    """
+    """针对k8s获取模板"""
 
     def get_k8s_category_info(self, request, project_id, cluster_ns_inst, category):
         """获取分类的上报信息
@@ -159,18 +173,17 @@ class GetMusterTemplate(RetriveFilterFields):
         resource_name = CATEGORY_MAP[category]
         ret_data = {}
         for cluster_id, info in cluster_ns_inst.items():
-            client = K8SClient(
-                request.user.token.access_token,
-                project_id, cluster_id, None
-            )
+            client = K8SClient(request.user.token.access_token, project_id, cluster_id, None)
             if not info.get(resource_name):
                 continue
             curr_func = FUNC_MAP[category] % 'get'
-            resp = getattr(client, curr_func)({
-                'name': ','.join(info[resource_name]['inst_list']),
-                'namespace': ','.join(info[resource_name]['ns_list']),
-                'field': ','.join(app_constants.RESOURCE_STATUS_FIELD_LIST)
-            })
+            resp = getattr(client, curr_func)(
+                {
+                    'name': ','.join(info[resource_name]['inst_list']),
+                    'namespace': ','.join(info[resource_name]['ns_list']),
+                    'field': ','.join(app_constants.RESOURCE_STATUS_FIELD_LIST),
+                }
+            )
             if resp.get('code') != ErrorCode.NoError:
                 raise error_codes.APIError(resp.get('message'))
             data = resp.get('data') or []
@@ -196,24 +209,15 @@ class GetMusterTemplate(RetriveFilterFields):
         return ret_data
 
     def get_category_map(self, category_ids, category):
-        """获取deployment信息
-        """
-        category_info = MODULE_DICT[CATEGORY_MAP[category]].objects.filter(
-            id__in=category_ids).order_by("-updated")
-        return {
-            info.id: info.name
-            for info in category_info
-        }
+        """获取deployment信息"""
+        category_info = MODULE_DICT[CATEGORY_MAP[category]].objects.filter(id__in=category_ids).order_by("-updated")
+        return {info.id: info.name for info in category_info}
 
     def compose_status_count_data(self, muster_tmpl_map, tmpl_create_error, inst_status):
-        """组装数量
-        """
+        """组装数量"""
         ret_data = {}
         for key, val in muster_tmpl_map.items():
-            ret_data[key] = {
-                "total_num": val,
-                "error_num": 0
-            }
+            ret_data[key] = {"total_num": val, "error_num": 0}
             if key in tmpl_create_error:
                 ret_data[key]["error_num"] += tmpl_create_error[key]
 
@@ -259,21 +263,37 @@ class GetMusterTemplate(RetriveFilterFields):
                             ret_data[curr_key] = item_copy
                 if curr_key in ret_data:
                     if ret_data[curr_key]["version_id"] < item_copy["version_id"]:
-                        ret_data[curr_key].update({
-                            "version": item_copy["version"],
-                            "version_id": item_copy["version_id"],
-                            "last_version": item_copy["last_version"],
-                            "last_version_id": item_copy["last_version_id"]
-                        })
+                        ret_data[curr_key].update(
+                            {
+                                "version": item_copy["version"],
+                                "version_id": item_copy["version_id"],
+                                "last_version": item_copy["last_version"],
+                                "last_version_id": item_copy["last_version_id"],
+                            }
+                        )
                     else:
                         if version_map.get(item_copy["version_id"]):
                             ret_data[curr_key]["allow_edit"] = False
 
         return ret_data
 
-    def get(self, request, cluster_ns_inst, project_id, kind,
-            version_tmpl_muster, version_map, category, muster_tmpl_map, tmpl_create_error,
-            cluster_type, app_status, app_name, ns_id, cluster_env_map):
+    def get(
+        self,
+        request,
+        cluster_ns_inst,
+        project_id,
+        kind,
+        version_tmpl_muster,
+        version_map,
+        category,
+        muster_tmpl_map,
+        tmpl_create_error,
+        cluster_type,
+        app_status,
+        app_name,
+        ns_id,
+        cluster_env_map,
+    ):
         inst_status = self.get_k8s_category_info(request, project_id, cluster_ns_inst, category)
         # 组装状态数量
         inst_status = self.compose_status_count_data(muster_tmpl_map, tmpl_create_error, inst_status)
@@ -283,7 +303,6 @@ class GetMusterTemplate(RetriveFilterFields):
 
 
 class AppInstance(RetriveFilterFields):
-
     def get_cluster_ns_inst(self, instance_info):
         ret_data = {}
         for key, val in instance_info.items():
@@ -302,14 +321,9 @@ class AppInstance(RetriveFilterFields):
         """
         ret_data = {}
         for cluster_id, app_info in cluster_ns_inst.items():
-            client = K8SClient(
-                request.user.token.access_token,
-                project_id, cluster_id, None
-            )
+            client = K8SClient(request.user.token.access_token, project_id, cluster_id, None)
             curr_func = FUNC_MAP[category] % 'get'
-            resp = getattr(client, curr_func)({
-                'field': ','.join(app_constants.RESOURCE_STATUS_FIELD_LIST)
-            })
+            resp = getattr(client, curr_func)({'field': ','.join(app_constants.RESOURCE_STATUS_FIELD_LIST)})
             if resp.get('code') != ErrorCode.NoError:
                 raise error_codes.APIError.f(resp.get('message'))
             data = resp.get('data') or []
@@ -333,8 +347,7 @@ class AppInstance(RetriveFilterFields):
         return ret_data
 
     def compose_data(self, instance_info, inst_status_info):
-        """组装数据
-        """
+        """组装数据"""
         need_delete_id_list = []
         update_create_error_id_list = []
         for key, val in instance_info.items():
@@ -348,20 +361,15 @@ class AppInstance(RetriveFilterFields):
                     need_delete_id_list.append(val["id"])
         if update_create_error_id_list:
             update_create_error_record.delay(update_create_error_id_list)
-        InstanceConfig.objects.filter(
-            id__in=need_delete_id_list
-        ).update(is_deleted=True, deleted_time=datetime.now())
+        InstanceConfig.objects.filter(id__in=need_delete_id_list).update(is_deleted=True, deleted_time=datetime.now())
 
     def inst_count_handler(self, instance_list, app_status):
-        ret_data = {
-            "total_num": len(instance_list),
-            "error_num": 0,
-            "instance_list": instance_list
-        }
+        ret_data = {"total_num": len(instance_list), "error_num": 0, "instance_list": instance_list}
 
         for val in instance_list:
-            if (val["backend_status"] in app_constants.UNNORMAL_STATUS) or \
-                    (val["status"] in app_constants.UNNORMAL_STATUS):
+            if (val["backend_status"] in app_constants.UNNORMAL_STATUS) or (
+                val["status"] in app_constants.UNNORMAL_STATUS
+            ):
                 if app_status in [2, "2", None]:
                     ret_data["error_num"] += 1
                 else:
@@ -369,8 +377,7 @@ class AppInstance(RetriveFilterFields):
         return ret_data
 
     def get(self, request, project_id, instance_info, category, app_status):
-        """针对k8s的实例
-        """
+        """针对k8s的实例"""
         cluster_ns_inst = self.get_cluster_ns_inst(instance_info)
         inst_status_info = self.get_k8s_category_info(request, project_id, cluster_ns_inst, category)
         self.compose_data(instance_info, inst_status_info)

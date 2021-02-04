@@ -13,35 +13,33 @@
 #
 import json
 
-from rest_framework import viewsets
-from rest_framework.response import Response
-from rest_framework.renderers import BrowsableAPIRenderer
 from django.utils.translation import ugettext_lazy as _
+from rest_framework import viewsets
+from rest_framework.renderers import BrowsableAPIRenderer
+from rest_framework.response import Response
 
-from backend.utils.error_codes import error_codes
 from backend.apps.application.constants import MESOS_KIND
-from backend.utils.renderers import BKAPIRenderer
-from backend.apps.network.utils import get_lb_status
-from backend.apps.network.models import MesosLoadBlance
 from backend.apps.configuration import models
-from backend.apps.configuration.mixins import GetVersionedEntity
 from backend.apps.configuration.constants import MesosResourceName
+from backend.apps.configuration.mixins import GetVersionedEntity
+from backend.apps.network.models import MesosLoadBlance
+from backend.apps.network.utils import get_lb_status
+from backend.utils.error_codes import error_codes
+from backend.utils.renderers import BKAPIRenderer
 
 
 class ApplicationView(viewsets.ViewSet, GetVersionedEntity):
-    """
-    """
+    """"""
+
     renderer_classes = (BKAPIRenderer, BrowsableAPIRenderer)
 
     def list_apps(self, request, project_id, version_id):
-        """查看模板集指定版本的 Application 列表
-        """
+        """查看模板集指定版本的 Application 列表"""
         ventity = self.get_versioned_entity(project_id, version_id)
         return Response(ventity.get_mesos_apps())
 
     def list_container_ports(self, request, project_id, version_id):
-        """查看模板集指定版本的端口信息
-        """
+        """查看模板集指定版本的端口信息"""
         ventity = self.get_versioned_entity(project_id, version_id)
 
         app_ids = request.GET.get('app_ids')
@@ -53,8 +51,7 @@ class ApplicationView(viewsets.ViewSet, GetVersionedEntity):
         return Response(ports)
 
     def check_port_associated_with_service(self, request, project_id, version_id, port_id):
-        """检查指定的 port 是否被 service 关联
-        """
+        """检查指定的 port 是否被 service 关联"""
         ventity = self.get_versioned_entity(project_id, version_id)
         svc_id_list = ventity.get_resource_id_list(MesosResourceName.service.value)
         svc_qsets = models.Service.objects.filter(id__in=svc_id_list)
@@ -66,14 +63,12 @@ class ApplicationView(viewsets.ViewSet, GetVersionedEntity):
         return Response({})
 
     def list_configmaps(self, request, project_id, version_id):
-        """查看模板集指定版本的configmap信息
-        """
+        """查看模板集指定版本的configmap信息"""
         ventity = self.get_versioned_entity(project_id, version_id)
         return Response(ventity.get_configmaps_by_kind(MESOS_KIND))
 
     def list_secrets(self, request, project_id, version_id):
-        """查看模板集指定版本的configmap信息
-        """
+        """查看模板集指定版本的configmap信息"""
         ventity = self.get_versioned_entity(project_id, version_id)
         return Response(ventity.get_secrets_by_kind(MESOS_KIND))
 
@@ -81,9 +76,7 @@ class ApplicationView(viewsets.ViewSet, GetVersionedEntity):
         """查询 namespace 下的 loadbalance 信息
         NOTE: 允许使用集群下的所有的LB，因此，不需要传递命名空间信息
         """
-        lb_records = MesosLoadBlance.objects.filter(
-            project_id=project_id, cluster_id=cluster_id, is_deleted=False
-        )
+        lb_records = MesosLoadBlance.objects.filter(project_id=project_id, cluster_id=cluster_id, is_deleted=False)
         lb_list = []
         for lb in lb_records:
             lb_data = json.loads(lb.data_dict)
@@ -96,8 +89,7 @@ class DeploymentView(viewsets.ViewSet, GetVersionedEntity):
     renderer_classes = (BKAPIRenderer, BrowsableAPIRenderer)
 
     def list(self, request, project_id, version_id):
-        """查看模板集指定版本的 Deployment 列表
-        """
+        """查看模板集指定版本的 Deployment 列表"""
         ventity = self.get_versioned_entity(project_id, version_id)
         return Response(ventity.get_mesos_deploys())
 

@@ -45,13 +45,11 @@ ResourceTypes = dict(
     namespace=_('命名空间'),
     template=_('模板集'),
     instance=_('应用'),
-
     service=_('Service'),
     ingress=_('Ingress'),
     lb=_('LoadBalancer'),
     configmap=_('Configmap'),
     secret=_('Secret'),
-
     metric=_('Metric'),
     web_console=_('WebConsole'),
     helm_app=_('Helm'),
@@ -60,8 +58,4 @@ ResourceTypes = dict(
 
 ResourceTypeChoices = {v: k for k, v in ResourceTypes.items()}
 
-MetaMap = {
-    'activity_type': ActivityTypes,
-    'activity_status': ActivityStatus,
-    'resource_type': ResourceTypes
-}
+MetaMap = {'activity_type': ActivityTypes, 'activity_status': ActivityStatus, 'resource_type': ResourceTypes}

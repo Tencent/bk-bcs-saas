@@ -22,8 +22,8 @@ class HelmError(HelmBaseException):
 
 
 class HelmExecutionError(HelmBaseException):
-    """Error when running kubectl command failed
-    """
+    """Error when running kubectl command failed"""
+
     def __init__(self, error_no: int, output: bytes):
         self.error_no = error_no
         self.output = output.decode().strip()

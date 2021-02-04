@@ -12,8 +12,8 @@
 # specific language governing permissions and limitations under the License.
 #
 import copy
-import logging
 import json
+import logging
 
 import dpath
 
@@ -32,12 +32,7 @@ def merge_to_path(obj, glob, value, separator="/", afilter=None):
         old_value = dpath.path.get(obj, path)
         old_value = copy.deepcopy(old_value)
         logger.debug("merge_to_path origin data: %s, merge data: %s", json.dumps(old_value), json.dumps(value))
-        dpath.util.merge(
-            dst=old_value,
-            src=value,
-            separator=separator,
-            afilter=afilter
-        )
+        dpath.util.merge(dst=old_value, src=value, separator=separator, afilter=afilter)
         logger.debug("merge_to_path final data: %s", json.dumps(old_value))
 
         dpath.path.set(obj, path, old_value, create_missing=False, afilter=afilter)

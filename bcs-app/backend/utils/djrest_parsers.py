@@ -25,6 +25,7 @@ class TextJsonParser(JSONParser):
     """JSON解释器，只有media_type不一样
     MyOA回调请求是这种类型
     """
+
     media_type = 'text/json'
 
 

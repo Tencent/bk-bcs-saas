@@ -13,15 +13,14 @@
 #
 from django.utils.translation import ugettext_lazy as _
 
-from backend.components import paas_cc
-from backend.utils.error_codes import error_codes
-from backend.utils.errcodes import ErrorCode
 from backend.accounts import bcs_perm
+from backend.components import paas_cc
+from backend.utils.errcodes import ErrorCode
+from backend.utils.error_codes import error_codes
 
 
 def get_project_cluster_info(access_token, project_id):
-    """get all cluster from project
-    """
+    """get all cluster from project"""
     project_cluster = paas_cc.get_all_clusters(access_token, project_id, desire_all_data=1)
     if project_cluster.get('code') != ErrorCode.NoError:
         raise error_codes.APIError(project_cluster.get('message'))
@@ -35,17 +34,11 @@ def get_cluster_id_map(access_token, project_id):
     # NOTE: 未完成
     project_cluster_info = get_project_cluster_info(access_token, project_id)
     cluster_results = project_cluster_info.get('results') or []
-    return {
-        info['cluster_id']: {
-            'cluster_name': info['name']
-        }
-        for info in cluster_results
-    }
+    return {info['cluster_id']: {'cluster_name': info['name']} for info in cluster_results}
 
 
 def get_project_namespaces(access_token, project_id):
-    """get all namespace from project
-    """
+    """get all namespace from project"""
     ns_resp = paas_cc.get_namespace_list(access_token, project_id, desire_all_data=True)
     if ns_resp.get('code') != ErrorCode.NoError:
         raise error_codes.APIError(ns_resp.get('message'))
@@ -98,6 +91,5 @@ def get_ns_id_map(access_token, project_id):
 
 
 def get_cluster_env_name(env):
-    """获取集群对应的环境名称
-    """
+    """获取集群对应的环境名称"""
     return _("正式") if env == "prod" else _("测试")

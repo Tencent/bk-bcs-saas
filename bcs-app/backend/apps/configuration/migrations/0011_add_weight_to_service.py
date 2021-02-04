@@ -17,7 +17,8 @@ from __future__ import unicode_literals
 import json
 
 from django.db import migrations, models
-from backend.apps.configuration.models import Service, ConfigMap, Secret
+
+from backend.apps.configuration.models import ConfigMap, Secret, Service
 
 
 def add_weight_to_service(apps, schema_editor):

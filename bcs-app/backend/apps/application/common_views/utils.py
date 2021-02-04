@@ -14,10 +14,10 @@
 
 from django.utils.translation import ugettext_lazy as _
 
-from backend.components import paas_cc, bcs
+from backend.components import bcs, paas_cc
+from backend.resources.namespace.utils import get_namespaces
 from backend.utils.errcodes import ErrorCode
 from backend.utils.error_codes import error_codes
-from backend.resources.namespace.utils import get_namespaces
 
 
 def get_project_namespaces(access_token, project_id):

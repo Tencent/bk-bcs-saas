@@ -14,8 +14,8 @@
 """
 数据平台API
 """
+from .constant import *  # noqa
 from .databus import *  # noqa
 from .meta import *  # noqa
 from .query import *  # noqa
 from .tsdb import *  # noqa
-from .constant import *  # noqa

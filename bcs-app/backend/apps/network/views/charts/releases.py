@@ -22,10 +22,10 @@ logger = logging.getLogger(__name__)
 
 
 class HelmReleaseMixin:
-
     def get_helm_release(self, cluster_id, name, namespace_id=None, namespace=None):
         releases = App.objects.filter(
-            Q(namespace_id=namespace_id) | Q(namespace=namespace), cluster_id=cluster_id, name=name)
+            Q(namespace_id=namespace_id) | Q(namespace=namespace), cluster_id=cluster_id, name=name
+        )
         release = releases.first()
         if not release:
             logger.error(f"没有查询到集群:{cluster_id}, 名称:{name}对应的release信息")
@@ -33,7 +33,5 @@ class HelmReleaseMixin:
 
     def collect_system_variable(self, access_token, project_id, namespace_id):
         return bcs_variable.collect_system_variable(
-            access_token=access_token,
-            project_id=project_id,
-            namespace_id=namespace_id
+            access_token=access_token, project_id=project_id, namespace_id=namespace_id
         )

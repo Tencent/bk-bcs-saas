@@ -12,19 +12,22 @@
 # specific language governing permissions and limitations under the License.
 #
 from django.conf.urls import url
+
 from . import views
 
 urlpatterns = [
-    url(r'^api/projects/(?P<project_id>[\w\-]+)/clusters/?$',
+    url(
+        r'^api/projects/(?P<project_id>[\w\-]+)/clusters/?$',
         views.ClusterCreateListViewSet.as_view({'get': 'list', 'post': 'create'}),
-        name='api.projects.clusters.create'),
-    url(r'^api/projects/(?P<project_id>[\w\-]+)/clusters/simple/$',
-        views.ClusterCreateListViewSet.as_view({'get': 'list_clusters'})),
+        name='api.projects.clusters.create',
+    ),
+    url(
+        r'^api/projects/(?P<project_id>[\w\-]+)/clusters/simple/$',
+        views.ClusterCreateListViewSet.as_view({'get': 'list_clusters'}),
+    ),
     url(
         r'^api/projects/(?P<project_id>[\w\-]+)/cluster/(?P<cluster_id>[\w\-]+)/?$',
-        views.ClusterCreateGetUpdateViewSet.as_view({
-            'get': 'retrieve', 'put': 'update', 'post': 'reinstall'
-        }),
+        views.ClusterCreateGetUpdateViewSet.as_view({'get': 'retrieve', 'put': 'update', 'post': 'reinstall'}),
         name='api.projects.cluster',
     ),
     url(
@@ -33,13 +36,12 @@ urlpatterns = [
     ),
     url(
         r'^api/projects/(?P<project_id>[\w\-]+)/cluster/(?P<cluster_id>[\w\-]+)/opers/$',
-        views.ClusterCheckDeleteViewSet.as_view({'get': 'check_cluster', 'delete': 'delete'})
+        views.ClusterCheckDeleteViewSet.as_view({'get': 'check_cluster', 'delete': 'delete'}),
     ),
-
     url(
         r'^api/projects/(?P<project_id>[\w\-]+)/clusters_exist/$',
         views.ClusterFilterViewSet.as_view({'get': 'get'}),
-        name='api.projects.filter_cluster'
+        name='api.projects.filter_cluster',
     ),
     url(
         r'^api/projects/(?P<project_id>[\w\-]+)/cluster/(?P<cluster_id>[\w\-]+)/logs/?$',
@@ -71,26 +73,25 @@ urlpatterns = [
         views.NodeUpdateLogView.as_view({'get': 'get'}),
         name='api.projects.node_update_log',
     ),
-
     # 单个节点docker版本信息
     url(
         r'^api/projects/(?P<project_id>[\w\-]+)/cluster/(?P<cluster_id>[\w\-]+)/node/info/',
-        views.NodeInfo.as_view({'get': 'info'})
+        views.NodeInfo.as_view({'get': 'info'}),
     ),
     url(
         r'^api/projects/(?P<project_id>[\w\-]+)/cluster/(?P<cluster_id>[\w\-]+)/node/containers/',
-        views.NodeContainers.as_view({'get': 'list'})
+        views.NodeContainers.as_view({'get': 'list'}),
     ),
-
     url(
         r'^api/projects/(?P<project_id>[\w\-]+)/cluster/(?P<cluster_id>[\w\-]+)/node/(?P<node_id>[\w\-]+)/failed_delete/?$',
         # noqa
-        views.FailedNodeDeleteViewSet.as_view({'delete': 'delete'})
+        views.FailedNodeDeleteViewSet.as_view({'delete': 'delete'}),
     ),
     url(
         r'^api/projects/(?P<project_id>[\w\-]+)/cluster/(?P<cluster_id>[\w\-]+)/node/(?P<node_id>[\w\-]+)/?$',
         views.NodeGetUpdateDeleteViewSet.as_view(
-            {'get': 'retrieve', 'put': 'update', 'delete': 'delete', 'post': 'reinstall'}),
+            {'get': 'retrieve', 'put': 'update', 'delete': 'delete', 'post': 'reinstall'}
+        ),
         name='api.projects.node',
     ),
     url(
@@ -98,38 +99,45 @@ urlpatterns = [
         views.CCHostListViewSet.as_view({'post': 'post'}),
         name='api.projects.cc_host_info',
     ),
-
     # 监控信息
-    url(r'^api/projects/(?P<project_id>\w+)/metrics/cluster/summary/$',
-        views.ClusterSummaryMetrics.as_view({'get': 'list'})),
-
-    url(r'^api/projects/(?P<project_id>\w+)/metrics/cluster/?$',
+    url(
+        r'^api/projects/(?P<project_id>\w+)/metrics/cluster/summary/$',
+        views.ClusterSummaryMetrics.as_view({'get': 'list'}),
+    ),
+    url(
+        r'^api/projects/(?P<project_id>\w+)/metrics/cluster/?$',
         views.ClusterMetrics.as_view({'get': 'list'}),
-        ),
-
-    url(r'^api/projects/(?P<project_id>\w+)/metrics/node/?$',
+    ),
+    url(
+        r'^api/projects/(?P<project_id>\w+)/metrics/node/?$',
         views.NodeMetrics.as_view({'get': 'list'}),
-        ),
-
-    url(r'^api/projects/(?P<project_id>\w+)/metrics/docker/?$',
+    ),
+    url(
+        r'^api/projects/(?P<project_id>\w+)/metrics/docker/?$',
         views.DockerMetrics.as_view({'get': 'list', 'post': 'multi'}),
-        ),
-
-    url(r'^api/projects/(?P<project_id>\w+)/metrics/node/summary/?$',
+    ),
+    url(
+        r'^api/projects/(?P<project_id>\w+)/metrics/node/summary/?$',
         views.NodeSummaryMetrics.as_view({'get': 'list'}),
-        ),
-
+    ),
     # cluster info
-    url(r'^api/projects/(?P<project_id>\w{32})/clusters/(?P<cluster_id>[\w\-]+)/info/$',
-        views.ClusterInfo.as_view({'get': 'cluster_info'})),
+    url(
+        r'^api/projects/(?P<project_id>\w{32})/clusters/(?P<cluster_id>[\w\-]+)/info/$',
+        views.ClusterInfo.as_view({'get': 'cluster_info'}),
+    ),
     # mster info
-    url(r'^api/projects/(?P<project_id>\w{32})/clusters/(?P<cluster_id>[\w\-]+)/masters/info/$',
-        views.ClusterMasterInfo.as_view({'get': 'cluster_masters'})),
+    url(
+        r'^api/projects/(?P<project_id>\w{32})/clusters/(?P<cluster_id>[\w\-]+)/masters/info/$',
+        views.ClusterMasterInfo.as_view({'get': 'cluster_masters'}),
+    ),
     # node labels
-    url(r'^api/projects/(?P<project_id>\w{32})/node_label_info/$',
-        views.NodeLabelQueryCreateViewSet.as_view({'get': 'get_node_labels', 'post': 'create_node_labels'})),
-    url(r'^api/projects/(?P<project_id>\w{32})/node_label_list/$',
-        views.NodeLabelListViewSet.as_view({'get': 'list'})),
+    url(
+        r'^api/projects/(?P<project_id>\w{32})/node_label_info/$',
+        views.NodeLabelQueryCreateViewSet.as_view({'get': 'get_node_labels', 'post': 'create_node_labels'}),
+    ),
+    url(
+        r'^api/projects/(?P<project_id>\w{32})/node_label_list/$', views.NodeLabelListViewSet.as_view({'get': 'list'})
+    ),
     url(
         r'^api/projects/(?P<project_id>[\w\-]+)/clusters/(?P<cluster_id>[\w\-]+)/nodes/(?P<node_id>[\w\-]+)/force_delete/$',
         # noqa
@@ -142,60 +150,59 @@ urlpatterns = [
         views.RescheduleNodePods.as_view({'put': 'put'}),
         name='api.projects.node.pod_taskgroup.reschedule',
     ),
-    url(r"^api/projects/(?P<project_id>[\w\-]+)/clusters/(?P<cluster_id>[\w\-]+)/ippools/$",
-        views.MesosIPPoolViewSet.as_view({"get": "get"}))
+    url(
+        r"^api/projects/(?P<project_id>[\w\-]+)/clusters/(?P<cluster_id>[\w\-]+)/ippools/$",
+        views.MesosIPPoolViewSet.as_view({"get": "get"}),
+    ),
 ]
 
 # batch operation
 urlpatterns += [
     url(
         r'^api/projects/(?P<project_id>[\w\-]+)/clusters/(?P<cluster_id>[\w\-]+)/nodes/batch/$',
-        views.BatchUpdateDeleteNodeViewSet.as_view({'put': 'batch_update_nodes', 'delete': 'batch_delete_nodes'})
+        views.BatchUpdateDeleteNodeViewSet.as_view({'put': 'batch_update_nodes', 'delete': 'batch_delete_nodes'}),
     ),
     url(
         r'^api/projects/(?P<project_id>[\w\-]+)/clusters/(?P<cluster_id>[\w\-]+)/nodes/reinstall/$',
-        views.BatchReinstallNodes.as_view({'post': 'reinstall_nodes'})
-    )
+        views.BatchReinstallNodes.as_view({'post': 'reinstall_nodes'}),
+    ),
 ]
 
 # query api
 urlpatterns += [
     url(
         r'^api/projects/(?P<project_id>[\w\-]+)/nodes/label_keys/$',
-        views.QueryNodeLabelKeys.as_view({'get': 'label_keys'})
+        views.QueryNodeLabelKeys.as_view({'get': 'label_keys'}),
     ),
     url(
         r'^api/projects/(?P<project_id>[\w\-]+)/nodes/label_values/$',
-        views.QueryNodeLabelKeys.as_view({'get': 'label_values'})
+        views.QueryNodeLabelKeys.as_view({'get': 'label_values'}),
     ),
     url(
         r'^api/projects/(?P<project_id>[\w\-]+)/cluster_type_versions/$',
-        views.ClusterVersionViewSet.as_view({'get': 'versions'})
+        views.ClusterVersionViewSet.as_view({'get': 'versions'}),
     ),
-    url(
-        r'^api/projects/(?P<project_id>[\w\-]+)/nodes/export/$',
-        views.ExportNodes.as_view({'post': 'export'})
-    ),
+    url(r'^api/projects/(?P<project_id>[\w\-]+)/nodes/export/$', views.ExportNodes.as_view({'post': 'export'})),
     url(
         r"^api/cluster_mgr/projects/(?P<project_id>\w{32})/nodes/-/labels/detail/$",
-        views.ListNodelabelsViewSets.as_view({"post": "list_labels_details"})
+        views.ListNodelabelsViewSets.as_view({"post": "list_labels_details"}),
     ),
     url(
         r"^api/cluster_mgr/projects/(?P<project_id>\w{32})/nodes/labels/$",
-        views.QueryNodeLabelsViewSet.as_view({"get": "query_labels"})
-    )
+        views.QueryNodeLabelsViewSet.as_view({"get": "query_labels"}),
+    ),
 ]
 
 # operation api
 urlpatterns += [
     url(
         r'^api/projects/(?P<project_id>[\w\-]+)/clusters/(?P<cluster_id>[\w\-]+)/nodes/(?P<node_id>\d+)/$',
-        views.DeleteNodeRecordViewSet.as_view({'delete': 'delete'})
+        views.DeleteNodeRecordViewSet.as_view({'delete': 'delete'}),
     ),
     url(
         r"^api/cluster_mgr/projects/(?P<project_id>\w{32})/nodes/-/labels/$",
-        views.NodelabelsViewSets.as_view({"post": "set_labels", "get": "list_labels"})
-    )
+        views.NodelabelsViewSets.as_view({"post": "set_labels", "get": "list_labels"}),
+    ),
 ]
 
 # 导入版本特定urls

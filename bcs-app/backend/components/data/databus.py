@@ -14,14 +14,15 @@
 """
 数据平台 标准日志、非标准日志、Metric接入相关方法
 """
-import time
 import logging
+import time
 from abc import ABCMeta
 from enum import Enum
 
 from django.conf import settings
 
 from backend.components.utils import http_post
+
 from .constant import DATA_API_V3_PREFIX, DATA_TOKEN
 
 logger = logging.getLogger(__name__)

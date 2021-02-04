@@ -20,7 +20,6 @@ from backend.utils.decorators import handle_api_not_implemented, parse_response_
 from backend.utils.errcodes import ErrorCode
 from backend.utils.error_codes import error_codes
 
-
 STORAGE_PREFIX = "{apigw_host}/v4/storage"
 SCHEDULER_PREFIX = "{apigw_host}/v4/scheduler"
 METRIC_PREFIX = "{apigw_host}/v4/metric"
@@ -33,8 +32,7 @@ logger = logging.getLogger(__name__)
 
 
 class MesosClient(BCSClientBase):
-    """Mesos的API
-    """
+    """Mesos的API"""
 
     @property
     def storage_host(self):
@@ -46,13 +44,11 @@ class MesosClient(BCSClientBase):
 
     @property
     def metric_host(self):
-        """监控前缀
-        """
+        """监控前缀"""
         return METRIC_PREFIX.format(apigw_host=self.api_host)
 
     def get_taskgroup(self, host_ip, fields=None):
-        """获取mesos的taskgroup，解析出docker列表使用
-        """
+        """获取mesos的taskgroup，解析出docker列表使用"""
         url = "{host}/query/mesos/dynamic/clusters/{cluster_id}/taskgroup".format(
             host=self.storage_host, cluster_id=self.cluster_id
         )
@@ -67,16 +63,14 @@ class MesosClient(BCSClientBase):
         return result
 
     def create_application(self, namespace, data):
-        """创建application
-        """
+        """创建application"""
         url = "{host}/mesos/namespaces/{ns}/applications".format(host=self.scheduler_host, ns=namespace)
         kwargs = {"headers": self.headers}
         resp = http_post(url, json=data, **kwargs)
         return resp
 
     def update_application(self, namespace, data):
-        """更新application
-        """
+        """更新application"""
         instances = data["spec"]["instance"]
         url = "{host}/mesos/namespaces/{ns}/applications?instances={instances}".format(
             host=self.scheduler_host, ns=namespace, instances=instances
@@ -86,8 +80,7 @@ class MesosClient(BCSClientBase):
         return resp
 
     def get_mesos_app_instances(self, app_name=None, namespace=None, field=None):
-        """获取application详情
-        """
+        """获取application详情"""
         url = "{host}/query/mesos/dynamic/clusters/{cluster_id}/application".format(
             host=self.storage_host, cluster_id=self.cluster_id
         )
@@ -115,8 +108,7 @@ class MesosClient(BCSClientBase):
         return resp
 
     def delete_mesos_app_instance(self, namespace, app_name, enforce=0):
-        """删除application实例
-        """
+        """删除application实例"""
         url = "{host}/mesos/namespaces/{ns}/applications/{app_name}".format(
             host=self.scheduler_host, ns=namespace, app_name=app_name
         )
@@ -125,8 +117,7 @@ class MesosClient(BCSClientBase):
         return resp
 
     def scale_mesos_app_instance(self, namespace, app_name, instance_num):
-        """application扩缩容
-        """
+        """application扩缩容"""
         url = "{host}/mesos/namespaces/{ns}/applications/{app_name}/scale/{instance_num}".format(
             host=self.scheduler_host, ns=namespace, app_name=app_name, instance_num=instance_num
         )
@@ -136,8 +127,7 @@ class MesosClient(BCSClientBase):
         return resp
 
     def rollback_mesos_app_instance(self, namespace, data):
-        """回滚application
-        """
+        """回滚application"""
         url = "{host}/mesos/namespaces/{ns}/applications/rollback".format(host=self.scheduler_host, ns=namespace)
 
         kwargs = {"headers": self.headers}
@@ -145,8 +135,7 @@ class MesosClient(BCSClientBase):
         return resp
 
     def get_mesos_app_taskgroup(self, taskgroup_name=None, namespace=None, app_name=None, field=None):
-        """获取taskgroup
-        """
+        """获取taskgroup"""
         url = "{host}/query/mesos/dynamic/clusters/{cluster_id}/taskgroup".format(
             host=self.storage_host, cluster_id=self.cluster_id
         )
@@ -199,16 +188,14 @@ class MesosClient(BCSClientBase):
         return resp
 
     def disable_agent(self, ip):
-        """停用agent，不允许再被调度
-        """
+        """停用agent，不允许再被调度"""
         url = "{host}/mesos/agentsettings/disable".format(host=self.scheduler_host)
         params = {"ips": ip}
         resp = http_post(url, params=params, headers=self.headers)
         return resp
 
     def enable_agent(self, ip):
-        """启用Agent
-        """
+        """启用Agent"""
         url = "{host}/mesos/agentsettings/enable".format(host=self.scheduler_host)
         params = {"ips": ip}
         resp = http_post(url, params=params, headers=self.headers)
@@ -225,8 +212,7 @@ class MesosClient(BCSClientBase):
         return resp
 
     def delete_secret(self, namespace, name):
-        """删除secret
-        """
+        """删除secret"""
         url = "{host}/mesos/namespaces/{ns}/secrets/{name}".format(host=self.scheduler_host, ns=namespace, name=name)
 
         resp = http_delete(url, headers=self.headers)
@@ -243,8 +229,7 @@ class MesosClient(BCSClientBase):
         return resp
 
     def delete_service(self, namespace, name):
-        """删除service
-        """
+        """删除service"""
         url = "{host}/mesos/namespaces/{ns}/services/{name}".format(host=self.scheduler_host, ns=namespace, name=name)
         resp = http_delete(url, headers=self.headers)
         return resp
@@ -256,8 +241,7 @@ class MesosClient(BCSClientBase):
         return resp
 
     def get_deployment(self, name=None, field=None, namespace=None):
-        """查询deployment
-        """
+        """查询deployment"""
         url = "{host}/query/mesos/dynamic/clusters/{cluster_id}/deployment".format(
             host=self.storage_host, cluster_id=self.cluster_id
         )
@@ -272,16 +256,14 @@ class MesosClient(BCSClientBase):
         return resp
 
     def update_deployment(self, namespace, data):
-        """更新Deployment
-        """
+        """更新Deployment"""
         url = "{host}/mesos/namespaces/{ns}/deployments".format(host=self.scheduler_host, ns=namespace)
 
         resp = http_put(url, json=data, headers=self.headers)
         return resp
 
     def cancel_update_deployment(self, namespace, deployment_name):
-        """取消更新deployment
-        """
+        """取消更新deployment"""
         url = "{host}/mesos/namespaces/{ns}/deployments/{name}/cancelupdate".format(
             host=self.scheduler_host, ns=namespace, name=deployment_name
         )
@@ -289,8 +271,7 @@ class MesosClient(BCSClientBase):
         return resp
 
     def pause_update_deployment(self, namespace, deployment_name):
-        """暂停更新deployment
-        """
+        """暂停更新deployment"""
         url = "{host}/mesos/namespaces/{ns}/deployments/{name}/pauseupdate".format(
             host=self.scheduler_host, ns=namespace, name=deployment_name
         )
@@ -299,8 +280,7 @@ class MesosClient(BCSClientBase):
         return resp
 
     def resume_update_deployment(self, namespace, deployment_name):
-        """继续更新deployment
-        """
+        """继续更新deployment"""
         url = "{host}/mesos/namespaces/{ns}/deployments/{name}/resumeupdate".format(
             host=self.scheduler_host, ns=namespace, name=deployment_name
         )
@@ -309,8 +289,7 @@ class MesosClient(BCSClientBase):
         return resp
 
     def delete_deployment(self, namespace, deployment_name, enforce=0):
-        """删除deployment name
-        """
+        """删除deployment name"""
         url = "{host}/mesos/namespaces/{ns}/deployments/{name}".format(
             host=self.scheduler_host, ns=namespace, name=deployment_name
         )
@@ -319,8 +298,7 @@ class MesosClient(BCSClientBase):
         return resp
 
     def get_events(self, params):
-        """获取事件
-        """
+        """获取事件"""
         url = "{host}/events".format(host=self.storage_host)
         resp = http_get(url, params=params, headers=self.headers)
         return resp
@@ -358,8 +336,7 @@ class MesosClient(BCSClientBase):
         return resp
 
     def set_metrics(self, data, cluster_type="mesos"):
-        """添加监控
-        """
+        """添加监控"""
         url = "{host}/clustertype/{cluster_type}/metrics".format(host=self.metric_host, cluster_type=cluster_type)
         # 参数必须是一个列表
         if not isinstance(data, list):
@@ -389,17 +366,17 @@ class MesosClient(BCSClientBase):
         return resp
 
     def get_metrics(self, name, cluster_id_list):
-        """
-        """
-        url = "{host}/metrics".format(host=self.metric_host,)
+        """"""
+        url = "{host}/metrics".format(
+            host=self.metric_host,
+        )
         data = {"name": name, "clusterID": cluster_id_list}
 
         resp = http_post(url, json=data, headers=self.headers)
         return resp
 
     def get_application_with_post(self, name=None, namespace=None, field=None):
-        """通过post请求，查询app信息
-        """
+        """通过post请求，查询app信息"""
         url = "{host}/query/mesos/dynamic/clusters/{cluster_id}/application".format(
             host=self.storage_host, cluster_id=self.cluster_id
         )
@@ -413,8 +390,7 @@ class MesosClient(BCSClientBase):
         return http_post(url, json=data, headers=self.headers)
 
     def get_deployment_with_post(self, name=None, field=None, namespace=None):
-        """通过post请求，查询deployment
-        """
+        """通过post请求，查询deployment"""
         url = "{host}/query/mesos/dynamic/clusters/{cluster_id}/deployment".format(
             host=self.storage_host, cluster_id=self.cluster_id
         )
@@ -429,21 +405,18 @@ class MesosClient(BCSClientBase):
 
     @parse_response_data(default_data=[])
     def get_agent_attrs(self, params=None):
-        """获取节点属性
-        """
+        """获取节点属性"""
         url = "{host}/mesos/agentsettings".format(host=self.scheduler_host)
         return http_get(url, params=params, headers=self.headers)
 
     def update_agent_attrs(self, attrs):
-        """批量修改/增加节点属性
-        """
+        """批量修改/增加节点属性"""
         url = "{host}/mesos/agentsettings".format(host=self.scheduler_host)
 
         return http_post(url, json=attrs, headers=self.headers)
 
     def get_used_namespace(self):
-        """获取已经使用的命名空间名称
-        """
+        """获取已经使用的命名空间名称"""
         url = "{host}/query/mesos/dynamic/clusters/{cluster_id}/namespace".format(
             host=self.storage_host, cluster_id=self.cluster_id
         )
@@ -451,8 +424,7 @@ class MesosClient(BCSClientBase):
         return result
 
     def get_application_conf(self, namespace, name):
-        """查询application配置
-        """
+        """查询application配置"""
         url = "{host}/mesos/definition/application/{namespace}/{name}".format(
             host=self.scheduler_host, namespace=namespace, name=name
         )
@@ -465,40 +437,35 @@ class MesosClient(BCSClientBase):
         return http_get(url, headers=self.headers)
 
     def send_application_signal(self, namespace, name, data):
-        """对指定的application下所有的running状态的taskgroup发送信息
-        """
+        """对指定的application下所有的running状态的taskgroup发送信息"""
         url = "{host}/mesos/namespaces/{namespace}/applications/{name}/message".format(
             host=self.scheduler_host, namespace=namespace, name=name
         )
         return http_post(url, json=data, headers=self.headers)
 
     def send_command(self, category, namespace, name, config):
-        """发送命令
-        """
+        """发送命令"""
         url = "{host}/mesos/command/{category}/{ns}/{name}".format(
             host=self.scheduler_host, category=category, ns=namespace, name=name
         )
         return http_post(url, json=config, headers=self.headers)
 
     def get_command_status(self, category, namespace, name, params):
-        """查询命令执行状态
-        """
+        """查询命令执行状态"""
         url = "{host}/mesos/command/{category}/{ns}/{name}".format(
             host=self.scheduler_host, category=category, ns=namespace, name=name
         )
         return http_get(url, params=params, headers=self.headers)
 
     def delete_command(self, category, namespace, name, params):
-        """删除命令
-        """
+        """删除命令"""
         url = "{host}/mesos/command/{category}/{ns}/{name}".format(
             host=self.scheduler_host, category=category, ns=namespace, name=name
         )
         return http_delete(url, params=params, headers=self.headers)
 
     def get_container_exec_id(self, host_ip: str, container_id: str) -> str:
-        """获取exec id
-        """
+        """获取exec id"""
         url = f"{self.scheduler_host}/mesos/webconsole/create_exec"
         params = {"host_ip": host_ip}
         data = {"container_id": container_id, "cmd": ["sh"]}
@@ -512,8 +479,7 @@ class MesosClient(BCSClientBase):
         return exec_id
 
     def resize_container_exec(self, host_ip: str, exec_id: str, height: int, width: int) -> None:
-        """设置窗口大小
-        """
+        """设置窗口大小"""
         url = f"{self.scheduler_host}/mesos/webconsole/resize_exec"
         params = {"host_ip": host_ip}
         data = {"exec_id": exec_id, "height": height, "width": width}
@@ -524,29 +490,25 @@ class MesosClient(BCSClientBase):
             logger.warning("resize_container_exec error, %s", error)
 
     def create_hpa(self, namespace, spec):
-        """创建HPA
-        """
+        """创建HPA"""
         url = f"{self.api_host}/v4/scheduler/mesos/crd/namespaces/{namespace}/autoscaler"
         result = http_post(url, json=spec, headers=self.headers)
         return result
 
     def update_hpa(self, namespace, spec):
-        """更新HPA
-        """
+        """更新HPA"""
         url = f"{self.api_host}/v4/scheduler/mesos/crd/namespaces/{namespace}/autoscaler"
         result = http_put(url, json=spec, headers=self.headers)
         return result
 
     def get_hpa(self, namespace, name):
-        """获取HPA
-        """
+        """获取HPA"""
         url = f"{self.api_host}/v4/scheduler/mesos/crd/namespaces/{namespace}/autoscaler/{name}"
         result = http_get(url, headers=self.headers)
         return result
 
     def apply_hpa(self, namespace, spec):
-        """创建或者更新HPA
-        """
+        """创建或者更新HPA"""
         name = spec["metadata"]["name"]
         hpa = self.get_hpa(namespace, name)
         if not hpa.get("result"):
@@ -554,15 +516,13 @@ class MesosClient(BCSClientBase):
         return self.update_hpa(namespace, spec)
 
     def delete_hpa(self, namespace, name):
-        """删除HPA
-        """
+        """删除HPA"""
         url = f"{self.api_host}/v4/scheduler/mesos/crd/namespaces/{namespace}/autoscaler/{name}"
         result = http_delete(url, headers=self.headers)
         return result
 
     def list_hpa(self, namespace=None):
-        """获取HPA列表
-        """
+        """获取HPA列表"""
         if namespace:
             url = f"{self.api_host}/v4/scheduler/mesos/crd/namespaces/{namespace}/autoscaler"
         else:
@@ -616,8 +576,7 @@ class MesosClient(BCSClientBase):
         return self._handle_custom_resource_result(result)
 
     def get_cluster_ippool(self):
-        """获取集群ip资源的总览
-        """
+        """获取集群ip资源的总览"""
         url = f"{self.storage_host}/query/mesos/dynamic/clusters/{self.cluster_id}/ippoolstatic"
         resp = http_get(url, headers=self.headers)
         if resp.get("code") != ErrorCode.NoError:
@@ -631,8 +590,7 @@ class MesosClient(BCSClientBase):
         return resp["data"][0]
 
     def get_cluster_ippool_detail(self):
-        """获取集群ip资源详情
-        """
+        """获取集群ip资源详情"""
         url = f"{self.storage_host}/query/mesos/dynamic/clusters/{self.cluster_id}/ippoolstaticdetail"
         resp = http_get(url, headers=self.headers)
         if resp.get("code") != ErrorCode.NoError:
@@ -644,8 +602,7 @@ class MesosClient(BCSClientBase):
         return resp["data"][0]
 
     def _get_service_monitor_url(self, namespace=None):
-        """servicemonitor固定前缀
-        """
+        """servicemonitor固定前缀"""
         if namespace:
             url = f"{self.scheduler_host}/mesos/customresources/monitor.tencent.com/v1/namespaces/{namespace}/servicemonitors"  # noqa
         else:
@@ -654,16 +611,14 @@ class MesosClient(BCSClientBase):
 
     @handle_api_not_implemented(keyword="404", module="Metric管理")
     def list_service_monitor(self, namespace=None):
-        """servicemonitor列表
-        """
+        """servicemonitor列表"""
         url = self._get_service_monitor_url(namespace)
         resp = http_get(url, headers=self.headers)
         return resp
 
     @handle_api_not_implemented(keyword="404", module="Metric管理")
     def create_service_monitor(self, namespace, spec):
-        """创建servicemonitor
-        """
+        """创建servicemonitor"""
         # Mesos API Version 是BCS定制
         spec["apiVersion"] = SERVICE_MONITOR_API_VERSION
         url = self._get_service_monitor_url(namespace)
@@ -671,16 +626,14 @@ class MesosClient(BCSClientBase):
 
     @handle_api_not_implemented(keyword="404", module="Metric管理")
     def get_service_monitor(self, namespace, name):
-        """获取servicemonitor
-        """
+        """获取servicemonitor"""
         url_prefix = self._get_service_monitor_url(namespace)
         url = f"{url_prefix}/{name}"
         return http_get(url, headers=self.headers, raise_for_status=False)
 
     @handle_api_not_implemented(keyword="404", module="Metric管理")
     def update_service_monitor(self, namespace, name, spec):
-        """更新servicemonitor
-        """
+        """更新servicemonitor"""
         # Mesos API Version 是BCS定制
         spec["apiVersion"] = SERVICE_MONITOR_API_VERSION
         url_prefix = self._get_service_monitor_url(namespace)
@@ -689,8 +642,7 @@ class MesosClient(BCSClientBase):
 
     @handle_api_not_implemented(keyword="404", module="Metric管理")
     def delete_service_monitor(self, namespace, name):
-        """删除servicemonitor
-        """
+        """删除servicemonitor"""
         url_prefix = self._get_service_monitor_url(namespace)
         url = f"{url_prefix}/{name}"
         return http_delete(url, headers=self.headers, raise_for_status=False)

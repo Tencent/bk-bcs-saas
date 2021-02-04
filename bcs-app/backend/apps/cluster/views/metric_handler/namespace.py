@@ -19,7 +19,7 @@ from backend.apps import constants
 from backend.apps.configuration.models import Template
 from backend.apps.instance.constants import InsState
 from backend.apps.instance.models import InstanceConfig, VersionInstance
-from backend.components import paas_cc, bcs
+from backend.components import bcs, paas_cc
 from backend.utils.errcodes import ErrorCode
 from backend.utils.error_codes import error_codes
 
@@ -27,8 +27,7 @@ logger = logging.getLogger(__name__)
 
 
 def get_cluster_namespace(request, project_id, cluster_id):
-    """获取集群下namespace的数量
-    """
+    """获取集群下namespace的数量"""
     resp = paas_cc.get_cluster_namespace_list(
         request.user.token.access_token, project_id, cluster_id, limit=constants.ALL_LIMIT
     )
@@ -39,8 +38,7 @@ def get_cluster_namespace(request, project_id, cluster_id):
 
 
 def get_used_namespace(project_id):
-    """通过应用实例获取使用的命名空间
-    """
+    """通过应用实例获取使用的命名空间"""
     # 通过project_id查询模板集信息
     all_tmpl = Template.objects.filter(project_id=project_id).values("id")
     tmpl_id_list = [info["id"] for info in all_tmpl]
@@ -48,17 +46,21 @@ def get_used_namespace(project_id):
         is_deleted=False, is_bcs_success=True, template_id__in=tmpl_id_list
     ).values("id")
     instance_id_list = [info["id"] for info in ns_id_info]
-    inst_info = InstanceConfig.objects.filter(
-        is_deleted=False, is_bcs_success=True,
-        instance_id__in=instance_id_list,
-    ).exclude(ins_state=InsState.NO_INS.value).values("namespace")
+    inst_info = (
+        InstanceConfig.objects.filter(
+            is_deleted=False,
+            is_bcs_success=True,
+            instance_id__in=instance_id_list,
+        )
+        .exclude(ins_state=InsState.NO_INS.value)
+        .values("namespace")
+    )
 
     return [int(info["namespace"]) for info in inst_info]
 
 
 def get_used_namespace_via_bcs(request, project_id, cluster_id, all_namespace_list):
-    """通过bcs查询已经使用的命名空间
-    """
+    """通过bcs查询已经使用的命名空间"""
     kind = request.project["kind"]
     if kind not in [1, 2]:
         raise error_codes.CheckFailed(_("项目类型不正确，请重新确认"))
@@ -67,9 +69,7 @@ def get_used_namespace_via_bcs(request, project_id, cluster_id, all_namespace_li
     else:
         bcs_name, kind_name = "mesos", "Mesos"
     bcs_api = getattr(bcs, bcs_name)
-    client = getattr(bcs_api, "%sClient" % kind_name)(
-        request.user.token.access_token, project_id, cluster_id, None
-    )
+    client = getattr(bcs_api, "%sClient" % kind_name)(request.user.token.access_token, project_id, cluster_id, None)
     used_ns_info = client.get_used_namespace()
     if used_ns_info.get("code") != ErrorCode.NoError:
         raise error_codes.APIError.f(used_ns_info.get("message"))
@@ -92,8 +92,7 @@ def get_namespace_metric(request, project_id, cluster_id):
     # 取交集，获取总数量
     namespace_active = len(set(namespace_id_list) & set(used_namespace_id_list))
     try:
-        used_namespace_list = get_used_namespace_via_bcs(
-            request, project_id, cluster_id, namespace_name_list)
+        used_namespace_list = get_used_namespace_via_bcs(request, project_id, cluster_id, namespace_name_list)
         namespace_active = len(used_namespace_list) or namespace_active
     except Exception:
         pass

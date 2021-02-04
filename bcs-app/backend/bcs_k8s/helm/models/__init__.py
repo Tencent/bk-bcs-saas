@@ -12,5 +12,5 @@
 # specific language governing permissions and limitations under the License.
 #
 
-from .repo import Repository, RepositoryAuth
 from .chart import Chart, ChartRelease, ChartVersion, ChartVersionSnapshot
+from .repo import Repository, RepositoryAuth

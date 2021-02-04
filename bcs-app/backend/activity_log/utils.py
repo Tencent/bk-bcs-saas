@@ -11,9 +11,9 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
+from dataclasses import dataclass
 from typing import Tuple
 
-from dataclasses import dataclass
 from django.conf import settings
 
 from backend.apps.cluster.models import CommonStatus
@@ -48,8 +48,7 @@ class EventComponentData(ComponentData):
 
 
 def get_project_clusters(access_token: str, project_id: str) -> ComponentData:
-    """获取集群信息
-    """
+    """获取集群信息"""
     cluster_info = paas_cc.get_all_clusters(access_token, project_id)
 
     result = cluster_info.get('code') == ErrorCode.NoError

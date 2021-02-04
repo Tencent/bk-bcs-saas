@@ -12,12 +12,21 @@
 # specific language governing permissions and limitations under the License.
 #
 from django.contrib import admin
+
 from backend.activity_log.models import UserActivityLog
 
 
 class UserActivityLogAdmin(admin.ModelAdmin):
-    list_display = ('project_id', 'activity_type', 'resource', 'resource_type', 'resource_id',
-                    'activity_status', 'user', 'activity_time')
+    list_display = (
+        'project_id',
+        'activity_type',
+        'resource',
+        'resource_type',
+        'resource_id',
+        'activity_status',
+        'user',
+        'activity_time',
+    )
 
 
 admin.site.register(UserActivityLog, UserActivityLogAdmin)

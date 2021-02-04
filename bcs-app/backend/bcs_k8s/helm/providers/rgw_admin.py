@@ -23,7 +23,6 @@ from boto.exception import StorageResponseError
 
 
 class RGWAdminClient(object):
-
     def __init__(self, access_key, secret_key, admin_host, admin_endpoint, tenant=None):
         self.access_key = access_key
         self.secret_key = secret_key
@@ -54,7 +53,8 @@ class RGWAdminClient(object):
 
         parameters = {'uid': uid}
         response = AWSAuthConnection.make_request(
-            self.conn, 'GET',
+            self.conn,
+            'GET',
             self.admin_endpoint + 'user?' + urllib.parse.urlencode(parameters),
         )
         body = response.read()
@@ -65,20 +65,15 @@ class RGWAdminClient(object):
         else:
             raise StorageResponseError(response.status, response.reason, body)
 
-    def update_or_modify_user(self, method, uid, tenant=None,
-                              display_name='', email='', max_buckets=100):
+    def update_or_modify_user(self, method, uid, tenant=None, display_name='', email='', max_buckets=100):
         tenant = tenant or self.tenant
         if tenant:
             uid = '%s$%s' % (tenant, uid)
 
-        parameters = {
-            'uid': uid,
-            'display-name': display_name,
-            'email': email,
-            'max-buckets': max_buckets
-        }
+        parameters = {'uid': uid, 'display-name': display_name, 'email': email, 'max-buckets': max_buckets}
         response = AWSAuthConnection.make_request(
-            self.conn, method,
+            self.conn,
+            method,
             self.admin_endpoint + 'user?' + urllib.parse.urlencode(parameters),
             # data=urllib.urlencode(parameters)
         )
@@ -93,13 +88,11 @@ class RGWAdminClient(object):
         return self.update_or_modify_user('PUT', *args, **kwargs)
 
     def modify_user(self, *args, **kwargs):
-        """修改一个用户
-        """
+        """修改一个用户"""
         return self.update_or_modify_user('POST', *args, **kwargs)
 
     def link_bucket(self, uid, bucket, tenant=''):
-        """将某个 bucket 绑定到指定 uid
-        """
+        """将某个 bucket 绑定到指定 uid"""
         tenant = tenant or self.tenant
         if tenant:
             uid = '%s$%s' % (tenant, uid)
@@ -109,28 +102,28 @@ class RGWAdminClient(object):
             'bucket': bucket,
         }
         response = AWSAuthConnection.make_request(
-            self.conn, 'PUT',
+            self.conn,
+            'PUT',
             self.admin_endpoint + 'bucket?' + urllib.parse.urlencode(parameters),
         )
         return self._handle_response(response)
 
     def get_user_quota(self, uid, tenant=''):
-        """获取用户容量限制
-        """
+        """获取用户容量限制"""
         tenant = tenant or self.tenant
         if tenant:
             uid = '%s$%s' % (tenant, uid)
 
         parameters = {'uid': uid, 'quota-type': 'user'}
         response = AWSAuthConnection.make_request(
-            self.conn, 'GET',
+            self.conn,
+            'GET',
             self.admin_endpoint + 'user?quota&' + urllib.parse.urlencode(parameters),
         )
         return self._handle_response(response)
 
     def set_user_quota(self, uid, tenant='', enabled=False, max_objects=-1, max_size_kb=-1):
-        """获取用户容量限制
-        """
+        """获取用户容量限制"""
         tenant = tenant or self.tenant
         if tenant:
             uid = '%s$%s' % (tenant, uid)
@@ -141,11 +134,12 @@ class RGWAdminClient(object):
             'quota-scope': 'user',
             'enabled': enabled,
             'max_objects': max_objects,
-            'max_size_kb': max_size_kb
+            'max_size_kb': max_size_kb,
         }
         response = AWSAuthConnection.make_request(
-            self.conn, 'PUT',
+            self.conn,
+            'PUT',
             self.admin_endpoint + 'user?quota&' + urllib.parse.urlencode(parameters),
-            data=json.dumps(data)
+            data=json.dumps(data),
         )
         return self._handle_response(response)

@@ -11,17 +11,20 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-from backend.apps.instance.resources import BCSResource
-from backend.apps.instance.resources import utils
+from backend.apps.instance.resources import BCSResource, utils
 
 SUPPORTED_HEALTH_CHECKS = ['HTTP', 'REMOTE_HTTP', 'TCP', 'REMOTE_TCP', 'COMMAND']
 
 
 class Pod(BCSResource):
-
     def _health_checks_params_to_int(self, health_check, metadata_name, is_preview, is_validate):
-        common_check_params = ['delaySeconds', 'intervalSeconds', 'timeoutSeconds', 'consecutiveFailures',
-                               'gracePeriodSeconds']
+        common_check_params = [
+            'delaySeconds',
+            'intervalSeconds',
+            'timeoutSeconds',
+            'consecutiveFailures',
+            'gracePeriodSeconds',
+        ]
         for p in common_check_params:
             health_check[p] = utils.handle_number_var(
                 health_check[p], f'Application[{metadata_name}]{p}', is_preview, is_validate

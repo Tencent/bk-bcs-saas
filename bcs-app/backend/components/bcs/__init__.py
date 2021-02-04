@@ -73,22 +73,19 @@ class BCSClientBase:
 
     @property
     def _bcs_server_host(self):
-        """通过不同的stag映射不同的bcs server原生地址
-        """
+        """通过不同的stag映射不同的bcs server原生地址"""
         host = settings.BCS_SERVER_HOST[self._bcs_server_stag]
         return host
 
     @property
     def _bcs_server_stag(self):
-        """获取集群所在stag
-        """
+        """获取集群所在stag"""
         stag = self.api_host.split('/')[-1]
         return stag
 
     @property
     def _bcs_https_server_host(self):
-        """有单独配置 BCS_HTTPS_SERVER_HOST 配置项
-        """
+        """有单独配置 BCS_HTTPS_SERVER_HOST 配置项"""
         server_host = getattr(settings, 'BCS_HTTPS_SERVER_HOST', None)
         if server_host:
             return server_host[self._bcs_server_stag]
@@ -96,8 +93,7 @@ class BCSClientBase:
 
     @property
     def _bcs_server_host_ip(self):
-        """获取server hostip配置
-        """
+        """获取server hostip配置"""
         server_ip = getattr(settings, 'BCS_SERVER_HOST_IP', None)
         if server_ip:
             return server_ip[self._bcs_server_stag]
@@ -106,9 +102,6 @@ class BCSClientBase:
     def headers(self):
         _headers = {
             "BCS-ClusterID": self.cluster_id,
-            "X-BKAPI-AUTHORIZATION": json.dumps({
-                "access_token": self.access_token,
-                "project_id": self.project_id
-            })
+            "X-BKAPI-AUTHORIZATION": json.dumps({"access_token": self.access_token, "project_id": self.project_id}),
         }
         return _headers

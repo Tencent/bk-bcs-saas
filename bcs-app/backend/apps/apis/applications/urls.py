@@ -12,9 +12,9 @@
 # specific language governing permissions and limitations under the License.
 #
 from django.conf.urls import url
+
 from backend.apps.apis.applications import views
 from backend.apps.apis.applications.all_views import instance
-
 
 urlpatterns = [
     url(

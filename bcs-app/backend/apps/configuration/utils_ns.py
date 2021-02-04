@@ -16,10 +16,10 @@
 """
 from django.utils.translation import ugettext_lazy as _
 
+from backend.accounts import bcs_perm
+from backend.apps.configuration.namespace.views import NamespaceBase
 from backend.components import paas_cc
 from backend.components.bcs.k8s import K8SClient
-from backend.apps.configuration.namespace.views import NamespaceBase
-from backend.accounts import bcs_perm
 from backend.utils.basic import RequestClass
 
 
@@ -38,13 +38,8 @@ def register_default_ns(access_token, username, project_id, project_code, cluste
 
     # 2. 将 default 命名空间注册到paas_cc 上
     result = paas_cc.create_namespace(
-        access_token,
-        project_id,
-        data['cluster_id'],
-        data['name'],
-        None,
-        username,
-        data['env_type'])
+        access_token, project_id, data['cluster_id'], data['name'], None, username, data['env_type']
+    )
     if result.get('code') != 0:
         if 'Duplicate entry' in result.get('message', ''):
             message = _("创建失败，namespace名称已经在其他项目存在")

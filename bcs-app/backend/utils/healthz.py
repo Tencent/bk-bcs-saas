@@ -34,7 +34,7 @@ def healthz_manager():
     data = {}
     handlers = filter(lambda x: x[0].startswith(PREFIX), globals().items())
     for handler in handlers:
-        name = handler[0][len(PREFIX):]
+        name = handler[0][len(PREFIX) :]
         func = handler[1]
         # 默认返回0
         data[name] = 0
@@ -50,6 +50,7 @@ def healthz_manager():
 
 def handler_redis():
     from backend.utils.cache import rd_client
+
     if rd_client.set("__healthz__", 1) is False:
         raise HealthzError("redis set command failed")
     if rd_client.get("__healthz__") != b'1':
@@ -58,6 +59,7 @@ def handler_redis():
 
 def handler_gcs_mysql():
     from backend.apps.projects.models import ProjectUser
+
     ProjectUser.objects.first()
 
 
