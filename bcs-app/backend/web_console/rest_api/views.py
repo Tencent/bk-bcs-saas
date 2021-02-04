@@ -21,7 +21,6 @@ from rest_framework.renderers import BrowsableAPIRenderer
 
 from backend.accounts import bcs_perm
 from backend.apps.constants import ProjectKind
-from backend.apps.whitelist_bk import is_bcs_administrator
 from backend.components import paas_auth, paas_cc
 from backend.components.bcs.k8s import K8SClient
 from backend.components.bcs.mesos import MesosClient

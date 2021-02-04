@@ -14,7 +14,6 @@
 from rest_framework.permissions import BasePermission
 
 from backend.apps.constants import SKIP_REQUEST_NAMESPACE, ClusterType
-from backend.apps.whitelist_bk import is_bcs_administrator
 from backend.components import paas_cc
 from backend.components.iam import permissions
 from backend.utils import FancyDict
