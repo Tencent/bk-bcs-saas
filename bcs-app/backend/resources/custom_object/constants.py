@@ -13,3 +13,5 @@
 #
 gamestatefulset_name = "gamestatefulsets.tkex.tencent.com"
 gamedeployment_name = "gamedeployments.tkex.tencent.com"
+
+PREFERRED_CRD_API_VERSION = "apiextensions.k8s.io/v1beta1"

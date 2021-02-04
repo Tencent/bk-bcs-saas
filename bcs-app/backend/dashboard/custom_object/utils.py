@@ -88,6 +88,7 @@ def to_table_format(crd_dict: Dict, cobj_list: List, **kwargs: str) -> Dict:
     """
     :return: 返回给前端约定的表格结构，th_list是表头内容，td_list是对应的表格内容
     """
+    # TODO 支持解析apiextensions.k8s.io/v1
     columns = parse_columns(crd_dict)
     column_data_list = [parse_column_data(co_item, columns, **kwargs) for co_item in cobj_list]
     if column_data_list:

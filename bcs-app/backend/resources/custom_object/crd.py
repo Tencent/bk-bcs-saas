@@ -11,10 +11,17 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
+from typing import Optional
+
 from ..resource import ResourceClient
+from ..utils.auths import ClusterAuth
+from .constants import PREFERRED_CRD_API_VERSION
 from .format import CRDFormatter
 
 
 class CustomResourceDefinition(ResourceClient):
     kind = "CustomResourceDefinition"
     formatter = CRDFormatter()
+
+    def __init__(self, cluster_auth: ClusterAuth, api_version: Optional[str] = PREFERRED_CRD_API_VERSION):
+        super().__init__(cluster_auth, api_version)
