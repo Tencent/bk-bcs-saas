@@ -396,3 +396,6 @@ except Exception:
 
 # 平台组件部署到的命名空间
 BCS_SYSTEM_NAMESPACE = "bcs-system"
+
+# bcs-agent YAML 配置文件模板名
+BCS_AGENT_YAML_TEMPLTE_NAME = 'bcs_agent_tmpl.yaml'
