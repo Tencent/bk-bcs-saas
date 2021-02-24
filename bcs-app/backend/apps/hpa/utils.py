@@ -132,7 +132,8 @@ def get_cluster_hpa_list(request, project_id, cluster_id, cluster_env, cluster_n
             hpa_list = slz_mesos_hpa_info(hpa, project_code, cluster_name, cluster_env, cluster_id)
         else:
             cluster_auth = ClusterAuth(request.user.token.access_token, project_id, cluster_id)
-            client = hpa_client.HPA(cluster_auth, project_code, cluster_name, cluster_env)
+            client = hpa_client.HPA(cluster_auth)
+            client.set_formatter(project_code, cluster_name, cluster_env)
             hpa_list = client.list(is_format=True)
     except Exception as error:
         logger.error("get hpa list error, %s", error)
@@ -153,30 +154,6 @@ def delete_mesos_hpa(request, project_id, cluster_id, namespace, namespace_id, n
 
     # 删除成功则更新状态
     InstanceConfig.objects.filter(namespace=namespace_id, category=MesosResourceName.hpa.value, name=name).update(
-        updator=username, oper_type=DELETE_INSTANCE, deleted_time=timezone.now(), is_deleted=True, is_bcs_success=True
-    )
-
-
-def delete_k8s_hpa(request, project_id, cluster_id, namespace, namespace_id, name):
-    username = request.user.username
-    access_token = request.user.token.access_token
-
-    client = k8s.K8SClient(access_token, project_id, cluster_id, env=None)
-    try:
-        client.delete_hpa(namespace, name)
-    except client.rest.ApiException as error:
-        if error.status == 404:
-            # 404 错误忽略
-            pass
-        else:
-            logger.info("delete hpa error, %s", error)
-            raise DeleteHPAError(_("删除HPA资源失败"))
-    except Exception as error:
-        logger.error("delete hpa error, %s", error)
-        raise DeleteHPAError(_("删除HPA资源失败"))
-
-    # 删除成功则更新状态
-    InstanceConfig.objects.filter(namespace=namespace_id, category=K8sResourceName.K8sHPA.value, name=name).update(
         updator=username, oper_type=DELETE_INSTANCE, deleted_time=timezone.now(), is_deleted=True, is_bcs_success=True
     )
 

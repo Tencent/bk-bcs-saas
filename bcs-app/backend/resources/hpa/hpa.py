@@ -38,16 +38,12 @@ class HPA(ResourceClient):
     preferred_api_version = "autoscaling/v2beta2"
     kind = "HorizontalPodAutoscaler"
 
-    def __init__(
-        self,
-        cluster_auth: ClusterAuth,
-        project_code: Optional[str] = None,
-        cluster_name: Optional[str] = None,
-        cluster_env: Optional[str] = None,
-    ):
+    def __init__(self, cluster_auth: ClusterAuth):
         super().__init__(cluster_auth, self.preferred_api_version)
+        self.cluster_auth = cluster_auth
 
-        self.formatter = HPAFormatter(cluster_auth.cluster_id, project_code, cluster_name, cluster_env)
+    def set_formatter(self, project_code: str, cluster_name: str, cluster_env: str):
+        self.formatter = HPAFormatter(self.cluster_auth.cluster_id, project_code, cluster_name, cluster_env)
 
     def delete_ignore_nonexistent(
         self, namespace: str, namespace_id: int, name: str, username: str
