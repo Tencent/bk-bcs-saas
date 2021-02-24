@@ -14,7 +14,7 @@
 import datetime
 import logging
 from dataclasses import dataclass
-from typing import Dict, List
+from typing import Dict, List, Tuple
 
 from django.conf import settings
 from django.utils.translation import ugettext_lazy as _
@@ -27,7 +27,7 @@ from backend.utils import basic
 logger = logging.getLogger(__name__)
 
 
-def get_metric_name_value(metric: Dict, field: str):
+def get_metric_name_value(metric: Dict, field: str) -> Tuple:
     """获取metrics名称, 值"""
     metric_type = metric["type"]
     # CPU/MEM 等系统类型
@@ -41,7 +41,7 @@ def get_metric_name_value(metric: Dict, field: str):
     return name, metric_value
 
 
-def get_current_metrics(resource_dict: Dict):
+def get_current_metrics(resource_dict: Dict) -> Dict:
     """获取当前监控值"""
     current_metrics = {}
     for metric in resource_dict["spec"].get("metrics") or []:
@@ -55,7 +55,7 @@ def get_current_metrics(resource_dict: Dict):
     return current_metrics
 
 
-def get_current_metrics_display(_current_metrics: Dict):
+def get_current_metrics_display(_current_metrics: Dict) -> str:
     """当前监控值前端显示"""
     current_metrics = []
 
@@ -84,7 +84,7 @@ class Condition:
     message: str
 
 
-def sort_by_normalize_transition_time(conditions: List[Condition]):
+def sort_by_normalize_transition_time(conditions: List[Condition]) -> List[Condition]:
     """规整 lastTransitionTime 并排序
     """
 
@@ -104,7 +104,7 @@ def sort_by_normalize_transition_time(conditions: List[Condition]):
 
 
 class HPAFormatter(ResourceDefaultFormatter):
-    def __init__(self, cluster_id: str, project_code: str, cluster_name: str, cluster_env: str):
+    def __init__(self, cluster_id: str, project_code: str, cluster_name: str, cluster_env: str) -> Dict:
         self.cluster_id = cluster_id
         self.project_code = project_code
         self.cluster_name = cluster_name
