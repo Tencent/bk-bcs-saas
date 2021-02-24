@@ -26,11 +26,6 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 
 class TestHPA:
-    @pytest.fixture()
-    def cpu_workload(self):
-        with open(os.path.join(BASE_DIR), "simple_cpu_hpa.yaml") as fh:
-            return yaml.loads(fh.read())
-
     @pytest.fixture(autouse=True)
     def use_faked_configuration(self):
         """Replace ConfigurationService with fake object"""
@@ -39,21 +34,37 @@ class TestHPA:
         ):
             yield
 
+    @pytest.fixture()
+    def cpu_workload(self):
+        with open(os.path.join(BASE_DIR, "sample_cpu_hpa.yaml")) as fh:
+            return yaml.load(fh.read())
+
     @pytest.fixture
-    def client(self, project_id, cluster_id):
-        client = hpa_client.HPA(ClusterAuth('token', project_id, cluster_id))
+    def client(self, project_id_from_env, cluster_id_from_env):
+        client = hpa_client.HPA(ClusterAuth('token', project_id_from_env, cluster_id_from_env))
         client.set_formatter("fake_project_code", "fake_cluster_name", "fake_cluster_env")
         return client
 
-    @pytest.fixture
-    def update_or_create_hpa(self, client, cpu_workload):
-        client.update_or_create(body=cpu_workload)
-        yield
-        client.delete_ignore_nonexistent(name=getitems(cpu_workload, "metadata.name"), namespace="default")
+    def test_list(self, client):
+        hpa_list = client.list(namespace="default")
+        assert len(hpa_list) == 0
 
-    def test_list(self, client, update_or_create_hpa):
-        hpa_list = client.list()
-        assert isinstance(hpa_list, list)
+    @pytest.fixture
+    def sample_hpa(self, client, cpu_workload):
+        client.update_or_create(body=cpu_workload, is_format=False)
+        yield
+        client.delete_ignore_nonexistent(
+            namespace="default", name=getitems(cpu_workload, "metadata.name"), namespace_id="", username=""
+        )
+
+    def test_update_or_create(self, client, cpu_workload, sample_hpa):
+        res, created = client.update_or_create(body=cpu_workload, is_format=False)
+        assert created is False
 
     def test_delete(self, client, cpu_workload):
-        client.delete_ignore_nonexistent(name=getitems(cpu_workload, "metadata.name"), namespace="default")
+        client.update_or_create(body=cpu_workload, is_format=False)
+
+        result = client.delete_ignore_nonexistent(
+            namespace="default", name=getitems(cpu_workload, "metadata.name"), namespace_id="", username=""
+        )
+        assert result.status == 'Success'

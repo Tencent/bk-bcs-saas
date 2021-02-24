@@ -38,6 +38,24 @@ def project_id():
 
 
 @pytest.fixture
+def project_id_from_env():
+    """使用环境变量项目 ID"""
+    project_id = os.environ.get("TEST_PROJECT_ID")
+    if not project_id:
+        raise ValueError("TEST_PROJECT_ID not set")
+    return project_id
+
+
+@pytest.fixture
+def cluster_id_from_env():
+    """使用环境变量集群 ID"""
+    cluster_id = os.environ.get("TEST_CLUSTER_ID")
+    if not cluster_id:
+        raise ValueError("TEST_CLUSTER_ID not set")
+    return cluster_id
+
+
+@pytest.fixture
 def random_name():
     """生成一个随机 name"""
     return generate_random_string(8)
