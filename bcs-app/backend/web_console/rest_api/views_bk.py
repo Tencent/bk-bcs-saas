@@ -11,6 +11,19 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
+import logging
+
+logger = logging.getLogger(__name__)
+
+
 def ensure_mesos_wlist(project_id: str, cluster_id: str, username: str) -> bool:
     """Mesos按集群做白名单控制"""
     return True
+
+
+# 通过 extension 模块替换现有 ensure_mesos_wlist 函数
+# TODO：将 PatchableFunction 统一管理，定义规范
+try:
+    from .views_ext import ensure_mesos_wlist  # noqa # type: ignore
+except ImportError:
+    logger.debug('Replacement for "ensure_mesos_wlist" not found, skip')
