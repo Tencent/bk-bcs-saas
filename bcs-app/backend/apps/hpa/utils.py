@@ -130,7 +130,7 @@ def get_cluster_hpa_list(request, project_id, cluster_id, cluster_env, cluster_n
             cluster_auth = ClusterAuth(request.user.token.access_token, project_id, cluster_id)
             client = hpa_client.HPA(cluster_auth)
             client.set_formatter(project_code, cluster_name, cluster_env)
-            hpa_list = client.list(is_format=True)
+            hpa_list = client.list()
     except Exception as error:
         logger.error("get hpa list error, %s", error)
 

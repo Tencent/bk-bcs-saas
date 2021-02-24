@@ -14,18 +14,18 @@
 
 import logging
 from typing import Optional
+
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
-
 from kubernetes.dynamic.resource import ResourceInstance
-from backend.apps.configuration.constants import K8sResourceName
+
 from backend.apps.application import constants as app_constants
+from backend.apps.configuration.constants import K8sResourceName
 from backend.apps.instance.models import InstanceConfig
 
 from ..resource import ResourceClient
 from ..utils.auths import ClusterAuth
 from .format import HPAFormatter
-
 
 logger = logging.getLogger(__name__)
 
