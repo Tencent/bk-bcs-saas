@@ -242,7 +242,7 @@ class Scheduler(SchedulerBase):
 
         try:
             result = client.update_or_create(spec, name, ns)
-            logger.debug("create hpa result, %s", result)
+            logger.debug("deploy hpa success, %s", result)
         except Exception as error:
             logger.exception('deploy hpa error, %s', error)
             raise Rollback({})
