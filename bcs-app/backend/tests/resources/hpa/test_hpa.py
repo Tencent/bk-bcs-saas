@@ -45,8 +45,8 @@ class TestHPA:
             return yaml.load(fh.read())
 
     @pytest.fixture
-    def client(self, project_id_from_env, cluster_id_from_env):
-        client = hpa_client.HPA(ClusterAuth('token', project_id_from_env, cluster_id_from_env))
+    def client(self, project_id, cluster_id):
+        client = hpa_client.HPA(ClusterAuth('token', project_id, cluster_id))
         client.set_formatter("fake_project_code", "fake_cluster_name", "fake_cluster_env")
         return client
 
