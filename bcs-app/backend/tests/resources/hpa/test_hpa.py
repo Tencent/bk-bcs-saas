@@ -34,6 +34,11 @@ class TestHPA:
         ):
             yield
 
+    @pytest.fixture(autouse=True)
+    def use_fake_db(self):
+        with mock.patch("backend.apps.instance.models.InstanceConfig.objects"):
+            yield
+
     @pytest.fixture()
     def cpu_workload(self):
         with open(os.path.join(BASE_DIR, "sample_cpu_hpa.yaml")) as fh:
