@@ -33,6 +33,7 @@ from backend.components import paas_cc
 from backend.utils.error_codes import error_codes
 from backend.utils.renderers import BKAPIRenderer
 from backend.utils.response import BKAPIResponse
+from backend.resources.hpa import hpa as hpa_client
 
 logger = logging.getLogger(__name__)
 
@@ -89,7 +90,7 @@ class HPA(viewsets.ViewSet, BaseAPI, ResourceOperate):
 
         try:
             utils.delete_hpa(request, project_id, cluster_id, ns_name, namespace_id, name)
-        except utils.DeleteHPAError as error:
+        except hpa_client.DeleteHPAError as error:
             message = "删除HPA:{}失败, [命名空间:{}], {}".format(name, ns_name, error)
             utils.activity_log(project_id, username, name, message, False)
             raise error_codes.APIError(message)
@@ -120,7 +121,7 @@ class HPA(viewsets.ViewSet, BaseAPI, ResourceOperate):
             # 删除 hpa
             try:
                 utils.delete_hpa(request, project_id, cluster_id, ns_name, ns_id, name)
-            except utils.DeleteHPAError as error:
+            except hpa_client.DeleteHPAError as error:
                 failed_list.append({'name': name, 'desc': "{}[命名空间:{}]:{}".format(name, ns_name, error)})
             else:
                 success_list.append({'name': name, 'desc': "{}[命名空间:{}]".format(name, ns_name)})

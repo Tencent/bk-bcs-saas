@@ -20,6 +20,8 @@ from django.utils.translation import ugettext_lazy as _
 from backend.apps.instance.drivers.base import SchedulerBase
 from backend.components.bcs import mesos
 from backend.components.bcs.k8s import K8SClient
+from backend.resources.hpa import hpa as hpa_client
+from backend.resources.utils.auths import ClusterAuth
 from backend.utils.error_codes import error_codes
 from backend.utils.exceptions import ComponentError, ConfigError, Rollback
 
@@ -232,14 +234,18 @@ class Scheduler(SchedulerBase):
 
     def handler_k8shpa(self, ns, cluster_id, spec):
         """下发HPA配置"""
-        client = K8SClient(self.access_token, self.project_id, cluster_id, env=None)
-        spec['apiVersion'] = 'autoscaling/v2beta2'
+        cluster_auth = ClusterAuth(self.access_token, self.project_id, cluster_id)
+        client = hpa_client.HPA(cluster_auth)
+
+        name = spec["metadata"]["name"]
+        spec['apiVersion'] = client.preferred_api_version
+
         try:
-            result = client.apply_hpa(ns, spec)
+            result = client.update_or_create(spec, name, ns)
+            logger.debug("create hpa result, %s", result)
         except Exception as error:
             logger.exception('deploy hpa error, %s', error)
             raise Rollback({})
-        return result
 
     def rollback_k8shpa(self, ns, cluster_id, spec):
         """回滚HPA"""

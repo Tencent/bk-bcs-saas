@@ -32,10 +32,6 @@ from backend.utils import basic
 logger = logging.getLogger(__name__)
 
 
-class DeleteHPAError(Exception):
-    pass
-
-
 def get_mesos_current_metrics(instance):
     """获取当前监控值"""
     current_metrics = {}
@@ -150,7 +146,7 @@ def delete_mesos_hpa(request, project_id, cluster_id, namespace, namespace_id, n
     result = client.delete_hpa(namespace, name)
 
     if result.get("code") != 0:
-        raise DeleteHPAError(_("删除HPA资源失败"))
+        raise hpa_client.DeleteHPAError(_("删除HPA资源失败"))
 
     # 删除成功则更新状态
     InstanceConfig.objects.filter(namespace=namespace_id, category=MesosResourceName.hpa.value, name=name).update(
