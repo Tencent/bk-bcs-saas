@@ -183,7 +183,9 @@ def delete_k8s_hpa(request, project_id, cluster_id, namespace, namespace_id, nam
 
 def delete_hpa(request, project_id, cluster_id, ns_name, namespace_id, name):
     if request.project.kind == ProjectKind.K8S.value:
-        delete_k8s_hpa(request, project_id, cluster_id, ns_name, namespace_id, name)
+        cluster_auth = ClusterAuth(request.user.token.access_token, project_id, cluster_id)
+        client = hpa_client.HPA(cluster_auth)
+        client.delete_ignore_nonexistent(ns_name, namespace_id, name, request.user.username)
     else:
         delete_mesos_hpa(request, project_id, cluster_id, ns_name, namespace_id, name)
 
