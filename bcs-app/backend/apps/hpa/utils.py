@@ -25,6 +25,8 @@ from backend.apps.constants import ProjectKind
 from backend.apps.instance import constants as instance_constants
 from backend.apps.instance.models import InstanceConfig
 from backend.components.bcs import k8s, mesos
+from backend.resources.hpa import hpa as hpa_client
+from backend.resources.utils.auths import ClusterAuth
 from backend.utils import basic
 
 logger = logging.getLogger(__name__)
@@ -49,34 +51,6 @@ def get_mesos_current_metrics(instance):
     for metric in _current_metrics:
         name = metric["Name"]
         current = metric["Current"].get("averageUtilization", None)
-        current_metrics[name]["current"] = current
-
-    return current_metrics
-
-
-def get_metric_name_value(metric, field):
-    """获取metrics名称, 值"""
-    metric_type = metric["type"]
-    # CPU/MEM 等系统类型
-    if metric_type == "Resource":
-        name = metric["resource"]["name"]
-        metric_value = metric["resource"][field]["averageUtilization"]
-    else:
-        # Pod等自定义类型
-        name = metric[metric_type.lower()]["metric"]["name"]
-        metric_value = metric[metric_type.lower()][field].get("averageValue")
-    return name, metric_value
-
-
-def get_k8s_current_metrics(instance):
-    """获取当前监控值"""
-    current_metrics = {}
-    for metric in instance["spec"].get("metrics") or []:
-        name, target = get_metric_name_value(metric, field="target")
-        current_metrics[name] = {"target": target, "current": None}
-
-    for metric in instance["status"].get("currentMetrics") or []:
-        name, current = get_metric_name_value(metric, field="current")
         current_metrics[name]["current"] = current
 
     return current_metrics
@@ -145,72 +119,6 @@ def slz_mesos_hpa_info(hpa, project_code, cluster_name, cluster_env, cluster_id)
     return hpa_list
 
 
-def sort_by_normalize_transition_time(conditions):
-    """规整 lastTransitionTime 并排序
-    """
-
-    def normalize_condition(condition):
-        """格式时间 lambda 函数
-        """
-        condition["lastTransitionTime"] = basic.normalize_time(condition["lastTransitionTime"])
-        return condition
-
-    # lastTransitionTime 转换为本地时间
-    conditions = map(normalize_condition, conditions)
-
-    # 按时间倒序排序
-    conditions = sorted(conditions, key=lambda x: x["lastTransitionTime"], reverse=True)
-
-    return conditions
-
-
-def slz_k8s_hpa_info(hpa, project_code, cluster_name, cluster_env, cluster_id):
-    hpa_list = []
-    for _config in hpa:
-        labels = _config.get("metadata", {}).get("labels") or {}
-        # 获取模板集信息
-        template_id = labels.get(instance_constants.LABLE_TEMPLATE_ID)
-        # 资源来源
-        source_type = labels.get(instance_constants.SOURCE_TYPE_LABEL_KEY)
-        if not source_type:
-            source_type = "template" if template_id else "other"
-
-        annotations = _config.get("metadata", {}).get("annotations") or {}
-        namespace = _config["metadata"]["namespace"]
-        deployment_name = _config["spec"]["scaleTargetRef"]["name"]
-
-        deployment_link = f"{settings.DEVOPS_HOST}/console/bcs/{project_code}/app/deployments/{deployment_name}/{namespace}/deployment?cluster_id={cluster_id}"  # noqa
-        current_metrics = get_k8s_current_metrics(_config)
-
-        # k8s 注意需要调用 autoscaling/v2beta2 版本 api
-        conditions = _config["status"].get("conditions", [])
-        conditions = sort_by_normalize_transition_time(conditions)
-
-        data = {
-            "cluster_name": cluster_name,
-            "environment": cluster_env,
-            "cluster_id": cluster_id,
-            "name": _config["metadata"]["name"],
-            "namespace": namespace,
-            "max_replicas": _config["spec"]["maxReplicas"],
-            "min_replicas": _config["spec"]["minReplicas"],
-            "current_replicas": _config["status"]["currentReplicas"],
-            "current_metrics_display": get_current_metrics_display(current_metrics),
-            "current_metrics": current_metrics,
-            "conditions": conditions,
-            "source_type": application_constants.SOURCE_TYPE_MAP.get(source_type),
-            "creator": annotations.get(instance_constants.ANNOTATIONS_CREATOR, ""),
-            "create_time": annotations.get(instance_constants.ANNOTATIONS_CREATE_TIME, ""),
-            "deployment_name": deployment_name,
-            "deployment_link": deployment_link,
-        }
-
-        data["update_time"] = annotations.get(instance_constants.ANNOTATIONS_UPDATE_TIME, data["create_time"])
-        data["updator"] = annotations.get(instance_constants.ANNOTATIONS_UPDATOR, data["creator"])
-        hpa_list.append(data)
-    return hpa_list
-
-
 def get_cluster_hpa_list(request, project_id, cluster_id, cluster_env, cluster_name, namespace=None):
     """获取基础hpa列表"""
     access_token = request.user.token.access_token
@@ -223,9 +131,9 @@ def get_cluster_hpa_list(request, project_id, cluster_id, cluster_env, cluster_n
             hpa = client.list_hpa(namespace).get("data") or []
             hpa_list = slz_mesos_hpa_info(hpa, project_code, cluster_name, cluster_env, cluster_id)
         else:
-            client = k8s.K8SClient(access_token, project_id, cluster_id, env=cluster_env)
-            hpa = client.list_hpa(namespace).get("items") or []
-            hpa_list = slz_k8s_hpa_info(hpa, project_code, cluster_name, cluster_env, cluster_id)
+            cluster_auth = ClusterAuth(request.user.token.access_token, project_id, cluster_id)
+            client = hpa_client.HPA(cluster_auth, project_code, cluster_name, cluster_env)
+            hpa_list = client.list(is_format=True)
     except Exception as error:
         logger.error("get hpa list error, %s", error)
 
