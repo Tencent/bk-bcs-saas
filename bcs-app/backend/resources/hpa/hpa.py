@@ -17,13 +17,12 @@ from ..resource import ResourceClient
 from ..utils.auths import ClusterAuth
 from .format import HPAFormatter
 
-PREFERRED_CRD_API_VERSION = "autoscaling/v2beta2"
-
 
 class HPA(ResourceClient):
+    preferred_api_version = "autoscaling/v2beta2"
     kind = "HorizontalPodAutoscaler"
 
     def __init__(self, cluster_auth: ClusterAuth, project_code: str, cluster_name: str, cluster_env: str):
-        super().__init__(cluster_auth, PREFERRED_CRD_API_VERSION)
+        super().__init__(cluster_auth, self.preferred_api_version)
 
         self.formatter = HPAFormatter(cluster_auth.cluster_id, project_code, cluster_name, cluster_env)
