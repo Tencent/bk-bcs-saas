@@ -47,34 +47,6 @@ else:
     app.config_from_object('django.conf:settings')
 
 
-# 默认周期任务配置
-DEFAULT_BEAT_SCHEDULE = {
-    'bcs_perm_tasks': {
-        # 为防止出现资源注册权限中心失败的情况，每天定时同步一次
-        'task': 'backend.accounts.bcs_perm.tasks.sync_bcs_perm',
-        'schedule': crontab(hour=2),
-    },
-    # 每天三点进行一次强制同步
-    'helm_force_sync_repo_tasks': {
-        'task': 'backend.bcs_k8s.helm.tasks.force_sync_all_repo',
-        'schedule': crontab(hour=3),
-    },
-}
-
-
-def get_beat_schedule() -> Dict:
-    """获取 Celery beat 任务"""
-    try:
-        from .celery_app_ext import update_beat_schedule_hook  # type: ignore # noqa
-    except ImportError:
-        logger.debug('No "update_beat_schedule_hook" function was configured.')
-        return DEFAULT_BEAT_SCHEDULE
-    return update_beat_schedule_hook(DEFAULT_BEAT_SCHEDULE)
-
-
-app.conf.beat_schedule = get_beat_schedule()
-
-
 class CeleryConfig(AppConfig):
     name = "backend.celery_app"
     verbose_name = "celery_app"
