@@ -25,7 +25,8 @@ from backend.apps.constants import ProjectKind
 from backend.apps.instance import constants as instance_constants
 from backend.apps.instance.models import InstanceConfig
 from backend.components.bcs import k8s, mesos
-from backend.resources.hpa import hpa as hpa_client
+from backend.resources.hpa import exceptions as hpa_exceptions, hpa as hpa_client
+from backend.resources.hpa.format import HPAFormatter
 from backend.resources.utils.auths import ClusterAuth
 from backend.utils import basic
 
@@ -129,8 +130,8 @@ def get_cluster_hpa_list(request, project_id, cluster_id, cluster_env, cluster_n
         else:
             cluster_auth = ClusterAuth(request.user.token.access_token, project_id, cluster_id)
             client = hpa_client.HPA(cluster_auth)
-            client.set_formatter(project_code, cluster_name, cluster_env)
-            hpa_list = client.list()
+            formatter = HPAFormatter(cluster_id, project_code, cluster_name, cluster_env)
+            hpa_list = client.list(formatter=formatter)
     except Exception as error:
         logger.error("get hpa list error, %s", error)
 
@@ -158,7 +159,20 @@ def delete_hpa(request, project_id, cluster_id, ns_name, namespace_id, name):
     if request.project.kind == ProjectKind.K8S.value:
         cluster_auth = ClusterAuth(request.user.token.access_token, project_id, cluster_id)
         client = hpa_client.HPA(cluster_auth)
-        client.delete_ignore_nonexistent(ns_name, namespace_id, name, request.user.username)
+        try:
+            client.delete_ignore_nonexistent(name=name, namespace=ns_name)
+        except Exception as error:
+            logger.error("delete hpa error, namespace: %s, name: %s, error: %s", ns_name, name, error)
+            raise hpa_exceptions.DeleteHPAError(_("删除HPA资源失败"))
+
+        # 删除成功则更新状态
+        InstanceConfig.objects.filter(namespace=namespace_id, category=K8sResourceName.K8sHPA.value, name=name).update(
+            updator=request.user.username,
+            oper_type=application_constants.DELETE_INSTANCE,
+            deleted_time=timezone.now(),
+            is_deleted=True,
+            is_bcs_success=True,
+        )
     else:
         delete_mesos_hpa(request, project_id, cluster_id, ns_name, namespace_id, name)
 
