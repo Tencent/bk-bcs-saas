@@ -11,8 +11,17 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 def sync_bcs_perm():
     """同步资源到权限中心"""
     pass
+
+
+try:
+    from .tasks_ext import *  # noqa
+except ImportError as e:
+    logger.debug('Load extension failed: %s', e)

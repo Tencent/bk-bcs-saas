@@ -13,7 +13,6 @@
 #
 import logging
 
-from django.conf import settings
 from django.utils.deprecation import MiddlewareMixin
 
 from backend.utils.local import local
@@ -56,3 +55,9 @@ class RequestProvider(object):
         response['X-Request-Id'] = request.request_id
         local.release()
         return response
+
+
+try:
+    from .middlewares_ext import *  # noqa
+except ImportError as e:
+    logger.debug('Load extension failed: %s', e)
