@@ -178,6 +178,20 @@ if IS_USE_CELERY:
 
                 django.setup()
 
+        from celery.schedules import crontab
+
+        CELERY_BEAT_SCHEDULE = {
+            # 为防止出现资源注册权限中心失败的情况，每天定时同步一次
+            'bcs_perm_tasks': {
+                'task': 'backend.accounts.bcs_perm.tasks.sync_bcs_perm',
+                'schedule': crontab(minute=0, hour=2),
+            },
+            # 每天三点进行一次强制同步
+            'helm_force_sync_repo_tasks': {
+                'task': 'backend.bcs_k8s.helm.tasks.force_sync_all_repo',
+                'schedule': crontab(minute=0, hour=3),
+            },
+        }
     except Exception as error:
         print("use celery error: %s" % error)
 

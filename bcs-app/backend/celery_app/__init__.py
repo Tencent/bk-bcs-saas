@@ -11,28 +11,40 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
+import logging
+from typing import Dict, Optional
+
 from celery import Celery
 from celery.schedules import crontab
 from django.apps import AppConfig
 from django.conf import settings  # noqa
 
+logger = logging.getLogger(__name__)
+
+
+def get_celery_major_version() -> Optional[int]:
+    """获取 Celery 大版本号，比如 3.1.0 应该返回 3"""
+    from celery import __version__
+
+    try:
+        return int(__version__.split('.')[0])
+    except Exception as e:
+        logger.debug('Unable to get major version for celery, error: %s', e)
+        return None
+
+
 app = Celery('backend')
-app.config_from_object('django.conf:settings')
 
+major_ver = get_celery_major_version()
 
-# 周期任务配置
-app.conf.beat_schedule = {
-    'bcs_perm_tasks': {
-        # 调用task全路径
-        'task': 'backend.accounts.bcs_perm.tasks.sync_bcs_perm',
-        'schedule': crontab(hour=2),
-    },
-    # 每天三点进行一次强制同步
-    'helm_force_sync_repo_tasks': {
-        'task': 'backend.bcs_k8s.helm.tasks.force_sync_all_repo',
-        'schedule': crontab(hour=3),
-    },
-}
+if major_ver and major_ver > 3:
+    app.config_from_object('django.conf:settings', namespace='CELERY')
+    app.autodiscover_tasks()
+else:
+    # 目前需要同时兼容 Celery 3 与更高版本，celery 3 不需要指定 namespace 属性
+    # 详见：https://stackoverflow.com/questions/54834228/
+    # how-to-solve-the-a-celery-worker-configuration-with-keyword-argument-namespace
+    app.config_from_object('django.conf:settings')
 
 
 class CeleryConfig(AppConfig):
