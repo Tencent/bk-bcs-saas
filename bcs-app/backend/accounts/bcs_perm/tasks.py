@@ -23,5 +23,5 @@ def sync_bcs_perm():
 
 try:
     from .tasks_ext import *  # noqa
-except ImportError:
-    logger.debug('Load extension for bcs_perm.tasks_ext failed')
+except ImportError as e:
+    logger.debug('Load extension failed: %s', e)

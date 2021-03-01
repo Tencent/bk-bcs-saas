@@ -59,5 +59,5 @@ class RequestProvider(object):
 
 try:
     from .middlewares_ext import *  # noqa
-except ImportError:
-    logger.debug('Load extension for bcs_perm.middlewares_ext failed')
+except ImportError as e:
+    logger.debug('Load extension failed: %s', e)

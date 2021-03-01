@@ -262,5 +262,5 @@ def get_all_user():
 
 try:
     from .perm_ext import *  # noqa
-except ImportError:
-    logger.debug('Load extension for bcs_perm.perm_ext failed')
+except ImportError as e:
+    logger.debug('Load extension failed: %s', e)
