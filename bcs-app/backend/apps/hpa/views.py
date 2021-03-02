@@ -88,7 +88,7 @@ class HPA(viewsets.ViewSet, BaseAPI, ResourceOperate):
 
         try:
             utils.delete_hpa(request, project_id, cluster_id, ns_name, namespace_id, name)
-        except hpa_client.DeleteHPAError as error:
+        except hpa_exceptions.DeleteHPAError as error:
             message = "删除HPA:{}失败, [命名空间:{}], {}".format(name, ns_name, error)
             utils.activity_log(project_id, username, name, message, False)
             raise error_codes.APIError(message)

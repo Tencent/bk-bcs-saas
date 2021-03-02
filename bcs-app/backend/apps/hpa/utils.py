@@ -147,7 +147,7 @@ def delete_mesos_hpa(request, project_id, cluster_id, namespace, namespace_id, n
     result = client.delete_hpa(namespace, name)
 
     if result.get("code") != 0:
-        raise hpa_client.DeleteHPAError(_("删除HPA资源失败"))
+        raise hpa_exceptions.DeleteHPAError(_("删除HPA资源失败"))
 
     # 删除成功则更新状态
     InstanceConfig.objects.filter(namespace=namespace_id, category=MesosResourceName.hpa.value, name=name).update(
