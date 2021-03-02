@@ -238,7 +238,7 @@ class Scheduler(SchedulerBase):
         client = hpa_client.HPA(cluster_auth)
 
         name = spec["metadata"]["name"]
-        spec['apiVersion'] = client.PREFERRED_API_VERSION
+        spec['apiVersion'] = hpa_client.PREFERRED_API_VERSION
 
         try:
             result = client.update_or_create(spec, name, ns)
