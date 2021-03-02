@@ -39,17 +39,27 @@ class ResourceClient:
         else:
             self.api = self.dynamic_client.get_preferred_resource(self.kind)
 
-    def list(self, is_format: bool = True, **kwargs) -> Union[ResourceInstance, List, None]:
+    def list(
+        self, is_format: bool = True, formatter: Optional[ResourceDefaultFormatter] = None, **kwargs
+    ) -> Union[ResourceInstance, List, None]:
         resp = self.api.get_or_none(**kwargs)
-        if is_format:
-            return self.formatter.format_list(resp)
-        return resp
 
-    def get(self, name, is_format: bool = True, **kwargs) -> Union[ResourceInstance, Dict, None]:
+        if not is_format:
+            return resp
+        if formatter:
+            return formatter.format_list(resp)
+        return self.formatter.format_list(resp)
+
+    def get(
+        self, name, is_format: bool = True, formatter: Optional[ResourceDefaultFormatter] = None, **kwargs
+    ) -> Union[ResourceInstance, Dict, None]:
         resp = self.api.get_or_none(name=name, **kwargs)
-        if is_format:
-            return self.formatter.format(resp)
-        return resp
+
+        if not is_format:
+            return resp
+        if formatter:
+            return formatter.format(resp)
+        return self.formatter.format(resp)
 
     def update_or_create(
         self,
