@@ -11,7 +11,9 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-from backend.utils.func_controller import get_func_controller
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 def enabled_hpa_feature(cluster_id_list: list) -> bool:
@@ -37,3 +39,9 @@ def enable_helm_v3(cluster_id: str) -> bool:
 def enable_incremental_sync_chart_repo(project_id: str) -> bool:
     """是否开启增量同步仓库数据"""
     return False
+
+
+try:
+    from .whitelist_ext import *  # noqa
+except ImportError as e:
+    logger.debug('Load extension failed: %s', e)

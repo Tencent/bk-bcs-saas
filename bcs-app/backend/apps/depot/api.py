@@ -167,3 +167,9 @@ def create_project_path_by_api(access_token, project_id, project_code):
         logger.error(error_message)
         raise error_codes.ComponentError(error_message)
     return True
+
+
+try:
+    from .api_ext import *  # noqa
+except ImportError as e:
+    logger.debug('Load extension failed: %s', e)
