@@ -41,3 +41,8 @@ class PatchCustomObjectScaleSLZ(PatchCustomObjectSLZ):
         except ValueError:
             raise ValidationError(_(".spec.replicas 必须设置为一个非负整数"))
         return body
+
+
+class BatchDeleteCustomObjectsSLZ(serializers.Serializer):
+    namespace = serializers.CharField()
+    cobj_name_list = serializers.ListField(child=serializers.CharField(), min_length=1)
