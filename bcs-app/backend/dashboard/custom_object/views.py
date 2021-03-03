@@ -105,8 +105,16 @@ class CustomObjectViewSet(viewsets.ViewSet):
         cobj_client = get_cobj_client_by_crd(
             ClusterAuth(request.user.token.access_token, project_id, cluster_id), crd_name
         )
+
+        failed_list = []
         namespace = validated_data["namespace"]
         for name in validated_data["cobj_name_list"]:
-            cobj_client.delete_ignore_nonexistent(namespace=namespace, name=name)
+            try:
+                cobj_client.delete_ignore_nonexistent(namespace=namespace, name=name)
+            except Exception:
+                failed_list.append(name)
+
+        if failed_list:
+            raise error_codes.APIError(_("部分资源删除失败，失败列表: {}").format(",".join(failed_list)))
 
         return Response()
