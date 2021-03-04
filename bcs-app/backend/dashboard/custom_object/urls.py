@@ -17,7 +17,10 @@ from .views import CRDViewSet, CustomObjectViewSet
 
 urlpatterns = [
     url(r"^$", CRDViewSet.as_view({"get": "list"})),
-    url(r"^(?P<crd_name>[\w\.]+)/custom_objects/$", CustomObjectViewSet.as_view({"get": "list_custom_objects"})),
+    url(
+        r"^(?P<crd_name>[\w\.]+)/custom_objects/$",
+        CustomObjectViewSet.as_view({"get": "list_custom_objects", "delete": "batch_delete_custom_objects"}),
+    ),
     url(
         r"^(?P<crd_name>[\w\.]+)/custom_objects/(?P<name>[\w\-]+)/$",
         CustomObjectViewSet.as_view(

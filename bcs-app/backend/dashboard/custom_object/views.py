@@ -21,7 +21,7 @@ from backend.resources.utils.auths import ClusterAuth
 from backend.utils.error_codes import error_codes
 from backend.utils.renderers import BKAPIRenderer
 
-from .serializers import PatchCustomObjectScaleSLZ, PatchCustomObjectSLZ
+from .serializers import BatchDeleteCustomObjectsSLZ, PatchCustomObjectScaleSLZ, PatchCustomObjectSLZ
 from .utils import to_table_format
 
 
@@ -95,4 +95,26 @@ class CustomObjectViewSet(viewsets.ViewSet):
             ClusterAuth(request.user.token.access_token, project_id, cluster_id), crd_name
         )
         cobj_client.delete_ignore_nonexistent(namespace=request.query_params.get("namespace"), name=name)
+        return Response()
+
+    def batch_delete_custom_objects(self, request, project_id, cluster_id, crd_name):
+        serializer = BatchDeleteCustomObjectsSLZ(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        validated_data = serializer.validated_data
+        cobj_client = get_cobj_client_by_crd(
+            ClusterAuth(request.user.token.access_token, project_id, cluster_id), crd_name
+        )
+
+        failed_list = []
+        namespace = validated_data["namespace"]
+        for name in validated_data["cobj_name_list"]:
+            try:
+                cobj_client.delete_ignore_nonexistent(namespace=namespace, name=name)
+            except Exception:
+                failed_list.append(name)
+
+        if failed_list:
+            raise error_codes.APIError(_("部分资源删除失败，失败列表: {}").format(",".join(failed_list)))
+
         return Response()
