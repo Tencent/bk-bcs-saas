@@ -11,4 +11,20 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-MESOS_LB_ENV_CONFIG = []
+import logging
+
+logger = logging.getLogger(__name__)
+
+
+def get_svc_extended_routes(project_id):
+    return {}
+
+
+def delete_svc_extended_routes(request, project_id, cluster_id, namespace, svc_name):
+    pass
+
+
+try:
+    from .ext_routes_ext import *  # noqa
+except ImportError as e:
+    logger.debug('Load extension failed: %s', e)

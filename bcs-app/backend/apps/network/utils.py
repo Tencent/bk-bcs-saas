@@ -30,6 +30,7 @@ from backend.apps.network.constants import K8S_NGINX_INGRESS_CONTROLLER_CHART_VA
 from backend.apps.network.models import MesosLoadBlance
 from backend.components import paas_cc
 from backend.components.bcs import mesos
+from backend.utils.basic import getitems
 from backend.utils.errcodes import ErrorCode
 from backend.utils.error_codes import error_codes
 
@@ -297,3 +298,38 @@ def get_cluster_namespaces(access_token, project_id, cluster_id):
     if resp.get('code') != ErrorCode.NoError:
         raise error_codes.APIError(_("获取集群下命名空间信息异常，{}").format(resp.get('message')))
     return resp['data'].get('results') or []
+
+
+def get_svc_access_info(manifest, cluster_id, extended_routes):
+    """
+    {
+        'external': {
+            'NodePort': ['node_ip:{node_port}'],
+        },
+        'internal': {
+            'ClusterIP': [':{port} {Protocol}']
+        }
+    }
+    """
+    access_info = {'external': {}, 'internal': {}}
+    svc_type = getitems(manifest, ['spec', 'type'])
+    ports = getitems(manifest, ['spec', 'ports'])
+
+    if not ports:
+        return access_info
+
+    if svc_type == 'ClusterIP':
+        cluster_ip = getitems(manifest, ['spec', 'clusterIP'])
+        if not cluster_ip or cluster_ip == 'None':
+            cluster_ip = '--'
+        access_info['internal'] = {'ClusterIP': [f"{cluster_ip}:{p['port']} {p['protocol']}" for p in ports]}
+    elif svc_type == 'NodePort':
+        access_info['external'] = {'NodePort': [f":{p['nodePort']}" for p in ports]}
+
+    return access_info
+
+
+try:
+    from .utils_ext import get_svc_access_info  # noqa
+except ImportError as e:
+    logger.debug('Load extension failed: %s', e)
