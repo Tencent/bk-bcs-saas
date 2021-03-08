@@ -24,7 +24,7 @@ from rest_framework.exceptions import ValidationError
 
 from backend.activity_log import client
 from backend.activity_log.client import get_log_client_by_activity_log_id
-from backend.apps.whitelist_bk import enable_helm_v3
+from backend.apps.whitelist import enable_helm_v3
 from backend.bcs_k8s import utils as bcs_helm_utils
 from backend.bcs_k8s.app.utils import get_cc_app_id
 from backend.bcs_k8s.diff.revision import AppRevisionDiffer

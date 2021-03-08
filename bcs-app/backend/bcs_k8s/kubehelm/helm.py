@@ -31,7 +31,7 @@ from dataclasses import asdict
 from django.conf import settings
 from django.template.loader import render_to_string
 
-from backend.apps.whitelist_bk import enable_helm_v3
+from backend.apps.whitelist import enable_helm_v3
 
 from .exceptions import HelmError, HelmExecutionError
 

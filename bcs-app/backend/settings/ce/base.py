@@ -249,3 +249,7 @@ BK_IAM_SYSTEM_ID = APP_ID
 BK_IAM_MIGRATION_APP_NAME = "bcs_iam_migration"
 BK_IAM_RESOURCE_API_HOST = BK_PAAS_INNER_HOST or "http://paas.service.consul"
 BK_IAM_INNER_HOST = BK_IAM_HOST
+
+# 数据平台清洗URL
+_URI_DATA_CLEAN = '%2Fs%2Fdata%2Fdataset%2Finfo%2F{data_id}%2F%23data_clean'
+URI_DATA_CLEAN = f'{BK_PAAS_HOST}?app=data&url=' + _URI_DATA_CLEAN

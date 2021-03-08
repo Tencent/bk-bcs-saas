@@ -32,7 +32,7 @@ from backend.apps.depot.api import get_bk_jfrog_auth, get_jfrog_account
 from backend.apps.instance.constants import K8S_IMAGE_SECRET_PRFIX, MESOS_IMAGE_SECRET, OLD_MESOS_IMAGE_SECRET
 from backend.apps.utils import get_cluster_env_name
 from backend.apps.variable.models import NameSpaceVariable
-from backend.apps.whitelist_bk import enabled_sync_namespace
+from backend.apps.whitelist import enabled_sync_namespace
 from backend.components import paas_cc
 from backend.components.bcs.k8s import K8SClient
 from backend.components.bcs.mesos import MesosClient

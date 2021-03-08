@@ -19,7 +19,7 @@ from celery import shared_task
 from django.utils import timezone
 from natsort import natsorted
 
-from backend.apps.whitelist_bk import enable_incremental_sync_chart_repo
+from backend.apps.whitelist import enable_incremental_sync_chart_repo
 from backend.bcs_k8s.helm.utils.repo_bk import get_incremental_charts_and_hash_value
 from backend.utils.basic import normalize_time
 
