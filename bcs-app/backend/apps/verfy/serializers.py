@@ -14,13 +14,13 @@
 import logging
 
 from django.conf import settings
+from django.utils.translation import ugettext_lazy as _
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
-from django.utils.translation import ugettext_lazy as _
 
 from backend.accounts import bcs_perm
-from backend.apps.verfy import constants
 from backend.apps.constants import verify_resource_exist
+from backend.apps.verfy import constants
 
 logger = logging.getLogger(__name__)
 
@@ -46,8 +46,8 @@ class PermVerifySLZ(serializers.Serializer):
 
 
 class PermMultiVerifySLZ(serializers.Serializer):
-    """批量接口
-    """
+    """批量接口"""
+
     class ResourceListSLZ(serializers.Serializer):
         policy_code = serializers.ChoiceField(choices=bcs_perm.PermissionMeta.POLICY_LIST)
         resource_type = serializers.ChoiceField(choices=bcs_perm.PERMS_DICT)

@@ -11,12 +11,12 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-from django.db import models
 import jsonschema
+from django.db import models
 from rest_framework.exceptions import PermissionDenied
 
-from .providers import provider_map
 from .exceptions import ObjectAreadyExist
+from .providers import provider_map
 
 
 class TokenManager(models.Manager):
@@ -40,7 +40,7 @@ class TokenManager(models.Manager):
             username=user.username,
             config=configuration,
             description=description,
-            maintainers=maintainers
+            maintainers=maintainers,
         )
         return token
 

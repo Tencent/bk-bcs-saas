@@ -8,7 +8,7 @@
     border: 1px solid $borderColor;
 
     tr {
-        height: 100px;
+        height: 80px;
     }
 
     td {
@@ -91,6 +91,26 @@
             opacity: 1;
             color: #fff;
         }
+    }
+}
+
+.biz-more-btn {
+    padding: 15px;
+    text-align: center;
+    background: #fff;
+    margin: 10px 20px;
+    border: 1px solid #eee;
+    cursor: pointer;
+    border-radius: 2px;
+
+    &.actived {
+        cursor: default;
+        border-color: #eee !important;
+    }
+
+    &:hover {
+        border: 1px solid #3c96ff;
+        color: #3c96ff;
     }
 }
 

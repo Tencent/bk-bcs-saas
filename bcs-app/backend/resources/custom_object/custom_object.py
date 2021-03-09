@@ -11,81 +11,47 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-from kubernetes import client
+from typing import Optional
+
+from django.utils.translation import ugettext_lazy as _
+from kubernetes.dynamic.resource import ResourceInstance
 
 from backend.utils.error_codes import error_codes
 
-from ..client import APIInstance
-from ..mixins import CustomObjectsAPIClassMixins
+from ..resource import ResourceClient
+from ..utils.auths import ClusterAuth
 from .crd import CustomResourceDefinition
-from .custom_objects_api import CustomObjectsApi
+from .format import CustomObjectFormatter
 
 
-def use_json_patch(crd_name):
-    if crd_name in ["gamestatefulsets.tkex.tencent.com"]:
-        return True
-    return False
+class CustomObject(ResourceClient):
+    formatter = CustomObjectFormatter()
+
+    def __init__(self, cluster_auth: ClusterAuth, kind: str, api_version: Optional[str] = None):
+        self.kind = kind
+        super().__init__(cluster_auth, api_version)
 
 
-class CustomObject(CustomObjectsAPIClassMixins, APIInstance):
-    def __init__(self, access_token, project_id, cluster_id, crd_name):
-        crd_client = CustomResourceDefinition(access_token, project_id, cluster_id)
-        crd = crd_client.get_custom_resource_definition(crd_name)
-        self.crd_name = crd_name
-        self.api_group = crd.spec.group
-        self.api_version = crd.spec.version
-        self.scope = crd.spec.scope
-        self.api_plural = crd.spec.names.plural
+def _get_cobj_api_version(crd: ResourceInstance) -> str:
+    # https://kubernetes.io/docs/tasks/extend-kubernetes/custom-resources/custom-resource-definition-versioning/#specify-multiple-versions
+    group = crd.spec.group
+    versions = crd.spec.versions
 
-        super().__init__(access_token, project_id, cluster_id)
+    if versions:
+        for v in versions:
+            if v.served:
+                return f"{group}/{v.name}"
+        return f"{group}/{versions[0].name}"
 
-        if use_json_patch(self.crd_name):
-            self.api_instance = CustomObjectsApi(self.api_client)
+    if crd.spec.version:
+        return f"{group}/{crd.spec.version}"
 
-    def list_namespaced_custom_object(self, namespace):
-        return self.api_instance.list_namespaced_custom_object(
-            self.api_group, self.api_version, namespace, self.api_plural
-        )
+    return f"{group}/v1alpha1"
 
-    def list_cluster_custom_object(self):
-        return self.api_instance.list_cluster_custom_object(self.api_group, self.api_version, self.api_plural)
 
-    def get_cluster_custom_object(self, name):
-        return self.api_instance.get_cluster_custom_object(self.api_group, self.api_version, self.api_plural, name)
-
-    def get_namespaced_custom_object(self, namespace, name):
-        return self.api_instance.get_namespaced_custom_object(
-            self.api_group, self.api_version, namespace, self.api_plural, name
-        )
-
-    def patch_cluster_custom_object(self, name, body):
-        try:
-            return self.api_instance.patch_cluster_custom_object(
-                self.api_group, self.api_version, self.api_plural, name, body
-            )
-        except Exception as e:
-            raise error_codes.APIError(f"patch_cluster_custom_object error: {e}")
-
-    def patch_namespaced_custom_object(self, namespace, name, body):
-        try:
-            return self.api_instance.patch_namespaced_custom_object(
-                self.api_group, self.api_version, namespace, self.api_plural, name, body
-            )
-        except Exception as e:
-            raise error_codes.APIError(f"patch_namespaced_custom_object error: {e}")
-
-    def delete_cluster_custom_object(self, name):
-        try:
-            return self.api_instance.delete_cluster_custom_object(
-                self.api_group, self.api_version, self.api_plural, name, body=client.V1DeleteOptions()
-            )
-        except Exception as e:
-            raise error_codes.APIError(f"delete_cluster_custom_object error: {e}")
-
-    def delete_namespaced_custom_object(self, namespace, name):
-        try:
-            return self.api_instance.delete_namespaced_custom_object(
-                self.api_group, self.api_version, namespace, self.api_plural, name, body=client.V1DeleteOptions()
-            )
-        except Exception as e:
-            raise error_codes.APIError(f"delete_namespaced_custom_object error: {e}")
+def get_cobj_client_by_crd(cluster_auth: ClusterAuth, crd_name: str) -> CustomObject:
+    crd_client = CustomResourceDefinition(cluster_auth)
+    crd = crd_client.get(name=crd_name, is_format=False)
+    if crd:
+        return CustomObject(cluster_auth, kind=crd.spec.names.kind, api_version=_get_cobj_api_version(crd))
+    raise error_codes.ResNotFoundError(_("集群({})中未注册自定义资源({})").format(cluster_auth.cluster_id, crd_name))

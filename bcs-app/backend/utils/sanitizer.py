@@ -28,13 +28,46 @@
 import copy
 
 from bleach.encoding import force_unicode
-from bleach.sanitizer import Cleaner, BleachSanitizerFilter
+from bleach.sanitizer import BleachSanitizerFilter, Cleaner
 
-allow_tags = ['a', 'img', 'br', 'strong', 'b', 'code', 'pre',
-              'p', 'div', 'em', 'span', 'h1', 'h2', 'h3', 'h4',
-              'h5', 'h6', 'blockquote', 'ul', 'ol', 'tr', 'th', 'td',
-              'hr', 'li', 'u', 'embed', 's', 'table', 'thead', 'tbody',
-              'caption', 'small', 'q', 'sup', 'sub']
+allow_tags = [
+    'a',
+    'img',
+    'br',
+    'strong',
+    'b',
+    'code',
+    'pre',
+    'p',
+    'div',
+    'em',
+    'span',
+    'h1',
+    'h2',
+    'h3',
+    'h4',
+    'h5',
+    'h6',
+    'blockquote',
+    'ul',
+    'ol',
+    'tr',
+    'th',
+    'td',
+    'hr',
+    'li',
+    'u',
+    'embed',
+    's',
+    'table',
+    'thead',
+    'tbody',
+    'caption',
+    'small',
+    'q',
+    'sup',
+    'sub',
+]
 common_attrs = ["id", "style", "class", "name"]
 nonend_tags = ["img", "hr", "br", "embed"]
 tags_own_attrs = {
@@ -87,12 +120,10 @@ class BkCleaner(Cleaner):
         dom = self.parser.parseFragment(text)
         filtered = BkBleachSanitizerFilter(
             source=self.walker(dom),
-
             # Bleach-sanitizer-specific things
             attributes=self.attributes,
             strip_disallowed_elements=self.strip,
             strip_html_comments=self.strip_comments,
-
             # html5lib-sanitizer things
             allowed_elements=self.tags,
             allowed_css_properties=self.styles,

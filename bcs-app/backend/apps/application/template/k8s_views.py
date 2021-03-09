@@ -13,19 +13,16 @@
 #
 
 from backend.apps.application import constants
-from backend.apps.configuration.models import (
-    VersionedEntity
-)
+from backend.apps.configuration.models import VersionedEntity
 
 CATEGORY_MAP = constants.CATEGORY_MAP
 
 
 class K8STemplateSet(object):
-
     def get_template(self, tmpl_set_id_list, category):
-        version_info = VersionedEntity.objects.filter(
-            template_id__in=tmpl_set_id_list, is_deleted=False
-        ).order_by("-updated", "-created")
+        version_info = VersionedEntity.objects.filter(template_id__in=tmpl_set_id_list, is_deleted=False).order_by(
+            "-updated", "-created"
+        )
         # 存储模板
         tmpl = {}
         # 存储最新版本
@@ -47,6 +44,7 @@ class K8STemplateSet(object):
 
                 if tmpl_id_list:
                     tmpl[info.template_id] = tmpl[info.template_id].union(set(tmpl_id_list))
-                    newest_version_tmpl[info.template_id] = \
-                        newest_version_tmpl[info.template_id].union(set(tmpl_id_list))
+                    newest_version_tmpl[info.template_id] = newest_version_tmpl[info.template_id].union(
+                        set(tmpl_id_list)
+                    )
         return tmpl, newest_version_tmpl

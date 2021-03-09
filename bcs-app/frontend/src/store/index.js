@@ -72,7 +72,9 @@ const store = new Vuex.Store({
         isEn: lang === 'en-US',
 
         // 是否允许路由跳转
-        allowRouterChange: true
+        allowRouterChange: true,
+
+        crdInstanceList: []
     },
     // 公共 getters
     getters: {
@@ -159,6 +161,15 @@ const store = new Vuex.Store({
          */
         forceUpdateDevOpsMenuList (state, list) {
             state.sideMenu.devOpsMenuList.splice(0, state.sideMenu.devOpsMenuList.length, ...list)
+        },
+
+        /**
+         * 更新crdInstanceList
+         * @param {Object} state store state
+         * @param {Object} data data
+         */
+        updateCrdInstanceList (state, data) {
+            state.crdInstanceList = data
         }
     },
     actions: {
@@ -369,6 +380,58 @@ const store = new Vuex.Store({
         getProject (context, params, config = {}) {
             const projectId = params.projectId
             return http.get(`${DEVOPS_BCS_API_URL}/api/projects/${projectId}/`, params, config)
+        },
+
+        /**
+         * 项目启用日志采集功能
+         *
+         * @param {Object} context store 上下文对象
+         * @param {string} projectId 项目 id
+         * @param {Object} config 请求的配置
+         *
+         * @return {Promise} promise 对象
+         */
+        enableLogPlans (context, projectId, config = {}) {
+            return http.post(
+                `${DEVOPS_BCS_API_URL}/api/datalog/projects/${projectId}/log_plans/`,
+                {},
+                config
+            )
+        },
+
+        /**
+         * 获取项目日志采集信息
+         *
+         * @param {Object} context store 上下文对象
+         * @param {string} projectId 项目 id
+         * @param {Object} config 请求的配置
+         *
+         * @return {Promise} promise 对象
+         */
+        getLogPlans (context, projectId, config = {}) {
+            return http.get(
+                `${DEVOPS_BCS_API_URL}/api/datalog/projects/${projectId}/log_plans/`,
+                {},
+                config
+            )
+        },
+
+        /**
+         * 查询crd列表 (新)
+         *
+         * @param {Object} context store 上下文对象
+         * @param {Object} projectId, clusterId, crdKind
+         * @param {Object} config 请求的配置
+         *
+         * @return {Promise} promise 对象
+         */
+        getBcsCrdsList (context, { projectId, params = {} }, config = {}) {
+            context.commit('updateCrdInstanceList', [])
+            const url = `${DEVOPS_BCS_API_URL}/api/bcs_crd/projects/${projectId}/crds/?${json2Query(params)}`
+            return http.get(url, {}, config).then(res => {
+                context.commit('updateCrdInstanceList', res.data)
+                return res
+            })
         }
     }
 })

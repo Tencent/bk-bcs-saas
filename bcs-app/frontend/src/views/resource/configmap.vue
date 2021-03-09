@@ -82,7 +82,7 @@
                                             </div>
                                         </td>
                                         <td>
-                                            <a href="javascript: void(0)" class="bk-text-button biz-table-title biz-resource-title biz-text-wrapper" @click.stop.prevent="showConfigmapDetail(configmap, index)">{{configmap.resourceName}}</a>
+                                            <a href="javascript: void(0)" class="bk-text-button biz-resource-title biz-text-wrapper" @click.stop.prevent="showConfigmapDetail(configmap, index)">{{configmap.resourceName}}</a>
                                         </td>
                                         <td>
                                             <bk-tooltip :content="configmap.cluster_id || '--'" placement="top">

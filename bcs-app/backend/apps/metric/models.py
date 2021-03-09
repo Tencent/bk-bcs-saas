@@ -14,11 +14,10 @@
 import datetime
 import json
 import logging
-from urllib import parse
 
+from django.conf import settings
 from django.db import models
 
-from backend.apps.metric import constants
 from backend.utils.models import BaseModel
 
 logger = logging.getLogger(__name__)
@@ -26,21 +25,14 @@ logger = logging.getLogger(__name__)
 
 class MetricManager(models.Manager):
     def get_queryset(self):
-        """过滤软删除的记录
-        """
+        """过滤软删除的记录"""
         return super().get_queryset().filter(is_deleted=False)
 
 
 class Metric(BaseModel):
-    method_choice = (
-        ('GET', "GET"),
-        ('POST', "POST")
-    )
+    method_choice = (('GET', "GET"), ('POST', "POST"))
 
-    STATUS = (
-        ('pause', "pause"),
-        ('resume', "resume")
-    )
+    STATUS = (('pause', "pause"), ('resume', "resume"))
 
     project_id = models.CharField(u"项目ID", max_length=32)
     name = models.CharField(u"名称", max_length=128)
@@ -88,14 +80,13 @@ class Metric(BaseModel):
         super(Metric, self).save(**kwargs)
 
     def update_status(self, status):
-        """更新记录状态
-        """
+        """更新记录状态"""
         self.status = status
         super(Metric, self).save()
 
     def to_json(self):
         if self.data_id:
-            uri_data_clean = constants.URI_DATA_CLEAN.format(data_id=self.data_id)
+            uri_data_clean = settings.URI_DATA_CLEAN.format(data_id=self.data_id)
         else:
             uri_data_clean = ''
 
@@ -112,7 +103,7 @@ class Metric(BaseModel):
             'metric_type': self.metric_type,
             'const_labels': self.get_const_labels,
             'timeout': self.timeout,
-            'status': self.status
+            'status': self.status,
         }
 
         if self.http_headers:
@@ -133,8 +124,7 @@ class Metric(BaseModel):
         return data
 
     def to_api_json(self):
-        """转换为API调用的json
-        """
+        """转换为API调用的json"""
         _json = self.to_json()
         if self.http_method == 'GET':
             parameters = _json['http_body']

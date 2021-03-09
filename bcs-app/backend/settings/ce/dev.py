@@ -26,7 +26,9 @@ DATABASES["default"] = {
     "PASSWORD": os.environ.get("DB_PASSWORD", ""),
     "HOST": os.environ.get("DB_HOST", "127.0.0.1"),
     "PORT": "3306",
-    "OPTIONS": {"init_command": "SET default_storage_engine=INNODB",},
+    "OPTIONS": {
+        "init_command": "SET default_storage_engine=INNODB",
+    },
 }
 
 INSTALLED_APPS += [
@@ -83,7 +85,9 @@ RDS_HANDER_SETTINGS = {
 CACHES["default"] = {
     "BACKEND": "django_redis.cache.RedisCache",
     "LOCATION": REDIS_URL,
-    "OPTIONS": {"CLIENT_CLASS": "django_redis.client.DefaultClient",},
+    "OPTIONS": {
+        "CLIENT_CLASS": "django_redis.client.DefaultClient",
+    },
 }
 
 # BCS CC PATH

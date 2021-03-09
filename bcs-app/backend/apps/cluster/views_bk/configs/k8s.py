@@ -22,10 +22,10 @@ from urllib.parse import urlparse
 
 from django.conf import settings
 
-from backend.apps.cluster.utils import gen_hostname
 from backend.apps.cluster import constants
-from backend.utils.error_codes import error_codes
+from backend.apps.cluster.utils import gen_hostname
 from backend.bcs_k8s.bke_client import BCSClusterClient
+from backend.utils.error_codes import error_codes
 
 logger = logging.getLogger(__name__)
 
@@ -33,7 +33,6 @@ BCS_SERVER_HOST = settings.BCS_SERVER_HOST['prod']
 
 
 class ClusterConfig(object):
-
     def __init__(self, base_cluster_config, area_info, cluster_name=""):
         self.k8s_config = base_cluster_config
         self.area_config = json.loads(area_info.get('configuration', '{}'))
@@ -82,32 +81,19 @@ class ClusterConfig(object):
     def _get_node_vars(self, master_legal_host):
         zk_urls = ','.join(self.area_config["zk_hosts"])
         # 为防止key对应内容的变动，单独更新key
-        self.k8s_config['kubernetes.node'].update({
-            'legal_hosts': master_legal_host,
-            'is_kube_master': True,
-            'standalone_kubelet': True
-        })
-        self.k8s_config['kubernetes.master'].update({
-            'legal_hosts': master_legal_host
-        })
-        self.k8s_config['docker'].update({
-            'legal_hosts': master_legal_host
-        })
-        self.k8s_config['bcs.driver'].update({
-            'legal_hosts': master_legal_host,
-            'zk_urls': zk_urls
-        })
-        self.k8s_config['bcs.datawatch'].update({
-            'legal_hosts': master_legal_host,
-            'zk_urls': zk_urls
-        })
+        self.k8s_config['kubernetes.node'].update(
+            {'legal_hosts': master_legal_host, 'is_kube_master': True, 'standalone_kubelet': True}
+        )
+        self.k8s_config['kubernetes.master'].update({'legal_hosts': master_legal_host})
+        self.k8s_config['docker'].update({'legal_hosts': master_legal_host})
+        self.k8s_config['bcs.driver'].update({'legal_hosts': master_legal_host, 'zk_urls': zk_urls})
+        self.k8s_config['bcs.datawatch'].update({'legal_hosts': master_legal_host, 'zk_urls': zk_urls})
 
     def _get_etcd_vars(self, etcd_legal_host):
         self.k8s_config['etcd'].update({'legal_hosts': etcd_legal_host})
 
     def _add_kube_agent_config(self, cluster_id, params):
-        """针对纳管集群，需要在创建集群时，传递kube client组件需要的配置信息
-        """
+        """针对纳管集群，需要在创建集群时，传递kube client组件需要的配置信息"""
         if params.get("cluster_state") == constants.ClusterState.BCSNew.value:
             return
         # get bcs agent info
@@ -115,7 +101,7 @@ class ClusterConfig(object):
             host=BCS_SERVER_HOST,
             access_token=params["access_token"],
             project_id=params["project_id"],
-            cluster_id=cluster_id
+            cluster_id=cluster_id,
         )
         bcs_cluster_info = bcs_client.get_or_register_bcs_cluster()
         if not bcs_cluster_info.get("result"):
@@ -125,11 +111,13 @@ class ClusterConfig(object):
         if not bcs_cluster_data:
             raise error_codes.APIError("bcs agent api response is null")
 
-        self.k8s_config["bcs.kube_agent"].update({
-            "register_token": bcs_cluster_data["token"],
-            "bcs_api_server": BCS_SERVER_HOST,
-            "register_cluster_id": bcs_cluster_data["bcs_cluster_id"]
-        })
+        self.k8s_config["bcs.kube_agent"].update(
+            {
+                "register_token": bcs_cluster_data["token"],
+                "bcs_api_server": BCS_SERVER_HOST,
+                "register_cluster_id": bcs_cluster_data["bcs_cluster_id"],
+            }
+        )
 
     def get_request_config(self, cluster_id, master_ips, need_nat=True, **kwargs):
         # 获取master和etcd ip列表
@@ -147,7 +135,6 @@ class ClusterConfig(object):
 
 
 class NodeConfig(object):
-
     def __init__(self, snapshot_config, op_type):
         self.k8s_config = snapshot_config
         self.op_type = op_type
@@ -168,41 +155,28 @@ class NodeConfig(object):
         return clusters, masters, node_legals
 
     def _get_common_vars(self, cluster_id, masters, clusters):
-        self.k8s_config['common'].update(
-            {
-                'cluster_id': cluster_id,
-                'cluster_masters': masters,
-                'clusters': clusters
-            }
-        )
+        self.k8s_config['common'].update({'cluster_id': cluster_id, 'cluster_masters': masters, 'clusters': clusters})
 
     def _get_network_vars(self, node_legals, kubeapps_master_legal_host):
-        self.k8s_config['network_plugin'].update({
-            'legal_hosts': list(node_legals.keys()),
-            'plugin_type': 'flannel'
-        })
+        self.k8s_config['network_plugin'].update({'legal_hosts': list(node_legals.keys()), 'plugin_type': 'flannel'})
         if self.op_type == constants.OpType.ADD_NODE.value:
             self.k8s_config['network_plugin']['legal_hosts'] = kubeapps_master_legal_host
             self.k8s_config['kubeapps.network_plugin'] = self.k8s_config['network_plugin']
-            self.k8s_config['dns'].update({
-                'legal_hosts': kubeapps_master_legal_host,
-                'dns_type': 'kubedns'
-            })
+            self.k8s_config['dns'].update({'legal_hosts': kubeapps_master_legal_host, 'dns_type': 'kubedns'})
 
     def _get_node_vars(self, node_legals, kubeapps_master_legal_host, access_token, project_id, cluster_id):
         legal_hosts = list(node_legals.keys())
-        self.k8s_config['kubernetes.node'].update({
-            'legal_hosts': legal_hosts,
-            'is_kube_master': False,
-            'standalone_kubelet': False
-        })
+        self.k8s_config['kubernetes.node'].update(
+            {'legal_hosts': legal_hosts, 'is_kube_master': False, 'standalone_kubelet': False}
+        )
         self.k8s_config['docker'].update({'legal_hosts': legal_hosts})
         self.k8s_config['agent.cadvisorbeat'].update({'legal_hosts': legal_hosts})
         self.k8s_config['agent.logbeat'].update({'legal_hosts': legal_hosts})
         if self.op_type == constants.OpType.ADD_NODE.value:
             # get bcs agent info
             bcs_client = BCSClusterClient(
-                host=BCS_SERVER_HOST, access_token=access_token, project_id=project_id, cluster_id=cluster_id)
+                host=BCS_SERVER_HOST, access_token=access_token, project_id=project_id, cluster_id=cluster_id
+            )
             bcs_cluster_info = bcs_client.get_or_register_bcs_cluster()
             if not bcs_cluster_info.get('result'):
                 err_msg = bcs_cluster_info.get('message', 'request bcs agent api error')
@@ -211,41 +185,37 @@ class NodeConfig(object):
             if not bcs_cluster_data:
                 raise error_codes.APIError('bcs agent api response is null')
 
-            self.k8s_config['bcs.kube_agent'].update({
-                'legal_hosts': kubeapps_master_legal_host,
-                'register_token': bcs_cluster_data['token'],
-                'bcs_api_server': BCS_SERVER_HOST,
-                'register_cluster_id': bcs_cluster_data['bcs_cluster_id']
-            })
+            self.k8s_config['bcs.kube_agent'].update(
+                {
+                    'legal_hosts': kubeapps_master_legal_host,
+                    'register_token': bcs_cluster_data['token'],
+                    'bcs_api_server': BCS_SERVER_HOST,
+                    'register_cluster_id': bcs_cluster_data['bcs_cluster_id'],
+                }
+            )
             self.k8s_config['kubeapps.kube_agent'].update({'legal_hosts': kubeapps_master_legal_host})
         # 根据操作
         if self.op_type == constants.OpType.DELETE_NODE.value:
-            self.k8s_config['kubeapps.node'].update({
-                'legal_hosts': kubeapps_master_legal_host,
-                'nodes': node_legals
-            })
+            self.k8s_config['kubeapps.node'].update({'legal_hosts': kubeapps_master_legal_host, 'nodes': node_legals})
 
     def _get_secrets_vars(self):
-        self.k8s_config['secrets.kubernetes'].update({
-            'legal_hosts': []
-        })
+        self.k8s_config['secrets.kubernetes'].update({'legal_hosts': []})
 
     def _get_prometheus(self, kubeapps_master_legal_host):
-        """获取prometheus
-        """
-        self.k8s_config.update({
-            'kubeapps.prometheus': {
-                'legal_hosts': kubeapps_master_legal_host
-            },
-            'agent.prometheus': {
-                'legal_hosts': kubeapps_master_legal_host
+        """获取prometheus"""
+        self.k8s_config.update(
+            {
+                'kubeapps.prometheus': {'legal_hosts': kubeapps_master_legal_host},
+                'agent.prometheus': {'legal_hosts': kubeapps_master_legal_host},
             }
-        })
+        )
 
     def get_request_config(self, access_token, project_id, cluster_id, master_ip_list, ip_list):
         # 获取master、node
         clusters, masters, node_legals = self._get_clusters_vars(cluster_id, ip_list, master_ip_list)
-        kubeapps_master_legal_host = [gen_hostname(master_ip_list[0], cluster_id, True), ]
+        kubeapps_master_legal_host = [
+            gen_hostname(master_ip_list[0], cluster_id, True),
+        ]
         self._get_common_vars(cluster_id, masters, clusters)
         self._get_node_vars(node_legals, kubeapps_master_legal_host, access_token, project_id, cluster_id)
         self._get_network_vars(node_legals, kubeapps_master_legal_host)

@@ -20,6 +20,7 @@ class WorkloadTypes(ChoicesEnum):
     DaemonSet = "DaemonSet"
     Job = "Job"
     GameStatefulSet = "GameStatefulSet"
+    GameDeployment = "GameDeployment"
 
     _choices_labels = (
         (Deployment, "Deployment"),
@@ -27,6 +28,7 @@ class WorkloadTypes(ChoicesEnum):
         (DaemonSet, "DaemonSet"),
         (Job, "Job"),
         (GameStatefulSet, "GameStatefulSet"),
+        (GameDeployment, "GameDeployment"),
     )
 
 
@@ -65,3 +67,17 @@ class K8sServiceTypes(ChoicesEnum):
     LoadBalancer = "LoadBalancer"
 
     _choices_labels = ((ClusterIP, "ClusterIP"), (NodePort, "NodePort"), (LoadBalancer, "LoadBalancer"))
+
+
+class PatchType(ChoicesEnum):
+    JSON_PATCH_JSON = "application/json-patch+json"
+    MERGE_PATCH_JSON = "application/merge-patch+json"
+    STRATEGIC_MERGE_PATCH_JSON = "application/strategic-merge-patch+json"
+    APPLY_PATCH_YAML = "application/apply-patch+yaml"
+
+    _choices_labels = (
+        (JSON_PATCH_JSON, "application/json-patch+json"),
+        (MERGE_PATCH_JSON, "application/merge-patch+json"),
+        (STRATEGIC_MERGE_PATCH_JSON, "application/strategic-merge-patch+json"),
+        (APPLY_PATCH_YAML, "application/apply-patch+yaml"),
+    )

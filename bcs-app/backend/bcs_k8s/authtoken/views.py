@@ -11,21 +11,21 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-import logging
 import base64
-import urllib
 import json
-import yaml
+import logging
+import urllib
 
-from rest_framework import viewsets
-from rest_framework.response import Response
+import yaml
 from django.conf import settings
 from django.http import HttpResponse
+from rest_framework import viewsets
+from rest_framework.response import Response
 
-from backend.utils.views import ActionSerializerMixin
-from backend.utils.views import with_code_wrapper
-from .serializers import TokenSLZ, TokenUpdateSLZ
+from backend.utils.views import ActionSerializerMixin, with_code_wrapper
+
 from .models import Token
+from .serializers import TokenSLZ, TokenUpdateSLZ
 
 logger = logging.getLogger(__name__)
 

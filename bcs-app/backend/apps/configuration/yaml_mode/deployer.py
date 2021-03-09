@@ -13,8 +13,8 @@
 #
 import json
 
-from backend.utils.client import KubectlClient
 from backend.activity_log import client
+from backend.utils.client import KubectlClient
 
 
 class DeployController:
@@ -24,8 +24,7 @@ class DeployController:
         self.namespace = release_data.namespace_info['name']
 
         self.kubectl = KubectlClient(
-            user.token.access_token, release_data.project_id,
-            release_data.namespace_info['cluster_id']
+            user.token.access_token, release_data.project_id, release_data.namespace_info['cluster_id']
         )
 
     def _log_activity(self, status, msg=''):
@@ -49,7 +48,7 @@ class DeployController:
             'resource': template.name,
             'resource_id': template.id,
             'extra': json.dumps(extra),
-            'description': description
+            'description': description,
         }
         client.ContextActivityLogClient(**log_params).log_add(activity_status=status)
 

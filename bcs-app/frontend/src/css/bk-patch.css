@@ -12,6 +12,7 @@
 @charset 'utf-8';
 @import './variable.css';
 @import './mixins/scroller.css';
+@import './mixins/ellipsis.css';
 
 .bk-table {
     width: 100%;
@@ -26,13 +27,12 @@
 
             >th,
             >td {
-                height: 60px;
-                line-height: 20px;
+                height: 46px;
                 vertical-align: middle;
                 border-color: #E9EDF2;
                 color: $fontColor;
                 font-size: 14px;
-                padding: 10px;
+                padding: 0 10px;
                 border-top: 1px solid $borderLightColor;
             }
         }
@@ -140,7 +140,7 @@
     }
 
     .bk-button, .bk-text-button {
-        vertical-align: middle;
+        /* vertical-align: middle; */
     }
 }
 
@@ -199,7 +199,7 @@
 
 .bk-form .bk-label {
     font-weight: bold;
-    color: #737987;
+    color: $fontColor;
     padding-right: 20px;
 }
 
@@ -247,6 +247,9 @@
 
 .bk-selector {
     display: inline-block;
+    .bk-selector-input {
+        color: $fontColor;
+    }
 
     &.is-danger {
         .bk-selector-input {
@@ -306,6 +309,7 @@
 }
 
 .bk-dialog-body {
+    color: $fontColor;
     p {
         text-align: center;
     }
@@ -457,6 +461,9 @@
 
         >li {
             display: block !important;
+            a {
+                color: $fontColor;
+            }
         }
 
         .link {
@@ -522,6 +529,7 @@
 }
 
 .bk-button {
+    color: $fontColor;
     .biz-update-dot {
         width: 4px;
         height: 4px;
@@ -833,8 +841,8 @@
     overflow-x: hidden;
 
     .message {
-        font-size: 16px;
-        color: #999;
+        font-size: 14px;
+        color: $fontColor;
 
         &.warning-message {
             margin-top: 60px;
@@ -1137,7 +1145,7 @@
 }
 
 .bk-tab2 .bk-tab2-head .bk-tab2-nav>.tab2-nav-item {
-    max-width: 220px;
+    max-width: 150px;
 }
 
 .biz-scroll-tab {
@@ -1228,4 +1236,56 @@
 .bk-selector .bk-selector-node .text {
     height: 42px;
     line-height: 42px;
+}
+
+.bk-text-button {
+    .bk-icon {
+        transition: all ease 0.3s;
+    }
+
+    &.rotate {
+        .bk-icon {
+            transform: rotate(180deg);
+        }
+    }
+}
+
+.scale-dialog {
+    .bk-dialog-tool {
+        position: absolute;
+        top: 0;
+        right: 0;
+    }
+    .bk-dialog-header {
+        background: #fafbfd;
+        border-radius: 2px;
+        color: #737987;
+        height: 50px;
+        line-height: 50px;
+        padding: 0 20px;
+        .bk-dialog-title {
+            color: #737987;
+            text-align: left;
+            font-size: 18px;
+            @mixin ellipsis 300px;
+        }
+    }
+    button.disabled {
+        background-color: #fafafa;
+        border-color: $borderLightColor;
+        color: #ccc;
+        cursor: not-allowed;
+
+        &:hover {
+            background-color: #fafafa;
+            border-color: $borderLightColor;
+        }
+    }
+
+    .scale-wrapper {
+        position: relative;
+        .bk-number .bk-number-content.bk-number-larger .bk-number-icon-content {
+            margin-top: 0 !important;
+        }
+    }
 }

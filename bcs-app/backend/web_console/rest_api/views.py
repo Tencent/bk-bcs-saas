@@ -22,9 +22,9 @@ from rest_framework.renderers import BrowsableAPIRenderer
 from backend.accounts import bcs_perm
 from backend.apps.constants import ProjectKind
 from backend.components import paas_auth, paas_cc
-from backend.resources import cluster
 from backend.components.bcs.k8s import K8SClient
 from backend.components.bcs.mesos import MesosClient
+from backend.resources import cluster
 from backend.utils.errcodes import ErrorCode
 from backend.utils.error_codes import error_codes
 from backend.utils.renderers import BKAPIRenderer
@@ -45,8 +45,7 @@ class WebConsoleSession(views.APIView):
     renderer_classes = (BKAPIRenderer, BrowsableAPIRenderer)
 
     def get_k8s_container_context(self, request, project_id, cluster_id, client, bcs_context):
-        """获取容器上下文
-        """
+        """获取容器上下文"""
         slz = K8SWebConsoleSLZ(data=request.query_params, context={"client": client})
         slz.is_valid(raise_exception=True)
 
@@ -56,8 +55,7 @@ class WebConsoleSession(views.APIView):
         return bcs_context
 
     def get_k8s_cluster_context(self, request, project_id, cluster_id, client, bcs_context):
-        """获取集群模式(kubectl)上下文
-        """
+        """获取集群模式(kubectl)上下文"""
         # kubectl版本区别
         kubectld_version = get_kubectld_version(client.version)
 
@@ -94,8 +92,7 @@ class WebConsoleSession(views.APIView):
         return bcs_context
 
     def get_k8s_context(self, request, project_id, cluster_id):
-        """获取k8s的上下文信息
-        """
+        """获取k8s的上下文信息"""
         client = K8SClient(request.user.token.access_token, project_id, cluster_id, None)
         try:
             bcs_context = utils.get_k8s_cluster_context(client, project_id, cluster_id)
@@ -117,8 +114,7 @@ class WebConsoleSession(views.APIView):
         return bcs_context
 
     def get_mesos_context(self, request, project_id, cluster_id):
-        """获取mesos context
-        """
+        """获取mesos context"""
         client = MesosClient(request.user.token.access_token, project_id, cluster_id, None)
         slz = MesosWebConsoleSLZ(data=request.query_params, context={"client": client})
         slz.is_valid(raise_exception=True)
@@ -158,19 +154,20 @@ class WebConsoleSession(views.APIView):
         return context
 
     def get(self, request, project_id, cluster_id):
-        """获取session信息
-        """
+        """获取session信息"""
         cluster_data = cluster.get_cluster(request.user.token.access_token, project_id, cluster_id)
         self.cluster_name = cluster_data.get("name", "")[:32]
 
-        perm = bcs_perm.Cluster(request, project_id, cluster_id)
-        try:
-            perm.can_use(raise_exception=True)
-        except Exception as error:
-            utils.activity_log(
-                project_id, cluster_id, self.cluster_name, request.user.username, False, _("集群不正确或没有集群使用权限")
-            )
-            raise error
+        # 检查白名单, 不在名单中再通过权限中心校验
+        if not request.user.is_superuser:
+            perm = bcs_perm.Cluster(request, project_id, cluster_id)
+            try:
+                perm.can_use(raise_exception=True)
+            except Exception as error:
+                utils.activity_log(
+                    project_id, cluster_id, self.cluster_name, request.user.username, False, _("集群不正确或没有集群使用权限")
+                )
+                raise error
 
         # 获取web-console context信息
         if request.project.kind == ProjectKind.MESOS.value:
@@ -212,8 +209,7 @@ class OpenSession(views.APIView):
     permission_classes = ()
 
     def get(self, request):
-        """校验session_id，同时换取ws_url
-        """
+        """校验session_id，同时换取ws_url"""
         session_id = request.GET.get("session_id")
         if not session_id:
             raise error_codes.APIError(_("session_id不能为空"))
@@ -246,8 +242,7 @@ class CreateOpenSession(views.APIView):
     renderer_classes = (BKAPIRenderer, BrowsableAPIRenderer)
 
     def get_k8s_context(self, request, project_id_or_code, cluster_id):
-        """获取docker监控信息
-        """
+        """获取docker监控信息"""
         access_token = paas_auth.get_access_token().get("access_token")
 
         result = paas_cc.get_project(access_token, project_id_or_code)
@@ -277,8 +272,7 @@ class CreateOpenSession(views.APIView):
         return bcs_context
 
     def post(self, request, project_id_or_code, cluster_id):
-        """创建session_id
-        """
+        """创建session_id"""
         context = self.get_k8s_context(request, project_id_or_code, cluster_id)
 
         context["username"] = context.get("operator", "")

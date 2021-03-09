@@ -15,9 +15,10 @@
 Usage: python manage.py init_latest_ver
 """
 import json
+
 from django.core.management.base import BaseCommand
 
-from backend.apps.configuration.models import ShowVersion, VersionedEntity, Template
+from backend.apps.configuration.models import ShowVersion, Template, VersionedEntity
 
 
 class Command(BaseCommand):
@@ -29,19 +30,24 @@ class Command(BaseCommand):
             # 将最新版本初始化到可见版本中
             last_version = VersionedEntity.objects.get_latest_by_template(tem.id)
             if last_version:
-                is_show_ver = ShowVersion.objects.filter(
-                    template_id=tem.id, real_version_id=last_version.id).first()
+                is_show_ver = ShowVersion.objects.filter(template_id=tem.id, real_version_id=last_version.id).first()
                 if is_show_ver:
-                    self.stdout.write(self.style.NOTICE(
-                        'Already exist template_id[%s] show_version_id[%s] version_id[%s] name[%s]' % (
-                            tem.id, is_show_ver.id, last_version.id, is_show_ver.name)))
+                    self.stdout.write(
+                        self.style.NOTICE(
+                            'Already exist template_id[%s] show_version_id[%s] version_id[%s] name[%s]'
+                            % (tem.id, is_show_ver.id, last_version.id, is_show_ver.name)
+                        )
+                    )
                 else:
                     show_ver = ShowVersion.objects.create(
                         template_id=tem.id,
                         real_version_id=last_version.id,
                         name=last_version.version,
-                        history=json.dumps([last_version.id])
+                        history=json.dumps([last_version.id]),
                     )
-                    self.stdout.write(self.style.SUCCESS(
-                        'Successfully initialize template_id[%s] show_version_id[%s] version_id[%s] name[%s]' % (
-                            tem.id, show_ver.id, last_version.id, show_ver.name)))
+                    self.stdout.write(
+                        self.style.SUCCESS(
+                            'Successfully initialize template_id[%s] show_version_id[%s] version_id[%s] name[%s]'
+                            % (tem.id, show_ver.id, last_version.id, show_ver.name)
+                        )
+                    )

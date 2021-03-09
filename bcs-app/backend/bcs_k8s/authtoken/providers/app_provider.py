@@ -13,36 +13,31 @@
 #
 import logging
 
-from rest_framework.exceptions import PermissionDenied
 from django.conf import settings
+from rest_framework.exceptions import PermissionDenied
 
-from backend.components import paas_cc
-from .base import BaseProvider
-from backend.bcs_k8s.permissions import check_cluster_perm
 from backend.bcs_k8s.app.utils import yaml_dump, yaml_load
+from backend.bcs_k8s.permissions import check_cluster_perm
+from backend.components import paas_cc
+
+from .base import BaseProvider
 
 logger = logging.getLogger(__name__)
 
 
 class SingleHelmAppUpdateProvider(BaseProvider):
-    """ a provider which support update helm app with token
-    """
+    """a provider which support update helm app with token"""
 
     NAME = "Single Helm App Update"
     CONFIG_SCHEMA = {
         "type": "object",
         "required": ["cluster_id", "app_id"],
         "properties": {
-            "cluster_id": {
-                "type": "string",
-                "maxLength": 32,
-                "minLength": len("BCS-K8s-"),
-                "pattern": "[\w\-\d]+"
-            },
+            "cluster_id": {"type": "string", "maxLength": 32, "minLength": len("BCS-K8s-"), "pattern": "[\w\-\d]+"},
             "app_id": {
                 "type": "number",
                 "minimum": 1,
-                "maximum": 10**6,
+                "maximum": 10 ** 6,
             },
         },
     }
@@ -58,9 +53,9 @@ class SingleHelmAppUpdateProvider(BaseProvider):
         from backend.bcs_k8s.app.models import App
         from backend.utils.client import get_kubectl_config_context
 
-        if not App.objects.filter(project_id=config.get("project_id"),
-                                  cluster_id=config.get("cluster_id"),
-                                  id=config.get("app_id")).exists():
+        if not App.objects.filter(
+            project_id=config.get("project_id"), cluster_id=config.get("cluster_id"), id=config.get("app_id")
+        ).exists():
             raise PermissionDenied()
 
         check_cluster_perm(user, config.get("project_id"), config.get("cluster_id"))
@@ -75,7 +70,7 @@ class SingleHelmAppUpdateProvider(BaseProvider):
         kubeconfig = get_kubectl_config_context(
             access_token=user.token.access_token,
             project_id=config.get("project_id"),
-            cluster_id=config.get("cluster_id")
+            cluster_id=config.get("cluster_id"),
         )
         kubeconfig_obj = yaml_load(kubeconfig)
         kubeconfig_obj["users"][0]["user"]["token"] = settings.BKE_ADMIN_TOKEN
@@ -85,9 +80,11 @@ class SingleHelmAppUpdateProvider(BaseProvider):
     @staticmethod
     def validate(token, request_data):
         config = token.config
-        if not all([
-            config["project_id"] == request_data["project_id"],
-            config["cluster_id"] == request_data["cluster_id"],
-            config["app_id"] == request_data["app_id"],
-        ]):
+        if not all(
+            [
+                config["project_id"] == request_data["project_id"],
+                config["cluster_id"] == request_data["cluster_id"],
+                config["app_id"] == request_data["app_id"],
+            ]
+        ):
             raise PermissionDenied()

@@ -17,6 +17,7 @@ from __future__ import unicode_literals
 import json
 
 from django.db import migrations, models
+
 from backend.apps.configuration.models import ShowVersion, VersionedEntity
 from backend.apps.instance.models import VersionInstance
 

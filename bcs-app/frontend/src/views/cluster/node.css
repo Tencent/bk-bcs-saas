@@ -22,6 +22,11 @@
     font-size: 12px;
     margin-top: -5px;
 }
+.bk-table >tbody >tr >th,
+.bk-table >tbody >tr >td {
+    height: 50px;
+}
+
 
 .biz-cluster-node-header {
     padding: 0 20px 20px 20px;
@@ -266,7 +271,6 @@
         .remain-tip {
             font-size: 12px;
             margin-left: 10px;
-            color: $dangerColor;
         }
     }
 
@@ -505,7 +509,6 @@
 .biz-node-re-initialization-dialog {
     .len,
     .operate {
-        color: red;
         font-weight:700;
     }
     button.disabled {
@@ -759,6 +762,15 @@
 
         &.item {
             margin-left: 20px;
+        }
+    }
+}
+
+@media screen and (max-width: 1430px) {
+    .biz-cluster-node-header {
+
+        .biz-searcher-wrapper {
+            width: 500px;
         }
     }
 }

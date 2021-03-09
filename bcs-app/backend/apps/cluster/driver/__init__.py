@@ -17,11 +17,7 @@ from . import k8s, mesos
 class BaseDriver:
 
     # 1：k8s 2: mesos
-    KIND_DRIVER = {
-        1: k8s.K8SDriver,
-        2: mesos.MesosDriver,
-        3: k8s.K8SDriver
-    }
+    KIND_DRIVER = {1: k8s.K8SDriver, 2: mesos.MesosDriver, 3: k8s.K8SDriver}
 
     def __init__(self, project_kind):
         self.driver = self.KIND_DRIVER[project_kind]

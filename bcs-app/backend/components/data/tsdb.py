@@ -18,7 +18,8 @@
 import json
 
 from backend.components.utils import http_get
-from .constant import DATA_API_V3_PREFIX, APP_CODE, APP_SECRET
+
+from .constant import APP_CODE, APP_SECRET, DATA_API_V3_PREFIX
 
 
 def check_tsdb_exist(biz_id=0, db="system"):
@@ -46,16 +47,14 @@ def tsdb_list_tables(cc_app_id, prefix='bcs'):
 
 
 def tsdb_show_tag_value(cc_app_id, table_name, tag_key, conditions=None):
-    """获取维度字段值
-    """
+    """获取维度字段值"""
     result_table_id = '{app_id}_{table_name}'.format(app_id=cc_app_id, table_name=table_name)
 
     return get_tsdb_show_tag_value(result_table_id, tag_key, conditions)
 
 
 def get_tsdb_show_tag_value(result_table_id, tag_key, conditions=None):
-    """获取维度字段值
-    """
+    """获取维度字段值"""
     url = f'{DATA_API_V3_PREFIX}/storekit/tsdb/show_tag_values/'
     payload = {
         'bk_app_code': APP_CODE,

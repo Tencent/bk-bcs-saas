@@ -15,8 +15,9 @@ import logging
 
 from rest_framework import permissions
 
-from .constants import ACCESS_TOKEN_KEY_NAME
 from backend.utils import FancyDict
+
+from .constants import ACCESS_TOKEN_KEY_NAME
 
 logger = logging.getLogger(__name__)
 

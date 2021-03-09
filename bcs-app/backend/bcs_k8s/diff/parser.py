@@ -12,9 +12,9 @@
 # specific language governing permissions and limitations under the License.
 #
 import logging
-import re
-import yaml
+from typing import List
 
+import yaml
 
 """
 a resource parser which extract resource from raw text,
@@ -45,61 +45,13 @@ class Resource(object):
         return "%s, %s, %s (%s)" % (self.metadata.namespace, self.metadata.name, self.kind, self.apiVersion)
 
 
-def scan_yaml_specs(data, atEOF):
-    if atEOF and len(data) == 0:
-        return 0, None, None
-
-    i = bytes.Index(data, yaml_seperator)
-    if i >= 0:
-        # We have a full newline-terminated line.
-        return i + len(), data[0:i], None
-
-    # If we're at EOF, we have a final, non-terminated line. Return it.
-    if atEOF:
-        return len(data), data, None
-
-    # Request more data.
-    return 0, None, None
-
-
-def split_spec(token):
-    i = token.find("\n")
-    if i >= 0:
-        return token[0:i], token[i + 1:]
-
-    return "", ""
-
-
-def split_manifest(manifest):
+def split_manifest(manifest: bytes) -> List[bytes]:
     """
-    >>> re.split(rb'\n+\s*\-\-\-\s*\n+', b'---\naaa\n---\nbbb\n---')
-    [b'---\naaa', b'bbb\n---']
-    >>> re.split(rb'^\s*\-\-\-\s*\n+', b'---\naaa\n---\nbbb\n---')
-    [b'', b'aaa\n---\nbbb\n---']
-    >>> re.split(rb'\n\s*\-\-\-\s*$', b'---\naaa\n---\nbbb\n---')
-    [b'---\naaa\n---\nbbb', b'']
+    :param manifest: yaml格式的文件，可能包含分隔符---
+    :return: 按照---分割的yaml文件列表
     """
-    # it must be carefule with yaml seperator
-    result = []
-    manifest = manifest.strip()
-    contents = re.split(rb'[\n]+\s*\-\-\-\s*[\n]+', manifest)
-    if len(contents):
-        ss = re.split(rb'^\s*\-\-\-\s*[\n]+', contents[0])
-        if len(ss) > 1:
-            contents[0] = ss[1]
-        else:
-            contents[0] = ss[0]
-
-        ss = re.split(rb'[\n]+\s*\-\-\-\s*$', contents[-1])
-        contents[-1] = ss[0]
-
-    for content in contents:
-        if not content.strip():
-            continue
-
-        result.append(content)
-
-    return result
+    # 过滤掉分割出来可能存在的空文件
+    return list(filter(lambda m: m.strip(b"-\t\n "), manifest.split(yaml_seperator)))
 
 
 def parse(manifest, default_namespace):

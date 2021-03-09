@@ -11,43 +11,42 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-import json
 import base64
+import json
 import logging
 from itertools import groupby
 
 from django.conf import settings
+from django.utils.translation import ugettext_lazy as _
 from rest_framework import response, serializers, viewsets
 from rest_framework.exceptions import ValidationError
-from django.utils.translation import ugettext_lazy as _
 from rest_framework.renderers import BrowsableAPIRenderer
 
-from .tasks import sync_namespace as sync_ns_task
-from .resources import Namespace
 from backend.accounts import bcs_perm
+from backend.activity_log import client
 from backend.apps import constants
-from backend.apps.constants import ClusterType
-from backend.apps.depot.api import get_jfrog_account, get_bk_jfrog_auth
+from backend.apps.configuration.constants import MesosResourceName
+from backend.apps.configuration.namespace import serializers as slz
+from backend.apps.constants import ClusterType, ProjectKind
+from backend.apps.depot.api import get_bk_jfrog_auth, get_jfrog_account
 from backend.apps.instance.constants import K8S_IMAGE_SECRET_PRFIX, MESOS_IMAGE_SECRET, OLD_MESOS_IMAGE_SECRET
+from backend.apps.utils import get_cluster_env_name
 from backend.apps.variable.models import NameSpaceVariable
+from backend.apps.whitelist import enabled_sync_namespace
 from backend.components import paas_cc
 from backend.components.bcs.k8s import K8SClient
 from backend.components.bcs.mesos import MesosClient
+from backend.resources import namespace as ns_resource
+from backend.resources.cluster.utils import get_clusters
+from backend.resources.namespace.constants import K8S_SYS_PLAT_NAMESPACES
+from backend.resources.namespace.utils import get_namespace_by_id
 from backend.utils.errcodes import ErrorCode
 from backend.utils.error_codes import error_codes
-from backend.utils.response import APIResult
-from backend.activity_log import client
-from backend.apps.constants import ProjectKind
-from backend.apps.whitelist_bk import enabled_sync_namespace
-from backend.apps.configuration.constants import MesosResourceName
 from backend.utils.renderers import BKAPIRenderer
-from backend.resources.namespace.utils import get_namespace_by_id
-from backend.resources.cluster.utils import get_clusters
-from backend.apps.utils import get_cluster_env_name
-from backend.resources import namespace as ns_resource
-from backend.resources.namespace.constants import K8S_SYS_PLAT_NAMESPACES
-from backend.apps.configuration.namespace import serializers as slz
+from backend.utils.response import APIResult
 
+from .resources import Namespace
+from .tasks import sync_namespace as sync_ns_task
 
 logger = logging.getLogger(__name__)
 

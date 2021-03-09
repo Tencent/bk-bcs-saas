@@ -15,8 +15,8 @@ import re
 
 from django.utils.translation import ugettext_lazy as _
 
-from backend.utils.error_codes import error_codes
 from backend.apps.configuration.constants import NUM_VAR_PATTERN
+from backend.utils.error_codes import error_codes
 
 REAL_NUM_VAR_PATTERN = re.compile(r"%s" % NUM_VAR_PATTERN)
 

@@ -20,7 +20,7 @@ import logging
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
 
-from backend.apps.configuration.models import BaseModel, VersionedEntity, Template
+from backend.apps.configuration.models import BaseModel, Template, VersionedEntity
 from backend.apps.instance.constants import EventType, InsState
 
 logger = logging.getLogger(__name__)
@@ -37,10 +37,10 @@ class VersionInstance(BaseModel):
     from backend.apps.configuration.models import MODULE_DICT
     MODULE_DICT 记录 `表名` 和  `model` 的对应关系，并且所有的 `model` 都定义了 `get_name` 方法来查看名称
     """
+
     version_id = models.IntegerField(_("关联的VersionedEntity ID"))
     instance_entity = models.TextField(_("需要实例化的资源"), help_text=_("json格式数据"))
-    is_start = models.BooleanField(
-        default=False, help_text=_("false:生成配置文件；true:生成配置文件，调用bsc api实例化配置信息"))
+    is_start = models.BooleanField(default=False, help_text=_("false:生成配置文件；true:生成配置文件，调用bsc api实例化配置信息"))
     # add by 应用更新操作
     ns_id = models.IntegerField(_("命名空间ID"))
     template_id = models.IntegerField(_("关联的模板 ID"), help_text=_("该字段只在db中查看使用"))
@@ -50,8 +50,7 @@ class VersionInstance(BaseModel):
     namespaces = models.TextField(_("命名空间ID"), help_text=_("该字段已经废弃"))
     # 添加用户可见版本
     show_version_id = models.IntegerField(_("用户可见版本ID"), default=0)
-    show_version_name = models.CharField(
-        _("用户可见版本Name"), max_length=255, default='')
+    show_version_name = models.CharField(_("用户可见版本Name"), max_length=255, default='')
 
     @property
     def get_entity(self):
@@ -80,8 +79,8 @@ class VersionInstance(BaseModel):
 
 
 class InstanceConfig(BaseModel):
-    """
-    """
+    """"""
+
     category_choice = (
         ('application', u"Application"),
         ('deployment', u"Deplpyment"),
@@ -99,8 +98,7 @@ class InstanceConfig(BaseModel):
     )
     instance_id = models.IntegerField(_("关联的 VersionInstance ID"), db_index=True)
     namespace = models.CharField(_("命名空间ID"), max_length=32)
-    category = models.CharField(
-        _("资源类型"), max_length=32, choices=category_choice)
+    category = models.CharField(_("资源类型"), max_length=32, choices=category_choice)
     config = models.TextField(_("配置文件"), help_text=_('json格式数据'))
     is_bcs_success = models.BooleanField(_("调用BCS API 是否成功"), default=True)
     # 添加操作类型及状态，用于轮训任务记录
@@ -111,8 +109,7 @@ class InstanceConfig(BaseModel):
     # 0，未实例化
     # 1, 已实例化，但是实例化失败，需要再应用页面显示
     # 2, 已实例化，且实例化成功
-    ins_state = models.IntegerField(
-        _("实例化状态"), default=InsState.NO_INS.value, choices=InsState.get_choices())
+    ins_state = models.IntegerField(_("实例化状态"), default=InsState.NO_INS.value, choices=InsState.get_choices())
 
     name = models.CharField(_("名称"), max_length=255, default='')
     # 添加一个字段用于记录滚动升级前的配置信息
@@ -129,21 +126,17 @@ class InstanceConfig(BaseModel):
 
 
 class MetricConfig(BaseModel):
-    category_choice = (
-        ('metric', u"Metric"),
-    )
+    category_choice = (('metric', u"Metric"),)
     instance_id = models.IntegerField(_("关联的 VersionInstance ID"))
     namespace = models.CharField(_("命名空间ID"), max_length=32)
-    category = models.CharField(
-        _("资源类型"), max_length=32, choices=category_choice)
+    category = models.CharField(_("资源类型"), max_length=32, choices=category_choice)
     config = models.TextField(_("配置文件"), help_text=_('json格式数据'))
     is_bcs_success = models.BooleanField(_("调用BCS API 是否成功"), default=True)
     name = models.CharField(_("名称"), max_length=32, default='')
 
     # 关联ID, 没有取名metric_id
     ref_id = models.IntegerField(_("关联ID"), null=True, default=None)
-    ins_state = models.IntegerField(
-        _("实例化状态"), default=InsState.NO_INS.value, choices=InsState.get_choices())
+    ins_state = models.IntegerField(_("实例化状态"), default=InsState.NO_INS.value, choices=InsState.get_choices())
     # 保存变量信息
     variables = models.TextField(_("变量"), default='{}')
 
@@ -156,20 +149,19 @@ class MetricConfig(BaseModel):
 
     @classmethod
     def get_active_metric(cls, ref_id, ns_id_list=[]):
-        """获取活跃metric,下发更新操作使用
-        """
-        refs = cls.objects.filter(ref_id=ref_id, ins_state__in=[
-                                  InsState.INS_SUCCESS.value,
-                                  InsState.UPDATE_SUCCESS.value,
-                                  InsState.METRIC_UPDATED.value])
+        """获取活跃metric,下发更新操作使用"""
+        refs = cls.objects.filter(
+            ref_id=ref_id,
+            ins_state__in=[InsState.INS_SUCCESS.value, InsState.UPDATE_SUCCESS.value, InsState.METRIC_UPDATED.value],
+        )
         if ns_id_list:
             refs = refs.filter(namespace__in=ns_id_list)
         return [i for i in refs]
 
 
 class InstanceEvent(BaseModel):
-    """实例化或者更新application时，能够记录错误信息
-    """
+    """实例化或者更新application时，能够记录错误信息"""
+
     category_choice = (
         ('application', u"Application"),
         ('deployment', u"Deplpyment"),
@@ -191,8 +183,7 @@ class InstanceEvent(BaseModel):
 
     @classmethod
     def log(cls, instance_config_id, category, msg_type, result, context):
-        """实例化记录错误信息，其他可以再封装下其他函数
-        """
+        """实例化记录错误信息，其他可以再封装下其他函数"""
         msg = result.get('message', '')
         ref = cls(
             instance_config_id=instance_config_id,
@@ -202,7 +193,7 @@ class InstanceEvent(BaseModel):
             creator=context['SYS_CREATOR'],
             updator=context['SYS_UPDATOR'],
             msg=msg,
-            resp_snapshot=json.dumps(result)
+            resp_snapshot=json.dumps(result),
         )
         ref.save()
         return ref

@@ -14,19 +14,15 @@
 from backend.apps import constants
 from backend.components import paas_cc
 from backend.components.bcs import k8s, mesos
+from backend.resources.cluster.constants import ClusterCOES
 from backend.utils.errcodes import ErrorCode
 from backend.utils.exceptions import APIError
-from backend.resources.cluster.constants import ClusterCOES
 
 
 def k8s_containers(request, project_id, cluster_id, host_ips):
-    """k8s pod容器信息
-    """
+    """k8s pod容器信息"""
     client = k8s.K8SClient(request.user.token.access_token, project_id, cluster_id, None)
-    rsp = client.get_pod(
-        host_ips,
-        field="data.status.containerStatuses.containerID,data.status.hostIP"
-    )
+    rsp = client.get_pod(host_ips, field="data.status.containerStatuses.containerID,data.status.hostIP")
     if rsp.get("code") != ErrorCode.NoError:
         return {}
     containers = {}
@@ -37,8 +33,7 @@ def k8s_containers(request, project_id, cluster_id, host_ips):
 
 
 def mesos_containers(request, project_id, cluster_id, host_ips):
-    """mesos taskgroup容器信息
-    """
+    """mesos taskgroup容器信息"""
     client = mesos.MesosClient(request.user.token.access_token, project_id, cluster_id, None)
     rsp = client.get_taskgroup(
         host_ips,
@@ -55,11 +50,7 @@ def mesos_containers(request, project_id, cluster_id, host_ips):
 
 
 def get_node_metric(request, access_token, project_id, cluster_id, cluster_type):
-    node = paas_cc.get_node_list(
-        access_token,
-        project_id, cluster_id,
-        params={"limit": 10000}
-    )
+    node = paas_cc.get_node_list(access_token, project_id, cluster_id, params={"limit": 10000})
     if node.get('code') != 0:
         raise APIError(node.get('message'))
     # 过滤掉状态为removed的机器

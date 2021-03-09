@@ -13,7 +13,6 @@
 #
 import logging
 
-from django.conf import settings
 from django.utils.deprecation import MiddlewareMixin
 
 from backend.utils.local import local
@@ -22,8 +21,7 @@ logger = logging.getLogger(__name__)
 
 
 class DisableCSRFCheck(MiddlewareMixin):
-    """本地开发，去掉django rest framework强制的csrf检查
-    """
+    """本地开发，去掉django rest framework强制的csrf检查"""
 
     def process_request(self, request):
         setattr(request, '_dont_enforce_csrf_checks', True)
@@ -57,3 +55,9 @@ class RequestProvider(object):
         response['X-Request-Id'] = request.request_id
         local.release()
         return response
+
+
+try:
+    from .middlewares_ext import *  # noqa
+except ImportError as e:
+    logger.debug('Load extension failed: %s', e)

@@ -11,14 +11,13 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-from backend.apps.application.constants import SourceType
 from backend.accounts import bcs_perm
-from backend.utils.error_codes import error_codes
+from backend.apps.application.constants import SourceType
 from backend.apps.configuration.models import Template
+from backend.utils.error_codes import error_codes
 
 
 class InstancePerm:
-
     @classmethod
     def can_use_instance(cls, request, project_id, ns_id, tmpl_set_id=None, source_type=SourceType.TEMPLATE):
         # 继承命名空间的权限
@@ -29,7 +28,5 @@ class InstancePerm:
             if not tmpl_set_info:
                 raise error_codes.CheckFailed(f"template:{tmpl_set_id} not found")
             # 继承模板集的权限
-            tmpl_perm = bcs_perm.Templates(
-                request, project_id, tmpl_set_id, resource_name=tmpl_set_info.name
-            )
+            tmpl_perm = bcs_perm.Templates(request, project_id, tmpl_set_id, resource_name=tmpl_set_info.name)
             tmpl_perm.can_use(raise_exception=True)

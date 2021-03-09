@@ -154,6 +154,7 @@
                 curValue: '',
                 localValue: '',
                 isFocus: false,
+                triggerTimer: 0,
                 maxNumber: this.max,
                 minNumber: this.min,
                 panelStyle: {},
@@ -237,7 +238,8 @@
                         }
                         // 用户可以配置自动触发，用于实现多个联动
                         if (isTrigger) {
-                            this.$emit('item-selected', value, selectItem, isTrigger)
+                            // this.$emit('item-selected', value, selectItem, isTrigger)
+                            this.triggerChange(value, selectItem, isTrigger)
                         }
                     } else if (this.isCustom) {
                         // 如果在选择模式下且允许自定义，在没匹配下拉时直接赋值
@@ -395,11 +397,19 @@
                         this.localValue = val
                         this.$emit('update:value', newVal)
                         this.$emit('input', newVal)
-                        this.$emit('item-selected', newVal, selectItem, false)
+                        // this.$emit('item-selected', newVal, selectItem, false)
+                        this.triggerChange(newVal, selectItem, false)
                         this.hideListPanel()
                         this.inputMode = 'input'
                     }
                 }
+            },
+            triggerChange (value, selectItem, isTrigger) {
+                // 防止短时间内同样事件频繁触发
+                clearTimeout(this.triggerTimer)
+                this.triggerTimer = setTimeout(() => {
+                    this.$emit('item-selected', value, selectItem, isTrigger)
+                }, 100)
             },
             getPower (val) {
                 const valueString = val.toString()
@@ -659,7 +669,8 @@
                             }
                             const newVal = selectItem[this.settingKey]
                             this.$emit('update:value', newVal)
-                            this.$emit('item-selected', newVal, selectItem, false)
+                            // this.$emit('item-selected', newVal, selectItem, false)
+                            this.triggerChange(newVal, selectItem, false)
                         } else if (this.isCustom) {
                             // 选择模式支持自定义输入
                             if (this.userHasInput) {

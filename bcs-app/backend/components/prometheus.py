@@ -34,8 +34,7 @@ DISK_MOUNTPOINT = "/|/data"
 
 
 def query_range(query, start, end, step, project_id=None):
-    """范围请求API
-    """
+    """范围请求API"""
     url = f"{settings.THANOS_HOST}/api/v1/query_range"
     data = {"query": query, "start": start, "end": end, "step": step}
     headers = {"X-Tenant-Project-Id": project_id}
@@ -45,8 +44,7 @@ def query_range(query, start, end, step, project_id=None):
 
 
 def query(_query, time=None, project_id=None):
-    """查询API
-    """
+    """查询API"""
     url = f"{settings.THANOS_HOST}/api/v1/query"
     data = {"query": _query, "time": time}
     headers = {"X-Tenant-Project-Id": project_id}
@@ -56,8 +54,7 @@ def query(_query, time=None, project_id=None):
 
 
 def get_series(match, start, end, project_id=None):
-    """查询series, Querying metadata
-    """
+    """查询series, Querying metadata"""
     url = f"{settings.THANOS_HOST}/api/v1/series"
     headers = {"X-Tenant-Project-Id": project_id}
     data = {"match[]": match, "start": start, "end": end}
@@ -67,8 +64,7 @@ def get_series(match, start, end, project_id=None):
 
 
 def get_targets(project_id, cluster_id, dedup=True):
-    """获取集群的targets
-    """
+    """获取集群的targets"""
     url = "{host}/api/v1/targets".format(host=settings.THANOS_HOST)
     # 同时限制项目ID，集群ID，防止越权
     headers = {"X-Tenant-Project-Id": project_id, "X-Scope-Cluster-Id": cluster_id}
@@ -78,8 +74,7 @@ def get_targets(project_id, cluster_id, dedup=True):
 
 
 def get_first_value(prom_resp, fill_zero=True):
-    """获取返回的第一个值
-    """
+    """获取返回的第一个值"""
     data = prom_resp.get("data") or {}
     result = data.get("result") or []
     if not result:
@@ -98,8 +93,7 @@ def get_first_value(prom_resp, fill_zero=True):
 
 
 def get_cluster_cpu_usage(cluster_id, node_ip_list):
-    """获取集群nodeCPU使用率
-    """
+    """获取集群nodeCPU使用率"""
     node_ip_list = "|".join(f"{ip}:9100" for ip in node_ip_list)
     cpu_used_prom_query = f"""
         sum(irate(node_cpu_seconds_total{{cluster_id="{cluster_id}", job="node-exporter", mode!="idle", instance=~"{node_ip_list}"}}[2m]))
@@ -114,8 +108,7 @@ def get_cluster_cpu_usage(cluster_id, node_ip_list):
 
 
 def get_cluster_cpu_usage_range(cluster_id, node_ip_list):
-    """获取集群nodeCPU使用率
-    """
+    """获取集群nodeCPU使用率"""
     end = time.time()
     start = end - 3600
     step = 60
@@ -131,8 +124,7 @@ def get_cluster_cpu_usage_range(cluster_id, node_ip_list):
 
 
 def get_cluster_memory_usage(cluster_id, node_ip_list):
-    """获取集群nodeCPU使用率
-    """
+    """获取集群nodeCPU使用率"""
     node_ip_list = "|".join(f"{ip}:9100" for ip in node_ip_list)
     memory_total_prom_query = f"""
         sum(node_memory_MemTotal_bytes{{cluster_id="{cluster_id}", job="node-exporter", instance=~"{ node_ip_list }"}})
@@ -154,8 +146,7 @@ def get_cluster_memory_usage(cluster_id, node_ip_list):
 
 
 def get_cluster_memory_usage_range(cluster_id, node_ip_list):
-    """获取集群nodeCPU使用率
-    """
+    """获取集群nodeCPU使用率"""
     end = time.time()
     start = end - 3600
     step = 60
@@ -176,8 +167,7 @@ def get_cluster_memory_usage_range(cluster_id, node_ip_list):
 
 
 def get_cluster_disk_usage(cluster_id, node_ip_list):
-    """获取集群nodeCPU使用率
-    """
+    """获取集群nodeCPU使用率"""
     node_ip_list = "|".join(f"{ip}:9100" for ip in node_ip_list)
 
     disk_total_prom_query = f"""
@@ -197,8 +187,7 @@ def get_cluster_disk_usage(cluster_id, node_ip_list):
 
 
 def get_cluster_disk_usage_range(cluster_id, node_ip_list):
-    """获取k8s集群磁盘使用率
-    """
+    """获取k8s集群磁盘使用率"""
     end = time.time()
     start = end - 3600
     step = 60
@@ -230,8 +219,7 @@ def get_node_info(cluster_id, ip):
 
 
 def get_container_pod_count(cluster_id, ip):
-    """获取K8S节点容器/Pod数量
-    """
+    """获取K8S节点容器/Pod数量"""
     prom_query = f"""
         label_replace(sum by (instance) ({{__name__="kubelet_running_container_count", cluster_id="{cluster_id}", instance=~"{ip}:\\\\d+"}}), "metric_name", "container_count", "instance", ".*") or
         label_replace(sum by (instance) ({{__name__="kubelet_running_pod_count", cluster_id="{cluster_id}", instance=~"{ip}:\\\\d+"}}), "metric_name", "pod_count", "instance", ".*")
@@ -241,8 +229,7 @@ def get_container_pod_count(cluster_id, ip):
 
 
 def get_node_cpu_usage(cluster_id, ip):
-    """获取CPU总使用率
-    """
+    """获取CPU总使用率"""
     prom_query = f"""
         sum(irate(node_cpu_seconds_total{{cluster_id="{cluster_id}", job="node-exporter", mode!="idle", instance="{ip}:9100"}}[2m])) /
         sum(count without(cpu, mode) (node_cpu_seconds_total{{cluster_id="{cluster_id}", job="node-exporter", mode="idle", instance="{ip}:9100"}})) *
@@ -269,8 +256,7 @@ def get_node_cpu_usage_range(cluster_id, ip, start, end):
 
 
 def get_node_memory_usage(cluster_id, ip):
-    """获取节点内存使用率
-    """
+    """获取节点内存使用率"""
     node_ip_list = f"{ip}:9100"
     prom_query = f"""
         (sum(node_memory_MemTotal_bytes{{cluster_id="{cluster_id}", job="node-exporter", instance=~"{ node_ip_list }"}}) -
@@ -345,8 +331,7 @@ def get_node_network_transmit(cluster_id, ip, start, end):
 
 
 def get_node_diskio_usage(cluster_id, ip):
-    """获取当前磁盘IO
-    """
+    """获取当前磁盘IO"""
     prom_query = f"""
         max(rate(node_disk_io_time_seconds_total{{cluster_id="{cluster_id}", job="node-exporter", instance=~"{ ip }:9100"}}[2m]) * 100)
         """  # noqa
@@ -519,8 +504,7 @@ def get_container_disk_write(cluster_id, namespace, pod_name, container_id_list,
 
 
 def mesos_agent_memory_usage(cluster_id, ip):
-    """mesos内存使用率
-    """
+    """mesos内存使用率"""
     data = {"total": "0", "remain": "0"}
     prom_query = f"""
         label_replace(max by (InnerIP) (bkbcs_scheduler_agent_memory_resource_remain{{cluster_id="{cluster_id}", InnerIP=~"{ip}"}}), "metric_name", "remain", "InnerIP", ".*") or
@@ -536,8 +520,7 @@ def mesos_agent_memory_usage(cluster_id, ip):
 
 
 def mesos_agent_cpu_usage(cluster_id, ip):
-    """mesosCPU使用率
-    """
+    """mesosCPU使用率"""
     data = {"total": "0", "remain": "0"}
     prom_query = f"""
         label_replace(max by (InnerIP) (bkbcs_scheduler_agent_cpu_resource_remain{{cluster_id="{cluster_id}", InnerIP=~"{ip}"}}), "metric_name", "remain", "InnerIP", ".*") or
@@ -553,8 +536,7 @@ def mesos_agent_cpu_usage(cluster_id, ip):
 
 
 def mesos_agent_ip_remain_count(cluster_id, ip):
-    """mesos 剩余IP数量
-    """
+    """mesos 剩余IP数量"""
     prom_query = f"""
         max by (InnerIP) (bkbcs_scheduler_agent_ip_resource_remain{{cluster_id="{cluster_id}", InnerIP=~"{ip}"}})
     """  # noqa
@@ -564,8 +546,7 @@ def mesos_agent_ip_remain_count(cluster_id, ip):
 
 
 def mesos_cluster_cpu_usage(cluster_id, node_list):
-    """mesos集群CPU使用率
-    """
+    """mesos集群CPU使用率"""
     data = {"total": "0", "remain": "0"}
     prom_query = f"""
         label_replace(max by (InnerIP) (bkbcs_scheduler_cluster_cpu_resource_remain{{cluster_id="{cluster_id}"}}), "metric_name", "remain", "InnerIP", ".*") or
@@ -581,8 +562,7 @@ def mesos_cluster_cpu_usage(cluster_id, node_list):
 
 
 def mesos_cluster_memory_usage(cluster_id, node_list):
-    """mesos集群mem使用率
-    """
+    """mesos集群mem使用率"""
     data = {"total": "0", "remain": "0"}
     prom_query = f"""
         label_replace(max by (InnerIP) (bkbcs_scheduler_cluster_memory_resource_remain{{cluster_id="{cluster_id}"}}), "metric_name", "remain", "InnerIP", ".*") or
@@ -598,8 +578,7 @@ def mesos_cluster_memory_usage(cluster_id, node_list):
 
 
 def mesos_cluster_cpu_resource_remain_range(cluster_id, start, end):
-    """mesos集群CPU剩余量, 单位核
-    """
+    """mesos集群CPU剩余量, 单位核"""
     step = (end - start) // 60
     prom_query = f"""
         max by (cluster_id) (bkbcs_scheduler_cluster_cpu_resource_remain{{cluster_id="{cluster_id}"}})
@@ -610,8 +589,7 @@ def mesos_cluster_cpu_resource_remain_range(cluster_id, start, end):
 
 
 def mesos_cluster_cpu_resource_total_range(cluster_id, start, end):
-    """mesos集群CPU总量, 单位核
-    """
+    """mesos集群CPU总量, 单位核"""
     step = (end - start) // 60
     prom_query = f"""
         max by (cluster_id) (bkbcs_scheduler_cluster_cpu_resource_total{{cluster_id="{cluster_id}"}})
@@ -622,8 +600,7 @@ def mesos_cluster_cpu_resource_total_range(cluster_id, start, end):
 
 
 def mesos_cluster_memory_resource_remain_range(cluster_id, start, end):
-    """mesos集群内存剩余量, 单位MB
-    """
+    """mesos集群内存剩余量, 单位MB"""
     step = (end - start) // 60
     prom_query = f"""
         max by (cluster_id) (bkbcs_scheduler_cluster_memory_resource_remain{{cluster_id="{cluster_id}"}})
@@ -634,8 +611,7 @@ def mesos_cluster_memory_resource_remain_range(cluster_id, start, end):
 
 
 def mesos_cluster_memory_resource_total_range(cluster_id, start, end):
-    """mesos集群内存总量, 单位MB
-    """
+    """mesos集群内存总量, 单位MB"""
     step = (end - start) // 60
     prom_query = f"""
        max by (cluster_id) (bkbcs_scheduler_cluster_memory_resource_total{{cluster_id="{cluster_id}"}})
@@ -646,8 +622,7 @@ def mesos_cluster_memory_resource_total_range(cluster_id, start, end):
 
 
 def mesos_cluster_cpu_resource_used_range(cluster_id, start, end):
-    """mesos集群使用的CPU, 单位核
-    """
+    """mesos集群使用的CPU, 单位核"""
     step = (end - start) // 60
     prom_query = f"""
         max by (cluster_id) (bkbcs_scheduler_cluster_cpu_resource_total{{cluster_id="{cluster_id}"}} - bkbcs_scheduler_cluster_cpu_resource_remain{{cluster_id="{cluster_id}"}})
@@ -658,8 +633,7 @@ def mesos_cluster_cpu_resource_used_range(cluster_id, start, end):
 
 
 def mesos_cluster_memory_resource_used_range(cluster_id, start, end):
-    """mesos集群使用的内存, 单位MB
-    """
+    """mesos集群使用的内存, 单位MB"""
     step = (end - start) // 60
     prom_query = f"""
        max by (cluster_id) (bkbcs_scheduler_cluster_memory_resource_total{{cluster_id="{cluster_id}"}} - bkbcs_scheduler_cluster_memory_resource_remain{{cluster_id="{cluster_id}"}})

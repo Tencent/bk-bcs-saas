@@ -182,7 +182,7 @@
     border: 1px solid $borderColor;
 
     tr {
-        height: 100px;
+        height: 80px;
     }
 
     td {

@@ -13,121 +13,123 @@
 #
 
 from django.conf.urls import url
-from . import views
-from . import instance_views
-from backend.apps.application.other_views import templates
+
 from backend.apps.application.all_views import views as ns_views
+from backend.apps.application.common_views import operation
+from backend.apps.application.common_views import query as common_query
 from backend.apps.application.filters import views as filter_views
-from backend.apps.application.common_views import query as common_query, operation
+from backend.apps.application.other_views import templates
+
+from . import instance_views, views
 
 urlpatterns = [
     url(
         r"^api/app/projects/(?P<project_id>[\w\-]+)/instances/(?P<instance_id>[\w\-]+)/retry/$",  # noqa
         views.CreateInstance.as_view(),
-        name="api.project.retry_instance"
+        name="api.project.retry_instance",
     ),
     url(
         r"^api/app/projects/(?P<project_id>[\w\-]+)/instances/(?P<instance_id>[\w\-]+)/info/$",  # noqa
         instance_views.GetInstanceInfo.as_view(),
-        name="api.project.cluster.instance_status"
+        name="api.project.cluster.instance_status",
     ),
     url(
         r"^api/app/projects/(?P<project_id>[\w\-]+)/instances/(?P<instance_id>[\w\-]+)/(?P<instance_name>[\w\-\.]+)/info/$",  # noqa
         instance_views.GetInstanceStatus.as_view(),
-        name="api.project.cluster.instance_status"
+        name="api.project.cluster.instance_status",
     ),
     url(
         r"^api/app/projects/(?P<project_id>[\w\-]+)/instances/(?P<instance_id>[\w\-]+)/new_update/$",  # noqa
         views.UpdateInstanceNew.as_view(),
-        name="api.application.update_new"
+        name="api.application.update_new",
     ),
     url(
         r"^api/app/projects/(?P<project_id>[\w\-]+)/instances/(?P<instance_id>[\w\-]+)/application_update/$",  # noqa
         views.UpdateApplication.as_view(),
-        name="api.application.application_update"
+        name="api.application.application_update",
     ),
     url(
         r"^api/app/projects/(?P<project_id>[\w\-]+)/instances/(?P<instance_id>[\w\-]+)/(?P<instance_name>[\w\-\.]+)/scale/$",  # noqa
         views.ScaleInstance.as_view(),
-        name="api.application.scale"
+        name="api.application.scale",
     ),
     url(
         r"^api/app/projects/(?P<project_id>[\w\-]+)/instances/(?P<instance_id>[\w\-]+)/(?P<instance_name>[\w\-\.]+)/cancel/$",  # noqa
         views.CancelUpdateInstance.as_view(),
-        name="api.application.cancel"
+        name="api.application.cancel",
     ),
     url(
         r"^api/app/projects/(?P<project_id>[\w\-]+)/instances/(?P<instance_id>[\w\-]+)/application_cancel/$",  # noqa
         views.RollbackApplication.as_view(),
-        name="api.application.application_cancel"
+        name="api.application.application_cancel",
     ),
     url(
         r"^api/app/projects/(?P<project_id>[\w\-]+)/instances/(?P<instance_id>[\w\-]+)/(?P<instance_name>[\w\-\.]+)/pause/$",  # noqa
         views.PauseUpdateInstance.as_view(),
-        name="api.application.pause"
+        name="api.application.pause",
     ),
     url(
         r"^api/app/projects/(?P<project_id>[\w\-]+)/instances/(?P<instance_id>[\w\-]+)/(?P<instance_name>[\w\-\.]+)/resume/$",  # noqa
         views.ResumeUpdateInstance.as_view(),
-        name="api.application.resume"
+        name="api.application.resume",
     ),
     url(
         r"^api/app/projects/(?P<project_id>[\w\-]+)/instances/(?P<instance_id>[\w\-]+)/(?P<instance_name>[\w\-\.]+)/delete/$",  # noqa
         views.DeleteInstance.as_view(),
-        name="api.application.delete"
+        name="api.application.delete",
     ),
     url(
         r"^api/app/projects/(?P<project_id>[\w\-]+)/instances/(?P<instance_id>[\w\-]+)/(?P<instance_name>[\w\-\.]+)/recreate/$",  # noqa
         views.ReCreateInstance.as_view(),
-        name="api.application.recreate"
+        name="api.application.recreate",
     ),
     url(
         r"^api/app/projects/(?P<project_id>[\w\-]+)/instances/(?P<instance_id>[\w\-]+)/(?P<instance_name>[\w\-\.]+)/labels/$",  # noqa
         instance_views.GetInstanceLabels.as_view(),
-        name="api.application.labels"
+        name="api.application.labels",
     ),
     url(
         r"^api/app/projects/(?P<project_id>[\w\-]+)/instances/(?P<instance_id>[\w\-]+)/(?P<instance_name>[\w\-\.]+)/annotations/$",  # noqa
         instance_views.GetInstanceAnnotations.as_view(),
-        name="api.application.annotations"
+        name="api.application.annotations",
     ),
     url(
         r"^api/app/projects/(?P<project_id>[\w\-]+)/instances/(?P<instance_id>[\w\-]+)/rescheduler/$",  # noqa
         instance_views.ReschedulerTaskgroup.as_view(),
-        name="api.application.rescheduler"
+        name="api.application.rescheduler",
     ),
     url(
         r"^api/app/projects/(?P<project_id>[\w\-]+)/instances/(?P<instance_id>[\w\-]+)/events/$",  # noqa
         instance_views.TaskgroupEvents.as_view(),
-        name="api.application.events"
+        name="api.application.events",
     ),
     url(
         r"^api/app/projects/(?P<project_id>[\w\-]+)/instances/(?P<instance_id>[\w\-]+)/taskgroups/(?P<taskgroup_name>[\w\-\.]+)/containers/(?P<container_id>[\w\-]+)/info/$",  # noqa
         instance_views.ContainerInfo.as_view(),
-        name="api.application.container_info"
+        name="api.application.container_info",
     ),
     url(
         r"^api/app/projects/(?P<project_id>[\w\-]+)/instances/(?P<instance_id>[\w\-]+)/taskgroups/(?P<name>[\w\-\.]+)/containers/info/$",  # noqa
-        common_query.K8SContainerInfo.as_view({'post': 'container_info'})
+        common_query.K8SContainerInfo.as_view({'post': 'container_info'}),
     ),
     url(
         r"^api/app/projects/(?P<project_id>[\w\-]+)/instances/(?P<instance_id>[\w\-]+)/pods/(?P<name>[\w\-\.]+)/containers/env_info/$",  # noqa
-        common_query.K8SContainerInfo.as_view({'post': 'env_info'})
+        common_query.K8SContainerInfo.as_view({'post': 'env_info'}),
     ),
     url(
         r"^api/app/projects/(?P<project_id>[\w\-]+)/containers/(?P<container_id>[\w\-]+)/logs/$",  # noqa
         instance_views.ContainerLogs.as_view(),
-        name="api.application.container_logs"
+        name="api.application.container_logs",
     ),
     url(
         r"^api/app/projects/(?P<project_id>[\w\-]+)/instances/(?P<instance_id>[\w\-]+)/configs/$",  # noqa
         instance_views.InstanceConfigInfo.as_view(),
-        name="api.application.instance_config"
+        name="api.application.instance_config",
     ),
     url(
         r"^api/app/projects/(?P<project_id>[\w\-]+)/instances/(?P<instance_id>[\w\-]+)/versions/$",  # noqa
         instance_views.GetVersionList.as_view(),
-        name="api.application.version_list"
+        name="api.application.version_list",
     ),
     url(
         r"^api/app/projects/(?P<project_id>[\w\-]+)/instances/(?P<instance_id>\d+)/metric/",
@@ -144,17 +146,17 @@ urlpatterns = [
         r"^api/app/projects/(?P<project_id>[\w\-]+)/musters/$",  # noqa
         views.GetProjectMuster.as_view(),
         # tmpl_set_views.TemplateSet.as_view(),
-        name="api.application.muster"
+        name="api.application.muster",
     ),
     url(
         r"^api/app/projects/(?P<project_id>[\w\-]+)/musters/(?P<muster_id>\d+)/templates/$",  # noqa
         views.GetMusterTemplate.as_view(),
-        name="api.application.muster,template"
+        name="api.application.muster,template",
     ),
     url(
         r"^api/app/projects/(?P<project_id>[\w\-]+)/musters/(?P<muster_id>\d+)/templates/(?P<template_id>\d+)/instances/$",  # noqa
         views.AppInstance.as_view(),
-        name="api.application.template.instance"
+        name="api.application.template.instance",
     ),
     #######################################################
     # 针对taskgroup的优化
@@ -162,22 +164,22 @@ urlpatterns = [
     url(
         r"^api/app/projects/(?P<project_id>[\w\-]+)/instances/(?P<instance_id>[\w\-]+)/taskgroups/$",  # noqa
         instance_views.QueryAllTaskgroups.as_view(),
-        name="api.application.taskgroups"
+        name="api.application.taskgroups",
     ),
     url(
         r"^api/app/projects/(?P<project_id>[\w\-]+)/instances/(?P<instance_id>[\w\-]+)/taskgroups/(?P<taskgroup_name>[\w\-\.]+)/containers/$",  # noqa
         instance_views.QueryContainersByTaskgroup.as_view(),
-        name="api.application.taskgroup.containers"
+        name="api.application.taskgroup.containers",
     ),
     url(
         r"^api/app/projects/(?P<project_id>[\w\-]+)/instances/(?P<instance_id>[\w\-]+)/taskgroups/(?P<taskgroup_name>[\w\-\.]+)/info/$",  # noqa
         instance_views.QueryTaskgroupInfo.as_view(),
-        name="api.application.taskgroup.info"
+        name="api.application.taskgroup.info",
     ),
     url(
         r"^api/app/projects/(?P<project_id>[\w\-]+)/instances/(?P<instance_id>[\w\-]+)/containers/$",  # noqa
         instance_views.QueryApplicationContainers.as_view(),
-        name="api.application.containers"
+        name="api.application.containers",
     ),
     #######################################################
     # 针对模板的view
@@ -185,12 +187,12 @@ urlpatterns = [
     url(
         r"^api/app/projects/(?P<project_id>[\w\-]+)/musters/(?P<muster_id>\d+)/instances/namespaces/",
         templates.TemplateNamespace.as_view(),
-        name="api.application.template.namespace"
+        name="api.application.template.namespace",
     ),
     url(
         r"^api/app/projects/(?P<project_id>[\w\-]+)/musters/(?P<muster_id>\d+)/instances/resources/$",  # noqa
         templates.DeleteTemplateInstance.as_view(),
-        name="api.application.template.instances"
+        name="api.application.template.instances",
     ),
     ######################################################
     # 节点详情页跳转得到容器详情
@@ -199,7 +201,6 @@ urlpatterns = [
         r"^api/app/projects/(?P<project_id>[\w\-]+)/clusters/(?P<cluster_id>[\w\-]+)/container/",  # noqa
         instance_views.QueryContainerInfo.as_view(),
     ),
-
     #####################################################
     # 命名空间相关
     ####################################################
@@ -211,7 +212,6 @@ urlpatterns = [
         r"^api/app/projects/(?P<project_id>[\w\-]+)/namespaces/(?P<ns_id>\d+)/instances/$",
         ns_views.GetInstances.as_view(),
     ),
-
     ####################################################
     # 实例版本相关
     ###################################################
@@ -240,14 +240,14 @@ urlpatterns = [
     ),
     url(
         r'^api/projects/(?P<project_id>\w{32})/instances/(?P<instance_id>\d+)/all_configs/$',
-        operation.RollbackPreviousVersion.as_view({'get': 'get'})
+        operation.RollbackPreviousVersion.as_view({'get': 'get'}),
     ),
     url(
         r'^api/projects/(?P<project_id>\w{32})/instances/(?P<instance_id>\d+)/rollback/$',
-        operation.RollbackPreviousVersion.as_view({'put': 'update'})
+        operation.RollbackPreviousVersion.as_view({'put': 'update'}),
     ),
     url(
         r'^api/projects/(?P<project_id>\w{32})/pods/reschedule/$',
-        operation.ReschedulePodsViewSet.as_view({'put': 'reschedule_pods'})
-    )
+        operation.ReschedulePodsViewSet.as_view({'put': 'reschedule_pods'}),
+    ),
 ]

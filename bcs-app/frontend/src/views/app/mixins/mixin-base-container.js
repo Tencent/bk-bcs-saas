@@ -445,6 +445,7 @@ export default {
             if (!chartNode) {
                 return
             }
+
             const chartOpts = Object.assign({}, this.containerMemChartOptsInternal)
 
             chartOpts.series.splice(0, chartOpts.series.length, ...[])
@@ -593,6 +594,7 @@ export default {
             if (!chartNode) {
                 return
             }
+
             const chartOpts = Object.assign({}, this.containerDiskChartOptsInternal)
 
             chartOpts.series.splice(0, chartOpts.series.length, ...[])

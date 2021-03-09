@@ -25,12 +25,11 @@ https://docs.djangoproject.com/en/1.11/ref/settings/
 
 import os
 
+# Apply pymysql patch
+import pymysql
 from django.conf.global_settings import gettext_noop as _
 
 from .base_bk import *  # noqa
-
-# Apply pymysql patch
-import pymysql
 
 pymysql.install_as_MySQLdb()
 # Patch version info to forcely pass Django client check
@@ -134,17 +133,30 @@ WSGI_APPLICATION = "wsgi.application"
 # Database
 # https://docs.djangoproject.com/en/1.11/ref/settings/#databases
 
-DATABASES = {"default": {"ENGINE": "django.db.backends.sqlite3", "NAME": os.path.join(BASE_DIR, "db.sqlite3"),}}
+DATABASES = {
+    "default": {
+        "ENGINE": "django.db.backends.sqlite3",
+        "NAME": os.path.join(BASE_DIR, "db.sqlite3"),
+    }
+}
 
 
 # Password validation
 # https://docs.djangoproject.com/en/1.11/ref/settings/#auth-password-validators
 
 AUTH_PASSWORD_VALIDATORS = [
-    {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",},
-    {"NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",},
-    {"NAME": "django.contrib.auth.password_validation.CommonPasswordValidator",},
-    {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",},
+    {
+        "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
+    },
+    {
+        "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
+    },
+    {
+        "NAME": "django.contrib.auth.password_validation.CommonPasswordValidator",
+    },
+    {
+        "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",
+    },
 ]
 
 
@@ -227,7 +239,10 @@ def get_logging_config(log_level, rds_hander_settings=None, log_path="app.log"):
         },
         "filters": {"request_id": {"()": "backend.utils.log.RequestIdFilter"}},
         "handlers": {
-            "null": {"level": "DEBUG", "class": "logging.NullHandler",},
+            "null": {
+                "level": "DEBUG",
+                "class": "logging.NullHandler",
+            },
             "mail_admins": {"level": "ERROR", "class": "django.utils.log.AdminEmailHandler"},
             "file": {
                 "class": "logging.handlers.WatchedFileHandler",
@@ -250,7 +265,11 @@ def get_logging_config(log_level, rds_hander_settings=None, log_path="app.log"):
             },
         },
         "loggers": {
-            "django": {"handlers": ["null"], "level": "INFO", "propagate": True,},
+            "django": {
+                "handlers": ["null"],
+                "level": "INFO",
+                "propagate": True,
+            },
             "django.request": {
                 "handlers": ["console", "logstash_redis", "file"],
                 "level": "ERROR",
@@ -262,7 +281,11 @@ def get_logging_config(log_level, rds_hander_settings=None, log_path="app.log"):
                 "propagate": True,
             },
             "django.security": {"handlers": ["console", "logstash_redis", "file"], "level": "INFO", "propagate": True},
-            "root": {"handlers": ["console", "logstash_redis", "file"], "level": log_level, "propagate": False,},
+            "root": {
+                "handlers": ["console", "logstash_redis", "file"],
+                "level": log_level,
+                "propagate": False,
+            },
             "console": {  # 打印redis日志错误，防止循环错误
                 "handlers": ["console", "file"],
                 "level": log_level,
@@ -276,7 +299,10 @@ def get_logging_config(log_level, rds_hander_settings=None, log_path="app.log"):
                 "handlers": ["console", "logstash_redis", "file"],
                 "level": os.getenv("DJANGO_LOG_LEVEL", "INFO"),
             },
-            "bkpaas_auth": {"handlers": ["console", "logstash_redis", "file"], "level": "DEBUG",},
+            "bkpaas_auth": {
+                "handlers": ["console", "logstash_redis", "file"],
+                "level": "DEBUG",
+            },
             "sentry_logger": {"handlers": ["sentry"], "level": "ERROR"},
         },
     }
@@ -299,6 +325,7 @@ KUBECTL_BIN_MAP = {
     "1.12.3": "/bin/kubectl-v1.12.3",
     "1.14.9": "/bin/kubectl-v1.14.9",
     "1.16.3": "/bin/kubectl-v1.16.3",
+    "1.18.12": "/bin/kubectl-v1.18.12",
 }
 KUBECFG = "/root/.kube/config"  # kubectl config path, ex: ~/.kube/config
 BKE_SERVER_HOST = None  # example: http://127.0.0.1:44321
@@ -345,6 +372,9 @@ WEB_CONSOLE_KUBECTLD_IMAGE_PATH = ""
 WEB_CONSOLE_POD_SPEC = {}
 WEB_CONSOLE_PORT = int(os.environ.get("WEB_CONSOLE_PORT", 28800))
 
+# WEB_CONSOLE_MODE 为 external时, 指定的集群ID, token, api_host
+WEB_CONSOLE_EXTERNAL_CLUSTER = {"ID": "", "API_TOKEN": "", "API_HOST": ""}
+
 # thanos 查询API
 THANOS_HOST = ""
 THANOS_AUTH = None
@@ -360,9 +390,12 @@ BK_APP_WHITELIST = {}
 
 # 覆盖配置
 try:
-    from .base_bk import TEMPLATES, STATICFILES_DIRS
+    from .base_bk import STATICFILES_DIRS, TEMPLATES
 except Exception:
     pass
 
 # 平台组件部署到的命名空间
 BCS_SYSTEM_NAMESPACE = "bcs-system"
+
+# bcs-agent YAML 配置文件模板名
+BCS_AGENT_YAML_TEMPLTE_NAME = 'bcs_agent_tmpl.yaml'

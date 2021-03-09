@@ -38,44 +38,26 @@ MESOS_TEMPLATE = {
                             "maxUnavilable": 1,
                             "maxSurge": 1,
                             "upgradeDuration": 30,
-                            "rollingOrder": "CreateFirst"
-                        }
+                            "rollingOrder": "CreateFirst",
+                        },
                     }
-                }
+                },
             }
         ],
         "service": [
             {
                 "id": 53,
                 "name": "rum-redis-svc",
-                "app_id": {
-                    "1520394355": 100
-                },
+                "app_id": {"1520394355": 100},
                 "config": {
                     "webCache": {
-                        "link_app": [
-                            "1520394355"
-                        ],
-                        "link_app_weight": [
-                            {
-                                "id": "1520394355",
-                                "name": "rum-test",
-                                "weight": 100
-                            }
-                        ],
-                        "labelListCache": [
-                            {
-                                "key": "",
-                                "value": ""
-                            }
-                        ]
+                        "link_app": ["1520394355"],
+                        "link_app_weight": [{"id": "1520394355", "name": "rum-test", "weight": 100}],
+                        "labelListCache": [{"key": "", "value": ""}],
                     },
                     "isLinkLoadBalance": False,
                     "kind": "service",
-                    "metadata": {
-                        "name": "rum-redis-svc",
-                        "labels": {}
-                    },
+                    "metadata": {"name": "rum-redis-svc", "labels": {}},
                     "spec": {
                         "type": "None",
                         "clusterIP": [],
@@ -86,43 +68,25 @@ MESOS_TEMPLATE = {
                                 "targetPort": "",
                                 "domainName": "",
                                 "path": "",
-                                "servicePort": ""
+                                "servicePort": "",
                             }
-                        ]
-                    }
-                }
+                        ],
+                    },
+                },
             },
             {
                 "id": 150,
                 "name": "rum-rum-svc",
-                "app_id": {
-                    "1520395319": 100
-                },
+                "app_id": {"1520395319": 100},
                 "config": {
                     "webCache": {
-                        "link_app": [
-                            "1520395319"
-                        ],
-                        "link_app_weight": [
-                            {
-                                "id": "1520395319",
-                                "name": "rum-rumpetroll",
-                                "weight": 100
-                            }
-                        ],
-                        "labelListCache": [
-                            {
-                                "key": "",
-                                "value": ""
-                            }
-                        ]
+                        "link_app": ["1520395319"],
+                        "link_app_weight": [{"id": "1520395319", "name": "rum-rumpetroll", "weight": 100}],
+                        "labelListCache": [{"key": "", "value": ""}],
                     },
                     "isLinkLoadBalance": False,
                     "kind": "service",
-                    "metadata": {
-                        "name": "rum-rum-svc",
-                        "labels": {}
-                    },
+                    "metadata": {"name": "rum-rum-svc", "labels": {}},
                     "spec": {
                         "type": "None",
                         "clusterIP": [],
@@ -134,12 +98,12 @@ MESOS_TEMPLATE = {
                                 "domainName": "bcs-rumpetroll.wsd.bking.com",
                                 "path": "",
                                 "servicePort": 80,
-                                "id": 1520394369864
+                                "id": 1520394369864,
                             }
-                        ]
-                    }
-                }
-            }
+                        ],
+                    },
+                },
+            },
         ],
         "application": [
             {
@@ -148,41 +112,16 @@ MESOS_TEMPLATE = {
                 "desc": "rumpetroll service",
                 "config": {
                     "webCache": {
-                        "remarkListCache": [
-                            {
-                                "key": "",
-                                "value": ""
-                            }
-                        ],
-                        "labelListCache": [
-                            {
-                                "key": "",
-                                "value": ""
-                            }
-                        ],
+                        "remarkListCache": [{"key": "", "value": ""}],
+                        "labelListCache": [{"key": "", "value": ""}],
                         "isMetric": True,
                         "metricIdList": [],
-                        "logLabelListCache": [
-                            {
-                                "key": "",
-                                "value": ""
-                            }
-                        ]
+                        "logLabelListCache": [{"key": "", "value": ""}],
                     },
                     "kind": "application",
-                    "restartPolicy": {
-                        "policy": "Always",
-                        "interval": 5,
-                        "backoff": 10,
-                        "maxtimes": 0
-                    },
-                    "killPolicy": {
-                        "gracePeriod": 10
-                    },
-                    "metricPolicy": {
-                        "isUsed": False,
-                        "list": []
-                    },
+                    "restartPolicy": {"policy": "Always", "interval": 5, "backoff": 10, "maxtimes": 0},
+                    "killPolicy": {"gracePeriod": 10},
+                    "metricPolicy": {"isUsed": False, "list": []},
                     "constraint": {
                         "intersectionItem": [
                             {
@@ -192,19 +131,13 @@ MESOS_TEMPLATE = {
                                         "operate": "CLUSTER",
                                         "type": 4,
                                         "arg_value": "",
-                                        "set": {
-                                            "item": []
-                                        }
+                                        "set": {"item": []},
                                     }
                                 ]
                             }
                         ]
                     },
-                    "metadata": {
-                        "annotations": {},
-                        "labels": {},
-                        "name": "rum-rumpetroll"
-                    },
+                    "metadata": {"annotations": {}, "labels": {}, "name": "rum-rumpetroll"},
                     "spec": {
                         "instance": 2,
                         "template": {
@@ -219,37 +152,20 @@ MESOS_TEMPLATE = {
                                         "args": [],
                                         "parameters": [],
                                         "logPathList": [],
-                                        "parameter_list": [
-                                            {
-                                                "key": "",
-                                                "value": ""
-                                            }
-                                        ],
+                                        "parameter_list": [{"key": "", "value": ""}],
                                         "type": "MESOS",
                                         "env_list": [
                                             {
                                                 "type": "custom",
                                                 "key": "REDIS_HOST",
-                                                "value": "rum-redis-svc.{{SYS_NAMESPACE}}"
+                                                "value": "rum-redis-svc.{{SYS_NAMESPACE}}",
                                             },
-                                            {
-                                                "type": "custom",
-                                                "key": "REDIS_PORT",
-                                                "value": "31181"
-                                            },
-                                            {
-                                                "type": "custom",
-                                                "key": "HOST",
-                                                "value": "0.0.0.0"
-                                            },
-                                            {
-                                                "type": "custom",
-                                                "key": "MAX_CLIENT",
-                                                "value": "20"
-                                            }
+                                            {"type": "custom", "key": "REDIS_PORT", "value": "31181"},
+                                            {"type": "custom", "key": "HOST", "value": "0.0.0.0"},
+                                            {"type": "custom", "key": "MAX_CLIENT", "value": "20"},
                                         ],
                                         # NOTE: imageName仅供前端匹配镜像使用，格式是镜像列表中name:value
-                                        "imageName": f"{image_path_prefix}/mesos/rumpetroll:{image_path_prefix}/mesos/rumpetroll", # noqa
+                                        "imageName": f"{image_path_prefix}/mesos/rumpetroll:{image_path_prefix}/mesos/rumpetroll",  # noqa
                                         "imageVersion": "3.1",
                                         "image": f"{image_prefix}/mesos/rumpetroll:3.1",
                                         "imagePullPolicy": "Always",
@@ -262,7 +178,7 @@ MESOS_TEMPLATE = {
                                                 "name": "rum-port",
                                                 "protocol": "HTTP",
                                                 "isLink": "端口在 Service[rum-rum-svc] 中已经被关联，不能修改协议！",
-                                                "isDisabled": False
+                                                "isDisabled": False,
                                             }
                                         ],
                                         "healthChecks": [
@@ -273,51 +189,35 @@ MESOS_TEMPLATE = {
                                                 "timeoutSeconds": 20,
                                                 "consecutiveFailures": 3,
                                                 "gracePeriodSeconds": 300,
-                                                "command": {
-                                                    "portName": "",
-                                                    "value": ""
-                                                },
+                                                "command": {"portName": "", "value": ""},
                                                 "http": {
                                                     "port": "",
                                                     "portName": "",
                                                     "scheme": "http",
                                                     "path": "",
-                                                    "headers": {}
+                                                    "headers": {},
                                                 },
-                                                "tcp": {
-                                                    "port": "",
-                                                    "portName": ""
-                                                }
+                                                "tcp": {"port": "", "portName": ""},
                                             }
                                         ],
                                         "resources": {
-                                            "requests": {
-                                                "cpu": 1,
-                                                "memory": 100
-                                            },
-                                            "limits": {
-                                                "cpu": '',
-                                                "memory": ''
-                                            }
+                                            "requests": {"cpu": 1, "memory": 100},
+                                            "limits": {"cpu": '', "memory": ''},
                                         },
                                         "volumes": [],
-                                        "logListCache": [
-                                            {
-                                                "value": ""
-                                            }
-                                        ]
+                                        "logListCache": [{"value": ""}],
                                     }
                                 ],
                                 "networkMode": "HOST",
                                 "networkType": "cnm",
-                                "custom_value": ""
-                            }
-                        }
+                                "custom_value": "",
+                            },
+                        },
                     },
                     "customLogLabel": {},
-                    "monitorLevel": "general"
+                    "monitorLevel": "general",
                 },
-                "name": "rum-rumpetroll"
+                "name": "rum-rumpetroll",
             },
             {
                 "id": "860",
@@ -325,41 +225,16 @@ MESOS_TEMPLATE = {
                 "desc": "redis service for rumpetroll",
                 "config": {
                     "webCache": {
-                        "remarkListCache": [
-                            {
-                                "key": "",
-                                "value": ""
-                            }
-                        ],
-                        "labelListCache": [
-                            {
-                                "key": "",
-                                "value": ""
-                            }
-                        ],
+                        "remarkListCache": [{"key": "", "value": ""}],
+                        "labelListCache": [{"key": "", "value": ""}],
                         "isMetric": False,
                         "metricIdList": [],
-                        "logLabelListCache": [
-                            {
-                                "key": "",
-                                "value": ""
-                            }
-                        ]
+                        "logLabelListCache": [{"key": "", "value": ""}],
                     },
                     "kind": "application",
-                    "restartPolicy": {
-                        "policy": "Always",
-                        "interval": 5,
-                        "backoff": 10,
-                        "maxtimes": 0
-                    },
-                    "killPolicy": {
-                        "gracePeriod": 10
-                    },
-                    "metricPolicy": {
-                        "isUsed": False,
-                        "list": []
-                    },
+                    "restartPolicy": {"policy": "Always", "interval": 5, "backoff": 10, "maxtimes": 0},
+                    "killPolicy": {"gracePeriod": 10},
+                    "metricPolicy": {"isUsed": False, "list": []},
                     "constraint": {
                         "intersectionItem": [
                             {
@@ -369,19 +244,13 @@ MESOS_TEMPLATE = {
                                         "operate": "CLUSTER",
                                         "type": 4,
                                         "arg_value": "",
-                                        "set": {
-                                            "item": []
-                                        }
+                                        "set": {"item": []},
                                     }
                                 ]
                             }
                         ]
                     },
-                    "metadata": {
-                        "annotations": {},
-                        "labels": {},
-                        "name": "rum-redis"
-                    },
+                    "metadata": {"annotations": {}, "labels": {}, "name": "rum-redis"},
                     "spec": {
                         "instance": 1,
                         "template": {
@@ -396,22 +265,11 @@ MESOS_TEMPLATE = {
                                         "args": [],
                                         "parameters": [],
                                         "logPathList": [],
-                                        "parameter_list": [
-                                            {
-                                                "key": "",
-                                                "value": ""
-                                            }
-                                        ],
+                                        "parameter_list": [{"key": "", "value": ""}],
                                         "type": "MESOS",
-                                        "env_list": [
-                                            {
-                                                "type": "custom",
-                                                "key": "",
-                                                "value": ""
-                                            }
-                                        ],
+                                        "env_list": [{"type": "custom", "key": "", "value": ""}],
                                         # NOTE: imageName仅供前端匹配镜像使用，格式是镜像列表中name:value
-                                        "imageName": f"{image_path_prefix}/mesos/rumpetrol-redis:{image_path_prefix}/mesos/rumpetrol-redis", # noqa
+                                        "imageName": f"{image_path_prefix}/mesos/rumpetrol-redis:{image_path_prefix}/mesos/rumpetrol-redis",  # noqa
                                         "imageVersion": "latest",
                                         "image": f"{image_prefix}/mesos/rumpetrol-redis:latest",
                                         "imagePullPolicy": "Always",
@@ -424,7 +282,7 @@ MESOS_TEMPLATE = {
                                                 "name": "redis-port",
                                                 "protocol": "HTTP",
                                                 "isLink": "",
-                                                "isDisabled": False
+                                                "isDisabled": False,
                                             }
                                         ],
                                         "healthChecks": [
@@ -435,52 +293,36 @@ MESOS_TEMPLATE = {
                                                 "timeoutSeconds": 20,
                                                 "consecutiveFailures": 3,
                                                 "gracePeriodSeconds": 300,
-                                                "command": {
-                                                    "portName": "",
-                                                    "value": ""
-                                                },
+                                                "command": {"portName": "", "value": ""},
                                                 "http": {
                                                     "port": "",
                                                     "portName": "",
                                                     "scheme": "http",
                                                     "path": "",
-                                                    "headers": {}
+                                                    "headers": {},
                                                 },
-                                                "tcp": {
-                                                    "port": "",
-                                                    "portName": ""
-                                                }
+                                                "tcp": {"port": "", "portName": ""},
                                             }
                                         ],
                                         "resources": {
-                                            "requests": {
-                                                "cpu": 1,
-                                                "memory": 100
-                                            },
-                                            "limits": {
-                                                "cpu": '',
-                                                "memory": ''
-                                            }
+                                            "requests": {"cpu": 1, "memory": 100},
+                                            "limits": {"cpu": '', "memory": ''},
                                         },
                                         "volumes": [],
-                                        "logListCache": [
-                                            {
-                                                "value": ""
-                                            }
-                                        ]
+                                        "logListCache": [{"value": ""}],
                                     }
                                 ],
                                 "networkMode": "BRIDGE",
                                 "networkType": "cnm",
-                                "custom_value": ""
-                            }
-                        }
+                                "custom_value": "",
+                            },
+                        },
                     },
                     "customLogLabel": {},
-                    "monitorLevel": "general"
+                    "monitorLevel": "general",
                 },
-                "name": "rum-redis"
-            }
-        ]
-    }
+                "name": "rum-redis",
+            },
+        ],
+    },
 }

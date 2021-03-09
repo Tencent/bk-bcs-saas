@@ -178,6 +178,20 @@ if IS_USE_CELERY:
 
                 django.setup()
 
+        from celery.schedules import crontab
+
+        CELERY_BEAT_SCHEDULE = {
+            # 为防止出现资源注册权限中心失败的情况，每天定时同步一次
+            'bcs_perm_tasks': {
+                'task': 'backend.accounts.bcs_perm.tasks.sync_bcs_perm',
+                'schedule': crontab(minute=0, hour=2),
+            },
+            # 每天三点进行一次强制同步
+            'helm_force_sync_repo_tasks': {
+                'task': 'backend.bcs_k8s.helm.tasks.force_sync_all_repo',
+                'schedule': crontab(minute=0, hour=3),
+            },
+        }
     except Exception as error:
         print("use celery error: %s" % error)
 
@@ -194,7 +208,7 @@ KUBECTL_BIN_MAP = {
     "1.12.3": os.path.join(HELM_BASE_DIR, "bin/kubectl-v1.12.3"),
     "1.14.9": os.path.join(HELM_BASE_DIR, "bin/kubectl-v1.14.9"),
     "1.16.3": os.path.join(HELM_BASE_DIR, "bin/kubectl-v1.16.3"),
-    "1.18.12": os.path.join(HELM_BASE_DIR, "bin/kubectl-v1.18.12")
+    "1.18.12": os.path.join(HELM_BASE_DIR, "bin/kubectl-v1.18.12"),
 }
 
 # BKE企业版证书
@@ -235,3 +249,7 @@ BK_IAM_SYSTEM_ID = APP_ID
 BK_IAM_MIGRATION_APP_NAME = "bcs_iam_migration"
 BK_IAM_RESOURCE_API_HOST = BK_PAAS_INNER_HOST or "http://paas.service.consul"
 BK_IAM_INNER_HOST = BK_IAM_HOST
+
+# 数据平台清洗URL
+_URI_DATA_CLEAN = '%2Fs%2Fdata%2Fdataset%2Finfo%2F{data_id}%2F%23data_clean'
+URI_DATA_CLEAN = f'{BK_PAAS_HOST}?app=data&url=' + _URI_DATA_CLEAN

@@ -13,6 +13,7 @@
 #
 import os
 from urllib import parse
+
 import redis
 
 from .base import *  # noqa
@@ -100,7 +101,9 @@ RDS_HANDER_SETTINGS = {
 CACHES["default"] = {
     "BACKEND": "django_redis.cache.RedisCache",
     "LOCATION": REDIS_URL,
-    "OPTIONS": {"CLIENT_CLASS": "django_redis.client.DefaultClient",},
+    "OPTIONS": {
+        "CLIENT_CLASS": "django_redis.client.DefaultClient",
+    },
 }
 
 # 针对BCS区分环境, backend的staging环境，连接bcs的uat和debugger，默认使用uat
@@ -156,8 +159,6 @@ WEB_CONSOLE_KUBECTLD_IMAGE_PATH = f"{DEVOPS_ARTIFACTORY_HOST}/public/bcs/k8s/kub
 
 # web_console监听地址
 WEB_CONSOLE_PORT = int(os.environ.get("WEB_CONSOLE_PORT", 28800))
-WEB_CONSOLE_CLUSTER_ID = ""
-WEB_CONSOLE_USER_TOKEN = ""
 
 THANOS_HOST = os.environ.get("BKAPP_THANOS_HOST")
 # 默认指标数据来源，现在支持bk-data, prometheus

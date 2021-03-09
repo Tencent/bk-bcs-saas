@@ -11,10 +11,18 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
+import logging
+
 from django.conf import settings
 
+logger = logging.getLogger(__name__)
 
 CURATOR_VALUES_TEMPLATE = ""
 
 # public repo url
 PUBLIC_REPO_URL = f'{settings.HELM_MERELY_REPO_URL}/chartrepo/public/'
+
+try:
+    from .constants_ext import *  # type: ignore  # noqa
+except ImportError:
+    logger.debug('Load extension for constants failed')

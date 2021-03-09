@@ -35,7 +35,7 @@ class K8SLoadBlance(BaseLoadBalance):
 
     class Meta:
         db_table = "k8s_load_blance"
-        unique_together = (("cluster_id", "namespace", "name"))
+        unique_together = ("cluster_id", "namespace", "name")
 
 
 class MesosLoadBlance(BaseLoadBalance):
@@ -52,4 +52,4 @@ class MesosLoadBlance(BaseLoadBalance):
 
     class Meta:
         db_table = "mesos_load_blance"
-        unique_together = (("cluster_id", "namespace_id", "name"))
+        unique_together = ("cluster_id", "namespace_id", "name")

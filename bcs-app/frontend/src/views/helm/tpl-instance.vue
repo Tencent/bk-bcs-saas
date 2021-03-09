@@ -110,7 +110,7 @@
                                                     @item-selected="getClusterInfo">
                                                 </bk-selector>
                                             </div>
-                                            <p class="biz-tip f13 mt5" id="cluster-info" v-if="clusterInfo" v-html="clusterInfo"></p>
+                                            <p class="biz-tip mt5" id="cluster-info" v-if="clusterInfo" v-html="clusterInfo"></p>
                                         </div>
                                     </div>
                                 </div>

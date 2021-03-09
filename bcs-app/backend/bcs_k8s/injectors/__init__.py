@@ -17,4 +17,4 @@ This package implementes a bcs injector which inject bcs info to deployment,
 pods, containers and etc.
 """
 
-from .base import BaseInjector, KindMatcher, InjectManager  # noqa
+from .base import BaseInjector, InjectManager, KindMatcher  # noqa

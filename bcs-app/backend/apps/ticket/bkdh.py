@@ -14,13 +14,13 @@
 """python3版本
 """
 
-import requests
-
 from base64 import b64decode, b64encode
-from cryptography.hazmat.backends import default_backend
-from cryptography.hazmat.primitives import serialization
+
+import requests
 from Crypto.Cipher import DES
 from Crypto.Hash import SHA
+from cryptography.hazmat.backends import default_backend
+from cryptography.hazmat.primitives import serialization
 
 
 class BKDHException(Exception):
@@ -31,20 +31,20 @@ def _get_des_key(shared_key):
     key_bytes = []
     for b in shared_key[:8]:
         b = ord(b) if isinstance(b, str) else b
-        _b = (
-            (b & 0xfe) | (
+        _b = (b & 0xFE) | (
+            (
                 (
-                    (
-                        (b >> 1) ^  # noqa
-                        (b >> 2) ^  # noqa
-                        (b >> 3) ^  # noqa
-                        (b >> 4) ^  # noqa
-                        (b >> 5) ^  # noqa
-                        (b >> 6) ^  # noqa
-                        (b >> 7)
-                    ) ^ 0x01
-                ) & 0x01
+                    (b >> 1)
+                    ^ (b >> 2)  # noqa
+                    ^ (b >> 3)  # noqa
+                    ^ (b >> 4)  # noqa
+                    ^ (b >> 5)  # noqa
+                    ^ (b >> 6)  # noqa
+                    ^ (b >> 7)  # noqa
+                )
+                ^ 0x01
             )
+            & 0x01
         )
         key_b = chr(_b).encode('latin1', errors='replace')
         key_bytes.append(key_b)
@@ -61,25 +61,21 @@ def _unpad(padded_data, block_size):
 
 
 def load_public_key(der_public_key):
-    return serialization.load_der_public_key(b64decode(der_public_key),
-                                             default_backend())
+    return serialization.load_der_public_key(b64decode(der_public_key), default_backend())
 
 
 def dump_public_key(public_key):
     return b64encode(
-        public_key.public_bytes(
-            serialization.Encoding.DER,
-            serialization.PublicFormat.SubjectPublicKeyInfo
-        )
+        public_key.public_bytes(serialization.Encoding.DER, serialization.PublicFormat.SubjectPublicKeyInfo)
     )
 
 
 def get_dh_parameters():
     # DHParameters 的数据存储在一个叫 dh_cdata 的指针中，很难通过 Python 修改
     # 或组装，所以这里直接通过一个合法的PublicKey读取其DHParameters得来
-    public_key = load_public_key("MEcwLQYJKoZIhvcNAQMBMCACExZWAhV0cUBBckkh"
-                                 "WWg0c0IIBYcCBRI0VniQAgIAgAMWAAITDr8ZFFIy"
-                                 "VMOTN83kE2zINJo/HQ==")
+    public_key = load_public_key(
+        "MEcwLQYJKoZIhvcNAQMBMCACExZWAhV0cUBBckkh" "WWg0c0IIBYcCBRI0VniQAgIAgAMWAAITDr8ZFFIy" "VMOTN83kE2zINJo/HQ=="
+    )
     return public_key.parameters()
 
 
@@ -98,9 +94,7 @@ def get_keypair():
 
 
 def request_api(url, public_ka, data_key, sha_key):
-    r = requests.get(url, params={
-        "publicKey": dump_public_key(public_ka)
-    })
+    r = requests.get(url, params={"publicKey": dump_public_key(public_ka)})
     try:
         data = r.json()
     except Exception:
@@ -113,8 +107,7 @@ def request_api(url, public_ka, data_key, sha_key):
         r.raise_for_status()
     except Exception:
         raise BKDHException("request failed: %r" % data.get('message'))
-    return (load_public_key(data['publicKey']),
-            b64decode(data[data_key]), data[sha_key])
+    return (load_public_key(data['publicKey']), b64decode(data[data_key]), data[sha_key])
 
 
 def shortcuts(url, data_key, sha_key):

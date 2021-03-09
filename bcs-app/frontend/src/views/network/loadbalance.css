@@ -13,6 +13,12 @@
 .biz-loadbalance-table>tbody>tr>td:first-child {
     padding-left: 30px;
 }
+.biz-loadbalance-table {
+    >tbody>tr>th,
+    >tbody>tr>td {
+        height: 50px;
+    }
+}
 
 .biz-namespace-selected-list {
     margin-top: 10px;

@@ -126,10 +126,10 @@
                                     :placeholder="$t('请选择')"
                                     :setting-key="'cluster_id'"
                                     :display-key="'longName'"
+                                    :is-link="true"
                                     :disabled="!!curLoadBalance.id"
                                     :selected.sync="curLoadBalance.cluster_id"
-                                    :list="clusterList"
-                                    @item-selected="handleClusterChange">
+                                    :list="clusterList">
                                 </bk-selector>
                             </div>
                         </div>
@@ -228,9 +228,9 @@
 
 <script>
     import yamljs from 'js-yaml'
-    import ace from '@/components/ace-editor'
-    import nodeSelector from '@/components/node-selector'
-    import { catchErrorHandler, formatDate } from '@/common/util'
+    import ace from '@open/components/ace-editor'
+    import nodeSelector from '@open/components/node-selector'
+    import { catchErrorHandler, formatDate } from '@open/common/util'
 
     export default {
         components: {
@@ -1098,9 +1098,6 @@
             },
             handleCloseFullScreen () {
                 this.editorIsFullScreen = false
-            },
-            handleClusterChange () {
-                this.curLoadBalance.node_list = []
             }
         }
     }

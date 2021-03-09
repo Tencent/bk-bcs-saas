@@ -11,19 +11,19 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-import json
 import base64
+import json
 import logging
 
 from celery import shared_task
 
 from backend.accounts import bcs_perm
-from backend.components import paas_cc, paas_auth
 from backend.apps.configuration.namespace import resources
+from backend.apps.constants import ProjectKind
+from backend.components import paas_auth, paas_cc
+from backend.utils import FancyDict
 from backend.utils.errcodes import ErrorCode
 from backend.utils.error_codes import error_codes
-from backend.apps.constants import ProjectKind
-from backend.utils import FancyDict
 
 logger = logging.getLogger(__name__)
 
@@ -55,10 +55,7 @@ def get_cluster_namespace_map(access_token, project_id):
 
 
 def create_cc_namespace(access_token, project_id, cluster_id, namespace, creator):
-    resp = paas_cc.create_namespace(
-        access_token, project_id, cluster_id,
-        namespace, None, creator, 'prod', True
-    )
+    resp = paas_cc.create_namespace(access_token, project_id, cluster_id, namespace, None, creator, 'prod', True)
     if resp.get('code') != ErrorCode.NoError:
         raise error_codes.APIError(f'create namespace error, {resp.get("message")}')
     return resp['data']
@@ -81,16 +78,12 @@ def delete_auth(request, project_id, ns_id):
 
 
 def compose_request(access_token, username):
-    """组装request，以便于使用auth api时使用
-    """
-    return FancyDict({
-        'user': FancyDict({
-            'username': username,
-            'token': FancyDict({
-                'access_token': access_token
-            })
-        }),
-    })
+    """组装request，以便于使用auth api时使用"""
+    return FancyDict(
+        {
+            'user': FancyDict({'username': username, 'token': FancyDict({'access_token': access_token})}),
+        }
+    )
 
 
 @shared_task

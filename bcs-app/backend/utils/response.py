@@ -11,12 +11,12 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
+from dataclasses import dataclass
 from typing import Union
 
 from django.http import JsonResponse
-from rest_framework.response import Response
-from dataclasses import dataclass
 from django.utils.translation import ugettext_lazy as _
+from rest_framework.response import Response
 
 from backend.utils.local import local
 
@@ -31,12 +31,7 @@ class APIResult(JsonResponse):
     def __init__(self, data, message='', permissions=None):
         assert isinstance(data, (list, dict)), _("data必须是list或者dict类型")
 
-        result = {
-            'code': 0,
-            'data': data,
-            'message': message,
-            'request_id': local.request_id
-        }
+        result = {'code': 0, 'data': data, 'message': message, 'request_id': local.request_id}
 
         if permissions:
             result['permissions'] = permissions
@@ -45,8 +40,8 @@ class APIResult(JsonResponse):
 
 
 class APIResponse(APIResult):
-    """same for api result for now
-    """
+    """same for api result for now"""
+
     pass
 
 
@@ -77,8 +72,7 @@ class ResNotFoundResult(JsonResponse):
 
 
 class BKAPIResponse(Response):
-    """APIResponse封装
-    """
+    """APIResponse封装"""
 
     def __init__(self, data: Union[list, dict], message: str = '', permissions: Union[None, dict] = None):
         assert isinstance(data, (list, dict)), _("data必须是list或者dict类型")

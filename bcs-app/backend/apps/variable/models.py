@@ -13,21 +13,21 @@
 #
 """变量管理功能
 """
-import logging
 import json
+import logging
 
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
 
 from backend.apps.configuration.models import BaseModel
-from .constants import VariableScope, VariableCategory, ALL_PROJECTS
+
+from .constants import ALL_PROJECTS, VariableCategory, VariableScope
 
 logger = logging.getLogger(__name__)
 
 
 class VariableManager(models.Manager):
-    """Manager for Variable
-    """
+    """Manager for Variable"""
 
     def get_queryset(self):
         return super().get_queryset().filter(is_deleted=False)
@@ -46,15 +46,19 @@ class Variable(BaseModel):
     # TODO mark refactor default使用JSONField会更合适，暂时保留TextField
     default = models.TextField(_("默认值"), help_text=_("以{'value':'默认值'}格式存储默认值,可以存储字符串和数字"))
     desc = models.TextField(_("说明"), blank=True, null=True)
-    category = models.CharField(_("类型"), max_length=16, choices=VariableCategory.get_choices(),
-                                default=VariableCategory.CUSTOM.value)
+    category = models.CharField(
+        _("类型"), max_length=16, choices=VariableCategory.get_choices(), default=VariableCategory.CUSTOM.value
+    )
     scope = models.CharField(_("作用范围"), max_length=16, choices=VariableScope.get_choices())
 
     objects = VariableManager()
     default_objects = models.Manager()
 
     class Meta:
-        ordering = ('category', '-id',)
+        ordering = (
+            'category',
+            '-id',
+        )
 
     def save(self, *args, **kwargs):
         if isinstance(self.default, dict):
@@ -79,14 +83,12 @@ class Variable(BaseModel):
         # TODO refactor
         if self.scope == VariableScope.CLUSTER.value:
             # if self.scope == 'cluster':
-            cluster_vars = ClusterVariable.objects.filter(
-                cluster_id=cluster_id, var_id=self.id)
+            cluster_vars = ClusterVariable.objects.filter(cluster_id=cluster_id, var_id=self.id)
             if cluster_vars.exists():
                 _var = cluster_vars.first()
                 return _var.get_value
         if self.scope == 'namespace':
-            ns_vars = NameSpaceVariable.objects.filter(
-                ns_id=ns_id, var_id=self.id)
+            ns_vars = NameSpaceVariable.objects.filter(ns_id=ns_id, var_id=self.id)
             if ns_vars.exists():
                 _var = ns_vars.first()
                 return _var.get_value
@@ -94,12 +96,11 @@ class Variable(BaseModel):
 
 
 class ClusterVariable(BaseModel):
-    """集群变量
-    """
+    """集群变量"""
+
     var_id = models.IntegerField(_("变量ID"))
     cluster_id = models.CharField(_("集群ID"), max_length=64)
-    data = models.TextField(
-        _("值"), help_text=_("以{'value':'值'}格式存储默认值,可以存储字符串和数字"))
+    data = models.TextField(_("值"), help_text=_("以{'value':'值'}格式存储默认值,可以存储字符串和数字"))
 
     class Meta:
         ordering = ('-id',)
@@ -124,8 +125,7 @@ class ClusterVariable(BaseModel):
 
     @classmethod
     def batch_save(cls, cluster_id, cluster_vars):
-        """批量保存变量值
-        """
+        """批量保存变量值"""
         not_exist_vars = []
         for _v in cluster_vars:
             try:
@@ -133,27 +133,21 @@ class ClusterVariable(BaseModel):
             except Exception:
                 not_exist_vars.append(_v)
             else:
-                defaults = {
-                    'data': json.dumps({'value': _v.get('value')})
-                }
-                cls.objects.update_or_create(
-                    cluster_id=cluster_id, var_id=_v['id'], defaults=defaults)
+                defaults = {'data': json.dumps({'value': _v.get('value')})}
+                cls.objects.update_or_create(cluster_id=cluster_id, var_id=_v['id'], defaults=defaults)
         res = False if not_exist_vars else True
         return res, not_exist_vars
 
     @classmethod
     def get_cluster_vars(cls, cluster_id, project_id):
-        """获取命名空间下的变量列表
-        """
+        """获取命名空间下的变量列表"""
         # 从变量模板中获取所有的变量及其默认值
-        ns_vars = Variable.objects.filter(
-            project_id=project_id, scope='cluster')
+        ns_vars = Variable.objects.filter(project_id=project_id, scope='cluster')
 
         var_data = []
         for _v in ns_vars:
             # 查询变量是否又在 cluster 在赋值
-            ns_vars = ClusterVariable.objects.filter(
-                var_id=_v.id, cluster_id=cluster_id)
+            ns_vars = ClusterVariable.objects.filter(var_id=_v.id, cluster_id=cluster_id)
             _ns_value = None
             if ns_vars.exists():
                 _ns_var = ns_vars.first()
@@ -161,19 +155,13 @@ class ClusterVariable(BaseModel):
             # 没有在集群中单独对变量赋值，则使用默认值
             else:
                 _ns_value = _v.default_value
-            var_data.append({
-                'id': _v.id,
-                'key': _v.key,
-                'name': _v.name,
-                'value': _ns_value if _ns_value else ''
-            })
+            var_data.append({'id': _v.id, 'key': _v.key, 'name': _v.name, 'value': _ns_value if _ns_value else ''})
         return var_data
 
     # 支持针对单个变量批量编辑在所有集群的值
     @classmethod
     def get_project_cluster_vars_by_var(cls, project_id, var_id):
-        """支持针对单个变量批量编辑在所有集群的值
-        """
+        """支持针对单个变量批量编辑在所有集群的值"""
         cluster_vars = cls.objects.filter(var_id=var_id)
         cluster_values = {}
         for _n in cluster_vars:
@@ -187,19 +175,16 @@ class ClusterVariable(BaseModel):
         """
         var_id = var_obj.id
         for cluster_id in var_dict:
-            defaults = {
-                'data': json.dumps({'value': var_dict.get(cluster_id)})
-            }
+            defaults = {'data': json.dumps({'value': var_dict.get(cluster_id)})}
             cls.objects.update_or_create(cluster_id=cluster_id, var_id=var_id, defaults=defaults)
 
 
 class NameSpaceVariable(BaseModel):
-    """命名空间变量
-    """
+    """命名空间变量"""
+
     var_id = models.IntegerField(_("变量ID"))
     ns_id = models.IntegerField(_("命名空间ID"))
-    data = models.TextField(
-        _("值"), help_text=_("以{'value':'值'}格式存储默认值,可以存储字符串和数字"))
+    data = models.TextField(_("值"), help_text=_("以{'value':'值'}格式存储默认值,可以存储字符串和数字"))
 
     class Meta:
         ordering = ('-id',)
@@ -234,27 +219,21 @@ class NameSpaceVariable(BaseModel):
             except Exception:
                 not_exist_vars.append(_v)
             else:
-                defaults = {
-                    'data': json.dumps({'value': _v.get('value')})
-                }
-                cls.objects.update_or_create(
-                    ns_id=ns_id, var_id=_v['id'], defaults=defaults)
+                defaults = {'data': json.dumps({'value': _v.get('value')})}
+                cls.objects.update_or_create(ns_id=ns_id, var_id=_v['id'], defaults=defaults)
         res = False if not_exist_vars else True
         return res, not_exist_vars
 
     @classmethod
     def get_ns_vars(cls, ns_id, project_id):
-        """获取命名空间下的变量列表
-        """
+        """获取命名空间下的变量列表"""
         # 从变量模板中获取所有的变量及其默认值
-        ns_vars = Variable.objects.filter(
-            project_id=project_id, scope='namespace')
+        ns_vars = Variable.objects.filter(project_id=project_id, scope='namespace')
 
         var_data = []
         for _v in ns_vars:
             # 查询变量是否又在 ns 在赋值
-            ns_vars = NameSpaceVariable.objects.filter(
-                var_id=_v.id, ns_id=ns_id)
+            ns_vars = NameSpaceVariable.objects.filter(var_id=_v.id, ns_id=ns_id)
             _ns_value = None
             if ns_vars.exists():
                 _ns_var = ns_vars.first()
@@ -262,21 +241,14 @@ class NameSpaceVariable(BaseModel):
             # 没有在命名空间中单独对变量赋值，则使用默认值
             else:
                 _ns_value = _v.default_value
-            var_data.append({
-                'id': _v.id,
-                'key': _v.key,
-                'name': _v.name,
-                'value': _ns_value if _ns_value else ''
-            })
+            var_data.append({'id': _v.id, 'key': _v.key, 'name': _v.name, 'value': _ns_value if _ns_value else ''})
         return var_data
 
     @classmethod
     def get_project_ns_vars(cls, project_id):
-        """获取命名空间下的变量列表
-        """
+        """获取命名空间下的变量列表"""
         # 从变量模板中获取所有的变量及其默认值
-        ns_vars = Variable.objects.filter(
-            project_id=project_id, scope='namespace')
+        ns_vars = Variable.objects.filter(project_id=project_id, scope='namespace')
 
         var_data = []
         for _v in ns_vars:
@@ -286,20 +258,21 @@ class NameSpaceVariable(BaseModel):
             for _ns in ns_vars:
                 ns_values[_ns.ns_id] = _ns.get_value
 
-            var_data.append({
-                'id': _v.id,
-                'key': _v.key,
-                'name': _v.name,
-                'default_value': _v.default_value,
-                'ns_values': ns_values
-            })
+            var_data.append(
+                {
+                    'id': _v.id,
+                    'key': _v.key,
+                    'name': _v.name,
+                    'default_value': _v.default_value,
+                    'ns_values': ns_values,
+                }
+            )
         return var_data
 
     # 支持针对单个变量批量编辑在所有命名空间的值
     @classmethod
     def get_project_ns_vars_by_var(cls, project_id, var_id):
-        """支持针对单个变量批量编辑在所有命名空间的值
-        """
+        """支持针对单个变量批量编辑在所有命名空间的值"""
         ns_vars = cls.objects.filter(var_id=var_id)
         ns_values = {}
         for _ns in ns_vars:
@@ -313,7 +286,5 @@ class NameSpaceVariable(BaseModel):
         """
         var_id = var_obj.id
         for ns_id in var_dict:
-            defaults = {
-                'data': json.dumps({'value': var_dict.get(ns_id)})
-            }
+            defaults = {'data': json.dumps({'value': var_dict.get(ns_id)})}
             cls.objects.update_or_create(ns_id=ns_id, var_id=var_id, defaults=defaults)

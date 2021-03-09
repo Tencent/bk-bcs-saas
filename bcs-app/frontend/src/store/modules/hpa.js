@@ -55,9 +55,9 @@ export default {
          *
          * @return {Promise} promise 对象
          */
-        batchDeleteHPA (context, { projectId, data }, config = {}) {
+        batchDeleteHPA (context, { projectId, params }, config = {}) {
             const url = `${DEVOPS_BCS_API_URL}/api/hpa/projects/${projectId}/`
-            return http.delete(url, data, config)
+            return http.delete(url, { data: params }, config)
         },
 
         /**

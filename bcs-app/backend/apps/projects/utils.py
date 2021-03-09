@@ -15,20 +15,18 @@ import logging
 
 from django.utils.translation import ugettext_lazy as _
 
-from backend.components import cc
-from backend.apps.depot.api import create_project_path_by_api
 from backend.apps.configuration.init_data import init_template
-from backend.utils.notify import notify_manager
+from backend.apps.depot.api import create_project_path_by_api
 from backend.apps.projects.drivers.base import BaseDriver
+from backend.components import cc
+from backend.utils.notify import notify_manager
 
 logger = logging.getLogger(__name__)
 
 
 def backend_create_depot_path(request, project_id, pre_cc_app_id):
     try:
-        create_project_path_by_api(
-            request.user.token.access_token, project_id, request.project.english_name
-        )
+        create_project_path_by_api(request.user.token.access_token, project_id, request.project.english_name)
     except Exception as err:
         logger.error("创建项目仓库路径失败，详细信息: %s" % err)
 
@@ -49,15 +47,16 @@ def update_bcs_service_for_project(request, project_id, data):
         return
     logger.info(f'init_template [update] project_id: {project_id}')
     init_template.delay(
-        project_id,
-        request.project.english_name,
-        expected_kind,
-        request.user.token.access_token,
-        request.user.username
+        project_id, request.project.english_name, expected_kind, request.user.token.access_token, request.user.username
     )
     # helm handler
     BaseDriver(expected_kind).driver.backend_create_helm_info(project_id)
-    notify_manager.delay('{prefix_msg}[{username}]{project}{project_name}{suffix_msg}'.format(
-        prefix_msg=_("用户"), username=request.user.username, project=_("在项目"),
-        project_name=request.project.project_name, suffix_msg=_("下启用了容器服务，请关注")
-    ))
+    notify_manager.delay(
+        '{prefix_msg}[{username}]{project}{project_name}{suffix_msg}'.format(
+            prefix_msg=_("用户"),
+            username=request.user.username,
+            project=_("在项目"),
+            project_name=request.project.project_name,
+            suffix_msg=_("下启用了容器服务，请关注"),
+        )
+    )

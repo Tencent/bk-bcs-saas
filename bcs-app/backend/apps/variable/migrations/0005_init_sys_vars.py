@@ -16,7 +16,9 @@
 from __future__ import unicode_literals
 
 import json
+
 from django.db import migrations, models
+
 from backend.apps.variable.models import Variable
 
 SYS_VARS = [

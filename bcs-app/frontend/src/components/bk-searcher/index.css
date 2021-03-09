@@ -12,6 +12,7 @@
 @import '../../css/variable.css';
 @import '../../css/mixins/clearfix.css';
 @import '../../css/mixins/scroller.css';
+@import '../../css/mixins/ellipsis.css';
 
 .bk-searcher-wrapper {
     position: relative;
@@ -67,18 +68,43 @@
                     font-size: 14px;
                     text-decoration: none;
                     white-space: nowrap;
-
-                    &.active,
-                    &:hover {
-                        background: $primaryLightColor;
-                        color: #3c96ff;
-                    }
+                    @mixin ellipsis 350px;
                 }
 
                 .bk-icon {
                     margin-right: 5px;
                 }
+                &.active,
+                &:hover {
+                    background: $primaryLightColor;
+                    color: #3c96ff;
+                }
             }
+        }
+    }
+
+    .bk-searcher-mask {
+        height: 34px;
+        border-radius: 2px;
+        background-color: #fff;
+        overflow: hidden;
+        overflow-x: scroll;
+        cursor: not-allowed;
+        position: absolute;
+        z-index: 3;
+        width: 100%;
+        opacity: 0.4;
+
+        &::-webkit-scrollbar {
+            display: none;
+        }
+
+        &::-webkit-scrollbar-thumb {
+            display: none;
+        }
+
+        &.disable {
+            cursor: not-allowed;
         }
     }
 

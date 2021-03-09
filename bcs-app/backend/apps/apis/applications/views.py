@@ -11,51 +11,48 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-import re
 import json
-import yaml
 import logging
+import re
 from datetime import datetime
 
-from django.http import JsonResponse
-from django.db.models import Q
+import yaml
 from django.conf import settings
+from django.db.models import Q
+from django.http import JsonResponse
 
-from backend.utils import FancyDict
-from backend.apps.apis.base_views import BaseAPIViews, APIUser
-from backend.apps.apis.utils import check_user_project, skip_authentication
-from backend.apps.apis.applications import serializers
-from backend.apps.configuration.models import Template, VersionedEntity, ShowVersion
-from backend.apps.instance.models import VersionInstance, InstanceConfig
-from backend.apps.apis.constants import CATEGORY_MODULE_MAP
-from backend.utils.error_codes import error_codes
-from backend.apps.application import views as app_views
-from backend.components.bcs.mesos import MesosClient
-from backend.components.bcs.k8s import K8SClient
-from backend.apps.application.constants import FUNC_MAP, REVERSE_CATEGORY_MAP, UNNORMAL_STATUS, NORMAL_STATUS
-from backend.apps.application import utils
-from backend.apps.configuration.models import MODULE_DICT
-from backend.apps.configuration.utils import check_var_by_config
-from backend.apps.variable.models import Variable
-from backend.components import paas_cc
-from backend.apps.application import constants as app_constants
-from backend.utils.errcodes import ErrorCode
-from backend.apps import constants
-from backend.apps.instance.constants import InsState
-from backend.apps.instance import utils as inst_utils
-from backend.apps.variable.models import NameSpaceVariable
-from backend.apps.instance.utils import (
-    validate_version_id,
-    handle_all_config,
-    validate_ns_by_tempalte_id,
-    validate_lb_info_by_version_id,
-    validate_instance_entity,
-)
-from backend.apps.instance.serializers import VersionInstanceCreateOrUpdateSLZ
-from backend.activity_log import client
-from backend.apps.datalog.utils import create_data_project, create_and_start_standard_data_flow
-from backend.apps.instance.serializers import VariableNamespaceSLZ
 from backend.accounts import bcs_perm
+from backend.activity_log import client
+from backend.apps import constants
+from backend.apps.apis.applications import serializers
+from backend.apps.apis.base_views import APIUser, BaseAPIViews
+from backend.apps.apis.constants import CATEGORY_MODULE_MAP
+from backend.apps.apis.utils import check_user_project, skip_authentication
+from backend.apps.application import constants as app_constants
+from backend.apps.application import utils
+from backend.apps.application import views as app_views
+from backend.apps.application.constants import FUNC_MAP, NORMAL_STATUS, REVERSE_CATEGORY_MAP, UNNORMAL_STATUS
+from backend.apps.configuration.models import MODULE_DICT, ShowVersion, Template, VersionedEntity
+from backend.apps.configuration.utils import check_var_by_config
+from backend.apps.datalog.utils import create_and_start_standard_data_flow, create_data_project
+from backend.apps.instance import utils as inst_utils
+from backend.apps.instance.constants import InsState
+from backend.apps.instance.models import InstanceConfig, VersionInstance
+from backend.apps.instance.serializers import VariableNamespaceSLZ, VersionInstanceCreateOrUpdateSLZ
+from backend.apps.instance.utils import (
+    handle_all_config,
+    validate_instance_entity,
+    validate_lb_info_by_version_id,
+    validate_ns_by_tempalte_id,
+    validate_version_id,
+)
+from backend.apps.variable.models import NameSpaceVariable, Variable
+from backend.components import paas_cc
+from backend.components.bcs.k8s import K8SClient
+from backend.components.bcs.mesos import MesosClient
+from backend.utils import FancyDict
+from backend.utils.errcodes import ErrorCode
+from backend.utils.error_codes import error_codes
 
 logger = logging.getLogger(__name__)
 PIPELINE_DEFAULT_USER = settings.PIPELINE_DEFAULT_USER
@@ -64,13 +61,11 @@ GCLOUD_DEFAULT_USER = settings.GCLOUD_DEFAULT_USER
 
 class ProjectApplicationInfo(app_views.BaseAPI, BaseAPIViews):
     def get_template(self, project_id):
-        """获取模板集
-        """
+        """获取模板集"""
         return Template.objects.filter(project_id=project_id, is_deleted=False).values_list("id", flat=True)
 
     def get_version_instance(self, template_id_list):
-        """获取实例对应的版本信息
-        """
+        """获取实例对应的版本信息"""
         version_tmpl_map = VersionInstance.objects.filter(template_id__in=template_id_list, is_deleted=False)
         return {info.id: info.template_id for info in version_tmpl_map}
 
@@ -83,8 +78,7 @@ class ProjectApplicationInfo(app_views.BaseAPI, BaseAPIViews):
         return namespace_dict
 
     def get_inst(self, request, category, project_id, namespace=None, access_token=None):
-        """获取项目下的实例信息
-        """
+        """获取项目下的实例信息"""
         tmpl_id_list = self.get_template(project_id)
         version_tmpl_map = self.get_version_instance(tmpl_id_list)
         version_inst_id_list = version_tmpl_map.keys()
@@ -125,8 +119,7 @@ class ProjectApplicationInfo(app_views.BaseAPI, BaseAPIViews):
         return ret_data
 
     def get(self, request, cc_app_id, project_id):
-        """获取项目下的application信息
-        """
+        """获取项目下的application信息"""
         params = request.query_params
         params_slz = serializers.ProjectAPPParamsSLZ(data=params)
         params_slz.is_valid(raise_exception=True)
@@ -237,8 +230,7 @@ class ProjectApplicationInfo(app_views.BaseAPI, BaseAPIViews):
         return variable_dict, lb_services
 
     def compose_ns_vars(self, req_vars, default_vars):
-        """组装最终的变量数据
-        """
+        """组装最终的变量数据"""
         for ns_id, val in default_vars.items():
             for item in val:
                 item_key = item.get("key", "")
@@ -290,8 +282,7 @@ class ProjectApplicationInfo(app_views.BaseAPI, BaseAPIViews):
                 item["id"] = tmpl_name_id_map.get(item["name"])
 
     def allow_render_tmpl(self, instance_entity):
-        """如果没有指定模板ID，需要渲染模板信息
-        """
+        """如果没有指定模板ID，需要渲染模板信息"""
         for cate, info in instance_entity.items():
             for item in info:
                 if not item.get("id"):
@@ -299,8 +290,7 @@ class ProjectApplicationInfo(app_views.BaseAPI, BaseAPIViews):
         return False
 
     def api_post(self, request, cc_app_id, project_id):
-        """实例化模板
-        """
+        """实例化模板"""
         params = request.query_params
         params_slz = serializers.ProjectTemplateSetParamsSLZ(data=params)
         params_slz.is_valid(raise_exception=True)
@@ -467,8 +457,7 @@ class ProjectApplicationInfo(app_views.BaseAPI, BaseAPIViews):
 
 class InstanceInfo(app_views.BaseAPI, BaseAPIViews):
     def get_inst(self, request, category, params, project_id):
-        """获取项目下的实例信息
-        """
+        """获取项目下的实例信息"""
         _, name_id_map = self.get_ns_id_name_map(params["access_token"], project_id)
         namespace = name_id_map.get(params["namespace"])
         if not namespace:
@@ -570,8 +559,7 @@ class InstanceStatus(BaseAPIViews):
     def get_mesos_application_deploy_status(
         self, access_token, project_id, cluster_id, category, instance_name, namespace
     ):
-        """获取mesos的状态
-        """
+        """获取mesos的状态"""
         client = MesosClient(access_token, project_id, cluster_id, None)
         if category == "application":
             resp = client.get_mesos_app_instances(
@@ -590,8 +578,7 @@ class InstanceStatus(BaseAPIViews):
         return resp.get("data")
 
     def get_k8s_category_status(self, access_token, project_id, cluster_id, category, instance_name, namespace):
-        """获取k8s状态
-        """
+        """获取k8s状态"""
         client = K8SClient(access_token, project_id, cluster_id, None)
         curr_func = getattr(client, FUNC_MAP[category] % "get")
         params = {
@@ -672,8 +659,7 @@ class BaseHandleInstance(BaseAPIViews):
         request.project = FancyDict(project_info)
 
     def get_instance_id(self, request, instance_id):
-        """通过名称+命名空间+类型获取实例ID
-        """
+        """通过名称+命名空间+类型获取实例ID"""
         if instance_id != 0:
             return instance_id
         params = request.query_params
@@ -758,8 +744,7 @@ class ScaleInstance(app_views.ScaleInstance, BaseHandleInstance):
 
 class BatchScaleInstance(BaseBatchHandleInstance, app_views.BaseAPI):
     def update_inst_conf(self, curr_inst, instance_num, inst_state):
-        """更新配置
-        """
+        """更新配置"""
         try:
             conf = json.loads(curr_inst.config)
         except Exception as error:
@@ -776,8 +761,7 @@ class BatchScaleInstance(BaseBatchHandleInstance, app_views.BaseAPI):
     def get_rc_name_by_deployment(
         self, request, cluster_id, instance_name, project_id=None, project_kind=2, namespace=None
     ):
-        """如果是deployment，需要现根据deployment获取到application name
-        """
+        """如果是deployment，需要现根据deployment获取到application name"""
         flag, resp = self.get_application_deploy_info(
             request,
             project_id,
@@ -846,7 +830,9 @@ class BatchScaleInstance(BaseBatchHandleInstance, app_views.BaseAPI):
 
             if resp.data.get("code") == ErrorCode.NoError:
                 self.update_instance_record_status(
-                    curr_inst, oper_type=app_constants.SCALE_INSTANCE, is_bcs_success=True,
+                    curr_inst,
+                    oper_type=app_constants.SCALE_INSTANCE,
+                    is_bcs_success=True,
                 )
             else:
                 raise error_codes.APIError.f(resp.get("message"))
@@ -869,8 +855,7 @@ class UpdateInstance(app_views.UpdateInstanceNew, BaseHandleInstance):
 
 class BatchUpdateInstance(BaseBatchHandleInstance, app_views.BaseAPI):
     def get_params_from_gcloud(self, request, project_id, category):
-        """标准运维请求来的参数格式
-        """
+        """标准运维请求来的参数格式"""
         ns_id_name_map, ns_name_id_map = self.get_ns_id_name_map(request.user.token.access_token, project_id)
         all_data = dict(request.data)
         inst_variables = all_data.get("inst_variables")
@@ -908,8 +893,7 @@ class BatchUpdateInstance(BaseBatchHandleInstance, app_views.BaseAPI):
         return inst_id_list, inst_variables, ns_id_name_map, ns_var_map_new, None
 
     def get_params(self, request):
-        """获取参数
-        """
+        """获取参数"""
         version_id = request.GET.get("version_id")
         if not version_id:
             raise error_codes.CheckFailed.f("升级的版本信息不能为空", replace=True)
@@ -933,8 +917,7 @@ class BatchUpdateInstance(BaseBatchHandleInstance, app_views.BaseAPI):
         return version_id, instance_num, variables, inst_id_list, inst_variables
 
     def check_selector(self, old_conf, new_conf):
-        """检查selector是否一致，如果不一致，则提示用户处理
-        """
+        """检查selector是否一致，如果不一致，则提示用户处理"""
         old_item = ((old_conf.get("spec") or {}).get("selector") or {}).get("matchLabels") or {}
         new_item = ((new_conf.get("spec") or {}).get("selector") or {}).get("matchLabels") or {}
         if old_item != new_item:
@@ -953,8 +936,7 @@ class BatchUpdateInstance(BaseBatchHandleInstance, app_views.BaseAPI):
         kind,
         variables,
     ):
-        """生成配置文件
-        """
+        """生成配置文件"""
         params = {
             "instance_id": inst_info.instance_id,
             "version_id": show_version_info.real_version_id,
@@ -978,8 +960,7 @@ class BatchUpdateInstance(BaseBatchHandleInstance, app_views.BaseAPI):
         return new_conf
 
     def get_tmpl_ids(self, version_id, category):
-        """获取模板版本ID
-        """
+        """获取模板版本ID"""
         info = VersionedEntity.objects.filter(id=version_id)
         if not info:
             raise error_codes.CheckFailed.f("没有查询到相应的版本信息", replace=True)
@@ -988,8 +969,7 @@ class BatchUpdateInstance(BaseBatchHandleInstance, app_views.BaseAPI):
         return entity.get(category)
 
     def get_tmpl_entity(self, category, ids, name):
-        """获取模板信息
-        """
+        """获取模板信息"""
         id_list = ids.split(",")
         tmpl_info = MODULE_DICT[category].objects.filter(id__in=id_list, name=name)
         if not tmpl_info:
@@ -997,14 +977,12 @@ class BatchUpdateInstance(BaseBatchHandleInstance, app_views.BaseAPI):
         return {category: [tmpl_info[0].id]}
 
     def generate_ns_config_info(self, request, ns_id, inst_entity, params, is_save=True):
-        """生成某一个命名空间下的配置
-        """
+        """生成某一个命名空间下的配置"""
         inst_conf = inst_utils.generate_namespace_config(ns_id, inst_entity, is_save, **params)
         return inst_conf
 
     def get_show_version_info(self, version_id):
-        """查询show version信息
-        """
+        """查询show version信息"""
         info = ShowVersion.objects.filter(id=version_id)
         if not info:
             raise error_codes.CheckFailed.f("没有查询到展示版本信息", replace=True)
@@ -1026,8 +1004,7 @@ class BatchUpdateInstance(BaseBatchHandleInstance, app_views.BaseAPI):
         old_variables,
         new_variables,
     ):
-        """更新配置
-        """
+        """更新配置"""
         try:
             # 更改版本
             tmpl_id_list = MODULE_DICT[category].objects.filter(name=inst_name).values_list("id", flat=True)
@@ -1183,8 +1160,7 @@ class BatchUpdateInstance(BaseBatchHandleInstance, app_views.BaseAPI):
 
 class BatchUpdateApplicationInstance(app_views.UpdateApplication, BaseBatchHandleInstance):
     def get_params_from_gcloud(self, request, project_id):
-        """标准运维请求来的参数格式
-        """
+        """标准运维请求来的参数格式"""
         ns_id_name_map, ns_name_id_map = self.get_ns_id_name_map(request.user.token.access_token, project_id)
         all_data = dict(request.data)
         inst_variables = all_data.get("inst_variables")
@@ -1222,8 +1198,7 @@ class BatchUpdateApplicationInstance(app_views.UpdateApplication, BaseBatchHandl
         return inst_id_list, inst_variables, ns_id_name_map, ns_var_map_new
 
     def get_params(self, request):
-        """获取参数
-        """
+        """获取参数"""
         version_id = request.GET.get("version_id")
         # 获取环境变量，如果有未赋值的，则认为参数不正确
         data = dict(request.data)
@@ -1351,8 +1326,7 @@ class BatchDeleteInstance(BaseBatchHandleInstance, app_views.BaseAPI):
         kind=2,
         inst_id_list=[],
     ):
-        """删除实例
-        """
+        """删除实例"""
         resp = self.delete_instance(
             request,
             project_id,
@@ -1370,8 +1344,7 @@ class BatchDeleteInstance(BaseBatchHandleInstance, app_views.BaseAPI):
         return resp
 
     def get_inst_id_list(self, access_token, project_id, inst_info, project_kind):
-        """通过名称获取实例ID
-        """
+        """通过名称获取实例ID"""
         inst_id_list = []
         id_name_map, name_id_map = self.get_ns_id_name_map(access_token, project_id)
         for info in inst_info:
@@ -1427,8 +1400,7 @@ class BatchRecreateInstance(BaseBatchHandleInstance, app_views.BaseAPI):
     def delete_instance_oper(
         self, request, cluster_id, ns_name, instance_name, project_id=None, category="application", kind=2
     ):
-        """删除实例
-        """
+        """删除实例"""
         resp = self.delete_instance(
             request, project_id, cluster_id, ns_name, instance_name, category=category, kind=kind
         )
@@ -1439,8 +1411,7 @@ class BatchRecreateInstance(BaseBatchHandleInstance, app_views.BaseAPI):
         return resp
 
     def api_post(self, request, cc_app_id, project_id):
-        """批量重建实例
-        """
+        """批量重建实例"""
         self.init_handler(request, cc_app_id, project_id, serializers.BatchReCreateInstanceParamsSLZ)
         # 查询相应的实例信息
         inst_id_info = dict(request.data)
@@ -1512,16 +1483,14 @@ class ResumeInstance(app_views.ResumeUpdateInstance, BaseHandleInstance):
 
 class GetInstanceVersions(BaseAPIViews):
     def get_inst_version_info(self, inst_version_id):
-        """获取实例版本信息
-        """
+        """获取实例版本信息"""
         inst_version_info = VersionInstance.objects.filter(id=inst_version_id)
         if not inst_version_info:
             raise error_codes.APIError.f("没有查询到实例版本", replace=True)
         return inst_version_info[0]
 
     def get_show_version_info(self, id_list):
-        """获取展示的版本信息
-        """
+        """获取展示的版本信息"""
         show_version_info = ShowVersion.objects.filter(real_version_id__in=id_list, is_deleted=False).order_by(
             "-updated"
         )
@@ -1541,8 +1510,7 @@ class GetInstanceVersions(BaseAPIViews):
         return ret_data
 
     def get_version_entity(self, tmpl_id, category, tmpl_id_list):
-        """获取所有对应的版本
-        """
+        """获取所有对应的版本"""
         ret_data = []
         version_entity = VersionedEntity.objects.filter(template_id=tmpl_id)
         tmpl_id_list = [str(id) for id in tmpl_id_list]
@@ -1555,13 +1523,11 @@ class GetInstanceVersions(BaseAPIViews):
         return ret_data
 
     def get_category_tmpl(self, category, name):
-        """获取相同名称的模板
-        """
+        """获取相同名称的模板"""
         return MODULE_DICT[category].objects.filter(name=name).values_list("id", flat=True)
 
     def get(self, request, cc_app_id, project_id, instance_id):
-        """获取实例对应的版本
-        """
+        """获取实例对应的版本"""
         inst_info = self.get_instance_info(instance_id)[0]
         category = inst_info.category
         inst_name = inst_info.name
@@ -1578,22 +1544,19 @@ class GetInstanceVersions(BaseAPIViews):
 
 class GetInstanceVersionConf(BaseAPIViews):
     def json2yaml(self, conf):
-        """json转yaml
-        """
+        """json转yaml"""
         yaml_profile = yaml.safe_dump(conf)
         return yaml_profile
 
     def get_show_version_info(self, show_version_id):
-        """获取展示版本ID
-        """
+        """获取展示版本ID"""
         show_version = ShowVersion.objects.filter(id=show_version_id)
         if not show_version:
             raise error_codes.CheckFailed.f("没有查询到展示版本信息")
         return show_version[0].real_version_id
 
     def get_version_info(self, category, version_id):
-        """获取真正的版本信息
-        """
+        """获取真正的版本信息"""
         info = VersionedEntity.objects.filter(id=version_id)
         if not info:
             raise error_codes.CheckFailed.f("没有查询到展示版本信息")
@@ -1603,13 +1566,11 @@ class GetInstanceVersionConf(BaseAPIViews):
         return category_id_list
 
     def get_tmpl_info(self, category, category_id_list, name):
-        """根据名称获取相应的配置
-        """
+        """根据名称获取相应的配置"""
         return MODULE_DICT[category].objects.filter(id__in=category_id_list, name=name)
 
     def get_variables(self, request, project_id, config, cluster_id, ns_id):
-        """获取变量
-        """
+        """获取变量"""
         key_list = check_var_by_config(config)
         key_list = list(set(key_list))
         v_list = []
@@ -1642,8 +1603,7 @@ class GetInstanceVersionConf(BaseAPIViews):
         return v_list
 
     def get_variables_new(self, request, project_id, config, cluster_id, ns_id_list):
-        """根据命名空间获取变量
-        """
+        """根据命名空间获取变量"""
         key_list = check_var_by_config(config)
         key_list = list(set(key_list))
         variable_dict = {}
@@ -1829,8 +1789,7 @@ class ProjectMuster(BaseProjectMuster):
         return data
 
     def get(self, request, cc_app_id, project_id):
-        """获取项目下的所有模板集
-        """
+        """获取项目下的所有模板集"""
         self.init_handler(request, cc_app_id, project_id)
         self.get_request_user(request, request.GET.get("access_token"), project_id)
 

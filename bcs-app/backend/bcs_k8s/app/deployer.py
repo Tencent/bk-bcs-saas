@@ -11,22 +11,22 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
+import contextlib
 import json
 import logging
-import contextlib
 import traceback
 from dataclasses import dataclass
-from rest_framework.exceptions import PermissionDenied
-from rest_framework.exceptions import ValidationError
 
-from backend.utils.client import make_kubectl_client, make_kubectl_client_from_kubeconfig
-from backend.bcs_k8s.kubectl.exceptions import KubectlError, KubectlExecutionError
-from backend.bcs_k8s.kubehelm.exceptions import HelmExecutionError, HelmError
-from backend.utils.basic import ChoicesEnum
-from backend.utils import client as bcs_client
+from rest_framework.exceptions import PermissionDenied, ValidationError
+
 from backend.bcs_k8s import utils as bcs_helm_utils
 from backend.bcs_k8s.app.utils import get_cc_app_id
 from backend.bcs_k8s.helm.bcs_variable import get_valuefile_with_bcs_variable_injected
+from backend.bcs_k8s.kubectl.exceptions import KubectlError, KubectlExecutionError
+from backend.bcs_k8s.kubehelm.exceptions import HelmError, HelmExecutionError
+from backend.utils import client as bcs_client
+from backend.utils.basic import ChoicesEnum
+from backend.utils.client import make_kubectl_client, make_kubectl_client_from_kubeconfig
 
 logger = logging.getLogger(__name__)
 
@@ -40,8 +40,8 @@ class ChartOperations(ChoicesEnum):
 
 @dataclass
 class AppDeployer:
-    """ AppDeployEngine manages app's deploy operations
-    """
+    """AppDeployEngine manages app's deploy operations"""
+
     app: object
     access_token: str
     kubeconfig_content: str = None
@@ -51,17 +51,15 @@ class AppDeployer:
     @contextlib.contextmanager
     def make_kubectl_client(self):
         with make_kubectl_client(
-                project_id=self.app.project_id,
-                cluster_id=self.app.cluster_id,
-                access_token=self.access_token) as (client, err):
+            project_id=self.app.project_id, cluster_id=self.app.cluster_id, access_token=self.access_token
+        ) as (client, err):
             yield client, err
 
     @contextlib.contextmanager
     def make_helm_client(self):
         with bcs_client.make_helm_client(
-                project_id=self.app.project_id,
-                cluster_id=self.app.cluster_id,
-                access_token=self.access_token) as (client, err):
+            project_id=self.app.project_id, cluster_id=self.app.cluster_id, access_token=self.access_token
+        ) as (client, err):
             yield client, err
 
     def install_app_by_helm(self):
@@ -103,7 +101,7 @@ class AppDeployer:
                 access_token=self.access_token,
                 username=self.app.updator,
                 ignore_empty_access_token=self.ignore_empty_access_token,
-                extra_inject_source=self.extra_inject_source
+                extra_inject_source=self.extra_inject_source,
             )[0]
         elif operation == ChartOperations.UNINSTALL.value:
             content = self.app.release.content
@@ -121,12 +119,7 @@ class AppDeployer:
                 transitioning_message = "make helm client failed, %s" % err
                 self.app.set_transitioning(False, transitioning_message)
                 return
-            self._run_with_helm(
-                client,
-                self.app.name,
-                self.app.namespace,
-                operation
-            )
+            self._run_with_helm(client, self.app.name, self.app.namespace, operation)
 
     def get_release_revision(self, cmd_out):
         """解析执行命令的返回
@@ -162,7 +155,7 @@ class AppDeployer:
                     cluster_id=self.app.cluster_id,
                     namespace=namespace,
                     stdlog_data_id=bcs_helm_utils.get_stdlog_data_id(project_id),
-                    image_pull_secret=bcs_helm_utils.provide_image_pull_secrets(namespace)
+                    image_pull_secret=bcs_helm_utils.provide_image_pull_secrets(namespace),
                 )
                 # 追加系统和用户渲染的变量
                 values_with_bcs_variables = get_valuefile_with_bcs_variable_injected(
@@ -179,7 +172,7 @@ class AppDeployer:
                     files=self.app.release.chartVersionSnapshot.files,
                     chart_values=values_with_bcs_variables,
                     bcs_inject_data=bcs_inject_data,
-                    cmd_flags=json.loads(self.app.cmd_flags)
+                    cmd_flags=json.loads(self.app.cmd_flags),
                 )[0]
                 self.app.release.revision = self.get_release_revision(cmd_out)
                 self.app.release.save()
@@ -190,11 +183,8 @@ class AppDeployer:
         except HelmExecutionError as e:
             transitioning_result = False
             transitioning_message = (
-                "helm command execute failed.\n"
-                "Error code: {error_no}\nOutput:\n{output}").format(
-                error_no=e.error_no,
-                output=e.output
-            )
+                "helm command execute failed.\n" "Error code: {error_no}\nOutput:\n{output}"
+            ).format(error_no=e.error_no, output=e.output)
             logger.warn(transitioning_message)
         except HelmError as e:
             err_msg = str(e)
@@ -226,7 +216,7 @@ class AppDeployer:
                 access_token=self.access_token,
                 username=self.app.updator,
                 ignore_empty_access_token=self.ignore_empty_access_token,
-                extra_inject_source=self.extra_inject_source
+                extra_inject_source=self.extra_inject_source,
             )
 
         if content is None:
@@ -256,27 +246,18 @@ class AppDeployer:
         try:
             if operation == "install":
                 client.ensure_namespace(self.app.namespace)
-                client.apply(
-                    template=content,
-                    namespace=self.app.namespace
-                )
+                client.apply(template=content, namespace=self.app.namespace)
             elif operation == "uninstall":
                 client.ensure_namespace(self.app.namespace)
-                client.delete_one_by_one(
-                    self.app.release.extract_structure(self.app.namespace),
-                    self.app.namespace
-                )
+                client.delete_one_by_one(self.app.release.extract_structure(self.app.namespace), self.app.namespace)
                 # client.delete(template=content, namespace=self.app.namespace)
             else:
                 raise ValueError(operation)
         except KubectlExecutionError as e:
             transitioning_result = False
             transitioning_message = (
-                "kubectl command execute failed.\n"
-                "Error code: {error_no}\nOutput:\n{output}").format(
-                error_no=e.error_no,
-                output=e.output
-            )
+                "kubectl command execute failed.\n" "Error code: {error_no}\nOutput:\n{output}"
+            ).format(error_no=e.error_no, output=e.output)
             logger.warn(transitioning_message)
         except KubectlError as e:
             transitioning_result = False
@@ -293,10 +274,7 @@ class AppDeployer:
         self.app.set_transitioning(transitioning_result, transitioning_message)
 
     def collect_transitioning_error_message(self, error):
-        return "{error}\n{stack}".format(
-            error=error,
-            stack=traceback.format_exc()
-        )
+        return "{error}\n{stack}".format(error=error, stack=traceback.format_exc())
 
     def update_app_release_content(self, content):
         release = self.app.release

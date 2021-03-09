@@ -14,10 +14,10 @@
 import re
 
 import arrow
-from kubernetes import client
 from django.utils import timezone
+from kubernetes import client
 
-from backend.utils.basic import normalize_datetime, getitems
+from backend.utils.basic import getitems, normalize_datetime
 
 
 class Resource:
@@ -123,8 +123,7 @@ class FilterResourceData:
 
 class BaseMixins:
     def compose_api_class(self, group_version):
-        """通过group version 组装对应分组的api class
-        """
+        """通过group version 组装对应分组的api class"""
         return f"{''.join([info.capitalize() for info in group_version.split('/')])}Api"
 
 

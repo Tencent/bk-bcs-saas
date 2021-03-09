@@ -14,8 +14,8 @@
 from django.conf import settings
 
 from backend.components import utils
-from backend.utils.decorators import parse_response_data
 from backend.utils import cache
+from backend.utils.decorators import parse_response_data
 
 HEADERS = {"X-BK-APP-CODE": settings.APP_ID, "X-BK-APP-SECRET": settings.APP_TOKEN}
 
@@ -28,14 +28,12 @@ def get_access_token(params):
 
 @cache.region.cache_on_arguments(expiration_time=240)
 def get_bk_login_access_token(bk_token):
-    """获取access_token
-    """
+    """获取access_token"""
     return get_access_token({"grant_type": "authorization_code", "id_provider": "bk_login", "bk_token": bk_token})
 
 
 def get_client_access_token():
-    """获取非用户态access_token
-    """
+    """获取非用户态access_token"""
     return get_access_token({"grant_type": "client_credentials", "id_provider": "client"})
 
 

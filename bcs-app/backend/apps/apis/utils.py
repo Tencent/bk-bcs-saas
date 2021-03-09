@@ -13,21 +13,19 @@
 #
 from django.conf import settings
 
-from backend.components import paas_cc, paas_auth
+from backend.apps.apis.constants import PAAS_CD_APIGW_PUBLIC_KEY, PROJECT_KIND_MAP
+from backend.components import paas_auth, paas_cc
+from backend.utils.authentication import JWTClient
 from backend.utils.errcodes import ErrorCode
 from backend.utils.error_codes import error_codes
-from backend.apps.apis.constants import PROJECT_KIND_MAP, PAAS_CD_APIGW_PUBLIC_KEY
-from backend.utils.authentication import JWTClient
 from backend.utils.func_controller import get_func_controller
-
 
 DEFAULT_APP_CODE = "workbench"
 APP_CODE_SKIP_AUTH_WHITE_LIST = "APP_CODE_SKIP_AUTH"
 
 
 def skip_authentication(app_code):
-    """检查app是否在白名单中
-    """
+    """检查app是否在白名单中"""
     # 当功能开关为白名单时，注意下面的含义
     # enable: True/False; True表示此功能完全开放，False表示此功能只针对白名单中的开放
     enabled, wlist = get_func_controller(APP_CODE_SKIP_AUTH_WHITE_LIST)
@@ -37,8 +35,7 @@ def skip_authentication(app_code):
 
 
 def check_user_project(access_token, project_id, cc_app_id, jwt_info, project_code_flag=False, is_orgin_project=False):
-    """检测用户有项目权限
-    """
+    """检测用户有项目权限"""
     # 针对非用户态进行特殊处理
     if not jwt_info and settings.DEBUG:
         app_code = DEFAULT_APP_CODE
@@ -83,8 +80,7 @@ def check_user_project(access_token, project_id, cc_app_id, jwt_info, project_co
 
 
 def parse_jwt_info(jwt_info):
-    """解析JWT获取应用/用户/项目等信息
-    """
+    """解析JWT获取应用/用户/项目等信息"""
     client = JWTClient(jwt_info)
     if not client.is_valid(PAAS_CD_APIGW_PUBLIC_KEY):
         raise error_codes.CheckFailed.f("解析JWT异常，已通知管理员", replace=True)
@@ -94,8 +90,7 @@ def parse_jwt_info(jwt_info):
 
 
 def get_project_user(access_token, project_id):
-    """获取项目和用户的映射
-    """
+    """获取项目和用户的映射"""
     data = paas_auth.get_role_list(access_token, project_id, need_user=True)
     if data.get("code") != ErrorCode.NoError:
         raise error_codes.APIError.f("查询auth角色列表失败: %s" % data.get("message"))

@@ -12,27 +12,35 @@
 # specific language governing permissions and limitations under the License.
 #
 from django.conf.urls import url
+
 from . import views
 
 urlpatterns = [
-
     # 查询模板下面已经实例化过的版本信息
-    url(r'^api/configuration/(?P<project_id>\w{32})/template/exist_versions/(?P<template_id>\d+)/$',
-        views.TemplateInstView.as_view({'get': 'get_exist_version'})),
+    url(
+        r'^api/configuration/(?P<project_id>\w{32})/template/exist_versions/(?P<template_id>\d+)/$',
+        views.TemplateInstView.as_view({'get': 'get_exist_version'}),
+    ),
     # 查询模板已经实例化过的版本的名称
-    url(r'^api/configuration/(?P<project_id>\w{32})/exist/show_version_name/(?P<template_id>\d+)/$',
-        views.TemplateInstView.as_view({'get': 'get_exist_showver_name'})),
+    url(
+        r'^api/configuration/(?P<project_id>\w{32})/exist/show_version_name/(?P<template_id>\d+)/$',
+        views.TemplateInstView.as_view({'get': 'get_exist_showver_name'}),
+    ),
     # 查询模板已经实例化过的版本下的资源
-    url(r'^api/configuration/(?P<project_id>\w{32})/exist/resource/(?P<template_id>\d+)/$',
-        views.TemplateInstView.as_view({'get': 'get_resource_by_show_name'})),
-
+    url(
+        r'^api/configuration/(?P<project_id>\w{32})/exist/resource/(?P<template_id>\d+)/$',
+        views.TemplateInstView.as_view({'get': 'get_resource_by_show_name'}),
+    ),
     # 模板实例化配置：创建 API
-    url(r'^api/configuration/(?P<project_id>\w{32})/instances/$',
-        views.VersionInstanceView.as_view({'post': 'post'})),
+    url(r'^api/configuration/(?P<project_id>\w{32})/instances/$', views.VersionInstanceView.as_view({'post': 'post'})),
     # 预览配置文件
-    url(r'^api/configuration/(?P<project_id>\w{32})/preview/$',
-        views.VersionInstanceView.as_view({'post': 'preview_config'})),
+    url(
+        r'^api/configuration/(?P<project_id>\w{32})/preview/$',
+        views.VersionInstanceView.as_view({'post': 'preview_config'}),
+    ),
     # 看下模板版本下已经实例化过的命名空间
-    url(r'^api/configuration/(?P<project_id>\w{32})/instance/ns/(?P<version_id>\d+)/$',
-        views.InstanceNameSpaceView.as_view({'post': 'post'})),
+    url(
+        r'^api/configuration/(?P<project_id>\w{32})/instance/ns/(?P<version_id>\d+)/$',
+        views.InstanceNameSpaceView.as_view({'post': 'post'}),
+    ),
 ]

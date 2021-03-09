@@ -11,27 +11,28 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-import re
-import datetime
 import copy
-import logging
+import datetime
 import json
+import logging
+import re
 
-from rest_framework.exceptions import ValidationError
 from django.utils.translation import ugettext_lazy as _
+from rest_framework.exceptions import ValidationError
 
-from backend.components.bcs import mesos
-from backend.components import paas_cc
-from backend.utils.error_codes import error_codes
-from backend.utils.errcodes import ErrorCode
+from backend.apps.application.constants import UNNORMAL_STATUS
+from backend.apps.constants import BACKEND_IMAGE_PATH, CONTROLLER_IMAGE_PATH
+from backend.apps.datalog.utils import get_data_id_by_project_id
 from backend.apps.instance import constants as inst_constants
 from backend.apps.instance.funutils import render_mako_context
-from backend.apps.instance.generator import handle_intersection_item, handel_custom_network_mode
-from backend.apps.application.constants import UNNORMAL_STATUS
+from backend.apps.instance.generator import handel_custom_network_mode, handle_intersection_item
 from backend.apps.network.constants import K8S_NGINX_INGRESS_CONTROLLER_CHART_VALUES, MESOS_LB_NAMESPACE
 from backend.apps.network.models import MesosLoadBlance
-from backend.apps.constants import CONTROLLER_IMAGE_PATH, BACKEND_IMAGE_PATH
-from backend.apps.datalog.utils import get_data_id_by_project_id
+from backend.components import paas_cc
+from backend.components.bcs import mesos
+from backend.utils.basic import getitems
+from backend.utils.errcodes import ErrorCode
+from backend.utils.error_codes import error_codes
 
 logger = logging.getLogger(__name__)
 DEFAULT_HTTP_PORT = "80"
@@ -40,8 +41,7 @@ DEFAULT_LB_ADMIN_PORT = "38080"
 
 
 def get_namespace_name(access_token, project_id, data_dict):
-    """获取命名空间名称
-    """
+    """获取命名空间名称"""
     ns_id = data_dict.get('namespace_id') or data_dict.get('namespace')
     if ns_id != -1:
         ns_resp = paas_cc.get_namespace(access_token, project_id, ns_id)
@@ -112,7 +112,8 @@ def handle_lb(username, access_token, project_id, lb_info, cc_app_id, **params):
     else:
         data_dict = {}
     lb_image_url = get_image_url(
-        data_dict.get("image_url"), params["use_custom_image_url"], access_token, project_id, cluster_id)
+        data_dict.get("image_url"), params["use_custom_image_url"], access_token, project_id, cluster_id
+    )
     resource_limit = data_dict.get('resources', {}).get('limits', {})
     ns_name = get_namespace_name(access_token, project_id, data_dict)
     # 获取data标准日志输出
@@ -140,7 +141,7 @@ def handle_lb(username, access_token, project_id, lb_info, cc_app_id, **params):
         'FORWARD_MODE': data_dict.get('forward_mode') or 'haproxy',
         'SYS_NAMESPACE': ns_name,
         'ETH_VALUE': data_dict.get('eth_value') or 'eth1',
-        'LB_ADMIN_PORT': DEFAULT_LB_ADMIN_PORT
+        'LB_ADMIN_PORT': DEFAULT_LB_ADMIN_PORT,
     }
 
     # 组装 lb 配置文件
@@ -148,8 +149,9 @@ def handle_lb(username, access_token, project_id, lb_info, cc_app_id, **params):
     lb_config['spec']['instance'] = data_dict.get('instance', 1)
     lb_config['constraint'] = constraint
     lb_config['spec']['template']['metadata']['labels'] = labels
-    lb_config['spec']['template']['spec']['containers'][0]['ports'][0]['hostPort'] = \
+    lb_config['spec']['template']['spec']['containers'][0]['ports'][0]['hostPort'] = (
         data_dict.get('host_port') or 31000
+    )
     # 处理网络模式
     spec = lb_config.get('spec', {}).get('template', {}).get('spec', {})
     spec['networkMode'] = data_dict.get('networkMode')
@@ -161,14 +163,12 @@ def handle_lb(username, access_token, project_id, lb_info, cc_app_id, **params):
     try:
         config_profile = render_mako_context(lb_config, context)
     except Exception:
-        logger.exception(
-            u"LoadBalance配置文件变量替换错误\nconfig:%s\ncontext:%s" % (lb_config, context))
+        logger.exception(u"LoadBalance配置文件变量替换错误\nconfig:%s\ncontext:%s" % (lb_config, context))
         raise ValidationError(_("配置文件中有未替换的变量"))
 
     config_profile = json.loads(config_profile)
     # 调用bcs api 创建
-    client = mesos.MesosClient(
-        access_token, project_id, cluster_id, env=None)
+    client = mesos.MesosClient(access_token, project_id, cluster_id, env=None)
     result = client.create_deployment(ns_name, config_profile)
     if not result.get('result'):
         error_msg = result.get('message', '')
@@ -178,8 +178,7 @@ def handle_lb(username, access_token, project_id, lb_info, cc_app_id, **params):
 
 
 def delete_lb_by_bcs(access_token, project_id, cluster_id, namespace, lb_name, lb_id, enforce=False):
-    client = mesos.MesosClient(
-        access_token, project_id, cluster_id, env=None)
+    client = mesos.MesosClient(access_token, project_id, cluster_id, env=None)
     resp = client.delete_deployment(namespace, lb_name, enforce=enforce)
     if resp.get("code") == ErrorCode.NoError:
         lb_info = MesosLoadBlance.objects.filter(id=lb_id)
@@ -193,29 +192,24 @@ def delete_lb_by_bcs(access_token, project_id, cluster_id, namespace, lb_name, l
 
 
 def get_lb_status(access_token, project_id, lb_name, cluster_id, ns_name, field=None, lb_id=None):
-    client = mesos.MesosClient(
-        access_token, project_id, cluster_id, env=None)
+    client = mesos.MesosClient(access_token, project_id, cluster_id, env=None)
 
-    resp = client.get_deployment(
-        name=lb_name, field=field or "data", namespace=ns_name)
+    resp = client.get_deployment(name=lb_name, field=field or "data", namespace=ns_name)
     if resp.get("code") != ErrorCode.NoError:
-        status_dict = {
-            'deployment_status': '',
-            'deployment_status_message': resp.get("message")
-        }
+        status_dict = {'deployment_status': '', 'deployment_status_message': resp.get("message")}
         return False, status_dict
     try:
         resp_datas = resp.get("data", [])[0].get('data', {})
     except Exception:
         status_dict = {
             'deployment_status': "",
-            'deployment_status_message': '{}[{}]{}'.format(_("查询不到deployment"), lb_name, _("的状态"))
+            'deployment_status_message': '{}[{}]{}'.format(_("查询不到deployment"), lb_name, _("的状态")),
         }
         return False, status_dict
 
     status_dict = {
         'deployment_status': resp_datas.get('status'),
-        'deployment_status_message': resp_datas.get('message')
+        'deployment_status_message': resp_datas.get('message'),
     }
     if resp_datas.get('application_ext'):
         app_name = resp_datas.get('application_ext').get('name')
@@ -223,8 +217,7 @@ def get_lb_status(access_token, project_id, lb_name, cluster_id, ns_name, field=
         app_name = resp_datas.get('application').get('name')
 
     # 需要 deployment 需要查询 Application 的状态
-    resp = client.get_mesos_app_instances(
-        app_name=app_name, field=field or "data", namespace=ns_name)
+    resp = client.get_mesos_app_instances(app_name=app_name, field=field or "data", namespace=ns_name)
 
     if resp.get("code") != ErrorCode.NoError:
         status_dict['application_status'] = ''
@@ -239,8 +232,7 @@ def get_lb_status(access_token, project_id, lb_name, cluster_id, ns_name, field=
 
     status = resp_data[0].get('data', {}).get('status')
     status_dict['application_status'] = status
-    status_dict['application_status_message'] = resp_data[0].get(
-        'data', {}).get('message')
+    status_dict['application_status_message'] = resp_data[0].get('data', {}).get('message')
     if status in UNNORMAL_STATUS:
         logger.error(f"loadbalance[{lb_name}]的状态不正常:{resp_data}")
         return False, status_dict
@@ -248,8 +240,7 @@ def get_lb_status(access_token, project_id, lb_name, cluster_id, ns_name, field=
 
 
 def render_helm_values(access_token, project_id, cluster_id, protocol_type, replica_count, namespace):
-    """渲染helm values配置文件
-    """
+    """渲染helm values配置文件"""
     # check protocol exist
     http_enabled = "false"
     https_enabled = "false"
@@ -264,9 +255,7 @@ def render_helm_values(access_token, project_id, cluster_id, protocol_type, repl
         if "https" in protocol_port:
             https_enabled = "true"
             https_port = protocol_port[-1] if len(protocol_port) == 2 and protocol_port[-1] else DEFAULT_HTTPS_PORT
-    jfrog_domain = paas_cc.get_jfrog_domain(
-        access_token=access_token, project_id=project_id, cluster_id=cluster_id
-    )
+    jfrog_domain = paas_cc.get_jfrog_domain(access_token=access_token, project_id=project_id, cluster_id=cluster_id)
     # render
     template = K8S_NGINX_INGRESS_CONTROLLER_CHART_VALUES
     template = template.replace("__REPO_ADDR__", jfrog_domain)
@@ -309,3 +298,38 @@ def get_cluster_namespaces(access_token, project_id, cluster_id):
     if resp.get('code') != ErrorCode.NoError:
         raise error_codes.APIError(_("获取集群下命名空间信息异常，{}").format(resp.get('message')))
     return resp['data'].get('results') or []
+
+
+def get_svc_access_info(manifest, cluster_id, extended_routes):
+    """
+    {
+        'external': {
+            'NodePort': ['node_ip:{node_port}'],
+        },
+        'internal': {
+            'ClusterIP': [':{port} {Protocol}']
+        }
+    }
+    """
+    access_info = {'external': {}, 'internal': {}}
+    svc_type = getitems(manifest, ['spec', 'type'])
+    ports = getitems(manifest, ['spec', 'ports'])
+
+    if not ports:
+        return access_info
+
+    if svc_type == 'ClusterIP':
+        cluster_ip = getitems(manifest, ['spec', 'clusterIP'])
+        if not cluster_ip or cluster_ip == 'None':
+            cluster_ip = '--'
+        access_info['internal'] = {'ClusterIP': [f"{cluster_ip}:{p['port']} {p['protocol']}" for p in ports]}
+    elif svc_type == 'NodePort':
+        access_info['external'] = {'NodePort': [f":{p['nodePort']}" for p in ports]}
+
+    return access_info
+
+
+try:
+    from .utils_ext import get_svc_access_info  # noqa
+except ImportError as e:
+    logger.debug('Load extension failed: %s', e)

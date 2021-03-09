@@ -27,8 +27,7 @@ DNS_ALLOW_CHARS = string.ascii_lowercase + string.digits + "-"
 
 
 def get_mesos_context(client, container_id: str) -> dict:
-    """通过taskgroup和container_id过滤host_ip
-    """
+    """通过taskgroup和container_id过滤host_ip"""
     resp = client.get_mesos_app_taskgroup(
         field="data.containerStatuses.containerID,data.metadata.name,data.containerStatuses.name,data.hostIP",
     )
@@ -48,8 +47,7 @@ def get_mesos_context(client, container_id: str) -> dict:
 
 
 def get_k8s_context(client, container_id: str) -> dict:
-    """通过containder_id获取pod, namespace信息
-    """
+    """通过containder_id获取pod, namespace信息"""
     resp = client.get_pod(field="resourceName,data.status.containerStatuses,namespace")
     pods = resp.get("data") or []
     context = {}
@@ -73,8 +71,7 @@ def get_k8s_context(client, container_id: str) -> dict:
 
 
 def get_k8s_cluster_context(client, project_id, cluster_id):
-    """获取集群信息
-    """
+    """获取集群信息"""
     context = copy.deepcopy(client.context)
 
     # 原始集群ID
@@ -102,10 +99,10 @@ def get_k8s_admin_context(client, context, mode):
     if mode == WebConsoleMode.EXTERNAL.value:
         context["mode"] = k8s.KubectlExternalClient.MODE
         # 外部模式使用固定的admin_token和集群ID
-        context["admin_user_token"] = settings.WEB_CONSOLE_USER_TOKEN
-        context["admin_cluster_identifier"] = settings.WEB_CONSOLE_CLUSTER_ID
+        context["admin_user_token"] = settings.WEB_CONSOLE_EXTERNAL_CLUSTER["API_TOKEN"]
+        context["admin_cluster_identifier"] = settings.WEB_CONSOLE_EXTERNAL_CLUSTER["ID"]
         context["admin_server_address"] = "{}/tunnels/clusters/{}".format(
-            client._bcs_server_host, settings.WEB_CONSOLE_CLUSTER_ID
+            settings.WEB_CONSOLE_EXTERNAL_CLUSTER["API_HOST"], settings.WEB_CONSOLE_EXTERNAL_CLUSTER["ID"]
         )
 
     else:
@@ -129,8 +126,7 @@ def get_k8s_pod_spec(client):
 
 
 def activity_log(project_id, cluster_id, cluster_name, username, status, message=None):
-    """操作记录
-    """
+    """操作记录"""
     with activity_client.ContextActivityLogClient(
         project_id=project_id,
         resource_id=cluster_id,
