@@ -27,6 +27,7 @@ import subprocess
 import tempfile
 import time
 from dataclasses import asdict
+from typing import List
 
 from django.conf import settings
 from django.template.loader import render_to_string
@@ -206,7 +207,9 @@ class KubeHelmClient:
 
         return template_out, notes_out
 
-    def _compose_cmd_args(self, cmd_args, chart_path, values_path, ytt_config_path, cmd_flags):
+    def _compose_cmd_args(
+        self, cmd_args: List[str], chart_path: str, values_path: str, ytt_config_path: str, cmd_flags: List[str]
+    ) -> List[str]:
         """组装helm命令参数"""
         cmd_args += [
             chart_path,
@@ -215,13 +218,14 @@ class KubeHelmClient:
         ]
         # NOTE: 当启用reuse-values时，希望使用集群中release的values内容，此时需要去掉--values
         # --values在其它flag前面，保证可以被后续的文件或key=val覆盖
-        if "reuse-values" not in cmd_flags and "--reuse-values" not in cmd_flags:
+        flags_list = [flag if flag.startswith("--") else f"--{flag}" for flag in cmd_flags]
+        if "--reuse-values" not in flags_list:
             cmd_args += [
                 "--values",
                 values_path,
             ]
         # 添加flags
-        cmd_args += [flag if flag.startswith("--") else f"--{flag}" for flag in cmd_flags]
+        cmd_args += flags_list
 
         return cmd_args
 
