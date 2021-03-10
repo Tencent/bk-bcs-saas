@@ -23,7 +23,7 @@ from django.conf import settings
 
 from backend.components.utils import http_post
 
-from .constant import DATA_API_V3_PREFIX, DATA_TOKEN
+from .constants import DATA_API_V3_PREFIX, DATA_TOKEN
 
 logger = logging.getLogger(__name__)
 

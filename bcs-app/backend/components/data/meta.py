@@ -20,7 +20,7 @@ import logging
 from backend.components.utils import http_get
 from backend.utils import cache
 
-from .constant import APP_CODE, APP_SECRET, DATA_API_V3_PREFIX
+from .constants import APP_CODE, APP_SECRET, DATA_API_V3_PREFIX
 
 logger = logging.getLogger(__name__)
 

@@ -63,3 +63,10 @@ def get_charts_info(url, auths):
     # 生成MD5，主要是便于后续校验是否变动
     charts_info_hash = _md5(str(charts_info))
     return (True, charts_info, charts_info_hash)
+
+
+try:
+    # 替换get_incremental_charts_and_hash_value, get_charts_info函数功能
+    from .repo_ext import get_charts_info, get_incremental_charts_and_hash_value  # noqa
+except Exception as e:
+    logger.debug("Replacement failed for repo_ext file, %s", e)

@@ -19,7 +19,7 @@ import json
 
 from backend.components.utils import http_get
 
-from .constant import APP_CODE, APP_SECRET, DATA_API_V3_PREFIX
+from .constants import APP_CODE, APP_SECRET, DATA_API_V3_PREFIX
 
 
 def check_tsdb_exist(biz_id=0, db="system"):
