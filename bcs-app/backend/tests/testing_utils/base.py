@@ -11,6 +11,7 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
+import contextlib
 import random
 from typing import Dict
 
@@ -31,3 +32,9 @@ def dict_is_subequal(data: Dict, full_data: Dict) -> bool:
         if value != full_data[key]:
             return False
     return True
+
+
+@contextlib.contextmanager
+def nullcontext():
+    """A context manager which does nothing"""
+    yield
