@@ -199,7 +199,7 @@ class ChartVersion(BaseChartVersion):
         self.home = version.get("home")
         self.description = version.get("description")
         self.engine = version.get("engine", "default")
-        self.created = normalize_time(version.get("created"))
+        self.created = version.get("created")
         maintainers = version.get("maintainers")
         if maintainers:
             self.maintainers = version.get("maintainers")
@@ -251,7 +251,7 @@ class ChartVersion(BaseChartVersion):
     @classmethod
     def update_or_create_version(cls, chart: Chart, version: Dict) -> Tuple["ChartVersion", bool]:
         chart_version, created = cls.objects.update_or_create(
-            chart=chart, version=version.get("version"), created=normalize_time(version.get("created"))
+            chart=chart, version=version.get("version"), created=version.get("created")
         )
         chart_version.update_from_import_version(chart, version)
         return chart_version, created
