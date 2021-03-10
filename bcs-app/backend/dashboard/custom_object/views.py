@@ -11,14 +11,17 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
+from django.utils.translation import ugettext_lazy as _
 from rest_framework import viewsets
 from rest_framework.renderers import BrowsableAPIRenderer
 from rest_framework.response import Response
 
-from backend.resources.custom_object import CustomResourceDefinition, get_custom_object_api_by_crd
+from backend.resources.custom_object import CustomResourceDefinition, get_cobj_client_by_crd
+from backend.resources.utils.auths import ClusterAuth
+from backend.utils.error_codes import error_codes
 from backend.utils.renderers import BKAPIRenderer
 
-from .serializers import PatchCustomObjectScaleSLZ, PatchCustomObjectSLZ
+from .serializers import BatchDeleteCustomObjectsSLZ, PatchCustomObjectScaleSLZ, PatchCustomObjectSLZ
 from .utils import to_table_format
 
 
@@ -26,28 +29,29 @@ class CRDViewSet(viewsets.ViewSet):
     renderer_classes = (BKAPIRenderer, BrowsableAPIRenderer)
 
     def list(self, request, project_id, cluster_id):
-        crd_api = CustomResourceDefinition(request.user.token.access_token, project_id, cluster_id)
-        return Response(crd_api.list())
+        crd_client = CustomResourceDefinition(ClusterAuth(request.user.token.access_token, project_id, cluster_id))
+        return Response(crd_client.list())
 
 
 class CustomObjectViewSet(viewsets.ViewSet):
     renderer_classes = (BKAPIRenderer, BrowsableAPIRenderer)
 
     def list_custom_objects(self, request, project_id, cluster_id, crd_name):
-        # 指定api_version是因为当前to_table_format解析的是apiextensions.k8s.io/v1beta1版本的结构
-        crd_api = CustomResourceDefinition(
-            request.user.token.access_token, project_id, cluster_id, api_version="apiextensions.k8s.io/v1beta1"
-        )
-        crd_dict = crd_api.get(name=crd_name)
+        cluster_auth = ClusterAuth(request.user.token.access_token, project_id, cluster_id)
+        crd_client = CustomResourceDefinition(cluster_auth)
+        crd = crd_client.get(name=crd_name, is_format=False)
+        if not crd:
+            raise error_codes.ResNotFoundError(_("集群({})中未注册自定义资源({})").format(cluster_id, crd_name))
 
-        cobj_api = get_custom_object_api_by_crd(request.user.token.access_token, project_id, cluster_id, crd_name)
-        cobj_list = cobj_api.list(namespace=request.query_params.get("namespace"))
-
-        return Response(to_table_format(crd_dict, cobj_list))
+        cobj_client = get_cobj_client_by_crd(cluster_auth, crd_name)
+        cobj_list = cobj_client.list(namespace=request.query_params.get("namespace"))
+        return Response(to_table_format(crd.to_dict(), cobj_list, cluster_id=cluster_id))
 
     def get_custom_object(self, request, project_id, cluster_id, crd_name, name):
-        cobj_api = get_custom_object_api_by_crd(request.user.token.access_token, project_id, cluster_id, crd_name)
-        cobj_dict = cobj_api.get(namespace=request.query_params.get("namespace"), name=name)
+        cobj_client = get_cobj_client_by_crd(
+            ClusterAuth(request.user.token.access_token, project_id, cluster_id), crd_name
+        )
+        cobj_dict = cobj_client.get(namespace=request.query_params.get("namespace"), name=name)
         return Response(cobj_dict)
 
     def patch_custom_object(self, request, project_id, cluster_id, crd_name, name):
@@ -55,8 +59,10 @@ class CustomObjectViewSet(viewsets.ViewSet):
         serializer.is_valid(raise_exception=True)
 
         validated_data = serializer.validated_data
-        cobj_api = get_custom_object_api_by_crd(request.user.token.access_token, project_id, cluster_id, crd_name)
-        cobj_api.patch(
+        cobj_client = get_cobj_client_by_crd(
+            ClusterAuth(request.user.token.access_token, project_id, cluster_id), crd_name
+        )
+        cobj_client.patch(
             name=name,
             namespace=validated_data.get("namespace"),
             body=validated_data["body"],
@@ -72,8 +78,10 @@ class CustomObjectViewSet(viewsets.ViewSet):
         serializer.is_valid(raise_exception=True)
 
         validated_data = serializer.validated_data
-        cobj_api = get_custom_object_api_by_crd(request.user.token.access_token, project_id, cluster_id, crd_name)
-        cobj_api.patch(
+        cobj_client = get_cobj_client_by_crd(
+            ClusterAuth(request.user.token.access_token, project_id, cluster_id), crd_name
+        )
+        cobj_client.patch(
             name=name,
             namespace=validated_data.get("namespace"),
             body=validated_data["body"],
@@ -83,6 +91,30 @@ class CustomObjectViewSet(viewsets.ViewSet):
         return Response()
 
     def delete_custom_object(self, request, project_id, cluster_id, crd_name, name):
-        cobj_api = get_custom_object_api_by_crd(request.user.token.access_token, project_id, cluster_id, crd_name)
-        cobj_api.delete_ignore_nonexistent(namespace=request.query_params.get("namespace"), name=name)
+        cobj_client = get_cobj_client_by_crd(
+            ClusterAuth(request.user.token.access_token, project_id, cluster_id), crd_name
+        )
+        cobj_client.delete_ignore_nonexistent(namespace=request.query_params.get("namespace"), name=name)
+        return Response()
+
+    def batch_delete_custom_objects(self, request, project_id, cluster_id, crd_name):
+        serializer = BatchDeleteCustomObjectsSLZ(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        validated_data = serializer.validated_data
+        cobj_client = get_cobj_client_by_crd(
+            ClusterAuth(request.user.token.access_token, project_id, cluster_id), crd_name
+        )
+
+        failed_list = []
+        namespace = validated_data["namespace"]
+        for name in validated_data["cobj_name_list"]:
+            try:
+                cobj_client.delete_ignore_nonexistent(namespace=namespace, name=name)
+            except Exception:
+                failed_list.append(name)
+
+        if failed_list:
+            raise error_codes.APIError(_("部分资源删除失败，失败列表: {}").format(",".join(failed_list)))
+
         return Response()

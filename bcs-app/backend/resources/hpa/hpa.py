@@ -12,10 +12,27 @@
 # specific language governing permissions and limitations under the License.
 #
 
+import logging
+from typing import Optional
 
-# 数据平台申请dataid的名称前缀
-STANDARD_LOG_PREFIX_KEY = 'STANDARD_LOG_PREFIX_KEY'
-NON_STANDARD_LOG_PREFIX_KEY = 'NON_STANDARD_LOG_PREFIX_KEY'
+from django.utils import timezone
+from django.utils.translation import ugettext_lazy as _
+from kubernetes.dynamic.resource import ResourceInstance
 
-STANDARD_LOG_PREFIX_VALUE = 'bcs_std_log_'
-NON_STANDARD_LOG_PREFIX_VALUE = 'bcs_non_std_log_'
+from backend.apps.application import constants as app_constants
+from backend.apps.configuration.constants import K8sResourceName
+from backend.apps.instance.models import InstanceConfig
+
+from ..resource import ResourceClient
+from ..utils.auths import ClusterAuth
+
+logger = logging.getLogger(__name__)
+
+PREFERRED_API_VERSION = "autoscaling/v2beta2"
+
+
+class HPA(ResourceClient):
+    kind = "HorizontalPodAutoscaler"
+
+    def __init__(self, cluster_auth: ClusterAuth, api_version: Optional[str] = PREFERRED_API_VERSION):
+        super().__init__(cluster_auth, api_version)

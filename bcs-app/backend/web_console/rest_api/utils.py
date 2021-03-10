@@ -20,7 +20,6 @@ from django.conf import settings
 from django.utils.encoding import smart_bytes
 
 from backend.activity_log import client as activity_client
-from backend.utils.func_controller import get_func_controller
 from backend.web_console.bcs_client import k8s
 from backend.web_console.constants import WebConsoleMode
 
@@ -149,15 +148,3 @@ def get_username_slug(username: str) -> str:
     hash_id = hashlib.sha1(smart_bytes(username)).hexdigest()[:12]
     _username = "".join(char for char in username.lower() if char in DNS_ALLOW_CHARS)
     return f"{_username}-{hash_id}"
-
-
-def allowed_login_web_console(username: str) -> bool:
-    """是否允许登入 web_console 白名单"""
-    func_code = "LOGIN_WEB_CONSOLE"
-
-    enabled, wlist = get_func_controller(func_code)
-    # 必须是开启, 且在白名单内才可使用
-    if enabled and username in wlist:
-        return True
-
-    return False

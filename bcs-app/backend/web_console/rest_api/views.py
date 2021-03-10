@@ -159,7 +159,7 @@ class WebConsoleSession(views.APIView):
         self.cluster_name = cluster_data.get("name", "")[:32]
 
         # 检查白名单, 不在名单中再通过权限中心校验
-        if not utils.allowed_login_web_console(request.user.username):
+        if not request.user.is_superuser:
             perm = bcs_perm.Cluster(request, project_id, cluster_id)
             try:
                 perm.can_use(raise_exception=True)

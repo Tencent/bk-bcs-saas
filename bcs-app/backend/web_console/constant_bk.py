@@ -13,10 +13,13 @@
 #
 """各版本差异常量定义
 """
+import logging
 import re
 from collections import OrderedDict
 
 from django.utils.translation import ugettext_lazy as _
+
+logger = logging.getLogger(__name__)
 
 GUIDE_MESSAGE = [
     "Guide: https://bk.tencent.com/docs/markdown/产品白皮书/Function/web_console/Description.md",
@@ -32,3 +35,10 @@ MGR_GUIDE_MESSAGE = [
 KUBECTLD_VERSION = OrderedDict({"1.12.3_debian_0.1": [re.compile(r"^[vV]?1\.12\.\w+$")]})
 
 DEFAULT_KUBECTLD_VERSION = "1.12.3_debian_0.1"
+
+
+# 尝试加载额外的常量配置，可能会覆盖当前配置
+try:
+    from .constant_ext import *  # noqa # type: ignore
+except ImportError:
+    logger.debug('constant extension "constant_ext" module not found')

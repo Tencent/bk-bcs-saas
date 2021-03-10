@@ -27,6 +27,9 @@ class HasProject(BasePermission):
         if not project_id:
             return True
 
+        if request.user.is_superuser:
+            return True
+
         user_id = request.user.username
         perm = permissions.ProjectPermission()
         return perm.can_view(user_id, project_id)
@@ -36,6 +39,9 @@ class HasIAMProject(BasePermission):
     def has_permission(self, request, view):
         project_id = view.kwargs.get("project_id")
         if not project_id:
+            return True
+
+        if request.user.is_superuser:
             return True
 
         access_token = request.user.token.access_token

@@ -11,10 +11,9 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-"""
-说明：当前文件待废弃
-"""
+
 import abc
+import logging
 
 from django.utils.translation import ugettext_lazy as _
 
@@ -25,8 +24,8 @@ from backend.components.ssm import get_client_access_token
 NO_RES = "**"
 # 任意资源
 ANY_RES = "*"
-# 用户判断是否集群和命名空间的操作类型的处理
-CLUSTER_NAMESPACE_RESOURCE_TYPE = ["cluster", "namespace"]
+
+logger = logging.getLogger(__name__)
 
 
 class PermissionMeta(object):
@@ -259,3 +258,9 @@ def get_all_user():
     for _d in data:
         users.append({"id": _d.get("bk_username", ""), "name": _d.get("chname", "")})
     return users
+
+
+try:
+    from .perm_ext import *  # noqa
+except ImportError as e:
+    logger.debug('Load extension failed: %s', e)

@@ -27,14 +27,14 @@ TESTING_API_SERVER_URL = os.environ.get("TESTING_API_SERVER_URL", 'http://localh
 
 @pytest.fixture
 def cluster_id():
-    """生成一个随机集群 ID"""
-    return generate_random_string(8)
+    """使用环境变量或者生成一个随机集群 ID"""
+    return os.environ.get("TEST_CLUSTER_ID", generate_random_string(8))
 
 
 @pytest.fixture
 def project_id():
-    """生成一个随机项目 ID"""
-    return generate_random_string(32)
+    """使用环境变量或者生成一个随机项目 ID"""
+    return os.environ.get("TEST_PROJECT_ID", generate_random_string(32))
 
 
 @pytest.fixture

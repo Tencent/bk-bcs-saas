@@ -20,7 +20,8 @@ from kubernetes.client.exceptions import ApiException
 from kubernetes.dynamic import DynamicClient, Resource, ResourceInstance
 from kubernetes.dynamic.exceptions import ResourceNotUniqueError
 
-from backend.resources.client import BcsKubeConfigurationService
+from ..client import BcsKubeConfigurationService
+from .discovery import BcsLazyDiscoverer, DiscovererCache
 
 logger = logging.getLogger(__name__)
 
@@ -127,11 +128,13 @@ class CoreDynamicClient(DynamicClient):
         return super().request(method, path, body=body, **params)
 
 
-@lru_cache(maxsize=64)
+@lru_cache(maxsize=128)
 def get_dynamic_client(access_token: str, project_id: str, cluster_id: str) -> CoreDynamicClient:
     """根据 token、cluster_id 等参数，构建访问 Kubernetes 集群的 Client 对象"""
     config = BcsKubeConfigurationService(access_token, project_id, cluster_id).make_configuration()
-    return CoreDynamicClient(client.ApiClient(config))
+    # TODO 考虑集群可能升级k8s版本的情况, 缓存文件会失效
+    discoverer_cache = DiscovererCache(cache_key=f"osrcp-{cluster_id}.json")
+    return CoreDynamicClient(client.ApiClient(config), cache_file=discoverer_cache, discoverer=BcsLazyDiscoverer)
 
 
 def make_labels_string(labels: Dict) -> str:

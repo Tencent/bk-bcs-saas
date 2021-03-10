@@ -39,10 +39,14 @@ def calculate_age(create_at):
     return f"{d_seconds // 60}m{d_seconds % 60}s"
 
 
-def parse_column_data(co_item: Dict, columns: List[Dict]) -> Dict:
+def parse_column_data(co_item: Dict, columns: List[Dict], **kwargs: str) -> Dict:
     column_data = {}
     for col in columns:
         col_name = col["col_name"]
+        if "json_path" not in col:
+            column_data[col_name] = kwargs.get(col_name, "")
+            continue
+
         json_path = col["json_path"]
         value = getitems(co_item, json_path)
         if json_path == creation_timestamp_path:
@@ -58,6 +62,7 @@ def parse_columns(crd_dict: Dict) -> List[Dict]:
     """
     columns = [
         {"col_name": "name", "json_path": ".metadata.name"},
+        {"col_name": "cluster_id"},
         {"col_name": "namespace", "json_path": ".metadata.namespace"},
     ]
 
@@ -79,12 +84,13 @@ def parse_columns(crd_dict: Dict) -> List[Dict]:
     return columns
 
 
-def to_table_format(crd_dict: Dict, cobj_list: List) -> Dict:
+def to_table_format(crd_dict: Dict, cobj_list: List, **kwargs: str) -> Dict:
     """
     :return: 返回给前端约定的表格结构，th_list是表头内容，td_list是对应的表格内容
     """
+    # TODO 支持解析apiextensions.k8s.io/v1
     columns = parse_columns(crd_dict)
-    column_data_list = [parse_column_data(co_item, columns) for co_item in cobj_list]
+    column_data_list = [parse_column_data(co_item, columns, **kwargs) for co_item in cobj_list]
     if column_data_list:
         return {"th_list": [col["col_name"] for col in columns], "td_list": column_data_list}
     return {"th_list": [], "td_list": []}

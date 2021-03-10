@@ -11,8 +11,19 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
+import logging
+
 from django.conf import settings
+
+logger = logging.getLogger(__name__)
 
 
 def get_auth_url(perms=None):
     return f'{settings.BK_IAM_APP_URL}/perm-apply/'
+
+
+# 通过 extension 模块替换现有 get_auth_url 函数
+try:
+    from .exceptions_ext import get_auth_url  # noqa # type: ignore
+except ImportError:
+    logger.debug('Replacement for "get_auth_url" not found, skip')

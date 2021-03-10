@@ -14,8 +14,6 @@
 """
 凭证管理系统
 """
-
-import json
 import logging
 
 from django.conf import settings
@@ -31,6 +29,9 @@ TICKET_API_PREFIX = "%s/ticket/api/" % settings.DEVOPS_CI_API_HOST
 
 
 class TicketClient(object):
+
+    url_cert_list = '{prefix}user/certs/{project_code}/hasPermissionList'
+
     def __init__(self, project_id, project_code, request=None):
         self.project_id = project_id
         self.project_code = project_code
@@ -55,9 +56,8 @@ class TicketClient(object):
 
     def get_tls_cert_list(self):
         """获取tls证书列表"""
-        self.url = '{prefix}user/certs/{project_code}/hasPermissionList'.format(
-            prefix=TICKET_API_PREFIX, project_code=self.project_code
-        )
+        self.url = self.url_cert_list.format(prefix=TICKET_API_PREFIX, project_code=self.project_code)
+
         self.query = {'permission': 'USE', 'certType': 'tls', 'pageSize': '10000'}
         resp = http_get(self.url, params=self.query, **self.kwargs)
         self.methord = 'GET'
@@ -79,3 +79,12 @@ class TicketClient(object):
         )
         key_content = shortcuts(url, 'serverKeyFile', 'serverKeySha1')
         return key_content
+
+
+# 尝试加载并应用 TicketClient 的补丁函数
+try:
+    from .ticket_ext import patch_ticket_client
+
+    TicketClient = patch_ticket_client(TicketClient)
+except ImportError:
+    logger.debug('`patch_ticket_client` hook not found, will skip')

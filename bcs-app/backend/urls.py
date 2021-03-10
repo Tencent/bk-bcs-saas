@@ -58,13 +58,20 @@ urlpatterns = [
     url(r"^", include("backend.apps.ticket.urls", namespace="ticket")),
     url(r"^", include("backend.bcs_k8s.authtoken.urls", namespace="bcs_authtoken")),
     url(r"^api/hpa/projects/(?P<project_id>\w{32})/", include("backend.apps.hpa.urls", namespace="hpa")),
+    # cd部分api
+    url(r"^cd_api/", include("backend.apps.apis.urls", namespace="cd_api")),
+    url(r"^apis/", include("backend.apis.urls")),
+    url(
+        r"^api/dashboard/projects/(?P<project_id>\w{32})/clusters/(?P<cluster_id>[\w\-]+)/",
+        include("backend.dashboard.urls"),
+    ),
 ]
 
 # 导入版本特定的urls
 try:
-    from backend.urls_bk import urlpatterns as urlpatterns_bk
+    from backend.urls_ext import urlpatterns as urlpatterns_ext
 
-    urlpatterns += urlpatterns_bk
+    urlpatterns += urlpatterns_ext
 except ImportError:
     pass
 

@@ -13,7 +13,13 @@
 #
 from typing import Optional
 
+from django.utils.translation import ugettext_lazy as _
+from kubernetes.dynamic.resource import ResourceInstance
+
+from backend.utils.error_codes import error_codes
+
 from ..resource import ResourceClient
+from ..utils.auths import ClusterAuth
 from .crd import CustomResourceDefinition
 from .format import CustomObjectFormatter
 
@@ -21,14 +27,31 @@ from .format import CustomObjectFormatter
 class CustomObject(ResourceClient):
     formatter = CustomObjectFormatter()
 
-    def __init__(
-        self, access_token: str, project_id: str, cluster_id: str, kind: str, api_version: Optional[str] = None
-    ):
+    def __init__(self, cluster_auth: ClusterAuth, kind: str, api_version: Optional[str] = None):
         self.kind = kind
-        super().__init__(access_token, project_id, cluster_id, api_version)
+        super().__init__(cluster_auth, api_version)
 
 
-def get_custom_object_api_by_crd(access_token: str, project_id: str, cluster_id: str, crd_name: str) -> CustomObject:
-    crd_api = CustomResourceDefinition(access_token, project_id, cluster_id)
-    crd = crd_api.get(name=crd_name, is_format=False)
-    return CustomObject(access_token, project_id, cluster_id, kind=crd.spec.names.kind)
+def _get_cobj_api_version(crd: ResourceInstance) -> str:
+    # https://kubernetes.io/docs/tasks/extend-kubernetes/custom-resources/custom-resource-definition-versioning/#specify-multiple-versions
+    group = crd.spec.group
+    versions = crd.spec.versions
+
+    if versions:
+        for v in versions:
+            if v.served:
+                return f"{group}/{v.name}"
+        return f"{group}/{versions[0].name}"
+
+    if crd.spec.version:
+        return f"{group}/{crd.spec.version}"
+
+    return f"{group}/v1alpha1"
+
+
+def get_cobj_client_by_crd(cluster_auth: ClusterAuth, crd_name: str) -> CustomObject:
+    crd_client = CustomResourceDefinition(cluster_auth)
+    crd = crd_client.get(name=crd_name, is_format=False)
+    if crd:
+        return CustomObject(cluster_auth, kind=crd.spec.names.kind, api_version=_get_cobj_api_version(crd))
+    raise error_codes.ResNotFoundError(_("集群({})中未注册自定义资源({})").format(cluster_auth.cluster_id, crd_name))

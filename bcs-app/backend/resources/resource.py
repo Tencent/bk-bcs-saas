@@ -18,6 +18,7 @@ from kubernetes.dynamic.resource import ResourceInstance
 from backend.resources.utils.kube_client import get_dynamic_client
 
 from .constants import PatchType
+from .utils.auths import ClusterAuth
 from .utils.format import ResourceDefaultFormatter
 
 
@@ -29,24 +30,36 @@ class ResourceClient:
     kind = "Resource"
     formatter = ResourceDefaultFormatter()
 
-    def __init__(self, access_token: str, project_id: str, cluster_id: str, api_version: Optional[str] = None):
-        self.dynamic_client = get_dynamic_client(access_token, project_id, cluster_id)
+    def __init__(self, cluster_auth: ClusterAuth, api_version: Optional[str] = None):
+        self.dynamic_client = get_dynamic_client(
+            cluster_auth.access_token, cluster_auth.project_id, cluster_auth.cluster_id
+        )
         if api_version:
             self.api = self.dynamic_client.resources.get(kind=self.kind, api_version=api_version)
         else:
             self.api = self.dynamic_client.get_preferred_resource(self.kind)
 
-    def list(self, is_format: bool = True, **kwargs) -> Union[ResourceInstance, List]:
+    def list(
+        self, is_format: bool = True, formatter: Optional[ResourceDefaultFormatter] = None, **kwargs
+    ) -> Union[ResourceInstance, List, None]:
         resp = self.api.get_or_none(**kwargs)
-        if is_format:
-            return self.formatter.format_list(resp)
-        return resp
 
-    def get(self, name, is_format: bool = True, **kwargs) -> Union[ResourceInstance, Dict]:
+        if not is_format:
+            return resp
+        if formatter:
+            return formatter.format_list(resp)
+        return self.formatter.format_list(resp)
+
+    def get(
+        self, name, is_format: bool = True, formatter: Optional[ResourceDefaultFormatter] = None, **kwargs
+    ) -> Union[ResourceInstance, Dict, None]:
         resp = self.api.get_or_none(name=name, **kwargs)
-        if is_format:
-            return self.formatter.format(resp)
-        return resp
+
+        if not is_format:
+            return resp
+        if formatter:
+            return formatter.format(resp)
+        return self.formatter.format(resp)
 
     def update_or_create(
         self,

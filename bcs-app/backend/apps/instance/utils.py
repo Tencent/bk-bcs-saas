@@ -31,7 +31,7 @@ from backend.apps.instance.drivers import get_scheduler_driver
 from backend.apps.instance.generator import GENERATOR_DICT, get_bcs_context
 from backend.apps.instance.models import InstanceConfig, MetricConfig, VersionInstance
 from backend.apps.instance.utils_pub import get_cluster_version
-from backend.apps.whitelist_bk import enabled_hpa_feature
+from backend.apps.whitelist import enabled_hpa_feature
 from backend.components import paas_cc
 from backend.components.bcs.k8s import K8SClient
 from backend.components.bcs.mesos import MesosClient
