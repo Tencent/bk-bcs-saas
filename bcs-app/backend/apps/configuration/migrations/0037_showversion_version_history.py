@@ -15,7 +15,7 @@ class Migration(migrations.Migration):
     operations = [
         migrations.AddField(
             model_name='showversion',
-            name='version_history',
-            field=jsonfield.fields.JSONField(default=[], verbose_name='历史版本记录'),
+            name='revision_history',
+            field=jsonfield.fields.JSONField(default=[], verbose_name='历史修订版本记录'),
         ),
     ]

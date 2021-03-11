@@ -304,15 +304,15 @@ class ShowVersion(BaseModel):
     name = models.CharField("版本名称", max_length=255)
     # TODO history字段后续废弃, 由version_history替代
     history = models.TextField("所有指向过的版本", default="[]")
-    version_history = JSONField("历史版本记录", default=[])
+    revision_history = JSONField("历史修订版本记录", default=[])
     real_version_id = models.IntegerField("关联的VersionedEntity ID", null=True, blank=True)
     comment = models.TextField("版本说明", default="")
     objects = ShowVersionManager()
     default_objects = models.Manager()
 
-    def _append_to_version_history(self, real_version_id: int):
-        self.version_history.append(
-            {"real_version_id": real_version_id, "version_suffix": timezone.localtime().strftime('%Y%m%d%H%M%S')}
+    def _append_to_revision_history(self, real_version_id: int):
+        self.revision_history.append(
+            {"real_version_id": real_version_id, "revision": timezone.localtime().strftime('%Y%m%d%H%M%S')}
         )
 
     def save(self, *args, **kwargs):
@@ -322,8 +322,8 @@ class ShowVersion(BaseModel):
                 self.history = json.dumps(list(set(self.history)))
 
             # 首次保存时的版本计入version_history
-            if not self.version_history:
-                self._append_to_version_history(self.real_version_id)
+            if not self.revision_history:
+                self._append_to_revision_history(self.real_version_id)
 
             super().save(*args, **kwargs)
         except IntegrityError:
@@ -344,8 +344,8 @@ class ShowVersion(BaseModel):
         history.append(real_version_id)
         update_params["history"] = history
 
-        self._append_to_version_history(real_version_id)
-        update_params["version_history"] = self.version_history
+        self._append_to_revision_history(real_version_id)
+        update_params["revision_history"] = self.revision_history
 
         update_params.update(kwargs)
         self.__dict__.update(update_params)
@@ -354,6 +354,13 @@ class ShowVersion(BaseModel):
     @property
     def related_template(self):
         return Template.objects.get(id=self.template_id)
+
+    @property
+    def latest_revision(self):
+        try:
+            return self.revision_history[-1].get("revision")
+        except Exception:
+            return ""
 
     class Meta:
         index_together = ("is_deleted", "template_id")
