@@ -382,3 +382,9 @@ class NSTDLogDataBus(DataBus):
         super()._update_storage_success(is_success)
         self.project_data.non_standard_storage_success = is_success
         self.project_data.save(update_fields=["non_standard_storage_success"])
+
+
+try:
+    from .databus_ext import *  # noqa
+except Exception as e:
+    logger.debug("Load databus_ext failed, %s", e)

@@ -41,7 +41,7 @@ def http_post_common(url, params=None, data=None, json=None, **kwargs):
     封装标准的http请求方法
     """
     if IS_DATA_OPEN:
-        return http_post(url, params=params, data=data, json=json, **kwargs)
+        return http_post(url, params=None, data=None, json=None, **kwargs)
 
     try:
         res = http_post(url, params=None, data=None, json=None, **kwargs)
@@ -207,10 +207,3 @@ def get_container_logs(username, container_id=None, index=None):
     }
     result = http_post_common(API_URL, json=data, timeout=60)
     return result
-
-
-# 替换http_post_common和get_container_logs
-try:
-    from .query_ext import get_container_logs, http_post_common  # noqa
-except Exception as e:
-    logger.debug("Replacement for query_ext function failed, %s", e)

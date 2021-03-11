@@ -498,3 +498,9 @@ def get_cluster_versions(access_token, ver_id="", env="", kind=""):
 def get_all_cluster_host_ips(access_token):
     data = get_all_cluster_hosts(access_token, exclude_status_list=[CommonStatus.Removed])
     return [info["inner_ip"] for info in data]
+
+
+try:
+    from .paas_cc_ext import get_auth_project  # noqa
+except Exception as e:
+    logger.debug("Replacement for get_auth_project failed, %s", e)

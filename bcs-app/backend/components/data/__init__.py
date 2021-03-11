@@ -14,8 +14,11 @@
 """
 数据平台API
 """
-from .constant import *  # noqa
+from .constants import *  # noqa
 from .databus import *  # noqa
-from .meta import *  # noqa
 from .query import *  # noqa
-from .tsdb import *  # noqa
+
+try:
+    from .api import *  # noqa
+except Exception:
+    pass
