@@ -1,4 +1,16 @@
 # -*- coding: utf-8 -*-
+#
+# Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community Edition) available.
+# Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+# Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://opensource.org/licenses/MIT
+#
+# Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+# an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+# specific language governing permissions and limitations under the License.
+#
 from typing import Dict
 
 from django.conf import settings
@@ -14,7 +26,7 @@ class BcsApiConfig:
     def __init__(self, host: str):
         self.host = host
 
-        # PaaSCC 系统接口地址
+        # BCS API 系统接口地址
         self.query_cluster_id_url = f"{host}/{{env_name}}/rest/clusters/bcs/query_by_id/"
         self.get_cluster_credentials_url = f"{host}/{{env_name}}/rest/clusters/{{bcs_cluster_id}}/client_credentials"
 
@@ -37,7 +49,7 @@ class BcsApiAuth(AuthBase):
 
 
 class BcsApiClient(BkApiClient):
-    """访问 PaaSCC 服务的 Client 对象
+    """访问 BCS API 服务的 Client 对象
 
     :param auth: 包含校验信息的对象
 
