@@ -182,5 +182,5 @@ def get_task_result(access_token, project_id, task_id, biz_id, username):
 
 try:
     from .ops_ext import *  # noqa
-except Exception as e:
+except ImportError as e:
     logger.debug("Load ops_ext failed, %s", e)
