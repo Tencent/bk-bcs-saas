@@ -8,12 +8,13 @@ def test_do_install(settings, mock_run_command_with_retry):
     release_name = "test-example"
     namespace = "test"
     chart_url = "http://repo.example.com/charts/example-0.1.0.tgz"
-    options = {
-        "--values": ["bcs.yaml", "bcs-saas.yaml"],
-        "--username": "admin",
-        "--password": "admin",
-        "--atomic": None,
-    }
+    options = [
+        {"--values": "bcs.yaml"},
+        {"--values": "bcs-saas.yaml"},
+        {"--username": "admin"},
+        {"--password": "admin"},
+        "--atomic",
+    ]
 
     client = KubeHelmClient()
     client.do_install_or_upgrade("install", release_name, namespace, chart_url, options=options)
