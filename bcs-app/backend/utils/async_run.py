@@ -21,7 +21,7 @@ class AsyncRunException(BaseException):
 
 def async_run(tasks):
     """
-    run a group of tasks async
+    run a group of tasks async(仅适用于IO密集型)
     Requires the tasks arg to be a list of functools.partial()
     """
 

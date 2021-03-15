@@ -11,21 +11,9 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-from backend.apps.templatesets import models
+from backend.apps.templatesets.models import AppReleaseData
 
 
-class TestAppRelease:
-    def test_create_app_release(self, cluster_id, template_id):
-        version_id = 1
-        version_name = "v1"
-        version_suffix = "20210310151630"
-
-        models.AppRelease.objects.create(
-            name="test-nginx",
-            cluster_id=cluster_id,
-            namespace="default",
-            template_id=template_id,
-            version_id=version_id,
-            version_name=version_name,
-            version_suffix=version_suffix,
-        )
+class ReleaseDataGenerator:
+    def release_data(self) -> AppReleaseData:
+        return AppReleaseData(name='', cluster_id='', namespace='', template_id=1, resource_list=[])
