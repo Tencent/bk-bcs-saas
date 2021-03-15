@@ -54,5 +54,5 @@ API_URL = f"{DATA_API_V3_PREFIX}/dataquery/query/"
 # 替换DockerMetricFields
 try:
     from .constants_ext import DockerMetricFields  # noqa
-except Exception as e:
-    logger.debug("Replacement for DockerMetricFields failed, %s", e)
+except ImportError as e:
+    logger.debug("Load extension failed: %s", e)

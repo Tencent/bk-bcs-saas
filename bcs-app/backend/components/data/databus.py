@@ -386,5 +386,5 @@ class NSTDLogDataBus(DataBus):
 
 try:
     from .databus_ext import *  # noqa
-except Exception as e:
-    logger.debug("Load databus_ext failed, %s", e)
+except ImportError as e:
+    logger.debug("Load extension failed: %s", e)

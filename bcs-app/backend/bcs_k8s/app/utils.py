@@ -446,5 +446,5 @@ def get_or_create_private_repo(user, project):
 # 替换get_or_create_private_repo功能
 try:
     from .utils_ext import get_or_create_private_repo  # noqa
-except Exception as e:
-    logger.debug("Replacement failed for get_or_create_private_repo function, %s", e)
+except ImportError as e:
+    logger.debug("Load extension failed: %s", e)

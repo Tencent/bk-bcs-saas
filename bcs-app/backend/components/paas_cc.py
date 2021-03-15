@@ -502,5 +502,5 @@ def get_all_cluster_host_ips(access_token):
 
 try:
     from .paas_cc_ext import get_auth_project  # noqa
-except Exception as e:
-    logger.debug("Replacement for get_auth_project failed, %s", e)
+except ImportError as e:
+    logger.debug("Load extension failed: %s", e)

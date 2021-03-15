@@ -46,5 +46,5 @@ def get_role_list(access_token, project_id, need_user=False):
 
 try:
     from .paas_auth_ext import *  # noqa
-except Exception as e:
-    logger.debug("Load paas_auth_ext failed, %s", e)
+except ImportError as e:
+    logger.debug("Load extension failed: %s", e)

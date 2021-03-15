@@ -68,5 +68,5 @@ def get_charts_info(url, auths):
 try:
     # 替换get_incremental_charts_and_hash_value, get_charts_info函数功能
     from .repo_ext import get_charts_info, get_incremental_charts_and_hash_value  # noqa
-except Exception as e:
-    logger.debug("Replacement failed for repo_ext file, %s", e)
+except ImportError as e:
+    logger.debug("Load extension failed: %s", e)

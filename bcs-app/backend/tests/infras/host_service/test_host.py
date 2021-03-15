@@ -59,5 +59,5 @@ class TestGetAgentStatus:
 
 try:
     from .test_host_ext import *  # noqa
-except Exception as e:
+except ImportError as e:
     pass

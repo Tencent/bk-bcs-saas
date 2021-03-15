@@ -334,5 +334,5 @@ def cmdb_base_request(suffix_path, username, data, bk_supplier_account=None):
 # 加载cc_ext的函数
 try:
     from .cc_ext import *  # noqa
-except Exception as e:
-    logger.debug("Load cc_ext error, %s", e)
+except ImportError as e:
+    logger.debug("Load extension failed: %s", e)

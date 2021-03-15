@@ -44,5 +44,5 @@ def get_agent_status(username, hosts, bk_supplier_id=0):
 
 try:
     from .gse_ext import get_agent_status  # noqa
-except Exception as e:
-    logger.debug("Replacement for get_agent_status failed, %s", e)
+except ImportError as e:
+    logger.debug("Load extension failed: %s", e)

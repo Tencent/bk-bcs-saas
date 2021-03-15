@@ -20,5 +20,5 @@ from .query import *  # noqa
 
 try:
     from .api import *  # noqa
-except Exception:
+except ImportError:
     pass
