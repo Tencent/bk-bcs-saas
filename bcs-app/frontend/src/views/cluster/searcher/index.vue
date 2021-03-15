@@ -649,7 +649,7 @@
                 const value = e.clipboardData.getData('text')
                 if (value && this.curSearchParams && this.curSearchParams.id === 'ip') {
                     this.$nextTick(() => {
-                        this.curInputValue = value.split('\n').join('|')
+                        this.curInputValue = value.replace(/\r/g, '').split('\n').join('|')
                     })
                 }
             },
