@@ -32,6 +32,7 @@ from rest_framework.renderers import BrowsableAPIRenderer, JSONRenderer
 from rest_framework.response import Response
 from rest_framework.views import exception_handler
 
+from backend.components.base import BaseCompError, CompInternalError, CompRequestError, CompResponseError
 from backend.utils import exceptions as backend_exceptions
 from backend.utils.basic import str2bool
 from backend.utils.error_codes import APIError, error_codes
@@ -52,7 +53,56 @@ def one_line_error(detail):
         return _("参数格式错误")
 
 
-def custom_exception_handler(exc, context):
+class CompErrorFormatter:
+    """格式化 components 相关错误"""
+
+    # 错误代码来自： utils.exceptions::ComponentError
+    error_code = 4001
+
+    def __init__(self, exc: BaseCompError):
+        self.exc = exc
+
+    def format(self) -> Response:
+        """格式化 components 异常"""
+        if self._use_vague_message():
+            message = _("数据请求失败，请稍后再试{}").format(settings.COMMON_EXCEPTION_MSG)
+        else:
+            # 注意：向客户端暴露原始的异常信息，可能有敏感信息
+            message = _('{}，{}').format(_("第三方请求失败"), str(self.exc))
+
+        # 拼装 Response 响应
+        data = {
+            "code": self.error_code,
+            "message": message,
+            "data": None,
+            "request_id": local.request_id,
+        }
+        return Response(data)
+
+    @staticmethod
+    def _use_vague_message() -> bool:
+        """是否向客户端展示模糊的错误信息，避免内部配置信息泄露"""
+        if not settings.DEBUG and settings.IS_COMMON_EXCEPTION_MSG:
+            return True
+        return False
+
+
+# 规则：异常类型 -> 格式化工具类
+exc_resp_formatter_map = {
+    CompRequestError: CompErrorFormatter,
+    CompResponseError: CompErrorFormatter,
+    CompInternalError: CompErrorFormatter,
+}
+
+
+def custom_exception_handler(exc: Exception, context):
+    """自定义异常处理，将不同异常转换为不同的错误返回"""
+    # 轮询查找异常类型与异常处理表
+    for exc_type, formatter_cls in exc_resp_formatter_map.items():
+        if isinstance(exc, exc_type):
+            set_rollback()
+            return formatter_cls(exc).format()
+
     if isinstance(exc, (NotAuthenticated, AuthenticationFailed)):
         data = {
             "code": error_codes.Unauthorized.code,

@@ -64,6 +64,10 @@ class CompResponseError(BaseCompError):
 class CompInternalError(BaseCompError):
     """Component 模块内部错误（未知）错误"""
 
+    def __str__(self):
+        s = super().__str__()
+        return f'comp internal error: {s}'
+
 
 class BkApiClient(ABC):
     """抽象类：调用蓝鲸体系 API 的 Client"""
