@@ -24,10 +24,7 @@ from django.utils.translation import ugettext_lazy as _
 from ruamel.yaml import YAML
 from ruamel.yaml.compat import StringIO, ordereddict
 
-from backend.apps.depot.api import get_jfrog_account
 from backend.bcs_k8s.diff import parser
-from backend.bcs_k8s.helm.models.repo import Repository
-from backend.bcs_k8s.helm.providers.repo_provider import add_plain_repo
 from backend.bcs_k8s.helm.utils.util import EmptyVaue, fix_rancher_value_by_type
 from backend.components import bcs, paas_cc
 from backend.utils.basic import get_bcs_component_version
@@ -422,29 +419,3 @@ def get_helm_dashboard_path(access_token: str, project_id: str, cluster_id: str)
 
     bin_path_map = getattr(settings, "DASHBOARD_CTL_VERSION_MAP", {})
     return bin_path_map.get(version, settings.DASHBOARD_CTL_BIN)
-
-
-def get_or_create_private_repo(user, project):
-    # 通过harbor api创建一次项目账号，然后存储在auth中
-    project_id = project.project_id
-    project_code = project.project_code
-    private_repos = Repository.objects.filter(name=project_code, project_id=project_id)
-    repo = private_repos.first()
-    if repo:
-        return repo
-    account = get_jfrog_account(user.token.access_token, project_code, project_id)
-    repo_auth = {
-        "type": "basic",
-        "role": "admin",
-        "credentials": {"username": account.get("user"), "password": account.get("password")},
-    }
-    url = f"{settings.HELM_MERELY_REPO_URL}/chartrepo/{project_code}/"
-    private_repo = add_plain_repo(target_project_id=project_id, name=project_code, url=url, repo_auth=repo_auth)
-    return private_repo
-
-
-# 替换get_or_create_private_repo功能
-try:
-    from .utils_ext import get_or_create_private_repo  # noqa
-except ImportError as e:
-    logger.debug("Load extension failed: %s", e)
