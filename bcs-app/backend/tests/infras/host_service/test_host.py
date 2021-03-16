@@ -1,9 +1,8 @@
 # -*- coding: utf-8 -*-
 from unittest.mock import patch
 
-from backend.infras.host_service.perms import can_use_hosts
 from backend.infras.host_service import host
-
+from backend.infras.host_service.perms import can_use_hosts
 
 fake_cc_host_ok_results = {
     "result": True,
@@ -47,7 +46,7 @@ class TestGetAgentStatus:
             {"ip": "127.0.0.3", "bk_cloud_id": 0, "bk_agent_alive": 1},
         ],
     )
-    def test_get_agent_status(self):
+    def test_get_agent_status(self, mocker):
         host_list = [
             host.HostData(inner_ip="127.0.0.1", bk_cloud_id_list=[host.BKCloudInfo(id=0)]),
             host.HostData(inner_ip="127.0.0.2,127.0.0.3", bk_cloud_id_list=[host.BKCloudInfo(id=0)]),

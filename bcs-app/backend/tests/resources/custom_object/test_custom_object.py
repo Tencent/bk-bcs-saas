@@ -65,9 +65,9 @@ class TestCRDAndCustomObject:
 
     @pytest.fixture
     def update_or_create_crd(self, crd_client):
-        crd_client.update_or_create(body=sample_crd)
+        crd_client.update_or_create(body=sample_crd, namespace='default')
         yield
-        crd_client.delete_ignore_nonexistent(name=getitems(sample_crd, "metadata.name"), namespace="default")
+        crd_client.delete_wait_finished(name=getitems(sample_crd, "metadata.name"), namespace="default")
 
     @pytest.fixture
     def cobj_client(self, project_id, cluster_id):
@@ -81,9 +81,7 @@ class TestCRDAndCustomObject:
             body=sample_custom_object, namespace="default", name=getitems(sample_custom_object, "metadata.name")
         )
         yield
-        cobj_client.delete_ignore_nonexistent(
-            name=getitems(sample_custom_object, "metadata.name"), namespace="default"
-        )
+        cobj_client.delete_wait_finished(name=getitems(sample_custom_object, "metadata.name"), namespace="default")
 
     def test_crd_list(self, crd_client, update_or_create_crd):
         crd_lists = crd_client.list()
