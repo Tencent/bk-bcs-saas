@@ -5,6 +5,16 @@
 #### 优化
 - [#793](https://github.com/Tencent/bk-bcs-saas/pull/793) HPA: k8s hpa client 替换为 dynamic client
 
+
+## release-1.3.23
+
+#### 修复
+- [#834](https://github.com/Tencent/bk-bcs-saas/pull/834)修复前端paste事件没有过滤\r问题
+
+#### 更新
+- 更新查询CMDB业务下主机信息接口
+
+
 ## release-1.3.22
 
 #### 修复
