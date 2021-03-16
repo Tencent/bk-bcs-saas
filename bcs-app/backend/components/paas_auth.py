@@ -11,8 +11,12 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
+import logging
+
 from .iam import permissions
 from .ssm import get_client_access_token
+
+logger = logging.getLogger(__name__)
 
 
 def get_access_token():
@@ -38,3 +42,9 @@ def get_role_list(access_token, project_id, need_user=False):
             }
         )
     return role_list
+
+
+try:
+    from .paas_auth_ext import *  # noqa
+except ImportError as e:
+    logger.debug("Load extension failed: %s", e)

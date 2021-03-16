@@ -60,3 +60,9 @@ def update_bcs_service_for_project(request, project_id, data):
             suffix_msg=_("下启用了容器服务，请关注"),
         )
     )
+
+
+try:
+    from .utils_ext import *  # noqa
+except ImportError as e:
+    logger.debug("Load extension failed: %s", e)

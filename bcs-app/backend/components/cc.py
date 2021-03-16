@@ -11,6 +11,7 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
+import logging
 import re
 
 from django.conf import settings
@@ -29,15 +30,10 @@ PREFIX_PATH = "/api/c/compapi"
 FUNCTION_PATH_MAP = {
     "get_application": "/v2/cc/search_business/",
     "search_host": "/v2/cc/search_host/",
-    "get_set": "/v2/cc/search_set/",
-    "create_set": "/v2/cc/create_set/",
-    "delete_set": "/v2/cc/delete_set/",
-    "create_module": "/v2/cc/create_module/",
-    "get_module": "/v2/cc/search_module/",
-    "add_host_lock": "/v2/cc/add_host_lock",
-    "delete_host_lock": "/v2/cc/delete_host_lock/",
-    "search_host_lock": "/v2/cc/search_host_lock/",
+    "list_biz_hosts": "/v2/cc/list_biz_hosts/",
 }
+
+logger = logging.getLogger(__name__)
 
 
 def get_application(username, bk_supplier_account=None):
@@ -50,21 +46,16 @@ def get_application(username, bk_supplier_account=None):
     return ret_data
 
 
-def get_app_by_user_role(username, bk_supplier_account=None):
+def get_app_by_user_role(username):
     """获取运维和产品角色中包含username的业务"""
     username_regex_info = "^{username},|,{username},|,{username}$|^{username}$".format(username=username)
     regex_map = {"$regex": username_regex_info}
-    maintainers_resp = get_all_application(
-        username, bk_supplier_account=bk_supplier_account, condition={"bk_biz_maintainer": regex_map}
-    )
-    productor_resp = get_all_application(
-        username, bk_supplier_account=bk_supplier_account, condition={"bk_biz_productor": regex_map}
-    )
+    maintainers_resp = get_all_application(username, condition={"bk_biz_maintainer": regex_map})
     # 组装数据
-    if (maintainers_resp.get("code") != ErrorCode.NoError) or (productor_resp.get("code") != ErrorCode.NoError):
+    if maintainers_resp.get("code") != ErrorCode.NoError:
         return []
     data = maintainers_resp.get("data") or []
-    data.extend(productor_resp.get("data") or [])
+
     return [{"id": item["bk_biz_id"], "name": item["bk_biz_name"]} for item in data]
 
 
@@ -72,7 +63,7 @@ def get_application_name(username, bk_biz_id, bk_supplier_account=None):
     """通过项目ID获取到项目名称
     TODO: 后面看实际耗时，再考虑是否缓存
     """
-    resp = get_application_with_page(
+    resp = get_application_with_pagination(
         username, bk_supplier_account=bk_supplier_account, fields=["bk_biz_name"], condition={"bk_biz_id": bk_biz_id}
     )
     if resp.get("code") != ErrorCode.NoError:
@@ -83,16 +74,13 @@ def get_application_name(username, bk_biz_id, bk_supplier_account=None):
     return biz_info[0].get("bk_biz_name") or ""
 
 
-def get_all_application(username, bk_supplier_account=None, condition={}):
+def get_all_application(username, bk_supplier_account=None, condition={}, start=0, limit=200):
     """获取用户有权限的所有业务"""
     resp_data = {"data": [], "message": "", "code": ErrorCode.NoError}
-    # 设置初始值
-    start, limit = 0, 200
     while True:
-        resp = get_application_with_page(
+        resp = get_application_with_pagination(
             username, bk_supplier_account=bk_supplier_account, condition=condition, start=start, limit=limit
         )
-        start = start + limit
         if resp.get("code") != ErrorCode.NoError:
             resp_data["code"] = resp.get("code")
             resp_data["message"] = resp.get("message")
@@ -100,14 +88,16 @@ def get_all_application(username, bk_supplier_account=None, condition={}):
         data = resp.get("data") or {}
         biz_info = data.get("info") or []
         resp_data["data"].extend(biz_info)
-        if len(resp_data["data"]) >= data.get("count", 0) or not biz_info:
+
+        start = start + limit
+        if start >= data.get("count", 0) or not biz_info:
             break
 
     return resp_data
 
 
-def get_app_hosts(username, bk_biz_id, bk_supplier_account=None):
-    resp = search_host(username, bk_biz_id, bk_supplier_account=bk_supplier_account)
+def get_app_hosts(username, bk_biz_id, bk_supplier_account=None, bk_module_ids=None):
+    resp = list_biz_hosts(username, bk_biz_id, bk_supplier_account=bk_supplier_account, bk_module_ids=bk_module_ids)
     if not resp.get("result"):
         return resp
     data = resp.get("data") or []
@@ -124,23 +114,9 @@ def get_app_hosts(username, bk_biz_id, bk_supplier_account=None):
     return {"result": True, "data": ret_data}
 
 
-def get_application_staff(username, bk_biz_id, fields=None):
-    """获取业务的成员列表"""
-    if not fields:
-        fields = ["bk_biz_developer", "bk_biz_maintainer", "bk_biz_tester", "bk_biz_productor"]
-    resp = get_application_with_page(username, fields=fields, condition={"bk_biz_id": bk_biz_id})
-    if resp.get("code") != ErrorCode.NoError:
-        raise error_codes.CheckFailed(_("该项目关联的业务不正确，请确认后重试"))
-    data = resp.get("data") or {}
-    info = data.get("info") or []
-    if not info:
-        raise error_codes.CheckFailed(_("查询项目信息为空"))
-    return info[0]
-
-
 def get_host_by_operator(bk_biz_id, username, bk_supplier_account=None):
     """获取业务下主备负责人为username的机器"""
-    resp = search_host(username, bk_biz_id, bk_supplier_account=bk_supplier_account)
+    resp = list_biz_hosts(username, bk_biz_id, bk_supplier_account=bk_supplier_account)
     if resp.get("code") != ErrorCode.NoError:
         return resp
     data = resp.get("data") or []
@@ -161,7 +137,7 @@ def get_host_by_operator(bk_biz_id, username, bk_supplier_account=None):
 
 def get_app_maintainers(username, bk_biz_id, bk_supplier_account=None):
     """获取业务下的所有运维"""
-    resp = get_application_with_page(
+    resp = get_application_with_pagination(
         username,
         bk_supplier_account=bk_supplier_account,
         fields=["bk_biz_maintainer"],
@@ -176,47 +152,29 @@ def get_app_maintainers(username, bk_biz_id, bk_supplier_account=None):
     return re.findall(r"[^,;]+", maintainers)
 
 
-def get_cc_hosts(bk_biz_id, username):
+def get_cc_hosts(bk_biz_id, username, bk_module_ids=None):
     """查询业务下有权限的主机"""
     all_maintainers = get_app_maintainers(username, bk_biz_id)
     if username in all_maintainers:
-        return get_app_hosts(username, bk_biz_id)
+        return get_app_hosts(username, bk_biz_id, bk_module_ids=bk_module_ids)
     return get_host_by_operator(bk_biz_id, username)
-
-
-def check_ips(bk_biz_id, username, req_ip_list):
-    """检查用户是都有权限使用请求的IP
-    """
-    msg_suffix = "请联系管理员在【配置中心】添加为业务的运维人员角色"
-    all_ip_info = get_cc_hosts(bk_biz_id, username)
-    if not all_ip_info.get("result"):
-        raise ValidationError(_("用户{username}没有权限使用主机,{suffix}").format(username=username, suffix=msg_suffix))
-    perm_ip_list = []
-    for info in all_ip_info.get("data") or []:
-        inner_ip = info.get("bk_host_innerip", "")
-        inner_ip_list = re.findall(r"[^;,]+", inner_ip)
-        perm_ip_list.extend(inner_ip_list)
-
-    diff_ip_list = set(req_ip_list) - set(perm_ip_list)
-    if diff_ip_list:
-        raise ValidationError(
-            _("用户{username}没有权限操作主机:{ips},{suffix}").format(
-                username=username, ips=",".join(diff_ip_list), suffix=msg_suffix
-            )
-        )
 
 
 def get_application_host(username, bk_biz_id, inner_ip, bk_supplier_account=None):
     """获取服务器信息
     注意: 其中信息包含了先前get_host_base_info获取到的信息
     """
-    resp = search_host(
+    resp = list_biz_hosts(
         username,
         bk_biz_id,
+        host_property_filter={
+            "condition": "OR",
+            "rules": [
+                {"field": "bk_bak_operator", "operator": "equal", "value": username},
+                {"filed": "operator", "operator": "equal", "value": "username"},
+            ],
+        },
         bk_supplier_account=bk_supplier_account,
-        condition=[
-            {"bk_obj_id": "host", "condition": [{"field": "bk_host_innerip", "operator": "$eq", "value": inner_ip}]}
-        ],
     )
     if resp.get("code") != ErrorCode.NoError:
         return {}
@@ -245,106 +203,12 @@ def get_host_base_info(username, bk_biz_id, inner_ip):
     return ret_data
 
 
-def host_lock(username, ip_list, bk_cloud_id=0):
-    """主机加锁"""
-    url = "{host}{prefix_path}{path}".format(
-        host=CC_HOST, prefix_path=PREFIX_PATH, path=FUNCTION_PATH_MAP["add_host_lock"]
-    )
-    data = {"ip_list": ip_list}
-    if bk_cloud_id:
-        data["bk_cloud_id"] = bk_cloud_id
-    return cmdb_base_request(url, username, data)
-
-
-def remove_host_lock(username, ip_list, bk_cloud_id=0):
-    """主机解锁"""
-    url = "{host}{prefix_path}{path}".format(
-        host=CC_HOST, prefix_path=PREFIX_PATH, path=FUNCTION_PATH_MAP["delete_host_lock"]
-    )
-    data = {"ip_list": ip_list}
-    if bk_cloud_id:
-        data["bk_cloud_id"] = bk_cloud_id
-    return cmdb_base_request(url, username, data)
-
-
-def get_host_lock_status(username, ip_list, bk_cloud_id=0):
-    """查询主机锁状态"""
-    url = "{host}{prefix_path}{path}".format(
-        host=CC_HOST, prefix_path=PREFIX_PATH, path=FUNCTION_PATH_MAP["search_host_lock"]
-    )
-    data = {"ip_list": ip_list}
-    if bk_cloud_id:
-        data["bk_cloud_id"] = bk_cloud_id
-    return cmdb_base_request(url, username, data)
-
-
-def cc_set_instance(username, bk_biz_id, bk_set_name, bk_supplier_account=None):
-    """实例化set"""
-    url = "{host}{prefix_path}{path}".format(
-        host=CC_HOST, prefix_path=PREFIX_PATH, path=FUNCTION_PATH_MAP["create_set"]
-    )
-    # Set是在业务的层级下，所以bk_parent_id为业务ID
-    data = {"bk_biz_id": bk_biz_id, "data": {"bk_parent_id": bk_biz_id, "bk_set_name": bk_set_name}}
-    return cmdb_base_request(url, username, data, bk_supplier_account=bk_supplier_account)
-
-
-def get_set_id(username, bk_biz_id, bk_set_name, bk_supplier_account=None):
-    """查询set"""
-    url = "{host}{prefix_path}{path}".format(host=CC_HOST, prefix_path=PREFIX_PATH, path=FUNCTION_PATH_MAP["get_set"])
-    data = {"bk_biz_id": bk_biz_id, "condition": {"bk_set_name": bk_set_name}, "fields": ["bk_set_id"]}
-    resp = cmdb_base_request(url, username, data, bk_supplier_account=bk_supplier_account)
-    if resp.get("code") != ErrorCode.NoError:
-        return None
-    info = (resp.get("data") or {}).get("info") or []
-    if not info:
-        return None
-    return info[0]["bk_set_id"]
-
-
-def delete_set(username, bk_biz_id, bk_set_id, bk_supplier_account=None):
-    """删除set"""
-    url = "{host}{prefix_path}{path}".format(
-        host=CC_HOST, prefix_path=PREFIX_PATH, path=FUNCTION_PATH_MAP["delete_set"]
-    )
-    # Set是在业务的层级下，所以bk_parent_id为业务ID
-    data = {"bk_biz_id": bk_biz_id, "bk_set_id": bk_set_id}
-    return cmdb_base_request(url, username, data, bk_supplier_account=bk_supplier_account)
-
-
-def cc_module_instance(username, bk_biz_id, bk_set_id, bk_module_name, bk_supplier_account=None):
-    """实例化模块"""
-    url = "{host}{prefix_path}{path}".format(
-        host=CC_HOST, prefix_path=PREFIX_PATH, path=FUNCTION_PATH_MAP["create_module"]
-    )
-    data = {
-        "bk_biz_id": bk_biz_id,
-        "bk_set_id": bk_set_id,
-        "data": {"bk_parent_id": bk_set_id, "bk_module_name": bk_module_name},
-    }
-    return cmdb_base_request(url, username, data, bk_supplier_account=bk_supplier_account)
-
-
-def search_set_module(username, bk_biz_id, bk_set_id, bk_module_name=None, bk_supplier_account=None):
-    """查询set下module"""
-    url = "{host}{prefix_path}{path}".format(
-        host=CC_HOST, prefix_path=PREFIX_PATH, path=FUNCTION_PATH_MAP["get_module"]
-    )
-    data = {
-        "bk_biz_id": bk_biz_id,
-        "bk_set_id": bk_set_id,
-    }
-    if bk_module_name:
-        data["condition"] = {"bk_module_name": bk_module_name}
-    return cmdb_base_request(url, username, data, bk_supplier_account=bk_supplier_account)
-
-
-def get_application_with_page(username, bk_supplier_account=None, condition={}, fields=[], start=0, limit=200):
+def get_application_with_pagination(username, bk_supplier_account=None, condition={}, fields=[], start=0, limit=200):
     """分页查询业务"""
-    url = "{host}{prefix_path}{path}".format(
-        host=CC_HOST, prefix_path=PREFIX_PATH, path=FUNCTION_PATH_MAP["get_application"]
-    )
     data = {"condition": condition, "fields": fields, "page": {"start": start, "limit": limit}}
-    return cmdb_base_request(url, username, data, bk_supplier_account=bk_supplier_account)
+    return cmdb_base_request(
+        FUNCTION_PATH_MAP["get_application"], username, data, bk_supplier_account=bk_supplier_account
+    )
 
 
 def search_host(username, bk_biz_id, bk_supplier_account=None, ip=None, condition=None):
@@ -379,21 +243,96 @@ def search_host(username, bk_biz_id, bk_supplier_account=None, ip=None, conditio
 
 def search_host_with_page(username, bk_biz_id, bk_supplier_account=None, ip=None, condition=None, start=0, limit=200):
     """获取业务下的主机"""
-    url = "{host}{prefix_path}{path}".format(
-        host=CC_HOST, prefix_path=PREFIX_PATH, path=FUNCTION_PATH_MAP["search_host"]
-    )
     data = {"bk_biz_id": bk_biz_id}
     if ip:
         data["ip"] = ip
     if condition:
         data["condition"] = condition
 
-    return cmdb_base_request(url, username, data, bk_supplier_account=bk_supplier_account)
+    return cmdb_base_request(FUNCTION_PATH_MAP["search_host"], username, data, bk_supplier_account=bk_supplier_account)
 
 
-def cmdb_base_request(url, username, data, bk_supplier_account=None):
+def list_biz_hosts(
+    username, bk_biz_id, host_property_filter=None, bk_module_ids=None, start=0, limit=200, bk_supplier_account=None
+):
+    """获取业务下所有主机信息"""
+    resp_data = {"data": [], "message": "", "code": ErrorCode.NoError, "result": True}
+    while True:
+        resp = list_hosts_by_pagination(
+            username,
+            bk_biz_id,
+            host_property_filter=host_property_filter,
+            bk_module_ids=bk_module_ids,
+            start=start,
+            limit=limit,
+            bk_supplier_account=bk_supplier_account,
+        )
+        if resp.get("code") != ErrorCode.NoError:
+            resp_data.update({"code": resp.get("code"), "message": resp.get("message"), "result": resp.get("result")})
+            break
+        data = resp.get("data") or {}
+        biz_info = data.get("info") or []
+        resp_data["data"].extend(biz_info)
+        # 对比机器数量，满足条件时终止请求
+        start = start + limit
+        if start >= data.get("count", 0) or not biz_info:
+            break
+
+    return resp_data
+
+
+def list_hosts_by_pagination(
+    username, bk_biz_id, host_property_filter=None, bk_module_ids=None, start=0, limit=200, bk_supplier_account=None
+):
+    """根据分页参数，获取业务下主机信息"""
+    data = {"bk_biz_id": bk_biz_id, "page": {"start": start, "limit": limit}}
+    # host_property_filter 主机组合属性查询条件
+    data["host_property_filter"] = host_property_filter
+    # bk_module_ids 模块ID列表
+    data["bk_module_ids"] = bk_module_ids
+    # 添加fields字段
+    data["fields"] = [
+        "bk_bak_operator",
+        "classify_level_name",
+        "svr_device_class",
+        "bk_svr_type_id",
+        "svr_type_name",
+        "hard_memo",
+        "bk_host_id",
+        "bk_host_name",
+        "idc_name",
+        "bk_idc_area",
+        "bk_idc_area_id",
+        "idc_id",
+        "idc_unit_name",
+        "idc_unit_id",
+        "bk_host_innerip",
+        "bk_comment",
+        "module_name",
+        "operator",
+        "bk_os_name",
+        "bk_os_version",
+        "bk_host_outerip",
+        "rack",
+        "bk_cloud_id",
+    ]
+
+    return cmdb_base_request(
+        FUNCTION_PATH_MAP["list_biz_hosts"], username, data, bk_supplier_account=bk_supplier_account
+    )
+
+
+def cmdb_base_request(suffix_path, username, data, bk_supplier_account=None):
     """请求"""
     data.update({"bk_app_code": BK_APP_CODE, "bk_app_secret": BK_APP_SECRET, "bk_username": username})
     if bk_supplier_account:
         data["bk_supplier_account"] = bk_supplier_account
-    return http_post(url, json=data)
+
+    return http_post(f"{CC_HOST}{PREFIX_PATH}{suffix_path}", json=data)
+
+
+# 加载cc_ext的函数
+try:
+    from .cc_ext import *  # noqa
+except ImportError as e:
+    logger.debug("Load extension failed: %s", e)
