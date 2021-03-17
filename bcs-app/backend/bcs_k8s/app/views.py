@@ -36,8 +36,7 @@ from rest_framework.serializers import Serializer
 
 from backend.accounts import bcs_perm
 from backend.bcs_k8s.app.serializers import FilterNamespacesSLZ
-from backend.bcs_k8s.app.utils import get_helm_dashboard_path
-from backend.bcs_k8s.app.utils_bk import get_or_create_private_repo
+from backend.bcs_k8s.app.utils import get_helm_dashboard_path, get_or_create_private_repo
 from backend.bcs_k8s.authtoken.authentication import TokenAuthentication
 from backend.bcs_k8s.bke_client.client import BCSClusterCredentialsNotFound, BCSClusterNotFound
 from backend.bcs_k8s.dashboard.exceptions import DashboardError, DashboardExecutionError

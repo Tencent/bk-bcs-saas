@@ -14,11 +14,10 @@
 import datetime
 import json
 import logging
-from urllib import parse
 
+from django.conf import settings
 from django.db import models
 
-from backend.apps.metric import constants
 from backend.utils.models import BaseModel
 
 logger = logging.getLogger(__name__)
@@ -87,7 +86,7 @@ class Metric(BaseModel):
 
     def to_json(self):
         if self.data_id:
-            uri_data_clean = constants.URI_DATA_CLEAN.format(data_id=self.data_id)
+            uri_data_clean = settings.URI_DATA_CLEAN.format(data_id=self.data_id)
         else:
             uri_data_clean = ''
 

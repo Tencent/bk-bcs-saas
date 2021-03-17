@@ -528,3 +528,8 @@ class PaaSCCClient(BkApiClient):
         """获取集群信息"""
         url = self._config.get_cluster_url.format(project_id=project_id, cluster_id=cluster_id)
         return self._client.request_json('GET', url)
+
+try:
+    from .paas_cc_ext import get_auth_project  # noqa
+except ImportError as e:
+    logger.debug("Load extension failed: %s", e)

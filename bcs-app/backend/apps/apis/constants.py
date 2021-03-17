@@ -11,9 +11,12 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
+import logging
 import os
 
 from backend.components.apigw import get_api_public_key
+
+logger = logging.getLogger(__name__)
 
 # 项目类型映射
 PROJECT_KIND_MAP = {"1": "k8s", "2": "mesos"}
@@ -30,3 +33,8 @@ CATEGORY_MODULE_MAP = {
 }
 
 PAAS_CD_APIGW_PUBLIC_KEY = get_api_public_key("paas-cd", "bk_bcs", os.environ.get("BKAPP_BK_BCS_TOKEN"))
+
+try:
+    from .constants_ext import *  # noqa
+except ImportError as e:
+    logger.debug('Load extension failed: %s', e)

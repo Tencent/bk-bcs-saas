@@ -11,12 +11,15 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
+import logging
 
 from django.conf import settings
 
 from backend.components.utils import http_post
 from backend.utils.errcodes import ErrorCode
 from backend.utils.error_codes import error_codes
+
+logger = logging.getLogger(__name__)
 
 GSE_HOST = settings.BK_PAAS_INNER_HOST
 BK_APP_CODE = settings.APP_ID
@@ -37,3 +40,9 @@ def get_agent_status(username, hosts, bk_supplier_id=0):
     if resp.get("code") != ErrorCode.NoError:
         raise error_codes.APIError.f(resp.get("message"))
     return resp.get("data", {}).values()
+
+
+try:
+    from .gse_ext import get_agent_status  # noqa
+except ImportError as e:
+    logger.debug("Load extension failed: %s", e)

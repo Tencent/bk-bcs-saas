@@ -21,7 +21,7 @@ from rest_framework.pagination import PageNumberPagination
 from rest_framework.renderers import BrowsableAPIRenderer
 from rest_framework.response import Response
 
-from backend.apps.whitelist_bk import enabled_force_sync_chart_repo
+from backend.apps.whitelist import enabled_force_sync_chart_repo
 from backend.bcs_k8s.app.models import App
 from backend.bcs_k8s.authtoken.authentication import TokenAuthentication
 from backend.components.helm_chart import delete_chart_version

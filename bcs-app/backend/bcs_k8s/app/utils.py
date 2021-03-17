@@ -11,30 +11,35 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
+import logging
 import re
 import tempfile
-import dpath
 from typing import Dict
 
+import dpath
 import yaml
 import yaml.reader
-from ruamel.yaml import YAML
-from ruamel.yaml.compat import StringIO
-from ruamel.yaml.compat import ordereddict
-from django.utils.translation import ugettext_lazy as _
 from django.conf import settings
+from django.utils.translation import ugettext_lazy as _
+from ruamel.yaml import YAML
+from ruamel.yaml.compat import StringIO, ordereddict
 
-from backend.bcs_k8s.helm.utils.util import fix_rancher_value_by_type, EmptyVaue
-from backend.utils.client import make_dashboard_ctl_client
+from backend.apps.depot.api import get_jfrog_account
 from backend.bcs_k8s.diff import parser
-from backend.components import paas_cc, bcs
+from backend.bcs_k8s.helm.models.repo import Repository
+from backend.bcs_k8s.helm.providers.repo_provider import add_plain_repo
+from backend.bcs_k8s.helm.utils.util import EmptyVaue, fix_rancher_value_by_type
+from backend.components import bcs, paas_cc
 from backend.utils.basic import get_bcs_component_version
+from backend.utils.client import make_dashboard_ctl_client
 
 from .constants import DASHBOARD_CTL_VERSION, DEFAULT_DASHBOARD_CTL_VERSION
 
 yaml.reader.Reader.NON_PRINTABLE = re.compile(
     '[^\x09\x0A\x0D\x20-\x7E\x85\xA0-\uD7FF\uE000-\uFFFD\U00010000-\U0010FFFF]'
 )
+
+logger = logging.getLogger(__name__)
 
 
 def represent_none(self, _):
@@ -349,7 +354,11 @@ def collect_resource_status(base_url, kubeconfig, app, project_code, bin_path=se
         else:
             link = None
 
-        key = "{kind}/{namespace}/{name}".format(name=name, namespace=namespace, kind=kind,)
+        key = "{kind}/{namespace}/{name}".format(
+            name=name,
+            namespace=namespace,
+            kind=kind,
+        )
         result[key] = {
             "namespace": namespace,
             "name": name,
@@ -383,10 +392,8 @@ def resource_link(base_url, kind, project_code, name, namespace, release_name):
         "/console/bcs/{project_code}/app/{fix_kind}/{resource_name}/{namespace}/{kind}"
         "?name={resource_name}&namespace={namespace}&category={kind}"
     ).format(
-        base_url=base_url,
         kind=kind.lower(),
         fix_kind=fix_kind,
-        instance_name=release_name,
         resource_name=name,
         project_code=project_code,
         namespace=namespace,
@@ -415,3 +422,29 @@ def get_helm_dashboard_path(access_token: str, project_id: str, cluster_id: str)
 
     bin_path_map = getattr(settings, "DASHBOARD_CTL_VERSION_MAP", {})
     return bin_path_map.get(version, settings.DASHBOARD_CTL_BIN)
+
+
+def get_or_create_private_repo(user, project):
+    # 通过harbor api创建一次项目账号，然后存储在auth中
+    project_id = project.project_id
+    project_code = project.project_code
+    private_repos = Repository.objects.filter(name=project_code, project_id=project_id)
+    repo = private_repos.first()
+    if repo:
+        return repo
+    account = get_jfrog_account(user.token.access_token, project_code, project_id)
+    repo_auth = {
+        "type": "basic",
+        "role": "admin",
+        "credentials": {"username": account.get("user"), "password": account.get("password")},
+    }
+    url = f"{settings.HELM_MERELY_REPO_URL}/chartrepo/{project_code}/"
+    private_repo = add_plain_repo(target_project_id=project_id, name=project_code, url=url, repo_auth=repo_auth)
+    return private_repo
+
+
+# 替换get_or_create_private_repo功能
+try:
+    from .utils_ext import get_or_create_private_repo  # noqa
+except ImportError as e:
+    logger.debug("Load extension failed: %s", e)

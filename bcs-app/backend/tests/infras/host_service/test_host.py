@@ -55,3 +55,9 @@ class TestGetAgentStatus:
         # 因为有一个主机两个网卡: 127.0.0.2, 127.0.0.3
         assert len(agent_data) == 3
         assert {"ip": "127.0.0.3", "bk_cloud_id": 0, "bk_agent_alive": 1} in agent_data
+
+
+try:
+    from .test_host_ext import *  # noqa
+except ImportError as e:
+    pass

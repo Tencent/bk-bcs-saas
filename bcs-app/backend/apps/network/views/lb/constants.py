@@ -11,10 +11,18 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
+from django.conf import settings
 
 from backend.utils.basic import ChoicesEnum
 
-from .constants_bk import MESOS_LB_ENV_CONFIG
+MESOS_LB_ENV_CONFIG = []
+LB_HAPROXY_STATS_FRONTEND_AUTH_PASSWORD = getattr(settings, "LB_HAPROXY_STATS_FRONTEND_AUTH_PASSWORD", None)
+if LB_HAPROXY_STATS_FRONTEND_AUTH_PASSWORD:
+    MESOS_LB_ENV_CONFIG = [
+        {"name": "LB_HAPROXY_STATS_FRONTEND_AUTH_USER", "value": "bcsadmin"},
+        {"name": "LB_HAPROXY_STATS_FRONTEND_AUTH_PASSWORD", "value": LB_HAPROXY_STATS_FRONTEND_AUTH_PASSWORD},
+    ]
+
 
 # mesos lb service manifest
 MESOS_LB_SERVICE = {
