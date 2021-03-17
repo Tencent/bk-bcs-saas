@@ -19,6 +19,7 @@ from django.conf import settings
 from django.utils.translation import ugettext_lazy as _
 
 from backend.apps.cluster.models import CommonStatus
+from backend.components.base import BaseHttpClient, BkApiClient, ComponentAuth
 from backend.components.utils import http_delete, http_get, http_patch, http_post, http_put
 from backend.utils.basic import getitems
 from backend.utils.errcodes import ErrorCode
@@ -499,6 +500,34 @@ def get_all_cluster_host_ips(access_token):
     data = get_all_cluster_hosts(access_token, exclude_status_list=[CommonStatus.Removed])
     return [info["inner_ip"] for info in data]
 
+
+# new client module start
+
+
+class PaaSCCConfig:
+    """PaaSCC 系统配置对象，为 Client 提供地址等信息"""
+
+    def __init__(self, host: str):
+        self.host = host
+
+        # PaaSCC 系统接口地址
+        self.get_cluster_url = f"{host}/projects/{{project_id}}/clusters/{{cluster_id}}"
+
+
+class PaaSCCClient(BkApiClient):
+    """访问 PaaSCC 服务的 Client 对象
+
+    :param auth: 包含校验信息的对象
+    """
+
+    def __init__(self, auth: ComponentAuth):
+        self._config = PaaSCCConfig(host=BCS_CC_API_PRE_URL)
+        self._client = BaseHttpClient(auth.to_header_api_auth())
+
+    def get_cluster(self, project_id: str, cluster_id: str) -> Dict:
+        """获取集群信息"""
+        url = self._config.get_cluster_url.format(project_id=project_id, cluster_id=cluster_id)
+        return self._client.request_json('GET', url)
 
 try:
     from .paas_cc_ext import get_auth_project  # noqa

@@ -11,30 +11,18 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-import contextlib
-import random
-from typing import Dict
-
-RANDOM_CHARACTER_SET = 'abcdefghijklmnopqrstuvwxyz0123456789'
+"""用于在系统内部使用的 Project 对象"""
+from ..models import BaseContextedModel
 
 
-def generate_random_string(length=30, chars=RANDOM_CHARACTER_SET):
-    """Generates a non-guessable OAuth token"""
-    rand = random.SystemRandom()
-    return ''.join(rand.choice(chars) for x in range(length))
+class CtxProject(BaseContextedModel):
+    """项目对象
 
+    :param id: 项目 ID
+    """
 
-def dict_is_subequal(data: Dict, full_data: Dict) -> bool:
-    """检查两个字典是否相等，忽略在 `full_data` 中有，但 `data` 里没有提供的 key"""
-    for key, value in data.items():
-        if key not in full_data:
-            return False
-        if value != full_data[key]:
-            return False
-    return True
+    def __init__(self, id: str):
+        self.id = id
 
-
-@contextlib.contextmanager
-def nullcontext():
-    """A context manager which does nothing"""
-    yield
+    def __str__(self):
+        return f'<Project: {self.id}>'

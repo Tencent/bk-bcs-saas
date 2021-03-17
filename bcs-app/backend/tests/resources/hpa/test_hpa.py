@@ -15,6 +15,7 @@ from unittest import mock
 
 import pytest
 import yaml
+from kubernetes.dynamic.exceptions import ResourceNotFoundError
 
 from backend.resources.hpa import hpa as hpa_client
 from backend.resources.utils.auths import ClusterAuth
@@ -30,7 +31,8 @@ class TestHPA:
     def use_faked_configuration(self):
         """Replace ConfigurationService with fake object"""
         with mock.patch(
-            'backend.resources.utils.kube_client.BcsKubeConfigurationService', new=FakeBcsKubeConfigurationService,
+            'backend.resources.utils.kube_client.BcsKubeConfigurationService',
+            new=FakeBcsKubeConfigurationService,
         ):
             yield
 
@@ -46,7 +48,10 @@ class TestHPA:
 
     @pytest.fixture
     def client(self, project_id, cluster_id):
-        client = hpa_client.HPA(ClusterAuth('token', project_id, cluster_id))
+        try:
+            client = hpa_client.HPA(ClusterAuth('token', project_id, cluster_id))
+        except ResourceNotFoundError:
+            pytest.skip('Can not initialize HPA client, skip')
         return client
 
     def test_list(self, client):
@@ -57,7 +62,7 @@ class TestHPA:
     def sample_hpa(self, client, cpu_workload):
         client.update_or_create(body=cpu_workload, is_format=False)
         yield
-        client.delete_ignore_nonexistent(
+        client.delete_wait_finished(
             namespace="default", name=getitems(cpu_workload, "metadata.name"), namespace_id="", username=""
         )
 
