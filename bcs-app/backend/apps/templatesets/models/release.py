@@ -59,7 +59,7 @@ class AppRelease(BaseModel):
 
     def update_status(self, status: str, message: str = 'success'):
         """
-        not touch db
+        更新release状态字段
         """
         self.status = status
         self.message = message

@@ -356,10 +356,10 @@ class ShowVersion(BaseModel):
         return Template.objects.get(id=self.template_id)
 
     @property
-    def latest_revision(self):
+    def latest_revision(self) -> str:
         try:
-            return self.revision_history[-1].get("revision")
-        except Exception:
+            return self.revision_history[-1].get("revision", "")
+        except IndexError:
             return ""
 
     class Meta:

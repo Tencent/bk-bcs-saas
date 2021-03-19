@@ -17,5 +17,7 @@ from backend.apps.templatesets.models import ResourceData
 
 
 class YamltoResourceList:
+    """YAML模板集资源转换生成List[ResourceData]"""
+
     def generate(self, *args, **kwargs) -> List[ResourceData]:
         return []

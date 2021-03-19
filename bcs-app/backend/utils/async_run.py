@@ -19,19 +19,24 @@ class AsyncRunException(BaseException):
     pass
 
 
+def get_or_create_loop():
+    try:
+        # 主线程
+        return asyncio.get_event_loop(), False
+    except RuntimeError:
+        # 非主线程
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        return loop, True
+
+
 def async_run(tasks):
     """
     run a group of tasks async(仅适用于IO密集型)
     Requires the tasks arg to be a list of functools.partial()
     """
 
-    # start a new async event loop
-    try:
-        loop = asyncio.get_event_loop()
-    except RuntimeError:
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
-
+    loop, created = get_or_create_loop()
     # https://github.com/python/asyncio/issues/258
     executor = concurrent.futures.ThreadPoolExecutor(8)
     loop.set_default_executor(executor)
@@ -39,7 +44,6 @@ def async_run(tasks):
     async_tasks = [asyncio.ensure_future(async_task(task, loop)) for task in tasks]
     # run tasks in parallel
     loop.run_until_complete(asyncio.wait(async_tasks))
-
     # deal with errors (exceptions, etc)
     err_msg_list = []
     for task in async_tasks:
@@ -48,6 +52,8 @@ def async_run(tasks):
             err_msg_list.append(str(error))
 
     executor.shutdown(wait=True)
+    if created:
+        loop.close()
 
     if err_msg_list:
         raise AsyncRunException(';'.join(err_msg_list))

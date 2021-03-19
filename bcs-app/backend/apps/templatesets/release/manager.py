@@ -23,11 +23,6 @@ class ReleaseManager:
     def __init__(self, dynamic_client):
         self.dynamic_client = dynamic_client
 
-    def _deploy(self, operator: str, app_release_id: int, resource_list: List[models.ResourceData]):
-        res_mgr = ResourceManager(self.dynamic_client, app_release_id)
-        tasks = [functools.partial(res_mgr.update_or_create, operator, resource) for resource in resource_list]
-        async_run(tasks)
-
     def update_or_create(self, operator: str, release_data: models.AppReleaseData) -> Tuple[models.AppRelease, bool]:
         app_release, created = models.AppRelease.objects.update_or_create(
             name=release_data.name,
@@ -45,6 +40,15 @@ class ReleaseManager:
 
         return app_release, created
 
+    def _deploy(self, operator: str, app_release_id: int, resource_list: List[models.ResourceData]):
+        res_mgr = ResourceManager(self.dynamic_client, app_release_id)
+        tasks = [functools.partial(res_mgr.update_or_create, operator, resource) for resource in resource_list]
+        async_run(tasks)
+
+    def delete(self, operator: str, app_release_id: int):
+        self._delete(operator, app_release_id)
+        models.AppRelease.objects.filter(id=app_release_id).delete()
+
     def _delete(self, operator: str, app_release_id: int):
         res_mgr = ResourceManager(self.dynamic_client, app_release_id)
         tasks = [
@@ -52,10 +56,6 @@ class ReleaseManager:
             for resource_inst in models.ResourceInstance.objects.filter(app_release_id=app_release_id)
         ]
         async_run(tasks)
-
-    def delete(self, operator: str, app_release_id: int):
-        self._delete(operator, app_release_id)
-        models.AppRelease.objects.filter(id=app_release_id).delete()
 
 
 class ResourceManager:

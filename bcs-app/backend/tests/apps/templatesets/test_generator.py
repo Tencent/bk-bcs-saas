@@ -11,11 +11,16 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
+from backend.apps.templatesets.release.generator.generator import ReleaseDataGenerator
 
 
 class TestReleaseDataGenerator:
-    def test_yaml_generator(self, template_qset):
-        assert template_qset.project_id == "123"
-
-    def test_form_generator(self, template_qset):
-        assert template_qset.project_id == "123"
+    def test_form_generator(self, cluster_id, form_show_version_obj):
+        data_generator = ReleaseDataGenerator(
+            name="nginx",
+            namespace="test",
+            cluster_id=cluster_id,
+            template_id=form_show_version_obj.template_id,
+        )
+        release_data = data_generator.generate()
+        assert release_data.resource_list == ["1"]
