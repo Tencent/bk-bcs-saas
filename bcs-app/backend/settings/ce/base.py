@@ -256,3 +256,6 @@ URI_DATA_CLEAN = f'{BK_PAAS_HOST}?app=data&url=' + _URI_DATA_CLEAN
 
 # SOPS API HOST
 SOPS_API_HOST = os.environ.get("SOPS_API_HOST")
+
+# admin 权限用户
+ADMIN_USERNAME = "admin"

@@ -11,10 +11,10 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-from dataclasses import dataclass, field, asdict, fields
+from dataclasses import asdict, dataclass, field, fields
 from typing import Dict, List
 
-from backend.components import cc, gse
+from backend.components import cc, gse, sops
 
 
 def get_cc_hosts(cc_app_id: str, username: str, **extra_data) -> List[Dict]:
@@ -81,4 +81,22 @@ def get_agent_status(username: str, host_list: List[HostData]) -> List[Dict]:
 try:
     from .host_ext import *  # noqa
 except ImportError:
+    pass
+
+
+def create_and_start_sops_task(
+    username,
+    bk_biz_id,
+):
+    """创建并启动标准运维任务"""
+    sops.CreateTaskParams()
+
+
+def get_task_logs():
+    """获取任务执行的输出日志"""
+    pass
+
+
+def get_claimed_ip_list():
+    """获取申领的机器列表"""
     pass
