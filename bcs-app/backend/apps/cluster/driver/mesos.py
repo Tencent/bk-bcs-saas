@@ -14,6 +14,7 @@
 import logging
 
 from backend.apps import constants
+from backend.apps.cluster.constants import MESOS_SKIP_NS_LIST
 from backend.components.bcs.mesos import MesosClient
 from backend.utils.errcodes import ErrorCode
 from backend.utils.error_codes import error_codes
@@ -50,7 +51,7 @@ class MesosDriver:
         return resp
 
     def get_host_container_count(self, host_ips):
-        field_list = ['data.containerStatuses.containerID', 'data.hostIP']
+        field_list = ['data.containerStatuses.containerID', 'data.hostIP', "namespace"]
         resp = self.get_unit_info(host_ips, ','.join(field_list))
         # compose the host container data
         return self.host_container_map(resp)
@@ -60,6 +61,8 @@ class MesosDriver:
 
         def iter_container(tg):
             for g in tg:
+                if g["namespace"] in MESOS_SKIP_NS_LIST:
+                    continue
                 for d in g['data']['containerStatuses']:
                     c = {
                         'name': d['name'],

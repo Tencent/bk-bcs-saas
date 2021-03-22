@@ -128,8 +128,12 @@ class OpType(ChoicesEnum):
 # skip namespace
 K8S_SKIP_NS_LIST = ['kube-system', 'thanos', 'web-console']
 
+# mesos类型跳过的命名空间列表
+MESOS_SKIP_NS_LIST = ["bcs-system"]
+
 # 调用接口异常的消息，记录到db中，可以直接转换
 BCS_OPS_ERROR_INFO = {"state": "FAILURE", "node_tasks": [{"state": "FAILURE", "name": _("- 调用初始化接口失败")}]}
+
 
 # 状态映射
 class ClusterStatusName(ChoicesEnum):
