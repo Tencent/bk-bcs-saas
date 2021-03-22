@@ -15,22 +15,27 @@
 from celery import shared_task
 
 from .application import application_polling_task, delete_instance_task, update_create_error_record
-from .cluster import (
-    chain_polling_bke_status,
-    chain_polling_task,
-    delete_cluster_node,
-    delete_cluster_node_polling,
-    delete_cluster_task,
-    exec_bcs_task,
-    force_delete_node,
-    polling_bke_status,
-    polling_initial_task,
-    polling_so_init,
-    polling_task,
-    so_init,
-)
 
 
 @shared_task
 def healthz(n):
     return -n
+
+
+try:
+    from .cluster import (  # noqa
+        chain_polling_bke_status,
+        chain_polling_task,
+        delete_cluster_node,
+        delete_cluster_node_polling,
+        delete_cluster_task,
+        exec_bcs_task,
+        force_delete_node,
+        polling_bke_status,
+        polling_initial_task,
+        polling_so_init,
+        polling_task,
+        so_init,
+    )
+except ImportError:
+    pass
