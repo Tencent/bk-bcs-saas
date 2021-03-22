@@ -11,68 +11,74 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
+import json
 from typing import List
 
-from backend.apps.configuration import models as config_models
+from backend.apps.instance.generator import GENERATOR_DICT
 from backend.apps.instance.utils import get_ns_variable
 from backend.apps.templatesets.models import ResourceData
+from backend.utils.basic import getitems
+
+from .res_context import ResContext
 
 
 class FormtoResourceList:
     """表单模板集资源转换生成List[ResourceData]"""
 
+    def __init__(self, res_ctx: ResContext):
+        self.res_ctx = res_ctx
+
     # TODO 重构apps/instance模块, 挪到当前templatesets模块下
-    def generate(self, *args, **kwargs) -> List[ResourceData]:
+    def generate(self) -> List[ResourceData]:
         """
         先复用apps/instance/utils.generate_namespace_config中的大部分逻辑，完成resource_list的生成
-        传入的params结构{
-            "instance_id": "",
-            "version": version,
-            "version_id": version_id,
-            "show_version_id": show_version_id,
-            "template_id": template_id,
-            "project_id": project_id,
-            "access_token": access_token,
-            "username": username,
-            "lb_info": lb_info,
-            "variable_dict": variable_dict,
-            "is_preview": True, # 可选
-        }
         """
-        instance_entity = kwargs.get("instance_entity", {})
-        namespace_id = kwargs.get("namespace_id", 0)
-        params = kwargs.get("params", {})
+        res_ctx = self.res_ctx
 
-        show_version_id = params.get('show_version_id')
-        show_version_name = config_models.ShowVersion.objects.get(id=show_version_id).name
-
+        namespace_id = res_ctx.extras.get('namespace_id', 0)
         # 查询命名空间相关的参数, 系统变量等保存在context中
         has_image_secret, cluster_version, context = get_ns_variable(
-            params.get('access_token'), params.get('project_id'), namespace_id
+            res_ctx.access_token, res_ctx.project_id, namespace_id
         )
-        params.update(
-            {
-                'version': show_version_name,
-                'has_image_secret': has_image_secret,
-                'cluster_version': cluster_version,
-                'context': context,
-            }
-        )
+        show_version = res_ctx.show_version
+        # 先按原apps/instance/generator.py中的方式组织params
+        params = {
+            'access_token': res_ctx.access_token,
+            'project_id': res_ctx.project_id,
+            'username': res_ctx.username,
+            'instance_id': "0",
+            'show_version_id': show_version.id,
+            'version': show_version.name,
+            'version_id': show_version.real_version_id,
+            'template_id': show_version.template_id,
+            'has_image_secret': has_image_secret,
+            'cluster_version': cluster_version,
+            'context': context,
+            'variable_dict': res_ctx.extras.get('variable_dict', {}),
+            'is_preview': res_ctx.extras.get('is_preview', True),
+        }
 
-        for entity in instance_entity:
-            pass
+        resource_list = []
+        # instance_entity已被上层校验并处理成{"Deployment": [1, 2]}
+        instance_entity = res_ctx.instance_entity
+        for kind in instance_entity:
+            for entity_id in instance_entity[kind]:
+                config_generator = GENERATOR_DICT.get(kind)(entity_id, namespace_id, is_validate=True, **params)
+                config = config_generator.get_config_profile()
+                try:
+                    manifest = json.loads(config)
+                except Exception:
+                    manifest = config
 
-        # for item in instance_entity:
-        #     item_id_list = instance_entity[item]
-        #     item_config = []
-        #     for item_id in item_id_list:
-        #         generator = GENERATOR_DICT.get(item)(item_id, namespace_id, is_validate, **params)
-        #         file_content = generator.get_config_profile()
-        #         file_name = generator.resource_show_name
-        #
-        #         try:
-        #             show_config = json.loads(file_content)
-        #         except Exception:
-        #             show_config = file_content
+                resource_list.append(
+                    ResourceData(
+                        kind=manifest.get('kind'),
+                        name=getitems(manifest, 'metadata.name'),
+                        namespace=getitems(manifest, 'metadata.namespace'),
+                        manifest=manifest,
+                        version=show_version.name,
+                        revision=show_version.latest_revision,
+                    )
+                )
 
-        return ["1"]
+        return resource_list

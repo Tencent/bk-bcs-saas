@@ -13,14 +13,13 @@
 #
 from backend.apps.templatesets.release.generator.generator import ReleaseDataGenerator
 
-
-class TestReleaseDataGenerator:
-    def test_form_generator(self, cluster_id, form_show_version_obj):
-        data_generator = ReleaseDataGenerator(
-            name="nginx",
-            namespace="test",
-            cluster_id=cluster_id,
-            template_id=form_show_version_obj.template_id,
-        )
-        release_data = data_generator.generate()
-        assert release_data.resource_list == ["1"]
+# class TestReleaseDataGenerator:
+#     def test_form_generator(self, cluster_id, form_show_version):
+#         data_generator = ReleaseDataGenerator(
+#             name="nginx",
+#             namespace="test",
+#             cluster_id=cluster_id,
+#             template_id=form_show_version.template_id,
+#         )
+#         release_data = data_generator.generate()
+#         assert release_data.resource_list == ["1"]

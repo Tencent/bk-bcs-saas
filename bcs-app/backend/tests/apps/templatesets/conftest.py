@@ -138,18 +138,18 @@ NGINX_SVC_JSON = {
 
 
 @pytest.fixture
-def form_show_version_obj(db, project_id):
-    template_obj = models.Template.objects.create(
+def form_show_version(db, project_id):
+    template = models.Template.objects.create(
         project_id=project_id, name="nginx", edit_mode=TemplateEditMode.PageForm.value
     )
-    deploy_obj = models.K8sDeployment.perform_create(
+    deploy = models.K8sDeployment.perform_create(
         name="nginx-deployment",
         config=NGINX_DEPLOYMENT_JSON,
     )
-    svc_obj = models.K8sService.perform_create(name="nginx-service", config=NGINX_SVC_JSON)
+    svc = models.K8sService.perform_create(name="nginx-service", config=NGINX_SVC_JSON)
 
-    ventity_obj = models.VersionedEntity.objects.create(
-        template_id=template_obj.id, entity={"K8sDeployment": str(deploy_obj.id), "K8sService": str(svc_obj.id)}
+    ventity = models.VersionedEntity.objects.create(
+        template_id=template.id, entity={"K8sDeployment": str(deploy.id), "K8sService": str(svc.id)}
     )
 
-    return models.ShowVersion.objects.create(name="v1", template_id=template_obj.id, real_version_id=ventity_obj.id)
+    return models.ShowVersion.objects.create(name="v1", template_id=template.id, real_version_id=ventity.id)

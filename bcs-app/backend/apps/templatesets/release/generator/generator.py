@@ -12,10 +12,10 @@
 # specific language governing permissions and limitations under the License.
 #
 from backend.apps.configuration.constants import TemplateEditMode
-from backend.apps.configuration.models import Template
 from backend.apps.templatesets.models import AppReleaseData
 
 from .form_mode import FormtoResourceList
+from .res_context import ResContext
 from .yaml_mode import YamltoResourceList
 
 ResourceGenerator = {
@@ -25,20 +25,17 @@ ResourceGenerator = {
 
 
 class ReleaseDataGenerator:
-    def __init__(self, name: str, namespace: str, cluster_id: str, template_id: int):
+    def __init__(self, name: str, res_ctx: ResContext):
         self.name = name
-        self.namespace = namespace
-        self.cluster_id = cluster_id
-        self.template_id = template_id
+        self.res_ctx = res_ctx
+        self.template = res_ctx.template
+        self.generator = ResourceGenerator[self.template.edit_mode]
 
-        template = Template.objects.get(id=template_id)
-        self.generator = ResourceGenerator[template.edit_mode]
-
-    def generate(self, *args, **kwargs) -> AppReleaseData:
+    def generate(self) -> AppReleaseData:
         return AppReleaseData(
             name=self.name,
-            cluster_id=self.cluster_id,
-            namespace=self.namespace,
-            template_id=self.template_id,
-            resource_list=self.generator().generate(*args, **kwargs),
+            cluster_id=self.res_ctx.cluster_id,
+            namespace=self.res_ctx.namespace,
+            template_id=self.template.id,
+            resource_list=self.generator(self.res_ctx).generate(),
         )

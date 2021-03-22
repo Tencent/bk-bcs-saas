@@ -15,9 +15,32 @@ from typing import List
 
 from backend.apps.templatesets.models import ResourceData
 
+from .res_context import ResContext
+
 
 class YamltoResourceList:
     """YAML模板集资源转换生成List[ResourceData]"""
 
-    def generate(self, *args, **kwargs) -> List[ResourceData]:
+    def __init__(self, res_ctx: ResContext):
+        self.res_ctx = res_ctx
+
+    def generate(self) -> List[ResourceData]:
+        inject_configs = self._get_inject_configs()
+        bcs_variables = self._get_bcs_variables()
         return []
+
+        # if self.template_variables:
+        #     bcs_variables.update(self.template_variables)
+        #
+        # for res_files in self.template_files:
+        #     for f in res_files["files"]:
+        #         f["content"] = self._inject(f["content"], inject_configs, bcs_variables)
+        # return ReleaseData(
+        #     self.project_id, self.namespace_info, self.show_version, self.template_files, self.template_variables
+        # )
+
+    def _get_inject_configs(self):
+        pass
+
+    def _get_bcs_variables(self):
+        pass

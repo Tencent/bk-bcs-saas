@@ -11,9 +11,20 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-from django.conf.urls import include, url
+from dataclasses import dataclass, field
+from typing import Any, Dict
 
-urlpatterns = [
-    url(r"^templates/(?P<template_id>\d+)/show_versions/", include("backend.apps.templatesets.show_version.urls")),
-    url(r"^templates/(?P<template_id>\d+)/releases/", include("backend.apps.templatesets.release.urls")),
-]
+from backend.apps.configuration.models import ShowVersion, Template
+
+
+@dataclass
+class ResContext:
+    access_token: str
+    username: str
+    project_id: str
+    namespace: str
+    cluster_id: str
+    template: Template
+    show_version: ShowVersion
+    instance_entity: Dict[str, str]
+    extras: Dict[str, Any] = field(default_factory=dict)
