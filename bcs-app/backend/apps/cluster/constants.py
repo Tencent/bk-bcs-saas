@@ -22,7 +22,14 @@ DEFAULT_NODE_LIMIT = 10000
 FILTER_NODE_STATUS = ['removed']
 
 # cluster status
-COMMON_FAILED_STATUS = ["initial_failed", "failed", "check_failed", "remove_failed", "so_init_failed", "upgrade_failed"]  # noqa
+COMMON_FAILED_STATUS = [
+    "initial_failed",
+    "failed",
+    "check_failed",
+    "remove_failed",
+    "so_init_failed",
+    "upgrade_failed",
+]  # noqa
 COMMON_RUNNING_STATUS = ["initializing", "running", "initial_checking", "removing", "so_initializing", "upgrading"]
 CLUSTER_FAILED_STATUS = COMMON_FAILED_STATUS
 CLUSTER_RUNNING_STATUS = COMMON_RUNNING_STATUS
@@ -76,15 +83,12 @@ DEFAULT_SYSTEM_LABEL_KEYS = [
     "beta.kubernetes.io/arch",
     "beta.kubernetes.io/os",
     "kubernetes.io/hostname",
-    "node-role.kubernetes.io/node"
+    "node-role.kubernetes.io/node",
 ]
 
 
 class ProjectKindName(ChoicesEnum):
-    _choices_labels = (
-        (1, 'k8s'),
-        (2, 'mesos')
-    )
+    _choices_labels = ((1, 'k8s'), (2, 'mesos'))
 
 
 ClusterType = dict(ProjectKindName._choices_labels.get_choices())
@@ -100,7 +104,7 @@ CC_MODULE_INFO = {
             "master",
             "node",
             # "zk"
-        ]
+        ],
     },
     "k8s": {
         "stag": "test",
@@ -111,8 +115,8 @@ CC_MODULE_INFO = {
             "node",
             # "etcd",
             # "bcs",
-        ]
-    }
+        ],
+    },
 }
 
 
@@ -124,11 +128,12 @@ class OpType(ChoicesEnum):
 # skip namespace
 K8S_SKIP_NS_LIST = ['kube-system', 'thanos', 'web-console']
 
+# mesos类型跳过的命名空间列表
+MESOS_SKIP_NS_LIST = ["bcs-system"]
+
 # 调用接口异常的消息，记录到db中，可以直接转换
-BCS_OPS_ERROR_INFO = {
-    "state": "FAILURE",
-    "node_tasks": [{"state": "FAILURE", "name": _("- 调用初始化接口失败")}]
-}
+BCS_OPS_ERROR_INFO = {"state": "FAILURE", "node_tasks": [{"state": "FAILURE", "name": _("- 调用初始化接口失败")}]}
+
 
 # 状态映射
 class ClusterStatusName(ChoicesEnum):
@@ -148,7 +153,4 @@ class ClusterState(ChoicesEnum):
     BCSNew = "bcs_new"
     Existing = "existing"
 
-    _choices_labels = (
-        (BCSNew, "bcs_new"),
-        (Existing, "existing")
-    )
+    _choices_labels = ((BCSNew, "bcs_new"), (Existing, "existing"))
