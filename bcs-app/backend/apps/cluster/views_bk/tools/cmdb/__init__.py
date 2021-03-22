@@ -11,9 +11,13 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
+import logging
+
 from backend.components import cc
 from backend.utils.errcodes import ErrorCode
 from backend.utils.error_codes import error_codes
+
+logger = logging.getLogger(__name__)
 
 
 class CMDBClient:
@@ -33,3 +37,9 @@ class CMDBClient:
 
     def get_host_base_info(self, inner_ip):
         return cc.get_host_base_info(self.username, self.cc_app_id, inner_ip)
+
+
+try:
+    from .__init__ext import *  # noqa
+except ImportError as e:
+    logger.debug("Load extension failed: %s", e)

@@ -11,11 +11,14 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
+import ipaddress
+import json
 import logging
 
 from django.conf import settings
 from django.utils.translation import ugettext_lazy as _
 from rest_framework import response, viewsets
+from rest_framework.exceptions import ValidationError
 from rest_framework.renderers import BrowsableAPIRenderer
 
 from backend.accounts.bcs_perm import Cluster
@@ -24,15 +27,21 @@ from backend.apps.application import constants as app_constants
 from backend.apps.cluster import constants as cluster_constants
 from backend.apps.cluster import serializers as cluster_serializers
 from backend.apps.cluster.constants import ClusterStatusName
-from backend.apps.cluster.models import ClusterInstallLog, CommonStatus
+from backend.apps.cluster.models import ClusterInstallLog, ClusterOperType, ClusterStatus, CommonStatus
 from backend.apps.cluster.utils import cluster_env_transfer, status_transfer
 from backend.apps.cluster.views_bk import cluster
+from backend.apps.cluster.views_bk.constants import ClusterNetworkType
 from backend.apps.cluster.views_bk.tools import cmdb
-from backend.components import paas_cc
+from backend.apps.cluster.views_bk.utils import get_cmdb_hosts, get_ops_platform
+from backend.apps.constants import CLUSTER_UPGRADE_VERSION, UPGRADE_TYPE
+from backend.components import bcs, ops, paas_cc
 from backend.components.bcs.mesos import MesosClient
+from backend.resources.cluster import utils as cluster_utils
+from backend.resources.cluster.constants import ClusterCOES
 from backend.utils.basic import normalize_datetime, normalize_metric
 from backend.utils.errcodes import ErrorCode
 from backend.utils.error_codes import error_codes
+from backend.utils.func_controller import get_func_controller
 from backend.utils.funutils import convert_mappings
 from backend.utils.renderers import BKAPIRenderer
 
@@ -96,6 +105,20 @@ class ClusterCreateListViewSet(viewsets.ViewSet):
             return {}
         return cluster_resp.get("data") or {}
 
+    def _register_function_contoller(self, func_code, cluster_list):
+        enabled, wlist = get_func_controller(func_code)
+        for cluster_info in cluster_list:
+            cluster_info.setdefault("func_wlist", set())
+
+            # 白名单控制
+            if enabled or cluster_info["cluster_id"] in wlist:
+                cluster_info["func_wlist"].add(func_code)
+
+    def register_function_contoller(self, cluster_list):
+        """注册功能白名单"""
+        for func_code in getattr(settings, "CLUSTER_FUNC_CODES", []):
+            self._register_function_contoller(func_code, cluster_list)
+
     def get_cluster_create_perm(self, request, project_id):
         test_cluster_perm = Cluster(request, project_id, cluster_constants.NO_RES, resource_type="cluster_test")
         can_create_test = test_cluster_perm.can_create(raise_exception=False)
@@ -115,6 +138,8 @@ class ClusterCreateListViewSet(viewsets.ViewSet):
             allow_delete = False if cluster_node_map.get(info["cluster_id"]) else True
             info["allow"] = info["allow_delete"] = allow_delete
         perm_can_use = True if request.GET.get("perm_can_use") == "1" else False
+
+        self.register_function_contoller(cluster_data)
 
         cluster_results = Cluster.hook_perms(request, project_id, cluster_data, filter_use=perm_can_use)
         # add can create cluster perm for prod/test
@@ -177,10 +202,24 @@ class ClusterFilterViewSet(viewsets.ViewSet):
 class ClusterCreateGetUpdateViewSet(ClusterBase, viewsets.ViewSet):
     renderer_classes = (BKAPIRenderer, BrowsableAPIRenderer)
 
+    def register_function_contoller(self, cluster_info):
+        """注册功能白名单"""
+        for func_code in getattr(settings, "CLUSTER_FUNC_CODES", []):
+            enabled, wlist = get_func_controller(func_code)
+            cluster_info.setdefault("func_wlist", set())
+
+            # 白名单控制
+            if enabled or cluster_info["cluster_id"] in wlist:
+                cluster_info["func_wlist"].add(func_code)
+
     def retrieve(self, request, project_id, cluster_id):
         cluster_data = self.get_cluster(request, project_id, cluster_id)
 
         cluster_data["environment"] = cluster_env_transfer(cluster_data["environment"])
+
+        # 添加功能白名单
+        self.register_function_contoller(cluster_data)
+
         return response.Response({"code": ErrorCode.NoError, "data": cluster_data})
 
     def reinstall(self, request, project_id, cluster_id):
@@ -240,12 +279,16 @@ class ClusterInstallLogView(ClusterBase, viewsets.ModelViewSet):
     def get_log_data(self, logs, project_id, cluster_id):
         if not logs:
             return {"status": "none"}
+        # 获取最新的一条记录的状态
+        latest_log = logs[0]
+        status = self.get_display_status(latest_log.status)
         data = {
             "project_id": project_id,
             "cluster_id": cluster_id,
-            "status": self.get_display_status(logs[0].status),
+            "status": status,
             "log": [],
             "task_url": logs.first().log_params.get("task_url") or "",
+            "error_msg_list": [],
         }
         for info in logs:
             info.status = self.get_display_status(info.status)
@@ -297,6 +340,25 @@ class ClusterInfo(ClusterPermBase, ClusterBase, viewsets.ViewSet):
             raise error_codes.APIError(area_info.get("message"))
         return area_info.get("data") or {}
 
+    def get_tke_cluster_config(self, request, project_id, cluster_id):
+        """获取tke集群的快照，展示集群所有的配置信息"""
+        data = cluster_utils.get_cluster_snapshot(request.user.token.access_token, project_id, cluster_id)
+        snapshot = data.get("configure") or "{}"
+        snapshot = json.loads(snapshot)
+        cidr_settings = snapshot.get("ClusterCIDRSettings") or {}
+        cidr = cidr_settings.get("ClusterCIDR")
+        config = {
+            "max_pod_num": 0,
+            "max_service_num": cidr_settings.get("MaxClusterServiceNum") or 0,
+            "max_node_pod_num": cidr_settings.get("MaxNodePodNum") or 0,
+            "version": snapshot.get("version"),
+            "vpc_id": snapshot.get("vpc_id"),
+            "network_type": snapshot.get("network_type") or ClusterNetworkType.OVERLAY.value,
+        }
+        if cidr:
+            config["max_pod_num"] = ipaddress.ip_network(cidr).num_addresses
+        return config
+
     def cluster_info(self, request, project_id, cluster_id):
         # can view cluster
         self.can_view_cluster(request, project_id, cluster_id)
@@ -320,6 +382,15 @@ class ClusterInfo(ClusterPermBase, ClusterBase, viewsets.ViewSet):
             total_mem = normalize_metric(cluster["total_mem"])
         cluster["total_mem"] = total_mem
 
+        # 获取集群调度引擎
+        coes = cluster["type"]
+        # 补充tke和bcs k8s相关配置
+        if coes == ClusterCOES.TKE.value:
+            cluster.update(self.get_tke_cluster_config(request, project_id, cluster_id))
+        elif coes == ClusterCOES.BCS_K8S.value:
+            k8s_client = bcs.k8s.K8SClient(request.user.token.access_token, project_id, cluster_id, None)
+            cluster["version"] = k8s_client.version
+
         return response.Response(cluster)
 
 
@@ -337,43 +408,35 @@ class ClusterMasterInfo(ClusterPermBase, viewsets.ViewSet):
 
     def cluster_masters(self, request, project_id, cluster_id):
         self.can_view_cluster(request, project_id, cluster_id)
-        ip_only = request.query_params.get("ip_only")
-        # get master ip
-        master_ips = self.get_master_ips(request, project_id, cluster_id)
-        if ip_only == "true":
-            return response.Response([{"inner_ip": ip} for ip in master_ips])
-        # get cc hosts
-        cc_host_info = cmdb.CMDBClient(request).get_cc_hosts()
-        # compose the data
-        masters = []
-        for info in cc_host_info:
-            # may be many eths
-            convert_host = convert_mappings(cluster_constants.CCHostKeyMappings, info)
-            ip_list = convert_host.get("inner_ip", "").split(",")
-            if not ip_list:
-                continue
-            for ip in ip_list:
-                if ip not in master_ips:
-                    continue
-                # NOTE: 添加master后，默认master agent状态是正常的
-                convert_host["agent"] = AGENT_NORMAL_STATUS
-                masters.append(convert_host)
-                break
-        return response.Response(masters)
+        # 获取master
+        masters = cluster_utils.get_cluster_masters(request.user.token.access_token, project_id, cluster_id)
+        # 返回master对应的主机信息
+        # 因为先前
+        host_property_filter = {
+            "condition": "OR",
+            "rules": [
+                {"field": "bk_host_innerip", "operator": "equal", "value": info["inner_ip"]} for info in masters
+            ],
+        }
+        username = settings.USERNAME_FOR_CMDB_BIZ
+        cluster_masters = get_cmdb_hosts(
+            username, [request.project.cc_app_id, settings.BCS_APP_ID], host_property_filter
+        )
+
+        return response.Response(cluster_masters)
 
 
 class ClusterVersionViewSet(viewsets.ViewSet):
     renderer_classes = (BKAPIRenderer, BrowsableAPIRenderer)
 
     def versions(self, request, project_id):
-        resp = paas_cc.get_cluster_versions(
-            request.user.token.access_token, kind=cluster_constants.ClusterType[request.project.kind]
-        )
-        if resp.get("code") != ErrorCode.NoError:
-            data = []
-        data = [info["version"] for info in resp.get("data") or []]
+        coes = request.query_params.get("coes")
+        # 校验集群类型
+        if coes not in ClusterCOES.choice_values():
+            raise ValidationError(_("集群类型不正确"))
+        version_list = cluster_utils.get_cluster_versions(request.user.token.access_token, kind=coes)
 
-        return response.Response(data)
+        return response.Response(version_list)
 
 
 class MesosIPPoolViewSet(viewsets.ViewSet):
@@ -384,3 +447,174 @@ class MesosIPPoolViewSet(viewsets.ViewSet):
         data = client.get_cluster_ippool()
 
         return response.Response(data.get("data") or {})
+
+
+class UpgradeClusterViewSet(viewsets.ViewSet):
+    renderer_classes = (BKAPIRenderer, BrowsableAPIRenderer)
+
+    def _get_coes(self, access_token, project_id, cluster_id):
+        # 获取集群调度引擎
+        coes = cluster_utils.get_cluster_coes(access_token, project_id, cluster_id)
+        if coes != ClusterCOES.BCS_K8S.value:
+            raise ValidationError(_("仅支持BCS-K8S集群升级!"))
+        return coes
+
+    def _cluster_version(self, request, project_id, cluster_id):
+        k8s_client = bcs.k8s.K8SClient(request.user.token.access_token, project_id, cluster_id, None)
+        return k8s_client.version
+
+    def _get_upgradeable_versions(self, cluster_version):
+        for pattern, versions in CLUSTER_UPGRADE_VERSION.items():
+            if pattern.match(cluster_version):
+                return versions
+
+        return []
+
+    def get_upgradeable_versions(self, request, project_id, cluster_id):
+        """获取允许升级的版本
+        现在限制如下
+        - 仅针对bcs k8s
+        - 当前版本是1.8.x时，仅可以升级到v1.12.6
+        - 当版本为1.12.x时，仅可以升级到1.14.3-tk8s
+        """
+        self._get_coes(request.user.token.access_token, project_id, cluster_id)
+        # 获取当前集群版本
+        cluster_version = self._cluster_version(request, project_id, cluster_id)
+        return response.Response(self._get_upgradeable_versions(cluster_version))
+
+    def _get_cluster_snapshot(self, access_token, project_id, cluster_id):
+        data = cluster_utils.get_cluster_snapshot(access_token, project_id, cluster_id)
+        snapshot = data.get("configure") or "{}"
+        return json.loads(snapshot)
+
+    def _get_cluster_master_ip_list(self, access_token, project_id, cluster_id):
+        data = cluster_utils.get_cluster_masters(access_token, project_id, cluster_id)
+        return [info["inner_ip"] for info in data]
+
+    def _get_cluster_node_ip_list(self, access_token, project_id, cluster_id):
+        data = cluster_utils.get_cluster_nodes(access_token, project_id, cluster_id)
+        return [info["inner_ip"] for info in data]
+
+    def get_params_for_upgrade(self, request, project_id, cluster_id, coes):
+        """组装升级参数"""
+        version = request.data.get("version")
+        cluster_version = self._cluster_version(request, project_id, cluster_id)
+        upgradeable_versions = self._get_upgradeable_versions(cluster_version)
+        if version not in upgradeable_versions:
+            raise ValidationError(_("当前集群仅可以升级到版本: {}").format(",".join(upgradeable_versions)))
+        access_token = request.user.token.access_token
+        snapshot = self._get_cluster_snapshot(access_token, project_id, cluster_id)
+        control_ip_list = snapshot.get("control_ip")
+        master_ip_list = self._get_cluster_master_ip_list(access_token, project_id, cluster_id)
+        node_ip_list = self._get_cluster_node_ip_list(access_token, project_id, cluster_id)
+        # 当control ip为空时，取master的第一个ip
+        if not control_ip_list:
+            control_ip_list = master_ip_list[:1]
+
+        return {
+            "master_ip_list": master_ip_list,
+            "node_ip_list": node_ip_list,
+            "control_ip": control_ip_list,
+            "cluster_id": cluster_id,
+            "project_id": project_id,
+            "coes": coes,
+            "platform": get_ops_platform(request, project_id=project_id, cluster_id=cluster_id),
+            "update_type": UPGRADE_TYPE.get(version),
+            "cc_app_id": request.project.cc_app_id,
+        }
+
+    def get_params_for_reupgrade(self, project_id, cluster_id):
+        """获取重新升级的参数
+        通过升级时记录的参数中直接拿取请求参数
+        """
+        log = ClusterInstallLog.objects.filter(
+            oper_type=ClusterOperType.ClusterUpgrade, project_id=project_id, cluster_id=cluster_id
+        ).last()
+        if not log:
+            raise error_codes.ResNotFoundError(_("没有查询到集群的升级记录"))
+        return log.log_params
+
+    def get_params(self, request, project_id, cluster_id, coes):
+        if request.data.get("operation") == ClusterOperType.ClusterReupgrade:
+            return self.get_params_for_reupgrade(project_id, cluster_id)
+        return self.get_params_for_upgrade(request, project_id, cluster_id, coes)
+
+    def upgrade_by_ops(self, request, params):
+
+        with client.ContextActivityLogClient(
+            project_id=params["project_id"],
+            user=request.user.username,
+            resource_type="cluster",
+            resource_id=params["cluster_id"],
+            description=_("升级集群版本"),
+        ).log_modify():
+            ops_client = ops.OPSClient(
+                request.user.token.access_token,
+                params["project_id"],
+                params["cluster_id"],
+                params.get("coes") or params.get("coes_name"),
+                params["platform"],
+                request.user.username,
+            )
+            task_info = ops_client.upgrade_cluster(
+                {
+                    "master_ip_list": params["master_ip_list"],
+                    "control_ip": params["control_ip"],
+                    "node_ip_list": params["node_ip_list"],
+                    "update_type": params["update_type"],
+                }
+            )
+        return task_info
+
+    def can_upgrade_cluster(self, access_token, project_id, cluster_id):
+        """判断集群是否允许升级
+        1. 集群处于正常状态
+        2. 集群处于升级失败状态
+        """
+        data = cluster_utils.get_cluster_info(access_token, project_id, cluster_id)
+        if data.get("status") not in [ClusterStatus.Normal, ClusterStatus.UpgradeFailed]:
+            raise ValidationError(_("仅允许集群处于正常或升级失败时，才允许执行升级操作！"))
+
+    def upgrade(self, request, project_id, cluster_id):
+        """升级集群版本
+        - 仅支持BCS-K8S类型集群升级
+        - 校验版本限制
+        - 组装参数，调用接口
+        - 轮训任务状态
+        """
+        coes = self._get_coes(request.user.token.access_token, project_id, cluster_id)
+        access_token = request.user.token.access_token
+        # 判断是否允许操作
+        self.can_upgrade_cluster(access_token, project_id, cluster_id)
+        # 获取请求ops接口参数
+        params = self.get_params(request, project_id, cluster_id, coes)
+        # 更新集群状态为 更新中
+        cluster_utils.update_cluster_status(access_token, project_id, cluster_id, ClusterStatus.Upgrading)
+        # 开始调用接口
+        try:
+            log = ClusterInstallLog.objects.create(
+                project_id=project_id,
+                cluster_id=cluster_id,
+                token=request.user.token.access_token,
+                status=ClusterStatus.Upgrading,
+                params=json.dumps(params),
+                operator=request.user.username,
+                oper_type=request.data.get("operation"),
+                is_finished=False,
+                is_polling=True,
+            )
+            task_info = self.upgrade_by_ops(request, params)
+        except Exception as err:
+            cluster_utils.update_cluster_status(access_token, project_id, cluster_id, ClusterStatus.UpgradeFailed)
+            log.set_finish_polling_status(finish_flag=True, polling_flag=False, status=ClusterStatus.UpgradeFailed)
+            raise error_codes.APIError(_("请求失败，{}").format(err))
+        if task_info.get("code") != ErrorCode.NoError:
+            cluster_utils.update_cluster_status(access_token, project_id, cluster_id, ClusterStatus.UpgradeFailed)
+            log.set_finish_polling_status(finish_flag=True, polling_flag=False, status=ClusterStatus.UpgradeFailed)
+            raise error_codes.APIError(task_info.get("message"))
+        log.set_task_id(task_info.get("data", {}).get("task_id"))
+        # 触发轮训任务
+        if not log.is_finished and log.is_polling:
+            log.polling_task()
+
+        return response.Response()

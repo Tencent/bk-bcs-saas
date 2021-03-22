@@ -9,29 +9,25 @@
 #
 # Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
-# specific language governing permissions and limitations under the License.
+#
+#  specific language governing permissions and limitations under the License.
 #
 import logging
 
-from backend.components import gse
+from backend.utils.basic import ChoicesEnum
 
 logger = logging.getLogger(__name__)
 
 
-class GSEClient:
-    @classmethod
-    def get_agent_status(cls, request, ip_list):
-        hosts = []
-        for info in ip_list:
-            plat_info = info.get('bk_cloud_id') or []
-            plat_id = plat_info[0]['id'] if plat_info else 0
-            hosts.extend(
-                [{'plat_id': plat_id, 'bk_cloud_id': plat_id, 'ip': ip} for ip in info.get('inner_ip', '').split(',')]
-            )
-        return gse.get_agent_status(request.user.username, hosts)
+# 集群默认的网络类型
+class ClusterNetworkType(ChoicesEnum):
+    OVERLAY = "overlay"
+    UNDERLAY = "underlay"
+
+    _choices_labels = ((OVERLAY, "overlay"), (UNDERLAY, "underlay"))
 
 
 try:
-    from .__init__ext import *  # noqa
+    from .constants_ext import *  # noqa
 except ImportError as e:
     logger.debug("Load extension failed: %s", e)

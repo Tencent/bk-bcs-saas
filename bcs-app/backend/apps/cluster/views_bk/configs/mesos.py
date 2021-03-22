@@ -16,6 +16,7 @@ MESOS 获取相关配置
 """
 import base64
 import json
+import logging
 import time
 
 from django.utils.translation import ugettext_lazy as _
@@ -24,6 +25,8 @@ from backend.apps.cluster.models import CommonStatus
 from backend.components import paas_cc
 from backend.utils.errcodes import ErrorCode
 from backend.utils.error_codes import error_codes
+
+logger = logging.getLogger(__name__)
 
 
 class BaseConfig(object):
@@ -56,3 +59,9 @@ class NodeConfig(BaseConfig):
     def get_request_config(self, access_token, project_id, cluster_id, master_ip_list, ip_list):
         # TODO：现阶段slave安装和master安装配置一样，后续再增加其它
         return self.mesos_config
+
+
+try:
+    from .mesos_ext import *  # noqa
+except ImportError as e:
+    logger.debug("Load extension failed: %s", e)

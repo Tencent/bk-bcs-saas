@@ -223,3 +223,9 @@ class NodeConfig(object):
         self._get_prometheus(kubeapps_master_legal_host)
 
         return self.k8s_config
+
+
+try:
+    from .k8s_ext import *  # noqa
+except ImportError as e:
+    logger.debug("Load extension failed: %s", e)

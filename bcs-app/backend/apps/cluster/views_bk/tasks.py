@@ -187,3 +187,9 @@ def polling_task(log_type, log_pk):
         log.save()
     # 更新配置中心状态
     update_status(log_type, log)
+
+
+try:
+    from .tasks_ext import *  # noqa
+except ImportError as e:
+    logger.debug("Load extension failed: %s", e)
