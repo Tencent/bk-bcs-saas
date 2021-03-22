@@ -23,7 +23,11 @@ def healthz(n):
 
 
 try:
-    from .cluster import (  # noqa
+    from . import cluster
+except ImportError:
+    pass
+else:
+    from .cluster import (
         chain_polling_bke_status,
         chain_polling_task,
         delete_cluster_node,
@@ -37,5 +41,3 @@ try:
         polling_task,
         so_init,
     )
-except ImportError:
-    pass
