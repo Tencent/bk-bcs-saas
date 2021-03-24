@@ -44,7 +44,6 @@ from backend.apps.configuration.models import (
     get_secret_name_by_certid,
 )
 from backend.apps.constants import ClusterType
-from backend.apps.datalog.utils import create_and_start_non_standard_data_flow, get_data_id_by_project_id
 from backend.apps.instance import constants as instance_constants
 from backend.apps.instance.constants import (
     ANNOTATIONS_WEB_CACHE,
@@ -94,6 +93,11 @@ from backend.components.ticket import TicketClient
 from backend.resources.constants import K8sServiceTypes
 from backend.utils.basic import getitems
 from backend.utils.func_controller import get_func_controller
+
+try:
+    from backend.apps.datalog.utils import get_data_id_by_project_id
+except ImportError:
+    from backend.apps.datalog_ce.utils import get_data_id_by_project_id
 
 logger = logging.getLogger(__name__)
 HANDLED_NUM_VAR_PATTERN = re.compile(r"%s}" % NUM_VAR_PATTERN)
@@ -343,11 +347,7 @@ class ProfileGenerator:
             log_config["datas"] = {log_key: {"type": "file", "content": json.dumps(log_content)}}
         else:
             log_config["data"] = {log_key: json.dumps(log_content)}
-        # 实例化时，启动非标准日志采集任务
-        if not self.is_preview:
-            username = self.params.get("username")
-            project_id = self.params.get("project_id")
-            create_and_start_non_standard_data_flow(username, project_id, cc_app_id)
+
         return log_config
 
     def handle_k8s_ingress_srt(self, cert_id, ingress_id, ingress_type, cert_type):
