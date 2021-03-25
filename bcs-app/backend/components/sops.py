@@ -80,14 +80,14 @@ class SopsClient(BkApiClient):
         url = self._config.start_task_url.format(task_id=task_id, bk_biz_id=bk_biz_id)
         return self._request_json("POST", url, json=asdict(data))
 
-    def get_task_status(self, bk_biz_id: str, task_id: str) -> Dict:
+    def get_task_status(self, bk_biz_id: str, task_id: str, params: TaskStatusParams) -> Dict:
         """获取任务状态"""
         url = self._config.get_task_status_url.format(task_id=task_id, bk_biz_id=bk_biz_id)
-        return self._request_json("GET", url)
+        return self._request_json("GET", url, params=asdict(params))
 
     def get_task_node_data(self, bk_biz_id: str, task_id: str, params: TaskNodeDataParmas) -> Dict:
         url = self._config.get_task_node_data_url.format(task_id=task_id, bk_biz_id=bk_biz_id)
-        return self._request_json("GET", url, params=params)
+        return self._request_json("GET", url, params=asdict(params))
 
     def _request_json(self, method: str, url: str, **kwargs) -> Dict:
         return self._client.request_json(method, url, **kwargs)

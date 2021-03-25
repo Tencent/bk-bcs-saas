@@ -12,9 +12,13 @@
 # specific language governing permissions and limitations under the License.
 #
 from dataclasses import asdict, dataclass, field, fields
-from typing import Dict, List
+from typing import Dict, List, Tuple
 
 from backend.components import cc, gse, sops
+from backend.utils.errcodes import ErrorCode
+from backend.utils.error_codes import error_codes
+
+from .constants import APPLY_HOST_TEMPLATE_ID, SOPS_BIZ_ID
 
 
 def get_cc_hosts(cc_app_id: str, username: str, **extra_data) -> List[Dict]:
@@ -84,19 +88,86 @@ except ImportError:
     pass
 
 
+# NOTE: 标准运维接口，需要通过result判断成功与否，True表示成功，False表示失败
 def create_and_start_sops_task(
-    username,
-    bk_biz_id,
-):
+    cc_app_id: str, username: str, region: str, cvm_type: str, disk_size: int, replicas: int, network_type: str
+) -> Tuple[int, str]:
     """创建并启动标准运维任务"""
-    sops.CreateTaskParams()
+    client = sops.SopsClient()
+    # 组装创建任务参数
+    task_name = f"[{cc_app_id}]apply host resource"
+    data = sops.CreateTaskParams(
+        name=task_name,
+        constants={
+            "${appID}": cc_app_id,
+            "${user}": username,
+            "${qcloudRegionId}": region,
+            "${cvm_type}": cvm_type,
+            "${diskSize}": disk_size,
+            "${replicas}": replicas,
+            "${network_type}": network_type,
+        },
+    )
+    # 创建任务
+    resp = client.create_task(bk_biz_id=SOPS_BIZ_ID, template_id=APPLY_HOST_TEMPLATE_ID, data=data)
+    if not resp.get("result"):
+        raise error_codes.APIError(f"create sops task failed, {resp.get('message')}")
+    task_id = resp["data"]["task_id"]
+    task_url = resp["data"]["task_url"]
+
+    # 组装启动任务参数
+    data = sops.StartTaskParams()
+    resp = client.start_task(bk_biz_id=SOPS_BIZ_ID, task_id=task_id, data=data)
+    if not resp.get("result"):
+        raise error_codes.APIError(f"start sops task failed, {resp.get('message')}")
+
+    return task_id, task_url
 
 
-def get_task_logs():
-    """获取任务执行的输出日志"""
-    pass
+def parse_steps(steps_info: Dict) -> Dict:
+    steps_name_status = {}
+    for step_id, detail in steps_info.items():
+        name = detail.get("name") or ""
+        # NOTE: 过滤掉sops中的开始和结束节点(两个空标识节点)
+        if "EmptyEndEvent" in name or "EmptyStartEvent" in name:
+            continue
+        steps_name_status[name] = {"state": detail["state"], "step_id": step_id}
+    return steps_name_status
 
 
-def get_claimed_ip_list():
+def get_task_state_and_steps(task_id: str) -> Dict:
+    """获取任务状态及"""
+    client = sops.SopsClient()
+    params = sops.TaskStatusParams()
+    resp = client.get_task_status(bk_biz_id=SOPS_BIZ_ID, task_id=task_id, params=params)
+    if not resp.get("result"):
+        raise error_codes.APIError(f"get sops task status failed, {resp.get('message')}")
+    # 解析任务状态，并获取步骤
+    data = resp.get("data") or {}
+    state = data["state"]
+    # NOTE: 现阶段不处理SUSPENDED(暂停)状态，当任务处于RUNNING状态, 认为任务处于执行中
+    steps = parse_steps(data.get("children") or {})
+
+    return {"state": state, "steps": steps}
+
+
+def get_applied_ip_list(task_id: str, step_id: str) -> List[str]:
     """获取申领的机器列表"""
-    pass
+    client = sops.SopsClient()
+    params = sops.TaskNodeDataParmas(node_id=step_id)
+    resp = client.get_task_node_data(bk_biz_id=SOPS_BIZ_ID, task_id=task_id, params=params)
+    if not resp.get("result"):
+        raise error_codes.APIError(f"get sops task step detail failed, {resp.get('message')}")
+
+    # 获取返回的IP列表
+    # outputs 结构: [{key: xxx, value: str}, {key: log_outputs, value: {ip_list: "127.0.0.1,127.0.0.2"}}]
+    outputs = resp["data"]["outputs"]
+
+    ips = ""
+    for i in outputs:
+        if i["key"] != "log_outputs":
+            continue
+        # NOTE: 接口返回中是以英文逗号分隔的字符串
+        ips = i["value"]["ip_list"]
+
+    return ips.split(",")
