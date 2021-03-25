@@ -34,7 +34,7 @@ urlpatterns = [
     url(r"^iam/", include("backend.apis.iam.urls")),
     # metrics接口
     url(
-        r"^metrics/projects/(?P<project_id>\w{32})/clusters/(?P<cluster_id>[\w-]+)/",
+        r"^metrics/projects/(?P<project_id_or_code>[\w\-]+)/clusters/(?P<cluster_id>[\w-]+)/",
         include("backend.apis.metrics.urls"),
     ),
 ]

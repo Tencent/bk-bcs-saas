@@ -17,29 +17,7 @@ import logging
 from django.utils.crypto import get_random_string
 from django.utils.translation import ugettext_lazy as _
 
-from backend.components.data import DataType
-
 logger = logging.getLogger(__name__)
-
-
-def deploy_log_plan(username, cc_biz_id, project_code, data_log_type):
-    return 0, ''
-
-
-def create_data_project(username, project_id, cc_biz_id, project_code):
-    return True
-
-
-def create_and_start_standard_data_flow(username, project_id, cc_biz_id):
-    return _create_and_start_data_flow(username, project_id, cc_biz_id, DataType.SLOG.value)
-
-
-def create_and_start_non_standard_data_flow(username, project_id, cc_biz_id):
-    return _create_and_start_data_flow(username, project_id, cc_biz_id, DataType.CLOG.value)
-
-
-def _create_and_start_data_flow(username, project_id, cc_biz_id, data_type):
-    return True, 'ok'
 
 
 def create_prometheus_data_flow(username, project_id, cc_app_id, english_name, dataset):

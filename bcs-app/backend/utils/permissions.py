@@ -11,10 +11,12 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
+from django.conf import settings
 from rest_framework.permissions import BasePermission
 
+from backend.accounts import bcs_perm
 from backend.apps.constants import SKIP_REQUEST_NAMESPACE, ClusterType
-from backend.components import paas_cc
+from backend.components import paas_auth, paas_cc
 from backend.components.iam import permissions
 from backend.utils import FancyDict
 from backend.utils.cache import region
@@ -31,8 +33,16 @@ class HasProject(BasePermission):
             return True
 
         user_id = request.user.username
-        perm = permissions.ProjectPermission()
-        return perm.can_view(user_id, project_id)
+
+        if settings.REGION == 'ce':
+            perm = permissions.ProjectPermission()
+            return perm.can_view(user_id, project_id)
+        else:
+            access_token = request.user.token.access_token
+            result = paas_auth.verify_project(access_token, project_id, user_id)
+            if result.get('code') == 0:
+                return True
+            return False
 
 
 class HasIAMProject(BasePermission):
@@ -51,8 +61,14 @@ class HasIAMProject(BasePermission):
         if not project_code:
             return False
 
-        perm = permissions.ProjectPermission()
-        return perm.can_view(user_id, project_id)
+        if settings.REGION == 'ce':
+            perm = permissions.ProjectPermission()
+            return perm.can_view(user_id, project_id)
+        else:
+            verify = bcs_perm.verify_project_by_user(
+                access_token=access_token, project_code=project_code, project_id=project_id, user_id=user_id
+            )
+            return verify
 
     def get_project_code(self, access_token, project_id):
         """获取project_code
@@ -96,6 +112,17 @@ class ProjectHasBCS(BasePermission):
         if not project or not isinstance(project, FancyDict):
             result = paas_cc.get_project(access_token, project_id)
             project = result.get("data") or {}
+
+            # coes: container orchestration engines
+            project['coes'] = project['kind']
+            try:
+                from backend.apps.projects.utils import get_project_kind
+
+                # k8s类型包含kind为1(bcs k8s)或其它属于k8s的编排引擎
+                project['kind'] = get_project_kind(project['kind'])
+            except ImportError:
+                pass
+
             project = FancyDict(project)
 
             if request_namespace in SKIP_REQUEST_NAMESPACE:
