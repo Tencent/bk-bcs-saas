@@ -445,22 +445,9 @@ class K8sSecretCreateOrUpdateSLZ(serializers.Serializer):
     namespace_id = serializers.CharField(required=False, allow_blank=True, allow_null=True)
     instance_id = serializers.CharField(required=False, allow_blank=True, allow_null=True)
 
-    def validate_config(self, config):
-        name = config.get("metadata", {}).get("name") or ""
-        if not K8S_RENAME.match(name):
-            raise ValidationError(u"Secret %s" % K8S_NAME_ERROR_MSG)
-
-        if settings.IS_TEMPLATE_VALIDATE:
-            try:
-                json_validate(config, K8S_SECRET_SCHEM)
-            except JsonValidationError as e:
-                raise ValidationError(_("Secret 配置信息格式错误{}").format(e.message))
-            except SchemaError as e:
-                raise ValidationError(_("Secret 配置信息格式错误{}").format(e))
-
-        return json.dumps(config)
-
     def validate(self, data):
-        config = json.loads(data["config"])
+        config = data["config"]
+        # 转换为字符串，方便后续的变量匹配等操作
+        data["config"] = json.dumps(config)
         name = config.get("metadata", {}).get("name") or ""
         return check_resource_name("K8sSecret", data, name)
