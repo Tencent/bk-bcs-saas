@@ -60,10 +60,7 @@ class ApplyHostStatusResultHandler(BaseResultHandler):
         else:
             status = poll_data["state"]
 
-        steps = poll_data.get("steps")
-        if not steps:
-            steps = {"申请主机": {"state": status}}
-        self.update_task_log(log_id=self.params["log_id"], status=status, logs=steps)
+        self.update_task_log(log_id=self.params["log_id"], status=status, logs=poll_data.get("steps"))
 
     def update_task_log(self, log_id: int, status: str, logs: Dict):
         try:
