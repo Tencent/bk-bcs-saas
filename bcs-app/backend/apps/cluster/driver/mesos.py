@@ -51,7 +51,7 @@ class MesosDriver:
         return resp
 
     def get_host_container_count(self, host_ips):
-        field_list = ['data.containerStatuses.containerID', 'data.hostIP', "namespace"]
+        field_list = ['data.containerStatuses.containerID', 'data.hostIP']
         resp = self.get_unit_info(host_ips, ','.join(field_list))
         # compose the host container data
         return self.host_container_map(resp)
@@ -61,7 +61,7 @@ class MesosDriver:
 
         def iter_container(tg):
             for g in tg:
-                if g["namespace"] in MESOS_SKIP_NS_LIST:
+                if g.get("namespace") in MESOS_SKIP_NS_LIST:
                     continue
                 for d in g['data']['containerStatuses']:
                     c = {
