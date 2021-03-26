@@ -154,3 +154,11 @@ class ClusterState(ChoicesEnum):
     Existing = "existing"
 
     _choices_labels = ((BCSNew, "bcs_new"), (Existing, "existing"))
+
+
+# 集群默认的网络类型
+class ClusterNetworkType(ChoicesEnum):
+    OVERLAY = "overlay"
+    UNDERLAY = "underlay"
+
+    _choices_labels = ((OVERLAY, "overlay"), (UNDERLAY, "underlay"))

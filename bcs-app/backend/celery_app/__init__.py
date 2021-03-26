@@ -54,11 +54,15 @@ class CeleryConfig(AppConfig):
     def ready(self):
         from backend.accounts.bcs_perm import tasks as bcs_tasks  # noqa
         from backend.apps.cluster import node_tasks  # noqa
-        from backend.apps.cluster.views_bk import tasks as cluster_node_tasks
         from backend.apps.configuration import tasks as backend_instance_status  # noqa
         from backend.apps.metric import tasks as metric_tasks  # noqa
         from backend.bcs_k8s.app import tasks as helm_app_tasks  # noqa
         from backend.bcs_k8s.helm import tasks as helm_chart_tasks  # noqa
         from backend.utils import notify  # noqa
+
+        try:
+            from backend.apps.cluster.flow_views_ext import tasks as cluster_node_tasks
+        except ImportError:
+            from backend.apps.cluster.flow_views import tasks as cluster_node_tasks
 
         from . import periodic_tasks  # noqa

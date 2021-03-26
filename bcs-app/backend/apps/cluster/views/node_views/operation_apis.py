@@ -21,7 +21,6 @@ from backend.apps.cluster import serializers as node_serializers
 from backend.apps.cluster.models import CommonStatus, NodeStatus, NodeUpdateLog
 from backend.apps.cluster.utils import cluster_env_transfer
 from backend.apps.cluster.views.node_views import serializers as node_slz
-from backend.apps.cluster.views_bk import node
 from backend.resources.cluster import utils as node_utils
 from backend.resources.project.constants import ProjectKind
 from backend.utils.errcodes import ErrorCode
@@ -29,6 +28,11 @@ from backend.utils.error_codes import error_codes
 from backend.utils.renderers import BKAPIRenderer
 
 from .base import ClusterPerm, Nodes
+
+try:
+    from backend.apps.cluster.flow_views_ext import node
+except ImportError:
+    from backend.apps.cluster.flow_views import node
 
 
 class DeleteNodeRecordViewSet(Nodes, viewsets.ViewSet):

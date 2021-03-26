@@ -24,7 +24,9 @@ from rest_framework.response import Response
 from backend.accounts.bcs_perm import Cluster, Namespace
 from backend.activity_log import client
 from backend.apps.cluster import constants, serializers
+from backend.apps.cluster.constants import ClusterState
 from backend.apps.cluster.models import ClusterInstallLog, ClusterOperType, CommonStatus
+from backend.apps.cluster.utils import can_use_hosts
 from backend.apps.instance.models import InstanceConfig, InstanceEvent, MetricConfig, VersionInstance
 from backend.apps.network.models import K8SLoadBlance, MesosLoadBlance
 from backend.bcs_k8s.app.models import App
@@ -35,11 +37,8 @@ from backend.utils.errcodes import ErrorCode
 from backend.utils.error_codes import bk_error_codes, error_codes
 from backend.utils.ratelimit import RateLimiter
 from backend.utils.renderers import BKAPIRenderer
-from backend.apps.cluster.constants import ClusterState
-from backend.apps.cluster.utils import can_use_hosts
 
 from .configs import k8s, mesos
-
 
 logger = logging.getLogger(__name__)
 ACTIVITY_RESOURCE_TYPE = 'cluster'
@@ -334,7 +333,10 @@ class ReinstallCluster(BaseCluster):
         return cluster_info
 
     def get_cluster_last_log(self):
-        log = ClusterInstallLog.objects.filter(project_id=self.project_id, cluster_id=self.cluster_id,).last()
+        log = ClusterInstallLog.objects.filter(
+            project_id=self.project_id,
+            cluster_id=self.cluster_id,
+        ).last()
         if not log:
             raise error_codes.CheckFailed(_("没有查询对应的任务日志"))
         return log

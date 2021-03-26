@@ -31,8 +31,6 @@ from backend.apps.cluster.driver import BaseDriver
 from backend.apps.cluster.models import CommonStatus, NodeLabel, NodeStatus, NodeUpdateLog
 from backend.apps.cluster.serializers import NodeLabelParamsSLZ
 from backend.apps.cluster.utils import cluster_env_transfer, custom_paginator, status_transfer
-from backend.apps.cluster.views_bk import node
-from backend.apps.cluster.views_bk.tools import cmdb, gse
 from backend.components import data as data_api
 from backend.components import paas_cc
 from backend.components.bcs import k8s, mesos
@@ -41,6 +39,13 @@ from backend.utils.errcodes import ErrorCode
 from backend.utils.error_codes import error_codes
 from backend.utils.funutils import convert_mappings
 from backend.utils.renderers import BKAPIRenderer
+
+try:
+    from backend.apps.cluster.flow_views_ext import node
+    from backend.apps.cluster.flow_views_ext.tools import cmdb, gse
+except ImportError:
+    from backend.apps.cluster.flow_views import node
+    from backend.apps.cluster.flow_views.tools import cmdb, gse
 
 logger = logging.getLogger(__name__)
 

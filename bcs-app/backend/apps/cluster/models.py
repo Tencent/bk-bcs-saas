@@ -142,7 +142,10 @@ class GcloudPollingTask(models.Model):
 
     def polling_task(self):
         """轮训任务"""
-        from backend.apps.cluster.views_bk import tasks
+        try:
+            from backend.apps.cluster.flow_views_ext import tasks
+        except ImportError:
+            from backend.apps.cluster.flow_views import tasks
 
         tasks.polling_task.delay(self.__class__.__name__, self.pk)
 
