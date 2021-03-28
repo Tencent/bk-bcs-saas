@@ -11,15 +11,12 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
+from backend.apis.views import NoAccessTokenBaseAPIViewSet
+from backend.dashboard.custom_object.views import CustomObjectViewSet
 
-# k8s 中系统的命名空间，不允许用户创建，也不能操作上面的资源 kube-system, kube-public
-K8S_SYS_NAMESPACE = ["kube-system", "kube-public"]
 
-# k8s 平台服务用的命名空间
-# TODO: bcs-system命名空间后续处理
-K8S_PLAT_NAMESPACE = ["web-console", "gitlab-ci", "thanos"]
-
-# 平台和系统使用的命名空间
-K8S_SYS_PLAT_NAMESPACES = K8S_SYS_NAMESPACE + K8S_PLAT_NAMESPACE
-
-NAMESPACE_REGEX = "[a-z0-9]([-a-z0-9]*[a-z0-9])?"
+class CustomObjectAPIViewSet(NoAccessTokenBaseAPIViewSet, CustomObjectViewSet):
+    def patch_custom_object(self, request, project_id_or_code, cluster_id, crd_name, name):
+        return super(CustomObjectAPIViewSet, self).patch_custom_object(
+            request, request.project.project_id, cluster_id, crd_name, name
+        )

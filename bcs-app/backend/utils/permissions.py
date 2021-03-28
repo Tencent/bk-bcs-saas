@@ -65,8 +65,9 @@ class HasIAMProject(BasePermission):
             perm = permissions.ProjectPermission()
             return perm.can_view(user_id, project_id)
         else:
+            # 实际调用paas_auth.verify_project
             verify = bcs_perm.verify_project_by_user(
-                access_token=access_token, project_code=project_code, project_id=project_id, user_id=user_id
+                access_token=access_token, project_id=project_id, project_code=project_code, user_id=user_id
             )
             return verify
 
@@ -77,6 +78,7 @@ class HasIAMProject(BasePermission):
         cache_key = f"BK_DEVOPS_BCS:PROJECT_CODE:{project_id}"
         project_code = region.get(cache_key, expiration_time=3600 * 24 * 30)
         if not project_code:
+            # 这里的project_id对应实际的project_id或project_code, paas_cc接口兼容了两种类型的查询
             result = paas_cc.get_project(access_token, project_id)
             if result.get("code") != 0:
                 return None

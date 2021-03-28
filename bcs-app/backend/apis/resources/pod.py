@@ -11,15 +11,14 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
+from rest_framework.response import Response
 
-# k8s 中系统的命名空间，不允许用户创建，也不能操作上面的资源 kube-system, kube-public
-K8S_SYS_NAMESPACE = ["kube-system", "kube-public"]
+from backend.resources.pod.pod import Pod
 
-# k8s 平台服务用的命名空间
-# TODO: bcs-system命名空间后续处理
-K8S_PLAT_NAMESPACE = ["web-console", "gitlab-ci", "thanos"]
+from ..views import BaseAPIViewSet
 
-# 平台和系统使用的命名空间
-K8S_SYS_PLAT_NAMESPACES = K8S_SYS_NAMESPACE + K8S_PLAT_NAMESPACE
 
-NAMESPACE_REGEX = "[a-z0-9]([-a-z0-9]*[a-z0-9])?"
+class PodViewSet(BaseAPIViewSet):
+    def get_pod(self, request, project_id_or_code, cluster_id, namespace, pod_name):
+        p = Pod(request.user.token.access_token, request.project.project_id, cluster_id, namespace)
+        return Response(p.get_pod(pod_name))

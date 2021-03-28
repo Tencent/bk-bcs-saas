@@ -13,11 +13,13 @@
 #
 from django.conf.urls import include, url
 
+from .webconsole.views import WebConsoleSession
+
 urlpatterns = [
-    url(r"^projects/", include("backend.apis.project.urls")),
+    url(r"^projects/", include("backend.apis.projects.urls")),
     # TODO ^resources/projects/ will replace ^projects/(?P<project_id>\w{32})/clusters/ in apigw
-    url(r"^projects/(?P<project_id>\w{32})/clusters/", include("backend.apis.resources.urls")),
-    url(r"^resources/projects/(?P<project_id>\w{32})/clusters/", include("backend.apis.resources.urls")),
+    url(r"^projects/(?P<project_id_or_code>[\w\-]+)/clusters/", include("backend.apis.resources.urls")),
+    url(r"^resources/projects/(?P<project_id_or_code>[\w\-]+)/clusters/", include("backend.apis.resources.urls")),
     # TODO ^templatesets/projects/ will replace ^projects/(?P<project_id>\w{32})/configuration/ in apigw
     url(r"^projects/(?P<project_id_or_code>[\w\-]+)/configuration/", include("backend.apis.templatesets.urls")),
     url(r"^templatesets/projects/(?P<project_id_or_code>[\w\-]+)/", include("backend.apis.templatesets.urls")),
@@ -37,4 +39,12 @@ urlpatterns = [
         r"^metrics/projects/(?P<project_id_or_code>[\w\-]+)/clusters/(?P<cluster_id>[\w-]+)/",
         include("backend.apis.metrics.urls"),
     ),
+    # web_console API
+    url(
+        r"^projects/(?P<project_id_or_code>[\w\-]+)/clusters/(?P<cluster_id>[\w\-]+)/web_console/sessions/",
+        WebConsoleSession.as_view(),
+    ),
+    # TODO ^helm/projects/ will replace ^projects/(?P<project_id_or_code>[\w\-]+)/helm/ in apigw
+    url(r"^projects/(?P<project_id_or_code>[\w\-]+)/helm/", include("backend.apis.helm.urls")),
+    url(r"^helm/projects/(?P<project_id_or_code>[\w\-]+)/", include("backend.apis.helm.urls")),
 ]
