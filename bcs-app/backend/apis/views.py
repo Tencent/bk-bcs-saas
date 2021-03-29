@@ -52,7 +52,7 @@ class ProjectBaseAPIViewSet(viewsets.ViewSet):
     """对流水线等外部调用API URL不定参数, 转换为内部的project_id, project_code等"""
 
     authentication_classes = (JWTAuthentication,)
-    permission_classes = (AccessTokenPermission, HasIAMProject, ProjectHasBCS)
+    permission_classes = (RemoteAccessPermission, HasIAMProject, ProjectHasBCS)
     renderer_classes = (BKAPIRenderer,)
 
     # 具体view函数需要的字段名称

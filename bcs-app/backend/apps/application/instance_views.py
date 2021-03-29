@@ -33,7 +33,6 @@ from backend.apps.application.views import UpdateInstanceNew
 from backend.apps.configuration.models import MODULE_DICT, ShowVersion, VersionedEntity
 from backend.apps.configuration.utils import check_var_by_config
 from backend.apps.constants import ProjectKind
-from backend.apps.datalog import utils as datalog_utils
 from backend.apps.instance import utils as inst_utils
 from backend.apps.instance.constants import ANNOTATIONS_WEB_CACHE
 from backend.apps.instance.models import InstanceConfig, InstanceEvent, VersionInstance
@@ -43,6 +42,11 @@ from backend.components import data, paas_cc
 from backend.utils.basic import getitems
 from backend.utils.errcodes import ErrorCode
 from backend.utils.renderers import BKAPIRenderer
+
+try:
+    from backend.apps.datalog import utils as datalog_utils
+except ImportError:
+    from backend.apps.datalog_ce import utils as datalog_utils
 
 logger = logging.getLogger(__name__)
 

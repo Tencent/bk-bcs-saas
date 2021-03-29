@@ -13,7 +13,6 @@
 #
 import logging
 
-from django.conf import settings
 from django.utils.translation import ugettext as _
 from rest_framework import viewsets
 from rest_framework.renderers import BrowsableAPIRenderer
@@ -22,7 +21,6 @@ from rest_framework.response import Response
 from backend.accounts import bcs_perm
 from backend.apps.configuration.models import POD_RES_LIST
 from backend.apps.constants import ALL_LIMIT, ProjectKind
-from backend.apps.datalog.data_collect import apply_dataid_by_metric, create_prometheus_data_flow, get_metric_data_name
 from backend.apps.instance.constants import InsState
 from backend.apps.instance.models import InstanceConfig
 from backend.apps.metric import serializers, tasks
@@ -32,6 +30,19 @@ from backend.components import paas_cc
 from backend.utils.error_codes import error_codes
 from backend.utils.renderers import BKAPIRenderer
 from backend.utils.response import BKAPIResponse
+
+try:
+    from backend.apps.datalog.data_collect import (
+        apply_dataid_by_metric,
+        create_prometheus_data_flow,
+        get_metric_data_name,
+    )
+except ImportError:
+    from backend.apps.datalog_ce.data_collect import (
+        apply_dataid_by_metric,
+        create_prometheus_data_flow,
+        get_metric_data_name,
+    )
 
 logger = logging.getLogger(__name__)
 PAUSE = 'pause'

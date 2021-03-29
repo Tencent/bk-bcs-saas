@@ -24,3 +24,9 @@ def send_message(receiver, message, title=None, send_way=None):
     send_mail(title, message, receiver)
     send_weixin(title, message, receiver)
     send_sms(message, receiver)
+
+
+try:
+    from .send_msg_ext import send_message  # noqa
+except ImportError:
+    pass

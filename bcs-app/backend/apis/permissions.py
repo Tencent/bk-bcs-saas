@@ -13,8 +13,10 @@
 #
 import logging
 
+from django.conf import settings
 from rest_framework import permissions
 
+from backend.components.paas_auth import get_access_token
 from backend.utils import FancyDict
 
 from .constants import ACCESS_TOKEN_KEY_NAME
@@ -40,7 +42,53 @@ class AccessTokenPermission(RemoteAccessPermission):
         access_token = request.META.get(ACCESS_TOKEN_KEY_NAME, "")
 
         if access_token:
+            try:
+                from backend.components.paas_auth import get_user_by_access_token
+            except ImportError:
+                pass
+            else:
+                user = get_user_by_access_token(access_token)
+                if user.get("user_id") != request.user.username:
+                    return False
+
             request.user.token = FancyDict(access_token=access_token)
+            return True
+
+        return False
+
+
+class ClientAccessTokenPermission(RemoteAccessPermission):
+    message = "no valid access_token"
+
+    def has_permission(self, request, view):
+        has_perm = super().has_permission(request, view)
+        if not has_perm:
+            return False
+
+        access_token = request.META.get(ACCESS_TOKEN_KEY_NAME, "")
+        request.user.token = FancyDict(user_access_token=access_token)
+        access_token = get_access_token().get("access_token")
+        request.user.token.access_token = access_token
+
+        return True
+
+
+class BKAppPermission(permissions.BasePermission):
+    """调用接口的app是否有项目权限"""
+
+    def has_permission(self, request, view):
+        has_perm = super().has_permission(request, view)
+        if not has_perm:
+            return False
+
+        project_id_or_code = view.kwargs.get("project_id_or_code")
+        if not project_id_or_code:
+            return False
+
+        app_code = request.user.client.app.app_code
+        project_whitelist = settings.BK_APP_WHITELIST.get(app_code) or []
+
+        if project_id_or_code in project_whitelist:
             return True
 
         return False
