@@ -29,8 +29,6 @@ import os
 import pymysql
 from django.conf.global_settings import gettext_noop as _
 
-from .base_bk import *  # noqa
-
 pymysql.install_as_MySQLdb()
 # Patch version info to forcely pass Django client check
 setattr(pymysql, "version_info", (1, 2, 6, "final", 0))
@@ -50,9 +48,6 @@ DEBUG = True
 
 ALLOWED_HOSTS = ["localhost", "127.0.0.1"]
 
-
-# Application definition
-
 INSTALLED_APPS = [
     "django.contrib.admin",
     "django.contrib.auth",
@@ -66,7 +61,6 @@ INSTALLED_APPS = [
     "django_extensions",
     "backend.accounts",
     "backend.activity_log.ActivaityLogConfig",
-    "backend.apps.datalog.DataLogConfig",
     "backend.apps.projects",
     "backend.apps.depot",
     "backend.apps.cluster",
@@ -128,7 +122,6 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = "wsgi.application"
-
 
 # Database
 # https://docs.djangoproject.com/en/1.11/ref/settings/#databases
@@ -388,14 +381,73 @@ GRAYSCALE_FEATURE_MSG = "功能灰度测试中，请联系管理员添加白名�
 # APIGW APP权限控制
 BK_APP_WHITELIST = {}
 
-# 覆盖配置
-try:
-    from .base_bk import STATICFILES_DIRS, TEMPLATES
-except Exception:
-    pass
-
 # 平台组件部署到的命名空间
 BCS_SYSTEM_NAMESPACE = "bcs-system"
 
 # bcs-agent YAML 配置文件模板名
 BCS_AGENT_YAML_TEMPLTE_NAME = 'bcs_agent_tmpl.yaml'
+
+
+# *********************************** Helm Config Begin *****************************
+DEFAULT_MANAGE_CLUSTER = {'id': '', 'project_id': ''}
+
+DEFAULT_REPO_NAMESPACE_INFO = {'name': '', 'id': ''}
+
+PLATFORM_REPO_INFO = {'name': 'platform', 'url': '', 'provider': 'chartmuseum', 'project_id': ''}
+
+RGW_CONFIG = {
+    "admin_host": "",
+    "access_key": "",
+    "secret_key": "",
+    "admin_endpoint": "",
+    "tenant": "",
+    "default_policy": "",
+    "max_size": 1048576,
+}
+
+# 用于区分chart路径
+HELM_REPO_ENV = "stag"
+PLATFORM_REPO_DOMAIN = ""
+
+HELM_DOC_TRICKS = "https://docs.bk.tencent.com/bcs/Container/helm/Skills.html"
+HELM_SYNC_DO_DEPLOY = False
+# *********************************** Helm Config End *****************************
+
+SENTRY_DSN = ''
+
+# 默认超级用户
+ADMIN_SUPERUSERS = []
+
+# 集群信息变更等的通知人
+DEFAULT_OPER_USER = ""
+
+# so初始化错误信息查看
+SO_ERROR_MSG = ""
+
+# op系统通知人
+OP_MAINTAINERS = []
+
+# 容器服务API测试环境测试用户
+DEFAULT_API_TEST_USER = ''
+
+# 提供给流水线API调用的默认用户
+PIPELINE_DEFAULT_USER = ""
+# 提供给标准运维API调用的默认用户
+GCLOUD_DEFAULT_USER = ""
+
+# Mesos中LB的默认仓库域名
+DEFAUT_MESOS_LB_JFROG_DOMAIN = ''
+
+# 平台名称
+PLAT_SHOW_NAME = "蓝鲸容器管理平台"
+
+# 小游戏示例代码下载链接
+RUMPETROLL_DEMO_DOWNLOAD_URL = 'http://bkopen-10032816.file.myqcloud.com/rumpetroll-1.0.0.tgz'
+
+# 直接开启的功能开关，不需要在db中配置
+DIRECT_ON_FUNC_CODE = ['HAS_IMAGE_SECRET']
+
+try:
+    from .base_ext import *  # noqa
+except ImportError as e:
+    print(f'Load extension failed: {e}')

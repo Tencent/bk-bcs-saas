@@ -16,7 +16,11 @@ from unittest import mock
 
 import pytest
 
-from backend.resources.client import BcsKubeAddressesProvider, BcsKubeConfigurationService
+from backend.resources.client import BcsAPIEnvironmentQuerier, BcsKubeConfigurationService
+from backend.resources.cluster import CtxCluster
+from backend.tests.testing_utils.mocks.bcs_api import StubBcsApiClient
+from backend.tests.testing_utils.mocks.collection import StubComponentCollection
+from backend.tests.testing_utils.mocks.paas_cc import StubPaaSCCClient
 from backend.utils.exceptions import ComponentError
 
 
@@ -30,44 +34,41 @@ def setup_settings(settings):
     }
     settings.BCS_API_PRE_URL = 'https://bcs-api.example.com'
 
+    # 替换所有 Comp 系统为测试专用的 Stub 系统
+    with mock.patch('backend.resources.models.ComponentCollection', new=StubComponentCollection):
+        yield
+
 
 fake_cc_get_cluster_result_ok = {'code': 0, 'result': True, 'data': {'environment': 'stag'}}
 fake_cc_get_cluster_result_failed = {'code': 100, 'result': False}
 
 
-class TestBcsKubeAddressesProvider:
-    @mock.patch('backend.resources.client.paas_cc.get_cluster', return_value=fake_cc_get_cluster_result_ok)
+class TestBcsAPIEnvironmentQuerier:
     def test_normal(self, project_id, cluster_id):
-        addresses = BcsKubeAddressesProvider('token', project_id, cluster_id)
-        api_env_name = addresses._query_api_env_name()
-        assert api_env_name == 'my_stag'
-        assert addresses.get_api_base_url() == 'https://bcs-api.example.com/my_stag'
-        assert addresses.get_clusters_base_url() == 'https://bcs-api.example.com/my_stag/rest/clusters'
-        assert addresses.get_kube_apiservers_host() == 'https://my-stag-bcs-server.example.com'
+        cluster = CtxCluster.create(cluster_id, project_id, token='token')
+        querier = BcsAPIEnvironmentQuerier(cluster)
+        with StubPaaSCCClient.get_cluster.mock(return_value=fake_cc_get_cluster_result_ok):
+            api_env_name = querier.do()
 
-    @mock.patch('backend.resources.client.paas_cc.get_cluster', return_value=fake_cc_get_cluster_result_failed)
+        assert api_env_name == 'my_stag'
+
+    @mock.patch('backend.resources.models.ComponentCollection', new=StubComponentCollection)
     def test_failed(self, project_id, cluster_id):
-        addresses = BcsKubeAddressesProvider('token', project_id, cluster_id)
-        with pytest.raises(ComponentError):
-            assert addresses.get_api_base_url()
+        cluster = CtxCluster.create(cluster_id, project_id, token='token')
+        querier = BcsAPIEnvironmentQuerier(cluster)
+        with StubPaaSCCClient.get_cluster.mock(return_value=fake_cc_get_cluster_result_failed):
+            with pytest.raises(ComponentError):
+                assert querier.do()
 
 
 class TestBcsKubeConfigurationService:
-    @mock.patch('backend.resources.client.paas_cc.get_cluster', return_value=fake_cc_get_cluster_result_ok)
     def test_make_configuration(self, project_id, cluster_id):
-        config_service = BcsKubeConfigurationService('token', project_id, cluster_id)
+        cluster = CtxCluster.create(cluster_id, project_id, token='token')
+        config_service = BcsKubeConfigurationService(cluster)
 
-        with mock.patch('backend.resources.client.http_get') as http_get_mocker:
-            http_get_mocker.side_effect = [
-                {'id': '10000'},  # Query BKE Server ID
-                {'server_address_path': '/foo', 'user_token': 'foo-token'},  # Query credentials
-            ]
+        faked_credentials = {'server_address_path': '/example-foo-cluster', 'user_token': 'faked-foo-token'}
+        with StubBcsApiClient.get_cluster_credentials.mock(return_value=faked_credentials):
             config = config_service.make_configuration()
 
-            assert http_get_mocker.call_count == 2
-            assert (
-                http_get_mocker.call_args[0][0]
-                == 'https://bcs-api.example.com/my_stag/rest/clusters/10000/client_credentials'
-            )
-            assert config.host == 'https://my-stag-bcs-server.example.com/foo'
-            assert config.api_key['authorization'] == 'Bearer foo-token'
+        assert config.host == 'https://my-stag-bcs-server.example.com/example-foo-cluster'
+        assert config.api_key['authorization'] == f'Bearer {faked_credentials["user_token"]}'

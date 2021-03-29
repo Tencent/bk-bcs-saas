@@ -19,7 +19,9 @@ from django.contrib.auth import get_user_model
 from jwt import exceptions as jwt_exceptions
 from rest_framework.authentication import BaseAuthentication, SessionAuthentication
 
-from backend.utils import FancyDict
+from backend.components import ssm
+from backend.components.utils import http_get
+from backend.utils import FancyDict, cache
 
 logger = logging.getLogger(__name__)
 
@@ -94,3 +96,77 @@ class CsrfExceptSessionAuthentication(SessionAuthentication):
 
 class NoAuthError(Exception):
     pass
+
+
+@cache.region.cache_on_arguments(expiration_time=240)
+def get_access_token_by_credentials(bk_token):
+    """Request a new request token by credentials"""
+    return ssm.get_bk_login_access_token(bk_token)
+
+
+class SSMAccessToken(object):
+    def __init__(self, credentials):
+        self.credentials = credentials
+        self.bk_token = credentials["bk_token"]
+
+    @property
+    def access_token(self):
+        data = get_access_token_by_credentials(self.bk_token)
+        return data["access_token"]
+
+
+class BKTokenAuthentication(BaseAuthentication):
+    """企业版bk_token校验"""
+
+    def verify_bk_token(self, bk_token):
+        """校验是否"""
+        url = f"{settings.BK_PAAS_INNER_HOST}/login/accounts/is_login/"
+        params = {"bk_token": bk_token}
+        resp = http_get(url, params=params)
+        if resp.get("result") is not True:
+            raise NoAuthError(resp.get("message", ""))
+
+        return resp["data"]["username"]
+
+    def get_credentials(self, request):
+        return {
+            "bk_token": request.COOKIES.get("bk_token"),
+        }
+
+    def get_user(self, username):
+        user_model = get_user_model()
+        defaults = {"is_active": True, "is_staff": False, "is_superuser": False}
+        user, _ = user_model.objects.get_or_create(username=username, defaults=defaults)
+        return user
+
+    def authenticate(self, request):
+        auth_credentials = self.get_credentials(request)
+        if not auth_credentials["bk_token"]:
+            return None
+
+        credentials = request.session.get("auth_credentials")
+        if not credentials or credentials != auth_credentials:
+            try:
+                username = self.verify_bk_token(**auth_credentials)
+            except NoAuthError as e:
+                logger.info("%s authentication error: %s", auth_credentials["bk_token"], e)
+                return None
+            except Exception as e:
+                logger.exception("ticket authentication error: %s", e)
+                return None
+
+            # 缓存auth_credentials
+            auth_credentials["username"] = username
+            request.session["auth_credentials"] = auth_credentials
+        else:
+            username = credentials["username"]
+
+        user = self.get_user(username)
+        user.token = SSMAccessToken(auth_credentials)
+        return (user, None)
+
+
+try:
+    from .authentication_ext import BKTicketAuthentication, BKTicketAuthenticationBackend
+except ImportError as e:
+    logger.debug('Load extension failed: %s', e)

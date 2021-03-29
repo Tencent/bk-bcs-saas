@@ -23,7 +23,7 @@ from django.conf import settings
 
 from backend.components.utils import http_post
 
-from .constant import DATA_API_V3_PREFIX, DATA_TOKEN
+from .constants import DATA_API_V3_PREFIX, DATA_TOKEN
 
 logger = logging.getLogger(__name__)
 
@@ -382,3 +382,9 @@ class NSTDLogDataBus(DataBus):
         super()._update_storage_success(is_success)
         self.project_data.non_standard_storage_success = is_success
         self.project_data.save(update_fields=["non_standard_storage_success"])
+
+
+try:
+    from .databus_ext import *  # noqa
+except ImportError as e:
+    logger.debug("Load extension failed: %s", e)
