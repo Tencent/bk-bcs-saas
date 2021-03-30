@@ -82,25 +82,27 @@ class IsEnabledBCS(BasePermission):
     def _get_cached_enabled_project(self, access_token, project_id_or_code: str) -> Optional[FancyDict]:
         cache_key = f"BK_DEVOPS_BCS:ENABLED_BCS_PROJECT:{project_id_or_code}"
         project = region.get(cache_key, expiration_time=EXPIRATION_TIME)
+        if project and isinstance(project, FancyDict):
+            return project
 
-        if not project or not isinstance(project, FancyDict):
-            resp = paas_cc.get_project(access_token, project_id_or_code)
-            if resp.get('code') != ErrorCode.NoError:
-                return None
+        resp = paas_cc.get_project(access_token, project_id_or_code)
+        if resp.get('code') != ErrorCode.NoError:
+            return None
 
-            project = FancyDict(**resp['data'])
-            project.coes = project.kind
+        project = FancyDict(**resp['data'])
+        project.coes = project.kind
 
-            try:
-                from backend.apps.projects.utils import get_project_kind
+        try:
+            from backend.apps.projects.utils import get_project_kind
 
-                # k8s类型包含kind为1(bcs k8s)或其它属于k8s的编排引擎
-                project.kind = get_project_kind(project.kind)
-            except ImportError:
-                pass
+            # k8s类型包含kind为1(bcs k8s)或其它属于k8s的编排引擎
+            project.kind = get_project_kind(project.kind)
+        except ImportError:
+            pass
 
-            # 用户绑定了项目, 并且选择了编排类型
-            if project.cc_app_id != 0 and project.kind in ClusterType:
-                region.set(cache_key, project)
+        # 用户绑定了项目, 并且选择了编排类型
+        if project.cc_app_id != 0 and project.kind in ClusterType:
+            region.set(cache_key, project)
+            return project
 
-        return project
+        return None
