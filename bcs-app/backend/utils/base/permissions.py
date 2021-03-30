@@ -91,6 +91,7 @@ class IsEnabledBCS(BasePermission):
 
         project = FancyDict(**resp['data'])
         project.coes = project.kind
+        project.project_code = project.english_name
 
         try:
             from backend.apps.projects.utils import get_project_kind
