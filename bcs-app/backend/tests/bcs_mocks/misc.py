@@ -21,7 +21,9 @@ class FakePaaSCCMod:
     """A fake object for replacing the real components.paas_cc module"""
 
     def get_project(self, access_token: str, project_id: str) -> Dict:
-        return self._resp(paas_cc_json.resp_get_project_ok)
+        resp_get_project_ok = dict(paas_cc_json.resp_get_project_ok)
+        resp_get_project_ok['data']['project_id'] = project_id
+        return self._resp(resp_get_project_ok)
 
     def get_all_clusters(self, access_token, project_id, limit=None, offset=None, desire_all_data=0):
         resp = self._resp(paas_cc_json.resp_get_clusters_ok)
