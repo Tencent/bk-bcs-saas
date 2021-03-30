@@ -19,6 +19,7 @@ from backend.accounts import bcs_perm
 from backend.activity_log import client
 from backend.apps.cluster import serializers as node_serializers
 from backend.apps.cluster.models import CommonStatus, NodeStatus, NodeUpdateLog
+from backend.apps.cluster.module_apis import get_cluster_node_mod
 from backend.apps.cluster.utils import cluster_env_transfer
 from backend.apps.cluster.views.node_views import serializers as node_slz
 from backend.resources.cluster import utils as node_utils
@@ -29,10 +30,7 @@ from backend.utils.renderers import BKAPIRenderer
 
 from .base import ClusterPerm, Nodes
 
-try:
-    from backend.apps.cluster.flow_views_ext import node
-except ImportError:
-    from backend.apps.cluster.flow_views import node
+node = get_cluster_node_mod()
 
 
 class DeleteNodeRecordViewSet(Nodes, viewsets.ViewSet):

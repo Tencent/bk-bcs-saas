@@ -28,6 +28,7 @@ from backend.apps.cluster import constants as cluster_constants
 from backend.apps.cluster import serializers as cluster_serializers
 from backend.apps.cluster.constants import ClusterNetworkType, ClusterStatusName
 from backend.apps.cluster.models import ClusterInstallLog, ClusterOperType, ClusterStatus, CommonStatus
+from backend.apps.cluster.module_apis import get_cluster_mod
 from backend.apps.cluster.utils import cluster_env_transfer, get_cmdb_hosts, get_ops_platform, status_transfer
 from backend.apps.constants import CLUSTER_UPGRADE_VERSION, UPGRADE_TYPE
 from backend.components import bcs, ops, paas_cc
@@ -41,10 +42,8 @@ from backend.utils.func_controller import get_func_controller
 from backend.utils.funutils import convert_mappings
 from backend.utils.renderers import BKAPIRenderer
 
-try:
-    from backend.apps.cluster.flow_views_ext import cluster
-except ImportError:
-    from backend.apps.cluster.flow_views import cluster
+# 导入cluster模块
+cluster = get_cluster_mod()
 
 DEFAULT_OPER_USER = settings.DEFAULT_OPER_USER
 # 1表示gse agent正常

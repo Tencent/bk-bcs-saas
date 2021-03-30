@@ -156,8 +156,9 @@ class ClusterState(ChoicesEnum):
     _choices_labels = ((BCSNew, "bcs_new"), (Existing, "existing"))
 
 
-# 集群默认的网络类型
 class ClusterNetworkType(ChoicesEnum):
+    """集群网络类型"""
+
     OVERLAY = "overlay"
     UNDERLAY = "underlay"
 

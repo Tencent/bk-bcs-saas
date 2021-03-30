@@ -29,6 +29,7 @@ from backend.apps.cluster import utils as cluster_utils
 from backend.apps.cluster.constants import DEFAULT_SYSTEM_LABEL_KEYS
 from backend.apps.cluster.driver import BaseDriver
 from backend.apps.cluster.models import CommonStatus, NodeLabel, NodeStatus, NodeUpdateLog
+from backend.apps.cluster.module_apis import get_cluster_node_mod, get_cmdb_mod, get_gse_mod
 from backend.apps.cluster.serializers import NodeLabelParamsSLZ
 from backend.apps.cluster.utils import cluster_env_transfer, custom_paginator, status_transfer
 from backend.components import data as data_api
@@ -40,12 +41,10 @@ from backend.utils.error_codes import error_codes
 from backend.utils.funutils import convert_mappings
 from backend.utils.renderers import BKAPIRenderer
 
-try:
-    from backend.apps.cluster.flow_views_ext import node
-    from backend.apps.cluster.flow_views_ext.tools import cmdb, gse
-except ImportError:
-    from backend.apps.cluster.flow_views import node
-    from backend.apps.cluster.flow_views.tools import cmdb, gse
+# 导入相应模块
+node = get_cluster_node_mod()
+cmdb = get_cmdb_mod()
+gse = get_gse_mod()
 
 logger = logging.getLogger(__name__)
 
