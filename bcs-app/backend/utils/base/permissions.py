@@ -88,8 +88,7 @@ class IsEnabledBCS(BasePermission):
             if resp.get('code') != ErrorCode.NoError:
                 return None
 
-            project = resp['data']
-            project = FancyDict(**project)
+            project = FancyDict(**resp['data'])
             project.coes = project.kind
 
             try:
