@@ -15,10 +15,10 @@ from django.utils.translation import ugettext_lazy as _
 from rest_framework import viewsets
 from rest_framework.response import Response
 
+from backend.baseviews.viewsets import UserViewSet
 from backend.components import paas_cc
 from backend.components.ssm import get_client_access_token
 from backend.utils import FancyDict
-from backend.utils.base.viewsets import UserViewSet
 from backend.utils.errcodes import ErrorCode
 from backend.utils.error_codes import error_codes
 from backend.utils.permissions import HasIAMProject, ProjectHasBCS

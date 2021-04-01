@@ -14,7 +14,8 @@
 import mock
 import pytest
 
-from backend.tests.bcs_mocks.misc import FakePaaSCCMod, FakeProjectPermissionAllowAll
+from backend.tests.bcs_mocks.misc import FakeProjectPermissionAllowAll
+from backend.tests.testing_utils.mocks.paas_cc import StubPaaSCCClient
 from backend.utils.cache import region
 
 pytestmark = pytest.mark.django_db
@@ -28,8 +29,8 @@ def patch_permissions():
     - ProjectPermission: allow all permission checks
     - get_api_public_key: return None
     """
-    with mock.patch('backend.utils.base.permissions.paas_cc', new=FakePaaSCCMod()), mock.patch(
-        'backend.utils.permissions.permissions.ProjectPermission', new=FakeProjectPermissionAllowAll
+    with mock.patch('backend.baseviews.permissions.PaaSCCClient', new=StubPaaSCCClient), mock.patch(
+        'backend.baseviews.permissions.permissions.ProjectPermission', new=FakeProjectPermissionAllowAll
     ), mock.patch('backend.components.apigw.get_api_public_key', return_value=None):
         yield
 

@@ -11,6 +11,8 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
+from typing import Tuple
+
 from rest_framework import exceptions
 from rest_framework.authentication import BaseAuthentication
 
@@ -22,11 +24,13 @@ from . import constants
 
 
 class JWTAndTokenAuthentication(BaseAuthentication):
+    """提供用户认证功能(用于接入apigw的网关API)"""
+
     def authenticate(self, request):
         user = self.authenticate_jwt(request)
         return self.authenticate_token(request, user)
 
-    def authenticate_jwt(self, request):
+    def authenticate_jwt(self, request) -> JWTUser:
         client = JWTClient(request.META.get(constants.APIGW_JWT_KEY_NAME, ""))
         if not client.is_valid(constants.BCS_APP_APIGW_PUBLIC_KEY):
             raise exceptions.AuthenticationFailed(f"invalid {constants.APIGW_JWT_KEY_NAME}")
@@ -39,9 +43,13 @@ class JWTAndTokenAuthentication(BaseAuthentication):
         user.client = client
         return user
 
-    def authenticate_token(self, request, user):
+    def authenticate_token(self, request, user: JWTUser):
+        """生成有效的request.user.token.access_token"""
+
         access_token = request.META.get(constants.ACCESS_TOKEN_KEY_NAME, "")
+        # 通过头部传入access_token
         if access_token:
+            # 代码多版本原因: 如果paas_auth中定义了get_user_by_access_token方法，则完成用户身份校验；否则忽略
             try:
                 from backend.components.paas_auth import get_user_by_access_token
             except ImportError:
@@ -52,7 +60,7 @@ class JWTAndTokenAuthentication(BaseAuthentication):
                     raise exceptions.AuthenticationFailed(f"invalid {constants.ACCESS_TOKEN_KEY_NAME}")
 
             user.token = FancyDict(access_token=access_token)
-        else:
+        else:  # 如果客户端未传入有效access_token, 平台注入系统access_token
             user.token = FancyDict(access_token=get_access_token().get("access_token"))
 
         return (user, None)

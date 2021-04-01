@@ -18,16 +18,18 @@ from rest_framework.permissions import BasePermission
 
 from backend.accounts import bcs_perm
 from backend.apps.constants import ClusterType
-from backend.components import paas_cc
+from backend.components.base import ComponentAuth
 from backend.components.iam import permissions
+from backend.components.paas_cc import PaaSCCClient
 from backend.utils import FancyDict
 from backend.utils.cache import region
-from backend.utils.errcodes import ErrorCode
 
 EXPIRATION_TIME = 3600 * 24 * 30
 
 
-class ProjectPermission(BasePermission):
+class AccessProjectPermission(BasePermission):
+    """仅支持处理url路径参数中包含project_id或project_id_or_code的接口"""
+
     message = "no project permissions"
 
     def has_permission(self, request, view):
@@ -38,58 +40,72 @@ class ProjectPermission(BasePermission):
         user_id = request.user.username
 
         project_id_or_code = view.kwargs.get('project_id') or view.kwargs.get('project_id_or_code')
-        project_id = self._get_cached_project_id(access_token, project_id_or_code)
+        project_id = self._get_project_id(access_token, project_id_or_code)
         if not project_id:
             return False
 
         if settings.REGION == 'ce':
+            # 私有化版本对接权限中心v3。如果用户有project的view权限，则返回True
             perm = permissions.ProjectPermission()
             return perm.can_view(user_id, project_id)
         else:
-            # 实际调用paas_auth.verify_project
+            # 实际调用paas_auth.verify_project(权限中心v0)
             return bcs_perm.verify_project_by_user(
                 access_token=access_token, project_id=project_id, project_code="", user_id=user_id
             )
 
-    def _get_cached_project_id(self, access_token, project_id_or_code: str) -> str:
+    def _get_project_id(self, access_token, project_id_or_code: str) -> str:
         cache_key = f'BK_DEVOPS_BCS:PROJECT_ID:{project_id_or_code}'
         project_id = region.get(cache_key, expiration_time=EXPIRATION_TIME)
 
         if not project_id:
-            resp = paas_cc.get_project(access_token, project_id_or_code)
-            if resp.get('code') != ErrorCode.NoError:
-                return ''
-
-            project_id = resp['data']['project_id']
+            paas_cc = PaaSCCClient(auth=ComponentAuth(access_token))
+            project_data = paas_cc.get_project(project_id_or_code)
+            project_id = project_data['project_id']
             region.set(cache_key, project_id)
 
         return project_id
 
 
-class IsEnabledBCS(BasePermission):
+class ProjectEnableBCS(BasePermission):
+    """
+    仅支持处理url路径参数中包含project_id或project_id_or_code的接口
+    主要功能:
+    - 校验项目是否已经开启容器服务
+    - 将project设置成request的属性，在view中使用
+    """
+
     message = "project does not enable bcs"
 
     def has_permission(self, request, view):
         project_id_or_code = view.kwargs.get('project_id') or view.kwargs.get('project_id_or_code')
-        project = self._get_cached_enabled_project(request.user.token.access_token, project_id_or_code)
+        project = self._get_enabled_project(request.user.token.access_token, project_id_or_code)
         if project:
-            # 将project设置为request的属性，在view中使用
             request.project = project
             return True
 
         return False
 
-    def _get_cached_enabled_project(self, access_token, project_id_or_code: str) -> Optional[FancyDict]:
+    def _get_enabled_project(self, access_token, project_id_or_code: str) -> Optional[FancyDict]:
         cache_key = f"BK_DEVOPS_BCS:ENABLED_BCS_PROJECT:{project_id_or_code}"
         project = region.get(cache_key, expiration_time=EXPIRATION_TIME)
         if project and isinstance(project, FancyDict):
             return project
 
-        resp = paas_cc.get_project(access_token, project_id_or_code)
-        if resp.get('code') != ErrorCode.NoError:
-            return None
+        paas_cc = PaaSCCClient(auth=ComponentAuth(access_token))
+        project_data = paas_cc.get_project(project_id_or_code)
+        project = FancyDict(**project_data)
 
-        project = FancyDict(**resp['data'])
+        self._refine_project(project)
+
+        # 用户绑定了项目, 并且选择了编排类型
+        if project.cc_app_id != 0 and project.kind in ClusterType:
+            region.set(cache_key, project)
+            return project
+
+        return None
+
+    def _refine_project(self, project: FancyDict):
         project.coes = project.kind
         project.project_code = project.english_name
 
@@ -100,10 +116,3 @@ class IsEnabledBCS(BasePermission):
             project.kind = get_project_kind(project.kind)
         except ImportError:
             pass
-
-        # 用户绑定了项目, 并且选择了编排类型
-        if project.cc_app_id != 0 and project.kind in ClusterType:
-            region.set(cache_key, project)
-            return project
-
-        return None

@@ -17,7 +17,7 @@ from rest_framework.renderers import BrowsableAPIRenderer
 from backend.utils.renderers import BKAPIRenderer
 
 from .authentication import JWTAndTokenAuthentication
-from .permissions import IsEnabledBCS, ProjectPermission
+from .permissions import AccessProjectPermission, ProjectEnableBCS
 
 
 class SystemViewSet(viewsets.ViewSet):
@@ -25,7 +25,7 @@ class SystemViewSet(viewsets.ViewSet):
 
     renderer_classes = (BKAPIRenderer, BrowsableAPIRenderer)
     # authentication_classes配置在REST_FRAMEWORK["DEFAULT_AUTHENTICATION_CLASSES"]中
-    permission_classes = (permissions.IsAuthenticated, ProjectPermission, IsEnabledBCS)
+    permission_classes = (permissions.IsAuthenticated, AccessProjectPermission, ProjectEnableBCS)
 
 
 class UserViewSet(viewsets.ViewSet):
@@ -33,4 +33,4 @@ class UserViewSet(viewsets.ViewSet):
 
     renderer_classes = (BKAPIRenderer,)
     authentication_classes = (JWTAndTokenAuthentication,)
-    permission_classes = (permissions.IsAuthenticated, ProjectPermission, IsEnabledBCS)
+    permission_classes = (permissions.IsAuthenticated, AccessProjectPermission, ProjectEnableBCS)
