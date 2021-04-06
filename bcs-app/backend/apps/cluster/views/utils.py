@@ -12,8 +12,29 @@
 # specific language governing permissions and limitations under the License.
 #
 from backend.components import paas_cc
+from backend.resources.cluster.constants import ClusterCOES
+from backend.resources.project.constants import ProjectKind
 from backend.utils.errcodes import ErrorCode
 from backend.utils.error_codes import error_codes
+
+
+def filter_areas(request, data):
+    """
+    1. 如果容器编排类型为TKE，并且区域中文名称以TKE开始，则认为是来源TKE
+    2. 如果为BCS(K8S/Mesos)，并且区域不以TKE开始，则认为来源BCS
+    """
+    areas = {'TKE': [], 'BCS': []}
+    for area in data['results'] or []:
+        if area['chinese_name'].startswith(ProjectKind.TKE.name):
+            areas['TKE'].append(area)
+        else:
+            areas['BCS'].append(area)
+
+    # 通过集群类型获取区域配置
+    if request.query_params.get("coes") == ClusterCOES.TKE.value:
+        return areas["TKE"]
+
+    return areas["BCS"]
 
 
 def get_areas(request):
@@ -21,4 +42,11 @@ def get_areas(request):
     if areas.get('code') != ErrorCode.NoError:
         raise error_codes.APIError(areas.get('message'))
 
-    return areas.get('data') or {}
+    data = areas.get('data') or {}
+    if not data:
+        return data
+
+    # 处理区域来源
+    area_list = filter_areas(request, data)
+
+    return {'results': area_list, 'count': len(area_list)}

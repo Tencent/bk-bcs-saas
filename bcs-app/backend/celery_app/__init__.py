@@ -54,7 +54,7 @@ class CeleryConfig(AppConfig):
     def ready(self):
         from backend.accounts.bcs_perm import tasks as bcs_tasks  # noqa
         from backend.apps.cluster import node_tasks  # noqa
-        from backend.apps.cluster.views_bk import tasks as cluster_node_tasks
+        from backend.apps.cluster.module_apis import get_cluster_node_task_mod  # noqa
         from backend.apps.configuration import tasks as backend_instance_status  # noqa
         from backend.apps.metric import tasks as metric_tasks  # noqa
         from backend.bcs_k8s.app import tasks as helm_app_tasks  # noqa
@@ -62,3 +62,5 @@ class CeleryConfig(AppConfig):
         from backend.utils import notify  # noqa
 
         from . import periodic_tasks  # noqa
+
+        get_cluster_node_task_mod()
