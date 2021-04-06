@@ -5,7 +5,7 @@ import pytest
 
 from backend.infras.host_service import host
 from backend.infras.host_service.perms import can_use_hosts
-from backend.utils.error_codes import APIError
+from backend.tests.bcs_mocks.fake_sops import FakeSopsMod, sops_json
 
 fake_cc_host_ok_results = {
     "result": True,
@@ -66,11 +66,7 @@ except ImportError as e:
     pass
 
 
-fake_task_id = 123
-fake_task_url = "http://test.com"
-
-
-class TestSopsApi:
+class TestApplyHostApi:
     fake_params = {
         "cc_app_id": "1",
         "username": "admin",
@@ -83,109 +79,20 @@ class TestSopsApi:
 
     @patch(
         "backend.infras.host_service.host.sops.SopsClient.create_task",
-        return_value={"result": True, "data": {"task_id": fake_task_id, "task_url": fake_task_url}},
+        new=FakeSopsMod.create_task,
     )
     @patch(
         "backend.infras.host_service.host.sops.SopsClient.start_task",
-        return_value={"result": True, "data": {"task_id": fake_task_id}},
+        new=FakeSopsMod.start_task,
     )
-    def test_create_and_start_sops_task(self, mock_start_task, mock_create_task):
-        task_id, task_url = host.create_and_start_sops_task(**self.fake_params)
-        assert task_id == fake_task_id
-        assert task_url == fake_task_url
+    def test_create_and_start_host_application(self):
+        task_id, task_url = host.create_and_start_host_application(**self.fake_params)
+        assert task_id == sops_json.fake_task_id
+        assert task_url == sops_json.fake_task_url
 
-    @patch(
-        "backend.infras.host_service.host.sops.SopsClient.create_task",
-        return_value={"result": False, "message": "error message"},
-    )
-    def test_create_task_failed(self, mock_create_task):
-        with pytest.raises(APIError):
-            host.create_and_start_sops_task(**self.fake_params)
-
-    @patch(
-        "backend.infras.host_service.host.sops.SopsClient.get_task_status",
-        return_value={
-            "result": True,
-            "data": {
-                'children': {
-                    'n93767c5d8d83d94a22bda6423358fda': {
-                        'children': {},
-                        'elapsed_time': 0,
-                        'error_ignorable': False,
-                        'finish_time': '2021-03-18 16:03:42 +0800',
-                        'id': 'n93767c5d8d83d94a22bda6423358fda',
-                        'loop': 1,
-                        'name': "<class 'pipeline.core.flow.event.EmptyStartEvent'>",
-                        'retry': 0,
-                        'skip': False,
-                        'start_time': '2021-03-18 16:03:42 +0800',
-                        'state': 'FINISHED',
-                        'state_refresh_at': '2021-03-18T08:03:42.394Z',
-                        'version': 'd5d697dc92c73aea97461d93c24b886a',
-                    },
-                    'n9a9632fba9e39efa587cfc3a0666e1a': {
-                        'children': {},
-                        'elapsed_time': 734,
-                        'error_ignorable': False,
-                        'finish_time': '',
-                        'id': 'n9a9632fba9e39efa587cfc3a0666e1a',
-                        'loop': 1,
-                        'name': '申领服务器（轮询）',
-                        'retry': 0,
-                        'skip': False,
-                        'start_time': '2021-03-18 16:03:44 +0800',
-                        'state': 'RUNNING',
-                        'state_refresh_at': '2021-03-18T08:03:44.738Z',
-                        'version': 'faed5baeb6003518bff75235aea6b6bb',
-                    },
-                    'nc7e829074ca3024a393e1187cfde9f5': {
-                        'children': {},
-                        'elapsed_time': 2,
-                        'error_ignorable': False,
-                        'finish_time': '2021-03-18 16:03:44 +0800',
-                        'id': 'nc7e829074ca3024a393e1187cfde9f5',
-                        'loop': 1,
-                        'name': '申请CVM服务器',
-                        'retry': 0,
-                        'skip': False,
-                        'start_time': '2021-03-18 16:03:42 +0800',
-                        'state': 'FINISHED',
-                        'state_refresh_at': '2021-03-18T08:03:44.662Z',
-                        'version': '982549095a6b35b2bceebadee64c516d',
-                    },
-                    'n93767c5d8d83d94a22bda6423358fd1': {
-                        'children': {},
-                        'elapsed_time': 0,
-                        'error_ignorable': False,
-                        'finish_time': '2021-03-18 16:03:42 +0800',
-                        'id': 'n93767c5d8d83d94a22bda6423358fda',
-                        'loop': 1,
-                        'name': "<class 'pipeline.core.flow.event.EmptyEndEvent'>",
-                        'retry': 0,
-                        'skip': False,
-                        'start_time': '2021-03-18 16:03:42 +0800',
-                        'state': 'FINISHED',
-                        'state_refresh_at': '2021-03-18T08:03:42.394Z',
-                        'version': 'd5d697dc92c73aea97461d93c24b886a',
-                    },
-                },
-                'elapsed_time': 737,
-                'error_ignorable': False,
-                'finish_time': '',
-                'id': 'n9355daa30c330188f02d5a75bc17e2a',
-                'loop': 1,
-                'name': "<class 'pipeline.core.pipeline.Pipeline'>",
-                'retry': 0,
-                'skip': False,
-                'start_time': '2021-03-18 16:03:42 +0800',
-                'state': 'RUNNING',
-                'state_refresh_at': '2021-03-18T08:03:42.374Z',
-                'version': '',
-            },
-        },
-    )
-    def test_get_task_state_and_steps(self, mock_get_task_status):
-        status_and_steps = host.get_task_state_and_steps(fake_task_id)
+    @patch("backend.infras.host_service.host.sops.SopsClient.get_task_status", new=FakeSopsMod.get_task_status)
+    def test_get_task_state_and_steps(self):
+        status_and_steps = host.get_task_state_and_steps(sops_json.fake_task_id)
         assert status_and_steps["state"] == "RUNNING"
         assert status_and_steps["steps"]["申请CVM服务器"]["state"] == "FINISHED"
         assert "<class 'pipeline.core.flow.event.EmptyStartEvent'>" not in status_and_steps["steps"]

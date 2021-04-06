@@ -15,8 +15,11 @@ from dataclasses import asdict, dataclass, field
 from typing import Dict
 
 from django.conf import settings
+from requests import PreparedRequest
+from requests.auth import AuthBase
 
-from backend.components.base import BaseHttpClient, BkApiClient
+from backend.components.base import BaseHttpClient, BkApiClient, update_request_body, update_url_parameters
+from backend.utils.decorators import parse_response_data
 
 
 class SopsConfig:
@@ -34,60 +37,83 @@ class SopsConfig:
 
 
 @dataclass
-class CommonParams:
-    bk_username: str = settings.ADMIN_USERNAME  # 模板所属业务的运维
-    app_code: str = settings.APP_ID
-    app_secret: str = settings.APP_TOKEN
-
-
-@dataclass
-class CreateTaskParams(CommonParams):
-    name: str = ""
+class CreateTaskParams:
+    name: str
     constants: Dict = field(default_factory=dict)
 
 
-@dataclass
-class StartTaskParams(CommonParams):
-    """启动任务参数"""
+class SopsAuth(AuthBase):
+    """用于调用 BK OP 系统接口的鉴权校验"""
 
-    pass
+    def __init__(self):
+        self.app_code = settings.BCS_APP_CODE
+        self.app_secret = settings.BCS_APP_SECRET
+        self.bk_username = settings.ADMIN_USERNAME  # 模板所属业务的运维
 
-
-@dataclass
-class TaskStatusParams(CommonParams):
-    """查询任务状态参数"""
-
-    pass
-
-
-@dataclass
-class TaskNodeDataParmas(CommonParams):
-    node_id: str = ""
+    def __call__(self, r: PreparedRequest):
+        # 针对get请求，添加auth参数到url中; 针对post请求，添加auth参数到body体中
+        auth_params = {"app_code": self.app_code, "app_secret": self.app_secret, "bk_username": self.bk_username}
+        if r.method in ["GET"]:
+            r.url = update_url_parameters(r.url, auth_params)
+        elif r.method in ["POST"]:
+            r.body = update_request_body(r.body, auth_params)
+        return r
 
 
 class SopsClient(BkApiClient):
     def __init__(self):
         self._config = SopsConfig(host=settings.SOPS_API_HOST)
-        self._client = BaseHttpClient()
+        self._client = BaseHttpClient(SopsAuth())
 
     def create_task(self, bk_biz_id: str, template_id: str, data: CreateTaskParams) -> Dict:
-        """通过业务流程创建任务"""
+        """通过业务流程创建任务
+
+        :param bk_biz_id: 作业模板所属的业务ID
+        :param template_id: 作业模板ID
+        :param data: 创建任务实例需要的参数，包含名称、申请人、业务等
+        :returns: 返回任务详情，包含任务连接、步骤名称、任务ID
+        """
         url = self._config.create_task_url.format(template_id=template_id, bk_biz_id=bk_biz_id)
         return self._request_json("POST", url, json=asdict(data))
 
-    def start_task(self, bk_biz_id: str, task_id: str, data: StartTaskParams) -> Dict:
-        """启动任务"""
+    def start_task(self, bk_biz_id: str, task_id: str) -> Dict:
+        """启动任务
+
+        :param bk_biz_id: 作业模板所属的业务ID
+        :param task_id: 任务ID
+        :returns: 返回的数据中，包含任务连接
+        """
         url = self._config.start_task_url.format(task_id=task_id, bk_biz_id=bk_biz_id)
-        return self._request_json("POST", url, json=asdict(data))
+        return self._request_json("POST", url)
 
-    def get_task_status(self, bk_biz_id: str, task_id: str, params: TaskStatusParams) -> Dict:
-        """获取任务状态"""
+    def get_task_status(self, bk_biz_id: str, task_id: str) -> Dict:
+        """获取任务状态
+
+        :param bk_biz_id: 作业模板所属的业务ID
+        :param task_id: 任务ID
+        :returns: 返回任务执行状态，包含启动时间、任务状态、子步骤名称、子步骤状态等
+        """
         url = self._config.get_task_status_url.format(task_id=task_id, bk_biz_id=bk_biz_id)
-        return self._request_json("GET", url, params=asdict(params))
+        return self._request_json("GET", url)
 
-    def get_task_node_data(self, bk_biz_id: str, task_id: str, params: TaskNodeDataParmas) -> Dict:
+    def get_task_node_data(self, bk_biz_id: str, task_id: str, node_id: str) -> Dict:
+        """获取任务步骤的详情
+
+        :param bk_biz_id: 作业模板所属的业务ID
+        :param task_id: 任务ID
+        :param node_id: 子步骤的ID
+        :returns: 返回子步骤输出，便于解析输出，从而得到对应的value
+        """
         url = self._config.get_task_node_data_url.format(task_id=task_id, bk_biz_id=bk_biz_id)
-        return self._request_json("GET", url, params=asdict(params))
+        return self._request_json("GET", url, params={"node_id": node_id})
 
+    @parse_response_data(default_data={})
     def _request_json(self, method: str, url: str, **kwargs) -> Dict:
+        """请求SOPS接口
+
+        :param method: 请求接口的方法，如GET、POST等
+        :param url: 请求接口的URL
+        :param kwargs: 支持更多的参数、如params、data、headers等
+        :returns: 返回data中数据
+        """
         return self._client.request_json(method, url, **kwargs)

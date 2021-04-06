@@ -13,7 +13,7 @@ from backend.celery_app.periodic_tasks import (
     PollResult,
     PollStatus,
 )
-from backend.infras.host_service.host import get_applied_ip_list, get_task_state_and_steps
+from backend.infras.host_service.host import get_task_state_and_steps
 from backend.utils.error_codes import APIError
 
 logger = logging.getLogger(__name__)
@@ -45,7 +45,8 @@ class ApplyHostStatusPoller(BasePollerTaskStatus):
     def query_state_and_steps(self, task_id: str) -> Dict:
         try:
             state_and_steps = get_task_state_and_steps(task_id=task_id)
-        except APIError:
+        except APIError as e:
+            logger.error("request sops task status error, %s", e)
             return {}
         return state_and_steps
 
@@ -71,5 +72,5 @@ class ApplyHostStatusResultHandler(BaseResultHandler):
         # 更新任务记录状态及log参数
         log.status = status
         log.is_finished = True
-        log.logs = json.dumps(logs)
-        log.save(update_fields=["status", "is_finished", "logs"])
+        log.logs = logs
+        log.save(update_fields=["status", "is_finished", "logs", "updated"])

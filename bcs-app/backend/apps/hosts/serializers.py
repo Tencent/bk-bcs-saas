@@ -1,6 +1,4 @@
 # -*- coding: utf-8 -*-
-from typing import Dict
-
 from rest_framework import serializers
 
 from backend.apps.cluster.constants import ClusterNetworkType
@@ -18,15 +16,13 @@ class ApplyHostDataSLZ(serializers.Serializer):
     disk_size = serializers.IntegerField()
     replicas = serializers.IntegerField()
 
-    def validate(self, data: Dict) -> Dict:
-        data.update(self.context)
-        return data
-
 
 class TaskLogSLZ(serializers.ModelSerializer):
+    logs = serializers.JSONField()
+
     class Meta:
         model = HostApplyTaskLog
-        fields = ("created", "task_url", "operator", "status", "is_finished", "task_logs")
+        fields = ("created", "task_url", "operator", "status", "is_finished", "logs")
 
 
 try:

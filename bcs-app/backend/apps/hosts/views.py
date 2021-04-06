@@ -21,7 +21,7 @@ from rest_framework.renderers import BrowsableAPIRenderer
 from rest_framework.response import Response
 
 from backend.activity_log.client import ContextActivityLogClient
-from backend.infras.host_service.host import create_and_start_sops_task
+from backend.infras.host_service.host import create_and_start_host_application
 from backend.utils.renderers import BKAPIRenderer
 
 from .constants import SCR_URL, TaskStatus
@@ -43,22 +43,21 @@ class ApplyHostViewSet(viewsets.ViewSet):
         # NOTE: 项目下如果有在申请的任务，必须等任务结束后，才能再次申请
         self.verify_task_exist(project_id)
         username = request.user.username
-        slz = ApplyHostDataSLZ(
-            data=request.data, context={"cc_app_id": request.project.cc_app_id, "username": username}
-        )
+        slz = ApplyHostDataSLZ(data=request.data)
         slz.is_valid(raise_exception=True)
         data = slz.validated_data
+        # 添加业务ID和申请人信息
+        data.update({"cc_app_id": request.project.cc_app_id, "username": username})
 
-        data_json = json.dumps(data)
         with ContextActivityLogClient(
             project_id=project_id,
             user=request.user.username,
             resource_type="instance",
             resource="apply host",
-            extra=data_json,
+            extra=data,
             description=_("申请主机"),
         ).log_add():
-            task_id, task_url = create_and_start_sops_task(**data)
+            task_id, task_url = create_and_start_host_application(**data)
 
         # 存储数据，用于后续的查询
         log_record = HostApplyTaskLog.objects.create(
@@ -67,8 +66,8 @@ class ApplyHostViewSet(viewsets.ViewSet):
             task_url=task_url,
             status=TaskStatus.RUNNING.value,
             operator=username,
-            params=data_json,
-            logs=json.dumps({"申请主机": {"state": "RUNNING"}}),
+            params=data,
+            logs={"申请主机": {"state": "RUNNING"}},
         )
         # 启动轮训任务
         ApplyHostStatusPoller.start(
@@ -80,6 +79,8 @@ class ApplyHostViewSet(viewsets.ViewSet):
         """查询log，用于展示"""
         # 获取最新的
         task_log = HostApplyTaskLog.objects.filter(project_id=project_id).last()
+        if not task_log:
+            return Response()
         # 组装返回数据
         data = TaskLogSLZ(task_log).data
         data["scr_url"] = SCR_URL
@@ -88,6 +89,6 @@ class ApplyHostViewSet(viewsets.ViewSet):
 
 
 try:
-    from .views_ext import GetCVMTypeViewSet
+    from .views_ext import CVMTypeViewSet
 except ImportError as e:
     logger.debug("Load extension failed: %s", e)

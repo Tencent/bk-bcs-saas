@@ -11,20 +11,21 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-import json
+from typing import Dict
 
-from django.db import models
-from jsonfield import JSONField
+from backend.components.sops import CreateTaskParams
+
+from .data import sops_json
 
 
-class HostApplyTaskLog(models.Model):
-    created = models.DateTimeField(auto_now_add=True)
-    updated = models.DateTimeField(auto_now=True)
-    project_id = models.CharField(max_length=32)
-    task_id = models.CharField(max_length=64, null=True)
-    task_url = models.CharField(max_length=256, null=True)
-    operator = models.CharField(max_length=16, null=True)
-    params = JSONField(null=True, default={})
-    status = models.CharField(max_length=32, null=True)
-    is_finished = models.BooleanField(default=False)
-    logs = JSONField(null=True, default={})
+class FakeSopsMod:
+    """A fake object for replacing the real components.sops module"""
+
+    def create_task(self, bk_biz_id: str, template_id: str, data: CreateTaskParams) -> Dict:
+        return sops_json.create_task_ok
+
+    def start_task(self, bk_biz_id: str, task_id: str) -> Dict:
+        return sops_json.start_task_ok
+
+    def get_task_status(self, bk_biz_id: str, task_id: str) -> Dict:
+        return sops_json.get_task_status_ok

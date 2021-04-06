@@ -190,3 +190,17 @@ def update_url_parameters(url: str, parameters: Dict) -> str:
     return parse.ParseResult(
         parsed_url.scheme, parsed_url.netloc, parsed_url.path, parsed_url.params, new_query, parsed_url.fragment
     ).geturl()
+
+
+def update_request_body(body: Optional[bytes], params: Dict) -> bytes:
+    """更新请求 body 体参数
+    :param body: 原始的body
+    :param params: 需要添加的参数
+    :returns: 返回新的body
+    """
+    if not body:
+        body_dict = {}
+    else:
+        body_dict = json.loads(bytes.decode(body))
+    body_dict.update(params)
+    return str.encode(json.dumps(body_dict))
