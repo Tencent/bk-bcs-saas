@@ -12,7 +12,7 @@
 # specific language governing permissions and limitations under the License.
 #
 from dataclasses import dataclass, field
-from typing import Any, Dict
+from typing import Any, Dict, List
 
 from backend.apps.configuration.models import ShowVersion, Template
 
@@ -26,5 +26,5 @@ class ResContext:
     cluster_id: str
     template: Template
     show_version: ShowVersion
-    instance_entity: Dict[str, str]
-    extras: Dict[str, Any] = field(default_factory=dict)
+    instance_entity: Dict[str, List[int]]  # like {"Deployment": [1, 2], "Job": [11, 12]}, 其中整数为db记录项的id
+    extras: Dict[str, Any] = field(default_factory=dict)  # 保存额外参数

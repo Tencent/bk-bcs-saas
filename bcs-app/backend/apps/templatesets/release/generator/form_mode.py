@@ -37,7 +37,7 @@ class FormtoResourceList:
 
         namespace_id = res_ctx.extras.get('namespace_id', 0)
         # 查询命名空间相关的参数, 系统变量等保存在context中
-        has_image_secret, cluster_version, context = get_ns_variable(
+        has_image_secret, cluster_version, var_context = get_ns_variable(
             res_ctx.access_token, res_ctx.project_id, namespace_id
         )
         show_version = res_ctx.show_version
@@ -53,14 +53,17 @@ class FormtoResourceList:
             'template_id': show_version.template_id,
             'has_image_secret': has_image_secret,
             'cluster_version': cluster_version,
-            'context': context,
+            'context': var_context,
             'variable_dict': res_ctx.extras.get('variable_dict', {}),
             'is_preview': res_ctx.extras.get('is_preview', True),
         }
 
+        return self._generate(namespace_id, params)
+
+    def _generate(self, namespace_id, params) -> List[ResourceData]:
         resource_list = []
-        # instance_entity已被上层校验并处理成{"Deployment": [1, 2]}
-        instance_entity = res_ctx.instance_entity
+        # instance_entity like {"Deployment": [1, 2]}
+        instance_entity = self.res_ctx.instance_entity
         for kind in instance_entity:
             for entity_id in instance_entity[kind]:
                 config_generator = GENERATOR_DICT.get(kind)(entity_id, namespace_id, is_validate=True, **params)
@@ -76,8 +79,8 @@ class FormtoResourceList:
                         name=getitems(manifest, 'metadata.name'),
                         namespace=getitems(manifest, 'metadata.namespace'),
                         manifest=manifest,
-                        version=show_version.name,
-                        revision=show_version.latest_revision,
+                        version=self.res_ctx.show_version.name,
+                        revision=self.res_ctx.show_version.latest_revision,
                     )
                 )
 

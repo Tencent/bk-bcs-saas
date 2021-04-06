@@ -15,6 +15,7 @@ from dataclasses import dataclass
 from typing import List
 
 from django.db import models
+from jsonfield import JSONField
 
 from backend.apps.configuration import models as config_models
 from backend.utils.models import BaseModel
@@ -27,7 +28,7 @@ class ResourceData:
     kind: str
     name: str
     namespace: str
-    manifest: str
+    manifest: dict
     version: str = ""
     revision: str = ""
 
@@ -71,7 +72,7 @@ class ResourceInstance(BaseModel):
     kind = models.CharField(max_length=64)
     name = models.CharField(max_length=255)
     namespace = models.CharField(max_length=64)
-    manifest = models.TextField()
+    manifest = JSONField()
     version = models.CharField("模板集版本名", max_length=255)
     revision = models.CharField("模板集版本名的修订版号", max_length=32)
     edited = models.BooleanField("是否在线编辑过", default=False)

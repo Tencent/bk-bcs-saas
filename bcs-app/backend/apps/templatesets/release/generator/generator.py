@@ -18,7 +18,7 @@ from .form_mode import FormtoResourceList
 from .res_context import ResContext
 from .yaml_mode import YamltoResourceList
 
-ResourceGenerator = {
+ResourceListGenerator = {
     TemplateEditMode.PageForm.value: FormtoResourceList,
     TemplateEditMode.YAML.value: YamltoResourceList,
 }
@@ -29,7 +29,7 @@ class ReleaseDataGenerator:
         self.name = name
         self.res_ctx = res_ctx
         self.template = res_ctx.template
-        self.generator = ResourceGenerator[self.template.edit_mode]
+        self.generator = ResourceListGenerator[self.template.edit_mode]
 
     def generate(self) -> AppReleaseData:
         return AppReleaseData(
