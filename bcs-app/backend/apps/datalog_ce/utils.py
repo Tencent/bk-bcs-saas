@@ -12,14 +12,14 @@
 # specific language governing permissions and limitations under the License.
 #
 
-# k8s 中系统的命名空间，不允许用户创建，也不能操作上面的资源 kube-system, kube-public
-K8S_SYS_NAMESPACE = ["kube-system", "kube-public"]
 
-# k8s 平台服务用的命名空间
-# TODO: bcs-system命名空间后续处理
-K8S_PLAT_NAMESPACE = ["web-console", "gitlab-ci", "thanos"]
+def get_data_id_by_project_id(project_id):
+    """获取项目标准日志采集的dataid"""
+    return {
+        'standard_data_id': 0,
+        'non_standard_data_id': 0,
+    }
 
-# 平台和系统使用的命名空间
-K8S_SYS_PLAT_NAMESPACES = K8S_SYS_NAMESPACE + K8S_PLAT_NAMESPACE
 
-NAMESPACE_REGEX = "[a-z0-9]([-a-z0-9]*[a-z0-9])?"
+def get_std_log_index(project_id):
+    return ''

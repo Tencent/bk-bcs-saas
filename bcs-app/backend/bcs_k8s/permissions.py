@@ -14,8 +14,6 @@
 import logging
 from collections import namedtuple
 
-from rest_framework import permissions
-
 from backend.accounts import bcs_perm
 
 logger = logging.getLogger(__name__)

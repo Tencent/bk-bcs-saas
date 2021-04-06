@@ -11,20 +11,12 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-"""
-数据平台日志采集相关
-"""
-from django.apps import AppConfig
+from backend.apis.views import NoAccessTokenBaseAPIViewSet
+from backend.dashboard.custom_object.views import CustomObjectViewSet
 
 
-class DataLogConfig(AppConfig):
-
-    name = 'backend.apps.datalog'
-    verbose_name = 'datalog'
-
-    def ready(self):
-        # ee版本不同步
-        try:
-            from . import signals
-        except Exception:
-            pass
+class CustomObjectAPIViewSet(NoAccessTokenBaseAPIViewSet, CustomObjectViewSet):
+    def patch_custom_object(self, request, project_id_or_code, cluster_id, crd_name, name):
+        return super(CustomObjectAPIViewSet, self).patch_custom_object(
+            request, request.project.project_id, cluster_id, crd_name, name
+        )

@@ -22,7 +22,6 @@ from rest_framework.exceptions import ValidationError
 
 from backend.apps.application.constants import UNNORMAL_STATUS
 from backend.apps.constants import BACKEND_IMAGE_PATH, CONTROLLER_IMAGE_PATH
-from backend.apps.datalog.utils import get_data_id_by_project_id
 from backend.apps.instance import constants as inst_constants
 from backend.apps.instance.funutils import render_mako_context
 from backend.apps.instance.generator import handel_custom_network_mode, handle_intersection_item
@@ -33,6 +32,11 @@ from backend.components.bcs import mesos
 from backend.utils.basic import getitems
 from backend.utils.errcodes import ErrorCode
 from backend.utils.error_codes import error_codes
+
+try:
+    from backend.apps.datalog.utils import get_data_id_by_project_id
+except ImportError:
+    from backend.apps.datalog_ce.utils import get_data_id_by_project_id
 
 logger = logging.getLogger(__name__)
 DEFAULT_HTTP_PORT = "80"

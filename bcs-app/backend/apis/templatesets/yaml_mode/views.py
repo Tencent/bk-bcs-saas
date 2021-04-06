@@ -17,7 +17,6 @@ from backend.apis.views import NoAccessTokenBaseAPIViewSet
 from backend.apps.configuration.mixins import TemplatePermission
 from backend.apps.configuration.yaml_mode.deployer import DeployController
 from backend.apps.configuration.yaml_mode.release import ReleaseData, ReleaseDataProcessor
-from backend.apps.datalog.utils import create_and_start_standard_data_flow, create_data_project
 
 from .serializers import TemplateReleaseSLZ
 
@@ -36,14 +35,6 @@ class TemplateReleaseViewSet(NoAccessTokenBaseAPIViewSet, TemplatePermission):
         validated_data = serializer.validated_data
 
         self.can_use_template(request, validated_data["template"])
-
-        # 在数据平台创建项目信息
-        username = request.user.username
-        cc_app_id = request.project.cc_app_id
-        english_name = request.project.english_name
-        create_data_project(username, project_id, cc_app_id, english_name)
-        # 创建/启动标准日志采集任务
-        create_and_start_standard_data_flow(username, project_id, cc_app_id)
 
         validated_data = serializer.validated_data
         processor = ReleaseDataProcessor(

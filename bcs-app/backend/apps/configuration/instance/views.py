@@ -41,7 +41,6 @@ from backend.apps.application.base_views import error_codes
 from backend.apps.configuration.constants import K8sResourceName, MesosResourceName
 from backend.apps.configuration.models import CATE_SHOW_NAME, MODULE_DICT
 from backend.apps.configuration.tasks import check_instance_status
-from backend.apps.datalog.utils import create_and_start_standard_data_flow, create_data_project
 from backend.apps.instance.constants import InsState
 from backend.apps.instance.models import InstanceConfig, VersionInstance
 from backend.apps.instance.serializers import (
@@ -211,10 +210,6 @@ class VersionInstanceView(viewsets.ViewSet):
         )
         if not v_res:
             return Response({"code": 400, "message": err_msg, "data": err_list})
-        # 在数据平台创建项目信息
-        cc_app_id = request.project.cc_app_id
-        english_name = request.project.english_name
-        create_data_project(request.user.username, project_id, cc_app_id, english_name)
 
         # 查询当前命名空间的变量信息
         variable_dict = slz_data.get('variable_info', {}).get(namespace) or {}
@@ -304,13 +299,6 @@ class VersionInstanceView(viewsets.ViewSet):
                     "data": ns_name_list,
                 }
             )
-
-        # 在数据平台创建项目信息
-        cc_app_id = request.project.cc_app_id
-        english_name = request.project.english_name
-        create_data_project(request.user.username, project_id, cc_app_id, english_name)
-        # 创建/启动标准日志采集任务
-        create_and_start_standard_data_flow(username, project_id, cc_app_id)
 
         slz_data['ns_list'] = ns_list
         slz_data['instance_entity'] = self.instance_entity
