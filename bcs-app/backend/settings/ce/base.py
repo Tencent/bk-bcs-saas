@@ -22,7 +22,7 @@ APP_ID = "bk_bcs_app"
 APP_TOKEN = os.environ.get("APP_TOKEN")
 
 # drf鉴权, 权限控制配置
-REST_FRAMEWORK["DEFAULT_AUTHENTICATION_CLASSES"] = ("backend.utils.authentication_bk.BKTokenAuthentication",)
+REST_FRAMEWORK["DEFAULT_AUTHENTICATION_CLASSES"] = ("backend.utils.authentication.BKTokenAuthentication",)
 REST_FRAMEWORK["DEFAULT_PERMISSION_CLASSES"] = (
     "rest_framework.permissions.IsAuthenticated",
     "backend.utils.permissions.HasIAMProject",

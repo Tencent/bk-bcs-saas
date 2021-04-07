@@ -21,6 +21,10 @@ class HelmError(HelmBaseException):
     """Normal error for kubectl ClusterClient"""
 
 
+class HelmMaxTryError(HelmBaseException):
+    """超过最大重试次数"""
+
+
 class HelmExecutionError(HelmBaseException):
     """Error when running kubectl command failed"""
 

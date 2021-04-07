@@ -34,7 +34,6 @@ from backend.apps.application import views as app_views
 from backend.apps.application.constants import FUNC_MAP, NORMAL_STATUS, REVERSE_CATEGORY_MAP, UNNORMAL_STATUS
 from backend.apps.configuration.models import MODULE_DICT, ShowVersion, Template, VersionedEntity
 from backend.apps.configuration.utils import check_var_by_config
-from backend.apps.datalog.utils import create_and_start_standard_data_flow, create_data_project
 from backend.apps.instance import utils as inst_utils
 from backend.apps.instance.constants import InsState
 from backend.apps.instance.models import InstanceConfig, VersionInstance
@@ -378,13 +377,6 @@ class ProjectApplicationInfo(app_views.BaseAPI, BaseAPIViews):
         username = request.user.username
         if not username:
             username = GCLOUD_DEFAULT_USER if app_code == "gcloud" else PIPELINE_DEFAULT_USER
-        try:
-            # 在数据平台创建项目信息
-            create_data_project(username, project_id, cc_app_id, english_name)
-            # 创建/启动标准日志采集任务
-            create_and_start_standard_data_flow(username, project_id, cc_app_id)
-        except Exception as err:
-            logger.error("Create data project error, detail: %s" % err)
 
         slz_data["ns_list"] = ns_id_list
         slz_data["instance_entity"] = self.instance_entity

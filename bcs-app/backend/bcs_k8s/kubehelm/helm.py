@@ -34,7 +34,8 @@ from django.template.loader import render_to_string
 
 from backend.apps.whitelist import enable_helm_v3
 
-from .exceptions import HelmError, HelmExecutionError
+from .exceptions import HelmError, HelmExecutionError, HelmMaxTryError
+from .options import Options
 
 logger = logging.getLogger(__name__)
 
@@ -297,22 +298,9 @@ class KubeHelmClient:
         return self._uninstall_or_rollback(rollback_cmd_args)
 
     def _compose_args_and_run(self, cmd_args, options):
-        for key, value in options.items():
-            if isinstance(value, str):
-                cmd_args += [key, value]
-            elif isinstance(value, list):
-                for v in value:
-                    cmd_args += [key, v]
-            elif value is None:
-                cmd_args.append(key)
-
-        try:
-            cmd_out, cmd_err = self._run_command_with_retry(max_retries=0, cmd_args=cmd_args)
-        except Exception as e:
-            logger.exception("执行helm命令失败，命令参数: %s", json.dumps(cmd_args))
-            raise e
-
-        return cmd_out, cmd_err
+        opts = Options(options)
+        cmd_args.extend(opts.options())
+        return self._run_command_with_retry(max_retries=0, cmd_args=cmd_args)
 
     def do_install_or_upgrade(self, operation, name, namespace, chart, options):
         # e.g. helm install mynginx https://example.com/charts/nginx-1.2.3.tgz --username xxx --password xxx
@@ -332,7 +320,7 @@ class KubeHelmClient:
                 time.sleep((i + 1) * 0.5)
                 continue
 
-        raise ValueError(max_retries)
+        raise HelmMaxTryError(f"max retries {max_retries} fail")
 
     def _run_command(self, cmd_args):
         """Run the helm command with wrapped exceptions"""

@@ -33,7 +33,6 @@ from backend.apps.application.filters.base_metrics import BaseMusterMetric
 from backend.apps.application.other_views import k8s_views
 from backend.apps.application.utils import APIResponse
 from backend.apps.configuration.models import MODULE_DICT, ShowVersion, Template, VersionedEntity
-from backend.apps.datalog.utils import create_and_start_standard_data_flow, create_data_project
 from backend.apps.instance import utils as inst_utils
 from backend.apps.instance.constants import InsState
 from backend.apps.instance.models import InstanceConfig, InstanceEvent, MetricConfig, VersionInstance
@@ -1175,10 +1174,6 @@ class UpdateInstanceNew(InstanceAPI):
             cc_app_id = request.project.cc_app_id
             english_name = request.project.english_name
             project_id = request.project.project_id
-            username = request.user.username
-            create_data_project(request.user.username, project_id, cc_app_id, english_name)
-            # 创建/启动标准日志采集任务
-            create_and_start_standard_data_flow(username, project_id, cc_app_id)
         except Exception:
             pass
 

@@ -14,6 +14,8 @@
 """容器管理使用常量
 """
 import logging
+import re
+from collections import OrderedDict
 from enum import Enum
 
 from backend.utils.basic import ChoicesEnum
@@ -129,6 +131,15 @@ ALL_CLUSTER_FLAG = "ALL"
 
 # 敏感单词
 SENSITIVE_KEYWORD = ["access_token", "bk_app_secret", "X-BKAPI-AUTHORIZATION", "X-BK-APP-SECRET"]
+
+
+CLUSTER_UPGRADE_VERSION = OrderedDict(
+    {re.compile(r'^\S+[vV]?1\.8\.\S+$'): ["v1.12.6"], re.compile(r'^\S+[vV]?1\.12\.\S+$'): ["v1.14.3-tk8s-v1.1-1"]}
+)
+
+
+# TODO: 先放到前端传递，后续gcloud版本统一后，支持分支判断再去掉
+UPGRADE_TYPE = {"v1.12.6": "update8to12", "v1.14.3-tk8s-v1.1-1": "update12to14"}
 
 
 try:

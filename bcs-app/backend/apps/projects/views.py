@@ -93,6 +93,7 @@ class Projects(viewsets.ViewSet):
             )
             info["project_code"] = info["english_name"]
             info["deploy_type"] = self.deploy_type_list(info.get("deploy_type"))
+            info["func_wlist"] = set()
 
         # 白名单用于控制mesos集群是否开启了service monitor组件
         self.register_function_contoller(data)

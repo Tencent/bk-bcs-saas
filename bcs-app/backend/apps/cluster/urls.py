@@ -14,6 +14,7 @@
 from django.conf.urls import url
 
 from . import views
+from .views.cluster import UpgradeClusterViewSet
 
 urlpatterns = [
     url(
@@ -154,6 +155,14 @@ urlpatterns = [
         r"^api/projects/(?P<project_id>[\w\-]+)/clusters/(?P<cluster_id>[\w\-]+)/ippools/$",
         views.MesosIPPoolViewSet.as_view({"get": "get"}),
     ),
+    url(
+        r"^api/projects/(?P<project_id>\w{32})/clusters/(?P<cluster_id>[\w\-]+)/upgradeable_versions/$",
+        UpgradeClusterViewSet.as_view({"get": "get_upgradeable_versions"}),
+    ),
+    url(
+        r"^api/projects/(?P<project_id>\w{32})/clusters/(?P<cluster_id>[\w\-]+)/version/$",
+        UpgradeClusterViewSet.as_view({"put": "upgrade"}),
+    ),
 ]
 
 # batch operation
@@ -207,8 +216,8 @@ urlpatterns += [
 
 # 导入版本特定urls
 try:
-    from backend.apps.cluster.urls_bk import urlpatterns as urlpatterns_bk
+    from .urls_ext import urlpatterns as urlpatterns_ext
 
-    urlpatterns += urlpatterns_bk
+    urlpatterns += urlpatterns_ext
 except ImportError:
     pass

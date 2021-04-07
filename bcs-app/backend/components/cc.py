@@ -104,8 +104,7 @@ def get_app_hosts(username, bk_biz_id, bk_supplier_account=None, bk_module_ids=N
     if not data:
         return resp
     ret_data = []
-    for info in data:
-        host = info.get("host", {})
+    for host in data:
         if not host:
             continue
         host["InnerIP"] = host["bk_host_innerip"]
@@ -121,8 +120,7 @@ def get_host_by_operator(bk_biz_id, username, bk_supplier_account=None):
         return resp
     data = resp.get("data") or []
     host_list = []
-    for ip_info in data:
-        host = ip_info.get("host") or {}
+    for host in data:
         if not host:
             continue
         operator = host.get("operator", "")

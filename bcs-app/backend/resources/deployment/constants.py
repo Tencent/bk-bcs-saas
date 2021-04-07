@@ -11,29 +11,4 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-from django.contrib import admin
-
-from .models import ProjectDataInfo
-
-
-class ProjectDataInfoAdmin(admin.ModelAdmin):
-    list_display = (
-        'project_id',
-        'cc_biz_id',
-        'data_project_id',
-        'standard_data_id',
-        'standard_data_name',
-        'non_standard_data_id',
-        'non_standard_data_name',
-    )
-    search_fields = (
-        'project_id',
-        'data_project_id',
-        'standard_data_id',
-        'standard_data_name',
-        'non_standard_data_id',
-        'non_standard_data_name',
-    )
-
-
-admin.site.register(ProjectDataInfo, ProjectDataInfoAdmin)
+DEPLOYMENT_REGEX = "[a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*"

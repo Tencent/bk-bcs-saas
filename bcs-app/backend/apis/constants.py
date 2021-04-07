@@ -13,9 +13,15 @@
 #
 import os
 
+from django.conf import settings
+
 from backend.components.apigw import get_api_public_key
 
-ACCESS_TOKEN_KEY_NAME = "HTTP_X_BKAPI_TOKEN"
-APIGW_JWT_KEY_NAME = "HTTP_X_BKAPI_JWT"
-USERNAME_KEY_NAME = "HTTP_X_BKAPI_USERNAME"
-BCS_APP_APIGW_PUBLIC_KEY = get_api_public_key("bcs-app", "bk_bcs", os.environ.get("BKAPP_BK_BCS_TOKEN"))
+ACCESS_TOKEN_KEY_NAME = 'HTTP_X_BKAPI_TOKEN'
+APIGW_JWT_KEY_NAME = 'HTTP_X_BKAPI_JWT'
+USERNAME_KEY_NAME = 'HTTP_X_BKAPI_USERNAME'
+
+try:
+    BCS_APP_APIGW_PUBLIC_KEY = getattr(settings, 'BCS_APP_APIGW_PUBLIC_KEY')
+except AttributeError:
+    BCS_APP_APIGW_PUBLIC_KEY = get_api_public_key('bcs-app', 'bk_bcs', os.environ.get('BKAPP_BK_BCS_TOKEN'))
