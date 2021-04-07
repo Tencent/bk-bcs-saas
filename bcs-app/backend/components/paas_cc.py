@@ -22,6 +22,7 @@ from backend.apps.cluster.models import CommonStatus
 from backend.components.base import BaseHttpClient, BkApiClient, ComponentAuth
 from backend.components.utils import http_delete, http_get, http_patch, http_post, http_put
 from backend.utils.basic import getitems
+from backend.utils.decorators import parse_response_data
 from backend.utils.errcodes import ErrorCode
 from backend.utils.error_codes import error_codes
 
@@ -512,6 +513,7 @@ class PaaSCCConfig:
 
         # PaaSCC 系统接口地址
         self.get_cluster_url = f"{host}/projects/{{project_id}}/clusters/{{cluster_id}}"
+        self.get_project_url = f"{host}/projects/{{project_id}}/"
 
 
 class PaaSCCClient(BkApiClient):
@@ -528,6 +530,13 @@ class PaaSCCClient(BkApiClient):
         """获取集群信息"""
         url = self._config.get_cluster_url.format(project_id=project_id, cluster_id=cluster_id)
         return self._client.request_json('GET', url)
+
+    @parse_response_data()
+    def get_project(self, project_id: str) -> Dict:
+        """获取项目信息"""
+        url = self._config.get_project_url.format(project_id=project_id)
+        return self._client.request_json('GET', url)
+
 
 try:
     from .paas_cc_ext import get_auth_project  # noqa

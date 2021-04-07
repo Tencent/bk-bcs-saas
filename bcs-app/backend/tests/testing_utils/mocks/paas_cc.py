@@ -27,6 +27,10 @@ class StubPaaSCCClient:
     def get_cluster(self, project_id: str, cluster_id: str) -> Dict:
         return self.wrap_resp(self.make_cluster_data(project_id, cluster_id))
 
+    @mockable_function
+    def get_project(self, project_id: str) -> Dict:
+        return self.make_project_data(project_id)
+
     @staticmethod
     def wrap_resp(data):
         return {
@@ -69,4 +73,39 @@ class StubPaaSCCClient:
             'total_mem': 64,
             'type': 'k8s',
             'updated_at': _stub_time,
+        }
+
+    @staticmethod
+    def make_project_data(project_id: str):
+        _stub_time = '2021-01-01T00:00:00+08:00'
+        return {
+            "approval_status": 2,
+            "approval_time": "2020-01-01T00:00:00+08:00",
+            "approver": "",
+            "bg_id": -1,
+            "bg_name": "",
+            "cc_app_id": 100,
+            "center_id": 100,
+            "center_name": "",
+            "created_at": "2020-01-01 00:00:00",
+            "creator": "unknown",
+            "data_id": 0,
+            "deploy_type": "null",
+            "dept_id": -1,
+            "dept_name": "",
+            "description": "",
+            "english_name": "unittest-cluster",
+            "extra": {},
+            "is_offlined": False,
+            "is_secrecy": False,
+            "kind": 1,
+            "logo_addr": "",
+            "project_id": project_id,
+            "project_name": "unittest-cluster",
+            "project_type": 1,
+            "remark": "",
+            "updated_at": "2020-01-01 00:00:00",
+            "use_bk": False,
+            "cc_app_name": "demo-app",
+            "can_edit": False,
         }
