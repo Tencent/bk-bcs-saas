@@ -49,18 +49,20 @@ class JWTAndTokenAuthentication(BaseAuthentication):
         access_token = request.META.get(constants.ACCESS_TOKEN_KEY_NAME, "")
         # 通过头部传入access_token
         if access_token:
-            # 代码多版本原因: 如果paas_auth中定义了get_user_by_access_token方法，则完成用户身份校验；否则忽略
-            try:
-                from backend.components.paas_auth import get_user_by_access_token
-            except ImportError:
-                pass
-            else:
-                user = get_user_by_access_token(access_token)
-                if user.get("user_id") != request.user.username:
-                    raise exceptions.AuthenticationFailed(f"invalid {constants.ACCESS_TOKEN_KEY_NAME}")
-
+            self._validate_access_token(request, access_token)
             user.token = FancyDict(access_token=access_token)
         else:  # 如果客户端未传入有效access_token, 平台注入系统access_token
             user.token = FancyDict(access_token=get_access_token().get("access_token"))
 
         return (user, None)
+
+    def _validate_access_token(self, request, access_token):
+        # 代码多版本原因: 如果paas_auth中定义了get_user_by_access_token方法，则完成用户身份校验；否则忽略
+        try:
+            from backend.components.paas_auth import get_user_by_access_token
+        except ImportError:
+            pass
+        else:
+            user = get_user_by_access_token(access_token)
+            if user.get("user_id") != request.user.username:
+                raise exceptions.AuthenticationFailed(f"invalid {constants.ACCESS_TOKEN_KEY_NAME}")

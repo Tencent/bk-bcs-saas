@@ -21,7 +21,12 @@ from .permissions import AccessProjectPermission, ProjectEnableBCS
 
 
 class SystemViewSet(viewsets.ViewSet):
-    """容器服务SaaS app使用的API view"""
+    """
+    容器服务 SaaS app 使用的 API view
+    - 仅支持处理 url 路径参数中包含 project_id 或 project_id_or_code 的请求
+    - 需要验证用户登录态
+    - ProjectEnableBCS: 验证通过后，会将 request.project 设置成 project，在view中使用
+    """
 
     renderer_classes = (BKAPIRenderer, BrowsableAPIRenderer)
     # authentication_classes配置在REST_FRAMEWORK["DEFAULT_AUTHENTICATION_CLASSES"]中
@@ -29,7 +34,13 @@ class SystemViewSet(viewsets.ViewSet):
 
 
 class UserViewSet(viewsets.ViewSet):
-    """提供给流水线等第三方服务的API view"""
+    """
+    提供给流水线等第三方服务的API view
+    - 仅支持处理 url 路径参数中包含 project_id 或 project_id_or_code 的请求
+    - JWTAndTokenAuthentication: 需要传入有效的 JWT 以便验证请求来源; 同时，也会将 HTTP_X_BKAPI_TOKEN 或 平台的 access_token
+    赋值给 request.user.token.access_token
+    - ProjectEnableBCS: 验证通过后，会将 request.project 设置成 project，在view中使用
+    """
 
     renderer_classes = (BKAPIRenderer,)
     authentication_classes = (JWTAndTokenAuthentication,)

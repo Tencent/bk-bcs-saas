@@ -28,7 +28,7 @@ EXPIRATION_TIME = 3600 * 24 * 30
 
 
 class AccessProjectPermission(BasePermission):
-    """仅支持处理url路径参数中包含project_id或project_id_or_code的接口"""
+    """仅支持处理 url 路径参数中包含 project_id 或 project_id_or_code 的接口"""
 
     message = "no project permissions"
 
@@ -69,10 +69,10 @@ class AccessProjectPermission(BasePermission):
 
 class ProjectEnableBCS(BasePermission):
     """
-    仅支持处理url路径参数中包含project_id或project_id_or_code的接口
+    仅支持处理 url 路径参数中包含 project_id 或 project_id_or_code 的接口
     主要功能:
     - 校验项目是否已经开启容器服务
-    - 将project设置成request的属性，在view中使用
+    - 将 request.project 设置成 project，在 view 中使用
     """
 
     message = "project does not enable bcs"
