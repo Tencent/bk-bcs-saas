@@ -13,7 +13,6 @@
 #
 from django.conf.urls import include, url
 
-from .views import StatusViewSet
 from .webconsole.views import WebConsoleSession
 
 urlpatterns = [
