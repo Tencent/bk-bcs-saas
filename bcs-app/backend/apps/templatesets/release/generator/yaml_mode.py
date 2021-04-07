@@ -135,5 +135,5 @@ class YamltoResourceList:
             # 集群域的资源不指定namespace
             if manifest.get('kind') not in ClusterScopeResources:
                 manifest["metadata"]["namespace"] = self.res_ctx.namespace
-        except Exception:
-            raise ParseError("set namespace failed: no valid metadata in manifest")
+        except Exception as e:
+            raise ParseError(f"set namespace failed: {e}")

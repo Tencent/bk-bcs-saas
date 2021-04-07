@@ -16,7 +16,9 @@ import pytest
 from backend.apps.configuration import models
 from backend.apps.configuration.constants import TemplateEditMode
 
-NGINX_DEPLOYMENT_JSON = {
+pytestmark = pytest.mark.django_db
+
+NGINX_DEPLOYMENT1_JSON = {
     "apiVersion": "apps/v1beta2",
     "kind": "Deployment",
     "monitorLevel": "general",
@@ -33,7 +35,7 @@ NGINX_DEPLOYMENT_JSON = {
         "hostAliasesCache": [],
     },
     "customLogLabel": {},
-    "metadata": {"name": "deployment-1"},
+    "metadata": {"name": "nginx-deployment-1"},
     "spec": {
         "minReadySeconds": 0,
         "replicas": 1,
@@ -114,6 +116,9 @@ NGINX_DEPLOYMENT_JSON = {
     },
 }
 
+NGINX_DEPLOYMENT2_JSON = dict(NGINX_DEPLOYMENT1_JSON)
+NGINX_DEPLOYMENT2_JSON["metadata"]["name"] = "nginx-deployment-2"
+
 NGINX_SVC_JSON = {
     "apiVersion": "v1",
     "kind": "Service",
@@ -138,18 +143,33 @@ NGINX_SVC_JSON = {
 
 
 @pytest.fixture
-def form_show_version(db, project_id):
+def form_template(project_id):
     template = models.Template.objects.create(
         project_id=project_id, name="nginx", edit_mode=TemplateEditMode.PageForm.value
     )
-    deploy = models.K8sDeployment.perform_create(
-        name="nginx-deployment",
-        config=NGINX_DEPLOYMENT_JSON,
+    return template
+
+
+@pytest.fixture
+def form_version_entity(form_template):
+    deploy1 = models.K8sDeployment.perform_create(
+        name="nginx-deployment1",
+        config=NGINX_DEPLOYMENT1_JSON,
     )
+    deploy2 = models.K8sDeployment.perform_create(
+        name="nginx-deployment2",
+        config=NGINX_DEPLOYMENT2_JSON,
+    )
+
     svc = models.K8sService.perform_create(name="nginx-service", config=NGINX_SVC_JSON)
-
     ventity = models.VersionedEntity.objects.create(
-        template_id=template.id, entity={"K8sDeployment": str(deploy.id), "K8sService": str(svc.id)}
+        template_id=form_template.id, entity={"K8sDeployment": f'{deploy1.id},{deploy2.id}', "K8sService": f'{svc.id}'}
     )
+    return ventity
 
-    return models.ShowVersion.objects.create(name="v1", template_id=template.id, real_version_id=ventity.id)
+
+@pytest.fixture
+def form_show_version(project_id, form_template, form_version_entity):
+    return models.ShowVersion.objects.create(
+        name="v1", template_id=form_template.id, real_version_id=form_version_entity.id
+    )
