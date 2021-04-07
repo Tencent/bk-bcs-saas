@@ -16,7 +16,7 @@ from backend.apps.projects.drivers import k8s, mesos
 
 class BaseDriver:
 
-    KIND_DRIVER = {1: k8s.K8SDriver, 2: mesos.MesosDriver}
+    KIND_DRIVER = {1: k8s.K8SDriver, 2: mesos.MesosDriver, 3: k8s.K8SDriver}
 
     def __init__(self, kind):
         self.driver = self.KIND_DRIVER[kind]

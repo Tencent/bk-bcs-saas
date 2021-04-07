@@ -11,30 +11,32 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
+import logging
 import re
 import tempfile
-import dpath
 from typing import Dict
 
+import dpath
 import yaml
 import yaml.reader
-from ruamel.yaml import YAML
-from ruamel.yaml.compat import StringIO
-from ruamel.yaml.compat import ordereddict
-from django.utils.translation import ugettext_lazy as _
 from django.conf import settings
+from django.utils.translation import ugettext_lazy as _
+from ruamel.yaml import YAML
+from ruamel.yaml.compat import StringIO, ordereddict
 
-from backend.bcs_k8s.helm.utils.util import fix_rancher_value_by_type, EmptyVaue
-from backend.utils.client import make_dashboard_ctl_client
 from backend.bcs_k8s.diff import parser
-from backend.components import paas_cc, bcs
+from backend.bcs_k8s.helm.utils.util import EmptyVaue, fix_rancher_value_by_type
+from backend.components import bcs, paas_cc
 from backend.utils.basic import get_bcs_component_version
+from backend.utils.client import make_dashboard_ctl_client
 
 from .constants import DASHBOARD_CTL_VERSION, DEFAULT_DASHBOARD_CTL_VERSION
 
 yaml.reader.Reader.NON_PRINTABLE = re.compile(
     '[^\x09\x0A\x0D\x20-\x7E\x85\xA0-\uD7FF\uE000-\uFFFD\U00010000-\U0010FFFF]'
 )
+
+logger = logging.getLogger(__name__)
 
 
 def represent_none(self, _):
@@ -349,7 +351,11 @@ def collect_resource_status(base_url, kubeconfig, app, project_code, bin_path=se
         else:
             link = None
 
-        key = "{kind}/{namespace}/{name}".format(name=name, namespace=namespace, kind=kind,)
+        key = "{kind}/{namespace}/{name}".format(
+            name=name,
+            namespace=namespace,
+            kind=kind,
+        )
         result[key] = {
             "namespace": namespace,
             "name": name,
@@ -383,10 +389,8 @@ def resource_link(base_url, kind, project_code, name, namespace, release_name):
         "/console/bcs/{project_code}/app/{fix_kind}/{resource_name}/{namespace}/{kind}"
         "?name={resource_name}&namespace={namespace}&category={kind}"
     ).format(
-        base_url=base_url,
         kind=kind.lower(),
         fix_kind=fix_kind,
-        instance_name=release_name,
         resource_name=name,
         project_code=project_code,
         namespace=namespace,

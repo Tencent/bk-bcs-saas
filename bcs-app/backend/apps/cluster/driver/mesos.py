@@ -14,6 +14,7 @@
 import logging
 
 from backend.apps import constants
+from backend.apps.cluster.constants import MESOS_SKIP_NS_LIST
 from backend.components.bcs.mesos import MesosClient
 from backend.utils.errcodes import ErrorCode
 from backend.utils.error_codes import error_codes
@@ -60,6 +61,8 @@ class MesosDriver:
 
         def iter_container(tg):
             for g in tg:
+                if g.get("namespace") in MESOS_SKIP_NS_LIST:
+                    continue
                 for d in g['data']['containerStatuses']:
                     c = {
                         'name': d['name'],

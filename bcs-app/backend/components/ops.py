@@ -19,10 +19,13 @@
 - 集群删除
 """
 import json
+import logging
 
 from django.conf import settings
 
 from backend.components.utils import request_factory
+
+logger = logging.getLogger(__name__)
 
 APIGW = 'bcs_ops'
 ENV = 'prod'
@@ -175,3 +178,9 @@ def get_task_result(access_token, project_id, task_id, biz_id, username):
     """查询任务状态"""
     params = {'task_id': task_id, 'biz_id': str(biz_id), 'username': username}
     return base_ops_request('get_task_result', access_token, project_id, 'get', params=params)
+
+
+try:
+    from .ops_ext import *  # noqa
+except ImportError as e:
+    logger.debug("Load ops_ext failed, %s", e)

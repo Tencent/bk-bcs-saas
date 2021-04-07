@@ -27,13 +27,15 @@ import subprocess
 import tempfile
 import time
 from dataclasses import asdict
+from typing import List
 
 from django.conf import settings
 from django.template.loader import render_to_string
 
 from backend.apps.whitelist import enable_helm_v3
 
-from .exceptions import HelmError, HelmExecutionError
+from .exceptions import HelmError, HelmExecutionError, HelmMaxTryError
+from .options import Options
 
 logger = logging.getLogger(__name__)
 
@@ -206,6 +208,28 @@ class KubeHelmClient:
 
         return template_out, notes_out
 
+    def _compose_cmd_args(
+        self, cmd_args: List[str], chart_path: str, values_path: str, ytt_config_path: str, cmd_flags: List[str]
+    ) -> List[str]:
+        """组装helm命令参数"""
+        cmd_args += [
+            chart_path,
+            "--post-renderer",
+            f"{ytt_config_path}/{YTT_RENDERER_NAME}",
+        ]
+        # NOTE: 当启用reuse-values时，希望使用集群中release的values内容，此时需要去掉--values
+        # --values在其它flag前面，保证可以被后续的文件或key=val覆盖
+        flags_list = [flag if flag.startswith("--") else f"--{flag}" for flag in cmd_flags]
+        if "--reuse-values" not in flags_list:
+            cmd_args += [
+                "--values",
+                values_path,
+            ]
+        # 添加flags
+        cmd_args += flags_list
+
+        return cmd_args
+
     def _install_or_upgrade(self, cmd_args, files, chart_values, bcs_inject_data, **kwargs):
         try:
             with write_chart_with_ytt(files, bcs_inject_data) as (temp_dir, ytt_config_dir):
@@ -213,19 +237,10 @@ class KubeHelmClient:
                 values_path = os.path.join(temp_dir, "bcs-values.yaml")
                 with open(values_path, "w") as f:
                     f.write(chart_values)
-                # post renderer添加平台注入信息
-                cmd_args += [
-                    temp_dir,
-                    "--values",
-                    values_path,
-                    "--post-renderer",
-                    f"{ytt_config_dir}/{YTT_RENDERER_NAME}",
-                ]
-
-                # 添加命名行参数
-                if kwargs.get("cmd_flags"):
-                    cmd_flags = [f"--{flag}" for flag in kwargs["cmd_flags"]]
-                    cmd_args += cmd_flags
+                # 组装命令行参数
+                cmd_args = self._compose_cmd_args(
+                    cmd_args, temp_dir, values_path, ytt_config_dir, kwargs.get("cmd_flags") or []
+                )
 
                 cmd_out, cmd_err = self._run_command_with_retry(max_retries=0, cmd_args=cmd_args)
         except Exception as e:
@@ -283,22 +298,9 @@ class KubeHelmClient:
         return self._uninstall_or_rollback(rollback_cmd_args)
 
     def _compose_args_and_run(self, cmd_args, options):
-        for key, value in options.items():
-            if isinstance(value, str):
-                cmd_args += [key, value]
-            elif isinstance(value, list):
-                for v in value:
-                    cmd_args += [key, v]
-            elif value is None:
-                cmd_args.append(key)
-
-        try:
-            cmd_out, cmd_err = self._run_command_with_retry(max_retries=0, cmd_args=cmd_args)
-        except Exception as e:
-            logger.exception("执行helm命令失败，命令参数: %s", json.dumps(cmd_args))
-            raise e
-
-        return cmd_out, cmd_err
+        opts = Options(options)
+        cmd_args.extend(opts.options())
+        return self._run_command_with_retry(max_retries=0, cmd_args=cmd_args)
 
     def do_install_or_upgrade(self, operation, name, namespace, chart, options):
         # e.g. helm install mynginx https://example.com/charts/nginx-1.2.3.tgz --username xxx --password xxx
@@ -318,7 +320,7 @@ class KubeHelmClient:
                 time.sleep((i + 1) * 0.5)
                 continue
 
-        raise ValueError(max_retries)
+        raise HelmMaxTryError(f"max retries {max_retries} fail")
 
     def _run_command(self, cmd_args):
         """Run the helm command with wrapped exceptions"""

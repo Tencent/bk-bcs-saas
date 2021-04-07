@@ -16,7 +16,15 @@
 from django.conf import settings
 from django.utils.translation import ugettext_lazy as _
 
-from backend.utils.exceptions_bk import get_auth_url
+
+def get_auth_url(perms=None):
+    return f'{settings.BK_IAM_APP_URL}/perm-apply/'
+
+
+try:
+    from .exceptions_ext import get_auth_url  # noqa
+except ImportError:
+    pass
 
 
 class APIError(Exception):

@@ -18,6 +18,6 @@ from backend.resources.cluster.utils import get_clusters
 
 
 class ClusterViewSet(BaseAPIViewSet):
-    def list(self, request, project_id):
-        clusters = get_clusters(request.user.token.access_token, project_id)
+    def list(self, request, project_id_or_code):
+        clusters = get_clusters(request.user.token.access_token, request.project.project_id)
         return Response(clusters)

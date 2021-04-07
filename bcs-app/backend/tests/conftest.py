@@ -21,6 +21,7 @@ from rest_framework.test import APIClient
 
 from backend.resources.project.constants import ProjectKind
 from backend.tests.testing_utils.base import generate_random_string
+from backend.utils import FancyDict
 
 TESTING_API_SERVER_URL = os.environ.get("TESTING_API_SERVER_URL", 'http://localhost:28180')
 
@@ -35,6 +36,11 @@ def cluster_id():
 def project_id():
     """使用环境变量或者生成一个随机项目 ID"""
     return os.environ.get("TEST_PROJECT_ID", generate_random_string(32))
+
+
+@pytest.fixture
+def request_user():
+    return FancyDict({"username": "admin", "token": FancyDict({"access_token": "test_access_token"})})
 
 
 @pytest.fixture

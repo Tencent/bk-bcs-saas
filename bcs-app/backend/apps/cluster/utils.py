@@ -18,14 +18,23 @@ from typing import List
 from django.conf import settings
 from django.core.paginator import Paginator
 from django.utils.translation import ugettext_lazy as _
+from rest_framework.exceptions import ValidationError
 
-from backend.utils.error_codes import error_codes
+from backend.components import cc
 from backend.infras.host_service import perms as host_perms
+from backend.resources.cluster import get_cluster_coes
+from backend.resources.cluster.constants import ClusterCOES
+from backend.utils.error_codes import error_codes
 from backend.utils.exceptions import PermissionDeniedError
+from backend.utils.funutils import convert_mappings
+
+from .constants import CCHostKeyMappings
 
 DEFAULT_PAGE_LIMIT = 5
 RoleNodeTag = 'N'
 RoleMasterTag = 'M'
+# 1表示gse agent正常
+AGENT_NORMAL_STATUS = 1
 
 
 def custom_paginator(raw_data, offset, limit=None):
@@ -95,6 +104,44 @@ def use_prometheus_source(request):
 def can_use_hosts(bk_biz_id: int, username: str, host_ips: List):
     has_perm = host_perms.can_use_hosts(bk_biz_id, username, host_ips)
     if not has_perm:
-        raise PermissionDeniedError(
-            _("用户{}没有主机:{}的权限，请联系管理员在【配置平台】添加为业务运维人员角色").format(username, host_ips), ""
-        )
+        raise PermissionDeniedError(_("用户{}没有主机:{}的权限，请联系管理员在【配置平台】添加为业务运维人员角色").format(username, host_ips), "")
+
+
+def get_cmdb_hosts(username, cc_app_id_list, host_property_filter):
+    hosts = []
+    for app_id in cc_app_id_list:
+        resp = cc.list_biz_hosts(username, int(app_id), host_property_filter=host_property_filter)
+        if resp.get("data"):
+            hosts = resp["data"]
+            break
+    cluster_masters = []
+    for info in hosts:
+        convert_host = convert_mappings(CCHostKeyMappings, info)
+        convert_host["agent"] = AGENT_NORMAL_STATUS
+        cluster_masters.append(convert_host)
+
+    return cluster_masters
+
+
+def use_tke(coes=None, access_token=None, project_id=None, cluster_id=None):
+    """判断是否使用TKE"""
+    if not (cluster_id or coes):
+        raise ValidationError(_("集群ID或集群类型不能同时为空"))
+    if not coes:
+        coes = get_cluster_coes(access_token, project_id, cluster_id)
+
+    if coes == ClusterCOES.TKE.value:
+        return True
+    return False
+
+
+def get_ops_platform(request, coes=None, project_id=None, cluster_id=None):
+    # 获取ops需要的平台类型，便于ops转发后面的标准运维
+    # gcloud_v3_inner: 内部版标准运维v3, gcloud_v1_inner: 内部版标准运维v1, gcloud_v3_tke: tke流程
+    access_token = request.user.token.access_token
+    if use_tke(coes=coes, access_token=access_token, project_id=project_id, cluster_id=cluster_id):
+        return 'gcloud_v3_tke'
+    elif request.project.bg_id != getattr(settings, "IEG_ID", ""):
+        return 'gcloud_v3_inner'
+    else:
+        return 'gcloud_v1_inner'

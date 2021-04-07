@@ -14,9 +14,13 @@
 import logging
 from dataclasses import dataclass
 
-from backend.apps.datalog.utils import get_data_id_by_project_id
 from backend.apps.instance import constants as instance_constants
 from backend.components import paas_cc
+
+try:
+    from backend.apps.datalog.utils import get_data_id_by_project_id
+except ImportError:
+    from backend.apps.datalog_ce.utils import get_data_id_by_project_id
 
 logger = logging.getLogger(__name__)
 
