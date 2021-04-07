@@ -11,6 +11,8 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
+import json
+
 from django.conf import settings
 from django.utils.functional import cached_property
 from kubernetes import client
@@ -43,18 +45,15 @@ class K8SAPIClient(BCSClientBase):
 
     @cached_property
     def api_client(self):
-        context = {}
-        cluster_info = self.query_cluster()
-        context.update(cluster_info)
-
-        credentials = self.get_client_credentials(cluster_info["id"])
-        context.update(credentials)
-
         configure = client.Configuration()
         configure.verify_ssl = False
-        configure.host = f"{self._bcs_server_host}{context['server_address_path']}".rstrip("/")
-        configure.api_key = {"authorization": f"Bearer {context['user_token']}"}
-        api_client = client.ApiClient(configure)
+        configure.host = self._bcs_server_host_prefix
+        configure.api_key = {"authorization": getattr(settings, "BCS_AUTH_TOKEN", "")}
+        api_client = client.ApiClient(
+            configure,
+            header_name="X-BKAPI-AUTHORIZATION",
+            header_value=json.dumps({"access_token": self.access_token}),
+        )
         return api_client
 
 
