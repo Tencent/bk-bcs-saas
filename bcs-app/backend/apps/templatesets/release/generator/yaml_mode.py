@@ -26,7 +26,7 @@ from backend.utils.basic import getitems
 
 from .res_context import ResContext
 
-ClusterScopeResources = [
+ClusterScopedResources = [
     FileResourceName.ClusterRole.value,
     FileResourceName.ClusterRoleBinding.value,
     FileResourceName.StorageClass.value,
@@ -124,16 +124,16 @@ class YamltoResourceList:
         """基于资源kind和表id，生成原始的manifest列表"""
         raw_manifests = []
         # instance_entity like {"Deployment": [1, 2]}
-        for res_kind, res_file_ids in self.res_ctx.instance_entity:
+        for res_kind, res_file_ids in self.res_ctx.instance_entity.items():
             res_file = res2files.get_resource_file(res_kind, res_file_ids, 'content')
-            raw_manifests.extend(res_file['files'])
+            raw_manifests.extend([f['content'] for f in res_file['files']])
         return raw_manifests
 
     def _set_namespace(self, manifest: Dict):
         """给NamespaceScoped资源注入指定的命名空间"""
         try:
             # 集群域的资源不指定namespace
-            if manifest.get('kind') not in ClusterScopeResources:
+            if manifest.get('kind') not in ClusterScopedResources:
                 manifest["metadata"]["namespace"] = self.res_ctx.namespace
         except Exception as e:
             raise ParseError(f"set namespace failed: {e}")

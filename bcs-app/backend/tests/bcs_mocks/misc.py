@@ -39,6 +39,18 @@ class FakePaaSCCMod:
             info['project_id'] = project_id
         return resp
 
+    def get_namespace(self, access_token, project_id, namespace_id):
+        resp = self._resp(paas_cc_json.resp_get_namespace_ok)
+        resp['data']['id'] = namespace_id
+        resp['data']['project_id'] = project_id
+        return resp
+
+    def get_jfrog_domain(self, access_token, project_id, cluster_id):
+        return ""
+
+    def get_image_registry_list(self, access_token, cluster_id):
+        return ["http://harbor-api.service.consul"]
+
     def _resp(self, data, **kwargs):
         _data = copy.deepcopy(data)
         _data.update(kwargs)
