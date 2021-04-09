@@ -19,7 +19,14 @@ from backend.utils.async_run import async_run
 from .. import models
 
 
-class ReleaseManager:
+class AppReleaseManager:
+    """
+    向上层提供模板集 release 的 CRUD 操作，职责如下
+    - 管理 AppRelease 表，完成 release 数据的 CRUD
+    - 通过 ReleaseResourceManager 管理 release 中的 resource 变更
+    - 一个 release 至少包含一个 resource, 一个 resource 对应一个 ReleaseResourceManager
+    """
+
     def __init__(self, dynamic_client):
         self.dynamic_client = dynamic_client
 
@@ -41,7 +48,7 @@ class ReleaseManager:
         return app_release, created
 
     def _deploy(self, operator: str, app_release_id: int, resource_list: List[models.ResourceData]):
-        res_mgr = ResourceManager(self.dynamic_client, app_release_id)
+        res_mgr = ReleaseResourceManager(self.dynamic_client, app_release_id)
         tasks = [functools.partial(res_mgr.update_or_create, operator, resource) for resource in resource_list]
         async_run(tasks)
 
@@ -50,7 +57,7 @@ class ReleaseManager:
         models.AppRelease.objects.filter(id=app_release_id).delete()
 
     def _delete(self, operator: str, app_release_id: int):
-        res_mgr = ResourceManager(self.dynamic_client, app_release_id)
+        res_mgr = ReleaseResourceManager(self.dynamic_client, app_release_id)
         tasks = [
             functools.partial(res_mgr.delete, operator, resource_inst.id)
             for resource_inst in models.ResourceInstance.objects.filter(app_release_id=app_release_id)
@@ -58,7 +65,13 @@ class ReleaseManager:
         async_run(tasks)
 
 
-class ResourceManager:
+class ReleaseResourceManager:
+    """
+    提供对 AppRelease 中 resource 的 CRUD 操作
+    - 管理 ResourceInstance 表，完成 resource 数据的 CRUD
+    - 通过与集群的实际对接，管理 resource 的运行状态
+    """
+
     def __init__(self, dynamic_client, app_release_id: int):
         self.dynamic_client = dynamic_client
         self.app_release_id = app_release_id
