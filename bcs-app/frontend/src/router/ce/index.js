@@ -10,6 +10,7 @@
  */
 
 import depotRoutes from './depot'
+import metricRoutes from './metric'
 import mcRoutes from './mc'
 import nodeRoutes from './node'
 import resourceRoutes from './resource'
@@ -29,6 +30,7 @@ const children = clusterRoutes.concat(
     networkRoutes,
     resourceRoutes,
     depotRoutes,
+    metricRoutes,
     mcRoutes,
     helmRoutes
 )
