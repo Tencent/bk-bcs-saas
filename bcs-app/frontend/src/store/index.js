@@ -10,6 +10,7 @@ import http from '@open/api'
 import { unifyObjectStyle, json2Query } from '@open/common/util'
 
 import depot from '@open/store/modules/depot'
+import metric from '@open/store/modules/metric'
 import mc from '@open/store/modules/mc'
 import cluster from '@open/store/modules/cluster'
 import resource from '@open/store/modules/resource'
@@ -40,6 +41,7 @@ const store = new Vuex.Store({
     // 模块
     modules: {
         depot,
+        metric,
         mc,
         cluster,
         resource,

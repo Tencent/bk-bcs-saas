@@ -12,7 +12,7 @@ import resourceRoutes from '@open/router/resource'
 import nodeRoutes from '@open/router/node'
 import mcRoutes from '@open/router/mc'
 import depotRoutes from '@open/router/depot'
-
+import metricRoutes from './metric'
 import store from '@open/store'
 import clusterRoutes from './cluster'
 import appRoutes from './app'
@@ -32,6 +32,7 @@ const children = clusterRoutes.concat(
     networkRoutes,
     resourceRoutes,
     depotRoutes,
+    metricRoutes,
     mcRoutes,
     helmRoutes
 )
