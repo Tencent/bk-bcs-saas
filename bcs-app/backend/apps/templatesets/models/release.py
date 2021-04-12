@@ -43,7 +43,7 @@ class AppReleaseData:
 
 
 class AppRelease(BaseModel):
-    name = models.CharField(max_length=128)
+    name = models.CharField(max_length=256)
     cluster_id = models.CharField(max_length=32)
     namespace = models.CharField(max_length=64)
     status = models.CharField(choices=ReleaseStatus.get_choices(), default=ReleaseStatus.PENDING.value, max_length=32)

@@ -11,16 +11,12 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-from rest_framework import viewsets
-from rest_framework.renderers import BrowsableAPIRenderer
 from rest_framework.response import Response
 
 from backend.apps.configuration.mixins import TemplatePermission
-from backend.utils.renderers import BKAPIRenderer
+from backend.bcs_web.viewsets import SystemViewSet
 
 
-class ShowVersionViewSet(viewsets.ViewSet, TemplatePermission):
-    renderer_classes = (BKAPIRenderer, BrowsableAPIRenderer)
-
+class ShowVersionViewSet(SystemViewSet, TemplatePermission):
     def list_show_versions(self, request, project_id, template_id):
         return Response()
