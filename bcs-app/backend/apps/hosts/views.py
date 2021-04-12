@@ -17,12 +17,11 @@ import logging
 from django.utils.translation import ugettext_lazy as _
 from rest_framework import viewsets
 from rest_framework.exceptions import ValidationError
-from rest_framework.renderers import BrowsableAPIRenderer
 from rest_framework.response import Response
 
 from backend.activity_log.client import ContextActivityLogClient
+from backend.bcs_web.viewsets import SystemViewSet
 from backend.infras.host_service.host import create_and_start_host_application
-from backend.utils.renderers import BKAPIRenderer
 
 from .constants import SCR_URL, TaskStatus
 from .models import HostApplyTaskLog
@@ -32,9 +31,7 @@ from .tasks import ApplyHostStatusPoller, ApplyHostStatusResultHandler
 logger = logging.getLogger(__name__)
 
 
-class ApplyHostViewSet(viewsets.ViewSet):
-    renderer_classes = (BKAPIRenderer, BrowsableAPIRenderer)
-
+class ApplyHostViewSet(SystemViewSet):
     def verify_task_exist(self, project_id):
         if HostApplyTaskLog.objects.filter(project_id=project_id, is_finished=False).exists():
             raise ValidationError(_("项目下正在申请机器资源，请等待任务结束后，再确认是否继续申请资源!"))
@@ -69,10 +66,8 @@ class ApplyHostViewSet(viewsets.ViewSet):
             params=data,
             logs={"申请主机": {"state": "RUNNING"}},
         )
-        # 启动轮训任务
-        ApplyHostStatusPoller.start(
-            params={"log_id": log_record.id, "task_id": task_id}, result_handle_cls=ApplyHostStatusResultHandler
-        )
+        # 启动轮询任务
+        ApplyHostStatusPoller.start({"log_id": log_record.id, "task_id": task_id}, ApplyHostStatusResultHandler)
         return Response()
 
     def get_task_log(self, request, project_id):

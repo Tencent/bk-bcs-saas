@@ -23,9 +23,3 @@ class TaskLogSLZ(serializers.ModelSerializer):
     class Meta:
         model = HostApplyTaskLog
         fields = ("created", "task_url", "operator", "status", "is_finished", "logs")
-
-
-try:
-    from .serializers_ext import GetCVMTypeDataSLZ
-except ImportError:
-    pass

@@ -5,13 +5,13 @@ from typing import Dict
 
 from backend.apps.hosts.constants import TaskStatus
 from backend.apps.hosts.models import HostApplyTaskLog
-from backend.celery_app.periodic_tasks import (
-    PRS,
-    BasePollerTaskStatus,
-    BaseResultHandler,
-    FinalState,
-    PollResult,
-    PollStatus,
+from backend.celery_app.poll_task import (
+    CallbackHandler,
+    CallbackResult,
+    CallbackStatus,
+    PollingResult,
+    PollingStatus,
+    TaskPoller,
 )
 from backend.infras.host_service.host import get_task_state_and_steps
 from backend.utils.error_codes import APIError
@@ -19,28 +19,25 @@ from backend.utils.error_codes import APIError
 logger = logging.getLogger(__name__)
 
 
-class ApplyHostStatusPoller(BasePollerTaskStatus):
+class ApplyHostStatusPoller(TaskPoller):
     """申请主机任务启动后，轮训申请主机资源的状态"""
 
     default_retry_delay_seconds = 20
     overall_timeout_seconds = 3600 * 24 * 2  # 超时时间设置为2天
 
-    def query_status(self) -> PollStatus:
+    def query(self) -> PollingResult:
         params = self.params
         state_and_steps = self.query_state_and_steps(params["task_id"])
 
-        status = PRS.DOING.value
-        if not state_and_steps:
-            status = PRS.SHOULD_RETRY.value
-        # 当处于["FAILED", "REVOKED", "FINISHED"]时，认为任务结束
-        elif state_and_steps["state"] in [
+        status = PollingStatus.DOING.value
+        if state_and_steps["state"] in [
             TaskStatus.FAILED.value,
             TaskStatus.REVOKED.value,
             TaskStatus.FINISHED.value,
         ]:
-            status = PRS.DONE.value
+            status = PollingStatus.DONE.value
 
-        return PollStatus(status=status, result=state_and_steps)
+        return PollingResult(status=status, data=state_and_steps)
 
     def query_state_and_steps(self, task_id: str) -> Dict:
         try:
@@ -51,17 +48,17 @@ class ApplyHostStatusPoller(BasePollerTaskStatus):
         return state_and_steps
 
 
-class ApplyHostStatusResultHandler(BaseResultHandler):
+class ApplyHostStatusResultHandler(CallbackHandler):
     """处理最终状态，更新db记录"""
 
-    def final_result_handler(self, poll_result: PollResult):
-        poll_data = poll_result.data
-        if poll_result.code != FinalState.FINISHED.value:
+    def handle(self, result: CallbackResult, poller: TaskPoller):
+        poll_data = result.data
+        if result.status != CallbackStatus.NORMAL.value:
             status = TaskStatus.FAILED.value
         else:
             status = poll_data["state"]
 
-        self.update_task_log(log_id=self.params["log_id"], status=status, logs=poll_data.get("steps"))
+        self.update_task_log(log_id=poller.params["log_id"], status=status, logs=poll_data.get("steps"))
 
     def update_task_log(self, log_id: int, status: str, logs: Dict):
         try:

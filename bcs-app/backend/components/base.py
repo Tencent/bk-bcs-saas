@@ -12,11 +12,13 @@
 # specific language governing permissions and limitations under the License.
 #
 """Base utilities for components module"""
+import functools
 import json
 import logging
 import time
 from abc import ABC
-from typing import Any, Dict, Optional
+from types import MethodType
+from typing import Any, Callable, Dict, Optional
 from urllib import parse
 
 import requests
@@ -24,6 +26,7 @@ from requests import HTTPError, PreparedRequest, RequestException, Response
 from requests.auth import AuthBase
 
 from backend.utils.decorators import requests_curl_log
+from backend.utils.errcodes import ErrorCode
 from backend.utils.local import local
 
 logger = logging.getLogger(__name__)
@@ -204,3 +207,43 @@ def update_request_body(body: Optional[bytes], params: Dict) -> bytes:
         body_dict = json.loads(bytes.decode(body))
     body_dict.update(params)
     return str.encode(json.dumps(body_dict))
+
+
+class CompParseResponseError(BaseCompError):
+    """解析返回数据错误
+
+    :param resp_json: 请求返回的数据
+    :param exc: 原异常对象
+    """
+
+    def __init__(self, resp_json: Any, message: str):
+        self.resp_json = json.dumps(resp_json)
+        self.message = message
+        super().__init__(f"parse response content error, response: {resp_json}, message: {message}")
+
+
+class ResponseHander:
+    """提供解析response函数和原始response函数"""
+
+    def __init__(self, default_data: Optional[Any] = None, func: Callable = None):
+        self.default_data = default_data
+        self.func = func
+
+    def __get__(self, instance, cls):
+        if instance is None:
+            return self
+        else:
+            return MethodType(self, instance)
+
+    def __call__(self, *args, **kwargs) -> Any:
+        resp = self.func(*args, **kwargs)
+        if resp.get("code") == ErrorCode.NoError or resp.get("result") is True:
+            return resp.get("data") or self.default_data
+        raise CompParseResponseError(resp, resp.get("message"))
+
+    def get_raw_response(self, *args, **kwargs) -> Any:
+        return self.func(*args, **kwargs)
+
+
+def response_hander(default_data: Optional[Any] = None):
+    return functools.partial(ResponseHander, default_data)

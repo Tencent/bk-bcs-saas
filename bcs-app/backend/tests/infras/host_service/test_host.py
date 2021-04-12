@@ -78,19 +78,15 @@ class TestApplyHostApi:
     }
 
     @patch(
-        "backend.infras.host_service.host.sops.SopsClient.create_task",
-        new=FakeSopsMod.create_task,
-    )
-    @patch(
-        "backend.infras.host_service.host.sops.SopsClient.start_task",
-        new=FakeSopsMod.start_task,
+        "backend.infras.host_service.host.sops.SopsClient",
+        new=FakeSopsMod,
     )
     def test_create_and_start_host_application(self):
         task_id, task_url = host.create_and_start_host_application(**self.fake_params)
         assert task_id == sops_json.fake_task_id
         assert task_url == sops_json.fake_task_url
 
-    @patch("backend.infras.host_service.host.sops.SopsClient.get_task_status", new=FakeSopsMod.get_task_status)
+    @patch("backend.infras.host_service.host.sops.SopsClient", new=FakeSopsMod)
     def test_get_task_state_and_steps(self):
         status_and_steps = host.get_task_state_and_steps(sops_json.fake_task_id)
         assert status_and_steps["state"] == "RUNNING"
