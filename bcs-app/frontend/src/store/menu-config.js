@@ -15,6 +15,7 @@ export default function menuConfig (lang) {
     let namespace = '命名空间'
     let templateset = '模板集'
     let variable = '变量管理'
+    let metric = 'Metric管理'
     let app = '应用'
     let network = '网络'
     let resource = '配置'
@@ -33,6 +34,7 @@ export default function menuConfig (lang) {
         namespace = 'Namespaces'
         templateset = 'TemplateSets'
         variable = 'Variables'
+        metric = 'Metrics'
         app = 'Applications'
         network = 'Network'
         resource = 'Configuration'
@@ -90,6 +92,11 @@ export default function menuConfig (lang) {
                 icon: 'icon-var',
                 roleId: 'configuration:menu',
                 pathName: ['var']
+            },
+            {
+                name: metric,
+                icon: 'icon-control-center',
+                pathName: ['metricManage']
             },
             { name: 'line' },
             {
@@ -210,6 +217,11 @@ export default function menuConfig (lang) {
                 icon: 'icon-var',
                 roleId: 'configuration:menu',
                 pathName: ['var']
+            },
+            {
+                name: metric,
+                icon: 'icon-control-center',
+                pathName: ['metricManage']
             },
             { name: 'line' },
             {
