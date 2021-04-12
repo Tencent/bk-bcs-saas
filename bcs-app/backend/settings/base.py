@@ -65,6 +65,7 @@ INSTALLED_APPS = [
     "backend.apps.depot",
     "backend.apps.cluster",
     "backend.apps.configuration",
+    "backend.apps.templatesets.apps.TemplateSetsConfig",
     "backend.apps.instance",
     "backend.apps.resource",
     "backend.apps.network",
