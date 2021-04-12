@@ -179,7 +179,7 @@ class Namespace(PermissionMeta):
         self, ns_list, ns_id_flag="id", cluster_id_flag="cluster_id", ns_name_flag="name", **filter_parms
     ):  # noqa
         default_perms = {perm: True for perm in self.POLICY_LIST}
-        default_perms.update({"create": True, "view": True, "use": True, "delete": True})
+        default_perms.update({"create": True, "view": True, "use": True, "delete": True, "edit_msg": ""})
         ns_list = ns_list or []
         for data in ns_list:
             data["permissions"] = default_perms

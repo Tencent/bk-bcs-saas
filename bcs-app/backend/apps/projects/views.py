@@ -58,7 +58,7 @@ class Projects(viewsets.ViewSet):
                 return []
         return deploy_type_list
 
-    def _register_function_contoller(self, func_code, project_list):
+    def _register_function_controller(self, func_code, project_list):
         enabled, wlist = get_func_controller(func_code)
         for project in project_list:
             # 黑名单控制
@@ -67,10 +67,10 @@ class Projects(viewsets.ViewSet):
 
             project["func_wlist"].add(func_code)
 
-    def register_function_contoller(self, project_list):
+    def register_function_controller(self, project_list):
         """注册功能白名单"""
         for func_code in getattr(settings, "PROJECT_FUNC_CODES", []):
-            self._register_function_contoller(func_code, project_list)
+            self._register_function_controller(func_code, project_list)
 
     def list(self, request):
         """获取项目列表"""
@@ -96,7 +96,7 @@ class Projects(viewsets.ViewSet):
             info["func_wlist"] = set()
 
         # 白名单用于控制mesos集群是否开启了service monitor组件
-        self.register_function_contoller(data)
+        self.register_function_controller(data)
 
         return Response(data)
 
