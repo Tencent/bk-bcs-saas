@@ -114,3 +114,22 @@ resp_get_namespaces_ok = {
     "message": "获取Namespace成功",
     "result": True,
 }
+
+resp_get_namespace_ok = {
+    "code": 0,
+    "data": {
+        "cluster_id": "BCS-K8S-10000",
+        "created_at": "2020-01-01T00:00:00+08:00",
+        "creator": "unknown",
+        "description": "",
+        "env_type": "dev",
+        "has_image_secret": False,
+        "id": 1,
+        "name": "test",
+        "project_id": None,
+        "status": "",
+        "updated_at": "2020-01-01T00:00:00+08:00",
+    },
+    "message": "获取Namespace成功",
+    "result": True,
+}

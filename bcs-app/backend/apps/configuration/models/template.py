@@ -15,8 +15,10 @@ import json
 
 from django.db import models
 from django.db.utils import IntegrityError
+from django.utils import timezone
 from django.utils.functional import cached_property
 from django.utils.translation import ugettext_lazy as _
+from jsonfield import JSONField
 from rest_framework.exceptions import ValidationError
 
 from backend.apps.application.constants import K8S_KIND, MESOS_KIND
@@ -300,17 +302,29 @@ class ShowVersion(BaseModel):
 
     template_id = models.IntegerField("关联的模板 ID")
     name = models.CharField("版本名称", max_length=255)
+    # TODO history字段后续废弃, 由version_history替代
     history = models.TextField("所有指向过的版本", default="[]")
+    revision_history = JSONField("历史修订版本记录", default=[])
     real_version_id = models.IntegerField("关联的VersionedEntity ID", null=True, blank=True)
     comment = models.TextField("版本说明", default="")
     objects = ShowVersionManager()
     default_objects = models.Manager()
+
+    def _append_to_revision_history(self, real_version_id: int):
+        self.revision_history.append(
+            {"real_version_id": real_version_id, "revision": timezone.localtime().strftime('%Y%m%d%H%M%S')}
+        )
 
     def save(self, *args, **kwargs):
         # 捕获名称重复异常
         try:
             if isinstance(self.history, list):
                 self.history = json.dumps(list(set(self.history)))
+
+            # 首次保存时的版本计入version_history
+            if not self.revision_history:
+                self._append_to_revision_history(self.real_version_id)
+
             super().save(*args, **kwargs)
         except IntegrityError:
             # TODO mark refactor use ValidationError not properly
@@ -329,6 +343,10 @@ class ShowVersion(BaseModel):
         history = self.get_history()
         history.append(real_version_id)
         update_params["history"] = history
+
+        self._append_to_revision_history(real_version_id)
+        update_params["revision_history"] = self.revision_history
+
         update_params.update(kwargs)
         self.__dict__.update(update_params)
         self.save()
@@ -336,6 +354,13 @@ class ShowVersion(BaseModel):
     @property
     def related_template(self):
         return Template.objects.get(id=self.template_id)
+
+    @property
+    def latest_revision(self) -> str:
+        try:
+            return self.revision_history[-1].get("revision", "")
+        except IndexError:
+            return ""
 
     class Meta:
         index_together = ("is_deleted", "template_id")
