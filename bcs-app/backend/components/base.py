@@ -26,7 +26,6 @@ from requests import HTTPError, PreparedRequest, RequestException, Response
 from requests.auth import AuthBase
 
 from backend.utils.decorators import requests_curl_log
-from backend.utils.errcodes import ErrorCode
 from backend.utils.local import local
 
 logger = logging.getLogger(__name__)
@@ -201,6 +200,7 @@ def update_request_body(body: Optional[bytes], params: Dict) -> bytes:
     :param params: 需要添加的参数
     :returns: 返回新的body
     """
+    # body体为None时，需要设置为空字典，方便添加参数
     if not body:
         body_dict = {}
     else:
@@ -209,7 +209,7 @@ def update_request_body(body: Optional[bytes], params: Dict) -> bytes:
     return str.encode(json.dumps(body_dict))
 
 
-class CompParseResponseError(BaseCompError):
+class CompParseBkCommonResponseError(BaseCompError):
     """解析返回数据错误
 
     :param resp_json: 请求返回的数据
@@ -222,8 +222,12 @@ class CompParseResponseError(BaseCompError):
         super().__init__(f"parse response content error, response: {resp_json}, message: {message}")
 
 
-class ResponseHander:
-    """提供解析response函数和原始response函数"""
+class BkCommonResponseHandler:
+    """提供解析response函数和原始response函数
+
+    :param default_data: 当resp中data为空时，可以通过设置此字段，标识期望返回的内容
+    :param func: 调用的函数
+    """
 
     def __init__(self, default_data: Optional[Any] = None, func: Callable = None):
         self.default_data = default_data
@@ -237,13 +241,13 @@ class ResponseHander:
 
     def __call__(self, *args, **kwargs) -> Any:
         resp = self.func(*args, **kwargs)
-        if resp.get("code") == ErrorCode.NoError or resp.get("result") is True:
+        if resp.get("code") == 0 or resp.get("result") is True:
             return resp.get("data") or self.default_data
-        raise CompParseResponseError(resp, resp.get("message"))
+        raise CompParseBkCommonResponseError(resp, resp.get("message"))
 
-    def get_raw_response(self, *args, **kwargs) -> Any:
+    def raw_request(self, *args, **kwargs) -> Any:
         return self.func(*args, **kwargs)
 
 
-def response_hander(default_data: Optional[Any] = None):
-    return functools.partial(ResponseHander, default_data)
+def response_handler(default_data: Optional[Any] = None):
+    return functools.partial(BkCommonResponseHandler, default_data)

@@ -19,7 +19,7 @@ from backend.components.base import (
     CompInternalError,
     CompParseResponseError,
     CompRequestError,
-    response_hander,
+    response_handler,
     update_request_body,
     update_url_parameters,
 )
@@ -115,12 +115,12 @@ class TestResponseHander:
         ],
     )
     def test_response_ok_data_hander(self, default_data, func, expected_data):
-        data = response_hander(default_data)(getattr(self, func))()
+        data = response_handler(default_data)(getattr(self, func))()
         assert data == expected_data
 
     def test_response_error_data_hander(self):
         with pytest.raises(CompParseResponseError):
-            response_hander()(self.func_error)()
+            response_handler()(self.func_error)()
 
     @pytest.mark.parametrize(
         "default_data,func,expected_data",
@@ -132,5 +132,5 @@ class TestResponseHander:
         ],
     )
     def test_response_raw_hander(self, default_data, func, expected_data):
-        data = response_hander(default_data)(getattr(self, func)).get_raw_response()
+        data = response_handler(default_data)(getattr(self, func)).get_raw_response()
         assert data == expected_data

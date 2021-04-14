@@ -21,7 +21,7 @@ from requests.auth import AuthBase
 from backend.components.base import (
     BaseHttpClient,
     BkApiClient,
-    response_hander,
+    response_handler,
     update_request_body,
     update_url_parameters,
 )
@@ -70,6 +70,7 @@ class SopsClient(BkApiClient):
         self._config = SopsConfig(host=settings.SOPS_API_HOST)
         self._client = BaseHttpClient(SopsAuth())
 
+    @response_handler(default_data={})
     def create_task(self, bk_biz_id: str, template_id: str, data: CreateTaskParams) -> Dict:
         """通过业务流程创建任务
 
@@ -81,6 +82,7 @@ class SopsClient(BkApiClient):
         url = self._config.create_task_url.format(template_id=template_id, bk_biz_id=bk_biz_id)
         return self._common_request("POST", url, json=asdict(data))
 
+    @response_handler(default_data={})
     def start_task(self, bk_biz_id: str, task_id: str) -> Dict:
         """启动任务
 
@@ -91,6 +93,7 @@ class SopsClient(BkApiClient):
         url = self._config.start_task_url.format(task_id=task_id, bk_biz_id=bk_biz_id)
         return self._common_request("POST", url)
 
+    @response_handler(default_data={})
     def get_task_status(self, bk_biz_id: str, task_id: str) -> Dict:
         """获取任务状态
 
@@ -101,6 +104,7 @@ class SopsClient(BkApiClient):
         url = self._config.get_task_status_url.format(task_id=task_id, bk_biz_id=bk_biz_id)
         return self._common_request("GET", url)
 
+    @response_handler(default_data={})
     def get_task_node_data(self, bk_biz_id: str, task_id: str, node_id: str) -> Dict:
         """获取任务步骤的详情
 
@@ -112,7 +116,6 @@ class SopsClient(BkApiClient):
         url = self._config.get_task_node_data_url.format(task_id=task_id, bk_biz_id=bk_biz_id)
         return self._common_request("GET", url, params={"node_id": node_id})
 
-    @response_hander(default_data={})
     def _common_request(self, method: str, url: str, **kwargs) -> Dict:
         """请求SOPS接口
 

@@ -15,7 +15,6 @@ import json
 import logging
 
 from django.utils.translation import ugettext_lazy as _
-from rest_framework import viewsets
 from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 
