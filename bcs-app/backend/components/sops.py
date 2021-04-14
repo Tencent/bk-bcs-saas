@@ -80,7 +80,7 @@ class SopsClient(BkApiClient):
         :returns: 返回任务详情，包含任务连接、步骤名称、任务ID
         """
         url = self._config.create_task_url.format(template_id=template_id, bk_biz_id=bk_biz_id)
-        return self._common_request("POST", url, json=asdict(data))
+        return self._client.request_json("POST", url, json=asdict(data))
 
     @response_handler(default_data={})
     def start_task(self, bk_biz_id: str, task_id: str) -> Dict:
@@ -91,7 +91,7 @@ class SopsClient(BkApiClient):
         :returns: 返回的数据中，包含任务连接
         """
         url = self._config.start_task_url.format(task_id=task_id, bk_biz_id=bk_biz_id)
-        return self._common_request("POST", url)
+        return self._client.request_json("POST", url)
 
     @response_handler(default_data={})
     def get_task_status(self, bk_biz_id: str, task_id: str) -> Dict:
@@ -102,7 +102,7 @@ class SopsClient(BkApiClient):
         :returns: 返回任务执行状态，包含启动时间、任务状态、子步骤名称、子步骤状态等
         """
         url = self._config.get_task_status_url.format(task_id=task_id, bk_biz_id=bk_biz_id)
-        return self._common_request("GET", url)
+        return self._client.request_json("GET", url)
 
     @response_handler(default_data={})
     def get_task_node_data(self, bk_biz_id: str, task_id: str, node_id: str) -> Dict:
@@ -114,14 +114,4 @@ class SopsClient(BkApiClient):
         :returns: 返回子步骤输出，便于解析输出，从而得到对应的value
         """
         url = self._config.get_task_node_data_url.format(task_id=task_id, bk_biz_id=bk_biz_id)
-        return self._common_request("GET", url, params={"node_id": node_id})
-
-    def _common_request(self, method: str, url: str, **kwargs) -> Dict:
-        """请求SOPS接口
-
-        :param method: 请求接口的方法，如GET、POST等
-        :param url: 请求接口的URL
-        :param kwargs: 支持更多的参数、如params、data、headers等
-        :returns: 返回data中数据
-        """
-        return self._client.request_json(method, url, **kwargs)
+        return self._client.request_json("GET", url, params={"node_id": node_id})

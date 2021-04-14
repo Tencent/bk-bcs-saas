@@ -95,7 +95,7 @@ def test_update_request_body(body, params, expected_body):
     assert updated_body == expected_body
 
 
-class TestResponseHander:
+class TestBkCommonResponseHandler:
     def func_data_ok(self):
         return {"code": 0, "data": {"status": "running"}}
 
