@@ -82,7 +82,7 @@ def sync_helm_repo(repo_id, force=False):
                 username, password = credentials["username"], credentials["password"]
             start_time = normalize_time(repo.refreshed_at)
             charts_info, charts_info_hash = get_incremental_charts_and_hash_value(
-                repo_url, username, password, start_time
+                repo_name, username, password, start_time
             )
         else:
             charts_info, charts_info_hash = prepareRepoCharts(repo_url, repo_name, plain_auths)
