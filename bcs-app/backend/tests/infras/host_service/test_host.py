@@ -1,8 +1,11 @@
 # -*- coding: utf-8 -*-
 from unittest.mock import patch
 
+import pytest
+
 from backend.infras.host_service import host
 from backend.infras.host_service.perms import can_use_hosts
+from backend.tests.bcs_mocks.fake_sops import FakeSopsMod, sops_json
 
 fake_cc_host_ok_results = {
     "result": True,
@@ -61,3 +64,32 @@ try:
     from .test_host_ext import *  # noqa
 except ImportError as e:
     pass
+
+
+class TestApplyHostApi:
+    fake_params = {
+        "cc_app_id": "1",
+        "username": "admin",
+        "region": "ap-nanjing",
+        "cvm_type": "cvm_type",
+        "disk_size": 100,
+        "replicas": 1,
+        "network_type": "overlay",
+    }
+
+    @patch(
+        "backend.infras.host_service.host.sops.SopsClient",
+        new=FakeSopsMod,
+    )
+    def test_create_and_start_host_application(self):
+        task_id, task_url = host.create_and_start_host_application(**self.fake_params)
+        assert task_id == sops_json.fake_task_id
+        assert task_url == sops_json.fake_task_url
+
+    @patch("backend.infras.host_service.host.sops.SopsClient", new=FakeSopsMod)
+    def test_get_task_state_and_steps(self):
+        status_and_steps = host.get_task_state_and_steps(sops_json.fake_task_id)
+        assert status_and_steps["state"] == "RUNNING"
+        assert status_and_steps["steps"]["申请CVM服务器"]["state"] == "FINISHED"
+        assert "<class 'pipeline.core.flow.event.EmptyStartEvent'>" not in status_and_steps["steps"]
+        assert "<class 'pipeline.core.flow.event.EmptyEndEvent'>" not in status_and_steps["steps"]
