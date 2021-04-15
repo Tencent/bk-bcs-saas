@@ -156,10 +156,12 @@ def parse_response_data(default_data=None, err_msg_prefix=None):
         @wraps(func)
         def parse(*args, **kwargs):
             resp = func(*args, **kwargs)
-            if resp.get("code") != ErrorCode.NoError:
-                prefix = err_msg_prefix or f"{func.__name__} error"
-                raise error_codes.APIError(f"{prefix}: {resp.get('message')}")
-            return resp["data"] or default_data
+            # NOTE: 支持code和result标识，code为0或者result为True，表示接口成功，返回data数据
+            if resp.get("code") == ErrorCode.NoError or resp.get("result") is True:
+                return resp.get("data") or default_data
+
+            prefix = err_msg_prefix or f"{func.__name__} error"
+            raise error_codes.APIError(f"{prefix}: {resp.get('message')}")
 
         return parse
 

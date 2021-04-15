@@ -75,6 +75,7 @@ INSTALLED_APPS = [
     "backend.bcs_k8s.app",
     "backend.bcs_k8s.helm",
     "backend.bcs_k8s.authtoken",
+    "backend.apps.hosts",
 ]
 
 MIDDLEWARE = [

@@ -32,7 +32,13 @@ from rest_framework.renderers import BrowsableAPIRenderer, JSONRenderer
 from rest_framework.response import Response
 from rest_framework.views import exception_handler
 
-from backend.components.base import BaseCompError, CompInternalError, CompRequestError, CompResponseError
+from backend.components.base import (
+    BaseCompError,
+    CompInternalError,
+    CompParseBkCommonResponseError,
+    CompRequestError,
+    CompResponseError,
+)
 from backend.utils import exceptions as backend_exceptions
 from backend.utils.basic import str2bool
 from backend.utils.error_codes import APIError, error_codes
@@ -92,6 +98,7 @@ exc_resp_formatter_map = {
     CompRequestError: CompErrorFormatter,
     CompResponseError: CompErrorFormatter,
     CompInternalError: CompErrorFormatter,
+    CompParseBkCommonResponseError: CompErrorFormatter,
 }
 
 
