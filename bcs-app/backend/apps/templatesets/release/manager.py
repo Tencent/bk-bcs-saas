@@ -79,8 +79,18 @@ class ReleaseResourceManager:
 
     def update_or_create(self, operator: str, resource: models.ResourceData) -> Tuple[models.ResourceInstance, bool]:
         try:
-            self.dynamic_client.update_or_create(resource.manifest)
-        except Exception:
+            api_version = getitems(resource.manifest, 'apiVersion')
+            if api_version:
+                api = self.dynamic_client.resources.get(kind=resource.manifest['kind'], api_version=api_version)
+            else:
+                api = self.dynamic_client.get_preferred_resource(kind=resource.manifest['kind'])
+            api.update_or_create(
+                body=resource.manifest,
+                name=resource.name,
+                namespace=getitems(resource.manifest, 'metadata.namespace'),
+                update_method="replace",
+            )
+        except Exception as e:
             raise
 
         return models.ResourceInstance.objects.update_or_create(
@@ -118,17 +128,8 @@ class ReleaseResourceManager:
             api = self.dynamic_client.resources.get(kind=resource_inst.kind, api_version=api_version)
         else:
             api = self.dynamic_client.get_preferred_resource(kind=resource_inst.kind)
-        api.delete_ignore_nonexistent(resource_inst.name, resource_inst.namespace)
+        api.delete_ignore_nonexistent(
+            name=resource_inst.name, namespace=getitems(resource_inst.manifest, 'metadata.namespace')
+        )
 
         return resource_inst.delete()
-
-        # def delete_ignore_nonexistent(
-        #         self,
-        #         resource: Resource,
-        #         name: Optional[str] = None,
-        #         namespace: Optional[str] = None,
-        #         body: Optional[Dict] = None,
-        #         label_selector: Optional[str] = None,
-        #         field_selector: Optional[str] = None,
-        #         **kwargs,
-        # ) -> Optional[ResourceInstance]:

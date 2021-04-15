@@ -32,10 +32,6 @@ class ResourceData:
     version: str = ""
     revision: str = ""
 
-    @property
-    def yaml_manifest(self):
-        pass
-
 
 @dataclass
 class AppReleaseData:
