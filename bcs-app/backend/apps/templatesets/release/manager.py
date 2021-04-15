@@ -15,6 +15,7 @@ import functools
 from typing import List, Tuple
 
 from backend.utils.async_run import async_run
+from backend.utils.basic import getitems
 
 from .. import models
 
@@ -111,5 +112,23 @@ class ReleaseResourceManager:
 
     def delete(self, operator: str, resource_inst_id: int):
         resource_inst = models.ResourceInstance.objects.get(id=resource_inst_id)
-        self.dynamic_client.delete(resource_inst.name, resource_inst.namespace, resource_inst.kind)
+
+        api_version = getitems(resource_inst.manifest, 'apiVersion')
+        if api_version:
+            api = self.dynamic_client.resources.get(kind=resource_inst.kind, api_version=api_version)
+        else:
+            api = self.dynamic_client.get_preferred_resource(kind=resource_inst.kind)
+        api.delete_ignore_nonexistent(resource_inst.name, resource_inst.namespace)
+
         return resource_inst.delete()
+
+        # def delete_ignore_nonexistent(
+        #         self,
+        #         resource: Resource,
+        #         name: Optional[str] = None,
+        #         namespace: Optional[str] = None,
+        #         body: Optional[Dict] = None,
+        #         label_selector: Optional[str] = None,
+        #         field_selector: Optional[str] = None,
+        #         **kwargs,
+        # ) -> Optional[ResourceInstance]:

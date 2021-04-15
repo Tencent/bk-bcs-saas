@@ -21,6 +21,8 @@ from backend.apps.constants import ClusterType
 from backend.components.base import ComponentAuth
 from backend.components.iam import permissions
 from backend.components.paas_cc import PaaSCCClient
+from backend.resources.cluster.models import CtxCluster
+from backend.resources.project.models import CtxProject
 from backend.utils import FancyDict
 from backend.utils.cache import region
 
@@ -72,7 +74,7 @@ class ProjectEnableBCS(BasePermission):
     仅支持处理 url 路径参数中包含 project_id 或 project_id_or_code 的接口
     主要功能:
     - 校验项目是否已经开启容器服务
-    - 将 request.project 设置成 project，在 view 中使用
+    - 设置 request.project、request.ctx_project 和 request.ctx_cluster (如果路径参数有 cluster_id)，在 view 中使用
     """
 
     message = "project does not enable bcs"
@@ -82,6 +84,7 @@ class ProjectEnableBCS(BasePermission):
         project = self._get_enabled_project(request.user.token.access_token, project_id_or_code)
         if project:
             request.project = project
+            self._set_ctx_project_cluster(request, project, view.kwargs.get('cluster_id', ''))
             return True
 
         return False
@@ -116,3 +119,8 @@ class ProjectEnableBCS(BasePermission):
             project.kind = get_project_kind(project.kind)
         except ImportError:
             pass
+
+    def _set_ctx_project_cluster(self, request, project: FancyDict, cluster_id: str):
+        access_token = request.user.token.access_token
+        request.ctx_project = CtxProject.create(token=access_token, id=project.project_id)
+        request.ctx_cluster = CtxCluster.create(token=access_token, id=cluster_id, project_id=project.project_id)

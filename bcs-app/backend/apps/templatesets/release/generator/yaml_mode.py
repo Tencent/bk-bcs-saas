@@ -45,7 +45,7 @@ class YamltoResourceList:
         bcs_variables = self._get_bcs_variables()
 
         # template_variables是运行时变量，类似于Helm的--set
-        template_variables = self.res_ctx.extras.get('template_variables', {})
+        template_variables = self.res_ctx.template_variables
         if template_variables:
             bcs_variables.update(template_variables)
 
@@ -81,7 +81,7 @@ class YamltoResourceList:
             access_token=res_ctx.access_token,
             project_id=res_ctx.project_id,
             cluster_id=res_ctx.cluster_id,
-            namespace_id=res_ctx.extras.get('namespace_id', 0),
+            namespace_id=res_ctx.namespace_id,
             namespace=res_ctx.namespace,
             creator=res_ctx.username,
             updator=res_ctx.username,
@@ -94,7 +94,7 @@ class YamltoResourceList:
 
     def _get_bcs_variables(self) -> Dict[str, str]:
         res_ctx = self.res_ctx
-        namespace_id = res_ctx.extras.get('namespace_id', 0)
+        namespace_id = res_ctx.namespace_id
         sys_variables = bcs_variable.collect_system_variable(
             access_token=res_ctx.access_token,
             project_id=res_ctx.project_id,

@@ -16,10 +16,10 @@ from typing import Optional
 from django.utils.translation import ugettext_lazy as _
 from kubernetes.dynamic.resource import ResourceInstance
 
+from backend.resources.cluster.models import CtxCluster
 from backend.utils.error_codes import error_codes
 
 from ..resource import ResourceClient
-from ..utils.auths import ClusterAuth
 from .crd import CustomResourceDefinition
 from .format import CustomObjectFormatter
 
@@ -27,9 +27,9 @@ from .format import CustomObjectFormatter
 class CustomObject(ResourceClient):
     formatter = CustomObjectFormatter()
 
-    def __init__(self, cluster_auth: ClusterAuth, kind: str, api_version: Optional[str] = None):
+    def __init__(self, ctx_cluster: CtxCluster, kind: str, api_version: Optional[str] = None):
         self.kind = kind
-        super().__init__(cluster_auth, api_version)
+        super().__init__(ctx_cluster, api_version)
 
 
 def _get_cobj_api_version(crd: ResourceInstance) -> str:
@@ -49,9 +49,9 @@ def _get_cobj_api_version(crd: ResourceInstance) -> str:
     return f"{group}/v1alpha1"
 
 
-def get_cobj_client_by_crd(cluster_auth: ClusterAuth, crd_name: str) -> CustomObject:
-    crd_client = CustomResourceDefinition(cluster_auth)
+def get_cobj_client_by_crd(ctx_cluster: CtxCluster, crd_name: str) -> CustomObject:
+    crd_client = CustomResourceDefinition(ctx_cluster)
     crd = crd_client.get(name=crd_name, is_format=False)
     if crd:
-        return CustomObject(cluster_auth, kind=crd.spec.names.kind, api_version=_get_cobj_api_version(crd))
-    raise error_codes.ResNotFoundError(_("集群({})中未注册自定义资源({})").format(cluster_auth.cluster_id, crd_name))
+        return CustomObject(ctx_cluster, kind=crd.spec.names.kind, api_version=_get_cobj_api_version(crd))
+    raise error_codes.ResNotFoundError(_("集群({})中未注册自定义资源({})").format(ctx_cluster.id, crd_name))

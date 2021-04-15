@@ -11,8 +11,8 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-from dataclasses import dataclass, field
-from typing import Any, Dict, List
+from dataclasses import dataclass, field, fields
+from typing import Dict, List
 
 from backend.apps.configuration.models import ShowVersion, Template
 
@@ -27,4 +27,10 @@ class ResContext:
     template: Template
     show_version: ShowVersion
     instance_entity: Dict[str, List[int]]  # like {"Deployment": [1, 2], "Job": [11, 12]}, 其中整数为db记录项的id
-    extras: Dict[str, Any] = field(default_factory=dict)  # 保存额外参数
+    is_preview: bool
+    template_variables: Dict[str, str] = field(default_factory=dict)
+    namespace_id: int = 0  # 待废弃字段
+
+    @classmethod
+    def from_dict(cls, data):
+        return cls(**{k: v for k, v in data.items() if k in [f.name for f in fields(cls)]})

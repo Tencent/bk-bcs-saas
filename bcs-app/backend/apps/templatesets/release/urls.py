@@ -11,6 +11,12 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-from django.conf.urls import include, url
+from django.conf.urls import url
 
-urlpatterns = []
+from .views import ReleaseViewSet
+
+urlpatterns = [
+    url(r'^$', ReleaseViewSet.as_view({'post': 'create', 'get': 'list'})),
+    url(r'^(?P<release_id>\d+)/$', ReleaseViewSet.as_view({'get': 'get', 'put': 'update', 'delete': 'delete'})),
+    url(r'^-/manifests/preview/$', ReleaseViewSet.as_view({'post': 'preview_manifests'})),
+]

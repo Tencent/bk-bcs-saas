@@ -11,3 +11,80 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
+from dataclasses import asdict
+
+from rest_framework.response import Response
+
+from backend.bcs_web import viewsets
+from backend.resources.utils.kube_client import get_dynamic_client
+
+from .. import models
+from . import serializers
+from .generator.generator import ReleaseDataGenerator
+from .generator.res_context import ResContext
+from .manager import AppReleaseManager
+
+
+class ReleaseViewSet(viewsets.SystemViewSet):
+    authentication_classes = ()
+    permission_classes = ()
+
+    def preview_manifests(self, request, project_id):
+        release_data = self._release_data(request, project_id, is_preview=True)
+        return Response([asdict(res) for res in release_data.resource_list])
+
+    def create(self, request, project_id):
+        return self._update_or_create(request, project_id)
+
+    def update(self, request, project_id, release_id):
+        return self._update_or_create(request, project_id)
+
+    def _release_data(self, request, project_id, is_preview=False):
+        req_data = self._request_data(request, project_id=project_id, is_preview=is_preview)
+        serializer = serializers.GetReleaseResourcesSLZ(data=req_data)
+        serializer.is_valid(raise_exception=True)
+
+        validated_data = serializer.validated_data
+        # access_token = request.user.token.access_token
+        # username = request.user.username
+        access_token = "token"
+        username = 'james'
+        validated_data.update({'access_token': access_token, 'username': username})
+
+        import mock
+
+        from backend.tests.bcs_mocks.misc import FakePaaSCCMod
+
+        with mock.patch('backend.bcs_k8s.app.bcs_info_provider.paas_cc', new=FakePaaSCCMod()), mock.patch(
+            'backend.bcs_k8s.helm.bcs_variable.paas_cc', new=FakePaaSCCMod()
+        ):
+            res_ctx = ResContext.from_dict(validated_data)
+            release_data = ReleaseDataGenerator(name=validated_data['name'], res_ctx=res_ctx).generate()
+
+            return release_data
+
+    def _update_or_create(self, request, project_id):
+        release_data = self._release_data(request, project_id)
+
+        release_manager = AppReleaseManager(
+            dynamic_client=get_dynamic_client(request.use.token.access_token, project_id, release_data.cluster_id)
+        )
+        release_manager.update_or_create(request.user.username, release_data=release_data)
+        return Response()
+
+    def list(self, request, project_id):
+        serializer = serializers.ReleaseSLZ(models.AppRelease.objects.filter(project_id=project_id), many=True)
+        return Response(serializer.data)
+
+    def get(self, request, project_id, release_id):
+        serializer = serializers.ReleaseSLZ(models.AppRelease.objects.get(id=release_id, project_id=project_id))
+        return Response(serializer.data)
+
+    def delete(self, request, project_id, release_id):
+        app_release = models.AppRelease.objects.get(id=release_id, project_id=project_id)
+
+        release_manager = AppReleaseManager(
+            dynamic_client=get_dynamic_client(request.use.token.access_token, project_id, app_release.cluster_id)
+        )
+        release_manager.delete(request.user.username, release_id)
+        return Response()

@@ -14,6 +14,6 @@
 from django.conf.urls import include, url
 
 urlpatterns = [
+    url(r"^releases/", include("backend.apps.templatesets.release.urls")),
     url(r"^templates/(?P<template_id>\d+)/show_versions/", include("backend.apps.templatesets.show_version.urls")),
-    url(r"^templates/(?P<template_id>\d+)/releases/", include("backend.apps.templatesets.release.urls")),
 ]

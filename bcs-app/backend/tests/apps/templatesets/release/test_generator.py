@@ -41,7 +41,8 @@ class TestReleaseDataGenerator:
             template=form_template,
             show_version=form_show_version,
             instance_entity=instance_entity,
-            extras={'namespace_id': 1},
+            is_preview=True,
+            namespace_id=1,
         )
 
         with mock.patch(
@@ -74,7 +75,8 @@ class TestReleaseDataGenerator:
             template=yaml_template,
             show_version=yaml_show_version,
             instance_entity=instance_entity,
-            extras={'namespace_id': 1},
+            is_preview=True,
+            namespace_id=1,
         )
 
         with mock.patch('backend.bcs_k8s.app.bcs_info_provider.paas_cc', new=FakePaaSCCMod()), mock.patch(

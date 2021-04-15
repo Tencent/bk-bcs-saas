@@ -32,6 +32,10 @@ class ResourceData:
     version: str = ""
     revision: str = ""
 
+    @property
+    def yaml_manifest(self):
+        pass
+
 
 @dataclass
 class AppReleaseData:
@@ -44,6 +48,7 @@ class AppReleaseData:
 
 class AppRelease(BaseModel):
     name = models.CharField(max_length=256)
+    project_id = models.CharField(max_length=32)
     cluster_id = models.CharField(max_length=32)
     namespace = models.CharField(max_length=64)
     status = models.CharField(choices=ReleaseStatus.get_choices(), default=ReleaseStatus.PENDING.value, max_length=32)
