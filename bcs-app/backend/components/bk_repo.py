@@ -13,19 +13,21 @@
 #
 import json
 import logging
-from typing import Dict, List
+from typing import Any, Dict, List
 
 from django.conf import settings
 from requests import PreparedRequest
 from requests.auth import AuthBase
 
 from backend.components.base import (
+    BaseCompError,
     BaseHttpClient,
     BkApiClient,
-    response_hander,
+    response_handler,
     update_request_body,
     update_url_parameters,
 )
+from backend.utils.errcodes import ErrorCode
 
 logger = logging.getLogger(__name__)
 
@@ -89,7 +91,32 @@ class BkRepoRawAuth(AuthBase):
         return r
 
 
+class BaseRequestBkRepoError(BaseCompError):
+    """Bk repo api异常基类"""
+
+    def __str__(self):
+        s = super().__str__()
+        return f"request bk repo api error, {s}"
+
+
+class BkRepoCreateProjectError(BaseRequestBkRepoError):
+    """创建项目异常"""
+
+
+class BkRepoCreateRepoError(BaseRequestBkRepoError):
+    """创建仓库异常"""
+
+
+class BkRepoDeleteVersionError(BaseRequestBkRepoError):
+    """删除版本异常"""
+
+
 class BkRepoClient(BkApiClient):
+    """访问注册到apigw的 Api"""
+
+    PROJECT_EXIST_CODE = 251005  # 项目已经存在
+    REPO_EXIST_CODE = 251007  # 仓库已经存在
+
     def __init__(self, access_token: str, username: str):
         self._config = BkRepoConfig(host=getattr(settings, "BK_REPO_URL_PREFIX", ""))
         self._client = BaseHttpClient(
@@ -105,7 +132,10 @@ class BkRepoClient(BkApiClient):
         :returns: 返回项目
         """
         data = {"name": project_code, "displayName": project_name, "description": description}
-        return self._common_request("POST", self._config.create_project, json=data, raise_for_status=False)
+        resp = self._client.request_json("POST", self._config.create_project, json=data, raise_for_status=False)
+        if resp.get("code") not in [ErrorCode.NoError, self.PROJECT_EXIST_CODE]:
+            raise BkRepoCreateProjectError(f"create project error, {resp.get('message')}")
+        return resp
 
     def create_chart_repo(self, project_code: str) -> Dict:
         """创建chart 仓库
@@ -121,9 +151,12 @@ class BkRepoClient(BkApiClient):
             "public": False,  # 容器服务项目自己的仓库
             "configuration": {"type": "local"},
         }
-        return self._common_request("POST", self._config.create_chart_repo, json=data, raise_for_status=False)
+        resp = self._client.request_json("POST", self._config.create_chart_repo, json=data, raise_for_status=False)
+        if resp.get("code") not in [ErrorCode.NoError, self.REPO_EXIST_CODE]:
+            raise BkRepoCreateRepoError(f"create repo error, {resp.get('message')}")
+        return resp
 
-    @response_hander()
+    @response_handler()
     def set_auth(self, project_code: str, repo_admin_user: str, repo_admin_pwd: str) -> Dict:
         """设置权限
 
@@ -141,26 +174,19 @@ class BkRepoClient(BkApiClient):
             "group": True,
             "projectId": project_code,
         }
-        return self._common_request("POST", self._config.set_user_auth, json=data, raise_for_status=False)
-
-    def _common_request(self, method: str, url: str, **kwargs) -> Dict:
-        """请求BK repo接口
-        :param method: 请求接口的方法，如GET、POST等
-        :param url: 请求接口的URL
-        :param kwargs: 支持更多的参数、如params、data、headers等
-        :returns: 返回Response
-        """
-        return self._client.request_json(method, url, **kwargs)
+        return self._client.request_json("POST", self._config.set_user_auth, json=data, raise_for_status=False)
 
 
 class BkRepoRawClient(BkApiClient):
+    """直接访问bk repo的 Api，这些api不经过apigw，鉴权方式为创建仓库的用户名和密码"""
+
     def __init__(self, repo_user: str, repo_pwd: str):
         self._config = BkRepoRawConfig(host=getattr(settings, "HELM_MERELY_REPO_URL", ""))
         self._client = BaseHttpClient(
             BkRepoRawAuth(repo_user, repo_pwd),
         )
 
-    def get_charts(self, project_name: str, repo_name: str, start_time: str = None) -> Dict:
+    def list_charts(self, project_name: str, repo_name: str, start_time: str = None) -> Dict:
         """获取项目下的chart
 
         :param project_name: 项目名称
@@ -210,7 +236,10 @@ class BkRepoRawClient(BkApiClient):
         url = self._config.delete_chart_version.format(
             project_name=project_name, repo_name=repo_name, chart_name=chart_name, version=version
         )
-        return self._client.request_json("DELETE", url)
+        resp = self._client.request_json("DELETE", url)
+        if not (resp.get("deleted") or "no such file or directory" in resp.get("error", "")):
+            raise BkRepoDeleteVersionError(f"delete chart version error, {resp}")
+        return resp
 
 
 try:
