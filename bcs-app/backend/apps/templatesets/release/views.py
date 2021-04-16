@@ -26,9 +26,6 @@ from .manager import AppReleaseManager
 
 
 class ReleaseViewSet(viewsets.SystemViewSet):
-    authentication_classes = ()
-    permission_classes = ()
-
     def preview_manifests(self, request, project_id):
         release_data = self._release_data(request, project_id, is_preview=True)
         return Response([asdict(res) for res in release_data.resource_list])
@@ -45,27 +42,15 @@ class ReleaseViewSet(viewsets.SystemViewSet):
         serializer.is_valid(raise_exception=True)
 
         validated_data = serializer.validated_data
-        # access_token = request.user.token.access_token
-        # username = request.user.username
-        access_token = "token"
-        username = 'james'
-        validated_data.update({'access_token': access_token, 'username': username})
+        validated_data.update({'access_token': request.user.token.access_token, 'username': request.user.username})
 
-        import mock
+        res_ctx = ResContext.from_dict(validated_data)
+        release_data = ReleaseDataGenerator(name=validated_data['name'], res_ctx=res_ctx).generate()
 
-        from backend.tests.bcs_mocks.misc import FakePaaSCCMod
-
-        with mock.patch('backend.bcs_k8s.app.bcs_info_provider.paas_cc', new=FakePaaSCCMod()), mock.patch(
-            'backend.bcs_k8s.helm.bcs_variable.paas_cc', new=FakePaaSCCMod()
-        ):
-            res_ctx = ResContext.from_dict(validated_data)
-            release_data = ReleaseDataGenerator(name=validated_data['name'], res_ctx=res_ctx).generate()
-
-            return release_data
+        return release_data
 
     def _update_or_create(self, request, project_id):
         release_data = self._release_data(request, project_id)
-
         release_manager = AppReleaseManager(
             dynamic_client=get_dynamic_client(request.use.token.access_token, project_id, release_data.cluster_id)
         )
@@ -73,7 +58,13 @@ class ReleaseViewSet(viewsets.SystemViewSet):
         return Response()
 
     def list(self, request, project_id):
-        serializer = serializers.ReleaseSLZ(models.AppRelease.objects.filter(project_id=project_id), many=True)
+        serializer = serializers.ListReleaseSLZ(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        query_params = {'project_id': project_id}
+        query_params.update(serializer.validated_data)
+
+        serializer = serializers.ReleaseSLZ(models.AppRelease.objects.filter(**query_params), many=True)
         return Response(serializer.data)
 
     def get(self, request, project_id, release_id):
@@ -82,7 +73,6 @@ class ReleaseViewSet(viewsets.SystemViewSet):
 
     def delete(self, request, project_id, release_id):
         app_release = models.AppRelease.objects.get(id=release_id, project_id=project_id)
-
         release_manager = AppReleaseManager(
             dynamic_client=get_dynamic_client(request.use.token.access_token, project_id, app_release.cluster_id)
         )

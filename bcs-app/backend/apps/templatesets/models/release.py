@@ -36,6 +36,7 @@ class ResourceData:
 @dataclass
 class AppReleaseData:
     name: str
+    project_id: str
     cluster_id: str
     namespace: str
     template_id: int
@@ -80,4 +81,4 @@ class ResourceInstance(BaseModel):
 
     class Meta:
         db_table = 'templatesets_resource_instance'
-        unique_together = ('app_release', 'kind', 'name', 'namespace')
+        unique_together = ('app_release', 'kind', 'name')

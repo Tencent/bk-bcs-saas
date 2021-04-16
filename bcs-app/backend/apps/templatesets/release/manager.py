@@ -14,6 +14,7 @@
 import functools
 from typing import List, Tuple
 
+from backend.resources.utils.kube_client import CoreDynamicClient
 from backend.utils.async_run import async_run
 from backend.utils.basic import getitems
 
@@ -28,7 +29,7 @@ class AppReleaseManager:
     - 一个 release 至少包含一个 resource, 一个 resource 对应一个 ReleaseResourceManager
     """
 
-    def __init__(self, dynamic_client):
+    def __init__(self, dynamic_client: CoreDynamicClient):
         self.dynamic_client = dynamic_client
 
     def update_or_create(self, operator: str, release_data: models.AppReleaseData) -> Tuple[models.AppRelease, bool]:
@@ -36,7 +37,12 @@ class AppReleaseManager:
             name=release_data.name,
             cluster_id=release_data.cluster_id,
             namespace=release_data.namespace,
-            defaults={"template_id": release_data.template_id, "creator": operator, "updator": operator},
+            defaults={
+                "template_id": release_data.template_id,
+                "project_id": release_data.project_id,
+                "creator": operator,
+                "updator": operator,
+            },
         )
 
         try:
@@ -73,63 +79,63 @@ class ReleaseResourceManager:
     - 通过与集群的实际对接，管理 resource 的运行状态
     """
 
-    def __init__(self, dynamic_client, app_release_id: int):
+    def __init__(self, dynamic_client: CoreDynamicClient, app_release_id: int):
         self.dynamic_client = dynamic_client
         self.app_release_id = app_release_id
 
     def update_or_create(self, operator: str, resource: models.ResourceData) -> Tuple[models.ResourceInstance, bool]:
-        try:
-            api_version = getitems(resource.manifest, 'apiVersion')
-            if api_version:
-                api = self.dynamic_client.resources.get(kind=resource.manifest['kind'], api_version=api_version)
-            else:
-                api = self.dynamic_client.get_preferred_resource(kind=resource.manifest['kind'])
-            api.update_or_create(
-                body=resource.manifest,
-                name=resource.name,
-                namespace=getitems(resource.manifest, 'metadata.namespace'),
-                update_method="replace",
-            )
-        except Exception as e:
-            raise
-
-        return models.ResourceInstance.objects.update_or_create(
-            app_release_id=self.app_release_id,
-            kind=resource.kind,
+        api = self._get_api(kind=resource.kind, api_version=getitems(resource.manifest, 'apiVersion'))
+        api.update_or_create(
+            body=resource.manifest,
             name=resource.name,
-            namespace=resource.namespace,
-            defaults={
-                'manifest': resource.manifest,
-                'version': resource.version,
-                'revision': resource.revision,
-                'updator': operator,
-                'creator': operator,
-            },
+            namespace=getitems(resource.manifest, 'metadata.namespace'),
+            update_method="replace",
         )
+
+        # https://youngminz.netlify.app/posts/get-or-create-deadlock
+        # 并发条件下update_or_create 触发 deadlock found when trying to get lock; try restarting transaction
+        kwargs = {'app_release_id': self.app_release_id, 'kind': resource.kind, 'name': resource.name}
+        defaults = {
+            'manifest': resource.manifest,
+            'version': resource.version,
+            'revision': resource.revision,
+            'updator': operator,
+            'creator': operator,
+        }
+        try:
+            resource_inst = models.ResourceInstance.objects.get(**kwargs)
+        except models.ResourceInstance.DoesNotExist:
+            kwargs.update(defaults)
+            return models.ResourceInstance.objects.create(**kwargs), True
+        else:
+            resource_inst.__dict__.update(defaults)
+            resource_inst.save()
+            return resource_inst, False
 
     def edit(self, operator: str, resource: models.ResourceData):
         """
         直接edit线上资源(类似kubectl edit)，不做manifest和version等信息的保存
         """
-        try:
-            self.dynamic_client.update_or_create(resource.manifest)
-        except Exception:
-            raise
-
+        api = self._get_api(kind=resource.kind, api_version=getitems(resource.manifest, 'apiVersion'))
+        api.update_or_create(
+            body=resource.manifest,
+            name=resource.name,
+            namespace=getitems(resource.manifest, 'metadata.namespace'),
+            update_method="replace",
+        )
         models.ResourceInstance.objects.filter(
             app_release_id=self.app_release_id, name=resource.name, namespace=resource.namespace, kind=resource.kind
         ).update(edited=True, updator=operator)
 
     def delete(self, operator: str, resource_inst_id: int):
         resource_inst = models.ResourceInstance.objects.get(id=resource_inst_id)
-
-        api_version = getitems(resource_inst.manifest, 'apiVersion')
-        if api_version:
-            api = self.dynamic_client.resources.get(kind=resource_inst.kind, api_version=api_version)
-        else:
-            api = self.dynamic_client.get_preferred_resource(kind=resource_inst.kind)
+        api = self._get_api(resource_inst.kind, getitems(resource_inst.manifest, 'apiVersion'))
         api.delete_ignore_nonexistent(
             name=resource_inst.name, namespace=getitems(resource_inst.manifest, 'metadata.namespace')
         )
-
         return resource_inst.delete()
+
+    def _get_api(self, kind, api_version):
+        if api_version:
+            return self.dynamic_client.resources.get(kind=kind, api_version=api_version)
+        return self.dynamic_client.get_preferred_resource(kind=kind)

@@ -70,11 +70,12 @@ class GetReleaseResourcesSLZ(serializers.Serializer):
 
 
 class ListReleaseSLZ(serializers.Serializer):
-    name = serializers.CharField()
-    cluster_id = serializers.CharField()
-    namespace = serializers.CharField()
+    name = serializers.CharField(required=False)
+    cluster_id = serializers.CharField(required=False)
+    namespace = serializers.CharField(required=False)
 
 
 class ReleaseSLZ(serializers.ModelSerializer):
     class Meta:
         model = models.AppRelease
+        exclude = ('is_deleted', 'deleted_time')
