@@ -52,7 +52,7 @@ class BkRepoRawConfig:
         # 请求域名
         self.host = host
 
-        self.get_charts = f"{host}/api/{{project_name}}/{{repo_name}}/charts"
+        self.list_charts = f"{host}/api/{{project_name}}/{{repo_name}}/charts"
         self.get_chart_versions = f"{host}/api/{{project_name}}/{{repo_name}}/charts/{{chart_name}}"
         self.get_chart_version_detail = f"{host}/api/{{project_name}}/{{repo_name}}/charts/{{chart_name}}/{{version}}"
         self.delete_chart_version = f"{host}/api/{{project_name}}/{{repo_name}}/charts/{{chart_name}}/{{version}}"
@@ -157,7 +157,7 @@ class BkRepoClient(BkApiClient):
         return resp
 
     @response_handler()
-    def set_auth(self, project_code: str, repo_admin_user: str, repo_admin_pwd: str) -> Dict:
+    def set_auth(self, project_code: str, repo_admin_user: str, repo_admin_pwd: str) -> bool:
         """设置权限
 
         :param project_code: BCS项目code
@@ -194,7 +194,7 @@ class BkRepoRawClient(BkApiClient):
         :param start_time: 增量查询的起始时间
         :returns: 返回项目下的chart列表
         """
-        url = self._config.get_charts.format(project_name=project_name, repo_name=repo_name)
+        url = self._config.list_charts.format(project_name=project_name, repo_name=repo_name)
         return self._client.request_json("GET", url, params={"startTime": start_time})
 
     def get_chart_versions(self, project_name: str, repo_name: str, chart_name: str) -> List:

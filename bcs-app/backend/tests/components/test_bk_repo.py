@@ -11,9 +11,13 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
+import pytest
 from requests_mock import ANY
 
 from backend.components import bk_repo
+
+PROJECT_EXIST_CODE = bk_repo.BkRepoClient.PROJECT_EXIST_CODE
+REPO_EXIST_CODE = bk_repo.BkRepoClient.REPO_EXIST_CODE
 
 fake_access_token = "access_token"
 fake_username = "admin"
@@ -23,24 +27,59 @@ fake_project_name = "project_name"
 fake_project_description = "this is a test"
 fake_chart_name = "chart_name"
 fake_chart_version = "0.0.1"
+fake_error_code = 1
 
 
 class TestBkRepoClient:
-    def test_create_project(self, requests_mock):
-        requests_mock.post(ANY, json={"foo": "bar"})
+    @pytest.mark.parametrize(
+        "raw_resp,expected_resp",
+        [
+            ({"code": 0, "data": {"foo": "bar"}}, {"code": 0, "data": {"foo": "bar"}}),
+            (
+                {"code": PROJECT_EXIST_CODE, "message": "project [xxx] existed"},
+                {"code": PROJECT_EXIST_CODE, "message": "project [xxx] existed"},
+            ),
+        ],
+    )
+    def test_create_project_ok(self, raw_resp, expected_resp, requests_mock):
+        requests_mock.post(ANY, json=raw_resp)
 
         client = bk_repo.BkRepoClient(fake_access_token, fake_username)
         resp_data = client.create_project(fake_project_code, fake_project_name, fake_project_description)
-        assert resp_data == {"foo": "bar"}
+        assert resp_data == expected_resp
         assert requests_mock.called
 
-    def test_create_chart_repo(self, requests_mock):
-        requests_mock.post(ANY, json={"foo": "bar"})
+    def test_create_project_error(self, requests_mock):
+        requests_mock.post(ANY, json={"code": fake_error_code, "message": "error message"})
+
+        client = bk_repo.BkRepoClient(fake_access_token, fake_username)
+        with pytest.raises(bk_repo.BkRepoCreateProjectError):
+            client.create_project(fake_project_code, fake_project_name, fake_project_description)
+
+    @pytest.mark.parametrize(
+        "raw_resp,expected_resp",
+        [
+            ({"code": 0, "data": {"foo": "bar"}}, {"code": 0, "data": {"foo": "bar"}}),
+            (
+                {"code": REPO_EXIST_CODE, "message": "project [xxx] existed"},
+                {"code": REPO_EXIST_CODE, "data": {"foo": "bar"}},
+            ),
+        ],
+    )
+    def test_create_chart_repo_ok(self, raw_resp, expected_resp, requests_mock):
+        requests_mock.post(ANY, json=raw_resp)
 
         client = bk_repo.BkRepoClient(fake_access_token, fake_username)
         resp_data = client.create_chart_repo(fake_project_code)
-        assert resp_data == {"foo": "bar"}
+        assert resp_data == raw_resp
         assert requests_mock.request_history[0].method == "POST"
+
+    def test_create_chart_repo_error(self, requests_mock):
+        requests_mock.post(ANY, json={"code": fake_error_code, "messahe": "error message"})
+
+        client = bk_repo.BkRepoClient(fake_access_token, fake_username)
+        with pytest.raises(bk_repo.BkRepoCreateRepoError):
+            client.create_chart_repo(fake_project_code)
 
     def test_set_auth(self, requests_mock):
         requests_mock.post(ANY, json={"result": True, "data": {"foo": "bar"}})
@@ -52,18 +91,18 @@ class TestBkRepoClient:
 
 
 class TestBkRepoRawClient:
-    def test_get_charts(self, requests_mock):
+    def test_list_charts(self, requests_mock):
         requests_mock.get(ANY, json={"foo": "bar"})
 
         client = bk_repo.BkRepoRawClient(fake_username, fake_pwd)
-        resp_data = client.get_charts(fake_project_code, fake_project_code)
+        resp_data = client.list_charts(fake_project_code, fake_project_code)
         assert resp_data == {"foo": "bar"}
         assert requests_mock.called
 
     def test_get_chart_versions(self, requests_mock):
         requests_mock.get(ANY, json={"foo": "bar"})
 
-        client = bk_repo.BkRepoRawClient(fake_access_token, fake_username)
+        client = bk_repo.BkRepoRawClient(fake_username, fake_pwd)
         resp_data = client.get_chart_versions(fake_project_code, fake_project_code, fake_chart_name)
         assert resp_data == {"foo": "bar"}
         assert requests_mock.called
@@ -72,7 +111,7 @@ class TestBkRepoRawClient:
     def test_get_chart_version_detail(self, requests_mock):
         requests_mock.get(ANY, json={"foo": "bar"})
 
-        client = bk_repo.BkRepoRawClient(fake_access_token, fake_username)
+        client = bk_repo.BkRepoRawClient(fake_username, fake_pwd)
         resp_data = client.get_chart_version_detail(
             fake_project_code, fake_project_code, fake_chart_name, fake_chart_version
         )
@@ -80,13 +119,29 @@ class TestBkRepoRawClient:
         assert requests_mock.called
         assert requests_mock.request_history[0].method == "GET"
 
-    def test_delete_chart_version(self, requests_mock):
-        requests_mock.delete(ANY, json={"foo": "bar"})
+    @pytest.mark.parametrize(
+        "raw_resp,expected_resp",
+        [
+            ({"deleted": True}, {"deleted": True}),
+            (
+                {"error": "remove /test.tgz failed: no such file or directory"},
+                {"error": "remove /test.tgz failed: no such file or directory"},
+            ),
+        ],
+    )
+    def test_delete_chart_version_ok(self, raw_resp, expected_resp, requests_mock):
+        requests_mock.delete(ANY, json=raw_resp)
 
-        client = bk_repo.BkRepoRawClient(fake_access_token, fake_username)
-        resp_data = client.delete_chart_version(
-            fake_project_code, fake_project_code, fake_chart_name, fake_chart_version
-        )
-        assert resp_data == {"foo": "bar"}
+        client = bk_repo.BkRepoRawClient(fake_username, fake_pwd)
+        resp = client.delete_chart_version(fake_project_code, fake_project_code, fake_chart_name, fake_chart_version)
+        print(resp)
+        assert resp == expected_resp
         assert requests_mock.called
         assert requests_mock.request_history[0].method == "DELETE"
+
+    def test_delete_chart_version_error(self, requests_mock):
+        requests_mock.delete(ANY, json={"error": "error message"})
+
+        client = bk_repo.BkRepoRawClient(fake_username, fake_pwd)
+        with pytest.raises(bk_repo.BkRepoDeleteVersionError):
+            client.delete_chart_version(fake_project_code, fake_project_code, fake_chart_name, fake_chart_version)

@@ -55,6 +55,6 @@ PUBLIC_REPO_NAME = "public-repo"
 DEFAULT_CHART_REPO_PROJECT_NAME = "chartrepo"
 
 try:
-    from .constants_ext import DEFAULT_CHART_REPO_PROJECT_NAME
+    from .constants_ext import DEFAULT_CHART_REPO_PROJECT_NAME  # noqa
 except ImportError as e:
     logger.debug("Load extension failed: %s", e)

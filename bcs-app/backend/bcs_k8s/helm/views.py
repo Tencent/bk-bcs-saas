@@ -279,12 +279,13 @@ class ChartVersionViewSet(viewsets.ViewSet):
         return Response(data)
 
     def _delete_version(self, username: str, pwd: str, project_code: str, name: str, version: str):
-        client = bk_repo.BkRepoRawClient(username, pwd)
         # 兼容harbor中chart仓库项目名称
         project_name = DEFAULT_CHART_REPO_PROJECT_NAME or project_code
-        resp = client.delete_chart_version(project_name, project_code, name, version)
-        if not (resp.get("deleted") or "no such file or directory" in resp.get("error", "")):
-            raise error_codes.APIError(f"delete chart: {name} version: {version} failed, {resp}")
+        try:
+            client = bk_repo.BkRepoRawClient(username, pwd)
+            client.delete_chart_version(project_name, project_code, name, version)
+        except bk_repo.BkRepoDeleteVersionError as e:
+            raise error_codes.APIError(f"delete chart: {name} version: {version} failed, {e}")
 
     def delete(self, request, project_id, chart_id):
         """删除chart或指定的chart版本"""
