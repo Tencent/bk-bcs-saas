@@ -9,6 +9,7 @@ exclude =
     */templates_module*,
     */bin/*,
     */settings/*,
+    backend/packages/*,
 max-line-length=129
 max-complexity=12
 format=pylint
