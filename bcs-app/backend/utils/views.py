@@ -39,9 +39,10 @@ from backend.components.base import (
     CompRequestError,
     CompResponseError,
 )
+from backend.packages.blue_krill.web.std_error import APIError
 from backend.utils import exceptions as backend_exceptions
 from backend.utils.basic import str2bool
-from backend.utils.error_codes import APIError, error_codes
+from backend.utils.error_codes import error_codes
 from backend.utils.local import local
 
 logger = logging.getLogger(__name__)
