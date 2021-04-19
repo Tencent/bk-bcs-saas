@@ -554,19 +554,22 @@ class PaaSCCClient(BkApiClient):
         :param project_id: 项目32为长度 ID
         :param cluster_id: 集群ID
         :param data: 更新的集群属性，包含status，名称、描述等
-        :returns: 返回集群的详细信息
         """
         url = self._config.update_cluster_url.format(project_id=project_id, cluster_id=cluster_id)
         return self._client.request_json("PUT", url, json=data)
 
     @response_handler()
-    def delete_cluster(self, project_id: str, cluster_id: str) -> Dict:
-        """删除集群"""
+    def delete_cluster(self, project_id: str, cluster_id: str):
+        """删除集群
+
+        :param project_id: 项目32为长度 ID
+        :param cluster_id: 集群ID
+        """
         url = self._config.delete_cluster_url.format(project_id=project_id, cluster_id=cluster_id)
         return self._client.request_json("DELETE", url)
 
     @response_handler()
-    def update_node_list(self, project_id: str, cluster_id: str, nodes: List[UpdateNodesData]) -> Dict:
+    def update_node_list(self, project_id: str, cluster_id: str, nodes: List[UpdateNodesData]) -> List:
         """更新节点信息
 
         :param project_id: 项目32为长度 ID
