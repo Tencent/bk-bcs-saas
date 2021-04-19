@@ -54,13 +54,13 @@ class BkErrorCodes:
     # 打印日志使用, 1402是分配给BCS SaaS使用
     ConfigError = ErrorCode(_('配置{}错误'), code_num=1402400)
     # 权限中心API调用错误
-    IAMError = ErrorCode(_('权限中心接口调用失败:'), code_num=1402100)
+    IAMError = ErrorCode(_('权限中心接口调用失败'), code_num=1402100)
     # 仓库API调用错误
-    DepotError = ErrorCode(_('仓库接口调用失败:'), code_num=1402101)
+    DepotError = ErrorCode(_('仓库接口调用失败'), code_num=1402101)
     # 消息管理API调用错误，请按ESB的错误码指引排查
-    CmsiError = ErrorCode(_('消息管理CMSI接口调用失败:'), code_num=1402102)
+    CmsiError = ErrorCode(_('消息管理CMSI接口调用失败'), code_num=1402102)
     # 蓝鲸登录平台API调用错误，请按ESB的错误码指引排查
-    BkLoginError = ErrorCode(_('蓝鲸登录平台接口调用失败:'), code_num=1402103)
+    BkLoginError = ErrorCode(_('蓝鲸登录平台接口调用失败'), code_num=1402103)
 
 
 error_codes = ErrorCodes()

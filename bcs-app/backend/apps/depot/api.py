@@ -31,7 +31,7 @@ def get_jfrog_account(access_token, project_code, project_id, is_bk=False):
 
     # api调用失败
     if resp.get("code") != 0:
-        message = bk_error_codes.DepotError(_("创建项目仓库账号失败"))
+        message = bk_error_codes.DepotError.f(_("创建项目仓库账号失败"), replace=True)
         error_message = f'{message}, {resp.get("message", "")}'
         logger.error(error_message)
         raise error_codes.ComponentError(error_message)
@@ -163,7 +163,10 @@ def create_project_path_by_api(access_token, project_id, project_code):
     resp = client.create_project_path()
     # api调用失败
     if resp.get("code") != 0:
-        error_message = "%s, %s" % (bk_error_codes.DepotError(_("创建项目仓库路径失败")), resp.get("message", ""))
+        error_message = "%s, %s" % (
+            bk_error_codes.DepotError.f(_("创建项目仓库路径失败"), replace=True),
+            resp.get("message", ""),
+        )
         logger.error(error_message)
         raise error_codes.ComponentError(error_message)
     return True
