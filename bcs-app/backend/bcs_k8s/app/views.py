@@ -73,6 +73,7 @@ from .serializers import (
     ClusterImportSLZ,
     ClusterKubeConfigSLZ,
     NamespaceSLZ,
+    ReleaseListSLZ,
     SyncDict2YamlToolSLZ,
     SyncYaml2DictToolSLZ,
 )
@@ -127,29 +128,11 @@ class AppView(ActionSerializerMixin, AppViewBase):
                 raise ValidationError(_("命名空间作为过滤参数时，需要提供集群ID"))
             qs = qs.filter(namespace=namespace)
 
-        data = list(
-            qs.values(
-                "name",
-                "id",
-                "cluster_id",
-                "project_id",
-                "namespace",
-                "namespace_id",
-                "version",
-                "created",
-                "creator",
-                "chart__id",
-                "transitioning_action",
-                "transitioning_message",
-                "transitioning_on",
-                "transitioning_result",
-                "updated",
-                "updator",
-            )
-        )
+        # 获取返回的数据
+        slz = ReleaseListSLZ(qs, many=True)
+        data = slz.data
 
         # do fix on the data which version is emtpy
-        datetime_format = "%Y-%m-%d %H:%M:%S"
         app_list = []
         for item in data:
             # 过滤掉k8s系统和bcs平台命名空间下的release
@@ -176,9 +159,6 @@ class AppView(ActionSerializerMixin, AppViewBase):
                 item["transitioning_on"] = False
                 item["transitioning_message"] = _("Helm操作超时，请重试!")
 
-            item["chart"] = item.pop("chart__id")
-            item["created"] = item["created"].astimezone().strftime(datetime_format)
-            item["updated"] = item["updated"].astimezone().strftime(datetime_format)
             app_list.append(item)
 
         result = {"count": len(app_list), "next": None, "previous": None, "results": app_list}

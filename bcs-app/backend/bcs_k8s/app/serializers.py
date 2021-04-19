@@ -1131,3 +1131,33 @@ class FilterNamespacesSLZ(serializers.Serializer):
     filter_use_perm = serializers.BooleanField(default=True)
     cluster_id = serializers.CharField(required=False)
     chart_id = serializers.IntegerField(required=False)
+
+
+class ReleaseListSLZ(serializers.ModelSerializer):
+    # 兼容先前数据返回
+    chart = serializers.IntegerField(source="chart.id")
+    chart_id = serializers.IntegerField(source="chart.id")
+    chart_name = serializers.CharField(source="chart.name")
+
+    class Meta:
+        model = App
+        fields = (
+            "name",
+            "id",
+            "cluster_id",
+            "project_id",
+            "namespace",
+            "namespace_id",
+            "version",
+            "created",
+            "creator",
+            "transitioning_action",
+            "transitioning_message",
+            "transitioning_on",
+            "transitioning_result",
+            "updated",
+            "updator",
+            "chart",
+            "chart_id",
+            "chart_name",
+        )
