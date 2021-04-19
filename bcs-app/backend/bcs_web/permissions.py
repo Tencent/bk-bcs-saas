@@ -74,7 +74,7 @@ class ProjectEnableBCS(BasePermission):
     仅支持处理 url 路径参数中包含 project_id 或 project_id_or_code 的接口
     主要功能:
     - 校验项目是否已经开启容器服务
-    - 设置 request.project、request.ctx_project 和 request.ctx_cluster (如果路径参数有 cluster_id)，在 view 中使用
+    - 设置 request.project、request.ctx_project 和 request.ctx_cluster ，在 view 中使用
     """
 
     message = "project does not enable bcs"
@@ -84,7 +84,7 @@ class ProjectEnableBCS(BasePermission):
         project = self._get_enabled_project(request.user.token.access_token, project_id_or_code)
         if project:
             request.project = project
-            self._set_ctx_project_cluster(request, project, view.kwargs.get('cluster_id', ''))
+            self._set_ctx_project_cluster(request, project.project_id, view.kwargs.get('cluster_id', ''))
             return True
 
         return False
@@ -120,7 +120,7 @@ class ProjectEnableBCS(BasePermission):
         except ImportError:
             pass
 
-    def _set_ctx_project_cluster(self, request, project: FancyDict, cluster_id: str):
+    def _set_ctx_project_cluster(self, request, project_id: str, cluster_id: str):
         access_token = request.user.token.access_token
-        request.ctx_project = CtxProject.create(token=access_token, id=project.project_id)
-        request.ctx_cluster = CtxCluster.create(token=access_token, id=cluster_id, project_id=project.project_id)
+        request.ctx_project = CtxProject.create(token=access_token, id=project_id)
+        request.ctx_cluster = CtxCluster.create(token=access_token, id=cluster_id, project_id=project_id)
