@@ -11,10 +11,34 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
+from functools import partial
+from typing import Optional
+
 from django.utils.translation import gettext as _
 from rest_framework import status
 
-from backend.packages.blue_krill.web.std_error import ErrorCode
+from backend.packages.blue_krill.web.std_error import APIError
+from backend.packages.blue_krill.web.std_error import ErrorCode as StdErrorCode
+
+
+class CallableAPIError(APIError):
+    """extends `APIError` type to support callable interface for backward compatibility"""
+
+    def __call__(self, message: Optional[str] = None, *args, **kwargs) -> 'APIError':
+        """
+        Replace error message entirely, the reason why the method exists is backwad compatibility,
+        If you need to customize error message, use `.format(message, replace=True)` instead.
+
+        WARNING: this method uses legacy string templating interface(with %)
+        """
+        if args:
+            message = message % args
+        elif kwargs:
+            message = message % kwargs
+        return self.format(message=message, replace=True)
+
+
+ErrorCode = partial(StdErrorCode, error_cls=CallableAPIError)
 
 
 class ErrorCodes:
