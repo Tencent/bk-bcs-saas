@@ -36,27 +36,6 @@ class ReleaseViewSet(viewsets.SystemViewSet):
     def update(self, request, project_id, release_id):
         return self._update_or_create(request, project_id)
 
-    def _release_data(self, request, project_id, is_preview=False):
-        req_data = self._request_data(request, project_id=project_id, is_preview=is_preview)
-        serializer = serializers.GetReleaseResourcesSLZ(data=req_data)
-        serializer.is_valid(raise_exception=True)
-
-        validated_data = serializer.validated_data
-        validated_data.update({'access_token': request.user.token.access_token, 'username': request.user.username})
-
-        res_ctx = ResContext.from_dict(validated_data)
-        release_data = ReleaseDataGenerator(name=validated_data['name'], res_ctx=res_ctx).generate()
-
-        return release_data
-
-    def _update_or_create(self, request, project_id):
-        release_data = self._release_data(request, project_id)
-        release_manager = AppReleaseManager(
-            dynamic_client=get_dynamic_client(request.use.token.access_token, project_id, release_data.cluster_id)
-        )
-        release_manager.update_or_create(request.user.username, release_data=release_data)
-        return Response()
-
     def list(self, request, project_id):
         serializer = serializers.ListReleaseSLZ(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -77,4 +56,25 @@ class ReleaseViewSet(viewsets.SystemViewSet):
             dynamic_client=get_dynamic_client(request.use.token.access_token, project_id, app_release.cluster_id)
         )
         release_manager.delete(request.user.username, release_id)
+        return Response()
+
+    def _release_data(self, request, project_id, is_preview=False):
+        req_data = self._request_data(request, project_id=project_id, is_preview=is_preview)
+        serializer = serializers.GetReleaseResourcesSLZ(data=req_data)
+        serializer.is_valid(raise_exception=True)
+
+        validated_data = serializer.validated_data
+        validated_data.update({'access_token': request.user.token.access_token, 'username': request.user.username})
+
+        res_ctx = ResContext.from_dict(validated_data)
+        release_data = ReleaseDataGenerator(name=validated_data['name'], res_ctx=res_ctx).generate()
+
+        return release_data
+
+    def _update_or_create(self, request, project_id):
+        release_data = self._release_data(request, project_id)
+        release_manager = AppReleaseManager(
+            dynamic_client=get_dynamic_client(request.use.token.access_token, project_id, release_data.cluster_id)
+        )
+        release_manager.update_or_create(request.user.username, release_data=release_data)
         return Response()
