@@ -32,38 +32,55 @@ from backend.utils.errcodes import ErrorCode
 logger = logging.getLogger(__name__)
 
 
-class BkRepoConfig:
-    """BK Repo注册到apigw的地址"""
+class BkRepoApigwConfig:
+    """BK Repo Apigw 请求地址"""
 
-    def __init__(self, host: str):
+    def __init__(self):
+        super().__init__()
         # 请求域名
-        self.host = host
+        self.host_for_apigw = getattr(settings, "BK_REPO_URL_PREFIX", "")
 
-        # 请求地址
-        self.create_project = f"{host}/repository/api/project"
-        self.create_chart_repo = f"{host}/repository/api/repo"
-        self.set_user_auth = f"{host}/auth/api/user/create/project"
+        # 经过apigw的请求地址
+        self.create_project = f"{self.host_for_apigw}/repository/api/project"
+        self.create_chart_repo = f"{self.host_for_apigw}/repository/api/repo"
+        self.set_user_auth = f"{self.host_for_apigw}/auth/api/user/create/project"
 
 
 class BkRepoRawConfig:
-    """Bk Repo原生API地址"""
+    """Bk Repo 原生API地址"""
 
-    def __init__(self, host: str):
-        # 请求域名
-        self.host = host
+    def __init__(self):
+        super().__init__()
+        self.host_for_raw_svc = getattr(settings, "HELM_MERELY_REPO_URL", "")
 
-        self.list_charts = f"{host}/api/{{project_name}}/{{repo_name}}/charts"
-        self.get_chart_versions = f"{host}/api/{{project_name}}/{{repo_name}}/charts/{{chart_name}}"
-        self.get_chart_version_detail = f"{host}/api/{{project_name}}/{{repo_name}}/charts/{{chart_name}}/{{version}}"
-        self.delete_chart_version = f"{host}/api/{{project_name}}/{{repo_name}}/charts/{{chart_name}}/{{version}}"
+        # 针对chart相关的接口，直接访问 repo 服务的地址
+        self.list_charts = f"{self.host_for_raw_svc}/api/{{project_name}}/{{repo_name}}/charts"
+        self.get_chart_versions = f"{self.host_for_raw_svc}/api/{{project_name}}/{{repo_name}}/charts/{{chart_name}}"
+        self.get_chart_version_detail = (
+            f"{self.host_for_raw_svc}/api/{{project_name}}/{{repo_name}}/charts/{{chart_name}}/{{version}}"
+        )
+        self.delete_chart_version = (
+            f"{self.host_for_raw_svc}/api/{{project_name}}/{{repo_name}}/charts/{{chart_name}}/{{version}}"
+        )
+
+
+try:
+    from .bk_repo_ext import BkRepoRawConfig  # noqa
+except ImportError as e:
+    logger.debug("Load extension failed: %s", e)
+
+
+class BkRepoConfig(BkRepoApigwConfig, BkRepoRawConfig):
+    """Bk Repo API 的配置信息"""
 
 
 class BkRepoAuth(AuthBase):
     """用于调用注册到APIGW的BK Repo 系统接口的鉴权"""
 
-    def __init__(self, access_token: str, username: str):
+    def __init__(self, access_token: str, username: str, password: str):
         self.access_token = access_token
         self.username = username
+        self.password = password
 
     def __call__(self, r: PreparedRequest):
         # 添加auth参数到headers中
@@ -75,19 +92,9 @@ class BkRepoAuth(AuthBase):
                 "X-BKAPI-AUTHORIZATION": json.dumps({"access_token": self.access_token}),
             }
         )
-        return r
-
-
-class BkRepoRawAuth(AuthBase):
-    """用于调用注册到APIGW的BK Repo 系统接口的鉴权"""
-
-    def __init__(self, repo_user: str, repo_pwd: str):
-        self.repo_user = repo_user
-        self.repo_pwd = repo_pwd
-
-    def __call__(self, r: PreparedRequest):
-        # 添加auth
-        r.prepare_auth((self.repo_user, self.repo_pwd))
+        # 当存在用户名和密码时，需要传递auth = (username, password)
+        if self.username and self.password:
+            r.prepare_auth((self.username, self.password))
         return r
 
 
@@ -117,10 +124,10 @@ class BkRepoClient(BkApiClient):
     PROJECT_EXIST_CODE = 251005  # 项目已经存在
     REPO_EXIST_CODE = 251007  # 仓库已经存在
 
-    def __init__(self, access_token: str, username: str):
-        self._config = BkRepoConfig(host=getattr(settings, "BK_REPO_URL_PREFIX", ""))
+    def __init__(self, username: str, access_token: str = None, password: str = None):
+        self._config = BkRepoConfig()
         self._client = BaseHttpClient(
-            BkRepoAuth(access_token, username),
+            BkRepoAuth(access_token, username, password),
         )
 
     def create_project(self, project_code: str, project_name: str, description: str) -> Dict:
@@ -176,16 +183,6 @@ class BkRepoClient(BkApiClient):
         }
         return self._client.request_json("POST", self._config.set_user_auth, json=data, raise_for_status=False)
 
-
-class BkRepoRawClient(BkApiClient):
-    """直接访问bk repo的 Api，这些api不经过apigw，鉴权方式为创建仓库的用户名和密码"""
-
-    def __init__(self, repo_user: str, repo_pwd: str):
-        self._config = BkRepoRawConfig(host=getattr(settings, "HELM_MERELY_REPO_URL", ""))
-        self._client = BaseHttpClient(
-            BkRepoRawAuth(repo_user, repo_pwd),
-        )
-
     def list_charts(self, project_name: str, repo_name: str, start_time: str = None) -> Dict:
         """获取项目下的chart
 
@@ -240,9 +237,3 @@ class BkRepoRawClient(BkApiClient):
         if not (resp.get("deleted") or "no such file or directory" in resp.get("error", "")):
             raise BkRepoDeleteVersionError(f"delete chart version error, {resp}")
         return resp
-
-
-try:
-    from .bk_repo_ext import BkRepoRawConfig  # noqa
-except ImportError as e:
-    logger.debug("Load extension failed: %s", e)

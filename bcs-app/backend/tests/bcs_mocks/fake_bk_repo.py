@@ -16,10 +16,10 @@ from typing import Dict
 from .data import bk_repo_json
 
 
-class FakeBkRepoRawMod:
-    """A fake object for replacing the real components.bkrepo.BkRepoRawClient module"""
+class FakeBkRepoMod:
+    """A fake object for replacing the real components.bkrepo.BkRepoClient module"""
 
-    def __init__(self, username: str = None, password: str = None):
+    def __init__(self, username: str = None, access_token: str = None, password: str = None):
         pass
 
     def get_chart_version_detail(self, project_name: str, repo_name: str, chart_name: str, version: str) -> Dict:
@@ -27,13 +27,6 @@ class FakeBkRepoRawMod:
 
     def list_charts(self, project_name: str, repo_name: str, start_time: str = None) -> Dict:
         return bk_repo_json.fake_list_charts_resp
-
-
-class FakeBkRepoMod:
-    """A fake object for replacing the real components.bkrepo.BkRepoClient module"""
-
-    def __init__(self, access_token: str = None, username: str = None):
-        pass
 
     def create_project(self, project_code: str, project_name: str, description: str) -> Dict:
         return bk_repo_json.fake_create_project_resp
