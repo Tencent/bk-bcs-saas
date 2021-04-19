@@ -78,8 +78,7 @@ class Chart(BaseTSModel):
             del chart_version_fields["id"]
             del chart_version_fields["chart"]
 
-        fields = {}
-        fields.update(chart_version_fields)
+        fields = chart_version_fields
         fields.update(
             {
                 "name": self.name,
