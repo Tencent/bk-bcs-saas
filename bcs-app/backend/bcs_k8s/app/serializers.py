@@ -1134,7 +1134,7 @@ class FilterNamespacesSLZ(serializers.Serializer):
 
 
 class ReleaseListSLZ(serializers.ModelSerializer):
-    # 兼容先前数据返回
+    # 兼容前端展示已经在使用的`chart`字段, `chart` 表示的含义是 release 关联的 chart 的 id
     chart = serializers.IntegerField(source="chart.id")
     chart_id = serializers.IntegerField(source="chart.id")
     chart_name = serializers.CharField(source="chart.name")
