@@ -1141,23 +1141,9 @@ class ReleaseListSLZ(serializers.ModelSerializer):
 
     class Meta:
         model = App
-        fields = (
-            "name",
-            "id",
-            "cluster_id",
-            "project_id",
-            "namespace",
-            "namespace_id",
-            "version",
-            "created",
-            "creator",
-            "transitioning_action",
-            "transitioning_message",
-            "transitioning_on",
-            "transitioning_result",
-            "updated",
-            "updator",
-            "chart",
-            "chart_id",
-            "chart_name",
+        exclude = (
+            "release",
+            "inject_configs",
+            "sys_variables",
+            "unique_ns",
         )
