@@ -173,7 +173,7 @@ class BkRepoClient(BkApiClient):
         :returns: 返回auth信息
         """
         data = {
-            "admin": True,
+            "admin": False,
             "name": repo_admin_user,
             "pwd": repo_admin_pwd,
             "userId": repo_admin_user,
