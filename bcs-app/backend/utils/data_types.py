@@ -11,22 +11,10 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-from dataclasses import dataclass, field
-from typing import Dict, List
-
-from backend.apps.configuration.models import ShowVersion, Template
+from dataclasses import fields
+from typing import Any
 
 
-@dataclass
-class ResContext:
-    access_token: str
-    username: str
-    project_id: str
-    namespace: str
-    cluster_id: str
-    template: Template
-    show_version: ShowVersion
-    instance_entity: Dict[str, List[int]]  # like {"Deployment": [1, 2], "Job": [11, 12]}, 其中整数为db记录项的id
-    is_preview: bool
-    template_variables: Dict[str, str] = field(default_factory=dict)
-    namespace_id: int = 0  # TODO namespace_id待废弃
+def make_dataclass_from_dict(data_cls, init_data: dict) -> Any:
+    """与dataclasses.make_dataclass不同，make_dataclass_from_dict支持排除掉init_data中的非属性数据"""
+    return data_cls(**{k: v for k, v in init_data.items() if k in [f.name for f in fields(data_cls)]})

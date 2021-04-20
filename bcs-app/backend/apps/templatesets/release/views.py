@@ -17,6 +17,7 @@ from rest_framework.response import Response
 
 from backend.bcs_web import viewsets
 from backend.resources.utils.kube_client import get_dynamic_client
+from backend.utils.data_types import make_dataclass_from_dict
 
 from .. import models
 from . import serializers
@@ -59,14 +60,14 @@ class ReleaseViewSet(viewsets.SystemViewSet):
         return Response()
 
     def _release_data(self, request, project_id, is_preview=False):
-        req_data = self._request_data(request, project_id=project_id, is_preview=is_preview)
+        req_data = self.get_request_data(request, project_id=project_id, is_preview=is_preview)
         serializer = serializers.GetReleaseResourcesSLZ(data=req_data)
         serializer.is_valid(raise_exception=True)
 
         validated_data = serializer.validated_data
         validated_data.update({'access_token': request.user.token.access_token, 'username': request.user.username})
 
-        res_ctx = ResContext.from_dict(validated_data)
+        res_ctx = make_dataclass_from_dict(ResContext, validated_data)
         release_data = ReleaseDataGenerator(name=validated_data['name'], res_ctx=res_ctx).generate()
 
         return release_data

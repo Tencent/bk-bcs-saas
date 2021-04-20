@@ -11,10 +11,11 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-from dataclasses import dataclass, field, asdict, fields
+from dataclasses import asdict, dataclass, field
 from typing import Dict, List
 
 from backend.components import cc, gse
+from backend.utils.data_types import make_dataclass_from_dict
 
 
 def get_cc_hosts(cc_app_id: str, username: str, **extra_data) -> List[Dict]:
@@ -56,10 +57,6 @@ class HostAgentData:
     bk_cloud_id: int = 0
     bk_agent_alive: int = 1
 
-    @classmethod
-    def from_dict(cls, data):
-        return cls(**{k: v for k, v in data.items() if k in [f.name for f in fields(cls)]})
-
 
 def get_agent_status(username: str, host_list: List[HostData]) -> List[Dict]:
     """查询主机 agent 状态
@@ -75,7 +72,7 @@ def get_agent_status(username: str, host_list: List[HostData]) -> List[Dict]:
         hosts.extend([{"plat_id": plat_id, "bk_cloud_id": plat_id, "ip": ip} for ip in info.inner_ip.split(",")])
     # 处理返回数据
     data = gse.get_agent_status(username, hosts)
-    return [asdict(HostAgentData.from_dict(info)) for info in data]
+    return [asdict(make_dataclass_from_dict(HostAgentData, info)) for info in data]
 
 
 try:

@@ -123,4 +123,7 @@ class ProjectEnableBCS(BasePermission):
     def _set_ctx_project_cluster(self, request, project_id: str, cluster_id: str):
         access_token = request.user.token.access_token
         request.ctx_project = CtxProject.create(token=access_token, id=project_id)
-        request.ctx_cluster = CtxCluster.create(token=access_token, id=cluster_id, project_id=project_id)
+        if cluster_id:
+            request.ctx_cluster = CtxCluster.create(token=access_token, id=cluster_id, project_id=project_id)
+        else:
+            request.ctx_cluster = None

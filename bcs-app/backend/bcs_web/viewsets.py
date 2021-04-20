@@ -11,6 +11,8 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
+from typing import Any, Dict
+
 from rest_framework import permissions, viewsets
 from rest_framework.renderers import BrowsableAPIRenderer
 
@@ -21,7 +23,8 @@ from .permissions import AccessProjectPermission, ProjectEnableBCS
 
 
 class GenericMixin:
-    def _request_data(self, request, **kwargs) -> dict:
+    @staticmethod
+    def get_request_data(request, **kwargs) -> Dict[str, Any]:
         request_data = request.data.copy() or {}
         request_data.update(**kwargs)
         return request_data

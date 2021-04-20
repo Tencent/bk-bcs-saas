@@ -11,6 +11,8 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
+from typing import Dict, List
+
 from django.utils.translation import ugettext_lazy as _
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
@@ -32,7 +34,7 @@ class GetReleaseResourcesSLZ(serializers.Serializer):
     template_variables = serializers.JSONField(required=False)
     is_preview = serializers.BooleanField()
 
-    def validate_instance_entity(self, instance_entity):
+    def validate_instance_entity(self, instance_entity: Dict[str, List[dict]]) -> Dict[str, List[int]]:
         """清洗 instance_entity: 保留资源id，去除name等其他信息"""
         if not instance_entity:
             raise ValidationError("empty instance_entity")
@@ -42,8 +44,8 @@ class GetReleaseResourcesSLZ(serializers.Serializer):
             for res_kind in instance_entity:
                 entity[res_kind] = [int(res_data['id']) for res_data in instance_entity[res_kind]]
             return entity
-        except KeyError:
-            raise ValidationError("invalid instance_entity")
+        except (KeyError, ValueError) as e:
+            raise ValidationError(f"invalid instance_entity: {e}")
 
     def validate(self, data):
         """
