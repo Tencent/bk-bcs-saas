@@ -36,7 +36,6 @@ class BkRepoApigwConfig:
     """BK Repo Apigw 请求地址"""
 
     def __init__(self):
-        super().__init__()
         # 请求域名
         self.host_for_apigw = getattr(settings, "BK_REPO_URL_PREFIX", "")
 
@@ -50,7 +49,6 @@ class BkRepoRawConfig:
     """Bk Repo 原生API地址"""
 
     def __init__(self):
-        super().__init__()
         self.host_for_raw_svc = getattr(settings, "HELM_MERELY_REPO_URL", "")
 
         # 针对chart相关的接口，直接访问 repo 服务的地址
@@ -68,10 +66,6 @@ try:
     from .bk_repo_ext import BkRepoRawConfig  # noqa
 except ImportError as e:
     logger.debug("Load extension failed: %s", e)
-
-
-class BkRepoConfig(BkRepoApigwConfig, BkRepoRawConfig):
-    """Bk Repo API 的配置信息"""
 
 
 class BkRepoAuth(AuthBase):
@@ -125,7 +119,8 @@ class BkRepoClient(BkApiClient):
     REPO_EXIST_CODE = 251007  # 仓库已经存在
 
     def __init__(self, username: str, access_token: str = None, password: str = None):
-        self._config = BkRepoConfig()
+        self._config = BkRepoApigwConfig()
+        self._bk_repo_raw_config = BkRepoRawConfig()
         self._client = BaseHttpClient(
             BkRepoAuth(access_token, username, password),
         )
@@ -191,7 +186,7 @@ class BkRepoClient(BkApiClient):
         :param start_time: 增量查询的起始时间
         :returns: 返回项目下的chart列表
         """
-        url = self._config.list_charts.format(project_name=project_name, repo_name=repo_name)
+        url = self._bk_repo_raw_config.list_charts.format(project_name=project_name, repo_name=repo_name)
         return self._client.request_json("GET", url, params={"startTime": start_time})
 
     def get_chart_versions(self, project_name: str, repo_name: str, chart_name: str) -> List:
@@ -202,7 +197,7 @@ class BkRepoClient(BkApiClient):
         :param chart_name: chart 名称
         :returns: 返回chart版本列表
         """
-        url = self._config.get_chart_versions.format(
+        url = self._bk_repo_raw_config.get_chart_versions.format(
             project_name=project_name, repo_name=repo_name, chart_name=chart_name
         )
         return self._client.request_json("GET", url)
@@ -216,7 +211,7 @@ class BkRepoClient(BkApiClient):
         :param version: chart 版本
         :returns: 返回chart版本详情，包含名称、创建时间、版本、url等
         """
-        url = self._config.get_chart_version_detail.format(
+        url = self._bk_repo_raw_config.get_chart_version_detail.format(
             project_name=project_name, repo_name=repo_name, chart_name=chart_name, version=version
         )
         return self._client.request_json("GET", url)
@@ -230,7 +225,7 @@ class BkRepoClient(BkApiClient):
         :param version: chart 版本
         :returns: 返回删除信息，格式: {"deleted": True}
         """
-        url = self._config.delete_chart_version.format(
+        url = self._bk_repo_raw_config.delete_chart_version.format(
             project_name=project_name, repo_name=repo_name, chart_name=chart_name, version=version
         )
         resp = self._client.request_json("DELETE", url)

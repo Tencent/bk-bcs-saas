@@ -45,7 +45,6 @@ class TestBkRepoClient:
         requests_mock.post(ANY, json=raw_resp)
 
         client = bk_repo.BkRepoClient(fake_username, access_token=fake_access_token)
-        assert getattr(client._config, "create_project")
         resp_data = client.create_project(fake_project_code, fake_project_name, fake_project_description)
         assert resp_data == expected_resp
         assert requests_mock.called
@@ -54,7 +53,6 @@ class TestBkRepoClient:
         requests_mock.post(ANY, json={"code": fake_error_code, "message": "error message"})
 
         client = bk_repo.BkRepoClient(fake_username, access_token=fake_access_token)
-        assert getattr(client._config, "create_project")
         with pytest.raises(bk_repo.BkRepoCreateProjectError):
             client.create_project(fake_project_code, fake_project_name, fake_project_description)
 
@@ -72,7 +70,6 @@ class TestBkRepoClient:
         requests_mock.post(ANY, json=raw_resp)
 
         client = bk_repo.BkRepoClient(fake_username, access_token=fake_access_token)
-        assert getattr(client._config, "create_chart_repo")
         resp_data = client.create_chart_repo(fake_project_code)
         assert resp_data == raw_resp
         assert requests_mock.request_history[0].method == "POST"
@@ -81,7 +78,6 @@ class TestBkRepoClient:
         requests_mock.post(ANY, json={"code": fake_error_code, "messahe": "error message"})
 
         client = bk_repo.BkRepoClient(fake_username, access_token=fake_access_token)
-        assert getattr(client._config, "create_chart_repo")
         with pytest.raises(bk_repo.BkRepoCreateRepoError):
             client.create_chart_repo(fake_project_code)
 
@@ -89,7 +85,6 @@ class TestBkRepoClient:
         requests_mock.post(ANY, json={"result": True, "data": {"foo": "bar"}})
 
         client = bk_repo.BkRepoClient(fake_username, access_token=fake_access_token)
-        assert getattr(client._config, "set_user_auth")
         resp_data = client.set_auth(fake_project_code, fake_username, fake_pwd)
         assert resp_data == {"foo": "bar"}
         assert requests_mock.request_history[0].method == "POST"
@@ -98,7 +93,6 @@ class TestBkRepoClient:
         requests_mock.get(ANY, json={"foo": "bar"})
 
         client = bk_repo.BkRepoClient(fake_username, password=fake_pwd)
-        assert getattr(client._config, "list_charts")
         resp_data = client.list_charts(fake_project_code, fake_project_code)
         assert resp_data == {"foo": "bar"}
         assert requests_mock.called
@@ -107,7 +101,6 @@ class TestBkRepoClient:
         requests_mock.get(ANY, json={"foo": "bar"})
 
         client = bk_repo.BkRepoClient(fake_username, password=fake_pwd)
-        assert getattr(client._config, "get_chart_versions")
         resp_data = client.get_chart_versions(fake_project_code, fake_project_code, fake_chart_name)
         assert resp_data == {"foo": "bar"}
         assert requests_mock.called
@@ -117,7 +110,6 @@ class TestBkRepoClient:
         requests_mock.get(ANY, json={"foo": "bar"})
 
         client = bk_repo.BkRepoClient(fake_username, password=fake_pwd)
-        assert getattr(client._config, "get_chart_version_detail")
         resp_data = client.get_chart_version_detail(
             fake_project_code, fake_project_code, fake_chart_name, fake_chart_version
         )
@@ -139,7 +131,6 @@ class TestBkRepoClient:
         requests_mock.delete(ANY, json=raw_resp)
 
         client = bk_repo.BkRepoClient(fake_username, password=fake_pwd)
-        assert getattr(client._config, "delete_chart_version")
         resp = client.delete_chart_version(fake_project_code, fake_project_code, fake_chart_name, fake_chart_version)
         assert resp == expected_resp
         assert requests_mock.called
@@ -149,6 +140,5 @@ class TestBkRepoClient:
         requests_mock.delete(ANY, json={"error": "error message"})
 
         client = bk_repo.BkRepoClient(fake_username, password=fake_pwd)
-        assert getattr(client._config, "delete_chart_version")
         with pytest.raises(bk_repo.BkRepoDeleteVersionError):
             client.delete_chart_version(fake_project_code, fake_project_code, fake_chart_name, fake_chart_version)
