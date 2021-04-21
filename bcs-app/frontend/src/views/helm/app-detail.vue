@@ -292,7 +292,7 @@
                                 </bk-tree>
                             </div>
                         </resizer>
-                        
+
                         <div class="resource-box">
                             <div class="biz-code-wrapper" style="height: 100%;">
                                 <ace
@@ -323,7 +323,7 @@
                         <div>当前版本</div>
                         <div>更新版本</div>
                     </div>
-                    
+
                     <div :class="['diff-editor-box', { 'editor-fullscreen': yamlDiffEditorOptions.fullScreen }]" style="position: relative;">
                         <!-- <div title="关闭全屏" class="fullscreen-close" v-if="yamlDiffEditorOptions.fullScreen" @click="cancelFullScreen">
                             <i class="bk-icon icon-close"></i>
@@ -612,12 +612,18 @@
                         id: 'skip-crds',
                         disabled: false,
                         desc: '如果选择，部署或更新时，跳过crds'
+                    },
+                    {
+                        id: 'wait',
+                        disabled: false,
+                        desc: '如果设置，需要等待pods、pvcs、service等的处于ready状态，release才认为成功'
                     }
                 ],
                 helmCommandParams: {
                     'disable-openapi-validation': false,
                     'no-hooks': false,
-                    'skip-crds': false
+                    'skip-crds': false,
+                    'wait': false
                 }
             }
         },

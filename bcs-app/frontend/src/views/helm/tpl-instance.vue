@@ -260,7 +260,7 @@
                                 </bk-tree>
                             </div>
                         </resizer>
-                        
+
                         <div class="resource-box">
                             <div class="biz-code-wrapper" style="height: 100%;">
                                 <ace
@@ -441,12 +441,18 @@
                         id: 'skip-crds',
                         disabled: false,
                         desc: '如果选择，部署或更新时，跳过crds'
+                    },
+                    {
+                        id: 'wait',
+                        disabled: false,
+                        desc: '如果设置，需要等待pods、pvcs、service等的处于ready状态，release才认为成功'
                     }
                 ],
                 helmCommandParams: {
                     'disable-openapi-validation': false,
                     'no-hooks': false,
-                    'skip-crds': false
+                    'skip-crds': false,
+                    'wait': false
                 }
             }
         },
@@ -523,7 +529,7 @@
                 const projectId = this.projectId
 
                 this.clusterInfo = ''
-                
+
                 try {
                     const res = await this.$store.dispatch('helm/getClusterInfo', { projectId, clusterId })
                     const clusterInfo = res.data.note
