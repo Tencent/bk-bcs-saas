@@ -31,7 +31,7 @@ from backend.components.bcs import mesos as bcs_mesos
 from backend.resources.cluster import get_cluster
 from backend.utils.cache import rd_client
 from backend.utils.errcodes import ErrorCode
-from backend.utils.error_codes import bk_error_codes, error_codes
+from backend.utils.error_codes import error_codes
 from backend.utils.ratelimit import RateLimiter
 from backend.utils.renderers import BKAPIRenderer
 
@@ -311,7 +311,7 @@ class ReinstallNode(BaseNode):
         try:
             resp = rate_limiter.acquire()
         except Exception as error:
-            logger.error('%s, %s' % (bk_error_codes.ConfigError.code, "获取token出现异常,详情:%s" % error))
+            logger.error('%s, %s' % (error_codes.ConfigError.code_num, "获取token出现异常,详情:%s" % error))
         if not resp.get('allowed'):
             raise error_codes.CheckFailed(_("已经触发操作，请勿重复操作"))
 

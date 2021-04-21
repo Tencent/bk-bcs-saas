@@ -39,9 +39,10 @@ from backend.components.base import (
     CompRequestError,
     CompResponseError,
 )
+from backend.packages.blue_krill.web.std_error import APIError
 from backend.utils import exceptions as backend_exceptions
 from backend.utils.basic import str2bool
-from backend.utils.error_codes import APIError, error_codes
+from backend.utils.error_codes import error_codes
 from backend.utils.local import local
 
 logger = logging.getLogger(__name__)
@@ -112,7 +113,7 @@ def custom_exception_handler(exc: Exception, context):
 
     if isinstance(exc, (NotAuthenticated, AuthenticationFailed)):
         data = {
-            "code": error_codes.Unauthorized.code,
+            "code": error_codes.Unauthorized.code_num,
             "data": {"login_url": {"full": settings.LOGIN_FULL, "simple": settings.LOGIN_SIMPLE}},
             "message": error_codes.Unauthorized.message,
             "request_id": local.request_id,
@@ -131,7 +132,7 @@ def custom_exception_handler(exc: Exception, context):
 
     elif isinstance(exc, APIError):
         # 更改返回的状态为为自定义错误类型的状态码
-        data = {"code": exc.code, "message": exc.message, "data": None, "request_id": local.request_id}
+        data = {"code": exc.code_num, "message": exc.message, "data": None, "request_id": local.request_id}
         set_rollback()
         return Response(data)
     elif isinstance(exc, (MethodNotAllowed, PermissionDenied)):
@@ -143,7 +144,7 @@ def custom_exception_handler(exc: Exception, context):
         set_rollback()
         return Response(data, status=200)
     elif isinstance(exc, backend_exceptions.APIError):
-        data = {"code": exc.code, "message": "%s" % exc, "data": exc.data, "request_id": local.request_id}
+        data = {"code": exc.code_num, "message": "%s" % exc, "data": exc.data, "request_id": local.request_id}
         set_rollback()
         return Response(data, status=exc.status_code)
 

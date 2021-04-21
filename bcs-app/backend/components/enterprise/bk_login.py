@@ -19,7 +19,7 @@ import logging
 from django.conf import settings
 
 from backend.components.utils import http_get
-from backend.utils.error_codes import bk_error_codes
+from backend.utils.error_codes import error_codes
 
 logger = logging.getLogger(__name__)
 
@@ -34,7 +34,7 @@ def common_base_request(url, data):
     if not resp.get("result"):
         logger.error(
             """{error_code} ESB errorcode: {esb_code}\ncurl -X GET -d "{data}" {url}\nresp:{resp}""".format(
-                error_code=bk_error_codes.BkLoginError(), esb_code=resp.get("code"), data=data, url=url, resp=resp
+                error_code=error_codes.BkLoginError, esb_code=resp.get("code"), data=data, url=url, resp=resp
             )
         )
     return resp
