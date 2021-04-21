@@ -17,8 +17,8 @@ import pytest
 import yaml
 from kubernetes.dynamic.exceptions import ResourceNotFoundError
 
+from backend.resources.cluster.models import CtxCluster
 from backend.resources.hpa import hpa as hpa_client
-from backend.resources.utils.auths import ClusterAuth
 from backend.utils.basic import getitems
 
 from ..conftest import FakeBcsKubeConfigurationService
@@ -49,7 +49,7 @@ class TestHPA:
     @pytest.fixture
     def client(self, project_id, cluster_id):
         try:
-            client = hpa_client.HPA(ClusterAuth('token', project_id, cluster_id))
+            client = hpa_client.HPA(CtxCluster.create(token='token', project_id=project_id, id=cluster_id))
         except ResourceNotFoundError:
             pytest.skip('Can not initialize HPA client, skip')
         return client

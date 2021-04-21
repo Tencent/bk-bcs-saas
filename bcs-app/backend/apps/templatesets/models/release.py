@@ -36,6 +36,7 @@ class ResourceData:
 @dataclass
 class AppReleaseData:
     name: str
+    project_id: str
     cluster_id: str
     namespace: str
     template_id: int
@@ -44,6 +45,7 @@ class AppReleaseData:
 
 class AppRelease(BaseModel):
     name = models.CharField(max_length=256)
+    project_id = models.CharField(max_length=32)
     cluster_id = models.CharField(max_length=32)
     namespace = models.CharField(max_length=64)
     status = models.CharField(choices=ReleaseStatus.get_choices(), default=ReleaseStatus.PENDING.value, max_length=32)
@@ -79,4 +81,4 @@ class ResourceInstance(BaseModel):
 
     class Meta:
         db_table = 'templatesets_resource_instance'
-        unique_together = ('app_release', 'kind', 'name', 'namespace')
+        unique_together = ('app_release', 'kind', 'name')

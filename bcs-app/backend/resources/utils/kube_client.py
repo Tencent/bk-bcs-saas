@@ -11,6 +11,7 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
+import json
 import logging
 from functools import lru_cache
 from typing import Any, Dict, Optional, Tuple
@@ -137,7 +138,10 @@ def get_dynamic_client(access_token: str, project_id: str, cluster_id: str) -> C
     config = BcsKubeConfigurationService(cluster).make_configuration()
     # TODO 考虑集群可能升级k8s版本的情况, 缓存文件会失效
     discoverer_cache = DiscovererCache(cache_key=f"osrcp-{cluster_id}.json")
-    return CoreDynamicClient(client.ApiClient(config), cache_file=discoverer_cache, discoverer=BcsLazyDiscoverer)
+    api_client = client.ApiClient(
+        config, header_name='X-BKAPI-AUTHORIZATION', header_value=json.dumps({"access_token": access_token})
+    )
+    return CoreDynamicClient(api_client, cache_file=discoverer_cache, discoverer=BcsLazyDiscoverer)
 
 
 def make_labels_string(labels: Dict) -> str:

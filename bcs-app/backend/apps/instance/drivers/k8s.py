@@ -20,9 +20,8 @@ from django.utils.translation import ugettext_lazy as _
 from backend.apps.instance.drivers.base import SchedulerBase
 from backend.components.bcs import mesos
 from backend.components.bcs.k8s import K8SClient
+from backend.resources.cluster.models import CtxCluster
 from backend.resources.hpa import hpa as hpa_client
-from backend.resources.utils.auths import ClusterAuth
-from backend.utils.error_codes import error_codes
 from backend.utils.exceptions import ComponentError, ConfigError, Rollback
 
 logger = logging.getLogger(__name__)
@@ -234,8 +233,8 @@ class Scheduler(SchedulerBase):
 
     def handler_k8shpa(self, ns, cluster_id, spec):
         """下发HPA配置"""
-        cluster_auth = ClusterAuth(self.access_token, self.project_id, cluster_id)
-        client = hpa_client.HPA(cluster_auth)
+        ctx_cluster = CtxCluster.create(token=self.access_token, project_id=self.project_id, id=cluster_id)
+        client = hpa_client.HPA(ctx_cluster)
 
         name = spec["metadata"]["name"]
         spec['apiVersion'] = hpa_client.PREFERRED_API_VERSION

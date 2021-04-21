@@ -11,11 +11,10 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-from dataclasses import dataclass
+from dataclasses import fields
+from typing import Any
 
 
-@dataclass
-class ClusterAuth:
-    access_token: str
-    project_id: str
-    cluster_id: str
+def make_dataclass_from_dict(data_cls, init_data: dict) -> Any:
+    """与dataclasses.make_dataclass不同，make_dataclass_from_dict支持排除掉init_data中的非属性数据"""
+    return data_cls(**{k: v for k, v in init_data.items() if k in [f.name for f in fields(data_cls)]})

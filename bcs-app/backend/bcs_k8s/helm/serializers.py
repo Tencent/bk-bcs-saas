@@ -71,6 +71,7 @@ class ChartSLZ(serializers.ModelSerializer):
     changed_at = serializers.DateTimeField(default_timezone=settings.TIME_ZONE)
     created_at = serializers.DateTimeField(default_timezone=settings.TIME_ZONE)
     deleted_at = serializers.DateTimeField(default_timezone=settings.TIME_ZONE)
+    annotations = serializers.JSONField()
 
     class Meta:
         model = Chart

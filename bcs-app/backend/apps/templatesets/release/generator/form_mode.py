@@ -35,7 +35,7 @@ class FormtoResourceList:
         """
         res_ctx = self.res_ctx
 
-        namespace_id = res_ctx.extras.get('namespace_id', 0)
+        namespace_id = res_ctx.namespace_id
         # 查询命名空间相关的参数, 系统变量等保存在context中
         has_image_secret, cluster_version, var_context = get_ns_variable(
             res_ctx.access_token, res_ctx.project_id, namespace_id
@@ -54,8 +54,8 @@ class FormtoResourceList:
             'has_image_secret': has_image_secret,
             'cluster_version': cluster_version,
             'context': var_context,
-            'variable_dict': res_ctx.extras.get('variable_dict', {}),
-            'is_preview': res_ctx.extras.get('is_preview', True),
+            'variable_dict': res_ctx.template_variables,
+            'is_preview': res_ctx.is_preview,
         }
 
         return self._generate(namespace_id, params)
