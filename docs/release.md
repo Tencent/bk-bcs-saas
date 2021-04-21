@@ -6,8 +6,7 @@
 - Helm 命令支持 --wait 参数
 
 #### 优化
-- 错误代码
-- 后台任务轮训模块
+- [#867](https://github.com/Tencent/bk-bcs-saas/pull/867)后台任务轮训模块及API返回错误码
 
 
 ## release-1.3.24
