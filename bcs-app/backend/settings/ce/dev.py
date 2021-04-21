@@ -35,6 +35,9 @@ INSTALLED_APPS += [
     "backend.celery_app.CeleryConfig",
 ]
 
+# 本地开发先去除权限中心v3的数据初始逻辑
+INSTALLED_APPS.remove("backend.apps.bcs_iam_migration.apps.BcsIamMigrationConfig")
+
 LOG_LEVEL = "DEBUG"
 LOGGING = get_logging_config(LOG_LEVEL)
 
