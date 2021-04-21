@@ -115,9 +115,9 @@ staticfiles
 
 backend/edition-metadata.json
 
-# This gitignore file is always written by paasctl script automatically
-backend/.gitignore
-!bcs-app/frontend/build
+# This gitignore file is always written by editionctl script automatically
+bcs-app/.gitignore
+bcs-app/edition-metadata.json
 
 # devops gateway
 bcs-projmgr/gateway/make_link.sh
@@ -171,7 +171,3 @@ bcs-cc/bin
 bcs-app/backend/settings/ce/dev_*.py
 
 .mypy_cache
-
-# This gitignore file is always written by editionctl script automatically
-bcs-app/.gitignore
-bcs-app/edition-metadata.json
