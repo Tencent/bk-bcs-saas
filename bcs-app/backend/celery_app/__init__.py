@@ -61,6 +61,6 @@ class CeleryConfig(AppConfig):
         from backend.bcs_k8s.helm import tasks as helm_chart_tasks  # noqa
         from backend.utils import notify  # noqa
 
-        from . import periodic_tasks  # noqa
+        from . import poll_task  # noqa
 
         get_cluster_node_task_mod()

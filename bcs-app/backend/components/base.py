@@ -12,11 +12,13 @@
 # specific language governing permissions and limitations under the License.
 #
 """Base utilities for components module"""
+import functools
 import json
 import logging
 import time
 from abc import ABC
-from typing import Any, Dict, Optional
+from types import MethodType
+from typing import Any, Callable, Dict, Optional
 from urllib import parse
 
 import requests
@@ -190,3 +192,62 @@ def update_url_parameters(url: str, parameters: Dict) -> str:
     return parse.ParseResult(
         parsed_url.scheme, parsed_url.netloc, parsed_url.path, parsed_url.params, new_query, parsed_url.fragment
     ).geturl()
+
+
+def update_request_body(body: Optional[bytes], params: Dict) -> bytes:
+    """更新请求 body 体参数
+    :param body: 原始的body
+    :param params: 需要添加的参数
+    :returns: 返回新的body
+    """
+    # body体为None时，需要设置为空字典，方便添加参数
+    if not body:
+        body_dict = {}
+    else:
+        body_dict = json.loads(bytes.decode(body))
+    body_dict.update(params)
+    return str.encode(json.dumps(body_dict))
+
+
+class CompParseBkCommonResponseError(BaseCompError):
+    """解析返回数据错误
+
+    :param resp_json: 请求返回的数据
+    :param exc: 原异常对象
+    """
+
+    def __init__(self, resp_json: Any, message: str):
+        self.resp_json = json.dumps(resp_json)
+        self.message = message
+        super().__init__(f"parse response content error, response: {resp_json}, message: {message}")
+
+
+class BkCommonResponseHandler:
+    """提供解析response函数和原始response函数
+
+    :param default_data: 当resp中data为空时，可以通过设置此字段，标识期望返回的内容
+    :param func: 调用的函数
+    """
+
+    def __init__(self, default_data: Optional[Any] = None, func: Callable = None):
+        self.default_data = default_data
+        self.func = func
+
+    def __get__(self, instance, cls):
+        if instance is None:
+            return self
+        else:
+            return MethodType(self, instance)
+
+    def __call__(self, *args, **kwargs) -> Any:
+        resp = self.func(*args, **kwargs)
+        if resp.get("code") == 0 or resp.get("result") is True:
+            return resp.get("data") or self.default_data
+        raise CompParseBkCommonResponseError(resp, resp.get("message"))
+
+    def raw_request(self, *args, **kwargs) -> Any:
+        return self.func(*args, **kwargs)
+
+
+def response_handler(default_data: Optional[Any] = None):
+    return functools.partial(BkCommonResponseHandler, default_data)
