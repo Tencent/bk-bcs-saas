@@ -11,22 +11,22 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-from dataclasses import dataclass, field
-from typing import Dict, List
-
-from backend.apps.configuration.models import ShowVersion, Template
+from backend.apps.templatesets.release.manager import ReleaseResourceManager
 
 
-@dataclass
-class ResContext:
-    access_token: str
-    username: str
-    project_id: str
-    namespace: str
-    cluster_id: str
-    template: Template
-    show_version: ShowVersion
-    instance_entity: Dict[str, List[int]]  # like {"Deployment": [1, 2], "Job": [11, 12]}, 其中整数为db记录项的id
-    is_preview: bool
-    template_variables: Dict[str, str] = field(default_factory=dict)
-    namespace_id: int = 0  # TODO namespace_id待废弃
+def fake_async_run(tasks):
+    for t in tasks:
+        t()
+
+
+class FakeApi:
+    def update_or_create(self, *args, **kwargs):
+        pass
+
+    def delete_ignore_nonexistent(self, *args, **kwargs):
+        pass
+
+
+class FakeReleaseResourceManager(ReleaseResourceManager):
+    def _get_api(self, kind, api_version):
+        return FakeApi()

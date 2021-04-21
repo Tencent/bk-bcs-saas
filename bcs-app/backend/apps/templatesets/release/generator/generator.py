@@ -34,6 +34,7 @@ class ReleaseDataGenerator:
     def generate(self) -> AppReleaseData:
         return AppReleaseData(
             name=self.name,
+            project_id=self.res_ctx.project_id,
             cluster_id=self.res_ctx.cluster_id,
             namespace=self.res_ctx.namespace,
             template_id=self.template.id,

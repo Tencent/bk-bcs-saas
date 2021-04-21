@@ -24,11 +24,11 @@ from backend.apps.configuration.constants import K8sResourceName, MesosResourceN
 from backend.apps.constants import ProjectKind
 from backend.apps.instance import constants as instance_constants
 from backend.apps.instance.models import InstanceConfig
-from backend.components.bcs import k8s, mesos
-from backend.resources.hpa import exceptions as hpa_exceptions, hpa as hpa_client
+from backend.components.bcs import mesos
+from backend.resources.cluster.models import CtxCluster
+from backend.resources.hpa import exceptions as hpa_exceptions
+from backend.resources.hpa import hpa as hpa_client
 from backend.resources.hpa.format import HPAFormatter
-from backend.resources.utils.auths import ClusterAuth
-from backend.utils import basic
 
 logger = logging.getLogger(__name__)
 
@@ -128,8 +128,10 @@ def get_cluster_hpa_list(request, project_id, cluster_id, cluster_env, cluster_n
             hpa = client.list_hpa(namespace).get("data") or []
             hpa_list = slz_mesos_hpa_info(hpa, project_code, cluster_name, cluster_env, cluster_id)
         else:
-            cluster_auth = ClusterAuth(request.user.token.access_token, project_id, cluster_id)
-            client = hpa_client.HPA(cluster_auth)
+            ctx_cluster = CtxCluster.create(
+                token=request.user.token.access_token, project_id=project_id, id=cluster_id
+            )
+            client = hpa_client.HPA(ctx_cluster)
             formatter = HPAFormatter(cluster_id, project_code, cluster_name, cluster_env)
             hpa_list = client.list(formatter=formatter)
     except Exception as error:
@@ -157,8 +159,8 @@ def delete_mesos_hpa(request, project_id, cluster_id, namespace, namespace_id, n
 
 def delete_hpa(request, project_id, cluster_id, ns_name, namespace_id, name):
     if request.project.kind == ProjectKind.K8S.value:
-        cluster_auth = ClusterAuth(request.user.token.access_token, project_id, cluster_id)
-        client = hpa_client.HPA(cluster_auth)
+        ctx_cluster = CtxCluster.create(token=request.user.token.access_token, project_id=project_id, id=cluster_id)
+        client = hpa_client.HPA(ctx_cluster)
         try:
             client.delete_ignore_nonexistent(name=name, namespace=ns_name)
         except Exception as error:
