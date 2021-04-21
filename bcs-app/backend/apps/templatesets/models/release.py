@@ -54,7 +54,6 @@ class AppRelease(BaseModel):
 
     class Meta:
         db_table = 'templatesets_app_release'
-        unique_together = ('name', 'cluster_id', 'namespace')
 
     @property
     def template(self):
@@ -81,4 +80,3 @@ class ResourceInstance(BaseModel):
 
     class Meta:
         db_table = 'templatesets_resource_instance'
-        unique_together = ('app_release', 'kind', 'name')
