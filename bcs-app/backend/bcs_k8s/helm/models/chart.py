@@ -57,6 +57,8 @@ class Chart(BaseTSModel):
 
     # field show when content changed
     changed_at = models.DateTimeField(default=datetime.datetime.now, blank=True)
+    # chart.yaml支持annotations字段https://helm.sh/docs/topics/charts/#the-chartyaml-file
+    annotations = JSONField(default={})
 
     objects = ChartManager()
 
@@ -76,10 +78,14 @@ class Chart(BaseTSModel):
             del chart_version_fields["id"]
             del chart_version_fields["chart"]
 
-        fields = {}
-        fields.update(chart_version_fields)
+        fields = chart_version_fields
         fields.update(
-            {"name": self.name, "repository_id": self.repository.id, "icon": self.icon,}
+            {
+                "name": self.name,
+                "repository_id": self.repository.id,
+                "icon": self.icon,
+                "annotations": self.annotations,
+            }
         )
         return fields
 
@@ -406,7 +412,10 @@ class ChartRelease(BaseTSModel):
         resources = parser.parse(self.content, namespace).values()
         for resource in resources:
             structure.append(
-                {"name": resource.name.split("/")[-1], "kind": resource.kind,}
+                {
+                    "name": resource.name.split("/")[-1],
+                    "kind": resource.kind,
+                }
             )
         self.structure = structure
         self.save(update_fields=["structure"])
