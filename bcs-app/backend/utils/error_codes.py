@@ -73,9 +73,10 @@ class ErrorCodes:
     # 资源未找到
     ResNotFoundError = ErrorCode(_('资源未找到'), code_num=40400, status_code=status.HTTP_404_NOT_FOUND)
 
-
-class BkErrorCodes:
+    ######################################
     # 打印日志使用, 1402是分配给BCS SaaS使用
+    ######################################
+
     ConfigError = ErrorCode(_('配置{}错误'), code_num=1402400)
     # 权限中心API调用错误
     IAMError = ErrorCode(_('权限中心接口调用失败'), code_num=1402100)
@@ -88,4 +89,3 @@ class BkErrorCodes:
 
 
 error_codes = ErrorCodes()
-bk_error_codes = BkErrorCodes()
