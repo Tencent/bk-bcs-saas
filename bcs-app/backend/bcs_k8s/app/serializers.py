@@ -1131,3 +1131,19 @@ class FilterNamespacesSLZ(serializers.Serializer):
     filter_use_perm = serializers.BooleanField(default=True)
     cluster_id = serializers.CharField(required=False)
     chart_id = serializers.IntegerField(required=False)
+
+
+class ReleaseListSLZ(serializers.ModelSerializer):
+    # 兼容前端展示已经在使用的`chart`字段, `chart` 表示的含义是 release 关联的 chart 的 id
+    chart = serializers.IntegerField(source="chart.id")
+    chart_id = serializers.IntegerField(source="chart.id")
+    chart_name = serializers.CharField(source="chart.name")
+
+    class Meta:
+        model = App
+        exclude = (
+            "release",
+            "inject_configs",
+            "sys_variables",
+            "unique_ns",
+        )
