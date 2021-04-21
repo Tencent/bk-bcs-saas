@@ -171,3 +171,7 @@ bcs-cc/bin
 bcs-app/backend/settings/ce/dev_*.py
 
 .mypy_cache
+
+# This gitignore file is always written by editionctl script automatically
+bcs-app/.gitignore
+bcs-app/edition-metadata.json
