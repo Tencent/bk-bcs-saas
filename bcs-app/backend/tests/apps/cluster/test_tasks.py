@@ -37,11 +37,11 @@ def cluster_record():
 
 class TestClusterOrNodeTaskPoller:
     @mock.patch(
-        "backend.apps.cluster.flow_views_ext.tasks.ops.OPSClient",
+        "backend.apps.cluster.tasks.ops.OPSClient",
         new=FakeOPSClient,
     )
     @mock.patch(
-        "backend.apps.cluster.flow_views_ext.tasks.paas_auth.get_access_token",
+        "backend.apps.cluster.tasks.paas_auth.get_access_token",
         return_values={"access_token": "access_token"},
     )
     def test_task_query(self, get_access_token):

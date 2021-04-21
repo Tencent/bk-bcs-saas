@@ -13,48 +13,43 @@
 #
 import json
 import logging
-from typing import Dict, List, Tuple, Union
+from typing import Any, Dict, List, NewType, Tuple, Union
 
 from django.conf import settings
 
 from backend.apps.cluster import models
 from backend.components import base as comp_base
 from backend.components import ops, paas_auth, paas_cc
-from backend.packages.blue_krill.async_utils.poll_task import (
-    CallbackHandler,
-    CallbackResult,
-    CallbackStatus,
-    PollingResult,
-    PollingStatus,
-    TaskPoller,
-)
+from backend.packages.blue_krill.async_utils import poll_task
 
-TASK_FAILED_STATUS = ["FAILURE", "REVOKED", "FAILED"]
-TASK_SUCCESS_STATUS = ["SUCCESS", "FINISHED"]
+TASK_FAILED_STATUS_LIST = ["FAILURE", "REVOKED", "FAILED"]
+TASK_SUCCESS_STATUS_LIST = ["SUCCESS", "FINISHED"]
+
+ModelLogRecord = NewType("ModelLogRecord", Union[models.ClusterInstallLog, models.NodeUpdateLog])
 
 logger = logging.getLogger(__name__)
 
 
-class ClusterOrNodeTaskPoller(TaskPoller):
+class ClusterOrNodeTaskPoller(poll_task.TaskPoller):
     """轮训集群及节点添加、删除任务的状态"""
 
     default_retry_delay_seconds = getattr(settings, "POLLING_INTERVAL_SECONDS", 10)
     overall_timeout_seconds = getattr(settings, "POLLING_TIMEOUT_SECONDS", 3600)
 
-    def query(self) -> PollingResult:
+    def query(self) -> poll_task.PollingResult:
         # 获取任务记录
         record = self.get_task_record()
         # 解析任务
         step_logs, status, tke_cluster_id = self._get_task_result(record)
         # 更新记录字段
         self._update_record_fields(record, status, step_logs, tke_cluster_id)
-        polling_status = PollingStatus.DOING.value
+        polling_status = poll_task.PollingStatus.DOING.value
         if record.is_finished:
-            polling_status = PollingStatus.DONE.value
+            polling_status = poll_task.PollingStatus.DONE.value
 
-        return PollingResult(status=polling_status)
+        return poll_task.PollingResult(status=polling_status)
 
-    def get_task_record(self) -> Union[models.ClusterInstallLog, models.NodeUpdateLog]:
+    def get_task_record(self) -> Union[ModelLogRecord, None]:
         """获取task记录"""
         params = self.params
         # 任务类型: cluster/node
@@ -67,8 +62,9 @@ class ClusterOrNodeTaskPoller(TaskPoller):
             return
 
         # 获取记录
-        record = task_model.objects.filter(pk=task_record_id).last()
-        if not record:
+        try:
+            record = task_model.objects.get(pk=task_record_id)
+        except task_model.DoesNotExist:
             logger.error(f'not found task: {task_record_id}')
             return
         # 判断任务是否结束
@@ -86,7 +82,7 @@ class ClusterOrNodeTaskPoller(TaskPoller):
             step_status = log.get("status")
             step_name_status = {"state": step_status, "name": "- %s" % (log.get("name", "").capitalize())}
             # NOTE: 兼容先前，并行时，返回的日志，可能正常和错误交叉，为方便前端展示，需要处理为前面步骤为成功，后面步骤为失败
-            if step_status in TASK_FAILED_STATUS:
+            if step_status in TASK_FAILED_STATUS_LIST:
                 failed_logs.append(step_name_status)
             else:
                 logs.append(step_name_status)
@@ -94,7 +90,7 @@ class ClusterOrNodeTaskPoller(TaskPoller):
         logs.extend(failed_logs)
         return logs
 
-    def _get_task_result(self, record: Union[models.ClusterInstallLog, models.NodeUpdateLog]) -> Tuple[List, str, str]:
+    def _get_task_result(self, record: ModelLogRecord) -> Tuple[List, str, str]:
         """解析任务状态
         兼容先前的逻辑, 返回日志格式{"state": "任务总状态", "node_tasks": "子步骤logs"}
         """
@@ -104,21 +100,33 @@ class ClusterOrNodeTaskPoller(TaskPoller):
         data = task_result.get("data") or {}
         return self._parse_steps(data), data.get("status", ""), data.get("tke_cluster_id", "")
 
+    def _transform_task_status(self, status: str, record: ModelLogRecord):
+        """转换任务状态，用以前端展示"""
+        # 如果任务失败，则需要根据操作类型转换状态
+        # 如果任务成功，则转换为normal状态
+        # 否则，状态为任务初始化时的running状态
+        if status in TASK_FAILED_STATUS_LIST:
+            record.status = transform_failed_status_by_op_type(record.oper_type)
+        elif status in TASK_SUCCESS_STATUS_LIST:
+            record.status = models.CommonStatus.Normal
+
+    def _set_record_finished(self, status: str, record: ModelLogRecord):
+        """判断任务是否处于终止态，终止态包含成功或者失败"""
+        if status in TASK_FAILED_STATUS_LIST or status in TASK_SUCCESS_STATUS_LIST:
+            record.is_finished = True
+            record.is_polling = False
+
     def _update_record_fields(
         self,
-        record: Union[models.ClusterInstallLog, models.NodeUpdateLog],
+        record: ModelLogRecord,
         status: str,
         step_logs: List,
         tke_cluster_id: str = "",
     ):
-        if status in TASK_FAILED_STATUS:
-            record.status = get_failed_status(record.oper_type)
-        elif status in TASK_SUCCESS_STATUS:
-            record.status = models.CommonStatus.Normal
+        # 转换任务状态
+        self._transform_task_status(status, record)
         # 处于失败或成功状态时，认为任务已经结束
-        if status in TASK_FAILED_STATUS or status in TASK_SUCCESS_STATUS:
-            record.is_finished = True
-            record.is_polling = False
+        self._set_record_finished(status, record)
         if step_logs:
             record.log = json.dumps({"state": status, "node_tasks": step_logs})
         # 添加tke集群的cluster_id
@@ -130,34 +138,89 @@ class ClusterOrNodeTaskPoller(TaskPoller):
         record.save(update_fields=["status", "is_finished", "is_polling", "params", "log", "update_at"])
 
 
-class TaskStatusResultHandler(CallbackHandler):
+class TaskStatusResultHandler(poll_task.CallbackHandler):
     """处理超时状态，更新db记录及bcs cc中状态"""
 
-    def handle(self, result: CallbackResult, poller: TaskPoller):
+    def handle(self, result: poll_task.CallbackResult, poller: poll_task.TaskPoller):
         record = poller.get_task_record()
-        if result.status == CallbackStatus.TIMEOUT.value:
+        if result.status == poll_task.CallbackStatus.TIMEOUT.value:
             record.set_finish_polling_status(
-                finish_flag=True, polling_flag=False, status=get_failed_status(record.oper_type)
+                finish_flag=True, polling_flag=False, status=transform_failed_status_by_op_type(record.oper_type)
             )
         # 更新bcs cc中集群或节点状态
         update_status(poller.params["model_type"], record)
 
 
-def get_task_result(access_token: str, record: Union[models.ClusterInstallLog, models.NodeUpdateLog]) -> Dict:
+def get_task_result(access_token: str, record: ModelLogRecord) -> Dict[str, Any]:
     params = json.loads(record.params)
     return ops.get_task_result(
         access_token, record.project_id, record.task_id, params.get("cc_app_id"), params.get("username")
     )
 
 
-def update_status(log_type: str, record: Union[models.ClusterInstallLog, models.NodeUpdateLog]):
-    if log_type == "ClusterInstallLog":
-        update_cluster_status(record)
-    else:
-        update_node_status(record)
+class StatusUpdater:
+    def __init__(self, record: ModelLogRecord):
+        self.record = record
+
+    @property
+    def _bcs_cc_client(self) -> comp_base.BkApiClient:
+        token = paas_auth.get_access_token()
+        access_token = token["access_token"]
+        return paas_cc.PaaSCCClient(comp_base.ComponentAuth(access_token=access_token))
+
+    @property
+    def _bcs_cc_record_status(self) -> str:
+        """获取存储在bcs cc的记录的状态"""
+        if self.record.oper_type not in [models.ClusterOperType.ClusterRemove, models.NodeOperType.NodeRemove]:
+            return self.record.status
+        # 针对删除操作的处理
+        if self.record.status == models.CommonStatus.Normal:
+            return models.CommonStatus.Removed
+        return self.record.status
 
 
-def get_failed_status(op_type: str) -> str:
+class ClusterStatusUpdater(StatusUpdater):
+    """集群任务状态的操作"""
+
+    def update_status(self):
+        record = self.record
+        bcs_cc_client = self._bcs_cc_client
+        project_id, cluster_id = record.project_id, record.cluster_id
+        # 更新集群状态
+        params = json.loads(record.params)
+        status = self._bcs_cc_record_status
+        req_data = {"status": status, "extra_cluster_id": params.get("config", {}).get("extra_cluster_id")}
+        bcs_cc_client.update_cluster(project_id, cluster_id, req_data)
+        logger.info(f"Update cluster[{cluster_id}] success")
+        # 如果当前为删除操作，并且状态为允许删除的，则删除当前记录
+        if (record.oper_type == models.ClusterOperType.ClusterRemove) and (status == models.CommonStatus.Removed):
+            # 删除集群及master
+            bcs_cc_client.delete_cluster(project_id, cluster_id)
+            logger.info(f"Delete cluster[{cluster_id}] success")
+
+
+class NodeStatusUpdater(StatusUpdater):
+    """节点任务状态的操作"""
+
+    def update_status(self):
+        record = self.record
+        params = json.loads(record.params)
+        ip_list = list(params.get("node_info", {}).keys())
+        # 更新节点状态
+        self._bcs_cc_client.update_node_list(
+            record.project_id,
+            record.cluster_id,
+            [paas_cc.UpdateNodesData(inner_ip=ip, status=self._bcs_cc_record_status) for ip in ip_list],
+        )
+        logger.info(f'Update node[{json.dumps(ip_list)}] status success')
+
+
+def update_status(model_type: str, record: ModelLogRecord):
+    updater = ClusterStatusUpdater if model_type == "ClusterInstallLog" else NodeStatusUpdater
+    updater(record).update_status()
+
+
+def transform_failed_status_by_op_type(op_type: str) -> str:
     """处理异常时，针对不同操作的状态"""
     if op_type in [models.ClusterOperType.ClusterRemove, models.NodeOperType.NodeRemove]:
         status = models.CommonStatus.RemoveFailed
@@ -166,56 +229,6 @@ def get_failed_status(op_type: str) -> str:
     else:
         status = models.CommonStatus.InitialFailed
     return status
-
-
-def get_bcs_cc_record_status(record: Union[models.ClusterInstallLog, models.NodeUpdateLog]) -> str:
-    """获取存储在bcs cc的记录的状态"""
-    if record.oper_type in [models.ClusterOperType.ClusterRemove, models.NodeOperType.NodeRemove]:
-        if record.status == models.CommonStatus.Normal:
-            status = models.CommonStatus.Removed
-        else:
-            status = record.status
-        return status
-    return record.status
-
-
-def update_cluster_status(record: Union[models.ClusterInstallLog, models.NodeUpdateLog]):
-    """更新集群状态"""
-    # 获取access_token
-    token = paas_auth.get_access_token()
-    access_token = token["access_token"]
-
-    bcs_cc_client = paas_cc.PaaSCCClient(comp_base.ComponentAuth(access_token=access_token))
-    project_id = record.project_id
-    cluster_id = record.cluster_id
-    # 更新集群状态
-    status = get_bcs_cc_record_status(record)
-    params = json.loads(record.params)
-    req_data = {"status": status, "extra_cluster_id": params.get("config", {}).get("extra_cluster_id")}
-    bcs_cc_client.update_cluster(project_id, cluster_id, req_data)
-    logger.info(f'Update cluster[{cluster_id}] success')
-
-    # 如果当前为删除操作，并且状态为删除的，则删除当前记录
-    if (record.oper_type == models.ClusterOperType.ClusterRemove) and (status == models.CommonStatus.Removed):
-        # 删除集群及master
-        bcs_cc_client.delete_cluster(project_id, cluster_id)
-        logger.info(f'Delete cluster[{cluster_id}] success')
-
-
-def update_node_status(record: Union[models.ClusterInstallLog, models.NodeUpdateLog]):
-    params = json.loads(record.params)
-    ip_list = list(params.get("node_info", {}).keys())
-    status = get_bcs_cc_record_status(record)
-    # 获取access token
-    token = paas_auth.get_access_token()
-    # 更新节点状态
-    bcs_cc_client = paas_cc.PaaSCCClient(comp_base.ComponentAuth(access_token=token["access_token"]))
-    bcs_cc_client.update_node_list(
-        record.project_id,
-        record.cluster_id,
-        [paas_cc.UpdateNodesData(inner_ip=ip, status=status) for ip in ip_list],
-    )
-    logger.info(f'Update node[{json.dumps(ip_list)}] status success')
 
 
 try:
