@@ -612,12 +612,18 @@
                         id: 'skip-crds',
                         disabled: false,
                         desc: '如果选择，部署或更新时，跳过crds'
+                    },
+                    {
+                        id: 'wait',
+                        disabled: false,
+                        desc: '如果设置，需要等待pods、pvcs、service等的处于ready状态，release才认为成功'
                     }
                 ],
                 helmCommandParams: {
                     'disable-openapi-validation': false,
                     'no-hooks': false,
-                    'skip-crds': false
+                    'skip-crds': false,
+                    'wait': false
                 }
             }
         },
