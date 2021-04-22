@@ -77,7 +77,8 @@ class ProjectBaseAPIViewSet(viewsets.ViewSet):
 
         result = paas_cc.get_project(access_token, kwargs[field_name])
         if result.get("code") != ErrorCode.NoError:
-            raise error_codes.APIError(_("项目Code或者ID不正确: {}").format(result.get("message", "")))
+            msg = _("项目Code或者ID不正确: {}").format(result.get("message", ""))
+            raise error_codes.APIError.f(msg, replace=True)
 
         if self.project_field_name == "project_code":
             field_value = result["data"]["english_name"]

@@ -17,7 +17,6 @@ import logging
 from datetime import datetime
 
 import yaml
-from django.conf import settings
 from django.utils.translation import ugettext_lazy as _
 from rest_framework import views
 from rest_framework.exceptions import ValidationError
@@ -30,12 +29,10 @@ from backend.apps.application.drivers import BCSDriver
 from backend.apps.application.utils import APIResponse, cluster_env, image_handler, retry_requests
 from backend.apps.configuration.constants import K8sResourceName
 from backend.apps.configuration.models import Template
-from backend.apps.instance.constants import EventType, InsState
+from backend.apps.instance.constants import EventType
 from backend.apps.instance.models import InstanceConfig, InstanceEvent
 from backend.celery_app.tasks.application import delete_instance_task
 from backend.components import paas_cc
-from backend.components.bcs import bcs_common_api, mesos
-from backend.components.bcs.bcs_common_api import BCSClient
 from backend.components.bcs.k8s import K8SClient
 from backend.components.bcs.mesos import MesosClient
 from backend.utils.basic import getitems
@@ -47,14 +44,6 @@ logger = logging.getLogger(__name__)
 
 DEFAULT_RESPONSE = {"code": 0}
 DEFAULT_ERROR_CODE = ErrorCode.UnknownError
-
-error_codes.add_codes(
-    [
-        ErrorCodeCls("RecordNotFound", _("记录不存在"), 404),
-        ErrorCodeCls("JSONParseError", _("解析异常"), 400),
-        ErrorCodeCls("DBOperError", _("DB操作异常"), 400),
-    ]
-)
 
 # 模板集删除时, 需要一起删除的资源
 CASCADE_DELETE_RESOURCES = [

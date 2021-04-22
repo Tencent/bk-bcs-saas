@@ -1217,7 +1217,7 @@ class InstanceConfigInfo(InstanceAPI):
                 request, project_id, labels.get("io.tencent.paas.templateid"), instance_info[0].namespace
             )
         except Exception as error:
-            return APIResponse({"code": 400, "data": {}, "message": "%s" % error.code.message})
+            return APIResponse({"code": 400, "data": {}, "message": "%s" % error.message})
         # 针对不同的类型返回不同的格式
         # mesos: json
         # k8s: yaml
