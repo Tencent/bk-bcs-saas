@@ -51,7 +51,7 @@ class MesosDriver:
         return resp
 
     def get_host_container_count(self, host_ips):
-        field_list = ['data.containerStatuses.containerID', 'data.hostIP']
+        field_list = ['data.containerStatuses.containerID', 'data.hostIP', "namespace"]
         resp = self.get_unit_info(host_ips, ','.join(field_list))
         # compose the host container data
         return self.host_container_map(resp)
