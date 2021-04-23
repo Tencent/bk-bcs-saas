@@ -21,5 +21,7 @@ from backend.resources.workloads.cron_job import CronJob
 
 class CronJobViewSet(SystemViewSet):
     def list(self, request, project_id, cluster_id):
-        response_data = gen_list_resource_response_data(CronJob(request.ctx_cluster).list(), K8sResourceKinds.CronJob)
+        response_data = gen_list_resource_response_data(
+            CronJob(request.ctx_cluster).list(), K8sResourceKinds.CronJob
+        )
         return Response(response_data)

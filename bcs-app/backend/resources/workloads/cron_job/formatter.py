@@ -18,7 +18,7 @@ from backend.resources.workloads.common.formatter import WorkloadFormatter
 
 
 class CronJobFormatter(WorkloadFormatter):
-    """ DaemonSet 格式化 """
+    """ CronJob 格式化 """
 
     def parse_container_images(self, resource_dict: Dict) -> List:
         """

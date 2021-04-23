@@ -21,5 +21,7 @@ from backend.resources.workloads.pod import Pod
 
 class PodViewSet(SystemViewSet):
     def list(self, request, project_id, cluster_id):
-        response_data = gen_list_resource_response_data(Pod(request.ctx_cluster).list(), K8sResourceKinds.Pod)
+        response_data = gen_list_resource_response_data(
+            Pod(request.ctx_cluster).list(), K8sResourceKinds.Pod
+        )
         return Response(response_data)

@@ -21,5 +21,7 @@ from backend.resources.workloads.job import Job
 
 class JobViewSet(SystemViewSet):
     def list(self, request, project_id, cluster_id):
-        response_data = gen_list_resource_response_data(Job(request.ctx_cluster).list(), K8sResourceKinds.Job)
+        response_data = gen_list_resource_response_data(
+            Job(request.ctx_cluster).list(), K8sResourceKinds.Job
+        )
         return Response(response_data)
