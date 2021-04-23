@@ -19,7 +19,7 @@ router = routers.DefaultRouter(trailing_slash=True)
 
 router.register(r'cron_job', views.CronJobViewSet, base_name='cron_job')
 router.register(r'daemon_set', views.DaemonSetViewSet, base_name='daemon_set')
-router.register(r'deployments', views.DeploymentViewSet, base_name='deployment')
+router.register(r'deployment', views.DeploymentViewSet, base_name='deployment')
 router.register(r'job', views.JobViewSet, base_name='job')
 router.register(r'pod', views.PodViewSet, base_name='pod')
 router.register(r'stateful_set', views.StatefulSetViewSet, base_name='stateful_set')

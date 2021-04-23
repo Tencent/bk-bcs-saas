@@ -18,6 +18,6 @@ from backend.dashboard.workload.urls import router as workload_router
 
 urlpatterns = [
     url(r"^crds/", include("backend.dashboard.custom_object.urls")),
-    url(r"^workloads/", include(workload_router.urls)),
+    url(r"^workload/", include(workload_router.urls)),
     url(r"^subscribe/", include(subscribe_router.urls)),
 ]
