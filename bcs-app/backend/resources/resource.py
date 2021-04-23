@@ -65,6 +65,17 @@ class ResourceClient:
             return formatter.format(resp)
         return self.formatter.format(resp)
 
+    def watch(
+        self, is_format: bool = True, formatter: Optional[ResourceDefaultFormatter] = None, **kwargs
+    ) -> Union[ResourceInstance, List, None]:
+        resp = self.api.watch(**kwargs)
+
+        if not is_format:
+            return resp
+        if formatter:
+            return formatter.format_watch_result(resp)
+        return self.formatter.format_watch_result(resp)
+
     def create(
         self,
         body: Optional[Dict] = None,

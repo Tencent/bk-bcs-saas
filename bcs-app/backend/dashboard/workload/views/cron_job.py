@@ -11,13 +11,15 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-from django.conf.urls import include, url
+from rest_framework.response import Response
 
-from backend.dashboard.subscribe.urls import router as subscribe_router
-from backend.dashboard.workload.urls import router as workload_router
+from backend.bcs_web.viewsets import SystemViewSet
+from backend.dashboard.utils.common import gen_list_resource_response_data
+from backend.resources.constants import K8sResourceKinds
+from backend.resources.workloads.cron_job import CronJob
 
-urlpatterns = [
-    url(r"^crds/", include("backend.dashboard.custom_object.urls")),
-    url(r"^workloads/", include(workload_router.urls)),
-    url(r"^subscribe/", include(subscribe_router.urls)),
-]
+
+class CronJobViewSet(SystemViewSet):
+    def list(self, request, project_id, cluster_id):
+        response_data = gen_list_resource_response_data(CronJob(request.ctx_cluster).list(), K8sResourceKinds.CronJob)
+        return Response(response_data)

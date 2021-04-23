@@ -11,13 +11,14 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-from django.conf.urls import include, url
 
-from backend.dashboard.subscribe.urls import router as subscribe_router
-from backend.dashboard.workload.urls import router as workload_router
+from rest_framework import serializers
 
-urlpatterns = [
-    url(r"^crds/", include("backend.dashboard.custom_object.urls")),
-    url(r"^workloads/", include(workload_router.urls)),
-    url(r"^subscribe/", include(subscribe_router.urls)),
-]
+from backend.resources.constants import K8sResourceKinds
+
+
+class FetchResourceWatchResultSLZ(serializers.Serializer):
+    """获取单类资源一段时间内的变更记录"""
+
+    resource_version = serializers.CharField(label='资源版本号', max_length=32)
+    kind = serializers.ChoiceField(label='资源类型', choices=K8sResourceKinds.get_choices())

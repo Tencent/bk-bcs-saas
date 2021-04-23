@@ -11,13 +11,23 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-from django.conf.urls import include, url
+from typing import Dict, List, Union
 
-from backend.dashboard.subscribe.urls import router as subscribe_router
-from backend.dashboard.workload.urls import router as workload_router
+from backend.resources.constants import K8sResourceKinds
 
-urlpatterns = [
-    url(r"^crds/", include("backend.dashboard.custom_object.urls")),
-    url(r"^workloads/", include(workload_router.urls)),
-    url(r"^subscribe/", include(subscribe_router.urls)),
-]
+
+def calc_max_resource_version(resources: List[Dict]) -> Union[str, None]:
+    """ 计算资源列表中最大的 resource_version """
+    if not resources:
+        return None
+    return str(max(int(r['resourceVersion']) for r in resources))
+
+
+def gen_list_resource_response_data(resources: List, kind: K8sResourceKinds) -> Dict:
+    """ 通用的生成 list resource 接口返回结果逻辑 """
+    return {
+        'total': len(resources),
+        'list': resources,
+        'kind': kind.value,
+        'max_rv': calc_max_resource_version(resources),
+    }

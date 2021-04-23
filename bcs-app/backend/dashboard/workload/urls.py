@@ -11,13 +11,15 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-from django.conf.urls import include, url
+from rest_framework import routers
 
-from backend.dashboard.subscribe.urls import router as subscribe_router
-from backend.dashboard.workload.urls import router as workload_router
+from . import views
 
-urlpatterns = [
-    url(r"^crds/", include("backend.dashboard.custom_object.urls")),
-    url(r"^workloads/", include(workload_router.urls)),
-    url(r"^subscribe/", include(subscribe_router.urls)),
-]
+router = routers.DefaultRouter(trailing_slash=True)
+
+router.register(r'cron_job', views.CronJobViewSet, base_name='cron_job')
+router.register(r'daemon_set', views.DaemonSetViewSet, base_name='daemon_set')
+router.register(r'deployments', views.DeploymentViewSet, base_name='deployment')
+router.register(r'job', views.JobViewSet, base_name='job')
+router.register(r'pod', views.PodViewSet, base_name='pod')
+router.register(r'stateful_set', views.StatefulSetViewSet, base_name='stateful_set')

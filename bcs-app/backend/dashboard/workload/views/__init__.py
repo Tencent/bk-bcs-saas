@@ -11,13 +11,9 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-from django.conf.urls import include, url
-
-from backend.dashboard.subscribe.urls import router as subscribe_router
-from backend.dashboard.workload.urls import router as workload_router
-
-urlpatterns = [
-    url(r"^crds/", include("backend.dashboard.custom_object.urls")),
-    url(r"^workloads/", include(workload_router.urls)),
-    url(r"^subscribe/", include(subscribe_router.urls)),
-]
+from .cron_job import CronJobViewSet
+from .daemon_set import DaemonSetViewSet
+from .deployment import DeploymentViewSet
+from .job import JobViewSet
+from .pod import PodViewSet
+from .stateful_set import StatefulSetViewSet
