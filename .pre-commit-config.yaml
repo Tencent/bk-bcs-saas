@@ -1,6 +1,12 @@
 files: ^bcs-app/
 fail_fast: true
+default_stages: [commit]
 repos:
+- repo: https://github.com/pre-commit/pre-commit-hooks
+  rev: v2.1.0
+  hooks:
+  - id: flake8
+    args: [--config=bcs-app/.flake8]
 - repo: https://github.com/timothycrosley/isort
   rev: 5.7.0
   hooks:
@@ -31,12 +37,3 @@ repos:
             .*/migrations/.*
             | bcs-app/backend/packages/.*
         )$
-# - repo: https://github.com/pre-commit/mirrors-mypy
-#   rev: 'v0.770'
-#   hooks:
-#   -   id: mypy
-#       exclude: >
-#         (?x)^(
-#             .*/migrations/.*
-#         )$
-
