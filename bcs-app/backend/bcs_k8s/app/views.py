@@ -16,6 +16,7 @@ import json
 import logging
 import os
 import tempfile
+from datetime import datetime, timedelta
 from itertools import groupby
 from operator import itemgetter
 
@@ -25,7 +26,6 @@ from django.core.cache import cache
 from django.db import IntegrityError
 from django.http import HttpResponse
 from django.template.loader import render_to_string
-from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 from jinja2 import Template
 from rest_framework import viewsets
@@ -82,7 +82,7 @@ from .utils import collect_resource_state, collect_resource_status, get_base_url
 logger = logging.getLogger(__name__)
 
 # Helm 执行超时时间，设置为10min
-HELM_TASK_TIMEOUT = timezone.timedelta(minutes=10)
+HELM_TASK_TIMEOUT = timedelta(minutes=10)
 
 
 class AppViewBase(AccessTokenMixin, ProjectMixin, viewsets.ModelViewSet):
@@ -112,6 +112,20 @@ class AppView(ActionSerializerMixin, AppViewBase):
         data = project_cluster.get('data') or {}
         results = data.get('results') or []
         return {info['cluster_id']: info for info in results} if results else {}
+
+    def _update_record_status(self, data):
+        """判断是否超时"""
+        updated_time = datetime.strptime(data["updated"], settings.REST_FRAMEWORK["DATETIME_FORMAT"])
+        if data["transitioning_on"] and (datetime.now() - updated_time) > HELM_TASK_TIMEOUT:
+            err_msg = _("Helm操作超时，请重试!")
+            App.objects.filter(id=data["id"]).update(
+                transitioning_on=False,
+                transitioning_result=False,
+                transitioning_message=err_msg,
+            )
+            data["transitioning_result"] = False
+            data["transitioning_on"] = False
+            data["transitioning_message"] = err_msg
 
     def list(self, request, project_id, *args, **kwargs):
         """"""
@@ -149,16 +163,7 @@ class AppView(ActionSerializerMixin, AppViewBase):
                 App.objects.filter(id=item["id"]).update(version=version)
                 item["current_version"] = version
 
-            if item["transitioning_on"] and (timezone.now() - item["updated"]) > HELM_TASK_TIMEOUT:
-                App.objects.filter(id=item["id"]).update(
-                    transitioning_on=False,
-                    transitioning_result=False,
-                    transitioning_message=_("Helm操作超时，请重试!"),
-                )
-                item["transitioning_result"] = False
-                item["transitioning_on"] = False
-                item["transitioning_message"] = _("Helm操作超时，请重试!")
-
+            self._update_record_status(item)
             app_list.append(item)
 
         result = {"count": len(app_list), "next": None, "previous": None, "results": app_list}
