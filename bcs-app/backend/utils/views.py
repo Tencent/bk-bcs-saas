@@ -144,7 +144,7 @@ def custom_exception_handler(exc: Exception, context):
         set_rollback()
         return Response(data, status=200)
     elif isinstance(exc, backend_exceptions.APIError):
-        data = {"code": exc.code_num, "message": "%s" % exc, "data": exc.data, "request_id": local.request_id}
+        data = {"code": exc.code, "message": "%s" % exc, "data": exc.data, "request_id": local.request_id}
         set_rollback()
         return Response(data, status=exc.status_code)
 
