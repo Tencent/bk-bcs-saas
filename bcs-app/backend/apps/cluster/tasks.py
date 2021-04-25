@@ -13,7 +13,7 @@
 #
 import json
 import logging
-from typing import Any, Dict, List, NewType, Tuple, Union
+from typing import Any, Dict, List, NewType, Optional, Tuple, Union
 
 from django.conf import settings
 
@@ -49,7 +49,7 @@ class ClusterOrNodeTaskPoller(poll_task.TaskPoller):
 
         return poll_task.PollingResult(status=polling_status)
 
-    def get_task_record(self) -> Union[ModelLogRecord, None]:
+    def get_task_record(self) -> Optional[ModelLogRecord]:
         """获取task记录"""
         params = self.params
         # 任务类型: cluster/node
@@ -110,7 +110,7 @@ class ClusterOrNodeTaskPoller(poll_task.TaskPoller):
         elif status in TASK_SUCCESS_STATUS_LIST:
             record.status = models.CommonStatus.Normal
 
-    def _set_record_finished(self, status: str, record: ModelLogRecord):
+    def _update_finish_flag(self, status: str, record: ModelLogRecord):
         """判断任务是否处于终止态，终止态包含成功或者失败"""
         if status in TASK_FAILED_STATUS_LIST or status in TASK_SUCCESS_STATUS_LIST:
             record.is_finished = True
@@ -125,8 +125,8 @@ class ClusterOrNodeTaskPoller(poll_task.TaskPoller):
     ):
         # 转换任务状态
         self._transform_task_status(status, record)
-        # 处于失败或成功状态时，认为任务已经结束
-        self._set_record_finished(status, record)
+        # 处于失败或成功状态时，更新任务的标志位
+        self._update_finish_flag(status, record)
         if step_logs:
             record.log = json.dumps({"state": status, "node_tasks": step_logs})
         # 添加tke集群的cluster_id
