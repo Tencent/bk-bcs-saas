@@ -21,13 +21,13 @@ class StatefulSetFormatter(WorkloadFormatter):
 
     def format_dict(self, resource_dict: Dict) -> Dict:
         res = super().format_dict(resource_dict)
-        status = resource_dict['status']
+        spec, status = resource_dict['spec'], resource_dict['status']
         res.update(
             {
+                'readyCnt': status.get('readyReplicas', 0),
+                'desiredCnt': spec.get('replicas', 0),
                 'currentCnt': status.get('currentReplicas', 0),
-                'desiredCnt': status.get('replicas', 0),
-                'updatedCnt': status.get('updatedReplicas', 0),
-                'raw_data': resource_dict,
+                'updatedCnt': status.get('updatedReplicas', 0)
             }
         )
         return res

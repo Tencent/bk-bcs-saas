@@ -21,7 +21,7 @@ class DaemonSetFormatter(WorkloadFormatter):
 
     def format_dict(self, resource_dict: Dict) -> Dict:
         res = super().format_dict(resource_dict)
-        status = resource_dict['status']
+        spec, status = resource_dict['spec'], resource_dict['status']
         res.update(
             {
                 'readyCnt': status.get('numberReady', 0),
@@ -29,6 +29,7 @@ class DaemonSetFormatter(WorkloadFormatter):
                 'desiredCnt': status.get('desiredNumberScheduled', 0),
                 'updatedCnt': status.get('updatedNumberScheduled', 0),
                 'availableCnt': status.get('numberAvailable', 0),
+                'nodeSelector': spec.get('nodeSelector', {})
             }
         )
         return res

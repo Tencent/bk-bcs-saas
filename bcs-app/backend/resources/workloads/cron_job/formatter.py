@@ -41,7 +41,7 @@ class CronJobFormatter(WorkloadFormatter):
             {
                 'schedule': spec['schedule'],
                 'suspend': spec['suspend'],
-                # 若有执行中的Job，则改字段为Job 指针列表
+                # 若有执行中的Job，则该字段值为 Job指针列表，否则该Key不存在
                 'active': bool('active' in status),
                 'last_schedule': calculate_duration(status.get('lastScheduleTime')),
             }
