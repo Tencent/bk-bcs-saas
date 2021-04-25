@@ -16,7 +16,7 @@ import logging
 
 from kubernetes import client
 
-from backend.resources.constants import K8sResourceKinds
+from backend.resources.constants import K8sResourceKind
 
 from .api_response import response
 from .resource import APPAPIClassMixins, FilterResourceData, Resource
@@ -25,7 +25,7 @@ logger = logging.getLogger(__name__)
 
 
 class StatefulSet(Resource, FilterResourceData, APPAPIClassMixins):
-    resource_kind = K8sResourceKinds.StatefulSet.value
+    resource_kind = K8sResourceKind.StatefulSet.value
 
     @response()
     def create_statefulset(self, namespace, data):

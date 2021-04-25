@@ -11,11 +11,11 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-from backend.resources.constants import K8sResourceKinds
+from backend.resources.constants import K8sResourceKind
 from backend.resources.resource import ResourceClient
 from backend.resources.workloads.deployment.formatter import DeploymentFormatter
 
 
 class Deployment(ResourceClient):
-    kind = K8sResourceKinds.Deployment.value
+    kind = K8sResourceKind.Deployment.value
     formatter = DeploymentFormatter()

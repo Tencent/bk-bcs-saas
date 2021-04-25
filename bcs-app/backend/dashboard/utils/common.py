@@ -13,7 +13,7 @@
 #
 from typing import Dict, List, Union
 
-from backend.resources.constants import K8sResourceKinds
+from backend.resources.constants import K8sResourceKind
 
 
 def calc_max_resource_version(resources: List[Dict]) -> Union[str, None]:
@@ -23,7 +23,7 @@ def calc_max_resource_version(resources: List[Dict]) -> Union[str, None]:
     return str(max(int(r['resourceVersion']) for r in resources))
 
 
-def gen_list_resource_response_data(resources: List, kind: K8sResourceKinds) -> Dict:
+def gen_list_resource_response_data(resources: List, kind: K8sResourceKind) -> Dict:
     """ 通用的生成 list resource 接口返回结果逻辑 """
     return {
         'total': len(resources),

@@ -11,17 +11,15 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-from rest_framework.response import Response
-
-from backend.bcs_web.viewsets import SystemViewSet
-from backend.dashboard.utils.common import gen_list_resource_response_data
-from backend.resources.constants import K8sResourceKinds
-from backend.resources.workloads.daemon_set import DaemonSet
+from backend.resources.cluster.models import CtxCluster
+from backend.resources.constants import DEFAULT_CRON_JOB_API_VERSION, K8sResourceKind
+from backend.resources.resource import ResourceClient
+from backend.resources.workloads.cronjob.formatter import CronJobFormatter
 
 
-class DaemonSetViewSet(SystemViewSet):
-    def list(self, request, project_id, cluster_id):
-        response_data = gen_list_resource_response_data(
-            DaemonSet(request.ctx_cluster).list(), K8sResourceKinds.DaemonSet
-        )
-        return Response(response_data)
+class CronJob(ResourceClient):
+    kind = K8sResourceKind.CronJob.value
+    formatter = CronJobFormatter()
+
+    def __init__(self, ctx_cluster: CtxCluster):
+        super().__init__(ctx_cluster=ctx_cluster, api_version=DEFAULT_CRON_JOB_API_VERSION)

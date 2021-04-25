@@ -15,13 +15,13 @@ from rest_framework.response import Response
 
 from backend.bcs_web.viewsets import SystemViewSet
 from backend.dashboard.utils.common import gen_list_resource_response_data
-from backend.resources.constants import K8sResourceKinds
+from backend.resources.constants import K8sResourceKind
 from backend.resources.workloads.job import Job
 
 
 class JobViewSet(SystemViewSet):
     def list(self, request, project_id, cluster_id):
         response_data = gen_list_resource_response_data(
-            Job(request.ctx_cluster).list(), K8sResourceKinds.Job
+            Job(request.ctx_cluster).list(), K8sResourceKind.Job
         )
         return Response(response_data)

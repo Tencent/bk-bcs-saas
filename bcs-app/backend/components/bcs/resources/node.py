@@ -15,7 +15,7 @@ import logging
 
 from kubernetes.client.rest import ApiException
 
-from backend.resources.constants import K8sResourceKinds
+from backend.resources.constants import K8sResourceKind
 from backend.utils.errcodes import ErrorCode
 
 from .api_response import response
@@ -25,7 +25,7 @@ logger = logging.getLogger(__name__)
 
 
 class Node(Resource, CoreAPIClassMixins):
-    resource_kind = K8sResourceKinds.Node.value
+    resource_kind = K8sResourceKind.Node.value
 
     def get_nodes_hostname(self):
         nodes_hostname = {}

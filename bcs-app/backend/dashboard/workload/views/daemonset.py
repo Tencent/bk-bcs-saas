@@ -11,11 +11,17 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-from backend.resources.constants import K8sResourceKinds
-from backend.resources.resource import ResourceClient
-from backend.resources.workloads.daemon_set.formatter import DaemonSetFormatter
+from rest_framework.response import Response
+
+from backend.bcs_web.viewsets import SystemViewSet
+from backend.dashboard.utils.common import gen_list_resource_response_data
+from backend.resources.constants import K8sResourceKind
+from backend.resources.workloads.daemonset import DaemonSet
 
 
-class DaemonSet(ResourceClient):
-    kind = K8sResourceKinds.DaemonSet.value
-    formatter = DaemonSetFormatter()
+class DaemonSetViewSet(SystemViewSet):
+    def list(self, request, project_id, cluster_id):
+        response_data = gen_list_resource_response_data(
+            DaemonSet(request.ctx_cluster).list(), K8sResourceKind.DaemonSet
+        )
+        return Response(response_data)

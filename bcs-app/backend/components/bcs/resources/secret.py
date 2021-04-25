@@ -15,7 +15,7 @@ import logging
 
 from kubernetes import client
 
-from backend.resources.constants import K8sResourceKinds
+from backend.resources.constants import K8sResourceKind
 
 from .api_response import response
 from .resource import CoreAPIClassMixins, Resource
@@ -24,7 +24,7 @@ logger = logging.getLogger(__name__)
 
 
 class Secret(Resource, CoreAPIClassMixins):
-    resource_kind = K8sResourceKinds.Secret.value
+    resource_kind = K8sResourceKind.Secret.value
 
     def get_secret_by_namespace(self, params):
         resp = self.api_instance.list_namespaced_secret(params['namespace'])

@@ -35,7 +35,7 @@ class WorkloadTypes(ChoicesEnum):
     )
 
 
-class K8sResourceKinds(ChoicesEnum):
+class K8sResourceKind(ChoicesEnum):
     Deployment = "Deployment"
     StatefulSet = "StatefulSet"
     DaemonSet = "DaemonSet"

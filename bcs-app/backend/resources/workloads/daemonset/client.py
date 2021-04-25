@@ -11,11 +11,11 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-from backend.resources.constants import K8sResourceKinds
+from backend.resources.constants import K8sResourceKind
 from backend.resources.resource import ResourceClient
-from backend.resources.workloads.stateful_set.formatter import StatefulSetFormatter
+from backend.resources.workloads.daemonset.formatter import DaemonSetFormatter
 
 
-class StatefulSet(ResourceClient):
-    kind = K8sResourceKinds.StatefulSet.value
-    formatter = StatefulSetFormatter()
+class DaemonSet(ResourceClient):
+    kind = K8sResourceKind.DaemonSet.value
+    formatter = DaemonSetFormatter()

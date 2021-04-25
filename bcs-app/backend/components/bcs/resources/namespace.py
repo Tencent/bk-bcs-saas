@@ -15,7 +15,7 @@ import logging
 
 from kubernetes import client
 
-from backend.resources.constants import K8sResourceKinds
+from backend.resources.constants import K8sResourceKind
 
 from .api_response import response
 from .resource import CoreAPIClassMixins, Resource
@@ -24,7 +24,7 @@ logger = logging.getLogger(__name__)
 
 
 class Namespace(Resource, CoreAPIClassMixins):
-    resource_kind = K8sResourceKinds.Namespace.value
+    resource_kind = K8sResourceKind.Namespace.value
 
     def get_body(self, metadata=None, spec=None):
         """render request body"""

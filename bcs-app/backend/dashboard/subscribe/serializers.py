@@ -14,11 +14,11 @@
 
 from rest_framework import serializers
 
-from backend.resources.constants import K8sResourceKinds
+from backend.resources.constants import K8sResourceKind
 
 
 class FetchResourceWatchResultSLZ(serializers.Serializer):
     """获取单类资源一段时间内的变更记录"""
 
     resource_version = serializers.CharField(label='资源版本号', max_length=32)
-    kind = serializers.ChoiceField(label='资源类型', choices=K8sResourceKinds.get_choices())
+    kind = serializers.ChoiceField(label='资源类型', choices=K8sResourceKind.get_choices())
