@@ -178,6 +178,10 @@ class StatusUpdater:
             return models.CommonStatus.Removed
         return self.record.status
 
+    def update_status(self):
+        """更新状态"""
+        pass
+
 
 class ClusterStatusUpdater(StatusUpdater):
     """集群任务状态的操作"""
