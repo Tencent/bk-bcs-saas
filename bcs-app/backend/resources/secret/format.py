@@ -14,12 +14,26 @@
 import base64
 import gzip
 import json
+from dataclasses import dataclass
 from typing import Dict, List, Union
 
 from kubernetes.dynamic.resource import ResourceInstance
 
 from backend.resources.utils.format import ResourceDefaultFormatter
 from backend.utils.basic import getitems
+
+
+@dataclass
+class ReleaseResult:
+    name: str
+    namespace: str
+    chart_name: str
+    first_deployed: str
+    last_deployed: str
+    chart_version: str
+    description: str
+    status: str
+    notes: str
 
 
 class ReleaseSecretFormatter(ResourceDefaultFormatter):
@@ -29,12 +43,14 @@ class ReleaseSecretFormatter(ResourceDefaultFormatter):
             return {}
         # 解析release data
         release_data = self.parse_release_data(release_data)
-        # 组装release列表数据，包含release的基本信息、chart信息等
+
+        return release_data
 
     def parse_release_data(self, release_data: bytes) -> Dict:
         """解析release data
         解析release data数据，需要两次 base64，然后 gzip 解压，最后json处理
-        ref: https://faun.pub/decoding-a-helm-chart-releases-53fce6bffbfb
+        ref: https://github.com/helm/helm/blob/main/pkg/storage/driver/secrets.go#L95
+        https://github.com/helm/helm/blob/main/pkg/storage/driver/util.go#L56
         """
         # 两次base64解码
         release_data = base64.b64decode(base64.b64decode(release_data))
@@ -42,15 +58,3 @@ class ReleaseSecretFormatter(ResourceDefaultFormatter):
         release_data = gzip.decompress(release_data).decode("utf8")
         # json处理
         return json.loads(release_data)
-
-    def refine_data(self, release_data: Dict) -> Dict:
-        data = {
-            "name": "",
-            "namespace": "",
-            "chart_name": "",
-            "created": "",
-            "updated": "",
-            "creator": "",
-            "current_version": "",
-            "enable_helm": True,
-        }
