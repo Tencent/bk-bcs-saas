@@ -23,19 +23,6 @@ from backend.resources.utils.format import ResourceDefaultFormatter
 from backend.utils.basic import getitems
 
 
-@dataclass
-class ReleaseResult:
-    name: str
-    namespace: str
-    chart_name: str
-    first_deployed: str
-    last_deployed: str
-    chart_version: str
-    description: str
-    status: str
-    notes: str
-
-
 class ReleaseSecretFormatter(ResourceDefaultFormatter):
     def format_dict(self, resource_dict: Dict) -> Dict:
         release_data = getitems(resource_dict, "data.data.release", "")

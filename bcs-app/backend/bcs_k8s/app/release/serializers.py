@@ -15,6 +15,5 @@ from rest_framework import serializers
 
 
 class ReleaseListParamsSLZ(serializers.Serializer):
-    cluster_id = serializers.ListField(child=serializers.CharField(), min_length=1)
+    cluster_id_list = serializers.ListField(child=serializers.CharField(), min_length=1)
     namespace = serializers.CharField(required=False)
-    name = serializers.CharField(required=False)

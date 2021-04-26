@@ -12,8 +12,10 @@
 # specific language governing permissions and limitations under the License.
 #
 from bcs_web.viewsets import SystemViewSet
+from rest_framework.response import Response
 
 from .serializers import ReleaseListParamsSLZ
+from .utils import list_releases
 
 
 class ReleasesViewSet(SystemViewSet):
@@ -28,3 +30,16 @@ class ReleasesViewSet(SystemViewSet):
         params = slz.validated_data
 
         # 获取列表
+        releases = list_releases(
+            request.user.token.access_token, project_id, params["cluster_id_list"], namespace=params["namespace"]
+        )
+
+        return Response(releases)
+
+    def retrieve(self, request, project_id, cluster_id, namespace, name, revision):
+        """获取当前的release信息"""
+        # NOTE: 以helm3的release存放在集群内的名称规则
+        secret_name_for_release = f"h.helm.release.v1.{name}.v{revision}"
+
+    def history_list(self, request, project_id, cluster_id, namespace, name):
+        pass
