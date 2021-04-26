@@ -1,12 +1,6 @@
 files: ^bcs-app/
 fail_fast: true
-default_stages: [commit]
 repos:
-- repo: https://github.com/pre-commit/pre-commit-hooks
-  rev: v2.1.0
-  hooks:
-  - id: flake8
-    args: [--config=bcs-app/.flake8]
 - repo: https://github.com/timothycrosley/isort
   rev: 5.7.0
   hooks:
