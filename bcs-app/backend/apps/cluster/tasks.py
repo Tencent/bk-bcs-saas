@@ -110,11 +110,11 @@ class ClusterOrNodeTaskPoller(poll_task.TaskPoller):
         elif status in TASK_SUCCESS_STATUS_LIST:
             record.status = models.CommonStatus.Normal
 
-    def _update_finish_flag(self, status: str, record: ModelLogRecord):
-        """判断任务是否处于终止态，终止态包含成功或者失败"""
+    def _is_finished(self, status: str) -> bool:
+        """判断任务是否结束"""
         if status in TASK_FAILED_STATUS_LIST or status in TASK_SUCCESS_STATUS_LIST:
-            record.is_finished = True
-            record.is_polling = False
+            return True
+        return False
 
     def _update_record_fields(
         self,
@@ -125,8 +125,9 @@ class ClusterOrNodeTaskPoller(poll_task.TaskPoller):
     ):
         # 转换任务状态
         self._transform_task_status(status, record)
-        # 处于失败或成功状态时，更新任务的标志位
-        self._update_finish_flag(status, record)
+        # 处于失败或成功状态时，更新任务结束标志位
+        if self._is_finished(status):
+            record.is_finished, record.is_polling = True, False
         if step_logs:
             record.log = json.dumps({"state": status, "node_tasks": step_logs})
         # 添加tke集群的cluster_id
