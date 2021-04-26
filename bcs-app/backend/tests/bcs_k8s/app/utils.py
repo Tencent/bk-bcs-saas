@@ -15,74 +15,15 @@ from datetime import datetime, timedelta
 
 import pytest
 
-from backend.bcs_k8s.app.models import App
 from backend.bcs_k8s.app.views import AppView
-
-pytestmark = pytest.mark.django_db
 
 current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 timeout_time = (datetime.now() - timedelta(minutes=15)).strftime("%Y-%m-%d %H:%M:%S")
 
 
-@pytest.fixture(autouse=True)
-def cluster_record():
-    App.objects.create(
-        id=1,
-        created=datetime.now(),
-        updated=datetime.now(),
-        project_id="project_id",
-        cluster_id="cluster_id",
-        name="demo",
-        namespace="demo",
-        namespace_id=0,
-        transitioning_result=False,
-        transitioning_message="",
-        chart_id=1,
-        release_id=1,
-        transitioning_action="Install",
-        transitioning_on=True,
-        version="1.0.0",
-    )
-
-
 @pytest.mark.parametrize(
-    "data, expect",
-    [
-        (
-            {
-                "id": 1,
-                "transitioning_on": True,
-                "transitioning_result": True,
-                "updated": current_time,
-                "transitioning_message": "",
-            },
-            {
-                "id": 1,
-                "transitioning_on": True,
-                "transitioning_result": True,
-                "updated": current_time,
-                "transitioning_message": "",
-            },
-        ),
-        (
-            {
-                "id": 1,
-                "transitioning_on": True,
-                "transitioning_result": True,
-                "updated": timeout_time,
-                "transitioning_message": "",
-            },
-            {
-                "id": 1,
-                "transitioning_on": False,
-                "transitioning_result": False,
-                "updated": timeout_time,
-                "transitioning_message": "Helm操作超时，请重试!",
-            },
-        ),
-    ],
+    "updated,transitioning_on,is_timeout",
+    [(current_time, True, False), (timeout_time, False, False), (timeout_time, True, True)],
 )
-def test_update_record_status(data, expect):
-    AppView._update_record_status(data, data)
-    assert App.objects.get(id=1).transitioning_on is expect["transitioning_on"]
-    assert data == expect
+def test_update_record_status(updated, transitioning_on, is_timeout):
+    assert AppView()._is_timeout(updated, transitioning_on) == is_timeout

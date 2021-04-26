@@ -81,8 +81,8 @@ from .utils import collect_resource_state, collect_resource_status, get_base_url
 
 logger = logging.getLogger(__name__)
 
-# Helm 执行超时时间，设置为10min
-HELM_TASK_TIMEOUT = timedelta(minutes=10)
+# Helm 执行超时时间，设置为600s
+HELM_TASK_TIMEOUT = 600
 
 
 class AppViewBase(AccessTokenMixin, ProjectMixin, viewsets.ModelViewSet):
@@ -113,19 +113,12 @@ class AppView(ActionSerializerMixin, AppViewBase):
         results = data.get('results') or []
         return {info['cluster_id']: info for info in results} if results else {}
 
-    def _update_record_status(self, data):
+    def _is_timeout(self, updated: str, transitioning_on: bool) -> bool:
         """判断是否超时"""
-        updated_time = datetime.strptime(data["updated"], settings.REST_FRAMEWORK["DATETIME_FORMAT"])
-        if data["transitioning_on"] and (datetime.now() - updated_time) > HELM_TASK_TIMEOUT:
-            err_msg = _("Helm操作超时，请重试!")
-            App.objects.filter(id=data["id"]).update(
-                transitioning_on=False,
-                transitioning_result=False,
-                transitioning_message=err_msg,
-            )
-            data["transitioning_result"] = False
-            data["transitioning_on"] = False
-            data["transitioning_message"] = err_msg
+        updated_time = datetime.strptime(updated, settings.REST_FRAMEWORK["DATETIME_FORMAT"])
+        if transitioning_on and (datetime.now() - updated_time) > timedelta(seconds=HELM_TASK_TIMEOUT):
+            return True
+        return False
 
     def list(self, request, project_id, *args, **kwargs):
         """"""
@@ -163,7 +156,18 @@ class AppView(ActionSerializerMixin, AppViewBase):
                 App.objects.filter(id=item["id"]).update(version=version)
                 item["current_version"] = version
 
-            self._update_record_status(item)
+            # 判断任务超时，并更新字段
+            if self._is_timeout(item["updated"], data["transitioning_on"]):
+                err_msg = _("Helm操作超时，请重试!")
+                App.objects.filter(id=item["id"]).update(
+                    transitioning_on=False,
+                    transitioning_result=False,
+                    transitioning_message=err_msg,
+                )
+                item["transitioning_result"] = False
+                item["transitioning_on"] = False
+                item["transitioning_message"] = err_msg
+
             app_list.append(item)
 
         result = {"count": len(app_list), "next": None, "previous": None, "results": app_list}
