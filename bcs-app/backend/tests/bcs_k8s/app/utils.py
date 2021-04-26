@@ -26,4 +26,4 @@ timeout_time = (datetime.now() - timedelta(minutes=15)).strftime("%Y-%m-%d %H:%M
     [(current_time, True, False), (timeout_time, False, False), (timeout_time, True, True)],
 )
 def test_update_record_status(updated, transitioning_on, is_timeout):
-    assert AppView()._is_timeout(updated, transitioning_on) == is_timeout
+    assert AppView()._is_transition_timeout(updated, transitioning_on) == is_timeout

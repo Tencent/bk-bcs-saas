@@ -113,8 +113,8 @@ class AppView(ActionSerializerMixin, AppViewBase):
         results = data.get('results') or []
         return {info['cluster_id']: info for info in results} if results else {}
 
-    def _is_timeout(self, updated: str, transitioning_on: bool) -> bool:
-        """判断是否超时"""
+    def _is_transition_timeout(self, updated: str, transitioning_on: bool) -> bool:
+        """判断app的transition是否超时"""
         updated_time = datetime.strptime(updated, settings.REST_FRAMEWORK["DATETIME_FORMAT"])
         if transitioning_on and (datetime.now() - updated_time) > timedelta(seconds=HELM_TASK_TIMEOUT):
             return True
@@ -157,7 +157,7 @@ class AppView(ActionSerializerMixin, AppViewBase):
                 item["current_version"] = version
 
             # 判断任务超时，并更新字段
-            if self._is_timeout(item["updated"], data["transitioning_on"]):
+            if self._is_transition_timeout(item["updated"], data["transitioning_on"]):
                 err_msg = _("Helm操作超时，请重试!")
                 App.objects.filter(id=item["id"]).update(
                     transitioning_on=False,
