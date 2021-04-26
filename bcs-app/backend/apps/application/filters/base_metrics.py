@@ -88,8 +88,6 @@ class BaseMusterMetric(BaseMetricAPI):
     def get_filter_params(self, request, project_id):
         """获取过滤参数"""
         cluster_type = request.GET.get("cluster_type")
-        if not cluster_type or cluster_type not in CLUSTER_TYPE:
-            raise error_codes.CheckFailed(_("集群类型不正确，请确认"))
         app_status = request.GET.get("app_status")
         if app_status and app_status not in APP_STATUS:
             raise error_codes.CheckFailed(_("应用状态不正确，请确认"))
