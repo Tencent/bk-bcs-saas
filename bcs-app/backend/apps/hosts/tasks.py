@@ -17,7 +17,8 @@ from typing import Dict
 
 from backend.apps.hosts.constants import TaskStatus
 from backend.apps.hosts.models import HostApplyTaskLog
-from backend.celery_app.poll_task import (
+from backend.infras.host_service.host import get_task_state_and_steps
+from backend.packages.blue_krill.async_utils.poll_task import (
     CallbackHandler,
     CallbackResult,
     CallbackStatus,
@@ -25,7 +26,6 @@ from backend.celery_app.poll_task import (
     PollingStatus,
     TaskPoller,
 )
-from backend.infras.host_service.host import get_task_state_and_steps
 from backend.utils.error_codes import APIError
 
 logger = logging.getLogger(__name__)
