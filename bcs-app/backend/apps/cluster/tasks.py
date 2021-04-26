@@ -196,9 +196,9 @@ class ClusterStatusUpdater(StatusUpdater):
         req_data = {"status": status, "extra_cluster_id": params.get("config", {}).get("extra_cluster_id")}
         bcs_cc_client.update_cluster(project_id, cluster_id, req_data)
         logger.info(f"Update cluster[{cluster_id}] success")
-        # 如果当前为删除操作，并且状态为允许删除的，则删除当前记录
+        # 如果当前为删除操作，并且检测到状态处于已移除，则需要调用bcs cc接口删除存储的集群记录
         if (record.oper_type == models.ClusterOperType.ClusterRemove) and (status == models.CommonStatus.Removed):
-            # 删除集群及master
+            # 调用接口，删除集群
             bcs_cc_client.delete_cluster(project_id, cluster_id)
             logger.info(f"Delete cluster[{cluster_id}] success")
 
