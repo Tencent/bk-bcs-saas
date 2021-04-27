@@ -36,8 +36,8 @@ class LocalKubeConfigurationService:
 
 
 @lru_cache(maxsize=128)
-def get_dynamic_client(access_token, project_id, cluster_id: str, *args, **kwargs) -> CoreDynamicClient:
+def get_dynamic_client(*args, **kwargs) -> CoreDynamicClient:
     """根据 token、cluster_id 等参数，构建访问 Kubernetes 集群的 Client 对象"""
     config = LocalKubeConfigurationService().make_configuration()
-    discoverer_cache = DiscovererCache(cache_key=f"osrcp-{cluster_id}.json")
+    discoverer_cache = DiscovererCache(cache_key=f"osrcp-cluster_id.json")
     return CoreDynamicClient(client.ApiClient(config), cache_file=discoverer_cache, discoverer=BcsLazyDiscoverer)

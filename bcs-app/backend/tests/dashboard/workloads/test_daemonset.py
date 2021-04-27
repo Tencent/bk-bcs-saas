@@ -14,15 +14,15 @@
 import pytest
 from unittest import mock
 
-from backend.tests.dashboard.contents.fake_viewsets import FakeSystemViewSet
-from backend.tests.dashboard.contents.fake_k8s_client import get_dynamic_client
+from backend.tests.contents.fake_viewsets import FakeSystemViewSet
+from backend.tests.contents.fake_k8s_client import get_dynamic_client
 
 pytestmark = pytest.mark.django_db
 
 
 @pytest.fixture(autouse=True)
 def common_patch():
-    with mock.patch('backend.dashboard.workload.views.daemon_set.SystemViewSet', new=FakeSystemViewSet), \
+    with mock.patch('backend.dashboard.workload.views.daemonset.SystemViewSet', new=FakeSystemViewSet), \
             mock.patch('backend.resources.resource.get_dynamic_client', new=get_dynamic_client):
         yield
 
@@ -32,6 +32,6 @@ class TestDaemonSet:
     def test_list(self, api_client, project_id, cluster_id):
         """ 测试获取资源列表接口 """
         response = api_client.get(
-            f'/api/dashboard/projects/{project_id}/clusters/{cluster_id}/workload/daemon_set/'
+            f'/api/dashboard/projects/{project_id}/clusters/{cluster_id}/workloads/daemonsets/'
         )
         assert response.json()['code'] == 0

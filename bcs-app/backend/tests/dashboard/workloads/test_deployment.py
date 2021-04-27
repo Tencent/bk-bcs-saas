@@ -14,8 +14,8 @@
 import pytest
 from unittest import mock
 
-from backend.tests.dashboard.contents.fake_viewsets import FakeSystemViewSet
-from backend.tests.dashboard.contents.fake_k8s_client import get_dynamic_client
+from backend.tests.contents.fake_viewsets import FakeSystemViewSet
+from backend.tests.contents.fake_k8s_client import get_dynamic_client
 
 pytestmark = pytest.mark.django_db
 
@@ -32,6 +32,6 @@ class TestDeployment:
     def test_list(self, api_client, project_id, cluster_id):
         """ 测试获取资源列表接口 """
         response = api_client.get(
-            f'/api/dashboard/projects/{project_id}/clusters/{cluster_id}/workload/deployment/'
+            f'/api/dashboard/projects/{project_id}/clusters/{cluster_id}/workloads/deployments/'
         )
         assert response.json()['code'] == 0
