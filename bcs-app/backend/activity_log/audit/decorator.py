@@ -37,7 +37,8 @@ def log_audit_on_view(auditor_cls: Type[Auditor], activity_type: str):
             finally:
                 # 生成默认的audit_ctx
                 extra = dict(**kwargs)
-                extra.update(request.data)
+                if hasattr(request, 'data'):
+                    extra.update(request.data)
                 audit_ctx = AuditContext(
                     user=request.user.username,
                     project_id=request.project.project_id,

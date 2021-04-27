@@ -17,6 +17,10 @@ from typing import Dict
 
 @dataclass
 class AuditContext:
+    """
+    操作审计上下文(兼容现有的 UserActivityLog 模型)
+    """
+
     user: str
     project_id: str
     description: str = ''

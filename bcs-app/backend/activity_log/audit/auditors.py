@@ -18,6 +18,8 @@ from .context import AuditContext
 
 
 class Auditor:
+    """提供操作审计日志记录功能"""
+
     def __init__(self, audit_context: AuditContext):
         self.audit_context = audit_context
 
@@ -29,16 +31,19 @@ class Auditor:
         activity_status = 'failed'
         self._log(activity_status, err_msg)
 
-    def _gen_description(self, activity_status: str, err_msg):
+    def _gen_default_description(self, activity_status: str, err_msg):
         audit_context = self.audit_context
-        description_prefix = f'{audit_context.activity_type} {audit_context.resource_type} {audit_context.resource}'
+        description_prefix = f'{audit_context.activity_type} {audit_context.resource_type}'
+        if audit_context.resource:
+            description_prefix = f'{description_prefix} {audit_context.resource}'
+
         if err_msg:
             return f'{description_prefix} {activity_status}: {err_msg}'
         return f'{description_prefix} {activity_status}'
 
     def _log(self, activity_status: str, err_msg: str = ''):
         if not self.audit_context.description:
-            self.audit_context.description = self._gen_description(activity_status, err_msg)
+            self.audit_context.description = self._gen_default_description(activity_status, err_msg)
         self.audit_context.activity_status = activity_status
         UserActivityLog.objects.create(**asdict(self.audit_context))
 
