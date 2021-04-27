@@ -65,16 +65,16 @@ class ResourceClient:
             return formatter.format(resp)
         return self.formatter.format(resp)
 
-    def watch(
-        self, is_format: bool = True, formatter: Optional[ResourceDefaultFormatter] = None, **kwargs
-    ) -> Union[ResourceInstance, List, None]:
-        resp = self.api.watch(**kwargs)
-
-        if not is_format:
-            return resp
-        if formatter:
-            return formatter.format_watch_result(resp)
-        return self.formatter.format_watch_result(resp)
+    def watch(self, **kwargs) -> List:
+        """ 获取较指定的 ResourceVersion 更新的资源状态变更信息 """
+        return [
+            {
+                'kind': r['object'].kind,
+                'operate': r['type'],
+                'uid': r['object'].metadata.uid,
+                'instance': self.formatter.format_dict(r['raw_object']),
+            } for r in self.api.watch(**kwargs)
+        ]
 
     def create(
         self,

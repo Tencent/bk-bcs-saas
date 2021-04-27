@@ -60,18 +60,6 @@ class ResourceDefaultFormatter:
             return {}
         return self.format_dict(resource.to_dict())
 
-    def format_watch_result(self, records: List[Dict]) -> List[Dict]:
-        """格式化watch结果"""
-        return [
-            {
-                'kind': r['object'].kind,
-                'operate': r['type'],
-                'uid': r['object'].metadata.uid,
-                'instance': self.format_dict(r['raw_object']),
-            }
-            for r in records
-        ]
-
     def format_dict(self, resource_dict: Dict) -> Dict:
         resource_copy = copy.deepcopy(resource_dict)
         metadata = resource_copy['metadata']

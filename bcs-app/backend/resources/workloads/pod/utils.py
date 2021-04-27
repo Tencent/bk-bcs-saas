@@ -24,22 +24,38 @@ class PodStatusParser:
     """
     Pod 状态解析器，解析逻辑参考
     kubernetes/dashboard getPodStatus
+    https://github.com/kubernetes/dashboard/blob/master/src/app/backend/resource/pod/common.go#L40
     """
 
     pod: Dict
     initializing: bool = False
     tol_status: str = SimplePodStatus.PodUnknown.value
 
-    @staticmethod
-    def _has_pod_ready_condition(conditions: List[Dict]) -> bool:
-        """ 检查 pod condition Ready 状态 """
-        for c in conditions:
-            if (
-                c.get('type') == PodConditionType.PodReady.value
-                and c.get('status') == ConditionStatus.ConditionTrue.value
-            ):
-                return True
-        return False
+    def parse(self) -> str:
+        """ 获取 Pod 总状态 """
+        # 1. 默认使用 Pod.Status.Phase
+        self.tol_status = getitems(self.pod, 'status.phase')
+        # 2. 若有具体的 Pod.Status.Reason 则使用
+        if getitems(self.pod, 'status.reason'):
+            self.tol_status = getitems(self.pod, 'status.reason')
+
+        # 3. 根据 Pod 容器状态更新状态
+        self._update_status_by_init_container_statuses()
+        if not self.initializing:
+            self._update_status_by_container_statuses()
+
+        # 4. 根据 Pod.Metadata.DeletionTimestamp 更新状态
+        if getitems(self.pod, 'metadata.deletionTimestamp'):
+            if getitems(self.pod, 'status.reason') == 'NodeLost':
+                self.tol_status = SimplePodStatus.PodUnknown.value
+            else:
+                self.tol_status = SimplePodStatus.Terminating.value
+
+        # 5. 若状态未初始化或在转移中丢失，则标记为未知状态
+        if not self.tol_status:
+            self.tol_status = SimplePodStatus.PodUnknown.value
+
+        return self.tol_status
 
     def _update_status_by_init_container_statuses(self):
         """ 根据 pod.Status.InitContainerStatuses 更新 总状态 """
@@ -69,6 +85,16 @@ class PodStatusParser:
                     self.tol_status = f"Init: {idx}/{getitems(self.pod, 'spec.initContainers')}"
             break
 
+    def _has_pod_ready_condition(self, conditions: List[Dict]) -> bool:
+        """ 检查 pod condition Ready 状态 """
+        for c in conditions:
+            if (
+                c.get('type') == PodConditionType.PodReady.value
+                and c.get('status') == ConditionStatus.ConditionTrue.value
+            ):
+                return True
+        return False
+
     def _update_status_by_container_statuses(self):
         """ 根据 pod.Status.ContainerStatuses 更新 总状态 """
         hasRunning = False
@@ -96,29 +122,3 @@ class PodStatusParser:
                 self.tol_status = SimplePodStatus.PodRunning.value
             else:
                 self.tol_status = SimplePodStatus.NotReady.value
-
-    def parse(self) -> str:
-        """ 获取 Pod 总状态 """
-        # 1. 默认使用 Pod.Status.Phase
-        self.tol_status = getitems(self.pod, 'status.phase')
-        # 2. 若有具体的 Pod.Status.Reason 则使用
-        if getitems(self.pod, 'status.reason'):
-            self.tol_status = getitems(self.pod, 'status.reason')
-
-        # 3. 根据 Pod 容器状态更新状态
-        self._update_status_by_init_container_statuses()
-        if not self.initializing:
-            self._update_status_by_container_statuses()
-
-        # 4. 根据 Pod.Metadata.DeletionTimestamp 更新状态
-        if getitems(self.pod, 'metadata.deletionTimestamp'):
-            if getitems(self.pod, 'status.reason') == 'NodeLost':
-                self.tol_status = SimplePodStatus.PodUnknown.value
-            else:
-                self.tol_status = SimplePodStatus.Terminating.value
-
-        # 5. 若状态未初始化或在转移中丢失，则标记为未知状态
-        if not self.tol_status:
-            self.tol_status = SimplePodStatus.PodUnknown.value
-
-        return self.tol_status

@@ -11,15 +11,15 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-from abc import ABCMeta
 from copy import deepcopy
 from typing import Dict, List
 
 from backend.resources.utils.common import calculate_age
 from backend.resources.utils.format import ResourceDefaultFormatter
+from backend.utils.basic import getitems
 
 
-class WorkloadFormatter(ResourceDefaultFormatter, metaclass=ABCMeta):
+class WorkloadFormatter(ResourceDefaultFormatter):
     """ 工作负载类 资源通用格式化器 """
 
     def parse_container_images(self, resource_dict: Dict) -> List:
@@ -29,13 +29,10 @@ class WorkloadFormatter(ResourceDefaultFormatter, metaclass=ABCMeta):
         :param resource_dict: k8s API 执行结果
         :return: 当前资源容器使用的镜像列表
         """
-        try:
-            containers = resource_dict['spec']['template']['spec']['containers']
-        except KeyError:
-            return []
+        containers = getitems(resource_dict, 'spec.template.spec.containers', [])
         return [c['image'] for c in containers if 'image' in c]
 
-    def format_dict(self, resource_dict: Dict) -> Dict:
+    def format_common_dict(self, resource_dict: Dict) -> Dict:
         resource_copy = deepcopy(resource_dict)
         metadata = resource_copy['metadata']
         self.set_metadata_null_values(metadata)
@@ -50,5 +47,5 @@ class WorkloadFormatter(ResourceDefaultFormatter, metaclass=ABCMeta):
             'createTime': create_time,
             'updateTime': update_time,
             'uid': metadata['uid'],
-            'resourceVersion': metadata['resourceVersion'],
+            'resourceVersion': metadata['resourceVersion']
         }

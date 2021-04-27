@@ -15,6 +15,7 @@ from typing import Dict, List
 
 from backend.resources.workloads.common.formatter import WorkloadFormatter
 from backend.resources.workloads.pod.utils import PodStatusParser
+from backend.utils.basic import getitems
 
 
 class PodFormatter(WorkloadFormatter):
@@ -22,14 +23,11 @@ class PodFormatter(WorkloadFormatter):
 
     def parse_container_images(self, resource_dict: Dict) -> List:
         """ pod 配置格式与其它 工作负载类 资源不一致，需要重写解析逻辑 """
-        try:
-            containers = resource_dict['spec']['containers']
-        except KeyError:
-            return []
+        containers = getitems(resource_dict, 'spec.containers', [])
         return [c['image'] for c in containers if 'image' in c]
 
     def format_dict(self, resource_dict: Dict) -> Dict:
-        res = super().format_dict(resource_dict)
+        res = self.format_common_dict(resource_dict)
         spec, status = resource_dict['spec'], resource_dict['status']
 
         container_statuses = status.get('containerStatuses', [])

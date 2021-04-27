@@ -15,6 +15,7 @@ from typing import Dict, List
 
 from backend.resources.utils.common import calculate_duration
 from backend.resources.workloads.common.formatter import WorkloadFormatter
+from backend.utils.basic import getitems
 
 
 class CronJobFormatter(WorkloadFormatter):
@@ -27,14 +28,11 @@ class CronJobFormatter(WorkloadFormatter):
         :param resource_dict: k8s API 执行结果
         :return: 当前资源容器使用的镜像列表
         """
-        try:
-            containers = resource_dict['spec']['jobTemplate']['spec']['template']['spec']['containers']
-        except KeyError:
-            return []
+        containers = getitems(resource_dict, 'spec.jobTemplate.spec.template.spec.containers', [])
         return [c['image'] for c in containers if 'image' in c]
 
     def format_dict(self, resource_dict: Dict) -> Dict:
-        res = super().format_dict(resource_dict)
+        res = self.format_common_dict(resource_dict)
         spec, status = resource_dict['spec'], resource_dict['status']
 
         res.update(
@@ -43,7 +41,7 @@ class CronJobFormatter(WorkloadFormatter):
                 'suspend': spec['suspend'],
                 # 若有执行中的Job，则该字段值为 Job指针列表，否则该Key不存在
                 'active': bool('active' in status),
-                'last_schedule': calculate_duration(status.get('lastScheduleTime')),
+                'lastSchedule': calculate_duration(status.get('lastScheduleTime')),
             }
         )
         return res
