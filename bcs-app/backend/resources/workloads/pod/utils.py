@@ -117,7 +117,7 @@ class PodStatusParser:
             elif container.get('ready') and getitems(container, 'state.running'):
                 hasRunning = True
 
-        if self.tol_status == 'Completed' and hasRunning:
+        if self.tol_status == SimplePodStatus.Completed.value and hasRunning:
             if self._has_pod_ready_condition(getitems(self.pod, 'status.conditions', [])):
                 self.tol_status = SimplePodStatus.PodRunning.value
             else:

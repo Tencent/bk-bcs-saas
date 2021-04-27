@@ -98,6 +98,16 @@ class PodConditionType(ChoicesEnum):
     ContainersReady = 'ContainersReady'
 
 
+class PodPhase(ChoicesEnum):
+    """ k8s PodPhase """
+
+    PodPending = 'Pending'
+    PodRunning = 'Running'
+    PodSucceeded = 'Succeeded'
+    PodFailed = 'Failed'
+    PodUnknown = 'Unknown'
+
+
 class SimplePodStatus(ChoicesEnum):
     """
     用于页面展示的简单 Pod 状态
@@ -113,6 +123,7 @@ class SimplePodStatus(ChoicesEnum):
     # 细分状态
     NotReady = 'NotReady'
     Terminating = 'Terminating'
+    Completed = 'Completed'
 
 
 class ConditionStatus(ChoicesEnum):
