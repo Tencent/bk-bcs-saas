@@ -12,19 +12,8 @@
 # specific language governing permissions and limitations under the License.
 #
 import pytest
-from unittest import mock
-
-from backend.tests.contents.fake_viewsets import FakeSystemViewSet
-from backend.tests.contents.fake_k8s_client import get_dynamic_client
 
 pytestmark = pytest.mark.django_db
-
-
-@pytest.fixture(autouse=True)
-def common_patch():
-    with mock.patch('backend.dashboard.workload.views.deployment.SystemViewSet', new=FakeSystemViewSet), \
-            mock.patch('backend.resources.resource.get_dynamic_client', new=get_dynamic_client):
-        yield
 
 
 class TestDeployment:

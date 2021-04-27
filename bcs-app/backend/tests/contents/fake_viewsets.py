@@ -21,8 +21,6 @@ from backend.utils.renderers import BKAPIRenderer
 class FakeProjectEnableBCS(BasePermission):
     """ 假的权限控制类，单元测试用 """
 
-    message = "project does not enable bcs"
-
     def has_permission(self, request, view):
         self._set_ctx_project_cluster(request, view.kwargs.get('project_id', ''), view.kwargs.get('cluster_id', ''))
         return True

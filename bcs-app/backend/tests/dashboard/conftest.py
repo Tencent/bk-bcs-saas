@@ -12,15 +12,14 @@
 # specific language governing permissions and limitations under the License.
 #
 import pytest
+from unittest import mock
 
-pytestmark = pytest.mark.django_db
+from backend.tests.contents.fake_viewsets import FakeSystemViewSet
+from backend.tests.contents.fake_k8s_client import get_dynamic_client
 
 
-class TestDaemonSet:
-
-    def test_list(self, api_client, project_id, cluster_id):
-        """ 测试获取资源列表接口 """
-        response = api_client.get(
-            f'/api/dashboard/projects/{project_id}/clusters/{cluster_id}/workloads/daemonsets/'
-        )
-        assert response.json()['code'] == 0
+@pytest.fixture
+def dashboard_api_common_patch():
+    with mock.patch('backend.bcs_web.viewsets.SystemViewSet', new=FakeSystemViewSet), \
+            mock.patch('backend.resources.resource.get_dynamic_client', new=get_dynamic_client):
+        yield
