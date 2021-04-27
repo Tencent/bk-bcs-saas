@@ -20,14 +20,4 @@ class DeploymentFormatter(WorkloadFormatter):
     """ Deployment 格式化 """
 
     def format_dict(self, resource_dict: Dict) -> Dict:
-        res = self.format_common_dict(resource_dict)
-        spec, status = resource_dict['spec'], resource_dict['status']
-        res.update(
-            {
-                'readyCnt': status.get('readyReplicas', 0),
-                'desiredCnt': spec.get('replicas', 0),
-                'updatedCnt': status.get('updatedReplicas', 0),
-                'availableCnt': status.get('availableReplicas', 0)
-            }
-        )
-        return res
+        return self.format_common_dict(resource_dict)

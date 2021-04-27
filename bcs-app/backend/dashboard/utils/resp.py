@@ -30,13 +30,9 @@ class DashboardListApiRespBuilder:
         """ 组装 Dashboard Api 响应内容 """
         result = {
             'manifest': self.resources,
-            'bcs_ext': {
-                'items': [
-                    self.client.formatter.format_dict(item)
-                    for item in self.resources['items']
-                ]
-            },
-            # 权限字段暂时预留
-            'perm': {}
+            'manifest_ext': {
+                item['metadata']['uid']: self.client.formatter.format_dict(item)
+                for item in self.resources['items']
+            }
         }
         return result

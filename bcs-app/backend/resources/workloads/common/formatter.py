@@ -40,12 +40,8 @@ class WorkloadFormatter(ResourceDefaultFormatter):
         # Get create_time and update_time
         create_time, update_time = self.parse_create_update_time(metadata)
         return {
-            'name': metadata['name'],
-            'namespace': metadata['namespace'],
             'images': self.parse_container_images(resource_copy),
             'age': calculate_age(create_time),
             'createTime': create_time,
-            'updateTime': update_time,
-            'uid': metadata['uid'],
-            'resourceVersion': metadata['resourceVersion']
+            'updateTime': update_time
         }

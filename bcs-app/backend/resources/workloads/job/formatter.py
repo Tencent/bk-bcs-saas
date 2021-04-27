@@ -22,13 +22,12 @@ class JobFormatter(WorkloadFormatter):
 
     def format_dict(self, resource_dict: Dict) -> Dict:
         res = self.format_common_dict(resource_dict)
-        spec, status = resource_dict['spec'], resource_dict['status']
+        status = resource_dict['status']
 
         res.update(
             {
-                'duration': calculate_duration(status.get('startTime'), status.get('completionTime')),
-                'completeCnt': spec['completions'],
-                'successCnt': status.get('succeeded', 0),
+                'duration': calculate_duration(
+                    status.get('startTime'), status.get('completionTime')),
             }
         )
         return res

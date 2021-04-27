@@ -20,16 +20,4 @@ class DaemonSetFormatter(WorkloadFormatter):
     """ DaemonSet 格式化 """
 
     def format_dict(self, resource_dict: Dict) -> Dict:
-        res = self.format_common_dict(resource_dict)
-        spec, status = resource_dict['spec'], resource_dict['status']
-        res.update(
-            {
-                'readyCnt': status.get('numberReady', 0),
-                'currentCnt': status.get('currentNumberScheduled', 0),
-                'desiredCnt': status.get('desiredNumberScheduled', 0),
-                'updatedCnt': status.get('updatedNumberScheduled', 0),
-                'availableCnt': status.get('numberAvailable', 0),
-                'nodeSelector': spec.get('nodeSelector', {})
-            }
-        )
-        return res
+        return self.format_common_dict(resource_dict)

@@ -33,12 +33,10 @@ class CronJobFormatter(WorkloadFormatter):
 
     def format_dict(self, resource_dict: Dict) -> Dict:
         res = self.format_common_dict(resource_dict)
-        spec, status = resource_dict['spec'], resource_dict['status']
+        status = resource_dict['status']
 
         res.update(
             {
-                'schedule': spec['schedule'],
-                'suspend': spec['suspend'],
                 # 若有执行中的Job，则该字段值为 Job指针列表，否则该Key不存在
                 'active': bool('active' in status),
                 'lastSchedule': calculate_duration(status.get('lastScheduleTime')),

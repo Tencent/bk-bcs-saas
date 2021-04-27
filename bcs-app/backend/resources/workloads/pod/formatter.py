@@ -34,11 +34,9 @@ class PodFormatter(WorkloadFormatter):
         res.update(
             {
                 'status': PodStatusParser(resource_dict).parse(),
-                'ip': status.get('podIP', '--'),
                 'readyCnt': len([s for s in container_statuses if s['ready']]),
                 'totalCnt': len(container_statuses),
-                'restartCnt': sum([s['restartCount'] for s in container_statuses]),
-                'nodeName': spec.get('nodeName', '--'),
+                'restartCnt': sum([s['restartCount'] for s in container_statuses])
             }
         )
         return res
