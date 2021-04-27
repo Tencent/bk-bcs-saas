@@ -157,7 +157,7 @@ class AppView(ActionSerializerMixin, AppViewBase):
                 item["current_version"] = version
 
             # 判断任务超时，并更新字段
-            if self._is_transition_timeout(item["updated"], data["transitioning_on"]):
+            if self._is_transition_timeout(item["updated"], item["transitioning_on"]):
                 err_msg = _("Helm操作超时，请重试!")
                 App.objects.filter(id=item["id"]).update(
                     transitioning_on=False,
