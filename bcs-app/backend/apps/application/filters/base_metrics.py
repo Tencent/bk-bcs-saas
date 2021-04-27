@@ -95,7 +95,9 @@ class BaseMusterMetric(BaseMetricAPI):
         app_id = self.get_app_id(request, project_id, request.GET.get("app_id"), request.GET.get("app_name"))
         ns_id = self.get_namespace_id(request, project_id, request.GET.get("ns_id"), request.GET.get("ns_name"))
 
-        return cluster_type, app_status, muster_id, app_id, ns_id
+        # 兼容cluster_id，用以过滤集群下的资源
+        request_cluster_id = request.query_params.get("cluster_id")
+        return cluster_type, app_status, muster_id, app_id, ns_id, request_cluster_id
 
     def get_filter_muster(self, project_id, muster_id):
         """获取模板集"""
@@ -144,14 +146,15 @@ class BaseNamespaceMetric(BaseMetricAPI):
     def get_filter_params(self, request, project_id):
         """获取过滤参数"""
         cluster_type = request.GET.get("cluster_type")
-        if not cluster_type or cluster_type not in CLUSTER_TYPE:
-            raise error_codes.CheckFailed(_("集群类型不正确，请确认"))
         app_status = request.GET.get("app_status")
         if app_status and app_status not in APP_STATUS:
             raise error_codes.CheckFailed(_("应用状态不正确，请确认"))
         app_id = self.get_app_id(request, project_id, request.GET.get("app_id"), request.GET.get("app_name"))
         ns_id = self.get_namespace_id(request, project_id, request.GET.get("ns_id"), request.GET.get("ns_name"))
-        return cluster_type, app_status, app_id, ns_id
+
+        # 兼容cluster_id，用以过滤集群下的资源
+        request_cluster_id = request.query_params.get("cluster_id")
+        return cluster_type, app_status, app_id, ns_id, request_cluster_id
 
     def get_inst_name(self, inst_id):
         """获取实例名称"""

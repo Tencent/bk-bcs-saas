@@ -151,3 +151,27 @@ def retry_requests(func, params=None, data=None, max_retries=2):
             time.sleep(0.5)
 
     raise error_codes.APIError("query storage api error")
+
+
+def ignore_record(
+    cluster_id_from_params: str,
+    cluster_id_from_instance: str,
+    cluster_type_from_params: str,
+    cluster_type_from_instance: str,
+) -> bool:
+    """是否忽略记录
+
+    :param cluster_id_from_params: 请求参数中的集群 ID，用以过滤集群下的资源
+    :param cluster_id_from_instance: 实例中携带的集群 ID
+    :param cluster_type_from_params: 请求参数中的集群环境，包含正式环境和测试环境
+    :param cluster_type_from_instance: 实例中的集群环境类型
+    :returns: 返回True/False, 其中 True标识可以忽略
+    """
+    if not cluster_id_from_instance:
+        return True
+    if cluster_id_from_params:
+        if cluster_id_from_instance != cluster_id_from_params:
+            return True
+    elif cluster_type_from_params != cluster_type_from_instance:
+        return True
+    return False

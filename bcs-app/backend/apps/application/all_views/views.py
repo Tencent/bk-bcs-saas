@@ -29,6 +29,8 @@ from backend.apps.instance.models import InstanceConfig
 from backend.components import paas_cc
 from backend.utils.errcodes import ErrorCode
 
+from ..utils import ignore_record
+
 CLUSTER_ENV_MAP = settings.CLUSTER_ENV_FOR_FRONT
 
 
@@ -77,18 +79,21 @@ class GetProjectNamespace(BaseNamespaceMetric):
                 if not ns_map[key]["total_num"]:
                     ns_map.pop(key, None)
 
-    def get_cluster_ns(self, ns_list, cluster_type, ns_id, cluster_env_map):
+    def get_cluster_ns(self, ns_list, cluster_type, ns_id, cluster_env_map, request_cluster_id):
         """组装集群、命名空间等信息"""
         ns_map = {}
         ns_id_list = []
         cluster_id_list = []
         ns_name_list = []
         for info in ns_list:
-            if (
-                str(cluster_env_map.get(info["cluster_id"], {}).get("cluster_env")) != str(cluster_type)
-                or ns_id
-                and str(info["id"]) != str(ns_id)
+            if ignore_record(
+                request_cluster_id,
+                info["cluster_id"],
+                str(cluster_type),
+                str(cluster_env_map.get(info["cluster_id"], {}).get("cluster_env")),
             ):
+                continue
+            if ns_id and str(info["id"]) != str(ns_id):
                 continue
             ns_map[(info["id"], info["name"])] = {
                 "cluster_id": info["cluster_id"],
@@ -121,7 +126,7 @@ class GetProjectNamespace(BaseNamespaceMetric):
     def get(self, request, project_id):
         """获取项目下的所有命名空间"""
         # 获取过滤参数
-        cluster_type, app_status, app_id, ns_id = self.get_filter_params(request, project_id)
+        cluster_type, app_status, app_id, ns_id, request_cluster_id = self.get_filter_params(request, project_id)
         exist_app = request.GET.get("exist_app")
         # 获取项目类型
         project_kind = self.project_kind(request)
@@ -135,7 +140,7 @@ class GetProjectNamespace(BaseNamespaceMetric):
             return APIResponse({"data": []})
         # 组装命名空间数据、命名空间ID、项目下集群信息
         ns_map, ns_id_list, cluster_id_list, ns_name_list = self.get_cluster_ns(
-            ns_list, cluster_type, ns_id, cluster_env_map
+            ns_list, cluster_type, ns_id, cluster_env_map, request_cluster_id
         )
         # 匹配集群的环境
         cluster_env = {
@@ -201,12 +206,13 @@ class GetInstances(BaseNamespaceMetric):
             else:
                 cluster_id = info["cluster_id"]
                 ns_name = info["name"]
-            if str(cluster_env_map.get(info["cluster_id"], {}).get("cluster_env")) != str(cluster_type):
-                raise error_codes.CheckFailed(_("命名空间不属于当前项目或集群"))
+
         return cluster_id, ns_name
 
     def get(self, request, project_id, ns_id):
-        cluster_type, app_status, app_id, filter_ns_id = self.get_filter_params(request, project_id)
+        cluster_type, app_status, app_id, filter_ns_id, request_cluster_id = self.get_filter_params(
+            request, project_id
+        )
         if filter_ns_id and str(ns_id) != str(filter_ns_id):
             return APIResponse({"data": {}})
         # 获取项目类型
