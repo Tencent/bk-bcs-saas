@@ -11,17 +11,15 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-from rest_framework.renderers import BrowsableAPIRenderer
 from rest_framework.response import Response
 
 from backend.bcs_web.viewsets import SystemViewSet
 from backend.dashboard.subscribe.constants import DEFAULT_SUBSCRIBE_TIMEOUT, KIND_RESOURCE_CLIENT_MAP
 from backend.dashboard.subscribe.serializers import FetchResourceWatchResultSLZ
-from backend.utils.renderers import BKAPIRenderer
+from backend.utils.basic import getitems
 
 
 class SubscribeViewSet(SystemViewSet):
-    renderer_classes = (BKAPIRenderer, BrowsableAPIRenderer)
 
     def list(self, request, project_id, cluster_id):
         """获取指定资源某resource_version后变更记录"""
@@ -30,13 +28,11 @@ class SubscribeViewSet(SystemViewSet):
         params = slz.validated_data
 
         resource_client = KIND_RESOURCE_CLIENT_MAP[params['kind']](request.ctx_cluster)
-        watch_result = resource_client.watch(
+        events = resource_client.watch(
             resource_version=params['resource_version'], timeout=DEFAULT_SUBSCRIBE_TIMEOUT
         )
+        # events 默认按时间排序，取最后一个 ResourceVersion 即为最新值
+        max_rv = getitems(events[-1], 'manifest.metadata.resourceVersion') if events else None
 
-        # 计算最大的 resourceVersion 值
-        resource_versions = [int(r['instance'].get('resourceVersion', 0)) for r in watch_result]
-        max_rv = str(max(resource_versions)) if resource_versions else None
-
-        response_data = {'total': len(watch_result), 'list': watch_result, 'max_rv': max_rv}
+        response_data = {'events': events, 'max_rv': max_rv}
         return Response(response_data)

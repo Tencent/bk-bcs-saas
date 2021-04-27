@@ -14,14 +14,12 @@
 from rest_framework.response import Response
 
 from backend.bcs_web.viewsets import SystemViewSet
-from backend.dashboard.utils.common import gen_list_resource_response_data
-from backend.resources.constants import K8sResourceKind
 from backend.resources.workloads.daemonset import DaemonSet
+from backend.dashboard.utils.resp import DashboardListApiRespBuilder
 
 
 class DaemonSetViewSet(SystemViewSet):
     def list(self, request, project_id, cluster_id):
-        response_data = gen_list_resource_response_data(
-            DaemonSet(request.ctx_cluster).list(), K8sResourceKind.DaemonSet
-        )
+        client = DaemonSet(request.ctx_cluster)
+        response_data = DashboardListApiRespBuilder(client).build()
         return Response(response_data)
