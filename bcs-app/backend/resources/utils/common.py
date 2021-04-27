@@ -26,7 +26,9 @@ def calculate_age(create_at: str) -> str:
 
 def calculate_duration(start: str, end: str = None) -> str:
     """
-    计算 起始 至 终止时间 间时间长度（带单位）
+    计算 起始 至 终止时间 间时间间隔（带单位），例：
+    1. start: '2021-04-01 12:35:30' end: '2021-04-03 14:00:00' => '2d1h'
+    2. start: '2021-04-01 12:35:30' end: '2021-04-01 12:59:59' => '24m29s'
 
     :param start: 起始时间
     :param end: 终止时间
@@ -38,19 +40,22 @@ def calculate_duration(start: str, end: str = None) -> str:
     start = arrow.get(start)
     end = arrow.get(end) if end else arrow.utcnow()
 
+    if end <= start:
+        return '--'
+
     duration = end - start
-    d_days = duration.days
-    d_seconds = duration.seconds
-    d_minute = (d_seconds % 3600) // 60
-    d_hour = d_seconds // 3600
+    days = duration.days
+    seconds = duration.seconds
+    minutes = (seconds % 3600) // 60
+    hours = seconds // 3600 % 24
+    seconds %= 60
 
-    if d_days > 0:
-        return f"{d_days}d{d_hour}h"
-
-    if d_hour > 0:
-        return f"{d_hour}h{d_minute}m"
-
-    if d_minute > 0:
-        return f"{d_seconds // 60}m{d_seconds % 60}s"
-
-    return f"{d_seconds % 60}s"
+    units = ['d', 'h', 'm', 's']
+    values = [days, hours, minutes, seconds]
+    for idx, v in enumerate(values):
+        next_idx = idx + 1
+        if v <= 0:
+            continue
+        if next_idx < len(values) and values[next_idx] > 0:
+            return f'{v}{units[idx]}{values[next_idx]}{units[next_idx]}'
+        return f'{v}{units[idx]}'
