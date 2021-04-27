@@ -98,7 +98,7 @@ class ClusterOrNodeTaskPoller(poll_task.TaskPoller):
         task_result = get_task_result(token["access_token"], record)
         # 获取状态及步骤
         data = task_result.get("data") or {}
-        return self._parse_steps(data), data.get("status", ""), data.get("tke_cluster_id", "")
+        return self._parse_steps(data), data.get("status", ""), data.get("extra_cluster_id", "")
 
     def _transform_task_status(self, status: str, record: ModelLogRecord):
         """转换任务状态，用以前端展示"""
