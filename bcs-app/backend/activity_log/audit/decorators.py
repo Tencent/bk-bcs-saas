@@ -12,13 +12,15 @@
 # specific language governing permissions and limitations under the License.
 #
 from functools import wraps
-from typing import Type
+from typing import Type, List, Optional
 
 from .auditors import Auditor
 from .context import AuditContext
 
 
-def log_audit_on_view(auditor_cls: Type[Auditor], activity_type: str):
+def log_audit_on_view(
+    auditor_cls: Type[Auditor], activity_type: str, ignore_exception_classes: Optional[List[Exception]] = None
+):
     """
     用于 view 的操作审计装饰器
     """
@@ -26,34 +28,27 @@ def log_audit_on_view(auditor_cls: Type[Auditor], activity_type: str):
     def decorator(view_func):
         @wraps(view_func)
         def _wrapped_view(view, request, *args, **kwargs):
+            request.audit_ctx = AuditContext(
+                user=request.user.username, project_id=request.project.project_id, activity_type=activity_type
+            )
+
+            ignore = False
             err_msg = ''
             try:
                 resp = view_func(view, request, *args, **kwargs)
             except Exception as e:
+                if ignore_exception_classes and type(e) in ignore_exception_classes:
+                    ignore = True
+
                 err_msg = str(e)
                 raise
             else:
                 return resp
             finally:
-                # 生成默认的audit_ctx
-                extra = dict(**kwargs)
-                if hasattr(request, 'data'):
-                    extra.update(request.data)
-                audit_ctx = AuditContext(
-                    user=request.user.username,
-                    project_id=request.project.project_id,
-                    extra=extra,
-                    activity_type=activity_type,
-                )
-
-                if hasattr(request, 'audit_ctx'):
-                    audit_ctx.update(request.audit_ctx)
-
-                auditor = auditor_cls(audit_ctx)
-                if err_msg:
-                    auditor.log_failed(err_msg)
-                else:
-                    auditor.log_succeed()
+                if not ignore:
+                    if not request.audit_ctx.extra:
+                        request.audit_ctx.extra = _wrapped_view(request, **kwargs)
+                    save_audit(auditor_cls, request.audit_ctx, err_msg)
 
         return _wrapped_view
 
@@ -90,13 +85,22 @@ def log_audit(auditor_cls: Type[Auditor], activity_type: str):
                 return ret
             finally:
                 audit_ctx.activity_type = activity_type
-
-                auditor = auditor_cls(audit_ctx)
-                if err_msg:
-                    auditor.log_failed(err_msg)
-                else:
-                    auditor.log_succeed()
+                save_audit(auditor_cls, audit_ctx, err_msg)
 
         return _wrapped_view
 
     return decorator
+
+
+def save_audit(auditor_cls, audit_ctx, err_msg):
+    auditor = auditor_cls(audit_ctx)
+    if err_msg:
+        auditor.log_failed(err_msg)
+    else:
+        auditor.log_succeed()
+
+
+def _gen_default_extra(request, **kwargs):
+    extra = dict(**kwargs)
+    if hasattr(request, 'data'):
+        extra.update(request.data)

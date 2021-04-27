@@ -21,7 +21,7 @@ from rest_framework.validators import ValidationError
 
 from backend.activity_log.audit.auditors import HelmAuditor, TemplatesetsAuditor
 from backend.activity_log.audit.context import AuditContext
-from backend.activity_log.audit.decorator import log_audit, log_audit_on_view
+from backend.activity_log.audit.decorators import log_audit, log_audit_on_view
 from backend.activity_log.models import UserActivityLog
 from backend.bcs_web.viewsets import SystemViewSet
 from backend.tests.bcs_mocks.misc import FakeProjectPermissionAllowAll

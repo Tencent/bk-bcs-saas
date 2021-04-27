@@ -24,12 +24,10 @@ class Auditor:
         self.audit_context = audit_context
 
     def log_succeed(self):
-        activity_status = 'succeed'
-        self._log(activity_status)
+        self._log('succeed')
 
-    def log_failed(self, err_msg: str):
-        activity_status = 'failed'
-        self._log(activity_status, err_msg)
+    def log_failed(self, err_msg: str = ''):
+        self._log('failed', err_msg)
 
     def _gen_default_description(self, activity_status: str, err_msg):
         audit_context = self.audit_context
