@@ -33,7 +33,7 @@ SucceededStatusPodConfig = {
         'conditions': [
             {
                 'type': PodConditionType.PodInitialized.value,
-                'status':ConditionStatus.ConditionTrue.value
+                'status': ConditionStatus.ConditionTrue.value
             }
         ]
     }
@@ -41,68 +41,67 @@ SucceededStatusPodConfig = {
 
 # PodStatus Running
 RunningStatusPodConfig = {
-	'status': {
-		'phase': PodPhase.PodRunning.value,
-		'conditions': [
+    'status': {
+        'phase': PodPhase.PodRunning.value,
+        'conditions': [
             {
                 'type': PodConditionType.PodInitialized.value,
                 'status': ConditionStatus.ConditionTrue.value
             },
-			{
-				'type': PodConditionType.PodReady.value,
-				'status': ConditionStatus.ConditionTrue.value
-			}
+            {
+                'type': PodConditionType.PodReady.value,
+                'status': ConditionStatus.ConditionTrue.value
+            }
         ]
-	}
+    }
 }
 
 # PodStatus Pending
 PendingStatusPodConfig = {
-	'status': {
-		'phase': PodPhase.PodPending.value,
-		'conditions': [
+    'status': {
+        'phase': PodPhase.PodPending.value,
+        'conditions': [
             {
                 'type': PodConditionType.PodInitialized.value,
                 'status': ConditionStatus.ConditionFalse.value
             }
         ]
-	}
+    }
 }
 
 # PodStatus Terminating
 TerminatingStatusPodConfig = {
-	'metadata': {
-		'deletionTimestamp': '2021-01-01T10:00:00Z'
-	},
-	'status': {
-		'phase': PodPhase.PodRunning.value
-	}
+    'metadata': {
+        'deletionTimestamp': '2021-01-01T10:00:00Z'
+    },
+    'status': {
+        'phase': PodPhase.PodRunning.value
+    }
 }
 
 # PodStatus Unknown
 UnknownStatusPodConfig = {
-	'metadata': {
-		'deletionTimestamp': '2021-01-01T10:00:00Z'
-	},
-	'status': {
-		'phase': PodPhase.PodRunning.value,
-		'reason': 'NodeLost'
-	}
+    'metadata': {
+        'deletionTimestamp': '2021-01-01T10:00:00Z'
+    },
+    'status': {
+        'phase': PodPhase.PodRunning.value,
+        'reason': 'NodeLost'
+    }
 }
 
 # PodStatus Completed
 CompletedStatusPodConfig = {
-	'status': {
-		'phase': PodPhase.PodSucceeded.value,
-		'containerStatuses': [
-			{
-				'state': {
-					'terminated': {
-						'reason': 'Completed'
-					}
-				}
-			}
-		]
-	}
+    'status': {
+        'phase': PodPhase.PodSucceeded.value,
+        'containerStatuses': [
+            {
+                'state': {
+                    'terminated': {
+                        'reason': 'Completed'
+                    }
+                }
+            }
+        ]
+    }
 }
-
