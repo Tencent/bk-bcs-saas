@@ -20,8 +20,8 @@ from backend.resources.utils.discovery import BcsLazyDiscoverer, DiscovererCache
 from backend.resources.utils.kube_client import CoreDynamicClient
 
 
-class LocalKubeConfigurationService:
-    """指向本地集群的配置生成逻辑"""
+class FakeKubeConfigurationService:
+    """指向测试用集群的配置生成逻辑"""
 
     def __init__(self):
         self.api_key = os.environ.get('TESTING_SERVER_API_KEY')
@@ -38,6 +38,6 @@ class LocalKubeConfigurationService:
 @lru_cache(maxsize=128)
 def get_dynamic_client(*args, **kwargs) -> CoreDynamicClient:
     """根据 token、cluster_id 等参数，构建访问 Kubernetes 集群的 Client 对象"""
-    config = LocalKubeConfigurationService().make_configuration()
+    config = FakeKubeConfigurationService().make_configuration()
     discoverer_cache = DiscovererCache(cache_key=f"osrcp-cluster_id.json")
     return CoreDynamicClient(client.ApiClient(config), cache_file=discoverer_cache, discoverer=BcsLazyDiscoverer)
