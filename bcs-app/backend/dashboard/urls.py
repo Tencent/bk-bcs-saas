@@ -14,7 +14,7 @@
 from django.conf.urls import include, url
 
 from backend.dashboard.subscribe.urls import router as subscribe_router
-from backend.dashboard.workload.urls import router as workload_router
+from backend.dashboard.workloads.urls import router as workload_router
 
 urlpatterns = [
     url(r"^crds/", include("backend.dashboard.custom_object.urls")),
