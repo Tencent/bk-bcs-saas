@@ -97,8 +97,8 @@ class K8SMuster(object):
             if ignore_record(
                 request_cluster_id,
                 cluster_id,
-                str(cluster_type),
-                str(cluster_env_map.get(cluster_id, {}).get("cluster_env")),
+                cluster_type,
+                cluster_env_map.get(cluster_id, {}).get("cluster_env"),
             ):
                 continue
             if info["instance_id"] in ret_data[muster_id]["id_list"]:

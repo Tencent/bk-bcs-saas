@@ -89,8 +89,8 @@ class GetProjectNamespace(BaseNamespaceMetric):
             if ignore_record(
                 request_cluster_id,
                 info["cluster_id"],
-                str(cluster_type),
-                str(cluster_env_map.get(info["cluster_id"], {}).get("cluster_env")),
+                cluster_type,
+                cluster_env_map.get(info["cluster_id"], {}).get("cluster_env"),
             ):
                 continue
             if ns_id and str(info["id"]) != str(ns_id):

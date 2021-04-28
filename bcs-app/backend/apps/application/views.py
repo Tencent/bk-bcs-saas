@@ -291,8 +291,8 @@ class GetMusterTemplate(BaseMusterMetric):
             if ignore_record(
                 request_cluster_id,
                 cluster_id,
-                str(cluster_type),
-                str(cluster_env_map.get(cluster_id, {}).get("cluster_env")),
+                cluster_type,
+                cluster_env_map.get(cluster_id, {}).get("cluster_env"),
             ):
                 continue
             curr_key = "%s:%s" % (info.category, name)
@@ -721,8 +721,8 @@ class AppInstance(BaseMusterMetric):
             if ignore_record(
                 request_cluster_id,
                 cluster_id,
-                str(cluster_type),
-                str(cluster_env_map.get(cluster_id, {}).get("cluster_env")),
+                cluster_type,
+                cluster_env_map.get(cluster_id, {}).get("cluster_env"),
             ):
                 continue
             key_name = (cluster_id, metadata.get("namespace"), metadata.get("name"))

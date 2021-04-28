@@ -172,6 +172,6 @@ def ignore_record(
     if cluster_id_from_params:
         if cluster_id_from_instance != cluster_id_from_params:
             return True
-    elif cluster_type_from_params != cluster_type_from_instance:
+    elif str(cluster_type_from_params) != str(cluster_type_from_instance):
         return True
     return False
