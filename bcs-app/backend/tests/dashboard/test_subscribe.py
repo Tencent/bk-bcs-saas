@@ -12,24 +12,12 @@
 # specific language governing permissions and limitations under the License.
 #
 import pytest
-from unittest import mock
-
-from backend.tests.dashboard.contents.fake_viewsets import FakeSystemViewSet
-from backend.tests.dashboard.contents.fake_k8s_client import get_dynamic_client
-
 pytestmark = pytest.mark.django_db
-
-
-@pytest.fixture(autouse=True)
-def common_patch():
-    with mock.patch('backend.dashboard.subscribe.views.SystemViewSet', new=FakeSystemViewSet), \
-            mock.patch('backend.resources.resource.get_dynamic_client', new=get_dynamic_client):
-        yield
 
 
 class TestSubscribe:
 
-    def test_list(self, api_client, project_id, cluster_id):
+    def test_list(self, api_client, project_id, cluster_id, dashboard_api_common_patch):
         """ 测试获取资源列表接口 """
         response = api_client.get(
             f'/api/dashboard/projects/{project_id}/clusters/{cluster_id}/subscribe/'
