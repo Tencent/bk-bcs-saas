@@ -27,7 +27,9 @@ class SubscribeViewSet(SystemViewSet):
         slz.is_valid(raise_exception=True)
         params = slz.validated_data
 
-        resource_client = KIND_RESOURCE_CLIENT_MAP[params['kind']](request.ctx_cluster)
+        # 根据 Kind 获取对应的 K8S Resource Client 并初始化
+        Client = KIND_RESOURCE_CLIENT_MAP[params['kind']]
+        resource_client = Client(request.ctx_cluster)
         events = resource_client.watch(
             resource_version=params['resource_version'], timeout=DEFAULT_SUBSCRIBE_TIMEOUT
         )
