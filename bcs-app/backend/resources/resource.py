@@ -73,7 +73,7 @@ class ResourceClient:
                 'operate': r['type'],
                 'uid': r['object'].metadata.uid,
                 'manifest': r['raw_object'],
-                'display_fields': self.formatter.format_dict(r['raw_object']),
+                'manifest_ext': self.formatter.format_dict(r['raw_object']),
             } for r in self.api.watch(**kwargs)
         ]
 

@@ -34,7 +34,7 @@ class SubscribeViewSet(SystemViewSet):
             resource_version=params['resource_version'], timeout=DEFAULT_SUBSCRIBE_TIMEOUT
         )
         # events 默认按时间排序，取最后一个 ResourceVersion 即为最新值
-        max_rv = getitems(events[-1], 'manifest.metadata.resourceVersion') if events else None
+        latest_rv = getitems(events[-1], 'manifest.metadata.resourceVersion') if events else None
 
-        response_data = {'events': events, 'max_rv': max_rv}
+        response_data = {'events': events, 'latestRV': latest_rv}
         return Response(response_data)
