@@ -418,7 +418,7 @@ class ClusterMasterInfo(ClusterPermBase, viewsets.ViewSet):
                 {"field": "bk_host_innerip", "operator": "equal", "value": info["inner_ip"]} for info in masters
             ],
         }
-        username = settings.USERNAME_FOR_CMDB_BIZ
+        username = settings.ADMIN_USERNAME
         cluster_masters = get_cmdb_hosts(
             username, [request.project.cc_app_id, settings.BCS_APP_ID], host_property_filter
         )

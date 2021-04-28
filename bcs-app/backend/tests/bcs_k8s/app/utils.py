@@ -11,20 +11,19 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-import json
+from datetime import datetime, timedelta
 
-from django.conf import settings
-from django.utils.translation import ugettext_lazy as _
+import pytest
 
-from backend.components.utils import http_delete
-from backend.utils.errcodes import ErrorCode
-from backend.utils.error_codes import error_codes
+from backend.bcs_k8s.app.views import AppView
+
+current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+timeout_time = (datetime.now() - timedelta(minutes=15)).strftime("%Y-%m-%d %H:%M:%S")
 
 
-def delete_chart_version(prefix_path, chart_name, version, username, pwd):
-    url = f"{prefix_path}/api/charts/{chart_name}/{version}"
-    resp = http_delete(url, auth=(username, pwd), raise_for_status=False)
-    # 返回{"deleted" : True} 或 {"error" : "remove xxx failed: no such file or directory"}
-    if not (resp.get("deleted") or "no such file or directory" in resp.get("error", "")):
-        raise error_codes.APIError(_("删除chart失败,{}").format(resp))
-    return resp
+@pytest.mark.parametrize(
+    "updated,transitioning_on,is_timeout",
+    [(current_time, True, False), (timeout_time, False, False), (timeout_time, True, True)],
+)
+def test_update_record_status(updated, transitioning_on, is_timeout):
+    assert AppView()._is_transition_timeout(updated, transitioning_on) == is_timeout

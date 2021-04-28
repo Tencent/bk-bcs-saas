@@ -24,11 +24,12 @@ from rest_framework.response import Response
 from backend.apps.whitelist import enabled_force_sync_chart_repo
 from backend.bcs_k8s.app.models import App
 from backend.bcs_k8s.authtoken.authentication import TokenAuthentication
-from backend.components.helm_chart import delete_chart_version
+from backend.components import bk_repo
 from backend.utils.error_codes import error_codes
 from backend.utils.renderers import BKAPIRenderer
 from backend.utils.views import ActionSerializerMixin, FilterByProjectMixin, with_code_wrapper
 
+from .constants import DEFAULT_CHART_REPO_PROJECT_NAME
 from .models.chart import Chart, ChartVersion, ChartVersionSnapshot
 from .models.repo import Repository
 from .providers.repo_provider import add_plain_repo, add_repo
@@ -277,6 +278,15 @@ class ChartVersionViewSet(viewsets.ViewSet):
 
         return Response(data)
 
+    def _delete_version(self, username: str, pwd: str, project_code: str, name: str, version: str):
+        # 兼容harbor中chart仓库项目名称
+        project_name = DEFAULT_CHART_REPO_PROJECT_NAME or project_code
+        try:
+            client = bk_repo.BkRepoClient(username, password=pwd)
+            client.delete_chart_version(project_name, project_code, name, version)
+        except bk_repo.BkRepoDeleteVersionError as e:
+            raise error_codes.APIError(f"delete chart: {name} version: {version} failed, {e}")
+
     def delete(self, request, project_id, chart_id):
         """删除chart或指定的chart版本"""
         version_id = request.query_params.get("version_id")
@@ -286,6 +296,7 @@ class ChartVersionViewSet(viewsets.ViewSet):
             raise ValidationError(_("chart下存在release，请先删除release"))
         # 如果指定version id，则只删除指定的version，否则删除所有version及chart
         chart_versions = self.get_chart_versions(chart_id, version_id)
+        project_code = request.project.project_code
         for info in chart_versions:
             repo_info = info.chart.repository
             auth = repo_info.plain_auths
@@ -297,7 +308,7 @@ class ChartVersionViewSet(viewsets.ViewSet):
                 username = credentials["username"]
                 pwd = credentials["password"]
             # 删除repo中chart版本记录
-            delete_chart_version(repo_info.url, info.chart.name, info.version, username, pwd)
+            self._delete_version(username, pwd, project_code, info.chart.name, info.version)
             # 处理digest不变动的情况
             ChartVersionSnapshot.objects.filter(digest=info.digest).delete()
             # 删除db中记录

@@ -259,3 +259,5 @@ SOPS_API_HOST = os.environ.get("SOPS_API_HOST")
 
 # admin 权限用户
 ADMIN_USERNAME = "admin"
+# BCS 默认业务
+BCS_APP_ID = 1
