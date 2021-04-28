@@ -29,7 +29,13 @@ class Auditor:
     def log_failed(self, err_msg: str = ''):
         self._log('failed', err_msg)
 
-    def _gen_default_description(self, activity_status: str, err_msg):
+    def _log(self, activity_status: str, err_msg: str = ''):
+        if not self.audit_context.description:
+            self.audit_context.description = self._gen_default_description(activity_status, err_msg)
+        self.audit_context.activity_status = activity_status
+        UserActivityLog.objects.create(**asdict(self.audit_context))
+
+    def _gen_default_description(self, activity_status: str, err_msg: str):
         audit_context = self.audit_context
         description_prefix = f'{audit_context.activity_type} {audit_context.resource_type}'
         if audit_context.resource:
@@ -38,12 +44,6 @@ class Auditor:
         if err_msg:
             return f'{description_prefix} {activity_status}: {err_msg}'
         return f'{description_prefix} {activity_status}'
-
-    def _log(self, activity_status: str, err_msg: str = ''):
-        if not self.audit_context.description:
-            self.audit_context.description = self._gen_default_description(activity_status, err_msg)
-        self.audit_context.activity_status = activity_status
-        UserActivityLog.objects.create(**asdict(self.audit_context))
 
 
 class TemplatesetsAuditor(Auditor):

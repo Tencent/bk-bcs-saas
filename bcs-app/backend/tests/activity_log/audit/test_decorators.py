@@ -51,6 +51,10 @@ class TemplatesetsViewSet(SystemViewSet):
         request.audit_ctx.update_fields(resource='nginx')
         raise ValidationError('invalid manifest')
 
+    @log_audit_on_view(TemplatesetsAuditor, activity_type='delete', ignore_exception_classes=[ValidationError])
+    def delete(self, request, project_id):
+        raise ValidationError('test')
+
 
 @log_audit(HelmAuditor, activity_type='install')
 def install_chart(audit_ctx: AuditContext):
@@ -66,25 +70,44 @@ class HelmViewSet(SystemViewSet):
 
 
 class TestAuditDecorator:
-    def test_log_audit_on_view(self, bk_user, project_id):
-        t_view = TemplatesetsViewSet.as_view({'get': 'list', 'post': 'create'})
+    def test_log_audit_on_view_succeed(self, bk_user, project_id):
+        t_view = TemplatesetsViewSet.as_view({'get': 'list'})
+        request = factory.get('/')
+        force_authenticate(request, bk_user)
+        t_view(request, project_id=project_id)
 
-        request_get = factory.get('/')
-        force_authenticate(request_get, bk_user)
-        t_view(request_get, project_id=project_id)
         activity_log = UserActivityLog.objects.get(project_id=project_id, user=bk_user.username, activity_type='list')
         assert activity_log.activity_status == 'succeed'
         assert activity_log.description == 'list templatesets succeed'
 
-        request_post = factory.post('/', data={'version': '1.6.0'})
-        force_authenticate(request_post, bk_user)
-        t_view(request_post, project_id=project_id)
+    def test_log_audit_on_view_failed(self, bk_user, project_id):
+        t_view = TemplatesetsViewSet.as_view({'post': 'create'})
+        request = factory.post('/', data={'version': '1.6.0'})
+        force_authenticate(request, bk_user)
+        t_view(request, project_id=project_id)
+
         activity_log = UserActivityLog.objects.get(
             project_id=project_id, user=bk_user.username, activity_type='create'
         )
         assert activity_log.activity_status == 'failed'
         assert json.loads(activity_log.extra)['version'] == '1.6.0'
         assert activity_log.description == f"create templatesets nginx failed: {ValidationError('invalid manifest')}"
+
+    def test_log_audit_ignore_exceptions(self, bk_user, project_id):
+        t_view = TemplatesetsViewSet.as_view({'delete': 'delete'})
+        request_post = factory.delete('/')
+        force_authenticate(request_post, bk_user)
+        try:
+            t_view(request_post, project_id=project_id)
+        except Exception:
+            pass
+
+        assert (
+            UserActivityLog.objects.filter(
+                project_id=project_id, user=bk_user.username, activity_type='delete'
+            ).count()
+            == 0
+        )
 
     def test_log_audit(self, bk_user, project_id):
         h_view = HelmViewSet.as_view({'post': 'create'})
