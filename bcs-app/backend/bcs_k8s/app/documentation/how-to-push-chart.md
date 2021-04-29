@@ -11,7 +11,7 @@
 
      ```
      # package manager for Mac
-     brew install kubernetes-helm
+     brew install helm
 
      # package manager for Windows
      choco install kubernetes-helm
@@ -21,13 +21,7 @@
      ```
 
     + 方式二：手动下载二进制
-        + [下载地址](https://github.com/helm/helm/releases/tag/v2.12.0), 下载与您操作系统对应的版本
-
-  - 初始化 Helm
-
-    ```
-    helm init --client-only --skip-refresh
-    ```
+        + [下载地址](https://github.com/helm/helm/releases/tag/v3.5.4), 下载与您操作系统对应的版本
 
   - 安装 Helm Chart 推送工具
 
@@ -53,9 +47,9 @@
 
 ```
 wget {{ rumpetroll_demo_url }}
-tar -xf rumpetroll-1.0.0.tgz
-# 修改 Chart 版本为 1.0.1
-sed -E -i.bak s/version\:\ .+/version\:\ 1\.0\.1/g rumpetroll/Chart.yaml
+tar -xf rumpetroll.tgz
+# 修改 Chart 版本为 0.1.22
+sed -E -i.bak s/version\:\ .+/version\:\ 0\.1\.22/g rumpetroll/Chart.yaml
 ```
 
 - 推送 Chart
@@ -63,18 +57,27 @@ sed -E -i.bak s/version\:\ .+/version\:\ 1\.0\.1/g rumpetroll/Chart.yaml
 ```
 helm push rumpetroll/ {{ project_code }}
 ```
+
 - 成功推送 Chart 后，可看到类似如下输出:
 
 ```
-Pushing rumpetroll-1.0.1.tgz to {{ project_code }}...
+Pushing rumpetroll-0.1.22.tgz to {{ project_code }}...
 Done.
 ```
 
 ### 4 同步项目 Chart 到产品展示页面
-支持两种方式：
+支持三种方式：
 
-- 方式一: 页面中手动刷新，在 “容器服务” --> ”Helm" --> "Chart仓库" 页面中，点击 "同步仓库" 按钮触发
-- 方式二: 每十分钟自动同步一次
+- 方式一：执行如下命令，同步 Chart 到产品中
+
+```
+curl -X POST {{ base_url }}bcs/k8s/configuration_noauth/{{ project_id }}/helm/repositories/sync/?format=json
+```
+
+注意：为保障你的正常使用，请不要使用 crontab 执行上述命令。
+
+- 方式二: 页面中手动刷新, 在 "容器服务 -> 配置 -> Helm模板集" 页面中，点击 "同步仓库" 按钮触发
+- 方式三: 每十分钟自动同步一次
 
 
 ## 温馨提示：故障排查

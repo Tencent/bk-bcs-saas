@@ -13,14 +13,6 @@
 #
 
 
-def get_cluster_tasks_mod():
-    try:
-        from backend.apps.cluster.flow_views_ext import tasks
-    except ImportError:
-        from backend.apps.cluster.flow_views import tasks
-    return tasks
-
-
 def get_cluster_mod():
     try:
         from backend.apps.cluster.flow_views_ext import cluster
@@ -51,11 +43,3 @@ def get_gse_mod():
     except ImportError:
         from backend.apps.cluster.flow_views.tools import gse
     return gse
-
-
-def get_cluster_node_task_mod():
-    try:
-        from backend.apps.cluster.flow_views_ext import tasks as cluster_node_tasks
-    except ImportError:
-        from backend.apps.cluster.flow_views import tasks as cluster_node_tasks
-    return cluster_node_tasks

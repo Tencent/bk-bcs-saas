@@ -2,7 +2,7 @@
 Before you begin, this article assumes that you have changed your deployment scheme to Helm Chart format.
 
 In order to use helm，this article will take [Blueking
-Game Chart (rumpetroll)]({{rumpetroll_demo_url}}) as an example to explain how to push Chart to the repository. 
+Game Chart (rumpetroll)]({{rumpetroll_demo_url}}) as an example to explain how to push Chart to the repository.
 
 Note: The content of the article is generated according to the current project, and the account information in it is the real account of the project, please keep it properly.
 
@@ -11,10 +11,10 @@ Note: The content of the article is generated according to the current project, 
 
   - Install Helm Tools
     + method one: package management tool
-     
+
     ```
     # package manager for Mac
-    brew install kubernetes-helm
+    brew install helm
 
     # package manager for Windows
     choco install kubernetes-helm
@@ -22,12 +22,12 @@ Note: The content of the article is generated according to the current project, 
     # cross-platform systems package manager
     gofish install helm
     ```
-    
+
     + method two: download binary
-        + [Helm](https://github.com/helm/helm/releases/tag/v2.12.0)
-    
+        + [Helm](https://github.com/helm/helm/releases/tag/v3.5.4)
+
   - Initialize Helm Environment
-    
+
     ```
     helm init --client-only --skip-refresh
     ```
@@ -38,7 +38,7 @@ Note: The content of the article is generated according to the current project, 
     ```
     helm plugin install https://github.com/chartmuseum/helm-push
     ```
-    
+
     + method two: download binary
         +[Helm Push](https://github.com/chartmuseum/helm-push/releases)
 
