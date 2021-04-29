@@ -1281,7 +1281,7 @@
                         }
                         this.$store.commit('mesosTemplate/updateCurTemplate', templateParams)
                     }
-                    
+
                     this.isTemplateLoading = false
                     this.initResources(callback)
                 } else {
@@ -3276,7 +3276,7 @@
                     })
                     return false
                 }
-                
+
                 const rules = ingress.config.webCache.rules
                 for (const rule of rules) {
                     if (!rule.serviceName) {
@@ -3726,7 +3726,7 @@
                     message: self.$t('导入成功')
                 })
                 // Promise.all(promiseList).then(() => {
-                    
+
                 // }).catch(() => {
                 //     self.$bkMessage({
                 //         theme: 'error',
@@ -3820,7 +3820,7 @@
                     'secrets',
                     'ingresss'
                 ]
-                const rootFolderName = `${this.curTemplate.name || 'mesos'}_${this.curTemplate.latest_show_version}`
+                const rootFolderName = `${this.curTemplate.name || 'mesos'}_${this.lateShowVersionName}`
                 const rootFolder = zip.folder(rootFolderName)
                 resources.forEach(resourceKey => {
                     if (this[resourceKey] && this[resourceKey].length) {
@@ -3832,6 +3832,11 @@
                         })
                     }
                 })
+                // 添加版本信息
+                rootFolder.file('description.json', JSON.stringify({
+                    version: this.lateShowVersionName,
+                    name: this.curTemplate.name
+                }, null, 4), { binary: false })
                 zip.generateAsync({ type: 'blob' }).then((content) => {
                     saveAs(content, `${rootFolderName}.zip`)
                 })
@@ -4026,7 +4031,7 @@
                 height: 80px;
             }
         }
-    
+
         .is-en {
             .bk-radio-text {
                 min-width: 110px !important;
