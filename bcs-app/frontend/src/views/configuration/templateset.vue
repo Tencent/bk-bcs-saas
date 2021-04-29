@@ -427,7 +427,7 @@
 
 <script>
     import applyPerm from '@open/mixins/apply-perm'
-    import { catchErrorHandler } from '@open/common/util'
+    import { catchErrorHandler, random } from '@open/common/util'
     import { Archive } from 'libarchive.js/main.js'
 
     Archive.init({
@@ -1178,7 +1178,7 @@
             async deleteInstance () {
                 const list = Object.keys(this.namespaceListTmp)
                 // const projectKind = await this.getProjectKind(this.projectId)
-                
+
                 const params = {
                     projectId: this.projectId,
                     tplMusterId: this.curDelInstanceTemplate.id,
@@ -1273,7 +1273,7 @@
                 const curOffset = this.templateList.length
                 // 由于本地删除，实际offset有可能少于分页offset
                 const offset = Math.min(curPageOffset, curOffset)
-                
+
                 if (!this.searchKeyword) {
                     return `offset=${offset}&limit=${this.pageConf.pageSize}`
                 } else {
@@ -1445,9 +1445,31 @@
                 }
             },
 
+            async readFile (file) {
+                if (!file) return
+
+                return new Promise((resolve, reject) => {
+                    const reader = new FileReader()
+                    reader.onerror = () => {
+                        reject(new Error('read file error'))
+                    }
+                    reader.onloadend = (event) => {
+                        resolve(event.target.result)
+                    }
+                    reader.readAsText(file)
+                })
+            },
+
             async renderJsonFile () {
                 const promiseList = []
                 const self = this
+                const index = this.importFileList.findIndex(file => file.name === 'description.json')
+                let desc = {}
+                if (index > -1) {
+                    const file = this.importFileList.splice(index, 1)
+                    const data = await this.readFile(file[0])
+                    desc = JSON.parse(data)
+                }
                 this.importFileList.forEach(file => {
                     if (file.name.endsWith('.json')) {
                         // 保存资源
@@ -1460,7 +1482,7 @@
                                         const fileMetadata = file.name.split('--')
                                         const fileType = fileMetadata[0]
                                         const fileName = fileMetadata[1].replace('.json', '')
-                                        self.importFile(fileName, fileType, content, resolve, reject)
+                                        self.importFile(fileName, fileType, content, resolve, reject, desc)
                                     }
                                 }
                                 reader.readAsText(file)
@@ -1477,7 +1499,7 @@
                             const templateId = this.curTemplateId
                             const params = {
                                 show_version_id: 0,
-                                name: 'v1.1.0',
+                                name: desc.version || 'v1.1.0',
                                 real_version_id: this.curVersion
                             }
                             await this.$store.dispatch('mesosTemplate/saveVersion', { projectId, templateId, params })
@@ -1508,7 +1530,7 @@
                 }
             },
 
-            async importFile (fileName, fileType, content, resolve, reject) {
+            async importFile (fileName, fileType, content, resolve, reject, desc) {
                 // 处理关联
                 this.linkAppList.forEach(linkApp => {
                     const appName = linkApp.app_name
@@ -1558,13 +1580,13 @@
                         const templateId = 0
                         data.template = {
                             desc: '模板集描述',
-                            name: `模板集_${+new Date()}`
+                            name: desc.name ? `${desc.name}_imported_${random(3)}` : `模板集_${+new Date()}`
                         }
                         const res = await await this.$store.dispatch(actionMap[fileType].new, { projectId, templateId, data })
                         this.curVersion = res.data.version
                         this.curTemplateId = res.data.template_id
                     }
-                    
+
                     if (fileType === 'applications') {
                         const res1 = await this.$store.dispatch('mesosTemplate/getApplicationsByVersion', { projectId, version: this.curVersion })
                         this.linkAppList = res1.data
@@ -1575,9 +1597,9 @@
                 // switch (fileType) {
                 //     case 'applications':
                 //         delete data.app_id
-                        
+
                 //         break
-                    
+
                 //     case 'deployments':
                 //         this.linkAppList.forEach(linkApp => {
                 //             const appName = linkApp.app_name
