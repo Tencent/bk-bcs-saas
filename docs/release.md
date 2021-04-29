@@ -1,9 +1,11 @@
 # 发布日志
 
-## Unreleased
+## release-1.3.26
 
 #### 优化
 - [#793](https://github.com/Tencent/bk-bcs-saas/pull/793) HPA: k8s hpa client 替换为 dynamic client
+- [#889](https://github.com/Tencent/bk-bcs-saas/pull/889) Mesos模板集: 优化模板集的导入导出功能
+- [#888](https://github.com/Tencent/bk-bcs-saas/pull/888) Mesos删除节点: 忽略bcs-system命名空间下的资源
 
 
 ## release-1.3.23
