@@ -71,8 +71,6 @@ class BaseFilter(BaseAPI):
     def get_cluster_category(self, request, kind):
         """获取类型"""
         cluster_type = request.GET.get("cluster_type")
-        if not cluster_type:
-            raise error_codes.CheckFailed(_("集群类型不正确，请确认"))
         category = request.GET.get("category")
         if kind == 1:
             if not category:
