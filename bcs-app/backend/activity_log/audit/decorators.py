@@ -63,8 +63,13 @@ class BaseLogAudit(metaclass=ABCMeta):
                 # 如果是 ignore_exceptions 中的异常，不做审计记录
                 self.auto_audit = False
                 raise
+            except self.err_msg_exceptions as e:
+                err_msg = str(e)
+                raise
             except Exception as e:
-                err_msg = self._finalize_err_msg(e)
+                # 屏蔽非预期的异常信息
+                logger.error("log audit failed: %s" % e)
+                err_msg = "unknown error"
                 raise
             finally:
                 if self.auto_audit:
@@ -89,16 +94,6 @@ class BaseLogAudit(metaclass=ABCMeta):
             auditor.log_failed(err_msg)
         else:
             auditor.log_succeed()
-
-    def _finalize_err_msg(self, exc: Exception) -> str:
-        """屏蔽未知异常"""
-        try:
-            raise exc
-        except self.err_msg_exceptions as e:
-            return str(e)
-        except Exception as e:
-            logger.error("log audit failed: %s" % e)
-            return "unknown error"
 
 
 class log_audit_on_view(BaseLogAudit):
