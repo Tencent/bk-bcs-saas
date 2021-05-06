@@ -17,6 +17,6 @@ from . import views
 
 router = routers.DefaultRouter(trailing_slash=True)
 
-router.register(r'persistent_volume_claim', views.PersistentVolumeClaimViewSet, base_name='persistent_volume_claim')
-router.register(r'persistent_volume', views.PersistentVolumeViewSet, base_name='persistent_volume')
-router.register(r'storage_class', views.StorageClassViewSet, base_name='storage_class')
+router.register(r'persistent_volume_claims', views.PersistentVolumeClaimViewSet, base_name='persistent_volume_claim')
+router.register(r'persistent_volumes', views.PersistentVolumeViewSet, base_name='persistent_volume')
+router.register(r'storage_classes', views.StorageClassViewSet, base_name='storage_class')

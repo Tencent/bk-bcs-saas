@@ -11,15 +11,16 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-from typing import Dict
+import pytest
 
-from backend.resources.configurations.common.formatter import ConfigurationFormatter
+pytestmark = pytest.mark.django_db
 
 
-class ConfigMapFormatter(ConfigurationFormatter):
-    """ ConfigMap 格式化 """
+class TestIngress:
 
-    def format_dict(self, resource_dict: Dict) -> Dict:
-        res = self.format_common_dict(resource_dict)
-        res.update({'data': [k for k in resource_dict.get('data', {})]})
-        return res
+    def test_list(self, api_client, project_id, cluster_id, dashboard_api_common_patch):
+        """ 测试获取资源列表接口 """
+        response = api_client.get(
+            f'/api/dashboard/projects/{project_id}/clusters/{cluster_id}/networks/ingresses/'
+        )
+        assert response.json()['code'] == 0

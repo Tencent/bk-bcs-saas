@@ -21,6 +21,6 @@ class SecretsFormatter(ConfigurationFormatter):
 
     def format_dict(self, resource_dict: Dict) -> Dict:
         res = self.format_common_dict(resource_dict)
-        res.update({'data': len(resource_dict.get('data', {}))})
+        res.update({'data': [k for k in resource_dict.get('data', {})]})
         return res
 
