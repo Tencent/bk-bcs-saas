@@ -11,20 +11,24 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-from django.conf.urls import include, url
+from copy import deepcopy
+from typing import Dict
 
-from backend.dashboard.configurations.urls import router as config_router
-from backend.dashboard.networks.urls import router as network_router
-from backend.dashboard.storages.urls import router as storage_router
-from backend.dashboard.subscribe.urls import router as subscribe_router
-from backend.dashboard.workloads.urls import router as workload_router
+from backend.resources.utils.common import calculate_age
+from backend.resources.utils.format import ResourceDefaultFormatter
 
 
-urlpatterns = [
-    url(r"^crds/", include("backend.dashboard.custom_object.urls")),
-    url(r"^configurations/", include(config_router.urls)),
-    url(r"^networks/", include(network_router.urls)),
-    url(r"^storages/", include(storage_router.urls)),
-    url(r"^subscribe/", include(subscribe_router.urls)),
-    url(r"^workloads/", include(workload_router.urls)),
-]
+class StorageFormatter(ResourceDefaultFormatter):
+    """ 存储类 资源通用格式化器 """
+
+    def format_common_dict(self, resource_dict: Dict) -> Dict:
+        resource_copy = deepcopy(resource_dict)
+        metadata = resource_copy['metadata']
+        self.set_metadata_null_values(metadata)
+
+        create_time, update_time = self.parse_create_update_time(metadata)
+        return {
+            'age': calculate_age(create_time),
+            'createTime': create_time,
+            'updateTime': update_time
+        }

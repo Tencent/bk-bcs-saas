@@ -36,19 +36,27 @@ class WorkloadTypes(ChoicesEnum):
 
 
 class K8sResourceKind(ChoicesEnum):
+    # workload
     Deployment = "Deployment"
     StatefulSet = "StatefulSet"
     DaemonSet = "DaemonSet"
     CronJob = "CronJob"
     Job = "Job"
-    ConfigMap = "ConfigMap"
+    Pod = "Pod"
+    # network
     Ingress = "Ingress"
-    Secret = "Secret"
     Service = "Service"
     Endpoints = "Endpoints"
+    # configuration
+    ConfigMap = "ConfigMap"
+    Secret = "Secret"
+    # storage
+    PersistentVolume = "PersistentVolume"
+    PersistentVolumeClaim = "PersistentVolumeClaim"
+    StorageClass = "StorageClass"
+    # other
     Namespace = "Namespace"
     Node = "Node"
-    Pod = "Pod"
 
     _choices_labels = (
         (Deployment, "Deployment"),
@@ -63,6 +71,9 @@ class K8sResourceKind(ChoicesEnum):
         (Endpoints, "Endpoints"),
         (Namespace, "Namespace"),
         (Pod, "Pod"),
+        (PersistentVolume, "PersistentVolume"),
+        (PersistentVolumeClaim, "PersistentVolumeClaim"),
+        (StorageClass, "StorageClass")
     )
 
 
@@ -132,3 +143,19 @@ class ConditionStatus(ChoicesEnum):
     ConditionTrue = 'True'
     ConditionFalse = 'False'
     ConditionUnknown = 'Unknown'
+
+
+class PersistentVolumeAccessMode(ChoicesEnum):
+    """ k8s PersistentVolumeAccessMode """
+
+    ReadWriteOnce = 'ReadWriteOnce'
+    ReadOnlyMany = 'ReadOnlyMany'
+    ReadWriteMany = 'ReadWriteMany'
+
+    @property
+    def shortname(self):
+        return {
+            self.ReadWriteOnce.value: 'RWO',
+            self.ReadOnlyMany.value: 'ROX',
+            self.ReadWriteMany.value: 'RWX'
+        }[self.value]

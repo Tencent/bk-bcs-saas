@@ -11,20 +11,12 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-from django.conf.urls import include, url
+from rest_framework import routers
 
-from backend.dashboard.configurations.urls import router as config_router
-from backend.dashboard.networks.urls import router as network_router
-from backend.dashboard.storages.urls import router as storage_router
-from backend.dashboard.subscribe.urls import router as subscribe_router
-from backend.dashboard.workloads.urls import router as workload_router
+from . import views
 
+router = routers.DefaultRouter(trailing_slash=True)
 
-urlpatterns = [
-    url(r"^crds/", include("backend.dashboard.custom_object.urls")),
-    url(r"^configurations/", include(config_router.urls)),
-    url(r"^networks/", include(network_router.urls)),
-    url(r"^storages/", include(storage_router.urls)),
-    url(r"^subscribe/", include(subscribe_router.urls)),
-    url(r"^workloads/", include(workload_router.urls)),
-]
+router.register(r'persistent_volume_claim', views.PersistentVolumeClaimViewSet, base_name='persistent_volume_claim')
+router.register(r'persistent_volume', views.PersistentVolumeViewSet, base_name='persistent_volume')
+router.register(r'storage_class', views.StorageClassViewSet, base_name='storage_class')
