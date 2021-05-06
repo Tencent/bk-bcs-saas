@@ -14,8 +14,8 @@
 import pytest
 from unittest import mock
 
-from backend.tests.contents.fake_viewsets import FakeSystemViewSet
-from backend.tests.contents.fake_k8s_client import get_dynamic_client
+from backend.tests.testing_utils.mocks.viewsets import FakeSystemViewSet
+from backend.tests.testing_utils.mocks.k8s_client import get_dynamic_client
 
 
 @pytest.fixture
