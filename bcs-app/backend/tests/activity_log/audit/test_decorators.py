@@ -19,7 +19,7 @@ from rest_framework.response import Response
 from rest_framework.test import APIRequestFactory, force_authenticate
 from rest_framework.validators import ValidationError
 
-from backend.activity_log.audit.auditors import HelmAuditor, TemplatesetsAuditor
+from backend.activity_log.audit.auditors import HelmAuditor, TemplatesetAuditor
 from backend.activity_log.audit.context import AuditContext
 from backend.activity_log.audit.decorators import log_audit, log_audit_on_view
 from backend.activity_log.models import UserActivityLog
@@ -42,16 +42,16 @@ def patch_permissions():
 
 
 class TemplatesetsViewSet(SystemViewSet):
-    @log_audit_on_view(TemplatesetsAuditor, activity_type='list')
+    @log_audit_on_view(TemplatesetAuditor, activity_type='list')
     def list(self, request, project_id):
         return Response()
 
-    @log_audit_on_view(TemplatesetsAuditor, activity_type='create')
+    @log_audit_on_view(TemplatesetAuditor, activity_type='create')
     def create(self, request, project_id):
         request.audit_ctx.update_fields(resource='nginx')
         raise ValidationError('invalid manifest')
 
-    @log_audit_on_view(TemplatesetsAuditor, activity_type='delete', ignore_exception_classes=[ValidationError])
+    @log_audit_on_view(TemplatesetAuditor, activity_type='delete', ignore_exceptions=(ValidationError,))
     def delete(self, request, project_id):
         raise ValidationError('test')
 
@@ -78,7 +78,7 @@ class TestAuditDecorator:
 
         activity_log = UserActivityLog.objects.get(project_id=project_id, user=bk_user.username, activity_type='list')
         assert activity_log.activity_status == 'succeed'
-        assert activity_log.description == 'list templatesets succeed'
+        assert activity_log.description == 'list templateset succeed'
 
     def test_log_audit_on_view_failed(self, bk_user, project_id):
         t_view = TemplatesetsViewSet.as_view({'post': 'create'})
@@ -91,7 +91,7 @@ class TestAuditDecorator:
         )
         assert activity_log.activity_status == 'failed'
         assert json.loads(activity_log.extra)['version'] == '1.6.0'
-        assert activity_log.description == f"create templatesets nginx failed: {ValidationError('invalid manifest')}"
+        assert activity_log.description == f"create templateset nginx failed: {ValidationError('invalid manifest')}"
 
     def test_log_audit_ignore_exceptions(self, bk_user, project_id):
         t_view = TemplatesetsViewSet.as_view({'delete': 'delete'})

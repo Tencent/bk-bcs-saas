@@ -11,33 +11,45 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
+import logging
 from abc import ABCMeta, abstractmethod
-from typing import List, Optional, Type
+from typing import Optional, Tuple, Type
+
+from rest_framework.exceptions import ValidationError
+
+from backend.packages.blue_krill.web.std_error import APIError
 
 from .auditors import Auditor
 from .context import AuditContext
 
+logger = logging.getLogger(__name__)
+
 
 class BaseLogAudit(metaclass=ABCMeta):
     """
-    带参数的审计装饰器(抽象基类)。参数说明
-    - auditor_cls: 执行审计记录的类, 默认为 Auditor
-    - activity_type: 操作类型，默认为''。可在 audit_ctx 中覆盖
-    - auto_audit: 是否记录审计，默认为记录
-    - ignore_exception_classes: 忽略审计的异常类列表
+    带参数的审计装饰器(抽象基类)
+
+    :param auditor_cls: 执行审计记录的类, 默认为 Auditor
+    :param activity_type: 操作类型，默认为''。可在 audit_ctx 中覆盖
+    :param auto_audit: 是否记录审计，默认为记录
+    :param ignore_exceptions: 忽略审计的异常类列表。忽略父类后，子类会一并忽略
     """
+
+    # 记录原始错误信息的异常列表
+    err_msg_exceptions = (APIError, ValidationError)
 
     def __init__(
         self,
         auditor_cls: Type[Auditor] = type(Auditor),
         activity_type: str = '',
         auto_audit: bool = True,
-        ignore_exception_classes: Optional[List[Type[Exception]]] = None,
+        ignore_exceptions: Optional[Tuple[Type[Exception]]] = None,
     ):
+
         self.auditor_cls = auditor_cls
         self.activity_type = activity_type
         self.auto_audit = auto_audit
-        self.ignore_exception_classes = ignore_exception_classes
+        self.ignore_exceptions = ignore_exceptions or tuple()
 
     def __call__(self, func):
         def wrapper(*args, **kwargs):
@@ -47,14 +59,13 @@ class BaseLogAudit(metaclass=ABCMeta):
             try:
                 ret = func(*args, **kwargs)
                 return ret
-            except Exception as e:
-                # 如果是 ignore_exception_classes 中的异常，不做审计记录
-                if self.ignore_exception_classes and type(e) in self.ignore_exception_classes:
-                    self.auto_audit = False
-                else:
-                    err_msg = str(e)
+            except self.ignore_exceptions:
+                # 如果是 ignore_exceptions 中的异常，不做审计记录
+                self.auto_audit = False
                 raise
-
+            except Exception as e:
+                err_msg = self._finalize_err_msg(e)
+                raise
             finally:
                 if self.auto_audit:
                     audit_ctx = self._post_audit_ctx(audit_ctx, *args, **kwargs)
@@ -78,6 +89,16 @@ class BaseLogAudit(metaclass=ABCMeta):
             auditor.log_failed(err_msg)
         else:
             auditor.log_succeed()
+
+    def _finalize_err_msg(self, exc: Exception) -> str:
+        """屏蔽未知异常"""
+        try:
+            raise exc
+        except self.err_msg_exceptions as e:
+            return str(e)
+        except Exception as e:
+            logger.error("log audit failed: %s" % e)
+            return "unknown error"
 
 
 class log_audit_on_view(BaseLogAudit):
@@ -117,7 +138,7 @@ class log_audit_on_view(BaseLogAudit):
             if isinstance(request.data, dict):
                 extra.update(request.data)
             elif isinstance(request.data, str):
-                extra['body'] = request.data
+                extra['request_body'] = request.data
 
         audit_ctx.extra = extra
         return audit_ctx
