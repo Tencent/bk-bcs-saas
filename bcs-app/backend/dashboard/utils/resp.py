@@ -12,18 +12,15 @@
 # specific language governing permissions and limitations under the License.
 #
 from typing import Dict
-from attr import dataclass
 
 from backend.resources.resource import ResourceClient
 
 
-@dataclass
 class DashboardListApiRespBuilder:
     """ 构造 Dashboard 资源列表 Api 响应内容逻辑 """
 
-    client: ResourceClient
-
-    def __attrs_post_init__(self):
+    def __init__(self, client: ResourceClient):
+        self.client = client
         self.resources = self.client.list(is_format=False).to_dict()
 
     def build(self) -> Dict:
