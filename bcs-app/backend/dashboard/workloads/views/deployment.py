@@ -19,6 +19,7 @@ from backend.dashboard.utils.resp import DashboardListApiRespBuilder
 
 
 class DeploymentViewSet(SystemViewSet):
+
     def list(self, request, project_id, cluster_id):
         client = Deployment(request.ctx_cluster)
         response_data = DashboardListApiRespBuilder(client).build()

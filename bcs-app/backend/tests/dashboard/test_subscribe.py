@@ -24,3 +24,6 @@ class TestSubscribe:
             + '?kind=Deployment&resource_version=206736'
         )
         assert response.json()['code'] == 0
+        response_key = response.json()['data'].keys()
+        assert 'events' in response_key
+        assert 'latest_rv' in response_key
