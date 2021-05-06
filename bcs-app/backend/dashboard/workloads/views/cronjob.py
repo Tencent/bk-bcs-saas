@@ -19,6 +19,7 @@ from backend.dashboard.utils.resp import DashboardListApiRespBuilder
 
 
 class CronJobViewSet(SystemViewSet):
+
     def list(self, request, project_id, cluster_id):
         client = CronJob(request.ctx_cluster)
         response_data = DashboardListApiRespBuilder(client).build()
