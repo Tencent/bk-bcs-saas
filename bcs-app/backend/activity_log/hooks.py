@@ -28,7 +28,7 @@ class DjangoSignalHooks(object):
     def __init__(self):
         self.ignore_models = set()
         self.model_checkers = OrderedDict()
-        self.activity_log_client = UserActivityLogClient(activity_status="completed",)
+        self.activity_log_client = UserActivityLogClient(activity_status="completed")
 
     def activity_check(self, params):
         return params
@@ -59,8 +59,9 @@ class DjangoSignalHooks(object):
                 activity_type = "add"
             else:
                 activity_type = "modify"
+
             check_and_log(
-                instance, dict(activity_type=activity_type,),
+                instance, dict(activity_type=activity_type),
             )
 
         @receiver(post_delete)
