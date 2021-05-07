@@ -18,6 +18,7 @@ from backend.dashboard.networks.urls import router as network_router
 from backend.dashboard.storages.urls import router as storage_router
 from backend.dashboard.subscribe.urls import router as subscribe_router
 from backend.dashboard.workloads.urls import router as workload_router
+from backend.dashboard.namespaces.urls import router as namespace_router
 
 
 urlpatterns = [
@@ -27,4 +28,5 @@ urlpatterns = [
     url(r"^storages/", include(storage_router.urls)),
     url(r"^subscribe/", include(subscribe_router.urls)),
     url(r"^workloads/", include(workload_router.urls)),
+    url(r"^namespaces/", include(namespace_router.urls)),
 ]
