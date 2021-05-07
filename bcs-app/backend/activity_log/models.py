@@ -40,7 +40,7 @@ class UserActivityLog(models.Model):
 
 
 class UserActivityLogLabel(models.Model):
-    activity_log = models.ForeignKey(UserActivityLog)
+    activity_log = models.ForeignKey(UserActivityLog, on_delete=models.CASCADE)
     type = models.CharField(max_length=32, db_index=True)
     key = models.CharField(max_length=32, db_index=True)
     value = models.TextField()

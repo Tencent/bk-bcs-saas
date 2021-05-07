@@ -30,8 +30,6 @@ import pymysql
 from django.conf.global_settings import gettext_noop as _
 
 pymysql.install_as_MySQLdb()
-# Patch version info to forcely pass Django client check
-setattr(pymysql, "version_info", (1, 2, 6, "final", 0))
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -128,30 +126,17 @@ WSGI_APPLICATION = "wsgi.application"
 # Database
 # https://docs.djangoproject.com/en/1.11/ref/settings/#databases
 
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": os.path.join(BASE_DIR, "db.sqlite3"),
-    }
-}
+DATABASES = {"default": {"ENGINE": "django.db.backends.sqlite3", "NAME": os.path.join(BASE_DIR, "db.sqlite3"),}}
 
 
 # Password validation
 # https://docs.djangoproject.com/en/1.11/ref/settings/#auth-password-validators
 
 AUTH_PASSWORD_VALIDATORS = [
-    {
-        "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
-    },
-    {
-        "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
-    },
-    {
-        "NAME": "django.contrib.auth.password_validation.CommonPasswordValidator",
-    },
-    {
-        "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",
-    },
+    {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",},
+    {"NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",},
+    {"NAME": "django.contrib.auth.password_validation.CommonPasswordValidator",},
+    {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",},
 ]
 
 
@@ -234,10 +219,7 @@ def get_logging_config(log_level, rds_hander_settings=None, log_path="app.log"):
         },
         "filters": {"request_id": {"()": "backend.utils.log.RequestIdFilter"}},
         "handlers": {
-            "null": {
-                "level": "DEBUG",
-                "class": "logging.NullHandler",
-            },
+            "null": {"level": "DEBUG", "class": "logging.NullHandler",},
             "mail_admins": {"level": "ERROR", "class": "django.utils.log.AdminEmailHandler"},
             "file": {
                 "class": "logging.handlers.WatchedFileHandler",
@@ -260,11 +242,7 @@ def get_logging_config(log_level, rds_hander_settings=None, log_path="app.log"):
             },
         },
         "loggers": {
-            "django": {
-                "handlers": ["null"],
-                "level": "INFO",
-                "propagate": True,
-            },
+            "django": {"handlers": ["null"], "level": "INFO", "propagate": True,},
             "django.request": {
                 "handlers": ["console", "logstash_redis", "file"],
                 "level": "ERROR",
@@ -276,11 +254,7 @@ def get_logging_config(log_level, rds_hander_settings=None, log_path="app.log"):
                 "propagate": True,
             },
             "django.security": {"handlers": ["console", "logstash_redis", "file"], "level": "INFO", "propagate": True},
-            "root": {
-                "handlers": ["console", "logstash_redis", "file"],
-                "level": log_level,
-                "propagate": False,
-            },
+            "root": {"handlers": ["console", "logstash_redis", "file"], "level": log_level, "propagate": False,},
             "console": {  # 打印redis日志错误，防止循环错误
                 "handlers": ["console", "file"],
                 "level": log_level,
@@ -294,10 +268,7 @@ def get_logging_config(log_level, rds_hander_settings=None, log_path="app.log"):
                 "handlers": ["console", "logstash_redis", "file"],
                 "level": os.getenv("DJANGO_LOG_LEVEL", "INFO"),
             },
-            "bkpaas_auth": {
-                "handlers": ["console", "logstash_redis", "file"],
-                "level": "DEBUG",
-            },
+            "bkpaas_auth": {"handlers": ["console", "logstash_redis", "file"], "level": "DEBUG",},
             "sentry_logger": {"handlers": ["sentry"], "level": "ERROR"},
         },
     }
@@ -448,6 +419,9 @@ RUMPETROLL_DEMO_DOWNLOAD_URL = 'http://bkopen-10032816.file.myqcloud.com/rumpetr
 
 # 直接开启的功能开关，不需要在db中配置
 DIRECT_ON_FUNC_CODE = ['HAS_IMAGE_SECRET']
+
+# 默认主键 3.2 版本需要主动指定
+DEFAULT_AUTO_FIELD = "django.db.models.AutoField"
 
 try:
     from .base_ext import *  # noqa

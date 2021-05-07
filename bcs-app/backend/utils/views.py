@@ -19,7 +19,7 @@ from django.http import Http404
 from django.utils.translation import ugettext_lazy as _
 from django.views.decorators.clickjacking import xframe_options_exempt
 from django.views.generic.base import TemplateView
-from rest_framework.compat import set_rollback
+from rest_framework.views import set_rollback
 from rest_framework.exceptions import (
     AuthenticationFailed,
     MethodNotAllowed,

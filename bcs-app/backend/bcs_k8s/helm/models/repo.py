@@ -18,6 +18,7 @@ from django.db import models
 from django.utils import timezone
 from jsonfield import JSONField
 
+
 from backend.utils.models import BaseTSModel
 
 from .managers import RepositoryAuthManager, RepositoryManager
@@ -78,7 +79,7 @@ class RepositoryAuth(models.Model):
     type = models.CharField('Type', choices=AUTH_CHOICE, max_length=16)
     # ex: {"password":"EJWmMqqGeA5E6JNb","username":"admin-T49e"}
     credentials = JSONField('Credentials', default={})
-    repo = models.ForeignKey(Repository, related_name='auths')
+    repo = models.ForeignKey(Repository, on_delete=models.CASCADE, related_name='auths')
     # TODO: use rbac module instead
     role = models.CharField('Role', max_length=16)
 
