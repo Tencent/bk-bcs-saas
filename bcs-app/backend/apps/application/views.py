@@ -40,6 +40,8 @@ from backend.celery_app.tasks.application import update_create_error_record
 from backend.components.bcs import mesos
 from backend.utils.errcodes import ErrorCode
 
+from .utils import exclude_records
+
 logger = logging.getLogger(__name__)
 
 APPLICATION_CATEGORY = "application"
@@ -141,7 +143,9 @@ class GetProjectMuster(BaseMusterMetric):
     def get(self, request, project_id):
         """获取项目下的所有的模板集"""
         # 获取过滤参数
-        cluster_type, app_status, muster_id, app_id, ns_id = self.get_filter_params(request, project_id)
+        cluster_type, app_status, muster_id, app_id, ns_id, request_cluster_id = self.get_filter_params(
+            request, project_id
+        )
         project_kind = self.project_kind(request)
         # 获取模板集
         all_muster_list = self.get_muster(project_id, muster_id)
@@ -173,6 +177,7 @@ class GetProjectMuster(BaseMusterMetric):
                 app_name,
                 ns_id,
                 cluster_env_map,
+                request_cluster_id,
             )
         return APIResponse({"data": ret_data})
 
@@ -253,7 +258,7 @@ class GetMusterTemplate(BaseMusterMetric):
             else:
                 cluster_ns_inst[cluster_id] = item
 
-    def get_instances(self, muster_id, cluster_type, app_name, ns_id, cluster_env_map):
+    def get_instances(self, muster_id, cluster_type, app_name, ns_id, cluster_env_map, request_cluster_id):
         """获取实例信息"""
         version_inst_id_info = (
             VersionInstance.objects.filter(is_deleted=False, template_id=muster_id)
@@ -283,9 +288,12 @@ class GetMusterTemplate(BaseMusterMetric):
             labels = metadata.get("labels", {})
             cluster_id = labels.get("io.tencent.bcs.clusterid")
             namespace = metadata.get("namespace")
-            if not cluster_id:
-                continue
-            if str(cluster_env_map.get(cluster_id, {}).get("cluster_env")) != str(cluster_type):
+            if exclude_records(
+                request_cluster_id,
+                cluster_id,
+                cluster_type,
+                cluster_env_map.get(cluster_id, {}).get("cluster_env"),
+            ):
                 continue
             curr_key = "%s:%s" % (info.category, name)
             ns_name_key = "%s:%s" % (namespace, name)
@@ -558,7 +566,9 @@ class GetMusterTemplate(BaseMusterMetric):
     def get(self, request, project_id, muster_id):
         """查询模板集下模板的信息"""
         # 获取过滤参数
-        cluster_type, app_status, filter_muster_id, app_id, ns_id = self.get_filter_params(request, project_id)
+        cluster_type, app_status, filter_muster_id, app_id, ns_id, request_cluster_id = self.get_filter_params(
+            request, project_id
+        )
         if filter_muster_id and str(filter_muster_id) != muster_id:
             return APIResponse({"data": []})
         # 判断项目和模板集是否对应
@@ -573,7 +583,7 @@ class GetMusterTemplate(BaseMusterMetric):
         version_map = self.get_version_map(muster_id)
         # 获取instance信息
         muster_tmpl_map, cluster_ns_inst, tmpl_create_error = self.get_instances(
-            muster_id, cluster_type, filter_app_name, ns_id, cluster_env_map
+            muster_id, cluster_type, filter_app_name, ns_id, cluster_env_map, request_cluster_id
         )
 
         if project_kind == 2:
@@ -661,7 +671,16 @@ class AppInstance(BaseMusterMetric):
         return tmpl_info.name
 
     def get_instance_info(
-        self, instance_version_ids, category, tmpl_name, cluster_type, cluster_env_map, app_name, ns_id, project_kind=2
+        self,
+        instance_version_ids,
+        category,
+        tmpl_name,
+        cluster_type,
+        cluster_env_map,
+        app_name,
+        ns_id,
+        project_kind=2,
+        request_cluster_id=None,
     ):
         """获取实例信息"""
         if project_kind == 1:
@@ -699,9 +718,12 @@ class AppInstance(BaseMusterMetric):
             metadata = conf.get("metadata", {})
             labels = metadata.get("labels")
             cluster_id = labels.get("io.tencent.bcs.clusterid")
-            if not cluster_id:
-                continue
-            if str(cluster_env_map.get(cluster_id, {}).get("cluster_env")) != str(cluster_type):
+            if exclude_records(
+                request_cluster_id,
+                cluster_id,
+                cluster_type,
+                cluster_env_map.get(cluster_id, {}).get("cluster_env"),
+            ):
                 continue
             key_name = (cluster_id, metadata.get("namespace"), metadata.get("name"))
             if (not metadata.get("name", "").startswith(tmpl_name)) or (key_name in ret_data):
@@ -988,7 +1010,9 @@ class AppInstance(BaseMusterMetric):
 
     def get(self, request, project_id, muster_id, template_id):
         # 获取过滤参数
-        cluster_type, app_status, filter_muster_id, app_id, ns_id = self.get_filter_params(request, project_id)
+        cluster_type, app_status, filter_muster_id, app_id, ns_id, request_cluster_id = self.get_filter_params(
+            request, project_id
+        )
         if filter_muster_id and str(filter_muster_id) != muster_id:
             return APIResponse({"data": []})
 
@@ -1021,6 +1045,7 @@ class AppInstance(BaseMusterMetric):
             filter_app_name,
             ns_id,
             project_kind=project_kind,
+            request_cluster_id=request_cluster_id,
         )
         if project_kind == 2:
             cluster_ns_inst = self.get_cluster_namespace_inst(instance_info)
