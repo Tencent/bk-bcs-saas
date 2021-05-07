@@ -22,13 +22,8 @@ class ConfigurationFormatter(ResourceDefaultFormatter):
     """ 配置类 资源通用格式化器 """
 
     def format_common_dict(self, resource_dict: Dict) -> Dict:
-        resource_copy = deepcopy(resource_dict)
-        metadata = resource_copy['metadata']
+        metadata = deepcopy(resource_dict['metadata'])
         self.set_metadata_null_values(metadata)
 
         create_time, update_time = self.parse_create_update_time(metadata)
-        return {
-            'age': calculate_age(create_time),
-            'createTime': create_time,
-            'updateTime': update_time
-        }
+        return {'age': calculate_age(create_time), 'createTime': create_time, 'updateTime': update_time}

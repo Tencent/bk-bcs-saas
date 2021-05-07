@@ -28,7 +28,7 @@ class PodFormatter(WorkloadFormatter):
 
     def format_dict(self, resource_dict: Dict) -> Dict:
         res = self.format_common_dict(resource_dict)
-        spec, status = resource_dict['spec'], resource_dict['status']
+        status = resource_dict['status']
 
         container_statuses = status.get('containerStatuses', [])
         res.update(
@@ -36,7 +36,7 @@ class PodFormatter(WorkloadFormatter):
                 'status': PodStatusParser(resource_dict).parse(),
                 'readyCnt': len([s for s in container_statuses if s['ready']]),
                 'totalCnt': len(container_statuses),
-                'restartCnt': sum([s['restartCount'] for s in container_statuses])
+                'restartCnt': sum([s['restartCount'] for s in container_statuses]),
             }
         )
         return res
