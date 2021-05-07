@@ -40,7 +40,7 @@ from backend.celery_app.tasks.application import update_create_error_record
 from backend.components.bcs import mesos
 from backend.utils.errcodes import ErrorCode
 
-from .utils import ignore_record
+from .utils import exclude_records
 
 logger = logging.getLogger(__name__)
 
@@ -288,7 +288,7 @@ class GetMusterTemplate(BaseMusterMetric):
             labels = metadata.get("labels", {})
             cluster_id = labels.get("io.tencent.bcs.clusterid")
             namespace = metadata.get("namespace")
-            if ignore_record(
+            if exclude_records(
                 request_cluster_id,
                 cluster_id,
                 cluster_type,
@@ -718,7 +718,7 @@ class AppInstance(BaseMusterMetric):
             metadata = conf.get("metadata", {})
             labels = metadata.get("labels")
             cluster_id = labels.get("io.tencent.bcs.clusterid")
-            if ignore_record(
+            if exclude_records(
                 request_cluster_id,
                 cluster_id,
                 cluster_type,
