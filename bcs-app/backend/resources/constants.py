@@ -73,7 +73,7 @@ class K8sResourceKind(ChoicesEnum):
         (Pod, "Pod"),
         (PersistentVolume, "PersistentVolume"),
         (PersistentVolumeClaim, "PersistentVolumeClaim"),
-        (StorageClass, "StorageClass")
+        (StorageClass, "StorageClass"),
     )
 
 

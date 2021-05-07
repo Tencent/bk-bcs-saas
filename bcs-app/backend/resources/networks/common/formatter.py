@@ -11,19 +11,10 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-from copy import deepcopy
-from typing import Dict
-
-from backend.resources.utils.common import calculate_age
 from backend.resources.utils.format import ResourceDefaultFormatter
 
 
 class NetworkFormatter(ResourceDefaultFormatter):
     """ 网络类 资源通用格式化器 """
 
-    def format_common_dict(self, resource_dict: Dict) -> Dict:
-        metadata = deepcopy(resource_dict['metadata'])
-        self.set_metadata_null_values(metadata)
-
-        create_time, update_time = self.parse_create_update_time(metadata)
-        return {'age': calculate_age(create_time), 'createTime': create_time, 'updateTime': update_time}
+    pass
