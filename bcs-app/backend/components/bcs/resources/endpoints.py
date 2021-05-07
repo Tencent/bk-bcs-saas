@@ -14,7 +14,7 @@
 import json
 import logging
 
-from backend.resources.constants import K8sResourceKinds
+from backend.resources.constants import K8sResourceKind
 
 from .api_response import response
 from .resource import CoreAPIClassMixins, Resource
@@ -23,7 +23,7 @@ logger = logging.getLogger(__name__)
 
 
 class Endpoints(Resource, CoreAPIClassMixins):
-    resource_kind = K8sResourceKinds.Endpoints.value
+    resource_kind = K8sResourceKind.Endpoints.value
 
     @response(format_data=False)
     def get_endpoints(self, params):

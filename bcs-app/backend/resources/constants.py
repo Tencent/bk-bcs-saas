@@ -13,6 +13,9 @@
 #
 from backend.utils.basic import ChoicesEnum
 
+# cronjob 不在 preferred resource 中，需要指定 api_version
+DEFAULT_CRON_JOB_API_VERSION = 'v1beta1'
+
 
 class WorkloadTypes(ChoicesEnum):
     Deployment = "Deployment"
@@ -32,10 +35,11 @@ class WorkloadTypes(ChoicesEnum):
     )
 
 
-class K8sResourceKinds(ChoicesEnum):
+class K8sResourceKind(ChoicesEnum):
     Deployment = "Deployment"
     StatefulSet = "StatefulSet"
     DaemonSet = "DaemonSet"
+    CronJob = "CronJob"
     Job = "Job"
     ConfigMap = "ConfigMap"
     Ingress = "Ingress"
@@ -50,6 +54,7 @@ class K8sResourceKinds(ChoicesEnum):
         (Deployment, "Deployment"),
         (StatefulSet, "StatefulSet"),
         (DaemonSet, "DaemonSet"),
+        (CronJob, "CronJob"),
         (Job, "Job"),
         (ConfigMap, "ConfigMap"),
         (Ingress, "Ingress"),
@@ -81,3 +86,49 @@ class PatchType(ChoicesEnum):
         (STRATEGIC_MERGE_PATCH_JSON, "application/strategic-merge-patch+json"),
         (APPLY_PATCH_YAML, "application/apply-patch+yaml"),
     )
+
+
+class PodConditionType(ChoicesEnum):
+    """ k8s PodConditionType """
+
+    PodScheduled = 'PodScheduled'
+    PodReady = 'Ready'
+    PodInitialized = 'Initialized'
+    PodReasonUnschedulable = 'Unschedulable'
+    ContainersReady = 'ContainersReady'
+
+
+class PodPhase(ChoicesEnum):
+    """ k8s PodPhase """
+
+    PodPending = 'Pending'
+    PodRunning = 'Running'
+    PodSucceeded = 'Succeeded'
+    PodFailed = 'Failed'
+    PodUnknown = 'Unknown'
+
+
+class SimplePodStatus(ChoicesEnum):
+    """
+    用于页面展示的简单 Pod 状态
+    在 k8s PodPhase 基础上细分了状态
+    """
+
+    # 原始 PodPhase 状态
+    PodPending = 'Pending'
+    PodRunning = 'Running'
+    PodSucceeded = 'Succeeded'
+    PodFailed = 'Failed'
+    PodUnknown = 'Unknown'
+    # 细分状态
+    NotReady = 'NotReady'
+    Terminating = 'Terminating'
+    Completed = 'Completed'
+
+
+class ConditionStatus(ChoicesEnum):
+    """ k8s ConditionStatus """
+
+    ConditionTrue = 'True'
+    ConditionFalse = 'False'
+    ConditionUnknown = 'Unknown'
