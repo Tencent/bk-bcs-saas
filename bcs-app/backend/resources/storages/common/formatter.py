@@ -11,14 +11,9 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-from copy import deepcopy
-from typing import Dict
-
-from backend.resources.utils.common import calculate_age
 from backend.resources.utils.format import ResourceDefaultFormatter
 
 
 class StorageFormatter(ResourceDefaultFormatter):
     """ 存储类 资源通用格式化器 """
-
     pass

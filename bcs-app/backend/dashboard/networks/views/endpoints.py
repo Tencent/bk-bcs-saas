@@ -11,9 +11,16 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-from backend.resources.utils.format import ResourceDefaultFormatter
+from rest_framework.response import Response
+
+from backend.bcs_web.viewsets import SystemViewSet
+from backend.dashboard.utils.resp import DashboardListApiRespBuilder
+from backend.resources.networks.endpoints import Endpoints
 
 
-class ConfigurationFormatter(ResourceDefaultFormatter):
-    """ 配置类 资源通用格式化器 """
-    pass
+class EndPointsViewSet(SystemViewSet):
+
+    def list(self, request, project_id, cluster_id):
+        client = Endpoints(request.ctx_cluster)
+        response_data = DashboardListApiRespBuilder(client).build()
+        return Response(response_data)

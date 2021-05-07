@@ -11,9 +11,15 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-from backend.resources.utils.format import ResourceDefaultFormatter
+from typing import Dict
+
+from backend.resources.rbac.common.formatter import RBACFormatter
 
 
-class ConfigurationFormatter(ResourceDefaultFormatter):
-    """ 配置类 资源通用格式化器 """
-    pass
+class ServiceAccountFormatter(RBACFormatter):
+    """ ServiceAccount 格式化 """
+
+    def format_dict(self, resource_dict: Dict) -> Dict:
+        res = self.format_common_dict(resource_dict)
+        res.update({'secrets': len(resource_dict['secrets'])})
+        return res

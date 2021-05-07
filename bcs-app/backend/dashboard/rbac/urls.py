@@ -11,9 +11,10 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-from backend.resources.utils.format import ResourceDefaultFormatter
+from rest_framework import routers
 
+from . import views
 
-class ConfigurationFormatter(ResourceDefaultFormatter):
-    """ 配置类 资源通用格式化器 """
-    pass
+router = routers.DefaultRouter(trailing_slash=True)
+
+router.register(r'service_accounts', views.ServiceAccountViewSet, base_name='service_account')

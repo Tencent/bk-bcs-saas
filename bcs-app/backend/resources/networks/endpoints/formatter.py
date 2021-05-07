@@ -11,13 +11,25 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-from typing import Dict
+from itertools import product
+from typing import Dict, List
 
-from backend.resources.utils.format import ResourceDefaultFormatter
+from backend.resources.networks.common.formatter import NetworkFormatter
 
 
-class NamespaceFormatter(ResourceDefaultFormatter):
-    """ 命名空间 格式化器 """
+class EndpointsFormatter(NetworkFormatter):
+    """ Endpoints 格式化 """
+
+    def parse_endpoints(self, resource_dict: Dict) -> List:
+        """ 解析 endpoints 信息 """
+        endpoints = []
+        for subset in resource_dict.get('subsets', []):
+            ips = [addr['ip'] for addr in subset.get('addresses', [])]
+            ports = [p['port'] for p in subset.get('ports', [])]
+            endpoints.extend([f'{ip}:{port}' for ip, port in product(ips, ports)])
+        return endpoints
 
     def format_dict(self, resource_dict: Dict) -> Dict:
-        return self.format_common_dict(resource_dict)
+        res = self.format_common_dict(resource_dict)
+        res.update({'endpoints': self.parse_endpoints(resource_dict)})
+        return res

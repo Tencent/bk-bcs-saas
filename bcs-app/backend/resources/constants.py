@@ -54,26 +54,36 @@ class K8sResourceKind(ChoicesEnum):
     PersistentVolume = "PersistentVolume"
     PersistentVolumeClaim = "PersistentVolumeClaim"
     StorageClass = "StorageClass"
+    # rbac
+    ServiceAccount = "ServiceAccount"
     # other
     Namespace = "Namespace"
     Node = "Node"
 
     _choices_labels = (
+        # workload
         (Deployment, "Deployment"),
         (StatefulSet, "StatefulSet"),
         (DaemonSet, "DaemonSet"),
         (CronJob, "CronJob"),
         (Job, "Job"),
-        (ConfigMap, "ConfigMap"),
-        (Ingress, "Ingress"),
-        (Secret, "Secret"),
-        (Service, "service"),
-        (Endpoints, "Endpoints"),
-        (Namespace, "Namespace"),
         (Pod, "Pod"),
+        # network
+        (Endpoints, "Endpoints"),
+        (Ingress, "Ingress"),
+        (Service, "service"),
+        # configuration
+        (ConfigMap, "ConfigMap"),
+        (Secret, "Secret"),
+        # storage
         (PersistentVolume, "PersistentVolume"),
         (PersistentVolumeClaim, "PersistentVolumeClaim"),
         (StorageClass, "StorageClass"),
+        # rbac
+        (ServiceAccount, "ServiceAccount"),
+        # other
+        (Namespace, "Namespace"),
+        (Node, "Node")
     )
 
 

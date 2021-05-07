@@ -14,6 +14,7 @@
 from backend.resources.configurations.configmap import ConfigMap
 from backend.resources.configurations.secret import Secret
 from backend.resources.namespace.client import Namespace
+from backend.resources.networks.endpoints import Endpoints
 from backend.resources.networks.ingress import Ingress
 from backend.resources.networks.service import Service
 from backend.resources.storages.persistent_volume import PersistentVolume
@@ -32,24 +33,15 @@ DEFAULT_SUBSCRIBE_TIMEOUT = 1
 # K8S Client
 K8S_RESOURCE_CLIENTS = [
     # workloads
-    CronJob,
-    DaemonSet,
-    Deployment,
-    Job,
-    Pod,
-    StatefulSet,
+    CronJob, DaemonSet, Deployment, Job, Pod, StatefulSet,
     # networks
-    Ingress,
-    Service,
+    Endpoints, Ingress, Service,
     # storages
-    PersistentVolume,
-    PersistentVolumeClaim,
-    StorageClass,
+    PersistentVolume, PersistentVolumeClaim, StorageClass,
     # configurations
-    ConfigMap,
-    Secret,
+    ConfigMap, Secret,
     # cluster
-    Namespace,
+    Namespace
 ]
 
 # K8S资源类型：Client
