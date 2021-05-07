@@ -11,9 +11,9 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-from .cronjob import CronJobViewSet
-from .daemonset import DaemonSetViewSet
-from .deployment import DeploymentViewSet
-from .job import JobViewSet
-from .pod import PodViewSet
-from .statefulset import StatefulSetViewSet
+from .cronjob import CronJobViewSet  # noqa
+from .daemonset import DaemonSetViewSet  # noqa
+from .deployment import DeploymentViewSet  # noqa
+from .job import JobViewSet  # noqa
+from .pod import PodViewSet  # noqa
+from .statefulset import StatefulSetViewSet  # noqa

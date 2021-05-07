@@ -23,4 +23,3 @@ class SecretsFormatter(ConfigurationFormatter):
         res = self.format_common_dict(resource_dict)
         res.update({'data': [k for k in resource_dict.get('data', {})]})
         return res
-
