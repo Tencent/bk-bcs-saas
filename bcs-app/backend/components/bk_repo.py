@@ -92,6 +92,20 @@ class BkRepoAuth(AuthBase):
         return r
 
 
+class BkRepoRawAuth(AuthBase):
+    """用于调用原生BK Repo 系统接口的鉴权"""
+
+    def __init__(self, username: str, password: str):
+        self.username = username
+        self.password = password
+
+    def __call__(self, r: PreparedRequest):
+        # 当存在用户名和密码时，需要传递auth = (username, password)
+        if self.username and self.password:
+            r.prepare_auth((self.username, self.password))
+        return r
+
+
 class BaseRequestBkRepoError(BaseCompError):
     """Bk repo api异常基类"""
 
@@ -123,6 +137,9 @@ class BkRepoClient(BkApiClient):
         self._bk_repo_raw_config = BkRepoRawConfig()
         self._client = BaseHttpClient(
             BkRepoAuth(access_token, username, password),
+        )
+        self._raw_client = BaseHttpClient(
+            BkRepoRawAuth(username, password),
         )
 
     def create_project(self, project_code: str, project_name: str, description: str) -> Dict:
@@ -187,7 +204,7 @@ class BkRepoClient(BkApiClient):
         :returns: 返回项目下的chart列表
         """
         url = self._bk_repo_raw_config.list_charts.format(project_name=project_name, repo_name=repo_name)
-        return self._client.request_json("GET", url, params={"startTime": start_time})
+        return self._raw_client.request_json("GET", url, params={"startTime": start_time})
 
     def get_chart_versions(self, project_name: str, repo_name: str, chart_name: str) -> List:
         """获取项目下指定chart的版本列表
@@ -200,7 +217,7 @@ class BkRepoClient(BkApiClient):
         url = self._bk_repo_raw_config.get_chart_versions.format(
             project_name=project_name, repo_name=repo_name, chart_name=chart_name
         )
-        return self._client.request_json("GET", url)
+        return self._raw_client.request_json("GET", url)
 
     def get_chart_version_detail(self, project_name: str, repo_name: str, chart_name: str, version: str) -> Dict:
         """获取指定chart版本的详情
@@ -214,7 +231,7 @@ class BkRepoClient(BkApiClient):
         url = self._bk_repo_raw_config.get_chart_version_detail.format(
             project_name=project_name, repo_name=repo_name, chart_name=chart_name, version=version
         )
-        return self._client.request_json("GET", url)
+        return self._raw_client.request_json("GET", url)
 
     def delete_chart_version(self, project_name: str, repo_name: str, chart_name: str, version: str) -> Dict:
         """删除chart版本
@@ -228,7 +245,7 @@ class BkRepoClient(BkApiClient):
         url = self._bk_repo_raw_config.delete_chart_version.format(
             project_name=project_name, repo_name=repo_name, chart_name=chart_name, version=version
         )
-        resp = self._client.request_json("DELETE", url)
+        resp = self._raw_client.request_json("DELETE", url)
         if not (resp.get("deleted") or "no such file or directory" in resp.get("error", "")):
             raise BkRepoDeleteVersionError(f"delete chart version error, {resp}")
         return resp
