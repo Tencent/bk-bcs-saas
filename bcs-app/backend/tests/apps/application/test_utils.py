@@ -51,7 +51,7 @@ def test_k8s_job_status(replicas, available, completions, expect):
         (None, "cluster_one", "test", "prod", True),
     ],
 )
-def test_ignore_record(
+def test_exclude_records(
     cluster_id_from_params, cluster_id_from_instance, cluster_type_from_params, cluster_type_from_instance, expect
 ):
     assert (
