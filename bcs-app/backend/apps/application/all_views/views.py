@@ -29,7 +29,7 @@ from backend.apps.instance.models import InstanceConfig
 from backend.components import paas_cc
 from backend.utils.errcodes import ErrorCode
 
-from ..utils import ignore_record
+from ..utils import exclude_records
 
 CLUSTER_ENV_MAP = settings.CLUSTER_ENV_FOR_FRONT
 
@@ -86,7 +86,7 @@ class GetProjectNamespace(BaseNamespaceMetric):
         cluster_id_list = []
         ns_name_list = []
         for info in ns_list:
-            if ignore_record(
+            if exclude_records(
                 request_cluster_id,
                 info["cluster_id"],
                 cluster_type,

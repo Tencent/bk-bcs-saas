@@ -4,7 +4,7 @@ from typing import Dict
 import pytest
 
 from backend.apps.application import constants
-from backend.apps.application.utils import get_k8s_resource_status, ignore_record
+from backend.apps.application.utils import exclude_records, get_k8s_resource_status
 from backend.utils import FancyDict
 
 running = constants.ResourceStatus.Running.value
@@ -55,7 +55,7 @@ def test_ignore_record(
     cluster_id_from_params, cluster_id_from_instance, cluster_type_from_params, cluster_type_from_instance, expect
 ):
     assert (
-        ignore_record(
+        exclude_records(
             cluster_id_from_params, cluster_id_from_instance, cluster_type_from_params, cluster_type_from_instance
         )
         is expect

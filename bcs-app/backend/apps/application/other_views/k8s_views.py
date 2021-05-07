@@ -40,7 +40,7 @@ from backend.utils.errcodes import ErrorCode
 from backend.utils.error_codes import ErrorCode as ErrorCodeCls
 from backend.utils.error_codes import error_codes
 
-from ..utils import ignore_record
+from ..utils import exclude_records
 
 logger = logging.getLogger(__name__)
 
@@ -94,7 +94,7 @@ class K8SMuster(object):
             cluster_id = ((config.get("metadata") or {}).get("labels") or {}).get("io.tencent.bcs.clusterid")
             muster_id = int(((config.get("metadata") or {}).get("labels") or {}).get("io.tencent.paas.templateid"))
             # 判断是否忽略当前记录
-            if ignore_record(
+            if exclude_records(
                 request_cluster_id,
                 cluster_id,
                 cluster_type,

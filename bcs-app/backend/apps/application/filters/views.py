@@ -22,7 +22,7 @@ from backend.apps.configuration.models import Template
 from backend.apps.instance.constants import InsState
 from backend.apps.instance.models import InstanceConfig, VersionInstance
 
-from ..utils import ignore_record
+from ..utils import exclude_records
 
 
 class BaseFilter(BaseAPI):
@@ -95,7 +95,7 @@ class GetAllMusters(BaseFilter):
             version_inst_id = info["version_inst_id"]
             template_id = version_inst_map[version_inst_id]
             curr_env = cluster_env_map.get(cluster_id)
-            if not ignore_record(request_cluster_id, cluster_id, cluster_type, cluster_env(curr_env)):
+            if not exclude_records(request_cluster_id, cluster_id, cluster_type, cluster_env(curr_env)):
                 ret_data[template_id] = all_musters[template_id]
         return ret_data
 
@@ -129,7 +129,7 @@ class GetAllInstances(BaseFilter):
         for info in version_inst_cluster:
             cluster_id = info["cluster_id"]
             curr_env = cluster_env_map.get(cluster_id)
-            if not ignore_record(request_cluster_id, cluster_id, cluster_type, cluster_env(curr_env)):
+            if not exclude_records(request_cluster_id, cluster_id, cluster_type, cluster_env(curr_env)):
                 ret_data[info["name"]] = info["id"]
         return ret_data
 

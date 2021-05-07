@@ -153,7 +153,7 @@ def retry_requests(func, params=None, data=None, max_retries=2):
     raise error_codes.APIError("query storage api error")
 
 
-def ignore_record(
+def exclude_records(
     cluster_id_from_params: str,
     cluster_id_from_instance: str,
     cluster_type_from_params: str,
