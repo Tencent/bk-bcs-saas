@@ -17,6 +17,7 @@ from backend.resources.namespace.client import Namespace
 from backend.resources.networks.endpoints import Endpoints
 from backend.resources.networks.ingress import Ingress
 from backend.resources.networks.service import Service
+from backend.resources.rbac.service_account import ServiceAccount
 from backend.resources.storages.persistent_volume import PersistentVolume
 from backend.resources.storages.persistent_volume_claim import PersistentVolumeClaim
 from backend.resources.storages.storage_class import StorageClass
@@ -36,6 +37,8 @@ K8S_RESOURCE_CLIENTS = [
     CronJob, DaemonSet, Deployment, Job, Pod, StatefulSet,
     # networks
     Endpoints, Ingress, Service,
+    # rbac
+    ServiceAccount,
     # storages
     PersistentVolume, PersistentVolumeClaim, StorageClass,
     # configurations
