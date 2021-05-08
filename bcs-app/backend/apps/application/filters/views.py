@@ -22,6 +22,8 @@ from backend.apps.configuration.models import Template
 from backend.apps.instance.constants import InsState
 from backend.apps.instance.models import InstanceConfig, VersionInstance
 
+from ..utils import exclude_records
+
 
 class BaseFilter(BaseAPI):
     def get_muster(self, project_id):
@@ -69,8 +71,6 @@ class BaseFilter(BaseAPI):
     def get_cluster_category(self, request, kind):
         """获取类型"""
         cluster_type = request.GET.get("cluster_type")
-        if not cluster_type:
-            raise error_codes.CheckFailed(_("集群类型不正确，请确认"))
         category = request.GET.get("category")
         if kind == 1:
             if not category:
@@ -85,7 +85,9 @@ class BaseFilter(BaseAPI):
 
 
 class GetAllMusters(BaseFilter):
-    def compose_data(self, all_musters, version_inst_map, version_inst_cluster, cluster_env_map, cluster_type):
+    def compose_data(
+        self, all_musters, version_inst_map, version_inst_cluster, cluster_env_map, cluster_type, request_cluster_id
+    ):
         """组装返回数据"""
         ret_data = {}
         for info in version_inst_cluster:
@@ -93,7 +95,7 @@ class GetAllMusters(BaseFilter):
             version_inst_id = info["version_inst_id"]
             template_id = version_inst_map[version_inst_id]
             curr_env = cluster_env_map.get(cluster_id)
-            if curr_env and str(cluster_env(curr_env)) == str(cluster_type):
+            if not exclude_records(request_cluster_id, cluster_id, cluster_type, cluster_env(curr_env)):
                 ret_data[template_id] = all_musters[template_id]
         return ret_data
 
@@ -109,20 +111,25 @@ class GetAllMusters(BaseFilter):
         cluster_env_map = self.get_cluster_id_env(request, project_id)
         # 组装数据
         ret_data = self.compose_data(
-            all_musters, version_inst_map, version_inst_cluster, cluster_env_map, cluster_type
+            all_musters,
+            version_inst_map,
+            version_inst_cluster,
+            cluster_env_map,
+            cluster_type,
+            request.query_params.get("cluster_id"),
         )
         ret_data = [{"muster_id": key, "muster_name": val} for key, val in ret_data.items()]
         return APIResponse({"data": ret_data})
 
 
 class GetAllInstances(BaseFilter):
-    def compose_data(self, version_inst_cluster, cluster_env_map, cluster_type):
+    def compose_data(self, version_inst_cluster, cluster_env_map, cluster_type, request_cluster_id):
         """组装数据"""
         ret_data = {}
         for info in version_inst_cluster:
             cluster_id = info["cluster_id"]
             curr_env = cluster_env_map.get(cluster_id)
-            if curr_env and str(cluster_env(curr_env)) == str(cluster_type):
+            if not exclude_records(request_cluster_id, cluster_id, cluster_type, cluster_env(curr_env)):
                 ret_data[info["name"]] = info["id"]
         return ret_data
 
@@ -134,8 +141,11 @@ class GetAllInstances(BaseFilter):
         version_inst_map = self.get_version_instances(all_musters.keys())
         version_inst_cluster = self.get_insts(version_inst_map.keys(), category=category)
         cluster_env_map = self.get_cluster_id_env(request, project_id)
+
         # 组装返回数据
-        ret_data = self.compose_data(version_inst_cluster, cluster_env_map, cluster_type)
+        ret_data = self.compose_data(
+            version_inst_cluster, cluster_env_map, cluster_type, request.query_params.get("cluster_id")
+        )
         ret_data = [{"app_id": val, "app_name": key} for key, val in ret_data.items()]
         return APIResponse({"data": ret_data})
 
@@ -156,7 +166,11 @@ class GetAllNamespaces(BaseFilter):
             curr_env = cluster_env_map.get(cluster_id)
             if curr_env and str(cluster_env(curr_env)) == str(cluster_type):
                 ret_data.append(
-                    {"ns_id": ns_id, "ns_name": ns_name, "cluster_id": cluster_id,}
+                    {
+                        "ns_id": ns_id,
+                        "ns_name": ns_name,
+                        "cluster_id": cluster_id,
+                    }
                 )
         return ret_data
 

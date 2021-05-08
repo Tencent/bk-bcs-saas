@@ -16,7 +16,7 @@ import logging
 
 from kubernetes import client
 
-from backend.resources.constants import K8sResourceKinds
+from backend.resources.constants import K8sResourceKind
 from backend.utils.basic import getitems
 
 from .api_response import response
@@ -26,7 +26,7 @@ logger = logging.getLogger(__name__)
 
 
 class Ingress(Resource, ExtensionsAPIClassMixins):
-    resource_kind = K8sResourceKinds.Ingress.value
+    resource_kind = K8sResourceKind.Ingress.value
 
     @response()
     def create_ingress(self, namespace, data):

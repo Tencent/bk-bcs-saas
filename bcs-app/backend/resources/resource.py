@@ -65,6 +65,18 @@ class ResourceClient:
             return formatter.format(resp)
         return self.formatter.format(resp)
 
+    def watch(self, **kwargs) -> List:
+        """ 获取较指定的 ResourceVersion 更新的资源状态变更信息 """
+        return [
+            {
+                'kind': r['object'].kind,
+                'operate': r['type'],
+                'uid': r['object'].metadata.uid,
+                'manifest': r['raw_object'],
+                'manifest_ext': self.formatter.format_dict(r['raw_object']),
+            } for r in self.api.watch(**kwargs)
+        ]
+
     def create(
         self,
         body: Optional[Dict] = None,
