@@ -26,13 +26,6 @@ urlpatterns = [
         views.RepositoryCreateView.as_view({'post': 'create'}),
         name='api.bcs_k8s.helm_repositories_create',
     ),
-    # FIXME merge this interface with the defualt
-    # custom plain chartmuseum repository
-    url(
-        r'^api/bcs/k8s/configuration/(?P<project_id>\w{32})/helm/repositories/plain/$',
-        views.PlainChartMuseumProviderCreateView.as_view({'post': 'create'}),
-        name='api.bcs_k8s.helm_plain_chartmuseum_repositories_create',
-    ),
     url(
         r'^api/bcs/k8s/configuration/(?P<project_id>\w{32})/helm/repositories/lists/detailed',
         views.RepositoryView.as_view({'get': 'list_detailed'}),
@@ -117,5 +110,13 @@ urlpatterns = [
     url(
         r'^api/projects/(?P<project_id>\w{32})/helm/charts/(?P<chart_id>\d+)/$',
         views.ChartVersionViewSet.as_view({"delete": "delete"}),
+    ),
+    url(
+        r'^api/projects/(?P<project_id>\w{32})/helm/charts/(?P<chart_name>[\w\-]+)/releases/$',
+        views.HelmChartVersionsViewSet.as_view({"post": "list_releases_by_chart_versions"}),
+    ),
+    url(
+        r'^api/projects/(?P<project_id>\w{32})/helm/charts/(?P<chart_name>[\w\-]+)/$',
+        views.HelmChartVersionsViewSet.as_view({"post": "batch_delete"}),
     ),
 ]
