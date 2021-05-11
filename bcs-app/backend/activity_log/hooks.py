@@ -60,15 +60,11 @@ class DjangoSignalHooks(object):
             else:
                 activity_type = "modify"
 
-            check_and_log(
-                instance, dict(activity_type=activity_type),
-            )
+            check_and_log(instance, dict(activity_type=activity_type))
 
         @receiver(post_delete)
         def log_model_activity_delete(sender, instance, **kwargs):
-            check_and_log(
-                instance, dict(activity_type="delete",),
-            )
+            check_and_log(instance, dict(activity_type="delete"))
 
         def check_and_log(instance, params):
             checker = self.find_checker_by_instance(instance)
