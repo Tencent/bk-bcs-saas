@@ -102,11 +102,13 @@ class CoreDynamicClient(DynamicClient):
         name: Optional[str] = None,
         namespace: Optional[str] = None,
         update_method: str = "replace",
+        auto_add_version: bool = False,
         **kwargs,
     ) -> Tuple[ResourceInstance, bool]:
         """创建或修改一个 Kubernetes 资源
 
         :param update_method: 修改类型，默认为 replace，可选值 patch
+        :param auto_add_version: 当 update_method=replace 时，是否自动添加 metadata.resourceVersion 字段，默认为 False
         :returns: (instance, created)
         :raises: 当 update_method 不正确时，抛出 ValueError。调用 API 错误时，抛出 ApiException
         """
@@ -118,16 +120,20 @@ class CoreDynamicClient(DynamicClient):
             logger.info(f"Resource {resource.kind}:{name} not exists, continue creating")
             return resource.create(body=body, namespace=namespace, **kwargs), True
 
-        # 资源已存在，执行 update 逻辑
-        update_func_obj = getattr(resource, update_method)
-        if update_method == 'replace' and isinstance(body, dict):
-            body['metadata']['resourceVersion'] = obj.metadata.resourceVersion
+        # 资源已存在，执行后续的 update 逻辑
+        if update_method == 'replace' and auto_add_version:
+            self._add_resource_version(obj, body)
 
+        update_func_obj = getattr(resource, update_method)
         return update_func_obj(body=body, name=name, namespace=namespace, **kwargs), False
 
     def request(self, method, path, body=None, **params):
         # TODO: 包装转换请求异常
         return super().request(method, path, body=body, **params)
+
+    def _add_resource_version(self, obj: ResourceInstance, body: Optional[Dict] = None):
+        if isinstance(body, dict):
+            body['metadata'].setdefault('resourceVersion', obj.metadata.resourceVersion)
 
 
 @lru_cache(maxsize=128)
