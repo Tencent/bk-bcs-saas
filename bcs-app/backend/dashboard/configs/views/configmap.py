@@ -11,15 +11,16 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-from typing import Dict
+from rest_framework.response import Response
 
-from backend.resources.configurations.common.formatter import ConfigurationFormatter
+from backend.bcs_web.viewsets import SystemViewSet
+from backend.resources.configs.configmap import ConfigMap
+from backend.dashboard.utils.resp import DashboardListApiRespBuilder
 
 
-class SecretsFormatter(ConfigurationFormatter):
-    """ Secrets 格式化 """
+class ConfigMapViewSet(SystemViewSet):
 
-    def format_dict(self, resource_dict: Dict) -> Dict:
-        res = self.format_common_dict(resource_dict)
-        res.update({'data': [k for k in resource_dict.get('data', {})]})
-        return res
+    def list(self, request, project_id, cluster_id):
+        client = ConfigMap(request.ctx_cluster)
+        response_data = DashboardListApiRespBuilder(client).build()
+        return Response(response_data)

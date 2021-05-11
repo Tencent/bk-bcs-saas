@@ -13,7 +13,7 @@
 #
 from backend.resources.constants import K8sResourceKind
 from backend.resources.resource import ResourceClient
-from backend.resources.configurations.configmap.formatter import ConfigMapFormatter
+from backend.resources.configs.configmap.formatter import ConfigMapFormatter
 
 
 class ConfigMap(ResourceClient):

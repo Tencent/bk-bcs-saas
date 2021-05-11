@@ -12,6 +12,8 @@
 # specific language governing permissions and limitations under the License.
 #
 from backend.utils.basic import ChoicesEnum
+from backend.packages.blue_krill.data_types.enum import EnumField, StructuredEnum
+
 
 # cronjob 不在 preferred resource 中，需要指定 api_version
 DEFAULT_CRON_JOB_API_VERSION = 'v1beta1'
@@ -155,17 +157,14 @@ class ConditionStatus(ChoicesEnum):
     ConditionUnknown = 'Unknown'
 
 
-class PersistentVolumeAccessMode(ChoicesEnum):
+class PersistentVolumeAccessMode(str, StructuredEnum):
     """ k8s PersistentVolumeAccessMode """
 
-    ReadWriteOnce = 'ReadWriteOnce'
-    ReadOnlyMany = 'ReadOnlyMany'
-    ReadWriteMany = 'ReadWriteMany'
+    ReadWriteOnce = EnumField('ReadWriteOnce', label='RWO')
+    ReadOnlyMany = EnumField('ReadOnlyMany', label='ROX')
+    ReadWriteMany = EnumField('ReadWriteMany', label='RWX')
 
     @property
     def shortname(self):
-        return {
-            self.ReadWriteOnce.value: 'RWO',
-            self.ReadOnlyMany.value: 'ROX',
-            self.ReadWriteMany.value: 'RWX'
-        }[self.value]
+        """ k8s 官方缩写 """
+        return self.get_choice_label(self.value)

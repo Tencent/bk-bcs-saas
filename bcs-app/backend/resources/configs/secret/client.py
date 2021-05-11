@@ -13,7 +13,7 @@
 #
 from backend.resources.constants import K8sResourceKind
 from backend.resources.resource import ResourceClient
-from backend.resources.configurations.secret.formatter import SecretsFormatter
+from backend.resources.configs.secret.formatter import SecretsFormatter
 
 
 class Secret(ResourceClient):
