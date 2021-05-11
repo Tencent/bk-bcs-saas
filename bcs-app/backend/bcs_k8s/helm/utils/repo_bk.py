@@ -21,7 +21,7 @@ import yaml
 logger = logging.getLogger(__name__)
 
 
-def get_incremental_charts_and_hash_value(url_prefix, username, password, start_time):
+def get_incremental_charts_and_hash_value(project_code, username, password, start_time):
     return None, None
 
 

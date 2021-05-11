@@ -16,7 +16,7 @@ import logging
 
 from kubernetes import client
 
-from backend.resources.constants import K8sResourceKinds
+from backend.resources.constants import K8sResourceKind
 from backend.utils.basic import getitems
 
 from .api_response import response
@@ -26,7 +26,7 @@ logger = logging.getLogger(__name__)
 
 
 class Service(Resource, CoreAPIClassMixins):
-    resource_kind = K8sResourceKinds.Service.value
+    resource_kind = K8sResourceKind.Service.value
 
     def get_service_by_namespace(self, params):
         resp = self.api_instance.list_namespaced_service(params['namespace'], _preload_content=False)

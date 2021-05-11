@@ -11,20 +11,13 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-import json
+from typing import Dict
 
-from django.conf import settings
-from django.utils.translation import ugettext_lazy as _
-
-from backend.components.utils import http_delete
-from backend.utils.errcodes import ErrorCode
-from backend.utils.error_codes import error_codes
+from backend.resources.workloads.common.formatter import WorkloadFormatter
 
 
-def delete_chart_version(prefix_path, chart_name, version, username, pwd):
-    url = f"{prefix_path}/api/charts/{chart_name}/{version}"
-    resp = http_delete(url, auth=(username, pwd), raise_for_status=False)
-    # 返回{"deleted" : True} 或 {"error" : "remove xxx failed: no such file or directory"}
-    if not (resp.get("deleted") or "no such file or directory" in resp.get("error", "")):
-        raise error_codes.APIError(_("删除chart失败,{}").format(resp))
-    return resp
+class DaemonSetFormatter(WorkloadFormatter):
+    """ DaemonSet 格式化 """
+
+    def format_dict(self, resource_dict: Dict) -> Dict:
+        return self.format_common_dict(resource_dict)

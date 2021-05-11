@@ -12,7 +12,7 @@
 # specific language governing permissions and limitations under the License.
 #
 import copy
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 import arrow
 from django.utils import timezone
@@ -66,10 +66,7 @@ class ResourceDefaultFormatter:
         self.set_metadata_null_values(metadata)
 
         # Get create_time and update_time
-        create_time = self.parse_create_time(metadata)
-        update_time = metadata['annotations'].get("io.tencent.paas.updateTime") or create_time
-        if update_time:
-            update_time = normalize_datetime(update_time)
+        create_time, update_time = self.parse_create_update_time(metadata)
         return {
             "data": resource_copy,
             "clusterId": self.get_cluster_id(metadata),
@@ -93,6 +90,14 @@ class ResourceDefaultFormatter:
             d_time = arrow.get(create_time).datetime
             create_time = timezone.localtime(d_time).strftime("%Y-%m-%d %H:%M:%S")
         return create_time
+
+    def parse_create_update_time(self, metadata: Dict) -> Tuple:
+        """获取 metadata 中的 create_time, update_time"""
+        create_time = self.parse_create_time(metadata)
+        update_time = metadata['annotations'].get("io.tencent.paas.updateTime") or create_time
+        if update_time:
+            update_time = normalize_datetime(update_time)
+        return create_time, update_time
 
     def get_cluster_id(self, metadata: Dict) -> str:
         """获取集群 ID"""

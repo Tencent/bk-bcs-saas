@@ -55,6 +55,7 @@ tornado = "==5.1.1"
 werkzeug = "==0.15.3"
 whitenoise = "==5.2.0"
 bk-iam = "1.1.9"
+attrs = "^20.3.0"
 
 [tool.poetry.dev-dependencies]
 coverage = "4.5.3"

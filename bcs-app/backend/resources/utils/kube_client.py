@@ -102,33 +102,38 @@ class CoreDynamicClient(DynamicClient):
         name: Optional[str] = None,
         namespace: Optional[str] = None,
         update_method: str = "replace",
+        auto_add_version: bool = False,
         **kwargs,
     ) -> Tuple[ResourceInstance, bool]:
         """创建或修改一个 Kubernetes 资源
 
         :param update_method: 修改类型，默认为 replace，可选值 patch
+        :param auto_add_version: 当 update_method=replace 时，是否自动添加 metadata.resourceVersion 字段，默认为 False
         :returns: (instance, created)
         :raises: 当 update_method 不正确时，抛出 ValueError。调用 API 错误时，抛出 ApiException
         """
         if update_method not in ["replace", "patch"]:
             raise ValueError("Invalid update_method {}".format(update_method))
 
-        try:
-            update_func_obj = getattr(resource, update_method)
-            obj = update_func_obj(body=body, name=name, namespace=namespace, **kwargs)
-            return obj, False
-        except ApiException as e:
-            # Only continue when resource is not found
-            if e.status != 404:
-                raise
+        obj = self.get_or_none(resource, name=name, namespace=namespace, **kwargs)
+        if not obj:
+            logger.info(f"Resource {resource.kind}:{name} not exists, continue creating")
+            return resource.create(body=body, namespace=namespace, **kwargs), True
 
-        logger.info(f"Updating {resource.kind}:{name} failed, resource not exists, continue creating")
-        obj = resource.create(body=body, namespace=namespace, **kwargs)
-        return obj, True
+        # 资源已存在，执行后续的 update 逻辑
+        if update_method == 'replace' and auto_add_version:
+            self._add_resource_version(obj, body)
+
+        update_func_obj = getattr(resource, update_method)
+        return update_func_obj(body=body, name=name, namespace=namespace, **kwargs), False
 
     def request(self, method, path, body=None, **params):
         # TODO: 包装转换请求异常
         return super().request(method, path, body=body, **params)
+
+    def _add_resource_version(self, obj: ResourceInstance, body: Optional[Dict] = None):
+        if isinstance(body, dict):
+            body['metadata'].setdefault('resourceVersion', obj.metadata.resourceVersion)
 
 
 @lru_cache(maxsize=128)
