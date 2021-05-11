@@ -11,11 +11,23 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-from backend.resources.constants import K8sResourceKind
-from backend.resources.resource import ResourceClient
-from backend.resources.configurations.secret.formatter import SecretsFormatter
+import json
+import pytest
+
+from backend.resources.workloads.cronjob.formatter import CronJobFormatter
 
 
-class Secret(ResourceClient):
-    kind = K8sResourceKind.Secret.value
-    formatter = SecretsFormatter()
+@pytest.fixture(scope="module", autouse=True)
+def cronjob_configs():
+    with open('backend/tests/resources/formatter/workloads/contents/cronjob.json') as fr:
+        configs = json.load(fr)
+    return configs
+
+
+class TestCronjobFormatter:
+
+    def test_format_dict(self, cronjob_configs):
+        """ 测试 format_dict 方法 """
+        result = CronJobFormatter().format_dict(cronjob_configs['normal'])
+        assert set(result.keys()) == {'active', 'lastSchedule', 'images', 'age', 'createTime', 'updateTime'}
+        assert result['images'] == ['busybox']

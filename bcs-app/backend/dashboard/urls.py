@@ -13,7 +13,7 @@
 #
 from django.conf.urls import include, url
 
-from backend.dashboard.configurations.urls import router as config_router
+from backend.dashboard.configs.urls import router as config_router
 from backend.dashboard.namespaces.urls import router as namespace_router
 from backend.dashboard.networks.urls import router as network_router
 from backend.dashboard.rbac.urls import router as rbac_router

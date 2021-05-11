@@ -11,8 +11,8 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-from backend.resources.configurations.configmap import ConfigMap
-from backend.resources.configurations.secret import Secret
+from backend.resources.configs.configmap import ConfigMap
+from backend.resources.configs.secret import Secret
 from backend.resources.namespace.client import Namespace
 from backend.resources.networks.endpoints import Endpoints
 from backend.resources.networks.ingress import Ingress

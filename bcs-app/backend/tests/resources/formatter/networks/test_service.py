@@ -11,15 +11,24 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-from typing import Dict
+import json
+import pytest
 
-from backend.resources.configurations.common.formatter import ConfigurationFormatter
+from backend.resources.networks.service.formatter import ServiceFormatter
 
 
-class ConfigMapFormatter(ConfigurationFormatter):
-    """ ConfigMap 格式化 """
+@pytest.fixture(scope="module", autouse=True)
+def service_configs():
+    with open('backend/tests/resources/formatter/networks/contents/service.json') as fr:
+        configs = json.load(fr)
+    return configs
 
-    def format_dict(self, resource_dict: Dict) -> Dict:
-        res = self.format_common_dict(resource_dict)
-        res.update({'data': [k for k in resource_dict.get('data', {})]})
-        return res
+
+class TestServiceFormatter:
+
+    def test_format_dict(self, service_configs):
+        """ 测试 format_dict 方法 """
+        result = ServiceFormatter().format_dict(service_configs['normal'])
+        assert set(result.keys()) == {'externalIP', 'ports', 'age', 'createTime', 'updateTime'}
+        assert result['externalIP'] == ['127.xxx.xxx.xx9', 'localhost']
+        assert result['ports'] == ['8080:30608/TCP']

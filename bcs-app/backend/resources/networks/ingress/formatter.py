@@ -35,9 +35,9 @@ class IngressFormatter(NetworkFormatter):
                 addresses.append(ingress['hostname'])
         return addresses
 
-    def parse_ports(self, resource_dict: Dict) -> Union[str, int]:
+    def parse_default_ports(self, resource_dict: Dict) -> Union[str, int]:
         """
-        解析 Ingress port
+        解析 Ingress 默认 port
         默认是 HTTP 端口，如果有TLS配置则为 HTTP + HTTPS 端口
         """
         return '80, 443' if 'tls' in resource_dict['spec'] else '80'
@@ -48,7 +48,7 @@ class IngressFormatter(NetworkFormatter):
             {
                 'hosts': self.parse_hosts(resource_dict),
                 'addresses': self.parse_addresses(resource_dict),
-                'ports': self.parse_ports(resource_dict)
+                'default_ports': self.parse_default_ports(resource_dict)
             }
         )
         return res

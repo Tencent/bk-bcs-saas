@@ -11,16 +11,23 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-from rest_framework.response import Response
+import json
+import pytest
 
-from backend.bcs_web.viewsets import SystemViewSet
-from backend.resources.configurations.secret import Secret
-from backend.dashboard.utils.resp import DashboardListApiRespBuilder
+from backend.resources.storages.persistent_volume_claim.formatter import PersistentVolumeClaimFormatter
 
 
-class SecretViewSet(SystemViewSet):
+@pytest.fixture(scope="module", autouse=True)
+def persistent_volume_claim_configs():
+    with open('backend/tests/resources/formatter/storages/contents/persistent_volume_claim.json') as fr:
+        configs = json.load(fr)
+    return configs
 
-    def list(self, request, project_id, cluster_id):
-        client = Secret(request.ctx_cluster)
-        response_data = DashboardListApiRespBuilder(client).build()
-        return Response(response_data)
+
+class TestPersistentVolumeFormatter:
+
+    def test_format_dict(self, persistent_volume_claim_configs):
+        """ 测试 format_dict 方法 """
+        result = PersistentVolumeClaimFormatter().format_dict(persistent_volume_claim_configs['normal'])
+        assert set(result.keys()) == {'accessModes', 'age', 'createTime', 'updateTime'}
+        assert result['accessModes'] == ['RWO']

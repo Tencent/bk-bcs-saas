@@ -11,11 +11,23 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-from backend.resources.constants import K8sResourceKind
-from backend.resources.resource import ResourceClient
-from backend.resources.configurations.configmap.formatter import ConfigMapFormatter
+import json
+import pytest
+
+from backend.resources.workloads.daemonset.formatter import DaemonSetFormatter
 
 
-class ConfigMap(ResourceClient):
-    kind = K8sResourceKind.ConfigMap.value
-    formatter = ConfigMapFormatter()
+@pytest.fixture(scope="module", autouse=True)
+def daemonset_configs():
+    with open('backend/tests/resources/formatter/workloads/contents/daemonset.json') as fr:
+        configs = json.load(fr)
+    return configs
+
+
+class TestDaemonsetFormatter:
+
+    def test_format_dict(self, daemonset_configs):
+        """ 测试 format_dict 方法 """
+        result = DaemonSetFormatter().format_dict(daemonset_configs['normal'])
+        assert set(result.keys()) == {'images', 'age', 'createTime', 'updateTime'}
+        assert result['images'] == ['k8s.gcr.io/kube-proxy:v1.20.2']
