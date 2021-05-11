@@ -17,7 +17,7 @@ import requests
 from backend.components.base import (
     BaseHttpClient,
     CompInternalError,
-    CompParseResponseError,
+    CompParseBkCommonResponseError,
     CompRequestError,
     response_handler,
     update_request_body,
@@ -119,7 +119,7 @@ class TestBkCommonResponseHandler:
         assert data == expected_data
 
     def test_response_error_data_hander(self):
-        with pytest.raises(CompParseResponseError):
+        with pytest.raises(CompParseBkCommonResponseError):
             response_handler()(self.func_error)()
 
     @pytest.mark.parametrize(
@@ -132,5 +132,5 @@ class TestBkCommonResponseHandler:
         ],
     )
     def test_response_raw_hander(self, default_data, func, expected_data):
-        data = response_handler(default_data)(getattr(self, func)).get_raw_response()
+        data = response_handler(default_data)(getattr(self, func)).raw_request()
         assert data == expected_data
