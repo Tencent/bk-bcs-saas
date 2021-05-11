@@ -34,6 +34,20 @@ python-versions = "*"
 python-dateutil = "*"
 
 [[package]]
+name = "asgiref"
+version = "3.3.4"
+description = "ASGI specs, helper code, and adapters"
+category = "main"
+optional = false
+python-versions = ">=3.6"
+
+[package.dependencies]
+typing-extensions = {version = "*", markers = "python_version < \"3.8\""}
+
+[package.extras]
+tests = ["pytest", "pytest-asyncio", "mypy (>=0.800)"]
+
+[[package]]
 name = "asn1crypto"
 version = "1.4.0"
 description = "Fast ASN.1 parser and serializer with definitions for private keys, public keys, certificates, CRL, OCSP, CMS, PKCS#3, PKCS#7, PKCS#8, PKCS#12, PKCS#5, X.509 and TSP"
@@ -285,17 +299,19 @@ python-versions = ">=2.6, !=3.0.*, !=3.1.*"
 
 [[package]]
 name = "django"
-version = "1.11.23"
+version = "3.2.2"
 description = "A high-level Python Web framework that encourages rapid development and clean, pragmatic design."
 category = "main"
 optional = false
-python-versions = "*"
+python-versions = ">=3.6"
 
 [package.dependencies]
+asgiref = ">=3.3.2,<4"
 pytz = "*"
+sqlparse = ">=0.2.2"
 
 [package.extras]
-argon2 = ["argon2-cffi (>=16.1.0)"]
+argon2 = ["argon2-cffi (>=19.1.0)"]
 bcrypt = ["bcrypt"]
 
 [[package]]
@@ -312,11 +328,14 @@ django = ">=1.8"
 
 [[package]]
 name = "django-cors-headers"
-version = "2.1.0"
+version = "3.7.0"
 description = "django-cors-headers is a Django application for handling the server headers required for Cross-Origin Resource Sharing (CORS)."
 category = "main"
 optional = false
-python-versions = "*"
+python-versions = ">=3.6"
+
+[package.dependencies]
+Django = ">=2.2"
 
 [[package]]
 name = "django-extensions"
@@ -362,11 +381,14 @@ six = ">=1.4.1"
 
 [[package]]
 name = "djangorestframework"
-version = "3.6.4"
+version = "3.12.4"
 description = "Web APIs for Django, made easy."
 category = "main"
 optional = false
-python-versions = "*"
+python-versions = ">=3.5"
+
+[package.dependencies]
+django = ">=2.2"
 
 [[package]]
 name = "docutils"
@@ -629,14 +651,14 @@ python-versions = ">=2.6, !=3.0.*, !=3.1.*, !=3.2.*"
 
 [[package]]
 name = "jsonfield"
-version = "2.0.2"
+version = "3.1.0"
 description = "A reusable Django field that allows you to store validated JSON in your model."
 category = "main"
 optional = false
-python-versions = "*"
+python-versions = ">=3.6"
 
 [package.dependencies]
-Django = ">=1.8.0"
+Django = ">=2.2"
 
 [[package]]
 name = "jsonschema"
@@ -937,11 +959,15 @@ test = ["pytest (>3,<4)", "pytest-cov", "pytest-runner"]
 
 [[package]]
 name = "pymysql"
-version = "0.6.7"
-description = "Pure-Python MySQL Driver"
+version = "1.0.2"
+description = "Pure Python MySQL Driver"
 category = "main"
 optional = false
-python-versions = "*"
+python-versions = ">=3.6"
+
+[package.extras]
+ed25519 = ["PyNaCl (>=1.4.0)"]
+rsa = ["cryptography"]
 
 [[package]]
 name = "pytest"
@@ -1171,6 +1197,14 @@ optional = false
 python-versions = "*"
 
 [[package]]
+name = "sqlparse"
+version = "0.4.1"
+description = "A non-validating SQL parser."
+category = "main"
+optional = false
+python-versions = ">=3.5"
+
+[[package]]
 name = "tornado"
 version = "5.1.1"
 description = "Tornado is a Python web framework and asynchronous networking library, originally developed at FriendFeed."
@@ -1198,7 +1232,7 @@ test = ["pytest", "mock"]
 name = "typing-extensions"
 version = "3.7.4.3"
 description = "Backported and Experimental Type Hints for Python 3.5+"
-category = "dev"
+category = "main"
 optional = false
 python-versions = "*"
 
@@ -1277,7 +1311,7 @@ testing = ["pytest (>=3.5,!=3.7.3)", "pytest-checkdocs (>=1.2.3)", "pytest-flake
 [metadata]
 lock-version = "1.1"
 python-versions = "~3.6"
-content-hash = "aa0be0e1d9b7e7247a8ba8eb0dd99659f2091b8d07d3657861a01c7bdc796d3c"
+content-hash = "9d20ca7c47152074a98b4ce8135a579e8b1257b5d90874ba1a5b7d7b13af9818"
 
 [metadata.files]
 amqp = [
@@ -1293,6 +1327,10 @@ appnope = [
 ]
 arrow = [
     {file = "arrow-0.10.0.tar.gz", hash = "sha256:805906f09445afc1f0fc80187db8fe07670e3b25cdafa09b8d8ac264a8c0c722"},
+]
+asgiref = [
+    {file = "asgiref-3.3.4-py3-none-any.whl", hash = "sha256:92906c611ce6c967347bbfea733f13d6313901d54dcca88195eaeb52b2a8e8ee"},
+    {file = "asgiref-3.3.4.tar.gz", hash = "sha256:d1216dfbdfb63826470995d31caed36225dcaf34f182e0fa257a4dd9e86f1b78"},
 ]
 asn1crypto = [
     {file = "asn1crypto-1.4.0-py2.py3-none-any.whl", hash = "sha256:4bcdf33c861c7d40bdcd74d8e4dd7661aac320fcdf40b9a3f95b4ee12fde2fa8"},
@@ -1478,16 +1516,16 @@ decorator = [
     {file = "decorator-4.4.2.tar.gz", hash = "sha256:e3a62f0520172440ca0dcc823749319382e377f37f140a0b99ef45fecb84bfe7"},
 ]
 django = [
-    {file = "Django-1.11.23-py2.py3-none-any.whl", hash = "sha256:c85b8c95366e187ca0581d45a6e508107ca4bd38cb45c24aa09d3572074c523d"},
-    {file = "Django-1.11.23.tar.gz", hash = "sha256:52a66d7f8b036d02da0a4472359e8be1727424fc1e4b4f5c684ef97de7b569e1"},
+    {file = "Django-3.2.2-py3-none-any.whl", hash = "sha256:18dd3145ddbd04bf189ff79b9954d08fda5171ea7b57bf705789fea766a07d50"},
+    {file = "Django-3.2.2.tar.gz", hash = "sha256:0a1d195ad65c52bf275b8277b3d49680bd1137a5f55039a806f25f6b9752ce3d"},
 ]
 django-celery = [
     {file = "django-celery-3.2.1.tar.gz", hash = "sha256:926a65bcee6bf2d192a80239f1ec591e1834ff19a547f61762e57fc0dcc5975f"},
     {file = "django_celery-3.2.1-py2-none-any.whl", hash = "sha256:2d5d0c997fe1cc6c98a9c2a6cf91348f3fbff2438b63e43fa5e9fdadf033ed25"},
 ]
 django-cors-headers = [
-    {file = "django-cors-headers-2.1.0.tar.gz", hash = "sha256:451bc37a514792c2b46c52362368f7985985933ecdbf1a85f82652579a5cbe01"},
-    {file = "django_cors_headers-2.1.0-py2.py3-none-any.whl", hash = "sha256:4e02be61ffaaab5917f1fd7cc3c305c4fb7ccd0156a649c96f49bc0a09c5f572"},
+    {file = "django-cors-headers-3.7.0.tar.gz", hash = "sha256:96069c4aaacace786a34ee7894ff680780ec2644e4268b31181044410fecd12e"},
+    {file = "django_cors_headers-3.7.0-py3-none-any.whl", hash = "sha256:1ac2b1213de75a251e2ba04448da15f99bcfcbe164288ae6b5ff929dc49b372f"},
 ]
 django-extensions = [
     {file = "django-extensions-2.0.7.tar.gz", hash = "sha256:94bfac99eb262c5ac27e53eda96925e2e53fe0b331af7dde37012d07639a649c"},
@@ -1506,8 +1544,8 @@ django-yamlfield = [
     {file = "django_yamlfield-1.0.3-py2.py3-none-any.whl", hash = "sha256:347bfcb779468e51baedf1f2e6357b7558fcc5d082a63ca5767c3be6ad0856e5"},
 ]
 djangorestframework = [
-    {file = "djangorestframework-3.6.4-py2.py3-none-any.whl", hash = "sha256:0f9bfbac702f3376dfb2db4971ad8af4e066bfa35393b1b85e085f7e8b91189a"},
-    {file = "djangorestframework-3.6.4.tar.gz", hash = "sha256:de8ac68b3cf6dd41b98e01dcc92dc0022a5958f096eafc181a17fa975d18ca42"},
+    {file = "djangorestframework-3.12.4-py3-none-any.whl", hash = "sha256:6d1d59f623a5ad0509fe0d6bfe93cbdfe17b8116ebc8eda86d45f6e16e819aaf"},
+    {file = "djangorestframework-3.12.4.tar.gz", hash = "sha256:f747949a8ddac876e879190df194b925c177cdeb725a099db1460872f7c0a7f2"},
 ]
 docutils = [
     {file = "docutils-0.16-py2.py3-none-any.whl", hash = "sha256:0c5b78adfbf7762415433f5515cd5c9e762339e23369dbe8000d84a4bf4ab3af"},
@@ -1664,8 +1702,8 @@ jmespath = [
     {file = "jmespath-0.10.0.tar.gz", hash = "sha256:b85d0567b8666149a93172712e68920734333c0ce7e89b78b3e987f71e5ed4f9"},
 ]
 jsonfield = [
-    {file = "jsonfield-2.0.2-py2.py3-none-any.whl", hash = "sha256:a0a7fdee736ff049059409752b045281a225610fecbda9b9bd588ba976493c12"},
-    {file = "jsonfield-2.0.2.tar.gz", hash = "sha256:beb1cd4850d6d6351c32daefcb826c01757744e9c863228a642f87a1a4acb834"},
+    {file = "jsonfield-3.1.0-py3-none-any.whl", hash = "sha256:df857811587f252b97bafba42e02805e70a398a7a47870bc6358a0308dd689ed"},
+    {file = "jsonfield-3.1.0.tar.gz", hash = "sha256:7e4e84597de21eeaeeaaa7cc5da08c61c48a9b64d0c446b2d71255d01812887a"},
 ]
 jsonschema = [
     {file = "jsonschema-2.6.0-py2.py3-none-any.whl", hash = "sha256:000e68abd33c972a5248544925a0cae7d1125f9bf6c58280d37546b946769a08"},
@@ -1891,8 +1929,8 @@ pyjwt = [
     {file = "PyJWT-1.5.3.tar.gz", hash = "sha256:500be75b17a63f70072416843dc80c8821109030be824f4d14758f114978bae7"},
 ]
 pymysql = [
-    {file = "PyMySQL-0.6.7-py2.py3-none-any.whl", hash = "sha256:9d9449dbdcf20cec015ee2692eef791547e44de527e8fdeb7211d7c1fc178104"},
-    {file = "PyMySQL-0.6.7.tar.gz", hash = "sha256:e549649db3b1a9317c6027175197458bfb4f55357828410ed4f768fc6ce35f0f"},
+    {file = "PyMySQL-1.0.2-py3-none-any.whl", hash = "sha256:41fc3a0c5013d5f039639442321185532e3e2c8924687abe6537de157d403641"},
+    {file = "PyMySQL-1.0.2.tar.gz", hash = "sha256:816927a350f38d56072aeca5dfb10221fe1dc653745853d30a216637f5d7ad36"},
 ]
 pytest = [
     {file = "pytest-4.5.0-py2.py3-none-any.whl", hash = "sha256:b8bf138592384bd4e87338cb0f256bf5f615398a649d4bd83915f0e4047a5ca6"},
@@ -2006,6 +2044,10 @@ simplegeneric = [
 six = [
     {file = "six-1.11.0-py2.py3-none-any.whl", hash = "sha256:832dc0e10feb1aa2c68dcc57dbb658f1c7e65b9b61af69048abc87a2db00a0eb"},
     {file = "six-1.11.0.tar.gz", hash = "sha256:70e8a77beed4562e7f14fe23a786b54f6296e34344c23bc42f07b15018ff98e9"},
+]
+sqlparse = [
+    {file = "sqlparse-0.4.1-py3-none-any.whl", hash = "sha256:017cde379adbd6a1f15a61873f43e8274179378e95ef3fede90b5aa64d304ed0"},
+    {file = "sqlparse-0.4.1.tar.gz", hash = "sha256:0f91fd2e829c44362cbcfab3e9ae12e22badaa8a29ad5ff599f9ec109f0454e8"},
 ]
 tornado = [
     {file = "tornado-5.1.1-cp35-cp35m-win32.whl", hash = "sha256:732e836008c708de2e89a31cb2fa6c0e5a70cb60492bee6f1ea1047500feaf7f"},
