@@ -4,7 +4,6 @@ arrow==0.10.0
 asgiref==3.3.4; python_version >= "3.6"
 asn1crypto==1.4.0; python_version >= "2.7" and python_full_version < "3.0.0" or python_full_version >= "3.4.0"
 billiard==3.3.0.23
-bk-iam==1.1.9; (python_version >= "2.7" and python_full_version < "3.0.0") or (python_full_version >= "3.6.0" and python_version < "4")
 bleach==2.0.0
 boto3==1.7.84
 boto==2.49.0
@@ -83,3 +82,4 @@ webencodings==0.5.1; python_version >= "2.7" and python_full_version < "3.0.0" o
 websocket-client==0.59.0; python_version >= "2.6" and python_full_version < "3.0.0" or python_full_version >= "3.4.0"
 werkzeug==0.15.3; (python_version >= "2.7" and python_full_version < "3.0.0") or (python_full_version >= "3.4.0")
 whitenoise==5.2.0; python_version >= "3.5" and python_version < "4"
+# Actually need bk-iam==1.1.9
