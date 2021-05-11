@@ -113,18 +113,17 @@ class CoreDynamicClient(DynamicClient):
         if update_method not in ["replace", "patch"]:
             raise ValueError("Invalid update_method {}".format(update_method))
 
-        try:
-            update_func_obj = getattr(resource, update_method)
-            obj = update_func_obj(body=body, name=name, namespace=namespace, **kwargs)
-            return obj, False
-        except ApiException as e:
-            # Only continue when resource is not found
-            if e.status != 404:
-                raise
+        obj = self.get_or_none(resource, name=name, namespace=namespace, **kwargs)
+        if not obj:
+            logger.info(f"Resource {resource.kind}:{name} not exists, continue creating")
+            return resource.create(body=body, namespace=namespace, **kwargs), True
 
-        logger.info(f"Updating {resource.kind}:{name} failed, resource not exists, continue creating")
-        obj = resource.create(body=body, namespace=namespace, **kwargs)
-        return obj, True
+        # 资源已存在，执行 update 逻辑
+        update_func_obj = getattr(resource, update_method)
+        if update_method == 'replace' and isinstance(body, dict):
+            body['metadata']['resourceVersion'] = obj.metadata.resourceVersion
+
+        return update_func_obj(body=body, name=name, namespace=namespace, **kwargs), False
 
     def request(self, method, path, body=None, **params):
         # TODO: 包装转换请求异常
