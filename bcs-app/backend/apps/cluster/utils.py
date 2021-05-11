@@ -21,7 +21,7 @@ from django.utils.translation import ugettext_lazy as _
 from rest_framework.exceptions import ValidationError
 
 from backend.components import cc
-from backend.infras.host_service import perms as host_perms
+from backend.container_service.infras.host_service import perms as host_perms
 from backend.resources.cluster import get_cluster_coes
 from backend.resources.cluster.constants import ClusterCOES
 from backend.utils.error_codes import error_codes

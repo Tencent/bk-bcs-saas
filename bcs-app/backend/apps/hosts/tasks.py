@@ -17,7 +17,7 @@ from typing import Dict
 
 from backend.apps.hosts.constants import TaskStatus
 from backend.apps.hosts.models import HostApplyTaskLog
-from backend.infras.host_service.host import get_task_state_and_steps
+from backend.container_service.infras.host_service.host import get_task_state_and_steps
 from backend.packages.blue_krill.async_utils.poll_task import (
     CallbackHandler,
     CallbackResult,
