@@ -8,4 +8,5 @@ makemessages:
 
 .PHONY: requirements.txt
 requirements.txt:
-	poetry export -f requirements.txt --output requirements.txt --without-hashes
+	# 去掉后面的 python 版本, 支持老版本的 pip 安装, 兼容标准出包流程
+	poetry export -f requirements.txt --without-hashes|cut -f1 -d";" > requirements.txt

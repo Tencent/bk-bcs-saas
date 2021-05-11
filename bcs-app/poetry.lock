@@ -316,7 +316,7 @@ bcrypt = ["bcrypt"]
 
 [[package]]
 name = "django-celery"
-version = "3.2.1"
+version = "3.3.1"
 description = "Old django celery integration project."
 category = "main"
 optional = false
@@ -1319,7 +1319,7 @@ testing = ["pytest (>=4.6)", "pytest-checkdocs (>=1.2.3)", "pytest-flake8", "pyt
 [metadata]
 lock-version = "1.1"
 python-versions = "~3.6"
-content-hash = "844d0cd99bce237bff14b6f72e2ea381290d04acc5d38ae1eb67d945fc024646"
+content-hash = "ae0280bc1402bb5699a63a3d424d7d52628df2a5fad2ab3fa963c906967e6240"
 
 [metadata.files]
 amqp = [
@@ -1528,8 +1528,8 @@ django = [
     {file = "Django-3.2.2.tar.gz", hash = "sha256:0a1d195ad65c52bf275b8277b3d49680bd1137a5f55039a806f25f6b9752ce3d"},
 ]
 django-celery = [
-    {file = "django-celery-3.2.1.tar.gz", hash = "sha256:926a65bcee6bf2d192a80239f1ec591e1834ff19a547f61762e57fc0dcc5975f"},
-    {file = "django_celery-3.2.1-py2-none-any.whl", hash = "sha256:2d5d0c997fe1cc6c98a9c2a6cf91348f3fbff2438b63e43fa5e9fdadf033ed25"},
+    {file = "django-celery-3.3.1.tar.gz", hash = "sha256:13b0bd73998dd105bc67af89445036b2a55578299fd0292a846a0c082ed959a9"},
+    {file = "django_celery-3.3.1-py3-none-any.whl", hash = "sha256:1f2b5259836867e5ad8282fd9b1edc1fa869028154d129699276e2eaace3445b"},
 ]
 django-cors-headers = [
     {file = "django-cors-headers-3.7.0.tar.gz", hash = "sha256:96069c4aaacace786a34ee7894ff680780ec2644e4268b31181044410fecd12e"},
