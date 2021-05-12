@@ -21,13 +21,18 @@ from backend.dashboard.storages.urls import router as storage_router
 from backend.dashboard.subscribe.urls import router as subscribe_router
 from backend.dashboard.workloads.urls import router as workload_router
 
-urlpatterns = [
-    url(r"^crds/", include("backend.dashboard.custom_object.urls")),
+# 可选 namespaces/:namespace 前缀的 urls 集合
+namespace_prefix_urlpatterns = [
     url(r"^configurations/", include(config_router.urls)),
-    url(r"^namespaces/", include(namespace_router.urls)),
     url(r"^networks/", include(network_router.urls)),
     url(r"^rbac/", include(rbac_router.urls)),
     url(r"^storages/", include(storage_router.urls)),
-    url(r"^subscribe/", include(subscribe_router.urls)),
     url(r"^workloads/", include(workload_router.urls)),
+]
+
+urlpatterns = [
+    url(r"^crds/", include("backend.dashboard.custom_object.urls")),
+    url(r"^namespaces/", include(namespace_router.urls)),
+    url(r"^subscribe/", include(subscribe_router.urls)),
+    url(r"^(namespaces/(?P<namespace>[\w\-.]+)/)?", include(namespace_prefix_urlpatterns)),
 ]

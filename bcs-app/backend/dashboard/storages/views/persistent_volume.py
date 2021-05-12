@@ -19,7 +19,7 @@ from backend.resources.storages.persistent_volume import PersistentVolume
 
 
 class PersistentVolumeViewSet(SystemViewSet):
-    def list(self, request, project_id, cluster_id):
+    def list(self, request, project_id, cluster_id, namespace=None):
         client = PersistentVolume(request.ctx_cluster)
         response_data = DashboardListApiRespBuilder(client).build()
         return Response(response_data)
