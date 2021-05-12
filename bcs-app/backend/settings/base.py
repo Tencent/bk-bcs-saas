@@ -126,17 +126,30 @@ WSGI_APPLICATION = "wsgi.application"
 # Database
 # https://docs.djangoproject.com/en/1.11/ref/settings/#databases
 
-DATABASES = {"default": {"ENGINE": "django.db.backends.sqlite3", "NAME": os.path.join(BASE_DIR, "db.sqlite3"),}}
+DATABASES = {
+    "default": {
+        "ENGINE": "django.db.backends.sqlite3",
+        "NAME": os.path.join(BASE_DIR, "db.sqlite3"),
+    }
+}
 
 
 # Password validation
 # https://docs.djangoproject.com/en/1.11/ref/settings/#auth-password-validators
 
 AUTH_PASSWORD_VALIDATORS = [
-    {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",},
-    {"NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",},
-    {"NAME": "django.contrib.auth.password_validation.CommonPasswordValidator",},
-    {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",},
+    {
+        "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
+    },
+    {
+        "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
+    },
+    {
+        "NAME": "django.contrib.auth.password_validation.CommonPasswordValidator",
+    },
+    {
+        "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",
+    },
 ]
 
 
@@ -219,7 +232,10 @@ def get_logging_config(log_level, rds_hander_settings=None, log_path="app.log"):
         },
         "filters": {"request_id": {"()": "backend.utils.log.RequestIdFilter"}},
         "handlers": {
-            "null": {"level": "DEBUG", "class": "logging.NullHandler",},
+            "null": {
+                "level": "DEBUG",
+                "class": "logging.NullHandler",
+            },
             "mail_admins": {"level": "ERROR", "class": "django.utils.log.AdminEmailHandler"},
             "file": {
                 "class": "logging.handlers.WatchedFileHandler",
@@ -242,7 +258,11 @@ def get_logging_config(log_level, rds_hander_settings=None, log_path="app.log"):
             },
         },
         "loggers": {
-            "django": {"handlers": ["null"], "level": "INFO", "propagate": True,},
+            "django": {
+                "handlers": ["null"],
+                "level": "INFO",
+                "propagate": True,
+            },
             "django.request": {
                 "handlers": ["console", "logstash_redis", "file"],
                 "level": "ERROR",
@@ -254,7 +274,11 @@ def get_logging_config(log_level, rds_hander_settings=None, log_path="app.log"):
                 "propagate": True,
             },
             "django.security": {"handlers": ["console", "logstash_redis", "file"], "level": "INFO", "propagate": True},
-            "root": {"handlers": ["console", "logstash_redis", "file"], "level": log_level, "propagate": False,},
+            "root": {
+                "handlers": ["console", "logstash_redis", "file"],
+                "level": log_level,
+                "propagate": False,
+            },
             "console": {  # 打印redis日志错误，防止循环错误
                 "handlers": ["console", "file"],
                 "level": log_level,
@@ -268,7 +292,10 @@ def get_logging_config(log_level, rds_hander_settings=None, log_path="app.log"):
                 "handlers": ["console", "logstash_redis", "file"],
                 "level": os.getenv("DJANGO_LOG_LEVEL", "INFO"),
             },
-            "bkpaas_auth": {"handlers": ["console", "logstash_redis", "file"], "level": "DEBUG",},
+            "bkpaas_auth": {
+                "handlers": ["console", "logstash_redis", "file"],
+                "level": "DEBUG",
+            },
             "sentry_logger": {"handlers": ["sentry"], "level": "ERROR"},
         },
     }

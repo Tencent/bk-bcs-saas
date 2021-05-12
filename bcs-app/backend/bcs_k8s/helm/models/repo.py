@@ -18,7 +18,6 @@ from django.db import models
 from django.utils import timezone
 from jsonfield import JSONField
 
-
 from backend.utils.models import BaseTSModel
 
 from .managers import RepositoryAuthManager, RepositoryManager
@@ -59,7 +58,11 @@ class Repository(BaseTSModel):
     def plain_auths(self):
         auths = list(self.auths.values("credentials", "type", "role"))
         return [
-            {"type": auth["type"], "role": auth["role"], "credentials": json.loads(auth["credentials"]),}
+            {
+                "type": auth["type"],
+                "role": auth["role"],
+                "credentials": json.loads(auth["credentials"]),
+            }
             for auth in auths
         ]
 

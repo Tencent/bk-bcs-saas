@@ -22,7 +22,6 @@ from django.db import models
 from django.utils.crypto import get_random_string
 from jsonfield import JSONField
 
-
 from backend.bcs_k8s.diff import parser
 from backend.bcs_k8s.helm.bcs_variable import get_bcs_variables, merge_valuefile_with_bcs_variables
 from backend.bcs_k8s.kubehelm.helm import KubeHelmClient
@@ -413,7 +412,10 @@ class ChartRelease(BaseTSModel):
         resources = parser.parse(self.content, namespace).values()
         for resource in resources:
             structure.append(
-                {"name": resource.name.split("/")[-1], "kind": resource.kind,}
+                {
+                    "name": resource.name.split("/")[-1],
+                    "kind": resource.kind,
+                }
             )
         self.structure = structure
         self.save(update_fields=["structure"])

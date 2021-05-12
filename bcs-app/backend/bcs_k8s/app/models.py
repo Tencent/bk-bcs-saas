@@ -279,7 +279,10 @@ class App(models.Model):
             resource_id=self.id,
             extra=extra,
             description="Helm App[{app_name}:{app_id}] upgrade, cluster[{cluster_id}], namespace[{namespace}]".format(
-                app_id=self.id, app_name=self.name, namespace=self.namespace, cluster_id=self.cluster_id,
+                app_id=self.id,
+                app_name=self.name,
+                namespace=self.namespace,
+                cluster_id=self.cluster_id,
             ),
         )
         logger_client.log(activity_status="busy")
@@ -429,7 +432,12 @@ class App(models.Model):
 
     def record_rollback_app(self, username, release_id, access_token):
         # operation record
-        extra = json.dumps(dict(access_token=access_token, release_id=release_id,))
+        extra = json.dumps(
+            dict(
+                access_token=access_token,
+                release_id=release_id,
+            )
+        )
         logger_client = client.UserActivityLogClient(
             project_id=self.project_id,
             user=username,
@@ -439,7 +447,10 @@ class App(models.Model):
             resource_id=self.id,
             extra=extra,
             description="Helm App[{app_name}:{app_id}] rollback, cluster[{cluster_id}], namespace[{namespace}]".format(
-                app_id=self.id, app_name=self.name, namespace=self.namespace, cluster_id=self.cluster_id,
+                app_id=self.id,
+                app_name=self.name,
+                namespace=self.namespace,
+                cluster_id=self.cluster_id,
             ),
         )
         logger_client.log(activity_status="busy")
@@ -453,13 +464,22 @@ class App(models.Model):
 
         self.reset_transitioning("rollback")
         sync_or_async(rollback_app)(
-            kwargs={"app_id": self.id, "access_token": access_token, "username": username, "release_id": release_id,}
+            kwargs={
+                "app_id": self.id,
+                "access_token": access_token,
+                "username": username,
+                "release_id": release_id,
+            }
         )
         return self
 
     def rollback_app_task(self, username, release_id, access_token):
         # simple make a copy of release, set release type, then install
-        log_client = self.record_rollback_app(username=username, access_token=access_token, release_id=release_id,)
+        log_client = self.record_rollback_app(
+            username=username,
+            access_token=access_token,
+            release_id=release_id,
+        )
         try:
             release = ChartRelease.objects.get(id=release_id)
             app_deployer = AppDeployer(app=self, access_token=access_token)
@@ -506,7 +526,12 @@ class App(models.Model):
     def get_upgrade_version_selections(self):
         options = list(self.chart.versions.values("id", "version").order_by("-created"))
         release = self.release
-        current_version = [{"id": KEEP_TEMPLATE_UNCHANGED, "version": f"{RELEASE_VERSION_PREFIX} {release.version}",}]
+        current_version = [
+            {
+                "id": KEEP_TEMPLATE_UNCHANGED,
+                "version": f"{RELEASE_VERSION_PREFIX} {release.version}",
+            }
+        ]
         options = current_version + options
         return options
 
@@ -521,7 +546,11 @@ class App(models.Model):
 
     def record_destroy(self, username, access_token):
         # operation record
-        extra = json.dumps(dict(access_token=access_token,))
+        extra = json.dumps(
+            dict(
+                access_token=access_token,
+            )
+        )
         logger_client = client.UserActivityLogClient(
             project_id=self.project_id,
             user=username,
@@ -531,7 +560,10 @@ class App(models.Model):
             resource_id=self.id,
             extra=extra,
             description="Helm App[{app_name}:{app_id}] delete, cluster[{cluster_id}], namespace[{namespace}]".format(
-                app_id=self.id, app_name=self.name, namespace=self.namespace, cluster_id=self.cluster_id,
+                app_id=self.id,
+                app_name=self.name,
+                namespace=self.namespace,
+                cluster_id=self.cluster_id,
             ),
         )
         logger_client.log(activity_status="busy")
@@ -545,7 +577,11 @@ class App(models.Model):
 
         self.reset_transitioning("delete")
         sync_or_async(destroy_app)(
-            kwargs={"app_id": self.id, "access_token": access_token, "username": username,}
+            kwargs={
+                "app_id": self.id,
+                "access_token": access_token,
+                "username": username,
+            }
         )
 
     def destroy_app_task(self, username, access_token):

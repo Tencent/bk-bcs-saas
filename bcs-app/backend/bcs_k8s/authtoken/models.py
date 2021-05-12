@@ -15,9 +15,9 @@ import rest_framework.authtoken.models
 from django.conf import settings
 from django.db import models
 from django.utils.crypto import get_random_string
-from six import python_2_unicode_compatible
 from django.utils.translation import ugettext_lazy as _
 from jsonfield import JSONField
+from six import python_2_unicode_compatible
 
 from .managers import TokenManager
 from .providers import provider_choice

@@ -19,7 +19,6 @@ from backend.apps.cluster.views.node_views.utils import MesosNodeLabelsQuerier
 from backend.components.bcs.mesos import MesosClient
 from backend.components.paas_cc import get_cluster
 
-
 fake_cc_get_cluster_result = {"code": 0, "data": {"environment": "stag"}}
 fake_mesos_agent_attrs_result = [
     {"strings": {"test": {"value": "val"}}},

@@ -96,7 +96,9 @@ class YamltoResourceList:
         res_ctx = self.res_ctx
         namespace_id = res_ctx.namespace_id
         sys_variables = bcs_variable.collect_system_variable(
-            access_token=res_ctx.access_token, project_id=res_ctx.project_id, namespace_id=namespace_id,
+            access_token=res_ctx.access_token,
+            project_id=res_ctx.project_id,
+            namespace_id=namespace_id,
         )
         bcs_variables = bcs_variable.get_bcs_variables(res_ctx.project_id, res_ctx.cluster_id, namespace_id)
         sys_variables.update(bcs_variables)

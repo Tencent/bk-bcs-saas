@@ -26,8 +26,7 @@ class JobFormatter(WorkloadFormatter):
 
         res.update(
             {
-                'duration': calculate_duration(
-                    status.get('startTime'), status.get('completionTime')),
+                'duration': calculate_duration(status.get('startTime'), status.get('completionTime')),
             }
         )
         return res

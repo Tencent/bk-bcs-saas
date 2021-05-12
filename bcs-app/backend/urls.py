@@ -59,7 +59,12 @@ urlpatterns = [
     # Ticket凭证管理
     url(r"^", include("backend.apps.ticket.urls")),
     url(r"^", include("backend.bcs_k8s.authtoken.urls")),
-    url(r"^api/hpa/projects/(?P<project_id>\w{32})/", include("backend.apps.hpa.urls",)),
+    url(
+        r"^api/hpa/projects/(?P<project_id>\w{32})/",
+        include(
+            "backend.apps.hpa.urls",
+        ),
+    ),
     # cd部分api
     url(r"^cd_api/", include("backend.apps.apis.urls")),
     url(r"^apis/", include("backend.apis.urls")),

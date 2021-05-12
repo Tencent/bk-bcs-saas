@@ -12,28 +12,32 @@
 # specific language governing permissions and limitations under the License.
 #
 import pytest
+
 from backend.resources.constants import SimplePodStatus
 from backend.resources.workloads.pod.utils import PodStatusParser
 from backend.tests.resources.utils.contents.pod_configs import (
+    CompletedStatusPodConfig,
     FailedStatusPodConfig,
-    SucceededStatusPodConfig,
-    RunningStatusPodConfig,
     PendingStatusPodConfig,
+    RunningStatusPodConfig,
+    SucceededStatusPodConfig,
     TerminatingStatusPodConfig,
     UnknownStatusPodConfig,
-    CompletedStatusPodConfig
 )
 
 
-@pytest.mark.parametrize('config, expected_status', [
-    (FailedStatusPodConfig, SimplePodStatus.PodFailed.value),
-    (SucceededStatusPodConfig, SimplePodStatus.PodSucceeded.value),
-    (RunningStatusPodConfig, SimplePodStatus.PodRunning.value),
-    (PendingStatusPodConfig, SimplePodStatus.PodPending.value),
-    (TerminatingStatusPodConfig, SimplePodStatus.Terminating.value),
-    (UnknownStatusPodConfig, SimplePodStatus.PodUnknown.value),
-    (CompletedStatusPodConfig, SimplePodStatus.Completed.value)
-])
+@pytest.mark.parametrize(
+    'config, expected_status',
+    [
+        (FailedStatusPodConfig, SimplePodStatus.PodFailed.value),
+        (SucceededStatusPodConfig, SimplePodStatus.PodSucceeded.value),
+        (RunningStatusPodConfig, SimplePodStatus.PodRunning.value),
+        (PendingStatusPodConfig, SimplePodStatus.PodPending.value),
+        (TerminatingStatusPodConfig, SimplePodStatus.Terminating.value),
+        (UnknownStatusPodConfig, SimplePodStatus.PodUnknown.value),
+        (CompletedStatusPodConfig, SimplePodStatus.Completed.value),
+    ],
+)
 def test_pod_status_parser(config, expected_status):
     """ 测试 Pod 状态解析逻辑"""
     actual_status = PodStatusParser(config).parse()

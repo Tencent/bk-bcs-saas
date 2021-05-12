@@ -21,14 +21,13 @@ from django.utils.translation import ugettext_lazy as _
 from rest_framework.exceptions import APIException, PermissionDenied
 
 from backend.bcs_k8s import kubectl
-from backend.resources.cluster.utils import get_cluster_coes
-from backend.resources.cluster.constants import ClusterCOES
 from backend.bcs_k8s.kubehelm.helm import KubeHelmClient
 from backend.bcs_k8s.utils import get_kubectl_version
 from backend.components import bcs
+from backend.resources.cluster.constants import ClusterCOES
+from backend.resources.cluster.utils import get_cluster_coes
 
 from . import constants
-
 
 logger = logging.getLogger(__name__)
 
@@ -133,7 +132,11 @@ class BCSClusterClient:
         """ 获取访问集群需要的信息 """
         context = self.get_cluster_credential()
         context.update(
-            **{'host': self.host, 'source_cluster_id': self.cluster_id, 'source_project_id': self.project_id,}
+            **{
+                'host': self.host,
+                'source_cluster_id': self.cluster_id,
+                'source_project_id': self.project_id,
+            }
         )
         return context
 
@@ -161,7 +164,9 @@ class BCSClusterClient:
     def make_kubectl_client(self):
         options = self.make_kubectl_options()
         cluster = kubectl.Cluster(
-            name=self.cluster_id, cert=options.pop('client-certificate'), server=options.pop('server'),
+            name=self.cluster_id,
+            cert=options.pop('client-certificate'),
+            server=options.pop('server'),
         )
         user = kubectl.User(name=constants.BCS_USER_NAME, token=options['token'])
         context = kubectl.Context(name=constants.BCS_USER_NAME, user=user, cluster=cluster)
@@ -177,14 +182,19 @@ class BCSClusterClient:
         """组装携带kubeconfig的helm client"""
         options = self.make_kubectl_options()
         cluster = kubectl.Cluster(
-            name=self.cluster_id, cert=options.pop('client-certificate'), server=options.pop('server'),
+            name=self.cluster_id,
+            cert=options.pop('client-certificate'),
+            server=options.pop('server'),
         )
         user = kubectl.User(name=constants.BCS_USER_NAME, token=options['token'])
         context = kubectl.Context(name=constants.BCS_USER_NAME, user=user, cluster=cluster)
         # NOTE: 这里直接使用helm3 client bin
         kube_config = kubectl.KubeConfig(contexts=[context])
         with kube_config.as_tempfile() as filename:
-            helm_client = KubeHelmClient(helm_bin=settings.HELM3_BIN, kubeconfig=filename,)
+            helm_client = KubeHelmClient(
+                helm_bin=settings.HELM3_BIN,
+                kubeconfig=filename,
+            )
             yield helm_client
 
 
