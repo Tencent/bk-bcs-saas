@@ -17,4 +17,4 @@ from . import views
 
 router = routers.DefaultRouter(trailing_slash=True)
 
-router.register(r'', views.SubscribeViewSet, base_name='subscribe')
+router.register(r'', views.SubscribeViewSet, basename='subscribe')
