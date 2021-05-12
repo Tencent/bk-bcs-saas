@@ -156,7 +156,11 @@ class GetAllNamespaces(BaseFilter):
             curr_env = cluster_env_map.get(cluster_id)
             if curr_env and str(cluster_env(curr_env)) == str(cluster_type):
                 ret_data.append(
-                    {"ns_id": ns_id, "ns_name": ns_name, "cluster_id": cluster_id,}
+                    {
+                        "ns_id": ns_id,
+                        "ns_name": ns_name,
+                        "cluster_id": cluster_id,
+                    }
                 )
         return ret_data
 

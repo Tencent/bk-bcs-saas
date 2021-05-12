@@ -74,7 +74,8 @@ class ResourceClient:
                 'uid': r['object'].metadata.uid,
                 'manifest': r['raw_object'],
                 'manifest_ext': self.formatter.format_dict(r['raw_object']),
-            } for r in self.api.watch(**kwargs)
+            }
+            for r in self.api.watch(**kwargs)
         ]
 
     def create(

@@ -34,17 +34,27 @@ DEFAULT_SUBSCRIBE_TIMEOUT = 1
 # K8S Client
 K8S_RESOURCE_CLIENTS = [
     # workloads
-    CronJob, DaemonSet, Deployment, Job, Pod, StatefulSet,
+    CronJob,
+    DaemonSet,
+    Deployment,
+    Job,
+    Pod,
+    StatefulSet,
     # networks
-    Endpoints, Ingress, Service,
+    Endpoints,
+    Ingress,
+    Service,
     # rbac
     ServiceAccount,
     # storages
-    PersistentVolume, PersistentVolumeClaim, StorageClass,
+    PersistentVolume,
+    PersistentVolumeClaim,
+    StorageClass,
     # configurations
-    ConfigMap, Secret,
+    ConfigMap,
+    Secret,
     # cluster
-    Namespace
+    Namespace,
 ]
 
 # K8S资源类型：Client
