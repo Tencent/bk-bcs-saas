@@ -84,7 +84,7 @@ except ImportError:
 
 
 def create_and_start_host_application(
-    cc_app_id: str, username: str, region: str, cvm_type: str, disk_size: int, replicas: int, network_type: str
+    cc_app_id: str, username: str, region: str, cvm_type: str, disk_size: int, replicas: int, vpc_name: str
 ) -> Tuple[int, str]:
     """创建并启动申请主机任务流程"""
     client = sops.SopsClient()
@@ -99,7 +99,7 @@ def create_and_start_host_application(
             "${cvm_type}": cvm_type,
             "${diskSize}": disk_size,
             "${replicas}": replicas,
-            "${network_type}": network_type,
+            "${vpc_name}": vpc_name,
         },
     )
     # 创建任务

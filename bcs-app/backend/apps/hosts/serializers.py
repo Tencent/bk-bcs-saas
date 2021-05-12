@@ -20,10 +20,7 @@ from .models import HostApplyTaskLog
 
 class ApplyHostDataSLZ(serializers.Serializer):
     region = serializers.CharField()
-    network_type = serializers.ChoiceField(
-        choices=ClusterNetworkType.get_choices(),
-        default=ClusterNetworkType.OVERLAY.value,
-    )
+    vpc_name = serializers.CharField()
     cvm_type = serializers.CharField()
     disk_size = serializers.IntegerField()
     replicas = serializers.IntegerField(min_value=1)

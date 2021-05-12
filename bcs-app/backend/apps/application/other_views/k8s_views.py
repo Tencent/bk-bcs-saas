@@ -40,6 +40,8 @@ from backend.utils.errcodes import ErrorCode
 from backend.utils.error_codes import ErrorCode as ErrorCodeCls
 from backend.utils.error_codes import error_codes
 
+from ..utils import exclude_records
+
 logger = logging.getLogger(__name__)
 
 CATEGORY_MAP = app_constants.CATEGORY_MAP
@@ -48,7 +50,9 @@ FUNC_MAP = app_constants.FUNC_MAP
 
 
 class K8SMuster(object):
-    def get_version_instance(self, muster_id_list, category, cluster_type, app_name, ns_id, cluster_env_map):
+    def get_version_instance(
+        self, muster_id_list, category, cluster_type, app_name, ns_id, cluster_env_map, request_cluster_id
+    ):
         """查询version instance"""
         version_inst_info = (
             VersionInstance.objects.filter(template_id__in=muster_id_list, is_deleted=False)
@@ -89,9 +93,13 @@ class K8SMuster(object):
             config = json.loads(info["config"])
             cluster_id = ((config.get("metadata") or {}).get("labels") or {}).get("io.tencent.bcs.clusterid")
             muster_id = int(((config.get("metadata") or {}).get("labels") or {}).get("io.tencent.paas.templateid"))
-            if not cluster_id:
-                continue
-            if str(cluster_env_map.get(cluster_id, {}).get("cluster_env")) != str(cluster_type):
+            # 判断是否忽略当前记录
+            if exclude_records(
+                request_cluster_id,
+                cluster_id,
+                cluster_type,
+                cluster_env_map.get(cluster_id, {}).get("cluster_env"),
+            ):
                 continue
             if info["instance_id"] in ret_data[muster_id]["id_list"]:
                 ret_data[muster_id]["inst_num"] += 1
@@ -135,6 +143,7 @@ class K8SMuster(object):
         app_name,
         ns_id,
         cluster_env_map,
+        request_cluster_id,
     ):
         if category not in CATEGORY_MAP:
             raise error_codes.CheckFailed(_("类型不正确，请确认"))
@@ -142,7 +151,7 @@ class K8SMuster(object):
         muster_id_name_map = {info["id"]: info["name"] for info in all_muster_list}
         # 获取version instance，用于展示模板集下是否有实例
         muster_num_map = self.get_version_instance(
-            muster_id_list, category, cluster_type, app_name, ns_id, cluster_env_map
+            muster_id_list, category, cluster_type, app_name, ns_id, cluster_env_map, request_cluster_id
         )
         return self.muster_tmpl_handler(muster_id_name_map, muster_num_map)
 
