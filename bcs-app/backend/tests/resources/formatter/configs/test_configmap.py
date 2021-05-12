@@ -12,6 +12,7 @@
 # specific language governing permissions and limitations under the License.
 #
 import json
+
 import pytest
 
 from backend.resources.configs.configmap.formatter import ConfigMapFormatter
@@ -40,7 +41,6 @@ def config_map_configs():
 
 
 class TestConfigMapFormatter:
-
     def test_format_dict(self, config_map_configs):
         """ 测试 format_dict 方法 """
         result = ConfigMapFormatter().format_dict(config_map_configs)

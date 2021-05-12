@@ -75,7 +75,7 @@ urlpatterns = [
     url(
         r"^api/metrics/projects/(?P<project_id>\w{32})/clusters/(?P<cluster_id>[\w\-]+)/",
         include("backend.metric.urls"),
-    )
+    ),
 ]
 
 # 导入版本特定的urls

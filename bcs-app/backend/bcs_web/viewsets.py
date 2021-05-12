@@ -23,7 +23,6 @@ from .permissions import AccessProjectPermission, ProjectEnableBCS
 
 
 class GenericMixin:
-
     @staticmethod
     def get_request_data(request, **kwargs) -> Dict[str, Any]:
         request_data = request.data.copy() or {}

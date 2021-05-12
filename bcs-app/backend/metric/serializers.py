@@ -12,7 +12,6 @@
 # specific language governing permissions and limitations under the License.
 #
 import arrow
-
 from django.utils.translation import ugettext_lazy as _
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
@@ -27,11 +26,11 @@ class BaseMetricSLZ(serializers.Serializer):
     def validate(self, attrs):
         now = arrow.now().timestamp
 
-        attrs['start_at'] = arrow.get(attrs['start_at']).timestamp \
-            if 'start_at' in attrs else now - METRICS_DEFAULT_TIMEDELTA
+        attrs['start_at'] = (
+            arrow.get(attrs['start_at']).timestamp if 'start_at' in attrs else now - METRICS_DEFAULT_TIMEDELTA
+        )
 
-        attrs['end_at'] = arrow.get(attrs['end_at']).timestamp \
-            if 'end_at' in attrs else now
+        attrs['end_at'] = arrow.get(attrs['end_at']).timestamp if 'end_at' in attrs else now
 
         if attrs['end_at'] <= attrs['start_at']:
             raise ValidationError(_('查询的 起始时间 需小于 结束时间'))
@@ -40,10 +39,13 @@ class BaseMetricSLZ(serializers.Serializer):
 
 class FetchPodMetricSLZ(BaseMetricSLZ):
     """ 获取多个 Pod 指标信息 """
+
     pod_name_list = serializers.ListField(
-        label='Pod 名称列表', child=serializers.CharField(max_length=64), allow_empty=False)
+        label='Pod 名称列表', child=serializers.CharField(max_length=64), allow_empty=False
+    )
 
 
 class FetchContainerMetricSLZ(BaseMetricSLZ):
     """ 获取容器指标信息 """
+
     pod_name = serializers.CharField(label='Pod 名称', max_length=64)

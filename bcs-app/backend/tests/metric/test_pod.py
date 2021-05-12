@@ -20,12 +20,11 @@ pytestmark = pytest.mark.django_db
 mock_api_params = {
     'pod_name_list': ['deployment-1', 'deployment-2'],
     'start_at': '2021-01-01 10:00:00',
-    'end_at': '2021-01-01 11:00:00'
+    'end_at': '2021-01-01 11:00:00',
 }
 
 
 class TestPodMetric:
-
     def test_cpu_usage(self, api_client, project_id, cluster_id, metric_api_common_patch):
         """ 测试获取 CPU 使用情况 接口 """
         response = api_client.post(

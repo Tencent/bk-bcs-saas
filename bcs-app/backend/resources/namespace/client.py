@@ -12,8 +12,8 @@
 # specific language governing permissions and limitations under the License.
 #
 from backend.resources.constants import K8sResourceKind
-from backend.resources.resource import ResourceClient
 from backend.resources.namespace.formatter import NamespaceFormatter
+from backend.resources.resource import ResourceClient
 
 
 class Namespace(ResourceClient):

@@ -12,6 +12,7 @@
 # specific language governing permissions and limitations under the License.
 #
 import json
+
 import pytest
 
 from backend.resources.workloads.statefulset.formatter import StatefulSetFormatter
@@ -25,7 +26,6 @@ def statefulset_configs():
 
 
 class TestStatefulsetFormatter:
-
     def test_format_dict(self, statefulset_configs):
         """ 测试 format_dict 方法 """
         result = StatefulSetFormatter().format_dict(statefulset_configs['normal'])

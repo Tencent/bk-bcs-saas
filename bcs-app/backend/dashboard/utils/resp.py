@@ -29,9 +29,8 @@ class DashboardListApiRespBuilder:
         result = {
             'manifest': self.resources,
             'manifest_ext': {
-                item['metadata']['uid']: self.client.formatter.format_dict(item)
-                for item in self.resources['items']
-            }
+                item['metadata']['uid']: self.client.formatter.format_dict(item) for item in self.resources['items']
+            },
         }
         return result
 
@@ -48,15 +47,11 @@ class DashboardRetrieveApiRespBuilder:
         """
         self.client = client
         namespace, name = resource_id.split('@')
-        raw_resource = self.client.get(
-            namespace=namespace, name=name, is_format=False)
+        raw_resource = self.client.get(namespace=namespace, name=name, is_format=False)
         if not raw_resource:
             raise error_codes.ResNotFoundError.f(f'Namespace: {namespace}, Name: {name}')
         self.resource = raw_resource.to_dict()
 
     def build(self) -> Dict:
         """ 组装 Dashboard Api 响应内容 """
-        return {
-            'manifest': self.resource,
-            'manifest_ext': self.client.formatter.format_dict(self.resource)
-        }
+        return {'manifest': self.resource, 'manifest_ext': self.client.formatter.format_dict(self.resource)}

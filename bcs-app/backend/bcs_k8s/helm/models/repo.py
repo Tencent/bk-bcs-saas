@@ -58,7 +58,11 @@ class Repository(BaseTSModel):
     def plain_auths(self):
         auths = list(self.auths.values("credentials", "type", "role"))
         return [
-            {"type": auth["type"], "role": auth["role"], "credentials": json.loads(auth["credentials"]),}
+            {
+                "type": auth["type"],
+                "role": auth["role"],
+                "credentials": json.loads(auth["credentials"]),
+            }
             for auth in auths
         ]
 

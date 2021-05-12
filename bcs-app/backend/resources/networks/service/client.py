@@ -12,8 +12,8 @@
 # specific language governing permissions and limitations under the License.
 #
 from backend.resources.constants import K8sResourceKind
-from backend.resources.resource import ResourceClient
 from backend.resources.networks.service.formatter import ServiceFormatter
+from backend.resources.resource import ResourceClient
 
 
 class Service(ResourceClient):

@@ -17,14 +17,11 @@ import pytest
 from backend.tests.testing_utils.mocks.viewsets import FakeSystemViewSet
 
 
-fake_query_handler = lambda *args, **kwargs: None
-
-
 @pytest.fixture
 def metric_api_common_patch():
     with mock.patch('backend.bcs_web.viewsets.SystemViewSet', new=FakeSystemViewSet), mock.patch(
-        'backend.metric.views.pod.PodMetricViewSet._common_query_handler', new=fake_query_handler
+        'backend.metric.views.pod.PodMetricViewSet._common_query_handler', new=lambda *args, **kwargs: None
     ), mock.patch(
-        'backend.metric.views.container.ContainerMetricViewSet._common_query_handler', new=fake_query_handler
+        'backend.metric.views.container.ContainerMetricViewSet._common_query_handler', new=lambda *args, **kwargs: None
     ):
         yield

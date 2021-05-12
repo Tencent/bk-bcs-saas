@@ -74,8 +74,7 @@ def get_current_metrics_display(_current_metrics: Dict) -> str:
 
 @dataclass
 class Condition:
-    """k8s hpa condition 结构
-    """
+    """k8s hpa condition 结构"""
 
     type: str
     status: str
@@ -85,12 +84,10 @@ class Condition:
 
 
 def sort_by_normalize_transition_time(conditions: List[Condition]) -> List[Condition]:
-    """规整 lastTransitionTime 并排序
-    """
+    """规整 lastTransitionTime 并排序"""
 
     def normalize_condition(condition: Condition):
-        """格式时间 lambda 函数
-        """
+        """格式时间 lambda 函数"""
         condition["lastTransitionTime"] = basic.normalize_time(condition["lastTransitionTime"])
         return condition
 

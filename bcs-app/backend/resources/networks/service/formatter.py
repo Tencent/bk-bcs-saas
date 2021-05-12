@@ -35,8 +35,7 @@ class ServiceFormatter(NetworkFormatter):
         origin_ports = getitems(resource_dict, 'spec.ports', [])
         # 若 nodePort 存在则需要展示，否则隐藏
         return [
-            f"{p['port']}:{p['nodePort']}/{p['protocol']}"
-            if p.get('nodePort') else f"{p['port']}/{p['protocol']}"
+            f"{p['port']}:{p['nodePort']}/{p['protocol']}" if p.get('nodePort') else f"{p['port']}/{p['protocol']}"
             for p in origin_ports
         ]
 
@@ -45,7 +44,7 @@ class ServiceFormatter(NetworkFormatter):
         res.update(
             {
                 'externalIP': self.parse_external_ip(resource_dict),
-                'ports': self.parse_ports(resource_dict)
+                'ports': self.parse_ports(resource_dict),
             }
         )
         return res

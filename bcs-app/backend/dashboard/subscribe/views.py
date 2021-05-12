@@ -20,7 +20,6 @@ from backend.utils.basic import getitems
 
 
 class SubscribeViewSet(SystemViewSet):
-
     def list(self, request, project_id, cluster_id):
         """获取指定资源某resource_version后变更记录"""
         slz = FetchResourceWatchResultSLZ(data=request.query_params)
@@ -30,9 +29,7 @@ class SubscribeViewSet(SystemViewSet):
         # 根据 Kind 获取对应的 K8S Resource Client 并初始化
         Client = KIND_RESOURCE_CLIENT_MAP[params['kind']]
         resource_client = Client(request.ctx_cluster)
-        events = resource_client.watch(
-            resource_version=params['resource_version'], timeout=DEFAULT_SUBSCRIBE_TIMEOUT
-        )
+        events = resource_client.watch(resource_version=params['resource_version'], timeout=DEFAULT_SUBSCRIBE_TIMEOUT)
         # events 默认按时间排序，取最后一个 ResourceVersion 即为最新值
         latest_rv = getitems(events[-1], 'manifest.metadata.resourceVersion') if events else None
 

@@ -14,10 +14,7 @@
 from rest_framework.response import Response
 
 from backend.bcs_web.viewsets import SystemViewSet
-from backend.dashboard.utils.resp import (
-    DashboardListApiRespBuilder,
-    DashboardRetrieveApiRespBuilder
-)
+from backend.dashboard.utils.resp import DashboardListApiRespBuilder, DashboardRetrieveApiRespBuilder
 from backend.resources.workloads.statefulset import StatefulSet
 
 
@@ -32,6 +29,5 @@ class StatefulSetViewSet(SystemViewSet):
 
     def retrieve(self, request, project_id, cluster_id, statefulset_id):
         client = StatefulSet(request.ctx_cluster)
-        response_data = DashboardRetrieveApiRespBuilder(
-            client, statefulset_id).build()
+        response_data = DashboardRetrieveApiRespBuilder(client, statefulset_id).build()
         return Response(response_data)

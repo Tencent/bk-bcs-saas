@@ -17,15 +17,10 @@ pytestmark = pytest.mark.django_db
 
 
 # 通用的API请求参数
-mock_api_params = {
-    'pod_name': 'deployment-1',
-    'start_at': '2021-01-01 10:00:00',
-    'end_at': '2021-01-01 11:00:00'
-}
+mock_api_params = {'pod_name': 'deployment-1', 'start_at': '2021-01-01 10:00:00', 'end_at': '2021-01-01 11:00:00'}
 
 
 class TestContainerMetric:
-
     def test_cpu_usage(self, api_client, project_id, cluster_id, metric_api_common_patch):
         """ 测试获取 CPU 使用情况 接口 """
         response = api_client.get(

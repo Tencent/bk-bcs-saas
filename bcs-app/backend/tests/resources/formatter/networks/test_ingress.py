@@ -12,6 +12,7 @@
 # specific language governing permissions and limitations under the License.
 #
 import json
+
 import pytest
 
 from backend.resources.networks.ingress.formatter import IngressFormatter
@@ -25,7 +26,6 @@ def ingress_configs():
 
 
 class TestIngressFormatter:
-
     def test_format_dict(self, ingress_configs):
         """ 测试 format_dict 方法 """
         result = IngressFormatter().format_dict(ingress_configs['normal'])

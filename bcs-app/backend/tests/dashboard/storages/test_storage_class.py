@@ -17,7 +17,6 @@ pytestmark = pytest.mark.django_db
 
 
 class TestStorageClass:
-
     def test_list(self, api_client, project_id, cluster_id, dashboard_api_common_patch):
         """ 测试获取资源列表接口 """
         response = api_client.get(

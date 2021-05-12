@@ -16,4 +16,5 @@ from backend.resources.utils.format import ResourceDefaultFormatter
 
 class RBACFormatter(ResourceDefaultFormatter):
     """ 权限控制 资源通用格式化器 """
+
     pass

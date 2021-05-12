@@ -14,12 +14,11 @@
 from rest_framework.response import Response
 
 from backend.bcs_web.viewsets import SystemViewSet
-from backend.resources.namespace.client import Namespace
 from backend.dashboard.utils.resp import DashboardListApiRespBuilder
+from backend.resources.namespace.client import Namespace
 
 
 class NamespaceViewSet(SystemViewSet):
-
     def list(self, request, project_id, cluster_id):
         client = Namespace(request.ctx_cluster)
         response_data = DashboardListApiRespBuilder(client).build()

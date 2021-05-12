@@ -14,10 +14,7 @@
 from rest_framework.response import Response
 
 from backend.bcs_web.viewsets import SystemViewSet
-from backend.dashboard.utils.resp import (
-    DashboardListApiRespBuilder,
-    DashboardRetrieveApiRespBuilder
-)
+from backend.dashboard.utils.resp import DashboardListApiRespBuilder, DashboardRetrieveApiRespBuilder
 from backend.resources.rbac.service_account import ServiceAccount
 
 
@@ -32,6 +29,5 @@ class ServiceAccountViewSet(SystemViewSet):
 
     def retrieve(self, request, project_id, cluster_id, service_account_id):
         client = ServiceAccount(request.ctx_cluster)
-        response_data = DashboardRetrieveApiRespBuilder(
-            client, service_account_id).build()
+        response_data = DashboardRetrieveApiRespBuilder(client, service_account_id).build()
         return Response(response_data)

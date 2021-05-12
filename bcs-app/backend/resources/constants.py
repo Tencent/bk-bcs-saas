@@ -11,9 +11,8 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-from backend.utils.basic import ChoicesEnum
 from backend.packages.blue_krill.data_types.enum import EnumField, StructuredEnum
-
+from backend.utils.basic import ChoicesEnum
 
 # cronjob 不在 preferred resource 中，需要指定 api_version
 DEFAULT_CRON_JOB_API_VERSION = 'v1beta1'
@@ -85,7 +84,7 @@ class K8sResourceKind(ChoicesEnum):
         (ServiceAccount, "ServiceAccount"),
         # other
         (Namespace, "Namespace"),
-        (Node, "Node")
+        (Node, "Node"),
     )
 
 

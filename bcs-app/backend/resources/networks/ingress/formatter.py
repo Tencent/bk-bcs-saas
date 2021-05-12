@@ -48,7 +48,7 @@ class IngressFormatter(NetworkFormatter):
             {
                 'hosts': self.parse_hosts(resource_dict),
                 'addresses': self.parse_addresses(resource_dict),
-                'default_ports': self.parse_default_ports(resource_dict)
+                'default_ports': self.parse_default_ports(resource_dict),
             }
         )
         return res

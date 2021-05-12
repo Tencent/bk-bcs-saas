@@ -14,10 +14,7 @@
 from rest_framework.response import Response
 
 from backend.bcs_web.viewsets import SystemViewSet
-from backend.dashboard.utils.resp import (
-    DashboardListApiRespBuilder,
-    DashboardRetrieveApiRespBuilder
-)
+from backend.dashboard.utils.resp import DashboardListApiRespBuilder, DashboardRetrieveApiRespBuilder
 from backend.resources.configs.secret import Secret
 
 

@@ -1,5 +1,3 @@
-
-
 # -*- coding: utf-8 -*-
 #
 # Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community Edition) available.
@@ -14,6 +12,7 @@
 # specific language governing permissions and limitations under the License.
 #
 import json
+
 import pytest
 
 from backend.resources.configs.secret.formatter import SecretsFormatter
@@ -46,7 +45,6 @@ def secret_configs():
 
 
 class TestConfigMapFormatter:
-
     def test_format_dict(self, secret_configs):
         """ 测试 format_dict 方法 """
         result = SecretsFormatter().format_dict(secret_configs)

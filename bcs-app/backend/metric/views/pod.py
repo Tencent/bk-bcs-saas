@@ -21,7 +21,7 @@ from backend.components.prometheus import (
     get_pod_cpu_usage_range,
     get_pod_memory_usage_range,
     get_pod_network_receive,
-    get_pod_network_transmit
+    get_pod_network_transmit,
 )
 from backend.metric.constants import METRICS_DEFAULT_NAMESPACE
 from backend.metric.serializers import FetchPodMetricSLZ
@@ -31,12 +31,7 @@ class PodMetricViewSet(SystemViewSet):
 
     serializer_class = FetchPodMetricSLZ
 
-    def _common_query_handler(
-            self,
-            query_metric_func: Callable,
-            cluster_id: str,
-            params: Dict
-    ) -> Dict:
+    def _common_query_handler(self, query_metric_func: Callable, cluster_id: str, params: Dict) -> Dict:
         """
         查询Pod指标通用逻辑
 
@@ -46,41 +41,33 @@ class PodMetricViewSet(SystemViewSet):
         :return: 指标查询结果
         """
         return query_metric_func(
-            cluster_id,
-            METRICS_DEFAULT_NAMESPACE,
-            params['pod_name_list'],
-            params['start_at'],
-            params['end_at']
+            cluster_id, METRICS_DEFAULT_NAMESPACE, params['pod_name_list'], params['start_at'], params['end_at']
         )
 
     @list_route(methods=['POST'], url_path='cpu_usage')
     def cpu_usage(self, request, project_id, cluster_id):
         """ 获取指定 Pod CPU 使用情况 """
         params = self.params_validate(self.serializer_class)
-        response_data = self._common_query_handler(
-            get_pod_cpu_usage_range, cluster_id, params)
+        response_data = self._common_query_handler(get_pod_cpu_usage_range, cluster_id, params)
         return Response(response_data)
 
     @list_route(methods=['POST'], url_path='memory_usage')
     def memory_usage(self, request, project_id, cluster_id):
         """ 获取 Pod 内存使用情况 """
         params = self.params_validate(self.serializer_class)
-        response_data = self._common_query_handler(
-            get_pod_memory_usage_range, cluster_id, params)
+        response_data = self._common_query_handler(get_pod_memory_usage_range, cluster_id, params)
         return Response(response_data)
 
     @list_route(methods=['POST'], url_path='network_receive')
     def network_receive(self, request, project_id, cluster_id):
         """ 获取 网络入流量 情况 """
         params = self.params_validate(self.serializer_class)
-        response_data = self._common_query_handler(
-            get_pod_network_receive, cluster_id, params)
+        response_data = self._common_query_handler(get_pod_network_receive, cluster_id, params)
         return Response(response_data)
 
     @list_route(methods=['POST'], url_path='network_transmit')
     def network_transmit(self, request, project_id, cluster_id):
         """ 获取 网络出流量 情况 """
         params = self.params_validate(self.serializer_class)
-        response_data = self._common_query_handler(
-            get_pod_network_transmit, cluster_id, params)
+        response_data = self._common_query_handler(get_pod_network_transmit, cluster_id, params)
         return Response(response_data)
