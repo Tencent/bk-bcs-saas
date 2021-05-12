@@ -12,6 +12,7 @@
 # specific language governing permissions and limitations under the License.
 #
 import json
+
 import pytest
 
 from backend.resources.workloads.deployment.formatter import DeploymentFormatter
@@ -25,7 +26,6 @@ def deployment_configs():
 
 
 class TestDeploymentFormatter:
-
     def test_format_dict(self, deployment_configs):
         """ 测试 format_dict 方法 """
         result = DeploymentFormatter().format_dict(deployment_configs['normal'])

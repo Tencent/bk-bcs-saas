@@ -14,12 +14,11 @@
 from rest_framework.response import Response
 
 from backend.bcs_web.viewsets import SystemViewSet
-from backend.resources.networks.service import Service
 from backend.dashboard.utils.resp import DashboardListApiRespBuilder
+from backend.resources.networks.service import Service
 
 
 class ServiceViewSet(SystemViewSet):
-
     def list(self, request, project_id, cluster_id):
         client = Service(request.ctx_cluster)
         response_data = DashboardListApiRespBuilder(client).build()

@@ -17,10 +17,7 @@ pytestmark = pytest.mark.django_db
 
 
 class TestServiceAccount:
-
     def test_list(self, api_client, project_id, cluster_id, dashboard_api_common_patch):
         """ 测试获取资源列表接口 """
-        response = api_client.get(
-            f'/api/dashboard/projects/{project_id}/clusters/{cluster_id}/rbac/service_accounts/'
-        )
+        response = api_client.get(f'/api/dashboard/projects/{project_id}/clusters/{cluster_id}/rbac/service_accounts/')
         assert response.json()['code'] == 0

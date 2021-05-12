@@ -12,6 +12,7 @@
 # specific language governing permissions and limitations under the License.
 #
 import json
+
 import pytest
 
 from backend.resources.storages.persistent_volume_claim.formatter import PersistentVolumeClaimFormatter
@@ -25,7 +26,6 @@ def persistent_volume_claim_configs():
 
 
 class TestPersistentVolumeFormatter:
-
     def test_format_dict(self, persistent_volume_claim_configs):
         """ 测试 format_dict 方法 """
         result = PersistentVolumeClaimFormatter().format_dict(persistent_volume_claim_configs['normal'])

@@ -12,6 +12,7 @@
 # specific language governing permissions and limitations under the License.
 #
 import json
+
 import pytest
 
 from backend.resources.workloads.job.formatter import JobFormatter
@@ -25,7 +26,6 @@ def job_configs():
 
 
 class TestJobFormatter:
-
     def test_format_dict(self, job_configs):
         """ 测试 format_dict 方法 """
         result = JobFormatter().format_dict(job_configs['normal'])

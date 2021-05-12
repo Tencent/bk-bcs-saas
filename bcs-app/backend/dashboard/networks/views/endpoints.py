@@ -19,7 +19,6 @@ from backend.resources.networks.endpoints import Endpoints
 
 
 class EndPointsViewSet(SystemViewSet):
-
     def list(self, request, project_id, cluster_id):
         client = Endpoints(request.ctx_cluster)
         response_data = DashboardListApiRespBuilder(client).build()

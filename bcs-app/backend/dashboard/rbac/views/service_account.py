@@ -19,7 +19,6 @@ from backend.resources.rbac.service_account import ServiceAccount
 
 
 class ServiceAccountViewSet(SystemViewSet):
-
     def list(self, request, project_id, cluster_id):
         client = ServiceAccount(request.ctx_cluster)
         response_data = DashboardListApiRespBuilder(client).build()

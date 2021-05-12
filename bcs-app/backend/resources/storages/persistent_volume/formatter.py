@@ -23,10 +23,7 @@ class PersistentVolumeFormatter(StorageFormatter):
 
     def parse_access_modes(self, resource_dict: Dict) -> List:
         """ access modes 转 缩写用于展示 """
-        return [
-            PersistentVolumeAccessMode(m).shortname
-            for m in getitems(resource_dict, 'spec.accessModes', [])
-        ]
+        return [PersistentVolumeAccessMode(m).shortname for m in getitems(resource_dict, 'spec.accessModes', [])]
 
     def parse_claim(self, resource_dict: Dict) -> Union[str, None]:
         claim_info = getitems(resource_dict, 'spec.claimRef')
@@ -38,7 +35,7 @@ class PersistentVolumeFormatter(StorageFormatter):
         res.update(
             {
                 'accessModes': self.parse_access_modes(resource_dict),
-                'claim': self.parse_claim(resource_dict)
+                'claim': self.parse_claim(resource_dict),
             }
         )
         return res

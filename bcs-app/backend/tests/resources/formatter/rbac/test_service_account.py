@@ -12,6 +12,7 @@
 # specific language governing permissions and limitations under the License.
 #
 import json
+
 import pytest
 
 from backend.resources.rbac.service_account.formatter import ServiceAccountFormatter
@@ -41,7 +42,6 @@ def service_account_configs():
 
 
 class TestServiceAccountFormatter:
-
     def test_format_dict(self, service_account_configs):
         """ 测试 format_dict 方法 """
         result = ServiceAccountFormatter().format_dict(service_account_configs)

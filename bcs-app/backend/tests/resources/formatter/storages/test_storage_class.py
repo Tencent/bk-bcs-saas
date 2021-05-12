@@ -12,6 +12,7 @@
 # specific language governing permissions and limitations under the License.
 #
 import json
+
 import pytest
 
 from backend.resources.storages.storage_class.formatter import StorageClassFormatter
@@ -25,7 +26,6 @@ def storage_class_configs():
 
 
 class TestStorageClassFormatter:
-
     def test_format_dict(self, storage_class_configs):
         """ 测试 format_dict 方法 """
         result = StorageClassFormatter().format_dict(storage_class_configs['normal'])

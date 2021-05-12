@@ -12,6 +12,7 @@
 # specific language governing permissions and limitations under the License.
 #
 import json
+
 import pytest
 
 from backend.resources.networks.endpoints.formatter import EndpointsFormatter
@@ -25,12 +26,15 @@ def endpoints_configs():
 
 
 class TestEndpointsFormatter:
-
     def test_format_dict(self, endpoints_configs):
         """ 测试 format_dict 方法 """
         result = EndpointsFormatter().format_dict(endpoints_configs['normal'])
         assert set(result.keys()) == {'endpoints', 'age', 'createTime', 'updateTime'}
         assert result['endpoints'] == [
-            '127.xxx.xxx.xx1:80', '127.xxx.xxx.xx2:80', '127.xxx.xxx.xx3:80',
-            '127.xxx.xxx.xx4:80', '127.xxx.xxx.xx5:80', '127.xxx.xxx.xx6:80'
+            '127.xxx.xxx.xx1:80',
+            '127.xxx.xxx.xx2:80',
+            '127.xxx.xxx.xx3:80',
+            '127.xxx.xxx.xx4:80',
+            '127.xxx.xxx.xx5:80',
+            '127.xxx.xxx.xx6:80',
         ]

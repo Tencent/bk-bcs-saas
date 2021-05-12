@@ -12,6 +12,7 @@
 # specific language governing permissions and limitations under the License.
 #
 import json
+
 import pytest
 
 from backend.resources.workloads.pod.formatter import PodFormatter
@@ -25,10 +26,17 @@ def pod_configs():
 
 
 class TestPodFormatter:
-
     def test_format_dict(self, pod_configs):
         """ 测试 format_dict 方法 """
         result = PodFormatter().format_dict(pod_configs['status_running'])
         assert set(result.keys()) == {
-            'status', 'readyCnt', 'totalCnt', 'restartCnt', 'images', 'age', 'createTime', 'updateTime'}
+            'status',
+            'readyCnt',
+            'totalCnt',
+            'restartCnt',
+            'images',
+            'age',
+            'createTime',
+            'updateTime',
+        }
         assert result['images'] == ['k8s.gcr.io/echoserver:1.4']

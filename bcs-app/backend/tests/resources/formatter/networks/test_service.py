@@ -12,6 +12,7 @@
 # specific language governing permissions and limitations under the License.
 #
 import json
+
 import pytest
 
 from backend.resources.networks.service.formatter import ServiceFormatter
@@ -25,7 +26,6 @@ def service_configs():
 
 
 class TestServiceFormatter:
-
     def test_format_dict(self, service_configs):
         """ 测试 format_dict 方法 """
         result = ServiceFormatter().format_dict(service_configs['normal'])

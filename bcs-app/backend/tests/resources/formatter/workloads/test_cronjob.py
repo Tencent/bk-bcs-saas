@@ -12,6 +12,7 @@
 # specific language governing permissions and limitations under the License.
 #
 import json
+
 import pytest
 
 from backend.resources.workloads.cronjob.formatter import CronJobFormatter
@@ -25,7 +26,6 @@ def cronjob_configs():
 
 
 class TestCronjobFormatter:
-
     def test_format_dict(self, cronjob_configs):
         """ 测试 format_dict 方法 """
         result = CronJobFormatter().format_dict(cronjob_configs['normal'])

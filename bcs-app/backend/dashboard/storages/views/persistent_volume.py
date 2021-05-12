@@ -14,12 +14,11 @@
 from rest_framework.response import Response
 
 from backend.bcs_web.viewsets import SystemViewSet
-from backend.resources.storages.persistent_volume import PersistentVolume
 from backend.dashboard.utils.resp import DashboardListApiRespBuilder
+from backend.resources.storages.persistent_volume import PersistentVolume
 
 
 class PersistentVolumeViewSet(SystemViewSet):
-
     def list(self, request, project_id, cluster_id):
         client = PersistentVolume(request.ctx_cluster)
         response_data = DashboardListApiRespBuilder(client).build()

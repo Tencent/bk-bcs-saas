@@ -14,12 +14,11 @@
 from rest_framework.response import Response
 
 from backend.bcs_web.viewsets import SystemViewSet
-from backend.resources.storages.storage_class import StorageClass
 from backend.dashboard.utils.resp import DashboardListApiRespBuilder
+from backend.resources.storages.storage_class import StorageClass
 
 
 class StorageClassViewSet(SystemViewSet):
-
     def list(self, request, project_id, cluster_id):
         client = StorageClass(request.ctx_cluster)
         response_data = DashboardListApiRespBuilder(client).build()

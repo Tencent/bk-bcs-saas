@@ -12,6 +12,7 @@
 # specific language governing permissions and limitations under the License.
 #
 import json
+
 import pytest
 
 from backend.resources.workloads.daemonset.formatter import DaemonSetFormatter
@@ -25,7 +26,6 @@ def daemonset_configs():
 
 
 class TestDaemonsetFormatter:
-
     def test_format_dict(self, daemonset_configs):
         """ 测试 format_dict 方法 """
         result = DaemonSetFormatter().format_dict(daemonset_configs['normal'])
