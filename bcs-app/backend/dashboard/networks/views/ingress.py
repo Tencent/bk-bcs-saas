@@ -14,13 +14,23 @@
 from rest_framework.response import Response
 
 from backend.bcs_web.viewsets import SystemViewSet
+from backend.dashboard.utils.resp import (
+    DashboardListApiRespBuilder,
+    DashboardRetrieveApiRespBuilder
+)
 from backend.resources.networks.ingress import Ingress
-from backend.dashboard.utils.resp import DashboardListApiRespBuilder
 
 
 class IngressViewSet(SystemViewSet):
 
+    lookup_field = 'ingress_id'
+
     def list(self, request, project_id, cluster_id):
         client = Ingress(request.ctx_cluster)
         response_data = DashboardListApiRespBuilder(client).build()
+        return Response(response_data)
+
+    def retrieve(self, request, project_id, cluster_id, ingress_id):
+        client = Ingress(request.ctx_cluster)
+        response_data = DashboardRetrieveApiRespBuilder(client, ingress_id).build()
         return Response(response_data)

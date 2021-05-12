@@ -14,13 +14,23 @@
 from rest_framework.response import Response
 
 from backend.bcs_web.viewsets import SystemViewSet
+from backend.dashboard.utils.resp import (
+    DashboardListApiRespBuilder,
+    DashboardRetrieveApiRespBuilder
+)
 from backend.resources.configs.secret import Secret
-from backend.dashboard.utils.resp import DashboardListApiRespBuilder
 
 
 class SecretViewSet(SystemViewSet):
 
+    lookup_field = 'secret_id'
+
     def list(self, request, project_id, cluster_id):
         client = Secret(request.ctx_cluster)
         response_data = DashboardListApiRespBuilder(client).build()
+        return Response(response_data)
+
+    def retrieve(self, request, project_id, cluster_id, secret_id):
+        client = Secret(request.ctx_cluster)
+        response_data = DashboardRetrieveApiRespBuilder(client, secret_id).build()
         return Response(response_data)

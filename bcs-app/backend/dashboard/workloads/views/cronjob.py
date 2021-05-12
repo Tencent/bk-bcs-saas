@@ -14,13 +14,24 @@
 from rest_framework.response import Response
 
 from backend.bcs_web.viewsets import SystemViewSet
+from backend.dashboard.utils.resp import (
+    DashboardListApiRespBuilder,
+    DashboardRetrieveApiRespBuilder
+)
 from backend.resources.workloads.cronjob import CronJob
-from backend.dashboard.utils.resp import DashboardListApiRespBuilder
 
 
 class CronJobViewSet(SystemViewSet):
 
+    lookup_field = 'cronjob_id'
+
     def list(self, request, project_id, cluster_id):
         client = CronJob(request.ctx_cluster)
         response_data = DashboardListApiRespBuilder(client).build()
+        return Response(response_data)
+
+    def retrieve(self, request, project_id, cluster_id, cronjob_id):
+        client = CronJob(request.ctx_cluster)
+        response_data = DashboardRetrieveApiRespBuilder(
+            client, cronjob_id).build()
         return Response(response_data)

@@ -14,13 +14,23 @@
 from rest_framework.response import Response
 
 from backend.bcs_web.viewsets import SystemViewSet
+from backend.dashboard.utils.resp import (
+    DashboardListApiRespBuilder,
+    DashboardRetrieveApiRespBuilder
+)
 from backend.resources.workloads.job import Job
-from backend.dashboard.utils.resp import DashboardListApiRespBuilder
 
 
 class JobViewSet(SystemViewSet):
 
+    lookup_field = 'job_id'
+
     def list(self, request, project_id, cluster_id):
         client = Job(request.ctx_cluster)
         response_data = DashboardListApiRespBuilder(client).build()
+        return Response(response_data)
+
+    def retrieve(self, request, project_id, cluster_id, job_id):
+        client = Job(request.ctx_cluster)
+        response_data = DashboardRetrieveApiRespBuilder(client, job_id).build()
         return Response(response_data)
