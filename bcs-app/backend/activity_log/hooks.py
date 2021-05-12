@@ -16,7 +16,7 @@ from collections import OrderedDict
 
 from django.db.models.signals import post_delete, post_save
 from django.dispatch import receiver
-from django.utils.encoding import force_text
+from django.utils.encoding import force_str
 
 from backend.activity_log.client import UserActivityLogClient
 from backend.utils.local import local
@@ -70,7 +70,7 @@ class DjangoSignalHooks(object):
             checker = self.find_checker_by_instance(instance)
 
             try:
-                username = local.request.user.username or force_text(local.request.user)
+                username = local.request.user.username or force_str(local.request.user)
             except Exception:
                 username = "*SYSTEM*"  # celery backend process
             params.setdefault("user", username)
