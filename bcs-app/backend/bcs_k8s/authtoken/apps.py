@@ -15,4 +15,4 @@ from django.apps import AppConfig
 
 
 class HelmConfig(AppConfig):
-    name = 'authtoken'
+    name = 'backend.bcs_k8s.authtoken'

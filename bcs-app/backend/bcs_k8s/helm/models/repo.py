@@ -58,7 +58,11 @@ class Repository(BaseTSModel):
     def plain_auths(self):
         auths = list(self.auths.values("credentials", "type", "role"))
         return [
-            {"type": auth["type"], "role": auth["role"], "credentials": json.loads(auth["credentials"]),}
+            {
+                "type": auth["type"],
+                "role": auth["role"],
+                "credentials": json.loads(auth["credentials"]),
+            }
             for auth in auths
         ]
 
@@ -78,7 +82,7 @@ class RepositoryAuth(models.Model):
     type = models.CharField('Type', choices=AUTH_CHOICE, max_length=16)
     # ex: {"password":"EJWmMqqGeA5E6JNb","username":"admin-T49e"}
     credentials = JSONField('Credentials', default={})
-    repo = models.ForeignKey(Repository, related_name='auths')
+    repo = models.ForeignKey(Repository, on_delete=models.CASCADE, related_name='auths')
     # TODO: use rbac module instead
     role = models.CharField('Role', max_length=16)
 

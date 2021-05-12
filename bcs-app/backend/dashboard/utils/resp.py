@@ -28,8 +28,7 @@ class DashboardListApiRespBuilder:
         result = {
             'manifest': self.resources,
             'manifest_ext': {
-                item['metadata']['uid']: self.client.formatter.format_dict(item)
-                for item in self.resources['items']
-            }
+                item['metadata']['uid']: self.client.formatter.format_dict(item) for item in self.resources['items']
+            },
         }
         return result

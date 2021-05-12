@@ -12,8 +12,8 @@
 # specific language governing permissions and limitations under the License.
 #
 from rest_framework import viewsets
-from rest_framework.renderers import BrowsableAPIRenderer
 from rest_framework.permissions import BasePermission
+from rest_framework.renderers import BrowsableAPIRenderer
 
 from backend.utils.renderers import BKAPIRenderer
 
@@ -28,6 +28,7 @@ class FakeProjectEnableBCS(BasePermission):
     def _set_ctx_project_cluster(self, request, project_id: str, cluster_id: str):
         from backend.resources.cluster.models import CtxCluster
         from backend.resources.project.models import CtxProject
+
         access_token = 'access_token_for_test'
         request.ctx_project = CtxProject.create(token=access_token, id=project_id)
         if cluster_id:
@@ -38,6 +39,7 @@ class FakeProjectEnableBCS(BasePermission):
 
 class FakeSystemViewSet(viewsets.ViewSet):
     """ 假的基类 ViewSet，单元测试用 """
+
     renderer_classes = (BKAPIRenderer, BrowsableAPIRenderer)
     # 替换掉原有的权限控制类
-    permission_classes = (FakeProjectEnableBCS, )
+    permission_classes = (FakeProjectEnableBCS,)

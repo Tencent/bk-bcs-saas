@@ -11,7 +11,7 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-from backend.resources.constants import PodConditionType, PodPhase, ConditionStatus
+from backend.resources.constants import ConditionStatus, PodConditionType, PodPhase
 
 # PodStatus Failed
 FailedStatusPodConfig = {
@@ -20,9 +20,9 @@ FailedStatusPodConfig = {
         'conditions': [
             {
                 'type': PodConditionType.PodInitialized.value,
-                'status': ConditionStatus.ConditionTrue.value
+                'status': ConditionStatus.ConditionTrue.value,
             }
-        ]
+        ],
     }
 }
 
@@ -33,9 +33,9 @@ SucceededStatusPodConfig = {
         'conditions': [
             {
                 'type': PodConditionType.PodInitialized.value,
-                'status': ConditionStatus.ConditionTrue.value
+                'status': ConditionStatus.ConditionTrue.value,
             }
-        ]
+        ],
     }
 }
 
@@ -46,13 +46,13 @@ RunningStatusPodConfig = {
         'conditions': [
             {
                 'type': PodConditionType.PodInitialized.value,
-                'status': ConditionStatus.ConditionTrue.value
+                'status': ConditionStatus.ConditionTrue.value,
             },
             {
                 'type': PodConditionType.PodReady.value,
-                'status': ConditionStatus.ConditionTrue.value
-            }
-        ]
+                'status': ConditionStatus.ConditionTrue.value,
+            },
+        ],
     }
 }
 
@@ -63,31 +63,31 @@ PendingStatusPodConfig = {
         'conditions': [
             {
                 'type': PodConditionType.PodInitialized.value,
-                'status': ConditionStatus.ConditionFalse.value
+                'status': ConditionStatus.ConditionFalse.value,
             }
-        ]
+        ],
     }
 }
 
 # PodStatus Terminating
 TerminatingStatusPodConfig = {
     'metadata': {
-        'deletionTimestamp': '2021-01-01T10:00:00Z'
+        'deletionTimestamp': '2021-01-01T10:00:00Z',
     },
     'status': {
-        'phase': PodPhase.PodRunning.value
-    }
+        'phase': PodPhase.PodRunning.value,
+    },
 }
 
 # PodStatus Unknown
 UnknownStatusPodConfig = {
     'metadata': {
-        'deletionTimestamp': '2021-01-01T10:00:00Z'
+        'deletionTimestamp': '2021-01-01T10:00:00Z',
     },
     'status': {
         'phase': PodPhase.PodRunning.value,
-        'reason': 'NodeLost'
-    }
+        'reason': 'NodeLost',
+    },
 }
 
 # PodStatus Completed
@@ -98,10 +98,10 @@ CompletedStatusPodConfig = {
             {
                 'state': {
                     'terminated': {
-                        'reason': 'Completed'
+                        'reason': 'Completed',
                     }
                 }
             }
-        ]
+        ],
     }
 }

@@ -36,7 +36,7 @@ class PodFormatter(WorkloadFormatter):
                 'status': PodStatusParser(resource_dict).parse(),
                 'readyCnt': len([s for s in container_statuses if s['ready']]),
                 'totalCnt': len(container_statuses),
-                'restartCnt': sum([s['restartCount'] for s in container_statuses])
+                'restartCnt': sum([s['restartCount'] for s in container_statuses]),
             }
         )
         return res

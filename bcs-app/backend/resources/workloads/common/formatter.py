@@ -43,5 +43,5 @@ class WorkloadFormatter(ResourceDefaultFormatter):
             'images': self.parse_container_images(resource_copy),
             'age': calculate_age(create_time),
             'createTime': create_time,
-            'updateTime': update_time
+            'updateTime': update_time,
         }
