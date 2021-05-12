@@ -17,4 +17,4 @@ from . import views
 
 router = routers.DefaultRouter(trailing_slash=True)
 
-router.register(r'', views.NamespaceViewSet, base_name='namespace')
+router.register(r'', views.NamespaceViewSet, basename='namespace')

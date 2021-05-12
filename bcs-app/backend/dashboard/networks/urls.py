@@ -17,6 +17,6 @@ from . import views
 
 router = routers.DefaultRouter(trailing_slash=True)
 
-router.register(r'endpoints', views.EndPointsViewSet, base_name='endpoints')
-router.register(r'ingresses', views.IngressViewSet, base_name='ingress')
-router.register(r'services', views.ServiceViewSet, base_name='service')
+router.register(r'endpoints', views.EndPointsViewSet, basename='endpoints')
+router.register(r'ingresses', views.IngressViewSet, basename='ingress')
+router.register(r'services', views.ServiceViewSet, basename='service')

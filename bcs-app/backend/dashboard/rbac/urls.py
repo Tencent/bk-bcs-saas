@@ -17,4 +17,4 @@ from . import views
 
 router = routers.DefaultRouter(trailing_slash=True)
 
-router.register(r'service_accounts', views.ServiceAccountViewSet, base_name='service_account')
+router.register(r'service_accounts', views.ServiceAccountViewSet, basename='service_account')
