@@ -15,6 +15,7 @@ from rest_framework.response import Response
 
 from backend.bcs_web.viewsets import SystemViewSet
 from backend.dashboard.utils.resp import DashboardListApiRespBuilder, DashboardRetrieveApiRespBuilder
+from backend.dashboard.workloads.serializers import ListPodSLZ
 from backend.resources.workloads.pod import Pod
 
 
@@ -23,8 +24,10 @@ class PodViewSet(SystemViewSet):
     lookup_field = 'pod_name'
 
     def list(self, request, project_id, cluster_id, namespace=None):
+        """ 获取 Pod 列表，支持 labelSelector """
+        params = self.params_validate(ListPodSLZ)
         client = Pod(request.ctx_cluster)
-        response_data = DashboardListApiRespBuilder(client).build()
+        response_data = DashboardListApiRespBuilder(client, **params).build()
         return Response(response_data)
 
     def retrieve(self, request, project_id, cluster_id, namespace, pod_name):
