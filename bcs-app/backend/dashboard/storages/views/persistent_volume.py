@@ -20,14 +20,14 @@ from backend.resources.storages.persistent_volume import PersistentVolume
 
 class PersistentVolumeViewSet(SystemViewSet):
 
-    lookup_field = 'persistent_volume_id'
+    lookup_field = 'persistent_volume_name'
 
     def list(self, request, project_id, cluster_id, namespace=None):
         client = PersistentVolume(request.ctx_cluster)
         response_data = DashboardListApiRespBuilder(client).build()
         return Response(response_data)
 
-    def retrieve(self, request, project_id, cluster_id, persistent_volume_id):
+    def retrieve(self, request, project_id, cluster_id, namespace, persistent_volume_name):
         client = PersistentVolume(request.ctx_cluster)
-        response_data = DashboardRetrieveApiRespBuilder(client, persistent_volume_id).build()
+        response_data = DashboardRetrieveApiRespBuilder(client, namespace, persistent_volume_name).build()
         return Response(response_data)

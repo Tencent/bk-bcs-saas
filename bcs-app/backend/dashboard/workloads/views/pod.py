@@ -20,14 +20,14 @@ from backend.resources.workloads.pod import Pod
 
 class PodViewSet(SystemViewSet):
 
-    lookup_field = 'pod_id'
+    lookup_field = 'pod_name'
 
     def list(self, request, project_id, cluster_id, namespace=None):
         client = Pod(request.ctx_cluster)
         response_data = DashboardListApiRespBuilder(client).build()
         return Response(response_data)
 
-    def retrieve(self, request, project_id, cluster_id, pod_id):
+    def retrieve(self, request, project_id, cluster_id, namespace, pod_name):
         client = Pod(request.ctx_cluster)
-        response_data = DashboardRetrieveApiRespBuilder(client, pod_id).build()
+        response_data = DashboardRetrieveApiRespBuilder(client, namespace, pod_name).build()
         return Response(response_data)

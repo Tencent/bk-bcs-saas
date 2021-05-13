@@ -20,14 +20,14 @@ from backend.resources.workloads.job import Job
 
 class JobViewSet(SystemViewSet):
 
-    lookup_field = 'job_id'
+    lookup_field = 'job_name'
 
     def list(self, request, project_id, cluster_id, namespace=None):
         client = Job(request.ctx_cluster)
         response_data = DashboardListApiRespBuilder(client).build()
         return Response(response_data)
 
-    def retrieve(self, request, project_id, cluster_id, job_id):
+    def retrieve(self, request, project_id, cluster_id, namespace, job_name):
         client = Job(request.ctx_cluster)
-        response_data = DashboardRetrieveApiRespBuilder(client, job_id).build()
+        response_data = DashboardRetrieveApiRespBuilder(client, namespace, job_name).build()
         return Response(response_data)

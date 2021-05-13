@@ -13,7 +13,7 @@
 #
 from typing import Callable, Dict
 
-from rest_framework.decorators import list_route
+from rest_framework.decorators import action
 from rest_framework.response import Response
 
 from backend.bcs_web.viewsets import SystemViewSet
@@ -49,28 +49,28 @@ class ContainerMetricViewSet(SystemViewSet):
             params['end_at'],
         )
 
-    @list_route(methods=['GET'], url_path='cpu_usage')
+    @action(methods=['GET'], url_path='cpu_usage', detail=False)
     def cpu_usage(self, request, project_id, cluster_id):
         """ 获取指定 容器 CPU 使用情况 """
         params = self.params_validate(self.serializer_class)
         response_data = self._common_query_handler(get_container_cpu_usage_range, cluster_id, params)
         return Response(response_data)
 
-    @list_route(methods=['GET'], url_path='memory_usage')
+    @action(methods=['GET'], url_path='memory_usage', detail=False)
     def memory_usage(self, request, project_id, cluster_id):
         """ 获取 容器内存 使用情况 """
         params = self.params_validate(self.serializer_class)
         response_data = self._common_query_handler(get_container_memory_usage_range, cluster_id, params)
         return Response(response_data)
 
-    @list_route(methods=['GET'], url_path='disk_read')
+    @action(methods=['GET'], url_path='disk_read', detail=False)
     def disk_read(self, request, project_id, cluster_id):
         """ 获取 磁盘读 情况 """
         params = self.params_validate(self.serializer_class)
         response_data = self._common_query_handler(get_container_disk_read, cluster_id, params)
         return Response(response_data)
 
-    @list_route(methods=['GET'], url_path='disk_write')
+    @action(methods=['GET'], url_path='disk_write', detail=False)
     def disk_write(self, request, project_id, cluster_id):
         """ 获取 磁盘写 情况 """
         params = self.params_validate(self.serializer_class)

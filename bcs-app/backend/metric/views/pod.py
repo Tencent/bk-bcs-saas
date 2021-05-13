@@ -13,7 +13,7 @@
 #
 from typing import Callable, Dict
 
-from rest_framework.decorators import list_route
+from rest_framework.decorators import action
 from rest_framework.response import Response
 
 from backend.bcs_web.viewsets import SystemViewSet
@@ -44,28 +44,28 @@ class PodMetricViewSet(SystemViewSet):
             cluster_id, METRICS_DEFAULT_NAMESPACE, params['pod_name_list'], params['start_at'], params['end_at']
         )
 
-    @list_route(methods=['POST'], url_path='cpu_usage')
+    @action(methods=['POST'], url_path='cpu_usage', detail=False)
     def cpu_usage(self, request, project_id, cluster_id):
         """ 获取指定 Pod CPU 使用情况 """
         params = self.params_validate(self.serializer_class)
         response_data = self._common_query_handler(get_pod_cpu_usage_range, cluster_id, params)
         return Response(response_data)
 
-    @list_route(methods=['POST'], url_path='memory_usage')
+    @action(methods=['POST'], url_path='memory_usage', detail=False)
     def memory_usage(self, request, project_id, cluster_id):
         """ 获取 Pod 内存使用情况 """
         params = self.params_validate(self.serializer_class)
         response_data = self._common_query_handler(get_pod_memory_usage_range, cluster_id, params)
         return Response(response_data)
 
-    @list_route(methods=['POST'], url_path='network_receive')
+    @action(methods=['POST'], url_path='network_receive', detail=False)
     def network_receive(self, request, project_id, cluster_id):
         """ 获取 网络入流量 情况 """
         params = self.params_validate(self.serializer_class)
         response_data = self._common_query_handler(get_pod_network_receive, cluster_id, params)
         return Response(response_data)
 
-    @list_route(methods=['POST'], url_path='network_transmit')
+    @action(methods=['POST'], url_path='network_transmit', detail=False)
     def network_transmit(self, request, project_id, cluster_id):
         """ 获取 网络出流量 情况 """
         params = self.params_validate(self.serializer_class)

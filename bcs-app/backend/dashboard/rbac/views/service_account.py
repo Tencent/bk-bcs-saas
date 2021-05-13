@@ -20,14 +20,14 @@ from backend.resources.rbac.service_account import ServiceAccount
 
 class ServiceAccountViewSet(SystemViewSet):
 
-    lookup_field = 'service_account_id'
+    lookup_field = 'service_account_name'
 
     def list(self, request, project_id, cluster_id, namespace=None):
         client = ServiceAccount(request.ctx_cluster)
         response_data = DashboardListApiRespBuilder(client).build()
         return Response(response_data)
 
-    def retrieve(self, request, project_id, cluster_id, service_account_id):
+    def retrieve(self, request, project_id, cluster_id, namespace, service_account_name):
         client = ServiceAccount(request.ctx_cluster)
-        response_data = DashboardRetrieveApiRespBuilder(client, service_account_id).build()
+        response_data = DashboardRetrieveApiRespBuilder(client, namespace, service_account_name).build()
         return Response(response_data)

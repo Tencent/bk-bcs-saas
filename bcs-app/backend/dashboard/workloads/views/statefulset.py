@@ -20,14 +20,14 @@ from backend.resources.workloads.statefulset import StatefulSet
 
 class StatefulSetViewSet(SystemViewSet):
 
-    lookup_field = 'statefulset_id'
+    lookup_field = 'statefulset_name'
 
     def list(self, request, project_id, cluster_id, namespace=None):
         client = StatefulSet(request.ctx_cluster)
         response_data = DashboardListApiRespBuilder(client).build()
         return Response(response_data)
 
-    def retrieve(self, request, project_id, cluster_id, statefulset_id):
+    def retrieve(self, request, project_id, cluster_id, namespace, statefulset_name):
         client = StatefulSet(request.ctx_cluster)
-        response_data = DashboardRetrieveApiRespBuilder(client, statefulset_id).build()
+        response_data = DashboardRetrieveApiRespBuilder(client, namespace, statefulset_name).build()
         return Response(response_data)

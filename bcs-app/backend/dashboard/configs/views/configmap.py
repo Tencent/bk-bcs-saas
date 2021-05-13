@@ -20,14 +20,14 @@ from backend.resources.configs.configmap import ConfigMap
 
 class ConfigMapViewSet(SystemViewSet):
 
-    lookup_field = 'configmap_id'
+    lookup_field = 'configmap_name'
 
     def list(self, request, project_id, cluster_id, namespace=None):
         client = ConfigMap(request.ctx_cluster)
         response_data = DashboardListApiRespBuilder(client).build()
         return Response(response_data)
 
-    def retrieve(self, request, project_id, cluster_id, configmap_id):
+    def retrieve(self, request, project_id, cluster_id, namespace, configmap_name):
         client = ConfigMap(request.ctx_cluster)
-        response_data = DashboardRetrieveApiRespBuilder(client, configmap_id).build()
+        response_data = DashboardRetrieveApiRespBuilder(client, namespace, configmap_name).build()
         return Response(response_data)

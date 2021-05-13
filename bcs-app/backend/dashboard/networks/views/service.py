@@ -20,14 +20,14 @@ from backend.resources.networks.service import Service
 
 class ServiceViewSet(SystemViewSet):
 
-    lookup_field = 'service_id'
+    lookup_field = 'service_name'
 
     def list(self, request, project_id, cluster_id, namespace=None):
         client = Service(request.ctx_cluster)
         response_data = DashboardListApiRespBuilder(client).build()
         return Response(response_data)
 
-    def retrieve(self, request, project_id, cluster_id, service_id):
+    def retrieve(self, request, project_id, cluster_id, namespace, service_name):
         client = Service(request.ctx_cluster)
-        response_data = DashboardRetrieveApiRespBuilder(client, service_id).build()
+        response_data = DashboardRetrieveApiRespBuilder(client, namespace, service_name).build()
         return Response(response_data)

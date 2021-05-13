@@ -20,14 +20,14 @@ from backend.resources.networks.endpoints import Endpoints
 
 class EndPointsViewSet(SystemViewSet):
 
-    lookup_field = 'endpoints_id'
+    lookup_field = 'endpoints_name'
 
     def list(self, request, project_id, cluster_id, namespace=None):
         client = Endpoints(request.ctx_cluster)
         response_data = DashboardListApiRespBuilder(client).build()
         return Response(response_data)
 
-    def retrieve(self, request, project_id, cluster_id, endpoints_id):
+    def retrieve(self, request, project_id, cluster_id, namespace, endpoints_name):
         client = Endpoints(request.ctx_cluster)
-        response_data = DashboardRetrieveApiRespBuilder(client, endpoints_id).build()
+        response_data = DashboardRetrieveApiRespBuilder(client, namespace, endpoints_name).build()
         return Response(response_data)

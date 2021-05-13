@@ -20,14 +20,14 @@ from backend.resources.workloads.daemonset import DaemonSet
 
 class DaemonSetViewSet(SystemViewSet):
 
-    lookup_field = 'daemonset_id'
+    lookup_field = 'daemonset_name'
 
     def list(self, request, project_id, cluster_id, namespace=None):
         client = DaemonSet(request.ctx_cluster)
         response_data = DashboardListApiRespBuilder(client).build()
         return Response(response_data)
 
-    def retrieve(self, request, project_id, cluster_id, daemonset_id):
+    def retrieve(self, request, project_id, cluster_id, namespace, daemonset_name):
         client = DaemonSet(request.ctx_cluster)
-        response_data = DashboardRetrieveApiRespBuilder(client, daemonset_id).build()
+        response_data = DashboardRetrieveApiRespBuilder(client, namespace, daemonset_name).build()
         return Response(response_data)

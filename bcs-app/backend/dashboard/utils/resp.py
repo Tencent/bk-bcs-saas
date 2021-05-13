@@ -38,15 +38,15 @@ class DashboardListApiRespBuilder:
 class DashboardRetrieveApiRespBuilder:
     """ 构造 Dashboard 资源详情 Api 响应内容逻辑 """
 
-    def __init__(self, client: ResourceClient, resource_id: str):
+    def __init__(self, client: ResourceClient, namespace: str, name: str):
         """
         构造器初始化
 
         :param client: 资源客户端
-        :param resource_id: 资源ID，格式如 namespace@name
+        :param namespace: 资源命名空间
+        :param name: 资源名称
         """
         self.client = client
-        namespace, name = resource_id.split('@')
         raw_resource = self.client.get(namespace=namespace, name=name, is_format=False)
         if not raw_resource:
             raise error_codes.ResNotFoundError.f(f'Namespace: {namespace}, Name: {name}')

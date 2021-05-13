@@ -20,14 +20,14 @@ from backend.resources.networks.ingress import Ingress
 
 class IngressViewSet(SystemViewSet):
 
-    lookup_field = 'ingress_id'
+    lookup_field = 'ingress_name'
 
     def list(self, request, project_id, cluster_id, namespace=None):
         client = Ingress(request.ctx_cluster)
         response_data = DashboardListApiRespBuilder(client).build()
         return Response(response_data)
 
-    def retrieve(self, request, project_id, cluster_id, ingress_id):
+    def retrieve(self, request, project_id, cluster_id, namespace, ingress_name):
         client = Ingress(request.ctx_cluster)
-        response_data = DashboardRetrieveApiRespBuilder(client, ingress_id).build()
+        response_data = DashboardRetrieveApiRespBuilder(client, namespace, ingress_name).build()
         return Response(response_data)

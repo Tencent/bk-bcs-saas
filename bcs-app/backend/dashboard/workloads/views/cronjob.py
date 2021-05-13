@@ -20,14 +20,14 @@ from backend.resources.workloads.cronjob import CronJob
 
 class CronJobViewSet(SystemViewSet):
 
-    lookup_field = 'cronjob_id'
+    lookup_field = 'cronjob_name'
 
     def list(self, request, project_id, cluster_id, namespace=None):
         client = CronJob(request.ctx_cluster)
         response_data = DashboardListApiRespBuilder(client).build()
         return Response(response_data)
 
-    def retrieve(self, request, project_id, cluster_id, cronjob_id):
+    def retrieve(self, request, project_id, cluster_id, namespace, cronjob_name):
         client = CronJob(request.ctx_cluster)
-        response_data = DashboardRetrieveApiRespBuilder(client, cronjob_id).build()
+        response_data = DashboardRetrieveApiRespBuilder(client, namespace, cronjob_name).build()
         return Response(response_data)
