@@ -11,7 +11,6 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-import json
 from typing import Tuple
 
 from django.db import models
@@ -61,7 +60,7 @@ class Repository(BaseTSModel):
             {
                 "type": auth["type"],
                 "role": auth["role"],
-                "credentials": json.loads(auth["credentials"]),
+                "credentials": auth["credentials"],
             }
             for auth in auths
         ]
@@ -70,7 +69,7 @@ class Repository(BaseTSModel):
     def username_password(self) -> Tuple[str, str]:
         try:
             credentials = list(self.auths.values("credentials"))
-            credential = json.loads(credentials[0]["credentials"])
+            credential = credentials[0]["credentials"]
             return (credential["username"], credential["password"])
         except Exception:
             return ("", "")
