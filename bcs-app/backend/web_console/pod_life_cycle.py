@@ -52,7 +52,7 @@ class PodLifeCycle:
         """定时上报存活, 清理时需要使用"""
         logger.debug("heartbeat: %s", name)
 
-        result = rd_client.zadd(constants.WEB_CONSOLE_HEARTBEAT_KEY, name, time.time())
+        result = rd_client.zadd(constants.WEB_CONSOLE_HEARTBEAT_KEY, {name: time.time()})
 
         return result
 
