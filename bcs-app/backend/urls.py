@@ -16,10 +16,7 @@ from django.contrib import admin
 from django.views.decorators.cache import never_cache
 
 from backend.utils import healthz
-from backend.utils.serializers import patch_datetime_field
 from backend.utils.views import LoginSuccessView, VueTemplateView
-
-patch_datetime_field()
 
 urlpatterns = [
     url(r"^admin/", admin.site.urls),
