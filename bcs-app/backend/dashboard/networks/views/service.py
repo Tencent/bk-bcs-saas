@@ -22,7 +22,7 @@ class ServiceViewSet(SystemViewSet):
 
     lookup_field = 'service_id'
 
-    def list(self, request, project_id, cluster_id):
+    def list(self, request, project_id, cluster_id, namespace=None):
         client = Service(request.ctx_cluster)
         response_data = DashboardListApiRespBuilder(client).build()
         return Response(response_data)

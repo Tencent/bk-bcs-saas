@@ -22,7 +22,7 @@ class SecretViewSet(SystemViewSet):
 
     lookup_field = 'secret_id'
 
-    def list(self, request, project_id, cluster_id):
+    def list(self, request, project_id, cluster_id, namespace=None):
         client = Secret(request.ctx_cluster)
         response_data = DashboardListApiRespBuilder(client).build()
         return Response(response_data)

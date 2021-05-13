@@ -22,7 +22,7 @@ class PodViewSet(SystemViewSet):
 
     lookup_field = 'pod_id'
 
-    def list(self, request, project_id, cluster_id):
+    def list(self, request, project_id, cluster_id, namespace=None):
         client = Pod(request.ctx_cluster)
         response_data = DashboardListApiRespBuilder(client).build()
         return Response(response_data)

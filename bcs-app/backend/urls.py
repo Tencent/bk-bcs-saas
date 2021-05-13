@@ -27,44 +27,46 @@ urlpatterns = [
     url(r"^api/test/sentry/", healthz.test_sentry),
     url(r"^", include("backend.accounts.urls")),
     # 项目管理
-    url(r"^", include("backend.apps.projects.urls", namespace="projects")),
+    url(r"^", include("backend.apps.projects.urls")),
     # 仓库管理
-    url(r"^", include("backend.apps.depot.urls", namespace="depot")),
+    url(r"^", include("backend.apps.depot.urls")),
     # 集群管理
-    url(r"^", include("backend.apps.cluster.urls", namespace="clusters")),
+    url(r"^", include("backend.apps.cluster.urls")),
     # web_console
-    url(r"^", include("backend.web_console.rest_api.urls", namespace="web_console")),
+    url(r"^", include("backend.web_console.rest_api.urls")),
     # 网络管理
-    url(r"^", include("backend.apps.network.urls", namespace="network")),
+    url(r"^", include("backend.apps.network.urls")),
     # Resource管理
-    url(r"^", include("backend.apps.resource.urls", namespace="resource")),
+    url(r"^", include("backend.apps.resource.urls")),
     # metric
-    url(r"^", include("backend.apps.metric.urls", namespace="metric")),
+    url(r"^", include("backend.apps.metric.urls")),
     url(r"^api/projects/(?P<project_id>\w{32})/", include("backend.apps.metric.urls_new")),
     # 配置管理(旧模板集)
-    url(r"^", include("backend.apps.configuration.urls", namespace="configuration")),
+    url(r"^", include("backend.apps.configuration.urls")),
     # TODO 新模板集url入口，后续替换上面的configuration
-    url(
-        r"^api/templatesets/projects/(?P<project_id>\w{32})/",
-        include("backend.apps.templatesets.urls", namespace="templatesets"),
-    ),
+    url(r"^api/templatesets/projects/(?P<project_id>\w{32})/", include("backend.apps.templatesets.urls")),
     # 变量管理
-    url(r"^", include("backend.apps.variable.urls", namespace="variable")),
+    url(r"^", include("backend.apps.variable.urls")),
     # 应用管理
-    url(r"^", include("backend.apps.application.urls", namespace="application")),
-    url(r"^", include("backend.activity_log.urls", namespace="activity_log")),
+    url(r"^", include("backend.apps.application.urls")),
+    url(r"^", include("backend.activity_log.urls")),
     # 权限验证
-    url(r"^", include("backend.apps.verfy.urls", namespace="verfy")),
-    url(r"^api-auth/", include("rest_framework.urls", namespace="rest_framework")),
+    url(r"^", include("backend.apps.verfy.urls")),
+    url(r"^api-auth/", include("rest_framework.urls")),
     # BCS K8S special urls
-    url(r"^", include("backend.bcs_k8s.helm.urls", namespace="bcs_k8s_app")),
-    url(r"^", include("backend.bcs_k8s.app.urls", namespace="bcs_k8s_helm")),
+    url(r"^", include("backend.bcs_k8s.helm.urls")),
+    url(r"^", include("backend.bcs_k8s.app.urls")),
     # Ticket凭证管理
-    url(r"^", include("backend.apps.ticket.urls", namespace="ticket")),
-    url(r"^", include("backend.bcs_k8s.authtoken.urls", namespace="bcs_authtoken")),
-    url(r"^api/hpa/projects/(?P<project_id>\w{32})/", include("backend.apps.hpa.urls", namespace="hpa")),
+    url(r"^", include("backend.apps.ticket.urls")),
+    url(r"^", include("backend.bcs_k8s.authtoken.urls")),
+    url(
+        r"^api/hpa/projects/(?P<project_id>\w{32})/",
+        include(
+            "backend.apps.hpa.urls",
+        ),
+    ),
     # cd部分api
-    url(r"^cd_api/", include("backend.apps.apis.urls", namespace="cd_api")),
+    url(r"^cd_api/", include("backend.apps.apis.urls")),
     url(r"^apis/", include("backend.apis.urls")),
     # dashboard 相关URL
     url(

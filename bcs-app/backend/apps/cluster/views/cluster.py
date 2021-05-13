@@ -356,6 +356,7 @@ class ClusterInfo(ClusterPermBase, ClusterBase, viewsets.ViewSet):
             "network_type": snapshot.get("network_type") or ClusterNetworkType.OVERLAY.value,
         }
         if cidr:
+            config["cluster_cidr"] = cidr
             config["max_pod_num"] = ipaddress.ip_network(cidr).num_addresses
         return config
 

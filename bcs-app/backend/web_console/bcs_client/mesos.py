@@ -15,15 +15,9 @@ import logging
 from concurrent.futures import ThreadPoolExecutor
 from urllib.parse import urlparse
 
-import arrow
-import tornado.gen
-from django.utils.encoding import smart_text
 from tornado.concurrent import run_on_executor
-from tornado.httpclient import HTTPRequest
-from tornado.ioloop import IOLoop
 
 from backend.components.bcs.mesos import MesosClient
-from backend.web_console import constants, utils
 from backend.web_console.bcs_client.base import BCSClientBase
 
 logger = logging.getLogger(__name__)

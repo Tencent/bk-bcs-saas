@@ -17,5 +17,5 @@ from . import views
 
 router = routers.DefaultRouter(trailing_slash=True)
 
-router.register(r'configmaps', views.ConfigMapViewSet, base_name='configmaps')
-router.register(r'secrets', views.SecretViewSet, base_name='secrets')
+router.register(r'configmaps', views.ConfigMapViewSet, basename='configmaps')
+router.register(r'secrets', views.SecretViewSet, basename='secrets')
