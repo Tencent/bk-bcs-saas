@@ -149,7 +149,7 @@ class LoadBalancerViewSet(viewsets.ViewSet):
 
         return Response()
 
-    def detail(self, request, project_id, cluster_id, namespace, name):
+    def lb_detail(self, request, project_id, cluster_id, namespace, name):
         """查询LB的详情，包含实时状态
         需要查询状态，如果处于部署中或者删除中，需要根据对应的deployment状态更新LB状态
         """
