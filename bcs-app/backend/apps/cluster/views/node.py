@@ -1099,8 +1099,15 @@ class NodeForceDeleteViewSet(NodeBase, NodeLabelBase, viewsets.ViewSet):
 class BatchUpdateDeleteNodeViewSet(NodeGetUpdateDeleteViewSet):
     renderer_classes = (BKAPIRenderer, BrowsableAPIRenderer)
 
-    def get_request_params(self, request):
-        slz = node_serializers.BatchUpdateNodesSLZ(data=request.data)
+    def get_request_params(self, request, cluster_id):
+        slz = node_serializers.BatchUpdateNodesSLZ(
+            data=request.data,
+            context={
+                "access_token": request.user.token.access_token,
+                "project_id": request.project.project_id,
+                "cluster_id": cluster_id,
+            },
+        )
         slz.is_valid(raise_exception=True)
         return slz.validated_data
 
@@ -1154,7 +1161,7 @@ class BatchUpdateDeleteNodeViewSet(NodeGetUpdateDeleteViewSet):
 
     def batch_update_nodes(self, request, project_id, cluster_id):
         self.can_edit_cluster(request, project_id, cluster_id)
-        params = self.get_request_params(request)
+        params = self.get_request_params(request, cluster_id)
         # check node for operation
         node_list = self.get_node_list(request, project_id, cluster_id)
         node_list = node_list.get('results') or []

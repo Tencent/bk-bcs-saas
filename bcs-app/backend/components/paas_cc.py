@@ -519,6 +519,16 @@ class PaaSCCConfig:
         self.delete_cluster_url = f"{host}/projects/{{project_id}}/clusters/{{cluster_id}}/"
         self.update_node_list_url = f"{host}/projects/{{project_id}}/clusters/{{cluster_id}}/nodes/"
 
+    @property
+    def node_list_url(self):
+        """获取获取节点列表的url"""
+        path = "/projects/{project_id}/nodes/"
+
+        # 不经过apigw直接访问的path
+        if getattr(settings, "BCS_CC_GET_PROJECT_NODES", None):
+            path = settings.BCS_CC_GET_PROJECT_NODES
+        return f"{self.host}{path}"
+
 
 @dataclass
 class UpdateNodesData:
@@ -579,6 +589,23 @@ class PaaSCCClient(BkApiClient):
         """
         url = self._config.update_node_list_url.format(project_id=project_id, cluster_id=cluster_id)
         return self._client.request_json("PATCH", url, json={"updates": [asdict(node) for node in nodes]})
+
+    @response_handler()
+    def get_node_list(self, project_id: str, cluster_id: str, params: Dict = None) -> Dict:
+        """获取节点列表
+        :param project_id: 项目ID
+        :param cluster_id: 集群ID
+        :param params: 额外的参数
+        :returns: 返回节点列表，格式: {"count": 1, "results": [node的详情信息]}
+        """
+        url = self._config.node_list_url.format(project_id=project_id)
+        req_params = {"cluster_id": cluster_id}
+        if params and isinstance(params, dict):
+            req_params.update(params)
+        # 默认拉取项目或集群下的所有节点，防止返回分页数据，导致数据不准确
+        if "desire_all_data" not in req_params:
+            req_params["desire_all_data"] = 1
+        return self._client.request_json("GET", url, params=req_params)
 
 
 try:
