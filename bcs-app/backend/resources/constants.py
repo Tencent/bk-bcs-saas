@@ -11,6 +11,7 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
+from backend.packages.blue_krill.data_types.enum import EnumField, StructuredEnum
 from backend.utils.basic import ChoicesEnum
 
 # cronjob 不在 preferred resource 中，需要指定 api_version
@@ -36,33 +37,54 @@ class WorkloadTypes(ChoicesEnum):
 
 
 class K8sResourceKind(ChoicesEnum):
+    # workload
     Deployment = "Deployment"
     StatefulSet = "StatefulSet"
     DaemonSet = "DaemonSet"
     CronJob = "CronJob"
     Job = "Job"
-    ConfigMap = "ConfigMap"
+    Pod = "Pod"
+    # network
     Ingress = "Ingress"
-    Secret = "Secret"
     Service = "Service"
     Endpoints = "Endpoints"
+    # configuration
+    ConfigMap = "ConfigMap"
+    Secret = "Secret"
+    # storage
+    PersistentVolume = "PersistentVolume"
+    PersistentVolumeClaim = "PersistentVolumeClaim"
+    StorageClass = "StorageClass"
+    # rbac
+    ServiceAccount = "ServiceAccount"
+    # other
     Namespace = "Namespace"
     Node = "Node"
-    Pod = "Pod"
 
     _choices_labels = (
+        # workload
         (Deployment, "Deployment"),
         (StatefulSet, "StatefulSet"),
         (DaemonSet, "DaemonSet"),
         (CronJob, "CronJob"),
         (Job, "Job"),
-        (ConfigMap, "ConfigMap"),
-        (Ingress, "Ingress"),
-        (Secret, "Secret"),
-        (Service, "service"),
-        (Endpoints, "Endpoints"),
-        (Namespace, "Namespace"),
         (Pod, "Pod"),
+        # network
+        (Endpoints, "Endpoints"),
+        (Ingress, "Ingress"),
+        (Service, "service"),
+        # configuration
+        (ConfigMap, "ConfigMap"),
+        (Secret, "Secret"),
+        # storage
+        (PersistentVolume, "PersistentVolume"),
+        (PersistentVolumeClaim, "PersistentVolumeClaim"),
+        (StorageClass, "StorageClass"),
+        # rbac
+        (ServiceAccount, "ServiceAccount"),
+        # other
+        (Namespace, "Namespace"),
+        (Node, "Node"),
     )
 
 
@@ -132,3 +154,16 @@ class ConditionStatus(ChoicesEnum):
     ConditionTrue = 'True'
     ConditionFalse = 'False'
     ConditionUnknown = 'Unknown'
+
+
+class PersistentVolumeAccessMode(str, StructuredEnum):
+    """ k8s PersistentVolumeAccessMode """
+
+    ReadWriteOnce = EnumField('ReadWriteOnce', label='RWO')
+    ReadOnlyMany = EnumField('ReadOnlyMany', label='ROX')
+    ReadWriteMany = EnumField('ReadWriteMany', label='RWX')
+
+    @property
+    def shortname(self):
+        """ k8s 官方缩写 """
+        return self.get_choice_label(self.value)

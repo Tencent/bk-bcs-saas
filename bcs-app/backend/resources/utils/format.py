@@ -11,13 +11,14 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-import copy
+from copy import deepcopy
 from typing import Any, Dict, List, Optional, Tuple, Union
 
 import arrow
 from django.utils import timezone
 from kubernetes.dynamic.resource import ResourceField, ResourceInstance
 
+from backend.resources.utils.common import calculate_age
 from backend.utils.basic import normalize_datetime
 
 
@@ -60,8 +61,15 @@ class ResourceDefaultFormatter:
             return {}
         return self.format_dict(resource.to_dict())
 
+    def format_common_dict(self, resource_dict: Dict) -> Dict:
+        metadata = deepcopy(resource_dict['metadata'])
+        self.set_metadata_null_values(metadata)
+
+        create_time, update_time = self.parse_create_update_time(metadata)
+        return {'age': calculate_age(create_time), 'createTime': create_time, 'updateTime': update_time}
+
     def format_dict(self, resource_dict: Dict) -> Dict:
-        resource_copy = copy.deepcopy(resource_dict)
+        resource_copy = deepcopy(resource_dict)
         metadata = resource_copy['metadata']
         self.set_metadata_null_values(metadata)
 

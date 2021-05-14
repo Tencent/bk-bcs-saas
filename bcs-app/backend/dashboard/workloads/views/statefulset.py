@@ -19,7 +19,7 @@ from backend.resources.workloads.statefulset import StatefulSet
 
 
 class StatefulSetViewSet(SystemViewSet):
-    def list(self, request, project_id, cluster_id):
+    def list(self, request, project_id, cluster_id, namespace=None):
         client = StatefulSet(request.ctx_cluster)
         response_data = DashboardListApiRespBuilder(client).build()
         return Response(response_data)

@@ -28,7 +28,7 @@ class PodFormatter(WorkloadFormatter):
 
     def format_dict(self, resource_dict: Dict) -> Dict:
         res = self.format_common_dict(resource_dict)
-        spec, status = resource_dict['spec'], resource_dict['status']
+        status = resource_dict['status']
 
         container_statuses = status.get('containerStatuses', [])
         res.update(

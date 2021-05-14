@@ -33,14 +33,13 @@ class WorkloadFormatter(ResourceDefaultFormatter):
         return [c['image'] for c in containers if 'image' in c]
 
     def format_common_dict(self, resource_dict: Dict) -> Dict:
-        resource_copy = deepcopy(resource_dict)
-        metadata = resource_copy['metadata']
+        metadata = deepcopy(resource_dict['metadata'])
         self.set_metadata_null_values(metadata)
 
         # Get create_time and update_time
         create_time, update_time = self.parse_create_update_time(metadata)
         return {
-            'images': self.parse_container_images(resource_copy),
+            'images': self.parse_container_images(resource_dict),
             'age': calculate_age(create_time),
             'createTime': create_time,
             'updateTime': update_time,
