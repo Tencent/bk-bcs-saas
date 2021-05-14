@@ -14,12 +14,20 @@
 from rest_framework.response import Response
 
 from backend.bcs_web.viewsets import SystemViewSet
-from backend.dashboard.utils.resp import DashboardListApiRespBuilder
+from backend.dashboard.utils.resp import DashboardListApiRespBuilder, DashboardRetrieveApiRespBuilder
 from backend.resources.storages.persistent_volume_claim import PersistentVolumeClaim
 
 
 class PersistentVolumeClaimViewSet(SystemViewSet):
+
+    lookup_field = 'persistent_volume_claim_name'
+
     def list(self, request, project_id, cluster_id, namespace=None):
         client = PersistentVolumeClaim(request.ctx_cluster)
         response_data = DashboardListApiRespBuilder(client).build()
+        return Response(response_data)
+
+    def retrieve(self, request, project_id, cluster_id, namespace, persistent_volume_claim_name):
+        client = PersistentVolumeClaim(request.ctx_cluster)
+        response_data = DashboardRetrieveApiRespBuilder(client, namespace, persistent_volume_claim_name).build()
         return Response(response_data)

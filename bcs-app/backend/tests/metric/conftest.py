@@ -14,13 +14,14 @@
 import mock
 import pytest
 
-from backend.tests.testing_utils.mocks.k8s_client import get_dynamic_client
 from backend.tests.testing_utils.mocks.viewsets import FakeSystemViewSet
 
 
 @pytest.fixture
-def dashboard_api_common_patch():
+def metric_api_common_patch():
     with mock.patch('backend.bcs_web.viewsets.SystemViewSet', new=FakeSystemViewSet), mock.patch(
-        'backend.resources.resource.get_dynamic_client', new=get_dynamic_client
+        'backend.metric.views.pod.PodMetricViewSet._common_query_handler', new=lambda *args, **kwargs: None
+    ), mock.patch(
+        'backend.metric.views.container.ContainerMetricViewSet._common_query_handler', new=lambda *args, **kwargs: None
     ):
         yield

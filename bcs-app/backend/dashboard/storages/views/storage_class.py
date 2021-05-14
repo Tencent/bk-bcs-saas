@@ -14,12 +14,20 @@
 from rest_framework.response import Response
 
 from backend.bcs_web.viewsets import SystemViewSet
-from backend.dashboard.utils.resp import DashboardListApiRespBuilder
+from backend.dashboard.utils.resp import DashboardListApiRespBuilder, DashboardRetrieveApiRespBuilder
 from backend.resources.storages.storage_class import StorageClass
 
 
 class StorageClassViewSet(SystemViewSet):
+
+    lookup_field = 'storage_class_name'
+
     def list(self, request, project_id, cluster_id, namespace=None):
         client = StorageClass(request.ctx_cluster)
         response_data = DashboardListApiRespBuilder(client).build()
+        return Response(response_data)
+
+    def retrieve(self, request, project_id, cluster_id, namespace, storage_class_name):
+        client = StorageClass(request.ctx_cluster)
+        response_data = DashboardRetrieveApiRespBuilder(client, namespace, storage_class_name).build()
         return Response(response_data)

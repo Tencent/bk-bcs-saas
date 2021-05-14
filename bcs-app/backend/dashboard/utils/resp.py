@@ -14,14 +14,20 @@
 from typing import Dict
 
 from backend.resources.resource import ResourceClient
+from backend.utils.error_codes import error_codes
 
 
 class DashboardListApiRespBuilder:
     """ 构造 Dashboard 资源列表 Api 响应内容逻辑 """
 
-    def __init__(self, client: ResourceClient):
+    def __init__(self, client: ResourceClient, **kwargs):
+        """
+        构造器初始化
+
+        :param client: 资源客户端
+        """
         self.client = client
-        self.resources = self.client.list(is_format=False).to_dict()
+        self.resources = self.client.list(is_format=False, **kwargs).to_dict()
 
     def build(self) -> Dict:
         """ 组装 Dashboard Api 响应内容 """
@@ -32,3 +38,25 @@ class DashboardListApiRespBuilder:
             },
         }
         return result
+
+
+class DashboardRetrieveApiRespBuilder:
+    """ 构造 Dashboard 资源详情 Api 响应内容逻辑 """
+
+    def __init__(self, client: ResourceClient, namespace: str, name: str, **kwargs):
+        """
+        构造器初始化
+
+        :param client: 资源客户端
+        :param namespace: 资源命名空间
+        :param name: 资源名称
+        """
+        self.client = client
+        raw_resource = self.client.get(namespace=namespace, name=name, is_format=False, **kwargs)
+        if not raw_resource:
+            raise error_codes.ResNotFoundError.f(f'Namespace: {namespace}, Name: {name}')
+        self.resource = raw_resource.to_dict()
+
+    def build(self) -> Dict:
+        """ 组装 Dashboard Api 响应内容 """
+        return {'manifest': self.resource, 'manifest_ext': self.client.formatter.format_dict(self.resource)}

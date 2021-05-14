@@ -11,16 +11,16 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-import mock
-import pytest
+from django.conf.urls import include, url
+from rest_framework import routers
 
-from backend.tests.testing_utils.mocks.k8s_client import get_dynamic_client
-from backend.tests.testing_utils.mocks.viewsets import FakeSystemViewSet
+from . import views
 
+router = routers.DefaultRouter(trailing_slash=True)
 
-@pytest.fixture
-def dashboard_api_common_patch():
-    with mock.patch('backend.bcs_web.viewsets.SystemViewSet', new=FakeSystemViewSet), mock.patch(
-        'backend.resources.resource.get_dynamic_client', new=get_dynamic_client
-    ):
-        yield
+router.register(r'container', views.ContainerMetricViewSet, basename='container')
+router.register(r'pod', views.PodMetricViewSet, basename='pod')
+
+urlpatterns = [
+    url(r'', include(router.urls)),
+]

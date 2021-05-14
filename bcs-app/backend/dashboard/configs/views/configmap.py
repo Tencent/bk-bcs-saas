@@ -14,12 +14,20 @@
 from rest_framework.response import Response
 
 from backend.bcs_web.viewsets import SystemViewSet
-from backend.dashboard.utils.resp import DashboardListApiRespBuilder
+from backend.dashboard.utils.resp import DashboardListApiRespBuilder, DashboardRetrieveApiRespBuilder
 from backend.resources.configs.configmap import ConfigMap
 
 
 class ConfigMapViewSet(SystemViewSet):
+
+    lookup_field = 'configmap_name'
+
     def list(self, request, project_id, cluster_id, namespace=None):
         client = ConfigMap(request.ctx_cluster)
         response_data = DashboardListApiRespBuilder(client).build()
+        return Response(response_data)
+
+    def retrieve(self, request, project_id, cluster_id, namespace, configmap_name):
+        client = ConfigMap(request.ctx_cluster)
+        response_data = DashboardRetrieveApiRespBuilder(client, namespace, configmap_name).build()
         return Response(response_data)

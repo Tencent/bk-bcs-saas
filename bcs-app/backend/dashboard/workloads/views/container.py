@@ -14,24 +14,26 @@
 from rest_framework.response import Response
 
 from backend.bcs_web.viewsets import SystemViewSet
-from backend.dashboard.utils.resp import DashboardListApiRespBuilder, DashboardRetrieveApiRespBuilder
-from backend.dashboard.workloads.serializers import ListPodSLZ
+from backend.dashboard.workloads.utils.resp import ContainerRespBuilder
 from backend.resources.workloads.pod import Pod
 
 
-class PodViewSet(SystemViewSet):
+class ContainerViewSet(SystemViewSet):
 
-    lookup_field = 'pod_name'
+    lookup_field = 'container_id'
 
-    def list(self, request, project_id, cluster_id, namespace=None):
-        """ 获取 Pod 列表，支持 labelSelector """
-        params = self.params_validate(ListPodSLZ)
-        client = Pod(request.ctx_cluster)
-        response_data = DashboardListApiRespBuilder(client, **params).build()
+    def list(self, request, project_id, cluster_id, namespace, pod_name):
+        """ 获取 Pod 下所有的容器信息 """
+        pod_config = self._fetch_pod_configs(request, namespace, pod_name)
+        response_data = ContainerRespBuilder(pod_config).build_list()
         return Response(response_data)
 
-    def retrieve(self, request, project_id, cluster_id, namespace, pod_name):
-        """ 获取单个 Pod 详细信息 """
-        client = Pod(request.ctx_cluster)
-        response_data = DashboardRetrieveApiRespBuilder(client, namespace, pod_name).build()
+    def retrieve(self, request, project_id, cluster_id, namespace, pod_name, container_id):
+        """ 获取 Pod 下单个容器详细信息 """
+        pod_config = self._fetch_pod_configs(request, namespace, pod_name)
+        response_data = ContainerRespBuilder(pod_config, container_id).build()
         return Response(response_data)
+
+    def _fetch_pod_configs(self, request, namespace, pod_name):
+        """ 获取单个 Pod 的配置信息 """
+        return Pod(request.ctx_cluster).get(namespace=namespace, name=pod_name, is_format=False).to_dict()

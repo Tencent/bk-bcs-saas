@@ -11,16 +11,11 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-import mock
-import pytest
 
-from backend.tests.testing_utils.mocks.k8s_client import get_dynamic_client
-from backend.tests.testing_utils.mocks.viewsets import FakeSystemViewSet
+from rest_framework import serializers
 
 
-@pytest.fixture
-def dashboard_api_common_patch():
-    with mock.patch('backend.bcs_web.viewsets.SystemViewSet', new=FakeSystemViewSet), mock.patch(
-        'backend.resources.resource.get_dynamic_client', new=get_dynamic_client
-    ):
-        yield
+class ListPodSLZ(serializers.Serializer):
+    """ 获取 Pod 列表 """
+
+    label_selector = serializers.CharField(label='标签选择算符', max_length=512, required=False)
