@@ -185,7 +185,10 @@ class ProjectMixin:
 
     @property
     def project_id(self):
-        return self.request.parser_context["kwargs"]["project_id"]
+        project_id = self.request.parser_context["kwargs"].get("project_id")
+        if not project_id:
+            return self.request.project.project_id
+        return project_id
 
 
 class FilterByProjectMixin(ProjectMixin):
