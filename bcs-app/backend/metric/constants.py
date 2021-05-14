@@ -18,7 +18,7 @@ METRICS_DEFAULT_TIMEDELTA = 3600
 # 默认查询的命名空间（所有）
 METRICS_DEFAULT_NAMESPACE = '.*'
 
-# 默认查询POD下所有的容器
+# 默认查询 POD 下所有的容器
 METRICS_DEFAULT_CONTAINER_LIST = ['.*']
 
 # 默认不指定具体 POD
