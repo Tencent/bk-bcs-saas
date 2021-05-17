@@ -17,9 +17,9 @@ from . import views
 
 router = routers.DefaultRouter(trailing_slash=True)
 
-router.register(r'cronjobs', views.CronJobViewSet, base_name='cronjob')
-router.register(r'daemonsets', views.DaemonSetViewSet, base_name='daemonset')
-router.register(r'deployments', views.DeploymentViewSet, base_name='deployment')
-router.register(r'jobs', views.JobViewSet, base_name='job')
-router.register(r'pods', views.PodViewSet, base_name='pod')
-router.register(r'statefulsets', views.StatefulSetViewSet, base_name='statefulset')
+router.register(r'cronjobs', views.CronJobViewSet, basename='cronjob')
+router.register(r'daemonsets', views.DaemonSetViewSet, basename='daemonset')
+router.register(r'deployments', views.DeploymentViewSet, basename='deployment')
+router.register(r'jobs', views.JobViewSet, basename='job')
+router.register(r'pods', views.PodViewSet, basename='pod')
+router.register(r'statefulsets', views.StatefulSetViewSet, basename='statefulset')

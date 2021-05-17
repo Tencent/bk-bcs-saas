@@ -66,24 +66,6 @@ class RichTextField(serializers.CharField):
         return clean_html(data)
 
 
-def patch_datetime_field():
-    """Patch DateTimeField which respect current timezone
-    See also: https://github.com/encode/django-rest-framework/issues/3732
-    """
-
-    def to_representation(self, value):
-        # This is MAGICK!
-        if value and settings.USE_TZ:
-            try:
-                value = timezone.localtime(value)
-            except ValueError:
-                pass
-        return orig_to_representation(self, value)
-
-    orig_to_representation = fields.DateTimeField.to_representation
-    fields.DateTimeField.to_representation = to_representation
-
-
 class YamlField(serializers.CharField):
     def run_validation(self, data=""):
         if inspect.isclass(data):

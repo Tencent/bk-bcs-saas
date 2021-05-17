@@ -74,7 +74,7 @@ class TestApplyHostApi:
         "cvm_type": "cvm_type",
         "disk_size": 100,
         "replicas": 1,
-        "network_type": "overlay",
+        "vpc_name": "vpc_test",
     }
 
     @patch(

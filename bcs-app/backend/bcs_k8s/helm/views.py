@@ -82,7 +82,7 @@ class ChartView(ActionSerializerMixin, viewsets.ModelViewSet):
     }
 
     def get_queryset(self):
-        project_id = self.kwargs.get('project_id')
+        project_id = self.request.project.project_id
         queryset = self.queryset.filter(repository__project_id=project_id).order_by("-changed_at")
 
         repo_id = self.kwargs.get('repo_id')

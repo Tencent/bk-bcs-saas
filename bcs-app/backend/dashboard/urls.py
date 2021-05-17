@@ -13,11 +13,26 @@
 #
 from django.conf.urls import include, url
 
+from backend.dashboard.configs.urls import router as config_router
+from backend.dashboard.namespaces.urls import router as namespace_router
+from backend.dashboard.networks.urls import router as network_router
+from backend.dashboard.rbac.urls import router as rbac_router
+from backend.dashboard.storages.urls import router as storage_router
 from backend.dashboard.subscribe.urls import router as subscribe_router
 from backend.dashboard.workloads.urls import router as workload_router
 
+# 可选 namespaces/:namespace 前缀的 urls 集合
+namespace_prefix_urlpatterns = [
+    url(r"^configs/", include(config_router.urls)),
+    url(r"^networks/", include(network_router.urls)),
+    url(r"^rbac/", include(rbac_router.urls)),
+    url(r"^storages/", include(storage_router.urls)),
+    url(r"^workloads/", include(workload_router.urls)),
+]
+
 urlpatterns = [
     url(r"^crds/", include("backend.dashboard.custom_object.urls")),
-    url(r"^workloads/", include(workload_router.urls)),
+    url(r"^namespaces/", include(namespace_router.urls)),
     url(r"^subscribe/", include(subscribe_router.urls)),
+    url(r"^(namespaces/(?P<namespace>[\w\-.]+)/)?", include(namespace_prefix_urlpatterns)),
 ]

@@ -21,7 +21,7 @@ from concurrent.futures import ThreadPoolExecutor
 import yaml
 from django.conf import settings
 from django.template.loader import render_to_string
-from django.utils.encoding import smart_text
+from django.utils.encoding import smart_str
 from django.utils.translation import ugettext_lazy as _
 from kubernetes import client
 from kubernetes.client.rest import ApiException
@@ -52,7 +52,7 @@ class PodLifeCycle:
         """定时上报存活, 清理时需要使用"""
         logger.debug("heartbeat: %s", name)
 
-        result = rd_client.zadd(constants.WEB_CONSOLE_HEARTBEAT_KEY, name, time.time())
+        result = rd_client.zadd(constants.WEB_CONSOLE_HEARTBEAT_KEY, {name: time.time()})
 
         return result
 
@@ -62,7 +62,7 @@ class PodLifeCycle:
         start = now - constants.USER_POD_EXPIRE_TIME
         expired_pods = rd_client.zremrangebyscore(constants.WEB_CONSOLE_HEARTBEAT_KEY, "-inf", start)
         actived_pods = rd_client.zrange(constants.WEB_CONSOLE_HEARTBEAT_KEY, 0, -1, withscores=True)
-        actived_pods = [(smart_text(i[0]), now - i[1]) for i in actived_pods]
+        actived_pods = [(smart_str(i[0]), now - i[1]) for i in actived_pods]
 
         pods = [i[0] for i in actived_pods]
 
@@ -157,7 +157,7 @@ class K8SClient(object):
     @classmethod
     def iter_client(cls):
         for key in rd_client.scan_iter(f"{cls.CACHE_KEY_PREFIX}:*"):
-            key = smart_text(key)
+            key = smart_str(key)
             data = rd_client.get(key)
             try:
                 ctx = json.loads(data)
