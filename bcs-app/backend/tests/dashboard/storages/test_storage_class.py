@@ -17,9 +17,20 @@ pytestmark = pytest.mark.django_db
 
 
 class TestStorageClass:
+    """ 测试 StorageClass 相关接口 """
+
     def test_list(self, api_client, project_id, cluster_id, dashboard_api_common_patch):
         """ 测试获取资源列表接口 """
         response = api_client.get(
             f'/api/dashboard/projects/{project_id}/clusters/{cluster_id}/storages/storage_classes/'
+        )
+        assert response.json()['code'] == 0
+
+    def test_retrieve(self, api_client, project_id, cluster_id, dashboard_api_common_patch):
+        """ 测试获取单个资源接口 """
+        namespace, storage_class_name = 'default', 'test_storage_class_name'
+        response = api_client.get(
+            f'/api/dashboard/projects/{project_id}/clusters/{cluster_id}/'
+            + f'namespaces/{namespace}/storages/storage_classes/{storage_class_name}/'
         )
         assert response.json()['code'] == 0

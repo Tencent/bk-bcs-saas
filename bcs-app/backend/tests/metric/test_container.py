@@ -46,7 +46,7 @@ class TestContainerMetric:
         )
         assert response.json()['code'] == 0
 
-    def test_diask_write(self, api_client, project_id, cluster_id, metric_api_common_patch):
+    def test_disk_write(self, api_client, project_id, cluster_id, metric_api_common_patch):
         """ 测试获取 磁盘写情况 接口 """
         response = api_client.post(
             f'/api/metrics/projects/{project_id}/clusters/{cluster_id}/container/disk_write/', mock_api_params
