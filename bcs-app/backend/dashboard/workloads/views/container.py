@@ -19,6 +19,7 @@ from rest_framework.response import Response
 from backend.bcs_web.viewsets import SystemViewSet
 from backend.dashboard.workloads.utils.resp import ContainerRespBuilder
 from backend.resources.workloads.pod import Pod
+from backend.utils.error_codes import error_codes
 from backend.web_console.api import exec_command
 
 logger = logging.getLogger(__name__)
@@ -59,4 +60,7 @@ class ContainerViewSet(SystemViewSet):
 
     def _fetch_pod_configs(self, request, namespace, pod_name):
         """ 获取单个 Pod 的配置信息 """
-        return Pod(request.ctx_cluster).get(namespace=namespace, name=pod_name, is_format=False).to_dict()
+        pod = Pod(request.ctx_cluster).get(namespace=namespace, name=pod_name, is_format=False)
+        if not pod:
+            raise error_codes.ResNotFoundError.f(f'Type: Pod, Namespace: {namespace}, Name: {pod_name}')
+        return pod.to_dict()

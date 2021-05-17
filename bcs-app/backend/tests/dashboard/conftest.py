@@ -33,7 +33,7 @@ def dashboard_api_common_patch():
 
 def gen_mock_pod_configs(*args, **kwargs) -> Dict:
     """ 构造并返回 mock 的 pod 配置信息 """
-    with open(settings.BASE_DIR + '/backend/tests/resources/formatter/workloads/contents/pod.json') as fr:
+    with open(f'{settings.BASE_DIR}/backend/tests/resources/formatter/workloads/contents/pod.json') as fr:
         configs = json.load(fr)
     return configs['status_running']
 
