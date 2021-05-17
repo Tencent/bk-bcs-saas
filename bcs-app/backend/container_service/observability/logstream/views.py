@@ -11,8 +11,13 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
+import datetime
 import logging
+from urllib import parse
 
+import arrow
+from django.conf import settings
+from django.shortcuts import resolve_url
 from rest_framework import viewsets
 from rest_framework.renderers import BrowsableAPIRenderer
 from rest_framework.response import Response
@@ -31,6 +36,30 @@ class LogStream(viewsets.ViewSet):
 
     renderer_classes = (BKAPIRenderer, BrowsableAPIRenderer)
 
+    def calc_previous_page(self, logs, slz_data, previous_url):
+        """计算上一页的请求链接
+        简单场景, 认为日志打印量是均衡的，通过计算时间差获取
+        """
+
+        oldest = arrow.get(logs[0]["time"])
+        if slz_data["span"]:
+            span = datetime.timedelta(microseconds=slz_data["span"])
+        else:
+            latest = arrow.get(logs[-1]["time"])
+            span = oldest - latest
+
+        offset = oldest + span
+        # 返回纳秒级别时间
+        since_time = offset.format('YYYY-MM-DDTHH:mm:ss.SSSSSSSSS') + 'Z'
+
+        previous_params = {
+            'container_name': slz_data['container_name'],
+            "since_time": since_time,
+            "span": span.microseconds,
+        }
+        previous = previous_url + "?" + parse.urlencode(previous_params)
+        return previous
+
     def get(self, request, project_id: str, cluster_id: str, namespace: str, pod: str):
         """获取日志"""
         slz = serializers.GetLogStreamSLZ(data=request.GET)
@@ -39,17 +68,27 @@ class LogStream(viewsets.ViewSet):
 
         params = {
             'container': data['container_name'],
-            'tailLines': data['tail_lines'],
         }
+
+        if data['since_time']:
+            params['sinceTime'] = data['since_time']
+        else:
+            params['tailLines'] = data['tail_lines']
+
         params.update(DEFAULT_PARAMS)
 
         access_token = request.user.token.access_token
         client = k8s.K8SClient(access_token, project_id, cluster_id, env=None)
         result = client.get_log_stream(namespace, pod, params)
 
-        data1 = result.text.splitlines()
-        data2 = []
-        for i in data1:
-            data2.append(i.split(maxsplit=1))
-        data = {"log": data2}
+        raw_logs = result.text.splitlines()
+        logs = []
+        for i in raw_logs:
+            t, msg = i.split(maxsplit=1)
+            logs.append({"time": t, "log": msg})
+
+        previous_url = f"{settings.DEVOPS_BCS_API_URL}/api/logstream/projects/{project_id}/clusters/{cluster_id}/namespaces/{namespace}/pods/{pod}/"  # noqa
+        previous = self.calc_previous_page(logs, data, previous_url)
+
+        data = {"logs": logs, "previous": previous}
         return Response(data)

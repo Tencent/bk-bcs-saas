@@ -18,6 +18,6 @@ from . import views
 urlpatterns = [
     url(
         r'^api/logstream/projects/(?P<project_id>\w{32})/clusters/(?P<cluster_id>[\w\-]+)/namespaces/(?P<namespace>\w+)/pods/(?P<pod>[\w\-]+)/$',  # noqa
-        views.LogStream.as_view({'get': 'get'}),
+        views.LogStream.as_view({'get': 'get'}, name="logstream"),
     ),
 ]
