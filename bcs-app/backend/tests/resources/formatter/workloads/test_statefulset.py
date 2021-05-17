@@ -14,13 +14,14 @@
 import json
 
 import pytest
+from django.conf import settings
 
 from backend.resources.workloads.statefulset.formatter import StatefulSetFormatter
 
 
 @pytest.fixture(scope="module", autouse=True)
 def statefulset_configs():
-    with open('backend/tests/resources/formatter/workloads/contents/statefulset.json') as fr:
+    with open(settings.BASE_DIR + '/backend/tests/resources/formatter/workloads/contents/statefulset.json') as fr:
         configs = json.load(fr)
     return configs
 

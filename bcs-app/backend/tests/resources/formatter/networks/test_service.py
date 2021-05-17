@@ -14,13 +14,14 @@
 import json
 
 import pytest
+from django.conf import settings
 
 from backend.resources.networks.service.formatter import ServiceFormatter
 
 
 @pytest.fixture(scope="module", autouse=True)
 def service_configs():
-    with open('backend/tests/resources/formatter/networks/contents/service.json') as fr:
+    with open(settings.BASE_DIR + '/backend/tests/resources/formatter/networks/contents/service.json') as fr:
         configs = json.load(fr)
     return configs
 

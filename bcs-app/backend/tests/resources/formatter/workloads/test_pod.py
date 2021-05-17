@@ -14,13 +14,14 @@
 import json
 
 import pytest
+from django.conf import settings
 
 from backend.resources.workloads.pod.formatter import PodFormatter
 
 
 @pytest.fixture(scope="module", autouse=True)
 def pod_configs():
-    with open('backend/tests/resources/formatter/workloads/contents/pod.json') as fr:
+    with open(settings.BASE_DIR + '/backend/tests/resources/formatter/workloads/contents/pod.json') as fr:
         configs = json.load(fr)
     return configs
 

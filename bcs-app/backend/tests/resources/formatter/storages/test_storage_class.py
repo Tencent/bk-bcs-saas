@@ -14,13 +14,14 @@
 import json
 
 import pytest
+from django.conf import settings
 
 from backend.resources.storages.storage_class.formatter import StorageClassFormatter
 
 
 @pytest.fixture(scope="module", autouse=True)
 def storage_class_configs():
-    with open('backend/tests/resources/formatter/storages/contents/storage_class.json') as fr:
+    with open(settings.BASE_DIR + '/backend/tests/resources/formatter/storages/contents/storage_class.json') as fr:
         configs = json.load(fr)
     return configs
 

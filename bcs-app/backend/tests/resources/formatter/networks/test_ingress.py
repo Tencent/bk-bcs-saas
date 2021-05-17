@@ -14,13 +14,14 @@
 import json
 
 import pytest
+from django.conf import settings
 
 from backend.resources.networks.ingress.formatter import IngressFormatter
 
 
 @pytest.fixture(scope="module", autouse=True)
 def ingress_configs():
-    with open('backend/tests/resources/formatter/networks/contents/ingress.json') as fr:
+    with open(settings.BASE_DIR + '/backend/tests/resources/formatter/networks/contents/ingress.json') as fr:
         configs = json.load(fr)
     return configs
 

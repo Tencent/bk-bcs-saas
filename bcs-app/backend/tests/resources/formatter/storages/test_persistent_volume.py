@@ -14,13 +14,14 @@
 import json
 
 import pytest
+from django.conf import settings
 
 from backend.resources.storages.persistent_volume.formatter import PersistentVolumeFormatter
 
 
 @pytest.fixture(scope="module", autouse=True)
 def persistent_volume_configs():
-    with open('backend/tests/resources/formatter/storages/contents/persistent_volume.json') as fr:
+    with open(settings.BASE_DIR + '/backend/tests/resources/formatter/storages/contents/persistent_volume.json') as fr:
         configs = json.load(fr)
     return configs
 
