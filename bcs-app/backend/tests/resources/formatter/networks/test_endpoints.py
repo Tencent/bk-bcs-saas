@@ -21,7 +21,7 @@ from backend.resources.networks.endpoints.formatter import EndpointsFormatter
 
 @pytest.fixture(scope="module", autouse=True)
 def endpoints_configs():
-    with open(settings.BASE_DIR + '/backend/tests/resources/formatter/networks/contents/endpoints.json') as fr:
+    with open(f'{settings.BASE_DIR}/backend/tests/resources/formatter/networks/contents/endpoints.json') as fr:
         configs = json.load(fr)
     return configs
 

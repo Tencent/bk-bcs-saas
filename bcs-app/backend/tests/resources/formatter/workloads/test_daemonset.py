@@ -21,7 +21,7 @@ from backend.resources.workloads.daemonset.formatter import DaemonSetFormatter
 
 @pytest.fixture(scope="module", autouse=True)
 def daemonset_configs():
-    with open(settings.BASE_DIR + '/backend/tests/resources/formatter/workloads/contents/daemonset.json') as fr:
+    with open(f'{settings.BASE_DIR}/backend/tests/resources/formatter/workloads/contents/daemonset.json') as fr:
         configs = json.load(fr)
     return configs
 

@@ -21,7 +21,7 @@ from backend.resources.workloads.statefulset.formatter import StatefulSetFormatt
 
 @pytest.fixture(scope="module", autouse=True)
 def statefulset_configs():
-    with open(settings.BASE_DIR + '/backend/tests/resources/formatter/workloads/contents/statefulset.json') as fr:
+    with open(f'{settings.BASE_DIR}/backend/tests/resources/formatter/workloads/contents/statefulset.json') as fr:
         configs = json.load(fr)
     return configs
 

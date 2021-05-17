@@ -22,7 +22,7 @@ from backend.resources.storages.persistent_volume_claim.formatter import Persist
 @pytest.fixture(scope="module", autouse=True)
 def persistent_volume_claim_configs():
     with open(
-        settings.BASE_DIR + '/backend/tests/resources/formatter/storages/contents/persistent_volume_claim.json'
+        f'{settings.BASE_DIR}/backend/tests/resources/formatter/storages/contents/persistent_volume_claim.json'
     ) as fr:
         configs = json.load(fr)
     return configs

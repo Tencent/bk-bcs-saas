@@ -21,7 +21,7 @@ from backend.resources.storages.storage_class.formatter import StorageClassForma
 
 @pytest.fixture(scope="module", autouse=True)
 def storage_class_configs():
-    with open(settings.BASE_DIR + '/backend/tests/resources/formatter/storages/contents/storage_class.json') as fr:
+    with open(f'{settings.BASE_DIR}/backend/tests/resources/formatter/storages/contents/storage_class.json') as fr:
         configs = json.load(fr)
     return configs
 
