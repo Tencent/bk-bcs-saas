@@ -65,12 +65,12 @@ urlpatterns = [
     # cd部分api
     url(r"^cd_api/", include("backend.apps.apis.urls")),
     url(r"^apis/", include("backend.apis.urls")),
-    # dashboard 相关URL
+    # dashboard 相关 URL
     url(
         r"^api/dashboard/projects/(?P<project_id>\w{32})/clusters/(?P<cluster_id>[\w\-]+)/",
         include("backend.dashboard.urls"),
     ),
-    # 通用 Metric 相关URL
+    # 通用 Metric 相关 URL
     url(
         r"^api/metrics/projects/(?P<project_id>\w{32})/clusters/(?P<cluster_id>[\w\-]+)/",
         include("backend.metric.urls"),

@@ -59,4 +59,7 @@ class DashboardRetrieveApiRespBuilder:
 
     def build(self) -> Dict:
         """ 组装 Dashboard Api 响应内容 """
-        return {'manifest': self.resource, 'manifest_ext': self.client.formatter.format_dict(self.resource)}
+        return {
+            'manifest': self.resource,
+            'manifest_ext': self.client.formatter.format_dict(self.resource),
+        }

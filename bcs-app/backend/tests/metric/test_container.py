@@ -17,34 +17,38 @@ pytestmark = pytest.mark.django_db
 
 
 # 通用的API请求参数
-mock_api_params = {'pod_name': 'deployment-1', 'start_at': '2021-01-01 10:00:00', 'end_at': '2021-01-01 11:00:00'}
+mock_api_params = {
+    'pod_name': 'deployment-1',
+    'start_at': '2021-01-01 10:00:00',
+    'end_at': '2021-01-01 11:00:00',
+}
 
 
 class TestContainerMetric:
     def test_cpu_usage(self, api_client, project_id, cluster_id, metric_api_common_patch):
         """ 测试获取 CPU 使用情况 接口 """
-        response = api_client.get(
+        response = api_client.post(
             f'/api/metrics/projects/{project_id}/clusters/{cluster_id}/container/cpu_usage/', mock_api_params
         )
         assert response.json()['code'] == 0
 
     def test_memory_usage(self, api_client, project_id, cluster_id, metric_api_common_patch):
         """ 测试获取 内存使用情况 接口 """
-        response = api_client.get(
+        response = api_client.post(
             f'/api/metrics/projects/{project_id}/clusters/{cluster_id}/container/memory_usage/', mock_api_params
         )
         assert response.json()['code'] == 0
 
     def test_disk_read(self, api_client, project_id, cluster_id, metric_api_common_patch):
         """ 测试获取 磁盘读情况 接口 """
-        response = api_client.get(
+        response = api_client.post(
             f'/api/metrics/projects/{project_id}/clusters/{cluster_id}/container/disk_read/', mock_api_params
         )
         assert response.json()['code'] == 0
 
     def test_diask_write(self, api_client, project_id, cluster_id, metric_api_common_patch):
         """ 测试获取 磁盘写情况 接口 """
-        response = api_client.get(
+        response = api_client.post(
             f'/api/metrics/projects/{project_id}/clusters/{cluster_id}/container/disk_write/', mock_api_params
         )
         assert response.json()['code'] == 0
