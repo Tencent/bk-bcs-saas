@@ -70,6 +70,7 @@ urlpatterns = [
         r"^api/dashboard/projects/(?P<project_id>\w{32})/clusters/(?P<cluster_id>[\w\-]+)/",
         include("backend.dashboard.urls"),
     ),
+    url(r"^", include("backend.container_service.observability.logstream.urls")),
 ]
 
 # 导入版本特定的urls

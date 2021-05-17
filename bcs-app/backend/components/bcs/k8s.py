@@ -14,6 +14,7 @@
 import json
 import logging
 
+import requests as http_rquests
 from django.conf import settings
 from django.utils.functional import cached_property
 from django.utils.translation import ugettext_lazy as _
@@ -23,8 +24,8 @@ from rest_framework.exceptions import ValidationError
 
 from backend.components import paas_cc
 from backend.components.bcs import BCSClientBase
-from backend.components.utils import http_delete, http_get, http_patch, http_post
-from backend.utils import FancyDict, cache, exceptions
+from backend.components.utils import bk_get, http_delete, http_get, http_patch, http_post
+from backend.utils import FancyDict, cache, exceptions, requests
 from backend.utils.cache import region
 from backend.utils.errcodes import ErrorCode
 from backend.utils.error_codes import error_codes
@@ -525,6 +526,14 @@ class K8SClient(BCSClientBase):
         }
         url = f"{host}/apis/monitoring.coreos.com/v1/namespaces/{namespace}/prometheuses/{name}"
         return http_patch(url, json=spec, headers=headers, raise_for_status=False)
+
+    def get_log_stream(self, namespace, pod, params):
+        context = self.get_context_or_raise()
+        host = f"{self._bcs_server_host}{context['server_address_path']}".rstrip("/")
+        headers = {"Authorization": f"Bearer {context['user_token']}"}
+        url = f"{host}/api/v1/namespaces/{namespace}/pods/{pod}/log"
+        result = http_rquests.get(url, headers=headers, params=params)
+        return result
 
     def list_node(self, label_selector=""):
         api_client = resources.Node(self.k8s_raw_client)
