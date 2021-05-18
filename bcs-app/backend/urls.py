@@ -13,6 +13,7 @@
 #
 from django.conf.urls import include, url
 from django.contrib import admin
+from django.urls import re_path
 from django.views.decorators.cache import never_cache
 
 from backend.utils import healthz
@@ -24,7 +25,7 @@ urlpatterns = [
     url(r"^api/test/sentry/", healthz.test_sentry),
     url(r"^", include("backend.accounts.urls")),
     # 项目管理
-    url(r"^", include("backend.apps.projects.urls")),
+    re_path(r"^", include(("backend.apps.projects.urls", "backend.apps.projects"), namespace="projects")),
     # 仓库管理
     url(r"^", include("backend.apps.depot.urls")),
     # 集群管理
