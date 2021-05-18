@@ -14,14 +14,14 @@
 import json
 
 import pytest
-from django.conf import settings
 
 from backend.resources.workloads.daemonset.formatter import DaemonSetFormatter
+from backend.tests.resources.formatter.conftest import WORKLOAD_CONFIG_DIR
 
 
 @pytest.fixture(scope="module", autouse=True)
 def daemonset_configs():
-    with open(f'{settings.BASE_DIR}/backend/tests/resources/formatter/workloads/contents/daemonset.json') as fr:
+    with open(f'{WORKLOAD_CONFIG_DIR}/daemonset.json') as fr:
         configs = json.load(fr)
     return configs
 

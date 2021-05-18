@@ -11,24 +11,13 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-import json
+from django.conf import settings
 
-import pytest
+# 网络 类配置存放路径
+NETWORK_CONFIG_DIR = f'{settings.BASE_DIR}/backend/tests/resources/formatter/networks/contents'
 
-from backend.resources.workloads.statefulset.formatter import StatefulSetFormatter
-from backend.tests.resources.formatter.conftest import WORKLOAD_CONFIG_DIR
+# 存储 类配置存放路径
+STORAGE_CONFIG_DIR = f'{settings.BASE_DIR}/backend/tests/resources/formatter/storages/contents'
 
-
-@pytest.fixture(scope="module", autouse=True)
-def statefulset_configs():
-    with open(f'{WORKLOAD_CONFIG_DIR}/statefulset.json') as fr:
-        configs = json.load(fr)
-    return configs
-
-
-class TestStatefulsetFormatter:
-    def test_format_dict(self, statefulset_configs):
-        """ 测试 format_dict 方法 """
-        result = StatefulSetFormatter().format_dict(statefulset_configs['normal'])
-        assert set(result.keys()) == {'images', 'age', 'createTime', 'updateTime'}
-        assert result['images'] == ['k8s.gcr.io/nginx-slim:0.8']
+# 工作负载 类配置存放路径
+WORKLOAD_CONFIG_DIR = f'{settings.BASE_DIR}/backend/tests/resources/formatter/workloads/contents'

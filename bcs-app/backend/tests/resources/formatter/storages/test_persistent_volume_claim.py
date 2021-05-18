@@ -14,16 +14,14 @@
 import json
 
 import pytest
-from django.conf import settings
 
 from backend.resources.storages.persistent_volume_claim.formatter import PersistentVolumeClaimFormatter
+from backend.tests.resources.formatter.conftest import STORAGE_CONFIG_DIR
 
 
 @pytest.fixture(scope="module", autouse=True)
 def persistent_volume_claim_configs():
-    with open(
-        f'{settings.BASE_DIR}/backend/tests/resources/formatter/storages/contents/persistent_volume_claim.json'
-    ) as fr:
+    with open(f'{STORAGE_CONFIG_DIR}/persistent_volume_claim.json') as fr:
         configs = json.load(fr)
     return configs
 
