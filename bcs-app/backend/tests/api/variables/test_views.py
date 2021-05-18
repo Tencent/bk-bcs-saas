@@ -31,6 +31,7 @@ class TestVariablesViewSet:
     @pytest.mark.parametrize(
         "var_id_data_map, var_id_key_name_map, expected_data",
         [
+            ({}, {}, []),
             (
                 {1: '{"value": 1}'},
                 {1: {"key": "test", "name": "test"}},
