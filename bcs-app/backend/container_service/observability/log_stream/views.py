@@ -23,6 +23,7 @@ from rest_framework import viewsets
 from rest_framework.renderers import BrowsableAPIRenderer
 from rest_framework.response import Response
 
+from backend.bcs_web.viewsets import SystemViewSet
 from backend.components.bcs import k8s
 from backend.resources.cluster.models import CtxCluster
 from backend.resources.pod import log
@@ -33,10 +34,8 @@ from . import constants, serializers
 logger = logging.getLogger(__name__)
 
 
-class LogStream(viewsets.ViewSet):
+class LogStream(SystemViewSet):
     """k8s 原生日志流"""
-
-    renderer_classes = (BKAPIRenderer, BrowsableAPIRenderer)
 
     def calc_previous_page(self, logs, slz_data, previous_url):
         """计算上一页的请求链接
@@ -65,9 +64,7 @@ class LogStream(viewsets.ViewSet):
 
     def fetch(self, request, project_id: str, cluster_id: str, namespace: str, pod: str):
         """获取日志"""
-        slz = serializers.FetchLogsSLZ(data=request.query_params)
-        slz.is_valid(raise_exception=True)
-        data = slz.validated_data
+        data = self.params_validate(serializers.FetchLogsSLZ)
 
         params = {
             "container": data["container_name"],
@@ -79,8 +76,7 @@ class LogStream(viewsets.ViewSet):
         else:
             params["tailLines"] = data["tail_lines"]
 
-        ctx_cluster = CtxCluster.create(token=request.user.token.access_token, project_id=project_id, id=cluster_id)
-        client = log.Log(ctx_cluster, namespace, pod)
+        client = log.Log(request.ctx_cluster, namespace, pod)
 
         content = client.fetch_log(params)
         raw_logs = content.splitlines()
@@ -97,9 +93,7 @@ class LogStream(viewsets.ViewSet):
 
     def download(self, request, project_id: str, cluster_id: str, namespace: str, pod: str):
         """下载日志"""
-        slz = serializers.DownloadLogsSLZ(data=request.query_params)
-        slz.is_valid(raise_exception=True)
-        data = slz.validated_data
+        data = self.params_validate(serializers.DownloadLogsSLZ)
 
         params = {
             "container": data["container_name"],
@@ -107,8 +101,7 @@ class LogStream(viewsets.ViewSet):
             "tailLines": constants.DEFAULT_TAIL_LINES,
         }
 
-        ctx_cluster = CtxCluster.create(token=request.user.token.access_token, project_id=project_id, id=cluster_id)
-        client = log.Log(ctx_cluster, namespace, pod)
+        client = log.Log(request.ctx_cluster, namespace, pod)
 
         content = client.fetch_log(params)
 
