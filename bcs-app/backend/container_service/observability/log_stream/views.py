@@ -65,7 +65,7 @@ class LogStream(viewsets.ViewSet):
 
     def fetch(self, request, project_id: str, cluster_id: str, namespace: str, pod: str):
         """获取日志"""
-        slz = serializers.FetchLogsSLZ(data=request.GET)
+        slz = serializers.FetchLogsSLZ(data=request.query_params)
         slz.is_valid(raise_exception=True)
         data = slz.validated_data
 
@@ -97,7 +97,7 @@ class LogStream(viewsets.ViewSet):
 
     def download(self, request, project_id: str, cluster_id: str, namespace: str, pod: str):
         """下载日志"""
-        slz = serializers.DownloadLogsSLZ(data=request.GET)
+        slz = serializers.DownloadLogsSLZ(data=request.query_params)
         slz.is_valid(raise_exception=True)
         data = slz.validated_data
 
