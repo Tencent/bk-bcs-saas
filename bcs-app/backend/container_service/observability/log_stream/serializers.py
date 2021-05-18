@@ -3,6 +3,8 @@ from rest_framework import serializers
 
 
 class FetchLogsSLZ(serializers.Serializer):
+    """拉取日志"""
+
     container_name = serializers.CharField()
     tail_lines = serializers.IntegerField(default=30)
     since_time = serializers.CharField(default="")
@@ -11,5 +13,7 @@ class FetchLogsSLZ(serializers.Serializer):
 
 
 class DownloadLogsSLZ(serializers.Serializer):
+    """下载日志"""
+
     container_name = serializers.CharField()
     previous = serializers.BooleanField(default=False)
