@@ -28,10 +28,10 @@ from backend.apps.cluster.constants import ClusterState
 from backend.apps.cluster.models import ClusterInstallLog, ClusterOperType, CommonStatus
 from backend.apps.cluster.utils import can_use_hosts
 from backend.apps.instance.models import InstanceConfig, InstanceEvent, MetricConfig, VersionInstance
-from backend.apps.network.models import K8SLoadBlance, MesosLoadBlance
 from backend.bcs_k8s.app.models import App
 from backend.components import ops, paas_cc
 from backend.resources import cluster as cluster_utils
+from backend.uniapps.network.models import K8SLoadBlance, MesosLoadBlance
 from backend.utils.cache import rd_client
 from backend.utils.errcodes import ErrorCode
 from backend.utils.error_codes import error_codes

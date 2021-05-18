@@ -17,7 +17,7 @@ from django.utils.translation import ugettext_lazy as _
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
-from backend.apps.network.models import MesosLoadBlance as MesosLoadBalancer
+from backend.uniapps.network.models import MesosLoadBlance as MesosLoadBalancer
 
 
 class MesosLBSLZ(serializers.ModelSerializer):

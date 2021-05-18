@@ -19,8 +19,8 @@ from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
 from backend.apps.configuration.serializers import RE_NAME
-from backend.apps.network.constants import K8S_LB_NAMESPACE, MESOS_LB_NAMESPACE
-from backend.apps.network.models import K8SLoadBlance
+from backend.uniapps.network.constants import K8S_LB_NAMESPACE, MESOS_LB_NAMESPACE
+from backend.uniapps.network.models import K8SLoadBlance
 from backend.utils.error_codes import error_codes
 
 

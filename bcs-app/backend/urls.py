@@ -32,7 +32,7 @@ urlpatterns = [
     # web_console
     url(r"^", include("backend.web_console.rest_api.urls")),
     # 网络管理
-    url(r"^", include("backend.apps.network.urls")),
+    url(r"^", include("backend.uniapps.network.urls")),
     # Resource管理
     url(r"^", include("backend.apps.resource.urls")),
     # metric

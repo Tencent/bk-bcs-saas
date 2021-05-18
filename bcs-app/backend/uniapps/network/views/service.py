@@ -57,11 +57,11 @@ from backend.apps.instance.generator import (
 )
 from backend.apps.instance.models import InstanceConfig
 from backend.apps.instance.utils_pub import get_cluster_version
-from backend.apps.network.ext_routes import delete_svc_extended_routes, get_svc_extended_routes
-from backend.apps.network.serializers import BatchResourceSLZ
-from backend.apps.network.utils import get_svc_access_info
 from backend.components.bcs import k8s, mesos
 from backend.resources.namespace.constants import K8S_PLAT_NAMESPACE, K8S_SYS_NAMESPACE
+from backend.uniapps.network.ext_routes import delete_svc_extended_routes, get_svc_extended_routes
+from backend.uniapps.network.serializers import BatchResourceSLZ
+from backend.uniapps.network.utils import get_svc_access_info
 from backend.utils.errcodes import ErrorCode
 from backend.utils.exceptions import ComponentError
 

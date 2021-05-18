@@ -11,11 +11,11 @@ from rest_framework.renderers import BrowsableAPIRenderer
 
 from backend.accounts import bcs_perm
 from backend.activity_log import client
-from backend.apps.network.clb import constants as clb_constants
-from backend.apps.network.clb import serializers
-from backend.apps.network.clb import utils as clb_utils
-from backend.apps.network.clb.models import CloudLoadBlancer
 from backend.components import paas_cc
+from backend.uniapps.network.clb import constants as clb_constants
+from backend.uniapps.network.clb import serializers
+from backend.uniapps.network.clb import utils as clb_utils
+from backend.uniapps.network.clb.models import CloudLoadBlancer
 from backend.utils.error_codes import error_codes
 from backend.utils.renderers import BKAPIRenderer
 

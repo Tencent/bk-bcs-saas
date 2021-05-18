@@ -22,9 +22,9 @@ from rest_framework.renderers import BrowsableAPIRenderer
 from rest_framework.response import Response
 
 from backend.activity_log import client as activity_client
-from backend.apps.network.models import MesosLoadBlance as MesosLoadBalancer
-from backend.apps.network.views.lb import constants as mesos_lb_constants
-from backend.apps.network.views.lb import serializers as lb_slz
+from backend.uniapps.network.models import MesosLoadBlance as MesosLoadBalancer
+from backend.uniapps.network.views.lb import constants as mesos_lb_constants
+from backend.uniapps.network.views.lb import serializers as lb_slz
 from backend.utils.renderers import BKAPIRenderer
 
 from . import utils as lb_utils

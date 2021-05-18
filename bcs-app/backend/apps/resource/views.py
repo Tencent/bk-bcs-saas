@@ -61,10 +61,10 @@ from backend.apps.instance.drivers import get_scheduler_driver
 from backend.apps.instance.funutils import render_mako_context, update_nested_dict
 from backend.apps.instance.generator import GENERATOR_DICT
 from backend.apps.instance.models import InstanceConfig
-from backend.apps.network.serializers import BatchResourceSLZ
 from backend.components import paas_cc
 from backend.components.bcs import k8s, mesos
 from backend.resources.namespace.constants import K8S_PLAT_NAMESPACE, K8S_SYS_NAMESPACE
+from backend.uniapps.network.serializers import BatchResourceSLZ
 from backend.utils.basic import getitems
 from backend.utils.errcodes import ErrorCode
 from backend.utils.error_codes import error_codes

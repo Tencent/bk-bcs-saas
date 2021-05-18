@@ -4,7 +4,7 @@ from django.utils.translation import ugettext_lazy as _
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
-from backend.apps.network.clb.models import CloudLoadBlancer
+from backend.uniapps.network.clb.models import CloudLoadBlancer
 
 
 class BaseCLBParamsSLZ(serializers.Serializer):

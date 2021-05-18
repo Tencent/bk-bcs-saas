@@ -6,11 +6,11 @@ from django.utils.translation import ugettext_lazy as _
 
 from backend.accounts import bcs_perm
 from backend.apps.constants import ProjectKind
-from backend.apps.network.clb.constants import MESOS_CLB_NAMESPACE
 from backend.components import paas_cc
 from backend.components.bcs import mesos
 from backend.components.clb import describe_clb, get_clb_regions
 from backend.components.utils import http_get
+from backend.uniapps.network.clb.constants import MESOS_CLB_NAMESPACE
 from backend.utils.errcodes import ErrorCode
 from backend.utils.error_codes import error_codes
 

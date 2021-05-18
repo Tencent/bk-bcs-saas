@@ -66,7 +66,7 @@ INSTALLED_APPS = [
     "backend.apps.templatesets.apps.TemplateSetsConfig",
     "backend.apps.instance",
     "backend.apps.resource",
-    "backend.apps.network",
+    "backend.uniapps.network",
     "backend.apps.metric",
     "backend.apps.variable",
     "backend.apps.ticket",

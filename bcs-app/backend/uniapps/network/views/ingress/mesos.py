@@ -28,8 +28,8 @@ from backend.apps.instance.constants import INGRESS_SYS_CONFIG
 from backend.apps.instance.funutils import render_mako_context, update_nested_dict
 from backend.apps.instance.generator import IngressProfileGenerator
 from backend.apps.instance.models import InstanceConfig
-from backend.apps.network import utils as network_utils
 from backend.components.bcs import mesos
+from backend.uniapps.network import utils as network_utils
 from backend.utils.basic import getitems
 from backend.utils.renderers import BKAPIRenderer
 

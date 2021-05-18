@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from django.conf.urls import url
 
-from backend.apps.network.clb import views
+from backend.uniapps.network.clb import views
 
 urlpatterns = [
     url(
