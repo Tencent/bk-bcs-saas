@@ -14,7 +14,6 @@
 import json
 import logging
 
-import requests as http_rquests
 from django.conf import settings
 from django.utils.functional import cached_property
 from django.utils.translation import ugettext_lazy as _
@@ -24,8 +23,8 @@ from rest_framework.exceptions import ValidationError
 
 from backend.components import paas_cc
 from backend.components.bcs import BCSClientBase
-from backend.components.utils import bk_get, http_delete, http_get, http_patch, http_post
-from backend.utils import FancyDict, cache, exceptions, requests
+from backend.components.utils import http_delete, http_get, http_patch, http_post
+from backend.utils import FancyDict, cache, exceptions
 from backend.utils.cache import region
 from backend.utils.errcodes import ErrorCode
 from backend.utils.error_codes import error_codes
