@@ -17,9 +17,8 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 
 from backend.bcs_web.viewsets import SystemViewSet
+from backend.dashboard.workloads.utils.resources import fetch_pod_config
 from backend.dashboard.workloads.utils.resp import ContainerRespBuilder
-from backend.resources.workloads.pod import Pod
-from backend.utils.error_codes import error_codes
 from backend.web_console.api import exec_command
 
 logger = logging.getLogger(__name__)
@@ -31,13 +30,13 @@ class ContainerViewSet(SystemViewSet):
 
     def list(self, request, project_id, cluster_id, namespace, pod_name):
         """ 获取 Pod 下所有的容器信息 """
-        pod_config = self._fetch_pod_configs(request, namespace, pod_name)
+        pod_config = fetch_pod_config(request, namespace, pod_name)
         response_data = ContainerRespBuilder(pod_config).build_list()
         return Response(response_data)
 
     def retrieve(self, request, project_id, cluster_id, namespace, pod_name, container_id):
         """ 获取 Pod 下单个容器详细信息 """
-        pod_config = self._fetch_pod_configs(request, namespace, pod_name)
+        pod_config = fetch_pod_config(request, namespace, pod_name)
         response_data = ContainerRespBuilder(pod_config, container_id).build()
         return Response(response_data)
 
@@ -57,10 +56,3 @@ class ContainerViewSet(SystemViewSet):
             response_data = []
 
         return Response(response_data)
-
-    def _fetch_pod_configs(self, request, namespace, pod_name):
-        """ 获取单个 Pod 的配置信息 """
-        pod = Pod(request.ctx_cluster).get(namespace=namespace, name=pod_name, is_format=False)
-        if not pod:
-            raise error_codes.ResNotFoundError.f(f'Type: Pod, Namespace: {namespace}, Name: {pod_name}')
-        return pod.to_dict()
