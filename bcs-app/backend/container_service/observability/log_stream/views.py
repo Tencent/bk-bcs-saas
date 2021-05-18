@@ -19,15 +19,10 @@ import arrow
 from django.conf import settings
 from django.http import HttpResponse
 from django.utils import timezone
-from rest_framework import viewsets
-from rest_framework.renderers import BrowsableAPIRenderer
 from rest_framework.response import Response
 
 from backend.bcs_web.viewsets import SystemViewSet
-from backend.components.bcs import k8s
-from backend.resources.cluster.models import CtxCluster
 from backend.resources.pod import log
-from backend.utils.renderers import BKAPIRenderer
 
 from . import constants, serializers
 
