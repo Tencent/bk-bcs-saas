@@ -28,7 +28,7 @@ logger = logging.getLogger(__name__)
 
 
 class Matcher:
-    """A matcher is used to indicate whether we should inject data to target resoruce."""
+    """A matcher is used to indicate whether we should inject data to target resource."""
 
     def match(self, resource):
         raise NotImplementedError

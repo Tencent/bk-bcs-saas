@@ -13,7 +13,7 @@
 #
 
 """
-This package implementes a bcs injector which inject bcs info to deployment,
+This package implements a bcs injector which inject bcs info to deployment,
 pods, containers and etc.
 """
 
