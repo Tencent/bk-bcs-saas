@@ -11,17 +11,11 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-from django.conf.urls import url
+from django.urls import path
 
 from . import views
 
 urlpatterns = [
-    url(
-        r'^api/logstream/projects/(?P<project_id>\w{32})/clusters/(?P<cluster_id>[\w\-]+)/namespaces/(?P<namespace>\w+)/pods/(?P<pod>[\w\-]+)/$',  # noqa
-        views.LogStream.as_view({'get': 'fetch'}),
-    ),
-    url(
-        r'^api/logstream/projects/(?P<project_id>\w{32})/clusters/(?P<cluster_id>[\w\-]+)/namespaces/(?P<namespace>\w+)/pods/(?P<pod>[\w\-]+)/download/$',  # noqa
-        views.LogStream.as_view({'get': 'download'}),
-    ),
+    path('namespaces/<slug:namespace>/pods/<slug:pod>/', views.LogStream.as_view({'get': 'fetch'})),
+    path('namespaces/<slug:namespace>/pods/<slug:pod>/download/', views.LogStream.as_view({'get': 'download'})),
 ]

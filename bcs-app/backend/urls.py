@@ -13,7 +13,7 @@
 #
 from django.conf.urls import include, url
 from django.contrib import admin
-from django.urls import re_path
+from django.urls import path, re_path
 from django.views.decorators.cache import never_cache
 
 from backend.utils import healthz
@@ -70,7 +70,10 @@ urlpatterns = [
         r"^api/dashboard/projects/(?P<project_id>\w{32})/clusters/(?P<cluster_id>[\w\-]+)/",
         include("backend.dashboard.urls"),
     ),
-    url(r"^", include("backend.container_service.observability.log_stream.urls")),
+    path(
+        "api/logstream/projects/<slug:project_id>/clusters/<slug:cluster_id>/",
+        include("backend.container_service.observability.log_stream.urls"),
+    ),
 ]
 
 # 导入版本特定的urls
