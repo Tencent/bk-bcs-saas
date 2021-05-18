@@ -24,7 +24,7 @@ urlpatterns = [
     url(r"^api/healthz/", healthz.healthz_view),
     url(r"^api/test/sentry/", healthz.test_sentry),
     url(r"^", include("backend.accounts.urls")),
-    # 项目管理
+    # 项目管理, namespace 名称 SKIP_REQUEST_NAMESPACE 配置中, 不能省略
     re_path(r"^", include(("backend.apps.projects.urls", "backend.apps.projects"), namespace="projects")),
     # 仓库管理
     url(r"^", include("backend.apps.depot.urls")),
