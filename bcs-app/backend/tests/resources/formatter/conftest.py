@@ -13,11 +13,14 @@
 #
 from django.conf import settings
 
+# 格式化器 单元测试目录
+FORMATTER_UNITTEST_DIR = f'{settings.BASE_DIR}/backend/tests/resources/formatter/'
+
 # 网络 类配置存放路径
-NETWORK_CONFIG_DIR = f'{settings.BASE_DIR}/backend/tests/resources/formatter/networks/contents'
+NETWORK_CONFIG_DIR = f'{FORMATTER_UNITTEST_DIR}/networks/contents'
 
 # 存储 类配置存放路径
-STORAGE_CONFIG_DIR = f'{settings.BASE_DIR}/backend/tests/resources/formatter/storages/contents'
+STORAGE_CONFIG_DIR = f'{FORMATTER_UNITTEST_DIR}/storages/contents'
 
 # 工作负载 类配置存放路径
-WORKLOAD_CONFIG_DIR = f'{settings.BASE_DIR}/backend/tests/resources/formatter/workloads/contents'
+WORKLOAD_CONFIG_DIR = f'{FORMATTER_UNITTEST_DIR}/workloads/contents'
