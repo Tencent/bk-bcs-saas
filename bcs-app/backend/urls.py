@@ -34,7 +34,7 @@ urlpatterns = [
     # 网络管理
     url(r"^", include("backend.uniapps.network.urls")),
     # Resource管理
-    url(r"^", include("backend.apps.resource.urls")),
+    url(r"^", include("backend.uniapps.resource.urls")),
     # metric
     url(r"^", include("backend.apps.metric.urls")),
     url(r"^api/projects/(?P<project_id>\w{32})/", include("backend.apps.metric.urls_new")),
