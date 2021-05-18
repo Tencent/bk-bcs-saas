@@ -28,10 +28,10 @@ from backend.apps.application.constants import (
     UNNORMAL_STATUS,
 )
 from backend.apps.configuration.models import Template
-from backend.apps.hpa.utils import get_mesos_deployment_hpa
 from backend.apps.instance.constants import InsState
 from backend.apps.instance.models import InstanceConfig, InstanceEvent, MetricConfig, VersionInstance
 from backend.celery_app.tasks.application import update_create_error_record
+from backend.kube_core.hpa.utils import get_mesos_deployment_hpa
 from backend.utils.errcodes import ErrorCode
 from backend.utils.error_codes import error_codes
 

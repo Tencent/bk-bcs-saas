@@ -59,7 +59,7 @@ urlpatterns = [
     url(
         r"^api/hpa/projects/(?P<project_id>\w{32})/",
         include(
-            "backend.apps.hpa.urls",
+            "backend.kube_core.hpa.urls",
         ),
     ),
     # cd部分api
