@@ -17,3 +17,6 @@ DEFAULT_PARAMS = {"timestamps": True}
 
 # 默认最大返回 10MB 日志大小
 DEFAULT_LIMIT_BYTES = 1024 * 1024 * 10
+
+# 默认限制最大 10W 条日志
+DEFAULT_TAIL_LINES = 100000

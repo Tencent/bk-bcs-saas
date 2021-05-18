@@ -17,21 +17,19 @@ from urllib import parse
 
 import arrow
 from django.conf import settings
-from django.shortcuts import resolve_url
+from django.http import HttpResponse
+from django.utils import timezone
 from rest_framework import viewsets
 from rest_framework.renderers import BrowsableAPIRenderer
 from rest_framework.response import Response
 
 from backend.components.bcs import k8s
-from backend.container_service.observability.logstream import serializers
 from backend.utils.renderers import BKAPIRenderer
 from backend.utils.response import BKAPIResponse
 
-from . import constants
+from . import constants, serializers
 
 logger = logging.getLogger(__name__)
-
-DEFAULT_PARAMS = {"timestamps": True}
 
 
 class LogStream(viewsets.ViewSet):
@@ -64,9 +62,9 @@ class LogStream(viewsets.ViewSet):
         previous = previous_url + "?" + parse.urlencode(previous_params)
         return previous
 
-    def get(self, request, project_id: str, cluster_id: str, namespace: str, pod: str):
+    def fetch(self, request, project_id: str, cluster_id: str, namespace: str, pod: str):
         """获取日志"""
-        slz = serializers.GetLogStreamSLZ(data=request.GET)
+        slz = serializers.FetchLogsSLZ(data=request.GET)
         slz.is_valid(raise_exception=True)
         data = slz.validated_data
 
@@ -74,6 +72,7 @@ class LogStream(viewsets.ViewSet):
             "container": data["container_name"],
             "limitBytes": constants.DEFAULT_LIMIT_BYTES,
             "previous": data["previous"],
+            "timestamps": True,
         }
 
         if data["since_time"]:
@@ -81,10 +80,7 @@ class LogStream(viewsets.ViewSet):
         else:
             params["tailLines"] = data["tail_lines"]
 
-        params.update(DEFAULT_PARAMS)
-
-        access_token = request.user.token.access_token
-        client = k8s.K8SClient(access_token, project_id, cluster_id, env=None)
+        client = k8s.K8SClient(request.user.token.access_token, project_id, cluster_id, env=None)
         result = client.get_log_stream(namespace, pod, params)
 
         if result.status_code != 200:
@@ -103,3 +99,31 @@ class LogStream(viewsets.ViewSet):
 
         data = {"logs": logs, "previous": previous}
         return Response(data)
+
+    def download(self, request, project_id: str, cluster_id: str, namespace: str, pod: str):
+        """下载日志"""
+        slz = serializers.DownloadLogsSLZ(data=request.GET)
+        slz.is_valid(raise_exception=True)
+        data = slz.validated_data
+
+        params = {
+            "container": data["container_name"],
+            "previous": data["previous"],
+            "limitBytes": constants.DEFAULT_LIMIT_BYTES,
+            "tailLines": constants.DEFAULT_TAIL_LINES,
+            "timestamps": True,
+        }
+
+        client = k8s.K8SClient(request.user.token.access_token, project_id, cluster_id, env=None)
+        result = client.get_log_stream(namespace, pod, params)
+
+        if result.status_code != 200:
+            data = {"logs": [], "previous": None}
+            message = result.json()["message"]
+            return BKAPIResponse(data=data, message=message)
+
+        ts = timezone.now().strftime("%Y%m%d%H%M%S")
+        filename = f"{pod}-{data['container_name']}-{ts}.log"
+        response = HttpResponse(content=result.content, content_type='application/octet-stream')
+        response['Content-Disposition'] = f'attachment; filename="{filename}"'
+        return response
