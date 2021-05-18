@@ -56,7 +56,7 @@ class KubectlClusterClient:
         return [self.kubectl_bin] + self.parse_options()
 
     def apply(self, template: str, namespace="default"):
-        """Apply resources in kubenetest cluster
+        """Apply resources in kubernetes cluster
 
         :returns: None if succeed
         :raises: KubectlError or KubectlExecutionError
@@ -75,7 +75,7 @@ class KubectlClusterClient:
             self._run_command_with_retry(max_retries=0, cmd_arguments=cmd_arguments)
 
     def delete(self, template: str, namespace="default"):
-        """Delete resources in kubenetest cluster
+        """Delete resources in kubernetes cluster
 
         :returns: None if succeed
         :raises: KubectlError or KubectlExecutionError
@@ -93,7 +93,7 @@ class KubectlClusterClient:
             self._run_command_with_retry(max_retries=0, cmd_arguments=cmd_arguments)
 
     def delete_one_by_one(self, items, namespace="default"):
-        """Delete resources in kubenetest cluster
+        """Delete resources in kubernetes cluster
 
         :returns: None if succeed
         :raises: KubectlError or KubectlExecutionError
@@ -119,7 +119,7 @@ class KubectlClusterClient:
                     raise
 
     def get(self, kind: str, name: str, namespace="default"):
-        """get resources {name} of kind {kind} under namespace {namespace} in kubenetest cluster
+        """get resources {name} of kind {kind} under namespace {namespace} in kubernetes cluster
 
         :returns: dict
         :raises: KubectlError or KubectlExecutionError

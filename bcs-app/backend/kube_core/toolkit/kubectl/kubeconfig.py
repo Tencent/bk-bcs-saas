@@ -19,7 +19,6 @@ from dataclasses import dataclass
 from typing import List
 
 import yaml
-from django.conf import settings
 
 logger = logging.getLogger(__name__)
 
