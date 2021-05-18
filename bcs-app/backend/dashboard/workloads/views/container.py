@@ -30,13 +30,13 @@ class ContainerViewSet(SystemViewSet):
 
     def list(self, request, project_id, cluster_id, namespace, pod_name):
         """ 获取 Pod 下所有的容器信息 """
-        pod_config = fetch_pod_config(request, namespace, pod_name)
+        pod_config = fetch_pod_config(request.ctx_cluster, namespace, pod_name)
         response_data = ContainerRespBuilder(pod_config).build_list()
         return Response(response_data)
 
     def retrieve(self, request, project_id, cluster_id, namespace, pod_name, container_id):
         """ 获取 Pod 下单个容器详细信息 """
-        pod_config = fetch_pod_config(request, namespace, pod_name)
+        pod_config = fetch_pod_config(request.ctx_cluster, namespace, pod_name)
         response_data = ContainerRespBuilder(pod_config, container_id).build()
         return Response(response_data)
 
