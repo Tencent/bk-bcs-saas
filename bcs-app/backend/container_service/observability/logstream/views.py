@@ -25,6 +25,9 @@ from rest_framework.response import Response
 from backend.components.bcs import k8s
 from backend.container_service.observability.logstream import serializers
 from backend.utils.renderers import BKAPIRenderer
+from backend.utils.response import BKAPIResponse
+
+from . import constants
 
 logger = logging.getLogger(__name__)
 
@@ -50,12 +53,13 @@ class LogStream(viewsets.ViewSet):
 
         offset = oldest + span
         # 返回纳秒级别时间
-        since_time = offset.format('YYYY-MM-DDTHH:mm:ss.SSSSSSSSS') + 'Z'
+        since_time = offset.format("YYYY-MM-DDTHH:mm:ss.SSSSSSSSS") + "Z"
 
         previous_params = {
-            'container_name': slz_data['container_name'],
+            "container_name": slz_data["container_name"],
             "since_time": since_time,
             "span": span.microseconds,
+            'previous': slz_data['previous'],
         }
         previous = previous_url + "?" + parse.urlencode(previous_params)
         return previous
@@ -67,19 +71,26 @@ class LogStream(viewsets.ViewSet):
         data = slz.validated_data
 
         params = {
-            'container': data['container_name'],
+            "container": data["container_name"],
+            "limitBytes": constants.DEFAULT_LIMIT_BYTES,
+            "previous": data["previous"],
         }
 
-        if data['since_time']:
-            params['sinceTime'] = data['since_time']
+        if data["since_time"]:
+            params["sinceTime"] = data["since_time"]
         else:
-            params['tailLines'] = data['tail_lines']
+            params["tailLines"] = data["tail_lines"]
 
         params.update(DEFAULT_PARAMS)
 
         access_token = request.user.token.access_token
         client = k8s.K8SClient(access_token, project_id, cluster_id, env=None)
         result = client.get_log_stream(namespace, pod, params)
+
+        if result.status_code != 200:
+            data = {"logs": [], "previous": None}
+            message = result.json()["message"]
+            return BKAPIResponse(data=data, message=message)
 
         raw_logs = result.text.splitlines()
         logs = []

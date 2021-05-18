@@ -7,3 +7,4 @@ class GetLogStreamSLZ(serializers.Serializer):
     tail_lines = serializers.IntegerField(default=30)
     since_time = serializers.CharField(default="")
     span = serializers.IntegerField(default=0)
+    previous = serializers.BooleanField(default=False)
