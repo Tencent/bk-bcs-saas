@@ -24,8 +24,9 @@ from rest_framework.renderers import BrowsableAPIRenderer
 from rest_framework.response import Response
 
 from backend.components.bcs import k8s
+from backend.resources.cluster.models import CtxCluster
+from backend.resources.pod import log
 from backend.utils.renderers import BKAPIRenderer
-from backend.utils.response import BKAPIResponse
 
 from . import constants, serializers
 
@@ -70,9 +71,7 @@ class LogStream(viewsets.ViewSet):
 
         params = {
             "container": data["container_name"],
-            "limitBytes": constants.DEFAULT_LIMIT_BYTES,
             "previous": data["previous"],
-            "timestamps": True,
         }
 
         if data["since_time"]:
@@ -80,15 +79,11 @@ class LogStream(viewsets.ViewSet):
         else:
             params["tailLines"] = data["tail_lines"]
 
-        client = k8s.K8SClient(request.user.token.access_token, project_id, cluster_id, env=None)
-        result = client.get_log_stream(namespace, pod, params)
+        ctx_cluster = CtxCluster.create(token=request.user.token.access_token, project_id=project_id, id=cluster_id)
+        client = log.Log(ctx_cluster, namespace, pod)
 
-        if result.status_code != 200:
-            data = {"logs": [], "previous": None}
-            message = result.json()["message"]
-            return BKAPIResponse(data=data, message=message)
-
-        raw_logs = result.text.splitlines()
+        content = client.fetch_log(params)
+        raw_logs = content.splitlines()
         logs = []
         for i in raw_logs:
             t, msg = i.split(maxsplit=1)
@@ -109,21 +104,16 @@ class LogStream(viewsets.ViewSet):
         params = {
             "container": data["container_name"],
             "previous": data["previous"],
-            "limitBytes": constants.DEFAULT_LIMIT_BYTES,
             "tailLines": constants.DEFAULT_TAIL_LINES,
-            "timestamps": True,
         }
 
-        client = k8s.K8SClient(request.user.token.access_token, project_id, cluster_id, env=None)
-        result = client.get_log_stream(namespace, pod, params)
+        ctx_cluster = CtxCluster.create(token=request.user.token.access_token, project_id=project_id, id=cluster_id)
+        client = log.Log(ctx_cluster, namespace, pod)
 
-        if result.status_code != 200:
-            data = {"logs": [], "previous": None}
-            message = result.json()["message"]
-            return BKAPIResponse(data=data, message=message)
+        content = client.fetch_log(params)
 
         ts = timezone.now().strftime("%Y%m%d%H%M%S")
         filename = f"{pod}-{data['container_name']}-{ts}.log"
-        response = HttpResponse(content=result.content, content_type='application/octet-stream')
+        response = HttpResponse(content=content, content_type='application/octet-stream')
         response['Content-Disposition'] = f'attachment; filename="{filename}"'
         return response

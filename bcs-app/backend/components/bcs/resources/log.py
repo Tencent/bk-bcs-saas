@@ -11,12 +11,28 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
+import json
+import logging
 
-# 默认参数
-DEFAULT_PARAMS = {"timestamps": True}
+from kubernetes import client
 
-# 默认最大返回 10MB 日志大小
-DEFAULT_LIMIT_BYTES = 1024 * 1024 * 10
+from backend.resources.constants import K8sResourceKind
 
-# 默认限制最大 10W 条日志
-DEFAULT_TAIL_LINES = 100000
+from .api_response import response
+from .resource import BatchAPIClassMixins, FilterResourceData, Resource
+
+logger = logging.getLogger(__name__)
+
+
+class Log(Resource, FilterResourceData, BatchAPIClassMixins):
+    resource_kind = K8sResourceKind.Log.value
+
+    @response(format_data=False)
+    def fetch_log(self, params):
+        # 因为view层向下传递时是多个namespace+name, 需要增加过滤
+        import ipdb
+
+        ipdb.set_trace()
+        resp = self.api_instance.list_job_for_all_namespaces(_preload_content=False)
+        data = json.loads(resp.data)
+        return self.filter_data(self.resource_kind, data, params)
