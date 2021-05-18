@@ -20,10 +20,10 @@ from django.conf import settings
 from django.utils.translation import ugettext_lazy as _
 from rest_framework.exceptions import APIException, PermissionDenied
 
-from backend.bcs_k8s import kubectl
 from backend.bcs_k8s.kubehelm.helm import KubeHelmClient
 from backend.bcs_k8s.utils import get_kubectl_version
 from backend.components import bcs
+from backend.kube_core.toolkit import kubectl
 from backend.resources.cluster.constants import ClusterCOES
 from backend.resources.cluster.utils import get_cluster_coes
 
