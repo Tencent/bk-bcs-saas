@@ -527,14 +527,6 @@ class K8SClient(BCSClientBase):
         url = f"{host}/apis/monitoring.coreos.com/v1/namespaces/{namespace}/prometheuses/{name}"
         return http_patch(url, json=spec, headers=headers, raise_for_status=False)
 
-    def get_log_stream(self, namespace, pod, params):
-        context = self.get_context_or_raise()
-        host = f"{self._bcs_server_host}{context['server_address_path']}".rstrip("/")
-        headers = {"Authorization": f"Bearer {context['user_token']}"}
-        url = f"{host}/api/v1/namespaces/{namespace}/pods/{pod}/log"
-        result = http_rquests.get(url, headers=headers, params=params)
-        return result
-
     def list_node(self, label_selector=""):
         api_client = resources.Node(self.k8s_raw_client)
         return api_client.list_node(label_selector=label_selector)
