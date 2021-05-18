@@ -16,11 +16,12 @@ import json
 import pytest
 
 from backend.resources.workloads.cronjob.formatter import CronJobFormatter
+from backend.tests.resources.formatter.conftest import WORKLOAD_CONFIG_DIR
 
 
 @pytest.fixture(scope="module", autouse=True)
 def cronjob_configs():
-    with open('backend/tests/resources/formatter/workloads/contents/cronjob.json') as fr:
+    with open(f'{WORKLOAD_CONFIG_DIR}/cronjob.json') as fr:
         configs = json.load(fr)
     return configs
 

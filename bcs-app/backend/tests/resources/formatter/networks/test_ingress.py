@@ -16,11 +16,12 @@ import json
 import pytest
 
 from backend.resources.networks.ingress.formatter import IngressFormatter
+from backend.tests.resources.formatter.conftest import NETWORK_CONFIG_DIR
 
 
 @pytest.fixture(scope="module", autouse=True)
 def ingress_configs():
-    with open('backend/tests/resources/formatter/networks/contents/ingress.json') as fr:
+    with open(f'{NETWORK_CONFIG_DIR}/ingress.json') as fr:
         configs = json.load(fr)
     return configs
 
