@@ -17,10 +17,10 @@ from backend.bcs_k8s.helm.models.chart import Chart, ChartVersion, ChartVersionS
 from backend.bcs_k8s.helm.models.repo import Repository
 
 
-def update_bcs_chart_records(project_id: str, project_code: str, chart: Chart, versions: List[str]):
-    """更新bcs记录的chart的相关记录"""
+def update_and_delete_chart_versions(project_id: str, project_code: str, chart: Chart, versions: List[str]):
+    """更新或删除chart及versions"""
     chart_versions = ChartVersion.objects.filter(chart=chart, version__in=versions)
-    version_digests = [info.digest for info in chart_versions]
+    version_digests = chart_versions.values_list("digest", flat=True)
     # 处理digest不变动的情况
     ChartVersionSnapshot.objects.filter(digest__in=version_digests).delete()
     chart_versions.delete()

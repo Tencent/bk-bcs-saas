@@ -30,7 +30,7 @@ from backend.utils.error_codes import error_codes
 from backend.utils.renderers import BKAPIRenderer
 from backend.utils.views import ActionSerializerMixin, FilterByProjectMixin, with_code_wrapper
 
-from ..utils import batch_delete_chart_versions, get_chart_version_list
+from .. import utils as repo_chart_utils
 from .constants import DEFAULT_CHART_REPO_PROJECT_NAME
 from .models.chart import Chart, ChartVersion, ChartVersionSnapshot
 from .models.repo import Repository
@@ -46,7 +46,7 @@ from .serializers import (
     RepoSLZ,
 )
 from .tasks import sync_helm_repo
-from .utils.chart_versions import update_bcs_chart_records
+from .utils.chart_versions import update_and_delete_chart_versions
 
 logger = logging.getLogger(__name__)
 
@@ -326,21 +326,33 @@ class HelmChartVersionsViewSet(SystemViewSet):
         try:
             repo = Repository.objects.get(name=project_code, project_id=project_id)
         except Repository.DoesNotExist:
-            raise ValidationError(_("project_id:{}, project_code: {}项目下repo不存在").format(project_id, project_code))
+            raise ValidationError(
+                _("项目【project_id:{}, project_code: {}】没有查询到Chart仓库信息").format(project_id, project_code)
+            )
         return repo.username_password
 
     def _get_versions_by_chart(self, project_name, project_code, project_id, chart_name):
         username, password = self._get_repo_auth(project_code, project_id)
-        return get_chart_version_list(project_name, project_code, chart_name, username, password)
+        chart_data = repo_chart_utils.ChartData(
+            project_name=project_name, repo_name=project_code, chart_name=chart_name
+        )
+        return repo_chart_utils.get_chart_version_list(
+            chart_data, repo_chart_utils.RepoAuth(username=username, password=password)
+        )
+
+    def _get_repo_project_name(self, project_code: str) -> str:
+        """获取仓库的项目名称"""
+        # 兼容Harbor项目地址及bk repo项目地址, 其中harbor项目地址固定，bk repo地址项目地址为bcs project code
+        return DEFAULT_CHART_REPO_PROJECT_NAME or project_code
 
     def list_releases_by_chart_versions(self, request, project_id, chart_name):
         """查询chart版本对应的release列表"""
         project_code = request.project.project_code
-        project_name = DEFAULT_CHART_REPO_PROJECT_NAME or project_code
+        repo_project_name = self._get_repo_project_name(project_code)
         chart_versions = request.data.get("versions")
         # 如果参数中不存在versions，则需要查询chart下的所有版本
         if not chart_versions:
-            chart_versions = self._get_versions_by_chart(project_name, project_code, project_id, chart_name)
+            chart_versions = self._get_versions_by_chart(repo_project_name, project_code, project_id, chart_name)
         # 根据版本判断部署的releases
         chart = self._get_chart(project_id, project_code, chart_name)
         release_qs = App.objects.filter(version__in=chart_versions, chart=chart)
@@ -349,24 +361,29 @@ class HelmChartVersionsViewSet(SystemViewSet):
 
     def batch_delete(self, request, project_id, chart_name):
         """删除 chart 版本
-        如果需要chart，即删除chart下的所有版本
+        如果需要删除chart，则删除chart下的所有版本即可
         """
         project_code = request.project.project_code
-        project_name = DEFAULT_CHART_REPO_PROJECT_NAME or project_code
+        repo_project_name = self._get_repo_project_name(project_code)
         # 获取chart的版本
         chart_versions = request.data.get("versions")
         username, password = self._get_repo_auth(project_code, project_id)
+        # 组装数据
+        chart_data = repo_chart_utils.ChartData(
+            project_name=repo_project_name, repo_name=project_code, chart_name=chart_name
+        )
+        repo_auth = repo_chart_utils.RepoAuth(username=username, password=password)
         # 获取chart下的所有版本
         if not chart_versions:
-            chart_versions = get_chart_version_list(project_name, project_code, chart_name, username, password)
+            chart_versions = repo_chart_utils.get_chart_version_list(chart_data, repo_auth)
         # 开始删除版本
         try:
-            batch_delete_chart_versions(project_name, project_code, chart_name, chart_versions, username, password)
+            repo_chart_utils.batch_delete_chart_versions(chart_data, repo_auth, chart_versions)
         except Exception as e:
             logger.error("删除项目:%s下chart:%s失败，详情:%s", project_id, chart_name, str(e))
             raise error_codes.APIError(_("删除chart版本失败"))
         # 处理平台记录的版本信息
         chart = self._get_chart(project_id, project_code, chart_name)
-        update_bcs_chart_records(project_id, project_code, chart, chart_versions)
+        update_and_delete_chart_versions(project_id, project_code, chart, chart_versions)
 
         return Response()

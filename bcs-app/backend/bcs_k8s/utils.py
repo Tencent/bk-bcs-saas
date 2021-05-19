@@ -12,7 +12,7 @@
 # specific language governing permissions and limitations under the License.
 #
 import functools
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass
 from typing import List
 
 from backend.apps.instance import constants as instance_constants
@@ -58,31 +58,40 @@ def provide_image_pull_secrets(namespace):
     return f"{instance_constants.K8S_IMAGE_SECRET_PRFIX}{namespace}"
 
 
-def get_chart_version_list(
-    project_name: str, repo_name: str, chart_name: str, username: str, password: str
-) -> List[str]:
+@dataclass
+class ChartData:
+    project_name: str
+    repo_name: str
+    chart_name: str
+
+
+@dataclass
+class RepoAuth:
+    username: str
+    password: str
+
+
+def get_chart_version_list(chart_data: ChartData, repo_auth: RepoAuth) -> List[str]:
     """获取 chart 对应的版本列表"""
-    client = BkRepoClient(username, password=password)
-    chart_versions = client.get_chart_versions(project_name, repo_name, chart_name)
+    client = BkRepoClient(repo_auth.username, password=repo_auth.password)
+    chart_versions = client.get_chart_versions(**asdict(chart_data))
     # 如果不为列表，则返回为空
     if isinstance(chart_versions, list):
         return [info["version"] for info in chart_versions]
     return []
 
 
-def delete_chart_version(
-    project_name: str, repo_name: str, chart_name: str, username: str, password: str, version: str
-):
+def delete_chart_version(chart_data: ChartData, repo_auth: RepoAuth, version: str):
     """删除版本"""
-    client = BkRepoClient(username, password=password)
-    client.delete_chart_version(project_name, repo_name, chart_name, version)
+    client = BkRepoClient(repo_auth.username, password=repo_auth.password)
+    req_data = asdict(chart_data)
+    req_data["version"] = version
+    client.delete_chart_version(**req_data)
 
 
-def batch_delete_chart_versions(
-    project_name: str, repo_name: str, chart_name: str, versions: List[str], username: str, password: str
-):
+def batch_delete_chart_versions(chart_data: ChartData, repo_auth: RepoAuth, versions: List[str]):
     """批量删除chart版本"""
     # 组装并发任务
-    delete_version = functools.partial(delete_chart_version, project_name, repo_name, chart_name, username, password)
+    delete_version = functools.partial(delete_chart_version, chart_data, repo_auth)
     tasks = [functools.partial(delete_version, version) for version in versions]
     async_run(tasks)
