@@ -16,7 +16,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-def get_svc_extended_routes(project_id):
+def get_svc_extended_routes(project_id, cluster_id):
     return {}
 
 
