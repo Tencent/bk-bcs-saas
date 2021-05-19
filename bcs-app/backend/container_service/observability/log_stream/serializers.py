@@ -13,14 +13,16 @@
 #
 from rest_framework import serializers
 
+from .constants import DEFAULT_TAIL_LINES
+
 
 class FetchLogsSLZ(serializers.Serializer):
     """拉取日志"""
 
     container_name = serializers.CharField()
-    tail_lines = serializers.IntegerField(default=100)
-    since_time = serializers.CharField(default="")
-    span = serializers.IntegerField(default=0)
+    tail_lines = serializers.IntegerField(default=DEFAULT_TAIL_LINES)
+    first_time = serializers.CharField(default="")
+    last_time = serializers.CharField(default="")
     previous = serializers.BooleanField(default=False)
 
 

@@ -34,29 +34,30 @@ class LogStream(SystemViewSet):
     """k8s 原生日志流"""
 
     def calc_previous_page(self, logs, slz_data, previous_url):
-        """计算上一页的请求链接
-        简单场景, 认为日志打印量是均衡的，通过计算时间差获取
-        """
-
-        oldest = arrow.get(logs[0]["time"])
-        if slz_data["span"]:
-            span = datetime.timedelta(microseconds=slz_data["span"])
-        else:
-            latest = arrow.get(logs[-1]["time"])
-            span = oldest - latest
-
-        offset = oldest + span
-        # 返回纳秒级别时间
-        since_time = offset.format("YYYY-MM-DDTHH:mm:ss.SSSSSSSSS") + "Z"
+        """计算上一页的请求链接"""
+        if len(logs) < 2:
+            return None
 
         previous_params = {
             "container_name": slz_data["container_name"],
-            "since_time": since_time,
-            "span": span.microseconds,
             'previous': slz_data['previous'],
+            "first_time": logs[0]['time'],
+            "last_time": logs[-1]['time'],
         }
         previous = previous_url + "?" + parse.urlencode(previous_params)
         return previous
+
+    def calc_since_time(self, first_time, last_time):
+        """计算下一次的开始时间
+        简单场景, 认为日志打印量是均衡的，通过计算时间差获取
+        """
+        _first_time = arrow.get(first_time)
+        _last_time = arrow.get(last_time)
+        span = _last_time - _first_time
+        offset = _first_time - span
+        # 返回纳秒级别时间
+        new_since_time = offset.format("YYYY-MM-DDTHH:mm:ss.SSSSSSSSS") + "Z"
+        return new_since_time
 
     def fetch(self, request, project_id: str, cluster_id: str, namespace: str, pod: str):
         """获取日志"""
@@ -64,8 +65,8 @@ class LogStream(SystemViewSet):
 
         filter = LogFilter(container_name=data["container_name"], previous=data["previous"])
 
-        if data["since_time"]:
-            filter.since_time = data['since_time']
+        if data["first_time"] and data['last_time']:
+            filter.since_time = self.calc_since_time(data["first_time"], data['last_time'])
         else:
             filter.tail_lines = data["tail_lines"]
 
@@ -76,6 +77,9 @@ class LogStream(SystemViewSet):
         logs = []
         for i in raw_logs:
             t, msg = i.split(maxsplit=1)
+            # 只返回当前历史数据
+            if data['first_time'] and t == data['first_time']:
+                break
             logs.append({"time": t, "log": msg})
 
         previous_url = f"{settings.DEVOPS_BCS_API_URL}/api/logstream/projects/{project_id}/clusters/{cluster_id}/namespaces/{namespace}/pods/{pod}/"  # noqa
