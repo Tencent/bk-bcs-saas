@@ -12,5 +12,5 @@
 # specific language governing permissions and limitations under the License.
 #
 
-# 默认限制最大 10W 条日志
+# 默认返回 10W 条日志
 DEFAULT_TAIL_LINES = 100000

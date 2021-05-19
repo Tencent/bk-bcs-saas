@@ -23,6 +23,7 @@ from rest_framework.response import Response
 
 from backend.bcs_web.viewsets import SystemViewSet
 from backend.resources.pod import log
+from backend.resources.pod.constants import LogFilter
 
 from . import constants, serializers
 
@@ -61,19 +62,16 @@ class LogStream(SystemViewSet):
         """获取日志"""
         data = self.params_validate(serializers.FetchLogsSLZ)
 
-        params = {
-            "container": data["container_name"],
-            "previous": data["previous"],
-        }
+        filter = LogFilter(container_name=data["container_name"], previous=data["previous"])
 
         if data["since_time"]:
-            params["sinceTime"] = data["since_time"]
+            filter.since_time = data['since_time']
         else:
-            params["tailLines"] = data["tail_lines"]
+            filter.tail_lines = data["tail_lines"]
 
         client = log.Log(request.ctx_cluster, namespace, pod)
 
-        content = client.fetch_log(params)
+        content = client.fetch_log(filter)
         raw_logs = content.splitlines()
         logs = []
         for i in raw_logs:
@@ -90,15 +88,13 @@ class LogStream(SystemViewSet):
         """下载日志"""
         data = self.params_validate(serializers.DownloadLogsSLZ)
 
-        params = {
-            "container": data["container_name"],
-            "previous": data["previous"],
-            "tailLines": constants.DEFAULT_TAIL_LINES,
-        }
+        filter = LogFilter(
+            container_name=data["container_name"], previous=data["previous"], tail_lines=constants.DEFAULT_TAIL_LINES
+        )
 
         client = log.Log(request.ctx_cluster, namespace, pod)
 
-        content = client.fetch_log(params)
+        content = client.fetch_log(filter)
 
         ts = timezone.now().strftime("%Y%m%d%H%M%S")
         filename = f"{pod}-{data['container_name']}-{ts}.log"

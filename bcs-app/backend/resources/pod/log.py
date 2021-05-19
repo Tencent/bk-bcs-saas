@@ -39,12 +39,19 @@ class Log:
         self.namespace = namespace
         self.pod_name = pod_name
 
-    def fetch_log(self, params: dict):
+    def fetch_log(self, filter: constants.LogFilter):
         """获取日志"""
-        params['timestamps'] = constants.LOG_SHOW_TIMESTAMPS
+        params = {
+            'timestamps': constants.LOG_SHOW_TIMESTAMPS,
+            'limitBytes': constants.LOG_MAX_LIMIT_BYTES,
+            'container': filter.container_name,
+            'previous': filter.previous,
+        }
 
-        # 强制限制返回大小
-        params['limitBytes'] = constants.LOG_LIMIT_BYTES
+        if filter.since_time:
+            params['sinceTime'] = filter.since_time
+        else:
+            params['tailLines'] = filter.tail_lines
 
         try:
             result = self.dynamic_client.get(self.resource, self.pod_name, self.namespace, query_params=params)
