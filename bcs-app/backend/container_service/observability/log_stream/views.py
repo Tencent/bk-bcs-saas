@@ -12,6 +12,7 @@
 # specific language governing permissions and limitations under the License.
 #
 import logging
+from typing import Dict, List
 from urllib import parse
 
 import arrow
@@ -32,7 +33,7 @@ logger = logging.getLogger(__name__)
 class LogStreamViewSet(SystemViewSet):
     """k8s 原生日志流"""
 
-    def calc_previous_page(self, logs: list, slz_data: dict, previous_url: str):
+    def calc_previous_page(self, logs: List, slz_data: Dict, previous_url: str):
         """计算上一页的请求链接"""
         if len(logs) < 2:
             return None
