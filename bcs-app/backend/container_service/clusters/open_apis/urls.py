@@ -25,7 +25,7 @@ from .pod import PodViewSet
 
 urlpatterns = [
     url(r"^$", ClusterViewSet.as_view({"get": "list"})),
-    url(r"^(?P<cluster_id>[\w\-]+)/crds/", include("backend.apis.resources.custom_object.urls")),
+    url(r"^(?P<cluster_id>[\w\-]+)/crds/", include("backend.container_service.clusters.open_apis.custom_object.urls")),
     url(
         r"^(?P<cluster_id>[\w\-]+)/namespaces/$",
         NamespaceViewSet.as_view({"get": "list_by_cluster_id", "post": "create_namespace"}),

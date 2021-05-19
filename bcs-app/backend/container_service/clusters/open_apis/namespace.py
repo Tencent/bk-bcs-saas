@@ -14,9 +14,9 @@
 from rest_framework.response import Response
 
 from backend.accounts import bcs_perm
-from backend.apis.resources.serializers import CreateNamespaceParamsSLZ
 from backend.apis.views import NoAccessTokenBaseAPIViewSet
 from backend.apps.variable.models import NameSpaceVariable
+from backend.container_service.clusters.open_apis.serializers import CreateNamespaceParamsSLZ
 from backend.resources.namespace import utils as ns_utils
 from backend.resources.namespace.constants import K8S_PLAT_NAMESPACE, K8S_SYS_NAMESPACE
 from backend.resources.project.constants import ProjectKind

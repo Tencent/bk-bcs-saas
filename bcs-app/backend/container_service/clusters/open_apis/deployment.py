@@ -13,9 +13,8 @@
 #
 from rest_framework.response import Response
 
+from backend.apis.views import BaseAPIViewSet
 from backend.resources.deployment import Deployment
-
-from ..views import BaseAPIViewSet
 
 
 class DeploymentViewSet(BaseAPIViewSet):

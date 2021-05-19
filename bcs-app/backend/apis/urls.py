@@ -18,8 +18,14 @@ from .webconsole.views import WebConsoleSession
 urlpatterns = [
     url(r"^projects/", include("backend.container_service.projects.open_apis.urls")),
     # TODO ^resources/projects/ will replace ^projects/(?P<project_id>\w{32})/clusters/ in apigw
-    url(r"^projects/(?P<project_id_or_code>[\w\-]+)/clusters/", include("backend.apis.resources.urls")),
-    url(r"^resources/projects/(?P<project_id_or_code>[\w\-]+)/clusters/", include("backend.apis.resources.urls")),
+    url(
+        r"^projects/(?P<project_id_or_code>[\w\-]+)/clusters/",
+        include("backend.container_service.clusters.open_apis.urls"),
+    ),
+    url(
+        r"^resources/projects/(?P<project_id_or_code>[\w\-]+)/clusters/",
+        include("backend.container_service.clusters.open_apis.urls"),
+    ),
     # TODO ^templatesets/projects/ will replace ^projects/(?P<project_id>\w{32})/configuration/ in apigw
     url(r"^projects/(?P<project_id_or_code>[\w\-]+)/configuration/", include("backend.apis.templatesets.urls")),
     url(r"^templatesets/projects/(?P<project_id_or_code>[\w\-]+)/", include("backend.apis.templatesets.urls")),

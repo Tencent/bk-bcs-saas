@@ -13,9 +13,8 @@
 #
 from rest_framework.response import Response
 
+from backend.apis.views import BaseAPIViewSet
 from backend.resources.pod.pod import Pod
-
-from ..views import BaseAPIViewSet
 
 
 class PodViewSet(BaseAPIViewSet):
