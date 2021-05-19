@@ -50,6 +50,24 @@ def random_name():
 
 
 @pytest.fixture
+def namespace():
+    """使用环境变量或者生成一个命名空间"""
+    return os.environ.get("TEST_NAMESPACE", generate_random_string(8))
+
+
+@pytest.fixture
+def pod_name():
+    """使用环境变量或者生成一个随机 Pod 名称"""
+    return os.environ.get("TEST_POD_NAME", generate_random_string(8))
+
+
+@pytest.fixture
+def container_name():
+    """使用环境变量或者生成一个随机容器名称"""
+    return os.environ.get("TEST_CONTAINER_NAME", generate_random_string(8))
+
+
+@pytest.fixture
 def bk_user():
     User = get_user_model()
     user = User.objects.create(username=generate_random_string(6))

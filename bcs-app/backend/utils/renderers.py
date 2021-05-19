@@ -11,9 +11,21 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
+import dataclasses
+
 from rest_framework.renderers import JSONRenderer
+from rest_framework.utils import encoders
 
 from backend.utils.local import local
+
+
+class JSONEncoder(encoders.JSONEncoder):
+    """支持 dataclasses 序列化"""
+
+    def default(self, obj):
+        if dataclasses.is_dataclass(obj):
+            return dataclasses.asdict(obj)
+        return super().default(obj)
 
 
 class BKAPIRenderer(JSONRenderer):
@@ -21,6 +33,7 @@ class BKAPIRenderer(JSONRenderer):
     采用统一的结构封装返回内容
     """
 
+    encoder_class = JSONEncoder
     SUCCESS_CODE = 0
     SUCCESS_MESSAGE = 'OK'
 

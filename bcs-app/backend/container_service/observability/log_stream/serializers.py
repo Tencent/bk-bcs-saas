@@ -11,29 +11,23 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-from dataclasses import dataclass
-from typing import Optional
+from rest_framework import serializers
 
-from backend.resources.deployment.constants import DEPLOYMENT_REGEX
-
-POD_REGEX = DEPLOYMENT_REGEX
-
-# 显示时间戳
-LOG_SHOW_TIMESTAMPS = True
-
-# 默认最大返回 10MB 日志大小
-LOG_MAX_LIMIT_BYTES = 1024 * 1024 * 10
+from .constants import DEFAULT_TAIL_LINES
 
 
-@dataclass
-class LogFilter:
-    container_name: str
-    previous: bool = False
-    since_time: Optional[str] = ""
-    tail_lines: Optional[int] = 0
+class FetchLogsSLZ(serializers.Serializer):
+    """拉取日志"""
+
+    container_name = serializers.CharField()
+    tail_lines = serializers.IntegerField(default=DEFAULT_TAIL_LINES)
+    started_at = serializers.CharField(default="")
+    finished_at = serializers.CharField(default="")
+    previous = serializers.BooleanField(default=False)
 
 
-@dataclass
-class Log:
-    time: str
-    log: str
+class DownloadLogsSLZ(serializers.Serializer):
+    """下载日志"""
+
+    container_name = serializers.CharField()
+    previous = serializers.BooleanField(default=False)
