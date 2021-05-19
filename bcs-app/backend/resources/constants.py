@@ -60,7 +60,6 @@ class K8sResourceKind(ChoicesEnum):
     # other
     Namespace = "Namespace"
     Node = "Node"
-    Log = "Log"
 
     _choices_labels = (
         # workload
@@ -86,7 +85,6 @@ class K8sResourceKind(ChoicesEnum):
         # other
         (Namespace, "Namespace"),
         (Node, "Node"),
-        (Log, "Log"),
     )
 
 
