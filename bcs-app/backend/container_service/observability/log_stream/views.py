@@ -11,7 +11,6 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-import datetime
 import logging
 from urllib import parse
 
@@ -22,18 +21,18 @@ from django.utils import timezone
 from rest_framework.response import Response
 
 from backend.bcs_web.viewsets import SystemViewSet
-from backend.resources.pod import log
 from backend.resources.pod.constants import LogFilter
+from backend.resources.pod.log import LogClient
 
 from . import constants, serializers
 
 logger = logging.getLogger(__name__)
 
 
-class LogStream(SystemViewSet):
+class LogStreamViewSet(SystemViewSet):
     """k8s 原生日志流"""
 
-    def calc_previous_page(self, logs, slz_data, previous_url):
+    def calc_previous_page(self, logs: list, slz_data: dict, previous_url: str):
         """计算上一页的请求链接"""
         if len(logs) < 2:
             return None
@@ -47,7 +46,7 @@ class LogStream(SystemViewSet):
         previous = previous_url + "?" + parse.urlencode(previous_params)
         return previous
 
-    def calc_since_time(self, first_time, last_time):
+    def calc_since_time(self, first_time: str, last_time: str):
         """计算下一次的开始时间
         简单场景, 认为日志打印量是均衡的，通过计算时间差获取
         """
@@ -70,7 +69,7 @@ class LogStream(SystemViewSet):
         else:
             filter.tail_lines = data["tail_lines"]
 
-        client = log.Log(request.ctx_cluster, namespace, pod)
+        client = LogClient(request.ctx_cluster, namespace, pod)
 
         content = client.fetch_log(filter)
         raw_logs = content.splitlines()
@@ -82,7 +81,7 @@ class LogStream(SystemViewSet):
                 break
             logs.append({"time": t, "log": msg})
 
-        previous_url = f"{settings.DEVOPS_BCS_API_URL}/api/logstream/projects/{project_id}/clusters/{cluster_id}/namespaces/{namespace}/pods/{pod}/"  # noqa
+        previous_url = f"{settings.DEVOPS_BCS_API_URL}/api/logs/projects/{project_id}/clusters/{cluster_id}/namespaces/{namespace}/pods/{pod}/stdlogs/"  # noqa
         previous = self.calc_previous_page(logs, data, previous_url)
 
         data = {"logs": logs, "previous": previous}
@@ -96,8 +95,7 @@ class LogStream(SystemViewSet):
             container_name=data["container_name"], previous=data["previous"], tail_lines=constants.DEFAULT_TAIL_LINES
         )
 
-        client = log.Log(request.ctx_cluster, namespace, pod)
-
+        client = LogClient(request.ctx_cluster, namespace, pod)
         content = client.fetch_log(filter)
 
         ts = timezone.now().strftime("%Y%m%d%H%M%S")

@@ -71,7 +71,7 @@ urlpatterns = [
         include("backend.dashboard.urls"),
     ),
     path(
-        "api/logstream/projects/<slug:project_id>/clusters/<slug:cluster_id>/",
+        "api/logs/projects/<slug:project_id>/clusters/<slug:cluster_id>/",
         include("backend.container_service.observability.log_stream.urls"),
     ),
 ]

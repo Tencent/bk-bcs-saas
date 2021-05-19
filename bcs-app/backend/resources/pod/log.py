@@ -25,7 +25,7 @@ from . import constants
 logger = logging.getLogger(__name__)
 
 
-class Log:
+class LogClient:
     """Pod 子资源日志查询"""
 
     def __init__(self, ctx_cluster: CtxCluster, namespace: str, pod_name: str):
