@@ -14,7 +14,7 @@
 from backend.apps import constants
 from backend.components import paas_cc
 from backend.components.bcs import k8s, mesos
-from backend.resources.cluster.constants import ClusterCOES
+from backend.container_service.clusters.base.constants import ClusterCOES
 from backend.utils.errcodes import ErrorCode
 from backend.utils.exceptions import APIError
 

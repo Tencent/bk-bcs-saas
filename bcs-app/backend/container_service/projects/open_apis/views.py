@@ -15,8 +15,8 @@ from rest_framework.response import Response
 
 from backend.apis.authentication import JWTAuthentication
 from backend.apis.permissions import AccessTokenPermission
+from backend.container_service.projects.base import filter_projects
 from backend.container_service.projects.views import NavProjectPermissionViewSet
-from backend.resources.project import filter_projects
 from backend.utils.renderers import BKAPIRenderer
 
 

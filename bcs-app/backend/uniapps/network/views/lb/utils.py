@@ -18,7 +18,7 @@ import logging
 from django.utils.translation import ugettext_lazy as _
 
 from backend.components.bcs.mesos import MesosClient
-from backend.resources.cluster import utils as cluster_resource
+from backend.container_service.clusters.base import utils as cluster_resource
 from backend.utils.decorators import parse_response_data
 from backend.utils.errcodes import ErrorCode
 from backend.utils.error_codes import error_codes

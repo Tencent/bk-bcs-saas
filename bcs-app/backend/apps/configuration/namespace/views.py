@@ -36,8 +36,8 @@ from backend.apps.whitelist import enabled_sync_namespace
 from backend.components import paas_cc
 from backend.components.bcs.k8s import K8SClient
 from backend.components.bcs.mesos import MesosClient
+from backend.container_service.clusters.base.utils import get_clusters
 from backend.resources import namespace as ns_resource
-from backend.resources.cluster.utils import get_clusters
 from backend.resources.namespace.constants import K8S_SYS_PLAT_NAMESPACES
 from backend.resources.namespace.utils import get_namespace_by_id
 from backend.utils.errcodes import ErrorCode

@@ -11,20 +11,18 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-"""用于在系统内部使用的 Cluster 集群建模"""
-from ..models import BaseContextedModel
+"""用于在系统内部使用的 Project 对象"""
+from backend.container_service.core.ctx_models import BaseContextedModel
 
 
-class CtxCluster(BaseContextedModel):
-    """集群对象
+class CtxProject(BaseContextedModel):
+    """项目对象
 
-    :param id: 集群 ID
-    :param project_id: 集群所属项目 ID
+    :param id: 项目 ID
     """
 
-    def __init__(self, id: str, project_id: str):
+    def __init__(self, id: str):
         self.id = id
-        self.project_id = project_id
 
     def __str__(self):
-        return f'<Cluster: {self.project_id}-{self.id}>'
+        return f'<Project: {self.id}>'

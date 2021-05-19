@@ -20,7 +20,7 @@ from django.utils.translation import ugettext_lazy as _
 from backend.apps.instance.drivers.base import SchedulerBase
 from backend.components.bcs import mesos
 from backend.components.bcs.k8s import K8SClient
-from backend.resources.cluster.models import CtxCluster
+from backend.container_service.clusters.base.models import CtxCluster
 from backend.resources.hpa import hpa as hpa_client
 from backend.utils.exceptions import ComponentError, ConfigError, Rollback
 

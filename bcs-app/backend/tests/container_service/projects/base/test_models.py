@@ -13,7 +13,7 @@
 #
 import pytest
 
-from backend.resources.project.models import CtxProject
+from backend.container_service.projects.base.models import CtxProject
 
 
 class TestProject:

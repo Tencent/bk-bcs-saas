@@ -29,6 +29,8 @@ from backend.components import bcs, ops, paas_cc
 from backend.components.bcs.mesos import MesosClient
 from backend.container_service.clusters import constants as cluster_constants
 from backend.container_service.clusters import serializers as cluster_serializers
+from backend.container_service.clusters.base import utils as cluster_utils
+from backend.container_service.clusters.base.constants import ClusterCOES
 from backend.container_service.clusters.constants import ClusterNetworkType, ClusterStatusName
 from backend.container_service.clusters.models import ClusterInstallLog, ClusterOperType, ClusterStatus, CommonStatus
 from backend.container_service.clusters.module_apis import get_cluster_mod
@@ -38,8 +40,6 @@ from backend.container_service.clusters.utils import (
     get_ops_platform,
     status_transfer,
 )
-from backend.resources.cluster import utils as cluster_utils
-from backend.resources.cluster.constants import ClusterCOES
 from backend.utils.basic import normalize_datetime, normalize_metric
 from backend.utils.errcodes import ErrorCode
 from backend.utils.error_codes import error_codes

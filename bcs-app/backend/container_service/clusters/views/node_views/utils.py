@@ -15,7 +15,7 @@ from dataclasses import dataclass
 from typing import Dict, List
 
 from backend.components.bcs import mesos
-from backend.resources.project.constants import ProjectKind
+from backend.container_service.projects.base.constants import ProjectKind
 
 
 class NodeLabelsQuerier:

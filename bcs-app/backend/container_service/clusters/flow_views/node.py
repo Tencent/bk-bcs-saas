@@ -25,10 +25,10 @@ from backend.components import ops, paas_cc
 from backend.components.bcs import k8s as bcs_k8s
 from backend.components.bcs import mesos as bcs_mesos
 from backend.container_service.clusters import constants, serializers
+from backend.container_service.clusters.base import get_cluster
 from backend.container_service.clusters.constants import ClusterState
 from backend.container_service.clusters.models import CommonStatus, NodeLabel, NodeOperType, NodeStatus, NodeUpdateLog
 from backend.container_service.clusters.utils import can_use_hosts
-from backend.resources.cluster import get_cluster
 from backend.utils.cache import rd_client
 from backend.utils.errcodes import ErrorCode
 from backend.utils.error_codes import error_codes

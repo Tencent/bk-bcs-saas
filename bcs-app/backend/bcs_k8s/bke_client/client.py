@@ -23,9 +23,9 @@ from rest_framework.exceptions import APIException, PermissionDenied
 from backend.bcs_k8s.kubehelm.helm import KubeHelmClient
 from backend.bcs_k8s.utils import get_kubectl_version
 from backend.components import bcs
+from backend.container_service.clusters.base.constants import ClusterCOES
+from backend.container_service.clusters.base.utils import get_cluster_coes
 from backend.kube_core.toolkit import kubectl
-from backend.resources.cluster.constants import ClusterCOES
-from backend.resources.cluster.utils import get_cluster_coes
 
 from . import constants
 

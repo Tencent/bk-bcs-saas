@@ -26,8 +26,8 @@ class FakeProjectEnableBCS(BasePermission):
         return True
 
     def _set_ctx_project_cluster(self, request, project_id: str, cluster_id: str):
-        from backend.resources.cluster.models import CtxCluster
-        from backend.resources.project.models import CtxProject
+        from backend.container_service.clusters.base.models import CtxCluster
+        from backend.container_service.projects.base.models import CtxProject
 
         access_token = 'access_token_for_test'
         request.ctx_project = CtxProject.create(token=access_token, id=project_id)

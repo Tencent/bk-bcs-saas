@@ -14,7 +14,7 @@
 from rest_framework.response import Response
 
 from backend.apis.views import BaseAPIViewSet
-from backend.resources.cluster.utils import get_clusters
+from backend.container_service.clusters.base.utils import get_clusters
 
 
 class ClusterViewSet(BaseAPIViewSet):

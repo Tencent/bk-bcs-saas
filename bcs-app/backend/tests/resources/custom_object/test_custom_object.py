@@ -14,7 +14,7 @@ from unittest import mock
 
 import pytest
 
-from backend.resources.cluster.models import CtxCluster
+from backend.container_service.clusters.base.models import CtxCluster
 from backend.resources.constants import PatchType
 from backend.resources.custom_object.crd import CustomResourceDefinition
 from backend.resources.custom_object.custom_object import get_cobj_client_by_crd

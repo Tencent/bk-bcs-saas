@@ -25,7 +25,7 @@ from backend.apps.constants import ProjectKind
 from backend.apps.instance import constants as instance_constants
 from backend.apps.instance.models import InstanceConfig
 from backend.components.bcs import mesos
-from backend.resources.cluster.models import CtxCluster
+from backend.container_service.clusters.base.models import CtxCluster
 from backend.resources.hpa import exceptions as hpa_exceptions
 from backend.resources.hpa import hpa as hpa_client
 from backend.resources.hpa.format import HPAFormatter

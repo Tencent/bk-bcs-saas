@@ -21,7 +21,7 @@ from kubernetes.client.exceptions import ApiException
 from kubernetes.dynamic import DynamicClient, Resource, ResourceInstance
 from kubernetes.dynamic.exceptions import ResourceNotUniqueError
 
-from backend.resources.cluster import CtxCluster
+from backend.container_service.clusters.base import CtxCluster
 
 from ..client import BcsKubeConfigurationService
 from .discovery import BcsLazyDiscoverer, DiscovererCache

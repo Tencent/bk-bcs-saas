@@ -29,10 +29,10 @@ from backend.bcs_k8s.app.views import AppViewBase
 from backend.bcs_k8s.helm.models import Chart, ChartVersion
 from backend.components.bcs import k8s
 from backend.components.bcs.k8s import K8SClient
+from backend.container_service.clusters.base import utils as cluster_utils
 from backend.container_service.clusters.constants import DEFAULT_SYSTEM_LABEL_KEYS
 from backend.container_service.clusters.models import NodeLabel
 from backend.container_service.clusters.serializers import NodeLabelSLZ, NodeLabelUpdateSLZ
-from backend.resources.cluster import utils as cluster_utils
 from backend.resources.namespace import namespace
 from backend.resources.namespace import utils as ns_utils
 from backend.uniapps.network import constants, serializers

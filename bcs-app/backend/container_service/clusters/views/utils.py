@@ -12,8 +12,8 @@
 # specific language governing permissions and limitations under the License.
 #
 from backend.components import paas_cc
-from backend.resources.cluster.constants import ClusterCOES
-from backend.resources.project.constants import ProjectKind
+from backend.container_service.clusters.base.constants import ClusterCOES
+from backend.container_service.projects.base.constants import ProjectKind
 from backend.utils.errcodes import ErrorCode
 from backend.utils.error_codes import error_codes
 
