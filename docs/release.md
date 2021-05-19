@@ -1,6 +1,6 @@
 # 发布日志
 
-## release-1.4.0
+## release-1.4.1
 #### 新增
 - Helm 命令支持 --wait 参数
 
