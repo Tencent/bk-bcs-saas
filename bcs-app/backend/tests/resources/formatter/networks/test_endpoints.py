@@ -16,11 +16,12 @@ import json
 import pytest
 
 from backend.resources.networks.endpoints.formatter import EndpointsFormatter
+from backend.tests.resources.formatter.conftest import NETWORK_CONFIG_DIR
 
 
 @pytest.fixture(scope="module", autouse=True)
 def endpoints_configs():
-    with open('backend/tests/resources/formatter/networks/contents/endpoints.json') as fr:
+    with open(f'{NETWORK_CONFIG_DIR}/endpoints.json') as fr:
         configs = json.load(fr)
     return configs
 

@@ -16,11 +16,12 @@ import json
 import pytest
 
 from backend.resources.workloads.pod.formatter import PodFormatter
+from backend.tests.resources.formatter.conftest import WORKLOAD_CONFIG_DIR
 
 
 @pytest.fixture(scope="module", autouse=True)
 def pod_configs():
-    with open('backend/tests/resources/formatter/workloads/contents/pod.json') as fr:
+    with open(f'{WORKLOAD_CONFIG_DIR}/pod.json') as fr:
         configs = json.load(fr)
     return configs
 

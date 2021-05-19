@@ -20,7 +20,7 @@ from rest_framework.response import Response
 
 from backend.activity_log.client import ContextActivityLogClient
 from backend.bcs_web.viewsets import SystemViewSet
-from backend.infras.host_service.host import create_and_start_host_application
+from backend.container_service.infras.hosts.host import create_and_start_host_application
 
 from .constants import SCR_URL, TaskStatus
 from .models import HostApplyTaskLog

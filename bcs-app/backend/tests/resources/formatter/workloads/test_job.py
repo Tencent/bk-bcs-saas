@@ -16,11 +16,12 @@ import json
 import pytest
 
 from backend.resources.workloads.job.formatter import JobFormatter
+from backend.tests.resources.formatter.conftest import WORKLOAD_CONFIG_DIR
 
 
 @pytest.fixture(scope="module", autouse=True)
 def job_configs():
-    with open('backend/tests/resources/formatter/workloads/contents/job.json') as fr:
+    with open(f'{WORKLOAD_CONFIG_DIR}/job.json') as fr:
         configs = json.load(fr)
     return configs
 
