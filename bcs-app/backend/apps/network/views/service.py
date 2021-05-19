@@ -266,10 +266,6 @@ class Services(viewsets.ViewSet, BaseAPI):
         skip_namespace_list = list(K8S_SYS_NAMESPACE)
         skip_namespace_list.extend(K8S_PLAT_NAMESPACE)
 
-        extended_routes = {}
-        if project_kind == ProjectKind.K8S.value:
-            extended_routes = get_svc_extended_routes(project_id)
-
         data = []
         for cluster_info in cluster_data:
             cluster_id = cluster_info.get('cluster_id')
@@ -310,6 +306,7 @@ class Services(viewsets.ViewSet, BaseAPI):
                 _s['source_type'] = SOURCE_TYPE_MAP.get(source_type)
 
                 if project_kind == ProjectKind.K8S.value:
+                    extended_routes = get_svc_extended_routes(project_id, _s['clusterId'])
                     _s['access_info'] = get_svc_access_info(_config, _s['clusterId'], extended_routes)
                 # 处理 k8s 的系统命名空间的数据
                 if project_kind == ProjectKind.K8S.value and _s['namespace'] in skip_namespace_list:

@@ -12,11 +12,12 @@
 # specific language governing permissions and limitations under the License.
 #
 import logging
+from typing import Dict
 
 logger = logging.getLogger(__name__)
 
 
-def get_svc_extended_routes(project_id):
+def get_svc_extended_routes(project_id: str, cluster_id: str) -> Dict[str, Dict]:
     return {}
 
 
