@@ -19,7 +19,7 @@ from django.utils import timezone
 from rest_framework.response import Response
 
 from backend.bcs_web.viewsets import SystemViewSet
-from backend.resources.pod.constants import Log, LogFilter
+from backend.resources.pod.constants import LogFilter
 from backend.resources.pod.log import LogClient
 
 from . import constants, serializers, utils
