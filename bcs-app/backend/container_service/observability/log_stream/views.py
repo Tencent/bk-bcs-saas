@@ -35,29 +35,20 @@ class LogStreamViewSet(SystemViewSet):
         data = self.params_validate(serializers.FetchLogsSLZ)
 
         filter = LogFilter(container_name=data["container_name"], previous=data["previous"])
-
         if data["started_at"] and data['finished_at']:
             filter.since_time = utils.calc_since_time(data["started_at"], data['finished_at'])
         else:
             filter.tail_lines = data["tail_lines"]
 
         client = LogClient(request.ctx_cluster, namespace, pod)
-
         content = client.fetch_log(filter)
-        raw_logs = content.splitlines()
-        logs = []
-        for i in raw_logs:
-            t, log = i.split(maxsplit=1)
-            # 只返回当前历史数据
-            if data['started_at'] and t == data['started_at']:
-                break
-            logs.append(Log(time=t, log=log))
+        logs = utils.refine_k8s_logs(content, data['started_at'])
 
         url_prefix = f"{settings.DEVOPS_BCS_API_URL}/api/logs/projects/{project_id}/clusters/{cluster_id}/namespaces/{namespace}/pods/{pod}/stdlogs/"  # noqa
         previous = utils.calc_previous_page(logs, data, url_prefix)
 
-        data = {"logs": logs, "previous": previous}
-        return Response(data)
+        result = {"logs": logs, "previous": previous}
+        return Response(result)
 
     def download(self, request, project_id: str, cluster_id: str, namespace: str, pod: str):
         """下载日志"""
