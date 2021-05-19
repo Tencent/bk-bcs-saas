@@ -55,7 +55,7 @@ class LogStreamViewSet(SystemViewSet):
         data = self.params_validate(serializers.DownloadLogsSLZ)
 
         filter = LogFilter(
-            container_name=data["container_name"], previous=data["previous"], tail_lines=constants.DEFAULT_TAIL_LINES
+            container_name=data["container_name"], previous=data["previous"], tail_lines=constants.MAX_TAIL_LINES
         )
 
         client = LogClient(request.ctx_cluster, namespace, pod)
