@@ -24,15 +24,20 @@ from rest_framework.renderers import BrowsableAPIRenderer
 from backend.accounts.bcs_perm import Cluster
 from backend.activity_log import client
 from backend.apps.application import constants as app_constants
-from backend.apps.cluster import constants as cluster_constants
-from backend.apps.cluster import serializers as cluster_serializers
-from backend.apps.cluster.constants import ClusterNetworkType, ClusterStatusName
-from backend.apps.cluster.models import ClusterInstallLog, ClusterOperType, ClusterStatus, CommonStatus
-from backend.apps.cluster.module_apis import get_cluster_mod
-from backend.apps.cluster.utils import cluster_env_transfer, get_cmdb_hosts, get_ops_platform, status_transfer
 from backend.apps.constants import CLUSTER_UPGRADE_VERSION, UPGRADE_TYPE
 from backend.components import bcs, ops, paas_cc
 from backend.components.bcs.mesos import MesosClient
+from backend.container_service.clusters import constants as cluster_constants
+from backend.container_service.clusters import serializers as cluster_serializers
+from backend.container_service.clusters.constants import ClusterNetworkType, ClusterStatusName
+from backend.container_service.clusters.models import ClusterInstallLog, ClusterOperType, ClusterStatus, CommonStatus
+from backend.container_service.clusters.module_apis import get_cluster_mod
+from backend.container_service.clusters.utils import (
+    cluster_env_transfer,
+    get_cmdb_hosts,
+    get_ops_platform,
+    status_transfer,
+)
 from backend.resources.cluster import utils as cluster_utils
 from backend.resources.cluster.constants import ClusterCOES
 from backend.utils.basic import normalize_datetime, normalize_metric

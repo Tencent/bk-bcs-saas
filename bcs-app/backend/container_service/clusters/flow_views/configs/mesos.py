@@ -20,8 +20,8 @@ import time
 
 from django.utils.translation import ugettext_lazy as _
 
-from backend.apps.cluster.models import CommonStatus
 from backend.components import paas_cc
+from backend.container_service.clusters.models import CommonStatus
 from backend.utils.errcodes import ErrorCode
 from backend.utils.error_codes import error_codes
 

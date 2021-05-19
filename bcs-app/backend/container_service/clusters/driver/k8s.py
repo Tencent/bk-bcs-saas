@@ -14,74 +14,83 @@
 import logging
 
 from backend.apps import constants
-from backend.apps.cluster.constants import MESOS_SKIP_NS_LIST
-from backend.components.bcs.mesos import MesosClient
+from backend.components.bcs.k8s import K8SClient
+from backend.container_service.clusters import constants as cluster_constants
+from backend.container_service.clusters.constants import K8S_SKIP_NS_LIST
 from backend.utils.errcodes import ErrorCode
 from backend.utils.error_codes import error_codes
 
 logger = logging.getLogger(__name__)
 
 
-class MesosDriver:
+class K8SDriver:
     def __init__(self, request, project_id, cluster_id):
         self.request = request
         self.project_id = project_id
         self.cluster_id = cluster_id
-        self.client = MesosClient(self.request.user.token.access_token, self.project_id, self.cluster_id, None)
+        self.client = K8SClient(self.request.user.token.access_token, self.project_id, self.cluster_id, None)
 
     def host_container_map(self, resp):
         host_container_map = {}
         for info in resp.get('data') or []:
-            if info["namespace"] in MESOS_SKIP_NS_LIST:
+            if info.get('namespace') in K8S_SKIP_NS_LIST:
                 continue
-            host_ip = info.get('data', {}).get('hostIP')
-            container_count = len(info['data']['containerStatuses'])
+            host_ip = info.get('data', {}).get('status', {}).get('hostIP')
+            container_count = len(info['data']['status']['containerStatuses'])
             if host_ip in host_container_map:
                 host_container_map[host_ip] += container_count
             else:
                 host_container_map[host_ip] = container_count
         return host_container_map
 
-    def get_unit_info(self, inner_ip, fields, raise_exception=True):
-        """get the resource unit info"""
-        resp = self.client.get_taskgroup(inner_ip, fields=fields)
+    def get_unit_info(self, inner_ip_list, field, raise_exception=True):
+        """get unit info by inner_ip and field"""
+        resp = self.client.get_pod(host_ips=inner_ip_list, field=field)
         if resp.get('code') != ErrorCode.NoError:
-            logger.error("request taskgroup api error, %s", resp.get("message"))
+            logger.error("request pod api error, %s", resp.get("message"))
             if raise_exception:
                 raise error_codes.APIError(resp.get('message'))
 
         return resp
 
     def get_host_container_count(self, host_ips):
-        field_list = ['data.containerStatuses.containerID', 'data.hostIP', "namespace"]
+        field_list = ['data.status.containerStatuses.containerID', 'data.status.hostIP', 'namespace']
         resp = self.get_unit_info(host_ips, ','.join(field_list))
         # compose the host container data
         return self.host_container_map(resp)
 
     def flatten_container_info(self, inner_ip):
-        """flatten container info by inner_ip"""
-
-        def iter_container(tg):
-            for g in tg:
-                if g.get("namespace") in MESOS_SKIP_NS_LIST:
+        def container_info(pods, inner_ip):
+            for p in pods:
+                if p.get('namespace') in K8S_SKIP_NS_LIST:
                     continue
-                for d in g['data']['containerStatuses']:
+                container_status = p["data"]["status"]["containerStatuses"]
+                container_spec = {info["name"]: info["image"] for info in p["data"]["spec"]["containers"]}
+                for d in container_status:
+                    last_status = d.get("state") or d.get("lastState")
+                    if not last_status:
+                        continue
+                    status = list(last_status.keys())
+                    status = status[0] if status else None
                     c = {
-                        'name': d['name'],
-                        'image': d['image'],
-                        'status': d['status'].lower(),
-                        'container_id': d['containerID'],
+                        "container_id": d.get("containerID", "").split("docker://")[-1],
+                        "status": status,
+                        "name": d["name"],
+                        "image": container_spec.get(d["name"]),
                     }
                     yield c
 
-        taskgroups = self.get_unit_info(inner_ip, fields='data,namespace').get('data') or []
+        pods = self.get_unit_info([inner_ip], field='data,namespace').get('data') or []
+        containers = container_info(pods, inner_ip)
+
         containers = sorted(
-            [i for i in iter_container(taskgroups)],
+            [i for i in containers],
             key=lambda x: constants.DockerStatusOrdering.get(x['status'], constants.DockerStatusDefaultOrder),
         )
         return containers
 
     def disable_node(self, ip):
+        """stop scheduler"""
         node_resp = self.client.disable_agent(ip)
         if node_resp.get('code') != ErrorCode.NoError:
             raise error_codes.APIError(node_resp.get('message'))
@@ -94,24 +103,19 @@ class MesosDriver:
     def get_host_unit_list(self, ip, raise_exception=True):
         """get exist pods on the node"""
         unit_list = []
-        fields = 'namespace,resourceName,data.rcname'
+        fields = 'namespace,resourceName,clusterId'
         resp = self.get_unit_info([ip], fields, raise_exception=raise_exception)
         for i in resp.get('data') or []:
-            unit_list.append(
-                {
-                    'namespace': i.get('namespace'),
-                    'app_name': i.get('data', {}).get('rcname'),
-                    'taskgroup_name': i.get('resourceName'),
-                }
-            )
+            namespace = i.get('namespace')
+            if namespace in cluster_constants.K8S_SKIP_NS_LIST:
+                continue
+            unit_list.append({'namespace': namespace, 'pod_name': i.get('resourceName')})
         return unit_list
 
     def reschedule_pod(self, pod_info, raise_exception=True):
-        resp = self.client.rescheduler_mesos_taskgroup(
-            pod_info['namespace'], pod_info['app_name'], pod_info['taskgroup_name']
-        )
+        resp = self.client.delete_pod(pod_info['namespace'], pod_info['pod_name'])
         if resp.get('code') != ErrorCode.NoError:
-            logger.error("request rescheduler taskgroup api error, %s", resp.get("message"))
+            logger.error("request delete pod api error, %s", resp.get("message"))
             if raise_exception:
                 raise error_codes.APIError(resp.get('message'))
 

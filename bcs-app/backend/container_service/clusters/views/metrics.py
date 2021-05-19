@@ -22,12 +22,12 @@ from rest_framework.renderers import BrowsableAPIRenderer
 
 from backend.accounts import bcs_perm
 from backend.apps import constants as app_constants
-from backend.apps.cluster import serializers
-from backend.apps.cluster import serializers as cluster_serializers
-from backend.apps.cluster.utils import use_prometheus_source
-from backend.apps.cluster.views.metric_handler import get_namespace_metric, get_node_metric
 from backend.components import data as apigw_data
 from backend.components import paas_cc, prometheus
+from backend.container_service.clusters import serializers
+from backend.container_service.clusters import serializers as cluster_serializers
+from backend.container_service.clusters.utils import use_prometheus_source
+from backend.container_service.clusters.views.metric_handler import get_namespace_metric, get_node_metric
 from backend.utils.basic import normalize_metric
 from backend.utils.errcodes import ErrorCode
 from backend.utils.error_codes import error_codes

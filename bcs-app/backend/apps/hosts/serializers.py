@@ -13,7 +13,7 @@
 #
 from rest_framework import serializers
 
-from backend.apps.cluster.constants import ClusterNetworkType
+from backend.container_service.clusters.constants import ClusterNetworkType
 
 from .models import HostApplyTaskLog
 

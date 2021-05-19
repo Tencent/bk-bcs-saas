@@ -17,9 +17,9 @@ from typing import Any, Dict, List, NewType, Optional, Tuple, Union
 
 from django.conf import settings
 
-from backend.apps.cluster import models
 from backend.components import base as comp_base
 from backend.components import ops, paas_auth, paas_cc
+from backend.container_service.clusters import models
 from backend.packages.blue_krill.async_utils import poll_task
 
 TASK_FAILED_STATUS_LIST = ["FAILURE", "REVOKED", "FAILED"]

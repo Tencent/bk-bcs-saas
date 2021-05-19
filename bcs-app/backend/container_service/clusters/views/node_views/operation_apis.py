@@ -17,11 +17,11 @@ from rest_framework.renderers import BrowsableAPIRenderer
 
 from backend.accounts import bcs_perm
 from backend.activity_log import client
-from backend.apps.cluster import serializers as node_serializers
-from backend.apps.cluster.models import CommonStatus, NodeStatus, NodeUpdateLog
-from backend.apps.cluster.module_apis import get_cluster_node_mod
-from backend.apps.cluster.utils import cluster_env_transfer
-from backend.apps.cluster.views.node_views import serializers as node_slz
+from backend.container_service.clusters import serializers as node_serializers
+from backend.container_service.clusters.models import CommonStatus, NodeStatus, NodeUpdateLog
+from backend.container_service.clusters.module_apis import get_cluster_node_mod
+from backend.container_service.clusters.utils import cluster_env_transfer
+from backend.container_service.clusters.views.node_views import serializers as node_slz
 from backend.resources.cluster import utils as node_utils
 from backend.resources.project.constants import ProjectKind
 from backend.utils.errcodes import ErrorCode

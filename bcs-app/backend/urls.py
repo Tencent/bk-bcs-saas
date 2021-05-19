@@ -28,7 +28,7 @@ urlpatterns = [
     # 仓库管理
     url(r"^", include("backend.apps.depot.urls")),
     # 集群管理
-    url(r"^", include("backend.apps.cluster.urls")),
+    url(r"^", include("backend.container_service.clusters.urls")),
     # web_console
     url(r"^", include("backend.web_console.rest_api.urls")),
     # 网络管理

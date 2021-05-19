@@ -18,11 +18,11 @@ from openpyxl import Workbook
 from rest_framework import response, viewsets
 from rest_framework.renderers import BrowsableAPIRenderer
 
-from backend.apps.cluster import constants as node_constants
-from backend.apps.cluster import serializers as node_serializers
-from backend.apps.cluster.models import NodeLabel, NodeStatus
-from backend.apps.cluster.views.node_views import serializers as node_slz
 from backend.components import paas_cc
+from backend.container_service.clusters import constants as node_constants
+from backend.container_service.clusters import serializers as node_serializers
+from backend.container_service.clusters.models import NodeLabel, NodeStatus
+from backend.container_service.clusters.views.node_views import serializers as node_slz
 from backend.resources.cluster import utils as node_utils
 from backend.resources.project.constants import ProjectKind
 from backend.utils.errcodes import ErrorCode

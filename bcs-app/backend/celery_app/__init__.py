@@ -53,10 +53,10 @@ class CeleryConfig(AppConfig):
 
     def ready(self):
         from backend.accounts.bcs_perm import tasks as bcs_tasks  # noqa
-        from backend.apps.cluster import node_tasks  # noqa
         from backend.apps.configuration import tasks as backend_instance_status  # noqa
         from backend.apps.metric import tasks as metric_tasks  # noqa
         from backend.bcs_k8s.app import tasks as helm_app_tasks  # noqa
         from backend.bcs_k8s.helm import tasks as helm_chart_tasks  # noqa
+        from backend.container_service.clusters import node_tasks  # noqa
         from backend.packages.blue_krill.async_utils import poll_task  # noqa
         from backend.utils import notify  # noqa

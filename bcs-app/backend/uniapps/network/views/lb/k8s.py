@@ -24,14 +24,14 @@ from rest_framework.response import Response
 
 from backend.activity_log import client as log_client
 from backend.apps.application.utils import APIResponse
-from backend.apps.cluster.constants import DEFAULT_SYSTEM_LABEL_KEYS
-from backend.apps.cluster.models import NodeLabel
-from backend.apps.cluster.serializers import NodeLabelSLZ, NodeLabelUpdateSLZ
 from backend.bcs_k8s.app.models import App
 from backend.bcs_k8s.app.views import AppViewBase
 from backend.bcs_k8s.helm.models import Chart, ChartVersion
 from backend.components.bcs import k8s
 from backend.components.bcs.k8s import K8SClient
+from backend.container_service.clusters.constants import DEFAULT_SYSTEM_LABEL_KEYS
+from backend.container_service.clusters.models import NodeLabel
+from backend.container_service.clusters.serializers import NodeLabelSLZ, NodeLabelUpdateSLZ
 from backend.resources.cluster import utils as cluster_utils
 from backend.resources.namespace import namespace
 from backend.resources.namespace import utils as ns_utils

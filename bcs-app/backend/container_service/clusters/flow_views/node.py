@@ -21,13 +21,13 @@ from rest_framework.response import Response
 
 from backend.accounts.bcs_perm import Cluster
 from backend.activity_log import client
-from backend.apps.cluster import constants, serializers
-from backend.apps.cluster.constants import ClusterState
-from backend.apps.cluster.models import CommonStatus, NodeLabel, NodeOperType, NodeStatus, NodeUpdateLog
-from backend.apps.cluster.utils import can_use_hosts
 from backend.components import ops, paas_cc
 from backend.components.bcs import k8s as bcs_k8s
 from backend.components.bcs import mesos as bcs_mesos
+from backend.container_service.clusters import constants, serializers
+from backend.container_service.clusters.constants import ClusterState
+from backend.container_service.clusters.models import CommonStatus, NodeLabel, NodeOperType, NodeStatus, NodeUpdateLog
+from backend.container_service.clusters.utils import can_use_hosts
 from backend.resources.cluster import get_cluster
 from backend.utils.cache import rd_client
 from backend.utils.errcodes import ErrorCode

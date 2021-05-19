@@ -15,31 +15,31 @@
 
 def get_cluster_mod():
     try:
-        from backend.apps.cluster.flow_views_ext import cluster
+        from backend.container_service.clusters.flow_views_ext import cluster
     except ImportError:
-        from backend.apps.cluster.flow_views import cluster
+        from backend.container_service.clusters.flow_views import cluster
     return cluster
 
 
 def get_cluster_node_mod():
     try:
-        from backend.apps.cluster.flow_views_ext import node
+        from backend.container_service.clusters.flow_views_ext import node
     except ImportError:
-        from backend.apps.cluster.flow_views import node
+        from backend.container_service.clusters.flow_views import node
     return node
 
 
 def get_cmdb_mod():
     try:
-        from backend.apps.cluster.flow_views_ext.tools import cmdb
+        from backend.container_service.clusters.flow_views_ext.tools import cmdb
     except ImportError:
-        from backend.apps.cluster.flow_views.tools import cmdb
+        from backend.container_service.clusters.flow_views.tools import cmdb
     return cmdb
 
 
 def get_gse_mod():
     try:
-        from backend.apps.cluster.flow_views_ext.tools import gse
+        from backend.container_service.clusters.flow_views_ext.tools import gse
     except ImportError:
-        from backend.apps.cluster.flow_views.tools import gse
+        from backend.container_service.clusters.flow_views.tools import gse
     return gse

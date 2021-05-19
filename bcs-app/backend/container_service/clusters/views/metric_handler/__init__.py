@@ -11,5 +11,5 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-from backend.apps.cluster.views.metric_handler.namespace import get_namespace_metric
-from backend.apps.cluster.views.metric_handler.node import get_node_metric
+from backend.container_service.clusters.views.metric_handler.namespace import get_namespace_metric
+from backend.container_service.clusters.views.metric_handler.node import get_node_metric

@@ -15,4 +15,6 @@ from django.apps import AppConfig
 
 
 class ClusterConfig(AppConfig):
-    name = 'backend.apps.cluster'
+    name = 'backend.container_service.clusters'
+    # 与重构前应用 label "cluster" 保持兼容
+    label = 'cluster'
