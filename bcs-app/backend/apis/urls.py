@@ -16,7 +16,7 @@ from django.conf.urls import include, url
 from .webconsole.views import WebConsoleSession
 
 urlpatterns = [
-    url(r"^projects/", include("backend.apis.projects.urls")),
+    url(r"^projects/", include("backend.container_service.projects.open_apis.urls")),
     # TODO ^resources/projects/ will replace ^projects/(?P<project_id>\w{32})/clusters/ in apigw
     url(r"^projects/(?P<project_id_or_code>[\w\-]+)/clusters/", include("backend.apis.resources.urls")),
     url(r"^resources/projects/(?P<project_id_or_code>[\w\-]+)/clusters/", include("backend.apis.resources.urls")),
