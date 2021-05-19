@@ -11,10 +11,12 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
+from backend.container_service.projects.drivers import k8s, mesos
 
-from django.apps import AppConfig
 
+class BaseDriver:
 
-class AppsConfig(AppConfig):
-    name = "backend.apps.projects"
-    verbose_name = "backend.apps.projects"
+    KIND_DRIVER = {1: k8s.K8SDriver, 2: mesos.MesosDriver, 3: k8s.K8SDriver}
+
+    def __init__(self, kind):
+        self.driver = self.KIND_DRIVER[kind]

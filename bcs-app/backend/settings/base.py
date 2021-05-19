@@ -59,7 +59,7 @@ INSTALLED_APPS = [
     "django_extensions",
     "backend.accounts",
     "backend.activity_log.ActivaityLogConfig",
-    "backend.apps.projects",
+    "backend.container_service.projects",
     "backend.apps.depot",
     "backend.apps.cluster",
     "backend.apps.configuration",

@@ -24,7 +24,7 @@ urlpatterns = [
     url(r"^api/test/sentry/", healthz.test_sentry),
     url(r"^", include("backend.accounts.urls")),
     # 项目管理
-    url(r"^", include("backend.apps.projects.urls")),
+    url(r"^", include("backend.container_service.projects.urls")),
     # 仓库管理
     url(r"^", include("backend.apps.depot.urls")),
     # 集群管理

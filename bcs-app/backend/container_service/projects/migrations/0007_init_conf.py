@@ -16,25 +16,24 @@ from __future__ import unicode_literals
 
 from django.db import migrations
 
-from backend.apps.projects.models import Conf
+from backend.container_service.projects.models import Conf
 
 
 def init_conf(apps, schema_editor):
-    """初始化配置信息
-    """
+    """初始化配置信息"""
     Conf.objects.get_or_create(
         key='STANDARD_LOG_PREFIX_KEY',
         defaults={
             "value": 'bcs_standard_log_v1_',
             "name": '标准日志采集前缀',
-        }
+        },
     )
     Conf.objects.get_or_create(
         key='NON_STANDARD_LOG_PREFIX_KEY',
         defaults={
             "value": 'bcs_non_standard_log_v1_',
             "name": '非标准日志采集前缀',
-        }
+        },
     )
 
 
@@ -44,6 +43,4 @@ class Migration(migrations.Migration):
         ('projects', '0006_auto_20180509_1148'),
     ]
 
-    operations = [
-        migrations.RunPython(init_conf)
-    ]
+    operations = [migrations.RunPython(init_conf)]

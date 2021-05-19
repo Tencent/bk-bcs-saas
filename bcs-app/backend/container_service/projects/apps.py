@@ -12,4 +12,9 @@
 # specific language governing permissions and limitations under the License.
 #
 
-default_app_config = 'backend.apps.projects.apps.AppsConfig'
+from django.apps import AppConfig
+
+
+class AppsConfig(AppConfig):
+    name = "backend.container_service.projects"
+    verbose_name = "backend.container_service.projects"

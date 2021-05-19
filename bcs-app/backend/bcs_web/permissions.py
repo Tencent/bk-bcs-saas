@@ -117,7 +117,7 @@ class ProjectEnableBCS(BasePermission):
         project.project_code = project.english_name
 
         try:
-            from backend.apps.projects.utils import get_project_kind
+            from backend.container_service.projects.utils import get_project_kind
 
             # k8s类型包含kind为1(bcs k8s)或其它属于k8s的编排引擎
             project.kind = get_project_kind(project.kind)

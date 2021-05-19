@@ -11,12 +11,5 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-from backend.apps.projects.drivers import k8s, mesos
 
-
-class BaseDriver:
-
-    KIND_DRIVER = {1: k8s.K8SDriver, 2: mesos.MesosDriver, 3: k8s.K8SDriver}
-
-    def __init__(self, kind):
-        self.driver = self.KIND_DRIVER[kind]
+default_app_config = 'backend.container_service.projects.apps.AppsConfig'
