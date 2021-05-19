@@ -21,8 +21,8 @@ class FetchLogsSLZ(serializers.Serializer):
 
     container_name = serializers.CharField()
     tail_lines = serializers.IntegerField(default=DEFAULT_TAIL_LINES)
-    first_time = serializers.CharField(default="")
-    last_time = serializers.CharField(default="")
+    started_at = serializers.CharField(default="")
+    finished_at = serializers.CharField(default="")
     previous = serializers.BooleanField(default=False)
 
 

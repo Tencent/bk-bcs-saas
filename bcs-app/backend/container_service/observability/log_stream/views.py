@@ -41,20 +41,20 @@ class LogStreamViewSet(SystemViewSet):
         previous_params = {
             "container_name": slz_data["container_name"],
             'previous': slz_data['previous'],
-            "first_time": logs[0].time,
-            "last_time": logs[-1].time,
+            "started_at": logs[0].time,
+            "finished_at": logs[-1].time,
         }
         previous = previous_url + "?" + parse.urlencode(previous_params)
         return previous
 
-    def calc_since_time(self, first_time: str, last_time: str):
+    def calc_since_time(self, started_at: str, finished_at: str):
         """计算下一次的开始时间
         简单场景, 认为日志打印量是均衡的，通过计算时间差获取
         """
-        _first_time = arrow.get(first_time)
-        _last_time = arrow.get(last_time)
-        span = _last_time - _first_time
-        offset = _first_time - span
+        _started_at = arrow.get(started_at)
+        _finished_at = arrow.get(finished_at)
+        span = _finished_at - _started_at
+        offset = _started_at - span
         # 返回纳秒级别时间
         new_since_time = offset.format("YYYY-MM-DDTHH:mm:ss.SSSSSSSSS") + "Z"
         return new_since_time
@@ -65,8 +65,8 @@ class LogStreamViewSet(SystemViewSet):
 
         filter = LogFilter(container_name=data["container_name"], previous=data["previous"])
 
-        if data["first_time"] and data['last_time']:
-            filter.since_time = self.calc_since_time(data["first_time"], data['last_time'])
+        if data["started_at"] and data['finished_at']:
+            filter.since_time = self.calc_since_time(data["started_at"], data['finished_at'])
         else:
             filter.tail_lines = data["tail_lines"]
 
@@ -78,7 +78,7 @@ class LogStreamViewSet(SystemViewSet):
         for i in raw_logs:
             t, log = i.split(maxsplit=1)
             # 只返回当前历史数据
-            if data['first_time'] and t == data['first_time']:
+            if data['started_at'] and t == data['started_at']:
                 break
             logs.append(Log(time=t, log=log))
 
