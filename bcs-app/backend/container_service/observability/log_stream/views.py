@@ -22,7 +22,7 @@ from django.utils import timezone
 from rest_framework.response import Response
 
 from backend.bcs_web.viewsets import SystemViewSet
-from backend.resources.pod.constants import LogFilter
+from backend.resources.pod.constants import Log, LogFilter
 from backend.resources.pod.log import LogClient
 
 from . import constants, serializers
@@ -33,7 +33,7 @@ logger = logging.getLogger(__name__)
 class LogStreamViewSet(SystemViewSet):
     """k8s 原生日志流"""
 
-    def calc_previous_page(self, logs: List, slz_data: Dict, previous_url: str):
+    def calc_previous_page(self, logs: List[Log], slz_data: Dict, previous_url: str):
         """计算上一页的请求链接"""
         if len(logs) < 2:
             return None
@@ -41,8 +41,8 @@ class LogStreamViewSet(SystemViewSet):
         previous_params = {
             "container_name": slz_data["container_name"],
             'previous': slz_data['previous'],
-            "first_time": logs[0]['time'],
-            "last_time": logs[-1]['time'],
+            "first_time": logs[0].time,
+            "last_time": logs[-1].time,
         }
         previous = previous_url + "?" + parse.urlencode(previous_params)
         return previous
@@ -76,11 +76,11 @@ class LogStreamViewSet(SystemViewSet):
         raw_logs = content.splitlines()
         logs = []
         for i in raw_logs:
-            t, msg = i.split(maxsplit=1)
+            t, log = i.split(maxsplit=1)
             # 只返回当前历史数据
             if data['first_time'] and t == data['first_time']:
                 break
-            logs.append({"time": t, "log": msg})
+            logs.append(Log(time=t, log=log))
 
         previous_url = f"{settings.DEVOPS_BCS_API_URL}/api/logs/projects/{project_id}/clusters/{cluster_id}/namespaces/{namespace}/pods/{pod}/stdlogs/"  # noqa
         previous = self.calc_previous_page(logs, data, previous_url)

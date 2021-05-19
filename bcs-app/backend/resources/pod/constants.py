@@ -31,3 +31,9 @@ class LogFilter:
     previous: bool = False
     since_time: Optional[str] = ""
     tail_lines: Optional[int] = 0
+
+
+@dataclass
+class Log:
+    time: str
+    log: str
