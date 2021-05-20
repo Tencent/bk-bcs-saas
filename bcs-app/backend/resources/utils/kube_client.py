@@ -13,6 +13,7 @@
 #
 import json
 import logging
+from contextlib import contextmanager
 from functools import lru_cache
 from typing import Any, Dict, Optional, Tuple
 
@@ -22,6 +23,7 @@ from kubernetes.dynamic import DynamicClient, Resource, ResourceInstance
 from kubernetes.dynamic.exceptions import ResourceNotUniqueError
 
 from backend.resources.cluster import CtxCluster
+from backend.utils.error_codes import error_codes
 
 from ..client import BcsKubeConfigurationService
 from .discovery import BcsLazyDiscoverer, DiscovererCache
@@ -155,3 +157,12 @@ def make_labels_string(labels: Dict) -> str:
     :param labels: dict of labels
     """
     return ",".join("{}={}".format(key, value) for key, value in labels.items())
+
+
+@contextmanager
+def wrap_kube_client_exc():
+    try:
+        yield
+    except ApiException as e:
+        body = json.loads(e.body)
+        raise error_codes.APIError(body['message'])
