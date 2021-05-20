@@ -151,3 +151,7 @@ class ChartReleaseSLZ(serializers.ModelSerializer):
 
 class RepositorySyncSLZ(serializers.Serializer):
     pass
+
+
+class ChartVersionParamsSLZ(serializers.Serializer):
+    version_list = serializers.ListField(child=serializers.CharField(), default=[])

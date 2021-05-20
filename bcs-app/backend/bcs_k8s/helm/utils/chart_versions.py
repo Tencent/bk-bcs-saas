@@ -22,7 +22,9 @@ from backend.utils.async_run import async_run
 
 
 def update_and_delete_chart_versions(project_id: str, project_code: str, chart: Chart, versions: List[str]):
-    """更新或删除chart及versions"""
+    """更新或删除chart及versions
+    TODO: 后续不存储DB, 可以废弃掉针对DB中存储的chart version相关记录的处理
+    """
     chart_versions = ChartVersion.objects.filter(chart=chart, version__in=versions)
     version_digests = chart_versions.values_list("digest", flat=True)
     # 处理digest不变动的情况
