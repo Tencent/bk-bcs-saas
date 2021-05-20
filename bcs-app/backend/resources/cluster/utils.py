@@ -12,11 +12,12 @@
 # specific language governing permissions and limitations under the License.
 #
 import json
+from typing import Dict, List
 
 from django.utils.translation import ugettext_lazy as _
 
-from backend.components import paas_cc
-from backend.components.bcs import k8s, mesos
+from backend.components import base, paas_cc
+from backend.components.bcs import mesos
 from backend.utils.cache import region
 from backend.utils.decorators import parse_response_data
 from backend.utils.errcodes import ErrorCode
@@ -161,3 +162,11 @@ def set_mesos_node_labels(access_token, project_id, labels):
 def update_cc_nodes_status(access_token, project_id, cluster_id, nodes):
     """更新记录的节点状态"""
     return paas_cc.update_node_list(access_token, project_id, cluster_id, data=nodes)
+
+
+def get_cluster_node_list(access_token: str, project_id: str, cluster_id: str) -> List[Dict]:
+    """获取集群下节点列表"""
+    client = paas_cc.PaaSCCClient(base.ComponentAuth(access_token=access_token))
+    resp_data = client.get_node_list(project_id=project_id, cluster_id=cluster_id)
+    # 返回列表
+    return resp_data["results"] or []

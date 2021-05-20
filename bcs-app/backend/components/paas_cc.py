@@ -603,8 +603,7 @@ class PaaSCCClient(BkApiClient):
         if params and isinstance(params, dict):
             req_params.update(params)
         # 默认拉取项目或集群下的所有节点，防止返回分页数据，导致数据不准确
-        if "desire_all_data" not in req_params:
-            req_params["desire_all_data"] = 1
+        req_params.setdefault("desire_all_data", 1)
         return self._client.request_json("GET", url, params=req_params)
 
 

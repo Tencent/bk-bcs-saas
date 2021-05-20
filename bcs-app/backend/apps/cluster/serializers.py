@@ -123,13 +123,6 @@ class BatchUpdateNodesSLZ(UpdateNodeSLZ):
     def validate(self, data):
         if not (data["node_id_list"] or data["is_select_all"]):
             raise ValidationError(_("请选择要操作的节点"))
-        # 如果is_select_all为True和node_id_list不为空，则以node_id_list为准，降低影响
-        if data["node_id_list"]:
-            return data
-        # 获取集群下的所有节点
-        client = paas_cc.PaaSCCClient(base.ComponentAuth(access_token=self.context["access_token"]))
-        nodes = client.get_node_list(project_id=self.context["project_id"], cluster_id=self.context["cluster_id"])
-        data["node_id_list"] = [node["id"] for node in nodes.get("results") or []]
         return data
 
 

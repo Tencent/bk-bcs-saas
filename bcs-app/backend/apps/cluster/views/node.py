@@ -15,6 +15,7 @@ import copy
 import json
 import logging
 import re
+from typing import Dict
 
 from django.utils.translation import ugettext_lazy as _
 from rest_framework import response, viewsets
@@ -35,7 +36,7 @@ from backend.apps.cluster.utils import cluster_env_transfer, custom_paginator, s
 from backend.components import data as data_api
 from backend.components import paas_cc
 from backend.components.bcs import k8s, mesos
-from backend.resources.cluster.utils import get_cluster_nodes
+from backend.resources.cluster.utils import get_cluster_node_list, get_cluster_nodes
 from backend.utils.errcodes import ErrorCode
 from backend.utils.error_codes import error_codes
 from backend.utils.funutils import convert_mappings
@@ -1099,17 +1100,15 @@ class NodeForceDeleteViewSet(NodeBase, NodeLabelBase, viewsets.ViewSet):
 class BatchUpdateDeleteNodeViewSet(NodeGetUpdateDeleteViewSet):
     renderer_classes = (BKAPIRenderer, BrowsableAPIRenderer)
 
-    def get_request_params(self, request, cluster_id):
-        slz = node_serializers.BatchUpdateNodesSLZ(
-            data=request.data,
-            context={
-                "access_token": request.user.token.access_token,
-                "project_id": request.project.project_id,
-                "cluster_id": cluster_id,
-            },
-        )
+    def get_request_params(self, request, cluster_id: str) -> Dict:
+        slz = node_serializers.BatchUpdateNodesSLZ(data=request.data)
         slz.is_valid(raise_exception=True)
-        return slz.validated_data
+        data = slz.validated_data
+        # 如果node_id_list为空并且is_select_all为True时，则操作的节点为集群下所有节点
+        if not data["node_id_list"] and data["is_select_all"]:
+            node_list = get_cluster_node_list(request.user.token.access_token, request.project.project_id, cluster_id)
+            data["node_id_list"] = [node["id"] for node in node_list]
+        return data
 
     def get_node_without_removed(self, node_list):
         node_list = [node for node in node_list if node['status'] != CommonStatus.Removed]
