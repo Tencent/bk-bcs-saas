@@ -11,58 +11,21 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-import copy
-import json
-
-from django.utils.translation import ugettext_lazy as _
-from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 
-from backend.apps.variable.models import NameSpaceVariable, Variable
 from backend.bcs_web.viewsets import UserViewSet
-from backend.components.base import ComponentAuth
-from backend.components.paas_cc import PaaSCCClient
+
+from . import var_helper
 
 
 class VariablesViewSet(UserViewSet):
-    def get_ns_id(self, access_token, project_id, cluster_id, namespace):
-        """获取命名空间ID"""
-        client = PaaSCCClient(ComponentAuth(access_token))
-        data = client.get_cluster_namespace_list(project_id, cluster_id)
-        # 匹配命名空间名称
-        for ns in data.get("results") or []:
-            if ns["name"] == namespace:
-                return ns["id"]
-        raise ValidationError(_("集群:{}下没有查询到命名空间:{}").format(cluster_id, namespace))
-
-    def get_var_data(self, ns_id):
-        """通过命名空间ID获取变量对应的值"""
-        ns_vars = NameSpaceVariable.objects.filter(ns_id=ns_id).values("var_id", "data")
-        return {var["var_id"]: var["data"] for var in ns_vars}
-
-    def get_var_key_and_name(self, var_ids):
-        """通过变量id获取变量key和名称"""
-        ns_vars = Variable.objects.filter(id__in=var_ids).values("id", "key", "name")
-        return {var["id"]: {"key": var["key"], "name": var["name"]} for var in ns_vars}
-
-    def compose_data(self, var_id_data_map, var_id_key_name_map):
-        ns_var_list = []
-        for var_id, key_name in var_id_key_name_map.items():
-            ns_var_data = var_id_data_map.get(var_id)
-            if not ns_var_data:
-                continue
-            ns_var = copy.deepcopy(key_name)
-            ns_var.update({"id": var_id, "value": json.loads(ns_var_data)["value"]})
-            ns_var_list.append(ns_var)
-        return ns_var_list
-
     def list_namespaced_variables(self, request, project_id, cluster_id, namespace):
         """获取命名空间下的变量"""
         # 获取命名空间ID
-        ns_id = self.get_ns_id(request.user.token.access_token, project_id, cluster_id, namespace)
+        ns_id = var_helper.get_ns_id(request.user.token.access_token, project_id, cluster_id, namespace)
         # 获取变量ID和命名空间下值的映射
-        var_id_data_map = self.get_var_data(ns_id)
+        var_id_data_map = var_helper.get_var_data(ns_id)
         # 获取变量ID和对应信息的映射
-        var_id_key_name_map = self.get_var_key_and_name(var_id_data_map.keys())
+        var_id_key_name_map = var_helper.get_var_key_and_name(var_id_data_map.keys())
         # 匹配数据，返回命名空间下的变量列表及对应的值
-        return Response(self.compose_data(var_id_data_map, var_id_key_name_map))
+        return Response(var_helper.compose_data(var_id_data_map, var_id_key_name_map))

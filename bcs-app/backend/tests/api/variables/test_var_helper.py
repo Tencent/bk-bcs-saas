@@ -11,23 +11,12 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-from unittest import mock
-
 import pytest
 
-from backend.apis.variables.views import VariablesViewSet
-from backend.tests.bcs_mocks.data.paas_cc_json import resp_get_namespaces_ok
-from backend.tests.bcs_mocks.misc import FakePaaSCCMod
+from backend.apis.variables.var_helper import compose_data
 
 
-class TestVariablesViewSet:
-    # TODO: 下面client需要调整
-    @mock.patch("backend.apis.variables.views.PaaSCCClient", new=FakePaaSCCMod)
-    def test_get_ns_id(self):
-        ns = resp_get_namespaces_ok["data"]["results"][0]["name"]
-        ns_id = VariablesViewSet().get_ns_id("access_token", "project_id", "cluster_id", ns)
-        assert ns_id == resp_get_namespaces_ok["data"]["results"][0]["id"]
-
+class TestVariables:
     @pytest.mark.parametrize(
         "var_id_data_map, var_id_key_name_map, expected_data",
         [
@@ -53,5 +42,5 @@ class TestVariablesViewSet:
         ],
     )
     def test_compose_data(self, var_id_data_map, var_id_key_name_map, expected_data):
-        data = VariablesViewSet().compose_data(var_id_data_map, var_id_key_name_map)
+        data = compose_data(var_id_data_map, var_id_key_name_map)
         assert data == expected_data
