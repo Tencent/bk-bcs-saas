@@ -16,11 +16,12 @@ import json
 import pytest
 
 from backend.resources.workloads.deployment.formatter import DeploymentFormatter
+from backend.tests.resources.formatter.conftest import WORKLOAD_CONFIG_DIR
 
 
 @pytest.fixture(scope="module", autouse=True)
 def deployment_configs():
-    with open('backend/tests/resources/formatter/workloads/contents/deployment.json') as fr:
+    with open(f'{WORKLOAD_CONFIG_DIR}/deployment.json') as fr:
         configs = json.load(fr)
     return configs
 

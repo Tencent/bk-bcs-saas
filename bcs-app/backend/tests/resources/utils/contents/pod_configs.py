@@ -105,3 +105,20 @@ CompletedStatusPodConfig = {
         ],
     }
 }
+
+# PodStatus CreateContainerError
+CreateContainerErrorStatusPodConfig = {
+    'status': {
+        'phase': PodPhase.PodPending.value,
+        'containerStatuses': [
+            {
+                'state': {
+                    'waiting': {
+                        'message': 'Error response from daemon: No command specified',
+                        'reason': 'CreateContainerError',
+                    }
+                }
+            }
+        ],
+    }
+}

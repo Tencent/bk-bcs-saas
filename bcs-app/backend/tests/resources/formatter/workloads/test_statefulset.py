@@ -16,11 +16,12 @@ import json
 import pytest
 
 from backend.resources.workloads.statefulset.formatter import StatefulSetFormatter
+from backend.tests.resources.formatter.conftest import WORKLOAD_CONFIG_DIR
 
 
 @pytest.fixture(scope="module", autouse=True)
 def statefulset_configs():
-    with open('backend/tests/resources/formatter/workloads/contents/statefulset.json') as fr:
+    with open(f'{WORKLOAD_CONFIG_DIR}/statefulset.json') as fr:
         configs = json.load(fr)
     return configs
 

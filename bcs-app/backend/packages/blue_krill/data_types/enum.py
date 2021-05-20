@@ -99,17 +99,13 @@ class FeatureFlag(str, metaclass=FeatureFlagMeta):
     @classmethod
     def get_default_flags(cls) -> Dict[str, bool]:
         """Get the default user feature flags, client is safe to modify the result because it's a copy"""
-        features = {
-            field.name: field.default for field in cls._get_feature_fields_().values()
-        }
+        features = {field.name: field.default for field in cls._get_feature_fields_().values()}
         return features.copy()
 
     @classmethod
     def get_django_choices(cls) -> List[Tuple[str, str]]:
         """Get Django-Like Choices for this FeatureFlag Collection."""
-        return [
-            (field.name, field.label) for field in cls._get_feature_fields_().values()
-        ]
+        return [(field.name, field.label) for field in cls._get_feature_fields_().values()]
 
     @classmethod
     def get_feature_label(cls, feature: str) -> str:
@@ -137,9 +133,7 @@ class EnumField:
     :param is_reserved: if current member was reserved, it will not be included in choices
     """
 
-    def __init__(
-        self, real_value: Any, label: Optional[str] = None, is_reserved: bool = False
-    ):
+    def __init__(self, real_value: Any, label: Optional[str] = None, is_reserved: bool = False):
         self.real_value = real_value
         self.label = label
         self.is_reserved = is_reserved
@@ -175,9 +169,7 @@ class StructuredEnumMeta(EnumMeta):
                 continue
 
             # Turn regular enum member into EnumField instance
-            if not isinstance(member, EnumField) and isinstance(
-                member, (int, str, auto)
-            ):
+            if not isinstance(member, EnumField) and isinstance(member, (int, str, auto)):
                 member = EnumField(member)
             if not isinstance(member, EnumField) or member.is_reserved:
                 continue
@@ -198,12 +190,27 @@ class StructuredEnum(OrigEnum, metaclass=StructuredEnumMeta):
     @classmethod
     def get_django_choices(cls) -> List[Tuple[Any, str]]:
         """Get Django-Like Choices for all field members."""
-        members = cls.get_field_members()
-        return [(field.real_value, field.label) for field in members.values()]
+        return cls.get_choices()
 
     @classmethod
     def get_choice_label(cls, value: Any) -> str:
         """Get the label of field member by value"""
         if isinstance(value, cls):
             value = value.value
-        return dict(cls.get_django_choices()).get(value, value)
+        return dict(cls.get_choices()).get(value, value)
+
+    @classmethod
+    def get_labels(cls) -> List[str]:
+        """Get the label list for all field members."""
+        return [item[1] for item in cls.get_choices()]
+
+    @classmethod
+    def get_values(cls) -> List[Any]:
+        """Get the value list for all field members."""
+        return [item[0] for item in cls.get_choices()]
+
+    @classmethod
+    def get_choices(cls) -> List[Tuple[Any, str]]:
+        """Get Choices for all field members."""
+        members = cls.get_field_members()
+        return [(field.real_value, field.label) for field in members.values()]
