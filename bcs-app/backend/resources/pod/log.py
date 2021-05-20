@@ -17,7 +17,7 @@ import logging
 from kubernetes.client.exceptions import ApiException
 
 from backend.resources.cluster.models import CtxCluster
-from backend.resources.utils.kube_client import get_dynamic_client
+from backend.resources.utils.kube_client import get_dynamic_client, wrap_kube_client_exc
 from backend.utils.error_codes import error_codes
 
 from . import constants
@@ -53,10 +53,7 @@ class LogClient:
         else:
             params['tailLines'] = filter.tail_lines
 
-        try:
+        with wrap_kube_client_exc():
             result = self.dynamic_client.get(self.resource, self.pod_name, self.namespace, query_params=params)
-        except ApiException as error:
-            body = json.loads(error.body)
-            raise error_codes.APIError(body['message'])
 
         return result
