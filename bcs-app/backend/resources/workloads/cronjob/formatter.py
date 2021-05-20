@@ -38,7 +38,7 @@ class CronJobFormatter(WorkloadFormatter):
         res.update(
             {
                 # 若有执行中的Job，则该字段值为 Job指针列表，否则该Key不存在
-                'active': bool('active' in status),
+                'active': len(status['active']) if 'active' in status else 0,
                 'lastSchedule': calculate_duration(status.get('lastScheduleTime')),
             }
         )

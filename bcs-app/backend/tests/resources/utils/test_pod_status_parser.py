@@ -17,6 +17,7 @@ from backend.resources.constants import SimplePodStatus
 from backend.resources.workloads.pod.utils import PodStatusParser
 from backend.tests.resources.utils.contents.pod_configs import (
     CompletedStatusPodConfig,
+    CreateContainerErrorStatusPodConfig,
     FailedStatusPodConfig,
     PendingStatusPodConfig,
     RunningStatusPodConfig,
@@ -36,6 +37,7 @@ from backend.tests.resources.utils.contents.pod_configs import (
         (TerminatingStatusPodConfig, SimplePodStatus.Terminating.value),
         (UnknownStatusPodConfig, SimplePodStatus.PodUnknown.value),
         (CompletedStatusPodConfig, SimplePodStatus.Completed.value),
+        (CreateContainerErrorStatusPodConfig, 'CreateContainerError'),
     ],
 )
 def test_pod_status_parser(config, expected_status):

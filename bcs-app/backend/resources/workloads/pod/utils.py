@@ -99,7 +99,7 @@ class PodStatusParser:
         """ 根据 pod.Status.ContainerStatuses 更新 总状态 """
         hasRunning = False
         for container in reversed(getitems(self.pod, 'status.containerStatuses', [])):
-            waiting_reason = getitems('container', 'state.waiting.reason')
+            waiting_reason = getitems(container, 'state.waiting.reason')
             if waiting_reason:
                 self.tol_status = waiting_reason
 
