@@ -11,29 +11,14 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-from dataclasses import dataclass
-from typing import Optional
+from django.urls import path
 
-from backend.resources.deployment.constants import DEPLOYMENT_REGEX
+from . import views
 
-POD_REGEX = DEPLOYMENT_REGEX
-
-# 显示时间戳
-LOG_SHOW_TIMESTAMPS = True
-
-# 默认最大返回 10MB 日志大小
-LOG_MAX_LIMIT_BYTES = 1024 * 1024 * 10
-
-
-@dataclass
-class LogFilter:
-    container_name: str
-    previous: bool = False
-    since_time: Optional[str] = ""
-    tail_lines: Optional[int] = 0
-
-
-@dataclass
-class Log:
-    time: str
-    log: str
+urlpatterns = [
+    path('namespaces/<slug:namespace>/pods/<slug:pod>/stdlogs/', views.LogStreamViewSet.as_view({'get': 'fetch'})),
+    path(
+        'namespaces/<slug:namespace>/pods/<slug:pod>/stdlogs/download/',
+        views.LogStreamViewSet.as_view({'get': 'download'}),
+    ),
+]
