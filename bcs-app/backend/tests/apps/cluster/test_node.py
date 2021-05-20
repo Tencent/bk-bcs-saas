@@ -21,18 +21,24 @@ from backend.tests.bcs_mocks.fake_bcs_cc import FakeBCSCCMod
 from backend.utils import FancyDict
 
 fake_cluster_node_id_list = [node["id"] for node in fake_get_node_list_ok_resp["results"]]
+request = FancyDict(
+    user=FancyDict(token=FancyDict(access_token="accesstoken")), project=FancyDict(project_id="projectid")
+)
 
 
 @pytest.mark.parametrize(
     "request_data,expected_node_id_list",
-    (FancyDict(data=FancyDict(status=NodeStatus.ToRemoved, node_id_list=[1], is_select_all=False)), [1]),
-    (FancyDict(data=FancyDict(status=NodeStatus.ToRemoved, node_id_list=[1], is_select_all=True)), [1]),
-    (
-        FancyDict(data=FancyDict(status=NodeStatus.ToRemoved, node_id_list=[], is_select_all=True)),
-        fake_cluster_node_id_list,
-    ),
+    [
+        (FancyDict(status=NodeStatus.ToRemoved, node_id_list=[1], is_select_all=False), [1]),
+        (FancyDict(status=NodeStatus.ToRemoved, node_id_list=[1], is_select_all=True), [1]),
+        (
+            FancyDict(status=NodeStatus.ToRemoved, node_id_list=[], is_select_all=True),
+            fake_cluster_node_id_list,
+        ),
+    ],
 )
 @patch("backend.resources.cluster.utils.paas_cc.PaaSCCClient", new=FakeBCSCCMod)
-def test_cluster_node_list(request_data, expected_node_id_list):
-    data = BatchUpdateDeleteNodeViewSet().get_request_params(request_data, "cluster_id")
+def test_cluster_node_list1(request_data, expected_node_id_list):
+    request.data = request_data
+    data = BatchUpdateDeleteNodeViewSet().get_request_params(request, "cluster_id")
     assert data["node_id_list"] == expected_node_id_list
