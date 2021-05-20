@@ -12,6 +12,7 @@
 # specific language governing permissions and limitations under the License.
 #
 import logging
+from typing import List, Tuple
 
 from django.utils.translation import ugettext_lazy as _
 from rest_framework import status, viewsets
@@ -355,7 +356,9 @@ class HelmChartVersionsViewSet(SystemViewSet):
 
         return Response()
 
-    def _get_version_list(self, request, chart_data, repo_auth):
+    def _get_version_list(
+        self, request, chart_data: chart_versions.ChartData, repo_auth: chart_versions.RepoAuth
+    ) -> List[str]:
         slz = serializers.ChartVersionParamsSLZ(data=request.data)
         slz.is_valid(raise_exception=True)
         version_list = slz.validated_data["version_list"]
@@ -364,14 +367,14 @@ class HelmChartVersionsViewSet(SystemViewSet):
             version_list = chart_versions.get_chart_version_list(chart_data, repo_auth)
         return version_list
 
-    def _get_chart(self, project_id, project_code, chart_name):
+    def _get_chart(self, project_id: str, project_code: str, chart_name: str) -> Chart:
         try:
             # 限制仅查询项目仓库下的chart
             return Chart.objects.get(name=chart_name, repository__project_id=project_id, repository__name=project_code)
         except Chart.DoesNotExist:
             raise ValidationError(_("chart:{}不存在").format(chart_name))
 
-    def _get_repo_auth(self, project_code, project_id):
+    def _get_repo_auth(self, project_code: str, project_id: str) -> Tuple[str, str]:
         try:
             repo = Repository.objects.get(name=project_code, project_id=project_id)
         except Repository.DoesNotExist:
