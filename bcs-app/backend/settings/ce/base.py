@@ -267,3 +267,6 @@ SOPS_API_HOST = os.environ.get("SOPS_API_HOST")
 ADMIN_USERNAME = "admin"
 # BCS 默认业务
 BCS_APP_ID = 1
+
+# 集群及节点metric功能白名单
+CLUSTER_FUNC_CODES = ["MesosResource"]
