@@ -17,7 +17,7 @@ import logging
 import re
 from enum import Enum
 from functools import reduce
-from typing import Any
+from typing import Any, Dict, List, Union
 
 import arrow
 from django.conf import settings
@@ -98,11 +98,13 @@ def normalize_datetime(time):
     return arrow_time.datetime.strftime(settings.REST_FRAMEWORK["DATETIME_FORMAT"])
 
 
-def getitems(obj, items, default=None):
+def getitems(obj: Dict, items: Union[List, str], default: Any = None):
     """递归获取数据
 
     :param items: 键列表：['foo', 'bar']，或者用 "." 连接的键路径： ".foo.bar" 或 "foo.bar"
     """
+    if not isinstance(obj, dict):
+        raise TypeError('Dict object support only!')
     if isinstance(items, str):
         items = items.strip(".").split(".")
     try:
