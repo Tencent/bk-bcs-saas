@@ -14,7 +14,7 @@
 import json
 import logging
 from dataclasses import asdict, dataclass
-from typing import Dict, List
+from typing import Dict, List, Union
 
 from django.conf import settings
 from django.utils.translation import ugettext_lazy as _
@@ -518,6 +518,7 @@ class PaaSCCConfig:
         self.update_cluster_url = f"{host}/projects/{{project_id}}/clusters/{{cluster_id}}/"
         self.delete_cluster_url = f"{host}/projects/{{project_id}}/clusters/{{cluster_id}}/"
         self.update_node_list_url = f"{host}/projects/{{project_id}}/clusters/{{cluster_id}}/nodes/"
+        self.get_cluster_namespace_list_url = f"{host}/projects/{{project_id}}/clusters/{{cluster_id}}/namespaces/"
 
 
 @dataclass
@@ -579,6 +580,40 @@ class PaaSCCClient(BkApiClient):
         """
         url = self._config.update_node_list_url.format(project_id=project_id, cluster_id=cluster_id)
         return self._client.request_json("PATCH", url, json={"updates": [asdict(node) for node in nodes]})
+
+    @response_handler()
+    def get_cluster_namespace_list(
+        self,
+        project_id: str,
+        cluster_id: str,
+        limit=None,
+        offset=None,
+        with_lb: Union[bool, int] = False,
+        desire_all_data: Union[bool, int] = None,
+    ) -> Dict[str, Union[int, List[Dict]]]:
+        """获取集群下命名空间列表
+
+        :param project_id: 项目ID
+        :param cluster_id: 集群ID
+        :param limit: 每页的数量
+        :param offset: 第几页
+        :param with_lb: 是否返回lb，兼容了bool和int型
+        :param desire_all_data: 是否拉取集群下全量命名空间，兼容bool和int型
+        :returns: 返回集群下的命名空间
+        """
+        url = self._config.get_cluster_namespace_list_url.format(project_id=project_id, cluster_id=cluster_id)
+        req_params = {"desire_all_data": desire_all_data}
+        # NOTE: 根据上层调用，希望获取的是集群下的所有命名空间，因此，当desire_all_data为None时，设置为拉取全量
+        if desire_all_data is None:
+            req_params["desire_all_data"] = 1
+        if limit:
+            req_params["limit"] = limit
+        if offset:
+            req_params["offset"] = offset
+        if with_lb:
+            req_params["with_lb"] = with_lb
+
+        return self._client.request_json("GET", url, params=req_params)
 
 
 try:
