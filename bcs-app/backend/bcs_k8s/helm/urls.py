@@ -117,6 +117,6 @@ urlpatterns = [
     ),
     url(
         r'^api/projects/(?P<project_id>\w{32})/helm/charts/(?P<chart_name>[\w\-]+)/$',
-        views.HelmChartVersionsViewSet.as_view({"post": "batch_delete"}),
+        views.HelmChartVersionsViewSet.as_view({"delete": "batch_delete"}),
     ),
 ]
