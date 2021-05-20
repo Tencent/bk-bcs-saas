@@ -17,7 +17,7 @@ from . import views
 
 urlpatterns = [
     url(
-        r"^clusters/(?P<cluster_id>[\w\-]+)/namespaces/(?P<namespace>[\w\-]+)/$",
+        r"^clusters/(?P<cluster_id>[\w\-]+)/namespaces/(?P<namespace>[\w\-]+)/variables/$",
         views.VariablesViewSet.as_view({"get": "list_namespaced_variables"}),
     )
 ]
