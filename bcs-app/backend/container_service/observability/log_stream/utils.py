@@ -49,10 +49,13 @@ def calc_since_time(started_at: str, finished_at: str) -> str:
 
 def refine_k8s_logs(content: str, started_at: str) -> List[Log]:
     """重新整理 k8s 日志"""
+
     raw_logs = content.splitlines()
     logs = []
     for i in raw_logs:
-        t, log = i.split(maxsplit=1)
+        # k8s返回使用空格分隔
+        t, _, log = i.partition(' ')
+
         # 只返回当前历史数据
         if started_at and t == started_at:
             break
