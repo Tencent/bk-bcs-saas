@@ -98,10 +98,14 @@ def normalize_datetime(time):
     return arrow_time.datetime.strftime(settings.REST_FRAMEWORK["DATETIME_FORMAT"])
 
 
-def getitems(obj: Dict, items: Union[List, str], default: Any = None):
-    """递归获取数据
+def getitems(obj: Dict, items: Union[List, str], default: Any = None) -> Any:
+    """
+    递归获取数据
 
+    :param obj: Dict 类型数据
     :param items: 键列表：['foo', 'bar']，或者用 "." 连接的键路径： ".foo.bar" 或 "foo.bar"
+    :param default: 默认值
+    :return: value
     """
     if not isinstance(obj, dict):
         raise TypeError('Dict object support only!')
