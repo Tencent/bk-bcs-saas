@@ -22,7 +22,10 @@ class AsyncRunException(BaseException):
 def get_or_create_loop():
     try:
         # 主线程
-        return asyncio.get_event_loop(), False
+        loop = asyncio.get_event_loop()
+        if loop.is_closed():
+            raise RuntimeError('Event loop is closed')
+        return loop, False
     except RuntimeError:
         # 非主线程
         loop = asyncio.new_event_loop()
