@@ -57,8 +57,8 @@ class App(models.Model):
 
     project_id = models.CharField("Project ID", max_length=32)
     cluster_id = models.CharField("Cluster ID", max_length=32)
-    chart = models.ForeignKey(Chart, db_constraint=False)
-    release = models.ForeignKey(ChartRelease, db_constraint=False)
+    chart = models.ForeignKey(Chart, on_delete=models.CASCADE, db_constraint=False)
+    release = models.ForeignKey(ChartRelease, on_delete=models.CASCADE, db_constraint=False)
     name = models.CharField(max_length=128)  # same with namespace in common case
     namespace = models.CharField(max_length=32)
     # namespace_id is a full name of `ns_id`, they indicate the same thing

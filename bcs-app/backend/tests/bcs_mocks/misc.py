@@ -74,3 +74,6 @@ class FakeProjectPermissionAllowAll:
 
     def grant_related_action_perms(self, username, project_id, project_name):
         return []
+
+    def verify_project(self, access_token, project_id, user_id):
+        return {"code": 0}

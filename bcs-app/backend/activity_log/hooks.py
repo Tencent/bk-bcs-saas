@@ -16,7 +16,7 @@ from collections import OrderedDict
 
 from django.db.models.signals import post_delete, post_save
 from django.dispatch import receiver
-from django.shortcuts import force_text
+from django.utils.encoding import force_str
 
 from backend.activity_log.client import UserActivityLogClient
 from backend.utils.local import local
@@ -28,9 +28,7 @@ class DjangoSignalHooks(object):
     def __init__(self):
         self.ignore_models = set()
         self.model_checkers = OrderedDict()
-        self.activity_log_client = UserActivityLogClient(
-            activity_status="completed",
-        )
+        self.activity_log_client = UserActivityLogClient(activity_status="completed")
 
     def activity_check(self, params):
         return params
@@ -61,27 +59,18 @@ class DjangoSignalHooks(object):
                 activity_type = "add"
             else:
                 activity_type = "modify"
-            check_and_log(
-                instance,
-                dict(
-                    activity_type=activity_type,
-                ),
-            )
+
+            check_and_log(instance, dict(activity_type=activity_type))
 
         @receiver(post_delete)
         def log_model_activity_delete(sender, instance, **kwargs):
-            check_and_log(
-                instance,
-                dict(
-                    activity_type="delete",
-                ),
-            )
+            check_and_log(instance, dict(activity_type="delete"))
 
         def check_and_log(instance, params):
             checker = self.find_checker_by_instance(instance)
 
             try:
-                username = local.request.user.username or force_text(local.request.user)
+                username = local.request.user.username or force_str(local.request.user)
             except Exception:
                 username = "*SYSTEM*"  # celery backend process
             params.setdefault("user", username)

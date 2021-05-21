@@ -245,7 +245,7 @@ class BkRepoClient(BkApiClient):
         url = self._bk_repo_raw_config.delete_chart_version.format(
             project_name=project_name, repo_name=repo_name, chart_name=chart_name, version=version
         )
-        resp = self._raw_client.request_json("DELETE", url)
+        resp = self._raw_client.request_json("DELETE", url, raise_for_status=False)
         if not (resp.get("deleted") or "no such file or directory" in resp.get("error", "")):
             raise BkRepoDeleteVersionError(f"delete chart version error, {resp}")
         return resp

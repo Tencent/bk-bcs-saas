@@ -11,8 +11,9 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
+import json
+
 from django.db import models
-from django.utils.translation import ugettext_lazy as _
 
 from backend.activity_log import constants
 
@@ -38,9 +39,14 @@ class UserActivityLog(models.Model):
     description = models.TextField(help_text='描述', null=True, blank=True)
     extra = models.TextField(help_text='扩展')
 
+    def save(self, *args, **kwargs):
+        if isinstance(self.extra, dict):
+            self.extra = json.dumps(self.extra)
+        super().save(*args, **kwargs)
+
 
 class UserActivityLogLabel(models.Model):
-    activity_log = models.ForeignKey(UserActivityLog)
+    activity_log = models.ForeignKey(UserActivityLog, on_delete=models.CASCADE)
     type = models.CharField(max_length=32, db_index=True)
     key = models.CharField(max_length=32, db_index=True)
     value = models.TextField()

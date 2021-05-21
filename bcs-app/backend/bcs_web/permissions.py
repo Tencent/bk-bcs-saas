@@ -17,6 +17,7 @@ from django.conf import settings
 from rest_framework.permissions import BasePermission
 
 from backend.accounts import bcs_perm
+from backend.activity_log.audit.context import AuditContext
 from backend.apps.constants import ClusterType
 from backend.components.base import ComponentAuth
 from backend.components.iam import permissions
@@ -74,7 +75,8 @@ class ProjectEnableBCS(BasePermission):
     仅支持处理 url 路径参数中包含 project_id 或 project_id_or_code 的接口
     主要功能:
     - 校验项目是否已经开启容器服务
-    - 设置 request.project、request.ctx_project 和 request.ctx_cluster ，在 view 中使用
+    - 设置 request.project、request.ctx_project 、request.ctx_cluster，在 view 中使用
+    - 设置 request.audit_ctx，可配合 log_audit_on_view 和 log_audit 装饰器使用
     """
 
     message = "project does not enable bcs"
@@ -85,6 +87,8 @@ class ProjectEnableBCS(BasePermission):
         if project:
             request.project = project
             self._set_ctx_project_cluster(request, project.project_id, view.kwargs.get('cluster_id', ''))
+            # 设置操作审计 context
+            request.audit_ctx = AuditContext(user=request.user.username, project_id=project.project_id)
             return True
 
         return False

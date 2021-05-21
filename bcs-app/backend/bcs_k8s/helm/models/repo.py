@@ -11,7 +11,6 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-import json
 from typing import Tuple
 
 from django.db import models
@@ -58,7 +57,11 @@ class Repository(BaseTSModel):
     def plain_auths(self):
         auths = list(self.auths.values("credentials", "type", "role"))
         return [
-            {"type": auth["type"], "role": auth["role"], "credentials": json.loads(auth["credentials"]),}
+            {
+                "type": auth["type"],
+                "role": auth["role"],
+                "credentials": auth["credentials"],
+            }
             for auth in auths
         ]
 
@@ -66,7 +69,7 @@ class Repository(BaseTSModel):
     def username_password(self) -> Tuple[str, str]:
         try:
             credentials = list(self.auths.values("credentials"))
-            credential = json.loads(credentials[0]["credentials"])
+            credential = credentials[0]["credentials"]
             return (credential["username"], credential["password"])
         except Exception:
             return ("", "")
@@ -78,7 +81,7 @@ class RepositoryAuth(models.Model):
     type = models.CharField('Type', choices=AUTH_CHOICE, max_length=16)
     # ex: {"password":"EJWmMqqGeA5E6JNb","username":"admin-T49e"}
     credentials = JSONField('Credentials', default={})
-    repo = models.ForeignKey(Repository, related_name='auths')
+    repo = models.ForeignKey(Repository, on_delete=models.CASCADE, related_name='auths')
     # TODO: use rbac module instead
     role = models.CharField('Role', max_length=16)
 

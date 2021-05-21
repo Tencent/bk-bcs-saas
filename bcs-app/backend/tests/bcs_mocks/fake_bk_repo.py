@@ -11,7 +11,7 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-from typing import Dict
+from typing import Dict, List
 
 from .data import bk_repo_json
 
@@ -36,3 +36,9 @@ class FakeBkRepoMod:
 
     def set_auth(self, project_code: str, repo_admin_user: str, repo_admin_pwd: str) -> bool:
         return bk_repo_json.fake_set_auth_resp
+
+    def get_chart_versions(self, project_name: str, repo_name: str, chart_name: str) -> List:
+        return bk_repo_json.fake_chart_versions_resp
+
+    def delete_chart_version(self, project_name: str, repo_name: str, chart_name: str, version: str) -> Dict:
+        return bk_repo_json.fake_delete_chart_version_resp

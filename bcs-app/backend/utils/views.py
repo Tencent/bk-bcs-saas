@@ -19,7 +19,6 @@ from django.http import Http404
 from django.utils.translation import ugettext_lazy as _
 from django.views.decorators.clickjacking import xframe_options_exempt
 from django.views.generic.base import TemplateView
-from rest_framework.compat import set_rollback
 from rest_framework.exceptions import (
     AuthenticationFailed,
     MethodNotAllowed,
@@ -30,7 +29,7 @@ from rest_framework.exceptions import (
 )
 from rest_framework.renderers import BrowsableAPIRenderer, JSONRenderer
 from rest_framework.response import Response
-from rest_framework.views import exception_handler
+from rest_framework.views import exception_handler, set_rollback
 
 from backend.components.base import (
     BaseCompError,
@@ -186,7 +185,10 @@ class ProjectMixin:
 
     @property
     def project_id(self):
-        return self.request.parser_context["kwargs"]["project_id"]
+        project_id = self.request.parser_context["kwargs"].get("project_id")
+        if not project_id:
+            return self.request.project.project_id
+        return project_id
 
 
 class FilterByProjectMixin(ProjectMixin):

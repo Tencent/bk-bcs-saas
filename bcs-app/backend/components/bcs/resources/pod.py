@@ -15,7 +15,7 @@ import base64
 import json
 import logging
 
-from backend.resources.constants import K8sResourceKinds
+from backend.resources.constants import K8sResourceKind
 from backend.utils.basic import getitems
 
 from .api_response import response
@@ -25,7 +25,7 @@ logger = logging.getLogger(__name__)
 
 
 class Pod(Resource, CoreAPIClassMixins):
-    resource_kind = K8sResourceKinds.Pod.value
+    resource_kind = K8sResourceKind.Pod.value
 
     def get_reference_name(self, extra):
         extra_info = json.loads(base64.b64decode(extra))
