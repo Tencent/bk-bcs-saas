@@ -209,53 +209,6 @@
                                 :cur-project="curProject"
                                 :cur-cluster="cluster">
                             </status-progress>
-                            <!-- <div class="biz-cluster-content" :class="curProject.kind === PROJECT_MESOS ? 'more-info' : ''">
-                                <div class="biz-progress-box">
-                                    <div class="progress-header">
-                                        <span class="title">{{$t('CPU使用率')}}</span>
-                                        <span class="percent">
-                                            {{conversionPercent(cluster.remain_cpu, cluster.total_cpu)}}%
-                                        </span>
-                                    </div>
-                                    <div class="progress">
-                                        <div class="progress-bar primary"
-                                            :style="{ width: `${conversionPercent(cluster.remain_cpu, cluster.total_cpu)}%` }"></div>
-                                    </div>
-                                </div>
-                                <div class="biz-progress-box">
-                                    <div class="progress-header">
-                                        <span class="title">{{$t('内存使用率')}}</span>
-                                        <span class="percent">
-                                            {{conversionPercent(cluster.remain_mem, cluster.total_mem)}}%
-                                        </span>
-                                    </div>
-                                    <div class="progress">
-                                        <div class="progress-bar success" :style="{ width: `${conversionPercent(cluster.remain_mem, cluster.total_mem)}%` }"></div>
-                                    </div>
-                                </div>
-                                <div class="biz-progress-box">
-                                    <div class="progress-header">
-                                        <span class="title">{{$t('磁盘使用率')}}</span>
-                                        <span class="percent">
-                                            {{conversionPercent(cluster.remain_disk, cluster.total_disk)}}%
-                                        </span>
-                                    </div>
-                                    <div class="progress">
-                                        <div class="progress-bar warning" :style="{ width: `${conversionPercent(cluster.remain_disk, cluster.total_disk)}%` }"></div>
-                                    </div>
-                                </div>
-                                <div class="biz-progress-box" v-if="curProject.kind === PROJECT_MESOS">
-                                    <div class="progress-header">
-                                        <span class="title">{{$t('集群IP')}}</span>
-                                        <span class="percent">
-                                            {{cluster.allip === 0 ? 0 : `${cluster.activeip} / ${cluster.allip}（${$t('剩余')}${cluster.availableip}）`}}
-                                        </span>
-                                    </div>
-                                    <div class="progress">
-                                        <div class="progress-bar warning" :style="{ width: `${cluster.allip === 0 ? 0 : conversionPercent(cluster.activeip, cluster.allip, true)}%` }"></div>
-                                    </div>
-                                </div>
-                            </div> -->
                             <div class="add-node-btn-wrapper">
                                 <button class="bk-button bk-default add-node-btn" @click="goOverviewOrNode('clusterNode', cluster)">
                                     <span>{{$t('添加节点')}}</span>
@@ -733,16 +686,23 @@
                     this.permissions = JSON.parse(JSON.stringify(res.permissions || {}))
 
                     const list = res.data.results || []
+
                     list.forEach((item, index) => {
                         item.cpu_usage = {}
                         item.mem_usage = {}
                         item.disk_usage = {}
+
                         item.activeip = 0
                         item.availableip = 0
                         item.reservedip = 0
                         item.allip = 0
-                        if (this.curProject.kind === this.PROJECT_MESOS) {
-                            this.getClusterIp(item, index)
+                        // if (this.curProject.kind === this.PROJECT_MESOS) {
+                        //     this.getClusterIp(item, index)
+                        // }
+                        if (item.type === 'mesos' && item.func_wlist && item.func_wlist.indexOf('MesosResource') > -1) {
+                            if (!notLoading) {
+                                this.getClusterIp(item, index)
+                            }
                         }
                     })
 
@@ -753,6 +713,10 @@
                                 resListItem.cpu_usage = c.cpu_usage
                                 resListItem.mem_usage = c.mem_usage
                                 resListItem.disk_usage = c.disk_usage
+                                resListItem.activeip = c.activeip
+                                resListItem.availableip = c.availableip
+                                resListItem.reservedip = c.reservedip
+                                resListItem.allip = c.allip
                             }
                         })
                     }
@@ -766,9 +730,15 @@
                             this.$set(l, index, item)
                             this.$store.commit('cluster/forceUpdateClusterList', l)
 
+                            const args = {}
+                            if (item.type === 'mesos' && item.func_wlist && item.func_wlist.indexOf('MesosResource') > -1) {
+                                args.dimensions = 'mesos_memory_usage,mesos_cpu_usage'
+                            }
+
                             await this.$store.dispatch('cluster/clusterOverview', {
                                 projectId: this.projectId,
-                                clusterId: item.cluster_id
+                                clusterId: item.cluster_id,
+                                data: args
                             }).then(d => {
                                 item.cpu_usage = d.data.cpu_usage
                                 // item.cpu_usage = {
@@ -777,6 +747,12 @@
                                 // }
                                 item.mem_usage = d.data.mem_usage
                                 item.disk_usage = d.data.disk_usage
+
+                                // 如果是 mesos，返回是 mesos_memory_usage 和 mesos_cpu_usage
+                                if (item.type === 'mesos' && item.func_wlist && item.func_wlist.indexOf('MesosResource') > -1) {
+                                    item.cpu_usage = d.data.mesos_cpu_usage
+                                    item.mem_usage = d.data.mesos_memory_usage
+                                }
 
                                 const l = []
                                 l.splice(0, 0, ...this.clusterList)
