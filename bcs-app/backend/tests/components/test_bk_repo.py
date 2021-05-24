@@ -81,11 +81,11 @@ class TestBkRepoClient:
         with pytest.raises(bk_repo.BkRepoCreateRepoError):
             client.create_chart_repo(fake_project_code)
 
-    def test_set_auth(self, requests_mock):
+    def test_set_project_auth(self, requests_mock):
         requests_mock.post(ANY, json={"result": True, "data": {"foo": "bar"}})
 
         client = bk_repo.BkRepoClient(fake_username, access_token=fake_access_token)
-        resp_data = client.set_auth(fake_project_code, fake_username, fake_pwd)
+        resp_data = client.set_project_auth(fake_project_code, fake_username, fake_pwd)
         assert resp_data == {"foo": "bar"}
         assert requests_mock.request_history[0].method == "POST"
 
@@ -142,3 +142,11 @@ class TestBkRepoClient:
         client = bk_repo.BkRepoClient(fake_username, password=fake_pwd)
         with pytest.raises(bk_repo.BkRepoDeleteVersionError):
             client.delete_chart_version(fake_project_code, fake_project_code, fake_chart_name, fake_chart_version)
+
+    def test_set_repo_auth(self, requests_mock):
+        requests_mock.post(ANY, json={"code": 0, "data": True})
+
+        client = bk_repo.BkRepoClient(fake_username, access_token=fake_access_token)
+        resp_data = client.set_repo_auth(fake_project_code, fake_project_code, fake_username, fake_pwd)
+        assert resp_data is True
+        assert requests_mock.request_history[0].method == "POST"

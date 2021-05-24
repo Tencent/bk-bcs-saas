@@ -15,7 +15,7 @@ fake_create_project_resp = {"code": 0, "data": {"name": "test"}, "message": "ok"
 
 fake_create_repo_resp = {"code": 0, "data": {"name": "test"}, "message": "ok"}
 
-fake_set_auth_resp = True
+fake_set_project_auth_resp = True
 
 fake_list_charts_resp = {
     "test": [
@@ -94,3 +94,5 @@ fake_chart_versions_detail_resp = {
 }
 
 fake_delete_chart_version_resp = {"deleted": True}
+
+fake_set_repo_auth_resp = True

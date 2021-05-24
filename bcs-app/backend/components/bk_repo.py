@@ -42,7 +42,8 @@ class BkRepoApigwConfig:
         # 经过apigw的请求地址
         self.create_project = f"{self.host_for_apigw}/repository/api/project"
         self.create_chart_repo = f"{self.host_for_apigw}/repository/api/repo"
-        self.set_user_auth = f"{self.host_for_apigw}/auth/api/user/create/project"
+        self.set_project_auth = f"{self.host_for_apigw}/auth/api/user/create/project"
+        self.set_repo_auth = f"{self.host_for_apigw}/auth/api/user/create/repo"
 
 
 class BkRepoRawConfig:
@@ -176,8 +177,8 @@ class BkRepoClient(BkApiClient):
         return resp
 
     @response_handler()
-    def set_auth(self, project_code: str, repo_admin_user: str, repo_admin_pwd: str) -> bool:
-        """设置权限
+    def set_project_auth(self, project_code: str, repo_admin_user: str, repo_admin_pwd: str) -> bool:
+        """设置项目下用户权限
 
         :param project_code: BCS项目code
         :param repo_admin_user: 仓库admin用户
@@ -193,7 +194,33 @@ class BkRepoClient(BkApiClient):
             "group": True,
             "projectId": project_code,
         }
-        return self._client.request_json("POST", self._config.set_user_auth, json=data, raise_for_status=False)
+        return self._client.request_json("POST", self._config.set_project_auth, json=data, raise_for_status=False)
+
+    @response_handler()
+    def set_repo_auth(
+        self, project_name: str, repo_name: str, repo_admin_user: str, repo_admin_pwd: str, user_list: List[str] = None
+    ) -> bool:
+        """设置仓库的用户权限
+
+        :param project_name: BkRepo项目名称
+        :param repo_name: BkRepo仓库名称
+        :param repo_admin_user: 仓库admin账号
+        :param repo_admin_pwd: 仓库admin密码
+        :param user_list: 需要关联的用户
+        """
+        related_user = [repo_admin_user]
+        if user_list:
+            related_user.extend(user_list)
+        data = {
+            "name": repo_admin_user,
+            "pwd": repo_admin_pwd,
+            "userId": repo_admin_user,
+            "asstUsers": related_user,
+            "group": True,
+            "projectId": project_name,
+            "repoName": repo_name,
+        }
+        return self._client.request_json("POST", self._config.set_repo_auth, json=data, raise_for_status=False)
 
     def list_charts(self, project_name: str, repo_name: str, start_time: str = None) -> Dict:
         """获取项目下的chart

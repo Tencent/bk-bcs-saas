@@ -34,11 +34,14 @@ class FakeBkRepoMod:
     def create_chart_repo(self, project_code: str) -> Dict:
         return bk_repo_json.fake_create_repo_resp
 
-    def set_auth(self, project_code: str, repo_admin_user: str, repo_admin_pwd: str) -> bool:
-        return bk_repo_json.fake_set_auth_resp
+    def set_project_auth(self, project_code: str, repo_admin_user: str, repo_admin_pwd: str) -> bool:
+        return bk_repo_json.fake_set_project_auth_resp
 
     def get_chart_versions(self, project_name: str, repo_name: str, chart_name: str) -> List:
         return bk_repo_json.fake_chart_versions_resp
 
     def delete_chart_version(self, project_name: str, repo_name: str, chart_name: str, version: str) -> Dict:
         return bk_repo_json.fake_delete_chart_version_resp
+
+    def set_repo_auth(self, project_name: str, repo_name: str, username: str, password: str) -> bool:
+        return bk_repo_json.fake_set_repo_auth_resp
