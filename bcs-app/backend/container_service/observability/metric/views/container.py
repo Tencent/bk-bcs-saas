@@ -23,19 +23,18 @@ from backend.components.prometheus import (
     get_container_disk_write,
     get_container_memory_usage_range,
 )
-from backend.metric.constants import (
+from backend.container_service.observability.metric.constants import (
     METRICS_DEFAULT_CONTAINER_LIST,
     METRICS_DEFAULT_NAMESPACE,
-    METRICS_DEFAULT_POD_NAME,
 )
-from backend.metric.serializers import FetchContainerMetricSLZ
+from backend.container_service.observability.metric.serializers import FetchContainerMetricSLZ
 
 
 class ContainerMetricViewSet(SystemViewSet):
 
     serializer_class = FetchContainerMetricSLZ
 
-    def _common_query_handler(self, query_metric_func: Callable, cluster_id: str, params: Dict) -> Dict:
+    def _common_query_handler(self, query_metric_func: Callable, cluster_id: str, pod_name: str, params: Dict) -> Dict:
         """
         查询容器指标通用逻辑
 
@@ -47,36 +46,36 @@ class ContainerMetricViewSet(SystemViewSet):
         return query_metric_func(
             cluster_id,
             METRICS_DEFAULT_NAMESPACE,
-            params['pod_name'] if params.get('pod_name') else METRICS_DEFAULT_POD_NAME,
+            pod_name,
             params['container_ids'] if params.get('container_ids') else METRICS_DEFAULT_CONTAINER_LIST,
             params['start_at'],
             params['end_at'],
         )
 
     @action(methods=['POST'], url_path='cpu_usage', detail=False)
-    def cpu_usage(self, request, project_id, cluster_id):
+    def cpu_usage(self, request, project_id, cluster_id, pod_name):
         """ 获取指定 容器 CPU 使用情况 """
         params = self.params_validate(self.serializer_class)
-        response_data = self._common_query_handler(get_container_cpu_usage_range, cluster_id, params)
+        response_data = self._common_query_handler(get_container_cpu_usage_range, cluster_id, pod_name, params)
         return Response(response_data)
 
     @action(methods=['POST'], url_path='memory_usage', detail=False)
-    def memory_usage(self, request, project_id, cluster_id):
+    def memory_usage(self, request, project_id, cluster_id, pod_name):
         """ 获取 容器内存 使用情况 """
         params = self.params_validate(self.serializer_class)
-        response_data = self._common_query_handler(get_container_memory_usage_range, cluster_id, params)
+        response_data = self._common_query_handler(get_container_memory_usage_range, cluster_id, pod_name, params)
         return Response(response_data)
 
     @action(methods=['POST'], url_path='disk_read', detail=False)
-    def disk_read(self, request, project_id, cluster_id):
+    def disk_read(self, request, project_id, cluster_id, pod_name):
         """ 获取 磁盘读 情况 """
         params = self.params_validate(self.serializer_class)
-        response_data = self._common_query_handler(get_container_disk_read, cluster_id, params)
+        response_data = self._common_query_handler(get_container_disk_read, cluster_id, pod_name, params)
         return Response(response_data)
 
     @action(methods=['POST'], url_path='disk_write', detail=False)
-    def disk_write(self, request, project_id, cluster_id):
+    def disk_write(self, request, project_id, cluster_id, pod_name):
         """ 获取 磁盘写 情况 """
         params = self.params_validate(self.serializer_class)
-        response_data = self._common_query_handler(get_container_disk_write, cluster_id, params)
+        response_data = self._common_query_handler(get_container_disk_write, cluster_id, pod_name, params)
         return Response(response_data)

@@ -23,8 +23,8 @@ from backend.components.prometheus import (
     get_pod_network_receive,
     get_pod_network_transmit,
 )
-from backend.metric.constants import METRICS_DEFAULT_NAMESPACE
-from backend.metric.serializers import FetchPodMetricSLZ
+from backend.container_service.observability.metric.constants import METRICS_DEFAULT_NAMESPACE
+from backend.container_service.observability.metric.serializers import FetchPodMetricSLZ
 
 
 class PodMetricViewSet(SystemViewSet):

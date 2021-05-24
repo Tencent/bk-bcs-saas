@@ -74,7 +74,7 @@ urlpatterns = [
     # 通用 Metric 相关 URL
     url(
         r"^api/metrics/projects/(?P<project_id>\w{32})/clusters/(?P<cluster_id>[\w\-]+)/",
-        include("backend.metric.urls"),
+        include("backend.container_service.observability.metric.urls"),
     ),
     path(
         "api/logs/projects/<slug:project_id>/clusters/<slug:cluster_id>/",

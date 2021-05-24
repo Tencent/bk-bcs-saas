@@ -16,7 +16,7 @@ from django.utils.translation import ugettext_lazy as _
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
-from backend.metric.constants import METRICS_DEFAULT_TIMEDELTA
+from backend.container_service.observability.metric.constants import METRICS_DEFAULT_TIMEDELTA
 
 
 class BaseMetricSLZ(serializers.Serializer):
@@ -48,7 +48,6 @@ class FetchPodMetricSLZ(BaseMetricSLZ):
 class FetchContainerMetricSLZ(BaseMetricSLZ):
     """ 获取容器指标信息 """
 
-    pod_name = serializers.CharField(label='Pod 名称', max_length=64, required=False)
     container_ids = serializers.ListField(
         label='容器 ID 列表', child=serializers.CharField(max_length=64), allow_empty=False, required=False
     )
