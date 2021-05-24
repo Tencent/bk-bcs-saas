@@ -86,18 +86,6 @@
             <div class="biz-progress-box" v-if="curCluster.type === 'mesos'">
                 <div class="progress-header">
                     <span class="title">{{$t('集群IP')}}</span>
-                    <span class="percent" v-if="!loading">
-                        {{curCluster.ip_resource_total === 0 ? 0 : `${curCluster.ip_resource_used} / ${curCluster.ip_resource_total}`}}
-                    </span>
-                </div>
-                <div class="progress" :class="loading ? 'loading' : ''">
-                    <div class="progress-bar warning" v-if="loading" style="width: 0%"></div>
-                    <div class="progress-bar warning" v-else :style="{ width: `${curCluster.ip_resource_total === 0 ? 0 : $parent.conversionPercent(curCluster.ip_resource_total - curCluster.ip_resource_used, curCluster.ip_resource_total)}%` }"></div>
-                </div>
-            </div>
-            <div class="biz-progress-box" v-if="curCluster.type === 'mesos'">
-                <div class="progress-header">
-                    <span class="title">{{$t('集群IP')}}</span>
                     <span class="percent">
                         {{curCluster.allip === 0 ? 0 : `${curCluster.activeip} / ${curCluster.allip}（${$t('剩余')}${curCluster.availableip}）`}}
                     </span>
