@@ -76,7 +76,7 @@ urlpatterns = [
     ),
     re_path(
         r"^api/helm_releases/projects/(?P<project_id>\w{32})/clusters/(?P<cluster_id>[\w\-]+)/",
-        include("backend.bcs_k8s.releases.urls"),
+        include("backend.helm.releases.urls"),
     ),
 ]
 

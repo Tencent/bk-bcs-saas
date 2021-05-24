@@ -24,7 +24,7 @@ logger = logging.getLogger(__name__)
 
 
 def list_namespaced_release_secrets(ctx_cluster: CtxCluster, namespace: str) -> List[Dict]:
-    """查询release对已经的secrets
+    """查询namespace下release对应的secrets
     NOTE: 为防止后续helm release对应的secret名称规则(sh.helm.release.v1.名称.v版本)变动，不直接根据secret名称进行过滤
     """
     client = secret.Secret(ctx_cluster)

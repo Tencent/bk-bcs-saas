@@ -11,12 +11,17 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
+from mock import patch
 
-from backend.bcs_k8s.releases.utils.formatter import ReleaseSecretFormatter
+from backend.helm.releases.utils.release_secret import get_release_detail
 
 
-def test_parse_release_data(release_secret_data, release_name, default_namespace, revision):
-    data = ReleaseSecretFormatter().parse_release_data(release_secret_data)
-    assert data["name"] == release_name
-    assert data["namespace"] == default_namespace
-    assert data["version"] == revision
+def test_get_release_detail(ctx_cluster, default_namespace, release_name, revision, parsed_release_data):
+    with patch(
+        "backend.helm.releases.utils.release_secret.list_namespaced_release_secrets",
+        return_value=[parsed_release_data],
+    ):
+        release_detail = get_release_detail(ctx_cluster, default_namespace, release_name)
+    assert release_detail["name"] == release_name
+    assert release_detail["namespace"] == default_namespace
+    assert release_detail["version"] == revision
