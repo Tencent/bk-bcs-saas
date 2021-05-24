@@ -13,42 +13,42 @@
 #
 import pytest
 
+from backend.tests.container_service.observability.metric.conftest import MOCK_CLUSTER_ID, MOCK_PROJECT_ID
+
 pytestmark = pytest.mark.django_db
 
 
 # 通用的API请求参数
+pod_name = 'deployment-1'
 mock_api_params = {
-    'pod_name_list': ['deployment-1', 'deployment-2'],
     'start_at': '2021-01-01 10:00:00',
     'end_at': '2021-01-01 11:00:00',
 }
 
 
-class TestPodMetric:
-    def test_cpu_usage(self, api_client, project_id, cluster_id, metric_api_common_patch):
+class TestContainerMetric:
+    """ 容器指标相关接口单元测试 """
+
+    common_prefix = '/api/metrics/projects/{project_id}/clusters/{cluster_id}/pods/{pod_name}/containers'.format(
+        project_id=MOCK_PROJECT_ID, cluster_id=MOCK_CLUSTER_ID, pod_name=pod_name
+    )
+
+    def test_cpu_usage(self, api_client, metric_api_common_patch):
         """ 测试获取 CPU 使用情况 接口 """
-        response = api_client.post(
-            f'/api/metrics/projects/{project_id}/clusters/{cluster_id}/pod/cpu_usage/', mock_api_params
-        )
+        response = api_client.post(f'{self.common_prefix}/cpu_usage/', mock_api_params)
         assert response.json()['code'] == 0
 
-    def test_memory_usage(self, api_client, project_id, cluster_id, metric_api_common_patch):
+    def test_memory_usage(self, api_client, metric_api_common_patch):
         """ 测试获取 内存使用情况 接口 """
-        response = api_client.post(
-            f'/api/metrics/projects/{project_id}/clusters/{cluster_id}/pod/memory_usage/', mock_api_params
-        )
+        response = api_client.post(f'{self.common_prefix}/memory_usage/', mock_api_params)
         assert response.json()['code'] == 0
 
-    def test_network_receive(self, api_client, project_id, cluster_id, metric_api_common_patch):
-        """ 测试获取 网络入流量 接口 """
-        response = api_client.post(
-            f'/api/metrics/projects/{project_id}/clusters/{cluster_id}/pod/network_receive/', mock_api_params
-        )
+    def test_disk_read(self, api_client, metric_api_common_patch):
+        """ 测试获取 磁盘读情况 接口 """
+        response = api_client.post(f'{self.common_prefix}/disk_read/', mock_api_params)
         assert response.json()['code'] == 0
 
-    def test_network_transmit(self, api_client, project_id, cluster_id, metric_api_common_patch):
-        """ 测试获取 网络出流量 接口 """
-        response = api_client.post(
-            f'/api/metrics/projects/{project_id}/clusters/{cluster_id}/pod/network_transmit/', mock_api_params
-        )
+    def test_disk_write(self, api_client, metric_api_common_patch):
+        """ 测试获取 磁盘写情况 接口 """
+        response = api_client.post(f'{self.common_prefix}/disk_write/', mock_api_params)
         assert response.json()['code'] == 0

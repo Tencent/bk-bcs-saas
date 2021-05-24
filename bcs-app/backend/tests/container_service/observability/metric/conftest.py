@@ -14,14 +14,22 @@
 import mock
 import pytest
 
+from backend.tests.testing_utils.base import generate_random_string
 from backend.tests.testing_utils.mocks.viewsets import FakeSystemViewSet
 
 
 @pytest.fixture
 def metric_api_common_patch():
     with mock.patch('backend.bcs_web.viewsets.SystemViewSet', new=FakeSystemViewSet), mock.patch(
-        'backend.metric.views.pod.PodMetricViewSet._common_query_handler', new=lambda *args, **kwargs: None
+        'backend.container_service.observability.metric.views.pod.PodMetricViewSet._common_query_handler',
+        new=lambda *args, **kwargs: None,
     ), mock.patch(
-        'backend.metric.views.container.ContainerMetricViewSet._common_query_handler', new=lambda *args, **kwargs: None
+        'backend.container_service.observability.metric.views.container.ContainerMetricViewSet._common_query_handler',
+        new=lambda *args, **kwargs: None,
     ):
         yield
+
+
+# 通用的API请求参数
+MOCK_PROJECT_ID = generate_random_string(32)
+MOCK_CLUSTER_ID = generate_random_string(8)
