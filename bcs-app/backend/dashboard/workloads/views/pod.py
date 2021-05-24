@@ -17,10 +17,10 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 
 from backend.bcs_web.viewsets import SystemViewSet
-from backend.dashboard.utils.resp import DashboardListApiRespBuilder, DashboardRetrieveApiRespBuilder
+from backend.dashboard.utils.resp import ListApiRespBuilder, RetrieveApiRespBuilder
 from backend.dashboard.workloads.constants import VOLUME_RESOURCE_NAME_KEY_MAP
 from backend.dashboard.workloads.serializers import ListPodSLZ
-from backend.dashboard.workloads.utils.resources import fetch_pod_config
+from backend.dashboard.workloads.utils.resources import fetch_pod_manifest
 from backend.resources.cluster.models import CtxCluster
 from backend.resources.configs.configmap import ConfigMap
 from backend.resources.configs.secret import Secret
@@ -39,19 +39,18 @@ class PodViewSet(SystemViewSet):
         """ 获取 Pod 列表，支持 labelSelector """
         params = self.params_validate(ListPodSLZ)
         client = Pod(request.ctx_cluster)
-        response_data = DashboardListApiRespBuilder(client, **params).build()
+        response_data = ListApiRespBuilder(client, **params).build()
         return Response(response_data)
 
     def retrieve(self, request, project_id, cluster_id, namespace, pod_name):
         """ 获取单个 Pod 详细信息 """
         client = Pod(request.ctx_cluster)
-        response_data = DashboardRetrieveApiRespBuilder(client, namespace, pod_name).build()
+        response_data = RetrieveApiRespBuilder(client, namespace, pod_name).build()
         return Response(response_data)
 
     @action(methods=['GET'], url_path='pvcs', detail=True)
     def persistent_volume_claims(self, request, project_id, cluster_id, namespace, pod_name):
         """ 获取 Pod Persistent Volume Claim 信息 """
-        # 思路：查找指定的namespace下资源信息，通过pod配置过滤名称
         response_data = self._filter_pod_related_resource(
             request.ctx_cluster, PersistentVolumeClaim(request.ctx_cluster), namespace, pod_name
         )
@@ -85,14 +84,14 @@ class PodViewSet(SystemViewSet):
         :param pod_name: Pod 名称
         :return: 关联资源列表
         """
-        pod_config = fetch_pod_config(ctx_cluster, namespace, pod_name)
+        pod_manifest = fetch_pod_manifest(ctx_cluster, namespace, pod_name)
         # Pod 配置中资源类型为驼峰式，需要将 ResourceKind 首字母小写
-        resource_type, resource_name_key = decapitalize(client.kind), VOLUME_RESOURCE_NAME_KEY_MAP[client.kind]
+        resource_kind, resource_name_key = decapitalize(client.kind), VOLUME_RESOURCE_NAME_KEY_MAP[client.kind]
         # 获取与指定 Pod 相关联的 某种资源 的资源名称列表
         resource_name_list = [
-            volume[resource_type][resource_name_key]
-            for volume in getitems(pod_config, 'spec.volumes', [])
-            if resource_type in volume
+            volume[resource_kind][resource_name_key]
+            for volume in getitems(pod_manifest, 'spec.volumes', [])
+            if resource_kind in volume
         ]
         # 查询指定命名空间下该资源的所有实例，并根据名称列表过滤
         resources = client.list(namespace=namespace, is_format=False).to_dict()

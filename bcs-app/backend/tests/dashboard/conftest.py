@@ -27,11 +27,11 @@ from backend.tests.testing_utils.mocks.viewsets import FakeSystemViewSet
 def dashboard_api_common_patch():
     with mock.patch('backend.bcs_web.viewsets.SystemViewSet', new=FakeSystemViewSet), mock.patch(
         'backend.resources.resource.get_dynamic_client', new=get_dynamic_client
-    ), mock.patch('backend.dashboard.utils.resp.DashboardRetrieveApiRespBuilder', new=MockRetrieveApiRespBuilder):
+    ), mock.patch('backend.dashboard.utils.resp.RetrieveApiRespBuilder', new=MockRetrieveApiRespBuilder):
         yield
 
 
-def gen_mock_pod_config(*args, **kwargs) -> Dict:
+def gen_mock_pod_manifest(*args, **kwargs) -> Dict:
     """ 构造并返回 mock 的 pod 配置信息 """
     with open(f'{settings.BASE_DIR}/backend/tests/resources/formatter/workloads/contents/pod.json') as fr:
         configs = json.load(fr)
@@ -46,12 +46,12 @@ def gen_mock_env_info(*args, **kwargs) -> str:
 @pytest.fixture
 def dashboard_container_api_patch():
     with mock.patch(
-        'backend.dashboard.workloads.views.container.fetch_pod_config', new=gen_mock_pod_config
+        'backend.dashboard.workloads.views.container.fetch_pod_manifest', new=gen_mock_pod_manifest
     ), mock.patch('backend.dashboard.workloads.views.container.exec_command', new=gen_mock_env_info):
         yield
 
 
 @pytest.fixture
 def dashboard_pod_api_patch():
-    with mock.patch('backend.dashboard.workloads.views.pod.fetch_pod_config', new=gen_mock_pod_config):
+    with mock.patch('backend.dashboard.workloads.views.pod.fetch_pod_manifest', new=gen_mock_pod_manifest):
         yield

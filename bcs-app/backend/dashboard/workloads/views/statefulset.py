@@ -11,23 +11,11 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-from rest_framework.response import Response
-
-from backend.bcs_web.viewsets import SystemViewSet
-from backend.dashboard.utils.resp import DashboardListApiRespBuilder, DashboardRetrieveApiRespBuilder
+from backend.dashboard.viewsets import DashboardViewSet
 from backend.resources.workloads.statefulset import StatefulSet
 
 
-class StatefulSetViewSet(SystemViewSet):
+class StatefulSetViewSet(DashboardViewSet):
+    """ StatefulSet 相关接口 """
 
-    lookup_field = 'statefulset_name'
-
-    def list(self, request, project_id, cluster_id, namespace=None):
-        client = StatefulSet(request.ctx_cluster)
-        response_data = DashboardListApiRespBuilder(client).build()
-        return Response(response_data)
-
-    def retrieve(self, request, project_id, cluster_id, namespace, statefulset_name):
-        client = StatefulSet(request.ctx_cluster)
-        response_data = DashboardRetrieveApiRespBuilder(client, namespace, statefulset_name).build()
-        return Response(response_data)
+    resource_client = StatefulSet

@@ -14,14 +14,28 @@
 from rest_framework.response import Response
 
 from backend.bcs_web.viewsets import SystemViewSet
-from backend.dashboard.utils.resp import ListApiRespBuilder
-from backend.resources.namespace.client import Namespace
+from backend.dashboard.utils.resp import ListApiRespBuilder, RetrieveApiRespBuilder
 
 
-class NamespaceViewSet(SystemViewSet):
-    """ Namespace 相关接口 """
+class ListAndRetrieveMixin:
+    """ Dashboard 查看类接口通用逻辑 """
 
-    def list(self, request, project_id, cluster_id):
-        client = Namespace(request.ctx_cluster)
+    resource_client = None
+
+    def list(self, request, project_id, cluster_id, namespace=None):
+        client = self.resource_client(request.ctx_cluster)
         response_data = ListApiRespBuilder(client).build()
         return Response(response_data)
+
+    def retrieve(self, request, project_id, cluster_id, namespace, name):
+        client = self.resource_client(request.ctx_cluster)
+        response_data = RetrieveApiRespBuilder(client, namespace, name).build()
+        return Response(response_data)
+
+
+class DashboardViewSet(ListAndRetrieveMixin, SystemViewSet):
+    """
+    资源视图通用 ViewSet，抽层一些通用方法
+    """
+
+    lookup_field = 'name'

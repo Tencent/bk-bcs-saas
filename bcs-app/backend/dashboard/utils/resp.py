@@ -17,7 +17,7 @@ from backend.resources.resource import ResourceClient
 from backend.utils.error_codes import error_codes
 
 
-class DashboardListApiRespBuilder:
+class ListApiRespBuilder:
     """ 构造 Dashboard 资源列表 Api 响应内容逻辑 """
 
     def __init__(self, client: ResourceClient, **kwargs):
@@ -40,7 +40,7 @@ class DashboardListApiRespBuilder:
         return result
 
 
-class DashboardRetrieveApiRespBuilder:
+class RetrieveApiRespBuilder:
     """ 构造 Dashboard 资源详情 Api 响应内容逻辑 """
 
     def __init__(self, client: ResourceClient, namespace: str, name: str, **kwargs):

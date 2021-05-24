@@ -18,7 +18,7 @@ from backend.resources.workloads.pod import Pod
 from backend.utils.error_codes import error_codes
 
 
-def fetch_pod_config(ctx_cluster: CtxCluster, namespace: str, pod_name: str) -> Dict:
+def fetch_pod_manifest(ctx_cluster: CtxCluster, namespace: str, pod_name: str) -> Dict:
     """
     获取指定 Pod 配置信息
 
