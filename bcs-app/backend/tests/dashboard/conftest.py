@@ -46,12 +46,12 @@ def gen_mock_env_info(*args, **kwargs) -> str:
 @pytest.fixture
 def dashboard_container_api_patch():
     with mock.patch(
-        'backend.dashboard.workloads.views.container.fetch_pod_manifest', new=gen_mock_pod_manifest
+        'backend.dashboard.workloads.views.container.Pod.fetch_manifest', new=gen_mock_pod_manifest
     ), mock.patch('backend.dashboard.workloads.views.container.exec_command', new=gen_mock_env_info):
         yield
 
 
 @pytest.fixture
 def dashboard_pod_api_patch():
-    with mock.patch('backend.dashboard.workloads.views.pod.fetch_pod_manifest', new=gen_mock_pod_manifest):
+    with mock.patch('backend.dashboard.workloads.views.pod.Pod.fetch_manifest', new=gen_mock_pod_manifest):
         yield

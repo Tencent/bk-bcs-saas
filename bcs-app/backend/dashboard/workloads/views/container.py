@@ -17,8 +17,8 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 
 from backend.bcs_web.viewsets import SystemViewSet
-from backend.dashboard.workloads.utils.resources import fetch_pod_manifest
 from backend.dashboard.workloads.utils.resp import ContainerRespBuilder
+from backend.resources.workloads.pod import Pod
 from backend.web_console.api import exec_command
 
 logger = logging.getLogger(__name__)
@@ -30,13 +30,13 @@ class ContainerViewSet(SystemViewSet):
 
     def list(self, request, project_id, cluster_id, namespace, pod_name):
         """ 获取 Pod 下所有的容器信息 """
-        pod_manifest = fetch_pod_manifest(request.ctx_cluster, namespace, pod_name)
+        pod_manifest = Pod(request.ctx_cluster).fetch_manifest(namespace, pod_name)
         response_data = ContainerRespBuilder(pod_manifest).build_list()
         return Response(response_data)
 
     def retrieve(self, request, project_id, cluster_id, namespace, pod_name, container_id):
         """ 获取 Pod 下单个容器详细信息 """
-        pod_manifest = fetch_pod_manifest(request.ctx_cluster, namespace, pod_name)
+        pod_manifest = Pod(request.ctx_cluster).fetch_manifest(namespace, pod_name)
         response_data = ContainerRespBuilder(pod_manifest, container_id).build()
         return Response(response_data)
 
