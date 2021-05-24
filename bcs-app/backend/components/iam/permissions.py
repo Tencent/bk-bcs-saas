@@ -11,6 +11,8 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
+from typing import Dict, Optional
+
 from django.conf import settings
 
 try:
@@ -26,11 +28,6 @@ from backend.utils.exceptions import PermissionDeniedError
 
 
 class IAMClient(Client):
-    def _list_policies(self, data):
-        path = f"/api/v1/systems/{self._app_code}/policies"
-        ok, message, data = self._call_iam_api(http_get, path, data)
-        return ok, message, data
-
     def list_policies(self, data):
         policies = []
         page, page_size = 1, 100
@@ -76,16 +73,17 @@ class IAMClient(Client):
 
         return True, "success"
 
+    def _list_policies(self, data):
+        path = f"/api/v1/systems/{self._app_code}/policies"
+        ok, message, data = self._call_iam_api(http_get, path, data)
+        return ok, message, data
+
 
 class BCSIAM(IAM):
     def __init__(self, app_code, app_secret, bk_iam_host, bk_paas_host):
         self._client = IAMClient(app_code, app_secret, bk_iam_host, bk_paas_host)
 
-    def make_dict_filter(self, request, key_mapping=None):
-        """
-        仅支持{'op': 'in', 'field': 'project.id', 'value': [1, 2, 3]}
-        或者{'op': 'eq', 'field': 'project.id', 'value': 1}
-        """
+    def do_policy_query(self, request) -> Optional[Dict]:
         # 1. validate
         if not isinstance(request, Request):
             raise AuthInvalidRequest("request should be instance of iam.auth.models.Request")
@@ -99,22 +97,7 @@ class BCSIAM(IAM):
         if not policies:
             return None
 
-        op = policies["op"]
-        if op not in [OP.IN, OP.EQ, OP.ANY]:
-            raise AuthInvalidRequest("make_dict_filter only support OP.IN or OP.EQ or OP.ANY")
-
-        value = policies["value"]
-        if op == OP.EQ:
-            value = [
-                value,
-            ]
-
-        field = policies["field"]
-        if key_mapping:
-            k = key_mapping.get(field) or field
-            return {k: value, "op": op}
-
-        return {field: value, "op": op}
+        return policies
 
     def _match_resource_id(self, expression, resource_type_id, resource_id):
         if expression["op"] in [OP.AND, OP.OR]:
@@ -265,10 +248,14 @@ class ProjectPermission(Permission):
         action_id = self.actions.EDIT.value
         return self._allowed_do_project_inst(username, action_id, project_id, raise_exception)
 
-    def make_view_perm_filter(self, username):
+    def make_view_perm_filter(self, username: str) -> Dict:
         action_id = self.actions.VIEW.value
         request = self._make_request_with_resources(username, action_id)
-        return self.iam.make_dict_filter(request, {"project.id": "project_id_list"})
+        policies = self.iam.do_policy_query(request)
+        if not policies:
+            return {}
+
+        return self._make_dict_filter(policies)
 
     def op_is_any(self, filter):
         if not filter:
@@ -302,3 +289,40 @@ class ProjectPermission(Permission):
 
     def grant_related_action_perms(self, username, project_id, project_name):
         return self.iam.grant_resource_creator_action(username, self.resource_type_id, project_id, project_name)
+
+    def _make_dict_filter(self, policies: Dict) -> Dict:
+        """
+        基于策略规则, 生成 project_id 过滤器。
+
+        :params policies: 权限中心返回的策略规则，如 {'op': OP.IN, 'value': [2, 1], 'field': 'project.id'}
+        :returns : project_id 过滤器， 如 {'project_id_list': [1, 2], 'op': OP.IN}
+        """
+        op = policies["op"]
+        if op not in [OP.IN, OP.EQ, OP.ANY, OP.OR, OP.AND]:
+            raise AuthInvalidRequest(f"make_dict_filter does not support op:{op}")
+
+        field, key = "project.id", "project_id_list"
+
+        if op == OP.EQ:
+            return {key: [policies["value"]], "op": OP.IN}
+
+        if op in [OP.IN, OP.ANY]:
+            return {key: policies["value"] or [], "op": op}
+
+        # 如果 op 是 OP.OR 或 OP.AND，只处理一级，不考虑嵌套的情况
+        value_list = []
+        for policy in policies["content"]:
+            if policy["field"] != field:
+                continue
+
+            op = policy["op"]
+            if op == OP.ANY:
+                return {key: policy["value"] or [], "op": op}
+
+            value = policy["value"]
+            if op == OP.IN:
+                value_list.extend(value)
+            elif op == OP.EQ:
+                value_list.append(value)
+
+        return {key: list(set(value_list)), "op": OP.IN}
