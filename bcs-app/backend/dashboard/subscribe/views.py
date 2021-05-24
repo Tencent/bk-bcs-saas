@@ -20,11 +20,11 @@ from backend.utils.basic import getitems
 
 
 class SubscribeViewSet(SystemViewSet):
+    """ 订阅相关接口，检查 K8S 资源变更情况 """
+
     def list(self, request, project_id, cluster_id):
         """获取指定资源某resource_version后变更记录"""
-        slz = FetchResourceWatchResultSLZ(data=request.query_params)
-        slz.is_valid(raise_exception=True)
-        params = slz.validated_data
+        params = self.params_validate(FetchResourceWatchResultSLZ)
 
         # 根据 Kind 获取对应的 K8S Resource Client 并初始化
         Client = KIND_RESOURCE_CLIENT_MAP[params['kind']]

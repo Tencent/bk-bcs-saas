@@ -33,7 +33,18 @@ class ListAndRetrieveMixin:
         return Response(response_data)
 
 
-class DashboardViewSet(ListAndRetrieveMixin, SystemViewSet):
+class DestroyMixin:
+    """ Dashboard 删除类接口通用逻辑 """
+
+    resource_client = None
+
+    def destroy(self, request, project_id, cluster_id, namespace, name):
+        client = self.resource_client(request.ctx_cluster)
+        response_data = client.delete(name=name, namespace=namespace).to_dict()
+        return Response(response_data)
+
+
+class DashboardViewSet(ListAndRetrieveMixin, DestroyMixin, SystemViewSet):
     """
     资源视图通用 ViewSet，抽层一些通用方法
     """
