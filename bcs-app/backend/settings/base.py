@@ -298,6 +298,12 @@ def get_logging_config(log_level, rds_hander_settings=None, log_path="app.log"):
                 "handlers": ["console", "logstash_redis", "file"],
                 "level": "DEBUG",
             },
+            # 配置iam logger
+            'iam': {
+                'handlers': ['file'],
+                'level': os.getenv('IAM_LOG_LEVEL', 'ERROR'),
+                'propagate': False,
+            },
             "sentry_logger": {"handlers": ["sentry"], "level": "ERROR"},
         },
     }
