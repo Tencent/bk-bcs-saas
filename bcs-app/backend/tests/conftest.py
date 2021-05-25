@@ -120,3 +120,8 @@ def use_fake_k8sclient(cluster_id):
         return_value=TESTING_API_SERVER_URL,
     ):
         yield
+
+
+# 单元测试用常量，用于不便使用 pytest.fixture 的地方
+MOCK_PROJECT_ID = generate_random_string(32)
+MOCK_CLUSTER_ID = generate_random_string(8)

@@ -14,7 +14,6 @@
 import mock
 import pytest
 
-from backend.tests.testing_utils.base import generate_random_string
 from backend.tests.testing_utils.mocks.viewsets import FakeSystemViewSet
 
 
@@ -28,8 +27,3 @@ def metric_api_common_patch():
         new=lambda *args, **kwargs: None,
     ):
         yield
-
-
-# 通用的API请求参数
-MOCK_PROJECT_ID = generate_random_string(32)
-MOCK_CLUSTER_ID = generate_random_string(8)

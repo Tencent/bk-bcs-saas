@@ -13,7 +13,7 @@
 #
 import pytest
 
-from backend.tests.container_service.observability.metric.conftest import MOCK_CLUSTER_ID, MOCK_PROJECT_ID
+from backend.tests.conftest import MOCK_CLUSTER_ID, MOCK_PROJECT_ID
 
 pytestmark = pytest.mark.django_db
 
