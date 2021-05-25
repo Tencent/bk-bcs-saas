@@ -15,7 +15,7 @@
 from rest_framework import serializers
 
 
-class ListPodSLZ(serializers.Serializer):
+class ListPodsSLZ(serializers.Serializer):
     """ 获取 Pod 列表 """
 
     label_selector = serializers.CharField(label='标签选择算符', max_length=512, required=False)

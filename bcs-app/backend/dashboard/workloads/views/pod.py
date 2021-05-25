@@ -18,7 +18,7 @@ from rest_framework.response import Response
 
 from backend.bcs_web.viewsets import SystemViewSet
 from backend.dashboard.utils.resp import ListApiRespBuilder, RetrieveApiRespBuilder
-from backend.dashboard.workloads.serializers import ListPodSLZ
+from backend.dashboard.workloads.serializers import ListPodsSLZ
 from backend.resources.configs.configmap import ConfigMap
 from backend.resources.configs.secret import Secret
 from backend.resources.storages.persistent_volume_claim import PersistentVolumeClaim
@@ -31,7 +31,7 @@ class PodViewSet(SystemViewSet):
 
     def list(self, request, project_id, cluster_id, namespace=None):
         """ 获取 Pod 列表，支持 labelSelector """
-        params = self.params_validate(ListPodSLZ)
+        params = self.params_validate(ListPodsSLZ)
         client = Pod(request.ctx_cluster)
         response_data = ListApiRespBuilder(client, **params).build()
         return Response(response_data)

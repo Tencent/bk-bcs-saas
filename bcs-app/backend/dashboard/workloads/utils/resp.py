@@ -15,7 +15,7 @@ from typing import Dict
 
 from attr import dataclass
 
-from backend.utils.basic import getitems
+from backend.utils.basic import get_with_placeholder, getitems
 from backend.utils.error_codes import error_codes
 
 
@@ -67,26 +67,26 @@ class ContainerRespBuilder:
         container_spec = container_spec_map[container_status['name']]
 
         return {
-            'host_name': spec.get('nodeName', '--'),
-            'host_ip': status.get('hostIP', '--'),
-            'container_ip': status.get('podIP', '--'),
+            'host_name': get_with_placeholder(spec, 'nodeName'),
+            'host_ip': get_with_placeholder(status, 'hostIP'),
+            'container_ip': get_with_placeholder(status, 'podIP'),
             'container_id': self.container_id,
-            'container_name': container_status.get('name', '--'),
-            'image': container_status.get('image', '--'),
-            'network_mode': spec.get('dnsPolicy', '--'),
+            'container_name': get_with_placeholder(container_status, 'name'),
+            'image': get_with_placeholder(container_status, 'image'),
+            'network_mode': get_with_placeholder(spec, 'dnsPolicy'),
             # 端口映射
             'ports': container_spec.get('ports', []),
             # 命令
             'command': {
-                'command': container_spec.get('command', ''),
-                'args': ' '.join(container_spec.get('args', '')),
+                'command': get_with_placeholder(container_spec, 'command', ''),
+                'args': ' '.join(container_spec.get('args', [])),
             },
             # 挂载卷
             'volumes': [
                 {
-                    'hostPath': mount.get('name', '--'),
-                    'mountPath': mount.get('mountPath', '--'),
-                    'readOnly': mount.get('readOnly', '--'),
+                    'host_path': get_with_placeholder(mount, 'name'),
+                    'mount_path': get_with_placeholder(mount, 'mountPath'),
+                    'readonly': get_with_placeholder(mount, 'readOnly'),
                 }
                 for mount in container_spec.get('volumeMounts', [])
             ],
