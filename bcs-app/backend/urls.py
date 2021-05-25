@@ -74,10 +74,7 @@ urlpatterns = [
         "api/logs/projects/<slug:project_id>/clusters/<slug:cluster_id>/",
         include("backend.container_service.observability.log_stream.urls"),
     ),
-    re_path(
-        r"^api/helm_releases/projects/(?P<project_id>\w{32})/clusters/(?P<cluster_id>[\w\-]+)/",
-        include("backend.helm.releases.urls"),
-    ),
+    re_path(r"^api/helm/projects/(?P<project_id>\w{32})/", include("backend.helm.urls")),
 ]
 
 # 导入版本特定的urls

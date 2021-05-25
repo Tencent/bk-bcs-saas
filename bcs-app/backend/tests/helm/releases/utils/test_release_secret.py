@@ -18,7 +18,7 @@ from backend.helm.releases.utils.release_secret import get_release_detail
 
 def test_get_release_detail(ctx_cluster, default_namespace, release_name, revision, parsed_release_data):
     with patch(
-        "backend.helm.releases.utils.release_secret.list_namespaced_release_secrets",
+        "backend.helm.releases.utils.release_secret.list_namespaced_releases",
         return_value=[parsed_release_data],
     ):
         release_detail = get_release_detail(ctx_cluster, default_namespace, release_name)

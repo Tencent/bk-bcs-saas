@@ -23,8 +23,8 @@ from .formatter import ReleaseSecretFormatter
 logger = logging.getLogger(__name__)
 
 
-def list_namespaced_release_secrets(ctx_cluster: CtxCluster, namespace: str) -> List[Dict]:
-    """查询namespace下release对应的secrets
+def list_namespaced_releases(ctx_cluster: CtxCluster, namespace: str) -> List[Dict]:
+    """查询namespace下的release
     NOTE: 为防止后续helm release对应的secret名称规则(sh.helm.release.v1.名称.v版本)变动，不直接根据secret名称进行过滤
     """
     client = secret.Secret(ctx_cluster)
@@ -34,7 +34,7 @@ def list_namespaced_release_secrets(ctx_cluster: CtxCluster, namespace: str) -> 
 
 def get_release_detail(ctx_cluster: CtxCluster, namespace: str, release_name: str) -> Dict:
     """获取release详情"""
-    release_list = list_namespaced_release_secrets(ctx_cluster, namespace)
+    release_list = list_namespaced_releases(ctx_cluster, namespace)
     release_list = [release for release in release_list if release.get("name") == release_name]
     if not release_list:
         logger.error(
