@@ -38,6 +38,7 @@ from backend.components.base import (
     CompRequestError,
     CompResponseError,
 )
+from backend.dashboard.exceptions import DashboardBaseError
 from backend.packages.blue_krill.web.std_error import APIError
 from backend.utils import exceptions as backend_exceptions
 from backend.utils.basic import str2bool
@@ -128,6 +129,12 @@ def custom_exception_handler(exc: Exception, context):
         data = {"code": 400, "message": message, "data": None, "request_id": local.request_id}
         set_rollback()
         return Response(data, status=200, headers={})
+
+    # 对 Dashboard 类异常做特殊处理
+    elif isinstance(exc, DashboardBaseError):
+        data = {"code": exc.code, "message": exc.message, "data": None, "request_id": local.request_id}
+        set_rollback()
+        return Response(data, status=200)
 
     elif isinstance(exc, APIError):
         # 更改返回的状态为为自定义错误类型的状态码

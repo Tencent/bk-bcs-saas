@@ -13,8 +13,10 @@
 #
 from typing import Dict
 
+from django.utils.translation import ugettext_lazy as _
+
+from backend.dashboard.exceptions import ResourceNotExist
 from backend.resources.resource import ResourceClient
-from backend.utils.error_codes import error_codes
 
 
 class ListApiRespBuilder:
@@ -54,7 +56,7 @@ class RetrieveApiRespBuilder:
         self.client = client
         raw_resource = self.client.get(namespace=namespace, name=name, is_format=False, **kwargs)
         if not raw_resource:
-            raise error_codes.ResNotFoundError.f(f'Namespace: {namespace}, Name: {name}')
+            raise ResourceNotExist(_('资源(Namespace: {}, Name: {})不存在').format(namespace, name))
         self.resource = raw_resource.to_dict()
 
     def build(self) -> Dict:

@@ -13,12 +13,14 @@
 #
 from typing import Dict
 
+from django.utils.translation import ugettext_lazy as _
+
+from backend.dashboard.exceptions import ResourceNotExist
 from backend.dashboard.workloads.constants import VOLUME_RESOURCE_NAME_KEY_MAP
 from backend.resources.constants import K8sResourceKind
 from backend.resources.resource import ResourceClient
 from backend.resources.workloads.pod.formatter import PodFormatter
 from backend.utils.basic import getitems
-from backend.utils.error_codes import error_codes
 from backend.utils.string import decapitalize
 
 
@@ -39,7 +41,7 @@ class Pod(ResourceClient):
         """
         pod = self.get(namespace=namespace, name=pod_name, is_format=False)
         if not pod:
-            raise error_codes.ResNotFoundError.f(f'Type: Pod, Namespace: {namespace}, Name: {pod_name}')
+            raise ResourceNotExist(_('Pod(Namespace: {}, Name: {})不存在').format(namespace, pod_name))
         return pod.to_dict()
 
     def filter_related_resources(self, client: ResourceClient, namespace: str, pod_name: str) -> Dict:

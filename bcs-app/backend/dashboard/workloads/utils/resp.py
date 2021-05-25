@@ -14,9 +14,10 @@
 from typing import Dict
 
 from attr import dataclass
+from django.utils.translation import ugettext_lazy as _
 
+from backend.dashboard.exceptions import ResourceNotExist
 from backend.utils.basic import get_with_placeholder, getitems
-from backend.utils.error_codes import error_codes
 
 
 @dataclass
@@ -58,7 +59,7 @@ class ContainerRespBuilder:
                 container_status = cs
                 break
         else:
-            raise error_codes.RecordNotFound.f(f'容器 {self.container_id} 状态信息不存在')
+            raise ResourceNotExist(_('容器 {} 状态信息不存在').format(self.container_id))
 
         labels = getitems(self.pod, 'metadata.labels', {})
         spec, status = self.pod['spec'], self.pod['status']
