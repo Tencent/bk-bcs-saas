@@ -20,8 +20,6 @@ from backend.dashboard.utils.resp import ListApiRespBuilder, RetrieveApiRespBuil
 class ListAndRetrieveMixin:
     """ Dashboard 查看类接口通用逻辑 """
 
-    resource_client = None
-
     def list(self, request, project_id, cluster_id, namespace=None):
         client = self.resource_client(request.ctx_cluster)
         response_data = ListApiRespBuilder(client).build()
@@ -35,8 +33,6 @@ class ListAndRetrieveMixin:
 
 class DestroyMixin:
     """ Dashboard 删除类接口通用逻辑 """
-
-    resource_client = None
 
     def destroy(self, request, project_id, cluster_id, namespace, name):
         client = self.resource_client(request.ctx_cluster)

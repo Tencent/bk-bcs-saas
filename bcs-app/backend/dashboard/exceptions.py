@@ -14,6 +14,7 @@
 
 
 class DashboardBaseError(Exception):
+    """ Dashboard 模块基础异常类 """
 
     message = 'Dashboard module exception'
     code = 40050
@@ -30,5 +31,6 @@ class DashboardBaseError(Exception):
 
 
 class ResourceNotExist(DashboardBaseError):
+    """ 指定资源不存在 """
 
     message = 'Resource not exist'
