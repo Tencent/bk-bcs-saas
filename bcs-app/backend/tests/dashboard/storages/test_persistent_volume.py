@@ -17,9 +17,20 @@ pytestmark = pytest.mark.django_db
 
 
 class TestPersistentVolume:
+    """ 测试 PersistentVolume 相关接口 """
+
     def test_list(self, api_client, project_id, cluster_id, dashboard_api_common_patch):
         """ 测试获取资源列表接口 """
         response = api_client.get(
             f'/api/dashboard/projects/{project_id}/clusters/{cluster_id}/storages/persistent_volumes/'
+        )
+        assert response.json()['code'] == 0
+
+    def test_retrieve(self, api_client, project_id, cluster_id, dashboard_api_common_patch):
+        """ 测试获取单个资源接口 """
+        namespace, pv_name = 'default', 'test_pv_name'
+        response = api_client.get(
+            f'/api/dashboard/projects/{project_id}/clusters/{cluster_id}/'
+            + f'namespaces/{namespace}/storages/persistent_volumes/{pv_name}/'
         )
         assert response.json()['code'] == 0

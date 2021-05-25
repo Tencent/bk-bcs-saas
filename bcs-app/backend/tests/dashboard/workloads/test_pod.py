@@ -15,9 +15,51 @@ import pytest
 
 pytestmark = pytest.mark.django_db
 
+namespace, pod_name = 'default', 'test_pod_name'
+
 
 class TestPod:
+    """ 测试 Pod 相关接口 """
+
     def test_list(self, api_client, project_id, cluster_id, dashboard_api_common_patch):
         """ 测试获取资源列表接口 """
         response = api_client.get(f'/api/dashboard/projects/{project_id}/clusters/{cluster_id}/workloads/pods/')
+        assert response.json()['code'] == 0
+
+    def test_retrieve(self, api_client, project_id, cluster_id, dashboard_api_common_patch):
+        """ 测试获取单个资源接口 """
+        response = api_client.get(
+            f'/api/dashboard/projects/{project_id}/clusters/{cluster_id}/'
+            + f'namespaces/{namespace}/workloads/pods/{pod_name}/'
+        )
+        assert response.json()['code'] == 0
+
+    def test_list_pod_pvcs(
+        self, api_client, project_id, cluster_id, dashboard_api_common_patch, dashboard_pod_api_patch
+    ):
+        """ 测试获取 Pod 关联 PersistentVolumeClaim """
+        response = api_client.get(
+            f'/api/dashboard/projects/{project_id}/clusters/{cluster_id}/'
+            + f'namespaces/{namespace}/workloads/pods/{pod_name}/pvcs/'
+        )
+        assert response.json()['code'] == 0
+
+    def test_list_pod_configmaps(
+        self, api_client, project_id, cluster_id, dashboard_api_common_patch, dashboard_pod_api_patch
+    ):
+        """ 测试获取 Pod 关联 ConfigMap """
+        response = api_client.get(
+            f'/api/dashboard/projects/{project_id}/clusters/{cluster_id}/'
+            + f'namespaces/{namespace}/workloads/pods/{pod_name}/configmaps/'
+        )
+        assert response.json()['code'] == 0
+
+    def test_list_pod_secrets(
+        self, api_client, project_id, cluster_id, dashboard_api_common_patch, dashboard_pod_api_patch
+    ):
+        """ 测试获取单个资源接口 """
+        response = api_client.get(
+            f'/api/dashboard/projects/{project_id}/clusters/{cluster_id}/'
+            + f'namespaces/{namespace}/workloads/pods/{pod_name}/secrets/'
+        )
         assert response.json()['code'] == 0

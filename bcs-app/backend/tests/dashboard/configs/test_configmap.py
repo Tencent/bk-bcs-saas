@@ -17,9 +17,18 @@ pytestmark = pytest.mark.django_db
 
 
 class TestConfigMap:
+    """ 测试 ConfigMap 相关接口 """
+
     def test_list(self, api_client, project_id, cluster_id, dashboard_api_common_patch):
         """ 测试获取资源列表接口 """
+        response = api_client.get(f'/api/dashboard/projects/{project_id}/clusters/{cluster_id}/configs/configmaps/')
+        assert response.json()['code'] == 0
+
+    def test_retrieve(self, api_client, project_id, cluster_id, dashboard_api_common_patch):
+        """ 测试获取单个资源接口 """
+        namespace, configmap_name = 'default', 'test_configmap_name'
         response = api_client.get(
-            f'/api/dashboard/projects/{project_id}/clusters/{cluster_id}/configurations/configmaps/'
+            f'/api/dashboard/projects/{project_id}/clusters/{cluster_id}/'
+            + f'namespaces/{namespace}/configs/configmaps/{configmap_name}/'
         )
         assert response.json()['code'] == 0

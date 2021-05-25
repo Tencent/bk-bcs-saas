@@ -11,15 +11,11 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-from rest_framework.response import Response
-
-from backend.bcs_web.viewsets import SystemViewSet
-from backend.dashboard.utils.resp import DashboardListApiRespBuilder
+from backend.dashboard.viewsets import DashboardViewSet
 from backend.resources.networks.ingress import Ingress
 
 
-class IngressViewSet(SystemViewSet):
-    def list(self, request, project_id, cluster_id, namespace=None):
-        client = Ingress(request.ctx_cluster)
-        response_data = DashboardListApiRespBuilder(client).build()
-        return Response(response_data)
+class IngressViewSet(DashboardViewSet):
+    """ Ingress 相关接口 """
+
+    resource_client = Ingress
