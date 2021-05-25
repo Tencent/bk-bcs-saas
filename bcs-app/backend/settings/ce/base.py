@@ -270,3 +270,6 @@ BCS_APP_ID = 1
 
 # 集群及节点metric功能白名单
 CLUSTER_FUNC_CODES = ["MesosResource"]
+
+# 联邦集群环境
+FEDERAL_CLUSTER_ENV = "prod"

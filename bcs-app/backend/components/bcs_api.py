@@ -11,13 +11,14 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-from typing import Dict
+from dataclasses import asdict, dataclass
+from typing import Dict, List
 
 from django.conf import settings
 from requests import PreparedRequest
 from requests.auth import AuthBase
 
-from .base import BaseHttpClient, BkApiClient, ComponentAuth, update_url_parameters
+from .base import BaseHttpClient, BkApiClient, ComponentAuth, response_handler, update_url_parameters
 
 
 class BcsApiConfig:
@@ -29,6 +30,16 @@ class BcsApiConfig:
         # BCS API 系统接口地址
         self.query_cluster_id_url = f"{host}/{{env_name}}/rest/clusters/bcs/query_by_id/"
         self.get_cluster_credentials_url = f"{host}/{{env_name}}/rest/clusters/{{bcs_cluster_id}}/client_credentials"
+
+
+class BcsApiGatewayConfig:
+    """新架构 BcsApi系统配置对象"""
+
+    def __init__(self, host: str):
+        self.host = host
+
+        self.get_federal_cluster_list_url = f"{host}/{{env_name}}/v4/clustermanager/v1/cluster"
+        self.create_federal_namespace_url = f"{host}/{{env_name}}/v4/clustermanager/v1/namespacewithquota"
 
 
 class BcsApiAuth(AuthBase):
@@ -48,6 +59,26 @@ class BcsApiAuth(AuthBase):
         return r
 
 
+@dataclass
+class FederalClusterData:
+    federationClusterID: str
+    projectID: str
+    businessID: str
+    region: str = ""
+
+    def to_dict(self):
+        """转换为dict，并忽略为空字符串和None的字段"""
+        return {key: val for key, val in self.__dict__.items() if val not in ["", None]}
+
+
+@dataclass
+class Pagination:
+    """分页， 使用默认值"""
+
+    offset: int = 0
+    limit: int = 10000
+
+
 class BcsApiClient(BkApiClient):
     """访问 BCS API 服务的 Client 对象
 
@@ -65,6 +96,7 @@ class BcsApiClient(BkApiClient):
     def __init__(self, auth: ComponentAuth):
         self._config = BcsApiConfig(host=settings.BCS_API_PRE_URL)
         self._client = BaseHttpClient(BcsApiAuth(auth.access_token))
+        self._bcs_api_gw_config = BcsApiGatewayConfig(host=settings.BCS_API_API_GW_HOST)
 
     def query_cluster_id(self, env_name: str, project_id: str, cluster_id: str) -> str:
         """查询集群在 BCS-Api 中的 ID
@@ -85,3 +117,28 @@ class BcsApiClient(BkApiClient):
         """
         url = self._config.get_cluster_credentials_url.format(env_name=env_name, bcs_cluster_id=bcs_cluster_id)
         return self._client.request_json('GET', url, raise_for_status=False)
+
+    @response_handler()
+    def get_federal_cluster_list(self, region: str, project_code: str = None, biz_id: str = None) -> List[Dict]:
+        """获取联邦集群列表
+
+        :param region: 区域信息
+        :param project_code: BCS项目编码
+        :param biz_id: BCS项目绑定的业务ID
+        :returns: 返回联邦集群列表
+        """
+        params = {"region": region, "projectID": project_code, "businessID": biz_id}
+        url = self._bcs_api_gw_config.get_federal_cluster_list_url.format(env_name=settings.FEDERAL_CLUSTER_ENV)
+        return self._client.request_json("GET", url, params=params, raise_for_status=False)
+
+    @response_handler()
+    def create_federal_namespace(self, name: str, federal_cluster: FederalClusterData, resource_quota: str):
+        """创建联邦集群命名空间"""
+        data = federal_cluster.to_dict
+        data.update({"name": name, "resourceQuota": resource_quota})
+        url = self._bcs_api_gw_config.create_federal_namespace_url.format(env_name=settings.FEDERAL_CLUSTER_ENV)
+        return self._client.request_json("POST", url, json=data, raise_for_status=False)
+
+    def get_federal_namespace_list(self, federal_cluster: FederalClusterData):
+        """获取联邦集群下命名空间列表"""
+        pass
