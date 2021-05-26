@@ -30,12 +30,12 @@ from backend.apps.application.constants import (
 )
 from backend.apps.application.utils import get_instance_version, get_instance_version_name, retry_requests
 from backend.apps.configuration.models import Template
-from backend.apps.hpa.utils import get_deployment_hpa
 from backend.apps.instance.constants import InsState
 from backend.apps.instance.models import InstanceConfig, InstanceEvent, MetricConfig, VersionInstance
 from backend.celery_app.tasks.application import update_create_error_record
 from backend.components import paas_cc
 from backend.components.bcs.k8s import K8SClient
+from backend.kube_core.hpa.utils import get_deployment_hpa
 from backend.utils.basic import getitems
 from backend.utils.errcodes import ErrorCode
 from backend.utils.error_codes import error_codes

@@ -22,7 +22,7 @@ from rest_framework.exceptions import ValidationError
 from backend.apps.configuration.constants import VARIABLE_PATTERN
 from backend.apps.instance.serializers import InstanceNamespaceSLZ
 from backend.apps.variable.models import Variable
-from backend.resources.cluster.utils import get_clusters
+from backend.container_service.clusters.base.utils import get_clusters
 from backend.resources.namespace.utils import get_namespaces
 
 from .constants import VariableCategory, VariableScope

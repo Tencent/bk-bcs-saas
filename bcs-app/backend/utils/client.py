@@ -20,9 +20,9 @@ from kubernetes.client.rest import ApiException
 from rest_framework.exceptions import APIException
 
 from backend.bcs_k8s.bke_client import BCSClusterClient
-from backend.bcs_k8s.dashboard import DashboardClient
-from backend.bcs_k8s.kubectl import KubectlClusterClient
 from backend.components import bcs
+from backend.kube_core.toolkit.dashboard_cli import DashboardClient
+from backend.kube_core.toolkit.kubectl import KubectlClusterClient
 from backend.utils.error_codes import error_codes
 
 logger = logging.getLogger(__name__)

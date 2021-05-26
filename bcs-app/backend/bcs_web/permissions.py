@@ -22,8 +22,8 @@ from backend.apps.constants import ClusterType
 from backend.components.base import ComponentAuth
 from backend.components.iam import permissions
 from backend.components.paas_cc import PaaSCCClient
-from backend.resources.cluster.models import CtxCluster
-from backend.resources.project.models import CtxProject
+from backend.container_service.clusters.base.models import CtxCluster
+from backend.container_service.projects.base.models import CtxProject
 from backend.utils import FancyDict
 from backend.utils.cache import region
 
@@ -117,7 +117,7 @@ class ProjectEnableBCS(BasePermission):
         project.project_code = project.english_name
 
         try:
-            from backend.apps.projects.utils import get_project_kind
+            from backend.container_service.projects.utils import get_project_kind
 
             # k8s类型包含kind为1(bcs k8s)或其它属于k8s的编排引擎
             project.kind = get_project_kind(project.kind)

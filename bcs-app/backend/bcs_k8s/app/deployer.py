@@ -22,8 +22,8 @@ from rest_framework.exceptions import PermissionDenied, ValidationError
 from backend.bcs_k8s import utils as bcs_helm_utils
 from backend.bcs_k8s.app.utils import get_cc_app_id
 from backend.bcs_k8s.helm.bcs_variable import get_valuefile_with_bcs_variable_injected
-from backend.bcs_k8s.kubectl.exceptions import KubectlError, KubectlExecutionError
 from backend.bcs_k8s.kubehelm.exceptions import HelmError, HelmExecutionError
+from backend.kube_core.toolkit.kubectl.exceptions import KubectlError, KubectlExecutionError
 from backend.utils import client as bcs_client
 from backend.utils.basic import ChoicesEnum
 from backend.utils.client import make_kubectl_client, make_kubectl_client_from_kubeconfig

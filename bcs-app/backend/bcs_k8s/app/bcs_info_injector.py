@@ -16,7 +16,7 @@ import logging
 from rest_framework.exceptions import ParseError
 
 from backend.bcs_k8s.diff.parser import split_manifest
-from backend.bcs_k8s.injectors import InjectManager
+from backend.kube_core.toolkit.injectors import InjectManager
 
 from .bcs_info_provider import BcsInfoProvider
 from .utils import yaml_dump, yaml_load

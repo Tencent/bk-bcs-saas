@@ -22,8 +22,8 @@ from backend.apps.application.constants import MESOS_KIND
 from backend.apps.configuration import models
 from backend.apps.configuration.constants import MesosResourceName
 from backend.apps.configuration.mixins import GetVersionedEntity
-from backend.apps.network.models import MesosLoadBlance
-from backend.apps.network.utils import get_lb_status
+from backend.uniapps.network.models import MesosLoadBlance
+from backend.uniapps.network.utils import get_lb_status
 from backend.utils.error_codes import error_codes
 from backend.utils.renderers import BKAPIRenderer
 

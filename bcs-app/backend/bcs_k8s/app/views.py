@@ -40,7 +40,6 @@ from backend.bcs_k8s.app.serializers import FilterNamespacesSLZ
 from backend.bcs_k8s.app.utils import get_helm_dashboard_path
 from backend.bcs_k8s.authtoken.authentication import TokenAuthentication
 from backend.bcs_k8s.bke_client.client import BCSClusterCredentialsNotFound, BCSClusterNotFound
-from backend.bcs_k8s.dashboard.exceptions import DashboardError, DashboardExecutionError
 from backend.bcs_k8s.diff import parser
 from backend.bcs_k8s.helm.models.chart import ChartVersion
 from backend.bcs_k8s.helm.providers.repo_provider import add_plain_repo, add_platform_public_repos, add_repo
@@ -48,6 +47,7 @@ from backend.bcs_k8s.helm.serializers import ChartVersionSLZ
 from backend.bcs_k8s.permissions import check_cluster_perm
 from backend.components import paas_cc
 from backend.components.bcs import k8s
+from backend.kube_core.toolkit.dashboard_cli.exceptions import DashboardError, DashboardExecutionError
 from backend.resources.namespace.constants import K8S_SYS_PLAT_NAMESPACES
 from backend.utils import client as bcs_utils_client
 from backend.utils.errcodes import ErrorCode

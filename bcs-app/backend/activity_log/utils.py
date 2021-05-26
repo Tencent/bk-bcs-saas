@@ -16,9 +16,9 @@ from typing import Tuple
 
 from django.conf import settings
 
-from backend.apps.cluster.models import CommonStatus
 from backend.components import paas_cc
 from backend.components.bcs.bcs_common_api import BCSClient
+from backend.container_service.clusters.models import CommonStatus
 from backend.utils.errcodes import ErrorCode
 from backend.utils.funutils import convert_mappings
 from backend.utils.response import ComponentData

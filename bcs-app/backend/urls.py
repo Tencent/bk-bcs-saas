@@ -25,17 +25,22 @@ urlpatterns = [
     url(r"^api/test/sentry/", healthz.test_sentry),
     url(r"^", include("backend.accounts.urls")),
     # 项目管理, namespace 名称 SKIP_REQUEST_NAMESPACE 配置中, 不能省略
-    re_path(r"^", include(("backend.apps.projects.urls", "backend.apps.projects"), namespace="projects")),
+    re_path(
+        r"^",
+        include(
+            ("backend.container_service.projects.urls", "backend.container_service.projects"), namespace="projects"
+        ),
+    ),
     # 仓库管理
     url(r"^", include("backend.apps.depot.urls")),
     # 集群管理
-    url(r"^", include("backend.apps.cluster.urls")),
+    url(r"^", include("backend.container_service.clusters.urls")),
     # web_console
     url(r"^", include("backend.web_console.rest_api.urls")),
     # 网络管理
-    url(r"^", include("backend.apps.network.urls")),
+    url(r"^", include("backend.uniapps.network.urls")),
     # Resource管理
-    url(r"^", include("backend.apps.resource.urls")),
+    url(r"^", include("backend.uniapps.resource.urls")),
     # metric
     url(r"^", include("backend.apps.metric.urls")),
     url(r"^api/projects/(?P<project_id>\w{32})/", include("backend.apps.metric.urls_new")),
@@ -60,7 +65,7 @@ urlpatterns = [
     url(
         r"^api/hpa/projects/(?P<project_id>\w{32})/",
         include(
-            "backend.apps.hpa.urls",
+            "backend.kube_core.hpa.urls",
         ),
     ),
     # cd部分api
