@@ -49,6 +49,7 @@ class BaseNamespaceSLZ(serializers.Serializer):
 
 class CreateNamespaceSLZ(BaseNamespaceSLZ):
     quota = serializers.DictField(default={})
+    region = serializers.CharField(default="")
 
     def validate_name(self, name):
         project_kind = self.context['request'].project.kind

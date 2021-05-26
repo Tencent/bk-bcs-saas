@@ -16,6 +16,7 @@ import json
 import logging
 from itertools import groupby
 
+import requests
 from django.conf import settings
 from django.utils.translation import ugettext_lazy as _
 from rest_framework import response, serializers, viewsets
@@ -33,10 +34,12 @@ from backend.apps.instance.constants import K8S_IMAGE_SECRET_PRFIX, MESOS_IMAGE_
 from backend.apps.utils import get_cluster_env_name
 from backend.apps.variable.models import NameSpaceVariable
 from backend.apps.whitelist import enabled_sync_namespace
-from backend.components import paas_cc
+from backend.components import base as comp_base
+from backend.components import bcs_api, paas_cc
 from backend.components.bcs.k8s import K8SClient
 from backend.components.bcs.mesos import MesosClient
 from backend.resources import namespace as ns_resource
+from backend.resources.cluster import utils as cluster_utils
 from backend.resources.cluster.utils import get_clusters
 from backend.resources.namespace.constants import K8S_SYS_PLAT_NAMESPACES
 from backend.resources.namespace.utils import get_namespace_by_id
@@ -301,6 +304,16 @@ class NamespaceView(NamespaceBase, viewsets.ViewSet):
             results = sorted(results, key=lambda x: x['id'], reverse=True)
 
         permissions = {'create': can_create, 'sync_namespace': enabled_sync_namespace(project_id)}
+
+        # 添加公共集群下的命名空间
+        access_token = request.user.token.access_token
+        federal_cluster_id = cluster_utils.get_common_federal_cluster(access_token)["cluster_id"]
+        federal_cluster = bcs_api.FederalClusterData(
+            federationClusterID=federal_cluster_id,
+            projectID=request.project.project_code,
+            businessID=request.project.cc_app_id,
+        )
+        results.extend(cluster_utils.get_federal_cluster_namespaces(federal_cluster))
 
         return APIResult(results, 'success', permissions=permissions)
 
