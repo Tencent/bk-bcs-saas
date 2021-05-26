@@ -217,7 +217,16 @@
                 statusList: [
                     { text: this.$t('正常'), value: ['normal'] },
                     { text: this.$t('不可调度'), value: ['to_removed', 'removable'] }
-                ]
+                ],
+                mesosLabelMap: {}
+            }
+        },
+        computed: {
+            curProject () {
+                return this.$store.state.curProject
+            },
+            isMesosProject () {
+                return this.curProject.kind === window.PROJECT_MESOS
             }
         },
         watch: {
@@ -302,12 +311,15 @@
                     this.showKey = true
                     this.tagLoading = true
                     try {
-                        const res = await this.$store.dispatch('cluster/getNodeKeyList', {
+                        const api = this.isMesosProject ? 'cluster/getMesosNodeLabels' : 'cluster/getNodeKeyList'
+                        const res = await this.$store.dispatch(api, {
                             projectId: this.projectId,
                             clusterId: this.clusterId
                         })
-                        this.keyList.splice(0, this.keyList.length, ...(res.data || []))
-                        this.keyListTmp.splice(0, this.keyList.length, ...(res.data || []))
+                        const keyList = this.isMesosProject ? Object.keys(res.data || {}) : res.data || []
+                        this.isMesosProject && (this.mesosLabelMap = res.data || {})
+                        this.keyList.splice(0, this.keyList.length, ...keyList)
+                        this.keyListTmp.splice(0, this.keyList.length, ...keyList)
                         this.$nextTick(() => {
                             this.$refs.searchInput.focus()
                             this.isListeningInputKeyup = true
@@ -366,13 +378,19 @@
                     this.tagLoading = true
                     this.curInputValue = ''
                     this.inputPlaceholder = this.$t('请输入要搜索的value')
-                    const res = await this.$store.dispatch('cluster/getNodeValueListByKey', {
-                        projectId: this.projectId,
-                        clusterId: this.clusterId,
-                        keyName: k
-                    })
-                    this.valueList.splice(0, this.valueList.length, ...(res.data || []))
-                    this.valueListTmp.splice(0, this.valueList.length, ...(res.data || []))
+                    let valueList = []
+                    if (this.isMesosProject) {
+                        valueList = this.mesosLabelMap[k] || []
+                    } else {
+                        const res = await this.$store.dispatch('cluster/getNodeValueListByKey', {
+                            projectId: this.projectId,
+                            clusterId: this.clusterId,
+                            keyName: k
+                        })
+                        valueList = res.data || []
+                    }
+                    this.valueList.splice(0, this.valueList.length, ...valueList)
+                    this.valueListTmp.splice(0, this.valueList.length, ...valueList)
                     this.$refs.searchInput.focus()
                 } catch (e) {
                     catchErrorHandler(e, this)
