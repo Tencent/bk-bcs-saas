@@ -429,11 +429,9 @@
     import applyPerm from '@open/mixins/apply-perm'
     import { catchErrorHandler, random } from '@open/common/util'
     import { Archive } from 'libarchive.js/main.js'
-
     Archive.init({
         workerUrl: `${window.STATIC_URL}${window.VERSION_STATIC_URL}/archive-worker/worker-bundle.js`
     })
-
     export default {
         mixins: [applyPerm],
         data () {
@@ -578,12 +576,10 @@
                 }
                 if (this.scrollBottom()) {
                     this.isScrollLoading = true
-
                     this.pageConf.curPage++
                     this.getTemplateList()
                 }
             },
-
             /**
              * 申请权限
              * @param  {object} template 当前模板集对象
@@ -596,11 +592,9 @@
                 })
                 window.open(url)
             },
-
             scrollBottom () {
                 return document.documentElement.clientHeight + window.scrollY >= (document.documentElement.scrollHeight || document.documentElement.clientHeight)
             },
-
             /**
              * 确认删除模板集
              * @param {Object} template 当前模板集对象
@@ -616,14 +610,12 @@
                     }
                     await this.$store.dispatch('getResourcePermissions', params)
                 }
-
                 try {
                     // 先检测当前模板集是否存在实例
                     const res = await this.$store.dispatch('templateset/getExistVersion', {
                         projectId: this.projectId,
                         templateId: template.id
                     })
-
                     // 如果没有实例，可删除模板集，否则调用删除实例
                     if (!Object.keys(res.data.exist_version || {}).length) {
                         const me = this
@@ -647,7 +639,6 @@
                     catchErrorHandler(e, this)
                 }
             },
-
             /**
              * 确认删除模板集
              * @param {Object} template 当前模板集对象
@@ -658,7 +649,6 @@
                         projectId: this.projectId,
                         templateId: template.id
                     })
-
                     this.$bkMessage({
                         theme: 'success',
                         message: this.$t('删除成功')
@@ -673,7 +663,6 @@
                     catchErrorHandler(e, this)
                 }
             },
-
             /**
              * 创建实例
              * @param  {object} template 当前模板集对象
@@ -689,7 +678,6 @@
                     }
                     await this.$store.dispatch('getResourcePermissions', params)
                 }
-
                 this.$router.push({
                     name: 'instantiation',
                     params: {
@@ -700,7 +688,6 @@
                     }
                 })
             },
-
             /**
              * 关闭 delTemplateDialog
              */
@@ -710,7 +697,6 @@
                 this.delTemplateDialogConf.template = Object.assign({}, {})
                 this.delTemplateDialogConf.existVersion = Object.assign({}, {})
             },
-
             /**
              * delTemplateDialog confirm
              */
@@ -722,7 +708,6 @@
                 this.delTemplateDialogConf.existVersion = Object.assign({}, {})
                 this.showChooseDialog(template)
             },
-
             /**
              * 显示复制弹层
              * @param {Object} template 当前 template
@@ -738,20 +723,16 @@
                     }
                     await this.$store.dispatch('getResourcePermissions', params)
                 }
-
                 this.curCopyTemplate = Object.assign({}, template)
                 this.copyDialogConf.isShow = true
                 this.copyDialogConf.title = template.name
             },
-
             /**
              * 模板集复制提交前检测
              */
             confirmCopyTemplate () {
                 const me = this
-
                 const copyName = me.copyName.trim()
-
                 if (!copyName) {
                     me.$bkMessage({
                         theme: 'error',
@@ -759,7 +740,6 @@
                     })
                     return
                 }
-
                 if (copyName.toLowerCase() === me.curCopyTemplate.name.trim().toLowerCase()) {
                     me.$bkMessage({
                         theme: 'error',
@@ -767,7 +747,6 @@
                     })
                     return
                 }
-
                 if (copyName.length > 30) {
                     me.$bkMessage({
                         theme: 'error',
@@ -775,17 +754,14 @@
                     })
                     return
                 }
-
                 this.copyTemplate()
             },
-
             /**
              * 提交模板集复制
              */
             async copyTemplate () {
                 const backup = []
                 backup.splice(0, backup.length, ...this.templateList)
-
                 this.isCopying = true
                 try {
                     await this.$store.dispatch('templateset/copyTemplate', {
@@ -793,12 +769,10 @@
                         templateId: this.curCopyTemplate.id,
                         name: this.copyName
                     })
-
                     this.$bkMessage({
                         theme: 'success',
                         message: this.$t('复制成功')
                     })
-
                     this.templateList.splice(0, this.templateList.length, ...[])
                     this.templateListCache.splice(0, this.templateListCache.length, ...[])
                     this.isLoading = true
@@ -813,7 +787,6 @@
                     this.isCopying = false
                 }
             },
-
             /**
              * 关闭复制弹层
              */
@@ -822,7 +795,6 @@
                 this.copyName = ''
                 this.copyDialogConf.isShow = false
             },
-
             /**
              * 显示选择命名空间弹层
              *
@@ -839,18 +811,14 @@
                     }
                     await this.$store.dispatch('getResourcePermissions', params)
                 }
-
                 // 清除弹层中的选中状态，不需要清除已选择的 ns 的状态
                 this.clearCandidateNamespaceStatus()
-
                 // 之前没选择过，那么展开第一个
                 this.delInstanceDialogConf.title = `${this.$t('删除')}【${template.name}】${this.$t('模板集的实例')}`
                 this.delInstanceDialogConf.isShow = true
                 this.curDelInstanceTemplate = Object.assign({}, template)
-
                 this.fetchTemplatesetVerList()
             },
-
             /**
              * 关闭选择命名空间弹层
              */
@@ -867,7 +835,6 @@
                 this.delInstanceDialogConf.isShow = false
                 this.namespaceListTmp = Object.assign({}, {})
             },
-
             /**
              * 获取模板集版本
              */
@@ -880,7 +847,6 @@
                         templateId: this.curDelInstanceTemplate.id,
                         hasFilter: true
                     })
-
                     const list = res.data.results || []
                     list.forEach(item => {
                         this.tplsetVerList.push({
@@ -898,7 +864,6 @@
                     }, 600)
                 }
             },
-
             /**
              * 访问模板集首页
              * @param  {object} template 当前模板集对象
@@ -914,7 +879,6 @@
                     }
                     await this.$store.dispatch('getResourcePermissions', params)
                 }
-
                 if (this.projectKind === PROJECT_K8S || this.projectKind === PROJECT_TKE) {
                     if (template.edit_mode === 'yaml') {
                         this.$router.push({
@@ -951,7 +915,6 @@
                     })
                 }
             },
-
             /**
              * 切换模板集下拉框
              * @param {number} index 索引
@@ -964,7 +927,6 @@
                         templateId: data.template_id,
                         showVerName: data.name
                     })
-
                     const list = []
                     Object.keys(res.data.data || {}).forEach(key => {
                         res.data.data[key].forEach(item => {
@@ -974,14 +936,12 @@
                             })
                         })
                     })
-
                     if (list.length) {
                         list.unshift({
                             id: 0,
                             name: this.$t('全部1')
                         })
                     }
-
                     this.tplsetVerId = data.id
                     this.tplList.splice(0, this.tplList.length, ...list)
                     this.tplIndex = -1
@@ -993,7 +953,6 @@
                     catchErrorHandler(e, this)
                 }
             },
-
             /**
              * 切换模板下拉框
              * @param {number} index 索引
@@ -1003,7 +962,6 @@
                 if (this.tplId === data.id) {
                     return
                 }
-
                 if (data.id === 0) {
                     this.tplId = 0
                     this.tplCategory = 'ALL'
@@ -1011,7 +969,6 @@
                     this.tplId = data.id
                     this.tplCategory = data.name.split(':')[0]
                 }
-
                 try {
                     const res = await this.$store.dispatch('templateset/getNamespaceList4DelInstance', {
                         projectId: this.projectId,
@@ -1020,10 +977,8 @@
                         tplId: this.tplId === 0 ? this.tplList[1].id : this.tplId,
                         category: this.tplCategory
                     })
-
                     this.candidateNamespaceList.splice(0, this.candidateNamespaceList.length, ...[])
                     this.namespaceListTmp = Object.assign({}, {})
-
                     const list = res.data
                     list.forEach((item, index) => {
                         // 展开第一个
@@ -1034,7 +989,6 @@
                     catchErrorHandler(e, this)
                 }
             },
-
             /**
              * 清除弹层中 namespace trigger 的展开以及 namespace 的选中
              */
@@ -1046,11 +1000,9 @@
                         ns.isChoose = false
                     })
                 })
-
                 this.candidateNamespaceList.splice(0, this.candidateNamespaceList.length, ...list)
                 this.namespaceListTmp = Object.assign({}, {})
             },
-
             /**
              * 在弹层中选择命名空间
              * @param {number} index candidateNamespaceList 的索引
@@ -1070,7 +1022,6 @@
                     }
                 }
             },
-
             /**
              * 在弹层中全选命名空间
              * @param {Object} item 当前的 candidateNamespace 对象
@@ -1089,7 +1040,6 @@
                 item.isOpen = true
                 this.$set(this.candidateNamespaceList, index, item)
             },
-
             /**
              * 在弹层中反选命名空间
              * @param {Object} item 当前的 candidateNamespace 对象
@@ -1112,7 +1062,6 @@
                 item.isOpen = true
                 this.$set(this.candidateNamespaceList, index, item)
             },
-
             /**
              * 收起所有的 trigger
              */
@@ -1123,7 +1072,6 @@
                 })
                 this.candidateNamespaceList.splice(0, this.candidateNamespaceList.length, ...list)
             },
-
             /**
              * 选择命名空间弹层 trigger 点击事件
              * @param {Object} item 当前 namespace 对象
@@ -1134,14 +1082,12 @@
                 item.isOpen = !item.isOpen
                 this.$set(this.candidateNamespaceList, index, item)
             },
-
             /**
              * 删除命名空间弹层确认
              */
             async confirmDelInstance () {
                 const me = this
                 const list = Object.keys(this.namespaceListTmp)
-
                 if (this.tplsetVerIndex === -1) {
                     this.$bkMessage({
                         theme: 'error',
@@ -1163,7 +1109,6 @@
                     })
                     return
                 }
-
                 this.$bkInfo({
                     title: this.$t('确定删除实例？'),
                     async confirmFn () {
@@ -1171,14 +1116,12 @@
                     }
                 })
             },
-
             /**
              * 删除实例
              */
             async deleteInstance () {
                 const list = Object.keys(this.namespaceListTmp)
                 // const projectKind = await this.getProjectKind(this.projectId)
-
                 const params = {
                     projectId: this.projectId,
                     tplMusterId: this.curDelInstanceTemplate.id,
@@ -1187,13 +1130,10 @@
                     namespace_list: [],
                     category: this.tplCategory
                 }
-
                 list.forEach(key => {
                     params.namespace_list.push(this.namespaceListTmp[key].id)
                 })
-
                 let isRedirect = false
-
                 if (this.tplId === 0) {
                     const idList = []
                     this.tplList.forEach((item, index) => {
@@ -1212,17 +1152,13 @@
                     params.id_list = idList
                     params.category = 'all'
                 }
-
                 this.isDeleting = true
-
                 try {
                     await this.$store.dispatch('templateset/delNamespaceInDelInstance', params)
-
                     this.$bkMessage({
                         theme: 'success',
                         message: this.$t('删除成功')
                     })
-
                     if (this.tplCategory === 'application' || this.tplCategory === 'deployment' || isRedirect) {
                         this.$router.push({
                             name: this.projectKind === 1 ? 'deployments' : 'mesos',
@@ -1246,7 +1182,6 @@
                     }
                 }
             },
-
             /**
              * 重置分页配置数据
              */
@@ -1256,7 +1191,6 @@
                 this.pageConf.pageSize = 10
                 this.pageConf.hasNext = false
             },
-
             /**
              * 搜索列表
              */
@@ -1264,7 +1198,6 @@
                 this.resetPageConf()
                 this.getTemplateList(true)
             },
-
             // 获取模板集列表搜索参数
             getQueryString () {
                 // 当前分页offset
@@ -1273,25 +1206,21 @@
                 const curOffset = this.templateList.length
                 // 由于本地删除，实际offset有可能少于分页offset
                 const offset = Math.min(curPageOffset, curOffset)
-
                 if (!this.searchKeyword) {
                     return `offset=${offset}&limit=${this.pageConf.pageSize}`
                 } else {
                     return `offset=${offset}&limit=${this.pageConf.pageSize}&search=${this.searchKeyword}`
                 }
             },
-
             getElementTop (element) {
                 let actualTop = element.offsetTop
                 let current = element.offsetParent
-
                 while (current !== null) {
                     actualTop += current.offsetTop
                     current = current.offsetParent
                 }
                 return actualTop
             },
-
             /**
              * 获取模板集列表
              * @params {boolean} isRelaod 是否重新加载数据
@@ -1300,29 +1229,24 @@
                 let lastOffsetTop = 0
                 const projectId = this.projectId
                 const templatesetDoms = document.querySelectorAll('.biz-inner-table')
-
                 // 清空数据，重置分页配置信息
                 if (isReload) {
                     this.resetPageConf()
                     this.isListReload = true
                     window.scrollTo(0, 0)
                 }
-
                 if (templatesetDoms.length) {
                     lastOffsetTop = this.getElementTop(templatesetDoms[templatesetDoms.length - 1])
                 }
-
                 try {
                     const queryString = this.getQueryString()
                     const res = await this.$store.dispatch('templateset/getTemplateList', { projectId, queryString })
                     const data = res.data
-
                     this.templatesetCount = data.count
                     // 清空数据，重置分页配置信息
                     if (isReload) {
                         this.templateList.splice(0, this.templateList.length)
                     }
-
                     data.results.forEach(item => {
                         const images = []
                         item.containers.forEach(item => {
@@ -1334,11 +1258,9 @@
                         item.images = images
                         this.templateList.push(item)
                     })
-
                     this.permissions = res.permissions || {}
                     this.pageConf.hasNext = data.has_next
                     this.pageConf.total = data.count
-
                     this.$nextTick(() => {
                         if (!isReload && lastOffsetTop) {
                             window.scrollTo(0, lastOffsetTop - 10) // 回滚到最上一页数据底部
@@ -1354,7 +1276,6 @@
                     }, 500)
                 }
             },
-
             /**
              * 清除搜索
              */
@@ -1362,7 +1283,6 @@
                 this.searchKeyword = ''
                 this.search()
             },
-
             /**
              * 获取项目类型
              * @param  {number} id 项目ID
@@ -1383,7 +1303,6 @@
                 }
                 return kind
             },
-
             /**
              * 创建表单模板集
              */
@@ -1396,7 +1315,6 @@
                     }
                     await this.$store.dispatch('getResourcePermissions', params)
                 }
-
                 this.$router.push({
                     name: type,
                     params: {
@@ -1406,7 +1324,6 @@
                     }
                 })
             },
-
             async handleFileInput () {
                 this.curTemplateId = 0
                 this.curVersion = 0
@@ -1432,7 +1349,6 @@
                     }
                 }
             },
-
             getImportFileList (zip, folderName = '') {
                 for (const key in zip) {
                     const file = zip[key]
@@ -1444,10 +1360,8 @@
                     }
                 }
             },
-
             async readFile (file) {
                 if (!file) return
-
                 return new Promise((resolve, reject) => {
                     const reader = new FileReader()
                     reader.onerror = () => {
@@ -1459,7 +1373,6 @@
                     reader.readAsText(file)
                 })
             },
-
             async renderJsonFile () {
                 const promiseList = []
                 const self = this
@@ -1490,7 +1403,6 @@
                         })
                     }
                 })
-
                 if (promiseList.length) {
                     // 保存模板
                     promiseList.push(() => {
@@ -1507,7 +1419,6 @@
                         })
                     })
                 }
-
                 // 上一个完成才可执行下一个
                 let promiseIndex = 0
                 try {
@@ -1529,7 +1440,6 @@
                     this.isImportLoading = false
                 }
             },
-
             async importFile (fileName, fileType, content, resolve, reject, desc) {
                 // 处理关联
                 this.linkAppList.forEach(linkApp => {
@@ -1538,12 +1448,10 @@
                     content = content.replace(reg, linkApp.app_id)
                 })
                 const data = JSON.parse(content)
-
                 // 处理属性
                 const now = +new Date()
                 data.id = `local_${now}`
                 data.isEdited = true
-
                 // 如果是application，需要先保存才可让deployment、service绑定
                 const projectId = this.projectId
                 const actionMap = {
@@ -1586,7 +1494,6 @@
                         this.curVersion = res.data.version
                         this.curTemplateId = res.data.template_id
                     }
-
                     if (fileType === 'applications') {
                         const res1 = await this.$store.dispatch('mesosTemplate/getApplicationsByVersion', { projectId, version: this.curVersion })
                         this.linkAppList = res1.data
@@ -1597,9 +1504,7 @@
                 // switch (fileType) {
                 //     case 'applications':
                 //         delete data.app_id
-
                 //         break
-
                 //     case 'deployments':
                 //         this.linkAppList.forEach(linkApp => {
                 //             const appName = linkApp.app_name
@@ -1624,7 +1529,6 @@
                 // }
                 console.log('执行完成', fileName)
                 resolve(true)
-
                 // if (fileType === 'applications') {
                 //     await this.saveApplication(app)
                 //     const projectId = this.projectId
@@ -1640,7 +1544,6 @@
                 //     app = JSON.parse(content)
                 //     debugger
                 // }
-
                 // 处理同名问题
                 // const resources = this[fileType]
                 // const matchIndex = resources.findIndex(item => {

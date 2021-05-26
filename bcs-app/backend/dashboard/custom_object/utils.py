@@ -13,30 +13,10 @@
 #
 from typing import Dict, List
 
-import arrow
-
+from backend.resources.utils.common import calculate_age
 from backend.utils.basic import getitems
 
 creation_timestamp_path = ".metadata.creationTimestamp"
-
-
-def calculate_age(create_at):
-    s = arrow.get(create_at).datetime
-    e = arrow.utcnow().datetime
-
-    delta = e - s
-    d_days = delta.days
-    d_seconds = delta.seconds
-    d_hour = d_seconds // 3600
-
-    if d_days > 0:
-        return f"{d_days}d{d_hour}h"
-
-    if d_hour > 0:
-        d_minute = (d_seconds % 3600) // 60
-        return f"{d_hour}h{d_minute}m"
-
-    return f"{d_seconds // 60}m{d_seconds % 60}s"
 
 
 def parse_column_data(co_item: Dict, columns: List[Dict], **kwargs: str) -> Dict:

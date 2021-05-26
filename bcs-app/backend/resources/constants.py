@@ -11,7 +11,11 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
+from backend.packages.blue_krill.data_types.enum import EnumField, StructuredEnum
 from backend.utils.basic import ChoicesEnum
+
+# cronjob 不在 preferred resource 中，需要指定 api_version
+DEFAULT_CRON_JOB_API_VERSION = 'v1beta1'
 
 
 class WorkloadTypes(ChoicesEnum):
@@ -32,32 +36,55 @@ class WorkloadTypes(ChoicesEnum):
     )
 
 
-class K8sResourceKinds(ChoicesEnum):
+class K8sResourceKind(ChoicesEnum):
+    # workload
     Deployment = "Deployment"
     StatefulSet = "StatefulSet"
     DaemonSet = "DaemonSet"
+    CronJob = "CronJob"
     Job = "Job"
-    ConfigMap = "ConfigMap"
+    Pod = "Pod"
+    # network
     Ingress = "Ingress"
-    Secret = "Secret"
     Service = "Service"
     Endpoints = "Endpoints"
+    # configuration
+    ConfigMap = "ConfigMap"
+    Secret = "Secret"
+    # storage
+    PersistentVolume = "PersistentVolume"
+    PersistentVolumeClaim = "PersistentVolumeClaim"
+    StorageClass = "StorageClass"
+    # rbac
+    ServiceAccount = "ServiceAccount"
+    # other
     Namespace = "Namespace"
     Node = "Node"
-    Pod = "Pod"
 
     _choices_labels = (
+        # workload
         (Deployment, "Deployment"),
         (StatefulSet, "StatefulSet"),
         (DaemonSet, "DaemonSet"),
+        (CronJob, "CronJob"),
         (Job, "Job"),
-        (ConfigMap, "ConfigMap"),
-        (Ingress, "Ingress"),
-        (Secret, "Secret"),
-        (Service, "service"),
-        (Endpoints, "Endpoints"),
-        (Namespace, "Namespace"),
         (Pod, "Pod"),
+        # network
+        (Endpoints, "Endpoints"),
+        (Ingress, "Ingress"),
+        (Service, "service"),
+        # configuration
+        (ConfigMap, "ConfigMap"),
+        (Secret, "Secret"),
+        # storage
+        (PersistentVolume, "PersistentVolume"),
+        (PersistentVolumeClaim, "PersistentVolumeClaim"),
+        (StorageClass, "StorageClass"),
+        # rbac
+        (ServiceAccount, "ServiceAccount"),
+        # other
+        (Namespace, "Namespace"),
+        (Node, "Node"),
     )
 
 
@@ -81,3 +108,62 @@ class PatchType(ChoicesEnum):
         (STRATEGIC_MERGE_PATCH_JSON, "application/strategic-merge-patch+json"),
         (APPLY_PATCH_YAML, "application/apply-patch+yaml"),
     )
+
+
+class PodConditionType(ChoicesEnum):
+    """ k8s PodConditionType """
+
+    PodScheduled = 'PodScheduled'
+    PodReady = 'Ready'
+    PodInitialized = 'Initialized'
+    PodReasonUnschedulable = 'Unschedulable'
+    ContainersReady = 'ContainersReady'
+
+
+class PodPhase(ChoicesEnum):
+    """ k8s PodPhase """
+
+    PodPending = 'Pending'
+    PodRunning = 'Running'
+    PodSucceeded = 'Succeeded'
+    PodFailed = 'Failed'
+    PodUnknown = 'Unknown'
+
+
+class SimplePodStatus(ChoicesEnum):
+    """
+    用于页面展示的简单 Pod 状态
+    在 k8s PodPhase 基础上细分了状态
+    """
+
+    # 原始 PodPhase 状态
+    PodPending = 'Pending'
+    PodRunning = 'Running'
+    PodSucceeded = 'Succeeded'
+    PodFailed = 'Failed'
+    PodUnknown = 'Unknown'
+    # 细分状态
+    NotReady = 'NotReady'
+    Terminating = 'Terminating'
+    Completed = 'Completed'
+
+
+class ConditionStatus(ChoicesEnum):
+    """ k8s ConditionStatus """
+
+    ConditionTrue = 'True'
+    ConditionFalse = 'False'
+    ConditionUnknown = 'Unknown'
+
+
+class PersistentVolumeAccessMode(str, StructuredEnum):
+    """ k8s PersistentVolumeAccessMode """
+
+    ReadWriteOnce = EnumField('ReadWriteOnce', label='RWO')
+    ReadOnlyMany = EnumField('ReadOnlyMany', label='ROX')
+    ReadWriteMany = EnumField('ReadWriteMany', label='RWX')
+
+    @property
+    def shortname(self):
+        """ k8s 官方缩写 """
+        return self.get_choice_label(self.value)

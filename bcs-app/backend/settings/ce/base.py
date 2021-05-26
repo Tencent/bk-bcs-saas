@@ -254,6 +254,12 @@ BK_IAM_INNER_HOST = BK_IAM_HOST
 _URI_DATA_CLEAN = '%2Fs%2Fdata%2Fdataset%2Finfo%2F{data_id}%2F%23data_clean'
 URI_DATA_CLEAN = f'{BK_PAAS_HOST}?app=data&url=' + _URI_DATA_CLEAN
 
+# 项目功能白名单Code
+PROJECT_FUNC_CODES = ["ServiceMonitor"]
+
+# 覆盖上层base中的DIRECT_ON_FUNC_CODE: 直接开启的功能开关，不需要在db中配置
+DIRECT_ON_FUNC_CODE = ["HAS_IMAGE_SECRET", "ServiceMonitor"]
+
 # SOPS API HOST
 SOPS_API_HOST = os.environ.get("SOPS_API_HOST")
 
@@ -261,3 +267,6 @@ SOPS_API_HOST = os.environ.get("SOPS_API_HOST")
 ADMIN_USERNAME = "admin"
 # BCS 默认业务
 BCS_APP_ID = 1
+
+# 集群及节点metric功能白名单
+CLUSTER_FUNC_CODES = ["MesosResource"]

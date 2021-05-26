@@ -16,7 +16,7 @@ import logging
 
 from kubernetes import client
 
-from backend.resources.constants import K8sResourceKinds
+from backend.resources.constants import K8sResourceKind
 
 from .api_response import response
 from .resource import BaseMixins, FilterResourceData, Resource
@@ -28,7 +28,7 @@ updated_preferred_version = "apps/v1beta2"
 
 
 class DaemonSet(Resource, FilterResourceData, BaseMixins):
-    resource_kind = K8sResourceKinds.DaemonSet.value
+    resource_kind = K8sResourceKind.DaemonSet.value
 
     def get_api_class(self, api_client):
         resp = client.AppsApi(api_client).get_api_group()

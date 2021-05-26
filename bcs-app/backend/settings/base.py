@@ -30,8 +30,6 @@ import pymysql
 from django.conf.global_settings import gettext_noop as _
 
 pymysql.install_as_MySQLdb()
-# Patch version info to forcely pass Django client check
-setattr(pymysql, "version_info", (1, 2, 6, "final", 0))
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -298,6 +296,12 @@ def get_logging_config(log_level, rds_hander_settings=None, log_path="app.log"):
                 "handlers": ["console", "logstash_redis", "file"],
                 "level": "DEBUG",
             },
+            # 配置iam logger
+            'iam': {
+                'handlers': ['file'],
+                'level': os.getenv('IAM_LOG_LEVEL', 'ERROR'),
+                'propagate': False,
+            },
             "sentry_logger": {"handlers": ["sentry"], "level": "ERROR"},
         },
     }
@@ -448,6 +452,9 @@ RUMPETROLL_DEMO_DOWNLOAD_URL = 'http://bkopen-10032816.file.myqcloud.com/rumpetr
 
 # 直接开启的功能开关，不需要在db中配置
 DIRECT_ON_FUNC_CODE = ['HAS_IMAGE_SECRET']
+
+# 默认主键 3.2 版本需要主动指定
+DEFAULT_AUTO_FIELD = "django.db.models.AutoField"
 
 try:
     from .base_ext import *  # noqa

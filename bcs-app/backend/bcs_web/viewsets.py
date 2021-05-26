@@ -29,6 +29,28 @@ class GenericMixin:
         request_data.update(**kwargs)
         return request_data
 
+    def params_validate(self, serializer, params=None):
+        """
+        检查参数是够符合序列化器定义的通用逻辑
+
+        :param serializer: 序列化器
+        :param params: 指定的参数
+        :return: 校验的结果
+        """
+        # 获取 Django request 对象
+        _request = self.request
+
+        if params is None:
+            if _request.method in ['GET']:
+                params = _request.query_params
+            else:
+                params = _request.data
+
+        # 参数校验，如不符合直接抛出异常
+        slz = serializer(data=params)
+        slz.is_valid(raise_exception=True)
+        return slz.validated_data
+
 
 class SystemViewSet(GenericMixin, viewsets.ViewSet):
     """

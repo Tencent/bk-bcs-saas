@@ -105,7 +105,7 @@ class ClusterCreateListViewSet(viewsets.ViewSet):
             return {}
         return cluster_resp.get("data") or {}
 
-    def _register_function_contoller(self, func_code, cluster_list):
+    def _register_function_controller(self, func_code, cluster_list):
         enabled, wlist = get_func_controller(func_code)
         for cluster_info in cluster_list:
             cluster_info.setdefault("func_wlist", set())
@@ -114,10 +114,10 @@ class ClusterCreateListViewSet(viewsets.ViewSet):
             if enabled or cluster_info["cluster_id"] in wlist:
                 cluster_info["func_wlist"].add(func_code)
 
-    def register_function_contoller(self, cluster_list):
+    def register_function_controller(self, cluster_list):
         """注册功能白名单"""
         for func_code in getattr(settings, "CLUSTER_FUNC_CODES", []):
-            self._register_function_contoller(func_code, cluster_list)
+            self._register_function_controller(func_code, cluster_list)
 
     def get_cluster_create_perm(self, request, project_id):
         test_cluster_perm = Cluster(request, project_id, cluster_constants.NO_RES, resource_type="cluster_test")
@@ -139,7 +139,7 @@ class ClusterCreateListViewSet(viewsets.ViewSet):
             info["allow"] = info["allow_delete"] = allow_delete
         perm_can_use = True if request.GET.get("perm_can_use") == "1" else False
 
-        self.register_function_contoller(cluster_data)
+        self.register_function_controller(cluster_data)
 
         cluster_results = Cluster.hook_perms(request, project_id, cluster_data, filter_use=perm_can_use)
         # add can create cluster perm for prod/test
@@ -202,7 +202,7 @@ class ClusterFilterViewSet(viewsets.ViewSet):
 class ClusterCreateGetUpdateViewSet(ClusterBase, viewsets.ViewSet):
     renderer_classes = (BKAPIRenderer, BrowsableAPIRenderer)
 
-    def register_function_contoller(self, cluster_info):
+    def register_function_controller(self, cluster_info):
         """注册功能白名单"""
         for func_code in getattr(settings, "CLUSTER_FUNC_CODES", []):
             enabled, wlist = get_func_controller(func_code)
@@ -218,7 +218,7 @@ class ClusterCreateGetUpdateViewSet(ClusterBase, viewsets.ViewSet):
         cluster_data["environment"] = cluster_env_transfer(cluster_data["environment"])
 
         # 添加功能白名单
-        self.register_function_contoller(cluster_data)
+        self.register_function_controller(cluster_data)
 
         return response.Response({"code": ErrorCode.NoError, "data": cluster_data})
 
@@ -356,6 +356,7 @@ class ClusterInfo(ClusterPermBase, ClusterBase, viewsets.ViewSet):
             "network_type": snapshot.get("network_type") or ClusterNetworkType.OVERLAY.value,
         }
         if cidr:
+            config["cluster_cidr"] = cidr
             config["max_pod_num"] = ipaddress.ip_network(cidr).num_addresses
         return config
 
