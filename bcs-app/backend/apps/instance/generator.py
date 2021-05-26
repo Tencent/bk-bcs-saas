@@ -86,10 +86,10 @@ from backend.apps.instance.constants import (
 from backend.apps.instance.funutils import render_mako_context, update_nested_dict
 from backend.apps.instance.resources.utils import handle_number_var
 from backend.apps.instance.utils_pub import get_cluster_version
-from backend.apps.metric.models import Metric
 from backend.apps.ticket.models import TlsCert
 from backend.components import paas_cc
 from backend.components.ticket import TicketClient
+from backend.container_service.observability.metric_mesos.models import Metric
 from backend.resources.constants import K8sServiceTypes
 from backend.utils.basic import getitems
 from backend.utils.func_controller import get_func_controller

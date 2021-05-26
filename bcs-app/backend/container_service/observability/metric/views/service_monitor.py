@@ -11,16 +11,12 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-import itertools
 import logging
 import re
 from datetime import timedelta
-from urllib import parse
 
 import arrow
-import semantic_version
 from django.conf import settings
-from django.http import HttpResponseRedirect
 from django.utils.translation import ugettext_lazy as _
 from rest_framework import viewsets
 from rest_framework.renderers import BrowsableAPIRenderer
@@ -29,7 +25,7 @@ from rest_framework.response import Response
 from backend.accounts import bcs_perm
 from backend.activity_log import client as activity_client
 from backend.apps.constants import ALL_LIMIT, ProjectKind
-from backend.components import paas_cc, prometheus
+from backend.components import paas_cc
 from backend.components.bcs import k8s, mesos
 from backend.container_service.observability.metric_mesos import serializers
 from backend.utils.error_codes import error_codes
@@ -51,7 +47,7 @@ FILTERED_METADATA = [
 ]
 
 
-class ServiceMonitor(viewsets.ViewSet):
+class ServiceMonitorViewSet(viewsets.ViewSet):
     """集群ServiceMonitor"""
 
     serializer_class = serializers.ServiceMonitorCreateSLZ
@@ -348,219 +344,3 @@ class ServiceMonitor(viewsets.ViewSet):
         message = _("删除Metrics:{}成功, [命名空间:{}]").format(names, ",".join(i["namespace"] for i in successes))
         self._activity_log(project_id, request.user.username, names, message, True)
         return Response({"successes": successes})
-
-
-class Targets(viewsets.ViewSet):
-    renderer_classes = (BKAPIRenderer, BrowsableAPIRenderer)
-
-    filtered_annotation_pattern = re.compile(r"__meta_kubernetes_\w+_annotation")
-    job_pattern = re.compile(r"^(?P<namespace>[\w-]+)/(?P<name>[\w-]+)/(?P<port_idx>\d+)$")
-
-    def _filter_targets(self, data, namespace, name, show_discovered):
-        """servicemonitor通过job名称过滤"""
-
-        res = []
-        for d in data:
-            targets = d.get("targets") or {}
-            active_targets = targets.get("activeTargets") or []
-            for t in active_targets:
-                raw_job = t["discoveredLabels"]["job"]
-                job = self.job_pattern.match(raw_job)
-                if not job:
-                    continue
-
-                # 按namespace和name过滤
-                job_dict = job.groupdict()
-                if namespace and job_dict["namespace"] != namespace:
-                    continue
-                if name and job_dict["name"] != name:
-                    continue
-
-                if show_discovered:
-                    t["discoveredLabels"] = {
-                        k: v for k, v in t["discoveredLabels"].items() if not self.filtered_annotation_pattern.match(k)
-                    }
-                else:
-                    t.pop("discoveredLabels")
-                t["instance_id"] = f"{job_dict['namespace']}/{job_dict['name']}"
-                t["discovered_job"] = raw_job
-                t["job"] = t["labels"]["job"]
-                res.append(t)
-        return res
-
-    def _filter_jobs(self, data, namespace, name):
-        targets = self._filter_targets(data, namespace, name)
-        jobs = set()
-        for target in targets:
-            labels = target.get("labels") or {}
-            job = labels.get("job")
-            if job:
-                jobs.add(job)
-        return jobs
-
-    def list(self, request, project_id, cluster_id, namespace=None, name=None):
-        """获取targets列表"""
-        show_discovered = request.GET.get("show_discovered") == "1"
-        result = prometheus.get_targets(project_id, cluster_id).get("data") or []
-        targets = self._filter_targets(result, namespace, name, show_discovered)
-        return Response(targets)
-
-    def list_instance(self, request, project_id, cluster_id):
-        """targets列表, 按instance_id聚合"""
-        show_discovered = request.GET.get("show_discovered") == "1"
-        result = prometheus.get_targets(project_id, cluster_id).get("data") or []
-        targets = self._filter_targets(result, None, None, show_discovered)
-        targets_dict = {}
-        for instance_id, t in itertools.groupby(
-            sorted(targets, key=lambda x: x["instance_id"]), key=lambda x: x["instance_id"]
-        ):
-            t = [i for i in t]
-            jobs = set([i["job"] for i in t])
-            if jobs:
-                jobs = "|".join(jobs)
-                expr = f'{{cluster_id="{cluster_id}",job=~"{jobs}"}}'
-                params = {"project_id": project_id, "expr": expr}
-                query = parse.urlencode(params)
-                graph_url = f"{settings.DEVOPS_HOST}/console/monitor/{request.project.project_code}/metric?{query}"
-            else:
-                graph_url = None
-            targets_dict[instance_id] = {
-                "targets": t,
-                "graph_url": graph_url,
-                "total_count": len(t),
-                "health_count": len([i for i in t if i["health"] == "up"]),
-            }
-
-        return Response(targets_dict)
-
-    def graph(self, request, project_id, cluster_id, namespace, name):
-        """获取下面所有targets的job, 跳转到容器监控"""
-        result = prometheus.get_targets(project_id, cluster_id).get("data") or []
-        jobs = self._filter_jobs(result, namespace, name)
-
-        if jobs:
-            jobs = "|".join(jobs)
-            expr = f'{{cluster_id="{cluster_id}",job=~"{jobs}"}}'
-        else:
-            expr = f'{{cluster_id="{cluster_id}"}}'
-        params = {"project_id": project_id, "expr": expr}
-        query = parse.urlencode(params)
-
-        redirect_url = f"{settings.DEVOPS_HOST}/console/monitor/{request.project.project_code}/metric?{query}"
-
-        return HttpResponseRedirect(redirect_url)
-
-
-class Services(viewsets.ViewSet):
-    """可监控的services"""
-
-    renderer_classes = (BKAPIRenderer, BrowsableAPIRenderer)
-
-    filtered_label_prefix = [
-        "io_tencent_bcs_",
-        "io.tencent.paas.",
-        "io.tencent.bcs.",
-        "io.tencent.bkdata.",
-        "io.tencent.paas.",
-    ]
-
-    def _filter_label(self, label_key):
-        if label_key in ["io.tencent.bcs.controller.name"]:
-            return True
-
-        for prefix in self.filtered_label_prefix:
-            if label_key.startswith(prefix):
-                return False
-
-        return True
-
-    def _filter_service(self, service_list):
-        for service in service_list:
-            service["data"]["metadata"] = {
-                k: v for k, v in service["data"]["metadata"].items() if k not in FILTERED_METADATA
-            }
-
-            labels = service["data"]["metadata"].get("labels")
-            if not labels:
-                continue
-
-            service["data"]["metadata"]["labels"] = dict(
-                sorted([(k, v) for k, v in labels.items() if self._filter_label(k)])
-            )
-        return service_list
-
-    def list(self, request, project_id, cluster_id):
-        """获取targets列表"""
-        access_token = request.user.token.access_token
-
-        if request.project.kind == ProjectKind.MESOS.value:
-            client = mesos.MesosClient(access_token, project_id, cluster_id, env=None)
-            resp = client.get_services({"env": "mesos"})
-        else:
-            client = k8s.K8SClient(access_token, project_id, cluster_id, env=None)
-            resp = client.get_service({"env": "k8s"})
-
-        data = self._filter_service(resp.get("data") or [])
-
-        return Response(data)
-
-
-class PrometheusUpdate(viewsets.ViewSet):
-    """可监控的services"""
-
-    renderer_classes = (BKAPIRenderer, BrowsableAPIRenderer)
-
-    def _get_version(self, image):
-        version = image.rsplit(":", 1)[1]
-        if version.startswith("v"):
-            version = version[1:]
-        return version
-
-    def get(self, request, project_id, cluster_id):
-        """是否需要更新 thano-sidecar 版本
-        Deprecated 已经统一升级到 v2.5.0 版本
-        """
-        data = {"need_update": False, "update_tooltip": ""}
-        return Response(data)
-
-    def _activity_log(self, project_id, username, resource_name, description, status):
-        """操作记录"""
-        client = activity_client.ContextActivityLogClient(
-            project_id=project_id, user=username, resource_type="metric", resource=resource_name
-        )
-        if status is True:
-            client.log_delete(activity_status="succeed", description=description)
-        else:
-            client.log_delete(activity_status="failed", description=description)
-
-    def update(self, request, project_id, cluster_id):
-        access_token = request.user.token.access_token
-        client = k8s.K8SClient(access_token, project_id, cluster_id, env=None)
-        resp = client.get_prometheus("thanos", "po-prometheus-operator-prometheus")
-        spec = resp.get("spec")
-        if not spec:
-            raise error_codes.APIError(_("Prometheus未安装, 请联系管理员解决"))
-
-        need_update = False
-        # 获取原来的值不变，覆盖更新
-        for container in spec["containers"]:
-            if container["name"] not in settings.PROMETHEUS_VERSIONS:
-                continue
-
-            image = settings.PROMETHEUS_VERSIONS[container["name"]]
-            if semantic_version.Version(self._get_version(image)) <= semantic_version.Version(
-                self._get_version(container["image"])
-            ):
-                continue
-
-            need_update = True
-            container["image"] = image
-
-        if not need_update:
-            raise error_codes.APIError(_("已经最新版本, 不需要升级"))
-
-        patch_spec = {"spec": {"containers": spec["containers"]}}
-        resp = client.update_prometheus("thanos", "po-prometheus-operator-prometheus", patch_spec)
-        message = _("更新Metrics: 升级 thanos-sidecar 成功")
-        self._activity_log(project_id, request.user.username, "update thanos-sidecar", message, True)
-        return Response(resp)

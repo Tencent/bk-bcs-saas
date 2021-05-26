@@ -12,7 +12,7 @@
 # specific language governing permissions and limitations under the License.
 #
 from backend.apps.instance.constants import APPLICATION_ID_SEPARATOR, LOG_CONFIG_MAP_SUFFIX
-from backend.apps.metric.models import Metric
+from backend.container_service.observability.metric_mesos.models import Metric
 
 
 class ResourceMixin:

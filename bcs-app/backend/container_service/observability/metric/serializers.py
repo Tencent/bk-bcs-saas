@@ -51,3 +51,11 @@ class FetchContainerMetricSLZ(BaseMetricSLZ):
     container_ids = serializers.ListField(
         label='容器 ID 列表', child=serializers.CharField(max_length=64), allow_empty=False, required=False
     )
+
+
+class FetchMetricOverviewSLZ(serializers.Serializer):
+    """ 获取指标总览 """
+
+    dimensions = serializers.ListField(
+        label='指标维度', child=serializers.CharField(max_length=16), allow_empty=True, required=False
+    )

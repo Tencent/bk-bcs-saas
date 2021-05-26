@@ -24,7 +24,7 @@ from rest_framework.exceptions import ValidationError
 from backend.apps.application.constants import K8S_KIND, MESOS_KIND
 from backend.apps.configuration import constants
 from backend.apps.instance.constants import APPLICATION_ID_SEPARATOR, INGRESS_ID_SEPARATOR, LOG_CONFIG_MAP_SUFFIX
-from backend.apps.metric.models import Metric
+from backend.container_service.observability.metric_mesos.models import Metric
 
 from . import k8s, mesos, resfile
 from .base import POD_RES_LIST, BaseModel, get_default_version, logger

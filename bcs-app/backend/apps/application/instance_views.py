@@ -36,9 +36,9 @@ from backend.apps.constants import ProjectKind
 from backend.apps.instance import utils as inst_utils
 from backend.apps.instance.constants import ANNOTATIONS_WEB_CACHE
 from backend.apps.instance.models import InstanceConfig, InstanceEvent, VersionInstance
-from backend.apps.metric.models import Metric
 from backend.apps.variable.models import Variable
 from backend.components import data, paas_cc
+from backend.container_service.observability.metric_mesos.models import Metric
 from backend.utils.basic import getitems
 from backend.utils.errcodes import ErrorCode
 from backend.utils.renderers import BKAPIRenderer

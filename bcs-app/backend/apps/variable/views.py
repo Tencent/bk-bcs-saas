@@ -34,9 +34,9 @@ from backend.apps.instance.constants import APPLICATION_ID_SEPARATOR
 from backend.apps.instance.generator import handel_custom_network_mode
 from backend.apps.instance.serializers import VariableNamespaceSLZ
 from backend.apps.instance.utils import validate_version_id
-from backend.apps.metric.models import Metric
 from backend.apps.variable.models import ClusterVariable, NameSpaceVariable, Variable
 from backend.components import paas_cc
+from backend.container_service.observability.metric_mesos.models import Metric
 from backend.utils.error_codes import error_codes
 from backend.utils.renderers import BKAPIRenderer
 from backend.utils.views import FinalizeResponseMixin

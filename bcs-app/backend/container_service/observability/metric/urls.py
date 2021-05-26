@@ -20,6 +20,8 @@ router = routers.DefaultRouter(trailing_slash=True)
 
 router.register(r'pods/(?P<pod_name>[\w\-.]+)/containers', views.ContainerMetricViewSet, basename='container')
 router.register(r'pods', views.PodMetricViewSet, basename='pod')
+router.register(r'nodes', views.NodeMetricViewSet, basename='node')
+router.register(r'', views.ClusterMetricViewSet, basename='cluster')
 
 urlpatterns = [
     url(r'', include(router.urls)),

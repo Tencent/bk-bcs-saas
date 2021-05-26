@@ -67,13 +67,13 @@ INSTALLED_APPS = [
     "backend.apps.instance",
     "backend.apps.resource",
     "backend.apps.network",
-    "backend.apps.metric",
     "backend.apps.variable",
     "backend.apps.ticket",
     "backend.bcs_k8s.app",
     "backend.bcs_k8s.helm",
     "backend.bcs_k8s.authtoken",
     "backend.apps.hosts",
+    "backend.container_service.observability.metric_mesos",
 ]
 
 MIDDLEWARE = [
