@@ -48,8 +48,4 @@ class Migration(migrations.Migration):
                 ('data_id', models.IntegerField(verbose_name='数据平台DataID')),
             ],
         ),
-        # migrations.AlterUniqueTogether(
-        #     name='metric',
-        #     unique_together=set([('project_id', 'name')]),
-        # ),
     ]

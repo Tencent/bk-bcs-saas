@@ -20,10 +20,8 @@ from celery import shared_task
 from backend.apps.constants import MetricProjectKind
 from backend.apps.instance.constants import InsState
 from backend.apps.instance.models import MetricConfig
-from backend.apps.metric.models import Metric
-from backend.components import paas_cc
 from backend.components.bcs.mesos import MesosClient
-from backend.utils.error_codes import error_codes
+from backend.container_service.observability.metric_mesos.models import Metric
 
 logger = logging.getLogger(__name__)
 
