@@ -40,6 +40,10 @@ class BcsApiGatewayConfig:
 
         self.get_federal_cluster_list_url = f"{host}/{{env_name}}/v4/clustermanager/v1/cluster"
         self.create_federal_namespace_url = f"{host}/{{env_name}}/v4/clustermanager/v1/namespacewithquota"
+        self.get_federal_namespace_list_url = f"{host}/{{env_name}}/v4/clustermanager/v1/namespace"
+        self.update_federal_namespace_quota_url = (
+            f"{host}/{{env_name}}/v4/clustermanager/v1/namespacequota/{{federal_cluster_id}}/{{namespace}}"
+        )
 
 
 class BcsApiAuth(AuthBase):
@@ -119,7 +123,7 @@ class BcsApiClient(BkApiClient):
         return self._client.request_json('GET', url, raise_for_status=False)
 
     @response_handler()
-    def get_federal_cluster_list(self, region: str, project_code: str = None, biz_id: str = None) -> List[Dict]:
+    def get_federal_cluster_list(self, region: str = None, project_code: str = None, biz_id: str = None) -> List[Dict]:
         """获取联邦集群列表
 
         :param region: 区域信息
@@ -132,13 +136,49 @@ class BcsApiClient(BkApiClient):
         return self._client.request_json("GET", url, params=params, raise_for_status=False)
 
     @response_handler()
-    def create_federal_namespace(self, name: str, federal_cluster: FederalClusterData, resource_quota: str):
-        """创建联邦集群命名空间"""
-        data = federal_cluster.to_dict
+    def create_federal_namespace(self, name: str, federal_cluster: FederalClusterData, resource_quota: str) -> Dict:
+        """创建联邦集群命名空间
+
+        :param name: 命名空间名称
+        :param federal_cluster: 联邦集群信息
+        :param resource_quota: 配额信息
+        :returns: 返回创建命名空间使用的具体子集群ID
+        """
+        data = federal_cluster.to_dict()
         data.update({"name": name, "resourceQuota": resource_quota})
         url = self._bcs_api_gw_config.create_federal_namespace_url.format(env_name=settings.FEDERAL_CLUSTER_ENV)
         return self._client.request_json("POST", url, json=data, raise_for_status=False)
 
-    def get_federal_namespace_list(self, federal_cluster: FederalClusterData):
-        """获取联邦集群下命名空间列表"""
-        pass
+    @response_handler()
+    def get_federal_namespace_list(self, federal_cluster: FederalClusterData) -> List[Dict]:
+        """获取联邦集群下命名空间列表
+
+        :param federal_cluster: 联邦集群信息
+        :returns: 返回命名空间列表，包含命名空间配额信息
+        """
+        params = federal_cluster.to_dict()
+        params.update(asdict(Pagination()))
+        url = self._bcs_api_gw_config.get_federal_namespace_list_url.format(env_name=settings.FEDERAL_CLUSTER_ENV)
+        return self._client.request_json("GET", url, params=params, raise_for_status=False)
+
+    @response_handler()
+    def update_federal_namespace_quota(
+        self, federal_cluster_id: str, namespace: str, cluster_id: str, resource_quota: str
+    ):
+        """更新命名空间配额
+
+        :param federal_cluster_id: 联邦集群ID
+        :param namespace: 命名空间名称
+        :param cluster_id: 联邦集群的子集群ID
+        :param resource_quota: 资源配额
+        """
+        data = {
+            "namespace": namespace,
+            "federationClusterID": federal_cluster_id,
+            "clusterID": cluster_id,
+            "resourceQuota": resource_quota,
+        }
+        url = self._bcs_api_gw_config.update_federal_namespace_quota_url.format(
+            env_name=settings.FEDERAL_CLUSTER_ENV, federal_cluster_id=federal_cluster_id, namespace=namespace
+        )
+        return self._client.request_json("PUT", url, json=data, raise_for_status=False)

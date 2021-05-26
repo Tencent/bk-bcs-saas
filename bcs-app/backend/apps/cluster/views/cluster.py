@@ -14,6 +14,7 @@
 import ipaddress
 import json
 import logging
+from typing import Dict, List
 
 from django.conf import settings
 from django.utils.translation import ugettext_lazy as _
@@ -142,6 +143,11 @@ class ClusterCreateListViewSet(viewsets.ViewSet):
         self.register_function_controller(cluster_data)
 
         cluster_results = Cluster.hook_perms(request, project_id, cluster_data, filter_use=perm_can_use)
+
+        # 添加公共集群信息
+        platform_cluster = cluster_utils.get_common_federal_cluster(request.user.token.access_token)
+        cluster_results.append(platform_cluster)
+
         # add can create cluster perm for prod/test
         can_create_test, can_create_prod = self.get_cluster_create_perm(request, project_id)
 

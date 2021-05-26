@@ -11,6 +11,7 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
+from backend.packages.blue_krill.data_types.enum import EnumField, StructuredEnum
 from backend.utils.basic import ChoicesEnum
 
 
@@ -21,3 +22,14 @@ class ClusterCOES(ChoicesEnum):
     MESOS = "mesos"
 
     _choices_labels = ((BCS_K8S, "k8s"), (TKE, "tke"), (MESOS, "mesos"))
+
+
+class FederalClusterType(str, StructuredEnum):
+    """联邦集群类型"""
+
+    Federation = EnumField("federation", label="federation")
+    Single = EnumField("single", label="single")
+
+
+# 公共集群名称
+BCS_PLATFORM_CLUSTER_NAME = "BCS平台公共集群"

@@ -12,15 +12,20 @@
 # specific language governing permissions and limitations under the License.
 #
 import json
+from typing import Dict, List
 
 from django.utils.translation import ugettext_lazy as _
 
 from backend.components import paas_cc
-from backend.components.bcs import k8s, mesos
+from backend.components.base import ComponentAuth
+from backend.components.bcs import mesos
+from backend.components.bcs_api import BcsApiClient, FederalClusterData
 from backend.utils.cache import region
 from backend.utils.decorators import parse_response_data
 from backend.utils.errcodes import ErrorCode
 from backend.utils.error_codes import error_codes
+
+from .constants import BCS_PLATFORM_CLUSTER_NAME, FederalClusterType
 
 
 def get_clusters(access_token, project_id):
@@ -161,3 +166,35 @@ def set_mesos_node_labels(access_token, project_id, labels):
 def update_cc_nodes_status(access_token, project_id, cluster_id, nodes):
     """更新记录的节点状态"""
     return paas_cc.update_node_list(access_token, project_id, cluster_id, data=nodes)
+
+
+def get_common_federal_cluster(
+    access_token: str, region: str = None, project_code: str = None, biz_id: str = None
+) -> Dict:
+    """获取公共的联邦集群"""
+    client = BcsApiClient(ComponentAuth(access_token=access_token))
+    data = client.get_federal_cluster_list(region, project_code, biz_id)
+    for info in data:
+        # 过滤公共集群，clusterType为federation， 并且isExclusive为True
+        if info["isExclusive"] and (info["clusterType"] == FederalClusterType.Federation.value):
+            return {"name": BCS_PLATFORM_CLUSTER_NAME, "cluster_id": info["clusterID"], "is_platform_cluster": True}
+    return {}
+
+
+def get_federal_cluster_namespaces(access_token: str, federal_cluster: FederalClusterData):
+    """获取联邦集群命名空间列表"""
+    client = BcsApiClient(ComponentAuth(access_token=access_token))
+    ns_list = client.get_federal_namespace_list(federal_cluster)
+    federal_namespaces = []
+    for ns in ns_list:
+        quota = ns["quotaList"][0]
+        federal_namespaces.append(
+            {
+                "name": ns["name"],
+                "cluster_id": ns["federationClusterID"],
+                "region": ns["quotaList"][0]["region"],
+                "sub_cluster_id": quota["clusterID"],
+                "quota": json.loads(quota["resourceQuota"]),
+            }
+        )
+    return federal_namespaces

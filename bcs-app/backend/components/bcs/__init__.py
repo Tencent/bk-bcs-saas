@@ -78,6 +78,10 @@ class BCSClientBase:
         return host
 
     @property
+    def _bcs_server_host_prefix(self):
+        return f"{settings.BCS_API_GW_URL}/v4/clusters/{self.cluster_id}"
+
+    @property
     def _bcs_server_stag(self):
         """获取集群所在stag"""
         stag = self.api_host.split('/')[-1]
@@ -103,5 +107,6 @@ class BCSClientBase:
         _headers = {
             "BCS-ClusterID": self.cluster_id,
             "X-BKAPI-AUTHORIZATION": json.dumps({"access_token": self.access_token, "project_id": self.project_id}),
+            "Authorization": getattr(settings, "BCS_AUTH_TOKEN", ""),
         }
         return _headers
