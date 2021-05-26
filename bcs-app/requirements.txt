@@ -83,4 +83,4 @@ urllib3==1.24.3
 webencodings==0.5.1
 websocket-client==0.59.0
 werkzeug==0.15.3
-whitenoise==5.2.0
+whitenoise==5.2.1
