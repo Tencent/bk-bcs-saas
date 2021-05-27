@@ -16,7 +16,7 @@ import logging
 
 from kubernetes import client
 
-from backend.resources.constants import K8sResourceKinds
+from backend.resources.constants import K8sResourceKind
 
 from .api_response import response
 from .resource import BatchAPIClassMixins, FilterResourceData, Resource
@@ -25,7 +25,7 @@ logger = logging.getLogger(__name__)
 
 
 class Job(Resource, FilterResourceData, BatchAPIClassMixins):
-    resource_kind = K8sResourceKinds.Job.value
+    resource_kind = K8sResourceKind.Job.value
 
     @response()
     def create_job(self, namespace, data):

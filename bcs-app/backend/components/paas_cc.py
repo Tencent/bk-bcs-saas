@@ -13,15 +13,17 @@
 #
 import json
 import logging
-from typing import Dict
+from dataclasses import asdict, dataclass
+from typing import Dict, List, Union
 
 from django.conf import settings
 from django.utils.translation import ugettext_lazy as _
 
 from backend.apps.cluster.models import CommonStatus
-from backend.components.base import BaseHttpClient, BkApiClient, ComponentAuth
+from backend.components.base import BaseHttpClient, BkApiClient, ComponentAuth, response_handler
 from backend.components.utils import http_delete, http_get, http_patch, http_post, http_put
 from backend.utils.basic import getitems
+from backend.utils.decorators import parse_response_data
 from backend.utils.errcodes import ErrorCode
 from backend.utils.error_codes import error_codes
 
@@ -512,6 +514,17 @@ class PaaSCCConfig:
 
         # PaaSCC 系统接口地址
         self.get_cluster_url = f"{host}/projects/{{project_id}}/clusters/{{cluster_id}}"
+        self.get_project_url = f"{host}/projects/{{project_id}}/"
+        self.update_cluster_url = f"{host}/projects/{{project_id}}/clusters/{{cluster_id}}/"
+        self.delete_cluster_url = f"{host}/projects/{{project_id}}/clusters/{{cluster_id}}/"
+        self.update_node_list_url = f"{host}/projects/{{project_id}}/clusters/{{cluster_id}}/nodes/"
+        self.get_cluster_namespace_list_url = f"{host}/projects/{{project_id}}/clusters/{{cluster_id}}/namespaces/"
+
+
+@dataclass
+class UpdateNodesData:
+    inner_ip: str
+    status: str
 
 
 class PaaSCCClient(BkApiClient):
@@ -528,6 +541,80 @@ class PaaSCCClient(BkApiClient):
         """获取集群信息"""
         url = self._config.get_cluster_url.format(project_id=project_id, cluster_id=cluster_id)
         return self._client.request_json('GET', url)
+
+    @parse_response_data()
+    def get_project(self, project_id: str) -> Dict:
+        """获取项目信息"""
+        url = self._config.get_project_url.format(project_id=project_id)
+        return self._client.request_json('GET', url)
+
+    @response_handler()
+    def update_cluster(self, project_id: str, cluster_id: str, data: Dict) -> Dict:
+        """更新集群信息
+
+        :param project_id: 项目32为长度 ID
+        :param cluster_id: 集群ID
+        :param data: 更新的集群属性，包含status，名称、描述等
+        """
+        url = self._config.update_cluster_url.format(project_id=project_id, cluster_id=cluster_id)
+        return self._client.request_json("PUT", url, json=data)
+
+    @response_handler()
+    def delete_cluster(self, project_id: str, cluster_id: str):
+        """删除集群
+
+        :param project_id: 项目32为长度 ID
+        :param cluster_id: 集群ID
+        """
+        url = self._config.delete_cluster_url.format(project_id=project_id, cluster_id=cluster_id)
+        return self._client.request_json("DELETE", url)
+
+    @response_handler()
+    def update_node_list(self, project_id: str, cluster_id: str, nodes: List[UpdateNodesData]) -> List:
+        """更新节点信息
+
+        :param project_id: 项目32为长度 ID
+        :param cluster_id: 集群ID
+        :param nodes: 更新的节点属性，包含IP和状态
+        :returns: 返回更新的节点信息
+        """
+        url = self._config.update_node_list_url.format(project_id=project_id, cluster_id=cluster_id)
+        return self._client.request_json("PATCH", url, json={"updates": [asdict(node) for node in nodes]})
+
+    @response_handler()
+    def get_cluster_namespace_list(
+        self,
+        project_id: str,
+        cluster_id: str,
+        limit=None,
+        offset=None,
+        with_lb: Union[bool, int] = False,
+        desire_all_data: Union[bool, int] = None,
+    ) -> Dict[str, Union[int, List[Dict]]]:
+        """获取集群下命名空间列表
+
+        :param project_id: 项目ID
+        :param cluster_id: 集群ID
+        :param limit: 每页的数量
+        :param offset: 第几页
+        :param with_lb: 是否返回lb，兼容了bool和int型
+        :param desire_all_data: 是否拉取集群下全量命名空间，兼容bool和int型
+        :returns: 返回集群下的命名空间
+        """
+        url = self._config.get_cluster_namespace_list_url.format(project_id=project_id, cluster_id=cluster_id)
+        req_params = {"desire_all_data": desire_all_data}
+        # NOTE: 根据上层调用，希望获取的是集群下的所有命名空间，因此，当desire_all_data为None时，设置为拉取全量
+        if desire_all_data is None:
+            req_params["desire_all_data"] = 1
+        if limit:
+            req_params["limit"] = limit
+        if offset:
+            req_params["offset"] = offset
+        if with_lb:
+            req_params["with_lb"] = with_lb
+
+        return self._client.request_json("GET", url, params=req_params)
+
 
 try:
     from .paas_cc_ext import get_auth_project  # noqa

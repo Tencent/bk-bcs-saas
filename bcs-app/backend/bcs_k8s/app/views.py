@@ -16,6 +16,7 @@ import json
 import logging
 import os
 import tempfile
+from datetime import datetime, timedelta
 from itertools import groupby
 from operator import itemgetter
 
@@ -25,7 +26,6 @@ from django.core.cache import cache
 from django.db import IntegrityError
 from django.http import HttpResponse
 from django.template.loader import render_to_string
-from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 from jinja2 import Template
 from rest_framework import viewsets
@@ -73,6 +73,7 @@ from .serializers import (
     ClusterImportSLZ,
     ClusterKubeConfigSLZ,
     NamespaceSLZ,
+    ReleaseListSLZ,
     SyncDict2YamlToolSLZ,
     SyncYaml2DictToolSLZ,
 )
@@ -80,8 +81,8 @@ from .utils import collect_resource_state, collect_resource_status, get_base_url
 
 logger = logging.getLogger(__name__)
 
-# Helm 执行超时时间，设置为10min
-HELM_TASK_TIMEOUT = timezone.timedelta(minutes=10)
+# Helm 执行超时时间，设置为600s
+HELM_TASK_TIMEOUT = 600
 
 
 class AppViewBase(AccessTokenMixin, ProjectMixin, viewsets.ModelViewSet):
@@ -112,6 +113,13 @@ class AppView(ActionSerializerMixin, AppViewBase):
         results = data.get('results') or []
         return {info['cluster_id']: info for info in results} if results else {}
 
+    def _is_transition_timeout(self, updated: str, transitioning_on: bool) -> bool:
+        """判断app的transition是否超时"""
+        updated_time = datetime.strptime(updated, settings.REST_FRAMEWORK["DATETIME_FORMAT"])
+        if transitioning_on and (datetime.now() - updated_time) > timedelta(seconds=HELM_TASK_TIMEOUT):
+            return True
+        return False
+
     def list(self, request, project_id, *args, **kwargs):
         """"""
         project_cluster = self.get_project_cluster(request, project_id)
@@ -127,29 +135,11 @@ class AppView(ActionSerializerMixin, AppViewBase):
                 raise ValidationError(_("命名空间作为过滤参数时，需要提供集群ID"))
             qs = qs.filter(namespace=namespace)
 
-        data = list(
-            qs.values(
-                "name",
-                "id",
-                "cluster_id",
-                "project_id",
-                "namespace",
-                "namespace_id",
-                "version",
-                "created",
-                "creator",
-                "chart__id",
-                "transitioning_action",
-                "transitioning_message",
-                "transitioning_on",
-                "transitioning_result",
-                "updated",
-                "updator",
-            )
-        )
+        # 获取返回的数据
+        slz = ReleaseListSLZ(qs, many=True)
+        data = slz.data
 
         # do fix on the data which version is emtpy
-        datetime_format = "%Y-%m-%d %H:%M:%S"
         app_list = []
         for item in data:
             # 过滤掉k8s系统和bcs平台命名空间下的release
@@ -166,19 +156,18 @@ class AppView(ActionSerializerMixin, AppViewBase):
                 App.objects.filter(id=item["id"]).update(version=version)
                 item["current_version"] = version
 
-            if item["transitioning_on"] and (timezone.now() - item["updated"]) > HELM_TASK_TIMEOUT:
+            # 判断任务超时，并更新字段
+            if self._is_transition_timeout(item["updated"], item["transitioning_on"]):
+                err_msg = _("Helm操作超时，请重试!")
                 App.objects.filter(id=item["id"]).update(
                     transitioning_on=False,
                     transitioning_result=False,
-                    transitioning_message=_("Helm操作超时，请重试!"),
+                    transitioning_message=err_msg,
                 )
                 item["transitioning_result"] = False
                 item["transitioning_on"] = False
-                item["transitioning_message"] = _("Helm操作超时，请重试!")
+                item["transitioning_message"] = err_msg
 
-            item["chart"] = item.pop("chart__id")
-            item["created"] = item["created"].astimezone().strftime(datetime_format)
-            item["updated"] = item["updated"].astimezone().strftime(datetime_format)
             app_list.append(item)
 
         result = {"count": len(app_list), "next": None, "previous": None, "results": app_list}

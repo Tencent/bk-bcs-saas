@@ -72,7 +72,7 @@ urlpatterns = [
     url(
         r'^api/network/projects/(?P<project_id>\w{32})/clusters/(?P<cluster_id>[\w\-]+)'
         '/namespaces/(?P<namespace>[\w\-]+)/mesos-lbs/(?P<name>[\w\-]+)/$',
-        mesos_new.LoadBalancerViewSet.as_view({"get": "detail", "put": "update_record", "delete": "delete_record"}),
+        mesos_new.LoadBalancerViewSet.as_view({"get": "lb_detail", "put": "update_record", "delete": "delete_record"}),
     ),
     url(
         r'^api/network/projects/(?P<project_id>\w{32})/clusters/(?P<cluster_id>[\w\-]+)'

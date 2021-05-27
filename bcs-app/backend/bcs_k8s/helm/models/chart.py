@@ -44,7 +44,7 @@ class Chart(BaseTSModel):
     """
 
     name = models.CharField(max_length=50)
-    repository = models.ForeignKey("Repository")
+    repository = models.ForeignKey("Repository", on_delete=models.CASCADE)
     description = models.CharField(max_length=1000, blank=True, null=True, default="")
     defaultChartVersion = models.ForeignKey(
         "ChartVersion", related_name="default_chart_version", null=True, on_delete=models.SET_NULL
@@ -57,6 +57,8 @@ class Chart(BaseTSModel):
 
     # field show when content changed
     changed_at = models.DateTimeField(default=datetime.datetime.now, blank=True)
+    # chart.yaml支持annotations字段https://helm.sh/docs/topics/charts/#the-chartyaml-file
+    annotations = JSONField(default={})
 
     objects = ChartManager()
 
@@ -76,10 +78,14 @@ class Chart(BaseTSModel):
             del chart_version_fields["id"]
             del chart_version_fields["chart"]
 
-        fields = {}
-        fields.update(chart_version_fields)
+        fields = chart_version_fields
         fields.update(
-            {"name": self.name, "repository_id": self.repository.id, "icon": self.icon,}
+            {
+                "name": self.name,
+                "repository_id": self.repository.id,
+                "icon": self.icon,
+                "annotations": self.annotations,
+            }
         )
         return fields
 
@@ -166,7 +172,7 @@ class ChartVersion(BaseChartVersion):
     uniq: chart + version
     """
 
-    chart = models.ForeignKey("Chart", related_name='versions')
+    chart = models.ForeignKey("Chart", on_delete=models.CASCADE, related_name='versions')
     keywords = models.CharField(max_length=200, null=True, blank=True)
     version = models.CharField(max_length=255)
     digest = models.CharField(max_length=64)
@@ -368,7 +374,7 @@ class ChartRelease(BaseTSModel):
     # from which chart, maybe Null if the source chart has been deleted
     chart = models.ForeignKey("Chart", on_delete=models.SET_NULL, db_constraint=False, null=True)
     # the snapshot of the chart, with the chart content details
-    chartVersionSnapshot = models.ForeignKey("ChartVersionSnapshot")
+    chartVersionSnapshot = models.ForeignKey("ChartVersionSnapshot", on_delete=models.CASCADE)
     # base on questions => get answers
     answers = JSONField(null=True, default=[])
     customs = JSONField(null=True, default=[])
@@ -406,7 +412,10 @@ class ChartRelease(BaseTSModel):
         resources = parser.parse(self.content, namespace).values()
         for resource in resources:
             structure.append(
-                {"name": resource.name.split("/")[-1], "kind": resource.kind,}
+                {
+                    "name": resource.name.split("/")[-1],
+                    "kind": resource.kind,
+                }
             )
         self.structure = structure
         self.save(update_fields=["structure"])

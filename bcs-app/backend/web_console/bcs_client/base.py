@@ -18,7 +18,7 @@ from urllib.parse import urlencode
 
 import arrow
 import tornado.gen
-from django.utils.encoding import smart_text
+from django.utils.encoding import smart_str
 from django.utils.translation import ugettext_lazy as _
 from tornado.httpclient import HTTPRequest
 from tornado.ioloop import IOLoop
@@ -123,9 +123,9 @@ class BCSClientBase(abc.ABC):
                     continue
 
                 try:
-                    msg = smart_text(msg)
+                    msg = smart_str(msg)
                 except Exception:
-                    msg = smart_text(msg, "latin1")
+                    msg = smart_str(msg, "latin1")
 
                 self.output_buffer += msg
 

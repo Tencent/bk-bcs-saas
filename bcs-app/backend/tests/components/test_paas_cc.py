@@ -14,7 +14,7 @@
 from requests_mock import ANY
 
 from backend.components.base import ComponentAuth
-from backend.components.paas_cc import PaaSCCClient
+from backend.components.paas_cc import PaaSCCClient, UpdateNodesData
 
 
 class TestPaaSCCClient:
@@ -25,3 +25,40 @@ class TestPaaSCCClient:
         resp = client.get_cluster(project_id, cluster_id)
         assert resp == {'foo': 'bar'}
         assert requests_mock.called
+
+    def test_update_cluster(self, project_id, cluster_id, requests_mock):
+        requests_mock.put(
+            ANY, json={"code": 0, "data": {"cluster_id": cluster_id, "project_id": project_id, "status": "normal"}}
+        )
+        client = PaaSCCClient(ComponentAuth('token'))
+        resp = client.update_cluster(project_id, cluster_id, {"status": "normal"})
+        assert resp == {"cluster_id": cluster_id, "project_id": project_id, "status": "normal"}
+        assert requests_mock.called
+
+    def test_delete_cluster(self, project_id, cluster_id, requests_mock):
+        requests_mock.delete(ANY, json={"code": 0, "data": None})
+        client = PaaSCCClient(ComponentAuth('token'))
+        resp = client.delete_cluster(project_id, cluster_id)
+        assert resp is None
+        assert requests_mock.called
+        assert requests_mock.request_history[0].method == "DELETE"
+
+    def test_update_node_list(self, project_id, cluster_id, requests_mock):
+        requests_mock.patch(
+            ANY,
+            json={
+                "code": 0,
+                "data": [
+                    {"inner_ip": "127.0.0.1", "cluster_id": cluster_id, "project_id": project_id, "status": "normal"}
+                ],
+            },
+        )
+        client = PaaSCCClient(ComponentAuth('token'))
+        resp = client.update_node_list(
+            project_id, cluster_id, [UpdateNodesData(inner_ip="127.0.0.1", status="normal")]
+        )
+        assert resp == [
+            {"inner_ip": "127.0.0.1", "cluster_id": cluster_id, "project_id": project_id, "status": "normal"}
+        ]
+        assert requests_mock.called
+        assert requests_mock.request_history[0].method == "PATCH"

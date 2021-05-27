@@ -19,7 +19,6 @@ from django.http import Http404
 from django.utils.translation import ugettext_lazy as _
 from django.views.decorators.clickjacking import xframe_options_exempt
 from django.views.generic.base import TemplateView
-from rest_framework.compat import set_rollback
 from rest_framework.exceptions import (
     AuthenticationFailed,
     MethodNotAllowed,
@@ -30,12 +29,20 @@ from rest_framework.exceptions import (
 )
 from rest_framework.renderers import BrowsableAPIRenderer, JSONRenderer
 from rest_framework.response import Response
-from rest_framework.views import exception_handler
+from rest_framework.views import exception_handler, set_rollback
 
-from backend.components.base import BaseCompError, CompInternalError, CompRequestError, CompResponseError
+from backend.components.base import (
+    BaseCompError,
+    CompInternalError,
+    CompParseBkCommonResponseError,
+    CompRequestError,
+    CompResponseError,
+)
+from backend.dashboard.exceptions import DashboardBaseError
+from backend.packages.blue_krill.web.std_error import APIError
 from backend.utils import exceptions as backend_exceptions
 from backend.utils.basic import str2bool
-from backend.utils.error_codes import APIError, error_codes
+from backend.utils.error_codes import error_codes
 from backend.utils.local import local
 
 logger = logging.getLogger(__name__)
@@ -92,6 +99,7 @@ exc_resp_formatter_map = {
     CompRequestError: CompErrorFormatter,
     CompResponseError: CompErrorFormatter,
     CompInternalError: CompErrorFormatter,
+    CompParseBkCommonResponseError: CompErrorFormatter,
 }
 
 
@@ -105,7 +113,7 @@ def custom_exception_handler(exc: Exception, context):
 
     if isinstance(exc, (NotAuthenticated, AuthenticationFailed)):
         data = {
-            "code": error_codes.Unauthorized.code,
+            "code": error_codes.Unauthorized.code_num,
             "data": {"login_url": {"full": settings.LOGIN_FULL, "simple": settings.LOGIN_SIMPLE}},
             "message": error_codes.Unauthorized.message,
             "request_id": local.request_id,
@@ -122,9 +130,15 @@ def custom_exception_handler(exc: Exception, context):
         set_rollback()
         return Response(data, status=200, headers={})
 
+    # 对 Dashboard 类异常做特殊处理
+    elif isinstance(exc, DashboardBaseError):
+        data = {"code": exc.code, "message": exc.message, "data": None, "request_id": local.request_id}
+        set_rollback()
+        return Response(data, status=200)
+
     elif isinstance(exc, APIError):
         # 更改返回的状态为为自定义错误类型的状态码
-        data = {"code": exc.code, "message": exc.message, "data": None, "request_id": local.request_id}
+        data = {"code": exc.code_num, "message": exc.message, "data": None, "request_id": local.request_id}
         set_rollback()
         return Response(data)
     elif isinstance(exc, (MethodNotAllowed, PermissionDenied)):
@@ -178,7 +192,10 @@ class ProjectMixin:
 
     @property
     def project_id(self):
-        return self.request.parser_context["kwargs"]["project_id"]
+        project_id = self.request.parser_context["kwargs"].get("project_id")
+        if not project_id:
+            return self.request.project.project_id
+        return project_id
 
 
 class FilterByProjectMixin(ProjectMixin):

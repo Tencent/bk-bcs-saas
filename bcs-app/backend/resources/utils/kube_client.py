@@ -11,7 +11,9 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
+import json
 import logging
+from contextlib import contextmanager
 from functools import lru_cache
 from typing import Any, Dict, Optional, Tuple
 
@@ -21,6 +23,7 @@ from kubernetes.dynamic import DynamicClient, Resource, ResourceInstance
 from kubernetes.dynamic.exceptions import ResourceNotUniqueError
 
 from backend.resources.cluster import CtxCluster
+from backend.utils.error_codes import error_codes
 
 from ..client import BcsKubeConfigurationService
 from .discovery import BcsLazyDiscoverer, DiscovererCache
@@ -101,33 +104,38 @@ class CoreDynamicClient(DynamicClient):
         name: Optional[str] = None,
         namespace: Optional[str] = None,
         update_method: str = "replace",
+        auto_add_version: bool = False,
         **kwargs,
     ) -> Tuple[ResourceInstance, bool]:
         """创建或修改一个 Kubernetes 资源
 
         :param update_method: 修改类型，默认为 replace，可选值 patch
+        :param auto_add_version: 当 update_method=replace 时，是否自动添加 metadata.resourceVersion 字段，默认为 False
         :returns: (instance, created)
         :raises: 当 update_method 不正确时，抛出 ValueError。调用 API 错误时，抛出 ApiException
         """
         if update_method not in ["replace", "patch"]:
             raise ValueError("Invalid update_method {}".format(update_method))
 
-        try:
-            update_func_obj = getattr(resource, update_method)
-            obj = update_func_obj(body=body, name=name, namespace=namespace, **kwargs)
-            return obj, False
-        except ApiException as e:
-            # Only continue when resource is not found
-            if e.status != 404:
-                raise
+        obj = self.get_or_none(resource, name=name, namespace=namespace, **kwargs)
+        if not obj:
+            logger.info(f"Resource {resource.kind}:{name} not exists, continue creating")
+            return resource.create(body=body, namespace=namespace, **kwargs), True
 
-        logger.info(f"Updating {resource.kind}:{name} failed, resource not exists, continue creating")
-        obj = resource.create(body=body, namespace=namespace, **kwargs)
-        return obj, True
+        # 资源已存在，执行后续的 update 逻辑
+        if update_method == 'replace' and auto_add_version:
+            self._add_resource_version(obj, body)
+
+        update_func_obj = getattr(resource, update_method)
+        return update_func_obj(body=body, name=name, namespace=namespace, **kwargs), False
 
     def request(self, method, path, body=None, **params):
         # TODO: 包装转换请求异常
         return super().request(method, path, body=body, **params)
+
+    def _add_resource_version(self, obj: ResourceInstance, body: Optional[Dict] = None):
+        if isinstance(body, dict):
+            body['metadata'].setdefault('resourceVersion', obj.metadata.resourceVersion)
 
 
 @lru_cache(maxsize=128)
@@ -137,7 +145,10 @@ def get_dynamic_client(access_token: str, project_id: str, cluster_id: str) -> C
     config = BcsKubeConfigurationService(cluster).make_configuration()
     # TODO 考虑集群可能升级k8s版本的情况, 缓存文件会失效
     discoverer_cache = DiscovererCache(cache_key=f"osrcp-{cluster_id}.json")
-    return CoreDynamicClient(client.ApiClient(config), cache_file=discoverer_cache, discoverer=BcsLazyDiscoverer)
+    api_client = client.ApiClient(
+        config, header_name='X-BKAPI-AUTHORIZATION', header_value=json.dumps({"access_token": access_token})
+    )
+    return CoreDynamicClient(api_client, cache_file=discoverer_cache, discoverer=BcsLazyDiscoverer)
 
 
 def make_labels_string(labels: Dict) -> str:
@@ -146,3 +157,12 @@ def make_labels_string(labels: Dict) -> str:
     :param labels: dict of labels
     """
     return ",".join("{}={}".format(key, value) for key, value in labels.items())
+
+
+@contextmanager
+def wrap_kube_client_exc():
+    try:
+        yield
+    except ApiException as e:
+        body = json.loads(e.body)
+        raise error_codes.APIError(body['message'])

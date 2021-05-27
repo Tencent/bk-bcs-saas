@@ -18,10 +18,10 @@ import base64
 import logging
 
 from django.conf import settings
-from django.utils.encoding import smart_bytes, smart_text
+from django.utils.encoding import smart_bytes, smart_str
 
 from backend.components.utils import http_post
-from backend.utils.error_codes import bk_error_codes
+from backend.utils.error_codes import error_codes
 
 logger = logging.getLogger(__name__)
 
@@ -36,7 +36,7 @@ def common_base_request(url, data):
     if not resp.get("result"):
         logger.error(
             """{error_code} ESB errorcode: {esb_code}\ncurl -X POST -d "{data}" {url}\nresp:{resp}""".format(
-                error_code=bk_error_codes.CmsiError(), esb_code=resp.get("code"), data=data, url=url, resp=resp
+                error_code=error_codes.CmsiError, esb_code=resp.get("code"), data=data, url=url, resp=resp
             )
         )
     return resp
@@ -44,7 +44,7 @@ def common_base_request(url, data):
 
 def send_mail(title, content, receiver__username):
     url = f"{settings.BK_PAAS_INNER_HOST}/{CSMI_PREFIX_PATH}/send_mail/"
-    content = smart_text(base64.b64encode(smart_bytes(content)))
+    content = smart_str(base64.b64encode(smart_bytes(content)))
     data = {
         "receiver__username": receiver__username,  # 多个以逗号分隔
         "title": title,
@@ -64,7 +64,7 @@ def send_weixin(heading, message, receiver__username):
 
 def send_sms(content, receiver__username):
     url = f"{settings.BK_PAAS_INNER_HOST}/{CSMI_PREFIX_PATH}/send_sms/"
-    content = smart_text(base64.b64encode(smart_bytes(content)))
+    content = smart_str(base64.b64encode(smart_bytes(content)))
     data = {"receiver__username": receiver__username, "content": content, "is_content_base64": True}  # 多个以逗号分隔
     resp = common_base_request(url, data)
     return resp

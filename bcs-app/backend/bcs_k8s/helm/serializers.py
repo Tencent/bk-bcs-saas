@@ -67,10 +67,11 @@ class ChartSLZ(serializers.ModelSerializer):
     defaultChartVersion = ChartVersionTinySLZ(read_only=True)
     repository = MinimalRepoSLZ(read_only=True)
 
-    updated_at = serializers.DateTimeField(default_timezone=settings.TIME_ZONE)
-    changed_at = serializers.DateTimeField(default_timezone=settings.TIME_ZONE)
-    created_at = serializers.DateTimeField(default_timezone=settings.TIME_ZONE)
-    deleted_at = serializers.DateTimeField(default_timezone=settings.TIME_ZONE)
+    updated_at = serializers.DateTimeField()
+    changed_at = serializers.DateTimeField()
+    created_at = serializers.DateTimeField()
+    deleted_at = serializers.DateTimeField()
+    annotations = serializers.JSONField()
 
     class Meta:
         model = Chart
@@ -150,3 +151,7 @@ class ChartReleaseSLZ(serializers.ModelSerializer):
 
 class RepositorySyncSLZ(serializers.Serializer):
     pass
+
+
+class ChartVersionParamsSLZ(serializers.Serializer):
+    version_list = serializers.ListField(child=serializers.CharField(), default=[])

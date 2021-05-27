@@ -11,13 +11,14 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-import copy
-from typing import Any, Dict, List, Optional, Union
+from copy import deepcopy
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 import arrow
 from django.utils import timezone
 from kubernetes.dynamic.resource import ResourceField, ResourceInstance
 
+from backend.resources.utils.common import calculate_age
 from backend.utils.basic import normalize_datetime
 
 
@@ -60,16 +61,20 @@ class ResourceDefaultFormatter:
             return {}
         return self.format_dict(resource.to_dict())
 
+    def format_common_dict(self, resource_dict: Dict) -> Dict:
+        metadata = deepcopy(resource_dict['metadata'])
+        self.set_metadata_null_values(metadata)
+
+        create_time, update_time = self.parse_create_update_time(metadata)
+        return {'age': calculate_age(create_time), 'createTime': create_time, 'updateTime': update_time}
+
     def format_dict(self, resource_dict: Dict) -> Dict:
-        resource_copy = copy.deepcopy(resource_dict)
+        resource_copy = deepcopy(resource_dict)
         metadata = resource_copy['metadata']
         self.set_metadata_null_values(metadata)
 
         # Get create_time and update_time
-        create_time = self.parse_create_time(metadata)
-        update_time = metadata['annotations'].get("io.tencent.paas.updateTime") or create_time
-        if update_time:
-            update_time = normalize_datetime(update_time)
+        create_time, update_time = self.parse_create_update_time(metadata)
         return {
             "data": resource_copy,
             "clusterId": self.get_cluster_id(metadata),
@@ -93,6 +98,14 @@ class ResourceDefaultFormatter:
             d_time = arrow.get(create_time).datetime
             create_time = timezone.localtime(d_time).strftime("%Y-%m-%d %H:%M:%S")
         return create_time
+
+    def parse_create_update_time(self, metadata: Dict) -> Tuple:
+        """获取 metadata 中的 create_time, update_time"""
+        create_time = self.parse_create_time(metadata)
+        update_time = metadata['annotations'].get("io.tencent.paas.updateTime") or create_time
+        if update_time:
+            update_time = normalize_datetime(update_time)
+        return create_time, update_time
 
     def get_cluster_id(self, metadata: Dict) -> str:
         """获取集群 ID"""

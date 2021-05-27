@@ -50,7 +50,8 @@ def get_app_by_user_role(username):
     """获取运维和产品角色中包含username的业务"""
     username_regex_info = "^{username},|,{username},|,{username}$|^{username}$".format(username=username)
     regex_map = {"$regex": username_regex_info}
-    maintainers_resp = get_all_application(username, condition={"bk_biz_maintainer": regex_map})
+    # NOTE: CMDB建议查询方式: 以admin用户身份跳过资源查询权限，然后CMDB接口根据传递的condition中用户，返回过滤的业务
+    maintainers_resp = get_all_application("admin", condition={"bk_biz_maintainer": regex_map})
     # 组装数据
     if maintainers_resp.get("code") != ErrorCode.NoError:
         return []

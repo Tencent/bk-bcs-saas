@@ -15,7 +15,12 @@ from django.utils.translation import ugettext_lazy as _
 from rest_framework import viewsets
 
 from backend.components import paas_cc
-from backend.components.ssm import get_client_access_token
+
+try:
+    from backend.components.paas_auth_ext import get_access_token as get_client_access_token
+except ImportError:
+    from backend.components.ssm import get_client_access_token
+
 from backend.utils import FancyDict
 from backend.utils.errcodes import ErrorCode
 from backend.utils.error_codes import error_codes
@@ -75,7 +80,8 @@ class ProjectBaseAPIViewSet(viewsets.ViewSet):
 
         result = paas_cc.get_project(access_token, kwargs[field_name])
         if result.get("code") != ErrorCode.NoError:
-            raise error_codes.APIError(_("项目Code或者ID不正确: {}").format(result.get("message", "")))
+            msg = _("项目Code或者ID不正确: {}").format(result.get("message", ""))
+            raise error_codes.APIError.f(msg, replace=True)
 
         if self.project_field_name == "project_code":
             field_value = result["data"]["english_name"]

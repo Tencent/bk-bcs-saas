@@ -47,4 +47,5 @@ urlpatterns = [
     # TODO ^helm/projects/ will replace ^projects/(?P<project_id_or_code>[\w\-]+)/helm/ in apigw
     url(r"^projects/(?P<project_id_or_code>[\w\-]+)/helm/", include("backend.apis.helm.urls")),
     url(r"^helm/projects/(?P<project_id_or_code>[\w\-]+)/", include("backend.apis.helm.urls")),
+    url(r"^var_mgr/projects/(?P<project_id>\w{32})/", include("backend.apis.variables.urls")),
 ]

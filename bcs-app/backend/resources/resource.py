@@ -17,10 +17,10 @@ from typing import Dict, List, Optional, Tuple, Union
 
 from kubernetes.dynamic.resource import ResourceInstance
 
+from backend.resources.cluster.models import CtxCluster
 from backend.resources.utils.kube_client import get_dynamic_client
 
 from .constants import PatchType
-from .utils.auths import ClusterAuth
 from .utils.format import ResourceDefaultFormatter
 
 logger = logging.getLogger(__name__)
@@ -34,9 +34,9 @@ class ResourceClient:
     kind = "Resource"
     formatter = ResourceDefaultFormatter()
 
-    def __init__(self, cluster_auth: ClusterAuth, api_version: Optional[str] = None):
+    def __init__(self, ctx_cluster: CtxCluster, api_version: Optional[str] = None):
         self.dynamic_client = get_dynamic_client(
-            cluster_auth.access_token, cluster_auth.project_id, cluster_auth.cluster_id
+            ctx_cluster.context.auth.access_token, ctx_cluster.project_id, ctx_cluster.id
         )
         if api_version:
             self.api = self.dynamic_client.resources.get(kind=self.kind, api_version=api_version)
@@ -64,6 +64,19 @@ class ResourceClient:
         if formatter:
             return formatter.format(resp)
         return self.formatter.format(resp)
+
+    def watch(self, **kwargs) -> List:
+        """ 获取较指定的 ResourceVersion 更新的资源状态变更信息 """
+        return [
+            {
+                'kind': r['object'].kind,
+                'operate': r['type'],
+                'uid': r['object'].metadata.uid,
+                'manifest': r['raw_object'],
+                'manifest_ext': self.formatter.format_dict(r['raw_object']),
+            }
+            for r in self.api.watch(**kwargs)
+        ]
 
     def create(
         self,

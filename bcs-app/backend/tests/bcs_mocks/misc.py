@@ -21,7 +21,9 @@ class FakePaaSCCMod:
     """A fake object for replacing the real components.paas_cc module"""
 
     def get_project(self, access_token: str, project_id: str) -> Dict:
-        return self._resp(paas_cc_json.resp_get_project_ok)
+        resp_get_project_ok = dict(paas_cc_json.resp_get_project_ok)
+        resp_get_project_ok['data']['project_id'] = project_id
+        return self._resp(resp_get_project_ok)
 
     def get_all_clusters(self, access_token, project_id, limit=None, offset=None, desire_all_data=0):
         resp = self._resp(paas_cc_json.resp_get_clusters_ok)
@@ -36,6 +38,18 @@ class FakePaaSCCMod:
         for info in resp['data']['results']:
             info['project_id'] = project_id
         return resp
+
+    def get_namespace(self, access_token, project_id, namespace_id):
+        resp = self._resp(paas_cc_json.resp_get_namespace_ok)
+        resp['data']['id'] = namespace_id
+        resp['data']['project_id'] = project_id
+        return resp
+
+    def get_jfrog_domain(self, access_token, project_id, cluster_id):
+        return ""
+
+    def get_image_registry_list(self, access_token, cluster_id):
+        return ["http://harbor-api.service.consul"]
 
     def _resp(self, data, **kwargs):
         _data = copy.deepcopy(data)
@@ -60,3 +74,6 @@ class FakeProjectPermissionAllowAll:
 
     def grant_related_action_perms(self, username, project_id, project_name):
         return []
+
+    def verify_project(self, access_token, project_id, user_id):
+        return {"code": 0}

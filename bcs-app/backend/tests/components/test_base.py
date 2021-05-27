@@ -14,7 +14,15 @@
 import pytest
 import requests
 
-from backend.components.base import BaseHttpClient, CompInternalError, CompRequestError, update_url_parameters
+from backend.components.base import (
+    BaseHttpClient,
+    CompInternalError,
+    CompParseBkCommonResponseError,
+    CompRequestError,
+    response_handler,
+    update_request_body,
+    update_url_parameters,
+)
 from backend.tests.testing_utils.base import nullcontext
 
 
@@ -73,3 +81,56 @@ class TestBaseHttpClient:
 def test_update_url_parameters(url, parameters, expected_result):
     result = update_url_parameters(url, parameters)
     assert result == expected_result
+
+
+@pytest.mark.parametrize(
+    "body,params,expected_body",
+    [
+        (None, {"test": "test"}, b'{"test": "test"}'),
+        (b'{"raw_body": "raw_body"}', {"test": "test"}, b'{"raw_body": "raw_body", "test": "test"}'),
+    ],
+)
+def test_update_request_body(body, params, expected_body):
+    updated_body = update_request_body(body, params)
+    assert updated_body == expected_body
+
+
+class TestBkCommonResponseHandler:
+    def func_data_ok(self):
+        return {"code": 0, "data": {"status": "running"}}
+
+    def func_null_ok(self):
+        return {"code": 0, "message": "success"}
+
+    def func_error(self):
+        return {"code": 1, "message": "this is error test"}
+
+    @pytest.mark.parametrize(
+        "default_data,func,expected_data",
+        [
+            (None, "func_data_ok", {"status": "running"}),
+            ({"default": "data"}, "func_data_ok", {"status": "running"}),
+            (None, "func_null_ok", None),
+            ({"default": "data"}, "func_null_ok", {"default": "data"}),
+        ],
+    )
+    def test_response_ok_data_hander(self, default_data, func, expected_data):
+        data = response_handler(default_data)(getattr(self, func))()
+        assert data == expected_data
+
+    def test_response_error_data_hander(self):
+        with pytest.raises(CompParseBkCommonResponseError):
+            response_handler()(self.func_error)()
+
+    @pytest.mark.parametrize(
+        "default_data,func,expected_data",
+        [
+            (None, "func_data_ok", {"code": 0, "data": {"status": "running"}}),
+            ({"default": "data"}, "func_data_ok", {"code": 0, "data": {"status": "running"}}),
+            (None, "func_null_ok", {"code": 0, "message": "success"}),
+            ({"default": "data"}, "func_null_ok", {"code": 0, "message": "success"}),
+        ],
+    )
+    def test_response_raw_hander(self, default_data, func, expected_data):
+        data = response_handler(default_data)(getattr(self, func)).get_raw_response()
+        assert data == expected_data

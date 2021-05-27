@@ -14,6 +14,7 @@
 
 import datetime
 import logging
+from typing import Dict
 
 from celery import shared_task
 from django.utils import timezone
@@ -82,7 +83,7 @@ def sync_helm_repo(repo_id, force=False):
                 username, password = credentials["username"], credentials["password"]
             start_time = normalize_time(repo.refreshed_at)
             charts_info, charts_info_hash = get_incremental_charts_and_hash_value(
-                repo_url, username, password, start_time
+                repo_name, username, password, start_time
             )
         else:
             charts_info, charts_info_hash = prepareRepoCharts(repo_url, repo_name, plain_auths)
@@ -158,7 +159,8 @@ def _update_default_chart_version(chart, full_chart_versions):
         return
     # 以created逆序
     all_versions = list(full_chart_versions.values())
-    all_versions.sort(key=lambda info: info.created, reverse=True)
+    # 转换为字符串做时间对比，以兼容出现string和datatime的格式时间对比
+    all_versions.sort(key=lambda info: str(info.created), reverse=True)
 
     # 如果latest_chart_version和先前的版本一致，则无需更新
     latest_chart_version = all_versions[0]
@@ -215,6 +217,15 @@ def _get_old_chart_version_data(chart, created):
     return old_chart_version_key_ids, old_chart_versions
 
 
+def update_chart_annotations(chart: Chart, version: Dict):
+    """更新chart的annotations"""
+    # NOTE: 仓库chart中annotations不为空，并且和bcs中存储不一致时，进行更新
+    chart_annotations = version.get("annotations") or {}
+    if chart_annotations and chart_annotations != chart.annotations:
+        chart.annotations = chart_annotations
+        chart.save()
+
+
 def _do_helm_repo_charts_update(repo, sign, charts, index_hash, force=False):
     # for sync chart, some chart maybe delete
     old_charts = _get_old_charts(repo)
@@ -266,6 +277,10 @@ def _do_helm_repo_charts_update(repo, sign, charts, index_hash, force=False):
             icon_url = version.get("icon")
             if not chart.icon and icon_url:
                 chart.update_icon(icon_url)
+
+            # 更新chart annotations
+            update_chart_annotations(chart, version)
+
             # 针对新创建的chart version，记录chart全量版本，便于后续针对版本的处理
             if not chart_version_id:
                 current_chart_version_ids.append(chart_version.id)

@@ -56,7 +56,10 @@ class AppMixin:
 
     @property
     def project_id(self):
-        return self.context["request"].parser_context["kwargs"]["project_id"]
+        project_id = self.context["request"].parser_context["kwargs"].get("project_id")
+        if not project_id:
+            return self.context["request"].project.project_id
+        return project_id
 
     @property
     def app_id(self):
@@ -1131,3 +1134,17 @@ class FilterNamespacesSLZ(serializers.Serializer):
     filter_use_perm = serializers.BooleanField(default=True)
     cluster_id = serializers.CharField(required=False)
     chart_id = serializers.IntegerField(required=False)
+
+
+class ReleaseListSLZ(serializers.ModelSerializer):
+    chart_id = serializers.IntegerField(source="chart.id")
+    chart_name = serializers.CharField(source="chart.name")
+
+    class Meta:
+        model = App
+        exclude = (
+            "release",
+            "inject_configs",
+            "sys_variables",
+            "unique_ns",
+        )
