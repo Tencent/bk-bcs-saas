@@ -134,9 +134,16 @@ class TemplateReleaseViewSet(viewsets.ViewSet, TemplatePermission):
 
     def _raw_release_data(self, project_id, initial_data):
         show_version = initial_data["show_version"]
-        namespace_info = self._get_namespace_info(
-            self.request.user.token.access_token, project_id, initial_data["namespace_id"]
-        )
+        if initial_data["cluster_id"] and initial_data["namespace_name"]:
+            namespace_info = {
+                "name": initial_data["namespace_name"],
+                "cluster_id": initial_data["cluster_id"],
+                "id": 0,
+            }
+        else:
+            namespace_info = self._get_namespace_info(
+                self.request.user.token.access_token, project_id, initial_data["namespace_id"]
+            )
         raw_release_data = ReleaseData(
             project_id=project_id,
             namespace_info=namespace_info,

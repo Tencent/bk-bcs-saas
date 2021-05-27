@@ -323,7 +323,7 @@ class NamespaceView(NamespaceBase, viewsets.ViewSet):
             projectID=request.project.project_code,
             businessID=request.project.cc_app_id,
         )
-        federal_namespaces = cluster_utils.get_federal_cluster_namespaces(federal_cluster)
+        federal_namespaces = cluster_utils.get_federal_cluster_namespaces(access_token, federal_cluster)
         if federal_namespaces:
             results.append(
                 {
@@ -372,7 +372,7 @@ class NamespaceView(NamespaceBase, viewsets.ViewSet):
             else:
                 message = result.get('message', '')
             return response.Response({'code': result['code'], 'data': None, 'message': message})
-        else:
+        elif perm:
             # 注册资源到权限中心
             perm.register(result['data']['id'], f'{ns_name}({cluster_id})')
 
@@ -399,8 +399,10 @@ class NamespaceView(NamespaceBase, viewsets.ViewSet):
 
         # 判断权限
         cluster_id = data['cluster_id']
-        perm = bcs_perm.Namespace(request, project_id, bcs_perm.NO_RES, cluster_id)
-        perm.can_create(raise_exception=is_validate_perm)
+        perm = None
+        if not data["region"]:
+            perm = bcs_perm.Namespace(request, project_id, bcs_perm.NO_RES, cluster_id)
+            perm.can_create(raise_exception=is_validate_perm)
 
         description = _('集群: {}, 创建命名空间: 命名空间[{}]').format(cluster_id, data["name"])
         with client.ContextActivityLogClient(
