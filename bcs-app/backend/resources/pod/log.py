@@ -11,9 +11,10 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-import json
 import logging
+from urllib.parse import urlencode
 
+import aiohttp
 from kubernetes import watch
 from kubernetes.client.api import core_v1_api
 
@@ -59,7 +60,7 @@ class LogClient:
 
         return result
 
-    def stream(self, filter: constants.LogFilter):
+    def watch(self, filter: constants.LogFilter):
         """获取实时日志"""
         core_v1 = core_v1_api.CoreV1Api(self.dynamic_client.client)
 
@@ -75,3 +76,29 @@ class LogClient:
             follow=True,
         )
         return s
+
+    async def stream(self, filter: constants.LogFilter):
+        """异步获取实时日志"""
+        host = self.dynamic_client.client.configuration.host
+        path = self.resource.path(self.pod_name, self.namespace)
+
+        query_params = {
+            'container': filter.container_name,
+            'tailLines': 100,
+            'follow': True,
+            'timestamps': constants.LOG_SHOW_TIMESTAMPS,
+        }
+
+        url = f'{host}{path}?{urlencode(query_params)}'
+
+        headers = {
+            'Accept': 'application/json, */*',
+        }
+
+        headers.update(self.dynamic_client.client.configuration.api_key)
+
+        async with aiohttp.ClientSession() as session:
+            async with session.get(url, headers=headers, ssl=False) as response:
+                async for line in response.content:
+                    print(line)
+                    yield line.decode('utf8')

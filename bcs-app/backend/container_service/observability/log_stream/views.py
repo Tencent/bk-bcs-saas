@@ -11,10 +11,8 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-import asyncio
 import json
 import logging
-from os import access
 
 from channels.generic.websocket import AsyncWebsocketConsumer
 from django.conf import settings
@@ -80,7 +78,8 @@ class LogStreamHandler(AsyncWebsocketConsumer):
         self.namespace = self.scope["url_route"]["kwargs"]["namespace"]
         self.pod = self.scope["url_route"]["kwargs"]["pod"]
 
-        access_token = "qNVdJDON7NnbvQPj7c3tdZ4rpAKOoA"
+        access_token = ''
+
         self.ctx_cluster = CtxCluster.create(
             id=self.scope['url_route']['kwargs']['cluster_id'],
             project_id=self.scope['url_route']['kwargs']['project_id'],
@@ -92,11 +91,9 @@ class LogStreamHandler(AsyncWebsocketConsumer):
         logger.info("join success, %s", self.namespace)
         self.closed = False
 
-        tasks = [self.reader()]
-
         await self.accept()
 
-        await asyncio.wait(tasks)
+        await self.reader()
 
     async def disconnect(self, close_code):
         logger.info("disconnect from client: %s", close_code)
@@ -105,19 +102,23 @@ class LogStreamHandler(AsyncWebsocketConsumer):
     async def receive(self, text_data):
         """获取消息, 目前只有推送, 只打印日志"""
         logger.info("receive message: %s", text_data)
+        self.reader2()
 
     async def reader(self):
         client = LogClient(self.ctx_cluster, self.namespace, self.pod)
 
         filter = LogFilter(container_name=self.container_name)
-        for line in client.stream(filter):
-            await asyncio.sleep(0)  # 保证协程可以切出
 
+        async for line in client.reader_log_stream(filter):
             if self.closed is True:
                 return
 
+            # k8s返回使用空格分隔
+            t, _, log = line.partition(' ')
+            data = {'time': t, 'log': log}
+
             try:
-                await self.send(text_data=json.dumps({"message": line}))
+                await self.send(text_data=json.dumps(data))
             except Exception as error:
                 logger.error("reader error: %s", error)
                 return
