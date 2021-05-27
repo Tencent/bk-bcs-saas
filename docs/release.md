@@ -1,4 +1,12 @@
 # 发布日志
+## release-1.4.5
+#### 修复
+- [#951](https://github.com/Tencent/bk-bcs-saas/pull/951)修复CMDB主机列表接口返回bk_cloud_id字段类型
+- [#941](https://github.com/Tencent/bk-bcs-saas/pull/941)修复用户是超级管理员时，项目权限异常的问题
+
+#### 优化
+- Mesos允许通过prometheus获取集群和节点metric功能
+
 
 ## release-1.4.1
 #### 新增
