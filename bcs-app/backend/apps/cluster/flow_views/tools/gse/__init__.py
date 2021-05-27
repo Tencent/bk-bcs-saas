@@ -11,12 +11,15 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
+from typing import Dict, List
+
 from backend.components import gse
 
 
 class GSEClient:
     @classmethod
-    def get_agent_status(cls, request, ip_list):
+    def get_agent_status(cls, username: str, ip_list: List[Dict]) -> List[Dict]:
+        """"""
         hosts = []
         for info in ip_list:
             bk_cloud_id = info.get('bk_cloud_id') or 0
@@ -26,4 +29,4 @@ class GSEClient:
                     for ip in info.get('inner_ip', '').split(',')
                 ]
             )
-        return gse.get_agent_status(request.user.username, hosts)
+        return gse.get_agent_status(username, hosts)
