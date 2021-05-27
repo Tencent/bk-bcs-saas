@@ -28,3 +28,16 @@ router.register(r'', views.ClusterMetricViewSet, basename='cluster')
 urlpatterns = [
     url(r'', include(router.urls)),
 ]
+
+
+# cluster_urlpatterns = [
+#     # 监控信息(New)
+#     url(
+#         r"^servicemonitors/$",
+#         views.servicemonitor.ServiceMonitor.as_view({"get": "list", "post": "create", "delete": "bacth_delete"}),
+#     ),
+#     url(
+#         r"^servicemonitors/(?P<namespace>[\w-]+)/(?P<name>[\w-]+)/$",
+#         views.servicemonitor.ServiceMonitor.as_view({"get": "get", "delete": "delete", "put": "update"}),
+#     )
+# ]

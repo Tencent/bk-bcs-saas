@@ -28,7 +28,9 @@ logger = logging.getLogger(__name__)
 
 
 class TargetsViewSet(SystemViewSet):
-    def list_by_instance_id(self, request, project_id, cluster_id):
+    """ Metric Service 相关接口 """
+
+    def list(self, request, project_id, cluster_id):
         """ 按 instance_id 聚合的 targets 列表"""
         params = self.params_validate(FetchTargetsSLZ)
         result = get_targets(project_id, cluster_id).get('data') or []

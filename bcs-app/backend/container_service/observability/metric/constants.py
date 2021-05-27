@@ -13,6 +13,8 @@
 #
 import re
 
+from django.utils.translation import ugettext_lazy as _
+
 from backend.components.prometheus import (
     get_cluster_cpu_usage,
     get_cluster_disk_usage,
@@ -74,23 +76,22 @@ NODE_UNAME_METRIC = [
 NODE_USAGE_METRIC = ['cpu_count', 'memory', 'disk']
 
 # 需要被过滤的注解 匹配器
-FILTERED_ANNOTATION_PATTERN = re.compile(r"__meta_kubernetes_\w+_annotation")
+FILTERED_ANNOTATION_PATTERN = re.compile(r'__meta_kubernetes_\w+_annotation')
 
 # Job 名称 匹配器
-JOB_PATTERN = re.compile(r"^(?P<namespace>[\w-]+)/(?P<name>[\w-]+)/(?P<port_idx>\d+)$")
-
+JOB_PATTERN = re.compile(r'^(?P<namespace>[\w-]+)/(?P<name>[\w-]+)/(?P<port_idx>\d+)$')
 
 # Service 不返回给前端的字段
 INNER_USE_SERVICE_METADATA_FIELDS = [
-    "annotations",
-    "selfLink",
-    "uid",
-    "resourceVersion",
-    "initializers",
-    "generation",
-    "deletionTimestamp",
-    "deletionGracePeriodSeconds",
-    "clusterName",
+    'annotations',
+    'selfLink',
+    'uid',
+    'resourceVersion',
+    'initializers',
+    'generation',
+    'deletionTimestamp',
+    'deletionGracePeriodSeconds',
+    'clusterName',
 ]
 
 # 不展示给前端的 Label（符合前缀的）
@@ -101,3 +102,36 @@ INNER_USE_LABEL_PREFIX = [
     'io.tencent.bkdata.',
     'io.tencent.paas.',
 ]
+
+# 默认 Endpoint 路径
+DEFAULT_ENDPOINT_PATH = '/metrics'
+
+# 默认 Endpoint 时间间隔（单位：s）
+DEFAULT_ENDPOINT_INTERVAL = 30
+
+# Service Monitor 存放 Service Name 的 Label 键名
+SM_SERVICE_NAME_LABEL = 'io.tencent.bcs.service_name'
+
+# Service Monitor 无权限的命名空间 及对应的权限结构
+SM_NO_PERM_NAMESPACE = ['thanos']
+
+SM_NO_PERM_MAP = {
+    'view': True,
+    'use': False,
+    'edit': False,
+    'delete': False,
+    'view_msg': '',
+    'edit_msg': _('不允许操作系统命名空间'),
+    'use_msg': _('不允许操作系统命名空间'),
+    'delete_msg': _('不允许操作系统命名空间'),
+}
+
+# Service Monitor 名称格式
+SM_NAME_PATTERN = re.compile(r'^[a-z][-a-z0-9]*$')
+
+# 可选的 Service Monitor 时间间隔
+ALLOW_SM_INTERVAL = [30, 60, 120]
+
+# 样本行数限制最大最小值
+SM_SAMPLE_LIMIT_MAX = 100000
+SM_SAMPLE_LIMIT_MIN = 1

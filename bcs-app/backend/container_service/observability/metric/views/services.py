@@ -27,7 +27,7 @@ logger = logging.getLogger(__name__)
 
 
 class ServiceViewSet(SystemViewSet):
-    """可监控的services"""
+    """ Metric Service 相关接口 """
 
     def list(self, request, project_id, cluster_id):
         """ 获取可选 Service 列表"""
