@@ -11,7 +11,9 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-from backend.components.prometheus import (  # 集群指标相关; 节点指标相关
+import re
+
+from backend.components.prometheus import (
     get_cluster_cpu_usage,
     get_cluster_disk_usage,
     get_cluster_memory_usage,
@@ -56,7 +58,7 @@ CLUSTER_DIMENSIONS_FUNC = {
     MetricDimension.DiskUsage: get_cluster_disk_usage,
 }
 
-# TODO 补充合理注释
+# 节点普通指标
 NODE_UNAME_METRIC = [
     'dockerVersion',
     'osVersion',  # from cadvisor
@@ -68,6 +70,34 @@ NODE_UNAME_METRIC = [
     'version',  # from node-exporter
 ]
 
-
-# TODO 补充合理注释
+# 节点使用率类指标
 NODE_USAGE_METRIC = ['cpu_count', 'memory', 'disk']
+
+# 需要被过滤的注解 匹配器
+FILTERED_ANNOTATION_PATTERN = re.compile(r"__meta_kubernetes_\w+_annotation")
+
+# Job 名称 匹配器
+JOB_PATTERN = re.compile(r"^(?P<namespace>[\w-]+)/(?P<name>[\w-]+)/(?P<port_idx>\d+)$")
+
+
+# Service 不返回给前端的字段
+INNER_USE_SERVICE_METADATA_FIELDS = [
+    "annotations",
+    "selfLink",
+    "uid",
+    "resourceVersion",
+    "initializers",
+    "generation",
+    "deletionTimestamp",
+    "deletionGracePeriodSeconds",
+    "clusterName",
+]
+
+# 不展示给前端的 Label（符合前缀的）
+INNER_USE_LABEL_PREFIX = [
+    'io_tencent_bcs_',
+    'io.tencent.paas.',
+    'io.tencent.bcs.',
+    'io.tencent.bkdata.',
+    'io.tencent.paas.',
+]

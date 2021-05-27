@@ -59,3 +59,9 @@ class FetchMetricOverviewSLZ(serializers.Serializer):
     dimensions = serializers.ListField(
         label='指标维度', child=serializers.CharField(max_length=16), allow_empty=True, required=False
     )
+
+
+class FetchTargetsSLZ(serializers.Serializer):
+    """ 获取 Target 列表 """
+
+    show_discovered = serializers.BooleanField(label='是否展示 Discovered', default=False, required=False)

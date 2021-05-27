@@ -15,3 +15,6 @@ from .cluster import ClusterMetricViewSet  # noqa
 from .container import ContainerMetricViewSet  # noqa
 from .node import NodeMetricViewSet  # noqa
 from .pod import PodMetricViewSet  # noqa
+from .service_monitor import ServiceMonitorViewSet  # noqa
+from .services import ServiceViewSet  # noqa
+from .targets import TargetsViewSet  # noqa

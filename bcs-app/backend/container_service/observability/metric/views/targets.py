@@ -13,117 +13,87 @@
 #
 import itertools
 import logging
-import re
 from urllib import parse
 
 from django.conf import settings
-from django.http import HttpResponseRedirect
-from rest_framework import viewsets
-from rest_framework.renderers import BrowsableAPIRenderer
 from rest_framework.response import Response
 
-from backend.components import prometheus
-from backend.utils.renderers import BKAPIRenderer
+from backend.bcs_web.viewsets import SystemViewSet
+from backend.components.prometheus import get_targets
+from backend.container_service.observability.metric.constants import FILTERED_ANNOTATION_PATTERN, JOB_PATTERN
+from backend.container_service.observability.metric.serializers import FetchTargetsSLZ
+from backend.utils.basic import getitems
 
 logger = logging.getLogger(__name__)
 
 
-class TargetsViewSet(viewsets.ViewSet):
-    renderer_classes = (BKAPIRenderer, BrowsableAPIRenderer)
+class TargetsViewSet(SystemViewSet):
+    def list_by_instance_id(self, request, project_id, cluster_id):
+        """ 按 instance_id 聚合的 targets 列表"""
+        params = self.params_validate(FetchTargetsSLZ)
+        result = get_targets(project_id, cluster_id).get('data') or []
+        targets = self._filter_targets(result, params['show_discovered'])
 
-    filtered_annotation_pattern = re.compile(r"__meta_kubernetes_\w+_annotation")
-    job_pattern = re.compile(r"^(?P<namespace>[\w-]+)/(?P<name>[\w-]+)/(?P<port_idx>\d+)$")
-
-    def _filter_targets(self, data, namespace, name, show_discovered):
-        """servicemonitor通过job名称过滤"""
-
-        res = []
-        for d in data:
-            targets = d.get("targets") or {}
-            active_targets = targets.get("activeTargets") or []
-            for t in active_targets:
-                raw_job = t["discoveredLabels"]["job"]
-                job = self.job_pattern.match(raw_job)
-                if not job:
-                    continue
-
-                # 按namespace和name过滤
-                job_dict = job.groupdict()
-                if namespace and job_dict["namespace"] != namespace:
-                    continue
-                if name and job_dict["name"] != name:
-                    continue
-
-                if show_discovered:
-                    t["discoveredLabels"] = {
-                        k: v for k, v in t["discoveredLabels"].items() if not self.filtered_annotation_pattern.match(k)
-                    }
-                else:
-                    t.pop("discoveredLabels")
-                t["instance_id"] = f"{job_dict['namespace']}/{job_dict['name']}"
-                t["discovered_job"] = raw_job
-                t["job"] = t["labels"]["job"]
-                res.append(t)
-        return res
-
-    def _filter_jobs(self, data, namespace, name):
-        targets = self._filter_targets(data, namespace, name)
-        jobs = set()
-        for target in targets:
-            labels = target.get("labels") or {}
-            job = labels.get("job")
-            if job:
-                jobs.add(job)
-        return jobs
-
-    def list(self, request, project_id, cluster_id, namespace=None, name=None):
-        """获取targets列表"""
-        show_discovered = request.GET.get("show_discovered") == "1"
-        result = prometheus.get_targets(project_id, cluster_id).get("data") or []
-        targets = self._filter_targets(result, namespace, name, show_discovered)
-        return Response(targets)
-
-    def list_instance(self, request, project_id, cluster_id):
-        """targets列表, 按instance_id聚合"""
-        show_discovered = request.GET.get("show_discovered") == "1"
-        result = prometheus.get_targets(project_id, cluster_id).get("data") or []
-        targets = self._filter_targets(result, None, None, show_discovered)
         targets_dict = {}
-        for instance_id, t in itertools.groupby(
-            sorted(targets, key=lambda x: x["instance_id"]), key=lambda x: x["instance_id"]
-        ):
-            t = [i for i in t]
-            jobs = set([i["job"] for i in t])
-            if jobs:
-                jobs = "|".join(jobs)
-                expr = f'{{cluster_id="{cluster_id}",job=~"{jobs}"}}'
-                params = {"project_id": project_id, "expr": expr}
-                query = parse.urlencode(params)
-                graph_url = f"{settings.DEVOPS_HOST}/console/monitor/{request.project.project_code}/metric?{query}"
-            else:
-                graph_url = None
+        for instance_id, targets in itertools.groupby(sorted(targets, key=lambda x: x['instance_id'])):
+            targets = list(targets)
+            jobs = {t['job'] for t in targets}
+            graph_url = self._gen_graph_url(project_id, cluster_id, jobs) if jobs else None
             targets_dict[instance_id] = {
-                "targets": t,
-                "graph_url": graph_url,
-                "total_count": len(t),
-                "health_count": len([i for i in t if i["health"] == "up"]),
+                'targets': targets,
+                'graph_url': graph_url,
+                'total_count': len(targets),
+                'health_count': len([t for t in targets if t['health'] == 'up']),
             }
-
         return Response(targets_dict)
 
-    def graph(self, request, project_id, cluster_id, namespace, name):
-        """获取下面所有targets的job, 跳转到容器监控"""
-        result = prometheus.get_targets(project_id, cluster_id).get("data") or []
-        jobs = self._filter_jobs(result, namespace, name)
+    def _filter_targets(self, raw_targets, show_discovered):
+        """
+        按 Job 名称格式过滤符合条件的 Targets
 
-        if jobs:
-            jobs = "|".join(jobs)
-            expr = f'{{cluster_id="{cluster_id}",job=~"{jobs}"}}'
-        else:
-            expr = f'{{cluster_id="{cluster_id}"}}'
+        :param raw_targets: 原始 Target 信息
+        :param namespace: 命名空间
+        :param name: 名称
+        :param show_discovered: 是否展示 Discovered
+        :return: 符合条件的 Targets
+        """
+        targets = []
+        for raw_t in raw_targets:
+            active_targets = getitems(raw_t, 'targets.activeTargets', [])
+            for t in active_targets:
+                raw_job = t['discoveredLabels']['job']
+                # 匹配 Job 名称，若不符合格式则跳过
+                match_ret = JOB_PATTERN.match(raw_job)
+                if not match_ret:
+                    continue
+
+                # 根据是否展示 Discovered 做特殊处理
+                if show_discovered:
+                    t['discoveredLabels'] = {
+                        k: v for k, v in t['discoveredLabels'].items() if not FILTERED_ANNOTATION_PATTERN.match(k)
+                    }
+                else:
+                    t.pop('discoveredLabels')
+
+                job_info = match_ret.groupdict()
+                t['instance_id'] = f"{job_info['namespace']}/{job_info['name']}"
+                t['discovered_job'] = raw_job
+                t['job'] = t['labels']['job']
+                targets.append(t)
+        return targets
+
+    def _gen_graph_url(self, project_id: str, cluster_id: str, jobs: set):
+        """
+        生成图表展示的链接
+
+        :param project_id: 项目 ID
+        :param cluster_id: 集群 ID
+        :param jobs: job 名称列表
+        :return: 图表展示链接
+        """
+        jobs = "|".join(jobs)
+        expr = f'{{cluster_id="{cluster_id}",job=~"{jobs}"}}'
         params = {"project_id": project_id, "expr": expr}
         query = parse.urlencode(params)
 
-        redirect_url = f"{settings.DEVOPS_HOST}/console/monitor/{request.project.project_code}/metric?{query}"
-
-        return HttpResponseRedirect(redirect_url)
+        return f"{settings.DEVOPS_HOST}/console/monitor/{self.request.project.project_code}/metric?{query}"

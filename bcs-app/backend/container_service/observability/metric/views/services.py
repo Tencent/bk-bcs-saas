@@ -12,80 +12,60 @@
 # specific language governing permissions and limitations under the License.
 #
 import logging
+from typing import List
 
-from rest_framework import viewsets
-from rest_framework.renderers import BrowsableAPIRenderer
 from rest_framework.response import Response
 
-from backend.apps.constants import ProjectKind
-from backend.components.bcs import k8s, mesos
-from backend.utils.renderers import BKAPIRenderer
+from backend.bcs_web.viewsets import SystemViewSet
+from backend.components.bcs import k8s
+from backend.container_service.observability.metric.constants import (
+    INNER_USE_LABEL_PREFIX,
+    INNER_USE_SERVICE_METADATA_FIELDS,
+)
 
 logger = logging.getLogger(__name__)
 
-# 不返回给前端的字段
-FILTERED_METADATA = [
-    "annotations",
-    "selfLink",
-    "uid",
-    "resourceVersion",
-    "initializers",
-    "generation",
-    "deletionTimestamp",
-    "deletionGracePeriodSeconds",
-    "clusterName",
-]
 
-
-class ServiceViewSet(viewsets.ViewSet):
+class ServiceViewSet(SystemViewSet):
     """可监控的services"""
 
-    renderer_classes = (BKAPIRenderer, BrowsableAPIRenderer)
+    def list(self, request, project_id, cluster_id):
+        """ 获取可选 Service 列表"""
+        client = k8s.K8SClient(request.user.token.access_token, project_id, cluster_id, env=None)
+        resp = client.get_service({'env': 'k8s'})
+        response_data = self._slim_down_service(resp.get('data') or [])
+        return Response(response_data)
 
-    filtered_label_prefix = [
-        "io_tencent_bcs_",
-        "io.tencent.paas.",
-        "io.tencent.bcs.",
-        "io.tencent.bkdata.",
-        "io.tencent.paas.",
-    ]
+    def _slim_down_service(self, service_list: List) -> List:
+        """
+        去除冗余的 Service 信息
 
-    def _filter_label(self, label_key):
-        if label_key in ["io.tencent.bcs.controller.name"]:
-            return True
-
-        for prefix in self.filtered_label_prefix:
-            if label_key.startswith(prefix):
-                return False
-
-        return True
-
-    def _filter_service(self, service_list):
+        :param service_list: Service 列表
+        :return: 去除冗余信息后的 Service 列表
+        """
         for service in service_list:
-            service["data"]["metadata"] = {
-                k: v for k, v in service["data"]["metadata"].items() if k not in FILTERED_METADATA
+            service['data']['metadata'] = {
+                k: v for k, v in service['data']['metadata'].items() if k not in INNER_USE_SERVICE_METADATA_FIELDS
             }
-
-            labels = service["data"]["metadata"].get("labels")
+            labels = service['data']['metadata'].get('labels')
             if not labels:
                 continue
-
-            service["data"]["metadata"]["labels"] = dict(
-                sorted([(k, v) for k, v in labels.items() if self._filter_label(k)])
+            service['data']['metadata']['labels'] = dict(
+                sorted([(k, v) for k, v in labels.items() if not self._is_inner_use_label(k)])
             )
         return service_list
 
-    def list(self, request, project_id, cluster_id):
-        """获取targets列表"""
-        access_token = request.user.token.access_token
+    def _is_inner_use_label(self, label_key: str) -> bool:
+        """
+        判断 Label 是否为内部使用的（不展示给前端）
 
-        if request.project.kind == ProjectKind.MESOS.value:
-            client = mesos.MesosClient(access_token, project_id, cluster_id, env=None)
-            resp = client.get_services({"env": "mesos"})
-        else:
-            client = k8s.K8SClient(access_token, project_id, cluster_id, env=None)
-            resp = client.get_service({"env": "k8s"})
-
-        data = self._filter_service(resp.get("data") or [])
-
-        return Response(data)
+        :param label_key: Label 键名
+        :return: True / False
+        """
+        if label_key in ['io.tencent.bcs.controller.name']:
+            return False
+        # 若前缀符合，则认为是内部使用的
+        for prefix in INNER_USE_LABEL_PREFIX:
+            if label_key.startswith(prefix):
+                return True
+        return False
