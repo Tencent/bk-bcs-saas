@@ -47,6 +47,9 @@ def collect_system_variable(access_token, project_id, namespace_id):
     sys_variables['SYS_PROJECT_KIND'] = project_info["kind"]
     sys_variables['SYS_PROJECT_CODE'] = project_info["english_name"]
 
+    if not namespace_id:
+        return sys_variables
+
     resp = paas_cc.get_namespace(access_token, project_id, namespace_id)
     if resp.get('code') != 0:
         logger.error(

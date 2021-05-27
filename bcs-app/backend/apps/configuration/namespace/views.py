@@ -115,8 +115,18 @@ class NamespaceBase:
             self.delete_ns_by_bcs(client, data['name'])
             raise error_codes.ComponentError.f(_("创建registry secret失败，{}").format(result.get('message')))
 
-    def init_namespace_by_bcs(self, access_token, project_id, project_code, data):
+    def init_namespace_by_bcs(self, access_token, project_id, project_code, data, request=None):
         """k8s 的集群需要创建 Namespace 和 jfrog Sercret"""
+        if data.get("region"):
+            federal_cluster_id = cluster_utils.get_common_federal_cluster(access_token)["cluster_id"]
+            federal_cluster = bcs_api.FederalClusterData(
+                federationClusterID=federal_cluster_id,
+                projectID=request.project.project_code,
+                businessID=request.project.cc_app_id,
+                region=data["region"],
+            )
+            cluster_utils.create_federal_namespace(access_token, data["name"], federal_cluster, data["quota"])
+            return
         client = K8SClient(access_token, project_id, data['cluster_id'], env=None)
         name = data['name']
         # 创建 ns
@@ -313,7 +323,15 @@ class NamespaceView(NamespaceBase, viewsets.ViewSet):
             projectID=request.project.project_code,
             businessID=request.project.cc_app_id,
         )
-        results.extend(cluster_utils.get_federal_cluster_namespaces(federal_cluster))
+        federal_namespaces = cluster_utils.get_federal_cluster_namespaces(federal_cluster)
+        if federal_namespaces:
+            results.append(
+                {
+                    "name": federal_namespaces[0]["cluster_name"],
+                    "cluster_id": federal_namespaces[0]["cluster_id"],
+                    "results": federal_namespaces,
+                }
+            )
 
         return APIResult(results, 'success', permissions=permissions)
 
@@ -330,7 +348,7 @@ class NamespaceView(NamespaceBase, viewsets.ViewSet):
 
         if ClusterType.get(project_kind) == 'Kubernetes':
             # k8s 集群需要调用 bcs api 初始化数据
-            self.init_namespace_by_bcs(access_token, project_id, project_code, data)
+            self.init_namespace_by_bcs(access_token, project_id, project_code, data, request=request)
             has_image_secret = None
         else:
             self.init_mesos_ns_by_bcs(access_token, project_id, project_code, cluster_id, ns_name)

@@ -191,10 +191,23 @@ def get_federal_cluster_namespaces(access_token: str, federal_cluster: FederalCl
         federal_namespaces.append(
             {
                 "name": ns["name"],
-                "cluster_id": ns["federationClusterID"],
+                "cluster_name": BCS_PLATFORM_CLUSTER_NAME,
+                "federal_cluster_id": ns["federationClusterID"],
                 "region": ns["quotaList"][0]["region"],
-                "sub_cluster_id": quota["clusterID"],
+                "cluster_id": quota["clusterID"],
                 "quota": json.loads(quota["resourceQuota"]),
             }
         )
     return federal_namespaces
+
+
+def create_federal_namespace(access_token: str, name: str, federal_cluster: FederalClusterData, resource_quota: Dict):
+    """创建联邦集群命名空间"""
+    quota_conf = {
+        "apiVersion": "v1",
+        "kind": "ResourceQuota",
+        "metadata": {"name": name},
+        "spec": {"hard": resource_quota},
+    }
+    client = BcsApiClient(ComponentAuth(access_token=access_token))
+    client.create_federal_namespace(name, federal_cluster, json.dumps(quota_conf))

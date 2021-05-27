@@ -174,6 +174,8 @@ class TemplateReleaseSLZ(serializers.Serializer):
     template_files = serializers.ListField(child=PreviewTemplateFileSLZ(), allow_empty=False)
     is_preview = serializers.BooleanField()
     template_variables = serializers.JSONField(default={})
+    cluster_id = serializers.CharField(required=False)
+    namespace_name = serializers.CharField(required=False)
 
     def to_internal_value(self, data):
         data = super().to_internal_value(data)

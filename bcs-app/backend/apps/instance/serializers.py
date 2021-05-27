@@ -71,6 +71,8 @@ class PreviewInstanceSLZ(InstanceNamespaceSLZ):
     show_version_id = serializers.IntegerField(required=True)
     show_version_name = serializers.CharField(required=False)
     variable_info = serializers.JSONField(required=False)
+    cluster_id = serializers.CharField(required=False)
+    namespace_name = serializers.CharField(required=False)
 
 
 class SingleInstanceSLZ(serializers.Serializer):

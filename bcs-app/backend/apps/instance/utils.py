@@ -227,9 +227,13 @@ def validate_instance_entity(req_instance_entity, tem_instance_entity):
     return instance_entity
 
 
-def get_ns_variable(access_token, project_id, namespace_id):
+def get_ns_variable(access_token, project_id, namespace_id, cluster_id: str = None, namespace_name: str = None):
     """获取命名空间相关的变量信息"""
     context = {}
+    if cluster_id and namespace_name:
+        context['SYS_CLUSTER_ID'] = cluster_id
+        context['SYS_NAMESPACE'] = namespace_name
+        return False, "1.18.4", context
     # 获取命名空间的信息
     resp = paas_cc.get_namespace(access_token, project_id, namespace_id)
     if resp.get('code') != 0:

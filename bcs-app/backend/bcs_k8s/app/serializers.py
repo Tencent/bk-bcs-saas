@@ -18,7 +18,7 @@ import subprocess
 from django.conf import settings
 from django.utils.translation import ugettext_lazy as _
 from rest_framework import serializers
-from rest_framework.exceptions import ParseError, ValidationError
+from rest_framework.exceptions import ParseError
 
 from backend.bcs_k8s import utils as bcs_helm_utils
 from backend.bcs_k8s.diff.diff import simple_diff
@@ -32,7 +32,7 @@ from backend.bcs_k8s.kubehelm import exceptions as helm_exceptions
 from backend.bcs_k8s.kubehelm.helm import KubeHelmClient
 from backend.bcs_k8s.permissions import check_cluster_perm
 from backend.components import paas_cc
-from backend.utils.client import get_bcs_client, make_kubectl_client
+from backend.utils.client import make_kubectl_client
 from backend.utils.error_codes import error_codes
 from backend.utils.serializers import HelmValueField, YamlField
 from backend.utils.tempfile import save_to_temporary_dir
@@ -146,7 +146,7 @@ class AppSLZ(AppBaseSLZ):
         RESOURCE_NAME_REGEX,
         error_messages={"invalid": _('不符合k8s资源名规范, 只能由小写字母数字或者-组成，正则:{}').format(RESOURCE_NAME_REGEX)},
     )
-    namespace_info = NamespaceInfoField(write_only=True, label="Namespace")
+    namespace_info = NamespaceInfoField(write_only=True, label="Namespace", default=0, required=False)
     chart_version = serializers.PrimaryKeyRelatedField(queryset=ChartVersion.objects.all(), write_only=True)
     answers = HelmValueField(
         initial=[],
@@ -182,24 +182,34 @@ class AppSLZ(AppBaseSLZ):
 
     current_version = serializers.CharField(source="get_current_version", read_only=True)
     cmd_flags = serializers.JSONField(required=False, default=[])
+    namespace_name = serializers.CharField(required=False)
+    cluster_id = serializers.CharField(required=False)
 
     def create(self, validated_data):
-        namespace_info = self.get_ns_info_by_id(validated_data["namespace_info"])
+        if validated_data["cluster_id"] and validated_data["namespace_name"]:
+            namespace_info = {
+                "project_id": self.context["request"].project.project_id,
+                "cluster_id": validated_data["cluster_id"],
+                "id": 0,
+                "name": validated_data["namespace_name"],
+            }
+        else:
+            namespace_info = self.get_ns_info_by_id(validated_data["namespace_info"])
 
-        check_cluster_perm(
-            user=self.context["request"].user,
-            project_id=namespace_info["project_id"],
-            cluster_id=namespace_info["cluster_id"],
-            request=self.context["request"],
-        )
+        # check_cluster_perm(
+        #     user=self.context["request"].user,
+        #     project_id=namespace_info["project_id"],
+        #     cluster_id=namespace_info["cluster_id"],
+        #     request=self.context["request"],
+        # )
 
         # 检查集群已经成功注册到 bcs, 否则让用户先完成注册逻辑
-        bcs_client = get_bcs_client(
-            project_id=namespace_info["project_id"],
-            cluster_id=namespace_info["cluster_id"],
-            access_token=self.context["request"].user.token.access_token,
-        )
-        bcs_client.get_cluster_credential()
+        # bcs_client = get_bcs_client(
+        #     project_id=namespace_info["project_id"],
+        #     cluster_id=namespace_info["cluster_id"],
+        #     access_token=self.context["request"].user.token.access_token,
+        # )
+        # bcs_client.get_cluster_credential()
 
         sys_variables = collect_system_variable(
             access_token=self.context["request"].user.token.access_token,
