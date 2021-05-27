@@ -14,7 +14,8 @@
 import json
 import logging
 
-from kubernetes.client.exceptions import ApiException
+from kubernetes import watch
+from kubernetes.client.api import core_v1_api
 
 from backend.resources.cluster.models import CtxCluster
 from backend.resources.utils.kube_client import get_dynamic_client, wrap_kube_client_exc
@@ -57,3 +58,20 @@ class LogClient:
             result = self.dynamic_client.get(self.resource, self.pod_name, self.namespace, query_params=params)
 
         return result
+
+    def stream(self, filter: constants.LogFilter):
+        """获取实时日志"""
+        core_v1 = core_v1_api.CoreV1Api(self.dynamic_client.client)
+
+        w = watch.Watch()
+
+        s = w.stream(
+            core_v1.read_namespaced_pod_log,
+            self.pod_name,
+            self.namespace,
+            tail_lines=100,
+            container=filter.container_name,
+            timestamps=constants.LOG_SHOW_TIMESTAMPS,
+            follow=True,
+        )
+        return s

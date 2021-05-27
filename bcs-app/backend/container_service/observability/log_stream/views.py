@@ -11,14 +11,19 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
+import asyncio
+import json
 import logging
+from os import access
 
+from channels.generic.websocket import AsyncWebsocketConsumer
 from django.conf import settings
 from django.http import HttpResponse
 from django.utils import timezone
 from rest_framework.response import Response
 
 from backend.bcs_web.viewsets import SystemViewSet
+from backend.resources.cluster.models import CtxCluster
 from backend.resources.pod.constants import LogFilter
 from backend.resources.pod.log import LogClient
 
@@ -32,6 +37,8 @@ class LogStreamViewSet(SystemViewSet):
 
     def fetch(self, request, project_id: str, cluster_id: str, namespace: str, pod: str):
         """获取日志"""
+        print(request.ctx_cluster.context.auth.access_token)
+
         data = self.params_validate(serializers.FetchLogsSLZ)
 
         filter = LogFilter(container_name=data["container_name"], previous=data["previous"])
@@ -66,3 +73,51 @@ class LogStreamViewSet(SystemViewSet):
         response = HttpResponse(content=content, content_type='application/octet-stream')
         response['Content-Disposition'] = f'attachment; filename="{filename}"'
         return response
+
+
+class LogStreamHandler(AsyncWebsocketConsumer):
+    async def connect(self):
+        self.namespace = self.scope["url_route"]["kwargs"]["namespace"]
+        self.pod = self.scope["url_route"]["kwargs"]["pod"]
+
+        access_token = "qNVdJDON7NnbvQPj7c3tdZ4rpAKOoA"
+        self.ctx_cluster = CtxCluster.create(
+            id=self.scope['url_route']['kwargs']['cluster_id'],
+            project_id=self.scope['url_route']['kwargs']['project_id'],
+            token=access_token,
+        )
+
+        self.container_name = "bk-redis"
+
+        logger.info("join success, %s", self.namespace)
+        self.closed = False
+
+        tasks = [self.reader()]
+
+        await self.accept()
+
+        await asyncio.wait(tasks)
+
+    async def disconnect(self, close_code):
+        logger.info("disconnect from client: %s", close_code)
+        self.closed = True
+
+    async def receive(self, text_data):
+        """获取消息, 目前只有推送, 只打印日志"""
+        logger.info("receive message: %s", text_data)
+
+    async def reader(self):
+        client = LogClient(self.ctx_cluster, self.namespace, self.pod)
+
+        filter = LogFilter(container_name=self.container_name)
+        for line in client.stream(filter):
+            await asyncio.sleep(0)  # 保证协程可以切出
+
+            if self.closed is True:
+                return
+
+            try:
+                await self.send(text_data=json.dumps({"message": line}))
+            except Exception as error:
+                logger.error("reader error: %s", error)
+                return
