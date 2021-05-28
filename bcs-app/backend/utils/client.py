@@ -45,7 +45,7 @@ def get_bcs_host(access_token, project_id, cluster_id):
     if not (access_token and project_id and cluster_id):
         return None
     bcs_client = bcs.BCSClientBase(access_token, project_id, cluster_id, None)
-    return bcs_client._bcs_https_server_host
+    return bcs_client._direct_bcs_server_host_prefix
 
 
 @contextlib.contextmanager

@@ -225,6 +225,8 @@ class VersionInstanceView(viewsets.ViewSet):
             "lb_info": lb_info,
             "variable_dict": variable_dict,
             "is_preview": True,
+            "cluster_id": slz_data.get("cluster_id"),
+            "namespace_name": slz_data.get("namespace_name"),
         }
         data = preview_config_json(namespace, instance_entity, **params)
         return Response({"code": 0, "message": "OK", "data": data})

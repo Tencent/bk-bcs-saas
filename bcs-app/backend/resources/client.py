@@ -75,15 +75,11 @@ class BcsKubeConfigurationService:
         """生成 Kubernetes SDK 所需的 Configuration 对象"""
         env_name = self.env_querier.do()
 
-        config = client.Configuration()
-        config.verify_ssl = False
-        # Get credentials
-        credentials = self.get_client_credentials()
-        config.host = '{}{}'.format(self._get_apiservers_host(env_name), credentials['server_address_path']).rstrip(
-            "/"
-        )
-        config.api_key = {"authorization": f"Bearer {credentials['user_token']}"}
-        return config
+        configure = client.Configuration()
+        configure.verify_ssl = False
+        configure.host = f"{settings.BCS_API_GW_URL}/{env_name}/v4/clusters/{self.cluster.id}"
+        configure.api_key = {"authorization": getattr(settings, "BCS_AUTH_TOKEN", "")}
+        return configure
 
     def get_client_credentials(self) -> Dict[str, Any]:
         """获取访问集群 apiserver 所需的鉴权信息，比如证书、user_token、server_address_path 等"""

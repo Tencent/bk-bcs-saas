@@ -49,7 +49,21 @@ class BaseNamespaceSLZ(serializers.Serializer):
 
 class CreateNamespaceSLZ(BaseNamespaceSLZ):
     quota = serializers.DictField(default={})
-    region = serializers.CharField(default="")
+    region = serializers.CharField(required=False, default="", allow_blank=True)
+
+    def validate_cluster_id(self, cluster_id):
+        if self.initial_data.get("region"):
+            return cluster_id
+        access_token = self.context['request'].user.token.access_token
+        project_id = self.context['project_id']
+        data = app_utils.get_project_cluster_info(access_token, project_id)
+        if not data or data['count'] == 0:
+            raise ValidationError('cluster of project is empty')
+
+        for cluster in data['results']:
+            if cluster_id == cluster['cluster_id']:
+                return cluster_id
+        raise ValidationError('not found cluster, please check cluster info')
 
     def validate_name(self, name):
         project_kind = self.context['request'].project.kind
@@ -77,3 +91,4 @@ class UpdateNamespaceQuotaSLZ(serializers.Serializer):
     """更新命名空间下资源配置的参数"""
 
     quota = serializers.DictField()
+    is_platform_cluster = serializers.BooleanField(default=False)

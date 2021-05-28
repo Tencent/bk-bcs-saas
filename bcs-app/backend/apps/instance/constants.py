@@ -57,7 +57,7 @@ LABEL_MONITOR_LEVEL_DEFAULT = "general"
 # 数据平台相关 label，k8s 下需要打在 pod 级别
 BKDATA_LABEL = {
     # 按 项目-》业务ID 通过API获取
-    "io.tencent.bkdata.container.stdlog.dataid": "{{SYS_STANDARD_DATA_ID}}",
+    "io.tencent.bkdata.container.stdlog.dataid": "",
     "io.tencent.bkdata.baseall.dataid": "6566",
 }
 
@@ -65,17 +65,17 @@ BCS_LABELS = {
     "io.tencent.bcs.clusterid": "{{SYS_CLUSTER_ID}}",
     "io.tencent.bcs.cluster": "{{SYS_CLUSTER_ID}}",
     "io.tencent.bcs.namespace": "{{SYS_NAMESPACE}}",
-    "io.tencent.bcs.app.appid": "{{SYS_CC_APP_ID}}",
-    "io.tencent.bcs.kind": "{{SYS_PROJECT_KIND}}",
+    "io.tencent.bcs.app.appid": "",
+    "io.tencent.bcs.kind": "",
 }
 BCS_LABELS.update(BKDATA_LABEL)
 
 K8S_LOG_ENV = [
     {"name": "io_tencent_bcs_cluster", "value": "{{SYS_CLUSTER_ID}}"},
     {"name": "io_tencent_bcs_namespace", "value": "{{SYS_NAMESPACE}}"},
-    {"name": "io_tencent_bcs_app_appid", "value": "{{SYS_CC_APP_ID}}"},
+    {"name": "io_tencent_bcs_app_appid", "value": ""},
     {"name": "io_tencent_bkdata_baseall_dataid", "value": "6566"},
-    {"name": "io_tencent_bkdata_container_stdlog_dataid", "value": "{{SYS_STANDARD_DATA_ID}}"},
+    {"name": "io_tencent_bkdata_container_stdlog_dataid", "value": ""},
 ]
 
 # 资源来源标签

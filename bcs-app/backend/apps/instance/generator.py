@@ -1362,7 +1362,9 @@ class K8sDeploymentGenerator(K8sProfileGenerator):
                 remove_key(_c, "imageVersion")
 
                 _c["image"] = generate_image_str(
-                    _c.get("image"), self.context["SYS_JFROG_DOMAIN"], self.context["SYS_IMAGE_REGISTRY_LIST"]
+                    _c.get("image"),
+                    self.context.get("SYS_JFROG_DOMAIN", ""),
+                    self.context.get("SYS_IMAGE_REGISTRY_LIST", []),
                 )
 
                 # 2.1 启动命令和参数用 shellhex 命令处理为数组

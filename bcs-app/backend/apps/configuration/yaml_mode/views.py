@@ -134,11 +134,11 @@ class TemplateReleaseViewSet(viewsets.ViewSet, TemplatePermission):
 
     def _raw_release_data(self, project_id, initial_data):
         show_version = initial_data["show_version"]
-        if initial_data["cluster_id"] and initial_data["namespace_name"]:
+        if initial_data.get("cluster_id") or initial_data.get("namespace_name"):
             namespace_info = {
+                "id": 0,
                 "name": initial_data["namespace_name"],
                 "cluster_id": initial_data["cluster_id"],
-                "id": 0,
             }
         else:
             namespace_info = self._get_namespace_info(

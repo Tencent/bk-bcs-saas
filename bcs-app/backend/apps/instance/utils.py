@@ -263,7 +263,13 @@ def generate_namespace_config(namespace_id, instance_entity, is_save, is_validat
     # 查询命名空间相关的参数
     project_id = params.get('project_id')
     access_token = params.get('access_token')
-    has_image_secret, cluster_version, context = get_ns_variable(access_token, project_id, namespace_id)
+    has_image_secret, cluster_version, context = get_ns_variable(
+        access_token,
+        project_id,
+        namespace_id,
+        cluster_id=params.get("cluster_id"),
+        namespace_name=params.get("namespace_name"),
+    )
     params['has_image_secret'] = has_image_secret
     params['cluster_version'] = cluster_version
     params['context'] = context
@@ -413,6 +419,8 @@ def save_all_config(slz_data, access_token="", username="", is_update=False):
             "username": username,
             "lb_info": slz_data.get('lb_info', {}),
             "variable_dict": variable_dict,
+            "cluster_id": slz_data.get("cluster_id"),
+            "namespace_name": slz_data.get("namespace_name"),
         }
         configuration[ns] = generate_namespace_config(ns, instance_entity, is_save=True, **params)
     return configuration

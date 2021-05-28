@@ -273,3 +273,6 @@ CLUSTER_FUNC_CODES = ["MesosResource"]
 
 # 联邦集群环境
 FEDERAL_CLUSTER_ENV = "prod"
+
+
+DIRECT_BCS_SERVER_HOST = os.environ.get("DIRECT_BCS_SERVER_HOST", "")

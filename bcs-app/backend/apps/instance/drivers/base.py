@@ -144,8 +144,8 @@ class SchedulerBase(object):
 
         data = result["data"]["results"] or []
         normal_nodes = [i for i in data if i["status"] == NodeStatus.NORMAL.value]
-        if len(normal_nodes) == 0:
-            raise ClusterNotReady("没有可用节点，请添加或启用节点")
+        # if len(normal_nodes) == 0:
+        #     raise ClusterNotReady("没有可用节点，请添加或启用节点")
 
     def instantiation(self, is_update=False):
         """实例化"""

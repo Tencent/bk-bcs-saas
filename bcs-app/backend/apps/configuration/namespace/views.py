@@ -16,7 +16,6 @@ import json
 import logging
 from itertools import groupby
 
-import requests
 from django.conf import settings
 from django.utils.translation import ugettext_lazy as _
 from rest_framework import response, serializers, viewsets
@@ -117,16 +116,6 @@ class NamespaceBase:
 
     def init_namespace_by_bcs(self, access_token, project_id, project_code, data, request=None):
         """k8s 的集群需要创建 Namespace 和 jfrog Sercret"""
-        if data.get("region"):
-            federal_cluster_id = cluster_utils.get_common_federal_cluster(access_token)["cluster_id"]
-            federal_cluster = bcs_api.FederalClusterData(
-                federationClusterID=federal_cluster_id,
-                projectID=request.project.project_code,
-                businessID=request.project.cc_app_id,
-                region=data["region"],
-            )
-            cluster_utils.create_federal_namespace(access_token, data["name"], federal_cluster, data["quota"])
-            return
         client = K8SClient(access_token, project_id, data['cluster_id'], env=None)
         name = data['name']
         # 创建 ns
@@ -286,6 +275,26 @@ class NamespaceView(NamespaceBase, viewsets.ViewSet):
         if cluster_id:
             results = filter(lambda x: x['cluster_id'] == cluster_id, results)
 
+        # 添加公共集群下的命名空间
+        access_token = request.user.token.access_token
+        federal_cluster_id = cluster_utils.get_common_federal_cluster(access_token)["cluster_id"]
+        federal_cluster = bcs_api.FederalClusterData(
+            federationClusterID=federal_cluster_id,
+            projectID=request.project.project_code,
+            businessID=str(request.project.cc_app_id),
+        )
+        federal_namespaces = cluster_utils.get_federal_cluster_namespaces(access_token, federal_cluster)
+        if federal_namespaces:
+            if group_by:
+                cluster_id = federal_namespaces[0]["cluster_id"]
+            else:
+                cluster_id = federal_namespaces[0]["federal_cluster_id"]
+            for info in federal_namespaces:
+                info["cluster_id"] = cluster_id
+                info["ns_vars"] = []
+                info["permissions"] = {"edit": True, "use": True, "view": True}
+                results.append(info)
+
         if group_by and group_by in valid_group_by:
             # 分组, 排序
             results = [
@@ -314,24 +323,6 @@ class NamespaceView(NamespaceBase, viewsets.ViewSet):
             results = sorted(results, key=lambda x: x['id'], reverse=True)
 
         permissions = {'create': can_create, 'sync_namespace': enabled_sync_namespace(project_id)}
-
-        # 添加公共集群下的命名空间
-        access_token = request.user.token.access_token
-        federal_cluster_id = cluster_utils.get_common_federal_cluster(access_token)["cluster_id"]
-        federal_cluster = bcs_api.FederalClusterData(
-            federationClusterID=federal_cluster_id,
-            projectID=request.project.project_code,
-            businessID=request.project.cc_app_id,
-        )
-        federal_namespaces = cluster_utils.get_federal_cluster_namespaces(access_token, federal_cluster)
-        if federal_namespaces:
-            results.append(
-                {
-                    "name": federal_namespaces[0]["cluster_name"],
-                    "cluster_id": federal_namespaces[0]["cluster_id"],
-                    "results": federal_namespaces,
-                }
-            )
 
         return APIResult(results, 'success', permissions=permissions)
 
@@ -400,7 +391,7 @@ class NamespaceView(NamespaceBase, viewsets.ViewSet):
         # 判断权限
         cluster_id = data['cluster_id']
         perm = None
-        if not data["region"]:
+        if not data.get("region"):
             perm = bcs_perm.Namespace(request, project_id, bcs_perm.NO_RES, cluster_id)
             perm.can_create(raise_exception=is_validate_perm)
 
@@ -412,7 +403,21 @@ class NamespaceView(NamespaceBase, viewsets.ViewSet):
             resource=data['name'],
             description=description,
         ).log_add():
-            result = self.create_flow(request, project_id, data, perm)
+            if data.get("region"):
+                access_token = request.user.token.access_token
+                federal_cluster_id = cluster_utils.get_common_federal_cluster(access_token)["cluster_id"]
+                federal_cluster = bcs_api.FederalClusterData(
+                    federationClusterID=federal_cluster_id,
+                    projectID=request.project.project_code,
+                    businessID=str(request.project.cc_app_id),
+                    region=data["region"],
+                )
+                result = cluster_utils.create_federal_namespace(
+                    access_token, data["name"], federal_cluster, data["quota"]
+                )
+
+            else:
+                result = self.create_flow(request, project_id, data, perm)
 
         return response.Response(result)
 
