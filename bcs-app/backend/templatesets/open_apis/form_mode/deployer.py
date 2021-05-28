@@ -15,13 +15,13 @@ import json
 
 from backend.activity_log import client
 from backend.apps.application.constants import ROLLING_UPDATE_INSTANCE
-from backend.apps.configuration.models import get_model_class_by_resource_name
-from backend.apps.instance.constants import InsState
-from backend.apps.instance.drivers import get_scheduler_driver
-from backend.apps.instance.models import InstanceConfig, VersionInstance
-from backend.apps.instance.utils import generate_namespace_config, save_all_config
 from backend.resources.deployment import Deployment
 from backend.resources.namespace.utils import get_namespace_by_id
+from backend.templatesets.legacy_apps.configuration.models import get_model_class_by_resource_name
+from backend.templatesets.legacy_apps.instance.constants import InsState
+from backend.templatesets.legacy_apps.instance.drivers import get_scheduler_driver
+from backend.templatesets.legacy_apps.instance.models import InstanceConfig, VersionInstance
+from backend.templatesets.legacy_apps.instance.utils import generate_namespace_config, save_all_config
 
 
 def instantiate_resources(access_token, username, release_data, project_kind):
