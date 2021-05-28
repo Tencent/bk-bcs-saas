@@ -70,7 +70,7 @@ class LogClient:
             core_v1.read_namespaced_pod_log,
             self.pod_name,
             self.namespace,
-            tail_lines=10,
+            tail_lines=filter.tail_lines,
             container=filter.container_name,
             timestamps=constants.LOG_SHOW_TIMESTAMPS,
             follow=True,
@@ -84,20 +84,20 @@ class LogClient:
 
         query_params = {
             'container': filter.container_name,
-            'tailLines': 10,
+            'tailLines': filter.tail_lines,
+            'sinceTime': filter.since_time,
             'follow': True,
             'timestamps': constants.LOG_SHOW_TIMESTAMPS,
         }
 
         url = f'{host}{path}?{urlencode(query_params)}'
 
-        headers = {
-            'Accept': 'application/json, */*',
-        }
-
+        headers = {'Accept': 'application/json, */*'}
         headers.update(self.dynamic_client.client.configuration.api_key)
 
         async with aiohttp.ClientSession() as session:
-            async with session.get(url, headers=headers, ssl=False) as response:
+            async with session.get(url, headers=headers, timeout=constants.STREAM_TIMEOUT, ssl=False) as response:
+                response.raise_for_status()
+
                 async for line in response.content:
                     yield line.decode('utf8')

@@ -55,15 +55,20 @@ class LogStreamViewSet(SystemViewSet):
         result = {"logs": logs, "previous": previous}
         return Response(result)
 
-    def session(self, request, project_id: str, cluster_id: str, namespace: str, pod: str):
+    def get_session(self, request, project_id: str, cluster_id: str, namespace: str, pod: str):
         """获取实时日志session"""
-        data = self.params_validate(serializers.FetchLogsSLZ)
+        data = self.params_validate(serializers.GetLogSessionSLZ)
 
-        filter = LogFilter(container_name=data["container_name"])
+        filter = LogFilter(
+            container_name=data["container_name"],
+            since_time=data["since_time"],
+            tail_lines=data["tail_lines"],
+        )
 
         ctx = {
-            'filter': filter,
+            'username': request.user.username,
             'access_token': request.user.token.access_token,
+            'filter': filter,
             'project_id': project_id,
             'cluster_id': cluster_id,
         }
@@ -104,7 +109,7 @@ class LogStreamHandler(AsyncWebsocketConsumer):
         self.pod = self.scope["url_route"]["kwargs"]["pod"]
 
         self.ctx_cluster = self.scope['ctx_cluster']
-        self.container_name = self.scope['ctx_session']['filter']['container_name']
+        self.filter = LogFilter(**self.scope['ctx_session']['filter'])
 
         logger.info("join success, %s", self.namespace)
         self.closed = False
@@ -120,14 +125,11 @@ class LogStreamHandler(AsyncWebsocketConsumer):
     async def receive(self, text_data):
         """获取消息, 目前只有推送, 只打印日志"""
         logger.info("receive message: %s", text_data)
-        self.reader2()
 
     async def reader(self):
         client = LogClient(self.ctx_cluster, self.namespace, self.pod)
 
-        filter = LogFilter(container_name=self.container_name)
-
-        async for line in client.stream(filter):
+        async for line in client.stream(self.filter):
             if self.closed is True:
                 return
 

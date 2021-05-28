@@ -19,7 +19,7 @@ urlpatterns = [
     path('namespaces/<slug:namespace>/pods/<slug:pod>/stdlogs/', views.LogStreamViewSet.as_view({'get': 'fetch'})),
     path(
         'namespaces/<slug:namespace>/pods/<slug:pod>/stdlogs/session/',
-        views.LogStreamViewSet.as_view({'get': 'session'}),
+        views.LogStreamViewSet.as_view({'get': 'get_session'}),
     ),
     path(
         'namespaces/<slug:namespace>/pods/<slug:pod>/stdlogs/download/',

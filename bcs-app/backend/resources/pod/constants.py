@@ -24,6 +24,9 @@ LOG_SHOW_TIMESTAMPS = True
 # 默认最大返回 10MB 日志大小
 LOG_MAX_LIMIT_BYTES = 1024 * 1024 * 10
 
+# 默认超时时间
+STREAM_TIMEOUT = 60 * 60
+
 
 @dataclass
 class LogFilter:
