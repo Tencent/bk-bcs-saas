@@ -15,9 +15,9 @@ from django.utils.translation import ugettext_lazy as _
 from rest_framework import serializers
 
 from backend.accounts import bcs_perm
-from backend.apps.configuration import constants, models
-from backend.apps.configuration.yaml_mode.res2files import get_resource_file, get_template_files
 from backend.resources.namespace.utils import get_namespaces_by_cluster_id
+from backend.templatesets.legacy_apps.configuration import constants, models
+from backend.templatesets.legacy_apps.configuration.yaml_mode.res2files import get_resource_file, get_template_files
 
 
 def get_namespace_id(access_token, project_id, cluster_id, namespace):

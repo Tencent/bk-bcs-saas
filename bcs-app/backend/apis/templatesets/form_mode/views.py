@@ -16,12 +16,10 @@ import copy
 from rest_framework.response import Response
 
 from backend.apis import views
-from backend.apps.configuration.mixins import TemplatePermission
-from backend.apps.configuration.models import get_template_by_project_and_id
-from backend.apps.configuration.showversion.serializers import GetShowVersionSLZ
-from backend.apps.constants import ProjectKind
-from backend.apps.instance.models import VersionInstance
-from backend.utils.error_codes import error_codes
+from backend.templatesets.legacy_apps.configuration.mixins import TemplatePermission
+from backend.templatesets.legacy_apps.configuration.models import get_template_by_project_and_id
+from backend.templatesets.legacy_apps.configuration.showversion.serializers import GetShowVersionSLZ
+from backend.templatesets.legacy_apps.instance.models import VersionInstance
 
 from . import serializers
 from .deployer import DeployController

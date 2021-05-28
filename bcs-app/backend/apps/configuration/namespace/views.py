@@ -26,7 +26,6 @@ from backend.accounts import bcs_perm
 from backend.activity_log import client
 from backend.apps import constants
 from backend.apps.configuration.constants import MesosResourceName
-from backend.apps.configuration.namespace import serializers as slz
 from backend.apps.constants import ClusterType, ProjectKind
 from backend.apps.depot.api import get_bk_jfrog_auth, get_jfrog_account
 from backend.apps.instance.constants import K8S_IMAGE_SECRET_PRFIX, MESOS_IMAGE_SECRET, OLD_MESOS_IMAGE_SECRET
@@ -40,13 +39,14 @@ from backend.container_service.clusters.base.utils import get_clusters
 from backend.resources import namespace as ns_resource
 from backend.resources.namespace.constants import K8S_SYS_PLAT_NAMESPACES
 from backend.resources.namespace.utils import get_namespace_by_id
+from backend.templatesets.legacy_apps.configuration.namespace import serializers as slz
+from backend.templatesets.legacy_apps.configuration.namespace.tasks import sync_namespace as sync_ns_task
 from backend.utils.errcodes import ErrorCode
 from backend.utils.error_codes import error_codes
 from backend.utils.renderers import BKAPIRenderer
 from backend.utils.response import APIResult
 
 from .resources import Namespace
-from .tasks import sync_namespace as sync_ns_task
 
 logger = logging.getLogger(__name__)
 

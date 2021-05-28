@@ -20,10 +20,10 @@ from rest_framework import viewsets
 from backend.apps import utils as app_utils
 from backend.apps.application.base_views import BaseAPI
 from backend.apps.application.utils import APIResponse
-from backend.apps.configuration.k8s.serializers import K8sIngressSLZ
 from backend.apps.constants import ClusterType
 from backend.apps.instance.constants import K8S_INGRESS_SYS_CONFIG
 from backend.components.bcs import k8s
+from backend.templatesets.legacy_apps.configuration.k8s.serializers import K8sIngressSLZ
 from backend.uniapps.resource.views import ResourceOperate
 from backend.utils.errcodes import ErrorCode
 from backend.utils.error_codes import error_codes

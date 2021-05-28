@@ -14,9 +14,9 @@
 from rest_framework.response import Response
 
 from backend.apis.views import NoAccessTokenBaseAPIViewSet
-from backend.apps.configuration.mixins import TemplatePermission
-from backend.apps.configuration.yaml_mode.deployer import DeployController
-from backend.apps.configuration.yaml_mode.release import ReleaseData, ReleaseDataProcessor
+from backend.templatesets.legacy_apps.configuration.mixins import TemplatePermission
+from backend.templatesets.legacy_apps.configuration.yaml_mode.deployer import DeployController
+from backend.templatesets.legacy_apps.configuration.yaml_mode.release import ReleaseData, ReleaseDataProcessor
 
 from .serializers import TemplateReleaseSLZ
 

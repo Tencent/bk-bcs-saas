@@ -27,10 +27,10 @@ from rest_framework.exceptions import ValidationError
 from backend.apps.configuration.utils import check_var_by_config, to_bcs_res_name
 from backend.apps.instance.constants import InsState
 from backend.apps.instance.models import InstanceConfig, VersionInstance
+from backend.templatesets.legacy_apps.configuration.constants_bak import CONFIGMAP_SCHEM, SECRET_SCHEM, SERVICE_SCHEM
+from backend.templatesets.legacy_apps.configuration.constants_k8s import K8S_CONFIGMAP_SCHEM, K8S_SERVICE_SCHEM
 
 from . import models
-from .constants_bak import CONFIGMAP_SCHEM, SECRET_SCHEM, SERVICE_SCHEM
-from .constants_k8s import K8S_CONFIGMAP_SCHEM, K8S_SECRET_SCHEM, K8S_SERVICE_SCHEM
 
 logger = logging.getLogger(__name__)
 

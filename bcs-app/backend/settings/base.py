@@ -62,18 +62,19 @@ INSTALLED_APPS = [
     "backend.container_service.projects",
     "backend.apps.depot",
     "backend.container_service.clusters",
-    "backend.apps.configuration",
-    "backend.apps.templatesets.apps.TemplateSetsConfig",
-    "backend.apps.instance",
+    "backend.templatesets.legacy_apps.configuration.apps.TemplatesetsConfConfig",
+    "backend.templatesets.apps.TemplateSetsConfig",
+    "backend.templatesets.legacy_apps.instance.apps.TemplatesetsInstanceConfig",
     "backend.uniapps.resource",
     "backend.uniapps.network",
     "backend.apps.metric",
-    "backend.apps.variable",
     "backend.apps.ticket",
     "backend.bcs_k8s.app",
     "backend.bcs_k8s.helm",
     "backend.bcs_k8s.authtoken",
     "backend.apps.hosts",
+    # 模板集功能模块
+    "backend.templatesets.var_mgmt.apps.VarMgmtConfig",
 ]
 
 MIDDLEWARE = [

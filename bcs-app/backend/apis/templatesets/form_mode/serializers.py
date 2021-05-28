@@ -18,10 +18,10 @@ from rest_framework.exceptions import ValidationError
 
 from backend.apps.configuration import models
 from backend.apps.configuration.constants import K8sResourceName
-from backend.apps.configuration.showversion.serializers import GetShowVersionSLZ
 from backend.apps.configuration.utils import to_bcs_res_name
 from backend.apps.instance.models import InstanceConfig, VersionInstance
 from backend.apps.instance.utils import validate_ns_by_tempalte_id
+from backend.templatesets.legacy_apps.configuration.showversion.serializers import GetShowVersionSLZ
 
 
 # TODO refactor validate_instance_entity

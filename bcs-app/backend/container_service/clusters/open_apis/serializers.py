@@ -14,8 +14,8 @@
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
-from backend.apps.variable.models import Variable
-from backend.apps.variable.serializers import RE_KEY
+from backend.templatesets.var_mgmt.models import Variable
+from backend.templatesets.var_mgmt.serializers import RE_KEY
 
 
 class VariablesSLZ(serializers.Serializer):
