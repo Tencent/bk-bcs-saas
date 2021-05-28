@@ -111,7 +111,7 @@ class LogStreamHandler(AsyncWebsocketConsumer):
         self.ctx_cluster = self.scope['ctx_cluster']
         self.filter = LogFilter(**self.scope['ctx_session']['filter'])
 
-        logger.info("join success, %s", self.namespace)
+        logger.info("%s connect from client: %s", self.ctx_cluster, self.scope['ctx_session']['username'])
         self.closed = False
 
         await self.accept()
@@ -119,7 +119,7 @@ class LogStreamHandler(AsyncWebsocketConsumer):
         await self.reader()
 
     async def disconnect(self, close_code):
-        logger.info("disconnect from client: %s", close_code)
+        logger.info("%s disconnect from client: %s", self.ctx_cluster, self.scope['ctx_session']['username'])
         self.closed = True
 
     async def receive(self, text_data):
