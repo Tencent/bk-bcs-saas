@@ -12,10 +12,16 @@
 # specific language governing permissions and limitations under the License.
 #
 import logging
+from urllib import parse
 
+from channels.auth import AuthMiddlewareStack
+from django.http.response import HttpResponseForbidden
 from django.utils.deprecation import MiddlewareMixin
+from django.utils.translation import ugettext_lazy as _
 
+from backend.resources.cluster.models import CtxCluster
 from backend.utils.local import local
+from backend.web_console.session import session_mgr
 
 logger = logging.getLogger(__name__)
 
@@ -55,6 +61,41 @@ class RequestProvider(object):
         response['X-Request-Id'] = request.request_id
         local.release()
         return response
+
+
+class BCSAuthMiddleware:
+    """django channel auth middleware"""
+
+    def __init__(self, inner):
+        self.inner = inner
+
+    async def __call__(self, scope, receive, send):
+        query_params = dict(parse.parse_qsl(scope['query_string'].decode('utf8')))
+
+        session_id = query_params.get("session_id", None)
+        if not session_id:
+            raise HttpResponseForbidden(_("session_id为空"))
+
+        session = session_mgr.create("", "")
+        ctx = session.get(session_id)
+        if not ctx:
+            raise HttpResponseForbidden(_("获取ctx为空, session_id不正确或者已经过期"))
+
+        ctx_cluster = CtxCluster.create(
+            id=ctx['cluster_id'],
+            project_id=ctx['project_id'],
+            token=ctx['access_token'],
+        )
+
+        scope["ctx_cluster"] = ctx_cluster
+        scope["ctx_session"] = ctx
+
+        return await self.inner(scope, receive, send)
+
+
+# Handy shortcut for applying all three layers at once
+def BCSAuthMiddlewareStack(inner):
+    return BCSAuthMiddleware(AuthMiddlewareStack(inner))
 
 
 try:

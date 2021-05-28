@@ -21,9 +21,9 @@ from django.utils import timezone
 from rest_framework.response import Response
 
 from backend.bcs_web.viewsets import SystemViewSet
-from backend.resources.cluster.models import CtxCluster
 from backend.resources.pod.constants import LogFilter
 from backend.resources.pod.log import LogClient
+from backend.web_console.session import session_mgr
 
 from . import constants, serializers, utils
 
@@ -55,6 +55,30 @@ class LogStreamViewSet(SystemViewSet):
         result = {"logs": logs, "previous": previous}
         return Response(result)
 
+    def session(self, request, project_id: str, cluster_id: str, namespace: str, pod: str):
+        """获取实时日志session"""
+        data = self.params_validate(serializers.FetchLogsSLZ)
+
+        filter = LogFilter(container_name=data["container_name"])
+
+        ctx = {
+            'filter': filter,
+            'access_token': request.user.token.access_token,
+            'project_id': project_id,
+            'cluster_id': cluster_id,
+        }
+
+        session = session_mgr.create("", "")
+        session_id = session.set(ctx)
+
+        stream_url = (
+            f'/api/logs/projects/{project_id}/clusters/{cluster_id}/namespaces/{namespace}/pods/{pod}/stdlogs/stream/'
+        )
+
+        ws_url = utils.get_ws_url(stream_url, session_id)
+        result = {"session_id": session_id, "ws_url": ws_url}
+        return Response(result)
+
     def download(self, request, project_id: str, cluster_id: str, namespace: str, pod: str):
         """下载日志"""
         data = self.params_validate(serializers.DownloadLogsSLZ)
@@ -75,18 +99,12 @@ class LogStreamViewSet(SystemViewSet):
 
 class LogStreamHandler(AsyncWebsocketConsumer):
     async def connect(self):
+
         self.namespace = self.scope["url_route"]["kwargs"]["namespace"]
         self.pod = self.scope["url_route"]["kwargs"]["pod"]
 
-        access_token = ''
-
-        self.ctx_cluster = CtxCluster.create(
-            id=self.scope['url_route']['kwargs']['cluster_id'],
-            project_id=self.scope['url_route']['kwargs']['project_id'],
-            token=access_token,
-        )
-
-        self.container_name = "bk-redis"
+        self.ctx_cluster = self.scope['ctx_cluster']
+        self.container_name = self.scope['ctx_session']['filter']['container_name']
 
         logger.info("join success, %s", self.namespace)
         self.closed = False
@@ -109,7 +127,7 @@ class LogStreamHandler(AsyncWebsocketConsumer):
 
         filter = LogFilter(container_name=self.container_name)
 
-        async for line in client.reader_log_stream(filter):
+        async for line in client.stream(filter):
             if self.closed is True:
                 return
 
