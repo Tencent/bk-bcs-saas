@@ -17,6 +17,7 @@ from typing import Callable, Dict, List
 import arrow
 from django.conf import settings
 from django.utils.translation import ugettext_lazy as _
+from rest_framework.decorators import action
 from rest_framework.response import Response
 
 from backend.accounts import bcs_perm
@@ -24,7 +25,7 @@ from backend.activity_log import client as activity_client
 from backend.apps.constants import ALL_LIMIT
 from backend.bcs_web.viewsets import SystemViewSet
 from backend.components import paas_cc
-from backend.components.bcs import k8s
+from backend.components.bcs.k8s import K8SClient
 from backend.container_service.observability.metric.constants import (
     DEFAULT_ENDPOINT_INTERVAL,
     DEFAULT_ENDPOINT_PATH,
@@ -170,7 +171,7 @@ class ServiceMonitorMixin:
         执行单个 ServiceMonitor 操作类的通用处理逻辑
 
         :param client_func: k8s client 方法
-        :param operate_str: 操作描述，可选值为：查找，创建，更新，删除
+        :param operate_str: 操作描述，可选值为：创建，更新，删除
         :param project_id: 项目 ID
         :param namespace: 命名空间
         :param name: ServiceMonitor 名称
@@ -185,6 +186,7 @@ class ServiceMonitorMixin:
             self._activity_log(project_id, username, name, message, False)
             raise error_codes.APIError(result.get('message', ''))
 
+        # 仅当指定需要记录 成功信息 才记录
         if log_success:
             message = _('{} Metrics [{}/{}] 成功').format(operate_str, namespace, name)
             self._activity_log(project_id, username, name, message, True)
@@ -202,14 +204,13 @@ class ServiceMonitorViewSet(SystemViewSet, ServiceMonitorMixin):
         if cluster_id not in cluster_map:
             raise error_codes.APIError(_('集群 ID {} 不合法').format(cluster_id))
 
-        client = k8s.K8SClient(request.user.token.access_token, project_id, cluster_id, env=None)
+        client = K8SClient(request.user.token.access_token, project_id, cluster_id, env=None)
         manifest = client.list_service_monitor()
         response_data = self._handle_items(cluster_id, cluster_map, namespace_map, manifest)
 
         perm = bcs_perm.Namespace(request, project_id, bcs_perm.NO_RES)
         response_data = perm.hook_perms(response_data, ns_id_flag='namespace_id')
         response_data = self._update_service_monitor_perm(response_data)
-
         return Response(response_data)
 
     def create(self, request, project_id, cluster_id):
@@ -244,57 +245,58 @@ class ServiceMonitorViewSet(SystemViewSet, ServiceMonitorMixin):
             },
         }
 
-        client = k8s.K8SClient(request.user.token.access_token, project_id, cluster_id, env=None)
+        client = K8SClient(request.user.token.access_token, project_id, cluster_id, env=None)
         result = self._single_service_monitor_operate_handler(
             client.create_service_monitor, _('创建'), project_id, namespace, name, manifest, log_success=True
         )
         return Response(result)
 
+    @action(methods=['DELETE'], url_path='batch', detail=False)
     def batch_delete(self, request, project_id, cluster_id):
         """ 批量删除 ServiceMonitor """
         params = self.params_validate(ServiceMonitorBatchDeleteSLZ)
         svc_monitors = params['service_monitors']
 
         self._validate_namespace_use_perm(project_id, cluster_id, [sm['namespace'] for sm in svc_monitors])
-        client = k8s.K8SClient(request.user.token.access_token, project_id, cluster_id, env=None)
-        successes = []
-        for monitor in svc_monitors:
+        client = K8SClient(request.user.token.access_token, project_id, cluster_id, env=None)
+        for m in svc_monitors:
             self._single_service_monitor_operate_handler(
-                client.delete_service_monitor, _('删除'), project_id, monitor['namespace'], monitor['name']
+                client.delete_service_monitor, _('删除'), project_id, m['namespace'], m['name']
             )
-            successes.append(monitor)
 
-        names = ','.join(i['name'] for i in successes)
-        message = _('删除 Metrics: {} 成功, 命名空间: {}').format(names, ','.join(i['namespace'] for i in successes))
-        self._activity_log(project_id, request.user.username, names, message, True)
-        return Response({'successes': successes})
+        metrics_names = ','.join([f"{sm['namespace']}/{sm['name']}" for sm in svc_monitors])
+        message = _('删除 Metrics: {} 成功').format(metrics_names)
+        self._activity_log(project_id, request.user.username, metrics_names, message, True)
+        return Response({'successes': svc_monitors})
 
 
 class ServiceMonitorDetailViewSet(SystemViewSet, ServiceMonitorMixin):
     """ 单个 ServiceMonitor 相关操作 """
 
-    def get(self, request, project_id, cluster_id, namespace, name):
+    lookup_field = 'name'
+
+    def retrieve(self, request, project_id, cluster_id, namespace, name):
         """ 获取单个 ServiceMonitor """
-        client = k8s.K8SClient(request.user.token.access_token, project_id, cluster_id, env=None)
+        client = K8SClient(request.user.token.access_token, project_id, cluster_id, env=None)
         result = client.get_service_monitor(namespace, name)
         if result.get('status') == 'Failure':
             raise error_codes.APIError(result.get('message', ''))
 
-        labels = result['metadata'].get('labels') or {}
+        labels = getitems(result, 'metadata.labels', {})
         result['metadata'] = {
             k: v for k, v in result['metadata'].items() if k not in INNER_USE_SERVICE_METADATA_FIELDS
         }
         result['metadata']['service_name'] = labels.get(SM_SERVICE_NAME_LABEL)
 
-        if isinstance(result['spec'].get('endpoints'), list):
+        if isinstance(getitems(result, 'spec.endpoints'), list):
             result['spec']['endpoints'] = self._handle_endpoints(result['spec']['endpoints'])
 
         return Response(result)
 
-    def delete(self, request, project_id, cluster_id, namespace, name):
+    def destroy(self, request, project_id, cluster_id, namespace, name):
         """ 删除 ServiceMonitor """
         self._validate_namespace_use_perm(project_id, cluster_id, namespace)
-        client = k8s.K8SClient(request.user.token.access_token, project_id, cluster_id, env=None)
+        client = K8SClient(request.user.token.access_token, project_id, cluster_id, env=None)
         result = self._single_service_monitor_operate_handler(
             client.delete_service_monitor, _('删除'), project_id, namespace, name, manifest=None, log_success=True
         )
@@ -303,7 +305,7 @@ class ServiceMonitorDetailViewSet(SystemViewSet, ServiceMonitorMixin):
     def update(self, request, project_id, cluster_id, namespace, name):
         """ 更新 ServiceMonitor (先删后增) """
         params = self.params_validate(ServiceMonitorUpdateSLZ)
-        client = k8s.K8SClient(request.user.token.access_token, project_id, cluster_id, env=None)
+        client = K8SClient(request.user.token.access_token, project_id, cluster_id, env=None)
         result = self._single_service_monitor_operate_handler(
             client.get_service_monitor, _('更新'), project_id, namespace, name
         )
@@ -328,7 +330,7 @@ class ServiceMonitorDetailViewSet(SystemViewSet, ServiceMonitorMixin):
                 'path': params['path'],
                 'interval': params['interval'],
                 'port': params['port'],
-                'params': params.get('params', {}),
+                'params': params.get('params') or {},
             }
         ]
         manifest['metadata'] = {

@@ -22,22 +22,13 @@ router.register(r'pods/(?P<pod_name>[\w\-.]+)/containers', views.ContainerMetric
 router.register(r'pods', views.PodMetricViewSet, basename='pod')
 router.register(r'nodes', views.NodeMetricViewSet, basename='node')
 router.register(r'targets', views.TargetsViewSet, basename='target')
+router.register(
+    r'service_monitors/(?P<namespace>[\w-]+)', views.ServiceMonitorDetailViewSet, basename='service_monitor_detail'
+)
+router.register(r'service_monitors', views.ServiceMonitorViewSet, basename='service_monitor')
 router.register(r'services', views.ServiceViewSet, basename='service')
 router.register(r'', views.ClusterMetricViewSet, basename='cluster')
 
 urlpatterns = [
     url(r'', include(router.urls)),
 ]
-
-
-# cluster_urlpatterns = [
-#     # 监控信息(New)
-#     url(
-#         r"^servicemonitors/$",
-#         views.servicemonitor.ServiceMonitor.as_view({"get": "list", "post": "create", "delete": "bacth_delete"}),
-#     ),
-#     url(
-#         r"^servicemonitors/(?P<namespace>[\w-]+)/(?P<name>[\w-]+)/$",
-#         views.servicemonitor.ServiceMonitor.as_view({"get": "get", "delete": "delete", "put": "update"}),
-#     )
-# ]
