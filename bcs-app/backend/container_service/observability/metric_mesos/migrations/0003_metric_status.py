@@ -20,7 +20,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('metric_mesos', '0002_auto_20180706_1912'),
+        ('metric', '0002_auto_20180706_1912'),
     ]
 
     operations = [

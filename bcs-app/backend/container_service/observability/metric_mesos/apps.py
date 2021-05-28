@@ -18,3 +18,4 @@ from django.apps import AppConfig
 class AppsConfig(AppConfig):
     name = "backend.container_service.observability.metric_mesos"
     verbose_name = "backend.container_service.observability.metric_mesos"
+    label = 'metric'
