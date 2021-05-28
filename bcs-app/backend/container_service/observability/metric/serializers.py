@@ -130,6 +130,6 @@ class ServiceMonitorCreateSLZ(ServiceMonitorInfoSLZ, ServiceMonitorUpdateSLZ):
 class ServiceMonitorBatchDeleteSLZ(serializers.Serializer):
     """ 批量删除 ServiceMonitor """
 
-    servicemonitors = serializers.ListField(
+    service_monitors = serializers.ListField(
         label='待删除 ServiceMonitor 列表', child=ServiceMonitorInfoSLZ(), allow_empty=False
     )

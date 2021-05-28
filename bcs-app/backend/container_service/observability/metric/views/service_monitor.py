@@ -12,7 +12,7 @@
 # specific language governing permissions and limitations under the License.
 #
 import logging
-from typing import Dict, List
+from typing import Callable, Dict, List
 
 import arrow
 from django.conf import settings
@@ -156,11 +156,46 @@ class ServiceMonitorMixin:
         namespaces = getitems(resp, 'data.results', [])
         return {(i['cluster_id'], i['name']): i['id'] for i in namespaces}
 
+    def _single_service_monitor_operate_handler(
+        self,
+        client_func: Callable,
+        operate_str: str,
+        project_id: str,
+        namespace: str,
+        name: str,
+        manifest: Dict = None,
+        log_success: bool = False,
+    ) -> Dict:
+        """
+        执行单个 ServiceMonitor 操作类的通用处理逻辑
+
+        :param client_func: k8s client 方法
+        :param operate_str: 操作描述，可选值为：查找，创建，更新，删除
+        :param project_id: 项目 ID
+        :param namespace: 命名空间
+        :param name: ServiceMonitor 名称
+        :param manifest: 完整配置信息（创建用），若为 None 则非创建逻辑
+        :param log_success: 操作成功时记录日志
+        :return:
+        """
+        username = self.request.user.username
+        result = client_func(namespace, manifest) if manifest else client_func(namespace, name)
+        if result.get('status') == 'Failure':
+            message = _('{} Metrics [{}/{}] 失败: {}').format(operate_str, namespace, name, result.get('message', ''))
+            self._activity_log(project_id, username, name, message, False)
+            raise error_codes.APIError(result.get('message', ''))
+
+        if log_success:
+            message = _('{} Metrics [{}/{}] 成功').format(operate_str, namespace, name)
+            self._activity_log(project_id, username, name, message, True)
+        return result
+
 
 class ServiceMonitorViewSet(SystemViewSet, ServiceMonitorMixin):
-    """集群ServiceMonitor"""
+    """ 集群 ServiceMonitor 相关操作 """
 
     def list(self, request, project_id, cluster_id):
+        """ 获取 ServiceMonitor 列表 """
         cluster_map = self._get_cluster_map(project_id)
         namespace_map = self._get_namespace_map(project_id)
 
@@ -178,18 +213,19 @@ class ServiceMonitorViewSet(SystemViewSet, ServiceMonitorMixin):
         return Response(response_data)
 
     def create(self, request, project_id, cluster_id):
+        """ 创建 ServiceMonitor """
         params = self.params_validate(ServiceMonitorCreateSLZ)
 
+        name, namespace = params['name'], params['namespace']
         endpoints = [
             {
                 'path': params['path'],
                 'interval': params['interval'],
                 'port': params['port'],
-                'params': params.get('params', {}),
+                'params': params.get('params') or {},
             }
         ]
-
-        spec = {
+        manifest = {
             'apiVersion': 'monitoring.coreos.com/v1',
             'kind': 'ServiceMonitor',
             'metadata': {
@@ -198,8 +234,8 @@ class ServiceMonitorViewSet(SystemViewSet, ServiceMonitorMixin):
                     'io.tencent.paas.source_type': 'bcs',
                     'io.tencent.bcs.service_name': params['service_name'],
                 },
-                'name': params['name'],
-                'namespace': params['namespace'],
+                'name': name,
+                'namespace': namespace,
             },
             'spec': {
                 'endpoints': endpoints,
@@ -209,47 +245,36 @@ class ServiceMonitorViewSet(SystemViewSet, ServiceMonitorMixin):
         }
 
         client = k8s.K8SClient(request.user.token.access_token, project_id, cluster_id, env=None)
-        result = client.create_service_monitor(params['namespace'], spec)
-        if result.get('status') == 'Failure':
-            message = _('创建Metrics:{}失败, [命名空间:{}], {}').format(
-                params['name'], params['namespace'], result.get('message', '')
-            )
-            self._activity_log(project_id, request.user.username, params['name'], message, False)
-            raise error_codes.APIError(result.get('message', ''))
-
-        message = _('创建Metrics:{}成功, [命名空间:{}]').format(params['name'], params['namespace'])
-        self._activity_log(project_id, request.user.username, params['name'], message, True)
+        result = self._single_service_monitor_operate_handler(
+            client.create_service_monitor, _('创建'), project_id, namespace, name, manifest, log_success=True
+        )
         return Response(result)
 
-    def bacth_delete(self, request, project_id, cluster_id):
-        """批量删除"""
+    def batch_delete(self, request, project_id, cluster_id):
+        """ 批量删除 ServiceMonitor """
         params = self.params_validate(ServiceMonitorBatchDeleteSLZ)
-        svc_monitors = params['servicemonitors']
+        svc_monitors = params['service_monitors']
 
         self._validate_namespace_use_perm(project_id, cluster_id, [sm['namespace'] for sm in svc_monitors])
-
         client = k8s.K8SClient(request.user.token.access_token, project_id, cluster_id, env=None)
         successes = []
         for monitor in svc_monitors:
-            result = client.delete_service_monitor(monitor['namespace'], monitor['name'])
-            if result.get('status') == 'Failure':
-                message = _('删除Metrics:{}失败, [命名空间:{}], {}').format(
-                    monitor['name'], monitor['namespace'], result.get('message', '')
-                )
-                self._activity_log(project_id, request.user.username, monitor['name'], message, False)
-                raise error_codes.APIError(result.get('message', ''))
-            else:
-                successes.append(monitor)
+            self._single_service_monitor_operate_handler(
+                client.delete_service_monitor, _('删除'), project_id, monitor['namespace'], monitor['name']
+            )
+            successes.append(monitor)
 
         names = ','.join(i['name'] for i in successes)
-        message = _('删除Metrics:{}成功, [命名空间:{}]').format(names, ','.join(i['namespace'] for i in successes))
+        message = _('删除 Metrics: {} 成功, 命名空间: {}').format(names, ','.join(i['namespace'] for i in successes))
         self._activity_log(project_id, request.user.username, names, message, True)
         return Response({'successes': successes})
 
 
 class ServiceMonitorDetailViewSet(SystemViewSet, ServiceMonitorMixin):
+    """ 单个 ServiceMonitor 相关操作 """
+
     def get(self, request, project_id, cluster_id, namespace, name):
-        """ 获取单个serviceMonitor """
+        """ 获取单个 ServiceMonitor """
         client = k8s.K8SClient(request.user.token.access_token, project_id, cluster_id, env=None)
         result = client.get_service_monitor(namespace, name)
         if result.get('status') == 'Failure':
@@ -267,60 +292,46 @@ class ServiceMonitorDetailViewSet(SystemViewSet, ServiceMonitorMixin):
         return Response(result)
 
     def delete(self, request, project_id, cluster_id, namespace, name):
-        """ 删除servicemonitor """
+        """ 删除 ServiceMonitor """
         self._validate_namespace_use_perm(project_id, cluster_id, namespace)
         client = k8s.K8SClient(request.user.token.access_token, project_id, cluster_id, env=None)
-        result = client.delete_service_monitor(namespace, name)
-        if result.get('status') == 'Failure':
-            message = _('删除Metrics:{}失败, [命名空间:{}], {}').format(name, namespace, result.get('message', ''))
-            self._activity_log(project_id, request.user.username, name, message, False)
-            raise error_codes.APIError(result.get('message', ''))
-
-        message = _('删除Metrics:{}成功, [命名空间:{}]').format(name, namespace)
-        self._activity_log(project_id, request.user.username, name, message, True)
+        result = self._single_service_monitor_operate_handler(
+            client.delete_service_monitor, _('删除'), project_id, namespace, name, manifest=None, log_success=True
+        )
         return Response(result)
 
     def update(self, request, project_id, cluster_id, namespace, name):
+        """ 更新 ServiceMonitor (先删后增) """
         params = self.params_validate(ServiceMonitorUpdateSLZ)
-
         client = k8s.K8SClient(request.user.token.access_token, project_id, cluster_id, env=None)
-        result = client.get_service_monitor(namespace, name)
-        if result.get('status') == 'Failure':
-            message = _('更新Metrics:{}失败, [命名空间:{}], {}').format(name, namespace, result.get('message', ''))
-            self._activity_log(project_id, request.user.username, name, message, False)
-            raise error_codes.APIError(result.get('message', ''))
+        result = self._single_service_monitor_operate_handler(
+            client.get_service_monitor, _('更新'), project_id, namespace, name
+        )
+        manifest = self._update_manifest(result, params)
 
-        spec = self._merge_spec(result, params)
-
-        # 更新会合并selector，所有是先删除, 再创建
-        result = client.delete_service_monitor(namespace, name)
-        if result.get('status') == 'Failure':
-            message = _('更新Metrics:{}失败, [命名空间:{}], {}').format(name, namespace, result.get('message', ''))
-            self._activity_log(project_id, request.user.username, name, message, False)
-            raise error_codes.APIError(result.get('message', ''))
-
-        result = client.create_service_monitor(namespace, spec)
-        if result.get('status') == 'Failure':
-            message = _('更新Metrics:{}失败, [命名空间:{}], {}').format(name, namespace, result.get('message', ''))
-            self._activity_log(project_id, request.user.username, name, message, False)
-            raise error_codes.APIError(result.get('message', ''))
-
-        message = _('更新Metrics:{}成功, [命名空间:{}]').format(name, namespace)
-        self._activity_log(project_id, request.user.username, name, message, True)
+        # 更新会合并 selector，因此先删除, 再创建
+        self._single_service_monitor_operate_handler(
+            client.delete_service_monitor, _('更新'), project_id, namespace, name
+        )
+        result = self._single_service_monitor_operate_handler(
+            client.create_service_monitor, _('更新'), project_id, namespace, name, manifest, log_success=True
+        )
         return Response(result)
 
-    def _merge_spec(self, spec, validated_data):
-        spec['metadata']['labels']['release'] = 'po'
-        spec['spec']['selector'] = {'matchLabels': validated_data['selector']}
-        spec['spec']['sampleLimit'] = validated_data['sample_limit']
-        spec['spec']['endpoints'] = [
+    def _update_manifest(self, manifest: Dict, params: Dict) -> Dict:
+        """ 使用 api 请求参数更新 manifest """
+        manifest['metadata']['labels']['release'] = 'po'
+        manifest['spec']['selector'] = {'matchLabels': params['selector']}
+        manifest['spec']['sampleLimit'] = params['sample_limit']
+        manifest['spec']['endpoints'] = [
             {
-                'path': validated_data['path'],
-                'interval': validated_data['interval'],
-                'port': validated_data['port'],
-                'params': validated_data.get('params', {}),
+                'path': params['path'],
+                'interval': params['interval'],
+                'port': params['port'],
+                'params': params.get('params', {}),
             }
         ]
-        spec['metadata'] = {k: v for k, v in spec['metadata'].items() if k not in INNER_USE_SERVICE_METADATA_FIELDS}
-
-        return spec
+        manifest['metadata'] = {
+            k: v for k, v in manifest['metadata'].items() if k not in INNER_USE_SERVICE_METADATA_FIELDS
+        }
+        return manifest
