@@ -225,7 +225,7 @@ class Pod(base.MetricViewMixin, viewsets.ViewSet):
     """Pod相关"""
 
     renderer_classes = (BKAPIRenderer, BrowsableAPIRenderer)
-    serializer_class = serializers.PromContainerMetricSLZ
+    serializer_class = serializers.PromPodMetricSLZ
 
     def _update_result(self, result, res_id_map):
         """mesos转换pod_name"""

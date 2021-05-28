@@ -42,7 +42,7 @@ class NodeMetricViewSet(SystemViewSet):
 
     lookup_field = 'node_ip'
 
-    @action(methods=['GET'], url_path='overview', detail=True)
+    @action(methods=['POST'], url_path='overview', detail=True)
     def overview(self, request, project_id, cluster_id, node_ip):
         """ 节点指标总览 """
         params = self.params_validate(FetchMetricOverviewSLZ)

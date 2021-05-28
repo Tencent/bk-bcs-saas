@@ -32,7 +32,7 @@ from backend.utils.node import get_cluster_node_list
 class ClusterMetricViewSet(SystemViewSet):
     """ 集群相关指标 """
 
-    @action(methods=['GET'], url_path='overview', detail=False)
+    @action(methods=['POST'], url_path='overview', detail=False)
     def overview(self, request, project_id, cluster_id):
         """ 集群指标总览 """
         params = self.params_validate(FetchMetricOverviewSLZ)
