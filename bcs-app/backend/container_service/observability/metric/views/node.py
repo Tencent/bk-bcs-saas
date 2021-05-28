@@ -28,6 +28,7 @@ from backend.components.prometheus import (
     get_node_network_transmit,
 )
 from backend.container_service.observability.metric.constants import (
+    IPV4_REGEX_EXP,
     NODE_DIMENSIONS_FUNC,
     NODE_UNAME_METRIC,
     NODE_USAGE_METRIC,
@@ -41,6 +42,8 @@ from backend.utils.node import get_cluster_node_list
 class NodeMetricViewSet(SystemViewSet):
 
     lookup_field = 'node_ip'
+    # 指定匹配 IPV4 地址
+    lookup_value_regex = IPV4_REGEX_EXP
 
     @action(methods=['POST'], url_path='overview', detail=True)
     def overview(self, request, project_id, cluster_id, node_ip):
