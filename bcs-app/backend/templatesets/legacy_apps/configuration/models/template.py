@@ -100,7 +100,6 @@ class Template(BaseModel):
     default_objects = models.Manager()
 
     class Meta:
-        db_table = 'configuration_template'
         index_together = ("is_deleted", "project_id")
         unique_together = ("project_id", "name")
         ordering = ("-updated",)
@@ -316,7 +315,6 @@ class ShowVersion(BaseModel):
     default_objects = models.Manager()
 
     class Meta:
-        db_table = 'configuration_showversion'
         index_together = ("is_deleted", "template_id")
         unique_together = ("template_id", "name")
         ordering = ("-updated",)
@@ -390,9 +388,6 @@ class VersionedEntity(BaseModel):
     last_version_id = models.IntegerField("上一个版本ID", default=0)
 
     objects = VersionedEntityManager()
-
-    class Meta:
-        db_table = 'configuration_versionedentity'
 
     def __str__(self):
         return f"<{self.version}/{self.template_id}/{self.last_version_id}>"

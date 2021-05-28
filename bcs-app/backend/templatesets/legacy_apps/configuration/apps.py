@@ -15,5 +15,6 @@ from django.apps import AppConfig
 
 
 class TemplatesetsConfConfig(AppConfig):
-    name = "backend.templatesets.legacy_apps.configuration"
-    verbose_name = "Templatesets Configuration"
+    name = 'backend.templatesets.legacy_apps.configuration'
+    verbose_name = 'Templatesets Configuration'
+    label = 'configuration'

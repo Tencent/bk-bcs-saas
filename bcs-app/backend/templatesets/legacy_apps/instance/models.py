@@ -52,9 +52,6 @@ class VersionInstance(BaseModel):
     show_version_id = models.IntegerField(_("用户可见版本ID"), default=0)
     show_version_name = models.CharField(_("用户可见版本Name"), max_length=255, default='')
 
-    class Meta:
-        db_table = 'instance_versioninstance'
-
     @property
     def get_entity(self):
         return json.loads(self.instance_entity)
@@ -120,9 +117,6 @@ class InstanceConfig(BaseModel):
     # 保存变量信息
     variables = models.TextField(_("变量"), default='{}')
 
-    class Meta:
-        db_table = 'instance_instanceconfig'
-
     def save(self, *args, **kwargs):
         # 保存时,name字段单独保存
         config = json.loads(self.config)
@@ -145,9 +139,6 @@ class MetricConfig(BaseModel):
     ins_state = models.IntegerField(_("实例化状态"), default=InsState.NO_INS.value, choices=InsState.get_choices())
     # 保存变量信息
     variables = models.TextField(_("变量"), default='{}')
-
-    class Meta:
-        db_table = 'instance_metricconfig'
 
     def save(self, *args, **kwargs):
         # 保存时,name字段单独保存
@@ -189,9 +180,6 @@ class InstanceEvent(BaseModel):
     msg = models.TextField(_("消息"))
 
     resp_snapshot = models.TextField(_("返回快照"))
-
-    class Meta:
-        db_table = 'instance_instanceevent'
 
     @classmethod
     def log(cls, instance_config_id, category, msg_type, result, context):

@@ -40,5 +40,4 @@ class ResourceFile(BaseModel):
     template_id = models.IntegerField()
 
     class Meta:
-        db_table = 'configuration_resourcefile'
         ordering = ('name',)

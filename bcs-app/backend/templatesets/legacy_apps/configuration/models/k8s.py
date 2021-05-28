@@ -129,18 +129,15 @@ class K8sPodResource(K8sResource):
 
 
 class K8sConfigMap(K8sResource, ConfigMapAndSecretMixin):
-    class Meta:
-        db_table = 'configuration_k8sconfigmap'
+    """"""
 
 
 class K8sSecret(K8sResource, ConfigMapAndSecretMixin):
-    class Meta:
-        db_table = 'configuration_k8ssecret'
+    """"""
 
 
 class K8sDeployment(K8sPodResource, PodMixin):
-    class Meta:
-        db_table = 'configuration_k8sdeployment'
+    """"""
 
     @classmethod
     def get_resources_info(cls, resource_id_list):
@@ -152,20 +149,15 @@ class K8sDeployment(K8sPodResource, PodMixin):
 
 
 class K8sDaemonSet(K8sPodResource, PodMixin):
-    class Meta:
-        db_table = 'configuration_k8sdaemonset'
+    """"""
 
 
 class K8sJob(K8sPodResource, PodMixin):
-    class Meta:
-        db_table = 'configuration_k8sjob'
+    """"""
 
 
 class K8sStatefulSet(K8sPodResource, PodMixin):
     service_tag = models.CharField("关联的K8sService 标识", max_length=32)
-
-    class Meta:
-        db_table = 'configuration_k8sstatefulset'
 
     def get_res_config(self, is_simple):
         c = super().get_res_config(is_simple)
@@ -181,9 +173,6 @@ class K8sService(K8sResource, ResourceMixin):
 
     deploy_tag_list = models.TextField("关联的含有Pod资源(如K8sDeployment)的ID", help_text="可以关联多个Pod,json格式存储,可选")
     service_tag = models.CharField("K8sService 标识", max_length=32, help_text="每次保存时会生成新的应用记录，用来记录与其他资源的关联关系")
-
-    class Meta:
-        db_table = 'configuration_k8sservice'
 
     def save(self, *args, **kwargs):
         if isinstance(self.deploy_tag_list, list):
@@ -258,9 +247,6 @@ class K8sIngress(K8sResource, ResourceMixin):
     desc = models.TextField("描述", help_text="前台展示字段，bcs api 中无该信息")
     category = models.CharField("类型", max_length=16, blank=True, null=True, help_text="该字段已经废弃")
 
-    class Meta:
-        db_table = 'configuration_k8singress'
-
     def get_tls_secret_list(self):
         tls_secret_list = []
         # 配置项中每一个tls证书需要生成一个secret文件
@@ -283,8 +269,7 @@ class K8sIngress(K8sResource, ResourceMixin):
 
 
 class K8sHPA(K8sResource, ResourceMixin):
-    class Meta:
-        db_table = 'configuration_k8shpa'
+    """"""
 
 
 # 资源类型在前端展示的名称

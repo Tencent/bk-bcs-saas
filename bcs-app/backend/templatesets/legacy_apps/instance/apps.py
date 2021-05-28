@@ -15,5 +15,6 @@ from django.apps import AppConfig
 
 
 class TemplatesetsInstanceConfig(AppConfig):
-    name = "backend.templatesets.legacy_apps.instance"
-    verbose_name = "Templatesets Instance"
+    name = 'backend.templatesets.legacy_apps.instance'
+    verbose_name = 'Templatesets Instance'
+    label = 'instance'

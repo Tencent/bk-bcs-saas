@@ -15,5 +15,6 @@ from django.apps import AppConfig
 
 
 class VarMgmtConfig(AppConfig):
-    name = "backend.templatesets.var_mgmt"
-    verbose_name = "Variable Management"
+    name = 'backend.templatesets.var_mgmt'
+    verbose_name = 'Variable Management'
+    label = 'variable'

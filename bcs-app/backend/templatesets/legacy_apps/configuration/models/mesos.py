@@ -77,24 +77,15 @@ class ConfigMap(MesosResource, MConfigMapAndSecretMixin):
     Application ->挂在卷/环境变量 ->ConfigMap
     """
 
-    class Meta:
-        db_table = 'configuration_configmap'
-
 
 class Secret(MesosResource, MConfigMapAndSecretMixin):
     """
     Application ->挂在卷/环境变量 ->Secret
     """
 
-    class Meta:
-        db_table = 'configuration_secret'
-
 
 class HPA(MesosResource, MConfigMapAndSecretMixin):
     """HPA数据表"""
-
-    class Meta:
-        db_table = 'configuration_hpa'
 
 
 class Application(MesosResource, PodMixin):
@@ -103,9 +94,6 @@ class Application(MesosResource, PodMixin):
     desc = models.TextField("描述", help_text="前台展示字段，bcs api 中无该信息")
     config = models.TextField("配置信息", help_text="包含：实例数量\ restart策略\kill策略\备注\调度约束\网络\容器信息")
     app_id = models.CharField("应用ID", max_length=32, help_text="每次保存时会生成新的应用记录，用app_id来记录与其他资源的关联关系")
-
-    class Meta:
-        db_table = 'configuration_application'
 
     @classmethod
     def perform_create(cls, **kwargs):
@@ -223,9 +211,6 @@ class Deplpyment(MesosResource, ResourceMixin):
     desc = models.TextField("描述", help_text="前台展示字段，bcs api 中无该信息")
     config = models.TextField("配置信息", help_text="包含：升级策略")
 
-    class Meta:
-        db_table = 'configuration_deplpyment'
-
     def save(self, *args, **kwargs):
         if isinstance(self.config, dict):
             self.config = json.dumps(self.config)
@@ -258,9 +243,6 @@ class Service(MesosResource, ResourceMixin):
     """
 
     app_id = models.TextField("关联的Application ID", help_text="可以关联多个Application")
-
-    class Meta:
-        db_table = 'configuration_service'
 
     def save(self, *args, **kwargs):
         # 保存时,name字段单独保存
@@ -345,6 +327,3 @@ class Service(MesosResource, ResourceMixin):
 
 class Ingress(MesosResource, MConfigMapAndSecretMixin):
     """mesos ingress表"""
-
-    class Meta:
-        db_table = 'configuration_ingress'

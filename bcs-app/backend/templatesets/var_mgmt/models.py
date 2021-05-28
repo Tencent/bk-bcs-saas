@@ -55,7 +55,6 @@ class Variable(BaseModel):
     default_objects = models.Manager()
 
     class Meta:
-        db_table = 'variable_variable'
         ordering = ('category', '-id')
 
     def save(self, *args, **kwargs):
@@ -101,7 +100,6 @@ class ClusterVariable(BaseModel):
     data = models.TextField(_("值"), help_text=_("以{'value':'值'}格式存储默认值,可以存储字符串和数字"))
 
     class Meta:
-        db_table = 'variable_clustervariable'
         ordering = ('-id',)
         unique_together = ("var_id", "cluster_id")
 
@@ -186,7 +184,6 @@ class NameSpaceVariable(BaseModel):
     data = models.TextField(_("值"), help_text=_("以{'value':'值'}格式存储默认值,可以存储字符串和数字"))
 
     class Meta:
-        db_table = 'variable_namespacevariable'
         ordering = ('-id',)
         unique_together = ("var_id", "ns_id")
 
