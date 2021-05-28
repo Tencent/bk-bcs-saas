@@ -17,7 +17,7 @@ from . import views
 
 websocket_urlpatterns = [
     path(
-        'api/logs/projects/<slug:project_id>/clusters/<slug:cluster_id>/namespaces/<slug:namespace>/pods/<slug:pod>/stdlogs/stream/',  # noqa
+        'ws/logs/projects/<slug:project_id>/clusters/<slug:cluster_id>/namespaces/<slug:namespace>/pods/<slug:pod>/stdlogs/stream/',  # noqa
         views.LogStreamHandler.as_asgi(),
     ),
 ]
