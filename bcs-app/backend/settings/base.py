@@ -60,7 +60,7 @@ INSTALLED_APPS = [
     "backend.accounts",
     "backend.activity_log.ActivaityLogConfig",
     "backend.container_service.projects",
-    "backend.apps.depot",
+    "backend.container_service.misc.depot",
     "backend.container_service.clusters",
     "backend.apps.configuration",
     "backend.apps.templatesets.apps.TemplateSetsConfig",
