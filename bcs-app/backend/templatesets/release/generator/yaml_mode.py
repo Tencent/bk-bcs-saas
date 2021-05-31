@@ -17,8 +17,8 @@ from typing import Dict, List
 import jinja2
 from rest_framework.exceptions import ParseError
 
-from backend.bcs_k8s.app import bcs_info_injector
-from backend.bcs_k8s.helm import bcs_variable
+from backend.helm.app import bcs_info_injector
+from backend.helm.helm import bcs_variable
 from backend.templatesets.legacy_apps.configuration.constants import FileResourceName
 from backend.templatesets.legacy_apps.configuration.yaml_mode import res2files
 from backend.templatesets.models import ResourceData

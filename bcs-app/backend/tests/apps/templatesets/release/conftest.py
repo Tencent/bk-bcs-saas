@@ -64,8 +64,8 @@ def yaml_release_data(bk_user, cluster_id, yaml_template, yaml_version_entity, y
         namespace_id=1,
     )
 
-    with mock.patch('backend.bcs_k8s.app.bcs_info_provider.paas_cc', new=FakePaaSCCMod()), mock.patch(
-        'backend.bcs_k8s.helm.bcs_variable.paas_cc', new=FakePaaSCCMod()
+    with mock.patch('backend.helm.app.bcs_info_provider.paas_cc', new=FakePaaSCCMod()), mock.patch(
+        'backend.helm.helm.bcs_variable.paas_cc', new=FakePaaSCCMod()
     ):
         data_generator = generator.ReleaseDataGenerator(name="gw", res_ctx=context)
         release_data = data_generator.generate()

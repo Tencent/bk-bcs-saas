@@ -13,7 +13,7 @@
 #
 """A kubectl CLI wrapper module
 
-see: backend/tests/bcs_k8s/test_kubectl.py for more usage
+see: backend/tests/helm/test_kubectl.py for more usage
 """
 from .kubeconfig import Cluster, Context, KubeConfig, User
 from .kubectl import KubectlClusterClient

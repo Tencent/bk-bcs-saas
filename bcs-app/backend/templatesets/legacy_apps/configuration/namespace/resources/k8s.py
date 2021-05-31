@@ -17,9 +17,9 @@ import logging
 
 from django.conf import settings
 
-from backend.apps.depot.api import get_bk_jfrog_auth, get_jfrog_account
 from backend.components import paas_cc
 from backend.components.bcs.k8s import K8SClient
+from backend.container_service.misc.depot.api import get_bk_jfrog_auth, get_jfrog_account
 from backend.resources.namespace import NamespaceQuota
 from backend.resources.namespace.constants import K8S_PLAT_NAMESPACE, K8S_SYS_NAMESPACE
 from backend.templatesets.legacy_apps.instance.constants import K8S_IMAGE_SECRET_PRFIX

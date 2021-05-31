@@ -17,9 +17,9 @@ import logging
 from django.conf import settings
 from django.utils.translation import ugettext_lazy as _
 
-from backend.apps.depot.api import get_jfrog_account
 from backend.components import paas_cc
 from backend.components.bcs.mesos import MesosClient
+from backend.container_service.misc.depot.api import get_jfrog_account
 from backend.templatesets.legacy_apps.instance.constants import MESOS_IMAGE_SECRET, OLD_MESOS_IMAGE_SECRET
 from backend.utils.errcodes import ErrorCode
 from backend.utils.error_codes import error_codes

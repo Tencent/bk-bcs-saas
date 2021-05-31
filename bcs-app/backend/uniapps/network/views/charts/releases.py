@@ -15,8 +15,8 @@ import logging
 
 from django.db.models import Q
 
-from backend.bcs_k8s.app.models import App
-from backend.bcs_k8s.helm import bcs_variable
+from backend.helm.app.models import App
+from backend.helm.helm import bcs_variable
 
 logger = logging.getLogger(__name__)
 

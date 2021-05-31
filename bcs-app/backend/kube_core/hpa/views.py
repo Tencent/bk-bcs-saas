@@ -20,13 +20,13 @@ from rest_framework.renderers import BrowsableAPIRenderer
 from rest_framework.response import Response
 
 from backend.accounts import bcs_perm
-from backend.apps.application.base_views import BaseAPI
 from backend.apps.configuration.constants import K8sResourceName
 from backend.apps.constants import ALL_LIMIT
 from backend.components import paas_cc
 from backend.kube_core.hpa import constants, utils
 from backend.resources.hpa import exceptions as hpa_exceptions
 from backend.resources.hpa import hpa as hpa_client
+from backend.uniapps.application.base_views import BaseAPI
 from backend.uniapps.network.serializers import BatchResourceSLZ
 from backend.uniapps.resource.views import ResourceOperate
 from backend.utils.error_codes import error_codes

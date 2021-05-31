@@ -24,9 +24,6 @@ from rest_framework.response import Response
 from backend.accounts import bcs_perm
 from backend.activity_log import client as activity_client
 from backend.apps import utils as app_utils
-from backend.apps.application.base_views import BaseAPI
-from backend.apps.application.constants import DELETE_INSTANCE, SOURCE_TYPE_MAP
-from backend.apps.application.utils import APIResponse
 from backend.apps.constants import ProjectKind
 from backend.components.bcs import k8s, mesos
 from backend.resources.namespace.constants import K8S_PLAT_NAMESPACE, K8S_SYS_NAMESPACE
@@ -69,6 +66,9 @@ from backend.templatesets.legacy_apps.instance.generator import (
 )
 from backend.templatesets.legacy_apps.instance.models import InstanceConfig
 from backend.templatesets.legacy_apps.instance.utils_pub import get_cluster_version
+from backend.uniapps.application.base_views import BaseAPI
+from backend.uniapps.application.constants import DELETE_INSTANCE, SOURCE_TYPE_MAP
+from backend.uniapps.application.utils import APIResponse
 from backend.uniapps.network.ext_routes import delete_svc_extended_routes, get_svc_extended_routes
 from backend.uniapps.network.serializers import BatchResourceSLZ
 from backend.uniapps.network.utils import get_svc_access_info

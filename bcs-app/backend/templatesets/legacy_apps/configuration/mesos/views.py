@@ -18,7 +18,7 @@ from rest_framework import viewsets
 from rest_framework.renderers import BrowsableAPIRenderer
 from rest_framework.response import Response
 
-from backend.apps.application.constants import MESOS_KIND
+from backend.uniapps.application.constants import MESOS_KIND
 from backend.uniapps.network.models import MesosLoadBlance
 from backend.utils.error_codes import error_codes
 from backend.utils.renderers import BKAPIRenderer

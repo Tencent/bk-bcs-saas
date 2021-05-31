@@ -20,13 +20,13 @@ import re
 from django.utils.translation import ugettext_lazy as _
 from rest_framework.exceptions import ValidationError
 
-from backend.apps.application.constants import UNNORMAL_STATUS
 from backend.apps.constants import BACKEND_IMAGE_PATH, CONTROLLER_IMAGE_PATH
 from backend.components import paas_cc
 from backend.components.bcs import mesos
 from backend.templatesets.legacy_apps.instance import constants as inst_constants
 from backend.templatesets.legacy_apps.instance.funutils import render_mako_context
 from backend.templatesets.legacy_apps.instance.generator import handel_custom_network_mode, handle_intersection_item
+from backend.uniapps.application.constants import UNNORMAL_STATUS
 from backend.uniapps.network.constants import K8S_NGINX_INGRESS_CONTROLLER_CHART_VALUES, MESOS_LB_NAMESPACE
 from backend.uniapps.network.models import MesosLoadBlance
 from backend.utils.basic import getitems

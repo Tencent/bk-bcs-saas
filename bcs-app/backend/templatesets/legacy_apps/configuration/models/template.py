@@ -21,13 +21,13 @@ from django.utils.translation import ugettext_lazy as _
 from jsonfield import JSONField
 from rest_framework.exceptions import ValidationError
 
-from backend.apps.application.constants import K8S_KIND, MESOS_KIND
 from backend.apps.metric.models import Metric
 from backend.templatesets.legacy_apps.instance.constants import (
     APPLICATION_ID_SEPARATOR,
     INGRESS_ID_SEPARATOR,
     LOG_CONFIG_MAP_SUFFIX,
 )
+from backend.uniapps.application.constants import K8S_KIND, MESOS_KIND
 
 from .. import constants
 from . import k8s, mesos, resfile

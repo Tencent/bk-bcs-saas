@@ -21,8 +21,8 @@ from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 
 from backend.accounts import bcs_perm
-from backend.apps.application.constants import K8S_KIND, MESOS_KIND
 from backend.apps.constants import ClusterType
+from backend.uniapps.application.constants import K8S_KIND, MESOS_KIND
 from backend.utils.basic import RequestClass
 
 from .fixture.template_k8s import K8S_TEMPLATE

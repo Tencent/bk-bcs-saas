@@ -15,7 +15,7 @@ from datetime import datetime, timedelta
 
 import pytest
 
-from backend.bcs_k8s.app.views import AppView
+from backend.helm.app.views import AppView
 
 current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 timeout_time = (datetime.now() - timedelta(minutes=15)).strftime("%Y-%m-%d %H:%M:%S")

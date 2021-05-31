@@ -13,8 +13,8 @@
 #
 import logging
 
-from backend.bcs_k8s.helm.providers import repo_provider
-from backend.bcs_k8s.helm.tasks import sync_helm_repo
+from backend.helm.helm.providers import repo_provider
+from backend.helm.helm.tasks import sync_helm_repo
 
 logger = logging.getLogger(__name__)
 
