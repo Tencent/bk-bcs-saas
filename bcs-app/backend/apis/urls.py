@@ -27,16 +27,16 @@ urlpatterns = [
         include("backend.container_service.clusters.open_apis.urls"),
     ),
     # TODO ^templatesets/projects/ will replace ^projects/(?P<project_id>\w{32})/configuration/ in apigw
-    url(r"^projects/(?P<project_id_or_code>[\w\-]+)/configuration/", include("backend.apis.templatesets.urls")),
-    url(r"^templatesets/projects/(?P<project_id_or_code>[\w\-]+)/", include("backend.apis.templatesets.urls")),
+    url(r"^projects/(?P<project_id_or_code>[\w\-]+)/configuration/", include("backend.templatesets.open_apis.urls")),
+    url(r"^templatesets/projects/(?P<project_id_or_code>[\w\-]+)/", include("backend.templatesets.open_apis.urls")),
     # TODO ^templatesets/projects/ will replace ^projects/(?P<project_id>\w{32})/configuration/templates/ in apigw
     url(
         r"^projects/(?P<project_id>\w{32})/configuration/templates/",
-        include("backend.apis.templatesets.template_urls"),
+        include("backend.templatesets.open_apis.template_urls"),
     ),
     url(
         r"^templatesets/projects/(?P<project_id>\w{32})/templates/",
-        include("backend.apis.templatesets.template_urls"),
+        include("backend.templatesets.open_apis.template_urls"),
     ),
     # 提供给iam拉取资源实例的url(已注册到iam后台)
     url(r"^iam/", include("backend.apis.iam.urls")),
@@ -53,5 +53,5 @@ urlpatterns = [
     # TODO ^helm/projects/ will replace ^projects/(?P<project_id_or_code>[\w\-]+)/helm/ in apigw
     url(r"^projects/(?P<project_id_or_code>[\w\-]+)/helm/", include("backend.apis.helm.urls")),
     url(r"^helm/projects/(?P<project_id_or_code>[\w\-]+)/", include("backend.apis.helm.urls")),
-    url(r"^var_mgr/projects/(?P<project_id>\w{32})/", include("backend.apis.variables.urls")),
+    url(r"^var_mgmt/projects/(?P<project_id>\w{32})/", include("backend.templatesets.var_mgmt.open_apis.urls")),
 ]

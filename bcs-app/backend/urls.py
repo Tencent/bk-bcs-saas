@@ -45,11 +45,11 @@ urlpatterns = [
     url(r"^", include("backend.apps.metric.urls")),
     url(r"^api/projects/(?P<project_id>\w{32})/", include("backend.apps.metric.urls_new")),
     # 配置管理(旧模板集)
-    url(r"^", include("backend.apps.configuration.urls")),
+    url(r"^", include("backend.templatesets.legacy_apps.configuration.urls")),
     # TODO 新模板集url入口，后续替换上面的configuration
-    url(r"^api/templatesets/projects/(?P<project_id>\w{32})/", include("backend.apps.templatesets.urls")),
+    url(r"^api/templatesets/projects/(?P<project_id>\w{32})/", include("backend.templatesets.urls")),
     # 变量管理
-    url(r"^", include("backend.apps.variable.urls")),
+    url(r"^", include("backend.templatesets.var_mgmt.urls")),
     # 应用管理
     url(r"^", include("backend.apps.application.urls")),
     url(r"^", include("backend.activity_log.urls")),

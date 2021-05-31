@@ -15,10 +15,10 @@ import logging
 
 from django.utils.translation import ugettext_lazy as _
 
-from backend.apps.configuration.init_data import init_template
 from backend.apps.depot.api import create_project_path_by_api
 from backend.components import cc
 from backend.container_service.projects.drivers.base import BaseDriver
+from backend.templatesets.legacy_apps.configuration.init_data import init_template
 from backend.utils.notify import notify_manager
 
 logger = logging.getLogger(__name__)

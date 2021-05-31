@@ -27,11 +27,23 @@ from backend.apps import utils as app_utils
 from backend.apps.application.base_views import BaseAPI
 from backend.apps.application.constants import DELETE_INSTANCE, SOURCE_TYPE_MAP
 from backend.apps.application.utils import APIResponse
-from backend.apps.configuration.constants import TemplateEditMode
-from backend.apps.configuration.models import Application, K8sService, Service, ShowVersion, Template, VersionedEntity
-from backend.apps.configuration.serializers import K8sServiceCreateOrUpdateSLZ, ServiceCreateOrUpdateSLZ
 from backend.apps.constants import ProjectKind
-from backend.apps.instance.constants import (
+from backend.components.bcs import k8s, mesos
+from backend.resources.namespace.constants import K8S_PLAT_NAMESPACE, K8S_SYS_NAMESPACE
+from backend.templatesets.legacy_apps.configuration.constants import TemplateEditMode
+from backend.templatesets.legacy_apps.configuration.models import (
+    Application,
+    K8sService,
+    Service,
+    ShowVersion,
+    Template,
+    VersionedEntity,
+)
+from backend.templatesets.legacy_apps.configuration.serializers import (
+    K8sServiceCreateOrUpdateSLZ,
+    ServiceCreateOrUpdateSLZ,
+)
+from backend.templatesets.legacy_apps.instance.constants import (
     ANNOTATIONS_CREATE_TIME,
     ANNOTATIONS_CREATOR,
     ANNOTATIONS_UPDATE_TIME,
@@ -45,9 +57,9 @@ from backend.apps.instance.constants import (
     SEVICE_SYS_CONFIG,
     SOURCE_TYPE_LABEL_KEY,
 )
-from backend.apps.instance.drivers import get_scheduler_driver
-from backend.apps.instance.funutils import render_mako_context, update_nested_dict
-from backend.apps.instance.generator import (
+from backend.templatesets.legacy_apps.instance.drivers import get_scheduler_driver
+from backend.templatesets.legacy_apps.instance.funutils import render_mako_context, update_nested_dict
+from backend.templatesets.legacy_apps.instance.generator import (
     get_bcs_context,
     handel_k8s_service_db_config,
     handel_service_db_config,
@@ -55,10 +67,8 @@ from backend.apps.instance.generator import (
     handle_webcache_config,
     remove_key,
 )
-from backend.apps.instance.models import InstanceConfig
-from backend.apps.instance.utils_pub import get_cluster_version
-from backend.components.bcs import k8s, mesos
-from backend.resources.namespace.constants import K8S_PLAT_NAMESPACE, K8S_SYS_NAMESPACE
+from backend.templatesets.legacy_apps.instance.models import InstanceConfig
+from backend.templatesets.legacy_apps.instance.utils_pub import get_cluster_version
 from backend.uniapps.network.ext_routes import delete_svc_extended_routes, get_svc_extended_routes
 from backend.uniapps.network.serializers import BatchResourceSLZ
 from backend.uniapps.network.utils import get_svc_access_info
