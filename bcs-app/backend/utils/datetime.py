@@ -18,9 +18,10 @@ from datetime import timedelta
 TIME_DURATION_PATTERN = re.compile(r'^((?P<hours>\d+)h)?((?P<minutes>\d+)m)?((?P<seconds>\d+)s)?$')
 
 
-def get_duration_seconds(self, duration: str, default: int = None) -> int:
+def get_duration_seconds(duration: str, default: int = None) -> int:
     """
     解析时间表达式，获取持续的时间（单位：s）
+    支持 时(h)，分(m)，秒(s) 为单位，暂不支持 天，月，年 等
 
     :param duration: 时间表达式，格式如 3h5m7s
     :param default: 默认值
