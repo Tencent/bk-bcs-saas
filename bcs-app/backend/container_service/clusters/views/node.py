@@ -520,7 +520,7 @@ class CCHostListViewSet(NodeBase, NodeHandler, viewsets.ViewSet):
         pagination_data = custom_paginator(host_list, data['offset'], limit=data['limit'])
         # for frontend display
         cc_host_map = self.get_cc_host_mappings(pagination_data['results'])
-        gse_host_status = gse.GSEClient.get_agent_status(request, cc_host_map.values())
+        gse_host_status = gse.GSEClient.get_agent_status(request.user.username, cc_host_map.values())
         # compose the host list with gse status and host status
         self.update_agent_status(cc_host_map, gse_host_status)
 
