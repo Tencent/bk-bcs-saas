@@ -17,7 +17,7 @@ from typing import List
 from rest_framework.response import Response
 
 from backend.bcs_web.viewsets import SystemViewSet
-from backend.components.bcs import k8s
+from backend.components.bcs.k8s import K8SClient
 from backend.container_service.observability.metric.constants import (
     INNER_USE_LABEL_PREFIX,
     INNER_USE_SERVICE_METADATA_FIELDS,
@@ -31,7 +31,7 @@ class ServiceViewSet(SystemViewSet):
 
     def list(self, request, project_id, cluster_id):
         """ 获取可选 Service 列表"""
-        client = k8s.K8SClient(request.user.token.access_token, project_id, cluster_id, env=None)
+        client = K8SClient(request.user.token.access_token, project_id, cluster_id, env=None)
         resp = client.get_service({'env': 'k8s'})
         response_data = self._slim_down_service(resp.get('data') or [])
         return Response(response_data)
