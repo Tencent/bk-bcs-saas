@@ -11,11 +11,9 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-from typing import Dict, List, Union
+from typing import Dict
 
 from django.utils.translation import ugettext_lazy as _
-from kubernetes.client import CoreV1Api
-from kubernetes.stream import stream
 
 from backend.dashboard.exceptions import ResourceNotExist
 from backend.dashboard.workloads.constants import VOLUME_RESOURCE_NAME_KEY_MAP
@@ -70,15 +68,3 @@ class Pod(ResourceClient):
         # 组装展示用扩展信息等
         manifest_ext = {item['metadata']['uid']: client.formatter.format_dict(item) for item in resources['items']}
         return {'manifest': resources, 'manifest_ext': manifest_ext}
-
-    def exec_command(self, namespace: str, pod_name: str, command: Union[List, str], **kwargs):
-        """
-        在指定 Pod 容器中执行命令
-
-        :param namespace: 命名空间
-        :param pod_name: Pod 名称
-        :param command: 待执行指令，argv array 格式
-        :return: 指令执行结果（stdout，stderr）
-        """
-        api_instance = CoreV1Api(self.dynamic_client.client)
-        return stream(api_instance.connect_get_namespaced_pod_exec, pod_name, namespace, command=command, **kwargs)
