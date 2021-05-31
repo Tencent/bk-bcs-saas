@@ -42,10 +42,10 @@ METRICS_DEFAULT_CONTAINER_LIST = ['.*']
 class MetricDimension(str, StructuredEnum):
     """ 指标维度 """
 
-    CpuUsage = EnumField('cpu_usage', label='CPU 使用率')
-    MemoryUsage = EnumField('memory_usage', label='内存使用率')
-    DiskUsage = EnumField('disk_usage', label='磁盘使用率')
-    DiskIOUsage = EnumField('diskio_usage', label='磁盘 IO 使用率')
+    CpuUsage = EnumField('cpu_usage', label=_('CPU 使用率'))
+    MemoryUsage = EnumField('memory_usage', label=_('内存使用率'))
+    DiskUsage = EnumField('disk_usage', label=_('磁盘使用率'))
+    DiskIOUsage = EnumField('diskio_usage', label=_('磁盘 IO 使用率'))
 
 
 # 节点各指标维度获取方法
