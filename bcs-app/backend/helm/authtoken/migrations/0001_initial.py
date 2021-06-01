@@ -31,39 +31,13 @@ class Migration(migrations.Migration):
             name='Token',
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                (
-                    'key',
-                    models.CharField(
-                        db_index=True,
-                        default=backend.helm.authtoken.models.make_random_key,
-                        max_length=64,
-                        unique=True,
-                        verbose_name='Key',
-                    ),
-                ),
+                ('key', models.CharField(db_index=True, default=backend.helm.authtoken.models.make_random_key, max_length=64, unique=True, verbose_name='Key')),
                 ('created', models.DateTimeField(auto_now_add=True, verbose_name='Created')),
                 ('username', models.CharField(db_index=True, max_length=64)),
-                (
-                    'maintainers',
-                    models.CharField(
-                        help_text='multiple items split with ;', max_length=256, verbose_name='Maintainers'
-                    ),
-                ),
-                (
-                    'name',
-                    models.CharField(
-                        help_text='ex: {project_id}-{cluster_id}-{app_id}-helm-app', max_length=64, verbose_name='Name'
-                    ),
-                ),
+                ('maintainers', models.CharField(help_text='multiple items split with ;', max_length=256, verbose_name='Maintainers')),
+                ('name', models.CharField(help_text='ex: {project_id}-{cluster_id}-{app_id}-helm-app', max_length=64, verbose_name='Name')),
                 ('description', models.CharField(max_length=256, verbose_name='Description')),
-                (
-                    'kind',
-                    models.CharField(
-                        choices=[('single-helm-app-update', 'Single Helm App Update')],
-                        max_length=32,
-                        verbose_name='Kind',
-                    ),
-                ),
+                ('kind', models.CharField(choices=[('single-helm-app-update', 'Single Helm App Update')], max_length=32, verbose_name='Kind')),
                 ('config', jsonfield.fields.JSONField(default={}, null=True)),
             ],
         ),
