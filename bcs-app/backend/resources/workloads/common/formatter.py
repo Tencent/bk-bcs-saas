@@ -40,7 +40,7 @@ class WorkloadFormatter(ResourceDefaultFormatter):
         create_time, update_time = self.parse_create_update_time(metadata)
         return {
             'images': self.parse_container_images(resource_dict),
-            'age': calculate_age(metadata.get("creationTimestamp", "")),
+            'age': calculate_age(metadata.get('creationTimestamp', '')),
             'createTime': create_time,
             'updateTime': update_time,
         }
