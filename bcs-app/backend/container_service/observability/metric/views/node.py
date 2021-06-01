@@ -27,6 +27,7 @@ from backend.components.prometheus import (
     get_node_network_receive,
     get_node_network_transmit,
 )
+from backend.container_service.cluster.utils.node import get_cluster_node_list
 from backend.container_service.observability.metric.constants import (
     IPV4_REGEX_EXP,
     NODE_DIMENSIONS_FUNC,
@@ -36,7 +37,6 @@ from backend.container_service.observability.metric.constants import (
 )
 from backend.container_service.observability.metric.serializers import BaseMetricSLZ, FetchMetricOverviewSLZ
 from backend.utils.error_codes import error_codes
-from backend.utils.node import get_cluster_node_list
 
 
 class NodeMetricViewSet(SystemViewSet):

@@ -23,10 +23,10 @@ from backend.components.prometheus import (
     get_cluster_disk_usage_range,
     get_cluster_memory_usage_range,
 )
+from backend.container_service.cluster.utils.node import get_cluster_node_list
 from backend.container_service.observability.metric.constants import CLUSTER_DIMENSIONS_FUNC, MetricDimension
 from backend.container_service.observability.metric.serializers import FetchMetricOverviewSLZ
 from backend.utils.error_codes import error_codes
-from backend.utils.node import get_cluster_node_list
 
 
 class ClusterMetricViewSet(SystemViewSet):
