@@ -32,7 +32,7 @@ urlpatterns = [
         ),
     ),
     # 仓库管理
-    url(r"^", include("backend.uniapps.depot.urls")),
+    url(r"^", include("backend.container_service.misc.depot.urls")),
     # 集群管理
     url(r"^", include("backend.container_service.clusters.urls")),
     # web_console

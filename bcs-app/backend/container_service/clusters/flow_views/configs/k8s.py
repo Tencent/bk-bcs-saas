@@ -24,7 +24,7 @@ from django.conf import settings
 
 from backend.container_service.clusters import constants
 from backend.container_service.clusters.utils import gen_hostname
-from backend.helm.toolkits.bke_client import BCSClusterClient
+from backend.container_service.misc.bke_client import BCSClusterClient
 from backend.utils.error_codes import error_codes
 
 logger = logging.getLogger(__name__)
