@@ -14,7 +14,7 @@
 from django.apps import AppConfig
 
 
-class HelmRepoChartConfig(AppConfig):
-    name = "backend.helm.helm"
-    verbose_name = "legacy, helm repo and chart app configuration"
-    label = "helm"
+class DepotConfig(AppConfig):
+    name = "backend.container_service.misc.depot"
+    verbose_name = "depot configuration"
+    label = "depot"

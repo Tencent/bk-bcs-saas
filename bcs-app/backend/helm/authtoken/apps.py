@@ -14,5 +14,7 @@
 from django.apps import AppConfig
 
 
-class HelmConfig(AppConfig):
-    name = 'backend.helm.authtoken'
+class HelmAuthtokenConfig(AppConfig):
+    name = "backend.helm.authtoken"
+    verbose_name = "Helm authtoken configuration"
+    label = "authtoken"
