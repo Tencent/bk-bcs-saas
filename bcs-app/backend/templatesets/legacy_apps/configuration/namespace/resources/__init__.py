@@ -12,8 +12,8 @@
 # specific language governing permissions and limitations under the License.
 #
 from backend.apps.constants import ProjectKind
-from backend.bcs_k8s.app.models import App
 from backend.components import paas_cc
+from backend.helm.app.models import App
 from backend.templatesets.legacy_apps.instance.models import InstanceConfig
 from backend.templatesets.var_mgmt.models import NameSpaceVariable
 from backend.utils.errcodes import ErrorCode

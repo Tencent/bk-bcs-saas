@@ -18,8 +18,6 @@ from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 
 from backend.activity_log import client as activity_client
-from backend.apps.application import constants as application_constants
-from backend.apps.application.constants import DELETE_INSTANCE
 from backend.apps.configuration.constants import K8sResourceName, MesosResourceName
 from backend.apps.constants import ProjectKind
 from backend.apps.instance import constants as instance_constants
@@ -29,6 +27,8 @@ from backend.container_service.clusters.base.models import CtxCluster
 from backend.resources.hpa import exceptions as hpa_exceptions
 from backend.resources.hpa import hpa as hpa_client
 from backend.resources.hpa.format import HPAFormatter
+from backend.uniapps.application import constants as application_constants
+from backend.uniapps.application.constants import DELETE_INSTANCE
 
 logger = logging.getLogger(__name__)
 

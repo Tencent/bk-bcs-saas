@@ -17,8 +17,8 @@ from dataclasses import dataclass
 import jinja2
 from rest_framework.exceptions import ParseError
 
-from backend.bcs_k8s.app import bcs_info_injector
-from backend.bcs_k8s.helm import bcs_variable
+from backend.helm.app import bcs_info_injector
+from backend.helm.helm import bcs_variable
 
 from ..constants import FileResourceName
 from ..models import ShowVersion

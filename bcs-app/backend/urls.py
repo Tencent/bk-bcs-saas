@@ -32,7 +32,7 @@ urlpatterns = [
         ),
     ),
     # 仓库管理
-    url(r"^", include("backend.apps.depot.urls")),
+    url(r"^", include("backend.container_service.misc.depot.urls")),
     # 集群管理
     url(r"^", include("backend.container_service.clusters.urls")),
     # web_console
@@ -51,17 +51,16 @@ urlpatterns = [
     # 变量管理
     url(r"^", include("backend.templatesets.var_mgmt.urls")),
     # 应用管理
-    url(r"^", include("backend.apps.application.urls")),
+    url(r"^", include("backend.uniapps.application.urls")),
     url(r"^", include("backend.activity_log.urls")),
     # 权限验证
     url(r"^", include("backend.apps.verfy.urls")),
     url(r"^api-auth/", include("rest_framework.urls")),
     # BCS K8S special urls
-    url(r"^", include("backend.bcs_k8s.helm.urls")),
-    url(r"^", include("backend.bcs_k8s.app.urls")),
+    url(r"^", include("backend.helm.helm.urls")),
+    url(r"^", include("backend.helm.app.urls")),
     # Ticket凭证管理
     url(r"^", include("backend.apps.ticket.urls")),
-    url(r"^", include("backend.bcs_k8s.authtoken.urls")),
     url(
         r"^api/hpa/projects/(?P<project_id>\w{32})/",
         include(
@@ -69,7 +68,7 @@ urlpatterns = [
         ),
     ),
     # cd部分api
-    url(r"^cd_api/", include("backend.apps.apis.urls")),
+    url(r"^cd_api/", include("backend.uniapps.apis.urls")),
     url(r"^apis/", include("backend.apis.urls")),
     # dashboard 相关 URL
     url(

@@ -23,7 +23,6 @@ from rest_framework.renderers import BrowsableAPIRenderer
 
 from backend.accounts.bcs_perm import Cluster
 from backend.activity_log import client
-from backend.apps.application import constants as app_constants
 from backend.apps.constants import CLUSTER_UPGRADE_VERSION, UPGRADE_TYPE
 from backend.components import bcs, ops, paas_cc
 from backend.components.bcs.mesos import MesosClient
@@ -40,6 +39,7 @@ from backend.container_service.clusters.utils import (
     get_ops_platform,
     status_transfer,
 )
+from backend.uniapps.application import constants as app_constants
 from backend.utils.basic import normalize_datetime, normalize_metric
 from backend.utils.errcodes import ErrorCode
 from backend.utils.error_codes import error_codes

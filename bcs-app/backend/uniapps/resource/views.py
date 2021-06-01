@@ -30,9 +30,6 @@ from backend.accounts import bcs_perm
 from backend.activity_log import client as activity_client
 from backend.apps import constants
 from backend.apps import utils as app_utils
-from backend.apps.application.base_views import BaseAPI
-from backend.apps.application.constants import DELETE_INSTANCE, SOURCE_TYPE_MAP
-from backend.apps.application.utils import APIResponse
 from backend.apps.constants import ProjectKind
 from backend.components import paas_cc
 from backend.components.bcs import k8s, mesos
@@ -63,6 +60,9 @@ from backend.templatesets.legacy_apps.instance.drivers import get_scheduler_driv
 from backend.templatesets.legacy_apps.instance.funutils import render_mako_context, update_nested_dict
 from backend.templatesets.legacy_apps.instance.generator import GENERATOR_DICT
 from backend.templatesets.legacy_apps.instance.models import InstanceConfig
+from backend.uniapps.application.base_views import BaseAPI
+from backend.uniapps.application.constants import DELETE_INSTANCE, SOURCE_TYPE_MAP
+from backend.uniapps.application.utils import APIResponse
 from backend.uniapps.network.serializers import BatchResourceSLZ
 from backend.utils.basic import getitems
 from backend.utils.errcodes import ErrorCode

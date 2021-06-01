@@ -26,13 +26,13 @@ from backend.accounts import bcs_perm
 from backend.activity_log import client
 from backend.apps import constants
 from backend.apps.constants import ClusterType, ProjectKind
-from backend.apps.depot.api import get_bk_jfrog_auth, get_jfrog_account
 from backend.apps.utils import get_cluster_env_name
 from backend.apps.whitelist import enabled_sync_namespace
 from backend.components import paas_cc
 from backend.components.bcs.k8s import K8SClient
 from backend.components.bcs.mesos import MesosClient
 from backend.container_service.clusters.base.utils import get_clusters
+from backend.container_service.misc.depot.api import get_bk_jfrog_auth, get_jfrog_account
 from backend.resources import namespace as ns_resource
 from backend.resources.namespace.constants import K8S_SYS_PLAT_NAMESPACES
 from backend.resources.namespace.utils import get_namespace_by_id

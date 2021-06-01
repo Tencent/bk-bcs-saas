@@ -24,12 +24,12 @@ from rest_framework.response import Response
 from backend.accounts.bcs_perm import Cluster, Namespace
 from backend.activity_log import client
 from backend.apps.instance.models import InstanceConfig, InstanceEvent, MetricConfig, VersionInstance
-from backend.bcs_k8s.app.models import App
 from backend.components import ops, paas_cc
 from backend.container_service.clusters import constants, serializers
 from backend.container_service.clusters.constants import ClusterState
 from backend.container_service.clusters.models import ClusterInstallLog, ClusterOperType, CommonStatus
 from backend.container_service.clusters.utils import can_use_hosts
+from backend.helm.app.models import App
 from backend.resources import cluster as cluster_utils
 from backend.uniapps.network.models import K8SLoadBlance, MesosLoadBlance
 from backend.utils.cache import rd_client
