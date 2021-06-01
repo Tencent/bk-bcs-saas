@@ -11,10 +11,8 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-from copy import deepcopy
 from typing import Dict, List
 
-from backend.resources.utils.common import calculate_age
 from backend.resources.utils.format import ResourceDefaultFormatter
 from backend.utils.basic import getitems
 
@@ -33,14 +31,6 @@ class WorkloadFormatter(ResourceDefaultFormatter):
         return [c['image'] for c in containers if 'image' in c]
 
     def format_common_dict(self, resource_dict: Dict) -> Dict:
-        metadata = deepcopy(resource_dict['metadata'])
-        self.set_metadata_null_values(metadata)
-
-        # Get create_time and update_time
-        create_time, update_time = self.parse_create_update_time(metadata)
-        return {
-            'images': self.parse_container_images(resource_dict),
-            'age': calculate_age(metadata.get('creationTimestamp', '')),
-            'createTime': create_time,
-            'updateTime': update_time,
-        }
+        ret = super().format_common_dict(resource_dict)
+        ret.update({'images': self.parse_container_images(resource_dict)})
+        return ret
