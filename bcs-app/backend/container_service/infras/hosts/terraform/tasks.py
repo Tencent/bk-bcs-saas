@@ -15,9 +15,7 @@ import json
 import logging
 from typing import Dict
 
-from backend.apps.hosts.constants import TaskStatus
-from backend.apps.hosts.models import HostApplyTaskLog
-from backend.container_service.infras.hosts.host import get_task_state_and_steps
+from backend.container_service.infras.hosts.terraform.engines.sops import get_task_state_and_steps
 from backend.packages.blue_krill.async_utils.poll_task import (
     CallbackHandler,
     CallbackResult,
@@ -27,6 +25,9 @@ from backend.packages.blue_krill.async_utils.poll_task import (
     TaskPoller,
 )
 from backend.utils.error_codes import APIError
+
+from .constants import TaskStatus
+from .models import HostApplyTaskLog
 
 logger = logging.getLogger(__name__)
 

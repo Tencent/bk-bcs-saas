@@ -36,14 +36,9 @@ def get_cc_hosts(cc_app_id: str, username: str, **extra_data) -> List[Dict]:
 
 
 @dataclass
-class BKCloudInfo:
-    id: int = 0
-
-
-@dataclass
 class HostData:
     inner_ip: str
-    bk_cloud_id_list: List[BKCloudInfo] = field(default_factory=list)
+    bk_cloud_id: int = 0
 
     @property
     def inner_ip_list(self):
@@ -69,9 +64,12 @@ def get_agent_status(username: str, host_list: List[HostData]) -> List[Dict]:
     hosts = []
     for info in host_list:
         # 查询所属区域云区域
-        plat_info = info.bk_cloud_id_list
-        plat_id = plat_info[0].id if plat_info else 0
-        hosts.extend([{"plat_id": plat_id, "bk_cloud_id": plat_id, "ip": ip} for ip in info.inner_ip.split(",")])
+        hosts.extend(
+            [
+                {"plat_id": info.bk_cloud_id, "bk_cloud_id": info.bk_cloud_id, "ip": ip}
+                for ip in info.inner_ip.split(",")
+            ]
+        )
     # 处理返回数据
     data = gse.get_agent_status(username, hosts)
     return [asdict(make_dataclass_from_dict(HostAgentData, info)) for info in data]
@@ -81,70 +79,3 @@ try:
     from .host_ext import *  # noqa
 except ImportError:
     pass
-
-
-def create_and_start_host_application(
-    cc_app_id: str, username: str, region: str, cvm_type: str, disk_size: int, replicas: int, vpc_name: str
-) -> Tuple[int, str]:
-    """创建并启动申请主机任务流程"""
-    client = sops.SopsClient()
-    # 组装创建任务参数
-    task_name = f"[{cc_app_id}]apply host resource"
-    data = sops.CreateTaskParams(
-        name=task_name,
-        constants={
-            "${appID}": cc_app_id,
-            "${user}": username,
-            "${qcloudRegionId}": region,
-            "${cvm_type}": cvm_type,
-            "${diskSize}": disk_size,
-            "${replicas}": replicas,
-            "${vpc_name}": vpc_name,
-        },
-    )
-    # 创建任务
-    resp_data = client.create_task(bk_biz_id=SOPS_BIZ_ID, template_id=APPLY_HOST_TEMPLATE_ID, data=data)
-    task_id = resp_data["task_id"]
-    task_url = resp_data["task_url"]
-
-    # 启动任务
-    client.start_task(bk_biz_id=SOPS_BIZ_ID, task_id=task_id)
-
-    return task_id, task_url
-
-
-def get_task_state_and_steps(task_id: str) -> Dict:
-    """获取任务总状态及步骤状态"""
-    client = sops.SopsClient()
-    resp_data = client.get_task_status(bk_biz_id=SOPS_BIZ_ID, task_id=task_id)
-
-    # NOTE: 现阶段不处理SUSPENDED(暂停)状态，当任务处于RUNNING状态, 认为任务处于执行中
-    steps = {}
-    for step_id, detail in (resp_data.get("children") or {}).items():
-        name = detail.get("name") or ""
-        # NOTE: 过滤掉sops中的开始和结束节点(两个空标识节点)
-        if "EmptyEndEvent" in name or "EmptyStartEvent" in name:
-            continue
-        steps[name] = {"state": detail["state"], "step_id": step_id}
-
-    # 返回任务状态, 步骤名称及状态
-    return {"state": resp_data["state"], "steps": steps}
-
-
-def get_applied_ip_list(task_id: str, step_id: str) -> List[str]:
-    """获取申领的机器列表"""
-    client = sops.SopsClient()
-    resp_data = client.get_task_node_data(bk_biz_id=SOPS_BIZ_ID, task_id=task_id, node_id=step_id)
-
-    # 获取返回的IP列表
-    # outputs 结构: [{key: xxx, value: str}, {key: log_outputs, value: {ip_list: "127.0.0.1,127.0.0.2"}}]
-    outputs = resp_data["outputs"]
-
-    ips = ""
-    for i in outputs:
-        if i["key"] != "log_outputs":
-            continue
-        # NOTE: 接口返回中是以英文逗号分隔的字符串
-        ips = i["value"]["ip_list"]
-
-    return ips.split(",")
