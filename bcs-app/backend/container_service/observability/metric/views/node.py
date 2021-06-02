@@ -18,23 +18,9 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 
 from backend.bcs_web.viewsets import SystemViewSet
-from backend.components.prometheus import (
-    get_container_pod_count,
-    get_node_cpu_usage_range,
-    get_node_diskio_usage_range,
-    get_node_info,
-    get_node_memory_usage_range,
-    get_node_network_receive,
-    get_node_network_transmit,
-)
+from backend.components import prometheus as prom
 from backend.container_service.cluster.utils.node import get_cluster_node_list
-from backend.container_service.observability.metric.constants import (
-    IPV4_REGEX_EXP,
-    NODE_DIMENSIONS_FUNC,
-    NODE_UNAME_METRIC,
-    NODE_USAGE_METRIC,
-    MetricDimension,
-)
+from backend.container_service.observability.metric import constants
 from backend.container_service.observability.metric.serializers import BaseMetricSLZ, FetchMetricOverviewSLZ
 from backend.utils.error_codes import error_codes
 
@@ -43,7 +29,7 @@ class NodeMetricViewSet(SystemViewSet):
 
     lookup_field = 'node_ip'
     # 指定匹配 IPV4 地址
-    lookup_value_regex = IPV4_REGEX_EXP
+    lookup_value_regex = constants.IPV4_REGEX_EXP
 
     @action(methods=['POST'], url_path='overview', detail=True)
     def overview(self, request, project_id, cluster_id, node_ip):
@@ -53,20 +39,20 @@ class NodeMetricViewSet(SystemViewSet):
         # 默认包含 container_count, pod_count
         response_data = {'container_count': '0', 'pod_count': '0'}
 
-        container_pod_count = get_container_pod_count(cluster_id, node_ip)
+        container_pod_count = prom.get_container_pod_count(cluster_id, node_ip)
         for count in container_pod_count.get('result') or []:
             for k, v in count['metric'].items():
                 if k == 'metric_name' and count['value']:
                     response_data[v] = count['value'][1]
 
         # 默认使用全维度，若指定则使用指定的维度
-        dimensions = params.get('dimensions') or [dim for dim in MetricDimension]
+        dimensions = params.get('dimensions') or [dim for dim in constants.MetricDimension]
 
         for dimension in dimensions:
-            if dimension not in NODE_DIMENSIONS_FUNC:
+            if dimension not in constants.NODE_DIMENSIONS_FUNC:
                 raise error_codes.APIError(_("节点指标维度 {} 不合法").format(dimension))
 
-            dimension_func = NODE_DIMENSIONS_FUNC[dimension]
+            dimension_func = constants.NODE_DIMENSIONS_FUNC[dimension]
             response_data[dimension] = dimension_func(cluster_id, node_ip)
 
         return Response(response_data)
@@ -81,11 +67,11 @@ class NodeMetricViewSet(SystemViewSet):
             raise error_codes.ValidateError(_('IP {} 不合法或不属于当前集群').format(node_ip))
 
         response_data = {'provider': 'Prometheus', 'id': node_ip_map[node_ip]}
-        for info in get_node_info(cluster_id, node_ip).get('result') or []:
+        for info in prom.get_node_info(cluster_id, node_ip).get('result') or []:
             for k, v in info['metric'].items():
-                if k in NODE_UNAME_METRIC:
+                if k in constants.NODE_UNAME_METRIC:
                     response_data[k] = v
-                elif k == 'metric_name' and v in NODE_USAGE_METRIC:
+                elif k == 'metric_name' and v in constants.NODE_USAGE_METRIC:
                     response_data[v] = info['value'][1] if info['value'] else '0'
 
         return Response(response_data)
@@ -93,31 +79,31 @@ class NodeMetricViewSet(SystemViewSet):
     @action(methods=['GET'], url_path='cpu_usage', detail=True)
     def cpu_usage(self, request, project_id, cluster_id, node_ip):
         """ 节点 CPU 使用率 """
-        response_data = self._common_query_handler(get_node_cpu_usage_range, cluster_id, node_ip)
+        response_data = self._common_query_handler(prom.get_node_cpu_usage_range, cluster_id, node_ip)
         return Response(response_data)
 
     @action(methods=['GET'], url_path='memory_usage', detail=True)
     def memory_usage(self, request, project_id, cluster_id, node_ip):
         """ 节点 内存 使用率 """
-        response_data = self._common_query_handler(get_node_memory_usage_range, cluster_id, node_ip)
+        response_data = self._common_query_handler(prom.get_node_memory_usage_range, cluster_id, node_ip)
         return Response(response_data)
 
     @action(methods=['GET'], url_path='network_receive', detail=True)
     def network_receive(self, request, project_id, cluster_id, node_ip):
         """ 节点 网络入流量 """
-        response_data = self._common_query_handler(get_node_network_receive, cluster_id, node_ip)
+        response_data = self._common_query_handler(prom.get_node_network_receive, cluster_id, node_ip)
         return Response(response_data)
 
     @action(methods=['GET'], url_path='network_transmit', detail=True)
     def network_transmit(self, request, project_id, cluster_id, node_ip):
         """ 节点 网络出流量 """
-        response_data = self._common_query_handler(get_node_network_transmit, cluster_id, node_ip)
+        response_data = self._common_query_handler(prom.get_node_network_transmit, cluster_id, node_ip)
         return Response(response_data)
 
     @action(methods=['GET'], url_path='diskio_usage', detail=True)
     def diskio_usage(self, request, project_id, cluster_id, node_ip):
         """ 磁盘 IO 使用情况 """
-        response_data = self._common_query_handler(get_node_diskio_usage_range, cluster_id, node_ip)
+        response_data = self._common_query_handler(prom.get_node_diskio_usage_range, cluster_id, node_ip)
         return Response(response_data)
 
     def _common_query_handler(self, query_metric_func: Callable, cluster_id: str, node_ip) -> Dict:

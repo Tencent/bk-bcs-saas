@@ -27,14 +27,7 @@ from backend.apps.constants import ALL_LIMIT
 from backend.bcs_web.viewsets import SystemViewSet
 from backend.components import paas_cc
 from backend.components.bcs.k8s import K8SClient
-from backend.container_service.observability.metric.constants import (
-    DEFAULT_ENDPOINT_INTERVAL,
-    DEFAULT_ENDPOINT_PATH,
-    INNER_USE_SERVICE_METADATA_FIELDS,
-    SM_NO_PERM_MAP,
-    SM_NO_PERM_NAMESPACE,
-    SM_SERVICE_NAME_LABEL,
-)
+from backend.container_service.observability.metric import constants
 from backend.container_service.observability.metric.serializers import (
     ServiceMonitorBatchDeleteSLZ,
     ServiceMonitorCreateSLZ,
@@ -58,8 +51,8 @@ class ServiceMonitorMixin:
         :return: 完成补充的数据
         """
         for endpoint in endpoints:
-            endpoint.setdefault('path', DEFAULT_ENDPOINT_PATH)
-            endpoint['interval'] = get_duration_seconds(endpoint.get('interval'), DEFAULT_ENDPOINT_INTERVAL)
+            endpoint.setdefault('path', constants.DEFAULT_ENDPOINT_PATH)
+            endpoint['interval'] = get_duration_seconds(endpoint.get('interval'), constants.DEFAULT_ENDPOINT_INTERVAL)
         return endpoints
 
     def _handle_items(self, cluster_id: str, cluster_map: Dict, namespace_map: Dict, manifest: Dict) -> List[Dict]:
@@ -79,17 +72,17 @@ class ServiceMonitorMixin:
             try:
                 labels = item['metadata'].get('labels') or {}
                 item['metadata'] = {
-                    k: v for k, v in item['metadata'].items() if k not in INNER_USE_SERVICE_METADATA_FIELDS
+                    k: v for k, v in item['metadata'].items() if k not in constants.INNER_USE_SERVICE_METADATA_FIELDS
                 }
                 item['cluster_id'] = cluster_id
                 item['namespace'] = item['metadata']['namespace']
                 item['namespace_id'] = namespace_map.get((cluster_id, item['metadata']['namespace']))
                 item['name'] = item['metadata']['name']
                 item['instance_id'] = f"{item['namespace']}/{item['name']}"
-                item['service_name'] = labels.get(SM_SERVICE_NAME_LABEL)
+                item['service_name'] = labels.get(constants.SM_SERVICE_NAME_LABEL)
                 item['cluster_name'] = cluster_map[cluster_id]['name']
                 item['environment'] = cluster_map[cluster_id]['environment']
-                item['metadata']['service_name'] = labels.get(SM_SERVICE_NAME_LABEL)
+                item['metadata']['service_name'] = labels.get(constants.SM_SERVICE_NAME_LABEL)
                 item['create_time'] = (
                     arrow.get(item['metadata']['creationTimestamp'])
                     .to(settings.TIME_ZONE)
@@ -109,16 +102,16 @@ class ServiceMonitorMixin:
         for res in resources:
             res['permissions']['delete'] = res['permissions']['edit']
             res['permissions']['delete_msg'] = res['permissions']['edit_msg']
-            if res['namespace'] not in SM_NO_PERM_NAMESPACE:
+            if res['namespace'] not in constants.SM_NO_PERM_NAMESPACE:
                 continue
-            res['permissions'] = SM_NO_PERM_MAP
+            res['permissions'] = constants.SM_NO_PERM_MAP
         return resources
 
     def _validate_namespace_use_perm(self, project_id: str, cluster_id: str, namespaces: List):
         """ 检查是否有命名空间的使用权限 """
         namespace_map = self._get_namespace_map(project_id)
         for ns in namespaces:
-            if ns in SM_NO_PERM_NAMESPACE:
+            if ns in constants.SM_NO_PERM_NAMESPACE:
                 raise error_codes.APIError(_('不允许操作命名空间 {}').format(ns))
 
             namespace_id = namespace_map.get((cluster_id, ns))
@@ -314,9 +307,9 @@ class ServiceMonitorDetailViewSet(SystemViewSet, ServiceMonitorMixin):
 
         labels = getitems(result, 'metadata.labels', {})
         result['metadata'] = {
-            k: v for k, v in result['metadata'].items() if k not in INNER_USE_SERVICE_METADATA_FIELDS
+            k: v for k, v in result['metadata'].items() if k not in constants.INNER_USE_SERVICE_METADATA_FIELDS
         }
-        result['metadata']['service_name'] = labels.get(SM_SERVICE_NAME_LABEL)
+        result['metadata']['service_name'] = labels.get(constants.SM_SERVICE_NAME_LABEL)
 
         if isinstance(getitems(result, 'spec.endpoints'), list):
             result['spec']['endpoints'] = self._handle_endpoints(result['spec']['endpoints'])
@@ -378,6 +371,6 @@ class ServiceMonitorDetailViewSet(SystemViewSet, ServiceMonitorMixin):
             }
         ]
         manifest['metadata'] = {
-            k: v for k, v in manifest['metadata'].items() if k not in INNER_USE_SERVICE_METADATA_FIELDS
+            k: v for k, v in manifest['metadata'].items() if k not in constants.INNER_USE_SERVICE_METADATA_FIELDS
         }
         return manifest

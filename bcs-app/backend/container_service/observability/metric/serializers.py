@@ -16,13 +16,7 @@ from django.utils.translation import ugettext_lazy as _
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
-from backend.container_service.observability.metric.constants import (
-    ALLOW_SM_INTERVAL,
-    METRICS_DEFAULT_TIMEDELTA,
-    SM_NAME_PATTERN,
-    SM_SAMPLE_LIMIT_MAX,
-    SM_SAMPLE_LIMIT_MIN,
-)
+from backend.container_service.observability.metric import constants
 
 
 class BaseMetricSLZ(serializers.Serializer):
@@ -33,7 +27,9 @@ class BaseMetricSLZ(serializers.Serializer):
         now = arrow.now().timestamp
 
         attrs['start_at'] = (
-            arrow.get(attrs['start_at']).timestamp if 'start_at' in attrs else now - METRICS_DEFAULT_TIMEDELTA
+            arrow.get(attrs['start_at']).timestamp
+            if 'start_at' in attrs
+            else now - constants.METRICS_DEFAULT_TIMEDELTA
         )
 
         attrs['end_at'] = arrow.get(attrs['end_at']).timestamp if 'end_at' in attrs else now
@@ -83,7 +79,7 @@ class ServiceMonitorInfoSLZ(serializers.Serializer):
     namespace = serializers.CharField(label='命名空间')
 
     def validate_name(self, name):
-        if not SM_NAME_PATTERN.match(name):
+        if not constants.SM_NAME_PATTERN.match(name):
             raise ValidationError(_('名称由小写英文字母、中划线或数字组成，且需以小写字母开头'))
         return name
 
@@ -95,7 +91,7 @@ class ServiceMonitorUpdateSLZ(serializers.Serializer):
     path = serializers.CharField(label='绝对路径')
     interval = serializers.IntegerField(label='时间间隔')
     sample_limit = serializers.IntegerField(
-        label='样本数限制', min_value=SM_SAMPLE_LIMIT_MIN, max_value=SM_SAMPLE_LIMIT_MAX
+        label='样本数限制', min_value=constants.SM_SAMPLE_LIMIT_MIN, max_value=constants.SM_SAMPLE_LIMIT_MAX
     )
     selector = serializers.JSONField(label='选择器参数')
     params = serializers.JSONField(label='额外参数', required=False)
@@ -106,8 +102,8 @@ class ServiceMonitorUpdateSLZ(serializers.Serializer):
         return selector
 
     def validate_interval(self, interval):
-        if interval not in ALLOW_SM_INTERVAL:
-            raise ValidationError(_('参数不合法，只允许 {}').format(ALLOW_SM_INTERVAL))
+        if interval not in constants.ALLOW_SM_INTERVAL:
+            raise ValidationError(_('参数不合法，只允许 {}').format(constants.ALLOW_SM_INTERVAL))
         return f'{interval}s'
 
     def validate_path(self, path):

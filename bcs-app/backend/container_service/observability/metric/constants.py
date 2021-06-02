@@ -15,15 +15,7 @@ import re
 
 from django.utils.translation import ugettext_lazy as _
 
-from backend.components.prometheus import (
-    get_cluster_cpu_usage,
-    get_cluster_disk_usage,
-    get_cluster_memory_usage,
-    get_node_cpu_usage,
-    get_node_disk_usage,
-    get_node_diskio_usage,
-    get_node_memory_usage,
-)
+from backend.components import prometheus as prom
 from backend.packages.blue_krill.data_types.enum import EnumField, StructuredEnum
 
 # IPV4 正则表达式
@@ -50,17 +42,17 @@ class MetricDimension(str, StructuredEnum):
 
 # 节点各指标维度获取方法
 NODE_DIMENSIONS_FUNC = {
-    MetricDimension.CpuUsage: get_node_cpu_usage,
-    MetricDimension.MemoryUsage: get_node_memory_usage,
-    MetricDimension.DiskUsage: get_node_disk_usage,
-    MetricDimension.DiskIOUsage: get_node_diskio_usage,
+    MetricDimension.CpuUsage: prom.get_node_cpu_usage,
+    MetricDimension.MemoryUsage: prom.get_node_memory_usage,
+    MetricDimension.DiskUsage: prom.get_node_disk_usage,
+    MetricDimension.DiskIOUsage: prom.get_node_diskio_usage,
 }
 
 # 集群各指标维度获取方法
 CLUSTER_DIMENSIONS_FUNC = {
-    MetricDimension.CpuUsage: get_cluster_cpu_usage,
-    MetricDimension.MemoryUsage: get_cluster_memory_usage,
-    MetricDimension.DiskUsage: get_cluster_disk_usage,
+    MetricDimension.CpuUsage: prom.get_cluster_cpu_usage,
+    MetricDimension.MemoryUsage: prom.get_cluster_memory_usage,
+    MetricDimension.DiskUsage: prom.get_cluster_disk_usage,
 }
 
 # 节点普通指标

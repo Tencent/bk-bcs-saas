@@ -17,12 +17,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 
 from backend.bcs_web.viewsets import SystemViewSet
-from backend.components.prometheus import (
-    get_pod_cpu_usage_range,
-    get_pod_memory_usage_range,
-    get_pod_network_receive,
-    get_pod_network_transmit,
-)
+from backend.components import prometheus as prom
 from backend.container_service.observability.metric.constants import METRICS_DEFAULT_NAMESPACE
 from backend.container_service.observability.metric.serializers import FetchPodMetricSLZ
 
@@ -47,23 +42,23 @@ class PodMetricViewSet(SystemViewSet):
     @action(methods=['POST'], url_path='cpu_usage', detail=False)
     def cpu_usage(self, request, project_id, cluster_id):
         """ 获取指定 Pod CPU 使用情况 """
-        response_data = self._common_query_handler(get_pod_cpu_usage_range, cluster_id)
+        response_data = self._common_query_handler(prom.get_pod_cpu_usage_range, cluster_id)
         return Response(response_data)
 
     @action(methods=['POST'], url_path='memory_usage', detail=False)
     def memory_usage(self, request, project_id, cluster_id):
         """ 获取 Pod 内存使用情况 """
-        response_data = self._common_query_handler(get_pod_memory_usage_range, cluster_id)
+        response_data = self._common_query_handler(prom.get_pod_memory_usage_range, cluster_id)
         return Response(response_data)
 
     @action(methods=['POST'], url_path='network_receive', detail=False)
     def network_receive(self, request, project_id, cluster_id):
         """ 获取 网络入流量 情况 """
-        response_data = self._common_query_handler(get_pod_network_receive, cluster_id)
+        response_data = self._common_query_handler(prom.get_pod_network_receive, cluster_id)
         return Response(response_data)
 
     @action(methods=['POST'], url_path='network_transmit', detail=False)
     def network_transmit(self, request, project_id, cluster_id):
         """ 获取 网络出流量 情况 """
-        response_data = self._common_query_handler(get_pod_network_transmit, cluster_id)
+        response_data = self._common_query_handler(prom.get_pod_network_transmit, cluster_id)
         return Response(response_data)
