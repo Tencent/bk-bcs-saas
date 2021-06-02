@@ -80,7 +80,7 @@ class LogStreamViewSet(SystemViewSet):
             f'/api/logs/projects/{project_id}/clusters/{cluster_id}/namespaces/{namespace}/pods/{pod}/stdlogs/stream/'
         )
 
-        ws_url = utils.get_ws_url(stream_url, session_id)
+        ws_url = utils.make_ws_url(stream_url, session_id)
         result = {"session_id": session_id, "ws_url": ws_url}
         return Response(result)
 

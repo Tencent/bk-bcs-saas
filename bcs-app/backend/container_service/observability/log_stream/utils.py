@@ -65,8 +65,11 @@ def refine_k8s_logs(content: str, started_at: str) -> List[Log]:
     return logs
 
 
-def get_ws_url(stream_url: str, session_id: str) -> str:
-    """替换http为ws地址"""
+def make_ws_url(stream_url: str, session_id: str) -> str:
+    """替换http为ws地址
+    :param stream_url: 格式如: /api/logs/projects/{project_id}/.../stdlogs/stream/
+    :param session_id: 唯一的 uuid
+    """
     bcs_api_url = parse.urlparse(settings.DEVOPS_BCS_API_URL)
     if bcs_api_url.scheme == "https":
         scheme = "wss"
