@@ -11,10 +11,13 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
+from kubernetes.dynamic.exceptions import DynamicApiError
 from rest_framework.response import Response
 
 from backend.bcs_web.viewsets import SystemViewSet
+from backend.dashboard.serializers import CreateResourceSLZ
 from backend.dashboard.utils.resp import ListApiRespBuilder, RetrieveApiRespBuilder
+from backend.utils.error_codes import error_codes
 
 
 class ListAndRetrieveMixin:
@@ -40,7 +43,20 @@ class DestroyMixin:
         return Response(response_data)
 
 
-class DashboardViewSet(ListAndRetrieveMixin, DestroyMixin, SystemViewSet):
+class CreateMixin:
+    """ Dashboard 创建类接口通用逻辑 """
+
+    def create(self, request, project_id, cluster_id, namespace=None):
+        params = self.params_validate(CreateResourceSLZ)
+        client = self.resource_client(request.ctx_cluster)
+        try:
+            response_data = client.create(body=params, is_format=False).to_dict()
+        except DynamicApiError as e:
+            raise error_codes.APIError(e.summary())
+        return Response(response_data)
+
+
+class DashboardViewSet(ListAndRetrieveMixin, DestroyMixin, CreateMixin, SystemViewSet):
     """
     资源视图通用 ViewSet，抽层一些通用方法
     """
