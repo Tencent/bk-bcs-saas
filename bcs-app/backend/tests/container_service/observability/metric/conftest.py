@@ -66,7 +66,7 @@ def node_info_api_patch():
         'backend.container_service.observability.metric.views.node.get_cluster_node_list',
         new=lambda *args, **kwargs: [{'inner_ip': '127.0.0.1', 'id': 1}],
     ), mock.patch(
-        'backend.container_service.observability.metric.views.node.get_node_info',
+        'backend.container_service.observability.metric.views.node.prom.get_node_info',
         new=lambda *args, **kwargs: {
             'result': [
                 {
@@ -95,10 +95,11 @@ def node_overview_api_patch():
         MetricDimension.DiskIOUsage: lambda *args, **kwargs: None,
     }
     with mock.patch(
-        'backend.container_service.observability.metric.views.node.get_container_pod_count',
+        'backend.container_service.observability.metric.views.node.prom.get_container_pod_count',
         new=lambda *args, **kwargs: {'result': [{'metric': {'metric_name': 'pod_count'}, 'value': [None, '8']}]},
     ), mock.patch(
-        'backend.container_service.observability.metric.views.node.NODE_DIMENSIONS_FUNC', new=MOCK_NODE_DIMENSIONS_FUNC
+        'backend.container_service.observability.metric.views.node.constants.NODE_DIMENSIONS_FUNC',
+        new=MOCK_NODE_DIMENSIONS_FUNC,
     ):
         yield
 
