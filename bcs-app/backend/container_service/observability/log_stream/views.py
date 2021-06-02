@@ -72,7 +72,7 @@ class LogStreamViewSet(SystemViewSet):
             'cluster_id': cluster_id,
         }
 
-        session = session_mgr.create("", "")
+        session = session_mgr.create(project_id, cluster_id)
         session_id = session.set(ctx)
 
         stream_url = (
