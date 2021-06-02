@@ -102,8 +102,9 @@ class LogStreamViewSet(SystemViewSet):
 
 
 class LogStreamHandler(AsyncWebsocketConsumer):
-    async def connect(self):
+    """日志 Channel / WebSocket 处理"""
 
+    async def connect(self):
         self.namespace = self.scope["url_route"]["kwargs"]["namespace"]
         self.pod = self.scope["url_route"]["kwargs"]["pod"]
 
