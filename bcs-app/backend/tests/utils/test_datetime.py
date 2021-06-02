@@ -11,9 +11,25 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-from backend.apis.views import ProjectBaseAPIViewSet
-from backend.container_service.observability.metric_mesos.views import servicemonitor
+import pytest
+
+from backend.utils.datetime import get_duration_seconds
 
 
-class ServiceMonitor(ProjectBaseAPIViewSet, servicemonitor.ServiceMonitor):
-    """继承servicemonitor"""
+@pytest.mark.parametrize(
+    'duration, default, expired',
+    [
+        ('xxxxxx', 100, 100),
+        ('3h5m7s', None, 11107),
+        ('5m7s', None, 307),
+        ('1h7s', None, 3607),
+        ('1h0m5s', None, 3605),
+        ('1h0m0s', None, 3600),
+        ('1h', None, 3600),
+        ('10m', None, 600),
+        ('8s', None, 8),
+        ('0s', None, 0),
+    ],
+)
+def test_get_duration_seconds(duration, default, expired):
+    assert get_duration_seconds(duration, default) == expired

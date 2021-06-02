@@ -23,10 +23,10 @@ from backend.apps.configuration.models import POD_RES_LIST
 from backend.apps.constants import ALL_LIMIT, ProjectKind
 from backend.apps.instance.constants import InsState
 from backend.apps.instance.models import InstanceConfig
-from backend.apps.metric import serializers, tasks
-from backend.apps.metric.models import Metric as MetricModel
-from backend.apps.metric.utils import get_metric_instances
 from backend.components import paas_cc
+from backend.container_service.observability.metric_mesos import serializers, tasks
+from backend.container_service.observability.metric_mesos.models import Metric as MetricModel
+from backend.container_service.observability.metric_mesos.utils import get_metric_instances
 from backend.utils.error_codes import error_codes
 from backend.utils.renderers import BKAPIRenderer
 from backend.utils.response import BKAPIResponse

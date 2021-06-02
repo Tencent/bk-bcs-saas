@@ -25,8 +25,8 @@ from rest_framework.response import Response
 
 from backend.activity_log import client
 from backend.apps.constants import ProjectKind
-from backend.apps.metric.models import Metric
 from backend.components import data, paas_cc
+from backend.container_service.observability.metric_mesos.models import Metric
 from backend.templatesets.legacy_apps.configuration.models import MODULE_DICT, ShowVersion, VersionedEntity
 from backend.templatesets.legacy_apps.configuration.utils import check_var_by_config
 from backend.templatesets.legacy_apps.instance import utils as inst_utils

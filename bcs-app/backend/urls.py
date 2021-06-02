@@ -41,8 +41,6 @@ urlpatterns = [
     url(r"^", include("backend.uniapps.network.urls")),
     # Resource管理
     url(r"^", include("backend.uniapps.resource.urls")),
-    # metric
-    url(r"^", include("backend.apps.metric.urls")),
     url(r"^api/projects/(?P<project_id>\w{32})/", include("backend.apps.metric.urls_new")),
     # 配置管理(旧模板集)
     url(r"^", include("backend.templatesets.legacy_apps.configuration.urls")),
@@ -75,11 +73,18 @@ urlpatterns = [
         r"^api/dashboard/projects/(?P<project_id>\w{32})/clusters/(?P<cluster_id>[\w\-]+)/",
         include("backend.dashboard.urls"),
     ),
-    # 通用 Metric 相关 URL
+    # k8s Metric 相关 URL
     url(
         r"^api/metrics/projects/(?P<project_id>\w{32})/clusters/(?P<cluster_id>[\w\-]+)/",
         include("backend.container_service.observability.metric.urls"),
     ),
+    # TODO 旧 metric 相关 URL，仅 Mesos 使用，计划后续废弃
+    url(r"^", include("backend.container_service.observability.metric_mesos.urls")),
+    url(
+        r"^api/projects/(?P<project_id>\w{32})/",
+        include("backend.container_service.observability.metric_mesos.urls_new"),
+    ),
+    # 标准日志输出
     path(
         "api/logs/projects/<slug:project_id>/clusters/<slug:cluster_id>/",
         include("backend.container_service.observability.log_stream.urls"),

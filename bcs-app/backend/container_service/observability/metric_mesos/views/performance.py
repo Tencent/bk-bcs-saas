@@ -13,15 +13,13 @@
 #
 import logging
 
-from django.conf import settings
 from django.utils.translation import ugettext_lazy as _
 from rest_framework import response, viewsets
-from rest_framework.exceptions import ValidationError
 from rest_framework.renderers import BrowsableAPIRenderer
 
-from backend.apps.metric import serializers
-from backend.apps.metric.views import base
 from backend.components import prometheus
+from backend.container_service.observability.metric_mesos import serializers
+from backend.container_service.observability.metric_mesos.views import base
 from backend.utils.error_codes import error_codes
 from backend.utils.renderers import BKAPIRenderer
 
@@ -227,7 +225,7 @@ class Pod(base.MetricViewMixin, viewsets.ViewSet):
     """Pod相关"""
 
     renderer_classes = (BKAPIRenderer, BrowsableAPIRenderer)
-    serializer_class = serializers.PromContainerMetricSLZ
+    serializer_class = serializers.PromPodMetricSLZ
 
     def _update_result(self, result, res_id_map):
         """mesos转换pod_name"""

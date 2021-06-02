@@ -74,6 +74,7 @@ INSTALLED_APPS = [
     "backend.container_service.infras.hosts.terraform",
     # 模板集功能模块
     "backend.templatesets.var_mgmt.apps.VarMgmtConfig",
+    "backend.container_service.observability.metric_mesos",
 ]
 
 MIDDLEWARE = [

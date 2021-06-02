@@ -15,13 +15,13 @@ import itertools
 import logging
 import re
 from datetime import timedelta
+from typing import List, Tuple
 from urllib import parse
 
 import arrow
 import semantic_version
 from django.conf import settings
 from django.http import HttpResponseRedirect
-from django.utils.functional import cached_property
 from django.utils.translation import ugettext_lazy as _
 from rest_framework import viewsets
 from rest_framework.renderers import BrowsableAPIRenderer
@@ -30,9 +30,9 @@ from rest_framework.response import Response
 from backend.accounts import bcs_perm
 from backend.activity_log import client as activity_client
 from backend.apps.constants import ALL_LIMIT, ProjectKind
-from backend.apps.metric import serializers
 from backend.components import paas_cc, prometheus
 from backend.components.bcs import k8s, mesos
+from backend.container_service.observability.metric_mesos import serializers
 from backend.utils.error_codes import error_codes
 from backend.utils.renderers import BKAPIRenderer
 
@@ -140,14 +140,21 @@ class ServiceMonitor(viewsets.ViewSet):
                 continue
             d["permissions"] = self.NO_PERM_MAP
 
-    def _validate_namespace_use_perm(self, request, project_id, namespace_list):
-        """检查是否有命名空间的使用权限"""
+    def _validate_namespace_use_perm(self, request, project_id: str, cluster_namespace_list: List[Tuple]) -> None:
+        """
+        检查是否有命名空间的使用权限
+
+        :param request: Django Request
+        :param project_id: 项目 ID
+        :param cluster_namespace_list: 集群-命名空间列表，格式：[(cluster_id, namespace)]
+        :return:
+        """
         namespace_map = self._get_namespace_map(project_id)
-        for namespace in namespace_list:
+        for cluster_id, namespace in cluster_namespace_list:
             if namespace in self.NO_PERM_NS:
                 raise error_codes.APIError(_("namespace operation is not allowed"))
 
-            namespace_id = namespace_map.get(namespace)
+            namespace_id = namespace_map.get((cluster_id, namespace))
             # 检查是否有命名空间的使用权限
             perm = bcs_perm.Namespace(request, project_id, namespace_id)
             perm.can_use(raise_exception=True)
@@ -323,7 +330,7 @@ class ServiceMonitor(viewsets.ViewSet):
         self._activity_log(project_id, request.user.username, name, message, True)
         return Response(result)
 
-    def bacth_delete(self, request, project_id, cluster_id):
+    def batch_delete(self, request, project_id, cluster_id):
         """批量删除"""
         slz = serializers.ServiceMonitorBatchDeleteSLZ(data=request.data)
         slz.is_valid(raise_exception=True)

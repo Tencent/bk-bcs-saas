@@ -11,9 +11,17 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-from backend.apis.views import ProjectBaseAPIViewSet
-from backend.container_service.observability.metric_mesos.views import servicemonitor
+import pytest
+
+from backend.tests.conftest import MOCK_CLUSTER_ID, MOCK_PROJECT_ID
+
+pytestmark = pytest.mark.django_db
 
 
-class ServiceMonitor(ProjectBaseAPIViewSet, servicemonitor.ServiceMonitor):
-    """继承servicemonitor"""
+class TestTarget:
+    """ 指标：Target 相关测试 """
+
+    def test_list(self, api_client, metric_api_common_patch, target_metric_api_patch):
+        """ 测试获取 集群指标总览 接口 """
+        response = api_client.get(f'/api/metrics/projects/{MOCK_PROJECT_ID}/clusters/{MOCK_CLUSTER_ID}/targets/')
+        assert response.json()['code'] == 0

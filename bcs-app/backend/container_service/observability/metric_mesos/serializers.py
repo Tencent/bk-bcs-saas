@@ -24,7 +24,7 @@ from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
 from backend.apps import constants
-from backend.apps.metric.models import Metric
+from backend.container_service.observability.metric_mesos.models import Metric
 
 logger = logging.getLogger(__name__)
 

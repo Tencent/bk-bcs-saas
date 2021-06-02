@@ -66,7 +66,7 @@ cluster_urlpatterns = [
     url(r"^container/disk_write/$", views.performance.Container.as_view({"get": "disk_write", "post": "disk_write"})),
     url(
         r"^servicemonitors/$",
-        views.servicemonitor.ServiceMonitor.as_view({"get": "list", "post": "create", "delete": "bacth_delete"}),
+        views.servicemonitor.ServiceMonitor.as_view({"get": "list", "post": "create", "delete": "batch_delete"}),
     ),
     url(r"^targets/$", views.servicemonitor.Targets.as_view({"get": "list_instance"})),
     url(r"^services/$", views.servicemonitor.Services.as_view({"get": "list"})),
