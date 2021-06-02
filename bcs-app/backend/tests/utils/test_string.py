@@ -13,7 +13,7 @@
 #
 import pytest
 
-from backend.utils.string import decapitalize
+from backend.utils.string import decapitalize, gen_random_str
 
 
 @pytest.mark.parametrize(
@@ -31,3 +31,27 @@ from backend.utils.string import decapitalize
 )
 def test_decapitalize(source, expired):
     assert decapitalize(source) == expired
+
+
+def test_gen_random_str():
+    """ 测试随机生成字符串 """
+
+    # 指定长度不在支持的范围内的情况
+    with pytest.raises(ValueError):
+        gen_random_str(0)
+
+    with pytest.raises(ValueError):
+        gen_random_str(-5)
+
+    with pytest.raises(ValueError):
+        gen_random_str(48)
+
+    # 默认情况（8位）
+    ret = gen_random_str()
+    assert len(ret) == 8
+
+    ret = gen_random_str(1)
+    assert len(ret) == 1
+
+    ret = gen_random_str(32)
+    assert len(ret) == 32

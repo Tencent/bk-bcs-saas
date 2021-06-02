@@ -19,6 +19,7 @@ from backend.dashboard.networks.urls import router as network_router
 from backend.dashboard.rbac.urls import router as rbac_router
 from backend.dashboard.storages.urls import router as storage_router
 from backend.dashboard.subscribe.urls import router as subscribe_router
+from backend.dashboard.templates.urls import router as template_router
 from backend.dashboard.workloads.urls import router as workload_router
 
 # 可选 namespaces/:namespace 前缀的 urls 集合
@@ -34,5 +35,6 @@ urlpatterns = [
     url(r"^crds/", include("backend.dashboard.custom_object.urls")),
     url(r"^namespaces/", include(namespace_router.urls)),
     url(r"^subscribe/", include(subscribe_router.urls)),
+    url(r"^templates/", include(template_router.urls)),
     url(r"^(namespaces/(?P<namespace>[\w\-.]+)/)?", include(namespace_prefix_urlpatterns)),
 ]
