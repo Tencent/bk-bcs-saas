@@ -15,13 +15,12 @@ from django.utils.translation import ugettext_lazy as _
 from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 
+from backend.bcs_web.apis.views import NoAccessTokenBaseAPIViewSet
 from backend.helm.app import views as app_views
 from backend.helm.helm import views as chart_views
 from backend.helm.helm.models.chart import Chart, ChartVersion
 from backend.helm.helm.models.repo import Repository
 from backend.utils.error_codes import error_codes
-
-from ..views import NoAccessTokenBaseAPIViewSet
 
 
 class ChartsApiView(NoAccessTokenBaseAPIViewSet, chart_views.ChartView):

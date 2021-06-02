@@ -21,7 +21,7 @@ from rest_framework.exceptions import ValidationError
 from rest_framework.renderers import BrowsableAPIRenderer
 from rest_framework.response import Response
 
-from backend.activity_log import client as activity_client
+from backend.bcs_web.audit_log import client as activity_client
 from backend.uniapps.network.models import MesosLoadBlance as MesosLoadBalancer
 from backend.uniapps.network.views.lb import constants as mesos_lb_constants
 from backend.uniapps.network.views.lb import serializers as lb_slz

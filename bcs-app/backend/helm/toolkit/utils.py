@@ -50,5 +50,5 @@ def provide_image_pull_secrets(namespace):
     imagePullSecrets:
     - name: paas.image.registry.namespace_name
     """
-    # 固定前缀(backend.apps.instance.constants.K8S_IMAGE_SECRET_PRFIX)+namespace
+    # 固定前缀(backend.templatesets.legacy_apps.instance.constants.K8S_IMAGE_SECRET_PRFIX)+namespace
     return f"{instance_constants.K8S_IMAGE_SECRET_PRFIX}{namespace}"

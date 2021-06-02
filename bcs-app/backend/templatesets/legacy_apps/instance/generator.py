@@ -444,7 +444,7 @@ class K8sProfileGenerator(ProfileGenerator):
         super().__init__(resource_id, namespace_id, is_validate, **params)
 
         global k8s_res_mapping
-        from backend.apps.instance.resources import BCSResource
+        from backend.templatesets.legacy_apps.instance.resources import BCSResource
 
         for res in BCSResource:
             if K8S_MODULE_NAME not in res.__module__:
@@ -489,7 +489,7 @@ class MesosProfileGenerator(ProfileGenerator):
         super().__init__(resource_id, namespace_id, is_validate, **params)
 
         global mesos_res_mapping
-        from backend.apps.instance.resources import BCSResource
+        from backend.templatesets.legacy_apps.instance.resources import BCSResource
 
         for res in BCSResource:
             if MESOS_MODULE_NAME not in res.__module__:

@@ -20,7 +20,7 @@ from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 
 from backend.accounts.bcs_perm import Cluster
-from backend.activity_log import client
+from backend.bcs_web.audit_log import client
 from backend.components import ops, paas_cc
 from backend.components.bcs import k8s as bcs_k8s
 from backend.components.bcs import mesos as bcs_mesos

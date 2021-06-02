@@ -14,7 +14,7 @@
 from rest_framework.response import Response
 
 from backend.accounts import bcs_perm
-from backend.apis.views import NoAccessTokenBaseAPIViewSet
+from backend.bcs_web.apis.views import NoAccessTokenBaseAPIViewSet
 from backend.container_service.clusters.open_apis.serializers import CreateNamespaceParamsSLZ
 from backend.container_service.projects.base.constants import ProjectKind
 from backend.resources.namespace import utils as ns_utils

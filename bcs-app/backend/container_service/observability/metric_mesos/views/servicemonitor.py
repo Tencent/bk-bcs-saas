@@ -28,8 +28,8 @@ from rest_framework.renderers import BrowsableAPIRenderer
 from rest_framework.response import Response
 
 from backend.accounts import bcs_perm
-from backend.activity_log import client as activity_client
 from backend.apps.constants import ALL_LIMIT, ProjectKind
+from backend.bcs_web.audit_log import client as activity_client
 from backend.components import paas_cc, prometheus
 from backend.components.bcs import k8s, mesos
 from backend.container_service.observability.metric_mesos import serializers

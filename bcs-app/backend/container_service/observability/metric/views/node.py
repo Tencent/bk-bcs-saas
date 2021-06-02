@@ -19,7 +19,7 @@ from rest_framework.response import Response
 
 from backend.bcs_web.viewsets import SystemViewSet
 from backend.components import prometheus as prom
-from backend.container_service.cluster.utils.node import get_cluster_node_list
+from backend.container_service.clusters.base.utils import get_cluster_nodes
 from backend.container_service.observability.metric import constants
 from backend.container_service.observability.metric.serializers import BaseMetricSLZ, FetchMetricOverviewSLZ
 from backend.utils.error_codes import error_codes
@@ -60,7 +60,7 @@ class NodeMetricViewSet(SystemViewSet):
     @action(methods=['GET'], url_path='info', detail=True)
     def info(self, request, project_id, cluster_id, node_ip):
         """ 节点基础指标信息 """
-        node_list = get_cluster_node_list(request.user.token.access_token, project_id, cluster_id)
+        node_list = get_cluster_nodes(request.user.token.access_token, project_id, cluster_id)
         node_ip_map = {i["inner_ip"]: i["id"] for i in node_list}
 
         if node_ip not in node_ip_map:

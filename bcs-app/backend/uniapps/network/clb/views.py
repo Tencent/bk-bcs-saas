@@ -10,7 +10,7 @@ from rest_framework import response, viewsets
 from rest_framework.renderers import BrowsableAPIRenderer
 
 from backend.accounts import bcs_perm
-from backend.activity_log import client
+from backend.bcs_web.audit_log import client
 from backend.components import paas_cc
 from backend.uniapps.network.clb import constants as clb_constants
 from backend.uniapps.network.clb import serializers

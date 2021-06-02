@@ -16,7 +16,7 @@ from rest_framework import response, viewsets
 from rest_framework.renderers import BrowsableAPIRenderer
 
 from backend.accounts import bcs_perm
-from backend.activity_log import client
+from backend.bcs_web.audit_log import client
 from backend.container_service.clusters import serializers as node_serializers
 from backend.container_service.clusters.base import utils as node_utils
 from backend.container_service.clusters.models import CommonStatus, NodeStatus, NodeUpdateLog

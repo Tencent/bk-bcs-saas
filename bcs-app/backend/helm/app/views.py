@@ -46,7 +46,7 @@ from backend.helm.helm.models.chart import ChartVersion
 from backend.helm.helm.providers.repo_provider import add_plain_repo, add_platform_public_repos, add_repo
 from backend.helm.helm.serializers import ChartVersionSLZ
 from backend.helm.permissions import check_cluster_perm
-from backend.helm.toolkits.diff import parser
+from backend.helm.toolkit.diff import parser
 from backend.kube_core.toolkit.dashboard_cli.exceptions import DashboardError, DashboardExecutionError
 from backend.resources.namespace.constants import K8S_SYS_PLAT_NAMESPACES
 from backend.utils import client as bcs_utils_client

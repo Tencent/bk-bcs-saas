@@ -22,15 +22,15 @@ from jsonfield import JSONField
 from picklefield.fields import PickledObjectField
 from rest_framework.exceptions import ValidationError
 
-from backend.activity_log import client
-from backend.activity_log.client import get_log_client_by_activity_log_id
 from backend.apps.whitelist import enable_helm_v3
+from backend.bcs_web.audit_log import client
+from backend.bcs_web.audit_log.client import get_log_client_by_activity_log_id
 from backend.helm.app.utils import get_cc_app_id
 from backend.helm.helm.constants import DEFAULT_VALUES_FILE_NAME, KEEP_TEMPLATE_UNCHANGED, RELEASE_VERSION_PREFIX
 from backend.helm.helm.models import Chart, ChartRelease
-from backend.helm.toolkits import utils as bcs_helm_utils
-from backend.helm.toolkits.diff.revision import AppRevisionDiffer
-from backend.helm.toolkits.kubehelm import exceptions as helm_exceptions
+from backend.helm.toolkit import utils as bcs_helm_utils
+from backend.helm.toolkit.diff.revision import AppRevisionDiffer
+from backend.helm.toolkit.kubehelm import exceptions as helm_exceptions
 
 from . import bcs_info_injector
 from .deployer import AppDeployer

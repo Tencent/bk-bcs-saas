@@ -21,7 +21,7 @@ from django.utils.translation import ugettext_lazy as _
 from jsonfield import JSONField
 from rest_framework.exceptions import ValidationError
 
-from backend.apps.metric.models import Metric
+from backend.container_service.observability.metric_mesos.models import Metric
 from backend.templatesets.legacy_apps.instance.constants import (
     APPLICATION_ID_SEPARATOR,
     INGRESS_ID_SEPARATOR,

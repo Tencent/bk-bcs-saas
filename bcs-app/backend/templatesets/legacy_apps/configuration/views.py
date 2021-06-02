@@ -24,7 +24,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from backend.accounts import bcs_perm
-from backend.activity_log import client
+from backend.bcs_web.audit_log import client
 from backend.templatesets.legacy_apps.instance.utils import check_tempalte_available, validate_template_id
 from backend.utils.renderers import BKAPIRenderer
 

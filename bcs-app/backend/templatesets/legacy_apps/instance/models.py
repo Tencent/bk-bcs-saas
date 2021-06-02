@@ -34,7 +34,7 @@ class VersionInstance(BaseModel):
         'service': 'ServiceID1,ServiceID2',
         ...
     }
-    from backend.apps.configuration.models import MODULE_DICT
+    from backend.templatesets.legacy_apps.configuration.models import MODULE_DICT
     MODULE_DICT 记录 `表名` 和  `model` 的对应关系，并且所有的 `model` 都定义了 `get_name` 方法来查看名称
     """
 

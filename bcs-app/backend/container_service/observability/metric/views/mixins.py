@@ -19,9 +19,9 @@ from django.conf import settings
 from django.utils.translation import ugettext_lazy as _
 
 from backend.accounts import bcs_perm
-from backend.activity_log import client as activity_client
-from backend.activity_log.constants import BaseActivityStatus, BaseActivityType, BaseResourceType
 from backend.apps.constants import ALL_LIMIT
+from backend.bcs_web.audit_log import client as activity_client
+from backend.bcs_web.audit_log.constants import BaseActivityStatus, BaseActivityType, BaseResourceType
 from backend.components import paas_cc
 from backend.container_service.observability.metric import constants
 from backend.utils.basic import getitems

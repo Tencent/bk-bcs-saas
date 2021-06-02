@@ -36,8 +36,7 @@ from rest_framework.renderers import BrowsableAPIRenderer
 from rest_framework.response import Response
 
 from backend.accounts import bcs_perm
-from backend.activity_log import client
-from backend.apps.application.base_views import error_codes
+from backend.bcs_web.audit_log import client
 from backend.templatesets.legacy_apps.instance.constants import InsState
 from backend.templatesets.legacy_apps.instance.models import InstanceConfig, VersionInstance
 from backend.templatesets.legacy_apps.instance.serializers import (
@@ -54,6 +53,7 @@ from backend.templatesets.legacy_apps.instance.utils import (
     validate_template_id,
     validate_version_id,
 )
+from backend.uniapps.application.base_views import error_codes
 from backend.utils.renderers import BKAPIRenderer
 
 from ..constants import K8sResourceName, MesosResourceName

@@ -17,4 +17,4 @@ from django.apps import AppConfig
 class HelmAppConfig(AppConfig):
     name = "backend.helm.app"
     verbose_name = "Helm app configuration"
-    label = "bcs_k8s"
+    # label = "bcs_k8s"

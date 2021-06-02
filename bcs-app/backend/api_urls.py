@@ -13,7 +13,7 @@
 #
 from django.conf.urls import include, url
 
-from .webconsole.views import WebConsoleSession
+from backend.web_console.open_apis.views import WebConsoleSession
 
 urlpatterns = [
     url(r"^projects/", include("backend.container_service.projects.open_apis.urls")),
@@ -39,11 +39,11 @@ urlpatterns = [
         include("backend.templatesets.open_apis.template_urls"),
     ),
     # 提供给iam拉取资源实例的url(已注册到iam后台)
-    url(r"^iam/", include("backend.apis.iam.urls")),
+    url(r"^iam/", include("backend.bcs_web.iam.open_apis.urls")),
     # metrics接口
     url(
         r"^metrics/projects/(?P<project_id_or_code>[\w\-]+)/clusters/(?P<cluster_id>[\w-]+)/",
-        include("backend.apis.metrics.urls"),
+        include("backend.container_service.observability.metric.open_apis.urls"),
     ),
     # web_console API
     url(

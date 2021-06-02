@@ -13,7 +13,7 @@
 #
 from rest_framework.response import Response
 
-from backend.apis.views import BaseAPIViewSet
+from backend.bcs_web.apis.views import BaseAPIViewSet
 from backend.resources.deployment import Deployment
 
 

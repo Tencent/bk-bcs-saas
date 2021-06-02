@@ -22,8 +22,8 @@ from rest_framework.exceptions import ValidationError
 from rest_framework.renderers import BrowsableAPIRenderer
 
 from backend.accounts.bcs_perm import Cluster
-from backend.activity_log import client
 from backend.apps.constants import CLUSTER_UPGRADE_VERSION, UPGRADE_TYPE
+from backend.bcs_web.audit_log import client
 from backend.components import bcs, ops, paas_cc
 from backend.components.bcs.mesos import MesosClient
 from backend.container_service.clusters import constants as cluster_constants

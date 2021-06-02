@@ -23,8 +23,8 @@ from django.utils.crypto import get_random_string
 from jsonfield import JSONField
 
 from backend.helm.helm.bcs_variable import get_bcs_variables, merge_valuefile_with_bcs_variables
-from backend.helm.toolkits.diff import parser
-from backend.helm.toolkits.kubehelm.helm import KubeHelmClient
+from backend.helm.toolkit.diff import parser
+from backend.helm.toolkit.kubehelm.helm import KubeHelmClient
 from backend.utils.basic import normalize_time
 from backend.utils.models import BaseTSModel
 

@@ -23,7 +23,7 @@ from django.utils.translation import ugettext_lazy as _
 
 from backend.helm.helm import models
 from backend.helm.helm.providers.constants import PUBLIC_REPO_URL
-from backend.helm.toolkits.kubehelm.options import RawFlag
+from backend.helm.toolkit.kubehelm.options import RawFlag
 from backend.utils import client as bcs_client
 from backend.utils.basic import ChoicesEnum
 from backend.utils.error_codes import error_codes

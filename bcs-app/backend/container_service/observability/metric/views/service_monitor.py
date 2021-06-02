@@ -19,7 +19,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 
 from backend.accounts import bcs_perm
-from backend.activity_log.constants import BaseActivityStatus, BaseActivityType
+from backend.bcs_web.audit_log.constants import BaseActivityStatus, BaseActivityType
 from backend.bcs_web.viewsets import SystemViewSet
 from backend.components.bcs.k8s import K8SClient
 from backend.container_service.observability.metric import constants

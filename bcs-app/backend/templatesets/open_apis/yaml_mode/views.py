@@ -13,7 +13,7 @@
 #
 from rest_framework.response import Response
 
-from backend.apis.views import NoAccessTokenBaseAPIViewSet
+from backend.bcs_web.apis.views import NoAccessTokenBaseAPIViewSet
 from backend.templatesets.legacy_apps.configuration.mixins import TemplatePermission
 from backend.templatesets.legacy_apps.configuration.yaml_mode.deployer import DeployController
 from backend.templatesets.legacy_apps.configuration.yaml_mode.release import ReleaseData, ReleaseDataProcessor

@@ -15,9 +15,9 @@ import logging
 
 from django.conf import settings
 
-from backend.apps.configuration.models import CATE_SHOW_NAME
-from backend.apps.instance.constants import LABLE_METRIC_SELECTOR_LABEL
 from backend.components.bcs.mesos import MesosClient
+from backend.templatesets.legacy_apps.configuration.models import CATE_SHOW_NAME
+from backend.templatesets.legacy_apps.instance.constants import LABLE_METRIC_SELECTOR_LABEL
 
 logger = logging.getLogger(__name__)
 

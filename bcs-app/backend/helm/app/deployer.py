@@ -25,8 +25,8 @@ from backend.utils.basic import ChoicesEnum
 from backend.utils.client import make_kubectl_client, make_kubectl_client_from_kubeconfig
 
 from ..helm.bcs_variable import get_valuefile_with_bcs_variable_injected
-from ..toolkits import utils as bcs_helm_utils
-from ..toolkits.kubehelm.exceptions import HelmError, HelmExecutionError
+from ..toolkit import utils as bcs_helm_utils
+from ..toolkit.kubehelm.exceptions import HelmError, HelmExecutionError
 from .utils import get_cc_app_id
 
 logger = logging.getLogger(__name__)

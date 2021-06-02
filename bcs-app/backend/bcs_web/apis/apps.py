@@ -11,9 +11,10 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-from backend.apis.views import ProjectBaseAPIViewSet
-from backend.container_service.observability.metric_mesos.views import servicemonitor
+from django.apps import AppConfig
 
 
-class ServiceMonitor(ProjectBaseAPIViewSet, servicemonitor.ServiceMonitor):
-    """继承servicemonitor"""
+class APIConfig(AppConfig):
+    name = "backend.bcs_web.apis"
+    verbose_name = "Bcs Apis"
+    label = "bcs_apis"

@@ -13,7 +13,7 @@
 #
 import json
 
-from backend.activity_log import client
+from backend.bcs_web.audit_log import client
 from backend.utils.client import KubectlClient
 
 

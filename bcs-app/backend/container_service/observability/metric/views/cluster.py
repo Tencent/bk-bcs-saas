@@ -19,7 +19,7 @@ from rest_framework.response import Response
 
 from backend.bcs_web.viewsets import SystemViewSet
 from backend.components import prometheus as prom
-from backend.container_service.cluster.utils.node import get_cluster_node_list
+from backend.container_service.clusters.base.utils import get_cluster_nodes
 from backend.container_service.observability.metric.constants import CLUSTER_DIMENSIONS_FUNC, MetricDimension
 from backend.container_service.observability.metric.serializers import FetchMetricOverviewSLZ
 from backend.utils.error_codes import error_codes
@@ -76,5 +76,5 @@ class ClusterMetricViewSet(SystemViewSet):
         :param cluster_id: 集群 ID
         :return: Node IP 列表
         """
-        node_list = get_cluster_node_list(self.request.user.token.access_token, project_id, cluster_id)
+        node_list = get_cluster_nodes(self.request.user.token.access_token, project_id, cluster_id)
         return [node['inner_ip'] for node in node_list]

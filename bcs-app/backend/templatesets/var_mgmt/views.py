@@ -25,9 +25,9 @@ from rest_framework.renderers import BrowsableAPIRenderer
 from rest_framework.response import Response
 
 from backend.accounts import bcs_perm
-from backend.activity_log import client
 from backend.apps import constants
 from backend.apps.constants import ALL_LIMIT
+from backend.bcs_web.audit_log import client
 from backend.components import paas_cc
 from backend.container_service.observability.metric_mesos.models import Metric
 from backend.templatesets.legacy_apps.configuration.models import MODULE_DICT, VersionedEntity

@@ -273,7 +273,7 @@ class K8sHPA(K8sResource, ResourceMixin):
 
 
 # 资源类型在前端展示的名称
-# backend.apps.configuration.utils.get_real_category 方法依赖下面约定的规则
+# backend.templatesets.legacy_apps.configuration.utils.get_real_category 方法依赖下面约定的规则
 CATE_SHOW_NAME = {
     # meos:后台类型全小写，前台展示首字母大写（规则不可变）
     "application": "Application",

@@ -19,6 +19,7 @@ from typing import Dict, List, Union
 from django.conf import settings
 from django.utils.translation import ugettext_lazy as _
 
+from backend.bcs_web.iam import permissions
 from backend.components.base import BaseHttpClient, BkApiClient, ComponentAuth, response_handler
 from backend.components.utils import http_delete, http_get, http_patch, http_post, http_put
 from backend.container_service.clusters.models import CommonStatus
@@ -28,7 +29,6 @@ from backend.utils.errcodes import ErrorCode
 from backend.utils.error_codes import error_codes
 
 from . import ssm
-from .iam import permissions
 
 logger = logging.getLogger(__name__)
 

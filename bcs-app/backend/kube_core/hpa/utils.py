@@ -17,8 +17,8 @@ from django.conf import settings
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 
-from backend.activity_log import client as activity_client
 from backend.apps.constants import ProjectKind
+from backend.bcs_web.audit_log import client as activity_client
 from backend.components.bcs import mesos
 from backend.container_service.clusters.base.models import CtxCluster
 from backend.resources.hpa import exceptions as hpa_exceptions

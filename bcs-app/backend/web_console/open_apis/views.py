@@ -11,10 +11,9 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
+from backend.bcs_web.apis.authentication import JWTAuthentication
+from backend.bcs_web.apis.permissions import BKAppPermission
 from backend.web_console.rest_api.views import CreateOpenSession
-
-from ..authentication import JWTAuthentication
-from ..permissions import BKAppPermission
 
 
 class WebConsoleSession(CreateOpenSession):

@@ -23,8 +23,8 @@ from django.utils.translation import ugettext_lazy as _
 from rest_framework.renderers import BrowsableAPIRenderer
 from rest_framework.response import Response
 
-from backend.activity_log import client
 from backend.apps.constants import ProjectKind
+from backend.bcs_web.audit_log import client
 from backend.components import data, paas_cc
 from backend.container_service.observability.metric_mesos.models import Metric
 from backend.templatesets.legacy_apps.configuration.models import MODULE_DICT, ShowVersion, VersionedEntity
@@ -37,10 +37,10 @@ from backend.utils.basic import getitems
 from backend.utils.errcodes import ErrorCode
 from backend.utils.renderers import BKAPIRenderer
 
-from ..base_views import BaseAPI, InstanceAPI, error_codes
-from ..serializers import BatchDeleteResourceSLZ
 from . import constants as app_constants
 from . import utils
+from .base_views import BaseAPI, InstanceAPI, error_codes
+from .serializers import BatchDeleteResourceSLZ
 from .utils import APIResponse, image_handler
 from .views import UpdateInstanceNew
 

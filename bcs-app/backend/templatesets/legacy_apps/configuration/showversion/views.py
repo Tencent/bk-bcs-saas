@@ -20,7 +20,7 @@ from rest_framework.exceptions import ValidationError
 from rest_framework.renderers import BrowsableAPIRenderer
 from rest_framework.response import Response
 
-from backend.activity_log import client
+from backend.bcs_web.audit_log import client
 from backend.templatesets.legacy_apps.instance.utils import has_instance_of_show_version
 from backend.utils.renderers import BKAPIRenderer
 
