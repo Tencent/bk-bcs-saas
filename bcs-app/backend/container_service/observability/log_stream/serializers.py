@@ -26,6 +26,14 @@ class FetchLogsSLZ(serializers.Serializer):
     previous = serializers.BooleanField(default=False)
 
 
+class GetLogSessionSLZ(serializers.Serializer):
+    """获取日志会话"""
+
+    container_name = serializers.CharField()
+    tail_lines = serializers.IntegerField(default=0)
+    since_time = serializers.CharField(default="")
+
+
 class DownloadLogsSLZ(serializers.Serializer):
     """下载日志"""
 

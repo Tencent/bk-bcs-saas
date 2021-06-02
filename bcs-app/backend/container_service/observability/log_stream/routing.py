@@ -15,14 +15,9 @@ from django.urls import path
 
 from . import views
 
-urlpatterns = [
-    path('namespaces/<slug:namespace>/pods/<slug:pod>/stdlogs/', views.LogStreamViewSet.as_view({'get': 'fetch'})),
+websocket_urlpatterns = [
     path(
-        'namespaces/<slug:namespace>/pods/<slug:pod>/stdlogs/sessions/',
-        views.LogStreamViewSet.as_view({'post': 'create_session'}),
-    ),
-    path(
-        'namespaces/<slug:namespace>/pods/<slug:pod>/stdlogs/download/',
-        views.LogStreamViewSet.as_view({'get': 'download'}),
+        'ws/logs/projects/<slug:project_id>/clusters/<slug:cluster_id>/namespaces/<slug:namespace>/pods/<slug:pod>/stdlogs/stream/',  # noqa
+        views.LogStreamHandler.as_asgi(),
     ),
 ]
