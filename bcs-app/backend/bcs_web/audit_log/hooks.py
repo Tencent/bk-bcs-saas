@@ -18,8 +18,9 @@ from django.db.models.signals import post_delete, post_save
 from django.dispatch import receiver
 from django.utils.encoding import force_str
 
-from backend.activity_log.client import UserActivityLogClient
 from backend.utils.local import local
+
+from .client import UserActivityLogClient
 
 logger = logging.getLogger(__name__)
 

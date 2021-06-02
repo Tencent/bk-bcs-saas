@@ -14,8 +14,8 @@
 import logging
 from dataclasses import dataclass
 
-from backend.apps.instance import constants as instance_constants
 from backend.components import paas_cc
+from backend.templatesets.legacy_apps.instance import constants as instance_constants
 
 try:
     from backend.apps.datalog.utils import get_data_id_by_project_id

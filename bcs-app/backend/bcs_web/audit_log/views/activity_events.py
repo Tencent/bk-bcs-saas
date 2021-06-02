@@ -12,15 +12,15 @@
 # specific language governing permissions and limitations under the License.
 #
 import logging
-from collections import OrderedDict
 
-from rest_framework import response, views
+from rest_framework import views
 from rest_framework.renderers import BrowsableAPIRenderer
 
-from backend.activity_log import serializers
-from backend.activity_log.utils import get_event, get_project_clusters
 from backend.utils.renderers import BKAPIRenderer
 from backend.utils.response import BKAPIResponse
+
+from .. import serializers
+from ..utils import get_event, get_project_clusters
 
 logger = logging.getLogger(__name__)
 

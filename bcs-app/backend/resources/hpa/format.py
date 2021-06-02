@@ -19,8 +19,8 @@ from typing import Dict, List, Tuple
 from django.conf import settings
 from django.utils.translation import ugettext_lazy as _
 
-from backend.apps.instance import constants as instance_constants
 from backend.resources.utils.format import ResourceDefaultFormatter
+from backend.templatesets.legacy_apps.instance import constants as instance_constants
 from backend.uniapps.application import constants as application_constants
 from backend.utils import basic
 

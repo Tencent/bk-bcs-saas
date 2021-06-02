@@ -19,9 +19,9 @@ from rest_framework import viewsets
 
 from backend.apps import utils as app_utils
 from backend.apps.constants import ClusterType
-from backend.apps.instance.constants import K8S_INGRESS_SYS_CONFIG
 from backend.components.bcs import k8s
 from backend.templatesets.legacy_apps.configuration.k8s.serializers import K8sIngressSLZ
+from backend.templatesets.legacy_apps.instance.constants import K8S_INGRESS_SYS_CONFIG
 from backend.uniapps.application.base_views import BaseAPI
 from backend.uniapps.application.utils import APIResponse
 from backend.uniapps.resource.views import ResourceOperate

@@ -19,13 +19,13 @@ from django.utils.translation import ugettext_lazy as _
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
-from backend.apps.configuration.constants import VARIABLE_PATTERN
-from backend.apps.variable.models import Variable
 from backend.container_service.clusters.base.utils import get_clusters
 from backend.resources.namespace.utils import get_namespaces
+from backend.templatesets.legacy_apps.configuration.constants import VARIABLE_PATTERN
 
 from ..legacy_apps.instance.serializers import InstanceNamespaceSLZ
 from .constants import VariableCategory, VariableScope
+from .models import Variable
 from .utils import get_variable_quote_num
 
 logger = logging.getLogger(__name__)

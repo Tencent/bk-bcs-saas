@@ -14,8 +14,8 @@
 import json
 from typing import List
 
-from backend.apps.instance.utils import get_ns_variable
 from backend.templatesets.legacy_apps.instance.generator import GENERATOR_DICT
+from backend.templatesets.legacy_apps.instance.utils import get_ns_variable
 from backend.templatesets.models import ResourceData
 from backend.utils.basic import getitems
 

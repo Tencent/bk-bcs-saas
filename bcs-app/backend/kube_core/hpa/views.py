@@ -11,21 +11,18 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-import json
 import logging
 
-from django.utils.translation import ugettext_lazy as _
 from rest_framework import views, viewsets
 from rest_framework.renderers import BrowsableAPIRenderer
 from rest_framework.response import Response
 
 from backend.accounts import bcs_perm
-from backend.apps.configuration.constants import K8sResourceName
 from backend.apps.constants import ALL_LIMIT
 from backend.components import paas_cc
 from backend.kube_core.hpa import constants, utils
 from backend.resources.hpa import exceptions as hpa_exceptions
-from backend.resources.hpa import hpa as hpa_client
+from backend.templatesets.legacy_apps.configuration.constants import K8sResourceName
 from backend.uniapps.application.base_views import BaseAPI
 from backend.uniapps.network.serializers import BatchResourceSLZ
 from backend.uniapps.resource.views import ResourceOperate

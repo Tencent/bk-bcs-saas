@@ -12,11 +12,10 @@
 # specific language governing permissions and limitations under the License.
 #
 import copy
-import json
 import logging
 from contextlib import contextmanager
 
-from backend.bcs_web.audit_log.models import UserActivityLog, UserActivityLogLabel
+from .models import UserActivityLog
 
 logger = logging.getLogger(__name__)
 undefined = object()

@@ -17,7 +17,7 @@ from django.utils.translation import ugettext_lazy as _
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
-from backend.apps.configuration import models as cfg_models
+from backend.templatesets.legacy_apps.configuration import models as cfg_models
 
 from .. import models
 

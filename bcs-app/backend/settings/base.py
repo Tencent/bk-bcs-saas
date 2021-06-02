@@ -58,7 +58,7 @@ INSTALLED_APPS = [
     "corsheaders",
     "django_extensions",
     "backend.accounts",
-    "backend.activity_log.ActivaityLogConfig",
+    "backend.bcs_web.audit_log.apps.ActivaityLogConfig",
     "backend.container_service.projects",
     "backend.container_service.misc.depot",
     "backend.container_service.clusters",

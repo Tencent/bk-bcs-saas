@@ -18,8 +18,8 @@ import json
 
 from django.core.management.base import BaseCommand
 
-from backend.apps.instance.models import VersionInstance
 from backend.templatesets.legacy_apps.configuration.models import ShowVersion, VersionedEntity
+from backend.templatesets.legacy_apps.instance.models import VersionInstance
 
 
 class Command(BaseCommand):

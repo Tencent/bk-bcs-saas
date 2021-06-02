@@ -22,8 +22,8 @@ from rest_framework.renderers import BrowsableAPIRenderer
 
 from backend.accounts import bcs_perm
 from backend.activity_log import client as log_client
-from backend.apps.instance.models import InstanceConfig
 from backend.components.bcs import mesos
+from backend.templatesets.legacy_apps.instance.models import InstanceConfig
 from backend.uniapps.network import utils as network_utils
 from backend.utils.basic import getitems
 from backend.utils.renderers import BKAPIRenderer

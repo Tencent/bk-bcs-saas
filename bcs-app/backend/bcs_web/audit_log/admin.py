@@ -13,7 +13,7 @@
 #
 from django.contrib import admin
 
-from backend.activity_log.models import UserActivityLog
+from .models import UserActivityLog
 
 
 class UserActivityLogAdmin(admin.ModelAdmin):
