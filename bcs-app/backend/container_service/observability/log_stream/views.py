@@ -35,7 +35,6 @@ class LogStreamViewSet(SystemViewSet):
 
     def fetch(self, request, project_id: str, cluster_id: str, namespace: str, pod: str):
         """获取日志"""
-        print(request.ctx_cluster.context.auth.access_token)
 
         data = self.params_validate(serializers.FetchLogsSLZ)
 

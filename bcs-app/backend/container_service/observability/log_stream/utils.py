@@ -77,6 +77,6 @@ def make_ws_url(stream_url: str, session_id: str) -> str:
         scheme = "ws"
     bcs_api_url = bcs_api_url._replace(scheme=scheme)
 
-    ws_url = f"{bcs_api_url.geturl()}{stream_url}?session_id={session_id}"  # noqa
+    ws_url = f"{bcs_api_url.geturl()}{stream_url}?session_id={session_id}"
 
     return ws_url
