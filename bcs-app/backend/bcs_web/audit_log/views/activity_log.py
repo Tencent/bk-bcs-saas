@@ -17,10 +17,11 @@ from rest_framework import generics, views
 from rest_framework.renderers import BrowsableAPIRenderer
 from rest_framework.response import Response
 
-from backend.activity_log import constants, serializers
-from backend.activity_log.models import UserActivityLog
 from backend.utils.renderers import BKAPIRenderer
 from backend.utils.response import BKAPIResponse
+
+from .. import constants, serializers
+from ..models import UserActivityLog
 
 
 class LogView(generics.ListAPIView):

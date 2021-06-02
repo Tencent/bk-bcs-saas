@@ -15,7 +15,7 @@ import json
 
 from django.db import models
 
-from backend.activity_log import constants
+from . import constants
 
 
 class UserActivityLog(models.Model):

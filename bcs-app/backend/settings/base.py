@@ -58,7 +58,7 @@ INSTALLED_APPS = [
     "corsheaders",
     "django_extensions",
     "backend.accounts",
-    "backend.activity_log.ActivaityLogConfig",
+    "backend.bcs_web.audit_log.apps.ActivaityLogConfig",
     "backend.container_service.projects",
     "backend.container_service.misc.depot",
     "backend.container_service.clusters",
@@ -71,7 +71,7 @@ INSTALLED_APPS = [
     "backend.apps.ticket",
     "backend.helm.app",
     "backend.helm.helm",
-    "backend.apps.hosts",
+    "backend.container_service.infras.hosts.terraform",
     # 模板集功能模块
     "backend.templatesets.var_mgmt.apps.VarMgmtConfig",
     "backend.container_service.observability.metric_mesos",

@@ -18,9 +18,10 @@ from typing import Dict, List
 from django.utils.translation import ugettext_lazy as _
 from rest_framework.exceptions import ValidationError
 
-from backend.apps.variable.models import NameSpaceVariable, Variable
 from backend.components.base import ComponentAuth
 from backend.components.paas_cc import PaaSCCClient
+
+from ..models import NameSpaceVariable, Variable
 
 
 def get_ns_id(access_token: str, project_id: str, cluster_id: str, namespace: str) -> int:

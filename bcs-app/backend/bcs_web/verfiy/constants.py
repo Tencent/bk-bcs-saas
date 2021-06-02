@@ -11,22 +11,30 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-from django.contrib import admin
+import logging
 
-from backend.activity_log.models import UserActivityLog
+from backend.utils.basic import ChoicesEnum
+
+logger = logging.getLogger(__name__)
 
 
-class UserActivityLogAdmin(admin.ModelAdmin):
-    list_display = (
-        'project_id',
-        'activity_type',
-        'resource',
-        'resource_type',
-        'resource_id',
-        'activity_status',
-        'user',
-        'activity_time',
+class PermMultiOperator(ChoicesEnum):
+    # 交集
+    AND = 'and'
+    # 或集
+    OR = 'or'
+
+    _choices_labels = (
+        (AND, 'AND'),
+        (OR, 'OR'),
     )
 
 
-admin.site.register(UserActivityLog, UserActivityLogAdmin)
+# verify resource code for perm
+verify_resource_exist = False
+
+
+try:
+    from .constants_ext import verify_resource_exist
+except ImportError as e:
+    logger.debug('Load extension failed: %s', e)

@@ -11,16 +11,15 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-from backend.utils.basic import ChoicesEnum
+from django.apps import AppConfig
 
 
-class PermMultiOperator(ChoicesEnum):
-    # 交集
-    AND = 'and'
-    # 或集
-    OR = 'or'
+class AuditLogConfig(AppConfig):
+    name = "backend.bcs_web.audit_log"
+    verbose_name = "Audit Log"
+    label = 'activity_log'  # 为了延用旧 model 的表名前缀
 
-    _choices_labels = (
-        (AND, 'AND'),
-        (OR, 'OR'),
-    )
+    def ready(self):
+        from .hooks import SignalActivityLogHook
+
+        SignalActivityLogHook.setup_hook()

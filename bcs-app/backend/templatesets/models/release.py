@@ -17,8 +17,8 @@ from typing import List
 from django.db import models
 from jsonfield import JSONField
 
-from backend.apps.configuration import models as config_models
 from backend.packages.blue_krill.data_types.enum import EnumField, StructuredEnum
+from backend.templatesets.legacy_apps.configuration import models as config_models
 from backend.utils.models import BaseModel
 
 

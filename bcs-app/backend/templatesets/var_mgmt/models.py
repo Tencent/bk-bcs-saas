@@ -19,7 +19,7 @@ import logging
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
 
-from backend.apps.configuration.models import BaseModel
+from backend.templatesets.legacy_apps.configuration.models import BaseModel
 
 from .constants import ALL_PROJECTS, VariableCategory, VariableScope
 

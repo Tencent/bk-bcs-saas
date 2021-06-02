@@ -14,10 +14,10 @@
 import json
 import logging
 
-from backend.apps.variable.constants import VariableScope
-from backend.apps.variable.models import ClusterVariable, NameSpaceVariable, Variable
 from backend.components import paas_cc
 from backend.helm.app.utils import yaml_dump, yaml_load
+from backend.templatesets.var_mgmt.constants import VariableScope
+from backend.templatesets.var_mgmt.models import ClusterVariable, NameSpaceVariable, Variable
 
 try:
     from backend.apps.datalog.utils import get_data_id_by_project_id

@@ -11,27 +11,22 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-from django.utils.translation import ugettext_lazy as _
+from django.contrib import admin
 
-from backend.utils.basic import ChoicesEnum
-
-ALL_PROJECTS = 0
+from .models import UserActivityLog
 
 
-class VariableScope(ChoicesEnum):
-    GLOBAL = 'global'
-    CLUSTER = 'cluster'
-    NAMESPACE = 'namespace'
-
-    _choices_labels = (
-        (GLOBAL, _("全局变量")),
-        (CLUSTER, _("集群变量")),
-        (NAMESPACE, _("命名空间变量")),
+class UserActivityLogAdmin(admin.ModelAdmin):
+    list_display = (
+        'project_id',
+        'activity_type',
+        'resource',
+        'resource_type',
+        'resource_id',
+        'activity_status',
+        'user',
+        'activity_time',
     )
 
 
-class VariableCategory(ChoicesEnum):
-    SYSTEM = 'sys'
-    CUSTOM = 'custom'
-
-    _choices_labels = ((SYSTEM, _("系统内置")), (CUSTOM, _("自定义")))
+admin.site.register(UserActivityLog, UserActivityLogAdmin)
