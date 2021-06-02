@@ -14,7 +14,7 @@
 from dataclasses import dataclass, field
 from typing import Dict, List
 
-from backend.apps.configuration.models import ShowVersion, Template
+from backend.templatesets.legacy_apps.configuration.models import ShowVersion, Template
 
 
 @dataclass

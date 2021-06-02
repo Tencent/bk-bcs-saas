@@ -15,7 +15,7 @@ import arrow
 from django.utils.translation import ugettext_lazy as _
 from rest_framework import serializers
 
-from backend.activity_log.models import UserActivityLog
+from .models import UserActivityLog
 
 
 class ActivityLogSLZ(serializers.ModelSerializer):

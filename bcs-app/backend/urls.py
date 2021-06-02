@@ -52,7 +52,7 @@ urlpatterns = [
     url(r"^", include("backend.templatesets.var_mgmt.urls")),
     # 应用管理
     url(r"^", include("backend.uniapps.application.urls")),
-    url(r"^", include("backend.activity_log.urls")),
+    url(r"^", include("backend.bcs_web.audit_log.urls")),
     # 权限验证
     url(r"^", include("backend.apps.verfy.urls")),
     url(r"^api-auth/", include("rest_framework.urls")),

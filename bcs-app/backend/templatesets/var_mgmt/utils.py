@@ -13,7 +13,7 @@
 #
 import re
 
-from backend.apps.configuration.utils import get_all_template_config
+from backend.templatesets.legacy_apps.configuration.utils import get_all_template_config
 
 
 def get_variable_quote_num(variable_key, project_id) -> int:

@@ -13,7 +13,7 @@
 #
 from django.conf.urls import url
 
-from backend.activity_log import views
+from . import views
 
 urlpatterns = [
     url(r'^api/activity_logs/project/(?P<project_id>\w+)/?$', views.LogView.as_view()),

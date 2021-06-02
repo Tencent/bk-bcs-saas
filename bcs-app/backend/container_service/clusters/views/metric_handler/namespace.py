@@ -16,10 +16,10 @@ import logging
 from django.utils.translation import ugettext_lazy as _
 
 from backend.apps import constants
-from backend.apps.configuration.models import Template
 from backend.apps.instance.constants import InsState
 from backend.apps.instance.models import InstanceConfig, VersionInstance
 from backend.components import bcs, paas_cc
+from backend.templatesets.legacy_apps.configuration.models import Template
 from backend.utils.errcodes import ErrorCode
 from backend.utils.error_codes import error_codes
 

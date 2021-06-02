@@ -27,14 +27,13 @@ from rest_framework.response import Response
 from backend.accounts import bcs_perm
 from backend.activity_log import client
 from backend.apps import constants
-from backend.apps.configuration.models import MODULE_DICT, VersionedEntity
-from backend.apps.configuration.utils import check_var_by_config, get_all_template_info_by_project
 from backend.apps.constants import ALL_LIMIT
-from backend.apps.instance.constants import APPLICATION_ID_SEPARATOR
-from backend.apps.instance.utils import validate_version_id
 from backend.apps.metric.models import Metric
-from backend.apps.variable.models import ClusterVariable, NameSpaceVariable, Variable
 from backend.components import paas_cc
+from backend.templatesets.legacy_apps.configuration.models import MODULE_DICT, VersionedEntity
+from backend.templatesets.legacy_apps.configuration.utils import check_var_by_config, get_all_template_info_by_project
+from backend.templatesets.legacy_apps.instance.constants import APPLICATION_ID_SEPARATOR
+from backend.templatesets.legacy_apps.instance.utils import validate_version_id
 from backend.utils.error_codes import error_codes
 from backend.utils.renderers import BKAPIRenderer
 from backend.utils.views import FinalizeResponseMixin
@@ -43,6 +42,7 @@ from ..legacy_apps.instance.generator import handel_custom_network_mode
 from ..legacy_apps.instance.serializers import VariableNamespaceSLZ
 from . import serializers
 from .import_vars import import_vars
+from .models import ClusterVariable, NameSpaceVariable, Variable
 
 
 class ListCreateVariableView(generics.ListCreateAPIView):
