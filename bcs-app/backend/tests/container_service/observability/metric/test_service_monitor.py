@@ -43,6 +43,21 @@ class TestServiceMonitor:
         """ 测试获取列表接口 """
         response = api_client.get(f'{self.common_prefix}/')
         assert response.json()['code'] == 0
+        assert set(response.json()['data'][0].keys()) == {
+            'namespace_id',
+            'metadata',
+            'cluster_id',
+            'service_name',
+            'create_time',
+            'spec',
+            'cluster_name',
+            'environment',
+            'permissions',
+            'status',
+            'namespace',
+            'name',
+            'instance_id',
+        }
 
     def test_create(self, api_client, metric_api_common_patch, sm_api_patch):
         """ 测试创建接口 """
