@@ -21,7 +21,7 @@ django.setup()  # noqa
 from channels.routing import ProtocolTypeRouter, URLRouter
 from django.core.asgi import get_asgi_application
 
-from backend.accounts.middlewares import BCSAuthMiddlewareStack
+from backend.accounts.middlewares import BCSChannelAuthMiddlewareStack
 from backend.container_service.observability.log_stream import routing as log_routing
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "backend.settings.ce.saas_prod")
@@ -30,6 +30,6 @@ os.environ.setdefault("DJANGO_SETTINGS_MODULE", "backend.settings.ce.saas_prod")
 application = ProtocolTypeRouter(
     {
         "http": get_asgi_application(),
-        "websocket": BCSAuthMiddlewareStack(URLRouter(log_routing.websocket_urlpatterns)),
+        "websocket": BCSChannelAuthMiddlewareStack(URLRouter(log_routing.websocket_urlpatterns)),
     }
 )

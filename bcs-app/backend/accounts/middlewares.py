@@ -63,7 +63,7 @@ class RequestProvider(object):
         return response
 
 
-class BCSAuthMiddleware:
+class ChannelSessionAuthMiddleware:
     """django channel auth middleware"""
 
     def __init__(self, inner):
@@ -94,8 +94,8 @@ class BCSAuthMiddleware:
 
 
 # Handy shortcut for applying all three layers at once
-def BCSAuthMiddlewareStack(inner):
-    return BCSAuthMiddleware(AuthMiddlewareStack(inner))
+def BCSChannelAuthMiddlewareStack(inner):
+    return ChannelSessionAuthMiddleware(AuthMiddlewareStack(inner))
 
 
 try:
