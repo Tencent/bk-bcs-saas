@@ -18,6 +18,7 @@ import pytest
 from backend.container_service.observability.log_stream import utils
 
 
+@pytest.mark.django_db
 class TestLogStream:
     @pytest.fixture
     def log_content(self):
@@ -25,11 +26,22 @@ class TestLogStream:
             return f.read().decode('utf-8')
 
     def test_fetch(self, api_client, project_id, cluster_id, namespace, pod_name, container_name):
-        """ 测试获取日志 """
+        """测试获取日志"""
         response = api_client.get(
-            f'/api/logs/projects/{project_id}/clusters/{cluster_id}/namespaces/{namespace}/pods/{pod_name}/stdlogs/'
+            f'/api/logs/projects/{project_id}/clusters/{cluster_id}/namespaces/{namespace}/pods/{pod_name}/stdlogs/?container_name={container_name}'  # noqa
         )
         assert response.json()['code'] == 0
+
+    def test_create_session(self, api_client, project_id, cluster_id, namespace, pod_name, container_name):
+        response = api_client.post(
+            f'/api/logs/projects/{project_id}/clusters/{cluster_id}/namespaces/{namespace}/pods/{pod_name}/stdlogs/sessions/',  # noqa
+            {"container_name": container_name},
+        )
+
+        result = response.json()
+        assert result['code'] == 0
+        assert len(result['data']['session_id']) > 0
+        assert result['data']['ws_url'].startswith("ws://")
 
     def test_refine_k8s_logs(self, log_content):
         logs = utils.refine_k8s_logs(log_content, None)

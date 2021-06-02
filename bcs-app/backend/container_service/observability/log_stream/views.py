@@ -54,7 +54,7 @@ class LogStreamViewSet(SystemViewSet):
         result = {"logs": logs, "previous": previous}
         return Response(result)
 
-    def get_session(self, request, project_id: str, cluster_id: str, namespace: str, pod: str):
+    def create_session(self, request, project_id: str, cluster_id: str, namespace: str, pod: str):
         """获取实时日志session"""
         data = self.params_validate(serializers.GetLogSessionSLZ)
 
