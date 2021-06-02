@@ -14,7 +14,7 @@
 import mock
 import pytest
 
-from backend.apps.cluster.driver.mesos import MesosDriver
+from backend.container_service.clusters.driver.mesos import MesosDriver
 
 fake_data = {
     "data": [
@@ -72,6 +72,6 @@ fake_data_with_skip_namespace = {
     [(fake_data, {"127.0.0.1": 1, "127.0.0.2": 1}), (fake_data_with_skip_namespace, {"127.0.0.1": 1})],
 )
 def test_host_count(raw_data, expect):
-    with mock.patch("backend.apps.cluster.driver.mesos.MESOS_SKIP_NS_LIST", ["test2"]):
+    with mock.patch("backend.container_service.clusters.driver.mesos.MESOS_SKIP_NS_LIST", ["test2"]):
         data = MesosDriver.host_container_map(raw_data, raw_data)
     assert data == expect

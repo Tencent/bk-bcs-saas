@@ -21,8 +21,8 @@ from rest_framework.exceptions import ValidationError
 
 from backend.apps.configuration import models
 from backend.apps.configuration.constants import TemplateEditMode
-from backend.apps.configuration.k8s import serializers as kserializers
-from backend.apps.configuration.mesos import serializers as mserializers
+from backend.templatesets.legacy_apps.configuration.k8s import serializers as kserializers
+from backend.templatesets.legacy_apps.configuration.mesos import serializers as mserializers
 from backend.utils.exceptions import ResNotFoundError
 
 from .constants import RESOURCE_NAMES, MesosResourceName

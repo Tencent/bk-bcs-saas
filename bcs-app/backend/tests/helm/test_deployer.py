@@ -14,8 +14,8 @@
 import contextlib
 from unittest.mock import MagicMock
 
-from backend.bcs_k8s.deployer import VALUESFILE_KEY, HelmDeployer, ReleaseArgs
-from backend.bcs_k8s.kubehelm.helm import KubeHelmClient
+from backend.helm.toolkits.deployer import VALUESFILE_KEY, HelmDeployer, ReleaseArgs
+from backend.helm.toolkits.kubehelm.helm import KubeHelmClient
 from backend.utils import client as bcs_client
 
 

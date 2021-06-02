@@ -15,9 +15,9 @@ from unittest.mock import patch
 
 import pytest
 
-from backend.apps.cluster.views.node_views.utils import MesosNodeLabelsQuerier
 from backend.components.bcs.mesos import MesosClient
 from backend.components.paas_cc import get_cluster
+from backend.container_service.clusters.views.node_views.utils import MesosNodeLabelsQuerier
 
 fake_cc_get_cluster_result = {"code": 0, "data": {"environment": "stag"}}
 fake_mesos_agent_attrs_result = [

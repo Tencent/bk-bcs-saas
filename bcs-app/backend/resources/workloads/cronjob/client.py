@@ -11,7 +11,7 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-from backend.resources.cluster.models import CtxCluster
+from backend.container_service.clusters.base.models import CtxCluster
 from backend.resources.constants import DEFAULT_CRON_JOB_API_VERSION, K8sResourceKind
 from backend.resources.resource import ResourceClient
 from backend.resources.workloads.cronjob.formatter import CronJobFormatter

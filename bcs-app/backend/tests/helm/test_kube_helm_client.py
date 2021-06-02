@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import pytest
 
-from backend.bcs_k8s.kubehelm.helm import KubeHelmClient
+from backend.helm.toolkits.kubehelm.helm import KubeHelmClient
 
 
 def test_do_install(settings, mock_run_command_with_retry):

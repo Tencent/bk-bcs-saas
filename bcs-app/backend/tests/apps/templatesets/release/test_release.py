@@ -15,7 +15,7 @@ import mock
 import pytest
 
 from backend.apps.templatesets import models
-from backend.apps.templatesets.release.manager import AppReleaseManager
+from backend.templatesets.release.manager import AppReleaseManager
 from backend.utils.basic import getitems
 
 from .fake_manager import FakeReleaseResourceManager, fake_async_run

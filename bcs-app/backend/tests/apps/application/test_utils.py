@@ -3,8 +3,8 @@ from typing import Dict
 
 import pytest
 
-from backend.apps.application import constants
-from backend.apps.application.utils import exclude_records, get_k8s_resource_status
+from backend.uniapps.application import constants
+from backend.uniapps.application.utils import exclude_records, get_k8s_resource_status
 from backend.utils import FancyDict
 
 running = constants.ResourceStatus.Running.value

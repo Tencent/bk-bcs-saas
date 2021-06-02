@@ -22,19 +22,24 @@ from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 from rest_framework.exceptions import ValidationError
 
-from backend.apps.application.constants import FUNC_MAP
-from backend.apps.configuration.constants import K8sResourceName, MesosResourceName
-from backend.apps.configuration.models import CATE_ABBR_NAME, ShowVersion, Template, VersionedEntity
 from backend.apps.constants import ALL_LIMIT
-from backend.apps.instance.constants import InsState
-from backend.apps.instance.drivers import get_scheduler_driver
-from backend.apps.instance.generator import GENERATOR_DICT, get_bcs_context
-from backend.apps.instance.models import InstanceConfig, MetricConfig, VersionInstance
-from backend.apps.instance.utils_pub import get_cluster_version
 from backend.apps.whitelist import enabled_hpa_feature
 from backend.components import paas_cc
 from backend.components.bcs.k8s import K8SClient
 from backend.components.bcs.mesos import MesosClient
+from backend.templatesets.legacy_apps.configuration.constants import K8sResourceName, MesosResourceName
+from backend.templatesets.legacy_apps.configuration.models import (
+    CATE_ABBR_NAME,
+    ShowVersion,
+    Template,
+    VersionedEntity,
+)
+from backend.templatesets.legacy_apps.instance.constants import InsState
+from backend.templatesets.legacy_apps.instance.drivers import get_scheduler_driver
+from backend.templatesets.legacy_apps.instance.generator import GENERATOR_DICT, get_bcs_context
+from backend.templatesets.legacy_apps.instance.models import InstanceConfig, MetricConfig, VersionInstance
+from backend.templatesets.legacy_apps.instance.utils_pub import get_cluster_version
+from backend.uniapps.application.constants import FUNC_MAP
 from backend.utils.errcodes import ErrorCode
 from backend.utils.error_codes import error_codes
 

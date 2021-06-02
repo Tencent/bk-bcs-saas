@@ -20,10 +20,10 @@ from celery import shared_task
 from django.conf import settings
 from django.utils.translation import ugettext_lazy as _
 
-from backend.apps.application.constants import FUNC_MAP, MESOS_FUNC_MAP
-from backend.apps.instance.constants import EventType, InsState
-from backend.apps.instance.models import InstanceConfig, InstanceEvent, VersionInstance
 from backend.components.bcs import k8s, mesos
+from backend.templatesets.legacy_apps.instance.constants import EventType, InsState
+from backend.templatesets.legacy_apps.instance.models import InstanceConfig, InstanceEvent, VersionInstance
+from backend.uniapps.application.constants import FUNC_MAP, MESOS_FUNC_MAP
 from backend.utils.errcodes import ErrorCode
 
 DEFAULT_RESPONSE = {"code": 0}
