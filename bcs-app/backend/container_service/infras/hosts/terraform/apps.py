@@ -11,16 +11,10 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-from backend.utils.basic import ChoicesEnum
+from django.apps import AppConfig
 
 
-class PermMultiOperator(ChoicesEnum):
-    # 交集
-    AND = 'and'
-    # 或集
-    OR = 'or'
-
-    _choices_labels = (
-        (AND, 'AND'),
-        (OR, 'OR'),
-    )
+class HostTerraformConfig(AppConfig):
+    name = "backend.container_service.infra.hosts.terraform"
+    verbose_name = "host of infrastructure"
+    label = "hosts"

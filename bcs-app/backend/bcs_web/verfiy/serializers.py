@@ -19,8 +19,8 @@ from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
 from backend.accounts import bcs_perm
-from backend.apps.constants import verify_resource_exist
-from backend.apps.verfy import constants
+
+from . import constants
 
 logger = logging.getLogger(__name__)
 
@@ -35,7 +35,7 @@ class PermVerifySLZ(serializers.Serializer):
 
     def validate(self, data):
         if data['policy_code'] not in ['create', 'deploy', 'download']:
-            if verify_resource_exist and (not data.get('resource_code')):
+            if constants.verify_resource_exist and (not data.get('resource_code')):
                 raise ValidationError(_("【resource_code】不能为空"))
             if not data.get('resource_name'):
                 raise ValidationError(_("【resource_name】不能为空"))
@@ -56,7 +56,7 @@ class PermMultiVerifySLZ(serializers.Serializer):
 
         def validate(self, data):
             if data['policy_code'] not in ['create', 'deploy', 'download']:
-                if verify_resource_exist and (not data.get('resource_code')):
+                if constants.verify_resource_exist and (not data.get('resource_code')):
                     raise ValidationError(_("【resource_code】不能为空"))
                 if not data.get('resource_name'):
                     raise ValidationError(_("【resource_name】不能为空"))
