@@ -25,8 +25,8 @@ class EndpointsFormatter(NetworkFormatter):
         endpoints = []
         for subset in resource_dict.get('subsets', []):
             # endpoints 为 subsets ips 与 ports 的笛卡儿积
-            ips = [addr['ip'] for addr in subset.get('addresses', [])]
-            ports = [p['port'] for p in subset.get('ports', [])]
+            ips = [addr['ip'] for addr in subset.get('addresses', []) if addr.get('ip')]
+            ports = [p['port'] for p in subset.get('ports', []) if p.get('port')]
             endpoints.extend([f'{ip}:{port}' for ip, port in product(ips, ports)])
         return endpoints
 

@@ -23,7 +23,7 @@ class IngressFormatter(NetworkFormatter):
     def parse_hosts(self, resource_dict: Dict) -> List:
         """ 解析 Ingress hosts """
         rules = getitems(resource_dict, 'spec.rules', [])
-        return [r.get('host') for r in rules]
+        return [r['host'] for r in rules if r.get('host')]
 
     def parse_addresses(self, resource_dict: Dict) -> List:
         """ 解析 Ingress address """
