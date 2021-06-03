@@ -13,7 +13,7 @@
 #
 import pytest
 
-from backend.resources.cluster.models import CtxCluster
+from backend.container_service.clusters.base.models import CtxCluster
 
 from .contents import release_data
 
