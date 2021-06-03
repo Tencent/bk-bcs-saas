@@ -16,6 +16,13 @@ from rest_framework import serializers
 from backend.resources.constants import K8sResourceKind
 
 
+class ListResourceSLZ(serializers.Serializer):
+    """ 查询 K8S 资源列表 """
+
+    # NOTE：暂时只先支持 label_selector
+    label_selector = serializers.CharField(label='标签选择算符', max_length=512, required=False)
+
+
 class CreateResourceSLZ(serializers.Serializer):
     """ 创建 K8S 资源对象 """
 
@@ -23,3 +30,9 @@ class CreateResourceSLZ(serializers.Serializer):
     kind = serializers.ChoiceField(label='资源类型', choices=K8sResourceKind.get_choices())
     metadata = serializers.JSONField(label='Metadata')
     spec = serializers.JSONField(label='Spec')
+
+
+class UpdateResourceSLZ(CreateResourceSLZ):
+    """ 更新 K8S 资源对象 """
+
+    pass

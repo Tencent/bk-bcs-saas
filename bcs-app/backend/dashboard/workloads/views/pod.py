@@ -11,36 +11,19 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-from typing import Dict
-
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
-from backend.bcs_web.viewsets import SystemViewSet
-from backend.dashboard.utils.resp import ListApiRespBuilder, RetrieveApiRespBuilder
-from backend.dashboard.workloads.serializers import ListPodsSLZ
+from backend.dashboard.viewsets import DashboardViewSet
 from backend.resources.configs.configmap import ConfigMap
 from backend.resources.configs.secret import Secret
 from backend.resources.storages.persistent_volume_claim import PersistentVolumeClaim
 from backend.resources.workloads.pod import Pod
 
 
-class PodViewSet(SystemViewSet):
+class PodViewSet(DashboardViewSet):
 
-    lookup_field = 'pod_name'
-
-    def list(self, request, project_id, cluster_id, namespace=None):
-        """ 获取 Pod 列表，支持 labelSelector """
-        params = self.params_validate(ListPodsSLZ)
-        client = Pod(request.ctx_cluster)
-        response_data = ListApiRespBuilder(client, **params).build()
-        return Response(response_data)
-
-    def retrieve(self, request, project_id, cluster_id, namespace, pod_name):
-        """ 获取单个 Pod 详细信息 """
-        client = Pod(request.ctx_cluster)
-        response_data = RetrieveApiRespBuilder(client, namespace, pod_name).build()
-        return Response(response_data)
+    resource_client = Pod
 
     @action(methods=['GET'], url_path='pvcs', detail=True)
     def persistent_volume_claims(self, request, project_id, cluster_id, namespace, pod_name):
