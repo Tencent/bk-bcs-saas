@@ -37,7 +37,6 @@ djangorestframework==3.12.4
 docutils==0.17.1
 dogpile.cache==0.6.4
 dpath==1.4.2
-enum34==1.1.6
 et-xmlfile==1.1.0
 furl==2.0.0
 gevent==1.2.2
