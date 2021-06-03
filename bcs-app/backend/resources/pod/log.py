@@ -18,7 +18,7 @@ import aiohttp
 from kubernetes import watch
 from kubernetes.client.api import core_v1_api
 
-from backend.resources.cluster.models import CtxCluster
+from backend.container_service.clusters.base.models import CtxCluster
 from backend.resources.utils.kube_client import get_dynamic_client, wrap_kube_client_exc
 from backend.utils.error_codes import error_codes
 

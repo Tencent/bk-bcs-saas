@@ -17,7 +17,7 @@ import logging
 
 from django.conf import settings
 
-from backend.apps.projects.models import FunctionController
+from backend.container_service.projects.models import FunctionController
 
 logger = logging.getLogger(__name__)
 

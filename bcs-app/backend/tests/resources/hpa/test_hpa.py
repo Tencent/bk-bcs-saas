@@ -17,7 +17,7 @@ import pytest
 import yaml
 from kubernetes.dynamic.exceptions import ResourceNotFoundError
 
-from backend.resources.cluster.models import CtxCluster
+from backend.container_service.clusters.base.models import CtxCluster
 from backend.resources.hpa import hpa as hpa_client
 from backend.utils.basic import getitems
 
@@ -38,7 +38,7 @@ class TestHPA:
 
     @pytest.fixture(autouse=True)
     def use_fake_db(self):
-        with mock.patch("backend.apps.instance.models.InstanceConfig.objects"):
+        with mock.patch("backend.templatesets.legacy_apps.instance.models.InstanceConfig.objects"):
             yield
 
     @pytest.fixture()

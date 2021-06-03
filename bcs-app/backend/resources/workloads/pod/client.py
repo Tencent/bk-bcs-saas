@@ -41,7 +41,7 @@ class Pod(ResourceClient):
         """
         pod = self.get(namespace=namespace, name=pod_name, is_format=False)
         if not pod:
-            raise ResourceNotExist(_('Pod(Namespace: {}, Name: {})不存在').format(namespace, pod_name))
+            raise ResourceNotExist(_('Pod {}/{} 不存在').format(namespace, pod_name))
         return pod.to_dict()
 
     def filter_related_resources(self, client: ResourceClient, namespace: str, pod_name: str) -> Dict:

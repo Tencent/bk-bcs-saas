@@ -19,7 +19,7 @@ from kubernetes import client
 from kubernetes.client.configuration import Configuration
 
 from backend.components.bcs import k8s
-from backend.resources.cluster import CtxCluster
+from backend.container_service.clusters.base import CtxCluster
 from backend.utils import exceptions
 from backend.utils.errcodes import ErrorCode
 

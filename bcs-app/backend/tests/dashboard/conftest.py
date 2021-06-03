@@ -27,7 +27,7 @@ from backend.tests.testing_utils.mocks.viewsets import FakeSystemViewSet
 def dashboard_api_common_patch():
     with mock.patch('backend.bcs_web.viewsets.SystemViewSet', new=FakeSystemViewSet), mock.patch(
         'backend.resources.resource.get_dynamic_client', new=get_dynamic_client
-    ), mock.patch('backend.dashboard.utils.resp.RetrieveApiRespBuilder', new=MockRetrieveApiRespBuilder):
+    ), mock.patch('backend.dashboard.viewsets.RetrieveApiRespBuilder', new=MockRetrieveApiRespBuilder):
         yield
 
 
@@ -53,5 +53,7 @@ def dashboard_container_api_patch():
 
 @pytest.fixture
 def dashboard_pod_api_patch():
-    with mock.patch('backend.dashboard.workloads.views.pod.Pod.fetch_manifest', new=gen_mock_pod_manifest):
+    with mock.patch('backend.dashboard.workloads.views.pod.Pod.fetch_manifest', new=gen_mock_pod_manifest), mock.patch(
+        'backend.dashboard.workloads.views.pod.RetrieveApiRespBuilder', new=MockRetrieveApiRespBuilder
+    ):
         yield

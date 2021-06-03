@@ -25,57 +25,69 @@ urlpatterns = [
     url(r"^api/test/sentry/", healthz.test_sentry),
     url(r"^", include("backend.accounts.urls")),
     # 项目管理, namespace 名称 SKIP_REQUEST_NAMESPACE 配置中, 不能省略
-    re_path(r"^", include(("backend.apps.projects.urls", "backend.apps.projects"), namespace="projects")),
+    re_path(
+        r"^",
+        include(
+            ("backend.container_service.projects.urls", "backend.container_service.projects"), namespace="projects"
+        ),
+    ),
     # 仓库管理
-    url(r"^", include("backend.apps.depot.urls")),
+    url(r"^", include("backend.container_service.misc.depot.urls")),
     # 集群管理
-    url(r"^", include("backend.apps.cluster.urls")),
+    url(r"^", include("backend.container_service.clusters.urls")),
     # web_console
     url(r"^", include("backend.web_console.rest_api.urls")),
     # 网络管理
-    url(r"^", include("backend.apps.network.urls")),
+    url(r"^", include("backend.uniapps.network.urls")),
     # Resource管理
-    url(r"^", include("backend.apps.resource.urls")),
-    # metric
-    url(r"^", include("backend.apps.metric.urls")),
-    url(r"^api/projects/(?P<project_id>\w{32})/", include("backend.apps.metric.urls_new")),
+    url(r"^", include("backend.uniapps.resource.urls")),
+    url(
+        r"^api/projects/(?P<project_id>\w{32})/",
+        include("backend.container_service.observability.metric_mesos.urls_new"),
+    ),
     # 配置管理(旧模板集)
-    url(r"^", include("backend.apps.configuration.urls")),
+    url(r"^", include("backend.templatesets.legacy_apps.configuration.urls")),
     # TODO 新模板集url入口，后续替换上面的configuration
-    url(r"^api/templatesets/projects/(?P<project_id>\w{32})/", include("backend.apps.templatesets.urls")),
+    url(r"^api/templatesets/projects/(?P<project_id>\w{32})/", include("backend.templatesets.urls")),
     # 变量管理
-    url(r"^", include("backend.apps.variable.urls")),
+    url(r"^", include("backend.templatesets.var_mgmt.urls")),
     # 应用管理
-    url(r"^", include("backend.apps.application.urls")),
-    url(r"^", include("backend.activity_log.urls")),
+    url(r"^", include("backend.uniapps.application.urls")),
+    url(r"^", include("backend.bcs_web.audit_log.urls")),
     # 权限验证
-    url(r"^", include("backend.apps.verfy.urls")),
+    url(r"^", include("backend.bcs_web.legacy_verify.urls")),
     url(r"^api-auth/", include("rest_framework.urls")),
     # BCS K8S special urls
-    url(r"^", include("backend.bcs_k8s.helm.urls")),
-    url(r"^", include("backend.bcs_k8s.app.urls")),
+    url(r"^", include("backend.helm.helm.urls")),
+    url(r"^", include("backend.helm.app.urls")),
     # Ticket凭证管理
     url(r"^", include("backend.apps.ticket.urls")),
-    url(r"^", include("backend.bcs_k8s.authtoken.urls")),
     url(
         r"^api/hpa/projects/(?P<project_id>\w{32})/",
         include(
-            "backend.apps.hpa.urls",
+            "backend.kube_core.hpa.urls",
         ),
     ),
     # cd部分api
-    url(r"^cd_api/", include("backend.apps.apis.urls")),
-    url(r"^apis/", include("backend.apis.urls")),
+    url(r"^cd_api/", include("backend.uniapps.apis.urls")),
+    url(r"^apis/", include("backend.api_urls")),
     # dashboard 相关 URL
     url(
         r"^api/dashboard/projects/(?P<project_id>\w{32})/clusters/(?P<cluster_id>[\w\-]+)/",
         include("backend.dashboard.urls"),
     ),
-    # 通用 Metric 相关 URL
+    # k8s Metric 相关 URL
     url(
         r"^api/metrics/projects/(?P<project_id>\w{32})/clusters/(?P<cluster_id>[\w\-]+)/",
         include("backend.container_service.observability.metric.urls"),
     ),
+    # TODO 旧 metric 相关 URL，仅 Mesos 使用，计划后续废弃
+    url(r"^", include("backend.container_service.observability.metric_mesos.urls")),
+    url(
+        r"^api/projects/(?P<project_id>\w{32})/",
+        include("backend.container_service.observability.metric_mesos.urls_new"),
+    ),
+    # 标准日志输出
     path(
         "api/logs/projects/<slug:project_id>/clusters/<slug:cluster_id>/",
         include("backend.container_service.observability.log_stream.urls"),
