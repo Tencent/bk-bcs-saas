@@ -32,13 +32,13 @@ from backend.utils.renderers import BKAPIRenderer
 from backend.utils.response import BKAPIResponse
 
 try:
-    from backend.apps.datalog.data_collect import (
+    from backend.container_service.observability.datalog.data_collect import (
         apply_dataid_by_metric,
         create_prometheus_data_flow,
         get_metric_data_name,
     )
 except ImportError:
-    from backend.apps.datalog_ce.data_collect import (
+    from backend.container_service.observability.datalog_ce.data_collect import (
         apply_dataid_by_metric,
         create_prometheus_data_flow,
         get_metric_data_name,

@@ -18,9 +18,9 @@ from backend.components import paas_cc
 from backend.templatesets.legacy_apps.instance import constants as instance_constants
 
 try:
-    from backend.apps.datalog.utils import get_data_id_by_project_id
+    from backend.container_service.observability.datalog.utils import get_data_id_by_project_id
 except ImportError:
-    from backend.apps.datalog_ce.utils import get_data_id_by_project_id
+    from backend.container_service.observability.datalog_ce.utils import get_data_id_by_project_id
 
 logger = logging.getLogger(__name__)
 

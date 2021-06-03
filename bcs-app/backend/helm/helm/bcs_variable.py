@@ -20,9 +20,9 @@ from backend.templatesets.var_mgmt.constants import VariableScope
 from backend.templatesets.var_mgmt.models import ClusterVariable, NameSpaceVariable, Variable
 
 try:
-    from backend.apps.datalog.utils import get_data_id_by_project_id
+    from backend.container_service.observability.datalog.utils import get_data_id_by_project_id
 except ImportError:
-    from backend.apps.datalog_ce.utils import get_data_id_by_project_id
+    from backend.container_service.observability.datalog_ce.utils import get_data_id_by_project_id
 
 logger = logging.getLogger(__name__)
 

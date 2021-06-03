@@ -45,9 +45,9 @@ from .utils import APIResponse, image_handler
 from .views import UpdateInstanceNew
 
 try:
-    from backend.apps.datalog import utils as datalog_utils
+    from backend.container_service.observability.datalog import utils as datalog_utils
 except ImportError:
-    from backend.apps.datalog_ce import utils as datalog_utils
+    from backend.container_service.observability.datalog_ce import utils as datalog_utils
 
 logger = logging.getLogger(__name__)
 

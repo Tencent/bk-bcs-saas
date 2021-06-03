@@ -17,9 +17,9 @@ from backend.templatesets.legacy_apps.instance import constants as instance_cons
 from backend.utils.basic import get_bcs_component_version
 
 try:
-    from backend.apps.datalog.utils import get_data_id_by_project_id
+    from backend.container_service.observability.datalog.utils import get_data_id_by_project_id
 except ImportError:
-    from backend.apps.datalog_ce.utils import get_data_id_by_project_id
+    from backend.container_service.observability.datalog_ce.utils import get_data_id_by_project_id
 
 
 def get_kubectl_version(cluster_version, kubectl_version_info, default_kubectl_version):

@@ -14,7 +14,7 @@
 import mock
 import pytest
 
-from backend.apps.templatesets import models
+from backend.templatesets import models
 from backend.templatesets.release.manager import AppReleaseManager
 from backend.utils.basic import getitems
 
@@ -61,8 +61,8 @@ class TestReleaseDataGenerator:
 class TestReleaseManager:
     def test_update_or_create(self, bk_user, project_id, yaml_release_data):
         with mock.patch(
-            'backend.apps.templatesets.release.manager.ReleaseResourceManager', new=FakeReleaseResourceManager
-        ), mock.patch('backend.apps.templatesets.release.manager.async_run', new=fake_async_run):
+            'backend.templatesets.release.manager.ReleaseResourceManager', new=FakeReleaseResourceManager
+        ), mock.patch('backend.templatesets.release.manager.async_run', new=fake_async_run):
             release_manager = AppReleaseManager(dynamic_client=None)
             app_release, _ = release_manager.update_or_create(bk_user.username, release_data=yaml_release_data)
 
