@@ -26,25 +26,23 @@ class PodViewSet(DashboardViewSet):
     resource_client = Pod
 
     @action(methods=['GET'], url_path='pvcs', detail=True)
-    def persistent_volume_claims(self, request, project_id, cluster_id, namespace, pod_name):
+    def persistent_volume_claims(self, request, project_id, cluster_id, namespace, name):
         """ 获取 Pod Persistent Volume Claim 信息 """
         response_data = Pod(request.ctx_cluster).filter_related_resources(
-            PersistentVolumeClaim(request.ctx_cluster), namespace, pod_name
+            PersistentVolumeClaim(request.ctx_cluster), namespace, name
         )
         return Response(response_data)
 
     @action(methods=['GET'], url_path='configmaps', detail=True)
-    def configmaps(self, request, project_id, cluster_id, namespace, pod_name):
+    def configmaps(self, request, project_id, cluster_id, namespace, name):
         """ 获取 Pod ConfigMap 信息 """
         response_data = Pod(request.ctx_cluster).filter_related_resources(
-            ConfigMap(request.ctx_cluster), namespace, pod_name
+            ConfigMap(request.ctx_cluster), namespace, name
         )
         return Response(response_data)
 
     @action(methods=['GET'], url_path='secrets', detail=True)
-    def secrets(self, request, project_id, cluster_id, namespace, pod_name):
+    def secrets(self, request, project_id, cluster_id, namespace, name):
         """ 获取 Pod Secret 信息 """
-        response_data = Pod(request.ctx_cluster).filter_related_resources(
-            Secret(request.ctx_cluster), namespace, pod_name
-        )
+        response_data = Pod(request.ctx_cluster).filter_related_resources(Secret(request.ctx_cluster), namespace, name)
         return Response(response_data)
