@@ -20,7 +20,7 @@ from django.http.response import HttpResponseForbidden
 from django.utils.deprecation import MiddlewareMixin
 from django.utils.translation import ugettext_lazy as _
 
-from backend.resources.cluster.models import CtxCluster
+from backend.container_service.clusters.base.models import CtxCluster
 from backend.utils.local import local
 from backend.web_console.session import session_mgr
 
