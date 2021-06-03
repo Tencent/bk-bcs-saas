@@ -38,7 +38,7 @@ class TestHPA:
 
     @pytest.fixture(autouse=True)
     def use_fake_db(self):
-        with mock.patch("backend.apps.instance.models.InstanceConfig.objects"):
+        with mock.patch("backend.templatesets.legacy_apps.instance.models.InstanceConfig.objects"):
             yield
 
     @pytest.fixture()

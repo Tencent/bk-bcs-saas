@@ -26,7 +26,7 @@ from ruamel.yaml.compat import StringIO, ordereddict
 
 from backend.components import bcs, paas_cc
 from backend.helm.helm.utils.util import EmptyVaue, fix_rancher_value_by_type
-from backend.helm.toolkits.diff import parser
+from backend.helm.toolkit.diff import parser
 from backend.utils.basic import get_bcs_component_version
 from backend.utils.client import make_dashboard_ctl_client
 

@@ -23,11 +23,11 @@ from rest_framework.exceptions import ValidationError
 from rest_framework.renderers import BrowsableAPIRenderer
 
 from backend.accounts import bcs_perm
-from backend.activity_log import client
 from backend.apps import constants
 from backend.apps.constants import ClusterType, ProjectKind
 from backend.apps.utils import get_cluster_env_name
 from backend.apps.whitelist import enabled_sync_namespace
+from backend.bcs_web.audit_log import client
 from backend.components import paas_cc
 from backend.components.bcs.k8s import K8SClient
 from backend.components.bcs.mesos import MesosClient

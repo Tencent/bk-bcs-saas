@@ -22,12 +22,12 @@ from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 from rest_framework.exceptions import ValidationError
 
-from backend.apps.application.constants import FUNC_MAP
 from backend.apps.constants import ALL_LIMIT
 from backend.apps.whitelist import enabled_hpa_feature
 from backend.components import paas_cc
 from backend.components.bcs.k8s import K8SClient
 from backend.components.bcs.mesos import MesosClient
+from backend.uniapps.application.constants import FUNC_MAP
 from backend.utils.errcodes import ErrorCode
 from backend.utils.error_codes import error_codes
 

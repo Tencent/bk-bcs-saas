@@ -22,7 +22,7 @@ from rest_framework.exceptions import ValidationError
 from rest_framework.renderers import BrowsableAPIRenderer
 from rest_framework.response import Response
 
-from backend.activity_log import client as log_client
+from backend.bcs_web.audit_log import client as log_client
 from backend.components.bcs import k8s
 from backend.components.bcs.k8s import K8SClient
 from backend.container_service.clusters.base import utils as cluster_utils

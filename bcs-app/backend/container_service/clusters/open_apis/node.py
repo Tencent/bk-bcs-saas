@@ -13,7 +13,7 @@
 #
 from rest_framework.response import Response
 
-from backend.apis.views import NoAccessTokenBaseAPIViewSet
+from backend.bcs_web.apis.views import NoAccessTokenBaseAPIViewSet
 from backend.container_service.clusters.base.utils import set_mesos_node_labels
 from backend.container_service.clusters.open_apis.serializers import CreateNodeLabelsSLZ
 

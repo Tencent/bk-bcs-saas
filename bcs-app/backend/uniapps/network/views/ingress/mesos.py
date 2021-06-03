@@ -21,7 +21,7 @@ from rest_framework.exceptions import ValidationError
 from rest_framework.renderers import BrowsableAPIRenderer
 
 from backend.accounts import bcs_perm
-from backend.activity_log import client as log_client
+from backend.bcs_web.audit_log import client as log_client
 from backend.components.bcs import mesos
 from backend.templatesets.legacy_apps.instance.models import InstanceConfig
 from backend.uniapps.network import utils as network_utils

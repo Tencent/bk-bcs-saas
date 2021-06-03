@@ -19,7 +19,7 @@ from urllib.parse import urlparse
 from django.conf import settings
 from django.utils.encoding import smart_bytes
 
-from backend.activity_log import client as activity_client
+from backend.bcs_web.audit_log import client as activity_client
 from backend.web_console.bcs_client import k8s
 from backend.web_console.constants import WebConsoleMode
 

@@ -19,26 +19,26 @@ from rest_framework.renderers import BrowsableAPIRenderer
 from rest_framework.response import Response
 
 from backend.accounts import bcs_perm
-from backend.apps.configuration.models import POD_RES_LIST
 from backend.apps.constants import ALL_LIMIT, ProjectKind
-from backend.apps.instance.constants import InsState
-from backend.apps.instance.models import InstanceConfig
 from backend.components import paas_cc
 from backend.container_service.observability.metric_mesos import serializers, tasks
 from backend.container_service.observability.metric_mesos.models import Metric as MetricModel
 from backend.container_service.observability.metric_mesos.utils import get_metric_instances
+from backend.templatesets.legacy_apps.configuration.models import POD_RES_LIST
+from backend.templatesets.legacy_apps.instance.constants import InsState
+from backend.templatesets.legacy_apps.instance.models import InstanceConfig
 from backend.utils.error_codes import error_codes
 from backend.utils.renderers import BKAPIRenderer
 from backend.utils.response import BKAPIResponse
 
 try:
-    from backend.apps.datalog.data_collect import (
+    from backend.container_service.observability.datalog.data_collect import (
         apply_dataid_by_metric,
         create_prometheus_data_flow,
         get_metric_data_name,
     )
 except ImportError:
-    from backend.apps.datalog_ce.data_collect import (
+    from backend.container_service.observability.datalog_ce.data_collect import (
         apply_dataid_by_metric,
         create_prometheus_data_flow,
         get_metric_data_name,

@@ -20,7 +20,7 @@ from django.utils.crypto import get_random_string
 from django.utils.translation import ugettext_lazy as _
 from rest_framework.serializers import ValidationError
 
-from backend.activity_log import client
+from backend.bcs_web.audit_log import client
 
 from ..helm.constants import DEFAULT_VALUES_FILE_NAME, TEMPORARY_APP_ID
 from ..helm.models import ChartRelease, ChartVersionSnapshot

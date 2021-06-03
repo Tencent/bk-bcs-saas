@@ -27,10 +27,10 @@ from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 
 from backend.accounts import bcs_perm
-from backend.activity_log import client as activity_client
 from backend.apps import constants
 from backend.apps import utils as app_utils
 from backend.apps.constants import ProjectKind
+from backend.bcs_web.audit_log import client as activity_client
 from backend.components import paas_cc
 from backend.components.bcs import k8s, mesos
 from backend.resources.namespace.constants import K8S_PLAT_NAMESPACE, K8S_SYS_NAMESPACE

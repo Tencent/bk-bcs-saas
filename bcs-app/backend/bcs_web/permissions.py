@@ -17,10 +17,10 @@ from django.conf import settings
 from rest_framework.permissions import BasePermission
 
 from backend.accounts import bcs_perm
-from backend.activity_log.audit.context import AuditContext
 from backend.apps.constants import ClusterType
+from backend.bcs_web.audit_log.audit.context import AuditContext
+from backend.bcs_web.iam import permissions
 from backend.components.base import ComponentAuth
-from backend.components.iam import permissions
 from backend.components.paas_cc import PaaSCCClient
 from backend.container_service.clusters.base.models import CtxCluster
 from backend.container_service.projects.base.models import CtxProject

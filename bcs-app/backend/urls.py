@@ -41,7 +41,10 @@ urlpatterns = [
     url(r"^", include("backend.uniapps.network.urls")),
     # Resource管理
     url(r"^", include("backend.uniapps.resource.urls")),
-    url(r"^api/projects/(?P<project_id>\w{32})/", include("backend.apps.metric.urls_new")),
+    url(
+        r"^api/projects/(?P<project_id>\w{32})/",
+        include("backend.container_service.observability.metric_mesos.urls_new"),
+    ),
     # 配置管理(旧模板集)
     url(r"^", include("backend.templatesets.legacy_apps.configuration.urls")),
     # TODO 新模板集url入口，后续替换上面的configuration
@@ -52,7 +55,7 @@ urlpatterns = [
     url(r"^", include("backend.uniapps.application.urls")),
     url(r"^", include("backend.bcs_web.audit_log.urls")),
     # 权限验证
-    url(r"^", include("backend.apps.verify.urls")),
+    url(r"^", include("backend.bcs_web.legacy_verify.urls")),
     url(r"^api-auth/", include("rest_framework.urls")),
     # BCS K8S special urls
     url(r"^", include("backend.helm.helm.urls")),
@@ -67,7 +70,7 @@ urlpatterns = [
     ),
     # cd部分api
     url(r"^cd_api/", include("backend.uniapps.apis.urls")),
-    url(r"^apis/", include("backend.apis.urls")),
+    url(r"^apis/", include("backend.api_urls")),
     # dashboard 相关 URL
     url(
         r"^api/dashboard/projects/(?P<project_id>\w{32})/clusters/(?P<cluster_id>[\w\-]+)/",

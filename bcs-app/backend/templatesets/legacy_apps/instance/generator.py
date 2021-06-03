@@ -96,9 +96,9 @@ from .resources.utils import handle_number_var
 from .utils_pub import get_cluster_version
 
 try:
-    from backend.apps.datalog.utils import get_data_id_by_project_id
+    from backend.container_service.observability.datalog.utils import get_data_id_by_project_id
 except ImportError:
-    from backend.apps.datalog_ce.utils import get_data_id_by_project_id
+    from backend.container_service.observability.datalog_ce.utils import get_data_id_by_project_id
 
 logger = logging.getLogger(__name__)
 HANDLED_NUM_VAR_PATTERN = re.compile(r"%s}" % NUM_VAR_PATTERN)
@@ -444,7 +444,7 @@ class K8sProfileGenerator(ProfileGenerator):
         super().__init__(resource_id, namespace_id, is_validate, **params)
 
         global k8s_res_mapping
-        from backend.apps.instance.resources import BCSResource
+        from backend.templatesets.legacy_apps.instance.resources import BCSResource
 
         for res in BCSResource:
             if K8S_MODULE_NAME not in res.__module__:
@@ -489,7 +489,7 @@ class MesosProfileGenerator(ProfileGenerator):
         super().__init__(resource_id, namespace_id, is_validate, **params)
 
         global mesos_res_mapping
-        from backend.apps.instance.resources import BCSResource
+        from backend.templatesets.legacy_apps.instance.resources import BCSResource
 
         for res in BCSResource:
             if MESOS_MODULE_NAME not in res.__module__:

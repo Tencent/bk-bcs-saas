@@ -15,8 +15,8 @@ from unittest.mock import patch
 
 import pytest
 
-from backend.helm.toolkits.deployer import HelmDeployer, ReleaseArgs
-from backend.helm.toolkits.kubehelm.helm import KubeHelmClient
+from backend.helm.toolkit.deployer import HelmDeployer, ReleaseArgs
+from backend.helm.toolkit.kubehelm.helm import KubeHelmClient
 
 
 @pytest.fixture(scope="module", autouse=True)

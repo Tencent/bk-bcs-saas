@@ -15,6 +15,6 @@ from django.apps import AppConfig
 
 
 class HostTerraformConfig(AppConfig):
-    name = "backend.container_service.infra.hosts.terraform"
+    name = "backend.container_service.infras.hosts.terraform"
     verbose_name = "host of infrastructure"
     label = "hosts"

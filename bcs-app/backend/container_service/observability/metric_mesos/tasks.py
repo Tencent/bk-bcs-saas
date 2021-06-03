@@ -18,10 +18,10 @@ from itertools import groupby
 from celery import shared_task
 
 from backend.apps.constants import MetricProjectKind
-from backend.apps.instance.constants import InsState
-from backend.apps.instance.models import MetricConfig
 from backend.components.bcs.mesos import MesosClient
 from backend.container_service.observability.metric_mesos.models import Metric
+from backend.templatesets.legacy_apps.instance.constants import InsState
+from backend.templatesets.legacy_apps.instance.models import MetricConfig
 
 logger = logging.getLogger(__name__)
 

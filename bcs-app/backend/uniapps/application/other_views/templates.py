@@ -22,8 +22,8 @@ from django.db.models import Q
 from django.utils.translation import ugettext_lazy as _
 
 from backend.accounts import bcs_perm
-from backend.activity_log import client
 from backend.apps import constants
+from backend.bcs_web.audit_log import client
 from backend.components import paas_cc
 from backend.templatesets.legacy_apps.configuration.models import MODULE_DICT, Template, VersionedEntity
 from backend.templatesets.legacy_apps.configuration.utils import to_bcs_res_name

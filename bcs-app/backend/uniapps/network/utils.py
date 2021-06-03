@@ -34,9 +34,9 @@ from backend.utils.errcodes import ErrorCode
 from backend.utils.error_codes import error_codes
 
 try:
-    from backend.apps.datalog.utils import get_data_id_by_project_id
+    from backend.container_service.observability.datalog.utils import get_data_id_by_project_id
 except ImportError:
-    from backend.apps.datalog_ce.utils import get_data_id_by_project_id
+    from backend.container_service.observability.datalog_ce.utils import get_data_id_by_project_id
 
 logger = logging.getLogger(__name__)
 DEFAULT_HTTP_PORT = "80"

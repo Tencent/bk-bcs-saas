@@ -27,11 +27,11 @@ from backend.helm.helm.models import ChartVersion
 from backend.helm.helm.serializers import ChartReleaseSLZ, RepoSLZ
 from backend.helm.helm.utils.util import merge_rancher_answers
 from backend.helm.permissions import check_cluster_perm
-from backend.helm.toolkits import utils as bcs_helm_utils
-from backend.helm.toolkits.diff.diff import simple_diff
-from backend.helm.toolkits.diff.parser import parse
-from backend.helm.toolkits.kubehelm import exceptions as helm_exceptions
-from backend.helm.toolkits.kubehelm.helm import KubeHelmClient
+from backend.helm.toolkit import utils as bcs_helm_utils
+from backend.helm.toolkit.diff.diff import simple_diff
+from backend.helm.toolkit.diff.parser import parse
+from backend.helm.toolkit.kubehelm import exceptions as helm_exceptions
+from backend.helm.toolkit.kubehelm.helm import KubeHelmClient
 from backend.utils.client import get_bcs_client, make_kubectl_client
 from backend.utils.error_codes import error_codes
 from backend.utils.serializers import HelmValueField, YamlField

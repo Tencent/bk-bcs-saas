@@ -18,7 +18,7 @@ from django.utils.translation import ugettext_lazy as _
 from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 
-from backend.activity_log.client import ContextActivityLogClient
+from backend.bcs_web.audit_log.client import ContextActivityLogClient
 from backend.bcs_web.viewsets import SystemViewSet
 from backend.container_service.infras.hosts.terraform.engines.sops import create_and_start_host_application
 

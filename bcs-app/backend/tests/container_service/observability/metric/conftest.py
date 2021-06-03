@@ -63,7 +63,7 @@ def node_metric_api_patch():
 @pytest.fixture
 def node_info_api_patch():
     with mock.patch(
-        'backend.container_service.observability.metric.views.node.get_cluster_node_list',
+        'backend.container_service.observability.metric.views.node.get_cluster_nodes',
         new=lambda *args, **kwargs: [{'inner_ip': '127.0.0.1', 'id': 1}],
     ), mock.patch(
         'backend.container_service.observability.metric.views.node.prom.get_node_info',

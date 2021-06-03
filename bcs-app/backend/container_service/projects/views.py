@@ -21,9 +21,9 @@ from rest_framework.renderers import BrowsableAPIRenderer
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from backend.activity_log import client
+from backend.bcs_web.audit_log import client
+from backend.bcs_web.iam.permissions import ProjectPermission
 from backend.components import paas_cc
-from backend.components.iam.permissions import ProjectPermission
 from backend.container_service.projects.utils import (
     get_app_by_user_role,
     get_application_name,

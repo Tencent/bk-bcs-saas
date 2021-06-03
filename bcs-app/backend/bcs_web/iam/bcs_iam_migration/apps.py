@@ -11,6 +11,10 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-from django.conf.urls import include, url
+from __future__ import unicode_literals
 
-urlpatterns = [url(r"^v1/", include("backend.apis.iam.v1.urls"))]
+from django.apps import AppConfig
+
+
+class BcsIamMigrationConfig(AppConfig):
+    name = "backend.bcs_web.iam.bcs_iam_migration"

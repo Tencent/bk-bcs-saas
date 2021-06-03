@@ -15,7 +15,7 @@ import copy
 
 from rest_framework.response import Response
 
-from backend.apis import views
+from backend.bcs_web.apis import views
 from backend.templatesets.legacy_apps.configuration.mixins import TemplatePermission
 from backend.templatesets.legacy_apps.configuration.models import get_template_by_project_and_id
 from backend.templatesets.legacy_apps.configuration.showversion.serializers import GetShowVersionSLZ

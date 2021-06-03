@@ -25,7 +25,7 @@ from datetime import datetime
 
 from django.utils.translation import ugettext_lazy as _
 
-from backend.activity_log import client
+from backend.bcs_web.audit_log import client
 from backend.celery_app.tasks.application import update_create_error_record
 from backend.components.bcs import mesos
 from backend.templatesets.legacy_apps.configuration.models import MODULE_DICT, ShowVersion, Template, VersionedEntity

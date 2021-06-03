@@ -18,9 +18,9 @@ from backend.components import paas_cc
 from backend.templatesets.legacy_apps.instance import constants as instance_constants
 
 try:
-    from backend.apps.datalog.utils import get_data_id_by_project_id
+    from backend.container_service.observability.datalog.utils import get_data_id_by_project_id
 except ImportError:
-    from backend.apps.datalog_ce.utils import get_data_id_by_project_id
+    from backend.container_service.observability.datalog_ce.utils import get_data_id_by_project_id
 
 logger = logging.getLogger(__name__)
 
@@ -262,7 +262,7 @@ class BcsInfoProvider:
         imagePullSecrets:
         - name: paas.image.registry.namespace_name
         """
-        # 固定前缀(backend.apps.instance.constants.K8S_IMAGE_SECRET_PRFIX)+namespace
+        # 固定前缀(backend.templatesets.legacy_apps.instance.constants.K8S_IMAGE_SECRET_PRFIX)+namespace
         name = "{prefix}{namespace_name}".format(
             prefix=instance_constants.K8S_IMAGE_SECRET_PRFIX,
             namespace_name=self.namespace,

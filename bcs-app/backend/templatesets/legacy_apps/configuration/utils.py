@@ -23,8 +23,8 @@ from django.utils.translation import ugettext_lazy as _
 from rest_framework.exceptions import ValidationError
 
 from backend.accounts import bcs_perm
-from backend.activity_log import client
 from backend.apps.constants import ProjectKind
+from backend.bcs_web.audit_log import client
 from backend.utils import cache
 from backend.utils.exceptions import ResNotFoundError
 

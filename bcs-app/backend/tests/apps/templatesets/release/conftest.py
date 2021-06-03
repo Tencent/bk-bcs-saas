@@ -14,8 +14,8 @@
 import mock
 import pytest
 
-from backend.apps.templatesets.release.generator import generator
-from backend.apps.templatesets.release.generator.res_context import ResContext
+from backend.templatesets.release.generator import generator
+from backend.templatesets.release.generator.res_context import ResContext
 from backend.tests.bcs_mocks.misc import FakePaaSCCMod
 
 pytestmark = pytest.mark.django_db
@@ -40,8 +40,8 @@ def form_release_data(bk_user, cluster_id, form_template, form_version_entity, f
     )
 
     with mock.patch(
-        'backend.apps.templatesets.release.generator.form_mode.get_ns_variable', return_value=(False, '1.12.3', {})
-    ), mock.patch('backend.apps.instance.generator.paas_cc', new=FakePaaSCCMod()):
+        'backend.templatesets.release.generator.form_mode.get_ns_variable', return_value=(False, '1.12.3', {})
+    ), mock.patch('backend.templatesets.legacy_apps.instance.generator.paas_cc', new=FakePaaSCCMod()):
         data_generator = generator.ReleaseDataGenerator(name="nginx", res_ctx=context)
         release_data = data_generator.generate()
         return release_data

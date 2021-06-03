@@ -14,7 +14,7 @@
 from rest_framework import serializers
 
 from backend.apps import constants
-from backend.components.iam.permissions import ProjectActions
+from backend.bcs_web.iam.permissions import ProjectActions
 
 
 class UpdateProjectNewSLZ(serializers.Serializer):

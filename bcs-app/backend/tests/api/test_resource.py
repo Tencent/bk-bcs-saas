@@ -33,7 +33,7 @@ def patch_permissions():
     ), mock.patch(
         'backend.utils.permissions.permissions.ProjectPermission', new=FakeProjectPermissionAllowAll
     ), mock.patch(
-        'backend.apps.application.base_views.paas_cc', new=FakePaaSCCMod()
+        'backend.uniapps.application.base_views.paas_cc', new=FakePaaSCCMod()
     ), mock.patch(
         'backend.apps.utils.paas_cc', new=FakePaaSCCMod()
     ), mock.patch(
