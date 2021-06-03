@@ -5,6 +5,8 @@ arrow==0.10.0
 asgiref==3.3.4
 async-timeout==3.0.1
 attrs==20.3.0
+autobahn==21.2.1
+automat==20.2.0
 billiard==3.3.0.23
 bk-iam==1.1.9
 bleach==2.0.0
@@ -15,12 +17,15 @@ cachetools==3.1.1
 celery==3.1.18
 certifi==2021.5.30
 cffi==1.14.5
+channels==3.0.3
 chardet==3.0.4
 click==8.0.1
 colorama==0.4.4
 configobj==5.0.6
+constantly==15.1.0
 cryptography==3.4.7
 curlify==2.2.1
+daphne==3.0.2
 dataclasses==0.7
 django-celery==3.3.1
 django-cors-headers==3.7.0
@@ -42,9 +47,11 @@ gunicorn==19.7.1
 h11==0.12.0
 html5lib==1.1
 httptools==0.2.0
+hyperlink==21.0.0
 idna-ssl==1.1.0
 idna==2.8
 importlib-metadata==4.4.0
+incremental==21.3.0
 jdcal==1.4.1
 jinja2==2.10.1
 jmespath==0.10.0
@@ -66,6 +73,7 @@ pycparser==2.20
 pycrypto==2.6.1
 pyjwt==1.5.3
 pymysql==1.0.2
+pyopenssl==20.0.1
 python-dateutil==2.6.1
 python-dotenv==0.17.1
 python-logstash==0.4.6
@@ -82,9 +90,13 @@ ruamel.yaml.convert==0.3.1
 ruamel.yaml==0.15.79
 s3transfer==0.1.13
 semantic-version==2.8.4
+service-identity==21.1.0
 six==1.16.0
 sqlparse==0.4.1
 tornado==5.1.1
+twisted-iocpsupport==1.0.1
+twisted==21.2.0
+txaio==21.2.1
 typing-extensions==3.10.0.0
 urllib3==1.24.3
 uvicorn==0.14.0
@@ -97,3 +109,4 @@ werkzeug==0.15.3
 whitenoise==5.2.0
 yarl==1.6.3
 zipp==3.4.1
+zope.interface==5.4.0
