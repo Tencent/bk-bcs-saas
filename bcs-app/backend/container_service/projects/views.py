@@ -24,12 +24,12 @@ from rest_framework.views import APIView
 from backend.bcs_web.audit_log import client
 from backend.bcs_web.iam.permissions import ProjectPermission
 from backend.components import paas_cc
+from backend.container_service.projects import base as Project
 from backend.container_service.projects.utils import (
     get_app_by_user_role,
     get_application_name,
     update_bcs_service_for_project,
 )
-from backend.resources import project as Project
 from backend.utils.basic import normalize_datetime
 from backend.utils.cache import region
 from backend.utils.errcodes import ErrorCode
