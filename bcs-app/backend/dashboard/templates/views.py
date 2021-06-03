@@ -11,14 +11,12 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-import yaml
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
 from backend.bcs_web.viewsets import SystemViewSet
-from backend.dashboard.templates.constants import DEMO_RESOURCE_MANIFEST_DIR
-from backend.dashboard.templates.serializers import FetchResourceDemoTemplateSLZ
-from backend.utils.string import gen_random_str
+from backend.dashboard.templates.serializers import FetchResourceDemoManifestSLZ
+from backend.dashboard.templates.utils import load_demo_manifest
 
 
 class TemplateViewSet(SystemViewSet):
@@ -27,10 +25,6 @@ class TemplateViewSet(SystemViewSet):
     @action(methods=['GET'], url_path='manifests', detail=False)
     def manifests(self, request, project_id, cluster_id):
         """ 指定资源类型的 Demo 配置信息 """
-        params = self.params_validate(FetchResourceDemoTemplateSLZ)
-        with open(f"{DEMO_RESOURCE_MANIFEST_DIR}/{params['kind']}.yaml") as fr:
-            manifest = yaml.load(fr.read(), yaml.SafeLoader)
-
-        # 避免名称重复，每次默认添加随机后缀
-        manifest['metadata']['name'] = f"{manifest['metadata']['name']}-{gen_random_str()}"
+        params = self.params_validate(FetchResourceDemoManifestSLZ)
+        manifest = load_demo_manifest(params['kind'])
         return Response(manifest)

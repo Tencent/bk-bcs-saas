@@ -11,13 +11,19 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
+from typing import Dict
 
-from rest_framework import serializers
+import yaml
 
-from backend.resources.constants import K8sResourceKind
+from backend.dashboard.templates.constants import DEMO_RESOURCE_MANIFEST_DIR
+from backend.utils.string import gen_random_str
 
 
-class FetchResourceDemoManifestSLZ(serializers.Serializer):
-    """ 获取指定资源配置模版 """
+def load_demo_manifest(resource_kind: str) -> Dict:
+    """ 指定资源类型的 Demo 配置信息 """
+    with open(f"{DEMO_RESOURCE_MANIFEST_DIR}/{resource_kind}.yaml") as fr:
+        manifest = yaml.load(fr.read(), yaml.SafeLoader)
 
-    kind = serializers.ChoiceField(label='资源类型', choices=K8sResourceKind.get_choices())
+    # 避免名称重复，每次默认添加随机后缀
+    manifest['metadata']['name'] = f"{manifest['metadata']['name']}-{gen_random_str()}"
+    return manifest

@@ -2,9 +2,12 @@
 apiVersion: apps/v1
 kind: DaemonSet
 metadata:
-  name: deemonset-test
+  name: daemonset-test
   namespace: default
 spec:
+  selector:
+    matchLabels:
+      app: nginx
   template:
     metadata:
       labels:

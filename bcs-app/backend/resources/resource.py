@@ -106,6 +106,19 @@ class ResourceClient:
             return self.formatter.format(obj), created
         return obj, created
 
+    def replace(
+        self,
+        body: Optional[Dict] = None,
+        name: Optional[str] = None,
+        namespace: Optional[str] = None,
+        is_format: bool = True,
+        **kwargs,
+    ) -> Union[ResourceInstance, Dict]:
+        obj = self.api.replace(body=body, name=name, namespace=namespace, **kwargs)
+        if is_format:
+            return self.formatter.format(obj)
+        return obj
+
     def patch(
         self,
         body: Optional[Dict] = None,
