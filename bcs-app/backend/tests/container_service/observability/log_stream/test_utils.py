@@ -11,18 +11,22 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-from django.urls import path
+from backend.container_service.observability.log_stream import utils
 
-from . import views
 
-urlpatterns = [
-    path('namespaces/<slug:namespace>/pods/<slug:pod>/stdlogs/', views.LogStreamViewSet.as_view({'get': 'fetch'})),
-    path(
-        'namespaces/<slug:namespace>/pods/<slug:pod>/stdlogs/sessions/',
-        views.LogStreamViewSet.as_view({'post': 'create_session'}),
-    ),
-    path(
-        'namespaces/<slug:namespace>/pods/<slug:pod>/stdlogs/download/',
-        views.LogStreamViewSet.as_view({'get': 'download'}),
-    ),
-]
+def test_refine_k8s_logs(log_content):
+    logs = utils.refine_k8s_logs(log_content, None)
+    assert len(logs) == 10
+    assert logs[0].time == '2021-05-19T12:03:52.516011121Z'
+
+
+def test_calc_since_time(log_content):
+    logs = utils.refine_k8s_logs(log_content, None)
+    sine_time = utils.calc_since_time(logs[0].time, logs[-1].time)
+    assert sine_time == '2021-05-19T12:03:10.125788125Z'
+
+
+def test_calc_previous_page(log_content):
+    logs = utils.refine_k8s_logs(log_content, None)
+    page = utils.calc_previous_page(logs, {'container_name': "", "previous": ""}, "")
+    assert page != ""

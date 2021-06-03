@@ -11,10 +11,12 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-import json
 import logging
+from urllib.parse import urlencode
 
-from kubernetes.client.exceptions import ApiException
+import aiohttp
+from kubernetes import watch
+from kubernetes.client.api import core_v1_api
 
 from backend.container_service.clusters.base.models import CtxCluster
 from backend.resources.utils.kube_client import get_dynamic_client, wrap_kube_client_exc
@@ -57,3 +59,45 @@ class LogClient:
             result = self.dynamic_client.get(self.resource, self.pod_name, self.namespace, query_params=params)
 
         return result
+
+    def watch(self, filter: constants.LogFilter):
+        """获取实时日志"""
+        core_v1 = core_v1_api.CoreV1Api(self.dynamic_client.client)
+
+        w = watch.Watch()
+
+        s = w.stream(
+            core_v1.read_namespaced_pod_log,
+            self.pod_name,
+            self.namespace,
+            tail_lines=filter.tail_lines,
+            container=filter.container_name,
+            timestamps=constants.LOG_SHOW_TIMESTAMPS,
+            follow=True,
+        )
+        return s
+
+    async def stream(self, filter: constants.LogFilter):
+        """异步获取实时日志"""
+        host = self.dynamic_client.client.configuration.host
+        path = self.resource.path(self.pod_name, self.namespace)
+
+        query_params = {
+            'container': filter.container_name,
+            'tailLines': filter.tail_lines,
+            'sinceTime': filter.since_time,
+            'follow': True,
+            'timestamps': constants.LOG_SHOW_TIMESTAMPS,
+        }
+
+        url = f'{host}{path}?{urlencode(query_params)}'
+
+        headers = {'Accept': 'application/json, */*'}
+        headers.update(self.dynamic_client.client.configuration.api_key)
+
+        async with aiohttp.ClientSession() as session:
+            async with session.get(url, headers=headers, timeout=constants.STREAM_TIMEOUT, ssl=False) as response:
+                response.raise_for_status()
+
+                async for line in response.content:
+                    yield line.decode('utf8')

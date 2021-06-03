@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+# flake8: noqa
 #
 # Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community Edition) available.
 # Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
@@ -11,18 +12,24 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-from django.urls import path
+import os
 
-from . import views
+import django
 
-urlpatterns = [
-    path('namespaces/<slug:namespace>/pods/<slug:pod>/stdlogs/', views.LogStreamViewSet.as_view({'get': 'fetch'})),
-    path(
-        'namespaces/<slug:namespace>/pods/<slug:pod>/stdlogs/sessions/',
-        views.LogStreamViewSet.as_view({'post': 'create_session'}),
-    ),
-    path(
-        'namespaces/<slug:namespace>/pods/<slug:pod>/stdlogs/download/',
-        views.LogStreamViewSet.as_view({'get': 'download'}),
-    ),
-]
+django.setup()  # noqa
+
+from channels.routing import ProtocolTypeRouter, URLRouter
+from django.core.asgi import get_asgi_application
+
+from backend.accounts.middlewares import BCSChannelAuthMiddlewareStack
+from backend.container_service.observability.log_stream import routing as log_routing
+
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "backend.settings.ce.saas_prod")
+
+
+application = ProtocolTypeRouter(
+    {
+        "http": get_asgi_application(),
+        "websocket": BCSChannelAuthMiddlewareStack(URLRouter(log_routing.websocket_urlpatterns)),
+    }
+)

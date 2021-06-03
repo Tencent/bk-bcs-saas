@@ -15,6 +15,7 @@ from typing import Dict, List
 from urllib import parse
 
 import arrow
+from django.conf import settings
 
 from backend.resources.pod.constants import Log
 
@@ -62,3 +63,20 @@ def refine_k8s_logs(content: str, started_at: str) -> List[Log]:
         logs.append(Log(time=t, log=log))
 
     return logs
+
+
+def make_ws_url(stream_url: str, session_id: str) -> str:
+    """替换http为ws地址
+    :param stream_url: 格式如: /api/logs/projects/{project_id}/.../stdlogs/stream/
+    :param session_id: 唯一的 uuid
+    """
+    bcs_api_url = parse.urlparse(settings.DEVOPS_BCS_API_URL)
+    if bcs_api_url.scheme == "https":
+        scheme = "wss"
+    else:
+        scheme = "ws"
+    bcs_api_url = bcs_api_url._replace(scheme=scheme)
+
+    ws_url = f"{bcs_api_url.geturl()}{stream_url}?session_id={session_id}"
+
+    return ws_url
