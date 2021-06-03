@@ -76,7 +76,7 @@ class LogStreamViewSet(SystemViewSet):
         session_id = session.set(ctx)
 
         stream_url = (
-            f'/api/logs/projects/{project_id}/clusters/{cluster_id}/namespaces/{namespace}/pods/{pod}/stdlogs/stream/'
+            f'/ws/logs/projects/{project_id}/clusters/{cluster_id}/namespaces/{namespace}/pods/{pod}/stdlogs/stream/'
         )
 
         ws_url = utils.make_ws_url(stream_url, session_id)
