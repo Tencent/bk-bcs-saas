@@ -18,16 +18,19 @@ import mock
 import pytest
 from django.conf import settings
 
+from backend.tests.conftest import MOCK_CLUSTER_ID, MOCK_PROJECT_ID
 from backend.tests.testing_utils.mocks.k8s_client import get_dynamic_client
-from backend.tests.testing_utils.mocks.resp import MockRetrieveApiRespBuilder
 from backend.tests.testing_utils.mocks.viewsets import FakeSystemViewSet
 
+# 资源视图 API URL 共用前缀
+DASHBOARD_API_URL_COMMON_PREFIX = f'/api/dashboard/projects/{MOCK_PROJECT_ID}/clusters/{MOCK_CLUSTER_ID}'
 
-@pytest.fixture
+
+@pytest.fixture(autouse=True, scope='package')
 def dashboard_api_common_patch():
     with mock.patch('backend.bcs_web.viewsets.SystemViewSet', new=FakeSystemViewSet), mock.patch(
         'backend.resources.resource.get_dynamic_client', new=get_dynamic_client
-    ), mock.patch('backend.dashboard.utils.resp.RetrieveApiRespBuilder', new=MockRetrieveApiRespBuilder):
+    ):
         yield
 
 
@@ -52,6 +55,6 @@ def dashboard_container_api_patch():
 
 
 @pytest.fixture
-def dashboard_pod_api_patch():
+def patch_pod_client():
     with mock.patch('backend.dashboard.workloads.views.pod.Pod.fetch_manifest', new=gen_mock_pod_manifest):
         yield
