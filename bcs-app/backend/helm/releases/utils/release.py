@@ -19,6 +19,8 @@ from backend.resources.configs import secret
 from backend.utils.basic import getitems
 
 from .formatter import ReleaseSecretFormatter
+from .parser import ReleaseParser
+from .tools import get_updater_by_resource_annotations
 
 logger = logging.getLogger(__name__)
 
@@ -49,4 +51,36 @@ def get_release_detail(ctx_cluster: CtxCluster, namespace: str, release_name: st
 def get_release_notes(ctx_cluster: CtxCluster, namespace: str, release_name: str) -> str:
     """查询release的notes"""
     release_detail = get_release_detail(ctx_cluster, namespace, release_name)
-    return getitems(release_detail, "info.notes", "")
+    return ReleaseParser(release_detail).notes
+
+
+def refine_namespace_releases(namespace_release_map: Dict, release_info: Dict) -> Dict:
+    """根据namespace和release名称，处理release"""
+    namespace_release = (release_info["namespace"], release_info["name"])
+    if namespace_release in namespace_release_map:
+        # 比较version大小，当version大于已经存在的release中的version时，替换release信息
+        if namespace_release_map[namespace_release]["version"] < release_info["version"]:
+            namespace_release_map[namespace_release] = release_info
+    else:
+        namespace_release_map[namespace_release] = release_info
+
+    return namespace_release_map
+
+
+def list_releases(ctx_cluster: CtxCluster, namespace: str = None) -> List[Dict]:
+    """查询release, 如果namespace不为None，则过滤namespace下的release"""
+    releases = list_namespaced_releases(ctx_cluster, namespace)
+    # 因为列表查出来的同一个release会因为升级或者回滚生成多个secret
+    # 所以根据命名空间名称+release名称过滤
+    namespace_release_map = {}
+    for release in releases:
+        parser = ReleaseParser(release)
+        release_info = parser.metadata
+        release_info["updater"] = parser.release_updater
+        namespace_release_map = refine_namespace_releases(namespace_release_map, release_info)
+
+    # 根据最后部署时间排序逆序
+    release_list = list(namespace_release_map.values())
+    release_list.sort(key=lambda item: item["last_deployed"], reverse=False)
+
+    return release_list

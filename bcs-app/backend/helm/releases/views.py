@@ -15,10 +15,35 @@ from rest_framework.response import Response
 
 from backend.bcs_web.viewsets import SystemViewSet
 
-from .utils import release_secret
+from . import serializers
+from .utils import release as release_utils
+from .utils.parser import ReleaseParser
 
 
 class HelmReleaseViewSet(SystemViewSet):
     def get_notes(self, request, project_id, cluster_id, namespace, release_name):
         """查询release下的notes"""
-        return Response({"notes": release_secret.get_release_notes(request.ctx_cluster, namespace, release_name)})
+        return Response({"notes": release_utils.get_release_notes(request.ctx_cluster, namespace, release_name)})
+
+    def list_releases(self, request, project_id, cluster_id):
+        """查询集群或者命名空间下的 release 列表
+        NOTE: 仅允许查询单个集群下的releases
+        """
+        params = self.params_validate(serializers.ListReleasesParamsSLZ, params=request.query_params)
+        namespace = params.get("namespace")
+        # 获取 release 列表
+        return Response(release_utils.list_releases(request.ctx_cluster, namespace=namespace))
+
+    def release_info(self, request, project_id, cluster_id, namespace, release_name):
+        """查询 release 详情
+        包含:
+        - release的基本信息
+        - release的values
+        - release使用的chart的基本信息
+        """
+        release = release_utils.get_release_detail(request.ctx_cluster, namespace, release_name)
+        parser = ReleaseParser(release)
+        data = parser.metadata
+        data.update({"chart_metadata": parser.chart_metadata, "values": parser.values})
+
+        return Response(data)
