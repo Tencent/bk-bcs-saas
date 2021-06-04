@@ -47,7 +47,7 @@ class TestIngress:
 
     def test_update(self, api_client):
         """ 测试更新资源接口 """
-        # self.manifest['metadata']['labels']['test'] = 'test'
+        self.manifest['spec']['rules'][0]['http']['paths'][0]['backend']['service']['name'] = 'custom-test'
         response = api_client.put(self.detail_url, data=self.manifest)
         assert response.json()['code'] == 0
 

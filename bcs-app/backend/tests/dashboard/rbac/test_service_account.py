@@ -27,8 +27,8 @@ class TestServiceAccount:
 
     manifest = load_demo_manifest(K8sResourceKind.ServiceAccount.value)
     name = getitems(manifest, 'metadata.name')
-    batch_url = f'{DAU_PREFIX}/networks/service_accounts/'
-    detail_url = f'{DAU_PREFIX}/namespaces/{DEFAULT_NAMESPACE}/networks/service_accounts/{name}/'
+    batch_url = f'{DAU_PREFIX}/rbac/service_accounts/'
+    detail_url = f'{DAU_PREFIX}/namespaces/{DEFAULT_NAMESPACE}/rbac/service_accounts/{name}/'
 
     def test_list(self, api_client):
         """ 测试获取资源列表接口 """
@@ -47,7 +47,7 @@ class TestServiceAccount:
 
     def test_update(self, api_client):
         """ 测试更新资源接口 """
-        # self.manifest['metadata']['labels']['test'] = 'test'
+        self.manifest['metadata']['annotations'] = {'test_key': 'test_value'}
         response = api_client.put(self.detail_url, data=self.manifest)
         assert response.json()['code'] == 0
 

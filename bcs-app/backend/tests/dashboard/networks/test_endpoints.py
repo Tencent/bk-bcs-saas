@@ -47,7 +47,7 @@ class TestEndpoints:
 
     def test_update(self, api_client):
         """ 测试更新资源接口 """
-        self.manifest['metadata']['labels']['test'] = 'test'
+        self.manifest['subsets'][0]['addresses'][0]['ip'] = '1.0.0.2'
         response = api_client.put(self.detail_url, data=self.manifest)
         assert response.json()['code'] == 0
 

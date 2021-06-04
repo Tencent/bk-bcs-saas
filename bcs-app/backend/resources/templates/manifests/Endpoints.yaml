@@ -6,7 +6,7 @@ metadata:
   namespace: default
 subsets:
   - addresses:
-    - ip: 127.0.0.1
+    - ip: 1.0.0.1
     ports:
     - port: 8080
       protocol: TCP

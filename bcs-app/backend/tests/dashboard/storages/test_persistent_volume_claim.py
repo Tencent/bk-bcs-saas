@@ -45,12 +45,6 @@ class TestPersistentVolumeClaim:
         response = api_client.get(self.detail_url)
         assert response.json()['code'] == 0
 
-    def test_update(self, api_client):
-        """ 测试更新资源接口 """
-        # self.manifest['metadata']['labels']['test'] = 'test'
-        response = api_client.put(self.detail_url, data=self.manifest)
-        assert response.json()['code'] == 0
-
     def test_destroy(self, api_client):
         """ 测试删除单个资源 """
         response = api_client.delete(self.detail_url)

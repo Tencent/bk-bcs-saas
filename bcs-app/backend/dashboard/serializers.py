@@ -28,8 +28,25 @@ class CreateResourceSLZ(serializers.Serializer):
 
     apiVersion = serializers.CharField(label='API 版本', max_length=64)
     kind = serializers.ChoiceField(label='资源类型', choices=K8sResourceKind.get_choices())
-    metadata = serializers.JSONField(label='Metadata')
-    spec = serializers.JSONField(label='Spec')
+    metadata = serializers.JSONField()
+    spec = serializers.JSONField(required=False)
+    status = serializers.JSONField(required=False)
+    # networks 特有字段
+    subsets = serializers.JSONField(required=False)
+    # configs 特有字段
+    immutable = serializers.BooleanField(required=False)
+    type = serializers.CharField(required=False)
+    data = serializers.JSONField(required=False)
+    binaryData = serializers.JSONField(required=False)
+    stringData = serializers.JSONField(required=False)
+    # storages 特有字段
+    allowVolumeExpansion = serializers.BooleanField(required=False)
+    allowedTopologies = serializers.JSONField(required=False)
+    mountOptions = serializers.JSONField(required=False)
+    parameters = serializers.JSONField(required=False)
+    provisioner = serializers.CharField(required=False)
+    reclaimPolicy = serializers.CharField(required=False)
+    volumeBindingMode = serializers.CharField(required=False)
 
 
 class UpdateResourceSLZ(CreateResourceSLZ):
