@@ -11,13 +11,23 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-
-from rest_framework import serializers
+import pytest
 
 from backend.dashboard.templates.constants import HAS_DEMO_MANIFEST_RESOURCE_KIND
+from backend.tests.conftest import MOCK_CLUSTER_ID, MOCK_PROJECT_ID
+from backend.utils.basic import getitems
+
+pytestmark = pytest.mark.django_db
 
 
-class FetchResourceDemoManifestSLZ(serializers.Serializer):
-    """ 获取指定资源配置模版 """
+class TestResourceTemplate:
+    """ 测试 资源模版 相关接口 """
 
-    kind = serializers.ChoiceField(label='资源类型', choices=HAS_DEMO_MANIFEST_RESOURCE_KIND)
+    common_prefix = f'/api/dashboard/projects/{MOCK_PROJECT_ID}/clusters/{MOCK_CLUSTER_ID}/templates'
+
+    @pytest.mark.parametrize('resource_kind', HAS_DEMO_MANIFEST_RESOURCE_KIND)
+    def test_fetch_demo_manifest(self, resource_kind, api_client):
+        """ 测试获取资源列表接口 """
+        response = api_client.get(f'{self.common_prefix}/manifests/?kind={resource_kind}')
+        assert resource_kind == getitems(response.json(), 'data.kind')
+        assert response.json()['code'] == 0

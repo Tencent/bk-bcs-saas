@@ -13,5 +13,31 @@
 #
 from django.conf import settings
 
+from backend.resources.constants import K8sResourceKind
+
 # 存放示例的配置文件目录
 DEMO_RESOURCE_MANIFEST_DIR = f'{settings.BASE_DIR}/backend/resources/templates/manifests'
+
+
+HAS_DEMO_MANIFEST_RESOURCE_KIND = [
+    # workload
+    K8sResourceKind.Deployment.value,
+    K8sResourceKind.StatefulSet.value,
+    K8sResourceKind.DaemonSet.value,
+    K8sResourceKind.CronJob.value,
+    K8sResourceKind.Job.value,
+    K8sResourceKind.Pod.value,
+    # network
+    K8sResourceKind.Ingress.value,
+    K8sResourceKind.Service.value,
+    K8sResourceKind.Endpoints.value,
+    # configuration
+    K8sResourceKind.ConfigMap.value,
+    K8sResourceKind.Secret.value,
+    # storage
+    K8sResourceKind.PersistentVolume.value,
+    K8sResourceKind.PersistentVolumeClaim.value,
+    K8sResourceKind.StorageClass.value,
+    # rbac
+    K8sResourceKind.ServiceAccount.value,
+]
