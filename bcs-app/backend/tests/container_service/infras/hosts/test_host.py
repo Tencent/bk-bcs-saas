@@ -5,6 +5,7 @@ import pytest
 
 from backend.container_service.infras.hosts import host
 from backend.container_service.infras.hosts.perms import can_use_hosts
+from backend.container_service.infras.hosts.terraform.engines import sops
 from backend.tests.bcs_mocks.fake_sops import FakeSopsMod, sops_json
 
 fake_cc_host_ok_results = {
@@ -51,8 +52,8 @@ class TestGetAgentStatus:
     )
     def test_get_agent_status(self, mocker):
         host_list = [
-            host.HostData(inner_ip="127.0.0.1", bk_cloud_id_list=[host.BKCloudInfo(id=0)]),
-            host.HostData(inner_ip="127.0.0.2,127.0.0.3", bk_cloud_id_list=[host.BKCloudInfo(id=0)]),
+            host.HostData(inner_ip="127.0.0.1", bk_cloud_id=0),
+            host.HostData(inner_ip="127.0.0.2,127.0.0.3", bk_cloud_id=0),
         ]
         agent_data = host.get_agent_status("admin", host_list)
         # 因为有一个主机两个网卡: 127.0.0.2, 127.0.0.3
@@ -78,17 +79,17 @@ class TestApplyHostApi:
     }
 
     @patch(
-        "backend.container_service.infras.hosts.host.sops.SopsClient",
+        "backend.container_service.infras.hosts.terraform.engines.sops.sops.SopsClient",
         new=FakeSopsMod,
     )
     def test_create_and_start_host_application(self):
-        task_id, task_url = host.create_and_start_host_application(**self.fake_params)
+        task_id, task_url = sops.create_and_start_host_application(**self.fake_params)
         assert task_id == sops_json.fake_task_id
         assert task_url == sops_json.fake_task_url
 
-    @patch("backend.container_service.infras.hosts.host.sops.SopsClient", new=FakeSopsMod)
+    @patch("backend.container_service.infras.hosts.terraform.engines.sops.sops.SopsClient", new=FakeSopsMod)
     def test_get_task_state_and_steps(self):
-        status_and_steps = host.get_task_state_and_steps(sops_json.fake_task_id)
+        status_and_steps = sops.get_task_state_and_steps(sops_json.fake_task_id)
         assert status_and_steps["state"] == "RUNNING"
         assert status_and_steps["steps"]["申请CVM服务器"]["state"] == "FINISHED"
         assert "<class 'pipeline.core.flow.event.EmptyStartEvent'>" not in status_and_steps["steps"]

@@ -13,8 +13,8 @@
 #
 import pytest
 
-from backend.apps.configuration import models
-from backend.apps.configuration.constants import TemplateEditMode
+from backend.templatesets.legacy_apps.configuration import models
+from backend.templatesets.legacy_apps.configuration.constants import TemplateEditMode
 
 from . import res_manifest
 

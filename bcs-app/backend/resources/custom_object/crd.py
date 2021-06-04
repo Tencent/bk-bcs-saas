@@ -13,7 +13,7 @@
 #
 from typing import Optional
 
-from backend.resources.cluster.models import CtxCluster
+from backend.container_service.clusters.base.models import CtxCluster
 
 from ..resource import ResourceClient
 from .constants import PREFERRED_CRD_API_VERSION

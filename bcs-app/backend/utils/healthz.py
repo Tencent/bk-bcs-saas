@@ -58,7 +58,7 @@ def handler_redis():
 
 
 def handler_gcs_mysql():
-    from backend.apps.projects.models import ProjectUser
+    from backend.container_service.projects.models import ProjectUser
 
     ProjectUser.objects.first()
 

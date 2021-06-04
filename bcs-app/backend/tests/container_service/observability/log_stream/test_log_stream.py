@@ -11,37 +11,50 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-import os.path
-
 import pytest
+from channels.testing import WebsocketCommunicator
 
-from backend.container_service.observability.log_stream import utils
+from backend.accounts.middlewares import BCSChannelAuthMiddlewareStack
+from backend.container_service.observability.log_stream.views import LogStreamHandler
 
 
-class TestLogStream:
-    @pytest.fixture
-    def log_content(self):
-        with open(os.path.join(os.path.dirname(__file__), "fake_log.txt"), 'rb') as f:
-            return f.read().decode('utf-8')
+@pytest.fixture
+def session_id(api_client, project_id, cluster_id, namespace, pod_name, container_name):
+    response = api_client.post(
+        f'/api/logs/projects/{project_id}/clusters/{cluster_id}/namespaces/{namespace}/pods/{pod_name}/stdlogs/sessions/',  # noqa
+        {"container_name": container_name},
+    )
 
-    def test_fetch(self, api_client, project_id, cluster_id, namespace, pod_name, container_name):
-        """ 测试获取日志 """
-        response = api_client.get(
-            f'/api/logs/projects/{project_id}/clusters/{cluster_id}/namespaces/{namespace}/pods/{pod_name}/stdlogs/'
-        )
-        assert response.json()['code'] == 0
+    result = response.json()
+    return result['data']['session_id']
 
-    def test_refine_k8s_logs(self, log_content):
-        logs = utils.refine_k8s_logs(log_content, None)
-        assert len(logs) == 10
-        assert logs[0].time == '2021-05-19T12:03:52.516011121Z'
 
-    def test_calc_since_time(self, log_content):
-        logs = utils.refine_k8s_logs(log_content, None)
-        sine_time = utils.calc_since_time(logs[0].time, logs[-1].time)
-        assert sine_time == '2021-05-19T12:03:10.125788125Z'
+@pytest.mark.django_db
+@pytest.mark.asyncio
+async def test_log_stream(project_id, cluster_id, namespace, pod_name, session_id):
 
-    def test_calc_previous_page(self, log_content):
-        logs = utils.refine_k8s_logs(log_content, None)
-        page = utils.calc_previous_page(logs, {'container_name': "", "previous": ""}, "")
-        assert page != ""
+    app = BCSChannelAuthMiddlewareStack(LogStreamHandler.as_asgi())
+
+    # Test a normal connection
+    communicator = WebsocketCommunicator(
+        app,
+        f'/ws/logs/projects/{project_id}/clusters/{cluster_id}/namespaces/{namespace}/pods/{pod_name}/stdlogs/stream/?session_id={session_id}',  # noqa
+    )
+
+    communicator.scope['url_route'] = {
+        'kwargs': {
+            'project_id': project_id,
+            'cluster_id': cluster_id,
+            'namespace': namespace,
+            'pod': pod_name,
+        }
+    }
+
+    connected, _ = await communicator.connect()
+
+    assert connected
+    # Test sending text
+    await communicator.send_to(text_data="hello")
+
+    # Close out
+    await communicator.disconnect()

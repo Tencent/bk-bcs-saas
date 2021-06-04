@@ -13,7 +13,8 @@
 #
 import logging
 
-from .iam import permissions
+from backend.bcs_web.iam import permissions
+
 from .ssm import get_client_access_token
 
 logger = logging.getLogger(__name__)

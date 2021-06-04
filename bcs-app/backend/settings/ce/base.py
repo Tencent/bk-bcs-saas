@@ -32,10 +32,10 @@ REST_FRAMEWORK["DEFAULT_PERMISSION_CLASSES"] = (
 ALLOWED_HOSTS = ["*"]
 
 INSTALLED_APPS += [
-    "backend.apps.apis",
-    "backend.apis.apps.APIConfig",
+    "backend.uniapps.apis",
+    "backend.bcs_web.apis.apps.APIConfig",
     "iam.contrib.iam_migration",
-    "backend.apps.bcs_iam_migration.apps.BcsIamMigrationConfig",
+    "backend.bcs_web.iam.bcs_iam_migration.apps.BcsIamMigrationConfig",
 ]
 
 # 统一登录页面
@@ -188,7 +188,7 @@ if IS_USE_CELERY:
             },
             # 每天三点进行一次强制同步
             'helm_force_sync_repo_tasks': {
-                'task': 'backend.bcs_k8s.helm.tasks.force_sync_all_repo',
+                'task': 'backend.helm.helm.tasks.force_sync_all_repo',
                 'schedule': crontab(minute=0, hour=3),
             },
         }

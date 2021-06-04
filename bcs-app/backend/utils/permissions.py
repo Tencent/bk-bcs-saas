@@ -16,8 +16,8 @@ from rest_framework.permissions import BasePermission
 
 from backend.accounts import bcs_perm
 from backend.apps.constants import SKIP_REQUEST_NAMESPACE, ClusterType
+from backend.bcs_web.iam import permissions
 from backend.components import paas_auth, paas_cc
-from backend.components.iam import permissions
 from backend.utils import FancyDict
 from backend.utils.cache import region
 from backend.utils.error_codes import error_codes
@@ -118,7 +118,7 @@ class ProjectHasBCS(BasePermission):
             # coes: container orchestration engines
             project['coes'] = project['kind']
             try:
-                from backend.apps.projects.utils import get_project_kind
+                from backend.container_service.projects.utils import get_project_kind
 
                 # k8s类型包含kind为1(bcs k8s)或其它属于k8s的编排引擎
                 project['kind'] = get_project_kind(project['kind'])

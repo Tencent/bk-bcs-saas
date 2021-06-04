@@ -16,8 +16,8 @@ from datetime import datetime
 import mock
 import pytest
 
-from backend.bcs_k8s.helm.models import chart, repo
-from backend.bcs_k8s.helm.utils import chart_versions
+from backend.helm.helm.models import chart, repo
+from backend.helm.helm.utils import chart_versions
 from backend.tests.bcs_mocks.fake_bk_repo import FakeBkRepoMod
 
 pytestmark = pytest.mark.django_db
@@ -52,12 +52,12 @@ fake_chart_data = chart_versions.ChartData(project_name="projectname", repo_name
 fake_repo_auth = chart_versions.RepoAuth(username="admin", password="adminpwd")
 
 
-@mock.patch("backend.bcs_k8s.helm.utils.chart_versions.BkRepoClient", new=FakeBkRepoMod)
+@mock.patch("backend.helm.helm.utils.chart_versions.BkRepoClient", new=FakeBkRepoMod)
 def test_get_chart_version_list():
     version_list = chart_versions.get_chart_version_list(fake_chart_data, fake_repo_auth)
     assert isinstance(version_list, list)
 
 
-@mock.patch("backend.bcs_k8s.helm.utils.chart_versions.BkRepoClient", new=FakeBkRepoMod)
+@mock.patch("backend.helm.helm.utils.chart_versions.BkRepoClient", new=FakeBkRepoMod)
 def test_batch_delete_chart_versions():
     chart_versions.batch_delete_chart_versions(fake_chart_data, fake_repo_auth, ["0.1.0", "0.1.1"])
