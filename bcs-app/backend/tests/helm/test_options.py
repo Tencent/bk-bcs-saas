@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import pytest
 
-from backend.bcs_k8s.kubehelm.options import Options
+from backend.helm.toolkit.kubehelm.options import Options
 
 init_options1 = [{"--set": "a=1,b=2"}, {"--values": "data.yaml"}]
 flag1 = "--debug"

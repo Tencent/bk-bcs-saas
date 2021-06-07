@@ -17,7 +17,7 @@ from typing import Dict, List, Optional, Tuple, Union
 
 from kubernetes.dynamic.resource import ResourceInstance
 
-from backend.resources.cluster.models import CtxCluster
+from backend.container_service.clusters.base.models import CtxCluster
 from backend.resources.utils.kube_client import get_dynamic_client
 
 from .constants import PatchType

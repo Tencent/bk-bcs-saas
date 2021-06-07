@@ -13,7 +13,7 @@
 #
 import pytest
 
-from backend.bcs_k8s.diff import parser
+from backend.helm.diff import parser
 
 manifest1 = b"""apiVersion: v1
 kind: Deployment

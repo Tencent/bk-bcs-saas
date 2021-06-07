@@ -14,7 +14,7 @@
 import pytest
 from iam import OP
 
-from backend.components.iam.permissions import ProjectPermission
+from backend.bcs_web.iam.permissions import ProjectPermission
 
 test_dict_filter_data = [
     ({'op': OP.IN, 'value': [2, 1], 'field': 'project.id'}, {'project_id_list': [1, 2], 'op': OP.IN}),

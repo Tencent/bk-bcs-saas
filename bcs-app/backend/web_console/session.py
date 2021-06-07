@@ -18,6 +18,7 @@ import logging
 import uuid
 
 from backend.utils.cache import rd_client
+from backend.utils.renderers import JSONEncoder
 
 logger = logging.getLogger(__name__)
 
@@ -54,7 +55,7 @@ class RedisSession(SessionBase):
 
         key = self.CACHE_KEY.format(project_id=self.project_id, cluster_id=self.cluster_id, session_id=session_id)
 
-        rd_client.set(key, json.dumps(ctx), ex=self.EXPIRE)
+        rd_client.set(key, json.dumps(ctx, cls=JSONEncoder), ex=self.EXPIRE)
 
         return session_id
 

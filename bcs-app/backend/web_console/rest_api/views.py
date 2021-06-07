@@ -24,7 +24,7 @@ from backend.apps.constants import ProjectKind
 from backend.components import paas_auth, paas_cc
 from backend.components.bcs.k8s import K8SClient
 from backend.components.bcs.mesos import MesosClient
-from backend.resources import cluster
+from backend.container_service.clusters import base as cluster
 from backend.utils.errcodes import ErrorCode
 from backend.utils.error_codes import error_codes
 from backend.utils.renderers import BKAPIRenderer

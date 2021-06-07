@@ -19,7 +19,7 @@ from django.contrib.auth import get_user_model
 from kubernetes import client
 from rest_framework.test import APIClient
 
-from backend.resources.project.constants import ProjectKind
+from backend.container_service.projects.base.constants import ProjectKind
 from backend.tests.testing_utils.base import generate_random_string
 from backend.utils import FancyDict
 
