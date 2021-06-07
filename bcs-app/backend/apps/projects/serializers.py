@@ -57,3 +57,11 @@ class QueryAuthorizedUsersSLZ(serializers.Serializer):
         choices=[ProjectActions.CREATE.value, ProjectActions.EDIT.value, ProjectActions.VIEW.value],
         default=ProjectActions.VIEW.value,
     )
+
+
+class VerifyUsersSLZ(serializers.Serializer):
+    users = serializers.JSONField()
+    action_id = serializers.ChoiceField(
+        choices=[ProjectActions.CREATE.value, ProjectActions.EDIT.value, ProjectActions.VIEW.value],
+        default=ProjectActions.VIEW.value,
+    )
