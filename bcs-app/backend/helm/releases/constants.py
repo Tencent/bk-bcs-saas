@@ -30,3 +30,8 @@ class ReleaseStatus(str, StructuredEnum):
 
 # BCS 注入的updater中的annotation，兼容【io.tencent.paas.updator】
 BCS_INJECT_UPDATER_ANNOTATIONS = ["io.tencent.paas.updater", "io.tencent.paas.updator"]
+
+
+class ReleaseEngine(str, StructuredEnum):
+    Helm3 = EnumField("helm3", label="Helm3")
+    Helm2 = EnumField("helm2", label="Helm2")

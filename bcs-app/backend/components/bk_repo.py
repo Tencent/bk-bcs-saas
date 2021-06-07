@@ -16,7 +16,7 @@ import logging
 from typing import Any, Dict, List
 
 from django.conf import settings
-from requests import PreparedRequest
+from requests import PreparedRequest, Response
 from requests.auth import AuthBase
 
 from backend.components.base import (
@@ -135,12 +135,8 @@ class BkRepoClient(BkApiClient):
     def __init__(self, username: str, access_token: str = None, password: str = None):
         self._config = BkRepoApigwConfig()
         self._bk_repo_raw_config = BkRepoRawConfig()
-        self._client = BaseHttpClient(
-            BkRepoAuth(access_token, username, password),
-        )
-        self._raw_client = BaseHttpClient(
-            BkRepoRawAuth(username, password),
-        )
+        self._client = BaseHttpClient(BkRepoAuth(access_token, username, password))
+        self._raw_client = BaseHttpClient(BkRepoRawAuth(username, password))
 
     def create_project(self, project_code: str, project_name: str, description: str) -> Dict:
         """创建仓库所属项目
@@ -249,3 +245,8 @@ class BkRepoClient(BkApiClient):
         if not (resp.get("deleted") or "no such file or directory" in resp.get("error", "")):
             raise BkRepoDeleteVersionError(f"delete chart version error, {resp}")
         return resp
+
+    def download_chart(self, chart_url: str) -> bytes:
+        """下载chart"""
+        resp = self._raw_client.request("GET", chart_url, stream=True, verify=False)
+        return resp.content

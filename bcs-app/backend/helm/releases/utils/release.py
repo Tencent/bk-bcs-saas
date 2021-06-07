@@ -77,6 +77,7 @@ def list_releases(ctx_cluster: CtxCluster, namespace: str = None) -> List[Dict]:
         parser = ReleaseParser(release)
         release_info = parser.metadata
         release_info["updater"] = parser.release_updater
+        release_info["chart_metadata"] = parser.chart_metadata
         namespace_release_map = refine_namespace_releases(namespace_release_map, release_info)
 
     # 根据最后部署时间排序逆序

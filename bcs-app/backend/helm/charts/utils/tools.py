@@ -11,11 +11,9 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-from rest_framework import serializers
-
-from .constants import ReleaseEngine
 
 
-class ListReleasesParamsSLZ(serializers.Serializer):
-    namespace = serializers.CharField(required=False)
-    engine = serializers.ChoiceField(default=ReleaseEngine.Helm3.value, choices=ReleaseEngine.get_choices())
+def is_binary_file(content: bytes) -> bool:
+    """判断文件是否为二进制文件"""
+    textchars = bytearray({7, 8, 9, 10, 12, 13, 27} | set(range(0x20, 0x100)) - {0x7F})
+    return bool(content.translate(None, textchars))

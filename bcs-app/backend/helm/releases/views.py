@@ -15,7 +15,8 @@ from rest_framework.response import Response
 
 from backend.bcs_web.viewsets import SystemViewSet
 
-from . import serializers
+from . import constants, serializers
+from .utils import helm2_release
 from .utils import release as release_utils
 from .utils.parser import ReleaseParser
 
@@ -31,7 +32,9 @@ class HelmReleaseViewSet(SystemViewSet):
         """
         params = self.params_validate(serializers.ListReleasesParamsSLZ, params=request.query_params)
         namespace = params.get("namespace")
-        # 获取 release 列表
+        # 获取 release 列表，支持 helm2(kubectl) 部署的集群
+        if params.get("engine") == constants.ReleaseEngine.Helm2.value:
+            return helm2_release.list_releases(request.ctx_cluster, namespace=namespace)
         return Response(release_utils.list_releases(request.ctx_cluster, namespace=namespace))
 
     def release_info(self, request, project_id, cluster_id, namespace, release_name):

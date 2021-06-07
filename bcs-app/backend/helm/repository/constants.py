@@ -11,11 +11,15 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-from dataclasses import dataclass
 
+# public repo name
+PUBLIC_CHART_REPO_NAME = "public-repo"
 
-@dataclass
-class RepoData:
-    project_name: str = None
-    repo_name: str = None
-    repo_prefix_url: str = None
+# HARBOR的项目地址相同
+DEFAULT_PROJECT_NAME = "chartrepo"
+
+# 公共项目名称
+BK_REPO_PUBLIC_PROJECT_NAME = "chartrepo"
+
+# 公共仓库名称
+BK_REPO_PUBLIC_REPO_NAME = "public"
