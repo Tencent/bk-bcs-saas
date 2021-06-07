@@ -13,10 +13,18 @@
 #
 import asyncio
 import concurrent
+from dataclasses import dataclass
+from typing import Any, List, Optional
 
 
 class AsyncRunException(BaseException):
     pass
+
+
+@dataclass
+class AsyncResult:
+    ret: Any
+    exc: Optional[Exception]
 
 
 def get_or_create_loop():
@@ -30,7 +38,7 @@ def get_or_create_loop():
         return loop, True
 
 
-def async_run(tasks):
+def async_run(tasks, raise_exception: bool = True) -> List[AsyncResult]:
     """
     run a group of tasks async(仅适用于IO密集型)
     Requires the tasks arg to be a list of functools.partial()
@@ -44,19 +52,25 @@ def async_run(tasks):
     async_tasks = [asyncio.ensure_future(async_task(task, loop)) for task in tasks]
     # run tasks in parallel
     loop.run_until_complete(asyncio.wait(async_tasks))
-    # deal with errors (exceptions, etc)
-    err_msg_list = []
+
+    # 获取 Task 结果
+    results = []
     for task in async_tasks:
-        error = task.exception()
-        if error is not None:
-            err_msg_list.append(str(error))
+        exc = task.exception()
+        ret = task.result() if exc is None else None
+        results.append(AsyncResult(ret=ret, exc=exc))
 
     executor.shutdown(wait=True)
     if created:
         loop.close()
 
-    if err_msg_list:
-        raise AsyncRunException(';'.join(err_msg_list))
+    if raise_exception:
+        exceptions = filter(None, [result.exc for result in results])
+        err_msg = ';'.join([str(exc) for exc in exceptions])
+        if err_msg:
+            raise AsyncRunException(err_msg)
+
+    return results
 
 
 async def async_task(params, loop):
@@ -65,4 +79,5 @@ async def async_task(params, loop):
     """
     # get the calling function
     # This executes a task in its own thread (in parallel)
-    await loop.run_in_executor(None, params)
+    result = await loop.run_in_executor(None, params)
+    return result
