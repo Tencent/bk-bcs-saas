@@ -30,14 +30,14 @@ class TestSecret:
     batch_url = f'{DAU_PREFIX}/configs/secrets/'
     detail_url = f'{DAU_PREFIX}/namespaces/{DEFAULT_NAMESPACE}/configs/secrets/{name}/'
 
-    def test_list(self, api_client):
-        """ 测试获取资源列表接口 """
-        response = api_client.get(self.batch_url)
-        assert response.json()['code'] == 0
-
     def test_create(self, api_client):
         """ 测试创建资源接口 """
         response = api_client.post(self.batch_url, data=self.manifest)
+        assert response.json()['code'] == 0
+
+    def test_list(self, api_client):
+        """ 测试获取资源列表接口 """
+        response = api_client.get(self.batch_url)
         assert response.json()['code'] == 0
 
     def test_retrieve(self, api_client):
