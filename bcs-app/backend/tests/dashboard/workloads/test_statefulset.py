@@ -50,7 +50,6 @@ class TestStatefulSet:
         # 调整调度规则
         self.manifest['spec']['replicas'] = 3
         response = api_client.put(self.detail_url, data=self.manifest)
-        print(response.json())
         assert response.json()['code'] == 0
 
     def test_destroy(self, api_client):

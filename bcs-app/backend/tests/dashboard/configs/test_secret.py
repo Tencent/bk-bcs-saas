@@ -47,7 +47,7 @@ class TestSecret:
 
     def test_update(self, api_client):
         """ 测试更新资源接口 """
-        # self.manifest['metadata']['labels']['test'] = 'test'
+        self.manifest['metadata']['labels'] = {'test': 'test'}
         response = api_client.put(self.detail_url, data=self.manifest)
         assert response.json()['code'] == 0
 

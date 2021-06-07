@@ -21,5 +21,5 @@ class ServiceAccountFormatter(RBACFormatter):
 
     def format_dict(self, resource_dict: Dict) -> Dict:
         res = self.format_common_dict(resource_dict)
-        res.update({'secrets': len(resource_dict['secrets'])})
+        res.update({'secrets': len(resource_dict.get('secrets', []))})
         return res
