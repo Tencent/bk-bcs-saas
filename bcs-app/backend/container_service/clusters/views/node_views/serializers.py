@@ -30,3 +30,22 @@ class FilterNodeLabelsSLZ(NodeLabelsSLZ):
 
 class SetNodeLabelsSLZ(NodeLabelsSLZ):
     pass
+
+
+class QueryBatchNodeSLZ(serializers.Serializer):
+    host_name_list = serializers.ListField(child=serializers.CharField())
+
+
+class TaintSLZ(serializers.Serializer):
+    key = serializers.CharField()
+    value = serializers.CharField()
+    effect = serializers.CharField()
+
+
+class NodeTaintsSLZ(serializers.Serializer):
+    host_name = serializers.CharField()
+    taints = serializers.ListField(child=TaintSLZ())
+
+
+class BatchNodeTaintsSLZ(serializers.Serializer):
+    host_taints = serializers.ListField(child=NodeTaintsSLZ())

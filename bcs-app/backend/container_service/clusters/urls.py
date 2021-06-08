@@ -15,6 +15,7 @@ from django.conf.urls import url
 
 from . import views
 from .views.cluster import UpgradeClusterViewSet
+from .views.node_views.taints import NodeTaintsViewSet
 
 urlpatterns = [
     url(
@@ -213,6 +214,16 @@ urlpatterns += [
         views.NodelabelsViewSets.as_view({"post": "set_labels", "get": "list_labels"}),
     ),
 ]
+
+
+# 节点 taint 相关 API
+urlpatterns += [
+    url(
+        r"^api/cluster_mgr/projects/(?P<project_id>\w{32})/clusters/(?P<cluster_id>[\w\-]+)/nodes/taints/$",
+        NodeTaintsViewSet.as_view({"post": "query_taints", "put": "set_taints"}),
+    )
+]
+
 
 # 导入版本特定urls
 try:
