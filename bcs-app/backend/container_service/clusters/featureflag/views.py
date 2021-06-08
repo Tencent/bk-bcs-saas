@@ -11,23 +11,18 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-import os
+from rest_framework.response import Response
 
-from django.conf import settings
+from backend.bcs_web import viewsets
 
-from backend.components.apigw import get_api_public_key
-
-ACCESS_TOKEN_KEY_NAME = 'HTTP_X_BKAPI_TOKEN'
-APIGW_JWT_KEY_NAME = 'HTTP_X_BKAPI_JWT'
-USERNAME_KEY_NAME = 'HTTP_X_BKAPI_USERNAME'
-
-try:
-    BCS_APP_APIGW_PUBLIC_KEY = ''
-    # BCS_APP_APIGW_PUBLIC_KEY = getattr(settings, 'BCS_APP_APIGW_PUBLIC_KEY')
-except AttributeError:
-    pass
-    # BCS_APP_APIGW_PUBLIC_KEY = get_api_public_key('bcs-app', 'bk_bcs', os.environ.get('BKAPP_BK_BCS_TOKEN'))
+from .featureflag import get_cluster_feature_flags
+from .serializers import ClusterFeatureTypeSLZ
 
 
-# 受信任的app可以从header获取用户名.(私有化版本apigw不支持bk_username传参)
-trusted_app_list = ["bk_bcs_monitor", "bk_harbor", "bk_bcs", "workbench"]
+class ClusterFeatureFlagViewSet(viewsets.SystemViewSet):
+    permission_classes = ()
+    authentication_classes = ()
+
+    def get_cluster_feature_flags(self, request, project_id):
+        validated_data = self.params_validate(ClusterFeatureTypeSLZ)
+        return Response(get_cluster_feature_flags(validated_data['cluster_feature_type']))
