@@ -20,7 +20,9 @@ urlpatterns = [
     url(
         r"^(?P<project_id>\w{32})/user_perms/$", views.ProjectsViewSet.as_view({"post": "query_user_perms_by_project"})
     ),
+    # TODO list_authorized_users 数据不准确(待废弃)
     url(
         r"^(?P<project_id>\w{32})/authorized_users/$", views.ProjectsViewSet.as_view({"get": "list_authorized_users"})
     ),
+    url(r"^(?P<project_id>\w{32})/users/perm_verify/$", views.ProjectsViewSet.as_view({"post": "verify_users"})),
 ]
