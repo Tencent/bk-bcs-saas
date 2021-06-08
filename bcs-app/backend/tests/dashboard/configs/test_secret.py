@@ -14,7 +14,6 @@
 import pytest
 
 from backend.dashboard.templates.utils import load_demo_manifest
-from backend.resources.constants import K8sResourceKind
 from backend.tests.conftest import DEFAULT_NAMESPACE
 from backend.tests.dashboard.conftest import DASHBOARD_API_URL_COMMON_PREFIX as DAU_PREFIX
 from backend.utils.basic import getitems
@@ -25,7 +24,7 @@ pytestmark = pytest.mark.django_db
 class TestSecret:
     """ 测试 Secret 相关接口 """
 
-    manifest = load_demo_manifest(K8sResourceKind.Secret.value)
+    manifest = load_demo_manifest('configs/simple_secret')
     name = getitems(manifest, 'metadata.name')
     batch_url = f'{DAU_PREFIX}/configs/secrets/'
     detail_url = f'{DAU_PREFIX}/namespaces/{DEFAULT_NAMESPACE}/configs/secrets/{name}/'

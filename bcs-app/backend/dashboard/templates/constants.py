@@ -15,8 +15,12 @@ from django.conf import settings
 
 from backend.resources.constants import K8sResourceKind
 
-# 存放示例的配置文件目录
-DEMO_RESOURCE_MANIFEST_DIR = f'{settings.BASE_DIR}/backend/resources/templates/manifests'
+# 资源模板相关配置 目录
+RESOURCE_TEMPLATE_DIR = f'{settings.BASE_DIR}/backend/resources/templates'
+# 模板配置信息 目录
+TEMPLATE_CONFIG_DIR = f'{RESOURCE_TEMPLATE_DIR}/configs'
+# Demo 配置文件 目录
+DEMO_RESOURCE_MANIFEST_DIR = f'{RESOURCE_TEMPLATE_DIR}/manifests'
 
 
 HAS_DEMO_MANIFEST_RESOURCE_KIND = [

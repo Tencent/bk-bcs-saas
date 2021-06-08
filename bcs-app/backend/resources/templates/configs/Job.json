@@ -1,0 +1,18 @@
+{
+  "kind": "Job",
+  "class": "workloads",
+  "references": [
+    {
+      "name": "Kubernetes Job 字段说明",
+      "link": "https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.21/#job-v1-batch"
+    }
+  ],
+  "items": [
+    {
+      "name": "simple_job",
+      "alias": "Job 简单示例",
+      "description": "简单的 Job 示例，仅包含基础配置",
+      "manifest": null
+    }
+  ]
+}

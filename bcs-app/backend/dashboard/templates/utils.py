@@ -11,17 +11,24 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
+import json
 from typing import Dict
 
 import yaml
 
-from backend.dashboard.templates.constants import DEMO_RESOURCE_MANIFEST_DIR
+from backend.dashboard.templates.constants import DEMO_RESOURCE_MANIFEST_DIR, TEMPLATE_CONFIG_DIR
 from backend.utils.string import gen_random_str
 
 
-def load_demo_manifest(resource_kind: str) -> Dict:
+def load_resource_template(kind: str) -> Dict:
+    """ 获取指定 资源类型模版 信息 """
+    with open(f'{TEMPLATE_CONFIG_DIR}/{kind}.json') as fr:
+        return json.loads(fr.read())
+
+
+def load_demo_manifest(file_path: str) -> Dict:
     """ 指定资源类型的 Demo 配置信息 """
-    with open(f"{DEMO_RESOURCE_MANIFEST_DIR}/{resource_kind}.yaml") as fr:
+    with open(f'{DEMO_RESOURCE_MANIFEST_DIR}/{file_path}.yaml') as fr:
         manifest = yaml.load(fr.read(), yaml.SafeLoader)
 
     # 避免名称重复，每次默认添加随机后缀

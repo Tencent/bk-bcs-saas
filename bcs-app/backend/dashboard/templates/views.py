@@ -16,7 +16,7 @@ from rest_framework.response import Response
 
 from backend.bcs_web.viewsets import SystemViewSet
 from backend.dashboard.templates.serializers import FetchResourceDemoManifestSLZ
-from backend.dashboard.templates.utils import load_demo_manifest
+from backend.dashboard.templates.utils import load_demo_manifest, load_resource_template
 
 
 class TemplateViewSet(SystemViewSet):
@@ -26,5 +26,7 @@ class TemplateViewSet(SystemViewSet):
     def manifests(self, request, project_id, cluster_id):
         """ 指定资源类型的 Demo 配置信息 """
         params = self.params_validate(FetchResourceDemoManifestSLZ)
-        manifest = load_demo_manifest(params['kind'])
-        return Response(manifest)
+        config = load_resource_template(params['kind'])
+        for t in config['items']:
+            t['manifest'] = load_demo_manifest(f"{config['class']}/{t['name']}")
+        return Response(config)

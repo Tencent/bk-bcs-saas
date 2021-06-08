@@ -1,0 +1,18 @@
+{
+  "kind": "ConfigMap",
+  "class": "configs",
+  "references":[
+    {
+      "name": "Kubernetes ConfigMap 字段说明",
+      "link": "https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.21/#configmap-v1-core"
+    }
+  ],
+  "items": [
+    {
+      "name": "simple_configmap",
+      "alias": "ConfigMap 简单示例",
+      "description": "简单的 ConfigMap 示例，仅包含基础配置",
+      "manifest": null
+    }
+  ]
+}
