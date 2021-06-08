@@ -23,6 +23,7 @@ from rest_framework.views import APIView
 
 from backend.bcs_web.audit_log import client
 from backend.bcs_web.iam.permissions import ProjectPermission
+from backend.bcs_web.viewsets import SystemViewSet
 from backend.components import paas_cc
 from backend.container_service.projects import base as Project
 from backend.container_service.projects.utils import (
@@ -38,6 +39,7 @@ from backend.utils.func_controller import get_func_controller
 from backend.utils.renderers import BKAPIRenderer
 
 from . import serializers
+from .cmdb import list_biz_maintainers
 
 logger = logging.getLogger(__name__)
 
@@ -298,6 +300,14 @@ class NavProjectPermissionViewSet(viewsets.ViewSet, ProjectPermission):
 
         users = self.query_authorized_users(project_id, serializer.validated_data["action_id"])
         return Response(users)
+
+
+class ProjectBizInfoViewSet(SystemViewSet):
+    def list_biz_maintainers(self, request, project_id):
+        """查询业务下的运维人员"""
+        # 以admin身份查询业务下的运维
+        maintainers = list_biz_maintainers(int(request.project.cc_app_id))
+        return Response({"maintainers": maintainers})
 
 
 # TODO: 是否有其它方式处理

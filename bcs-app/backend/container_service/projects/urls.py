@@ -39,4 +39,8 @@ urlpatterns = [
         r"^api/nav/projects/(?P<project_id>\w{32})/user_perms/$",
         views.NavProjectPermissionViewSet.as_view({"post": "query_user_perms_by_project"}),
     ),
+    url(
+        r"^api/projects/(?P<project_id>\w{32})/biz_maintainers/$",
+        views.ProjectBizInfoViewSet.as_view({"get": "list_biz_maintainers"}),
+    ),
 ]
