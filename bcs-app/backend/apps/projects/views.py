@@ -297,12 +297,8 @@ class NavProjectPermissionViewSet(viewsets.ViewSet):
         return Response(users)
 
     def verify_users(self, request, project_id):
-        req_data = request.data.copy()
-        req_data["project_id"] = project_id
-
-        serializer = serializers.VerifyUsersSLZ(data=req_data)
+        serializer = serializers.VerifyUsersSLZ(data=request.data)
         serializer.is_valid(raise_exception=True)
-
         validated_data = serializer.validated_data
         return Response(
             self.project_perm.verify_users(validated_data['users'], validated_data['action_id'], project_id)
