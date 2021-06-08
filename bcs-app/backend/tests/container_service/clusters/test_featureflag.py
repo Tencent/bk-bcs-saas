@@ -11,20 +11,19 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-import os
+import pytest
 
-from django.conf import settings
+from backend.container_service.clusters.featureflag.featureflag import ClusterFeatureType, get_cluster_feature_flags
 
-from backend.components.apigw import get_api_public_key
 
-ACCESS_TOKEN_KEY_NAME = 'HTTP_X_BKAPI_TOKEN'
-APIGW_JWT_KEY_NAME = 'HTTP_X_BKAPI_JWT'
-USERNAME_KEY_NAME = 'HTTP_X_BKAPI_USERNAME'
-
-try:
-    BCS_APP_APIGW_PUBLIC_KEY = getattr(settings, 'BCS_APP_APIGW_PUBLIC_KEY')
-except AttributeError:
-    BCS_APP_APIGW_PUBLIC_KEY = get_api_public_key('bcs-app', 'bk_bcs', os.environ.get('BKAPP_BK_BCS_TOKEN'))
-
-# 受信任的app可以从header获取用户名.(私有化版本apigw不支持bk_username传参)
-trusted_app_list = ["bk_bcs_monitor", "bk_harbor", "bk_bcs", "workbench"]
+@pytest.mark.parametrize(
+    'feature_type, expected_flags',
+    [
+        (ClusterFeatureType.GLOBAL.value, {'CLUSTER': True, 'OVERVIEW': False, 'REPO': True}),
+        (ClusterFeatureType.SINGLE.value, {'CLUSTER': False, 'OVERVIEW': True, 'REPO': False}),
+    ],
+)
+def test_get_cluster_feature_flags(feature_type: str, expected_flags):
+    feature_flags = get_cluster_feature_flags(feature_type)
+    for feature in ['CLUSTER', 'OVERVIEW', 'REPO']:
+        assert feature_flags[feature] == expected_flags[feature]

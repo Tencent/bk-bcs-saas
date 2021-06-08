@@ -12,9 +12,8 @@
 # specific language governing permissions and limitations under the License.
 #
 import logging
-import os
 
-from backend.components.apigw import get_api_public_key
+from backend.bcs_web.constants import BCS_APP_APIGW_PUBLIC_KEY
 
 logger = logging.getLogger(__name__)
 
@@ -32,7 +31,7 @@ CATEGORY_MODULE_MAP = {
     "mesos": {"Application": "application", "Deployment": "deployment"},
 }
 
-PAAS_CD_APIGW_PUBLIC_KEY = get_api_public_key("paas-cd", "bk_bcs", os.environ.get("BKAPP_BK_BCS_TOKEN"))
+PAAS_CD_APIGW_PUBLIC_KEY = BCS_APP_APIGW_PUBLIC_KEY
 
 try:
     from .constants_ext import *  # noqa

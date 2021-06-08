@@ -17,9 +17,9 @@ from backend.packages.blue_krill.data_types import enum
 
 
 class ClusterFeatureType(str, enum.StructuredEnum):
-    Global = enum.EnumField('global', label="所有")
-    Single = enum.EnumField('single', label="独立")
-    Federation = enum.EnumField('federation', label="联邦")
+    GLOBAL = enum.EnumField('GLOBAL', label="所有集群")
+    SINGLE = enum.EnumField('SINGLE', label="独立集群")
+    FEDERATION = enum.EnumField('FEDERATION', label="联邦集群")
 
 
 class ClusterFeatureFlag(enum.FeatureFlag):
@@ -65,8 +65,8 @@ class SingleClusterFeatureFlag(ClusterFeatureFlag):
 
 
 def get_cluster_feature_flags(feature_type: str) -> Dict[str, bool]:
-    if feature_type == ClusterFeatureType.Global.value:
+    if feature_type == ClusterFeatureType.GLOBAL.value:
         return GlobalClusterFeatureFlag.get_default_flags()
-    elif feature_type == ClusterFeatureType.Single.value:
+    elif feature_type == ClusterFeatureType.SINGLE.value:
         return SingleClusterFeatureFlag.get_default_flags()
     return {}

@@ -20,9 +20,6 @@ from .serializers import ClusterFeatureTypeSLZ
 
 
 class ClusterFeatureFlagViewSet(viewsets.SystemViewSet):
-    permission_classes = ()
-    authentication_classes = ()
-
     def get_cluster_feature_flags(self, request, project_id):
         validated_data = self.params_validate(ClusterFeatureTypeSLZ)
         return Response(get_cluster_feature_flags(validated_data['cluster_feature_type']))
