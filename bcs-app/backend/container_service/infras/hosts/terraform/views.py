@@ -22,6 +22,7 @@ from backend.bcs_web.audit_log.client import ContextActivityLogClient
 from backend.bcs_web.viewsets import SystemViewSet
 from backend.container_service.infras.hosts.terraform.engines.sops import create_and_start_host_application
 from backend.container_service.projects.cmdb import is_biz_maintainer
+from backend.utils.exceptions import PermissionDeniedError
 
 from .constants import SCR_URL, TaskStatus
 from .models import HostApplyTaskLog
@@ -39,7 +40,7 @@ class ApplyHostViewSet(SystemViewSet):
     def can_apply_host(self, biz_id: int, username: str):
         # 仅运维角色人员才能申请主机
         if not is_biz_maintainer(biz_id, username):
-            raise ValidationError(_("用户【{}】不是业务的运维角色，请联系业务运维操作!").format(username))
+            raise PermissionDeniedError(_("用户【{}】不是业务的运维角色，请联系业务运维申请机器!").format(username), "")
 
     def apply_host(self, request, project_id):
         # NOTE: 项目下如果有在申请的任务，必须等任务结束后，才能再次申请
