@@ -217,7 +217,7 @@ urlpatterns += [
 
 urlpatterns += [
     url(
-        r'^api/projects/(?P<project_id>[\w\-]+)/clusters/feature_flags/$',
+        r'^api/projects/(?P<project_id>[\w\-]+)/clusters/(?P<cluster_id>[\w\-]+)/feature_flags/$',
         ClusterFeatureFlagViewSet.as_view({'get': 'get_cluster_feature_flags'}),
     )
 ]

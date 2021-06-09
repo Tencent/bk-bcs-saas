@@ -15,11 +15,12 @@ from rest_framework.response import Response
 
 from backend.bcs_web import viewsets
 
-from .featureflag import get_cluster_feature_flags
+from .featflag import get_cluster_feature_flags
 from .serializers import ClusterFeatureTypeSLZ
 
 
 class ClusterFeatureFlagViewSet(viewsets.SystemViewSet):
-    def get_cluster_feature_flags(self, request, project_id):
-        validated_data = self.params_validate(ClusterFeatureTypeSLZ)
-        return Response(get_cluster_feature_flags(validated_data['cluster_feature_type']))
+    def get_cluster_feature_flags(self, request, project_id, cluster_id):
+        validated_data = self.params_validate(ClusterFeatureTypeSLZ, cluster_id=cluster_id)
+        feat_flags = get_cluster_feature_flags(cluster_id, validated_data.get('cluster_feature_type'))
+        return Response(feat_flags)

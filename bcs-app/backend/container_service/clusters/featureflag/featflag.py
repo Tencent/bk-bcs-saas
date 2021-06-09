@@ -11,13 +11,14 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-from typing import Dict
+from typing import Dict, Optional
 
 from backend.packages.blue_krill.data_types import enum
 
+UNSELECTED_CLUSTER = '-'
+
 
 class ClusterFeatureType(str, enum.StructuredEnum):
-    GLOBAL = enum.EnumField('GLOBAL', label="所有集群")
     SINGLE = enum.EnumField('SINGLE', label="独立集群")
     FEDERATION = enum.EnumField('FEDERATION', label="联邦集群")
 
@@ -49,7 +50,7 @@ class GlobalClusterFeatureFlag(ClusterFeatureFlag):
     - 概览
     """
 
-    OVERVIEW = enum.FeatureFlagField(name='OVERVIEW', label='概览')
+    OVERVIEW = enum.FeatureFlagField(name='OVERVIEW', label='概览', default=False)
 
 
 class SingleClusterFeatureFlag(ClusterFeatureFlag):
@@ -60,14 +61,16 @@ class SingleClusterFeatureFlag(ClusterFeatureFlag):
     - 操作审计
     """
 
-    CLUSTER = enum.FeatureFlagField(name='CLUSTER', label='集群')
-    REPO = enum.FeatureFlagField(name='REPO', label='仓库')
-    AUDIT = enum.FeatureFlagField(name='AUDIT', label='操作审计')
+    CLUSTER = enum.FeatureFlagField(name='CLUSTER', label='集群', default=False)
+    REPO = enum.FeatureFlagField(name='REPO', label='仓库', default=False)
+    AUDIT = enum.FeatureFlagField(name='AUDIT', label='操作审计', default=False)
 
 
-def get_cluster_feature_flags(feature_type: str) -> Dict[str, bool]:
-    if feature_type == ClusterFeatureType.GLOBAL.value:
+def get_cluster_feature_flags(cluster_id: str, feature_type: Optional[str]) -> Dict[str, bool]:
+    if cluster_id == UNSELECTED_CLUSTER:
         return GlobalClusterFeatureFlag.get_default_flags()
-    elif feature_type == ClusterFeatureType.SINGLE.value:
+
+    if feature_type == ClusterFeatureType.SINGLE.value:
         return SingleClusterFeatureFlag.get_default_flags()
+
     return {}
