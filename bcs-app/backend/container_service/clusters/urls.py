@@ -14,6 +14,7 @@
 from django.conf.urls import url
 
 from . import views
+from .featureflag.views import ClusterFeatureFlagViewSet
 from .views.cluster import UpgradeClusterViewSet
 
 urlpatterns = [
@@ -213,6 +214,14 @@ urlpatterns += [
         views.NodelabelsViewSets.as_view({"post": "set_labels", "get": "list_labels"}),
     ),
 ]
+
+urlpatterns += [
+    url(
+        r'^api/projects/(?P<project_id>[\w\-]+)/clusters/(?P<cluster_id>[\w\-]+)/feature_flags/$',
+        ClusterFeatureFlagViewSet.as_view({'get': 'get_cluster_feature_flags'}),
+    )
+]
+
 
 # 导入版本特定urls
 try:

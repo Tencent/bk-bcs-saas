@@ -61,7 +61,7 @@ INSTALLED_APPS = [
     "backend.bcs_web.audit_log.apps.AuditLogConfig",
     "backend.container_service.projects",
     "backend.container_service.misc.depot",
-    "backend.container_service.clusters",
+    "backend.container_service.clusters.apps.ClusterConfig",
     "backend.templatesets.legacy_apps.configuration.apps.TemplatesetsConfConfig",
     "backend.templatesets.apps.TemplateSetsConfig",
     "backend.templatesets.legacy_apps.instance.apps.TemplatesetsInstanceConfig",

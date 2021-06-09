@@ -11,7 +11,8 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-from typing import Any, Dict
+import copy
+from typing import Any, Dict, Optional
 
 from rest_framework import permissions, viewsets
 from rest_framework.renderers import BrowsableAPIRenderer
@@ -29,25 +30,30 @@ class GenericMixin:
         request_data.update(**kwargs)
         return request_data
 
-    def params_validate(self, serializer, params=None):
+    def params_validate(self, serializer, init_params: Optional[Dict] = None, **kwargs):
         """
         检查参数是够符合序列化器定义的通用逻辑
 
         :param serializer: 序列化器
-        :param params: 指定的参数
+        :param init_params: 初始参数
+        :param kwargs: 可变参数
         :return: 校验的结果
         """
-        # 获取 Django request 对象
-        _request = self.request
-
-        if params is None:
+        if init_params is None:
+            # 获取 Django request 对象
+            _request = self.request
             if _request.method in ['GET']:
-                params = _request.query_params
+                req_data = copy.deepcopy(_request.query_params)
             else:
-                params = _request.data
+                req_data = _request.data.copy()
+        else:
+            req_data = init_params
+
+        if kwargs:
+            req_data.update(kwargs)
 
         # 参数校验，如不符合直接抛出异常
-        slz = serializer(data=params)
+        slz = serializer(data=req_data)
         slz.is_valid(raise_exception=True)
         return slz.validated_data
 
