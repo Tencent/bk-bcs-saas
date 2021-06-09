@@ -36,6 +36,7 @@ class ClusterFeatureFlag(enum.FeatureFlag):
     WORKLOAD = enum.FeatureFlagField(name='WORKLOAD', label='工作负载', default=True)
     NETWORK = enum.FeatureFlagField(name='NETWORK', label='网络', default=True)
     CONFIGURATION = enum.FeatureFlagField(name='CONFIGURATION', label='配置', default=True)
+    RBAC = enum.FeatureFlagField(name='RBAC', label='RBAC权限控制', default=True)
     REPO = enum.FeatureFlagField(name='REPO', label='仓库', default=True)
     AUDIT = enum.FeatureFlagField(name='AUDIT', label='操作审计', default=True)
     EVENT = enum.FeatureFlagField(name='EVENT', label='事件查询', default=True)
