@@ -16,8 +16,8 @@ import pytest
 pytestmark = pytest.mark.django_db
 
 
-class TestNamespace:
+class TestEvent:
     def test_list(self, api_client, project_id, cluster_id):
         """ 测试获取资源列表接口 """
-        response = api_client.get(f'/api/dashboard/projects/{project_id}/clusters/{cluster_id}/namespaces/')
+        response = api_client.get(f'/api/dashboard/projects/{project_id}/clusters/{cluster_id}/events/')
         assert response.json()['code'] == 0

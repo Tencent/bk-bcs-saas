@@ -11,13 +11,13 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-import pytest
+from typing import Dict
 
-pytestmark = pytest.mark.django_db
+from backend.resources.utils.format import ResourceDefaultFormatter
 
 
-class TestNamespace:
-    def test_list(self, api_client, project_id, cluster_id):
-        """ 测试获取资源列表接口 """
-        response = api_client.get(f'/api/dashboard/projects/{project_id}/clusters/{cluster_id}/namespaces/')
-        assert response.json()['code'] == 0
+class EventFormatter(ResourceDefaultFormatter):
+    """ 事件 格式化器 """
+
+    def format_dict(self, resource_dict: Dict) -> Dict:
+        return self.format_common_dict(resource_dict)
