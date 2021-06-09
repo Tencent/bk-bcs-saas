@@ -11,13 +11,17 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-import pytest
+from rest_framework.response import Response
 
-pytestmark = pytest.mark.django_db
+from backend.bcs_web.viewsets import SystemViewSet
+from backend.dashboard.utils.resp import ListApiRespBuilder
+from backend.resources.event.client import Event
 
 
-class TestNamespace:
-    def test_list(self, api_client, project_id, cluster_id):
-        """ 测试获取资源列表接口 """
-        response = api_client.get(f'/api/dashboard/projects/{project_id}/clusters/{cluster_id}/namespaces/')
-        assert response.json()['code'] == 0
+class EventViewSet(SystemViewSet):
+    """ K8S 事件 相关接口 """
+
+    def list(self, request, project_id, cluster_id):
+        client = Event(request.ctx_cluster)
+        response_data = ListApiRespBuilder(client).build()
+        return Response(response_data)

@@ -11,13 +11,11 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-import pytest
+from backend.resources.constants import K8sResourceKind
+from backend.resources.event.formatter import EventFormatter
+from backend.resources.resource import ResourceClient
 
-pytestmark = pytest.mark.django_db
 
-
-class TestNamespace:
-    def test_list(self, api_client, project_id, cluster_id):
-        """ 测试获取资源列表接口 """
-        response = api_client.get(f'/api/dashboard/projects/{project_id}/clusters/{cluster_id}/namespaces/')
-        assert response.json()['code'] == 0
+class Event(ResourceClient):
+    kind = K8sResourceKind.Event.value
+    formatter = EventFormatter()
