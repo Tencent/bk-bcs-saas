@@ -18,3 +18,15 @@ class ClusterConfig(AppConfig):
     name = 'backend.container_service.clusters'
     # 与重构前应用 label "cluster" 保持兼容
     label = 'cluster'
+
+    def ready(self):
+        # Multi-editions specific start
+
+        try:
+            from .apps_ext import contribute_to_app
+
+            contribute_to_app(self.name)
+        except ImportError:
+            pass
+
+        # Multi-editions specific end
