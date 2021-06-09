@@ -31,7 +31,7 @@ class PodViewSet(SystemViewSet):
         """ 获取 Pod 列表，支持 labelSelector """
         params = self.params_validate(ListPodsSLZ)
         client = Pod(request.ctx_cluster)
-        response_data = ListApiRespBuilder(client, **params).build()
+        response_data = ListApiRespBuilder(client, namespace=namespace, **params).build()
         return Response(response_data)
 
     def retrieve(self, request, project_id, cluster_id, namespace, pod_name):
