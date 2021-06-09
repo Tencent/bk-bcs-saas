@@ -25,10 +25,8 @@ class ListAndRetrieveMixin:
 
     def list(self, request, project_id, cluster_id, namespace=None):
         params = self.params_validate(ListResourceSLZ)
-        if namespace is not None:
-            params['namespace'] = namespace
         client = self.resource_client(request.ctx_cluster)
-        response_data = ListApiRespBuilder(client, **params).build()
+        response_data = ListApiRespBuilder(client, namespace=namespace, **params).build()
         return Response(response_data)
 
     def retrieve(self, request, project_id, cluster_id, namespace, name):
