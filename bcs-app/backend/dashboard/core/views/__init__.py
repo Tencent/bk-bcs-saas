@@ -11,17 +11,5 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-from rest_framework.response import Response
-
-from backend.bcs_web.viewsets import SystemViewSet
-from backend.dashboard.utils.resp import ListApiRespBuilder
-from backend.resources.namespace.client import Namespace
-
-
-class NamespaceViewSet(SystemViewSet):
-    """ Namespace 相关接口 """
-
-    def list(self, request, project_id, cluster_id):
-        client = Namespace(request.ctx_cluster)
-        response_data = ListApiRespBuilder(client).build()
-        return Response(response_data)
+from .event import EventViewSet  # noqa
+from .namespace import NamespaceViewSet  # noqa

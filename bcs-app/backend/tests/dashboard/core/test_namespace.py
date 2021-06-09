@@ -16,16 +16,10 @@ import pytest
 pytestmark = pytest.mark.django_db
 
 
-class TestSubscribe:
-    """ 测试订阅接口 """
+class TestNamespace:
+    """ 测试 K8S 命名空寂 相关接口 """
 
     def test_list(self, api_client, project_id, cluster_id):
         """ 测试获取资源列表接口 """
-        response = api_client.get(
-            f'/api/dashboard/projects/{project_id}/clusters/{cluster_id}/subscribe/'
-            + '?kind=Deployment&resource_version=206736'
-        )
+        response = api_client.get(f'/api/dashboard/projects/{project_id}/clusters/{cluster_id}/namespaces/')
         assert response.json()['code'] == 0
-        response_key = response.json()['data'].keys()
-        assert 'events' in response_key
-        assert 'latest_rv' in response_key

@@ -13,7 +13,8 @@
 #
 from backend.resources.configs.configmap import ConfigMap
 from backend.resources.configs.secret import Secret
-from backend.resources.namespace.client import Namespace
+from backend.resources.core.event import Event
+from backend.resources.core.namespace import Namespace
 from backend.resources.networks.endpoints import Endpoints
 from backend.resources.networks.ingress import Ingress
 from backend.resources.networks.service import Service
@@ -53,7 +54,8 @@ K8S_RESOURCE_CLIENTS = [
     # configurations
     ConfigMap,
     Secret,
-    # cluster
+    # core
+    Event,
     Namespace,
 ]
 

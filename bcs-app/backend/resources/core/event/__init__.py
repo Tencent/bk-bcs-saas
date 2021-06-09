@@ -11,21 +11,4 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-import pytest
-
-pytestmark = pytest.mark.django_db
-
-
-class TestSubscribe:
-    """ 测试订阅接口 """
-
-    def test_list(self, api_client, project_id, cluster_id):
-        """ 测试获取资源列表接口 """
-        response = api_client.get(
-            f'/api/dashboard/projects/{project_id}/clusters/{cluster_id}/subscribe/'
-            + '?kind=Deployment&resource_version=206736'
-        )
-        assert response.json()['code'] == 0
-        response_key = response.json()['data'].keys()
-        assert 'events' in response_key
-        assert 'latest_rv' in response_key
+from .client import Event  # noqa

@@ -14,7 +14,7 @@
 from django.conf.urls import include, url
 
 from backend.dashboard.configs.urls import router as config_router
-from backend.dashboard.namespaces.urls import router as namespace_router
+from backend.dashboard.core.urls import router as core_router
 from backend.dashboard.networks.urls import router as network_router
 from backend.dashboard.rbac.urls import router as rbac_router
 from backend.dashboard.storages.urls import router as storage_router
@@ -32,7 +32,7 @@ namespace_prefix_urlpatterns = [
 
 urlpatterns = [
     url(r"^crds/", include("backend.dashboard.custom_object.urls")),
-    url(r"^namespaces/", include(namespace_router.urls)),
     url(r"^subscribe/", include(subscribe_router.urls)),
     url(r"^(namespaces/(?P<namespace>[\w\-.]+)/)?", include(namespace_prefix_urlpatterns)),
+    url(r"", include(core_router.urls)),
 ]
