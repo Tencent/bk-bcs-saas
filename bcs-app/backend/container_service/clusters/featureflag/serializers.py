@@ -11,22 +11,18 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-from django.apps import AppConfig
+from rest_framework import serializers
+from rest_framework.exceptions import ValidationError
+
+from .featflag import UNSELECTED_CLUSTER, ClusterFeatureType
 
 
-class ClusterConfig(AppConfig):
-    name = 'backend.container_service.clusters'
-    # 与重构前应用 label "cluster" 保持兼容
-    label = 'cluster'
+class ClusterFeatureTypeSLZ(serializers.Serializer):
+    cluster_id = serializers.CharField()
+    cluster_feature_type = serializers.ChoiceField(choices=ClusterFeatureType.get_choices(), required=False)
 
-    def ready(self):
-        # Multi-editions specific start
-
-        try:
-            from .apps_ext import contribute_to_app
-
-            contribute_to_app(self.name)
-        except ImportError:
-            pass
-
-        # Multi-editions specific end
+    def validate(self, data):
+        # cluster_id 为 -, 表示未指定具体集群
+        if data['cluster_id'] != UNSELECTED_CLUSTER and 'cluster_feature_type' not in data:
+            raise ValidationError("missing valid parameter cluster_feature_type")
+        return data

@@ -11,22 +11,11 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-from django.apps import AppConfig
+from backend.resources.constants import K8sResourceKind
+from backend.resources.event.formatter import EventFormatter
+from backend.resources.resource import ResourceClient
 
 
-class ClusterConfig(AppConfig):
-    name = 'backend.container_service.clusters'
-    # 与重构前应用 label "cluster" 保持兼容
-    label = 'cluster'
-
-    def ready(self):
-        # Multi-editions specific start
-
-        try:
-            from .apps_ext import contribute_to_app
-
-            contribute_to_app(self.name)
-        except ImportError:
-            pass
-
-        # Multi-editions specific end
+class Event(ResourceClient):
+    kind = K8sResourceKind.Event.value
+    formatter = EventFormatter()
