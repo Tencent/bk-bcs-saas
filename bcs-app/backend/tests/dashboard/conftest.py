@@ -23,7 +23,7 @@ from backend.tests.testing_utils.mocks.resp import MockRetrieveApiRespBuilder
 from backend.tests.testing_utils.mocks.viewsets import FakeSystemViewSet
 
 
-@pytest.fixture
+@pytest.fixture(autouse=True, scope='package')
 def dashboard_api_common_patch():
     with mock.patch('backend.bcs_web.viewsets.SystemViewSet', new=FakeSystemViewSet), mock.patch(
         'backend.resources.resource.get_dynamic_client', new=get_dynamic_client

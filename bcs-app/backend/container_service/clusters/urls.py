@@ -14,8 +14,9 @@
 from django.conf.urls import url
 
 from . import views
+from .featureflag.views import ClusterFeatureFlagViewSet
 from .views.cluster import UpgradeClusterViewSet
-from .views.node_views.taints import NodeTaintsViewSet
+from .views.node_views import labels, nodes, taints
 
 urlpatterns = [
     url(
@@ -215,12 +216,33 @@ urlpatterns += [
     ),
 ]
 
+urlpatterns += [
+    url(
+        r"^api/cluster_mgr/projects/(?P<project_id>\w{32})/clusters/(?P<cluster_id>[\w\-]+)/nodes/$",
+        nodes.NodeViewSets.as_view({"get": "list_nodes"}),
+    )
+]
 
 # 节点 taint 相关 API
 urlpatterns += [
     url(
         r"^api/cluster_mgr/projects/(?P<project_id>\w{32})/clusters/(?P<cluster_id>[\w\-]+)/nodes/taints/$",
-        NodeTaintsViewSet.as_view({"post": "query_taints", "put": "set_taints"}),
+        taints.NodeTaintsViewSet.as_view({"post": "query_taints", "put": "set_taints"}),
+    )
+]
+
+# 节点 标签 相关 API
+urlpatterns += [
+    url(
+        r"^api/cluster_mgr/projects/(?P<project_id>\w{32})/clusters/(?P<cluster_id>[\w\-]+)/nodes/labels/$",
+        labels.NodeLabelsViewSet.as_view({"post": "query_labels", "put": "set_labels"}),
+    )
+]
+
+urlpatterns += [
+    url(
+        r'^api/projects/(?P<project_id>[\w\-]+)/clusters/(?P<cluster_id>[\w\-]+)/feature_flags/$',
+        ClusterFeatureFlagViewSet.as_view({'get': 'get_cluster_feature_flags'}),
     )
 ]
 

@@ -15,25 +15,25 @@ from django.utils.translation import ugettext_lazy as _
 from rest_framework.response import Response
 
 from backend.bcs_web.viewsets import SystemViewSet
-from backend.container_service.clusters.tools import taint
+from backend.container_service.clusters.tools import label
 from backend.utils.async_run import AsyncRunException
 from backend.utils.error_codes import error_codes
 
-from .serializers import NodeTaintListSLZ, QueryNodeListSLZ
+from .serializers import NodeLabelListSLZ, QueryNodeListSLZ
 
 
-class NodeTaintsViewSet(SystemViewSet):
-    def query_taints(self, request, project_id, cluster_id):
-        """查询node的污点"""
+class NodeLabelsViewSet(SystemViewSet):
+    def query_labels(self, request, project_id, cluster_id):
+        """查询node的标签"""
         params = self.params_validate(QueryNodeListSLZ)
-        taints = taint.query_taints(request.ctx_cluster, params["node_name_list"])
+        taints = label.query_labels(request.ctx_cluster, params["node_name_list"])
         return Response(taints)
 
-    def set_taints(self, request, project_id, cluster_id):
-        """设置污点"""
-        params = self.params_validate(NodeTaintListSLZ)
+    def set_labels(self, request, project_id, cluster_id):
+        """设置节点标签"""
+        params = self.params_validate(NodeLabelListSLZ)
         try:
-            taint.set_taints(request.ctx_cluster, params["node_taint_list"])
+            label.set_labels(request.ctx_cluster, params["node_labels_list"])
         except AsyncRunException as e:
-            raise error_codes.APIError(_("节点设置污点失败，{}").format(str(e)))
+            raise error_codes.APIError(_("节点设置标签失败，{}").format(str(e)))
         return Response()

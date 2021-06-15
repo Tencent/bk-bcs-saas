@@ -11,22 +11,10 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-from django.apps import AppConfig
+from rest_framework import routers
 
+from . import views
 
-class ClusterConfig(AppConfig):
-    name = 'backend.container_service.clusters'
-    # 与重构前应用 label "cluster" 保持兼容
-    label = 'cluster'
+router = routers.DefaultRouter(trailing_slash=True)
 
-    def ready(self):
-        # Multi-editions specific start
-
-        try:
-            from .apps_ext import contribute_to_app
-
-            contribute_to_app(self.name)
-        except ImportError:
-            pass
-
-        # Multi-editions specific end
+router.register(r'', views.EventViewSet, basename='event')

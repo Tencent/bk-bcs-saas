@@ -11,22 +11,13 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-from django.apps import AppConfig
+import pytest
+
+pytestmark = pytest.mark.django_db
 
 
-class ClusterConfig(AppConfig):
-    name = 'backend.container_service.clusters'
-    # 与重构前应用 label "cluster" 保持兼容
-    label = 'cluster'
-
-    def ready(self):
-        # Multi-editions specific start
-
-        try:
-            from .apps_ext import contribute_to_app
-
-            contribute_to_app(self.name)
-        except ImportError:
-            pass
-
-        # Multi-editions specific end
+class TestEvent:
+    def test_list(self, api_client, project_id, cluster_id):
+        """ 测试获取资源列表接口 """
+        response = api_client.get(f'/api/dashboard/projects/{project_id}/clusters/{cluster_id}/events/')
+        assert response.json()['code'] == 0

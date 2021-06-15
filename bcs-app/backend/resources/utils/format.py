@@ -12,6 +12,7 @@
 # specific language governing permissions and limitations under the License.
 #
 from copy import deepcopy
+from dataclasses import dataclass
 from typing import Any, Dict, List, Optional, Tuple, Union
 
 import arrow
@@ -45,10 +46,17 @@ class InstanceAccessor:
         return self.data['metadata']['name']
 
 
+@dataclass
+class BCSResourceData:
+    data: Dict
+
+
 class ResourceDefaultFormatter:
     """格式化 Kubernetes 资源为通用资源格式"""
 
-    def format_list(self, resources: Union[ResourceInstance, List[Dict], None]) -> List[Dict]:
+    def format_list(
+        self, resources: Union[ResourceInstance, List[Dict], None]
+    ) -> List[Optional[Dict, BCSResourceData]]:
         if isinstance(resources, (list, tuple)):
             return [self.format_dict(res) for res in resources]
         if resources is None:
@@ -56,7 +64,7 @@ class ResourceDefaultFormatter:
         # Type: ResourceInstance with multiple results returned by DynamicClient
         return [self.format_dict(res) for res in resources.to_dict()['items']]
 
-    def format(self, resource: Optional[ResourceInstance]) -> Dict:
+    def format(self, resource: Optional[ResourceInstance]) -> Optional[Dict, BCSResourceData]:
         if resource is None:
             return {}
         return self.format_dict(resource.to_dict())

@@ -11,22 +11,12 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-from django.apps import AppConfig
+from unittest.mock import patch
+
+from backend.container_service.projects.cmdb import is_biz_maintainer
 
 
-class ClusterConfig(AppConfig):
-    name = 'backend.container_service.clusters'
-    # 与重构前应用 label "cluster" 保持兼容
-    label = 'cluster'
-
-    def ready(self):
-        # Multi-editions specific start
-
-        try:
-            from .apps_ext import contribute_to_app
-
-            contribute_to_app(self.name)
-        except ImportError:
-            pass
-
-        # Multi-editions specific end
+@patch("backend.container_service.projects.cmdb.cc.get_app_maintainers", return_value=["admin", "admin1"])
+def test_is_biz_maintainers(mock_get_app_maintainers):
+    assert not is_biz_maintainer(1, "demo1")
+    assert is_biz_maintainer(1, "admin1")

@@ -11,22 +11,17 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-from django.apps import AppConfig
+from rest_framework.response import Response
+
+from backend.bcs_web.viewsets import SystemViewSet
+from backend.dashboard.utils.resp import ListApiRespBuilder
+from backend.resources.event.client import Event
 
 
-class ClusterConfig(AppConfig):
-    name = 'backend.container_service.clusters'
-    # 与重构前应用 label "cluster" 保持兼容
-    label = 'cluster'
+class EventViewSet(SystemViewSet):
+    """ K8S 事件 相关接口 """
 
-    def ready(self):
-        # Multi-editions specific start
-
-        try:
-            from .apps_ext import contribute_to_app
-
-            contribute_to_app(self.name)
-        except ImportError:
-            pass
-
-        # Multi-editions specific end
+    def list(self, request, project_id, cluster_id):
+        client = Event(request.ctx_cluster)
+        response_data = ListApiRespBuilder(client).build()
+        return Response(response_data)

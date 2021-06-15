@@ -14,6 +14,9 @@
 from backend.resources.constants import K8sResourceKind
 from backend.resources.resource import ResourceClient
 
+from .formatter import NodeFormatter
+
 
 class Node(ResourceClient):
     kind = K8sResourceKind.Node.value
+    formatter = NodeFormatter()

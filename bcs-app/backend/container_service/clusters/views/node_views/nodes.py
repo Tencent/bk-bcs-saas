@@ -11,22 +11,20 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-from django.apps import AppConfig
+from bcs_web.viewsets import SystemViewSet
+from rest_framework.response import Response
+
+from backend.container_service.clusters.tools import node
 
 
-class ClusterConfig(AppConfig):
-    name = 'backend.container_service.clusters'
-    # 与重构前应用 label "cluster" 保持兼容
-    label = 'cluster'
-
-    def ready(self):
-        # Multi-editions specific start
-
-        try:
-            from .apps_ext import contribute_to_app
-
-            contribute_to_app(self.name)
-        except ImportError:
-            pass
-
-        # Multi-editions specific end
+class NodeViewSets(SystemViewSet):
+    def list_nodes(self, request, project_id, cluster_id):
+        """查询集群下nodes
+        NOTE: 限制查询一个集群下的节点
+        """
+        # 以集群中节点为初始数据，如果bcs cc中节点不在集群中，但是状态非正常的，也需要展示
+        cluster_nodes = node.query_cluster_nodes(request.ctx_cluster)
+        bcs_cc_nodes = node.query_bcs_cc_nodes(request.ctx_cluster)
+        # 组装数据
+        client = node.NodesData(bcs_cc_nodes, cluster_nodes, cluster_id)
+        return Response(client.nodes)
