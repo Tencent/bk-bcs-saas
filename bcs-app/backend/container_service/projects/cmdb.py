@@ -11,22 +11,19 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-from django.apps import AppConfig
+from typing import List
+
+from backend.components import cc
 
 
-class ClusterConfig(AppConfig):
-    name = 'backend.container_service.clusters'
-    # 与重构前应用 label "cluster" 保持兼容
-    label = 'cluster'
+def list_biz_maintainers(biz_id: int) -> List[str]:
+    """查询业务的运维角色"""
+    return cc.get_app_maintainers("admin", biz_id)
 
-    def ready(self):
-        # Multi-editions specific start
 
-        try:
-            from .apps_ext import contribute_to_app
-
-            contribute_to_app(self.name)
-        except ImportError:
-            pass
-
-        # Multi-editions specific end
+def is_biz_maintainer(biz_id: int, username: str) -> bool:
+    """判断用户是否为业务的运维角色"""
+    maintainers = list_biz_maintainers(biz_id)
+    if username in maintainers:
+        return True
+    return False

@@ -25,11 +25,11 @@ from backend.accounts.bcs_perm import Cluster, Namespace
 from backend.bcs_web.audit_log import client
 from backend.components import ops, paas_cc
 from backend.container_service.clusters import constants, serializers
+from backend.container_service.clusters.base import utils as cluster_utils
 from backend.container_service.clusters.constants import ClusterState
 from backend.container_service.clusters.models import ClusterInstallLog, ClusterOperType, CommonStatus
 from backend.container_service.clusters.utils import can_use_hosts
 from backend.helm.app.models import App
-from backend.resources import cluster as cluster_utils
 from backend.templatesets.legacy_apps.instance.models import (
     InstanceConfig,
     InstanceEvent,
