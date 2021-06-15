@@ -42,7 +42,7 @@ class ContainerRespBuilder:
             containers.append(
                 {
                     # 原格式：docker://[a-zA-Z0-9]{64}，需要去除前缀
-                    'container_id': self._split_container_id_prefix(cs['containerID']),
+                    'container_id': self._extract_container_id(cs['containerID']),
                     'image': cs['image'],
                     'name': cs['name'],
                     'status': status,
@@ -74,7 +74,7 @@ class ContainerRespBuilder:
             'host_name': get_with_placeholder(spec, 'nodeName'),
             'host_ip': get_with_placeholder(status, 'hostIP'),
             'container_ip': get_with_placeholder(status, 'podIP'),
-            'container_id': self._split_container_id_prefix(container_status['containerID']),
+            'container_id': self._extract_container_id(container_status['containerID']),
             'container_name': self.container_name,
             'image': get_with_placeholder(container_status, 'image'),
             'network_mode': get_with_placeholder(spec, 'dnsPolicy'),
@@ -100,7 +100,7 @@ class ContainerRespBuilder:
             'resources': container_spec.get('resources', {}),
         }
 
-    def _split_container_id_prefix(self, container_id: str) -> str:
+    def _extract_container_id(self, container_id: str) -> str:
         """
         去除 容器 ID 前缀，原格式：docker://[a-zA-Z0-9]{64}
 
