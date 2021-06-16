@@ -30,9 +30,10 @@ class HelmReleaseViewSet(SystemViewSet):
         """查询集群或者命名空间下的 release 列表
         NOTE: 仅允许查询单个集群下的releases
         """
-        params = self.params_validate(serializers.ListReleasesParamsSLZ, params=request.query_params)
+        params = self.params_validate(serializers.ListReleasesParamsSLZ)
         namespace = params.get("namespace")
-        # 获取 release 列表，支持 helm2(kubectl) 部署的集群
+        # 获取 release 列表，支持 helm2(kubectl) 部署的Release
+        # 通过helm2(kubectl)部署的Release，则需要查询平台DB中的记录
         if params.get("engine") == constants.ReleaseEngine.Helm2.value:
             return helm2_release.list_releases(request.ctx_cluster, namespace=namespace)
         return Response(release_utils.list_releases(request.ctx_cluster, namespace=namespace))

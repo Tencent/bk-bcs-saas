@@ -24,8 +24,10 @@ class HelmChartViewSet(SystemViewSet):
         """查询chart的版本列表"""
         is_public = request.query_params.get("is_public", False)
         project_code = request.project.project_code
+        # 获取仓库信息
         repo_obj = repo.get_repo(project_id, project_code, is_public=is_public)
         username, password = repo_obj.username_password
+        # 获取仓库对应的项目及chart仓库名称
         project_name, repo_name = repo.get_project_and_repo_name(project_code, is_public)
         versions = get_chart_versions(
             repo.RepoData(project_name=project_name, repo_name=repo_name),

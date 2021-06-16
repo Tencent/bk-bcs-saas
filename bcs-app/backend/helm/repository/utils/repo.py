@@ -36,5 +36,5 @@ def get_project_and_repo_name(project_code: str, is_public: bool = False, repo_n
     """获取仓库的所属项目名称及仓库名称"""
     if is_public:
         return constants.BK_REPO_PUBLIC_PROJECT_NAME, constants.BK_REPO_PUBLIC_REPO_NAME
-    # NOTE: 兼容harbor，harbor项目名称使用的是同一个
+    # NOTE: 兼容harbor，harbor仓库中项目名称使用的是同一个
     return constants.DEFAULT_PROJECT_NAME or project_code, repo_name or project_code

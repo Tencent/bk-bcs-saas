@@ -11,11 +11,15 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
+import os
+
+# provider, 默认为bk_repo
+DEFAULT_CHART_REPO_PROVIDER = os.environ.get("CHART_REPO_PROVIDER", "bk_repo")
 
 # public repo name
 PUBLIC_CHART_REPO_NAME = "public-repo"
 
-# HARBOR的项目地址相同
+# HARBOR的项目名称
 DEFAULT_PROJECT_NAME = "chartrepo"
 
 # 公共项目名称
