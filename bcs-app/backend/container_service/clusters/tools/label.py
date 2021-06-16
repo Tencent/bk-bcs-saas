@@ -29,7 +29,7 @@ def query_labels(ctx_cluster: CtxCluster, node_name_list: List = None) -> Dict[s
     for inner_ip, node in nodes.items():
         if node_name_list and node["name"] not in node_name_list:
             continue
-        labels[inner_ip] = nodes["labels"]
+        labels[inner_ip] = node["labels"]
     return labels
 
 

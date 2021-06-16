@@ -29,7 +29,7 @@ def query_taints(ctx_cluster: CtxCluster, node_name_list=None) -> Dict[str, List
     for inner_ip, node in nodes.items():
         if node_name_list and node["name"] not in node_name_list:
             continue
-        taints[inner_ip] = nodes["taints"]
+        taints[inner_ip] = node["taints"]
     return taints
 
 

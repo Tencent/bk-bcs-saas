@@ -52,6 +52,11 @@ def query_cluster_nodes(ctx_cluster: CtxCluster) -> Dict[str, Dict]:
         # 解析数据用于前端展示
         metadata = node_data.get("metadata", {})
         labels = metadata.get("labels", {})
+
+        # 过滤掉master
+        if labels.get("node-role.kubernetes.io/master") == "true":
+            continue
+
         taints = getitems(node_data, ["spec", "taints"], [])
 
         # 组装数据，用于展示
@@ -69,7 +74,7 @@ def query_cluster_nodes(ctx_cluster: CtxCluster) -> Dict[str, Dict]:
 
 def query_bcs_cc_nodes(ctx_cluster: CtxCluster) -> List:
     """查询bcs cc中的节点数据"""
-    client = PaaSCCClient(ComponentAuth(access_token=ctx_cluster.token))
+    client = PaaSCCClient(ComponentAuth(access_token=ctx_cluster.context.auth.access_token))
     node_data = client.get_node_list(ctx_cluster.project_id, ctx_cluster.id)
     return {
         node["inner_ip"]: node

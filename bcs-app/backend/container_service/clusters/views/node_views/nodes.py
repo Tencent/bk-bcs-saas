@@ -11,9 +11,9 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-from bcs_web.viewsets import SystemViewSet
 from rest_framework.response import Response
 
+from backend.bcs_web.viewsets import SystemViewSet
 from backend.container_service.clusters.tools import node
 
 
