@@ -263,6 +263,7 @@ class LockTemplateView(SystemViewSet, TemplatePermission):
 
         return Response(data={})
 
+    @log_audit_on_view(TemplatesetAuditor, activity_type='delete')
     def unlock_template(self, request, project_id, template_id):
         template = get_template_by_project_and_id(project_id, template_id)
         self.validate_template_locked(request, template)
@@ -316,7 +317,7 @@ class SingleTemplateView(generics.RetrieveUpdateDestroyAPIView):
         instance = serializer.save(updator=self.request.user.username, project_id=self.project_id)
         # 记录操作日志
         self.audit_ctx.update_fields(
-            resource=instance.name, resource_id=instance.id, extra=serializer.data, description=_("更新模板集")
+            resource=instance.name, resource_id=instance.id, extra=dict(serializer.data), description=_("更新模板集")
         )
         # 同步模板集名称到权限中心
         self.perm.update_name(instance.name)
