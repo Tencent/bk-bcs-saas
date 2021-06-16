@@ -66,9 +66,10 @@ class TestCRDAndCustomObject:
 
     @pytest.fixture
     def update_or_create_crd(self, crd_client):
-        crd_client.update_or_create(body=sample_crd, namespace='default')
+        name = sample_crd['metadata']['name']
+        crd_client.update_or_create(body=sample_crd, namespace='default', name=name)
         yield
-        crd_client.delete_wait_finished(name=getitems(sample_crd, "metadata.name"), namespace="default")
+        crd_client.delete_wait_finished(namespace="default", name=name)
 
     @pytest.fixture
     def cobj_client(self, project_id, cluster_id):

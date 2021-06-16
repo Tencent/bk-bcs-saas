@@ -35,7 +35,7 @@ def setup_settings(settings):
     settings.BCS_API_PRE_URL = 'https://bcs-api.example.com'
 
     # 替换所有 Comp 系统为测试专用的 Stub 系统
-    with mock.patch('backend.resources.models.ComponentCollection', new=StubComponentCollection):
+    with mock.patch('backend.container_service.core.ctx_models.ComponentCollection', new=StubComponentCollection):
         yield
 
 
@@ -52,7 +52,7 @@ class TestBcsAPIEnvironmentQuerier:
 
         assert api_env_name == 'my_stag'
 
-    @mock.patch('backend.resources.models.ComponentCollection', new=StubComponentCollection)
+    @mock.patch('backend.container_service.core.ctx_models.ComponentCollection', new=StubComponentCollection)
     def test_failed(self, project_id, cluster_id):
         cluster = CtxCluster.create(cluster_id, project_id, token='token')
         querier = BcsAPIEnvironmentQuerier(cluster)
