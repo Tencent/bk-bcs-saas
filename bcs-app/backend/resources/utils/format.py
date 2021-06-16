@@ -54,9 +54,7 @@ class BCSResourceData:
 class ResourceDefaultFormatter:
     """格式化 Kubernetes 资源为通用资源格式"""
 
-    def format_list(
-        self, resources: Union[ResourceInstance, List[Dict], None]
-    ) -> List[Optional[Dict, BCSResourceData]]:
+    def format_list(self, resources: Union[ResourceInstance, List[Dict], None]) -> List[Union[Dict, BCSResourceData]]:
         if isinstance(resources, (list, tuple)):
             return [self.format_dict(res) for res in resources]
         if resources is None:
@@ -64,7 +62,7 @@ class ResourceDefaultFormatter:
         # Type: ResourceInstance with multiple results returned by DynamicClient
         return [self.format_dict(res) for res in resources.to_dict()['items']]
 
-    def format(self, resource: Optional[ResourceInstance]) -> Optional[Dict, BCSResourceData]:
+    def format(self, resource: Optional[ResourceInstance]) -> Union[Dict, BCSResourceData]:
         if resource is None:
             return {}
         return self.format_dict(resource.to_dict())

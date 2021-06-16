@@ -34,11 +34,11 @@ def get_node_status(conditions: List) -> str:
             continue
         # 正常可用状态
         if condition["status"] == "True":
-            return node_constants.NodeConditionStatus.Ready.value
+            return node_constants.NodeConditionStatus.Ready
         # 节点不健康而且不能接收 Pod
-        return node_constants.NodeConditionStatus.NotReady.value
+        return node_constants.NodeConditionStatus.NotReady
     # 节点控制器在最近 node-monitor-grace-period 期间（默认 40 秒）没有收到节点的消息
-    return node_constants.NodeConditionStatus.Unknown.value
+    return node_constants.NodeConditionStatus.Unknown
 
 
 def query_cluster_nodes(ctx_cluster: CtxCluster) -> Dict[str, Dict]:
@@ -81,19 +81,19 @@ def query_bcs_cc_nodes(ctx_cluster: CtxCluster) -> List:
 def transform_status(cluster_node_status: str, unschedulable: bool, bcs_cc_node_status: str = None) -> str:
     """转换节点状态"""
     # 如果集群中节点为非正常状态，则返回not_ready
-    if cluster_node_status == node_constants.NodeConditionStatus.NotReady.value:
-        return node_constants.BcsCCNodeStatus.NotReady.value
+    if cluster_node_status == node_constants.NodeConditionStatus.NotReady:
+        return node_constants.BcsCCNodeStatus.NotReady
 
     # 如果集群中节点为正常状态，根据是否允许调度，转换状态
-    if cluster_node_status == node_constants.NodeConditionStatus.Ready.value:
+    if cluster_node_status == node_constants.NodeConditionStatus.Ready:
         if unschedulable:
-            if bcs_cc_node_status == node_constants.BcsCCNodeStatus.ToRemoved.value:
-                return node_constants.BcsCCNodeStatus.ToRemoved.value
-            return node_constants.BcsCCNodeStatus.Removable.value
+            if bcs_cc_node_status == node_constants.BcsCCNodeStatus.ToRemoved:
+                return node_constants.BcsCCNodeStatus.ToRemoved
+            return node_constants.BcsCCNodeStatus.Removable
         else:
-            return node_constants.BcsCCNodeStatus.Normal.value
+            return node_constants.BcsCCNodeStatus.Normal
 
-    return node_constants.BcsCCNodeStatus.Unknown.value
+    return node_constants.BcsCCNodeStatus.Unknown
 
 
 @dataclass
@@ -103,24 +103,22 @@ class NodesData:
     cluster_id: str
 
     @property
+    def _normal_status(self) -> List:
+        return [
+            node_constants.BcsCCNodeStatus.Normal,
+            node_constants.BcsCCNodeStatus.ToRemoved,
+            node_constants.BcsCCNodeStatus.Removable,
+        ]
+
     def nodes(self) -> List:
         """组装节点数据"""
         # 1. 集群中不存在的节点，并且bcs cc中状态处于初始化中、初始化失败、移除中、移除失败状态时，需要展示bcs cc中数据
         # 2. 集群中存在的节点，则以集群中为准，注意状态的转换
         # 把bcs cc中非正常状态节点放到数组的前面，方便用户查看
-        node_list = self._compose_data_by_bcs_cc_nodes
-        node_list.extend(self._compose_data_by_cluster_nodes)
+        node_list = self._compose_data_by_bcs_cc_nodes()
+        node_list.extend(self._compose_data_by_cluster_nodes())
         return node_list
 
-    @property
-    def _normal_status(self):
-        return [
-            node_constants.BcsCCNodeStatus.Normal.value,
-            node_constants.BcsCCNodeStatus.ToRemoved.value,
-            node_constants.BcsCCNodeStatus.Removable.value,
-        ]
-
-    @property
     def _compose_data_by_bcs_cc_nodes(self) -> List:
         # 处理在bcs cc中的节点，但是状态为非正常状态数据
         node_list = []
@@ -131,13 +129,12 @@ class NodesData:
             node_list.append(node)
         return node_list
 
-    @property
     def _compose_data_by_cluster_nodes(self) -> List:
         node_list = []
         # 以集群中数据为准
         for inner_ip, node in self.cluster_nodes.items():
             # 如果bcs cc中存在节点信息，则从bcs cc获取节点的额外数据
-            if inner_ip not in self.bcs_cc_nodes:
+            if inner_ip in self.bcs_cc_nodes:
                 item = self.bcs_cc_nodes[inner_ip].copy()
                 item.update(
                     node,

@@ -34,7 +34,11 @@ def query_taints(ctx_cluster: CtxCluster, node_name_list=None) -> Dict[str, List
 
 
 def set_taints(ctx_cluster: CtxCluster, taint_list: List):
-    """节点设置污点"""
+    """节点设置污点，因为可能有多个节点分别调用接口完成打污点，使用asyncio处理，减少耗时
+
+    ctx_cluster: 集群模型数据
+    taint_list: 节点的污点内容，格式: [{"node_name": "demo", "taints": [{"key": xxx, "value": xxx, "effect": xxx}]]
+    """
     client = Node(ctx_cluster)
     # 下发的body格式: {"spec": {"taints": [{"key": xxx, "value": xxx, "effect": xxx}]}}
     tasks = [functools.partial(client.patch, {"spec": {"taints": t["taints"]}}, t["node_name"]) for t in taint_list]

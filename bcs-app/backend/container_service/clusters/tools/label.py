@@ -22,9 +22,9 @@ from backend.utils.basic import getitems
 from .node import query_cluster_nodes
 
 
-def query_labels(ctx_cluster: CtxCluster, node_name_list=None) -> Dict[str, List]:
+def query_labels(ctx_cluster: CtxCluster, node_name_list: List = None) -> Dict[str, List]:
     nodes = query_cluster_nodes(ctx_cluster)
-    # 获取taints
+    # 获取labels
     labels = {}
     for inner_ip, node in nodes.items():
         if node_name_list and node["name"] not in node_name_list:
@@ -34,7 +34,11 @@ def query_labels(ctx_cluster: CtxCluster, node_name_list=None) -> Dict[str, List
 
 
 def set_labels(ctx_cluster: CtxCluster, label_list: List):
-    """节点设置标签"""
+    """节点设置标签
+
+    ctx_cluster: 集群模型数据
+    taint_list: 节点的污点内容，格式: [{"node_name": "demo", "labels": {"key1": "value1", "key2": "value2"}]
+    """
     client = Node(ctx_cluster)
     # 下发的body格式: {"metadata": {"labels": {"demo": "demo"}}}
     tasks = [

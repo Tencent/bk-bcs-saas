@@ -38,8 +38,8 @@ from backend.container_service.clusters.driver import BaseDriver
 from backend.container_service.clusters.models import CommonStatus, NodeLabel, NodeStatus, NodeUpdateLog
 from backend.container_service.clusters.module_apis import get_cluster_node_mod, get_cmdb_mod, get_gse_mod
 from backend.container_service.clusters.serializers import NodeLabelParamsSLZ
+from backend.container_service.clusters.tools.node import query_cluster_nodes
 from backend.container_service.clusters.utils import cluster_env_transfer, custom_paginator, status_transfer
-from backend.container_service.clusters.views.node_views.tools.node import query_nodes
 from backend.utils.basic import getitems
 from backend.utils.errcodes import ErrorCode
 from backend.utils.error_codes import error_codes
@@ -1038,7 +1038,7 @@ class NodeLabelListViewSet(NodeBase, NodeLabelBase, SystemViewSet):
         cluster_name_env = self.get_cluster_id_info_map(request, project_id)
         # 获取节点的taint
         ctx_cluster = CtxCluster.create(token=request.user.token.access_token, id=cluster_id, project_id=project_id)
-        nodes = query_nodes(ctx_cluster)
+        nodes = query_cluster_nodes(ctx_cluster)
         node_list = self.compose_nodes(
             node_id_info_map, node_label_list, request.project['english_name'], cluster_name_env, nodes
         )

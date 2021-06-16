@@ -171,7 +171,7 @@ class ClusterNetworkType(ChoicesEnum):
 K8S_RESERVED_NAMESPACE = "kubernetes.io"
 
 
-class BcsCCNodeStatus(str, EnumField):
+class BcsCCNodeStatus(str, StructuredEnum):
     """BCS CC中节点的状态"""
 
     Initializing = EnumField("initializing", label="初始化中")
@@ -187,7 +187,7 @@ class BcsCCNodeStatus(str, EnumField):
     Unknown = EnumField("unknown", label="未知状态")
 
 
-class NodeConditionStatus(str, EnumField):
+class NodeConditionStatus(str, StructuredEnum):
     """节点状态"""
 
     Ready = EnumField("Ready", label="正常状态")
@@ -195,9 +195,9 @@ class NodeConditionStatus(str, EnumField):
     Unknown = EnumField("Unknown", label="未知状态")
 
 
-class NodeConditionType(str, EnumField):
+class NodeConditionType(str, StructuredEnum):
     """节点状态类型
-    ref: node types
+    ref: node condition types
     """
 
     Ready = EnumField("Ready", label="kubelet is healthy and ready to accept pods")
