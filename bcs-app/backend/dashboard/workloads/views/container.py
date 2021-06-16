@@ -19,14 +19,13 @@ from rest_framework.response import Response
 from backend.bcs_web.viewsets import SystemViewSet
 from backend.dashboard.workloads.utils.resp import ContainerRespBuilder
 from backend.resources.workloads.pod import Pod
-from backend.web_console.api import exec_command
 
 logger = logging.getLogger(__name__)
 
 
 class ContainerViewSet(SystemViewSet):
 
-    lookup_field = 'container_id'
+    lookup_field = 'container_name'
 
     def list(self, request, project_id, cluster_id, namespace, pod_name):
         """ 获取 Pod 下所有的容器信息 """
@@ -34,16 +33,16 @@ class ContainerViewSet(SystemViewSet):
         response_data = ContainerRespBuilder(pod_manifest).build_list()
         return Response(response_data)
 
-    def retrieve(self, request, project_id, cluster_id, namespace, pod_name, container_id):
+    def retrieve(self, request, project_id, cluster_id, namespace, pod_name, container_name):
         """ 获取 Pod 下单个容器详细信息 """
         pod_manifest = Pod(request.ctx_cluster).fetch_manifest(namespace, pod_name)
-        response_data = ContainerRespBuilder(pod_manifest, container_id).build()
+        response_data = ContainerRespBuilder(pod_manifest, container_name).build()
         return Response(response_data)
 
     @action(methods=['GET'], url_path='env_info', detail=True)
-    def env_info(self, request, project_id, cluster_id, namespace, pod_name, container_id):
+    def env_info(self, request, project_id, cluster_id, namespace, pod_name, container_name):
         """ 获取 Pod 环境变量配置信息 """
-        env_resp = exec_command(request.user.token.access_token, project_id, cluster_id, container_id, 'env')
+        env_resp = Pod(request.ctx_cluster).exec_command(namespace, pod_name, container_name, ['/bin/sh', '-c', 'env'])
 
         try:
             # docker 环境变量格式: key=val

@@ -23,7 +23,10 @@ from .rest_api import utils
 
 
 def exec_command(access_token: str, project_id: str, cluster_id: str, container_id: str, command: str) -> str:
-    """在k8s容器中执行命令"""
+    """
+    在k8s容器中执行命令
+    TODO 仅 backend.uniapps.application.common_views.query 使用，后续废弃
+    """
     context = {}
     client = K8SClient(access_token, project_id, cluster_id, None)
     _context = utils.get_k8s_context(client, container_id)

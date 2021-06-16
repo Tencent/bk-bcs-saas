@@ -11,7 +11,7 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-from typing import Dict
+from typing import Dict, List
 
 from attr import dataclass
 from django.utils.translation import ugettext_lazy as _
@@ -25,16 +25,16 @@ class ContainerRespBuilder:
     """ 通过 Pod 配置信息获取容器信息 """
 
     pod: Dict
-    container_id: str = None
+    container_name: str = None
 
-    def build_list(self):
+    def build_list(self) -> List[Dict]:
         """ 构造列表展示的容器信息 """
         containers = []
-        for s in getitems(self.pod, 'status.containerStatuses', []):
+        for cs in getitems(self.pod, 'status.containerStatuses', []):
             status = message = reason = None
             # state 有且只有一对键值：running / terminated / waiting
             # https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.21/#containerstate-v1-core
-            for k, v in s['state'].items():
+            for k, v in cs['state'].items():
                 status = k
                 message = v.get('message') or k
                 reason = v.get('reason') or k
@@ -42,9 +42,9 @@ class ContainerRespBuilder:
             containers.append(
                 {
                     # 原格式：docker://[a-zA-Z0-9]{64}，需要去除前缀
-                    'container_id': (s['containerID'] or '').split('//')[-1],
-                    'image': s['image'],
-                    'name': s['name'],
+                    'container_id': self._extract_container_id(cs['containerID']),
+                    'image': cs['image'],
+                    'name': cs['name'],
                     'status': status,
                     'message': message,
                     'reason': reason,
@@ -52,27 +52,30 @@ class ContainerRespBuilder:
             )
         return containers
 
-    def build(self):
+    def build(self) -> Dict:
         """ 构造展示用的容器详情信息 """
         for cs in getitems(self.pod, 'status.containerStatuses', []):
-            if self.container_id in cs['containerID']:
+            if self.container_name == cs['name']:
                 container_status = cs
                 break
         else:
-            raise ResourceNotExist(_('容器 {} 状态信息不存在').format(self.container_id))
+            raise ResourceNotExist(_('容器 {} 状态信息不存在').format(self.container_name))
 
         labels = getitems(self.pod, 'metadata.labels', {})
         spec, status = self.pod['spec'], self.pod['status']
-        # {container_name: container_spec}
-        container_spec_map = {s['name']: s for s in spec.get('containers') or []}
-        container_spec = container_spec_map[container_status['name']]
+        for csp in spec.get('containers', []):
+            if self.container_name == csp['name']:
+                container_spec = csp
+                break
+        else:
+            raise ResourceNotExist(_('容器 {} 模板（Spec）信息不存在').format(self.container_name))
 
         return {
             'host_name': get_with_placeholder(spec, 'nodeName'),
             'host_ip': get_with_placeholder(status, 'hostIP'),
             'container_ip': get_with_placeholder(status, 'podIP'),
-            'container_id': self.container_id,
-            'container_name': get_with_placeholder(container_status, 'name'),
+            'container_id': self._extract_container_id(container_status['containerID']),
+            'container_name': self.container_name,
             'image': get_with_placeholder(container_status, 'image'),
             'network_mode': get_with_placeholder(spec, 'dnsPolicy'),
             # 端口映射
@@ -96,3 +99,12 @@ class ContainerRespBuilder:
             # 资源限制
             'resources': container_spec.get('resources', {}),
         }
+
+    def _extract_container_id(self, container_id: str) -> str:
+        """
+        去除 容器 ID 前缀，原格式：docker://[a-zA-Z0-9]{64}
+
+        :param container_id: 原始的容器 ID
+        :return: 去除前缀后的容器 ID
+        """
+        return container_id.replace('docker://', '')

@@ -20,7 +20,7 @@ pytestmark = pytest.mark.django_db
 
 # 测试用数据
 pod_manifest = gen_mock_pod_manifest()
-container_id = '651e64'
+container_name = 'echoserver'
 
 
 class TestContainerRespBuilder:
@@ -40,12 +40,12 @@ class TestContainerRespBuilder:
 
     def test_build(self):
         """ 测试组装单个 Container 信息方法 """
-        ret = ContainerRespBuilder(pod_manifest, container_id).build()
+        ret = ContainerRespBuilder(pod_manifest, container_name).build()
         assert ret == {
             'host_name': 'minikube',
             'host_ip': '127.xxx.xxx.xxx',
             'container_ip': '127.xxx.xxx.xxx',
-            'container_id': '651e64',
+            'container_id': '651e64xxxxx',
             'container_name': 'echoserver',
             'image': 'k8s.gcr.io/echoserver:1.4',
             'network_mode': 'ClusterFirst',
