@@ -26,18 +26,8 @@ def get_cc_namespaces(access_token, project_id):
 
 
 @parse_response_data(default_data={})
-def get_cc_namespace_by_id(access_token, project_id, namespace_id):
-    return paas_cc.get_namespace(access_token, project_id, namespace_id)
-
-
-@parse_response_data(default_data={})
 def _get_cluster_namespace_list(access_token, project_id, cluster_id):
     return paas_cc.get_cluster_namespace_list(access_token, project_id, cluster_id, desire_all_data=True)
-
-
-def get_cc_namespaces_by_cluster_id(access_token, project_id, cluster_id):
-    data = _get_cluster_namespace_list(access_token, project_id, cluster_id)
-    return data.get('results', [])
 
 
 def get_namespaces_by_cluster_id(access_token, project_id, cluster_id):
