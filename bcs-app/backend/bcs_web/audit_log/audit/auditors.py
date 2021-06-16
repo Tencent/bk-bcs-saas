@@ -46,12 +46,6 @@ class Auditor:
         return f'{description_prefix} {activity_status}'
 
 
-class TemplatesetAuditor(Auditor):
-    def __init__(self, audit_context: AuditContext):
-        super().__init__(audit_context)
-        self.audit_context.resource_type = 'templateset'
-
-
 class HelmAuditor(Auditor):
     def __init__(self, audit_context: AuditContext):
         super().__init__(audit_context)

@@ -25,7 +25,10 @@ urlpatterns = [
     # 模板集：列表/创建 API
     url(r'^api/configuration/(?P<project_id>\w{32})/templates/$', views.TemplatesView.as_view()),
     # 模板：查询／修改 API
-    url(r'^api/configuration/(?P<project_id>\w{32})/template/(?P<pk>\d+)/$', views.SingleTempalteView.as_view()),
+    url(
+        r'^api/configuration/(?P<project_id>\w{32})/template/(?P<pk>\d+)/$',
+        views.SingleTemplateView.as_view(),
+    ),
     url(
         r'^api/configuration/(?P<project_id>\w{32})/template/lock/(?P<template_id>\d+)/$',
         views.LockTemplateView.as_view({'post': 'lock_template'}),
@@ -37,7 +40,7 @@ urlpatterns = [
     # 保存草稿
     url(
         r'^api/configuration/(?P<project_id>\w{32})/template/(?P<template_id>\d+)/draft/$',
-        views.CreateTemplateDraftView.as_view(),
+        views.CreateTemplateDraftView.as_view({'post': 'create_draft'}),
     ),
     # 资源 : 创建
     url(

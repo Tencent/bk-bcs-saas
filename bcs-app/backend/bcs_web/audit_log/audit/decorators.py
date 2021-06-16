@@ -147,7 +147,7 @@ class log_audit_on_view(BaseLogAudit):
 class log_audit(BaseLogAudit):
     """
     用于一般类实例方法或函数的操作审计装饰器。使用规则:
-    - 对于类实例方法，第二个位置参数必须是 AuditContext 实例
+    - 对于类实例方法，第二个位置参数是 AuditContext 实例或者类实例包含 audit_ctx 属性
     - 对于普通方法，通常需要第一个位置参数是 AuditContext 实例
 
     使用示例:
@@ -168,6 +168,10 @@ class log_audit(BaseLogAudit):
 
         elif len(args) >= 2 and isinstance(args[1], AuditContext):
             audit_ctx = args[1]
+
+        elif hasattr(args[0], 'audit_ctx') and isinstance(args[0].audit_ctx, AuditContext):
+            audit_ctx = args[0].audit_ctx
+
         else:
             raise TypeError('missing AuditContext instance argument')
 
