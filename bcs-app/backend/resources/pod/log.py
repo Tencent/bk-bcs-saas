@@ -16,11 +16,10 @@ from urllib.parse import urlencode
 
 import aiohttp
 from kubernetes import watch
-from kubernetes.client.api import core_v1_api
+from kubernetes.client import CoreV1Api
 
 from backend.container_service.clusters.base.models import CtxCluster
 from backend.resources.utils.kube_client import get_dynamic_client, wrap_kube_client_exc
-from backend.utils.error_codes import error_codes
 
 from . import constants
 
@@ -62,7 +61,7 @@ class LogClient:
 
     def watch(self, filter: constants.LogFilter):
         """获取实时日志"""
-        core_v1 = core_v1_api.CoreV1Api(self.dynamic_client.client)
+        core_v1 = CoreV1Api(self.dynamic_client.client)
 
         w = watch.Watch()
 

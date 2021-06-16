@@ -16,7 +16,7 @@ import pytest
 
 pytestmark = pytest.mark.django_db
 
-namespace, pod_name, container_id = 'default', 'test_pod_name', '651e64'
+namespace, pod_name, container_name = 'default', 'test_pod_name', 'echoserver'
 
 
 class TestContainer:
@@ -38,7 +38,7 @@ class TestContainer:
         """ 测试获取单个容器信息 """
         response = api_client.get(
             f'/api/dashboard/projects/{project_id}/clusters/{cluster_id}/'
-            + f'namespaces/{namespace}/workloads/pods/{pod_name}/containers/{container_id}/'
+            + f'namespaces/{namespace}/workloads/pods/{pod_name}/containers/{container_name}/'
         )
         assert response.json()['code'] == 0
         assert set(response.json()['data'].keys()) == {
@@ -62,7 +62,7 @@ class TestContainer:
         """ 测试获取单个容器环境变量配置信息 """
         response = api_client.get(
             f'/api/dashboard/projects/{project_id}/clusters/{cluster_id}/namespaces/{namespace}'
-            + f'/workloads/pods/{pod_name}/containers/{container_id}/env_info/'
+            + f'/workloads/pods/{pod_name}/containers/{container_name}/env_info/'
         )
         assert response.json()['code'] == 0
         assert response.json()['data'] == [
