@@ -11,6 +11,7 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
+import abc
 from copy import deepcopy
 from typing import Any, Dict, List, Optional, Tuple, Union
 
@@ -43,6 +44,22 @@ class InstanceAccessor:
     @property
     def name(self) -> str:
         return self.data['metadata']['name']
+
+
+class ResourceFormatter(abc.ABC):
+    """资源格式化抽象类"""
+
+    @abc.abstractmethod
+    def format_list(self, resources: Union[ResourceInstance, List[Dict], None]) -> List[Dict]:
+        raise NotImplementedError
+
+    @abc.abstractmethod
+    def format(self, resource: Optional[ResourceInstance]) -> Dict:
+        raise NotImplementedError
+
+    @abc.abstractmethod
+    def format_dict(self, resource_dict: Dict) -> Dict:
+        raise NotImplementedError
 
 
 class ResourceDefaultFormatter:
