@@ -54,8 +54,8 @@ class ContainerMetricViewSet(SystemViewSet):
         if need_time_range:
             query_params.update(
                 {
-                    'start_at': params['start_at'],
-                    'end_at': params['end_at'],
+                    'start': params['start_at'],
+                    'end': params['end_at'],
                 }
             )
         return query_metric_func(**query_params)
