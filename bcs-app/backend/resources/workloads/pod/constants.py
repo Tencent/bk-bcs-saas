@@ -14,10 +14,6 @@
 from dataclasses import dataclass
 from typing import Optional
 
-from backend.resources.deployment.constants import DEPLOYMENT_REGEX
-
-POD_REGEX = DEPLOYMENT_REGEX
-
 # 显示时间戳
 LOG_SHOW_TIMESTAMPS = True
 

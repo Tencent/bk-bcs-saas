@@ -13,9 +13,8 @@
 #
 from django.conf.urls import include, url
 
-from backend.resources.deployment.constants import DEPLOYMENT_REGEX
+from backend.resources.constants import DEPLOYMENT_REGEX, POD_REGEX
 from backend.resources.namespace.constants import NAMESPACE_REGEX
-from backend.resources.workloads.pod.constants import POD_REGEX
 
 from .cluster import ClusterViewSet
 from .deployment import DeploymentViewSet

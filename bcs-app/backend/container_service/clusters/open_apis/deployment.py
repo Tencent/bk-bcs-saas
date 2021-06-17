@@ -13,19 +13,25 @@
 #
 from rest_framework.response import Response
 
-from backend.bcs_web.apis.views import BaseAPIViewSet
-from backend.resources.deployment import Deployment
+from backend.bcs_web.viewsets import SystemViewSet
+from backend.resources.utils.format import ResourceDefaultFormatter
+from backend.resources.utils.kube_client import make_labels_string
+from backend.resources.workloads.deployment import Deployment
+from backend.resources.workloads.pod import Pod
+from backend.utils.basic import getitems
 
 
-class DeploymentViewSet(BaseAPIViewSet):
+class DeploymentViewSet(SystemViewSet):
     def list_by_namespace(self, request, project_id_or_code, cluster_id, namespace):
         # TODO 增加用户对层级资源project/cluster/namespace的权限校验
-        deploy = Deployment(request.user.access_token, request.project.project_id, cluster_id, namespace)
-        deployments = deploy.get_deployments_by_namespace()
-        return Response(deployments)
+        deployments = Deployment(request.ctx_cluster).list(namespace=namespace, is_format=False)
+        return Response(deployments.to_dict()['items'])
 
     def list_pods_by_deployment(self, request, project_id_or_code, cluster_id, namespace, deploy_name):
         # TODO 增加用户对层级资源project/cluster/namespace的权限校验(由于粒度没有细化到Deployment)
-        deploy = Deployment(request.user.access_token, request.project.project_id, cluster_id, namespace)
-        pods = deploy.get_pods_by_deployment(deploy_name)
-        return Response(pods)
+        deployment = (
+            Deployment(request.ctx_cluster).get(namespace=namespace, name=deploy_name, is_format=False).to_dict()
+        )
+        labels_string = make_labels_string(getitems(deployment, 'spec.selector.matchLabels', {}))
+        pods = Pod(request.ctx_cluster).list(namespace=namespace, label_selector=labels_string)
+        return Response(ResourceDefaultFormatter().format_list(pods))
