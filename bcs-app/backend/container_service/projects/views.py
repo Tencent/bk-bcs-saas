@@ -22,6 +22,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from backend.bcs_web.audit_log import client
+from backend.bcs_web.constants import project_cache_key
 from backend.bcs_web.iam.permissions import ProjectPermission
 from backend.bcs_web.viewsets import SystemViewSet
 from backend.components import paas_cc
@@ -147,7 +148,7 @@ class Projects(viewsets.ViewSet):
 
     def invalid_project_cache(self, project_id):
         """当变更项目信息时，详细缓存信息失效"""
-        region.delete(f"BK_DEVOPS_BCS:HAS_BCS_SERVICE:{project_id}")
+        region.delete(project_cache_key.format(project_id_or_code=project_id))
 
     def update(self, request, project_id):
         """更新项目信息"""
