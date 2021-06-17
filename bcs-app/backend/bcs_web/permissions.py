@@ -27,7 +27,7 @@ from backend.container_service.projects.base.models import CtxProject
 from backend.utils import FancyDict
 from backend.utils.cache import region
 
-from .constants import project_cache_key
+from .constants import bcs_project_cache_key
 
 EXPIRATION_TIME = 3600 * 24 * 30
 
@@ -96,7 +96,7 @@ class ProjectEnableBCS(BasePermission):
         return False
 
     def _get_enabled_project(self, access_token, project_id_or_code: str) -> Optional[FancyDict]:
-        cache_key = project_cache_key.format(project_id_or_code=project_id_or_code)
+        cache_key = bcs_project_cache_key.format(project_id_or_code=project_id_or_code)
         project = region.get(cache_key, expiration_time=EXPIRATION_TIME)
         if project and isinstance(project, FancyDict):
             return project
