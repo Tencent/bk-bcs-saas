@@ -23,7 +23,7 @@ npm install .
 ```
 
 #### 2. 本地启动frontend
-- 复制 frontend 目录下的 index-dev.html.example 为 index-dev.html
+- 设置 frontend 目录下的 index-dev.html 的全局变量
 
 | 变量名 | 说明 |
 |-------|------|

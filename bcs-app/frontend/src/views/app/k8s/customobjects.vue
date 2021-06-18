@@ -16,6 +16,7 @@
                             :setting-key="'cluster_id'"
                             :display-key="'name'"
                             :selected.sync="selectedClusterId"
+                            :disabled="!!curClusterId"
                             :list="clusterList"
                             :search-placeholder="$t('输入集群名称搜索')"
                             @item-selected="handleChangeCluster">
@@ -50,12 +51,7 @@
                         </bk-selector>
                     </div>
                     <div class="left">
-                        <div class="biz-search-input">
-                            <input v-model="searchKey" type="text" class="bk-form-input" :placeholder="$t('输入名称搜索')">
-                            <a href="javascript:void(0)" class="biz-search-btn" v-if="searchKey" @click.stop.prevent="clearSearch">
-                                <i class="bk-icon icon-close-circle-shape"></i>
-                            </a>
-                        </div>
+                        <bk-input v-model="searchKey" clearable :placeholder="$t('输入名称搜索')" @clear="clearSearch" />
                     </div>
                     <div class="left" style="width: auto;">
                         <bk-button type="primary" :title="$t('查询')" icon="search" @click="handleClick">
@@ -65,7 +61,32 @@
                 </div>
                 <div v-bkloading="{ isLoading: isPageLoading && !isInitLoading }">
                     <div class="biz-table-wrapper gamestatefullset-table-wrapper">
-                        <table class="bk-table has-table-hover biz-table gamestatefullset-table" :class="curPageData.length ? '' : 'no-data'">
+                        <bk-table
+                            :data="curPageData"
+                            :page-params="pageConf"
+                            @page-change="handlePageChange"
+                            @page-limit-change="handlePageSizeChange">
+                            <bk-table-column v-for="(column, index) in columnList" :label="defaultColumnMap[column] || column" :key="index">
+                                <template slot-scope="{ row }">
+                                    <div class="cell">
+                                        <bcs-popover :content="row[column] || ''" placement="top">
+                                            <template v-if="column === 'name'">
+                                                <a href="javascript:void(0);" class="bk-text-button name-col" style="font-weight: 700;" @click="showSideslider(row[column], row['namespace'])">{{row[column] || '--'}}</a>
+                                            </template>
+                                            <template v-else>
+                                                {{row[column] || '--'}}
+                                            </template>
+                                        </bcs-popover>
+                                    </div>
+                                </template>
+                            </bk-table-column>
+                            <bk-table-column :label="$t('操作')" width="150">
+                                <template slot-scope="{ row }">
+                                    <a href="javascript:void(0);" class="bk-text-button" @click.stop="del(row, index)">{{$t('删除')}}</a>
+                                </template>
+                            </bk-table-column>
+                        </bk-table>
+                        <!-- <table class="bk-table has-table-hover biz-table gamestatefullset-table" :class="curPageData.length ? '' : 'no-data'">
                             <thead>
                                 <tr>
                                     <template v-for="(column, index) in columnList">
@@ -85,14 +106,14 @@
                                         <template v-for="(column, columnIndex) in columnList">
                                             <td :key="columnIndex">
                                                 <div class="cell">
-                                                    <bk-tooltip :content="item[column] || ''" placement="top">
+                                                    <bcs-popover :content="item[column] || ''" placement="top">
                                                         <template v-if="column === 'name'">
                                                             <a href="javascript:void(0);" class="bk-text-button name-col" style="font-weight: 700;" @click="showSideslider(item[column], item['namespace'])">{{item[column] || '--'}}</a>
                                                         </template>
                                                         <template v-else>
                                                             {{item[column] || '--'}}
                                                         </template>
-                                                    </bk-tooltip>
+                                                    </bcs-popover>
                                                 </div>
                                             </td>
                                         </template>
@@ -103,28 +124,14 @@
                                     <tr style="background: none;">
                                         <td :colspan="columnList.length + 1">
                                             <div class="bk-message-box">
-                                                <p class="message empty-message" v-if="!loading">{{$t('无数据')}}</p>
+                                                <bcs-exception type="empty" scene="part" v-if="!loading"></bcs-exception>
                                             </div>
                                         </td>
                                     </tr>
                                 </template>
                             </tbody>
-                        </table>
+                        </table> -->
                     </div>
-                </div>
-
-                <div class="biz-page-wrapper" v-if="pageConf.total">
-                    <bk-page-counter
-                        :is-en="isEn"
-                        :total="pageConf.total"
-                        :page-size="pageConf.pageSize"
-                        @change="changePageSize">
-                    </bk-page-counter>
-                    <bk-paging
-                        :cur-page.sync="pageConf.curPage"
-                        :total-page="pageConf.totalPage"
-                        @page-change="pageChangeHandler">
-                    </bk-paging>
                 </div>
             </template>
         </div>
@@ -162,6 +169,11 @@
                     curPage: 1,
                     show: true
                 },
+                defaultColumnMap: {
+                    'name': this.$t('名称'),
+                    'cluster_id': this.$t('集群'),
+                    'namespace': this.$t('命名空间')
+                },
                 bkMessageInstance: null,
                 clusterList: [],
                 selectedClusterId: '',
@@ -188,6 +200,18 @@
             },
             isEn () {
                 return this.$store.state.isEn
+            },
+            curClusterId () {
+                return this.$store.state.curClusterId
+            }
+        },
+        watch: {
+            curClusterId: {
+                handler (v) {
+                    this.selectedClusterId = v
+                    this.curPageData = []
+                },
+                immediate: true
             }
         },
         async mounted () {
@@ -206,7 +230,9 @@
                     const list = res.data.results || []
                     this.clusterList.splice(0, this.clusterList.length, ...list)
                     if (this.clusterList.length) {
-                        this.selectedClusterId = this.clusterList[0].cluster_id
+                        if (!this.curClusterId) {
+                            this.selectedClusterId = this.clusterList[0].cluster_id
+                        }
                         await this.getCRDList()
                         this.getNameSpaceList()
                     }
@@ -370,11 +396,11 @@
              *
              * @param {number} pageSize pageSize
              */
-            changePageSize (pageSize) {
+            handlePageSizeChange (pageSize) {
                 this.pageConf.pageSize = pageSize
                 this.pageConf.curPage = 1
                 this.initPageConf()
-                this.pageChangeHandler()
+                this.handlePageChange()
             },
 
             /**
@@ -398,7 +424,7 @@
              * 页数改变回调
              * @param  {number} page 第几页
              */
-            pageChangeHandler (page = 1) {
+            handlePageChange (page = 1) {
                 this.pageConf.curPage = page
                 const data = this.getDataByPage(page)
                 this.curPageData = data
@@ -443,17 +469,39 @@
              */
             async del (item, index) {
                 const me = this
-                const h = me.$createElement
+
+                const boxStyle = {
+                    'margin-top': '-20px',
+                    'margin-bottom': '-20px'
+                }
+                // const titleStyle = {
+                //     style: {
+                //         'text-align': 'left',
+                //         'font-size': '20px',
+                //         'margin-bottom': '15px',
+                //         'color': '#313238'
+                //     }
+                // }
+                const itemStyle = {
+                    style: {
+                        'text-align': 'left',
+                        'font-size': '14px',
+                        'margin-bottom': '3px',
+                        'color': '#71747c'
+                    }
+                }
+
+                const contexts = [
+                    // me.$createElement('h5', titleStyle, me.$t('确定要删除？')),
+                    me.$createElement('p', itemStyle, `${me.$t('名称')}：${item.name}`),
+                    me.$createElement('p', itemStyle, `${me.$t('所属集群')}：${item.cluster_id}`),
+                    me.$createElement('p', itemStyle, `${me.$t('命名空间')}：${item.namespace}`)
+                ]
                 me.$bkInfo({
-                    clsName: 'del-gamestatefulset-dialog',
-                    title: me.$t('确定删除？'),
-                    content: h(
-                        'p',
-                        { style: {} },
-                        this.isEn
-                            ? `Delete the resource named ${item.name} under the namespace ${item.namespace}`
-                            : `删除命名空间${item.namespace}下名称为${item.name}的资源`
-                    ),
+                    title: me.$t('确认删除'),
+                    confirmLoading: true,
+                    clsName: 'biz-remove-dialog',
+                    content: me.$createElement('div', { class: 'biz-confirm-desc', style: boxStyle }, contexts),
                     async confirmFn () {
                         try {
                             await me.$store.dispatch('app/deleteGameStatefulsetInfo', {
@@ -474,10 +522,6 @@
                             await me.fetchData()
                         } catch (e) {
                             console.error(e)
-                            me.bkMessageInstance = me.$bkMessage({
-                                theme: 'error',
-                                message: e.message || e.data.msg || e.statusText
-                            })
                         }
                     }
                 })

@@ -20,7 +20,7 @@
 .biz-resource-table {
     .biz-operate {
         margin-right: 15px;
-        color: #3c96ff;
+        color: #3a84ff;
         cursor: pointer;
     }
 
@@ -39,6 +39,7 @@
 
 .biz-data-table {
     border: 1px solid #dde4eb;
+    border-bottom: none;
     margin-bottom: 25px;
 }
 
@@ -59,6 +60,7 @@
     margin: 8px 0 0 0;
     padding: 15px 15px 10px 15px;
     position: relative;
+    border-radius: 2px;
 
     &:after {
         content: '';
@@ -149,7 +151,7 @@
         right: 0px;
         bottom: 4px;
         font-size: 12px;
-        color: #3c96ff;
+        color: #3a84ff;
     }
 }
 
@@ -165,6 +167,8 @@
     &.expanded {
         overflow: visible;
         white-space: normal;
+        max-height: 200px;
+        overflow: auto;
     }
 }
 
@@ -173,7 +177,6 @@
     position: absolute;
     left: 0;
     font-size: 14px;
-    font-weight: bold;
     color: #737987;
     text-align: right;
     padding-right: 30px;
@@ -192,4 +195,9 @@
     .biz-table-wrapper {
         overflow-x: auto;
     }
+}
+
+.bcs-icon-edit {
+    position: absolute;
+    right: 15px !important;
 }

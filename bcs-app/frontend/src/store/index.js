@@ -22,11 +22,17 @@ import network from '@open/store/modules/network'
 import mesosTemplate from '@open/store/modules/mesos-template'
 import k8sTemplate from '@open/store/modules/k8s-template'
 import helm from '@open/store/modules/helm'
+import crdcontroller from '@open/store/modules/crdcontroller'
+import log from '@open/store/modules/log'
+import hpa from '@open/store/modules/hpa'
+import storage from '@open/store/modules/storage'
+import dashboard from '@open/store/modules/dashboard'
 
 import menuConfig from './menu-config'
+import { projectFeatureFlag } from '@open/api/base'
 
 Vue.use(Vuex)
-
+Vue.config.devtools = NODE_ENV === 'development'
 // cookie 中 zh-cn / en
 let lang = cookie.parse(document.cookie).blueking_language || 'zh-cn'
 if (['zh-CN', 'zh-cn', 'cn', 'zhCN', 'zhcn'].indexOf(lang) > -1) {
@@ -35,7 +41,7 @@ if (['zh-CN', 'zh-cn', 'cn', 'zhCN', 'zhcn'].indexOf(lang) > -1) {
     lang = 'en-US'
 }
 
-const { menuList, k8sMenuList } = menuConfig(lang)
+const { menuList, k8sMenuList, clusterk8sMenuList, dashboardMenuList, clusterMenuList } = menuConfig(lang)
 
 const store = new Vuex.Store({
     // 模块
@@ -52,11 +58,17 @@ const store = new Vuex.Store({
         network,
         mesosTemplate,
         k8sTemplate,
-        helm
+        helm,
+        hpa,
+        crdcontroller,
+        storage,
+        dashboard,
+        log
     },
     // 公共 store
     state: {
         curProject: null,
+        curClusterId: null,
         mainContentLoading: false,
         // 系统当前登录用户
         user: {},
@@ -66,7 +78,10 @@ const store = new Vuex.Store({
             onlineProjectList: [],
             // 左侧导航 menu 集合
             menuList: menuList,
-            k8sMenuList: k8sMenuList
+            k8sMenuList: k8sMenuList,
+            clusterk8sMenuList: clusterk8sMenuList,
+            clusterMenuList: clusterMenuList,
+            dashboardMenuList: dashboardMenuList
         },
 
         // 当前语言环境
@@ -76,13 +91,16 @@ const store = new Vuex.Store({
         // 是否允许路由跳转
         allowRouterChange: true,
 
-        crdInstanceList: []
+        crdInstanceList: [],
+        // 功能开关
+        featureFlag: {}
     },
     // 公共 getters
     getters: {
         mainContentLoading: state => state.mainContentLoading,
         user: state => state.user,
-        lang: state => state.lang
+        lang: state => state.lang,
+        featureFlag: state => state.featureFlag
     },
     // 公共 mutations
     mutations: {
@@ -118,7 +136,19 @@ const store = new Vuex.Store({
                 state.curProject = Object.assign({}, project)
                 state.sideMenu.k8sMenuList = k8sMenuList
                 state.sideMenu.menuList = menuList
+                state.sideMenu.clusterk8sMenuList = clusterk8sMenuList
+                state.sideMenu.dashboardMenuList = dashboardMenuList
             }
+        },
+
+        /**
+         * 修改state.curClusterId
+         *
+         * @param {Object} state store state
+         * @param {boolean} val 值
+         */
+        updateCurClusterId (state, val) {
+            state.curClusterId = val
         },
 
         /**
@@ -146,9 +176,17 @@ const store = new Vuex.Store({
          *
          * @param {Object} state store state
          * @param {list} list menu 列表
+         * @param {boolean} isDashboard 是否是 dashboard 路由
          */
-        forceUpdateMenuList (state, list) {
-            if (state.curProject && state.curProject.kind === 1) {
+        forceUpdateMenuList (state, data) {
+            const { list, isDashboard } = data
+            if (isDashboard) {
+                state.sideMenu.dashboardMenuList.splice(0, state.sideMenu.dashboardMenuList.length, ...list)
+            } else if (Boolean(state.curClusterId) && state.curProject.kind === PROJECT_MESOS) {
+                state.sideMenu.clusterMenuList.splice(0, state.sideMenu.clusterMenuList.length, ...list)
+            } else if (Boolean(state.curClusterId) && (state.curProject.kind === PROJECT_K8S || state.curProject.kind === PROJECT_TKE)) {
+                state.sideMenu.clusterk8sMenuList.splice(0, state.sideMenu.clusterk8sMenuList.length, ...list)
+            } else if (state.curProject && (state.curProject.kind === PROJECT_K8S || state.curProject.kind === PROJECT_TKE)) {
                 state.sideMenu.k8sMenuList.splice(0, state.sideMenu.k8sMenuList.length, ...list)
             } else {
                 state.sideMenu.menuList.splice(0, state.sideMenu.menuList.length, ...list)
@@ -172,6 +210,15 @@ const store = new Vuex.Store({
          */
         updateCrdInstanceList (state, data) {
             state.crdInstanceList = data
+        },
+
+        /**
+         * 功能开关
+         * @param {*} state
+         * @param {*} data
+         */
+        setFeatureFlag (state, data) {
+            state.featureFlag = data || {}
         }
     },
     actions: {
@@ -191,6 +238,19 @@ const store = new Vuex.Store({
                 context.commit('updateUser', userData)
                 return userData
             })
+        },
+
+        /**
+         * 根据 user bg info
+         *
+         * @param {Object} context store 上下文对象
+         * @param {Object} params 请求参数
+         * @param {Object} config 请求的配置
+         *
+         * @return {Promise} promise 对象
+         */
+        getUserBgInfo (context, params, config = {}) {
+            return http.get(`${DEVOPS_BCS_API_URL}/api/accounts/user_bg_info/`)
         },
 
         /**
@@ -250,7 +310,7 @@ const store = new Vuex.Store({
          *
          * @return {Promise} promise 对象
          */
-        updateMenuListSelected (context, { pathName, idx, projectType }) {
+        updateMenuListSelected (context, { pathName, idx, projectType, isDashboard }) {
             return new Promise((resolve, reject) => {
                 const list = []
                 const tmp = []
@@ -261,7 +321,13 @@ const store = new Vuex.Store({
                         invokeStr = 'forceUpdateDevOpsMenuList'
                         break
                     case 'bcs':
-                        if ((context.state.curProject && context.state.curProject.kind === 1) || projectType === 'k8s') {
+                        if (isDashboard) {
+                            tmp.splice(0, 0, ...context.state.sideMenu.dashboardMenuList)
+                        } else if (Boolean(context.state.curClusterId) && context.state.curProject.kind === PROJECT_MESOS) {
+                            tmp.splice(0, 0, ...context.state.sideMenu.clusterMenuList)
+                        } else if ((Boolean(context.state.curClusterId) && (context.state.curProject.kind === PROJECT_K8S || context.state.curProject.kind === PROJECT_TKE))) {
+                            tmp.splice(0, 0, ...context.state.sideMenu.clusterk8sMenuList)
+                        } else if ((context.state.curProject && (context.state.curProject.kind === PROJECT_K8S || context.state.curProject.kind === PROJECT_TKE)) || projectType === 'k8s') {
                             tmp.splice(0, 0, ...context.state.sideMenu.k8sMenuList)
                         } else {
                             tmp.splice(0, 0, ...context.state.sideMenu.menuList)
@@ -301,7 +367,8 @@ const store = new Vuex.Store({
                     if (menu.children) {
                         const childrenLen = menu.children.length
                         for (let j = childrenLen - 1; j >= 0; j--) {
-                            if ((menu.children[j].pathName || []).indexOf(pathName) > -1) {
+                            const tmpPathName = menu.children[j].pathName || []
+                            if (tmpPathName.indexOf(pathName) > -1) {
                                 // clearMenuListSelected(list)
                                 menu.isOpen = true
                                 menu.isChildSelected = true
@@ -312,8 +379,10 @@ const store = new Vuex.Store({
                         }
                     }
                 }
-
-                context.commit(invokeStr, list)
+                context.commit(invokeStr, {
+                    list,
+                    isDashboard
+                })
             })
         },
 
@@ -427,13 +496,27 @@ const store = new Vuex.Store({
          *
          * @return {Promise} promise 对象
          */
-        getBcsCrdsList (context, { projectId, params = {} }, config = {}) {
+        getBcsCrdsList (context, { projectId, clusterId, crdKind, params = {} }, config = {}) {
             context.commit('updateCrdInstanceList', [])
-            const url = `${DEVOPS_BCS_API_URL}/api/bcs_crd/projects/${projectId}/crds/?${json2Query(params)}`
+            const url = `${DEVOPS_BCS_API_URL}/api/bcs_crd/projects/${projectId}/clusters/${clusterId}/crds/${crdKind}/custom_objects/?${json2Query(params)}`
             return http.get(url, {}, config).then(res => {
                 context.commit('updateCrdInstanceList', res.data)
                 return res
             })
+        },
+
+        async getFeatureFlag (context) {
+            const params = {}
+            if (context.state.curClusterId) {
+                params.cluster_feature_type = 'SINGLE'
+            } else {
+                params.$clusterId = '-'
+            }
+            const data = await projectFeatureFlag(params, {
+                cancelWhenRouteChange: false
+            }).catch(() => ({}))
+            context.commit('setFeatureFlag', data)
+            return data
         }
     }
 })

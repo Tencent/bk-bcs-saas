@@ -60,6 +60,8 @@
                 this.$nextTick(() => {
                     // 让markdown文档里的标签新开窗口打开
                     const markdownDom = document.getElementById('markdown')
+                    if (!markdownDom) return
+
                     markdownDom.querySelectorAll('a').forEach(item => {
                         item.target = '_blank'
                     })
@@ -69,7 +71,7 @@
                         const code = item.querySelector('code').innerText
                         btn.className = 'bk-button bk-default bk-button-mini copy-btn'
                         codeBox.className = 'code-box'
-                        btn.innerHTML = '<span><i class="bk-icon icon-clipboard mr5"></i>' + this.$t('复制') + '</span>'
+                        btn.innerHTML = '<span><i class="bcs-icon bcs-icon-clipboard mr5"></i>' + this.$t('复制') + '</span>'
                         btn.setAttribute('data-clipboard-text', code)
                         item.appendChild(btn)
                         codeBox.appendChild(item.querySelector('code'))

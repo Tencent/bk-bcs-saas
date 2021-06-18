@@ -1,19 +1,15 @@
 /**
- * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community Edition) available.
- * Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
- * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- * http://opensource.org/licenses/MIT
- * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
- * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
- * specific language governing permissions and limitations under the License.
+ * @file cluster all
+ * @author hieiwang <hieiwang@tencent.com>
  */
 
-const chalk = require('chalk')
+import moment from 'moment'
+import faker from 'faker'
+import chalk from 'chalk'
 
-const { sleep } = require('../util')
+import {randomInt, sleep} from '../util'
 
-module.exports = async function response (getArgs, postArgs, req) {
+export async function response(getArgs, postArgs, req) {
     console.log(chalk.cyan('req', req.method))
     console.log(chalk.cyan('getArgs', JSON.stringify(getArgs, null, 0)))
     console.log(chalk.cyan('postArgs', JSON.stringify(postArgs, null, 0)))
@@ -31,7 +27,8 @@ module.exports = async function response (getArgs, postArgs, req) {
             },
             message: 'ddddd'
         }
-    } else if (invoke === 'baseInfo') {
+    }
+    else if (invoke === 'baseInfo') {
         return {
             code: 0,
             data: {
@@ -42,7 +39,8 @@ module.exports = async function response (getArgs, postArgs, req) {
             },
             message: 'ok'
         }
-    } else if (invoke === 'enterExample1') {
+    }
+    else if (invoke === 'enterExample1') {
         const delay = getArgs.delay
         await sleep(delay)
         return {
@@ -55,7 +53,8 @@ module.exports = async function response (getArgs, postArgs, req) {
             },
             message: 'ok'
         }
-    } else if (invoke === 'enterExample2') {
+    }
+    else if (invoke === 'enterExample2') {
         const delay = postArgs.delay
         await sleep(delay)
         return {
@@ -68,7 +67,8 @@ module.exports = async function response (getArgs, postArgs, req) {
             },
             message: 'ok'
         }
-    } else if (invoke === 'btn1') {
+    }
+    else if (invoke === 'btn1') {
         await sleep(1000)
         return {
             // http status code, 后端返回的数据没有这个字段，这里模拟这个字段是为了在 mock 时更灵活的自定义 http status code，
@@ -76,11 +76,12 @@ module.exports = async function response (getArgs, postArgs, req) {
             // statusCode: 401,
             code: 0,
             data: {
-                msg: `我是 btn1 请求返回的数据。本请求需耗时 3000 ms. ${+new Date()}`
+                msg: `我是 btn1 请求返回的数据。本请求需耗时 3000 ms. ${+new Date}`
             },
             message: 'ok'
         }
-    } else if (invoke === 'btn2') {
+    }
+    else if (invoke === 'btn2') {
         await sleep(3000)
         return {
             // http status code, 后端返回的数据没有这个字段，这里模拟这个字段是为了在 mock 时更灵活的自定义 http status code，
@@ -88,11 +89,12 @@ module.exports = async function response (getArgs, postArgs, req) {
             // statusCode: 401,
             code: 0,
             data: {
-                msg: `我是 btn2 请求返回的数据。本请求需耗时 3000 ms. ${+new Date()}`
+                msg: `我是 btn2 请求返回的数据。本请求需耗时 3000 ms. ${+new Date}`
             },
             message: 'ok'
         }
-    } else if (invoke === 'del') {
+    }
+    else if (invoke === 'del') {
         return {
             code: 0,
             data: {
@@ -100,7 +102,8 @@ module.exports = async function response (getArgs, postArgs, req) {
             },
             message: 'ok'
         }
-    } else if (invoke === 'get') {
+    }
+    else if (invoke === 'get') {
         // await sleep(1000)
         return {
             // http status code, 后端返回的数据没有这个字段，这里模拟这个字段是为了在 mock 时更灵活的自定义 http status code，
@@ -109,73 +112,80 @@ module.exports = async function response (getArgs, postArgs, req) {
             code: 0,
             data: {
                 reqTime: getArgs.time,
-                resTime: +new Date()
+                resTime: +new Date
             },
             message: 'ok'
         }
-    } else if (invoke === 'post') {
+    }
+    else if (invoke === 'post') {
         // await sleep(1000)
         return {
             code: 0,
             data: {
                 reqTime: postArgs.time,
-                resTime: +new Date()
+                resTime: +new Date
             },
             message: 'ok'
         }
-    } else if (invoke === 'long') {
+    }
+    else if (invoke === 'long') {
         await sleep(5000)
         return {
             code: 0,
             data: {
                 reqTime: getArgs.time,
-                resTime: +new Date()
+                resTime: +new Date
             },
             message: 'ok'
         }
-    } else if (invoke === 'long1') {
+    }
+    else if (invoke === 'long1') {
         await sleep(2000)
         return {
             code: 0,
             data: {
                 reqTime: getArgs.time,
-                resTime: +new Date()
+                resTime: +new Date
             },
             message: 'ok'
         }
-    } else if (invoke === 'same') {
+    }
+    else if (invoke === 'same') {
         await sleep(5000)
         return {
             code: 0,
             data: {
                 reqTime: getArgs.time,
-                resTime: +new Date()
+                resTime: +new Date
             },
             message: 'ok'
         }
-    } else if (invoke === 'postSame') {
+    }
+    else if (invoke === 'postSame') {
         await sleep(5000)
         return {
             code: 0,
             // statusCode: 401,
             data: {
                 reqTime: postArgs.time,
-                resTime: +new Date()
+                resTime: +new Date
             },
             message: 'ok'
         }
-    } else if (invoke === 'go') {
+    }
+    else if (invoke === 'go') {
         await sleep(2000)
         return {
             code: 0,
             statusCode: 400,
             data: {
                 reqTime: postArgs.time,
-                resTime: +new Date()
+                resTime: +new Date
             },
             message: 'ok'
         }
-    } else if (invoke === 'user') {
+    }
+    else if (invoke === 'user') {
         return {
             code: 0,
             data: {
@@ -189,3 +199,4 @@ module.exports = async function response (getArgs, postArgs, req) {
         data: {}
     }
 }
+

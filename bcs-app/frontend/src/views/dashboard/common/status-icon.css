@@ -1,0 +1,33 @@
+.status {
+    display: flex;
+    align-items: center;
+}
+
+.status-icon {
+    display: inline-block;
+    width: 13px;
+    height: 13px;
+    border: 3px solid #E2EDFF;
+    border-radius: 6.5px;
+    background: #3A84FF;
+    margin-right: 8px;
+}
+
+.status-name {
+    flex: 1;
+}
+
+.status-red {
+    border-color: #ffe6e6;
+    background: #ea3636;
+}
+
+.status-green {
+    border-color: #E5F6EA;
+    background: #3FC06D;
+}
+
+.status-yellow {
+    border-color: #FFE8C3;
+    background: #FF9C01;
+}

@@ -1,6 +1,13 @@
 <template>
     <div class="biz-actions" v-clickoutside="hide">
-        <a href="https://bk.tencent.com/docs/markdown/%E5%AE%B9%E5%99%A8%E7%AE%A1%E7%90%86%E5%B9%B3%E5%8F%B0/%E4%BA%A7%E5%93%81%E7%99%BD%E7%9A%AE%E4%B9%A6/Introduction/README.md" target="_blank" class="bk-text-button">{{$t('帮助')}}</a>
+        <!-- <bk-button style="vertical-align: baseline;" v-if="isShowDashboard" @click="goDashboard">
+            <span>{{$t('资源视图')}}</span>
+        </bk-button> -->
+        <!-- <div v-else v-bk-tooltips.bottom="$t('灰度测试中，暂未开放')" style="display: inline-block;vertical-align: baseline;">
+            <bk-button style="vertical-align: baseline;" :disabled="true"><span>{{$t('资源视图')}}</span></bk-button>
+        </div> -->
+        <a :href="PROJECT_CONFIG.doc.contact" class="bk-text-button" v-bk-tooltips.top="$t('蓝鲸容器助手')" v-if="$INTERNAL">{{$t('联系我们')}}</a>
+        <a :href="PROJECT_CONFIG.doc.help" target="_blank" class="bk-text-button">{{$t('帮助')}}</a>
         <slot></slot>
 
         <transition name="fadeRight">
@@ -13,15 +20,15 @@
                     </p>
                     <dl>
                         <dt>{{$t('1、新建集群')}}</dt>
-                        <dd>{{$t('点击导航“集群”')}} -> {{$t('“新建集群”，需要选择Master节点主机（主机信息来源于蓝鲸配置平台），创建集群，确定创建后，系统将进行集群初始化操作')}}</dd>
+                        <dd>{{$t('点击导航“集群”')}} -> {{$t('“新建集群”，需要选择Master节点主机（主机信息来源于蓝鲸配置平台），创建测试集群或正式集群，确定创建后，系统将进行集群初始化操作')}}</dd>
                         <dt>{{$t('2、集群增加Node节点')}}</dt>
                         <dd>{{$t('进入指定集群')}} -> {{$t('节点管理，选择添加节点即可')}}</dd>
                         <dt>{{$t('3、项目镜像管理')}}</dt>
                         <dd>{{$t('点击导航“仓库”')}} -> {{$t('“项目镜像”，按文档“如何推镜像”指引将项目镜像推至仓库')}}</dd>
                     </dl>
                     <div class="operate">
-                        <button class="bk-button bk-primary" @click="goStep('step2')">{{$t('继续')}}</button>
-                        <button class="bk-button bk-danger" @click="hide">{{$t('关闭')}}</button>
+                        <bk-button type="primary" @click="goStep('step2')">{{$t('继续')}}</bk-button>
+                        <bk-button class="bk-button bk-danger" @click="hide">{{$t('关闭')}}</bk-button>
                     </div>
                 </div>
                 <div class="guide-page" v-if="curStep === 'step2'">
@@ -34,9 +41,9 @@
                             {{$t('您可以通过Json或YAML文件导入的方式将已有服务的资源配置导入模板，再次进行编辑并保存')}}</dd>
                     </dl>
                     <div class="operate">
-                        <button class="bk-button bk-primary" @click="goStep('step3')">{{$t('继续')}}</button>
-                        <button class="bk-button bk-primary" @click="goStep('step1')">{{$t('返回')}}</button>
-                        <button class="bk-button bk-danger" @click="hide">{{$t('关闭')}}</button>
+                        <bk-button type="primary" @click="goStep('step3')">{{$t('继续')}}</bk-button>
+                        <bk-button type="primary" @click="goStep('step1')">{{$t('返回')}}</bk-button>
+                        <bk-button class="bk-button bk-danger" @click="hide">{{$t('关闭')}}</bk-button>
                     </div>
                 </div>
                 <div class="guide-page" v-if="curStep === 'step3'">
@@ -48,8 +55,8 @@
                         <dd>{{$t('点击导航“应用”，您将看到具体的实例信息，可在线做滚动升级、扩缩容等操作。')}}</dd>
                     </dl>
                     <div class="operate">
-                        <button class="bk-button bk-primary" @click="goStep('step2')">{{$t('返回')}}</button>
-                        <button class="bk-button bk-danger" @click="hide">{{$t('关闭')}}</button>
+                        <bk-button type="primary" @click="goStep('step2')">{{$t('返回')}}</bk-button>
+                        <bk-button class="bk-button bk-danger" @click="hide">{{$t('关闭')}}</bk-button>
                     </div>
                 </div>
             </div>
@@ -75,8 +82,21 @@
             return {
                 curStep: 'step1',
                 visibility: isShow,
-                steps: ['step1', 'step2']
+                steps: ['step1', 'step2'],
+                isShowDashboard: false
             }
+        },
+        computed: {
+            projectId () {
+                return this.$route.params.projectId
+            },
+            projectCode () {
+                return this.$route.params.projectCode
+            }
+        },
+        mounted () {
+            const arr = ['b37778ec757544868a01e1f01f07037f', '3f4e1f7616fa49b7891fb809b19ab23f', '5805f1b824134fa39318fb0cf59f694b']
+            this.isShowDashboard = arr.indexOf(this.projectId) > -1
         },
         methods: {
             show () {
@@ -110,6 +130,25 @@
              */
             toggleGuide (status) {
                 this.isShowGuide = status
+            },
+
+            goDashboard () {
+                // 从 metric 管理 router 跳转过来时，url 有 cluster_id 的 query
+                const newQuery = JSON.parse(JSON.stringify(this.$route.query))
+                delete newQuery.cluster_id
+                this.$router.replace({ query: newQuery })
+
+                setTimeout(() => {
+                    const routerUrl = this.$router.resolve({
+                        name: 'dashboard',
+                        params: {
+                            projectId: this.projectId,
+                            projectCode: this.projectCode
+                        }
+                    })
+                    window.$syncUrl(routerUrl.href.replace(new RegExp(`^${SITE_URL}`), ''), true)
+                    sessionStorage.removeItem('bcs-selected-menu-data')
+                }, 0)
             }
         }
     }

@@ -31,5 +31,6 @@ module.exports = {
     NODE_ENV: NODE_ENV,
     VERSION: JSON.stringify(`${VERSION}`),
     LOGIN_SERVICE_URL: JSON.stringify(''),
-    IMAGE_BASE: ''
+    IMAGE_BASE: '',
+    SENTRY_URL: JSON.stringify('')
 }

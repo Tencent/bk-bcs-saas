@@ -13,13 +13,13 @@
                 @focus="focus"
                 @blur="blur"
                 @input="debounceHandleInput"
-                :value="currentValue" />
+                :value="currentValue">
             <div class="bk-number-icon-content" v-if="!hideOperation">
                 <div :class="['bk-number-icon-top', { 'btn-disabled': isMax }]" @click="add">
-                    <i class="bk-icon icon-angle-up"></i>
+                    <i class="bcs-icon bcs-icon-angle-up"></i>
                 </div>
                 <div :class="['bk-number-icon-lower', { 'btn-disabled': isMin }]" @click="minus">
-                    <i class="bk-icon icon-angle-down"></i>
+                    <i class="bcs-icon bcs-icon-angle-down"></i>
                 </div>
             </div>
         </div>

@@ -2,7 +2,7 @@
     <div class="biz-content" v-bkloading="{ isLoading: showLoading, opacity: 1 }">
         <div class="biz-top-bar">
             <div class="biz-image-detail-title">
-                <span class="bk-icon icon-arrows-left" style="color: #3c96ff; cursor: pointer; font-weight: 600;" @click="backImageLibrary"></span>
+                <span class="bcs-icon bcs-icon-arrows-left" style="color: #3a84ff; cursor: pointer; font-weight: 600;" @click="backImageLibrary"></span>
                 {{imageName}}
             </div>
         </div>
@@ -10,7 +10,7 @@
             <div class="biz-header-content">
                 <div class="left-wrapper">
                     <div class="logo">
-                        <img src="@open/images/default_logo_normal.jpg" />
+                        <img src="@/images/default_logo_normal.jpg" />
                     </div>
                     <div class="left-content">
                         <p class="image-name" :title="imageName">{{imageName}}</p>
@@ -55,7 +55,19 @@
                             <td>{{item.size || '--'}}</td>
                             <td>{{item.modified || '--'}}</td>
                             <td>
-                                {{item.image || '--'}}
+                                <template v-if="$INTERNAL">
+                                    <template v-if="item.artifactorys.length">
+                                        <bk-tag type="filled" :theme="art === 'DEV' ? 'warning' : 'success'" v-for="(art, inx) in item.artifactorys" :key="inx">
+                                            {{art === 'DEV' ? $t('研发仓库') : $t('生产仓库')}}
+                                        </bk-tag>
+                                    </template>
+                                    <template v-else>
+                                        --
+                                    </template>
+                                </template>
+                                <template v-else>
+                                    {{item.image || '--'}}
+                                </template>
                             </td>
                         </tr>
                         <tr v-if="showScrollLoading">
@@ -64,7 +76,7 @@
                             </td>
                         </tr>
                         <tr v-if="!hasNext" class="empty-row">
-                            <td colspan="4">
+                            <td colspan="4" class="tc">
                                 {{$t('没有更多TAG')}}
                             </td>
                         </tr>
@@ -73,7 +85,7 @@
                         <tr class="no-hover">
                             <td colspan="4">
                                 <div class="bk-message-box">
-                                    <p class="message empty-message">{{$t('无数据')}}</p>
+                                    <bcs-exception type="empty" scene="part"></bcs-exception>
                                 </div>
                             </td>
                         </tr>
@@ -197,11 +209,9 @@
                     limit: limit,
                     projectId: this.projectId
                 }
-                if (this.$route.query.public) {
-                    params.is_public = true
-                }
                 try {
                     const res = await this.$store.dispatch('depot/getImageLibraryDetail', params)
+
                     if (this.showScrollLoading) {
                         this.hasNext = res.data.has_next
                         this.hasPrevious = res.data.has_previous
@@ -211,14 +221,12 @@
                             this.tableHeight = this.tagCount * 41
                             this.hasNext = true
                         }
-                        if (this.curImage) {
-                            this.imageName = this.curImage.name || '--'
-                            this.created = this.curImage.created || '--'
-                            this.modified = this.curImage.modified || '--'
-                            this.modifiedBy = this.curImage.modifiedBy || '--'
-                            this.imagePath = this.curImage.repo || '--'
-                            this.downloadCount = this.curImage.downloadCount || 0
-                        }
+                        this.imageName = res.data.imageName || '--'
+                        this.created = res.data.created || '--'
+                        this.modified = res.data.modified || '--'
+                        this.modifiedBy = res.data.modifiedBy || '--'
+                        this.imagePath = res.data.repo || '--'
+                        this.downloadCount = res.data.downloadCount || 0
                     }
                     this.imageDetailList.splice(0, this.imageDetailList.length, ...(res.data.tags || []))
                     if (this.imageDetailList.length) {
@@ -227,11 +235,7 @@
                         })
                     }
                 } catch (e) {
-                    console.warn('e', e)
-                    this.bkMessageInstance = this.$bkMessage({
-                        theme: 'error',
-                        message: e.message || e.data.msg || e.statusText
-                    })
+                    console.warn(333, e)
                 } finally {
                     this.showLoading = false
                     const scrollTop = getScrollTop()

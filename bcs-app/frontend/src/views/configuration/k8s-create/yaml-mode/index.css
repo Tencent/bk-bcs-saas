@@ -1,7 +1,7 @@
-@import '@open/css/variable.css';
-@import '@open/css/mixins/ellipsis';
-@import '@open/css/mixins/clearfix';
-@import '@open/css/mixins/scroller';
+@import '@/css/variable.css';
+@import '@/css/mixins/ellipsis';
+@import '@/css/mixins/clearfix';
+@import '@/css/mixins/scroller';
 
 .biz-yaml-content {
 	display: flex;
@@ -83,7 +83,7 @@
 				color: #979BA5;
 			}
 
-			.bk-icon {
+			.bcs-icon {
 				width: 24px;
 				height: 24px;
 				cursor: pointer;
@@ -109,7 +109,7 @@
 				&:hover {
 					background: #F0F1F5;
 
-					.bk-icon {
+					.bcs-icon {
 						display: inline-block;
 					}
 				}
@@ -136,7 +136,7 @@
 					color: #3A84FF;
 				}
 
-				.bk-icon {
+				.bcs-icon {
 					float: right;
 					font-size: 12px;
 					width: 20px;
@@ -218,7 +218,7 @@
 	margin-left: 2px;
 	position: relative;
 
-	.bk-icon {
+	.bcs-icon {
 		margin-right: 4px;
 		margin-top: -2px;
 	}
@@ -351,7 +351,7 @@
     border-left: 1px solid #DDE4EB;
     border-right: 1px solid #DDE4EB;
     transition: transform ease 0.3s;
-    .bk-icon {
+    .bcs-icon {
         margin-left: -3px;
     }
 }
@@ -467,7 +467,7 @@
 
 	}
 
-	.bk-icon {
+	.bcs-icon {
 		font-size: 50px;
 		margin-bottom: 10px;
 		display: inline-block;
@@ -483,10 +483,17 @@
 
 /deep/ .bk-tree {
 	.tree-drag-node {
+		display: flex;
+		align-items: center;
 		.tree-node {
+			display: flex;
 			overflow: hidden;
-			display: inline-flex;
 			align-items: center;
+			>div {
+				display: flex;
+				flex: 1;
+				overflow: hidden;
+			}
 		}
 
 		.tree-expanded-icon {
@@ -501,24 +508,24 @@
 	&.default-tree,
 	&.custom-tree {
 		.tree-first-node {
-			> .tree-singe:first-child {
+			> .tree-drag-node:first-child {
 				display: none;
 			}
 		}
 	}
 
-	&.bk-has-border-tree li.single:after {
+	/* &.bk-has-border-tree li.single:after {
 		top: 11px;
-	}
+	} */
 
 	.node-icon {
 		position: relative;
-		top: 1px;
+		top: 0px;
 		left: 0;
 	}
 	.node-title {
+		margin-right: 40px;
 		white-space: nowrap;
-		max-width: 190px;
 		overflow: hidden;
 		display: inline-block;
 		text-overflow: ellipsis;
@@ -526,6 +533,7 @@
 		margin-left: 3px;
 		font-size: 12px;
 		color: #737987;
+		margin-top: 3px;
 
 		&.node-selected {
 			color: #3a84ff;
@@ -562,7 +570,7 @@
 		font-size: 18px;
 		background: #FFF;
 		
-		.bk-icon {
+		.bcs-icon {
 			width: 24px;
 			height: 24px;
 			cursor: pointer;
@@ -589,7 +597,7 @@
 	.menulist {
 		background: #FFF;
 		border: 1px solid #eee;
-		width: 80px;
+		width: 85px;
 		position: absolute;
 		right: 0;
 		display: none;

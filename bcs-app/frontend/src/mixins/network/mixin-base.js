@@ -94,15 +94,13 @@ export default {
             const data = []
             const names = []
 
-            this.serviceList.forEach(item => {
-                if (item.isChecked) {
-                    data.push({
-                        cluster_id: item.clusterId,
-                        namespace: item.namespace,
-                        name: item.resourceName
-                    })
-                    names.push(`${item.cluster_name} / ${item.namespace} / ${item.resourceName}`)
-                }
+            this.serviceSelectedList.forEach(item => {
+                data.push({
+                    cluster_id: item.clusterId,
+                    namespace: item.namespace,
+                    name: item.resourceName
+                })
+                names.push(`${item.cluster_name} / ${item.namespace} / ${item.resourceName}`)
             })
             if (!data.length) {
                 this.$bkMessage({

@@ -1,5 +1,5 @@
-@import '@open/css/variable.css';
-@import '@open/css/mixins/ellipsis.css';
+@import '@/css/variable.css';
+@import '@/css/mixins/ellipsis.css';
 
 .biz-app-title {
     display: inline-block;
@@ -88,12 +88,13 @@
         .red {
             color: red;
             margin-right: 3px;
+            position: relative;
+            top: 2px;
         }
 
         .label {
             color: $fontWeightColor;
             font-size: 14px;
-            font-weight: 700;
         }
 
         .text-input-half {
@@ -107,12 +108,12 @@
         }
 
         .suffix {
-            height: 36px;
+            height: 32px;
             text-align: center;
-            line-height: 34px;
+            line-height: 30px;
             display: inline-block;
             background: $bgHoverColor;
-            border: 1px solid #c3cdd7;
+            border: 1px solid #c4c6cc;
             color: $fontWeightColor;
             font-size: 14px;
             border-radius: 0 2px 2px 0;
@@ -169,7 +170,7 @@
         display: inline-block;
         vertical-align: bottom;
         background-color: $bgHoverColor;
-        border: 1px solid #c3cdd7;
+        border: 1px solid #c4c6cc;
         color: $fontWeightColor;
         font-size: 14px;
         border-radius: 2px 0 0 2px;

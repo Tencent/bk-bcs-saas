@@ -17,7 +17,7 @@
                 <div class="biz-panel-header biz-metric-manage-create" style="padding: 27px 30px 22px 20px;">
                     <div class="left">
                         <bk-button type="primary" :title="$t('新建Metric')" @click="showCreateMetric">
-                            <i class="bk-icon icon-plus"></i>
+                            <i class="bcs-icon bcs-icon-plus"></i>
                             <span class="text">{{$t('新建Metric')}}</span>
                         </bk-button>
                     </div>
@@ -30,90 +30,51 @@
                         </bk-data-searcher>
                     </div>
                 </div>
-                <div class="biz-table-wrapper" v-bkloading="{ isLoading: isPageLoading && !isInitLoading }">
-                    <table class="bk-table has-table-hover biz-table biz-metric-manage-table">
-                        <thead>
-                            <tr>
-                                <th style="width: 260px; text-align: left;padding-left: 36px;">
-                                    {{$t('名称')}}
-                                </th>
-                                <th style="width: 100px;">{{$t('端口')}}</th>
-                                <th style="width: 350px;">URI</th>
-                                <th style="width: 270px;">{{$t('采集频率(秒/次)')}}</th>
-                                <th style="width: 600px; text-align: right; padding-right: 100px;">{{$t('操作')}}</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <template v-if="curPageData.length">
-                                <tr v-for="(item, index) in curPageData" :key="index">
-                                    <td style="text-align: left;padding-left: 36px;">
-                                        <bk-tooltip placement="top" :delay="500">
-                                            <p class="item-name biz-table-title">{{item.name || '--'}}</p>
-                                            <template slot="content">
-                                                <p style="text-align: left; white-space: normal;word-break: break-all;" cla>{{item.name || '--'}}</p>
-                                            </template>
-                                        </bk-tooltip>
-                                    </td>
-                                    <td>
-                                        {{item.port || '--'}}
-                                    </td>
-                                    <td>
-                                        <bk-tooltip placement="top" :delay="500">
-                                            <p class="item-uri">{{item.uri || '--'}}</p>
-                                            <template slot="content">
-                                                <p style="text-align: left; white-space: normal;word-break: break-all;">{{item.uri || '--'}}</p>
-                                            </template>
-                                        </bk-tooltip>
-                                    </td>
-                                    <td>{{item.frequency || '--'}}</td>
-                                    <td class="act">
-                                        <a href="javascript:void(0);" class="bk-text-button" @click="checkMetricInstance(item)">{{$t('查看实例')}}</a>
-                                        <template v-if="!item.status || item.status === 'normal'">
-                                            <a href="javascript:void(0);" class="bk-text-button" @click="pauseAndResume(item, 'pause', [])">{{$t('暂停')}}</a>
-                                            <a href="javascript:void(0);" class="bk-text-button" @click="editMetric(item)">{{$t('更新')}}</a>
-                                        </template>
-                                        <template v-else>
-                                            <a href="javascript:void(0);" class="bk-text-button" @click="pauseAndResume(item, 'resume', [])">{{$t('恢复')}}</a>
-                                        </template>
-                                        <a href="javascript:void(0);" class="bk-text-button" @click="deleteMetric(item)">{{$t('删除')}}</a>
-                                        <!-- 数据平台不能直接跳转到字段设置页面，先去掉 -->
-                                        <!-- <a class="bk-text-button" href="javascript:void(0)" @click="go(item, item.uri_fields_info)" target="_blank">字段设置</a> -->
-                                        <a class="bk-text-button" href="javascript:void(0)" @click="go(item, item.uri_data_clean)" target="_blank">{{$t('数据清洗')}}</a>
-                                    </td>
-                                </tr>
+                <div class="biz-table-wrapper">
+                    <bk-table
+                        :size="'medium'"
+                        :data="curPageData"
+                        :pagination="pageConf"
+                        v-bkloading="{ isLoading: isPageLoading && !isInitLoading }"
+                        @page-limit-change="handlePageSizeChange"
+                        @page-change="handlePageChange">
+                        <bk-table-column :label="$t('名称')" :show-overflow-tooltip="true" min-width="160">
+                            <template slot-scope="props">
+                                {{props.row.name || '--'}}
                             </template>
-                            <template v-else-if="!curPageData.length && !isInitLoading">
-                                <tr class="no-hover">
-                                    <td colspan="5">
-                                        <div class="bk-message-box">
-                                            <p class="message empty-message">{{$t('无数据')}}</p>
-                                        </div>
-                                    </td>
-                                </tr>
+                        </bk-table-column>
+                        <bk-table-column :label="$t('端口')" :show-overflow-tooltip="true" min-width="100">
+                            <template slot-scope="props">
+                                {{props.row.port || '--'}}
                             </template>
-                            <template v-else>
-                                <tr class="no-hover">
-                                    <td colspan="5">
-                                        <div class="bk-message-box">
-                                        </div>
-                                    </td>
-                                </tr>
+                        </bk-table-column>
+                        <bk-table-column :label="$t('URI')" :show-overflow-tooltip="true" min-width="250">
+                            <template slot-scope="props">
+                                {{props.row.uri || '--'}}
                             </template>
-                        </tbody>
-                    </table>
-                </div>
-                <div class="biz-page-wrapper" v-if="pageConf.total">
-                    <bk-page-counter
-                        :is-en="isEn"
-                        :total="pageConf.total"
-                        :page-size="pageConf.pageSize"
-                        @change="changePageSize">
-                    </bk-page-counter>
-                    <bk-paging
-                        :cur-page.sync="pageConf.curPage"
-                        :total-page="pageConf.totalPage"
-                        @page-change="pageChange">
-                    </bk-paging>
+                        </bk-table-column>
+                        <bk-table-column :label="$t('采集频率(秒/次)')" :show-overflow-tooltip="true" min-width="130">
+                            <template slot-scope="props">
+                                {{props.row.frequency || '--'}}
+                            </template>
+                        </bk-table-column>
+                        <bk-table-column :label="$t('操作')" :show-overflow-tooltip="true" width="330">
+                            <template slot-scope="props">
+                                <a href="javascript:void(0);" class="bk-text-button" @click="checkMetricInstance(props.row)">{{$t('查看实例')}}</a>
+                                <template v-if="!props.row.status || props.row.status === 'normal'">
+                                    <a href="javascript:void(0);" class="bk-text-button" @click="pauseAndResume(props.row, 'pause', [])">{{$t('暂停')}}</a>
+                                    <a href="javascript:void(0);" class="bk-text-button" @click="editMetric(props.row)">{{$t('更新')}}</a>
+                                </template>
+                                <template v-else>
+                                    <a href="javascript:void(0);" class="bk-text-button" @click="pauseAndResume(props.row, 'resume', [])">{{$t('恢复')}}</a>
+                                </template>
+                                <a href="javascript:void(0);" class="bk-text-button" @click="deleteMetric(props.row)">{{$t('删除')}}</a>
+                                <!-- 数据平台不能直接跳转到字段设置页面，先去掉 -->
+                                <!-- <a class="bk-text-button" href="javascript:void(0)" @click="go(props.row, props.row.uri_fields_info)" target="_blank">字段设置</a> -->
+                                <a class="bk-text-button" href="javascript:void(0)" @click="go(props.row, props.row.uri_data_clean)" target="_blank">{{$t('数据清洗')}}</a>
+                            </template>
+                        </bk-table-column>
+                    </bk-table>
                 </div>
             </template>
         </div>
@@ -125,14 +86,14 @@
             :quick-close="false"
             class="biz-metric-manage-create-sideslider"
             @hidden="hideCreateMetric">
-            <template slot="content">
-                <div class="wrapper" style="position: relative;" v-bkloading="{ isLoading: isCreatingOrEditing, opacity: 0.8, title: creatingOrEditingStr }">
+            <div slot="content">
+                <div class="wrapper" style="position: relative;">
                     <form class="bk-form bk-form-vertical create-form">
                         <div class="bk-form-item flex-item">
                             <div class="left">
                                 <label class="bk-label label">{{$t('名称')}}：<span class="red">*</span></label>
                                 <div class="bk-form-content">
-                                    <input type="text" v-model="createParams.name" class="bk-form-input text-input-half" :placeholder="$t('请输入')" maxlength="253" />
+                                    <bk-input style="width: 270px;" v-model="createParams.name" :placeholder="$t('请输入')" maxlength="253" />
                                 </div>
                             </div>
                             <div class="right">
@@ -154,7 +115,7 @@
                                 URI：<span class="red">*</span>
                             </label>
                             <div class="bk-form-content">
-                                <input type="text" v-model="createParams.url" class="bk-form-input text-input" :placeholder="$t('请输入')" />
+                                <bk-input v-model="createParams.url" :placeholder="$t('请输入')" />
                             </div>
                         </div>
                         <div class="bk-form-item flex-item">
@@ -192,10 +153,8 @@
                         </div>
                         <div class="bk-form-item prometheus-item">
                             <div class="prometheus-header">
-                                <label class="bk-label label">{{$t('Prometheus格式设置')}}</label>
-                                <label class="bk-form-checkbox">
-                                    <input type="checkbox" name="metric-type" value="prometheus" v-model="createParams.metricType">
-                                </label>
+                                <label class="bk-label label" style="width: 300px;">{{$t('Prometheus格式设置')}}</label>
+                                <bk-checkbox class="mt5" name="metric-type" v-model="createParams.metricType"></bk-checkbox>
                             </div>
 
                             <div class="prometheus-keys" v-show="createParams.metricType">
@@ -230,14 +189,10 @@
                         <div class="bk-form-item">
                             <label class="bk-label label">Http Method：</label>
                             <div class="bk-form-content scroll-order-form-item">
-                                <label class="bk-form-radio">
-                                    <input type="radio" value="GET" name="radio" checked="checked" v-model="createParams.httpMethod">
-                                    <i class="bk-radio-text">GET</i>
-                                </label>
-                                <label class="bk-form-radio" style="margin-right: 7px;">
-                                    <input type="radio" value="POST" name="radio" v-model="createParams.httpMethod">
-                                    <i class="bk-radio-text">POST</i>
-                                </label>
+                                <bk-radio-group v-model="createParams.httpMethod">
+                                    <bk-radio value="GET">GET</bk-radio>
+                                    <bk-radio value="POST">POST</bk-radio>
+                                </bk-radio-group>
                             </div>
                         </div>
                         <div class="bk-form-item">
@@ -261,16 +216,16 @@
                             </div>
                         </div>
                         <div class="action-inner">
-                            <button type="button" class="bk-dialog-btn bk-dialog-btn-confirm bk-btn-primary" @click="confirmCreateMetric">
+                            <bk-button type="primary" :loading="isCreatingOrEditing" @click="confirmCreateMetric">
                                 {{$t('创建')}}
-                            </button>
-                            <button type="button" class="bk-dialog-btn bk-dialog-btn-cancel" @click="hideCreateMetric">
+                            </bk-button>
+                            <bk-button type="button" :diasbled="isCreatingOrEditing" @click="hideCreateMetric">
                                 {{$t('取消')}}
-                            </button>
+                            </bk-button>
                         </div>
                     </form>
                 </div>
-            </template>
+            </div>
         </bk-sideslider>
 
         <bk-sideslider
@@ -280,14 +235,14 @@
             :quick-close="false"
             class="biz-metric-manage-create-sideslider"
             @hidden="hideEditMetric">
-            <template slot="content">
-                <div class="wrapper" style="position: relative;" v-bkloading="{ isLoading: isCreatingOrEditing, opacity: 0.8, title: creatingOrEditingStr }">
+            <div slot="content">
+                <div class="wrapper" style="position: relative;">
                     <form class="bk-form bk-form-vertical create-form">
                         <div class="bk-form-item flex-item">
                             <div class="left">
                                 <label class="bk-label label">{{$t('名称')}}：<span class="red">*</span></label>
                                 <div class="bk-form-content">
-                                    <input type="text" disabled="disabled" v-model="editParams.name" class="bk-form-input text-input-half" :placeholder="$t('请输入')" maxlength="32" />
+                                    <bk-input :disabled="true" v-model="editParams.name" style="width: 270px;" :placeholder="$t('请输入')" maxlength="32" />
                                 </div>
                             </div>
                             <div class="right">
@@ -309,7 +264,7 @@
                                 URI：<span class="red">*</span>
                             </label>
                             <div class="bk-form-content">
-                                <input type="text" v-model="editParams.url" class="bk-form-input text-input" :placeholder="$t('请输入')" />
+                                <bk-input v-model="editParams.url" :placeholder="$t('请输入')" />
                             </div>
                         </div>
                         <div class="bk-form-item flex-item">
@@ -348,18 +303,8 @@
 
                         <div class="bk-form-item prometheus-item">
                             <div class="prometheus-header">
-                                <label class="bk-label label">{{$t('Prometheus格式设置')}}</label>
-                                <label class="bk-form-checkbox">
-                                    <bk-tooltip placement="left" :transfer="true">
-                                        <div slot="content" style="white-space: normal;">
-                                            <div style="width: 230px;">
-                                                <!-- 在创建的时候已经按{{editParams.metricType ? 'Prometheus' : '普通'}}类型在数据平台申请dataid，不能更改 -->
-                                                {{$t('在创建的时候已经按{metricType}类型在数据平台申请dataid，不能更改', { metricType: editParams.metricType ? 'Prometheus' : $t('普通') })}}
-                                            </div>
-                                        </div>
-                                        <input type="checkbox" name="metric-type" value="prometheus" v-model="editParams.metricType" disabled="disabled">
-                                    </bk-tooltip>
-                                </label>
+                                <label class="bk-label label" style="width: 300px;">{{$t('Prometheus格式设置')}}</label>
+                                <bk-checkbox class="mt5" name="metric-type" v-model="editParams.metricType" :disabled="true" v-bk-tooltips.left="$t('在创建的时候已经按{metricType}类型在数据平台申请dataid，不能更改', { metricType: editParams.metricType ? 'Prometheus' : $t('普通') })"></bk-checkbox>
                             </div>
 
                             <div class="prometheus-keys" v-show="editParams.metricType">
@@ -394,14 +339,10 @@
                         <div class="bk-form-item">
                             <label class="bk-label label">Http Method：</label>
                             <div class="bk-form-content scroll-order-form-item">
-                                <label class="bk-form-radio">
-                                    <input type="radio" value="GET" name="radio" checked="checked" v-model="editParams.httpMethod">
-                                    <i class="bk-radio-text">GET</i>
-                                </label>
-                                <label class="bk-form-radio" style="margin-right: 7px;">
-                                    <input type="radio" value="POST" name="radio" v-model="editParams.httpMethod">
-                                    <i class="bk-radio-text">POST</i>
-                                </label>
+                                <bk-radio-group v-model="editParams.httpMethod">
+                                    <bk-radio value="GET">GET</bk-radio>
+                                    <bk-radio value="POST">POST</bk-radio>
+                                </bk-radio-group>
                             </div>
                         </div>
                         <div class="bk-form-item">
@@ -425,16 +366,16 @@
                             </div>
                         </div>
                         <div class="action-inner">
-                            <button type="button" class="bk-dialog-btn bk-dialog-btn-confirm bk-btn-primary" @click="confirmEditMetric">
+                            <bk-button type="primary" :loading="isCreatingOrEditing" @click="confirmEditMetric">
                                 {{$t('更新')}}
-                            </button>
-                            <button type="button" class="bk-dialog-btn bk-dialog-btn-cancel" @click="hideEditMetric">
+                            </bk-button>
+                            <bk-button type="button" :disabled="isCreatingOrEditing" @click="hideEditMetric">
                                 {{$t('取消')}}
-                            </button>
+                            </bk-button>
                         </div>
                     </form>
                 </div>
-            </template>
+            </div>
         </bk-sideslider>
 
         <bk-dialog
@@ -443,13 +384,11 @@
             :content="instanceDialogConf.content"
             :has-header="instanceDialogConf.hasHeader"
             :has-footer="false"
-            :close-icon="instanceDialogConf.closeIcon"
+            :close-icon="true"
+            @cancel="hideInstanceDialog"
             :ext-cls="'biz-metric-manage-dialog'">
-            <div slot="content">
+            <template slot="content">
                 <div style="margin: -20px;">
-                    <div class="bk-dialog-tool">
-                        <i class="bk-dialog-close bk-icon icon-close" @click="hideInstanceDialog"></i>
-                    </div>
                     <div class="instance-title">
                         {{curInstanceMetric.name}}{{$t('实例')}}
                     </div>
@@ -480,7 +419,7 @@
                                     <tr>
                                         <td colspan="3">
                                             <div class="bk-message-box no-data">
-                                                <p class="message empty-message">{{$t('无数据')}}</p>
+                                                <bcs-exception type="empty" scene="part"></bcs-exception>
                                             </div>
                                         </td>
                                     </tr>
@@ -488,16 +427,17 @@
                             </tbody>
                         </table>
                     </div>
-                    <div class="biz-page-box" v-if="!isMetricInstanceLoading && metricInstancePageConf.show && curMetricInstancePageData.length">
-                        <bk-paging
-                            :size="'small'"
-                            :cur-page.sync="metricInstancePageConf.curPage"
-                            :total-page="metricInstancePageConf.totalPage"
-                            @page-change="metricInstancePageChange">
-                        </bk-paging>
+                    <div class="biz-page-box">
+                        <bk-pagination
+                            :show-limit="false"
+                            :current.sync="metricInstancePageConf.curPage"
+                            :count.sync="metricInstancePageConf.total"
+                            :limit="metricInstancePageConf.pageSize"
+                            @change="metricInstancePageChange">
+                        </bk-pagination>
                     </div>
                 </div>
-            </div>
+            </template>
         </bk-dialog>
     </div>
 </template>
@@ -516,13 +456,13 @@
                 searchKeyWord: '',
                 isInitLoading: true,
                 isPageLoading: false,
-                bkMessageInstance: null,
                 exceptionCode: null,
                 dataList: [],
                 dataListTmp: [],
                 curPageData: [],
                 metricInstancePageConf: {
                     totalPage: 1,
+                    total: 1,
                     pageSize: 5,
                     curPage: 1,
                     show: true
@@ -537,13 +477,13 @@
                 },
                 pageConf: {
                     // 总数
-                    total: 0,
+                    count: 0,
                     // 总页数
                     totalPage: 1,
                     // 每页多少条
-                    pageSize: 5,
+                    limit: 5,
                     // 当前页
-                    curPage: 1,
+                    current: 1,
                     // 是否显示翻页条
                     show: false
                 },
@@ -551,7 +491,7 @@
                     isShow: false,
                     title: this.$t('新建Metric'),
                     timer: null,
-                    width: 644,
+                    width: 650,
                     loading: false
                 },
                 // 创建的参数
@@ -573,7 +513,7 @@
                     isShow: false,
                     title: this.$t('新建Metric'),
                     timer: null,
-                    width: 644,
+                    width: 650,
                     loading: false
                 },
                 curInstanceMetric: {
@@ -613,20 +553,17 @@
             this.winHeight = window.innerHeight
             this.fetchData()
         },
-        destroyed () {
-            this.bkMessageInstance && this.bkMessageInstance.close()
-        },
         methods: {
             /**
              * 分页大小更改
              *
              * @param {number} pageSize pageSize
              */
-            changePageSize (pageSize) {
-                this.pageConf.pageSize = pageSize
-                this.pageConf.curPage = 1
+            handlePageSizeChange (pageSize) {
+                this.pageConf.limit = pageSize
+                this.pageConf.current = 1
                 this.initPageConf()
-                this.pageChange()
+                this.handlePageChange()
             },
 
             /**
@@ -673,10 +610,10 @@
                     this.dataList.splice(0, this.dataList.length, ...results)
                 }
                 if (resetPage) {
-                    this.pageConf.curPage = 1
+                    this.pageConf.current = 1
                 }
                 this.initPageConf()
-                this.curPageData = this.getDataByPage(this.pageConf.curPage, notLoading)
+                this.curPageData = this.getDataByPage(this.pageConf.current, notLoading)
             },
 
             /**
@@ -691,13 +628,9 @@
                     this.dataList.splice(0, this.dataList.length, ...(res.data || []))
                     this.dataListTmp.splice(0, this.dataListTmp.length, ...(res.data || []))
                     this.initPageConf()
-                    this.curPageData = this.getDataByPage(this.pageConf.curPage)
+                    this.curPageData = this.getDataByPage(this.pageConf.current)
                 } catch (e) {
                     console.error(e)
-                    this.bkMessageInstance = this.$bkMessage({
-                        theme: 'error',
-                        message: e.message || e.data.msg || e.statusText
-                    })
                 } finally {
                     // 晚消失是为了防止整个页面loading和表格数据loading效果叠加产生闪动
                     setTimeout(() => {
@@ -711,13 +644,13 @@
              */
             initPageConf () {
                 const total = this.dataList.length
-                if (total <= this.pageConf.pageSize) {
+                if (total <= this.pageConf.limit) {
                     this.pageConf.show = false
                 } else {
                     this.pageConf.show = true
                 }
-                this.pageConf.total = total
-                this.pageConf.totalPage = Math.ceil(total / this.pageConf.pageSize) || 1
+                this.pageConf.count = total
+                this.pageConf.totalPage = Math.ceil(total / this.pageConf.limit) || 1
             },
 
             /**
@@ -725,8 +658,8 @@
              *
              * @param {number} page 当前页
              */
-            pageChange (page = 1) {
-                this.pageConf.curPage = page
+            handlePageChange (page = 1) {
+                this.pageConf.current = page
                 const data = this.getDataByPage(page)
                 this.curPageData.splice(0, this.curPageData.length, ...data)
             },
@@ -742,11 +675,11 @@
             getDataByPage (page, notLoading = false) {
                 // 如果没有page，重置
                 if (!page) {
-                    this.pageConf.curPage = page = 1
+                    this.pageConf.current = page = 1
                 }
                 this.isPageLoading = !notLoading
-                let startIndex = (page - 1) * this.pageConf.pageSize
-                let endIndex = page * this.pageConf.pageSize
+                let startIndex = (page - 1) * this.pageConf.limit
+                let endIndex = page * this.pageConf.limit
                 if (startIndex < 0) {
                     startIndex = 0
                 }
@@ -763,7 +696,7 @@
              * 手动刷新表格数据
              */
             refresh () {
-                this.pageConf.curPage = 1
+                this.pageConf.current = 1
                 this.searchKeyWord = ''
                 this.fetchData()
             },
@@ -898,10 +831,10 @@
                     })
                     me.dataList.splice(0, me.dataList.length, ...(res.data || []))
                     me.dataListTmp.splice(0, me.dataListTmp.length, ...(res.data || []))
-                    me.pageConf.curPage = 1
+                    me.pageConf.current = 1
                     me.searchKeyWord = ''
                     me.initPageConf()
-                    // me.curPageData = me.getDataByPage(me.pageConf.curPage, true)
+                    // me.curPageData = me.getDataByPage(me.pageConf.current, true)
 
                     me.searchMetric(false, true)
                     me.hideCreateMetric()
@@ -911,10 +844,6 @@
                     console.error(e)
                     me.isCreatingOrEditing = false
                     me.creatingOrEditingStr = ''
-                    me.bkMessageInstance = me.$bkMessage({
-                        theme: 'error',
-                        message: e.message || e.data.msg || e.statusText
-                    })
                 }
             },
 
@@ -1191,10 +1120,6 @@
                     console.error(e)
                     me.isCreatingOrEditing = false
                     me.creatingOrEditingStr = ''
-                    me.bkMessageInstance = me.$bkMessage({
-                        theme: 'error',
-                        message: e.message || e.data.msg || e.statusText
-                    })
                 }
             },
 
@@ -1222,6 +1147,7 @@
             initMetricInstancePageConf () {
                 const total = this.metricInstanceList.length
                 this.metricInstancePageConf.totalPage = Math.ceil(total / this.metricInstancePageConf.pageSize)
+                this.metricInstancePageChange.total = total
             },
             reloadMetricInstanceCurPage () {
                 this.initMetricInstancePageConf()
@@ -1283,10 +1209,6 @@
                     this.isMetricInstanceLoading = false
                 } catch (e) {
                     console.error(e)
-                    this.bkMessageInstance = this.$bkMessage({
-                        theme: 'error',
-                        message: e.message || e.data.msg || e.statusText
-                    })
                 }
             },
 
@@ -1308,7 +1230,7 @@
 
                 const me = this
                 me.$bkInfo({
-                    title: ``,
+                    title: this.$t('确认删除'),
                     clsName: 'biz-remove-dialog',
                     content: me.$createElement('p', {
                         class: 'biz-confirm-desc'
@@ -1330,19 +1252,15 @@
 
                             me.dataList.splice(0, me.dataList.length, ...(res.data || []))
                             me.dataListTmp.splice(0, me.dataListTmp.length, ...(res.data || []))
-                            me.pageConf.curPage = 1
+                            me.pageConf.current = 1
                             me.searchKeyWord = ''
                             me.initPageConf()
-                            me.curPageData = me.getDataByPage(me.pageConf.curPage)
+                            me.curPageData = me.getDataByPage(me.pageConf.current)
                             // me.searchMetric(true)
                             me.$bkLoading.hide()
                         } catch (e) {
                             console.error(e)
                             me.$bkLoading.hide()
-                            me.bkMessageInstance = me.$bkMessage({
-                                theme: 'error',
-                                message: e.message || e.data.msg || e.statusText
-                            })
                         }
                     }
                 })
@@ -1393,19 +1311,15 @@
 
                             me.dataList.splice(0, me.dataList.length, ...(res.data || []))
                             me.dataListTmp.splice(0, me.dataListTmp.length, ...(res.data || []))
-                            me.pageConf.curPage = 1
+                            me.pageConf.current = 1
                             me.searchKeyWord = ''
                             me.initPageConf()
-                            me.curPageData = me.getDataByPage(me.pageConf.curPage)
+                            me.curPageData = me.getDataByPage(me.pageConf.current)
                             // me.searchMetric(true)
                             me.$bkLoading.hide()
                         } catch (e) {
                             console.error(e)
                             me.$bkLoading.hide()
-                            me.bkMessageInstance = me.$bkMessage({
-                                theme: 'error',
-                                message: e.message || e.data.msg || e.statusText
-                            })
                         }
                     }
                 })

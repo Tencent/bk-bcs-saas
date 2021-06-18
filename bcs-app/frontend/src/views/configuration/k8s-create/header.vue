@@ -1,6 +1,6 @@
 <template>
     <div class="biz-top-bar" :style="{ marginBottom: (isNewTemplate || !canTemplateEdit) ? '0px' : '55px' }">
-        <i class="biz-back bk-icon icon-arrows-left" @click="beforeLeave"></i>
+        <i class="biz-back bcs-icon bcs-icon-arrows-left" @click="beforeLeave"></i>
         <template v-if="exceptionCode">
             <div class="biz-templateset-title">
                 <span>{{$t('返回模板集')}}</span>
@@ -19,7 +19,7 @@
                     @blur="saveTemplate"
                     @keyup.enter="saveTemplate" />
                 <a href="javascript:void(0)" class="bk-text-button bk-default" v-show="!isEditName" @click="editTemplateName">
-                    <i class="bk-icon icon-edit"></i>
+                    <i class="bcs-icon bcs-icon-edit"></i>
                 </a>
             </div>
             <div class="biz-templateset-desc">
@@ -35,7 +35,7 @@
                     @blur="saveTemplate"
                     @keyup.enter="saveTemplate" />
                 <a href="javascript:void(0)" class="bk-text-button bk-default" v-show="!isEditDesc" @click="editTemplateDesc" @keyup.enter="saveTemplate">
-                    <i class="bk-icon icon-edit"></i>
+                    <i class="bcs-icon bcs-icon-edit"></i>
                 </a>
             </div>
             <div class="biz-templateset-action" v-if="!exceptionCode && !isTemplateLoading">
@@ -45,18 +45,18 @@
                         <template v-if="templateLockStatus.isCurLocker">
                             <div class="biz-lock-box" v-if="curTemplate.permissions.edit">
                                 <div class="lock-wrapper warning">
-                                    <i class="bk-icon icon-info-circle-shape"></i>
+                                    <i class="bcs-icon bcs-icon-info-circle-shape"></i>
                                     <strong class="desc">
                                         {{$t('您已经对此模板集加锁，只有解锁后，其他用户才可操作此模板集。')}}
                                         <span v-if="lateShowVersionName">
                                             （{{$t('当前版本号')}}：{{lateShowVersionName}}
-                                            <bk-tooltip
+                                            <bcs-popover
                                                 :delay="300"
                                                 :content="displayVersionNotes || '--'"
                                                 style="padding-left: 6px;"
                                                 placement="bottom">
-                                                <span style="color: #3c96ff;">{{$t('版本说明')}}</span>
-                                            </bk-tooltip>）
+                                                <span style="color: #3a84ff;">{{$t('版本说明')}}</span>
+                                            </bcs-popover>）
                                         </span>
                                     </strong>
                                     <div class="action">
@@ -72,18 +72,18 @@
                         <template v-else>
                             <div class="biz-lock-box" v-if="curTemplate.permissions.edit">
                                 <div class="lock-wrapper warning">
-                                    <i class="bk-icon icon-info-circle-shape"></i>
+                                    <i class="bcs-icon bcs-icon-info-circle-shape"></i>
                                     <strong class="desc">
                                         {{$t('{locker}正在操作，您如需编辑请联系{locker}解锁。', templateLockStatus)}}
                                         <span v-if="lateShowVersionName">
                                             （{{$t('当前版本号')}}：{{lateShowVersionName}}
-                                            <bk-tooltip
+                                            <bcs-popover
                                                 :delay="300"
                                                 :content="displayVersionNotes || '--'"
                                                 style="padding-left: 6px;"
                                                 placement="bottom">
-                                                <span style="color: #3c96ff;">{{$t('版本说明')}}</span>
-                                            </bk-tooltip>）</span>
+                                                <span style="color: #3a84ff;">{{$t('版本说明')}}</span>
+                                            </bcs-popover>）</span>
                                     </strong>
                                     <div class="action">
                                         <a href="javascript: void(0);" class="bk-text-button" @click="reloadTemplateset">{{$t('点击刷新')}}</a>
@@ -95,18 +95,18 @@
                     <template v-else>
                         <div class="biz-lock-box" v-if="curTemplate.permissions.edit">
                             <div class="lock-wrapper">
-                                <i class="bk-icon icon-info-circle-shape"></i>
+                                <i class="bcs-icon bcs-icon-info-circle-shape"></i>
                                 <strong class="desc">
                                     {{$t('为避免多成员同时编辑，引起内容或版本冲突，建议在编辑时，开启保护功能。')}}
                                     <span v-if="lateShowVersionName">
                                         （{{$t('当前版本号')}}：{{lateShowVersionName}}
-                                        <bk-tooltip
+                                        <bcs-popover
                                             :delay="300"
                                             :content="displayVersionNotes || '--'"
                                             style="padding-left: 6px;"
                                             placement="bottom">
-                                            <span style="color: #3c96ff;">{{$t('版本说明')}}</span>
-                                        </bk-tooltip>）</span>
+                                            <span style="color: #3a84ff;">{{$t('版本说明')}}</span>
+                                        </bcs-popover>）</span>
                                 </strong>
                                 <div class="action">
                                     <bk-switcher
@@ -123,17 +123,17 @@
                 <!-- 如果模板集没有加锁或者当前用户是加锁者才可以操作 -->
                 <template v-if="curTemplate.permissions.edit">
                     <template v-if="templateLockStatus.isLocked && !templateLockStatus.isCurLocker">
-                        <button href="javascript:void(0)" class="bk-button bk-default" disabled>{{$t('保存草稿')}}</button>
-                        <button href="javascript:void(0)" class="bk-button bk-primary" style="width: 70px;" disabled>{{$t('保存')}}</button>
+                        <bk-button disabled>{{$t('保存草稿')}}</bk-button>
+                        <bk-button type="primary" style="width: 70px;" disabled>{{$t('保存')}}</bk-button>
                     </template>
                     <template v-else>
-                        <button href="javascript:void(0)" class="bk-button bk-default" @click.stop.prevent="saveTemplateDraft">{{$t('保存草稿')}}</button>
-                        <button href="javascript:void(0)" :class="['bk-button bk-primary', { 'is-loading': isDataSaveing, 'is-disabled': !isTemplateCanSave }]" style="width: 70px;" @click.stop.prevent="saveTemplateData">{{$t('保存')}}</button>
+                        <bk-button @click.stop.prevent="saveTemplateDraft">{{$t('保存草稿')}}</bk-button>
+                        <bk-button type="primary" :loading="isDataSaveing" :disabled="!isTemplateCanSave" style="width: 70px;" @click.stop.prevent="saveTemplateData">{{$t('保存')}}</bk-button>
                     </template>
                 </template>
                 <template v-else>
-                    <bk-tooltip :delay="300" placement="bottom">
-                        <button href="javascript:void(0)" class="bk-button bk-default" disabled>{{$t('保存草稿')}}</button>
+                    <bcs-popover :delay="300" placement="bottom">
+                        <bk-button disabled>{{$t('保存草稿')}}</bk-button>
                         <template slot="content">
                             <p class="biz-permission-tip">
                                 {{$t('无权限，请去')}}<a :href="createApplyPermUrl({
@@ -143,9 +143,9 @@
                                 })" class="biz-link" target="_blank">{{$t('申请')}}</a>
                             </p>
                         </template>
-                    </bk-tooltip>
-                    <bk-tooltip :delay="300" placement="bottom">
-                        <button href="javascript:void(0)" class="bk-button bk-success" disabled>{{$t('保存')}}</button>
+                    </bcs-popover>
+                    <bcs-popover :delay="300" placement="bottom">
+                        <bk-button type="primary" disabled>{{$t('保存')}}</bk-button>
                         <template slot="content">
                             <p class="biz-permission-tip">
                                 {{$t('无权限，请去')}}<a :href="createApplyPermUrl({
@@ -155,17 +155,17 @@
                                 })" class="biz-link" target="_blank">{{$t('申请')}}</a>
                             </p>
                         </template>
-                    </bk-tooltip>
+                    </bcs-popover>
                 </template>
 
                 <template v-if="curTemplate.permissions.use">
-                    <button href="javascript:void(0)" @click.stop.prevent="createInstance" :class="['bk-button bk-default', { 'is-disabled': !canCreateInstance }]">
+                    <bk-button :disabled="!canCreateInstance" @click.stop.prevent="createInstance">
                         {{$t('实例化')}}
-                    </button>
+                    </bk-button>
                 </template>
                 <template v-else>
-                    <bk-tooltip :delay="300" placement="bottom">
-                        <button href="javascript:void(0)" class="bk-button bk-default" disabled>{{$t('实例化')}}</button>
+                    <bcs-popover :delay="300" placement="bottom">
+                        <bk-button disabled>{{$t('实例化')}}</bk-button>
                         <template slot="content">
                             <p class="biz-permission-tip">
                                 {{$t('无权限，请去')}}<a :href="createApplyPermUrl({
@@ -175,15 +175,15 @@
                                 })" class="biz-link" target="_blank">{{$t('申请')}}</a>
                             </p>
                         </template>
-                    </bk-tooltip>
+                    </bcs-popover>
                 </template>
 
                 <template v-if="curTemplate.permissions.view">
-                    <button href="javascript:void(0)" :class="['bk-button bk-default']" @click.stop.prevent="showVersionPanel">{{$t('版本列表')}}</button>
+                    <bk-button @click.stop.prevent="showVersionPanel">{{$t('版本列表')}}</bk-button>
                 </template>
                 <template v-else>
-                    <bk-tooltip :delay="300" placement="bottom">
-                        <button href="javascript:void(0)" class="bk-button bk-default is-disabled" disabled>{{$t('版本列表')}}</button>
+                    <bcs-popover :delay="300" placement="bottom">
+                        <bk-button disabled>{{$t('版本列表')}}</bk-button>
                         <template slot="content">
                             <p class="biz-permission-tip">
                                 {{$t('无权限，请去')}}
@@ -196,7 +196,7 @@
                                 </a>
                             </p>
                         </template>
-                    </bk-tooltip>
+                    </bcs-popover>
                 </template>
             </div>
         </template>
@@ -214,25 +214,25 @@
                     <p class="title">{{$t('保存修改到')}}：</p>
                     <ul :class="['version-list', { 'is-en': isEn }]">
                         <template v-if="!isNewVersion">
-                            <li class="item">
+                            <li class="item mb10">
                                 <label class="bk-form-radio label-item">
-                                    <input type="radio" name="save-version-way" value="cur" v-model="saveVersionWay">
+                                    <input type="radio" name="save-version-way" :class="{ 'is-checked': saveVersionWay === 'cur' }" value="cur" v-model="saveVersionWay">
                                     <i class="bk-radio-text" style="display: inline-block; min-width: 70px;">{{$t('当前版本号')}}：{{lateShowVersionName}}</i>
                                 </label>
                             </li>
 
-                            <li class="item">
+                            <li class="item mb10">
                                 <label class="bk-form-radio label-item" style="margin-right: 0;">
-                                    <input type="radio" name="save-version-way" value="new" v-model="saveVersionWay">
+                                    <input type="radio" name="save-version-way" :class="{ 'is-checked': saveVersionWay === 'new' }" value="new" v-model="saveVersionWay">
                                     <i class="bk-radio-text" style="display: inline-block; min-width: 70px;">{{$t('新版本')}}：</i>
-                                    <input type="text" class="bk-form-input" :placeholder="$t('请输入版本号')" @focus="saveVersionWay = 'new'" style="display: inline-block; width: 176px;" v-model="versionKeyword" />
+                                    <bkbcs-input :placeholder="$t('请输入版本号')" @focus="saveVersionWay = 'new'" style="width: 176px; flex: 1;" v-model="versionKeyword" />
                                 </label>
                             </li>
 
                             <li class="item" v-if="withoutCurVersionList.length">
                                 <label class="bk-form-radio label-item" style="margin-right: 0;">
-                                    <input type="radio" name="save-version-way" value="old" v-model="saveVersionWay">
-                                    <i class="bk-radio-text" style="display: inline-block; min-width: 70px;">{{$t('其它版本')}}：</i>
+                                    <input type="radio" name="save-version-way" :class="{ 'is-checked': saveVersionWay === 'old' }" value="old" v-model="saveVersionWay">
+                                    <i class="bk-radio-text" style="display: inline-block; min-width: 70px; letter-spacing: 0;">{{$t('其它版本')}}：</i>
                                     <bk-selector
                                         style="width: 176px;"
                                         :placeholder="$t('请选择版本号')"
@@ -247,47 +247,35 @@
                         <template v-else>
                             <li class="item">
                                 <label class="bk-form-radio label-item" style="margin-right: 0;">
-                                    <i class="bk-radio-text" style="display: inline-block; width: 70px;">{{$t('新版本')}}：</i>
-                                    <input type="text" class="bk-form-input" :placeholder="$t('请输入版本号')" @focus="saveVersionWay = 'new'" style="display: inline-block; width: 203px;" v-model="versionKeyword" />
+                                    <i class="bk-radio-text" style="display: inline-block; width: 70px; letter-spacing: 0;">{{$t('新版本')}}：</i>
+                                    <bkbcs-input :placeholder="$t('请输入版本号')" @focus="saveVersionWay = 'new'" style="width: 203px; flex: 1;" v-model="versionKeyword" />
                                 </label>
                             </li>
                         </template>
                         <li class="item">
                             <label :class="['notes', 'label-item', { 'new-item': isNewVersion }]" style="margin-right: 0;">
-                                <i :class="['notes-text', { 'is-en-text': isEn, 'is-new': isNewVersion }]" :style="{ 'padding-left': isNewVersion ? 0 : '29px' }">{{$t('版本说明')}}：</i>
+                                <i :class="['notes-text', { 'is-en-text': isEn, 'is-new': isNewVersion }]" :style="{ 'letter-spacing': 0, 'padding-left': isNewVersion ? 0 : '26px' }">{{$t('版本说明')}}：</i>
                                 <bk-textarea class="notes-input" :style="{ width: isNewVersion ? '203px' : '176px' }" :placeholder="$t('请输入版本说明')" :value.sync="curVersionNotes" />
                             </label>
                         </li>
                     </ul>
                 </div>
             </template>
-            <template slot="footer">
-                <div class="bk-dialog-outer">
-                    <template v-if="isCreating">
-                        <button type="button" class="bk-dialog-btn bk-dialog-btn-confirm bk-btn-primary disabled">
-                            {{$t('保存中...')}}
-                        </button>
-                        <button type="button" class="bk-dialog-btn bk-dialog-btn-cancel disabled">
-                            {{$t('取消')}}
-                        </button>
-                    </template>
-                    <template v-else>
-                        <template v-if="!canVersionSave">
-                            <button type="button" class="bk-dialog-btn bk-dialog-btn-confirm bk-btn-primary disabled" style="background-color: #fafafa; border-color: #e6e6e6; color: #ccc;">
-                                {{$t('确定')}}
-                            </button>
-                        </template>
-                        <template v-else>
-                            <button type="button" class="bk-dialog-btn bk-dialog-btn-confirm bk-btn-primary" @click="saveVersion">
-                                {{$t('确定')}}
-                            </button>
-                        </template>
-                        <button type="button" class="bk-dialog-btn bk-dialog-btn-cancel" @click="hideVersionBox">
-                            {{$t('取消')}}
-                        </button>
-                    </template>
-                </div>
-            </template>
+            <div slot="footer">
+                <template v-if="!canVersionSave">
+                    <bk-button type="primary" disabled>
+                        {{$t('确定')}}
+                    </bk-button>
+                </template>
+                <template v-else>
+                    <bk-button type="primary" :loading="isCreating" @click="saveVersion">
+                        {{$t('确定')}}
+                    </bk-button>
+                </template>
+                <bk-button type="button" :disabled="isCreating" @click="hideVersionBox">
+                    {{$t('取消')}}
+                </bk-button>
+            </div>
         </bk-dialog>
 
         <svg style="display: none;">
@@ -319,8 +307,8 @@
                         <p class="tip">{{$t('k8s内部使用 spec.selector.matchLabels 关联资源, 直接修改 matchLabel 会导致产生某些“孤儿”资源 （例如修改没有Deployment管理的 ReplicaSet）')}}</p>
                     </div>
                     <div class="tip-footer">
-                        <button class="bk-button bk-primary mr10">{{$t('确定')}}</button>
-                        <button class="bk-button bk-default">{{$t('取消')}}</button>
+                        <bk-button class="bk-button bk-primary mr10">{{$t('确定')}}</bk-button>
+                        <bk-button>{{$t('取消')}}</bk-button>
                     </div>
                 </div>
             </template>
@@ -332,111 +320,100 @@
             :title="versionSidePanel.title"
             :width="'900'">
             <div class="p30" slot="content" v-bkloading="{ isLoading: isVersionListLoading }">
-                <table class="bk-table biz-data-table has-table-bordered">
-                    <thead>
-                        <tr>
-                            <th style="width: 250px;">{{$t('版本号')}}</th>
-                            <th>{{$t('更新时间')}}</th>
-                            <th>{{$t('最后更新人')}}</th>
-                            <th style="width: 220px;">{{$t('操作')}}</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <template v-if="versionList.length">
-                            <tr v-for="(versionData, index) in versionList" :key="index">
-                                <td>
-                                    <p>
-                                        <span>{{versionData.name}}</span>
-                                        <span v-if="versionData.show_version_id === curShowVersionId">{{$t('(当前)')}}</span>
-                                    </p>
+                <bk-table
+                    :data="versionList"
+                    :size="'medium'">
+                    <bk-table-column :label="$t('版本号')" :show-overflow-tooltip="false" min-width="200">
+                        <template slot-scope="props">
+                            <p>
+                                <span>{{props.row.name}}</span>
+                                <span v-if="props.row.show_version_id === curShowVersionId">{{$t('(当前)')}}</span>
+                            </p>
 
-                                    <bk-tooltip
-                                        v-if="versionData.comment"
-                                        :delay="300"
-                                        :content="versionData.comment"
-                                        placement="right">
-                                        <span style="color: #3c96ff; font-size: 12px;">{{$t('版本说明')}}</span>
-                                    </bk-tooltip>
-                                </td>
-                                <td>{{versionData.updated}}</td>
-                                <td>{{versionData.updator}}</td>
-                                <td>
-                                    <a href="javascript:void(0);" class="bk-text-button" @click.stop.prevent="getTemplateByVersion(versionData.show_version_id)">{{$t('加载')}}</a>
-                                    <template v-if="versionData.show_version_id === -1">
-                                        <a href="javascript:void(0);" class="bk-text-button is-disabled" v-bktooltips="$t('草稿不支持转换YAML')">{{$t('转换到YAML')}}</a>
+                            <bcs-popover
+                                v-if="props.row.comment"
+                                :delay="300"
+                                :content="props.row.comment"
+                                placement="right">
+                                <span style="color: #3a84ff; font-size: 12px;">{{$t('版本说明')}}</span>
+                            </bcs-popover>
+                        </template>
+                    </bk-table-column>
+                    <bk-table-column :label="$t('更新时间')" :show-overflow-tooltip="true" min-width="150">
+                        <template slot-scope="props">
+                            {{props.row.updated}}
+                        </template>
+                    </bk-table-column>
+                    <bk-table-column :label="$t('最后更新人')" :show-overflow-tooltip="true" min-width="150">
+                        <template slot-scope="props">
+                            {{props.row.updator}}
+                        </template>
+                    </bk-table-column>
+                    <bk-table-column :label="$t('操作')" :show-overflow-tooltip="true" min-width="200">
+                        <template slot-scope="props">
+                            <a href="javascript:void(0);" class="bk-text-button" @click.stop.prevent="getTemplateByVersion(props.row.show_version_id)">{{$t('加载')}}</a>
+                            <template v-if="props.row.show_version_id === -1">
+                                <a href="javascript:void(0);" class="bk-text-button is-disabled" v-bk-tooltips="$t('草稿不支持转换YAML')">{{$t('转换到YAML')}}</a>
+                            </template>
+                            <template v-else>
+                                <a href="javascript:void(0);" class="bk-text-button" @click.stop.prevent="handleExportToYaml(props.row)">{{$t('转换到YAML')}}</a>
+                            </template>
+                            <!-- 只有一个版本时不能删除 -->
+                            <template v-if="versionList.length <= 1">
+                                <bcs-popover :delay="300" placement="right">
+                                    <a href="javascript:void(0);" class="bk-text-button is-disabled ml5" disabled>{{$t('删除')}}</a>
+                                    <template slot="content">
+                                        <p class="biz-permission-tip">
+                                            {{$t('必须保留至少一个版本')}}
+                                        </p>
                                     </template>
-                                    <template v-else>
-                                        <a href="javascript:void(0);" class="bk-text-button" @click.stop.prevent="handleExportToYaml(versionData)">{{$t('转换到YAML')}}</a>
+                                </bcs-popover>
+                            </template>
+                            <template v-else>
+                                <!-- 有编辑权限 -->
+                                <template v-if="curTemplate.permissions.edit">
+                                    <!-- 已经加锁，且是当前加锁人 -->
+                                    <template v-if="templateLockStatus.isLocked && templateLockStatus.isCurLocker">
+                                        <a href="javascript:void(0);" class="bk-text-button" @click.stop.prevent="removeVersion(props.row)">{{$t('删除')}}</a>
                                     </template>
-                                    <!-- 只有一个版本时不能删除 -->
-                                    <template v-if="versionList.length <= 1">
-                                        <bk-tooltip :delay="300" placement="right">
+                                    <!-- 已经加锁，但不是当前加锁人 -->
+                                    <template v-else-if="templateLockStatus.isLocked && !templateLockStatus.isCurLocker">
+                                        <bcs-popover :delay="300" placement="right">
                                             <a href="javascript:void(0);" class="bk-text-button is-disabled ml5" disabled>{{$t('删除')}}</a>
                                             <template slot="content">
                                                 <p class="biz-permission-tip">
-                                                    {{$t('必须保留至少一个版本')}}
+                                                    {{$t('{locker}正在操作，您如需编辑请联系{locker}解锁！', templateLockStatus)}}
                                                 </p>
                                             </template>
-                                        </bk-tooltip>
+                                        </bcs-popover>
                                     </template>
+                                    <!-- 没有加锁 -->
                                     <template v-else>
-                                        <!-- 有编辑权限 -->
-                                        <template v-if="curTemplate.permissions.edit">
-                                            <!-- 已经加锁，且是当前加锁人 -->
-                                            <template v-if="templateLockStatus.isLocked && templateLockStatus.isCurLocker">
-                                                <a href="javascript:void(0);" class="bk-text-button" @click.stop.prevent="removeVersion(versionData)">{{$t('删除')}}</a>
-                                            </template>
-                                            <!-- 已经加锁，但不是当前加锁人 -->
-                                            <template v-else-if="templateLockStatus.isLocked && !templateLockStatus.isCurLocker">
-                                                <bk-tooltip :delay="300" placement="right">
-                                                    <a href="javascript:void(0);" class="bk-text-button is-disabled ml5" disabled>{{$t('删除')}}</a>
-                                                    <template slot="content">
-                                                        <p class="biz-permission-tip">
-                                                            {{$t('{locker}正在操作，您如需编辑请联系{locker}解锁！', templateLockStatus)}}
-                                                        </p>
-                                                    </template>
-                                                </bk-tooltip>
-                                            </template>
-                                            <!-- 没有加锁 -->
-                                            <template v-else>
-                                                <a href="javascript:void(0);" class="bk-text-button" @click.stop.prevent="removeVersion(versionData)">{{$t('删除')}}</a>
-                                            </template>
-                                        </template>
-                                        <!-- 没有编辑权限 -->
-                                        <template v-else>
-                                            <bk-tooltip :delay="300" placement="top">
-                                                <a href="javascript:void(0);" class="bk-text-button is-disabled" disabled>{{$t('删除')}}</a>
-                                                <template slot="content">
-                                                    <p class="biz-permission-tip">
-                                                        {{$t('无权限，请去')}}
-                                                        <a :href="createApplyPermUrl({
-                                                            policy: 'edit',
-                                                            projectCode: projectCode,
-                                                            idx: 'namespace'
-                                                        })" class="biz-link" target="_blank">
-                                                            {{$t('申请')}}
-                                                        </a>
-                                                    </p>
-                                                </template>
-                                            </bk-tooltip>
-                                        </template>
+                                        <a href="javascript:void(0);" class="bk-text-button" @click.stop.prevent="removeVersion(props.row)">{{$t('删除')}}</a>
                                     </template>
-                                </td>
-                            </tr>
+                                </template>
+                                <!-- 没有编辑权限 -->
+                                <template v-else>
+                                    <bcs-popover :delay="300" placement="top">
+                                        <a href="javascript:void(0);" class="bk-text-button is-disabled" disabled>{{$t('删除')}}</a>
+                                        <template slot="content">
+                                            <p class="biz-permission-tip">
+                                                {{$t('无权限，请去')}}
+                                                <a :href="createApplyPermUrl({
+                                                    policy: 'edit',
+                                                    projectCode: projectCode,
+                                                    idx: 'namespace'
+                                                })" class="biz-link" target="_blank">
+                                                    {{$t('申请')}}
+                                                </a>
+                                            </p>
+                                        </template>
+                                    </bcs-popover>
+                                </template>
+                            </template>
                         </template>
-                        <template v-else>
-                            <tr>
-                                <td colspan="4">
-                                    <div class="biz-app-list">
-                                        <div class="bk-message-box" style="min-height: auto;">
-                                            <p class="message empty-message" style="margin: 30px;">{{$t('无数据')}}</p>
-                                        </div>
-                                    </div>
-                                </td>
-                            </tr>
-                        </template>
-                    </tbody>
-                </table>
+                    </bk-table-column>
+                </bk-table>
             </div>
         </bk-sideslider>
     </div>
@@ -790,10 +767,10 @@
                 })
                 if (isEdited || this.$store.state.k8sTemplate.canTemplateBindVersion) {
                     this.$bkInfo({
-                        title: this.$t('确认'),
+                        title: this.$t('确认离开'),
                         content: this.$createElement('p', {
                             style: {
-                                textAlign: 'center'
+                                textAlign: 'left'
                             }
                         }, this.$t('模板编辑的内容未保存，确认要离开？')),
                         confirmFn () {
@@ -820,8 +797,8 @@
             removeVersion (data) {
                 const self = this
                 this.$bkInfo({
-                    title: this.$t('确认'),
-                    content: this.$createElement('p', { style: { 'text-align': 'center' } }, `${this.$t('删除版本')}：“${data.name}”`),
+                    title: this.$t('确认删除'),
+                    content: this.$createElement('p', { style: { 'text-align': 'left' } }, `${this.$t('删除版本')}：“${data.name}”`),
                     confirmFn () {
                         const projectId = self.projectId
                         const templateId = self.curTemplateId
@@ -873,7 +850,8 @@
                 const projectId = this.projectId
                 const templateId = this.curTemplateId
                 this.$bkInfo({
-                    title: this.$t('确定要删除此模板集？'),
+                    title: this.$t('确认删除'),
+                    content: this.$t('确定要删除此模板集？'),
                     confirmFn () {
                         self.$store.dispatch('k8sTemplate/removeTemplate', { templateId, projectId }).then(res => {
                             this.$bkMessage({
@@ -1080,7 +1058,7 @@
                     this.$store.dispatch('k8sTemplate/updateTemplateDraft', { projectId, templateId, data }).then(res => {
                         this.$bkMessage({
                             theme: 'success',
-                            message: '保存成功！'
+                            message: this.$t('保存成功')
                         })
                         // 新创建则跳转
                         if (this.isNewTemplate) {
@@ -1265,7 +1243,7 @@
                 const name = versionData.name
                 const realVersionId = versionData.real_version_id
                 const me = this
-                let msg = `转换YAML功能会将模板集版本【${name}】复制为一个新的YAML模板集，由平台完成模板配置的转换`
+                let msg = `转换YAML功能会将模板集版本【${name}】复制为一个新的YAML模板集，由平台完成模板配置的转换。使用中如有问题，请联系蓝鲸容器助手`
                 if (this.isEn) {
                     msg = `The conversion YAML function will copy the template set version [${name}] into a new YAML template set, and the platform will complete the conversion of the template configuration. If you have any questions during use, please contact BCS`
                 }
@@ -1325,7 +1303,7 @@
                             return yamljs.dump(appConfig, { indent: 2 })
                         })
                     }
-                    
+
                     if (resources.K8sJob && resources.K8sJob.length) {
                         data['Job'] = resources.K8sJob.map(app => {
                             const appConfig = app.config
@@ -1679,7 +1657,7 @@
                         }
                         this.$store.commit('k8sTemplate/updateCurTemplate', templateParams)
                     }
-                    
+
                     this.isTemplateLoading = false
                     this.initResources(callback)
                 } else {
@@ -1799,6 +1777,7 @@
                 const labelKeyReg = /^([A-Za-z0-9][-A-Za-z0-9_./]*)?[A-Za-z0-9]$/
                 const envKeyReg = /^([A-Za-z0-9][-A-Za-z0-9_.]*)?[A-Za-z0-9]$/
                 const varReg = /\{\{([^\{\}]+)?\}\}/g
+                const ipReg = /^((2(5[0-5]|[0-4]\d))|[0-1]?\d{1,2})(\.((2(5[0-5]|[0-4]\d))|[0-1]?\d{1,2})){3}$/
                 let megPrefix = `"${appName}"${this.$t('中')}`
 
                 if (appName === '') {
@@ -1892,7 +1871,7 @@
                                 megPrefix += `${this.$t('卷模板')}：`
                                 this.$bkMessage({
                                     theme: 'error',
-                                    message: megPrefix + '请输入挂载名!'
+                                    message: megPrefix + this.$t('请输入挂载名')
                                 })
                                 return false
                             }
@@ -1986,6 +1965,15 @@
                                 this.$bkMessage({
                                     theme: 'error',
                                     message: megPrefix + this.$t('IP不能为空'),
+                                    delay: 8000
+                                })
+                                return false
+                            }
+                            if (hostAlias.ip && !ipReg.test(hostAlias.ip.replace(varReg, '255.255.255.255'))) {
+                                megPrefix += `hostAliases：`
+                                this.$bkMessage({
+                                    theme: 'error',
+                                    message: megPrefix + this.$t('请输入合法IP地址'),
                                     delay: 8000
                                 })
                                 return false
@@ -2408,7 +2396,7 @@
 
                 if (params.config.webCache.isUserConstraint) {
                     try {
-                        const yamlCode = params.config.webCache.affinityYamlCache
+                        const yamlCode = params.config.webCache.affinityYamlCache || ''
                         params.config.webCache.affinityYaml = yamlCode
                         const json = yamljs.load(yamlCode)
                         if (json) {
@@ -2432,6 +2420,11 @@
                     } else {
                         delete params.config.spec.template.spec.imagePullSecrets
                     }
+                }
+
+                // 服务帐户处理
+                if (!params.config.spec.template.spec.serviceAccountName) {
+                    delete params.config.spec.template.spec.serviceAccountName
                 }
 
                 // 转换命令参数和环境变量
@@ -2896,6 +2889,8 @@
 
                 const params = this.versionMetadata
                 params.comment = this.curVersionNotes
+
+                this.isCreating = true
                 await this.$store.dispatch('k8sTemplate/saveVersion', { projectId, templateId, params }).then(res => {
                     this.$bkMessage({
                         theme: 'success',
@@ -2931,6 +2926,8 @@
                         theme: 'error',
                         message: res.message
                     })
+                }).finally(() => {
+                    this.isCreating = false
                 })
             },
             getKeyList (list) {
@@ -3334,7 +3331,7 @@
                     }
 
                     if (!nameReg.test(rule.host)) {
-                        megPrefix += `${rule.host}的${this.$t('规则主机名')}：`
+                        megPrefix += this.$t('{host}的规则主机名：', { host: rule.host })
                         this.$bkMessage({
                             theme: 'error',
                             message: megPrefix + this.$t('名称错误，只能包含：小写字母、数字、连字符(-)，首字母必须是字母，长度小于30个字符'),
@@ -3347,7 +3344,7 @@
 
                     for (const path of paths) {
                         if (path.path && !pathReg.test(path.path)) {
-                            megPrefix += `${rule.host}的${this.$t('路径组')}：`
+                            megPrefix += this.$t('{host}的路径组：', { host: rule.host })
                             this.$bkMessage({
                                 theme: 'error',
                                 message: megPrefix + this.$t('路径不正确'),
@@ -3357,7 +3354,7 @@
                         }
 
                         if (path.backend.serviceName && !path.backend.servicePort) {
-                            megPrefix += `${rule.host}的${this.$t('路径组')}：`
+                            megPrefix += this.$t('{host}的路径组：', { host: rule.host })
                             this.$bkMessage({
                                 theme: 'error',
                                 message: megPrefix + this.$t('请关联服务端口'),
@@ -3367,7 +3364,7 @@
                         }
 
                         if (path.backend.serviceName && !this.linkServices.includes(path.backend.serviceName)) {
-                            megPrefix += `${rule.host}的${this.$t('路径组')}：`
+                            megPrefix += this.$t('{host}的路径组：', { host: rule.host })
                             this.$bkMessage({
                                 theme: 'error',
                                 message: megPrefix + this.$t('关联的Service【{serviceName}】不存在，请重新绑定', {
@@ -3643,7 +3640,7 @@
                             this.$bkMessage({
                                 theme: 'error',
                                 delay: 8000,
-                                message: megPrefix + `已关联应用，请填写端口映射信息或将ClusterIP设置为None！`
+                                message: megPrefix + this.$t('已关联应用，请填写端口映射信息或将ClusterIP设置为None！')
                             })
                             return false
                         } else {
@@ -3651,7 +3648,7 @@
                             this.$bkMessage({
                                 theme: 'error',
                                 delay: 8000,
-                                message: megPrefix + 'ClusterIP为None时，端口映射可以不填；否则请先关联应用后，再填写端口映射！'
+                                message: megPrefix + this.$t('ClusterIP为None时，端口映射可以不填；否则请先关联应用后，再填写端口映射！')
                             })
                             return false
                         }
@@ -3970,7 +3967,7 @@
                     return false
                 }
                 if (!nameReg1.test(configmapName)) {
-                    megPrefix += '名称：'
+                    megPrefix += this.$t('名称：')
                     this.$bkMessage({
                         theme: 'error',
                         message: megPrefix + this.$t('名称错误，以小写字母或数字开头和结尾，只能包含：小写字母、数字、连字符(-)、点(.)'),

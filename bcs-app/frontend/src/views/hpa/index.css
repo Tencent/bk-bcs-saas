@@ -1,5 +1,5 @@
-@import '@open/css/variable.css';
-@import '@open/css/mixins/ellipsis.css';
+@import '@/css/variable.css';
+@import '@/css/mixins/ellipsis.css';
 
 .biz-app-title {
     display: inline-block;
@@ -10,6 +10,9 @@
 }
 
 .biz-hpa {
+    .bcs-icon-info-circle {
+        margin-left: -15px;
+    }
     .already-selected-nums {
         font-size: 14px;
         height: 40px;
@@ -22,13 +25,28 @@
     .biz-table-wrapper {
         overflow-x: auto;
     }
+    .metrics-display-wrapper {
+        display: flex;
+        .display {
+            margin-right: 8px;
+            @mixin ellipsis 200px;
+        }
+        .display-icon {
+            display: inline-block;
+            font-size: 12px;
+            cursor: pointer;
+            vertical-align: top;
+        }
+    }
 }
 
 .biz-text-wrapper {
     max-width: 250px;
     text-overflow: ellipsis;
     overflow: hidden;
-    display: inline-block;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 1;
 }
 
 @media screen and (max-width: $mediaWidth) {
@@ -36,6 +54,8 @@
         max-width: 130px;
         text-overflow: ellipsis;
         overflow: hidden;
-        display: inline-block;
+        display: -webkit-box;
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 1;
     }
 }

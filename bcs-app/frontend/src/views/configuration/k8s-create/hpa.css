@@ -1,4 +1,4 @@
-@import '@open/css/variable.css';
+@import '@/css/variable.css';
 
 .biz-content-wrapper {
     padding: 20px;
@@ -54,7 +54,7 @@
 
 .save-json-btn {
     position: absolute;
-    right: 100px;
+    right: 85px;
     top: -48px;
 }
 
@@ -76,7 +76,7 @@
     background: transparent;
     outline: none;
 
-    .bk-icon {
+    .bcs-icon {
         width: 24px;
         height: 24px;
         line-height: 24px;
