@@ -95,12 +95,12 @@ export default function menuConfig () {
                 id: 'NETWORK',
                 children: [
                     {
-                        name: 'Ingresses',
-                        pathName: ['dashboardNetworkIngress']
-                    },
-                    {
                         name: 'Services',
                         pathName: ['dashboardNetworkService']
+                    },
+                    {
+                        name: 'Ingresses',
+                        pathName: ['dashboardNetworkIngress']
                     },
                     {
                         name: 'Endpoints',

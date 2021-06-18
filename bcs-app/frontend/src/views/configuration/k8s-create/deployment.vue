@@ -2124,6 +2124,10 @@
                             }
                         }
                     }
+                    // 我也不知道为啥，先加上linkMessage为空时disable为false
+                    keyList.forEach(item => {
+                        !item.linkMessage && (item.disabled = false)
+                    })
                     return keyList
                 } else {
                     for (const [key, value] of Object.entries(labels)) {

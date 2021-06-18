@@ -95,10 +95,30 @@ export default defineComponent({
                             handlePageSizeChange: this.handlePageSizeChange,
                             handleGetExtData: this.handleGetExtData,
                             handleSortChange: this.handleSortChange,
-                            gotoDetail: this.gotoDetail
+                            gotoDetail: this.gotoDetail,
+                            handleShowDetail: this.handleShowDetail
                         })
                     }
                 </div>
+                <bcs-sideslider
+                    quick-close
+                    isShow={this.showDetailPanel}
+                    title={this.curDetailRow.metadata?.name}
+                    width={800}
+                    {
+                    ...{
+                        on: {
+                            'update:isShow': (show: boolean) => {
+                                this.showDetailPanel = show
+                            }
+                        },
+                        scopedSlots: {
+                            content: () => (this.$scopedSlots.detail && this.$scopedSlots.detail({
+                                data: this.curDetailRow
+                            }))
+                        }
+                    }
+                    }></bcs-sideslider>
             </div>
         )
     }

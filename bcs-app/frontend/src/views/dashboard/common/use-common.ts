@@ -18,6 +18,8 @@ interface IOptions {
 export default function useCommon (ctx: SetupContext, options: IOptions) {
     const keys = ref(['metadata.name'])
     const namespaceValue = ref('')
+    const showDetailPanel = ref(false)
+    const curDetailRow = ref<any>({})
 
     // 初始化集群列表信息
     useCluster(ctx)
@@ -98,6 +100,12 @@ export default function useCommon (ctx: SetupContext, options: IOptions) {
         })
     }
 
+    // 显示侧栏详情
+    const handleShowDetail = (row) => {
+        curDetailRow.value = row
+        showDetailPanel.value = true
+    }
+
     onMounted(() => {
         options.showNameSpace && getNamespaceData()
         fetchList(options.type, options.category)
@@ -106,6 +114,8 @@ export default function useCommon (ctx: SetupContext, options: IOptions) {
     return {
         namespaceValue,
         namespaceLoading,
+        showDetailPanel,
+        curDetailRow,
         isLoading,
         pageConf: pagination,
         nameValue: searchValue,
@@ -117,6 +127,7 @@ export default function useCommon (ctx: SetupContext, options: IOptions) {
         handlePageSizeChange: pageSizeChange,
         handleGetExtData,
         handleSortChange,
-        gotoDetail
+        gotoDetail,
+        handleShowDetail
     }
 }

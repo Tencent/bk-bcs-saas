@@ -1,12 +1,16 @@
 <template>
     <BaseLayout title="Services" kind="Service" category="services" type="networks">
-        <template #default="{ curPageData, pageConf, handlePageChange, handlePageSizeChange, handleGetExtData }">
+        <template #default="{ curPageData, pageConf, handlePageChange, handlePageSizeChange, handleGetExtData, handleShowDetail }">
             <bk-table
                 :data="curPageData"
                 :pagination="pageConf"
                 @page-change="handlePageChange"
                 @page-limit-change="handlePageSizeChange">
-                <bk-table-column :label="$t('名称')" prop="metadata.name" sortable :resizable="false"></bk-table-column>
+                <bk-table-column :label="$t('名称')" prop="metadata.name" sortable :resizable="false">
+                    <template #default="{ row }">
+                        <bk-button class="bcs-button-ellipsis" text @click="handleShowDetail(row)">{{ row.metadata.name }}</bk-button>
+                    </template>
+                </bk-table-column>
                 <bk-table-column :label="$t('命名空间')" prop="metadata.namespace" sortable :resizable="false"></bk-table-column>
                 <bk-table-column label="Type" :resizable="false">
                     <template #default="{ row }">
@@ -35,13 +39,17 @@
                 </bk-table-column>
             </bk-table>
         </template>
+        <template #detail="{ data }">
+            <ServiceDetail :data="data"></ServiceDetail>
+        </template>
     </BaseLayout>
 </template>
 <script>
     import { defineComponent } from '@vue/composition-api'
     import BaseLayout from '@open/views/dashboard/common/base-layout'
+    import ServiceDetail from './service-detail.vue'
 
     export default defineComponent({
-        components: { BaseLayout }
+        components: { BaseLayout, ServiceDetail }
     })
 </script>
