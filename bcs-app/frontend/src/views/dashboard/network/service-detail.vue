@@ -10,7 +10,6 @@
                     {{ transformObjToStr(data.spec.selector) }}
                 </p>
             </div>
-
             <div class="basic-info-item">
                 <p class="mb10">{{ $t('类型') }}:</p>
                 <p class="bcs-ellipsis">{{ data.spec.type }}</p>
