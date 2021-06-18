@@ -20,6 +20,8 @@ from backend.resources.workloads.pod import Pod
 
 class PodViewSet(SystemViewSet):
     def get_pod(self, request, project_id_or_code, cluster_id, namespace, pod_name):
+        """ 获取指定 Pod 信息，以列表格式返回 """
         pod = Pod(request.ctx_cluster).get(namespace=namespace, name=pod_name, is_format=False)
-        response_data = [ResourceDefaultFormatter().format(pod)]
+        # 保持格式不变，如果查询不到则返回空列表
+        response_data = [ResourceDefaultFormatter().format(pod)] if pod else []
         return Response(response_data)

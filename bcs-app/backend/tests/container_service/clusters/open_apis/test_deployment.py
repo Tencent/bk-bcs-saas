@@ -18,6 +18,7 @@ import pytest
 from backend.container_service.clusters.base import CtxCluster
 from backend.resources.workloads.deployment import Deployment
 from backend.tests.conftest import DEFAULT_NAMESPACE, MOCK_CLUSTER_ID, MOCK_PROJECT_ID
+from backend.tests.testing_utils.base import generate_random_string
 
 pytestmark = pytest.mark.django_db
 
@@ -25,7 +26,7 @@ pytestmark = pytest.mark.django_db
 class TestDeployment:
     """ Deployment OpenAPI 相关接口测试 """
 
-    deployment_name = 'deployment-for-test-xfhc5e'
+    deployment_name = 'deployment-for-test-{}'.format(generate_random_string(8))
     common_prefix = '/apis/resources/projects/{project_id}/clusters/{cluster_id}/namespaces/{namespace}/deployments'.format(  # noqa
         project_id=MOCK_PROJECT_ID, cluster_id=MOCK_CLUSTER_ID, namespace=DEFAULT_NAMESPACE
     )
@@ -37,17 +38,19 @@ class TestDeployment:
             namespace=DEFAULT_NAMESPACE, name=self.deployment_name, body=gen_deployment_body(self.deployment_name)
         )
         yield
-        Deployment(ctx_cluster).delete_wait_finished(namespace=DEFAULT_NAMESPACE, name=self.deployment_name)
+        Deployment(ctx_cluster).delete(namespace=DEFAULT_NAMESPACE, name=self.deployment_name)
 
     def test_list_by_namespace(self, api_client):
         """ 测试获取指定命名空间下的 Deployment """
         response = api_client.get(f'{self.common_prefix}/')
         assert response.json()['code'] == 0
+        assert isinstance(response.json()['data'], list)
 
     def test_list_pods_by_deployment(self, api_client):
         """ 测试获取指定 Deployment 下属 Pod """
         response = api_client.get(f'{self.common_prefix}/{self.deployment_name}/pods/')
         assert response.json()['code'] == 0
+        assert isinstance(response.json()['data'], list)
 
 
 def gen_deployment_body(name: str) -> Dict:
