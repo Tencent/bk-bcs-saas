@@ -68,10 +68,6 @@ export default {
         curLabelList () {
             const list = []
             const labels = this.curServiceDetail.config.metadata.labels
-            // 如果有缓存直接使用
-            // if (this.curServiceDetail.config.webCache && this.curServiceDetail.config.webCache.labelListCache) {
-            //     return this.curServiceDetail.config.webCache.labelListCache
-            // }
             for (const [key, value] of Object.entries(labels)) {
                 list.push({
                     key: key,
@@ -109,7 +105,7 @@ export default {
          * 刷新列表
          */
         refresh () {
-            this.pageConf.curPage = 1
+            this.pageConf.current = 1
             this.isPageLoading = true
             this.getServiceList()
         },
@@ -119,11 +115,11 @@ export default {
          *
          * @param {number} pageSize pageSize
          */
-        changePageSize (pageSize) {
-            this.pageConf.pageSize = pageSize
-            this.pageConf.curPage = 1
+        handlePageLimitChange (pageSize) {
+            this.pageConf.limit = pageSize
+            this.pageConf.current = 1
             this.initPageConf()
-            this.pageChangeHandler()
+            this.handlePageChange()
         },
 
         /**
@@ -193,7 +189,7 @@ export default {
             }
 
             this.$bkInfo({
-                title: ``,
+                title: this.$t('确认删除'),
                 clsName: 'biz-remove-dialog max-size',
                 content: this.$createElement('p', {
                     class: 'biz-confirm-desc'

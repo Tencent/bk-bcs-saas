@@ -1,5 +1,5 @@
-@import '@open/css/variable.css';
-@import '@open/css/mixins/clearfix.css';
+@import '@/css/variable.css';
+@import '@/css/mixins/clearfix.css';
 
 .biz-tab-wrapper {
     padding: 30px 20px;
@@ -9,56 +9,6 @@
     border-right: 1px solid #ddd;
     min-width: 130px;
     text-align: center;
-}
-
-.bk-button-group {
-    @mixin clearfix;
-
-    .item {
-        position: relative;
-        display: inline-block;
-        float: left;
-
-        &:hover {
-            z-index: 10;
-
-            >.bk-icon {
-                display: inline-block;
-            }
-        }
-
-        &:first-child {
-            .bk-button {
-                border-radius: 2px 0 0 2px;
-            }
-        }
-
-        >.bk-button {
-            border-radius: 0;
-
-            &.is-selected {
-                background-color: #c3cdd7 !important;
-                border-color: #c3cdd7 !important;
-            }
-        }
-
-        >.bk-icon {
-            cursor: pointer;
-            background: #fff;
-            position: absolute;
-            border-radius: 50%;
-            right: -5px;
-            top: -5px;
-            display: none;
-            font-size: 16px;
-            z-index: 1;
-            color: $primaryColor;
-
-            &:hover {
-                color: $primaryColor;
-            }
-        }
-    }
 }
 
 .biz-keys-list {
@@ -101,7 +51,7 @@
     background: transparent;
     outline: none;
 
-    .bk-icon {
+    .bcs-icon {
         width: 24px;
         height: 24px;
         line-height: 24px;
@@ -146,12 +96,12 @@
 }
 
 .bk-text-button {
-    .bk-icon {
+    .bcs-icon {
         transition: all ease 0.3s;
     }
 
     &.rotate {
-        .bk-icon {
+        .bcs-icon {
             transform: rotate(180deg);
         }
     }
@@ -165,7 +115,7 @@
         &:hover {
             color: $primaryColor;
 
-            .bk-icon {
+            .bcs-icon {
                 color: $primaryColor;
                 border-color: $primaryColor;
             }
@@ -201,7 +151,7 @@
 
 .save-json-btn {
     position: absolute;
-    right: 100px;
+    right: 85px;
     top: -48px;
 }
 

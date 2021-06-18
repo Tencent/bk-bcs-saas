@@ -3,7 +3,7 @@
         <div class="biz-top-bar">
             <div class="biz-topbar-title">
                 Secrets
-                <span class="biz-tip f12 ml10">{{currentView === 'mesosService' ? $t('请通过模板集创建Secret') : $t('请通过模板集或Helm创建Secret')}}</span>
+                <span class="biz-tip ml10">{{currentView === 'mesosService' ? $t('请通过模板集创建Secret') : $t('请通过模板集或Helm创建Secret')}}</span>
             </div>
             <bk-guide></bk-guide>
         </div>
@@ -17,9 +17,9 @@
             <template v-if="!exceptionCode && !isInitLoading">
                 <div class="biz-panel-header">
                     <div class="left">
-                        <button class="bk-button bk-default" @click.stop.prevent="removeSecrets" v-if="curPageData.length">
+                        <bk-button @click.stop.prevent="removeSecrets" v-if="curPageData.length">
                             <span>{{$t('批量删除')}}</span>
-                        </button>
+                        </bk-button>
                     </div>
                     <div class="right">
                         <bk-data-searcher
@@ -27,120 +27,70 @@
                             :scope-list="searchScopeList"
                             :search-key.sync="searchKeyword"
                             :search-scope.sync="searchScope"
+                            :cluster-fixed="!!curClusterId"
                             @search="getSecretList"
                             @refresh="refresh">
                         </bk-data-searcher>
                     </div>
                 </div>
 
-                <div class="biz-resource">
-                    <div class="biz-table-wrapper" v-bkloading="{ isLoading: isPageLoading && !isInitLoading }">
-                        <table class="bk-table has-table-hover biz-table biz-resource-table">
-                            <thead>
-                                <tr>
-                                    <th style="width: 80px;">
-                                        <label class="bk-form-checkbox">
-                                            <input type="checkbox" name="check-all-user" :checked="isCheckCurPageAll" @click="toggleCheckCurPage" :disabled="!secretList.length">
-                                        </label>
-                                    </th>
-                                    <th style="width: 300px;">{{$t('名称')}}</th>
-                                    <th style="width: 300px;">{{$t('所属集群')}}</th>
-                                    <th style="width: 300px;">{{$t('命名空间')}}</th>
-                                    <th style="width: 150px">{{$t('来源')}}</th>
-                                    <th style="width: 300px;">{{$t('创建时间')}}</th>
-                                    <th style="width: 300px;">{{$t('更新时间')}}</th>
-                                    <th style="width: 300px;">{{$t('更新人')}}</th>
-                                    <th style="width: 160px">{{$t('操作')}}</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <template v-if="secretList.length">
-                                    <tr v-for="(secret, index) in curPageData" :key="index">
-                                        <td style="position: relative;">
-                                            <label class="bk-form-checkbox">
-                                                <input
-                                                    type="checkbox"
-                                                    name="check-variable"
-                                                    :disabled="!secret.can_delete || !secret.permissions.use"
-                                                    v-model="secret.isChecked"
-                                                    @click="rowClick" />
-                                            </label>
-                                            <div class="bk-spin-loading bk-spin-loading-mini bk-spin-loading-warning" v-if="secret.status === 'updating'">
-                                                <div class="rotate rotate1"></div>
-                                                <div class="rotate rotate2"></div>
-                                                <div class="rotate rotate3"></div>
-                                                <div class="rotate rotate4"></div>
-                                                <div class="rotate rotate5"></div>
-                                                <div class="rotate rotate6"></div>
-                                                <div class="rotate rotate7"></div>
-                                                <div class="rotate rotate8"></div>
-                                            </div>
-                                        </td>
-                                        <td>
-                                            <a href="javascript: void(0)" class="bk-text-button biz-text-wrapper biz-resource-title" @click.stop.prevent="showSecretDetail(secret, index)">{{secret.resourceName}}</a>
-                                        </td>
-                                        <td>
-                                            <bk-tooltip :content="secret.cluster_id || '--'" placement="top">
-                                                <p class="biz-text-wrapper">{{secret.cluster_name ? secret.cluster_name : '--'}}</p>
-                                            </bk-tooltip>
-                                        </td>
-                                        <td>
-                                            {{secret.namespace}}
-                                        </td>
-                                        <td>
-                                            {{secret.source_type}}
-                                        </td>
-                                        <td>
-                                            {{formatDate(secret.createTime)}}
-                                        </td>
-                                        <td>
-                                            {{formatDate(secret.update_time) || '--'}}
-                                        </td>
-                                        <td>
-                                            {{secret.updator || '--'}}
-                                        </td>
-                                        <td>
-                                            <li style="width: 130px;">
-                                                <span v-if="secret.can_update" @click.stop="updateSecret(secret)" class="biz-operate">{{$t('更新')}}</span>
-                                                <bk-tooltip :content="secret.can_update_msg" v-else placement="left">
-                                                    <span class="biz-not-operate">{{$t('更新')}}</span>
-                                                </bk-tooltip>
-                                                <span v-if="secret.can_delete" @click.stop="removeSecret(secret)" class="biz-operate">{{$t('删除')}}</span>
-                                                <bk-tooltip :content="secret.can_delete_msg || $t('不可删除')" v-else placement="left">
-                                                    <span class="biz-not-operate">{{$t('删除')}}</span>
-                                                </bk-tooltip>
-                                            </li>
-                                        </td>
-                                    </tr>
-                                </template>
-                                <template v-else>
-                                    <tr style="background: none;">
-                                        <td colspan="8">
-                                            <div class="biz-app-list">
-                                                <div class="bk-message-box">
-                                                    <p class="message empty-message" v-if="!isInitLoading">{{$t('无数据')}}</p>
-                                                </div>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                </template>
-                            </tbody>
-                        </table>
-                    </div>
-                    <div class="biz-page-wrapper" v-if="pageConf.total">
-                        <bk-page-counter
-                            :is-en="isEn"
-                            :total="pageConf.total"
-                            :page-size="pageConf.pageSize"
-                            @change="changePageSize">
-                        </bk-page-counter>
-                        <bk-paging
-                            :cur-page.sync="pageConf.curPage"
-                            :total-page="pageConf.totalPage"
-                            @page-change="pageChangeHandler">
-                        </bk-paging>
-                        <div class="already-selected-nums" v-if="alreadySelectedNums">{{$t('已选')}} {{alreadySelectedNums}} {{$t('条')}}</div>
-                    </div>
+                <div class="biz-resource biz-table-wrapper">
+                    <bk-table
+                        v-bkloading="{ isLoading: isPageLoading && !isInitLoading }"
+                        class="biz-resource-table"
+                        :data="curPageData"
+                        :page-params="pageConf"
+                        @page-change="pageChangeHandler"
+                        @page-limit-change="changePageSize"
+                        @select="handlePageSelect"
+                        @select-all="handlePageSelectAll">
+                        <bk-table-column type="selection" width="60" prop="select" :selectable="rowSelectable" />
+                        <bk-table-column :label="$t('名称')" prop="name" :show-overflow-tooltip="true" min-width="150">
+                            <template slot-scope="{ row }">
+                                <a href="javascript: void(0)" class="bk-text-button biz-text-wrapper biz-resource-title" @click.stop.prevent="showSecretDetail(row, index)">{{row.resourceName}}</a>
+                            </template>
+                        </bk-table-column>
+                        <bk-table-column :label="$t('所属集群')" prop="cluster_name" min-width="100">
+                            <template slot-scope="{ row }">
+                                {{row.cluster_name || '--'}}
+                            </template>
+                        </bk-table-column>
+                        <bk-table-column :label="$t('命名空间')" prop="namespace" min-width="100" />
+                        <bk-table-column :label="$t('来源')" prop="source_type" min-width="100">
+                            <template slot-scope="{ row }">
+                                {{ row.source_type || '--' }}
+                            </template>
+                        </bk-table-column>
+                        <bk-table-column :label="$t('创建时间')" prop="createTime" min-width="150">
+                            <template slot-scope="{ row }">
+                                {{ formatDate(row.createTime) || '--' }}
+                            </template>
+                        </bk-table-column>
+                        <bk-table-column :label="$t('更新时间')" prop="update_time" min-width="150">
+                            <template slot-scope="{ row }">
+                                {{ formatDate(row.update_time) || '--' }}
+                            </template>
+                        </bk-table-column>
+                        <bk-table-column :label="$t('更新人')" prop="updator">
+                            <template slot-scope="{ row }">
+                                {{row.updator || '--'}}
+                            </template>
+                        </bk-table-column>
+                        <bk-table-column :label="$t('操作')" prop="permissions" min-width="150">
+                            <template slot-scope="{ row }">
+                                <li style="width: 130px;">
+                                    <span v-if="row.can_update" @click.stop="updateSecret(row)" class="biz-operate">{{$t('更新')}}</span>
+                                    <bcs-popover :content="row.can_update_msg" v-else placement="left">
+                                        <span class="biz-not-operate">{{$t('更新')}}</span>
+                                    </bcs-popover>
+                                    <span v-if="row.can_delete" @click.stop="removeSecret(row)" class="biz-operate">{{$t('删除')}}</span>
+                                    <bcs-popover :content="row.can_delete_msg || $t('不可删除')" v-else placement="left">
+                                        <span class="biz-not-operate">{{$t('删除')}}</span>
+                                    </bcs-popover>
+                                </li>
+                            </template>
+                        </bk-table-column>
+                    </bk-table>
                 </div>
             </template>
 
@@ -177,14 +127,14 @@
                             </template>
                             <template v-else>
                                 <tr>
-                                    <td colspan="2"><p class="biz-no-data">{{$t('无数据')}}</p></td>
+                                    <td colspan="2"><bcs-exception type="empty" scene="part"></bcs-exception></td>
                                 </tr>
                             </template>
                         </tbody>
                     </table>
 
                     <div class="actions">
-                        <button class="show-labels-btn bk-button bk-button-small bk-primary">{{$t('显示标签')}}</button>
+                        <bk-button class="show-labels-btn bk-button bk-button-small bk-primary">{{$t('显示标签')}}</bk-button>
                     </div>
 
                     <div class="point-box">
@@ -197,7 +147,7 @@
                             </ul>
                         </template>
                         <template v-else>
-                            <p class="biz-no-data">{{$t('无数据')}}</p>
+                            <bcs-exception type="empty" scene="part"></bcs-exception>
                         </template>
                     </div>
                 </div>
@@ -208,18 +158,16 @@
                 :is-show.sync="addSlider.isShow"
                 :title="addSlider.title"
                 :width="'800'">
-                <div class="p30 bk-resource-secret" slot="content">
-                    <div v-bkloading="{ isLoading: isUpdateLoading }">
+                <div class="p30 bk-resource-secret" slot="content" v-bkloading="{ isLoading: isSecretLoading }">
+                    <div>
                         <div class="bk-form-item">
                             <div class="bk-form-item" style="margin-bottom: 20px;">
                                 <label class="bk-label">{{$t('名称')}}：</label>
                                 <div class="bk-form-content" style="margin-left: 105px;">
-                                    <input
-                                        type="text"
-                                        class="bk-form-input"
+                                    <bk-input
                                         name="curSecretName"
-                                        disabled="disabled"
-                                        style="min-width: 310px; cursor: not-allowed;"
+                                        disabled
+                                        style="min-width: 310px;"
                                         v-model="curSecretName" />
                                 </div>
                             </div>
@@ -227,10 +175,10 @@
                             <div class="bk-form-content" style="margin-left: 105px;">
                                 <div class="biz-list-operation">
                                     <div class="item" v-for="(data, index) in secretKeyList" :key="index">
-                                        <button :class="['bk-button', { 'bk-primary': curKeyIndex === index }]" @click.stop.prevent="setCurKey(data, index)" v-if="!data.isEdit">
+                                        <bk-button :class="['bk-button', { 'bk-primary': curKeyIndex === index }]" @click.stop.prevent="setCurKey(data, index)" v-if="!data.isEdit">
                                             {{data.key || $t('未命名')}}
-                                        </button>
-                                        <bk-input
+                                        </bk-button>
+                                        <bkbcs-input
                                             type="text"
                                             placeholder=""
                                             v-else
@@ -239,15 +187,15 @@
                                             :list="varList"
                                             @blur="setKey(data, index)"
                                         >
-                                        </bk-input>
-                                        <span class="bk-icon icon-edit" v-show="!data.isEdit" @click.stop.prevent="editKey(data, index)"></span>
-                                        <span class="bk-icon icon-close" v-show="!data.isEdit" @click.stop.prevent="removeKey(data, index)"></span>
+                                        </bkbcs-input>
+                                        <span class="bcs-icon bcs-icon-edit" v-show="!data.isEdit" @click.stop.prevent="editKey(data, index)"></span>
+                                        <span class="bcs-icon bcs-icon-close" v-show="!data.isEdit" @click.stop.prevent="removeKey(data, index)"></span>
                                     </div>
-                                    <bk-tooltip ref="keyTooltip" :content="$t('添加Key')" placement="top">
-                                        <button class="bk-button bk-default is-outline is-icon" @click.stop.prevent="addKey">
-                                            <i class="bk-icon icon-plus"></i>
-                                        </button>
-                                    </bk-tooltip>
+                                    <bcs-popover ref="keyTooltip" :content="$t('添加Key')" placement="top">
+                                        <bk-button class="bk-button bk-default is-outline is-icon" @click.stop.prevent="addKey">
+                                            <i class="bcs-icon bcs-icon-plus"></i>
+                                        </bk-button>
+                                    </bcs-popover>
                                 </div>
                             </div>
                         </div>
@@ -256,17 +204,17 @@
                                 <label class="bk-label">{{$t('值')}}：</label>
                                 <div class="bk-form-content" style="margin-left: 105px;">
                                     <textarea class="bk-form-textarea" style="height: 200px;" v-model="curKeyParams.content" :placeholder="$t('请输入键') + curKeyParams.key + $t('的内容')"></textarea>
+                                    <p class="biz-tip mt5">{{$t('实例化时会将值的内容做base64编码')}}</p>
                                 </div>
-                                <label style="margin-left: 105px; font-size: 14px; color: #c3cdd7;">{{$t('实例化时会将值的内容做base64编码')}}</label>
                             </div>
                         </template>
                         <div class="action-inner" style="margin-top: 20px; margin-left: 105px;">
-                            <button type="button" class="bk-dialog-btn bk-dialog-btn-confirm bk-btn-primary" @click="submitUpdateSecret">
+                            <bk-button type="primary" :loading="isUpdateLoading" @click="submitUpdateSecret">
                                 {{$t('保存')}}
-                            </button>
-                            <button type="button" class="bk-dialog-btn bk-dialog-btn-cancel" @click="cancleUpdateSecret">
+                            </bk-button>
+                            <bk-button :disabled="isUpdateLoading" @click="cancleUpdateSecret">
                                 {{$t('取消')}}
-                            </button>
+                            </bk-button>
                         </div>
                     </div>
                 </div>
@@ -274,19 +222,20 @@
 
             <bk-dialog
                 :is-show="batchDialogConfig.isShow"
-                :width="550"
+                :width="620"
                 :has-header="false"
                 :quick-close="false"
+                :title="$t('确认删除')"
                 @confirm="deleteSecrets(batchDialogConfig.data)"
                 @cancel="batchDialogConfig.isShow = false">
-                <div slot="content">
+                <template slot="content">
                     <div class="biz-batch-wrapper">
                         <p class="batch-title">{{$t('确定要删除以下Secret？')}}</p>
                         <ul class="batch-list">
                             <li v-for="(item, index) of batchDialogConfig.list" :key="index">{{item}}</li>
                         </ul>
                     </div>
-                </div>
+                </template>
             </bk-dialog>
         </div>
     </div>
@@ -338,13 +287,15 @@
                 clusterId: '',
                 namespace: '',
                 isUpdateLoading: false,
+                isSecretLoading: false,
                 secretTimer: null,
                 curProject: {},
                 currentView: 'k8sService',
                 isBatchRemoving: false,
                 curSelectedData: [],
                 alreadySelectedNums: 0,
-                curSecretKeyList: []
+                curSecretKeyList: [],
+                secretSelectedList: []
             }
         },
         computed: {
@@ -403,6 +354,9 @@
             },
             isClusterDataReady () {
                 return this.$store.state.cluster.isClusterDataReady
+            },
+            curClusterId () {
+                return this.$store.state.curClusterId
             }
         },
         watch: {
@@ -425,6 +379,18 @@
                         }, 1000)
                     }
                 }
+            },
+            curClusterId () {
+                this.searchScope = this.curClusterId
+                this.getSecretList()
+            },
+            'addSlider.isShow': {
+                handler (v) {
+                    if (!v) {
+                        this.cancleUpdateSecret()
+                    }
+                },
+                deep: true
             }
         },
         created () {
@@ -472,6 +438,22 @@
             },
 
             /**
+             * 单选
+             * @param {array} selection 已经选中的行数
+             * @param {object} row 当前选中的行
+             */
+            handlePageSelect (selection, row) {
+                this.secretSelectedList = selection
+            },
+
+            /**
+             * 全选
+             */
+            handlePageSelectAll (selection, row) {
+                this.secretSelectedList = selection
+            },
+
+            /**
              * 清空选择
              */
             clearselectSecrets () {
@@ -487,16 +469,16 @@
                 const data = []
                 const names = []
 
-                this.secretList.forEach(item => {
-                    if (item.isChecked) {
+                if (this.secretSelectedList.length) {
+                    this.secretSelectedList.forEach(item => {
                         data.push({
                             cluster_id: item.cluster_id,
                             namespace: item.namespace,
                             name: item.name
                         })
                         names.push(`${item.cluster_name} / ${item.namespace} / ${item.resourceName}`)
-                    }
-                })
+                    })
+                }
                 if (!data.length) {
                     this.$bkMessage({
                         theme: 'error',
@@ -572,13 +554,14 @@
                 }
 
                 this.addSlider.isShow = true
-                this.isUpdateLoading = true
                 this.addSlider.title = `${this.$t('更新')}${secret.name}`
                 this.curSecretName = secret.name
                 this.namespaceId = secret.namespace_id
                 this.instanceId = secret.instance_id
                 this.namespace = secret.namespace
                 this.clusterId = secret.cluster_id
+                this.curSecret = secret
+                this.isSecretLoading = true
 
                 try {
                     const res = await this.$store.dispatch('resource/updateSelectSecret', {
@@ -592,7 +575,7 @@
                 } catch (e) {
                     catchErrorHandler(e, this)
                 } finally {
-                    this.isUpdateLoading = false
+                    this.isSecretLoading = false
                 }
             },
 
@@ -615,7 +598,7 @@
 
                 const me = this
                 me.$bkInfo({
-                    title: ``,
+                    title: me.$t('确认删除'),
                     clsName: 'biz-remove-dialog max-size',
                     content: me.$createElement('p', {
                         class: 'biz-confirm-desc'
@@ -692,7 +675,7 @@
                         }
                     }
                     enity.config['data'] = oKey
-                    enity.config['type'] = 'Opaque'
+                    enity.config['type'] = this.curSecret.data.type || 'Opaque'
                 } else {
                     const mesosList = this.secretKeyList
                     const mesosLength = mesosList.length
@@ -716,7 +699,7 @@
                     enity.config['datas'] = oKey
                 }
                 try {
-                    this.isPageLoading = true
+                    this.isUpdateLoading = true
                     await this.$store.dispatch('resource/updateSingleSecret', {
                         projectId: this.projectId,
                         clusterId: this.clusterId,
@@ -730,10 +713,10 @@
                     })
                     this.getSecretList()
                 } catch (e) {
-                    this.isPageLoading = false
                     catchErrorHandler(e, this)
                 } finally {
                     this.cancleUpdateSecret()
+                    this.isUpdateLoading = false
                 }
             },
 
@@ -939,7 +922,7 @@
                             })
                         })
                     }
-                    
+
                     this.curSecretKeyList = results
                 } else {
                     this.curSecretKeyList = []
@@ -1059,6 +1042,7 @@
                 setTimeout(() => {
                     this.isPageLoading = false
                 }, 200)
+                this.secretSelectedList = []
                 return this.secretList.slice(startIndex, endIndex)
             },
 
@@ -1084,6 +1068,10 @@
                 this.$nextTick(() => {
                     this.alreadySelectedNums = this.secretList.filter(item => item.isChecked).length
                 })
+            },
+
+            rowSelectable (row, index) {
+                return row.can_delete || !row.permissions.use
             }
         }
     }

@@ -17,6 +17,7 @@
                             :display-key="'name'"
                             :selected.sync="selectedClusterId"
                             :list="clusterList"
+                            :disabled="!!curClusterId"
                             :search-placeholder="$t('输入集群名称搜索')"
                             @item-selected="handleChangeCluster">
                         </bk-selector>
@@ -37,84 +38,53 @@
                         </bk-selector>
                     </div>
                     <div class="left">
-                        <div class="biz-search-input" style="width: 240px;">
-                            <input v-model="searchKey" type="text" class="bk-form-input" :placeholder="$t('输入名称搜索')">
-                            <a href="javascript:void(0)" class="biz-search-btn" v-if="searchKey" @click.stop.prevent="clearSearch">
-                                <i class="bk-icon icon-close-circle-shape"></i>
-                            </a>
-                        </div>
+                        <bk-input v-model="searchKey" style="width: 240px;" clearable :placeholder="$t('输入名称搜索')" @clear="clearSearch" />
                     </div>
                     <div class="left">
                         <bk-button type="primary" :title="$t('查询')" icon="search" @click="handleClick">
                             {{$t('查询')}}
                         </bk-button>
+                        <button class="bk-button" @click="batchDel">
+                            <span>{{$t('批量删除')}}</span>
+                        </button>
                     </div>
                 </div>
                 <div v-bkloading="{ isLoading: isPageLoading && !isInitLoading }">
                     <div class="biz-table-wrapper gamestatefullset-table-wrapper">
-                        <table class="bk-table has-table-hover biz-table gamestatefullset-table" :class="curPageData.length ? '' : 'no-data'">
-                            <thead>
-                                <tr>
-                                    <template v-for="(column, index) in columnList">
-                                        <th :key="index">
-                                            <template v-if="column === 'name'">{{$t('名称')}}</template>
-                                            <template v-else-if="column === 'cluster_id'">{{$t('集群')}}</template>
-                                            <template v-else-if="column === 'namespace'">{{$t('命名空间')}}</template>
-                                            <template v-else>{{column}}</template>
-                                        </th>
-                                    </template>
-                                    <th><span>{{$t('操作')}}</span></th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <template v-if="curPageData.length">
-                                    <tr v-for="(item, index) in curPageData" :key="index">
-                                        <template v-for="(column, columnIndex) in columnList">
-                                            <td :key="columnIndex">
-                                                <div class="cell">
-                                                    <bk-tooltip :content="item[column] || ''" placement="top">
-                                                        <template v-if="column === 'name'">
-                                                            <a href="javascript:void(0);" class="bk-text-button name-col" @click="showSideslider(item[column], item['namespace'])">{{item[column] || '--'}}</a>
-                                                        </template>
-                                                        <template v-else>
-                                                            {{item[column] || '--'}}
-                                                        </template>
-                                                    </bk-tooltip>
-                                                </div>
-                                            </td>
-                                        </template>
-                                        <td style="width: 100px;">
-                                            <a href="javascript:void(0);" class="bk-text-button" @click.stop="update(item, index)">{{$t('更新')}}</a>
-                                            <a href="javascript:void(0);" class="bk-text-button" @click.stop="del(item, index)">{{$t('删除')}}</a>
-                                        </td>
-                                    </tr>
+                        <bk-table
+                            :data="curPageData"
+                            :page-params="pageConf"
+                            @page-change="handlePageChange"
+                            @page-limit-change="handlePageSizeChange">
+                            <bk-table-column v-for="(column, index) in columnList" :label="defaultColumnMap[column] || column" :key="index">
+                                <template slot-scope="{ row }">
+                                    <div class="cell" style="padding: 0;">
+                                        <bcs-popover :content="row[column] || ''" placement="top">
+                                            <template v-if="column === 'name'">
+                                                <a href="javascript:void(0);" class="bk-text-button name-col" @click="showSideslider(row[column], row['namespace'])">{{row[column] || '--'}}</a>
+                                            </template>
+                                            <template v-else-if="column === 'cluster_id'">
+                                                <span class="cluster-col">{{row[column] || '--'}}</span>
+                                            </template>
+                                            <template v-else-if="column === 'namespace'">
+                                                <span class="namespace-col">{{row[column] || '--'}}</span>
+                                            </template>
+                                            <template v-else>
+                                                {{row[column] || '--'}}
+                                            </template>
+                                        </bcs-popover>
+                                    </div>
                                 </template>
-                                <template v-else>
-                                    <tr style="background: none;">
-                                        <td :colspan="columnList.length + 1">
-                                            <div class="bk-message-box">
-                                                <p class="message empty-message" v-if="!loading">{{$t('无数据')}}</p>
-                                            </div>
-                                        </td>
-                                    </tr>
+                            </bk-table-column>
+                            <bk-table-column :label="$t('操作')" width="200">
+                                <template slot-scope="{ row }">
+                                    <a href="javascript:void(0);" class="bk-text-button" @click.stop="update(row, index)">{{$t('更新')}}</a>
+                                    <a href="javascript:void(0);" class="bk-text-button" @click.stop="scale(row, index)">{{$t('扩缩容')}}</a>
+                                    <a href="javascript:void(0);" class="bk-text-button" @click.stop="del(row, index)">{{$t('删除')}}</a>
                                 </template>
-                            </tbody>
-                        </table>
+                            </bk-table-column>
+                        </bk-table>
                     </div>
-                </div>
-
-                <div class="biz-page-wrapper" v-if="pageConf.total">
-                    <bk-page-counter
-                        :is-en="isEn"
-                        :total="pageConf.total"
-                        :page-size="pageConf.pageSize"
-                        @change="changePageSize">
-                    </bk-page-counter>
-                    <bk-paging
-                        :cur-page.sync="pageConf.curPage"
-                        :total-page="pageConf.totalPage"
-                        @page-change="pageChangeHandler">
-                    </bk-paging>
                 </div>
             </template>
         </div>
@@ -132,6 +102,52 @@
             @hide-update="hideGamestatefulsetUpdate"
             @update-success="gamestatefulsetUpdateSuccess">
         </gamestatefulset-update>
+
+        <gamestatefulset-scale
+            :is-show="isShowScale"
+            :cluster-id="selectedClusterId"
+            :item="scaleItem"
+            @hide-scale="hideScale"
+            @scale-success="gamestatefulsetScaleSuccess">
+        </gamestatefulset-scale>
+
+        <bk-dialog
+            :is-show="batchDelDialogConf.isShow"
+            :width="400"
+            :has-header="false"
+            :quick-close="false"
+            class="batch-delete-gamestatefulset"
+            @cancel="hideBatchDelDialog">
+            <div slot="content">
+                <div class="biz-batch-wrapper">
+                    <p class="batch-title">{{batchDelDialogConf.title}}</p>
+                    <ul class="batch-list">
+                        <li v-for="(item, index) of batchDelDialogConf.list" :key="index">{{item.name}}</li>
+                    </ul>
+                </div>
+            </div>
+            <template slot="footer">
+                <div class="bk-dialog-outer">
+                    <template v-if="batchDelDialogConf.isDeleting">
+                        <button type="button" class="bk-dialog-btn bk-dialog-btn-confirm bk-btn-primary is-disabled">
+                            {{$t('删除中...')}}
+                        </button>
+                        <button type="button" class="bk-dialog-btn bk-dialog-btn-cancel is-disabled">
+                            {{$t('取消')}}
+                        </button>
+                    </template>
+                    <template v-else>
+                        <button type="button" class="bk-dialog-btn bk-dialog-btn-confirm bk-btn-primary"
+                            @click="batchDelConfirm">
+                            {{$t('确定')}}
+                        </button>
+                        <button type="button" class="bk-dialog-btn bk-dialog-btn-cancel" @click="hideBatchDelDialog">
+                            {{$t('取消')}}
+                        </button>
+                    </template>
+                </div>
+            </template>
+        </bk-dialog>
     </div>
 </template>
 
@@ -140,11 +156,13 @@
 
     import GamestatefulsetSideslider from './gamestatefulset-sideslider'
     import GamestatefulsetUpdate from './gamestatefulset-update'
+    import GamestatefulsetScale from './gamestatefulset-scale'
 
     export default {
         components: {
             GamestatefulsetSideslider,
-            GamestatefulsetUpdate
+            GamestatefulsetUpdate,
+            GamestatefulsetScale
         },
         data () {
             return {
@@ -159,6 +177,11 @@
                     pageSize: 10,
                     curPage: 1,
                     show: true
+                },
+                defaultColumnMap: {
+                    'name': this.$t('名称'),
+                    'cluster_id': this.$t('集群'),
+                    'namespace': this.$t('命名空间')
                 },
                 bkMessageInstance: null,
                 clusterList: [],
@@ -175,7 +198,18 @@
                 curShowNamespace: '',
                 searchKey: '',
                 isShowUpdateDialog: false,
-                updateItem: null
+                updateItem: null,
+                isShowScale: false,
+                scaleItem: null,
+                isCheckAll: false,
+                checkedNodeList: [],
+
+                batchDelDialogConf: {
+                    title: '',
+                    isShow: false,
+                    list: [],
+                    isDeleting: false
+                }
             }
         },
         computed: {
@@ -184,7 +218,22 @@
             },
             isEn () {
                 return this.$store.state.isEn
+            },
+            curClusterId () {
+                return this.$store.state.curClusterId
             }
+        },
+        watch: {
+            curClusterId: {
+                handler (v) {
+                    this.selectedClusterId = v
+                    this.curPageData = []
+                },
+                immediate: true
+            }
+        },
+        created () {
+            this.selectedClusterId = this.curClusterId
         },
         async mounted () {
             await this.getClusters()
@@ -207,7 +256,9 @@
                     const list = res.data.results || []
                     this.clusterList.splice(0, this.clusterList.length, ...list)
                     if (this.clusterList.length) {
-                        this.selectedClusterId = this.clusterList[0].cluster_id
+                        if (!this.curClusterId) {
+                            this.selectedClusterId = this.clusterList[0].cluster_id
+                        }
                         this.getNameSpaceList()
                     }
                 } catch (e) {
@@ -282,11 +333,25 @@
 
                     const data = res.data || { td_list: [], th_list: [] }
 
+                    // console.error(res)
+                    // const data = {
+                    //     'th_list': ['name', 'cluster_id', 'namespace', 'Replicas', 'ReadyReplicas', 'Age'],
+                    //     'td_list': [
+                    //         { 'name': 'web1', 'cluster_id': 'BCS-K8S-15091', 'namespace': '1104james222', 'Replicas': 1, 'ReadyReplicas': null, 'Age': '2d17h' },
+                    //         { 'name': 'web2', 'cluster_id': 'BCS-K8S-15091', 'namespace': '1104james222', 'Replicas': 1, 'ReadyReplicas': null, 'Age': '2d17h' },
+                    //         { 'name': 'web3', 'cluster_id': 'BCS-K8S-15091', 'namespace': '1104james333', 'Replicas': 1, 'ReadyReplicas': null, 'Age': '2d17h' },
+                    //         { 'name': 'web4', 'cluster_id': 'BCS-K8S-15091', 'namespace': '1104james333', 'Replicas': 1, 'ReadyReplicas': null, 'Age': '2d17h' }
+                    //     ]
+                    // }
+
                     if (data.th_list.length) {
                         this.columnList.splice(0, this.columnList.length, ...data.th_list)
                     } else {
                         this.columnList.splice(0, this.columnList.length, ...['name', 'cluster_id', 'namespace', 'Age'])
                     }
+                    data.td_list.forEach(item => {
+                        item.isChecked = false
+                    })
                     this.renderListTmp.splice(0, this.renderListTmp.length, ...data.td_list)
 
                     if (this.searchKey.trim()) {
@@ -327,11 +392,11 @@
              *
              * @param {number} pageSize pageSize
              */
-            changePageSize (pageSize) {
+            handlePageSizeChange (pageSize) {
                 this.pageConf.pageSize = pageSize
                 this.pageConf.curPage = 1
                 this.initPageConf()
-                this.pageChangeHandler()
+                this.handlePageChange()
             },
 
             /**
@@ -355,10 +420,14 @@
              * 页数改变回调
              * @param  {number} page 第几页
              */
-            pageChangeHandler (page = 1) {
+            handlePageChange (page = 1) {
                 this.pageConf.curPage = page
                 const data = this.getDataByPage(page)
-                this.curPageData = data
+                this.curPageData.splice(0, this.curPageData.length, ...data)
+
+                // 当前页选中的
+                const selectedNodeList = this.curPageData.filter(item => item.isChecked === true)
+                this.isCheckAll = selectedNodeList.length === this.curPageData.length
             },
 
             /**
@@ -419,25 +488,40 @@
              */
             async del (item, index) {
                 const me = this
-                const h = me.$createElement
+                const boxStyle = {
+                    'margin-top': '-20px',
+                    'margin-bottom': '-20px'
+                }
+                // const titleStyle = {
+                //     style: {
+                //         'text-align': 'left',
+                //         'font-size': '20px',
+                //         'margin-bottom': '15px',
+                //         'color': '#313238'
+                //     }
+                // }
+                const itemStyle = {
+                    style: {
+                        'text-align': 'left',
+                        'font-size': '14px',
+                        'margin-bottom': '3px',
+                        'color': '#71747c'
+                    }
+                }
 
-                let msg = ''
-                let msgEn = ''
+                const contexts = [
+                    // me.$createElement('h5', titleStyle, me.$t('确定要删除？')),
+                    me.$createElement('p', itemStyle, `${me.$t('名称')}：${item.name}`),
+                    me.$createElement('p', itemStyle, `${me.$t('所属集群')}：${item.cluster_id}`)
+                ]
                 if (item.namespace) {
-                    msg = `删除命名空间${item.namespace}下名称为${item.name}的资源`
-                    msgEn = `Delete the resource named ${item.name} under the namespace ${item.namespace}`
-                } else {
-                    msg = `删除名称为${item.name}的资源`
-                    msgEn = `Delete the resource named ${item.name}`
+                    contexts.push(me.$createElement('p', itemStyle, `${me.$t('命名空间')}：${item.namespace}`))
                 }
                 me.$bkInfo({
-                    clsName: 'del-gamestatefulset-dialog',
-                    title: me.$t('确定删除？'),
-                    content: h(
-                        'p',
-                        { style: {} },
-                        this.isEn ? msgEn : msg
-                    ),
+                    title: me.$t('确认删除'),
+                    clsName: 'biz-remove-dialog',
+                    confirmLoading: true,
+                    content: me.$createElement('div', { class: 'biz-confirm-desc', style: boxStyle }, contexts),
                     async confirmFn () {
                         try {
                             await me.$store.dispatch('app/deleteGameStatefulsetInfo', {
@@ -484,6 +568,184 @@
                 this.curShowName = ''
                 this.curShowNamespace = ''
                 this.isShowSideslider = false
+            },
+
+            /**
+             * 显示扩缩容弹框
+             *
+             * @param {Object} item 当前行对象
+             * @param {number} index 当前行对象索引
+             *
+             * @return {string} returnDesc
+             */
+            scale (item, index) {
+                this.isShowScale = true
+                this.scaleItem = item
+            },
+
+            /**
+             * 隐藏扩缩容弹框
+             */
+            hideScale () {
+                this.isShowScale = false
+                setTimeout(() => {
+                    this.scaleItem = null
+                }, 300)
+            },
+
+            /**
+             * gamestatefulset 扩缩容成功回调
+             */
+            async gamestatefulsetScaleSuccess () {
+                this.hideScale()
+                await this.fetchData()
+            },
+
+            /**
+             * 列表全选
+             */
+            checkAllItem (e) {
+                const isChecked = e.target.checked
+                this.curPageData.forEach(item => {
+                    item.isChecked = isChecked
+                })
+
+                const checkedNodeList = []
+                checkedNodeList.splice(0, 0, ...this.checkedNodeList)
+                // 用于区分是否已经选择过
+                const hasCheckedList = checkedNodeList.map(item => item.name + item.namespace + item.cluster_id)
+                if (isChecked) {
+                    const checkedList = this.curPageData.filter(
+                        item => !hasCheckedList.includes(item.name + item.namespace + item.cluster_id)
+                    )
+                    checkedNodeList.push(...checkedList)
+                    this.checkedNodeList.splice(0, this.checkedNodeList.length, ...checkedNodeList)
+                } else {
+                    // 当前页所有合法的 node id 集合
+                    const validIdList = this.curPageData.map(item => item.name + item.namespace + item.cluster_id)
+
+                    const newCheckedNodeList = []
+                    this.checkedNodeList.forEach(checkedNode => {
+                        if (validIdList.indexOf(checkedNode.name + checkedNode.namespace + checkedNode.cluster_id) < 0) {
+                            newCheckedNodeList.push(JSON.parse(JSON.stringify(checkedNode)))
+                        }
+                    })
+                    this.checkedNodeList.splice(0, this.checkedNodeList.length, ...newCheckedNodeList)
+                }
+            },
+
+            /**
+             * 列表每一行的 checkbox 点击
+             *
+             * @param {Object} row 当前策略对象
+             */
+            checkItem (row) {
+                this.$nextTick(() => {
+                    // 当前页选中的
+                    const selectedNodeList = this.curPageData.filter(item => item.isChecked === true)
+                    this.isCheckAll = selectedNodeList.length === this.curPageData.length
+
+                    const checkedNodeList = []
+                    if (row.isChecked) {
+                        checkedNodeList.splice(0, checkedNodeList.length, ...this.checkedNodeList)
+                        if (!this.checkedNodeList.filter(
+                            checkedNode => checkedNode.name + checkedNode.namespace + checkedNode.cluster_id === row.name + row.namespace + row.cluster_id
+                        ).length) {
+                            checkedNodeList.push(row)
+                        }
+                    } else {
+                        this.checkedNodeList.forEach(checkedNode => {
+                            if (checkedNode.name + checkedNode.namespace + checkedNode.cluster_id !== row.name + row.namespace + row.cluster_id) {
+                                checkedNodeList.push(JSON.parse(JSON.stringify(checkedNode)))
+                            }
+                        })
+                    }
+                    this.checkedNodeList.splice(0, this.checkedNodeList.length, ...checkedNodeList)
+                })
+            },
+
+            /**
+             * 批量删除
+             */
+            batchDel () {
+                if (!this.checkedNodeList.length) {
+                    this.bkMessageInstance && this.bkMessageInstance.close()
+                    this.bkMessageInstance = this.$bkMessage({
+                        theme: 'error',
+                        message: this.$t('还未选择GameStatefulSets')
+                    })
+                    return
+                }
+
+                const len = this.checkedNodeList.length
+                const repeat = {}
+                for (let i = 0; i < len; i++) {
+                    const item = this.checkedNodeList[i]
+                    repeat[item.namespace] = 1
+                }
+                if (Object.keys(repeat).length > 1) {
+                    this.bkMessageInstance && this.bkMessageInstance.close()
+                    this.bkMessageInstance = this.$bkMessage({
+                        theme: 'error',
+                        message: this.$t('批量删除功能只支持选中单个命名空间'),
+                        delay: 1000
+                    })
+                    return
+                }
+
+                this.batchDelDialogConf.isShow = true
+                this.batchDelDialogConf.title = this.isEn
+                    ? `Confirm to delete GameStatefulSets under namespace [${this.checkedNodeList[0].namespace}]`
+                    : `确定删除命名空间【${this.checkedNodeList[0].namespace}】下的GameStatefulSets？`
+                this.batchDelDialogConf.list.splice(0, this.batchDelDialogConf.list.length, ...this.checkedNodeList)
+            },
+
+            /**
+             * 批量删除弹框取消按钮
+             */
+            hideBatchDelDialog () {
+                this.batchDelDialogConf.isShow = false
+                setTimeout(() => {
+                    this.batchDelDialogConf.list.splice(0, this.batchDelDialogConf.list.length, ...[])
+                    this.batchDelDialogConf.isDeleting = false
+                    this.batchDelDialogConf.title = ''
+                }, 300)
+            },
+
+            /**
+             * 批量删除弹框确定按钮
+             */
+            async batchDelConfirm () {
+                try {
+                    this.batchDelDialogConf.isDeleting = true
+
+                    const cobjNameList = this.checkedNodeList.map(item => item.name)
+
+                    await this.$store.dispatch('app/batchDeleteGameStatefulset', {
+                        projectId: this.projectId,
+                        clusterId: this.selectedClusterId,
+                        gamestatefulsets: 'gamestatefulsets.tkex.tencent.com',
+                        data: {
+                            namespace: this.checkedNodeList[0].namespace,
+                            cobj_name_list: cobjNameList
+                        }
+                    })
+
+                    this.hideBatchDelDialog()
+                    this.bkMessageInstance && this.bkMessageInstance.close()
+                    this.bkMessageInstance = this.$bkMessage({
+                        theme: 'success',
+                        message: this.$t('删除成功'),
+                        delay: 1000
+                    })
+                    this.checkedNodeList.splice(0, this.checkedNodeList.length, ...[])
+                    this.isCheckAll = false
+                    await this.fetchData()
+                } catch (e) {
+                    console.error(e)
+                } finally {
+                    this.batchDelDialogConf.isDeleting = false
+                }
             }
         }
     }

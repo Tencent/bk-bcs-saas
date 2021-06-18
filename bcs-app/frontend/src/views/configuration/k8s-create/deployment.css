@@ -1,4 +1,4 @@
-@import '@open/css/variable.css';
+@import '@/css/variable.css';
 
 .biz-tab-wrapper {
     padding: 30px 20px;
@@ -50,7 +50,7 @@
     background: transparent;
     outline: none;
 
-    .bk-icon {
+    .bcs-icon {
         width: 24px;
         height: 24px;
         line-height: 24px;
@@ -90,12 +90,12 @@
 }
 
 .bk-text-button {
-    .bk-icon {
+    .bcs-icon {
         transition: all ease 0.3s;
     }
 
     &.rotate {
-        .bk-icon {
+        .bcs-icon {
             transform: rotate(180deg);
         }
     }
@@ -109,7 +109,7 @@
         &:hover {
             color: $primaryColor;
 
-            .bk-icon {
+            .bcs-icon {
                 color: $primaryColor;
                 border-color: $primaryColor;
             }
@@ -145,7 +145,7 @@
 
 .save-json-btn {
     position: absolute;
-    right: 100px;
+    right: 85px;
     top: -48px;
 }
 

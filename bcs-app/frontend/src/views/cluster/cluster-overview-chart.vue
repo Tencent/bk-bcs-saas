@@ -408,7 +408,7 @@
                     }
 
                     if (this.chartType === 'mem') {
-                        color = '#3c96ff'
+                        color = '#3a84ff'
                     }
 
                     if (this.chartType === 'disk') {

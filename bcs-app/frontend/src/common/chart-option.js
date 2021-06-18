@@ -254,7 +254,7 @@ export const overview = {
                 },
                 itemStyle: {
                     normal: {
-                        color: '#3c96ff'
+                        color: '#3a84ff'
                     }
                 }
             }
@@ -547,8 +547,8 @@ export const nodeOverview = {
                 } else {
                     ret = `
                         <div>${moment(params[0].value[0]).format('YYYY-MM-DD HH:mm:ss')}</div>
-                        <div>总大小：${(params[0].value[1] / 1024 / 1024 / 1024).toFixed(2)}GB</div>
-                        <div>已使用：${(params[1].value[1] / 1024 / 1024 / 1024).toFixed(2)}GB</div>
+                        <div>${window.i18n.t('总大小')}：${(params[0].value[1] / 1024 / 1024 / 1024).toFixed(2)}GB</div>
+                        <div>${window.i18n.t('已使用')}：${(params[1].value[1] / 1024 / 1024 / 1024).toFixed(2)}GB</div>
                     `
                 }
 
@@ -711,7 +711,7 @@ export const nodeOverview = {
                 } else {
                     ret = `<div>${moment(params[0].value[0]).format('YYYY-MM-DD HH:mm:ss')}</div>`
                     params.forEach(item => {
-                        ret += `<div>${item.seriesName}${item.value[2] === 'sent' ? '发送' : '接收'}：${(item.value[1] || 0).toFixed(2)}KB/s</div>`
+                        ret += `<div>${item.seriesName}${item.value[2] === 'sent' ? window.i18n.t('发送') : window.i18n.t('接收')}：${(item.value[1] || 0).toFixed(2)}KB/s</div>`
                     })
                 }
 
@@ -876,7 +876,7 @@ export const nodeOverview = {
                 } else {
                     ret = `<div>${moment(params[0].value[0]).format('YYYY-MM-DD HH:mm:ss')}</div>`
                     params.forEach(item => {
-                        ret += `<div>${item.seriesName}${item.value[2] === 'read' ? '读' : '写'}：${(item.value[1] || 0).toFixed(2)}KB/s</div>`
+                        ret += `<div>${item.seriesName}${item.value[2] === 'read' ? window.i18n.t('读') : window.i18n.t('写')}：${(item.value[1] || 0).toFixed(2)}KB/s</div>`
                     })
                 }
 
@@ -1150,8 +1150,8 @@ export const containerDetailChart = {
                         + `${containerName}</div>`
                         + `</div>`
                     params.forEach(item => {
-                        ret += `<div>内存已使用：`
-                            + `<span style="font-weight: 700; color: #3c96ff;">${(item.value[1]).toFixed(2)}MB</span>`
+                        ret += `<div>${window.i18n.t('内存已使用')}：`
+                            + `<span style="font-weight: 700; color: #3a84ff;">${(item.value[1]).toFixed(2)}MB</span>`
                             + `</div>`
                     })
                     ret += '</div>'
@@ -1239,13 +1239,13 @@ export const containerDetailChart = {
                 hoverAnimation: false,
                 areaStyle: {
                     normal: {
-                        color: '#3c96ff',
+                        color: '#3a84ff',
                         opacity: 0.1
                     }
                 },
                 lineStyle: {
                     normal: {
-                        color: '#3c96ff'
+                        color: '#3a84ff'
                     }
                 },
                 // 折线拐点标志的样式
@@ -1282,7 +1282,7 @@ export const containerDetailChart = {
                         + `</div>`
                     params.forEach(item => {
                         ret += `<div>Memory Usage：`
-                            + `<span style="font-weight: 700; color: #3c96ff;">${(item.value[1]).toFixed(2)}%</span>`
+                            + `<span style="font-weight: 700; color: #3a84ff;">${(item.value[1]).toFixed(2)}%</span>`
                             + `</div>`
                     })
                     ret += '</div>'
@@ -1370,13 +1370,13 @@ export const containerDetailChart = {
                 hoverAnimation: false,
                 areaStyle: {
                     normal: {
-                        color: '#3c96ff',
+                        color: '#3a84ff',
                         opacity: 0.1
                     }
                 },
                 lineStyle: {
                     normal: {
-                        color: '#3c96ff'
+                        color: '#3a84ff'
                     }
                 },
                 // 折线拐点标志的样式
@@ -1412,7 +1412,7 @@ export const containerDetailChart = {
                         + `${containerName}</div>`
                         + `</div>`
                     params.forEach(item => {
-                        ret += `<div>${item.value[2] === 'tx' ? '发送' : '接收'}：`
+                        ret += `<div>${item.value[2] === 'tx' ? window.i18n.t('发送') : window.i18n.t('接收')}：`
                             + `<span style="font-weight: 700; color: #30d873;">${(item.value[1]).toFixed(2)}Bytes/s</span>`
                             + `</div>`
                     })
@@ -1558,10 +1558,10 @@ export const containerDetailChart = {
                         + `</div>`
                     params.forEach(item => {
                         console.error(item)
-                        ret += '<div>读：'
+                        ret += `<div>${window.i18n.t('读')}：`
                             + `<span style="font-weight: 700; color: #30d873;">${(item.value[1]).toFixed(2)}Bytes/s</span>`
                             + `</div>`
-                        ret += '<div>写：'
+                        ret += `<div>${window.i18n.t('写')}：`
                             + `<span style="font-weight: 700; color: #30d873;">${(item.value[2]).toFixed(2)}Bytes/s</span>`
                             + `</div>`
                     })
@@ -1905,7 +1905,7 @@ export const instanceDetailChart = {
                 } else {
                     params.forEach(item => {
                         ret += `<div style="${STYLE_STR} color: ${item.value[2]}">`
-                            + `${item.seriesName}：<span style="font-weight: 700; color: #3c96ff;">`
+                            + `${item.seriesName}：<span style="font-weight: 700; color: #3a84ff;">`
                             + `${(item.value[1]).toFixed(2)}%</span></div>`
                     })
                     ret += '</div>'
@@ -2005,7 +2005,7 @@ export const instanceDetailChart = {
                 } else {
                     params.forEach(item => {
                         ret += `<div style="${STYLE_STR} color: ${item.value[2]}">`
-                            + `${item.seriesName}：<span style="font-weight: 700; color: #3c96ff;">`
+                            + `${item.seriesName}：<span style="font-weight: 700; color: #3a84ff;">`
                             + `${(item.value[1]).toFixed(2)}MB</span></div>`
                     })
                     ret += '</div>'

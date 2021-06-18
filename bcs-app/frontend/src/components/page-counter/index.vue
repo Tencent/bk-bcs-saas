@@ -50,7 +50,7 @@
             },
             placeholder: {
                 type: String,
-                default: '请选择要实例化的模板'
+                default: window.i18n.t('请选择要实例化的模板')
             },
             isEn: {
                 type: Boolean,

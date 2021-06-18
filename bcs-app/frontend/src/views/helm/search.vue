@@ -2,9 +2,9 @@
     <div class="biz-data-searcher">
         <template v-if="localScopeList.length">
             <template v-if="scopeDisabled">
-                <button class="bk-button trigger-btn disabled" style="max-width: 200px;">
+                <bk-button class="bk-button trigger-btn disabled" style="max-width: 200px;">
                     <span class="btn-text tc">{{curScope.name}}</span>
-                </button>
+                </bk-button>
             </template>
             <template v-else>
                 <bk-selector
@@ -17,6 +17,8 @@
                     :display-key="'name'"
                     :selected.sync="searchScope"
                     :list="scopeList"
+                    v-if="!clusterFixed"
+                    @change="handleTest"
                     @item-selected="handleSechScope">
                 </bk-selector>
                 <bk-selector
@@ -36,25 +38,19 @@
             </template>
         </template>
         <div class="biz-search-input" style="width: 250px;">
-            <input
-                type="text"
-                class="bk-form-input"
+            <bkbcs-input right-icon="bk-icon icon-search"
+                clearable
                 :placeholder="placeholderRender"
                 v-model="localKey"
-                @keyup.enter="handleSearch" />
-            <a href="javascript:void(0)" class="biz-search-btn" v-if="!localKey">
-                <i class="bk-icon icon-search" style="color: #c3cdd7;"></i>
-            </a>
-            <a href="javascript:void(0)" class="biz-search-btn" v-else @click.stop.prevent="clearSearch">
-                <i class="bk-icon icon-close-circle-shape"></i>
-            </a>
+                @enter="handleSearch"
+                @clear="clearSearch" />
         </div>
         <div class="biz-refresh-wrapper" v-if="widthRefresh">
-            <bk-tooltip class="refresh" :content="$t('刷新')" :delay="500" placement="top">
-                <button :class="['bk-button bk-default is-outline is-icon']" @click="handleRefresh">
-                    <i class="bk-icon icon-refresh"></i>
-                </button>
-            </bk-tooltip>
+            <bcs-popover class="refresh" :content="$t('刷新')" :delay="500" placement="top">
+                <bk-button :class="['bk-button bk-default is-outline is-icon']" @click="handleRefresh">
+                    <i class="bcs-icon bcs-icon-refresh"></i>
+                </bk-button>
+            </bcs-popover>
         </div>
     </div>
 </template>
@@ -86,6 +82,10 @@
             widthRefresh: {
                 type: Boolean,
                 default: true
+            },
+            clusterFixed: {
+                type: Boolean,
+                default: false
             },
             scopeList: {
                 type: Array,
@@ -141,6 +141,9 @@
             this.placeholderRender = this.placeholder || this.$t('输入关键字，按Enter搜索')
         },
         methods: {
+            handleTest (oldVal, newVal) {
+                console.log(newVal, oldVal)
+            },
             handleSechScope (index, data) {
                 this.curScope = data
                 this.$emit('update:searchScope', this.curScope.id)
@@ -183,13 +186,7 @@
                 this.isRefresh = false
             },
             handleRefresh () {
-                this.localKey = ''
                 this.isRefresh = true
-                if (this.localScopeList.length) {
-                    this.curScope = this.localScopeList[0]
-                }
-                this.$emit('update:searchScope', this.curScope.id)
-                this.$emit('update:searchKey', this.localKey)
                 this.$emit('refresh')
             },
             clearSearch () {
@@ -204,8 +201,8 @@
 </script>
 
 <style scoped lang="postcss">
-    @import '@open/css/mixins/clearfix.css';
-    @import '@open/css/mixins/ellipsis.css';
+    @import '@/css/mixins/clearfix.css';
+    @import '@/css/mixins/ellipsis.css';
     .biz-data-searcher {
         font-size: 0;
         @mixin clearfix;

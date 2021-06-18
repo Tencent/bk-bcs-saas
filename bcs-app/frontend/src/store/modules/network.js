@@ -866,9 +866,11 @@ export default {
          * @return {Promise} promise 对象
          */
         createCl5 (context, params, config = {}) {
-            const projectId = params.projectId
+            const { clusterId, projectId, crdKind } = params
             delete params.projectId
-            const url = `${DEVOPS_BCS_API_URL}/api/bcs_crd/projects/${projectId}/crds/`
+            delete params.clusterId
+            delete params.crdKind
+            const url = `${DEVOPS_BCS_API_URL}/api/bcs_crd/projects/${projectId}/clusters/${clusterId}/crds/${crdKind}/custom_objects/`
             return http.post(url, params, config)
         },
 

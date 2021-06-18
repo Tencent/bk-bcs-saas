@@ -4,29 +4,29 @@
             <div class="file-item" v-for="(file, index) of uploadQueue" :key="index">
                 <div :class="['file-item-wrapper', { 'error': file.status === 'error', 'success': file.status === 'success' }]">
                     <div class="file-icon">
-                        <img src="@open/images/placeholder.svg" alt="">
+                        <img src="@/images/placeholder.svg" alt="">
                     </div>
                     <div class="file-info">
                         <div class="file-metedata">
                             <p class="file-name">{{file.name}}</p>
-                            <span class="file-status" v-if="file.status === 'uploading'">上传中...</span>
-                            <span class="file-status success" v-if="file.status === 'success'">上传成功</span>
-                            <span class="file-status error" v-if="file.status === 'error'">上传失败</span>
+                            <span class="file-status" v-if="file.status === 'uploading'">{{$t('上传中')}}...</span>
+                            <span class="file-status success" v-if="file.status === 'success'">{{$t('上传成功')}}</span>
+                            <span class="file-status error" v-if="file.status === 'error'">{{$t('上传失败')}}</span>
                         </div>
                         <div :class="['file-progress']">
                             <div :class="['file-progress-bar', { 'running': file.status === 'uploading' }]" style=""></div>
                         </div>
                     </div>
-                    <i class="bk-icon icon-close" @click="removeFile(index)" v-if="file.status !== 'success'"></i>
+                    <i class="bcs-icon bcs-icon-close" @click="removeFile(index)" v-if="file.status !== 'success'"></i>
                 </div>
                 <p class="tip" v-if="file.statusText && file.status === 'error'">{{file.statusText}}</p>
             </div>
         </div>
         <div class="file-input" v-else>
-            <button class="trigger-btn">
-                <img src="@open/images/upload.svg" alt="" class="upload-icon">
+            <bk-button class="trigger-btn">
+                <img src="@/images/upload.svg" alt="" class="upload-icon">
                 点击上传
-            </button>
+            </bk-button>
             <p class="tip" v-if="tip">{{tip}}</p>
             <input type="file" @change="selectFile" :multiple="multiple" :accept="accept">
         </div>
@@ -106,7 +106,7 @@
                     this.uploadQueue.push(fileObj)
                     if (this.maxSize && (fileObj.size > this.maxSize)) {
                         fileObj.status = 'error'
-                        fileObj.statusText = `文件不能超过${this.maxSize}M`
+                        fileObj.statusText = `${this.$t('文件不能超过')}${this.maxSize}M`
                     } else {
                         this.uploadFile(fileObj)
                     }

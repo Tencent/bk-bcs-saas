@@ -32,40 +32,6 @@
     }
 }
 
-.biz-variable-table {
-
-    tr th:first-child,
-    tr td:first-child {
-        padding-left: 25px;
-    }
-
-    >thead>tr>th,
-    >thead>tr>td,
-    >tbody>tr>th,
-    >tbody>tr>td {
-        height: 46px;
-    }
-
-    .cluster-wrapper {
-        width: 280px;
-    }
-
-    .bk-form-input,
-    .bk-selector,
-    .cluster-wrapper {
-        display: none;
-    }
-
-    .is-edit {
-
-        .bk-form-input,
-        .bk-selector,
-        .cluster-wrapper {
-            display: inline-block;
-        }
-    }
-}
-
 .center {
     text-align: center !important;
 }
@@ -102,10 +68,9 @@
 }
 
 .quote-title {
-    border-bottom: 1px solid $borderWeightColor;
     background-color: #fff;
-    height: 60px;
-    line-height: 59px;
+    height: 50px;
+    line-height: 50px;
     font-size: 16px;
     padding: 0 20px;
     border-top-left-radius: 2px;

@@ -41,7 +41,18 @@ export default {
             context.commit('updateHPAList', [])
             const url = `${DEVOPS_BCS_API_URL}/api/hpa/projects/${projectId}/`
             return http.get(url, {}, { cancelWhenRouteChange: true }).then(res => {
-                context.commit('updateHPAList', res.data)
+                const list = res.data || []
+                list.forEach(item => {
+                    const conditions = item.conditions || []
+                    const conditionsLen = conditions.length
+                    for (let i = 0; i < conditionsLen; i++) {
+                        if (conditions[i].status.toLowerCase() === 'false') {
+                            item.needShowConditions = true
+                            break
+                        }
+                    }
+                })
+                context.commit('updateHPAList', list)
                 return res
             })
         },

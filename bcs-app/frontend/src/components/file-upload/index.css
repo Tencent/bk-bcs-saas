@@ -9,7 +9,7 @@
 
     .file-item-wrapper {
         height: 70px;
-        border: 1px dashed #c3cdd7;
+        border: 1px dashed #c4c6cc;
         border-radius: 2px;
         background: rgba(250, 251, 253, 1);
         display: flex;
@@ -93,7 +93,7 @@
                 top: 0;
                 width: 100%;
                 height: 6px;
-                background: #3c96ff;
+                background: #3a84ff;
 
                 &.running {
                     animation: progress 2s infinite ease-in-out;
@@ -117,7 +117,7 @@
         min-width: 500px;
         height: 70px;
         line-height: 70px;
-        border: 1px dashed #c3cdd7;
+        border: 1px dashed #c4c6cc;
         border-radius: 2px;
         text-align: center;
         position: relative;
@@ -127,7 +127,7 @@
             display: block;
             width: 100%;
             font-size: 14px;
-            color: #3c96ff;
+            color: #3a84ff;
             line-height: 70px;
             border: none;
             background: none;

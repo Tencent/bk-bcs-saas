@@ -3,7 +3,7 @@
         <div class="biz-top-bar">
             <div class="biz-topbar-title">
                 Ingress
-                <span class="biz-tip f12 ml10">{{$t('请通过模板集创建Ingress')}}</span>
+                <span class="biz-tip ml10">{{$t('请通过模板集创建Ingress')}}</span>
             </div>
             <bk-guide></bk-guide>
         </div>
@@ -15,6 +15,7 @@
                             :scope-list="searchScopeList"
                             :search-key.sync="searchKeyword"
                             :search-scope.sync="searchScope"
+                            :cluster-fixed="!!curClusterId"
                             @search="getIngressList"
                             @refresh="refresh">
                         </bk-data-searcher>
@@ -22,8 +23,49 @@
                 </div>
 
                 <div class="biz-resource">
-                    <div class="biz-table-wrapper" v-bkloading="{ isLoading: isPageLoading && !isInitLoading }">
-                        <table class="bk-table has-table-hover biz-table biz-resource-table">
+                    <div class="biz-table-wrapper">
+                        <bk-table
+                            :size="'medium'"
+                            :data="curPageData"
+                            :pagination="pageConf"
+                            v-bkloading="{ isLoading: isPageLoading && !isInitLoading }"
+                            @page-limit-change="handlePageLimitChange"
+                            @page-change="handlePageChange">
+                            <bk-table-column :label="$t('名称')" :show-overflow-tooltip="true" min-width="200">
+                                <template slot-scope="props">
+                                    <a href="javascript: void(0)" class="bk-text-button biz-resource-title" @click.stop.prevent="showIngressDetail(props.row, index)">{{props.row.name}}</a>
+                                </template>
+                            </bk-table-column>
+                            <bk-table-column :label="$t('所属集群')" min-width="150">
+                                <template slot-scope="props">
+                                    <bcs-popover :content="props.row.cluster_id || '--'" placement="top">
+                                        <p class="biz-text-wrapper">{{props.row.cluster_name ? props.row.cluster_name : '--'}}</p>
+                                    </bcs-popover>
+                                </template>
+                            </bk-table-column>
+                            <bk-table-column :label="$t('命名空间')" min-width="130">
+                                <template slot-scope="props">
+                                    {{props.row.namespace || '--'}}
+                                </template>
+                            </bk-table-column>
+                            <bk-table-column :label="$t('CLB')" min-width="130">
+                                <template slot-scope="props">
+                                    {{props.row.config.metadata.labels['bmsf.tencent.com/clbname'] || '--'}}
+                                </template>
+                            </bk-table-column>
+                            <bk-table-column :label="$t('更新时间')" min-width="160">
+                                <template slot-scope="props">
+                                    {{props.row.update_time ? formatDate(props.row.update_time) : '--'}}
+                                </template>
+                            </bk-table-column>
+                            <bk-table-column :label="$t('操作')" width="150">
+                                <template slot-scope="props">
+                                    <a @click.stop="showIngressEditDialog(props.row)" class="bk-text-button">{{$t('更新')}}</a>
+                                    <a @click.stop="removeIngress(props.row)" class="bk-text-button ml10">{{$t('删除')}}</a>
+                                </template>
+                            </bk-table-column>
+                        </bk-table>
+                        <!-- <table class="bk-table has-table-hover biz-table biz-resource-table">
                             <thead>
                                 <tr>
                                     <th style="width: 10px;">
@@ -57,9 +99,9 @@
                                             <a href="javascript: void(0)" class="bk-text-button biz-resource-title" @click.stop.prevent="showIngressDetail(ingress, index)">{{ingress.name}}</a>
                                         </td>
                                         <td>
-                                            <bk-tooltip :content="ingress.cluster_id || '--'" placement="top">
+                                            <bcs-popover :content="ingress.cluster_id || '--'" placement="top">
                                                 <p class="biz-text-wrapper">{{ingress.cluster_name ? ingress.cluster_name : '--'}}</p>
-                                            </bk-tooltip>
+                                            </bcs-popover>
                                         </td>
                                         <td>
                                             {{ingress.namespace || '--'}}
@@ -83,28 +125,14 @@
                                         <td colspan="6">
                                             <div class="biz-app-list">
                                                 <div class="bk-message-box">
-                                                    <p class="message empty-message" v-if="!isInitLoading">{{$t('无数据')}}</p>
+                                                    <bcs-exception type="empty" scene="part" v-if="!isInitLoading"></bcs-exception>
                                                 </div>
                                             </div>
                                         </td>
                                     </tr>
                                 </template>
                             </tbody>
-                        </table>
-                    </div>
-                    <div class="biz-page-wrapper" v-if="pageConf.total">
-                        <bk-page-counter
-                            :is-en="isEn"
-                            :total="pageConf.total"
-                            :page-size="pageConf.pageSize"
-                            @change="changePageSize">
-                        </bk-page-counter>
-                        <bk-paging
-                            :cur-page.sync="pageConf.curPage"
-                            :total-page="pageConf.totalPage"
-                            @page-change="pageChangeHandler">
-                        </bk-paging>
-                        <div class="already-selected-nums" v-if="alreadySelectedNums">{{$t('已选')}} {{alreadySelectedNums}} {{$t('条')}}</div>
+                        </table> -->
                     </div>
                 </div>
             </template>
@@ -160,14 +188,14 @@
                             <template v-else>
                                 <tr>
                                     <td colspan="4">
-                                        <p style="padding: 10px; text-align: center;">{{$t('无数据')}}</p>
+                                        <bcs-exception type="empty" scene="part"></bcs-exception>
                                     </td>
                                 </tr>
                             </template>
                         </tbody>
                     </table>
                     <div class="actions">
-                        <button class="show-labels-btn bk-button bk-button-small bk-primary">{{$t('显示标签')}}</button>
+                        <bk-button class="show-labels-btn bk-button bk-button-small bk-primary">{{$t('显示标签')}}</bk-button>
                     </div>
 
                     <div class="point-box">
@@ -180,7 +208,7 @@
                             </ul>
                         </template>
                         <template v-else>
-                            <p class="biz-no-data">{{$t('无数据')}}</p>
+                            <bcs-exception type="empty" scene="part"></bcs-exception>
                         </template>
                     </div>
                 </div>
@@ -196,14 +224,12 @@
                             <div class="bk-form-item is-required">
                                 <label class="bk-label" style="width: 130px;">{{$t('名称')}}：</label>
                                 <div class="bk-form-content" style="margin-left: 130px;">
-                                    <input
-                                        type="text"
-                                        class="bk-form-input"
+                                    <bk-input
                                         :placeholder="$t('请输入30个以内的字符')"
                                         :disabled="true"
                                         style="width: 300px;"
                                         maxlength="30"
-                                        v-model="curIngress.config.metadata.name">
+                                        v-model="curIngress.config.metadata.name" />
                                 </div>
                             </div>
 
@@ -235,11 +261,11 @@
                                                 </bk-selector>
                                             </template>
                                             <template v-else>
-                                                <bk-input
+                                                <bkbcs-input
                                                     style="width: 300px;"
                                                     v-model="curIngress.config.metadata.labels['bmsf.tencent.com/clbname']"
                                                     :disabled="true">
-                                                </bk-input>
+                                                </bkbcs-input>
                                             </template>
                                         </div>
                                     </div>
@@ -250,23 +276,23 @@
                         <div class="biz-part-header">
                             <div class="bk-button-group">
                                 <div class="item" v-for="(rule, index) in curIngress.config.webCache.rules" :key="index">
-                                    <button
+                                    <bk-button
                                         :class="['bk-button bk-default is-outline', { 'is-selected': curRuleIndex === index }]"
                                         @click.stop="setCurRule(rule, index)">
                                         {{rule.name || $t('未命名')}}
-                                    </button>
+                                    </bk-button>
                                     <span
-                                        class="bk-icon icon-close-circle"
+                                        class="bcs-icon bcs-icon-close-circle"
                                         @click.stop="removeRule(index)"
                                         v-if="curIngress.config.webCache.rules.length > 1">
                                     </span>
                                 </div>
-                                <button
+                                <bk-button
                                     type="button"
                                     class="bk-button bk-default is-outline is-icon"
                                     @click.stop.prevent="addLocalRule">
-                                    <i class="bk-icon icon-plus"></i>
-                                </button>
+                                    <i class="bcs-icon bcs-icon-plus"></i>
+                                </bk-button>
                             </div>
                         </div>
 
@@ -343,24 +369,24 @@
                                     <div class="bk-form-inline-item">
                                         <label class="bk-label" style="width: 130px;">{{$t('域名')}}：</label>
                                         <div class="bk-form-content" style="margin-left: 130px;">
-                                            <bk-input
+                                            <bkbcs-input
                                                 style="width: 170px;"
                                                 :placeholder="$t('请输入')"
                                                 :value.sync="curRule.host"
                                                 :disabled="isServiceType">
-                                            </bk-input>
+                                            </bkbcs-input>
                                         </div>
                                     </div>
 
                                     <div class="bk-form-inline-item">
                                         <label class="bk-label" style="width: 130px;">{{$t('路径')}}：</label>
                                         <div class="bk-form-content" style="margin-left: 130px;">
-                                            <bk-input
+                                            <bkbcs-input
                                                 style="width: 170px;"
                                                 :placeholder="$t('请输入')"
                                                 :value.sync="curRule.path"
                                                 :disabled="isServiceType">
-                                            </bk-input>
+                                            </bkbcs-input>
                                         </div>
                                     </div>
                                 </div>
@@ -371,7 +397,7 @@
                                     <div class="bk-form-inline-item is-required" v-if="isServiceType">
                                         <label class="bk-label" style="width: 130px;">{{$t('监听CLB端口')}}：</label>
                                         <div class="bk-form-content" style="margin-left: 130px;">
-                                            <bk-input
+                                            <bkbcs-input
                                                 type="number"
                                                 :placeholder="'1-65535'"
                                                 style="width: 170px;"
@@ -379,15 +405,15 @@
                                                 :max="65535"
                                                 :value.sync="curRule.clbPort"
                                                 :list="varList">
-                                            </bk-input>
+                                            </bkbcs-input>
                                         </div>
                                     </div>
 
                                     <div class="bk-form-inline-item">
-                                        <label class="bk-label" style="width: 130px;">{{$t('会话保持时间')}}：</label>
-                                        <div class="bk-form-content" style="margin-left: 130px;">
+                                        <label class="bk-label" style="width: 134px;">{{$t('会话保持时间')}}：</label>
+                                        <div class="bk-form-content" style="margin-left: 134px;">
                                             <div class="bk-form-input-group">
-                                                <bk-input
+                                                <bkbcs-input
                                                     type="number"
                                                     :placeholder="'30-3600'"
                                                     style="width: 134px;"
@@ -396,7 +422,7 @@
                                                     :value.sync="curRule.sessionTime"
                                                     :list="varList"
                                                     @change="handleSessionTimeChange">
-                                                </bk-input>
+                                                </bkbcs-input>
                                                 <span class="input-group-addon">
                                                     {{$t('秒')}}
                                                 </span>
@@ -424,39 +450,39 @@
                                     <div class="bk-form-inline-item is-required">
                                         <label class="bk-label" style="width: 130px;">{{$t('CLB起始端口')}}：</label>
                                         <div class="bk-form-content" style="margin-left: 130px;">
-                                            <bk-input
+                                            <bkbcs-input
                                                 type="number"
                                                 :placeholder="$t('请输入')"
                                                 style="width: 170px;"
                                                 :max="32000"
                                                 :value.sync="curRule.startPort">
-                                            </bk-input>
+                                            </bkbcs-input>
                                         </div>
                                     </div>
-                                    
+
                                     <div class="bk-form-inline-item is-required">
                                         <label class="bk-label" style="width: 130px;">{{$t('起始索引')}}：</label>
                                         <div class="bk-form-content" style="margin-left: 130px;">
-                                            <bk-input
+                                            <bkbcs-input
                                                 type="number"
                                                 :placeholder="$t('请输入')"
                                                 style="width: 170px;"
                                                 :min="0"
                                                 :value.sync="curRule.startIndex">
-                                            </bk-input>
+                                            </bkbcs-input>
                                         </div>
                                     </div>
-                                    
+
                                     <div class="bk-form-inline-item is-required">
                                         <label class="bk-label" style="width: 130px;">{{$t('终止索引')}}：</label>
                                         <div class="bk-form-content" style="margin-left: 130px;">
-                                            <bk-input
+                                            <bkbcs-input
                                                 type="number"
                                                 :placeholder="$t('请输入')"
                                                 style="width: 170px;"
                                                 :min="0"
                                                 :value.sync="curRule.endIndex">
-                                            </bk-input>
+                                            </bkbcs-input>
                                         </div>
                                     </div>
                                 </div>
@@ -476,7 +502,7 @@
                                                     size="small">
                                                 </bk-switcher>
                                             </div>
-                                            
+
                                             <span class="f12 mt10 vm" style="display: inline-block;">{{curRule.healthCheck.enabled ? $t('已启用') : $t('未启用')}}</span>
 
                                             <section class="ingress-block" v-if="curRule.healthCheck.enabled">
@@ -485,7 +511,7 @@
                                                         <label class="bk-label" style="width: 130px;">{{$t('响应超时时间')}}：</label>
                                                         <div class="bk-form-content" style="margin-left: 130px;">
                                                             <div class="bk-form-input-group">
-                                                                <bk-input
+                                                                <bkbcs-input
                                                                     type="number"
                                                                     style="width: 150px;"
                                                                     :placeholder="'2-60'"
@@ -493,7 +519,7 @@
                                                                     :max="60"
                                                                     :value.sync="curRule.healthCheck.timeout"
                                                                     :list="varList">
-                                                                </bk-input>
+                                                                </bkbcs-input>
                                                                 <span class="input-group-addon">
                                                                     {{$t('秒')}}
                                                                 </span>
@@ -505,7 +531,7 @@
                                                         <label class="bk-label" style="width: 200px;">{{$t('探测间隔时间')}}：</label>
                                                         <div class="bk-form-content" style="margin-left: 200px;">
                                                             <div class="bk-form-input-group">
-                                                                <bk-input
+                                                                <bkbcs-input
                                                                     type="number"
                                                                     style="width: 150px;"
                                                                     :placeholder="'5-300'"
@@ -513,7 +539,7 @@
                                                                     :max="300"
                                                                     :value.sync="curRule.healthCheck.intervalTime"
                                                                     :list="varList">
-                                                                </bk-input>
+                                                                </bkbcs-input>
                                                                 <span class="input-group-addon">
                                                                     {{$t('秒')}}
                                                                 </span>
@@ -527,7 +553,7 @@
                                                         <label class="bk-label" style="width: 130px;">{{$t('健康阈值')}}：</label>
                                                         <div class="bk-form-content" style="margin-left: 130px;">
                                                             <div class="bk-form-input-group">
-                                                                <bk-input
+                                                                <bkbcs-input
                                                                     type="number"
                                                                     style="width: 150px;"
                                                                     :placeholder="'2-10'"
@@ -535,7 +561,7 @@
                                                                     :max="10"
                                                                     :value.sync="curRule.healthCheck.healthNum"
                                                                     :list="varList">
-                                                                </bk-input>
+                                                                </bkbcs-input>
                                                                 <span class="input-group-addon">
                                                                     {{$t('次')}}
                                                                 </span>
@@ -547,7 +573,7 @@
                                                         <label class="bk-label" style="width: 200px;">{{$t('不健康阈值')}}：</label>
                                                         <div class="bk-form-content" style="margin-left: 200px;">
                                                             <div class="bk-form-input-group">
-                                                                <bk-input
+                                                                <bkbcs-input
                                                                     type="number"
                                                                     style="width: 150px;"
                                                                     :placeholder="'2-10'"
@@ -555,7 +581,7 @@
                                                                     :max="10"
                                                                     :value.sync="curRule.healthCheck.unHealthNum"
                                                                     :list="varList">
-                                                                </bk-input>
+                                                                </bkbcs-input>
                                                                 <span class="input-group-addon">
                                                                     {{$t('次')}}
                                                                 </span>
@@ -568,26 +594,26 @@
                                                     <div class="bk-form-inline-item">
                                                         <label class="bk-label" style="width: 130px;">{{$t('探测路径')}}：</label>
                                                         <div class="bk-form-content" style="margin-left: 130px;">
-                                                            <bk-input
-                                                                style="width: 186px;"
+                                                            <bkbcs-input
+                                                                style="width: 182px;"
                                                                 :placeholder="$t('请输入')"
                                                                 :value.sync="curRule.healthCheck.httpCheckPath"
                                                                 :list="varList">
-                                                            </bk-input>
+                                                            </bkbcs-input>
                                                         </div>
                                                     </div>
 
                                                     <div class="bk-form-inline-item">
                                                         <label class="bk-label" style="width: 200px;">{{$t('健康状态码')}}：</label>
                                                         <div class="bk-form-content" style="margin-left: 200px;">
-                                                            <bk-input
+                                                            <bkbcs-input
                                                                 type="number"
-                                                                style="width: 186px;"
+                                                                style="width: 182px;"
                                                                 :placeholder="$t('请输入')"
                                                                 :min="0"
                                                                 :value.sync="curRule.healthCheck.httpCode"
                                                                 :list="varList">
-                                                            </bk-input>
+                                                            </bkbcs-input>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -616,8 +642,8 @@
                                             <section class="ingress-block" v-if="curRule.httpsEnabled">
                                                 <div class="bk-form-content" style="margin-left: 0;">
                                                     <div class="bk-form-inline-item">
-                                                        <label class="bk-label" style="width: 90px;">{{$t('认证模式')}}：</label>
-                                                        <div class="bk-form-content" style="margin-left: 90px;">
+                                                        <label class="bk-label" style="width: 95px;">{{$t('认证模式')}}：</label>
+                                                        <div class="bk-form-content" style="margin-left: 95px;">
                                                             <bk-selector
                                                                 style="width: 130px;"
                                                                 :placeholder="$t('请选择')"
@@ -632,32 +658,32 @@
                                                     <div class="bk-form-inline-item">
                                                         <label class="bk-label" style="width: 90px;">{{$t('证书ID')}}：</label>
                                                         <div class="bk-form-content" style="margin-left: 90px;">
-                                                            <bk-input
+                                                            <bkbcs-input
                                                                 style="width: 130px;"
                                                                 :placeholder="$t('请输入')"
                                                                 :value.sync="curRule.tls.certId"
                                                                 :list="varList">
-                                                            </bk-input>
+                                                            </bkbcs-input>
                                                         </div>
                                                     </div>
 
                                                     <div class="bk-form-inline-item" v-if="curRule.tls.mode === 'mutual'">
                                                         <label class="bk-label" style="width: 130px;">{{$t('客户端证书ID')}}：</label>
                                                         <div class="bk-form-content" style="margin-left: 130px;">
-                                                            <bk-input
+                                                            <bkbcs-input
                                                                 style="width: 130px;"
                                                                 :placeholder="$t('请输入')"
                                                                 :key="curRule.tls.mode"
                                                                 :value.sync="curRule.tls.certCaId"
                                                                 :list="varList">
-                                                            </bk-input>
-                                                            <bk-tooltip
+                                                            </bkbcs-input>
+                                                            <bcs-popover
                                                                 :content="$t('如果mode=mutual，客户端证书ID为必填项')"
                                                                 placement="top">
                                                                 <span class="bk-badge">
-                                                                    <i class="bk-icon icon-question"></i>
+                                                                    <i class="bcs-icon bcs-icon-question"></i>
                                                                 </span>
-                                                            </bk-tooltip>
+                                                            </bcs-popover>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -669,8 +695,8 @@
                         </div>
                         <div class="biz-span mb50"></div>
                         <div class="ingress-action mt20" style="margin-left: 130px;">
-                            <button class="bk-button bk-primary mr10" style="min-width: 80px;" @click="handleUpdateIngress">{{$t('更新')}}</button>
-                            <button class="bk-button bk-default" @click="handleCancelUpdate">{{$t('取消')}}</button>
+                            <bk-button type="primary" :loading="isDataSaving" style="min-width: 80px;" @click="handleUpdateIngress">{{$t('更新')}}</bk-button>
+                            <bk-button :disabled="isDataSaving" @click="handleCancelUpdate">{{$t('取消')}}</bk-button>
                         </div>
                     </div>
                 </div>
@@ -679,18 +705,19 @@
             <bk-dialog
                 :is-show="batchDialogConfig.isShow"
                 :width="550"
+                :title="$t('确认删除')"
                 :has-header="false"
                 :quick-close="false"
                 @confirm="deleteIngresses(batchDialogConfig.data)"
                 @cancel="batchDialogConfig.isShow = false">
-                <div slot="content">
+                <template slot="content">
                     <div class="biz-batch-wrapper">
                         <p class="batch-title">{{$t('确定要删除以下Ingress？')}}</p>
                         <ul class="batch-list">
                             <li v-for="(item, index) of batchDialogConfig.list" :key="index">{{item}}</li>
                         </ul>
                     </div>
-                </div>
+                </template>
             </bk-dialog>
         </div>
     </div>
@@ -712,11 +739,12 @@
                 searchScope: '',
                 curPageData: [],
                 curIngress: ingressParams,
+                isDataSaving: false,
                 pageConf: {
-                    total: 1,
+                    count: 1,
                     totalPage: 1,
-                    pageSize: 10,
-                    curPage: 1,
+                    limit: 10,
+                    current: 1,
                     show: true
                 },
                 ingressSlider: {
@@ -774,63 +802,63 @@
                 ],
                 regionList: [
                     {
-                        name: '上海',
+                        name: this.$t('上海'),
                         id: 'ap-shanghai'
                     },
                     {
-                        name: '南京',
+                        name: this.$t('南京'),
                         id: 'ap-nanjing'
                     },
                     {
-                        name: '天津',
+                        name: this.$t('天津'),
                         id: 'ap-tianjin'
                     },
                     {
-                        name: '广州',
+                        name: this.$t('广州'),
                         id: 'ap-guangzhou'
                     },
                     {
-                        name: '深圳',
+                        name: this.$t('深圳'),
                         id: 'ap-shenzhen'
                     },
                     {
-                        name: '杭州',
+                        name: this.$t('杭州'),
                         id: 'ap-hangzhou'
                     },
                     {
-                        name: '济南',
+                        name: this.$t('济南'),
                         id: 'ap-jinan'
                     },
                     {
-                        name: '福州',
+                        name: this.$t('福州'),
                         id: 'ap-fuzhou'
                     },
                     {
-                        name: '重庆',
+                        name: this.$t('重庆'),
                         id: 'ap-chongqing'
                     },
                     {
-                        name: '香港',
+                        name: this.$t('香港'),
                         id: 'ap-hongkong'
                     },
                     {
-                        name: '新加坡',
+                        name: this.$t('新加坡'),
                         id: 'ap-singapore'
                     },
                     {
-                        name: '首尔',
+                        name: this.$t('首尔'),
                         id: 'ap-seoul'
                     },
                     {
-                        name: '孟买',
+                        name: this.$t('孟买'),
                         id: 'ap-mumbai'
                     },
                     {
-                        name: '法兰克福',
+                        name: this.$t('法兰克福'),
                         id: 'ap-frankfurt'
                     },
                     {
-                        name: '硅谷',
+                        name: this.$t('硅谷'),
                         id: 'ap-siliconvalley'
                     }
                 ]
@@ -882,7 +910,7 @@
                         if (key === 'statefulset') continue
                         flatSpec[key] ? flatSpec[key].push(...ingress.spec[key]) : (flatSpec[key] = JSON.parse(JSON.stringify(ingress.spec[key])))
                     }
-                    
+
                     if (ingress.config.spec['statefulset']) {
                         for (const childKey in ingress.config.spec['statefulset']) {
                             flatSpec[childKey] = flatSpec[childKey] || []
@@ -906,7 +934,7 @@
                                 newItem.serviceType = key.toUpperCase()
                                 newItem.httpsEnabled = false
                             }
-                            
+
                             newItem.name = `rule-${index}`
                             ingress.config.webCache.rules.push(newItem)
                             index++
@@ -951,6 +979,9 @@
             },
             isServiceType () {
                 return this.curRule.type === 'service'
+            },
+            curClusterId () {
+                return this.$store.state.curClusterId
             }
         },
         watch: {
@@ -977,6 +1008,10 @@
                         }, 1000)
                     }
                 }
+            },
+            curClusterId () {
+                this.searchScope = this.curClusterId
+                this.getIngressList()
             }
         },
         created () {
@@ -988,7 +1023,7 @@
              * 刷新列表
              */
             refresh () {
-                this.pageConf.curPage = 1
+                this.pageConf.current = 1
                 this.isPageLoading = true
                 this.getIngressList()
             },
@@ -998,11 +1033,11 @@
              *
              * @param {number} pageSize pageSize
              */
-            changePageSize (pageSize) {
-                this.pageConf.pageSize = pageSize
-                this.pageConf.curPage = 1
+            handlePageLimitChange (pageSize) {
+                this.pageConf.limit = pageSize
+                this.pageConf.current = 1
                 this.initPageConf()
-                this.pageChangeHandler()
+                this.handlePageChange()
             },
 
             /**
@@ -1091,7 +1126,7 @@
 
                 const me = this
                 me.$bkInfo({
-                    title: ``,
+                    title: me.$t('确认删除'),
                     clsName: 'biz-remove-dialog max-size',
                     content: me.$createElement('p', {
                         class: 'biz-confirm-desc'
@@ -1211,7 +1246,7 @@
                         params
                     })
                     this.initPageConf()
-                    this.curPageData = this.getDataByPage(this.pageConf.curPage)
+                    this.curPageData = this.getDataByPage(this.pageConf.current)
 
                     // 如果有搜索关键字，继续显示过滤后的结果
                     if (this.searchKeyword) {
@@ -1262,9 +1297,9 @@
                 })
 
                 this.ingressList.splice(0, this.ingressList.length, ...results)
-                this.pageConf.curPage = 1
+                this.pageConf.current = 1
                 this.initPageConf()
-                this.curPageData = this.getDataByPage(this.pageConf.curPage)
+                this.curPageData = this.getDataByPage(this.pageConf.current)
             },
 
             /**
@@ -1272,9 +1307,9 @@
              */
             initPageConf () {
                 const total = this.ingressList.length
-                this.pageConf.total = total
-                this.pageConf.curPage = 1
-                this.pageConf.totalPage = Math.ceil(total / this.pageConf.pageSize)
+                this.pageConf.count = total
+                this.pageConf.current = 1
+                this.pageConf.totalPage = Math.ceil(total / this.pageConf.limit)
             },
 
             /**
@@ -1283,7 +1318,7 @@
              */
             reloadCurPage () {
                 this.initPageConf()
-                this.curPageData = this.getDataByPage(this.pageConf.curPage)
+                this.curPageData = this.getDataByPage(this.pageConf.current)
             },
 
             /**
@@ -1293,10 +1328,10 @@
              */
             getDataByPage (page) {
                 if (page < 1) {
-                    this.pageConf.curPage = page = 1
+                    this.pageConf.current = page = 1
                 }
-                let startIndex = (page - 1) * this.pageConf.pageSize
-                let endIndex = page * this.pageConf.pageSize
+                let startIndex = (page - 1) * this.pageConf.limit
+                let endIndex = page * this.pageConf.limit
                 this.isPageLoading = true
                 if (startIndex < 0) {
                     startIndex = 0
@@ -1314,9 +1349,8 @@
              * 页数改变回调
              * @param  {number} page 第几页
              */
-            pageChangeHandler (page = 1) {
-                this.pageConf.curPage = page
-
+            handlePageChange (page = 1) {
+                this.pageConf.current = page
                 const data = this.getDataByPage(page)
                 this.curPageData = data
             },
@@ -1341,7 +1375,7 @@
                     }
                     await this.$store.dispatch('getResourcePermissions', params)
                 }
-  
+
                 this.curIngress = ingress
                 this.ingressEditSlider.isShow = true
                 this.ingressEditSlider.title = ingress.name
@@ -1514,7 +1548,7 @@
                     })
                     return false
                 }
-                
+
                 const rules = ingress.config.webCache.rules
                 for (const rule of rules) {
                     if (!rule.serviceName) {
@@ -1728,6 +1762,8 @@
                 const clusterId = ingress.cluster_id
                 const namespace = ingress.namespace
                 const name = ingress.name
+
+                this.isDataSaving = true
                 try {
                     await this.$store.dispatch('resource/updateMesosIngress', {
                         projectId,
@@ -1748,6 +1784,8 @@
                 } catch (e) {
                     this.isPageLoading = false
                     catchErrorHandler(e, this)
+                } finally {
+                    this.isDataSaving = false
                 }
             },
             handleModeSelect () {

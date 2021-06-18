@@ -11,7 +11,7 @@
                     <li class="key-node" v-for="(param, index) in searchParams" :key="index">
                         <span class="tag">{{param.text}}</span>
                         <a href="javascript:void(0)" class="remove-key" @click.stop.prevent="removeSearchParams(param, index)">
-                            <i class="bk-icon icon-close"></i>
+                            <i class="bcs-icon bcs-icon-close"></i>
                         </a>
                     </li>
                 </template>
@@ -29,30 +29,30 @@
             </ul>
         </div>
         <div class="actions">
-            <bk-tooltip :content="$t('清空')" placement="top">
+            <bk-popover :content="$t('清空')" placement="top">
                 <template v-if="disable">
                     <a href="javascript:void(0)" class="btn clear-btn disable-btn" v-show="searchParams.length">
-                        <i class="bk-icon icon-close"></i>
+                        <i class="bcs-icon bcs-icon-close"></i>
                     </a>
                 </template>
                 <template v-else>
                     <a href="javascript:void(0)" class="btn clear-btn" @click.stop.prevent="clearSearchParams" v-show="searchParams.length">
-                        <i class="bk-icon icon-close"></i>
+                        <i class="bcs-icon bcs-icon-close"></i>
                     </a>
                 </template>
-            </bk-tooltip>
-            <bk-tooltip :content="$t('搜索')" placement="top">
+            </bk-popover>
+            <bk-popover :content="$t('搜索')" placement="top">
                 <template v-if="disable">
                     <a href="javascript:void(0)" class="btn search-btn disable-btn">
-                        <i class="bk-icon icon-search"></i>
+                        <i class="bcs-icon bcs-icon-search"></i>
                     </a>
                 </template>
                 <template v-else>
                     <a href="javascript:void(0)" class="btn search-btn" @click.stop.prevent="search">
-                        <i class="bk-icon icon-search"></i>
+                        <i class="bcs-icon bcs-icon-search"></i>
                     </a>
                 </template>
-            </bk-tooltip>
+            </bk-popover>
         </div>
         <div class="ip-searcher-footer" v-show="showTip && !disable">
             <p class="placeholder">{{placeholderRender}}</p>

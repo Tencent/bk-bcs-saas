@@ -6,7 +6,7 @@
         :quick-close="true"
         class="gamestatefulset-sideslider"
         @hidden="hide">
-        <template slot="content">
+        <div slot="content">
             <div class="wrapper" v-bkloading="{ isLoading: isLoading, opacity: 0.8 }">
                 <monaco-editor v-if="!isLoading"
                     ref="yamlEditor"
@@ -19,7 +19,7 @@
                     @mounted="handleEditorMount">
                 </monaco-editor>
             </div>
-        </template>
+        </div>
     </bk-sideslider>
 </template>
 
@@ -115,10 +115,6 @@
                     this.editorContent = yamljs.dump(data || {})
                 } catch (e) {
                     console.error(e)
-                    this.bkMessageInstance = this.$bkMessage({
-                        theme: 'error',
-                        message: e.message || e.data.msg || e.statusText
-                    })
                 } finally {
                     this.isLoading = false
                 }
