@@ -4,7 +4,7 @@
             {{ $t('基础信息') }}
         </div>
         <div class="detail-content basic-info">
-            <div class="basic-info-item">
+            <div class="basic-info-item selector">
                 <p class="mb10">{{ $t('选择器') }}:</p>
                 <p class="bcs-ellipsis" v-bk-tooltips="transformObjToStr(data.spec.selector)">
                     {{ transformObjToStr(data.spec.selector) }}
@@ -74,6 +74,9 @@
                 font-size: 14px;
                 color: #737987;
                 border-right: 1px solid #dfe0e5;
+                &.selector {
+                    flex: 1.5;
+                }
                 &:last-child {
                     border-right: none;
                 }
