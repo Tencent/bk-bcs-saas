@@ -3,7 +3,7 @@
         <div class="biz-keys-list mb10">
             <div class="biz-key-item" v-for="(keyItem, index) in list" :key="index">
                 <template v-if="varList.length">
-                    <bk-input
+                    <bkbcs-input
                         type="text"
                         :placeholder="keyPlaceholder || $t('键')"
                         :style="{ width: `${keyInputWidth}px` }"
@@ -13,7 +13,7 @@
                         @input="valueChange"
                         @blur="handleBlur"
                         @paste="pasteKey(keyItem, $event)">
-                    </bk-input>
+                    </bkbcs-input>
                 </template>
                 <template v-else>
                     <input
@@ -32,8 +32,8 @@
                 <span class="operator">=</span>
 
                 <template v-if="varList.length">
-                    <bk-input
-                        type="text"
+                    <bkbcs-input
+                        :type="valueType"
                         :placeholder="valuePlaceholder || $t('值')"
                         :style="{ width: `${valueInputWidth}px` }"
                         :value.sync="keyItem.value"
@@ -42,11 +42,11 @@
                         @input="valueChange"
                         @blur="handleBlur"
                     >
-                    </bk-input>
+                    </bkbcs-input>
                 </template>
                 <template v-else>
                     <input
-                        type="text"
+                        :type="valueType"
                         class="bk-form-input"
                         :placeholder="valuePlaceholder || $t('值')"
                         :style="{ width: `${valueInputWidth}px` }"
@@ -57,21 +57,23 @@
                     />
                 </template>
 
-                <button class="action-btn" @click.stop.prevent="addKey">
-                    <i class="bk-icon icon-plus"></i>
-                </button>
-                <button class="action-btn" v-if="list.length > 1" @click.stop.prevent="removeKey(keyItem, index)">
-                    <i class="bk-icon icon-minus"></i>
-                </button>
-                <label class="bk-form-checkbox" style="margin-left: 20px;" v-if="isLinkToSelector">
-                    <input type="checkbox" v-model="keyItem.isSelector" @change="valueChange">
+                <bk-button class="action-btn" @click.stop.prevent="addKey" style="min-width: 20px;">
+                    <i class="bcs-icon bcs-icon-plus"></i>
+                </bk-button>
+                <bk-button class="action-btn" v-if="list.length > 1" @click.stop.prevent="removeKey(keyItem, index)" style="min-width: 20px;">
+                    <i class="bcs-icon bcs-icon-minus"></i>
+                </bk-button>
+                <bk-checkbox v-if="isLinkToSelector"
+                    v-model="keyItem.isSelector"
+                    style="margin-left: 20px;"
+                    @change="valueChange">
                     {{addToSelectorStr || $t('添加至选择器')}}
-                </label>
-                <div v-if="keyItem.linkMessage" class="biz-tip mt5 f12">{{keyItem.linkMessage}}</div>
+                </bk-checkbox>
+                <div v-if="keyItem.linkMessage" class="biz-tip mt5 f12" style="line-height: 1;">{{keyItem.linkMessage}}</div>
             </div>
         </div>
         <slot>
-            <p :class="['biz-tip', { 'is-danger': isTipChange }]">{{tip ? tip : $t('小提示：同时粘贴多行“键=值”的文本会自动添加多行记录')}}</p>
+            <p style="line-height: 1;" :class="['biz-tip', { 'is-danger': isTipChange }]">{{tip ? tip : $t('小提示：同时粘贴多行“键=值”的文本会自动添加多行记录')}}</p>
         </slot>
     </div>
 </template>
@@ -132,6 +134,10 @@
             useValueTrim: {
                 type: Boolean,
                 default: true
+            },
+            valueType: {
+                type: String,
+                default: 'text'
             }
         },
         data () {
@@ -291,6 +297,12 @@
 
 <style scoped lang="postcss">
     @import '../../css/variable.css';
+    input[type="number"] {
+        &::-webkit-outer-spin-button,&::-webkit-inner-spin-button {
+            appearance: none;
+        }
+        -moz-appearance: textfield;
+    }
 
     .biz-keys-list .action-btn {
         width: auto;
@@ -300,7 +312,7 @@
             cursor: default;
             color: #ddd !important;
             border-color: #ddd !important;
-            .bk-icon {
+            .bcs-icon {
                 color: #ddd !important;
                 border-color: #ddd !important;
             }
@@ -308,7 +320,7 @@
         &:hover {
             color: $primaryColor;
             border-color: $primaryColor;
-            .bk-icon {
+            .bcs-icon {
                 color: $primaryColor;
                 border-color: $primaryColor;
             }

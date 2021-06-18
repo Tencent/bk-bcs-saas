@@ -19,28 +19,28 @@ $border-weight-color-aaa: red;
 
 /* 边框色 */
 $borderColor: #ebf0f5; /* 相对较浅，常用于容器边框色 */
-$borderWeightColor: #dde4eb; /* 相对较深，常用于输入框边框色 */
+$borderWeightColor: #dfe0e5; /* 相对较深，常用于输入框边框色 */
 
 /* 字体色 */
 $fontColor: #63656e;
 $fontWeightColor: #63656e;
 
 /* 主体 icon 颜色 */
-$iconPrimaryColor: #3c96ff;
-$primaryColor: #3c96ff;
+$iconPrimaryColor: #3a84ff;
+$primaryColor: #3a84ff;
 
 /* 成功 icon 颜色 */
-$iconSuccessColor: #34d97b;
-$successColor: #34d97b;
+$iconSuccessColor: #2dcb56;
+$successColor: #2dcb56;
 
 /* 失败 icon 颜色 */
-$iconFailColor: #ff5656;
-$failColor: #ff5656;
-$dangerColor: #ff5656;
+$iconFailColor: #ea3636;
+$failColor: #ea3636;
+$dangerColor: #ea3636;
 
 /* warning icon 颜色 */
-$iconWarningColor: #ffb400;
-$warningColor: #ffb400;
+$iconWarningColor: #ff9c01;
+$warningColor: #ff9c01;
 
 /* 淡色 */
 $primaryLightColor: #ebf4ff;

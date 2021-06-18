@@ -1,5 +1,5 @@
-@import '@open/css/variable.css';
-@import '@open/css/mixins/ellipsis.css';
+@import '@/css/variable.css';
+@import '@/css/mixins/ellipsis.css';
 
 .biz-app-title {
     display: inline-block;
@@ -10,7 +10,7 @@
 }
 
 .biz-crdcontroller {
-    overflow: hidden;
+    margin: 0 20px;
     .biz-controller-item {
         position: relative;
         background: #FFF;
@@ -105,6 +105,10 @@
 
         .logo-wrapper {
             width: 100px;
+            i {
+                font-size: 48px;
+                color: #42a5d8;
+            }
         }
 
         img {
@@ -144,6 +148,9 @@
 
     .action {
         width: 150px;
+        .bk-primary.bk-button-normal {
+            width: 88px;
+        }
     }
 
     strong {
@@ -154,8 +161,8 @@
         transition: none;
 
         &:hover {
-            background-color: #3c96ff;
-            border-color: #3c96ff;
+            background-color: #3a84ff;
+            border-color: #3a84ff;
             opacity: 1;
             color: #fff;
         }
@@ -163,12 +170,18 @@
 }
 
 .biz-templateset-table {
+    border: 1px solid #dfe0e5;
     border-bottom: none;
 
     &.bk-table>thead>tr>th {
         height: 42px;
         background-color: #ebf0f5;
         color: #52525d;
+    }
+
+    &..bk-table td,
+    &..bk-table th.is-leaf {
+        border-bottom: none;
     }
 }
 
@@ -275,14 +288,40 @@
 
 .biz-cluster-wrapper {
     background: #fafafa;
-    border: 1px solid #c3cdd7;
+    border: 1px solid #c4c6cc;
     padding: 0 10px;
     height: 36px;
     line-height: 34px;
     float: right;
     margin-right: -2px;
     border-radius: 2px 0 0 2px;
-    font-size: 13px;   
+    font-size: 13px;
+}
+
+/deep/ .editor-slider {
+    .bk-sideslider-wrapper {
+        background: #272822;
+    }
+
+    .bk-sideslider-title {
+        background: #FFF;
+    }
+}
+
+.save-crd-btn {
+    position: absolute;
+    top: 13px;
+    right: 90px;
+}
+
+.hide-crd-btn {
+    position: absolute;
+    top: 13px;
+    right: 13px;
+}
+
+.bk-tag.bk-danger {
+    cursor: pointer;
 }
 
 @media screen and (max-width: $mediaWidth) {

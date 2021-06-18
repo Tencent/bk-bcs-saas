@@ -1,5 +1,5 @@
 /**
- * @file ee 版本 router 配置
+ * @file router 配置
  */
 
 import Vue from 'vue'
@@ -8,21 +8,26 @@ import VueRouter from 'vue-router'
 import http from '@open/api'
 import { bus } from '@open/common/bus'
 import preload from '@open/common/preload'
-import resourceRoutes from '@open/router/resource'
-import nodeRoutes from '@open/router/node'
-import mcRoutes from '@open/router/mc'
-import depotRoutes from '@open/router/depot'
-import metricRoutes from './metric'
+import resourceRoutes from '@/router/resource'
+import nodeRoutes from '@/router/node'
+import mcRoutes from '@/router/mc'
+
 import store from '@open/store'
+import depotRoutes from './depot'
+import metricRoutes from './metric'
 import clusterRoutes from './cluster'
 import appRoutes from './app'
 import configurationRoutes from './configuration'
 import networkRoutes from './network'
 import helmRoutes from './helm'
+import HPARoutes from './hpa'
+import Crdcontroller from './crdcontroller.js'
+import storageRoutes from './storage'
+import dashboardRoutes from './dashboard'
 
 Vue.use(VueRouter)
 
-const ContainerServiceEntry = () => import(/* webpackChunkName: 'containerserviceentry' */'@open/views')
+const ContainerServiceEntry = () => import(/* webpackChunkName: 'containerserviceentry' */'@/views')
 const None = () => import(/* webpackChunkName: 'none' */'@open/views/none')
 
 const children = clusterRoutes.concat(
@@ -34,7 +39,11 @@ const children = clusterRoutes.concat(
     depotRoutes,
     metricRoutes,
     mcRoutes,
-    helmRoutes
+    helmRoutes,
+    HPARoutes,
+    Crdcontroller,
+    storageRoutes,
+    dashboardRoutes
 )
 
 const routes = [
@@ -65,11 +74,25 @@ const cancelRequest = async () => {
     await http.cancel(requestQueue.map(request => request.requestId))
 }
 
+// 复制链接导致集群不一致问题
+const handleFirstOpen = (to, from) => {
+    const { clusterId } = to.params
+    if (from.name || !clusterId) return
+
+    // 首次进入检查集群ID是否存在
+    const localClusterId = localStorage.getItem('bcs-cluster')
+    if (localClusterId && localClusterId !== clusterId) {
+        localStorage.removeItem('bcs-cluster')
+        localStorage.removeItem('bcs-cluster-name')
+    }
+}
+
 let preloading = true
 let canceling = true
 let pageMethodExecuting = true
 
 router.beforeEach(async (to, from, next) => {
+    handleFirstOpen(to, from)
     bus.$emit('close-apply-perm-modal')
 
     canceling = true
@@ -95,6 +118,16 @@ router.beforeEach(async (to, from, next) => {
 })
 
 router.afterEach(async (to, from) => {
+    const bodySrcollTop = document.body.scrollTop
+    if (bodySrcollTop !== 0) {
+        document.body.scrollTop = 0
+        return
+    }
+    const docSrcollTop = document.documentElement.scrollTop
+    if (docSrcollTop !== 0) {
+        document.documentElement.scrollTop = 0
+    }
+
     store.commit('setMainContentLoading', true)
     preloading = true
     await preload()

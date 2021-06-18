@@ -1,7 +1,7 @@
 <template>
     <div class="biz-content">
         <div class="biz-top-bar">
-            <i class="biz-back bk-icon icon-arrows-left" @click="goLoadBalanceList"></i>
+            <i class="biz-back bcs-icon bcs-icon-arrows-left" @click="goLoadBalanceList"></i>
             <div class="biz-templateset-title">
                 <span v-if="loadBalanceDetail">{{loadBalanceDetail.name}}</span>
             </div>
@@ -73,12 +73,12 @@
 
                 <div class="mt20">
                     <bk-tab :type="'fill'" :active-name="tabActiveName">
-                        <bk-tabpanel name="taskgroup" :title="$t('映射Taskgroup')">
+                        <bk-tab-panel name="taskgroup" :title="$t('映射Taskgroup')">
                             <div class="biz-app-instance-taskgroup-list" v-if="taskGroup && Object.keys(taskGroup).length">
                                 <div class="list-item-tpl" v-for="(key, index) in Object.keys(taskGroup)" :key="index">
                                     <div class="list-item-tpl-inner">
                                         <div style="cursor: pointer;" @click="toggleTaskGroup(taskGroup[key])">
-                                            <i class="bk-icon toggle" :class="taskGroup[key].isOpen ? 'icon-minus' : 'icon-plus'"></i>
+                                            <i class="bcs-icon toggle" :class="taskGroup[key].isOpen ? 'bcs-icon-minus' : 'bcs-icon-plus'"></i>
                                             <span class="name">{{taskGroup[key].name}}</span>
                                             <span class="ver">{{taskGroup[key].type}}</span>
 
@@ -92,9 +92,9 @@
                                                         Running
                                                     </span>
                                                     <span class="status-val" v-else style="color: #ff5656;">
-                                                        <bk-tooltip :content="taskGroup[key].message" placement="top" class="biz-error-tooltip">
-                                                            <i class="bk-icon icon-info-circle mr5 f14"></i>Error
-                                                        </bk-tooltip>
+                                                        <bcs-popover :content="taskGroup[key].message" placement="top" class="biz-error-tooltip">
+                                                            <i class="bcs-icon bcs-icon-info-circle mr5 f14"></i>Error
+                                                        </bcs-popover>
                                                     </span>
                                                 </div>
                                             </div>
@@ -123,14 +123,14 @@
                                                     <template v-if="taskGroup[key].container_list.length">
                                                         <tr v-for="(container, containerIndex) in taskGroup[key].container_list" :key="containerIndex">
                                                             <td>
-                                                                <bk-tooltip placement="top">
+                                                                <bcs-popover placement="top">
                                                                     <span class="name" style="margin-left: 13px;">
                                                                         {{container.name}}
                                                                     </span>
                                                                     <template slot="content">
                                                                         <p style="text-align: left; white-space: normal;word-break: break-all;font-weight: 400;">{{container.name}}</p>
                                                                     </template>
-                                                                </bk-tooltip>
+                                                                </bcs-popover>
                                                             </td>
                                                             <td>{{taskGroup[key].namespace}}</td>
                                                         </tr>
@@ -139,7 +139,7 @@
                                                         <tr>
                                                             <td colspan="4">
                                                                 <div class="bk-message-box">
-                                                                    <p class="message empty-message">{{$t('无数据')}}</p>
+                                                                    <bcs-exception type="empty" scene="part"></bcs-exception>
                                                                 </div>
                                                             </td>
                                                         </tr>
@@ -152,11 +152,11 @@
                             </div>
                             <div class="biz-app-instance-taskgroup-list" v-else>
                                 <div class="bk-message-box">
-                                    <p class="message empty-message">{{$t('无数据')}}</p>
+                                    <bcs-exception type="empty" scene="part"></bcs-exception>
                                 </div>
                             </div>
-                        </bk-tabpanel>
-                        <bk-tabpanel name="rule" :title="$t('调度约束规则')">
+                        </bk-tab-panel>
+                        <bk-tab-panel name="rule" :title="$t('调度约束规则')">
                             <table class="bk-table has-table-hover biz-table biz-rule-table" style="border-bottom: none;">
                                 <thead>
                                     <tr>
@@ -173,7 +173,7 @@
                                     </tr>
                                 </tbody>
                             </table>
-                        </bk-tabpanel>
+                        </bk-tab-panel>
                     </bk-tab>
                 </div>
             </template>

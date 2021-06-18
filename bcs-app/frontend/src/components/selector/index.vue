@@ -12,8 +12,8 @@
                 :disabled="disabled"
                 @mouseover="showClearFn"
                 @mouseleave="showClear = false">
-            <i class="bk-icon icon-angle-down bk-selector-icon" v-show="!isLoading && !showClear"></i>
-            <i class="bk-icon icon-close bk-selector-icon clear-icon"
+            <i class="bcs-icon bcs-icon-angle-down bk-selector-icon" v-show="!isLoading && !showClear"></i>
+            <i class="bcs-icon bcs-icon-close bk-selector-icon clear-icon"
                 v-show="!isLoading && showClear"
                 @mouseover="showClearFn"
                 @mouseleave="showClear = false"
@@ -37,7 +37,7 @@
                 <div class="bk-selector-search-item"
                     @click="$event.stopPropagation()"
                     v-if="searchable">
-                    <i class="bk-icon icon-search"></i>
+                    <i class="bcs-icon bcs-icon-search"></i>
                     <input type="text" v-model="condition" @input="inputFn" ref="searchNode" :placeholder="searchPlaceholder">
                 </div>
                 <ul>
@@ -64,10 +64,10 @@
                                                 </template>
                                             </div>
                                             <div class="bk-selector-tools" v-if="tools !== false">
-                                                <i class="bk-icon icon-edit2 bk-selector-list-icon"
+                                                <i class="bcs-icon bcs-icon-edit2 bk-selector-list-icon"
                                                     v-if="tools.edit !== false"
                                                     @click.stop="editFn(index)"></i>
-                                                <i class="bk-icon icon-close bk-selector-list-icon"
+                                                <i class="bcs-icon bcs-icon-close bk-selector-list-icon"
                                                     v-if="tools.del !== false"
                                                     @click.stop="delFn(index)"></i>
                                             </div>
@@ -93,10 +93,10 @@
                                         </template>
                                     </div>
                                     <div class="bk-selector-tools" v-if="tools !== false">
-                                        <i class="bk-icon icon-edit2 bk-selector-list-icon"
+                                        <i class="bcs-icon bcs-icon-edit2 bk-selector-list-icon"
                                             v-if="tools.edit !== false"
                                             @click.stop="editFn(parentIndex)"></i>
-                                        <i class="bk-icon icon-close bk-selector-list-icon"
+                                        <i class="bcs-icon bcs-icon-close bk-selector-list-icon"
                                             v-if="tools.del !== false"
                                             @click.stop="delFn(parentIndex)"></i>
                                     </div>
@@ -116,19 +116,19 @@
                 <slot name="newItem"></slot>
                 <template v-if="fieldType === 'cluster'">
                     <div class="bk-selector-create-item" @click.stop.prevent="goClusterList">
-                        <i class="bk-icon icon-apps"></i>
+                        <i class="bcs-icon bcs-icon-apps"></i>
                         <i class="text">{{$t('集群列表')}}</i>
                     </div>
                 </template>
                 <template v-if="fieldType === 'namespace'">
                     <div class="bk-selector-create-item" @click.stop.prevent="goNamespaceList">
-                        <i class="bk-icon icon-apps"></i>
+                        <i class="bcs-icon bcs-icon-apps"></i>
                         <i class="text">{{$t('命名空间列表')}}</i>
                     </div>
                 </template>
                 <template v-if="fieldType === 'metric'">
                     <div class="bk-selector-create-item" @click.stop.prevent="goMetricList">
-                        <i class="bk-icon icon-apps"></i>
+                        <i class="bcs-icon bcs-icon-apps"></i>
                         <i class="text">{{$t('新建Metric')}}</i>
                     </div>
                 </template>
@@ -195,7 +195,7 @@
             },
             createText: {
                 type: String,
-                default: '新增数据源'
+                default: window.i18n.t('新增数据源')
             },
             tools: {
                 type: [Object, Boolean],
@@ -217,7 +217,7 @@
             },
             placeholder: {
                 type: [String, Boolean],
-                default: '请选择'
+                default: window.i18n.t('请选择')
             },
             // 是否联动
             isLink: {
@@ -492,7 +492,7 @@
 
                     if ((distanceTop + listHeight + 42 - scrollTop) < winHeight) {
                         ySet = {
-                            top: '40px',
+                            top: '34px',
                             bottom: 'auto'
                         }
 
@@ -500,7 +500,7 @@
                     } else {
                         ySet = {
                             top: 'auto',
-                            bottom: '40px'
+                            bottom: '34px'
                         }
 
                         this.listSlideName = 'toggle-slide2'
@@ -657,8 +657,14 @@
 </script>
 
 <style scoped>
+    @import url(./index.css);
     .bk-form-checkbox {
         width: 100%;
+
+        input[type=checkbox] {
+            margin-right: 10px;
+            vertical-align: middle;
+        }
     }
     .select-text {
         display: inline-block;
@@ -667,5 +673,6 @@
         white-space: nowrap;
         vertical-align: middle;
         width: calc(100% - 15px);
+        font-size: 12px;
     }
 </style>

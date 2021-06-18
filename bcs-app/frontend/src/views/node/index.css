@@ -28,15 +28,13 @@
 
 .biz-node-query {
     .left {
+        display: flex;
         margin-right: 10px;
         float: left;
         color: $fontWeightColor;
 
         .bk-button {
-            border: 1px solid $fnMinorColor;
-            height: 38px;
-            line-height: 36px;
-
+            margin-right: 5px;
             &.is-disabled {
                 cursor: not-allowed !important;
             }
@@ -58,9 +56,9 @@
         .copy-ip-btn {
             width: 92px;
             padding-left: 15px;
-            border: 1px solid #c3cdd7;
-            height: 38px;
-            line-height: 36px;
+            border: 1px solid #c4c6cc;
+            height: 32px;
+            line-height: 30px;
             display: inline-block;
             outline: none;
             cursor: pointer;
@@ -80,7 +78,7 @@
                 text-align: left;
                 @mixin ellipsis 85px;
             }
-            .bk-icon {
+            .bcs-icon {
                 color: #c3cdd7;
                 margin-left: 0;
                 margin-right: 0;
@@ -110,18 +108,14 @@
             float: left;
             right: 493px;
             width: 200px;
-            /deep/ .bk-selector-input {
-                height: 38px;
-                border-color: #dde4eb !important;
-            }
         }
 
         .toggle-filter {
             width: 200px;
             padding-left: 15px;
             border: 1px solid #dde4eb;
-            height: 38px;
-            line-height: 36px;
+            height: 32px;
+            line-height: 30px;
             display: inline-block;
             white-space: nowrap;
             outline: none;
@@ -142,7 +136,7 @@
                 text-align: left;
                 @mixin ellipsis 85px;
             }
-            .bk-icon {
+            .bcs-icon {
                 color: #c3cdd7;
                 margin-left: 0;
                 margin-right: 0;
@@ -172,11 +166,13 @@
             right: 65px;
 
             button {
-                border-color: $borderWeightColor;
                 border-left: none;
                 border-radius: 0;
-                width: 38px;
-                height: 38px;
+            }
+
+            .bcs-icon-close {
+                transform: scale(0.8);
+                display: inline-block;
             }
         }
 
@@ -189,18 +185,20 @@
             .refresh {
                 color: $iconPrimaryColor;
             }
-
-            button {
-                border-color: $borderWeightColor;
-                width: 38px;
-                height: 38px;
-            }
         }
     }
 }
 
 .biz-node-list {
     margin-bottom: 30px;
+
+    /deep/ .bk-page {
+        .bk-page-count {
+            .bk-select {
+                min-width: 62px;
+            }
+        }
+    }
 
     table {
         background-color: #fff;
@@ -218,10 +216,6 @@
                     height: 50px;
                     font-size: 14px;
                     padding: 0 10px;
-                }
-
-                td {
-                    height: 46px;
                 }
 
                 .tip {
@@ -377,7 +371,7 @@
             .equals-sign {
                 color: $fnMinorColor;
                 position: absolute;
-                top: 6px;
+                top: 0;
                 display: inline-block;
                 left: 294px;
             }
@@ -390,7 +384,7 @@
         .action-btn {
             width: auto;
             padding: 0;
-            height: 36px;
+            height: 30px;
             text-align: center;
             display: inline-block;
             border: none;
@@ -398,7 +392,7 @@
             outline: none;
             margin-left: 5px;
 
-            .bk-icon {
+            .bcs-icon {
                 width: 24px;
                 height: 24px;
                 line-height: 24px;
@@ -408,6 +402,11 @@
                 font-size: 14px;
                 display: inline-block;
                 border: 1px solid $borderWeightColor;
+
+                &:hover {
+                    color: $primaryColor;
+                    border-color: $primaryColor;
+                }
             }
         }
     }
@@ -424,7 +423,6 @@
         .label {
             color: $fontWeightColor;
             font-size: 14px;
-            font-weight: 700;
         }
 
         .action-inner {
@@ -539,10 +537,9 @@
         right: 94px;
     }
 
+
     .biz-node-query {
         .right {
-            width: 320px;
-
             .bk-dropdown-menu {
                 right: 393px;
             }

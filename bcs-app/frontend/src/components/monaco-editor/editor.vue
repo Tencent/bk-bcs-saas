@@ -1,8 +1,8 @@
 <template>
     <div ref="mancoEditor" :class="['biz-manco-editor', { 'full-screen': isFullScreen }]">
         <div class="build-code-fullscreen" :title="isFullScreen ? $t('关闭') : $t('全屏')" @click="setFullScreen()">
-            <i class="bk-icon icon-full-screen" v-if="!isFullScreen"></i>
-            <i class="bk-icon icon-close" v-else></i>
+            <i class="bcs-icon bcs-icon-full-screen" v-if="!isFullScreen"></i>
+            <i class="bcs-icon bcs-icon-close" v-else></i>
         </div>
     </div>
 </template>
@@ -115,11 +115,11 @@
             this.monaco = monaco
             this.monaco.editor.defineTheme('monokai', monokaiTheme)
             this.initMonaco(monaco)
-            this.$nextTick(() => {
+            setTimeout(() => {
                 const rect = this.$refs.mancoEditor.getBoundingClientRect()
                 this.defaultWidth = rect.width
                 this.defaultHeight = rect.height
-            })
+            }, 500)
         },
 
         beforeDestroy () {

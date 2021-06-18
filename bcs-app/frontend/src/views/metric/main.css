@@ -1,5 +1,5 @@
-@import '@open/css/variable.css';
-@import '@open/css/mixins/ellipsis.css';
+@import '@/css/variable.css';
+@import '@/css/mixins/ellipsis.css';
 
 .biz-app-title {
     display: inline-block;
@@ -45,13 +45,13 @@
             border-color: #FFB848;
             background-color: #FFF4E2;
 
-            .bk-icon {
+            .bcs-icon {
                 color: #FFB848;
             }
         }
     }
 
-    .bk-icon {
+    .bcs-icon {
         color: #3A84FF;
         font-size: 14px;
         margin-right: 3px;
@@ -82,6 +82,7 @@
         color: #313238;
     }
     > tbody >tr > td {
+        height: 50px;
         color: #63656e;
     }
     .bk-text-button {
@@ -109,15 +110,15 @@
         vertical-align: bottom;
     }
 
-    td.act {
-        text-align: right;
+    .act {
+        /* text-align: right; */
         padding-right: 30px;
         .disabled {
             cursor: not-allowed;
             color: #c3cdd7;
         }
         .bk-text-button+.bk-text-button {
-            margin-left: 0;
+            margin-left: 0 !important;
         }
         .bk-text-button.metric-query {
             margin-left: 5px;
@@ -155,7 +156,9 @@
         overflow: visible;
         height: auto;
         padding-right: 40px; */
+        padding: 10px 0 5px;
         .labels-inner {
+            display: flex;
             border: 1px solid $borderWeightColor;
             border-radius: 2px;
             height: 24px;
@@ -254,7 +257,7 @@
         }
 
         td.act {
-            text-align: right;
+            /* text-align: right; */
             padding-right: 20px;
         }
     }

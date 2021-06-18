@@ -64,7 +64,7 @@
         color: #fff;
         box-shadow: 0 0 3px rgba(0, 0, 0, .6);
 
-        .bk-icon {
+        .bcs-icon {
             font-size: 20px;
             font-weight: bold;
         }
@@ -141,7 +141,7 @@
 
 .value-file-wrapper {
     padding: 15px 16px;
-    border: 1px solid #c3cdd7;
+    border: 1px solid #dcdee5;
     border-radius: 2px;
     background: #f9fbfd;
     position: relative;
@@ -158,4 +158,26 @@
     vertical-align: middle;
     line-height: 12px;
     margin-bottom: 2px;
+}
+
+.notes-details {
+    position: relative;
+    font-size: 12px;
+    overflow: hidden;
+    padding: 5px 10px 30px;
+    cursor: default;
+    border-radius: 2px;
+    border: 1px solid #c4c6cc;
+    .notes-message {
+        white-space: pre-wrap;
+        text-align: left;
+        max-height: 200px;
+        overflow: auto;
+        margin: 0;
+    }
+    .copy-button {
+        position: absolute;
+        bottom: 4px;
+        right: 4px;
+    }
 }

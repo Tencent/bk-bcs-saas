@@ -5,7 +5,6 @@ output/
 test/unit/coverage
 *.bak*
 package-lock.json
-index-dev.html
 
 # Editor directories and files
 .idea
@@ -85,3 +84,6 @@ static/lib*
 
 
 mock/ajax/app/cluster.js
+.hard-source-cache
+index-ieod.html
+ieod.config.js

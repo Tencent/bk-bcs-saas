@@ -17,72 +17,62 @@
 
             <div class="bk-form-item">
                 <div class="bk-form-content" style="margin-left: 130px;">
-                    <button :class="['bk-text-button f12 mb10 pl0', { 'rotate': isTlsPanelShow }]" @click.stop.prevent="toggleTlsPanel">
-                        {{$t('TLS设置')}}<i class="bk-icon icon-angle-double-down ml5"></i>
-                    </button>
-                    <button :class="['bk-text-button f12 mb10 pl0', { 'rotate': isPanelShow }]" @click.stop.prevent="togglePanel">
-                        {{$t('更多设置')}}<i class="bk-icon icon-angle-double-down ml5"></i>
-                    </button>
+                    <bk-button :class="['bk-text-button f12 mb10 pl0', { 'rotate': isTlsPanelShow }]" @click.stop.prevent="toggleTlsPanel">
+                        {{$t('TLS设置')}}<i class="bcs-icon bcs-icon-angle-double-down ml5"></i>
+                    </bk-button>
+                    <bk-button :class="['bk-text-button f12 mb10 pl0', { 'rotate': isPanelShow }]" @click.stop.prevent="togglePanel">
+                        {{$t('更多设置')}}<i class="bcs-icon bcs-icon-angle-double-down ml5"></i>
+                    </bk-button>
                 </div>
             </div>
-
             <div class="bk-form-item mt0" v-show="isTlsPanelShow">
                 <div class="bk-form-content" style="margin-left: 130px;">
                     <bk-tab :type="'fill'" :active-name="'tls'" :size="'small'">
-                        <bk-tabpanel name="tls" title="TLS">
+                        <bk-tab-panel name="tls" title="TLS">
                             <div class="p20">
                                 <table class="biz-simple-table">
                                     <tbody>
                                         <tr v-for="(computer, index) in curIngress.config.spec.tls" :key="index">
                                             <td>
-                                                <bk-input
+                                                <bkbcs-input
                                                     type="text"
                                                     :placeholder="$t('主机名，多个用英文逗号分隔')"
                                                     style="width: 310px;"
                                                     :value.sync="computer.hosts"
                                                     :list="varList"
                                                 >
-                                                </bk-input>
+                                                </bkbcs-input>
                                             </td>
                                             <td>
                                                 <bk-selector
                                                     :placeholder="$t('选择一个证书')"
                                                     style="width: 350px;"
-                                                    :allow-clear="true"
-                                                    :has-create-item="true"
                                                     :setting-key="'certId'"
                                                     :display-key="'certName'"
-                                                    :is-loading="isCertListLoading"
                                                     :selected.sync="computer.certId"
                                                     :list="certList"
-                                                    :tools="certTools"
+                                                    allow-clear
                                                     @item-selected="handlerSelectCert(computer, ...arguments)"
-                                                    @edit="editBcsTls"
-                                                    @del="deleteBcsTls(computer, ...arguments)"
                                                 >
                                                     <div class="bk-selector-create-item" slot="newItem" @click="goCertList" v-if="certListUrl">
-                                                        <i class="bk-icon icon-apps"></i>
+                                                        <i class="bcs-icon bcs-icon-apps"></i>
                                                         <i class="text">{{$t('证书列表')}}</i>
-                                                    </div>
-                                                    <div class="bk-selector-create-item" slot="newItem" @click="showBcsTlsEditor">
-                                                        <i class="bk-icon icon-plus-circle"></i>
-                                                        <i class="text">{{$t('新建证书')}}</i>
                                                     </div>
                                                 </bk-selector>
                                             </td>
                                             <td>
-                                                <button class="action-btn ml5" @click.stop.prevent="addTls">
-                                                    <i class="bk-icon icon-plus"></i>
-                                                </button>
-                                                <button class="action-btn" v-if="curIngress.config.spec.tls.length > 1" @click.stop.prevent="removeTls(index, computer)">
-                                                    <i class="bk-icon icon-minus">{{$t('新建证书')}}</i>
-                                                </button>
+                                                <bk-button class="action-btn ml5" @click.stop.prevent="addTls">
+                                                    <i class="bcs-icon bcs-icon-plus"></i>
+                                                </bk-button>
+                                                <bk-button class="action-btn" v-if="curIngress.config.spec.tls.length > 1" @click.stop.prevent="removeTls(index, computer)">
+                                                    <i class="bcs-icon bcs-icon-minus"></i>
+                                                </bk-button>
                                             </td>
                                         </tr>
                                     </tbody>
                                 </table>
                             </div>
-                        </bk-tabpanel>
+                        </bk-tab-panel>
                     </bk-tab>
                 </div>
             </div>
@@ -90,16 +80,16 @@
             <div class="bk-form-item mt0" v-show="isPanelShow">
                 <div class="bk-form-content" style="margin-left: 130px;">
                     <bk-tab :type="'fill'" :active-name="'remark'" :size="'small'">
-                        <bk-tabpanel name="remark" :title="$t('注解')">
+                        <bk-tab-panel name="remark" :title="$t('注解')">
                             <div class="biz-tab-wrapper m20">
                                 <bk-keyer :key-list.sync="curRemarkList" :var-list="varList" ref="remarkKeyer"></bk-keyer>
                             </div>
-                        </bk-tabpanel>
-                        <bk-tabpanel name="label" :title="$t('标签')">
+                        </bk-tab-panel>
+                        <bk-tab-panel name="label" :title="$t('标签')">
                             <div class="biz-tab-wrapper m20">
                                 <bk-keyer :key-list.sync="curLabelList" :var-list="varList" ref="labelKeyer"></bk-keyer>
                             </div>
-                        </bk-tabpanel>
+                        </bk-tab-panel>
                     </bk-tab>
                 </div>
             </div>
@@ -108,50 +98,18 @@
             <div class="biz-part-header">
                 <div class="bk-button-group">
                     <div class="item" v-for="(rule, index) in curIngress.config.spec.rules" :key="index">
-                        <button :class="['bk-button bk-default is-outline', { 'is-selected': curRuleIndex === index }]" @click.stop="setCurRule(rule, index)">
+                        <bk-button :class="['bk-button bk-default is-outline', { 'is-selected': curRuleIndex === index }]" @click.stop="setCurRule(rule, index)">
                             {{rule.host || $t('未命名')}}
-                        </button>
-                        <span class="bk-icon icon-close-circle" @click.stop="removeRule(index)" v-if="curIngress.config.spec.rules.length > 1"></span>
+                        </bk-button>
+                        <span class="bcs-icon bcs-icon-close-circle" @click.stop="removeRule(index)" v-if="curIngress.config.spec.rules.length > 1"></span>
                     </div>
-                    <bk-tooltip ref="containerTooltip" :content="curIngress.config.spec.rules.length >= 5 ? $t('最多添加5个') : $t('添加Rule')" placement="top">
-                        <button type="button" class="bk-button bk-default is-outline is-icon" :disabled="curIngress.config.spec.rules.length >= 5 " @click.stop.prevent="addLocalRule">
-                            <i class="bk-icon icon-plus"></i>
-                        </button>
-                    </bk-tooltip>
+                    <bcs-popover ref="containerTooltip" :content="curIngress.config.spec.rules.length >= 5 ? $t('最多添加5个') : $t('添加Rule')" placement="top">
+                        <bk-button type="button" class="bk-button bk-default is-outline is-icon" :disabled="curIngress.config.spec.rules.length >= 5 " @click.stop.prevent="addLocalRule">
+                            <i class="bcs-icon bcs-icon-plus"></i>
+                        </bk-button>
+                    </bcs-popover>
                 </div>
             </div>
-
-            <bk-dialog
-                :title="tlsParams.id ? $t('编辑证书') : $t('新建证书')"
-                :is-show.sync="certKeyConf.isShow"
-                :width="800"
-                :quick-close="false"
-                :content="certKeyConf.content"
-                @confirm="saveBcsTls"
-                @cancel="certKeyConf.isShow = false">
-                <template slot="content">
-                    <form class="bk-form">
-                        <div class="bk-form-item is-required">
-                            <label class="bk-label" style="width: 80px;">Name：</label>
-                            <div class="bk-form-content" style="margin-left: 80px;">
-                                <input class="bk-form-input" v-model="tlsParams.name" :placeholder="$t('请输入名称，英文大小写、数字、下划线和英文句号，最大长度为64个字符')" maxlength="64" />
-                            </div>
-                        </div>
-                        <div class="bk-form-item is-required">
-                            <label class="bk-label" style="width: 80px;">Cert：</label>
-                            <div class="bk-form-content" style="margin-left: 80px;">
-                                <textarea class="bk-form-textarea" v-model="tlsParams.cert" style="height: 130px;" :placeholder="$t('请输入证书')"></textarea>
-                            </div>
-                        </div>
-                        <div class="bk-form-item is-required">
-                            <label class="bk-label" style="width: 80px;">Key：</label>
-                            <div class="bk-form-content" style="margin-left: 80px;">
-                                <textarea class="bk-form-textarea" v-model="tlsParams.key" style="height: 130px;" :placeholder="$t('请输入私钥')"></textarea>
-                            </div>
-                        </div>
-                    </form>
-                </template>
-            </bk-dialog>
 
             <div class="bk-form biz-configuration-form pb15">
                 <div class="biz-span">
@@ -160,7 +118,7 @@
                 <div class="bk-form-item is-required">
                     <label class="bk-label" style="width: 130px;">{{$t('虚拟主机名')}}：</label>
                     <div class="bk-form-content" style="margin-left: 130px;">
-                        <input type="text" :class="['bk-form-input']" :placeholder="$t('请输入30个字符以内')" style="width: 310px;" v-model="curRule.host" maxlength="30" name="ruleName">
+                        <bk-input :placeholder="$t('请输入')" style="width: 310px;" v-model="curRule.host" name="ruleName" />
                     </div>
                 </div>
                 <div class="bk-form-item">
@@ -170,17 +128,17 @@
                             <tbody>
                                 <tr v-for="(pathRule, index) of curRule.http.paths" :key="index">
                                     <td>
-                                        <bk-input
+                                        <bkbcs-input
                                             type="text"
                                             :placeholder="$t('路径')"
                                             style="width: 310px;"
                                             :value.sync="pathRule.path"
                                             :list="varList"
                                         >
-                                        </bk-input>
+                                        </bkbcs-input>
                                     </td>
                                     <td style="text-align: center;">
-                                        <i class="bk-icon icon-arrows-right"></i>
+                                        <i class="bcs-icon bcs-icon-arrows-right"></i>
                                     </td>
                                     <td>
                                         <bk-selector
@@ -206,12 +164,12 @@
                                         </bk-selector>
                                     </td>
                                     <td>
-                                        <button class="action-btn ml5" @click.stop.prevent="addRulePath">
-                                            <i class="bk-icon icon-plus"></i>
-                                        </button>
-                                        <button class="action-btn" v-if="curRule.http.paths.length > 1" @click.stop.prevent="removeRulePath(pathRule, index)">
-                                            <i class="bk-icon icon-minus"></i>
-                                        </button>
+                                        <bk-button class="action-btn ml5" @click.stop.prevent="addRulePath">
+                                            <i class="bcs-icon bcs-icon-plus"></i>
+                                        </bk-button>
+                                        <bk-button class="action-btn" v-if="curRule.http.paths.length > 1" @click.stop.prevent="removeRulePath(pathRule, index)">
+                                            <i class="bcs-icon bcs-icon-minus"></i>
+                                        </bk-button>
                                     </td>
                                 </tr>
                             </tbody>
@@ -227,7 +185,6 @@
     import bkKeyer from '@open/components/keyer'
     import ingressParams from '@open/json/k8s-ingress.json'
     import ruleParams from '@open/json/k8s-ingress-rule.json'
-    import { catchErrorHandler } from '@open/common/util'
 
     export default {
         components: {
@@ -243,32 +200,15 @@
         },
         data () {
             return {
-                certKey: '',
                 curRuleIndex: 0,
                 isPanelShow: false,
                 isTlsPanelShow: false,
-                isCertListLoading: false,
                 curIngress: this.ingressData,
                 curRule: this.ingressData.config.spec.rules[0],
                 computerList: [{
                     name: '',
                     cert: ''
-                }],
-                tlsParams: {
-                    name: '',
-                    cert: '',
-                    key: ''
-                },
-                curComputer: {
-                    certKey: ''
-                },
-                certKeyConf: {
-                    isShow: false
-                },
-                certTools: {
-                    edit: true,
-                    del: true
-                }
+                }]
             }
         },
         computed: {
@@ -360,165 +300,9 @@
             })
         },
         methods: {
-            /**
-             *  选择证书回调
-             * @param  {object} computer 证书
-             * @param  {number} index 证书索引
-             * @param  {object} data  证书对象
-             */
             handlerSelectCert (computer, index, data) {
                 computer.certType = data.certType
             },
-            /**
-             * 编辑证书
-             * @param  {number} index 索引
-             */
-            async editBcsTls (index) {
-                const projectId = this.projectId
-                const tls = this.certList[index]
-                const certId = tls.certId
-
-                try {
-                    const res = await this.$store.dispatch('k8sTemplate/getBcsTlsDetail', { projectId, certId })
-                    this.tlsParams = res.data
-                    this.certKeyConf.isShow = true
-                } catch (e) {
-                    catchErrorHandler(e, this)
-                }
-            },
-            /**
-             * 删除当前的密钥
-             * @param {object} computer 当前主机
-             * @param {number} index 证书索引
-             */
-            async deleteBcsTls (computer, index) {
-                const projectId = this.projectId
-                const tls = this.certList[index]
-                const certId = tls.certId
-                const me = this
-
-                me.$bkInfo({
-                    title: ``,
-                    clsName: 'biz-remove-dialog',
-                    content: this.$createElement('p', {
-                        class: 'biz-confirm-desc'
-                    }, `${this.$t('确认要删除证书')}【${certId}？】`),
-                    async confirmFn () {
-                        try {
-                            await me.$store.dispatch('k8sTemplate/deleteBcsTls', { projectId, certId })
-                            me.$bkMessage({
-                                theme: 'success',
-                                message: this.$t('删除成功')
-                            })
-                            me.isCertListLoading = true
-                            me.resetSelectedTls(certId)
-                            await me.$store.dispatch('k8sTemplate/getCertList', projectId)
-                            me.isCertListLoading = false
-                        } catch (e) {
-                            catchErrorHandler(e, me)
-                        }
-                    }
-                })
-            },
-
-            /**
-             * 当删除证书回调，将已经选择此证书的给清空
-             * @param  {number} certId certId
-             */
-            resetSelectedTls (certId) {
-                const tlsList = this.curIngress.config.spec.tls
-                tlsList.forEach(tls => {
-                    if (tls.certId === certId) {
-                        tls.certId = ''
-                    }
-                })
-            },
-
-            /**
-             * 保存当前的密钥
-             */
-            async saveBcsTls () {
-                const nameReg = /^[A-Za-z0-9_.]{1,64}$/
-
-                if (!this.tlsParams.name) {
-                    this.$bkMessage({
-                        theme: 'error',
-                        message: this.$t('请输入Name')
-                    })
-                    return false
-                }
-
-                if (!nameReg.test(this.tlsParams.name)) {
-                    this.$bkMessage({
-                        theme: 'error',
-                        message: this.$t('Name错误，只能包含英文大小写、数字、下划线和英文句号')
-                    })
-                    return false
-                }
-
-                if (!this.tlsParams.cert) {
-                    this.$bkMessage({
-                        theme: 'error',
-                        message: this.$t('请输入Cert')
-                    })
-                    return false
-                }
-
-                if (!this.tlsParams.key) {
-                    this.$bkMessage({
-                        theme: 'error',
-                        message: this.$t('请输入Key')
-                    })
-                    return false
-                }
-
-                const projectId = this.projectId
-                const data = this.tlsParams
-                try {
-                    if (this.tlsParams.id) {
-                        const certId = this.tlsParams.id
-                        await this.$store.dispatch('k8sTemplate/updateBcsTls', { projectId, certId, data })
-                        this.$bkMessage({
-                            theme: 'success',
-                            message: this.$t('更新证书成功')
-                        })
-                    } else {
-                        await this.$store.dispatch('k8sTemplate/createBcsTls', { projectId, data })
-                        this.$bkMessage({
-                            theme: 'success',
-                            message: this.$t('创建证书成功')
-                        })
-                    }
-
-                    this.hideCertKeyEditor()
-                    this.isCertListLoading = true
-                    await this.$store.dispatch('k8sTemplate/getCertList', projectId)
-                    this.isCertListLoading = false
-                } catch (e) {
-                    catchErrorHandler(e, this)
-                }
-            },
-
-            /**
-             * 显示证书密钥编辑
-             * @return {object} computer 证书
-             */
-            showBcsTlsEditor (computer) {
-                this.tlsParams = {
-                    name: '',
-                    cert: '',
-                    key: ''
-                }
-                this.certKeyConf.isShow = true
-            },
-
-            /**
-             * 隐藏证书密钥编辑
-             */
-            hideCertKeyEditor () {
-                this.certKeyConf.isShow = false
-            },
-
             goCertList () {
                 if (this.certListUrl) {
                     window.open(this.certListUrl)
@@ -606,9 +390,9 @@
     }
 </script>
 
-<style scoped lang="postcss">
-    @import '@open/css/variable.css';
-    @import '@open/css/mixins/clearfix.css';
+<style scoped>
+    @import '@/css/variable.css';
+    @import '@/css/mixins/clearfix.css';
 
     .biz-simple-table {
         width: auto;
@@ -621,7 +405,7 @@
         background: transparent;
         outline: none;
         float: left;
-        .bk-icon {
+        .bcs-icon {
             width: 24px;
             height: 24px;
             line-height: 24px;
@@ -641,63 +425,16 @@
         text-align: center;
     }
     .bk-text-button {
-        .bk-icon {
+        .bcs-icon {
             transition: all ease 0.3s;
         }
         &.rotate {
-            .bk-icon {
+            .bcs-icon {
                 transform: rotate(180deg);
             }
         }
     }
-    .bk-button-group {
-        @mixin clearfix;
-        .item {
-            position: relative;
-            display: inline-block;
-            float: left;
 
-            &:hover {
-                z-index: 10;
-                >.bk-icon {
-                    display: inline-block;
-                }
-            }
-
-            &:first-child {
-                .bk-button {
-                    border-radius: 2px 0 0 2px;
-                }
-            }
-
-            >.bk-button {
-                max-width: 200px;
-                overflow: hidden;
-                text-overflow: ellipsis;
-                border-radius: 0;
-                &.is-selected {
-                    background-color: #c3cdd7 !important;
-                    border-color: #c3cdd7 !important;
-                }
-            }
-
-            >.bk-icon {
-                cursor: pointer;
-                background: #fff;
-                position: absolute;
-                border-radius: 50%;
-                right: -5px;
-                top: -5px;
-                display: none;
-                font-size: 16px;
-                z-index: 1;
-                color: $primaryColor;
-                &:hover {
-                    color: $primaryColor;
-                }
-            }
-        }
-    }
     .bk-form .bk-form-content .bk-form-tip {
         overflow: hidden;
         padding: 0;

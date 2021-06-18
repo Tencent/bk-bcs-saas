@@ -1,5 +1,5 @@
-@import '@open/css/mixins/scroller.css';
-@import '@open/css/mixins/ellipsis.css';
+@import '@/css/mixins/scroller.css';
+@import '@/css/mixins/ellipsis.css';
 
 .biz-templateset-action {
     font-size: 22px;
@@ -13,7 +13,7 @@
         margin-right: 5px;
 
         &:hover {
-            color: #3c96ff;
+            color: #3a84ff;
         }
 
         &.is-disabled {
@@ -46,13 +46,13 @@
             border-color: #FFB848;
             background-color: #FFF4E2;
 
-            .bk-icon {
+            .bcs-icon {
                 color: #FFB848;
             }
         }
     }
 
-    .bk-icon {
+    .bcs-icon {
         color: #3A84FF;
         font-size: 14px;
         margin-right: 3px;
@@ -70,6 +70,7 @@
 
 .biz-data-table {
     border: 1px solid #dde4eb;
+    border-bottom: none;
     margin-bottom: 25px;
 }
 
@@ -127,7 +128,7 @@
 
     .create {
         font-size: 14px;
-        color: #3c96ff;
+        color: #3a84ff;
         margin: 15px;
     }
 
@@ -139,7 +140,7 @@
         font-size: 14px;
         position: relative;
 
-        .bk-icon {
+        .bcs-icon {
             display: none;
         }
 

@@ -231,7 +231,7 @@
                             this.$emit('item-selected', value, selectItem, isTrigger)
                         }
                     } else {
-                        this.curValue = ''
+                        this.curValue = value
                     }
                     return
                 }
@@ -598,7 +598,7 @@
                 if (this.type === 'number') {
                     this.curValue = this.value
                 } else if (this.isSelectMode) {
-                    const selectItem = this.getItemByKey(this.value)
+                    const selectItem = this.getItemByKey(this.curValue)
                     if (selectItem) {
                         if (selectItem.type === 'variable') {
                             this.curValue = '{{' + selectItem[this.displayKey] + '}}'
@@ -626,14 +626,14 @@
                     const scrollTop = document.documentElement.scrollTop || document.body.scrollTop
                     if ((distanceTop + listHeight + 42 - scrollTop) < winHeight) {
                         ySet = {
-                            top: '40px',
+                            top: '34px',
                             bottom: 'auto'
                         }
                         this.listSlideName = 'toggle-slide'
                     } else {
                         ySet = {
                             top: 'auto',
-                            bottom: '40px'
+                            bottom: '34px'
                         }
                         this.listSlideName = 'toggle-slide2'
                     }

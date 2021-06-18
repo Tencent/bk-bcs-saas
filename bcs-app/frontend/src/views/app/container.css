@@ -1,5 +1,5 @@
-@import '@open/css/variable.css';
-@import '@open/css/mixins/ellipsis.css';
+@import '@/css/variable.css';
+@import '@/css/mixins/ellipsis.css';
 
 .biz-app-instance {
     padding: 20px;
@@ -65,6 +65,13 @@
     border: 1px solid $borderWeightColor;
     font-size: 0;
     border-radius: 2px;
+
+    .biz-dropdown-button {
+        vertical-align: bottom;
+        /deep/ .bcs-icon {
+            top: -1px;
+        }
+    }
 
     .biz-app-instance-chart-k8s {
         display: flex;

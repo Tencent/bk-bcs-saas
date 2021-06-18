@@ -11,12 +11,28 @@
 
 const webpack = require('webpack')
 const { VueLoaderPlugin } = require('vue-loader')
+const threadLoader = require('thread-loader')
 const friendlyFormatter = require('eslint-friendly-formatter')
 
 const config = require('./config')
 const { assetsPath, resolve } = require('./util')
 
 const isProd = process.env.NODE_ENV === 'production'
+
+const jsWorkerPool = {
+    // options
+
+    // 产生的 worker 的数量，默认是 (cpu 核心数 - 1)
+    // 当 require('os').cpus() 是 undefined 时，则为 1
+    workers: 2,
+
+    // 闲置时定时删除 worker 进程
+    // 默认为 500ms
+    // 可以设置为无穷大， 这样在监视模式(--watch)下可以保持 worker 持续存在
+    poolTimeout: 2000
+}
+
+threadLoader.warmup(jsWorkerPool, ['babel-loader'])
 
 module.exports = {
     output: {
@@ -28,7 +44,7 @@ module.exports = {
     resolve: {
         // 避免层层查找，默认值为 ['node_modules']，会依次查找./node_modules、../node_modules、../../node_modules
         modules: [resolve('./src/components'), resolve('./src/components/bk-magic'), resolve('node_modules')],
-        extensions: ['.js', '.vue', '.json'],
+        extensions: ['.ts', '.tsx', '.js', '.vue', '.json'],
         alias: {
             'vue$': 'vue/dist/vue.esm.js',
             '@': resolve('src'),
@@ -47,7 +63,8 @@ module.exports = {
         // brace 优化，只提取需要的语法
         new webpack.ContextReplacementPlugin(/brace\/mode$/, /^\.\/(json|yaml|python|sh|text)$/),
         // brace 优化，只提取需要的 theme
-        new webpack.ContextReplacementPlugin(/brace\/theme$/, /^\.\/(monokai)$/)
+        new webpack.ContextReplacementPlugin(/brace\/theme$/, /^\.\/(monokai)$/),
+        new webpack.ProgressPlugin()
     ],
     module: {
         noParse: [
@@ -66,6 +83,26 @@ module.exports = {
                 }
             },
             {
+                test: /\.tsx?$/,
+                include: resolve('src'),
+                exclude: /node_modules/,
+                use: [
+                    {
+                        loader: 'babel-loader',
+                        options: {
+                            cacheDirectory: './webpack_cache/'
+                        }
+                    },
+                    {
+                        loader: 'ts-loader',
+                        options: {
+                            appendTsxSuffixTo: [/\.vue$/],
+                            transpileOnly: true
+                        }
+                    }
+                ]
+            },
+            {
                 test: /\.vue$/,
                 loader: 'vue-loader',
                 options: {
@@ -80,20 +117,40 @@ module.exports = {
             },
             {
                 test: /\.js$/,
-                use: {
-                    loader: 'babel-loader',
-                    options: {
-                        include: [
-                            resolve('src'),
-                            resolve('bk-bcs-saas/bcs-app/frontend/src'),
-                            resolve('/node_modules/monaco-editor/esm')
-                        ],
-                        cacheDirectory: './webpack_cache/',
-                        plugins: [
-                            'dynamic-import-webpack'
-                        ]
+                exclude: /node_modules/,
+                // use: {
+                //     loader: 'babel-loader',
+                //     options: {
+                //         include: [
+                //             resolve('src'),
+                //             resolve('bk-bcs-saas/bcs-app/frontend/src'),
+                //             resolve('/node_modules/monaco-editor/esm')
+                //         ],
+                //         cacheDirectory: './webpack_cache/',
+                //         plugins: [
+                //             'dynamic-import-webpack'
+                //         ]
+                //     }
+                // }
+                use: [
+                    {
+                        loader: 'thread-loader',
+                        options: jsWorkerPool
+                    },
+                    {
+                        loader: 'babel-loader',
+                        options: {
+                            include: [
+                                resolve('src'),
+                                resolve('/node_modules/monaco-editor/esm')
+                            ],
+                            cacheDirectory: './webpack_cache/',
+                            plugins: [
+                                'dynamic-import-webpack'
+                            ]
+                        }
                     }
-                }
+                ]
             },
             {
                 test: /\.(png|jpe?g|gif|svg)(\?.*)?$/,

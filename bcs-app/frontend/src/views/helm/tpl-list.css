@@ -1,7 +1,7 @@
-@import '@open/css/variable.css';
-@import '@open/css/mixins/ellipsis.css';
-@import '@open/css/mixins/clearfix.css';
-@import '@open/css/mixins/scroller.css';
+@import '@/css/variable.css';
+@import '@/css/mixins/ellipsis.css';
+@import '@/css/mixins/clearfix.css';
+@import '@/css/mixins/scroller.css';
 
 .biz-tpl-title {
     display: inline-block;
@@ -78,6 +78,7 @@
 
     .logo {
         width: 100px;
+        min-width: 100px;
         text-align: center;
         border-right: 1px solid $borderColor;
 
@@ -92,19 +93,29 @@
 
     .data {
         width: 230px;
+        min-width: 230px;
         padding: 0 10px 0 20px;
     }
 
     .version {
         width: 120px;
+        min-width: 120px;
     }
 
     .description {
         padding-right: 10px;
     }
 
+    .description p {
+        text-overflow: ellipsis;
+        overflow: hidden;
+        word-break: break-all;
+        padding: 8px 0;
+    }
+
     .update {
         width: 170px;
+        min-width: 170px;
     }
 
     .source {
@@ -113,6 +124,7 @@
 
     .action {
         width: 180px;
+        min-width: 180px;
     }
 
     .title {
@@ -137,8 +149,8 @@
         transition: none;
 
         &:hover {
-            background-color: #3c96ff;
-            border-color: #3c96ff;
+            background-color: #3a84ff;
+            border-color: #3a84ff;
             opacity: 1;
             color: #fff;
         }
@@ -160,6 +172,11 @@
         height: 42px;
         background-color: #ebf0f5;
         color: #52525d;
+    }
+
+    &..bk-table td,
+    &..bk-table th.is-leaf {
+        border-bottom: none;
     }
 }
 
@@ -327,7 +344,7 @@
             line-height: 24px;
         }
 
-        .bk-icon {
+        .bcs-icon {
             margin-left: 10px;
             cursor: pointer;
         }
@@ -376,4 +393,214 @@
 .st3 {
     display: inline;
     fill: #ebf0f5;
+}
+
+
+.bk-tab2 {
+    border: 1px solid #c4c6cc;
+    border-radius: 2px;
+    background: #fff;
+  
+    .bk-panel-label {
+      display: inline-block;
+      vertical-align: middle;
+      margin-right: 3px;
+    }
+  
+    .bk-panel-title {
+      vertical-align: middle;
+    }
+  
+    .bk-tab2-control {
+      display: inline-block;
+      height: 58px;
+      line-height: 58px;
+      width: 30px;
+      position: relative;
+      cursor: pointer;
+  
+      &.left {
+        float: left;
+        border-right: 1px solid #c4c6cc;
+        border-bottom: 1px solid #c4c6cc;
+      }
+  
+      &.right {
+        float: right;
+        border-left: 1px solid #c4c6cc;
+        border-bottom: 1px solid #c4c6cc;
+      }
+  
+      &.left.disabled, &.right.disabled {
+        color: #ebf0f5;
+        cursor: not-allowed;
+      }
+  
+      .bk-tab2-icon {
+        position: absolute;
+        -webkit-transform: translate(-50%, -50%);
+        -ms-transform: translate(-50%, -50%);
+        transform: translate(-50%, -50%);
+        top: 50%;
+        left: 50%;
+        font-size: 18px;
+      }
+    }
+  
+    .bk-tab2-head {
+      position: relative;
+      height: 58px;
+      overflow: hidden;
+      white-space: nowrap;
+  
+      &.scroll {
+        margin: 0 30px;
+  
+        .bk-tab2-nav > .tab2-nav-item.active:last-child {
+          border-right: none;
+        }
+      }
+  
+      &::after {
+        display: block;
+        clear: both;
+        content: "";
+        font-size: 0;
+        height: 0;
+        visibility: hidden;
+      }
+  
+      &.is-fill {
+        background: #fafbfd;
+  
+        .bk-tab2-nav > .tab2-nav-item {
+          border-left: 1px solid transparent;
+          border-right: 1px solid transparent;
+  
+          &.active {
+            background: #fff;
+            border-color: #c4c6cc;
+            border-right: 1px solid #c4c6cc;
+  
+            &:first-child {
+              border-left-color: transparent;
+            }
+  
+            &::after {
+              bottom: -1px;
+              left: 0;
+              height: 1px;
+              background: #fff;
+            }
+          }
+        }
+      }
+  
+      .bk-tab2-nav {
+        float: left;
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        border-bottom: 1px solid #c4c6cc;
+        height: 100%;
+        -webkit-transition: -webkit-transform .5s ease-in-out;
+        transition: -webkit-transform .5s ease-in-out;
+        transition: transform .5s ease-in-out;
+        transition: transform .5s ease-in-out, -webkit-transform .5s ease-in-out;
+  
+        &::after {
+          display: block;
+          clear: both;
+          content: "";
+          font-size: 0;
+          height: 0;
+          visibility: hidden;
+        }
+  
+        > .tab2-nav-item {
+          display: inline-block;
+          max-width: 180px;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+          text-align: center;
+          position: relative;
+          height: 58px;
+          line-height: 58px;
+          padding: 0 20px;
+          color: #737987;
+          font-size: 14px;
+          cursor: pointer;
+          -webkit-transition: background-color ease 0.3s, color ease 0.3s;
+          transition: background-color ease 0.3s, color ease 0.3s;
+  
+          &::after {
+            content: '';
+            display: inline-block;
+            position: absolute;
+            bottom: -1px;
+            left: 0;
+            width: 100%;
+            opacity: 0;
+            height: 0;
+            background: #3a84ff;
+            -webkit-transition: all 0.3s ease;
+            transition: all 0.3s ease;
+          }
+  
+          &.active {
+            color: #3a84ff;
+  
+            &::after {
+              opacity: 1;
+              height: 3px;
+            }
+          }
+        }
+  
+        .tab2-nav-item-tag {
+          position: relative;
+          top: -2px;
+        }
+      }
+  
+      .bk-tab2-act, .bk-tab2-action {
+        height: 100%;
+        display: table;
+        position: absolute;
+        right: 20px;
+      }
+  
+      .bk-tab2-act .action-wrapper, .bk-tab2-action .action-wrapper {
+        display: table-cell;
+        vertical-align: middle;
+      }
+    }
+  
+    &.bk-tab2-small {
+      .bk-tab2-control {
+        height: 43px;
+        line-height: 43px;
+      }
+  
+      .bk-tab2-head {
+        height: 43px;
+  
+        .bk-tab2-nav > .tab2-nav-item {
+          height: 43px;
+          line-height: 43px;
+          padding: 0 15px;
+        }
+      }
+    }
+  
+    .bk-tab2-content .bk-tab2-pane {
+      display: none;
+      opacity: 0;
+  
+      &.active {
+        opacity: 1;
+        display: block;
+      }
+    }
 }

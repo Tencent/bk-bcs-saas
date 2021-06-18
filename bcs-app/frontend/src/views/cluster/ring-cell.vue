@@ -55,7 +55,7 @@
             },
             fillColor: {
                 type: String,
-                default: '#3c96ff'
+                default: '#3a84ff'
             }
         }
     }

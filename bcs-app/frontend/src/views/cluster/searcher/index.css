@@ -16,12 +16,12 @@
 .node-searcher {
     position: relative;
     width: 100%;
-    border: 1px solid $borderWeightColor;
+    border: 1px solid #c4c6cc;
     background-color: #fff;
     border-radius: 2px;
 
     .searcher {
-        height: 36px;
+        height: 30px;
         border-radius: 2px;
         font-size: 14px;
         position: relative;
@@ -90,7 +90,7 @@
                     cursor: pointer;
                     font-size: 12px;
                     &:hover {
-                        color: #3c96ff;
+                        color: #3a84ff;
                     }
                     &.disabled {
                         color: #e6e6e6;
@@ -119,7 +119,7 @@
 
                 a {
                     display: block;
-                    line-height: 41px;
+                    line-height: 30px;
                     padding: 0 15px;
                     color: $fontWeightColor;
                     font-size: 14px;
@@ -130,15 +130,15 @@
                     &.active,
                     &:hover {
                         background: $primaryLightColor;
-                        color: #3c96ff;
+                        color: #3a84ff;
                     }
                 }
 
-                .bk-icon {
+                .bcs-icon {
                     position: absolute;
                     right: 10px;
-                    top: 13px;
-                    color: #3ede78;
+                    top: 8px;
+                    font-size: 14px;
                 }
             }
         }
@@ -158,7 +158,7 @@
                     font-weight: 700;
                 }
                 div {
-                    width: 190px;
+                    width: 210px;
                     font-size: 14px;
                     padding: 5px 5px 5px 30px;
                 }
@@ -177,7 +177,7 @@
             border: 0;
             box-sizing: border-box;
             outline: none;
-            height: 36px;
+            height: 32px;
             width: 200px;
             margin: 0;
             &::-webkit-input-placeholder {
@@ -194,6 +194,11 @@
             }
         }
 
+        .bcs-icon-close {
+            transform: scale(0.8);
+            display: inline-block;
+        }
+
         .selectable {
             display: flex;
             cursor: pointer;
@@ -204,7 +209,7 @@
             .name {
                 background-color: #fff;
                 border-right: 1px solid $borderWeightColor;
-                padding: 7px 10px;
+                padding: 6px 10px;
             }
 
             .value-container {
@@ -247,6 +252,8 @@
                     font-size: 10px;
                     position: relative;
                     top: 0;
+                    transform: scale(0.8);
+                    display: inline-block;
                 }
             }
         }
@@ -255,7 +262,7 @@
             display: inline-block;
             cursor: pointer;
             position: relative;
-            top: -1px;
+            top: -3px;
             margin: 0;
             margin-right: 5px;
             &:nth-child(1) {

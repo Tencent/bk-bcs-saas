@@ -21,10 +21,10 @@
                                 {{$t('Secret是一种包含少量敏感信息例如密码、token 或 key 的对象，与ConfigMap相比更加安全')}}，<a class="bk-text-button" :href="PROJECT_CONFIG.doc.mesosSecret" target="_blank">{{$t('详情查看文档')}}</a>
                             </p>
                             <div class="biz-guide-box mt0" style="padding: 140px 30px;">
-                                <button class="bk-button bk-primary" @click.stop.prevent="addLocalSecret">
-                                    <i class="bk-icon icon-plus"></i>
+                                <bk-button type="primary" @click.stop.prevent="addLocalSecret">
+                                    <i class="bcs-icon bcs-icon-plus"></i>
                                     <span style="margin-left: 0;">{{$t('添加')}}Secret</span>
-                                </button>
+                                </bk-button>
                             </div>
                         </template>
 
@@ -35,18 +35,18 @@
                                 </p>
                                 <div class="biz-list-operation">
                                     <div class="item" v-for="(secret, index) in secrets" :key="secret.id">
-                                        <button :class="['bk-button', { 'bk-primary': curSecret.id === secret.id }]" @click.stop="setCurSecret(secret, index)">
+                                        <bk-button :class="['bk-button', { 'bk-primary': curSecret.id === secret.id }]" @click.stop="setCurSecret(secret, index)">
                                             {{(secret && secret.config.metadata.name) || $t('未命名')}}
                                             <span class="biz-update-dot" v-show="secret.isEdited"></span>
-                                        </button>
-                                        <span class="bk-icon icon-close" @click.stop="removeSecret(secret, index)"></span>
+                                        </bk-button>
+                                        <span class="bcs-icon bcs-icon-close" @click.stop="removeSecret(secret, index)"></span>
                                     </div>
 
-                                    <bk-tooltip ref="secretTooltip" :content="$t('添加Secret')" placement="top">
-                                        <button class="bk-button bk-default is-outline is-icon" @click.stop="addLocalSecret">
-                                            <i class="bk-icon icon-plus"></i>
-                                        </button>
-                                    </bk-tooltip>
+                                    <bcs-popover ref="secretTooltip" :content="$t('添加Secret')" placement="top">
+                                        <bk-button class="bk-button bk-default is-outline is-icon" @click.stop="addLocalSecret">
+                                            <i class="bcs-icon bcs-icon-plus"></i>
+                                        </bk-button>
+                                    </bcs-popover>
                                 </div>
                             </div>
 
@@ -93,10 +93,10 @@
                                             <div class="bk-form-content" style="margin-left: 105px;">
                                                 <div class="biz-list-operation">
                                                     <div class="item" v-for="(data, index) in curSecret.secretKeyList" :key="index">
-                                                        <button :class="['bk-button', { 'bk-primary': curKeyIndex === index }]" @click.stop.prevent="setCurKey(data, index)" v-if="!data.isEdit">
+                                                        <bk-button :class="['bk-button', { 'bk-primary': curKeyIndex === index }]" @click.stop.prevent="setCurKey(data, index)" v-if="!data.isEdit">
                                                             {{data.key || $t('未命名')}}
-                                                        </button>
-                                                        <bk-input
+                                                        </bk-button>
+                                                        <bkbcs-input
                                                             type="text"
                                                             :placeholder="$t('请输入')"
                                                             style="width: 150px;"
@@ -106,16 +106,16 @@
                                                             :list="varList"
                                                             @blur="setKey(data, index)"
                                                         >
-                                                        </bk-input>
-                                                        <span class="bk-icon icon-edit" v-show="!data.isEdit" @click.stop.prevent="editKey(data, index)"></span>
-                                                        <span class="bk-icon icon-close" v-show="!data.isEdit" @click.stop.prevent="removeKey(data, index)"></span>
+                                                        </bkbcs-input>
+                                                        <span class="bcs-icon bcs-icon-edit" v-show="!data.isEdit" @click.stop.prevent="editKey(data, index)"></span>
+                                                        <span class="bcs-icon bcs-icon-close" v-show="!data.isEdit" @click.stop.prevent="removeKey(data, index)"></span>
                                                     </div>
 
-                                                    <bk-tooltip ref="keyTooltip" :content="$t('添加Key')" placement="top">
-                                                        <button class="bk-button bk-default is-outline is-icon" @click.stop.prevent="addKey">
-                                                            <i class="bk-icon icon-plus"></i>
-                                                        </button>
-                                                    </bk-tooltip>
+                                                    <bcs-popover ref="keyTooltip" :content="$t('添加Key')" placement="top">
+                                                        <bk-button class="bk-button bk-default is-outline is-icon" @click.stop.prevent="addKey">
+                                                            <i class="bcs-icon bcs-icon-plus"></i>
+                                                        </bk-button>
+                                                    </bcs-popover>
                                                 </div>
                                             </div>
                                         </div>
@@ -123,21 +123,17 @@
                                             <div class="bk-form-item is-required">
                                                 <label class="bk-label" style="width: 105px;">{{$t('值来源')}}：</label>
                                                 <div class="bk-form-content" style="margin-left: 105px;">
-                                                    <label class="bk-form-radio">
-                                                        <input type="radio" name="key-type" :value="'file'" checked="checked">
-                                                        <i class="bk-radio-text">{{$t('在线编辑')}}</i>
-                                                    </label>
-                                                    <label class="bk-form-radio">
-                                                        <input type="radio" name="key-type" :value="'env'" disabled="disabled">
-                                                        <i class="bk-radio-text">{{$t('仓库获取')}}</i>
-                                                    </label>
+                                                    <bk-radio-group v-model="curKeyParams.type">
+                                                        <bk-radio value="file">{{$t('在线编辑')}}</bk-radio>
+                                                        <bk-radio value="env" disabled>{{$t('仓库获取')}}</bk-radio>
+                                                    </bk-radio-group>
                                                 </div>
                                             </div>
                                             <div class="bk-form-item is-required">
                                                 <label class="bk-label" style="width: 105px;">{{$t('值')}}：</label>
                                                 <div class="bk-form-content" style="margin-left: 105px;">
                                                     <textarea class="bk-form-textarea" style="height: 300px;" :placeholder="$t('请输入键') + curKeyParams.key + $t('的内容')" v-model="curKeyParams.content"></textarea>
-                                                    <p class="biz-tip mt10 f14">{{$t('实例化时会将值的内容做base64编码')}}</p>
+                                                    <p class="biz-tip mt5">{{$t('实例化时会将值的内容做base64编码')}}</p>
                                                 </div>
                                             </div>
                                         </template>
@@ -311,7 +307,8 @@
                 this.curSecret.secretKeyList.push({
                     key: 'key-' + index,
                     isEdit: true,
-                    content: ''
+                    content: '',
+                    type: 'file'
                 })
                 this.curKeyParams = this.curSecret.secretKeyList[index - 1]
                 this.curKeyIndex = index - 1
@@ -427,8 +424,8 @@
                 const secretId = secret.id
 
                 this.$bkInfo({
-                    title: this.$t('确认'),
-                    content: this.$createElement('p', { style: { 'text-align': 'center' } }, `${this.$t('删除Secret')}：${secret.config.metadata.name || this.$t('未命名')}`),
+                    title: this.$t('确认删除'),
+                    content: this.$createElement('p', { style: { 'text-align': 'left' } }, `${this.$t('删除Secret')}：${secret.config.metadata.name || this.$t('未命名')}`),
                     confirmFn () {
                         if (secretId.indexOf && secretId.indexOf('local_') > -1) {
                             self.removeLocalSecret(secret, index)

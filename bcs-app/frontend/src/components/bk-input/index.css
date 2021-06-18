@@ -10,6 +10,7 @@
  */
 
 .bk-input-box {
+    width: 100%;
     display: inline-block;
     position: relative;
 
@@ -39,8 +40,8 @@
     li {
         position: relative;
         width: 100%;
-        border-left: #c3cdd7;
-        border-right: #c3cdd7;
+        border-left: #c4c6cc;
+        border-right: #c4c6cc;
         background-color: #fff;
         cursor: pointer;
 
@@ -56,4 +57,21 @@
 
 .bk-selector-list {
     min-width: 150px;
+    position: absolute;
+    top: 34px;
+    left: 0;
+    right: 0;
+    border-radius: 2px;
+    box-shadow: 0 0 8px 1px rgb(0 0 0 / 10%);
+    background-color: #fff;
+    z-index: 100;
+    overflow-y: hidden;
+
+    > ul {
+        max-height: 160px;
+        padding: 0;
+        margin: 0;
+        list-style: none;
+        overflow-y: auto;
+    }
 }

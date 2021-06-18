@@ -2,7 +2,7 @@
     <div class="biz-content">
         <div class="biz-top-bar">
             <div class="biz-helm-title">
-                <a class="bk-icon icon-arrows-left back" @click="goTplList"></a>
+                <a class="bcs-icon bcs-icon-arrows-left back" @click="goTplList"></a>
                 <span>{{$t('Chart部署')}}</span>
             </div>
         </div>
@@ -42,44 +42,53 @@
                     <div class="right">
                         <div class="bk-collapse biz-collapse" style="border-top: none;">
                             <div class="bk-collapse-item bk-collapse-item-active">
-                                <div class="bk-collapse-item-header" style="cursor: default; color: #737987;">
+                                <div class="biz-item-header" style="cursor: default; color: #737987;">
                                     {{$t('配置选项')}}
                                 </div>
                                 <div class="bk-collapse-item-content" style="padding: 15px;">
                                     <div class="config-box">
                                         <div class="inner">
                                             <div class="inner-item">
-                                                <label class="title">{{$t('名称')}}</label>
-                                                <input type="text" class="bk-form-input" v-model="appName">
+                                                <label class="title">
+                                                    {{$t('名称')}}
+                                                    <bcs-popover :content="$t('Release名称只能由小写字母数字或者-组成')" placement="top">
+                                                        <span class="bk-badge">
+                                                            <i class="bcs-icon bcs-icon-question-circle f14"></i>
+                                                        </span>
+                                                    </bcs-popover>
+                                                </label>
+                                                <bkbcs-input v-model="appName" :placeholder="$t('请输入Release名称')" />
                                             </div>
 
                                             <div class="inner-item">
                                                 <label class="title">{{$t('版本')}}</label>
                                                 <div>
-                                                    <bk-input
-                                                        style="width: 225px; display: inline-block; vertical-align: middle;"
+                                                    <bk-selector
+                                                        :placeholder="$t('请选择')"
+                                                        style="width: 210px; display: inline-block; vertical-align: middle;"
+                                                        searchable
+                                                        :selected.sync="tplsetVerIndex"
+                                                        :list="curTplVersions"
+                                                        :setting-key="'version'"
+                                                        :disabled="isTplSynLoading"
+                                                        :display-key="'version'"
+                                                        search-key="version"
+                                                        @item-selected="getTplDetail">
+                                                    </bk-selector>
+                                                    <!-- <bkbcs-input
+                                                        style="width: 210px; display: inline-block; vertical-align: middle;"
                                                         type="text"
                                                         :placeholder="$t('请选择')"
                                                         :value.sync="tplsetVerIndex"
                                                         :is-select-mode="true"
                                                         :default-list="curTplVersions"
-                                                        :setting-key="'id'"
+                                                        :setting-key="'version'"
                                                         :disabled="isTplSynLoading"
                                                         :display-key="'version'"
                                                         :search-key="'version'"
                                                         @item-selected="getTplDetail">
-                                                    </bk-input>
-                                                    <!-- <bk-selector
-                                                        style="width: 225px; display: inline-block; vertical-align: middle;"
-                                                        :placeholder="$t('请选择')"
-                                                        :selected.sync="tplsetVerIndex"
-                                                        :list="curTplVersions"
-                                                        :setting-key="'id'"
-                                                        :is-loading="isTplVerLoading"
-                                                        :display-key="'version'"
-                                                        @item-selected="getTplDetail">
-                                                    </bk-selector> -->
-                                                    <button class="bk-button bk-default is-outline is-icon" v-bktooltips.top="$t('同步仓库')" @click="syncHelmTpl">
+                                                    </bkbcs-input> -->
+                                                    <bk-button class="bk-button bk-default is-outline is-icon" v-bk-tooltips.top="$t('同步仓库')" @click="syncHelmTpl">
                                                         <div class="bk-spin-loading bk-spin-loading-mini bk-spin-loading-default" style="margin-top: -3px;" v-if="isTplSynLoading">
                                                             <div class="rotate rotate1"></div>
                                                             <div class="rotate rotate2"></div>
@@ -90,27 +99,43 @@
                                                             <div class="rotate rotate7"></div>
                                                             <div class="rotate rotate8"></div>
                                                         </div>
-                                                        <i class="bk-icon icon-refresh" v-else></i>
-                                                    </button>
+                                                        <i class="bcs-icon bcs-icon-refresh" v-else></i>
+                                                    </bk-button>
                                                 </div>
                                             </div>
                                         </div>
                                         <div class="inner">
-                                            <label class="title">{{$t('命名空间')}}</label>
-                                            <div>
+                                            <div class="inner-item" v-if="$INTERNAL">
+                                                <label class="title">{{$t('所属集群')}}</label>
                                                 <bk-selector
-                                                    style="width: 557px;"
+                                                    style="width: 268px;"
                                                     :placeholder="$t('请选择')"
                                                     :searchable="true"
-                                                    :selected.sync="namespaceId"
-                                                    :field-type="'namespace'"
-                                                    :list="namespaceList"
-                                                    :setting-key="'id'"
+                                                    :selected.sync="curClusterId"
+                                                    :field-type="'cluster'"
+                                                    :list="clusterList"
+                                                    :setting-key="'cluster_id'"
                                                     :display-key="'name'"
-                                                    @item-selected="getClusterInfo">
+                                                    :disabled="!!globalClusterId">
                                                 </bk-selector>
                                             </div>
-                                            <p class="biz-tip mt5" id="cluster-info" v-if="clusterInfo" v-html="clusterInfo"></p>
+                                            <div class="inner-item">
+                                                <label class="title">{{$t('命名空间')}}</label>
+                                                <div>
+                                                    <bk-selector
+                                                        style="width: 265px;"
+                                                        :placeholder="$t('请选择')"
+                                                        :searchable="true"
+                                                        :selected.sync="namespaceId"
+                                                        :field-type="'namespace'"
+                                                        :list="curNamespaceList"
+                                                        :setting-key="'id'"
+                                                        :display-key="'name'"
+                                                        @item-selected="getClusterInfo">
+                                                    </bk-selector>
+                                                </div>
+                                            </div>
+                                            <p class="biz-tip pt10" id="cluster-info" style="clear: both;" v-if="clusterInfo" v-html="clusterInfo"></p>
                                         </div>
                                     </div>
                                 </div>
@@ -123,32 +148,30 @@
                         <div class="header" @click="isShowCommandParams = !isShowCommandParams" style="line-height: 40px;">
                             {{$t('Helm命令行参数')}}
                             <div class="expand">
-                                <i class="bk-icon icon-angle-down" v-if="isShowCommandParams"></i>
-                                <i class="bk-icon icon-angle-up" v-else></i>
+                                <i class="bcs-icon bcs-icon-angle-down" v-if="isShowCommandParams"></i>
+                                <i class="bcs-icon bcs-icon-angle-up" v-else></i>
                             </div>
                         </div>
                         <div class="content p0 m0 biz-table-wrapper" style="border: none;">
-                            <table class="bk-table has-table-hover has-table-bordered" style="border: none;" v-if="isShowCommandParams">
+                            <table class="bk-table has-table-hover" style="border: none;" v-if="isShowCommandParams">
                                 <thead>
                                     <tr>
-                                        <th class="pl20 f12" style="width: 400px; height: auto;">{{$t('参数')}}</th>
-                                        <th class="pl25 f12" style="height: auto;">{{$t('是否启用')}}</th>
+                                        <th class="pl20 f12" style="width: 400px; height: 42px; border-right: 1px solid #E9EDF2;">{{$t('参数')}}</th>
+                                        <th class="pl25 f12" style="height: 42px; border-right: 1px solid #E9EDF2;">{{$t('是否启用')}}</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     <tr v-for="command of commandList" :key="command.id" v-if="!command.disabled">
-                                        <td class="pl20 pt5 pb5" style="height: auto;">
+                                        <td class="pl20 pt5 pb5" style="height: auto; border-right: 1px solid #E9EDF2;">
                                             {{command.id}}
-                                            <bk-tooltip placement="top" :content="command.desc">
+                                            <bcs-popover placement="top" :content="command.desc" width="300">
                                                 <span style="font-size: 12px;cursor: pointer;">
-                                                    <i class="bk-icon icon-info-circle"></i>
+                                                    <i class="bcs-icon bcs-icon-info-circle"></i>
                                                 </span>
-                                            </bk-tooltip>
+                                            </bcs-popover>
                                         </td>
                                         <td class="pl25 pt5 pb5" style="height: auto;">
-                                            <label class="bk-form-checkbox">
-                                                <input type="checkbox" v-model="helmCommandParams[command.id]">
-                                            </label>
+                                            <bk-checkbox v-model="helmCommandParams[command.id]"></bk-checkbox>
                                         </td>
                                     </tr>
                                 </tbody>
@@ -156,7 +179,7 @@
                         </div>
                     </div>
                     <div class="action-box">
-                        <div class="title">
+                        <div class="title fn">
                             Chart Values
                         </div>
                     </div>
@@ -173,21 +196,27 @@
                                 :display-key="'name'"
                                 @item-selected="changeValueFile">
                             </bk-selector>
-                            <bk-tooltip placement="top" :content="$t('Values文件命名规范是以values.yaml结尾，例如xxx-values.yaml')">
+                            <bcs-popover placement="top">
                                 <span class="bk-badge ml5">
-                                    <i class="f12 bk-icon icon-question"></i>
+                                    <i class="bcs-icon bcs-icon-question-circle f14"></i>
                                 </span>
-                            </bk-tooltip>
+                                <div slot="content">
+                                    <p>{{ $t('Values文件包含两类:') }}</p>
+                                    <p>{{ $t('- 以values.yaml结尾，例如xxx-values.yaml文件') }}</p>
+                                    <p>{{ $t('- bcs-values目录下的文件') }}</p>
+                                </div>
+                            </bcs-popover>
                         </section>
                         <bk-tab
                             :type="'fill'"
                             :size="'small'"
                             :active-name.sync="curEditMode"
+                            class="biz-tab-container"
                             @tab-changed="helmModeChangeHandler">
-                            <bk-tabpanel name="yaml-mode" :title="$t('YAML模式')">
+                            <bk-tab-panel name="yaml-mode" :title="$t('YAML模式')">
                                 <div style="width: 100%; min-height: 600px;" v-bkloading="{ isLoading: isSyncYamlLoading }">
                                     <p class="biz-tip p15" style="color: #63656E; overflow: hidden;">
-                                        <i class="bk-icon icon-info-circle biz-warning-text mr5"></i>
+                                        <i class="bcs-icon bcs-icon-info-circle biz-warning-text mr5"></i>
                                         {{$t('YAML初始值为创建时Chart中values.yaml内容，后续更新部署以该YAML内容为准，YAML内容最终通过`--values`选项传递给`helm template`命令')}}
                                     </p>
                                     <ace
@@ -201,10 +230,10 @@
                                         @init="editorInit">
                                     </ace>
                                 </div>
-                            </bk-tabpanel>
-                            <bk-tabpanel name="form-mode" :title="$t('表单模式')">
+                            </bk-tab-panel>
+                            <bk-tab-panel name="form-mode" :title="$t('表单模式')">
                                 <p class="biz-tip p15" style="color: #63656E;">
-                                    <i class="bk-icon icon-info-circle biz-warning-text mr5"></i>{{$t('表单根据Chart中questions.yaml生成，表单修改后的数据会自动同步给YAML模式')}}
+                                    <i class="bcs-icon bcs-icon-info-circle biz-warning-text mr5"></i>{{$t('表单根据Chart中questions.yaml生成，表单修改后的数据会自动同步给YAML模式')}}
                                 </p>
                                 <template v-if="formData.questions">
                                     <bk-form-creater :form-data="formData" ref="bkFormCreater"></bk-form-creater>
@@ -212,13 +241,13 @@
                                 <template v-else>
                                     <div class="biz-guard-box" v-if="!isQuestionsLoading">
                                         <span>{{$t('您可以参考')}}
-                                            <a class="bk-text-button" href="https://docs.bk.tencent.com/bcs/Container/helm/WriteQuestionsYaml.html" target="_blank">{{$t('指引')}}</a>
+                                            <a class="bk-text-button" :href="PROJECT_CONFIG.doc.questionsYaml" target="_blank">{{$t('指引')}}</a>
                                             {{$t('通过表单模式配置您的Helm Release 参数')}}，
                                         </span>
                                         <span>{{$t('也可以通过')}}<a href="javascript:void(0)" class="bk-text-button" @click="editYaml"></a>{{$t('直接修改Helm Release参数')}}</span>
                                     </div>
                                 </template>
-                            </bk-tabpanel>
+                            </bk-tab-panel>
                         </bk-tab>
                     </div>
                 </template>
@@ -244,20 +273,20 @@
             :width="1000">
             <div slot="content" :style="{ height: `${winHeight - 70}px` }" v-bkloading="{ isLoading: previewInstanceLoading }">
                 <template v-if="tplPreviewList.length">
-                    <div class="biz-resource-wrapper" style="height: 100%;">
+                    <div class="biz-resource-wrapper" style="height: 100%; flex: 1;">
                         <resizer :class="['resize-layout fl']"
                             direction="right"
                             :handler-offset="3"
                             :min="250"
                             :max="400">
                             <div class="tree-box">
-                                <bk-tree
+                                <bcs-tree
                                     ref="tree1"
                                     :data="treeData"
                                     :node-key="'id'"
                                     :has-border="true"
                                     @on-click="getFileDetail">
-                                </bk-tree>
+                                </bcs-tree>
                             </div>
                         </resizer>
 
@@ -275,7 +304,7 @@
                         </div>
                     </div>
                 </template>
-                <p class="biz-no-data" v-else>{{$t('无数据')}}</p>
+                <bcs-exception type="empty" scene="part" v-else></bcs-exception>
             </div>
         </bk-sideslider>
 
@@ -285,16 +314,17 @@
             :has-footet="false"
             :title="errorDialogConf.title"
             @cancel="hideErrorDialog">
-            <div slot="content">
+            <template slot="content">
                 <div class="bk-intro bk-danger pb30 mb15" v-if="errorDialogConf.message" style="position: relative;">
                     <pre class="biz-error-message">
                         {{errorDialogConf.message}}
                     </pre>
-                    <bk-button size="mini" type="default" id="error-copy-btn" :data-clipboard-text="errorDialogConf.message"><i class="bk-icon icon-clipboard mr5"></i>{{$t('复制')}}</bk-button>
+                    <bk-button size="small" type="default" id="error-copy-btn" :data-clipboard-text="errorDialogConf.message"><i class="bcs-icon bcs-icon-clipboard mr5"></i>{{$t('复制')}}</bk-button>
                 </div>
                 <div class="biz-message" v-if="errorDialogConf.errorCode === 40031">
                     <h3>{{$t('您需要')}}：</h3>
-                    <p>{{$t('在集群页面，启用Helm')}}</p>
+                    <p>1、{{$t('在集群页面，启用Helm')}}</p>
+                    <p>2、{{$t('或者联系')}}【<a :href="PROJECT_CONFIG.doc.contact" class="bk-text-button">{{$t('蓝鲸容器助手')}}</a>】</p>
                 </div>
                 <div class="biz-message" v-else-if="errorDialogConf.actionType === 'previewApp'">
                     <h3>{{$t('您可以')}}：</h3>
@@ -306,12 +336,12 @@
                     <p>1、{{$t('更新Helm Chart，并推送到项目Chart仓库')}}</p>
                     <p>2、{{$t('前往Helm Release列表页面，更新Helm Release')}}</p>
                 </div>
-            </div>
-            <template slot="footer">
+            </template>
+            <div slot="footer">
                 <div class="biz-footer">
                     <bk-button type="primary" @click="hideErrorDialog">{{$t('知道了')}}</bk-button>
                 </div>
-            </template>
+            </div>
         </bk-dialog>
     </div>
 </template>
@@ -322,7 +352,6 @@
     import path2tree from '@open/common/path2tree'
     import baseMixin from '@open/mixins/helm/mixin-base'
     import { catchErrorHandler } from '@open/common/util'
-    import moment from 'moment'
     import Clipboard from 'clipboard'
     import resizer from '@open/components/resize'
 
@@ -339,6 +368,7 @@
                 yamlEditor: null,
                 yamlFile: '',
                 curTplYaml: '',
+                curVersionData: {},
                 activeName: ['config'],
                 collapseName: ['var'],
                 tplsetVerList: [],
@@ -354,6 +384,8 @@
                 isRouterLeave: false,
                 appName: '',
                 winHeight: 0,
+                curClusterId: '',
+                clusterList: [],
                 editor: null,
                 curTpl: {
                     data: {
@@ -430,22 +462,22 @@
                     {
                         id: 'disable-openapi-validation',
                         disabled: false,
-                        desc: '如果选择，部署时，不会通过Kubernetes OpenAPI Schema校验渲染的模板'
+                        desc: this.$t('如果选择，部署时，不会通过Kubernetes OpenAPI Schema校验渲染的模板')
                     },
                     {
                         id: 'no-hooks',
                         disabled: false,
-                        desc: '如果选择，部署或更新时，忽略hooks'
+                        desc: this.$t('如果选择，部署或更新时，忽略hooks')
                     },
                     {
                         id: 'skip-crds',
                         disabled: false,
-                        desc: '如果选择，部署或更新时，跳过crds'
+                        desc: this.$t('如果选择，部署或更新时，跳过crds')
                     },
                     {
                         id: 'wait',
                         disabled: false,
-                        desc: '如果设置，需要等待pods、pvcs、service等的处于ready状态，release才认为成功'
+                        desc: this.$t('如勾选，需等待该 release 创建的所有 Pod、PVC 等资源均变为 Ready 状态后，才认为成功。默认不等待。')
                     }
                 ],
                 helmCommandParams: {
@@ -468,16 +500,34 @@
             },
             tplList () {
                 return this.$store.state.helm.tplList
+            },
+            curNamespaceList () {
+                if (this.curClusterId !== undefined) {
+                    const match = this.namespaceList.find(item => item.id === this.curClusterId)
+                    return match ? match.children : []
+                }
+                return []
+            },
+            globalClusterId () {
+                return this.$store.state.curClusterId
+            }
+        },
+        watch: {
+            globalClusterId: {
+                handler (newVal) {
+                    this.curClusterId = newVal
+                    this.namespaceId = ''
+                },
+                immediate: true
             }
         },
         async mounted () {
             const tplId = this.$route.params.tplId
-            const uid = moment().format('YYMMDDhhmm')
-
             this.isRouterLeave = false
             this.curTpl = await this.getTplById(tplId)
-            this.appName = `${this.curTpl.name}-${uid}`
-            this.getTplVersions(tplId)
+            this.appName = ''
+            this.getTplVersions()
+            this.getPermissionClusterList()
             this.getNamespaceList(tplId)
             this.winHeight = window.innerHeight
         },
@@ -769,32 +819,43 @@
                 const list = []
                 const projectId = this.projectId
                 const version = index
-                const chartId = this.$route.params.tplId
+                const chartId = this.curTpl.name
+                const isPublic = this.curTpl.repository.name === 'public-repo'
 
                 this.isQuestionsLoading = true
-
                 try {
-                    const res = await this.$store.dispatch('helm/getChartByVersion', { projectId, chartId, version })
+                    const res = await this.$store.dispatch('helm/getChartVersionDetail', { projectId, chartId, version, isPublic })
                     const tplData = res.data
                     const files = res.data.data.files
                     const tplName = tplData.name
+                    const bcsTplName = tplData.name + '/bcs-values'
                     console.log(`^${tplName}/[\w-]*values.(yaml|yml)$`)
                     const regex = new RegExp(`^${tplName}\\/[\\w-]*values.(yaml|yml)$`)
+                    const bcsRegex = new RegExp(`^${bcsTplName}\\/[\\w-]*.(yaml|yml)$`)
 
                     this.formData = res.data.data.questions
+                    this.curVersionData = tplData
+
                     for (const key in files) {
                         console.log('key', key)
+                        if (bcsRegex.test(key)) {
+                            const catalog = key.split('/')
+                            const fileName = catalog[catalog.length - 2] + '/' + catalog[catalog.length - 1]
+                            list.push({
+                                name: fileName,
+                                content: files[key]
+                            })
+                        }
                         if (regex.test(key)) {
                             const catalog = key.split('/')
                             const fileName = catalog[catalog.length - 1]
-                            console.log('key', fileName)
+                            console.log('fileName', fileName)
                             list.push({
                                 name: fileName,
                                 content: files[key]
                             })
                         }
                     }
-
                     this.curValueFileList.splice(0, this.curValueFileList.length, ...list)
                     this.curTplReadme = files[`${tplName}/README.md`]
                     this.curTplYaml = files[`${tplName}/values.yaml`]
@@ -829,7 +890,6 @@
                 try {
                     await this.$store.dispatch('helm/syncHelmTpl', { projectId: this.projectId })
 
-                    const tplId = this.$route.params.tplId
                     this.$bkMessage({
                         theme: 'success',
                         message: this.$t('同步成功')
@@ -837,7 +897,7 @@
 
                     setTimeout(() => {
                         this.isTplVerLoading = true
-                        this.getTplVersions(tplId)
+                        this.getTplVersions()
                         this.tplsetVerIndex = ''
                     }, 1000)
                 } catch (e) {
@@ -851,13 +911,14 @@
 
             /**
              * 获取模板版本列表
-             * @param  {number} tplId 模板ID
              */
-            async getTplVersions (tplId) {
+            async getTplVersions () {
                 const projectId = this.projectId
                 try {
-                    const res = await this.$store.dispatch('helm/getTplVersions', { projectId, tplId })
-                    this.curTplVersions = res.data.results
+                    const tplId = this.curTpl.name
+                    const isPublic = this.curTpl.repository.name === 'public-repo'
+                    const res = await this.$store.dispatch('helm/getTplVersionList', { projectId, tplId, isPublic })
+                    this.curTplVersions = res.data
                 } catch (e) {
                     catchErrorHandler(e, this)
                 } finally {
@@ -868,25 +929,34 @@
             },
 
             /**
-             * 获取命名空间列表
+             * 获取有权限的集群列表
+             */
+            async getPermissionClusterList (chartId) {
+                const projectId = this.projectId
+
+                try {
+                    const res = await this.$store.dispatch('cluster/getPermissionClusterList', projectId)
+                    this.clusterList = res.data.results
+                } catch (e) {
+                    catchErrorHandler(e, this)
+                }
+            },
+
+            /**
+             * 获取命名集群和空间列表
              */
             async getNamespaceList (chartId) {
                 const projectId = this.projectId
 
                 try {
                     const res = await this.$store.dispatch('helm/getNamespaceListByChart', { projectId, chartId })
+                    res.data.forEach(item => {
+                        const match = item.name.match(/^([\s\S]*)\(([\w-]*)\)/)
+                        if (match && match.length >= 3) {
+                            item.id = match[2]
+                        }
+                    })
 
-                    this.initedList = []
-                    // res.data.forEach(item => {
-                    //     if (item.children) {
-                    //         item.children.forEach(child => {
-                    //             if (child.has_initialized) {
-                    //                 child.name = `${child.name}（${this.$t('已部署')}）`
-                    //                 this.initedList.push(child.id)
-                    //             }
-                    //         })
-                    //     }
-                    // })
                     this.namespaceList = res.data
                 } catch (e) {
                     catchErrorHandler(e, this)
@@ -899,6 +969,7 @@
              * @return {boolean} true/false
              */
             checkFormData (data) {
+                const nameReg = /^[a-z0-9]([-a-z0-9]*[a-z0-9])?$/
                 if (this.$refs.bkFormCreater) {
                     if (!this.$refs.bkFormCreater.checkValid()) {
                         return false
@@ -907,7 +978,15 @@
                 if (!data.name) {
                     this.$bkMessage({
                         theme: 'error',
-                        message: this.$t('请输入名称')
+                        message: this.$t('请输入Release名称')
+                    })
+                    return false
+                }
+
+                if (!nameReg.test(data.name)) {
+                    this.$bkMessage({
+                        theme: 'error',
+                        message: this.$t('Release名称只能由小写字母数字或者-组成')
                     })
                     return false
                 }
@@ -916,6 +995,14 @@
                     this.$bkMessage({
                         theme: 'error',
                         message: this.$t('请选择版本')
+                    })
+                    return false
+                }
+
+                if (!data.cluster_id) {
+                    this.$bkMessage({
+                        theme: 'error',
+                        message: this.$t('请选择所属集群')
                     })
                     return false
                 }
@@ -965,7 +1052,8 @@
                 const data = {
                     name: this.appName,
                     namespace_info: this.namespaceId,
-                    chart_version: this.tplsetVerIndex,
+                    cluster_id: this.curClusterId,
+                    chart_version: this.curVersionData.id,
                     answers: formData,
                     customs: customs,
                     cmd_flags: commands,
@@ -1000,7 +1088,7 @@
                         this.clipboardInstance.on('success', e => {
                             this.$bkMessage({
                                 theme: 'success',
-                                message: '复制成功'
+                                message: this.$t('复制成功')
                             })
                             this.isVarPanelShow = false
                         })
@@ -1021,7 +1109,7 @@
 
                 res.message = app.transitioning_message
                 actionType = app.transitioning_action
-                const title = `${app.name}${this.appAction[app.transitioning_action]}失败`
+                const title = `${app.name}${this.appAction[app.transitioning_action]}${this.$t("失败")}`
                 this.showErrorDialog(res, title, actionType)
             },
 

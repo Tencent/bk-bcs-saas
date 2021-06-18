@@ -95,18 +95,3 @@
         }
     }
 </script>
-
-<style>
-    .bk-form-inline-item.is-required .bk-label:after,
-    .bk-form-item.is-required .bk-label:after {
-        top: 0;
-        margin-top: 12px;
-    }
-    .v-tooltips-container .v-tooltips-content {
-        max-width: 500px;
-    }
-    .bk-selector .bk-selector-node .text {
-        height: 42px;
-        line-height: 42px;
-    }
-</style>

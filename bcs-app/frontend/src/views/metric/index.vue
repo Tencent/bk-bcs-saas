@@ -34,16 +34,11 @@
              * 设置动态组件
              */
             setComponent () {
-                const kind = this.curProject.kind
                 const funcWlist = this.curProject.func_wlist
-                if (String(kind) === '1') {
+                if (funcWlist && funcWlist.length && funcWlist.indexOf('ServiceMonitor') > -1) {
                     this.componentName = 'wlistMetric'
                 } else {
-                    if (funcWlist && funcWlist.length && funcWlist.indexOf('ServiceMonitor') > -1) {
-                        this.componentName = 'wlistMetric'
-                    } else {
-                        this.componentName = 'metric'
-                    }
+                    this.componentName = 'metric'
                 }
             }
         }

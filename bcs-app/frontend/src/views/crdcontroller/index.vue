@@ -19,7 +19,8 @@
                         <bk-data-searcher
                             :scope-list="searchScopeList"
                             :search-key.sync="searchKeyword"
-                            :search-scope.sync="curClusterId"
+                            :search-scope.sync="searchScope"
+                            :cluster-fixed="!!curClusterId"
                             @search="search"
                             @refresh="refresh">
                         </bk-data-searcher>
@@ -74,8 +75,8 @@
                                         <table class="biz-inner-table">
                                             <tr>
                                                 <td class="logo">
-                                                    <div class="logo-wrapper" v-if="crdcontroller.logo && isImage(crdcontroller.logo)">
-                                                        <img :src="crdcontroller.logo">
+                                                    <div class="logo-wrapper" v-if="logMap[crdcontroller.name]">
+                                                        <i :class="logMap[crdcontroller.name]"></i>
                                                     </div>
                                                     <svg class="biz-set-icon" v-else>
                                                         <use xlink:href="#biz-set-icon"></use>
@@ -86,41 +87,96 @@
                                                 </td>
                                                 <td class="status">
                                                     <span class="biz-mark" v-if="crdcontroller.status === 'deployed'">
-                                                        {{$t('已启用')}}
+                                                        <bk-tag type="filled" theme="success">{{$t('已部署')}}</bk-tag>
                                                     </span>
                                                     <span class="biz-mark" v-else-if="!crdcontroller.status || crdcontroller.status === 'not_deployed'">
-                                                        {{$t('未启用')}}
+                                                        <bk-tag type="filled">{{$t('未启用')}}</bk-tag>
                                                     </span>
                                                     <span class="biz-mark" v-else-if="crdcontroller.status === 'failed'">
-                                                        {{$t('启用失败')}}
+                                                        <bcs-popover :width="500" :content="crdcontroller.message" placement="top">
+                                                            <bk-tag type="filled" theme="danger">{{$t('异常')}}</bk-tag>
+                                                        </bcs-popover>
                                                     </span>
+                                                    <span class="biz-mark" v-else-if="crdcontroller.status === 'unknown'">
+                                                        <bcs-popover :content="$t('请联系蓝鲸容器助手')" placement="top">
+                                                            <bk-tag type="filled" theme="warning">{{$t('未知')}}</bk-tag>
+                                                        </bcs-popover>
+                                                    </span>
+                                                    <template v-else-if="crdcontroller.status === 'pending'">
+                                                        <div class="bk-spin-loading bk-spin-loading-mini bk-spin-loading-primary vm" style="margin-right: 3px;">
+                                                            <div class="rotate rotate1"></div>
+                                                            <div class="rotate rotate2"></div>
+                                                            <div class="rotate rotate3"></div>
+                                                            <div class="rotate rotate4"></div>
+                                                            <div class="rotate rotate5"></div>
+                                                            <div class="rotate rotate6"></div>
+                                                            <div class="rotate rotate7"></div>
+                                                            <div class="rotate rotate8"></div>
+                                                        </div>
+                                                        <span class="vm">{{$t('启用中...')}}</span>
+                                                    </template>
                                                 </td>
                                                 <td class="description">
                                                     <p class="text">
                                                         {{crdcontroller.description}}
-                                                        <a href="https://iwiki.oa.tencent.com/pages/viewpage.action?pageId=276018559" class="bk-text-button f12" target="_blank" v-if="crdcontroller.name === 'GameStatefulSet'">{{$t('详情查看文档')}}</a>
-                                                        <a href="https://iwiki.oa.tencent.com/pages/viewpage.action?pageId=87987171" class="bk-text-button f12" target="_blank" v-else>{{$t('详情查看文档')}}</a>
+                                                        <a :href="crdcontroller.help_link" class="bk-text-button f12" target="_blank" v-if="crdcontroller.help_link">{{$t('详情查看文档')}}</a>
                                                     </p>
                                                 </td>
                                                 <td class="action">
-                                                    <template v-if="crdcontroller.name === 'GameStatefulSet'">
-                                                        <template v-if="crdcontroller.status === 'deployed'">
-                                                            <a href="https://iwiki.oa.tencent.com/pages/viewpage.action?pageId=276018559" target="_blank" class="bk-button bk-primary">{{$t('查看文档')}}</a>
-                                                        </template>
-                                                        <template v-else-if="!crdcontroller.status || crdcontroller.status === 'not_deployed'">
-                                                            <button class="bk-button bk-primary" @click="haneldEnableCrdController(crdcontroller)">{{$t('启用')}}</button>
-                                                        </template>
-                                                        <template v-else-if="crdcontroller.status === 'failed'">
-                                                            <button class="bk-button bk-primary is-disabled" @click="haneldEnableCrdController(crdcontroller)">{{$t('重新启用')}}</button>
-                                                        </template>
-                                                    </template>
-                                                    <template v-else>
-                                                        <template v-if="crdcontroller.status === 'deployed'">
-                                                            <button class="bk-button bk-primary" @click="goControllerInstances(crdcontroller)">{{$t('前往配置')}}</button>
+                                                    <template v-if="crdcontroller.status === 'deployed'">
+                                                        <template v-if="crdcontroller.name === 'DbPrivilege'">
+                                                            <bk-button type="primary" @click="goControllerInstances(crdcontroller)">{{$t('前往配置')}}</bk-button>
                                                         </template>
                                                         <template v-else>
-                                                            <button class="bk-button bk-primary" @click="haneldEnableCrdController(crdcontroller)">{{$t('启用')}}</button>
+                                                            <bk-dropdown-menu
+                                                                class="dropdown-menu"
+                                                                :align="'left'"
+                                                                ref="dropdown">
+                                                                <bk-button :class="['bk-button bk-default btn']" slot="dropdown-trigger" style="position: relative; width: 88px;">
+                                                                    <span>{{$t('操作')}}</span>
+                                                                    <i class="bcs-icon bcs-icon-angle-down dropdown-menu-angle-down ml5" style="font-size: 10px;"></i>
+                                                                </bk-button>
+
+                                                                <ul class="bk-dropdown-list" slot="dropdown-content">
+                                                                    <li v-if="crdcontroller.name === 'BcsPolaris'">
+                                                                        <a href="javascript:void(0)" @click="goControllerInstances(crdcontroller)">{{$t('前往配置')}}</a>
+                                                                    </li>
+                                                                    <li>
+                                                                        <a href="javascript:void(0)" @click="showInstanceDetail(crdcontroller)">{{$t('更新组件')}}</a>
+                                                                    </li>
+                                                                </ul>
+                                                            </bk-dropdown-menu>
                                                         </template>
+                                                    </template>
+                                                    <template v-else-if="!crdcontroller.status || crdcontroller.status === 'not_deployed'">
+                                                        <bk-button :loading="crdcontroller.status === 'pending'" type="primary" @click="haneldEnableCrdController(crdcontroller)">{{$t('启用')}}</bk-button>
+                                                    </template>
+                                                    <template v-else-if="crdcontroller.status === 'failed'">
+                                                        <template v-if="crdcontroller.name === 'DbPrivilege'">
+                                                            <bk-button :loading="crdcontroller.status === 'pending'" type="primary" @click="haneldEnableCrdController(crdcontroller)">{{$t('重新启用')}}</bk-button>
+                                                        </template>
+                                                        <template v-else>
+                                                            <bk-dropdown-menu
+                                                                class="dropdown-menu"
+                                                                :align="'left'"
+                                                                ref="dropdown">
+                                                                <bk-button :class="['bk-button bk-default btn']" slot="dropdown-trigger" style="position: relative; width: 88px;">
+                                                                    <span>{{$t('操作')}}</span>
+                                                                    <i class="bcs-icon bcs-icon-angle-down dropdown-menu-angle-down ml5" style="font-size: 10px;"></i>
+                                                                </bk-button>
+                                                                <ul class="bk-dropdown-list" slot="dropdown-content">
+                                                                    <li>
+                                                                        <a href="javascript:void(0)" @click="showInstanceDetail(crdcontroller)">{{$t('更新组件')}}</a>
+                                                                    </li>
+                                                                </ul>
+                                                            </bk-dropdown-menu>
+                                                        </template>
+                                                    </template>
+                                                    <template v-else-if="crdcontroller.status === 'unknown'">
+                                                        <bk-button :disabled="true" v-bk-tooltips="$t('请联系蓝鲸容器助手')">{{$t('启用')}}</bk-button>
+                                                    </template>
+                                                    <template v-else-if="crdcontroller.status === 'pending'">
+                                                        <bk-button :disabled="true">{{$t('启用中...')}}</bk-button>
                                                     </template>
                                                 </td>
                                             </tr>
@@ -131,9 +187,7 @@
                             <template v-if="!crdControllerList.length && !showLoading">
                                 <tr>
                                     <td colspan="5">
-                                        <div class="biz-empty-message" style="padding: 80px;">
-                                            {{$t('无数据')}}
-                                        </div>
+                                        <bcs-exception type="empty" scene="part"></bcs-exception>
                                     </td>
                                 </tr>
                             </template>
@@ -172,13 +226,15 @@
                                                 </td>
                                                 <td class="log-status">
                                                     <span class="biz-mark" v-if="crdcontroller.status === 'deployed'">
-                                                        {{$t('已启用')}}
+                                                        <bk-tag type="filled" theme="success">{{$t('已启用')}}</bk-tag>
                                                     </span>
                                                     <span class="biz-mark" v-else-if="!crdcontroller.status || crdcontroller.status === 'not_deployed'">
-                                                        {{$t('未启用')}}
+                                                        <bk-tag type="filled">{{$t('未启用')}}</bk-tag>
                                                     </span>
                                                     <span class="biz-mark" v-else-if="crdcontroller.status === 'failed'">
-                                                        {{$t('启用失败')}}
+                                                        <bcs-popover :content="crdcontroller.message || '--'" placement="top" width="500">
+                                                            <bk-tag type="filled" theme="danger">{{$t('启用失败')}}</bk-tag>
+                                                        </bcs-popover>
                                                     </span>
                                                 </td>
                                                 <td class="log-source" v-if="crdKind === 'BcsLog'">
@@ -189,15 +245,15 @@
                                                 <td class="description">
                                                     <p class="text">
                                                         {{crdcontroller.description}}
-                                                        <a href="https://iwiki.oa.tencent.com/pages/viewpage.action?pageId=98832678" class="bk-text-button f12" target="_blank">{{$t('详情查看文档')}}</a>
+                                                        <a :href="crdcontroller.help_link" class="bk-text-button f12" target="_blank" v-if="crdcontroller.help_link">{{$t('详情查看文档')}}</a>
                                                     </p>
                                                 </td>
                                                 <td class="action">
                                                     <template v-if="crdcontroller.status === 'deployed'">
-                                                        <button class="bk-button bk-primary" @click="goControllerInstances(crdcontroller)">{{$t('前往配置')}}</button>
+                                                        <bk-button type="primary" @click="goControllerInstances(crdcontroller)">{{$t('前往配置')}}</bk-button>
                                                     </template>
                                                     <template v-else>
-                                                        <button class="bk-button bk-primary" @click="haneldEnableCrdController(crdcontroller)">{{$t('启用')}}</button>
+                                                        <bk-button type="primary" :loading="crdcontroller.status === 'pending'" @click="haneldEnableCrdController(crdcontroller)">{{$t('启用')}}</bk-button>
                                                     </template>
                                                 </td>
                                             </tr>
@@ -208,9 +264,7 @@
                             <template v-if="!crdControllerList.length && !showLoading">
                                 <tr>
                                     <td colspan="6">
-                                        <div class="biz-empty-message" style="padding: 80px;">
-                                            {{$t('无数据')}}
-                                        </div>
+                                        <bcs-exception type="empty" scene="part"></bcs-exception>
                                     </td>
                                 </tr>
                             </template>
@@ -219,27 +273,83 @@
                 </div>
             </template>
         </div>
+
+        <bk-sideslider
+            class="editor-slider"
+            :quick-close="false"
+            :is-show.sync="valueSlider.isShow"
+            :title="valueSlider.title"
+            :width="'900'">
+            <div class="p0" slot="content">
+                <bk-button class="bk-button bk-primary save-crd-btn" @click.stop.prevent="enableCrdController"></bk-button>
+                <bk-button class="bk-button bk-default hide-crd-btn" @click.stop.prevent="hideApplicationJson">{{$t('取消')}}</bk-button>
+                <div :class="['diff-editor-box', { 'editor-fullscreen': editorOptions.fullScreen }]" style="position: relative;">
+                    <monaco-editor
+                        ref="yamlEditor"
+                        class="editor"
+                        theme="monokai"
+                        language="yaml"
+                        :style="{ height: `${editorHeight}px`, width: '100%' }"
+                        v-model="editorOptions.content"
+                        :diff-editor="editorOptions.isDiff"
+                        :key="renderEditorKey"
+                        :options="editorOptions"
+                        :original="editorOptions.originContent">
+                    </monaco-editor>
+                </div>
+            </div>
+        </bk-sideslider>
     </div>
 </template>
 
 <script>
     import { catchErrorHandler } from '@open/common/util'
+    import MonacoEditor from '@open/components/monaco-editor/editor.vue'
 
     export default {
+        components: {
+            MonacoEditor
+        },
         data () {
             return {
-                curClusterId: undefined,
+                fiexedStatus: ['not_deployed', 'deployed', 'failed', 'unknown'],
                 isInitLoading: true,
                 isPageLoading: false,
                 crdControllerList: [],
                 crdControllerListCache: [],
+                curCrdcontroller: null,
                 searchKeyword: '',
                 searchScope: '',
                 clusterList: [],
+                statusTimer: {},
+                valueSlider: {
+                    isShow: false,
+                    fullScreen: false,
+                    title: ''
+                },
+                renderEditorKey: 0,
+                editorOptions: {
+                    readOnly: false,
+                    fontSize: 14,
+                    fullScreen: false,
+                    content: '',
+                    originContent: '',
+                    isDiff: false
+                },
                 dataSource: {
                     std_data_name: '',
                     file_data_name: '',
                     sys_data_name: ''
+                },
+                logMap: {
+                    DbPrivilege: 'bcs-icon bcs-icon-db-auth',
+                    BcsLog: 'bcs-icon bcs-icon-log',
+                    GameStatefulSet: 'bcs-icon bcs-icon-gss',
+                    GameDeployment: 'bcs-icon bcs-icon-gd',
+                    PrometheusAdapter: 'bcs-icon bcs-icon-prom',
+                    BcsIngressController: 'bcs-icon bcs-icon-bi-2',
+                    BcsHookOperator: 'bcs-icon bcs-icon-bh',
+                    BcsPolaris: 'bcs-icon bcs-icon-pol'
                 }
             }
         },
@@ -253,9 +363,6 @@
             curProject () {
                 return this.$store.state.curProject
             },
-            // clusterList () {
-            //     return this.$store.state.cluster.clusterList
-            // },
             crdKind () {
                 return this.$route.meta.crdKind
             },
@@ -273,23 +380,20 @@
                 }
 
                 return results
+            },
+            editorHeight () {
+                const height = window.innerHeight
+                return this.editorOptions.fullScreen ? height : height - 80
+            },
+            curClusterId () {
+                return this.$store.state.curClusterId
             }
         },
         watch: {
-            // clusterList () {
-            //     if (this.clusterList.length) {
-            //         if (window.sessionStorage && window.sessionStorage['bcs-cluster']) {
-            //             this.curClusterId = window.sessionStorage['bcs-cluster']
-            //         } else {
-            //             this.curClusterId = this.clusterList[0].cluster_id
-            //         }
-
-            //         this.getCrdControllersByCluster()
-            //     } else {
-            //         this.isInitLoading = false
-            //         this.isPageLoading = false
-            //     }
-            // }
+            curClusterId () {
+                this.searchScope = this.curClusterId
+                this.search()
+            }
         },
         created () {
             // 如果不是mesos类型的项目，无法访问页面，重定向回集群首页
@@ -306,6 +410,10 @@
 
             this.init()
         },
+        beforeRouteLeave (to, from, next) {
+            this.clearAllInterval()
+            next()
+        },
         methods: {
             async init () {
                 try {
@@ -313,10 +421,10 @@
                     const res = await this.$store.dispatch('cluster/getClusterList', projectId)
                     this.clusterList = res.data.results
                     if (this.clusterList.length) {
-                        if (window.sessionStorage && window.sessionStorage['bcs-cluster']) {
-                            this.curClusterId = window.sessionStorage['bcs-cluster']
+                        if (window.localStorage && window.localStorage['bcs-cluster']) {
+                            this.searchScope = window.localStorage['bcs-cluster']
                         } else {
-                            this.curClusterId = this.clusterList[0].cluster_id
+                            this.searchScope = this.clusterList[0].cluster_id
                         }
                         this.getCrdControllersByCluster()
                     } else {
@@ -334,18 +442,36 @@
             },
 
             async haneldEnableCrdController (crdcontroller) {
+                this.curCrdcontroller = crdcontroller
+                if (crdcontroller.default_values_content) {
+                    this.valueSlider.title = `${this.$t('启用组件：')}${crdcontroller.name}`
+                    this.editorOptions.content = crdcontroller.default_values_content
+                    this.editorOptions.originContent = crdcontroller.default_values_content
+                    this.renderEditorKey++
+                    this.valueSlider.isShow = true
+                } else {
+                    this.enableCrdController()
+                }
+            },
+
+            async enableCrdController () {
                 try {
+                    const crdcontroller = this.curCrdcontroller
                     const projectId = this.projectId
-                    const clusterId = this.curClusterId
-                    const name = crdcontroller.name
-                    await this.$store.dispatch('crdcontroller/enableCrdController', { projectId, clusterId, name })
-                    this.getCrdControllersByCluster()
-                    this.$bkMessage({
-                        theme: 'success',
-                        message: this.$t('启用成功')
-                    })
+                    const clusterId = this.searchScope
+                    const id = crdcontroller.crd_ctr_id
+                    const data = {
+                        values_content: this.editorOptions.content
+                    }
+                    crdcontroller.status = 'pending'
+                    this.valueSlider.isShow = false
+                    await this.$store.dispatch('crdcontroller/enableCrdController', { projectId, clusterId, id, data })
+                    // this.getCrdControllersByCluster()
+                    this.getCrdcontrollerStatus(crdcontroller)
                 } catch (e) {
                     catchErrorHandler(e, this)
+                } finally {
+                    this.editorOptions.readOnly = false
                 }
             },
 
@@ -353,16 +479,22 @@
                 if (this.isPageLoading) {
                     return false
                 }
-                if (!this.curClusterId) {
+                if (!this.searchScope) {
                     return false
                 }
                 const projectId = this.projectId
-                const clusterId = this.curClusterId
+                const clusterId = this.searchScope
 
                 this.isPageLoading = true
                 try {
                     const res = await this.$store.dispatch('crdcontroller/getCrdControllersByCluster', { projectId, clusterId })
-                    this.crdControllerList = res.data
+                    res.data.forEach(item => {
+                        const instance = item.crd_ctr_inst
+                        item.cluster_id = instance.cluster_id || ''
+                        item.message = instance.message || ''
+                        item.status = instance.status || ''
+                        item.values_content = instance.values_content || ''
+                    })
                     // 搜索
                     let results = res.data.filter(item => {
                         if (this.crdKind === 'BcsLog') {
@@ -387,8 +519,14 @@
                             }
                         })
                     }
-
+                    // results[0].status = 'pending'
                     this.crdControllerList = results
+                    this.clearAllInterval()
+                    this.crdControllerList.forEach(item => {
+                        if (item.status === 'pending') {
+                            this.getCrdcontrollerStatus(item)
+                        }
+                    })
                 } catch (e) {
                     catchErrorHandler(e, this)
                 } finally {
@@ -397,6 +535,13 @@
                         this.isPageLoading = false
                     }, 200)
                 }
+            },
+
+            clearAllInterval () {
+                for (const key in this.statusTimer) {
+                    clearInterval(this.statusTimer[key])
+                }
+                this.statusTimer = {}
             },
 
             async getLogPlans () {
@@ -421,9 +566,24 @@
                 }
             },
 
+            showInstanceDetail (crdcontroller) {
+                if (window.sessionStorage) {
+                    window.sessionStorage['bcs-cluster'] = this.searchScope
+                    window.sessionStorage['bcs-crdcontroller'] = JSON.stringify(crdcontroller)
+                }
+                this.$router.push({
+                    name: 'crdcontrollerInstanceDetail',
+                    params: {
+                        clusterId: this.searchScope,
+                        name: crdcontroller.name,
+                        id: crdcontroller.crd_ctr_id
+                    }
+                })
+            },
+
             async goControllerInstances (crdcontroller) {
                 if (window.sessionStorage) {
-                    window.sessionStorage['bcs-cluster'] = this.curClusterId
+                    window.sessionStorage['bcs-cluster'] = this.searchScope
                 }
 
                 if (this.crdKind === 'BcsLog') {
@@ -434,7 +594,7 @@
                             name: 'crdcontrollerLogInstances',
                             params: {
                                 crdKind: crdcontroller.name,
-                                clusterId: this.curClusterId
+                                clusterId: this.searchScope
                             }
                         })
                     } catch (e) {
@@ -443,13 +603,23 @@
                         }
                     }
                 } else {
-                    this.$router.push({
-                        name: 'crdcontrollerDBInstances',
-                        params: {
-                            crdKind: crdcontroller.name,
-                            clusterId: this.curClusterId
-                        }
-                    })
+                    if (crdcontroller.name === 'DbPrivilege') {
+                        this.$router.push({
+                            name: 'crdcontrollerDBInstances',
+                            params: {
+                                crdKind: crdcontroller.name,
+                                clusterId: this.searchScope
+                            }
+                        })
+                    } else if (crdcontroller.name === 'BcsPolaris') {
+                        this.$router.push({
+                            name: 'crdcontrollerPolarisInstances',
+                            params: {
+                                crdKind: crdcontroller.name,
+                                clusterId: this.searchScope
+                            }
+                        })
+                    }
                 }
             },
 
@@ -475,6 +645,43 @@
                     return true
                 }
                 return false
+            },
+
+            /**
+             * 获取crdcontroller状态
+             * @param  {object} crdcontroller crdcontroller
+             * @param  {number} index 索引
+             */
+            getCrdcontrollerStatus (crdcontroller, index) {
+                if (crdcontroller.crd_ctr_id === undefined) {
+                    return false
+                }
+                const projectId = this.projectId
+                const crdcontrollerId = crdcontroller.crd_ctr_id
+                const clusterId = crdcontroller.cluster_id || this.searchScope
+                const self = this
+
+                clearInterval(this.statusTimer[crdcontroller.crd_ctr_id])
+                this.statusTimer[crdcontroller.crd_ctr_id] = setInterval(async () => {
+                    try {
+                        const res = await this.$store.dispatch('crdcontroller/getCrdcontrollerStatus', {
+                            projectId,
+                            clusterId,
+                            crdcontrollerId
+                        })
+                        if (this.fiexedStatus.includes(res.data.status)) {
+                            clearInterval(self.statusTimer[crdcontroller.crd_ctr_id])
+                            this.crdControllerList.forEach(item => {
+                                if (item.crd_ctr_id === crdcontrollerId) {
+                                    item.status = res.data.status
+                                    item.message = res.data.message
+                                }
+                            })
+                        }
+                    } catch (e) {
+                        catchErrorHandler(e, this)
+                    }
+                }, 2000)
             }
         }
     }

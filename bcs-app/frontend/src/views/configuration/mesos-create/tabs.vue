@@ -1,39 +1,44 @@
 <template>
-    <div class="biz-tab-header">
-        <div :class="['header-item', { 'active': activeRoute === 'mesosTemplatesetApplication' }]" @click="toggleRouter('mesosTemplatesetApplication')">
-            Application
-            <span class="bk-badge">{{applications.length}}</span>
+    <div class="biz-tab-header" style="width: 100%;">
+        <div class="tab-wrapper bk-badge-wrapper">
+            <div :class="['header-item', { 'active': activeRoute === 'mesosTemplatesetApplication' }]" @click="toggleRouter('mesosTemplatesetApplication')">
+                Application
+                <span class="bk-badge">{{applications.length}}</span>
+            </div>
+            <div :class="['header-item', { 'active': activeRoute === 'mesosTemplatesetDeployment' }]" @click="toggleRouter('mesosTemplatesetDeployment')">
+                Deployment
+                <span class="bk-badge">{{deployments.length}}</span>
+            </div>
+            <div :class="['header-item', { 'active': activeRoute === 'mesosTemplatesetService' }]" @click="toggleRouter('mesosTemplatesetService')">
+                Service
+                <span class="bk-badge">{{services.length}}</span>
+            </div>
+            <div :class="['header-item', { 'active': activeRoute === 'mesosTemplatesetConfigmap' }]" @click="toggleRouter('mesosTemplatesetConfigmap')">
+                Configmap
+                <span class="bk-badge">{{configmaps.length}}</span>
+            </div>
+            <div :class="['header-item', { 'active': activeRoute === 'mesosTemplatesetSecret' }]" @click="toggleRouter('mesosTemplatesetSecret')">
+                Secret
+                <span class="bk-badge">{{secrets.length}}</span>
+            </div>
+            <div :class="['header-item', { 'active': activeRoute === 'mesosTemplatesetIngress' }]" @click="toggleRouter('mesosTemplatesetIngress')">
+                Ingress
+                <span class="bk-badge">{{ingresss.length}}</span>
+            </div>
+            <div :class="['header-item', { 'active': activeRoute === 'mesosTemplatesetHPA' }]" @click="toggleRouter('mesosTemplatesetHPA')">
+                HPA
+                <span class="bk-badge">{{HPAs.length}}</span>
+            </div>
         </div>
-        <div :class="['header-item', { 'active': activeRoute === 'mesosTemplatesetDeployment' }]" @click="toggleRouter('mesosTemplatesetDeployment')">
-            Deployment
-            <span class="bk-badge">{{deployments.length}}</span>
-        </div>
-        <div :class="['header-item', { 'active': activeRoute === 'mesosTemplatesetService' }]" @click="toggleRouter('mesosTemplatesetService')">
-            Service
-            <span class="bk-badge">{{services.length}}</span>
-        </div>
-        <div :class="['header-item', { 'active': activeRoute === 'mesosTemplatesetConfigmap' }]" @click="toggleRouter('mesosTemplatesetConfigmap')">
-            Configmap
-            <span class="bk-badge">{{configmaps.length}}</span>
-        </div>
-        <div :class="['header-item', { 'active': activeRoute === 'mesosTemplatesetSecret' }]" @click="toggleRouter('mesosTemplatesetSecret')">
-            Secret
-            <span class="bk-badge">{{secrets.length}}</span>
-        </div>
-        <div :class="['header-item', { 'active': activeRoute === 'mesosTemplatesetIngress' }]" @click="toggleRouter('mesosTemplatesetIngress')">
-            Ingress
-            <span class="bk-badge">{{ingresss.length}}</span>
-        </div>
-
         <div :class="['biz-var-panel', { 'show': isVarPanelShow }]" v-clickoutside="hidePanel">
             <div class="var-panel-header">
-                <bk-tooltip :content="isVarPanelShow ? $t('关闭') : $t('查看可用变量')" placement="left" v-if="!isVarPanelShow">
+                <bcs-popover :content="isVarPanelShow ? $t('关闭') : $t('查看可用变量')" placement="left" v-if="!isVarPanelShow">
                     <button class="var-panel-trigger" @click.stop.prevent="togglePanel">
-                        <i class="bk-icon icon-angle-left"></i>
+                        <i class="bcs-icon bcs-icon-angle-left"></i>
                     </button>
-                </bk-tooltip>
+                </bcs-popover>
                 <button class="var-panel-trigger" @click.stop.prevent="togglePanel" v-else>
-                    <i class="bk-icon icon-angle-left"></i>
+                    <i class="bcs-icon bcs-icon-angle-left"></i>
                 </button>
                 <strong class="var-panel-title" v-show="isVarPanelShow">{{$t('可用变量')}}<span class="f12">（{{$t('模板集中引入方式')}}：{{varUserWay}}）</span></strong>
             </div>
@@ -43,7 +48,7 @@
                         <tr>
                             <th>{{$t('变量名')}}</th>
                             <th style="width: 230px;">KEY</th>
-                            <th style="width: 43px;"></th>
+                            <th style="width: 60px;"></th>
                         </tr>
                     </thead>
                 </table>
@@ -53,18 +58,18 @@
                             <template v-if="varList.length">
                                 <tr v-for="item of varList" :key="item.key">
                                     <td>
-                                        <bk-tooltip :content="item.name" placement="right">
+                                        <bcs-popover :content="item.name" placement="right">
                                             <span class="var-name">{{item.name}}</span>
-                                        </bk-tooltip>
+                                        </bcs-popover>
                                     </td>
                                     <td style="width: 230px;">
-                                        <bk-tooltip :content="item.key" placement="right">
+                                        <bcs-popover :content="item.key" placement="right">
                                             <span class="var-key">{{item.key}}</span>
-                                        </bk-tooltip>
+                                        </bcs-popover>
                                     </td>
-                                    <td style="width: 43px;">
-                                        <button class="var-copy-btn" :data-clipboard-text="`{{${item.key}}}`" type="default">
-                                            <i class="bk-icon icon-clipboard"></i>
+                                    <td style="width: 60px;">
+                                        <button class="var-copy-btn m5" :data-clipboard-text="`{{${item.key}}}`" type="default">
+                                            <i class="bcs-icon bcs-icon-clipboard"></i>
                                         </button>
                                     </td>
                                 </tr>
@@ -72,7 +77,7 @@
                             <template v-else>
                                 <tr>
                                     <td colspan="3">
-                                        <p class="message empty-message">{{$t('无数据')}}</p>
+                                        <bcs-exception type="empty" scene="part"></bcs-exception>
                                     </td>
                                 </tr>
                             </template>
@@ -278,9 +283,9 @@
 </script>
 
 <style scoped lang="postcss">
-    @import '@open/css/variable.css';
-    @import '@open/css/mixins/ellipsis.css';
-    @import '@open/css/mixins/scroller.css';
+    @import '@/css/variable.css';
+    @import '@/css/mixins/ellipsis.css';
+    @import '@/css/mixins/scroller.css';
 
     .biz-var-panel {
         width: 495px;
@@ -319,7 +324,7 @@
         border-left: 1px solid #DDE4EB;
         border-right: 1px solid #DDE4EB;
         transition: transform ease 0.3s;
-        .bk-icon {
+        .bcs-icon {
             margin-left: -3px;
         }
     }
@@ -333,7 +338,7 @@
     .var-list {
         overflow: auto;
         position: absolute;
-        top: 103px;
+        top: 120px;
         bottom: 0;
         width: 100%;
         border-top: 1px solid #DDE4EB;
@@ -341,9 +346,11 @@
         .var-name {
             max-width: 170px;
             padding-top: 5px;
+            vertical-align: middle;
             @mixin ellipsis;
         }
         .var-key {
+            vertical-align: middle;
             max-width: 185px;
             padding-top: 5px;
             @mixin ellipsis;

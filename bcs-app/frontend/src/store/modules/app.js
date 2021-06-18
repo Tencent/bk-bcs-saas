@@ -943,14 +943,24 @@ export default {
          * @return {Promise} promise 对象
          */
         getAllNamespace4AppSearch (context, params, config = {}) {
+            // const projectId = params.projectId
+            // const clusterType = params.cluster_type
+            // const category = params.category
+            // let url = `${DEVOPS_BCS_API_URL}/api/app/projects/${projectId}/all_namespaces/?cluster_type=${clusterType}`
+            // if (category) {
+            //     url += `&category=${category}`
+            // }
+            // return http.get(url, {}, config)
+
             const projectId = params.projectId
-            const clusterType = params.cluster_type
-            const category = params.category
-            let url = `${DEVOPS_BCS_API_URL}/api/app/projects/${projectId}/all_namespaces/?cluster_type=${clusterType}`
-            if (category) {
-                url += `&category=${category}`
-            }
-            return http.get(url, {}, config)
+            delete params.projectId
+
+            return http.get(
+                // `${DEVOPS_BCS_API_URL}/api/app/projects/${projectId}/all_namespaces/?${json2Query(params)}`,
+                `${DEVOPS_BCS_API_URL}/api/configuration/${projectId}/namespace/?${json2Query(params)}`,
+                {},
+                config
+            )
         },
 
         /**
@@ -964,14 +974,23 @@ export default {
          * @return {Promise} promise 对象
          */
         getAllInstance4AppSearch (context, params, config = {}) {
+            // const projectId = params.projectId
+            // const clusterType = params.cluster_type
+            // const category = params.category
+            // let url = `${DEVOPS_BCS_API_URL}/api/app/projects/${projectId}/all_instances/?cluster_type=${clusterType}`
+            // if (category) {
+            //     url += `&category=${category}`
+            // }
+            // return http.get(url, {}, config)
+
             const projectId = params.projectId
-            const clusterType = params.cluster_type
-            const category = params.category
-            let url = `${DEVOPS_BCS_API_URL}/api/app/projects/${projectId}/all_instances/?cluster_type=${clusterType}`
-            if (category) {
-                url += `&category=${category}`
-            }
-            return http.get(url, {}, config)
+            delete params.projectId
+
+            return http.get(
+                `${DEVOPS_BCS_API_URL}/api/app/projects/${projectId}/all_instances/?${json2Query(params)}`,
+                {},
+                config
+            )
         },
 
         /**
@@ -985,14 +1004,23 @@ export default {
          * @return {Promise} promise 对象
          */
         getAllMuster4AppSearch (context, params, config = {}) {
+            // const projectId = params.projectId
+            // const clusterType = params.cluster_type
+            // const category = params.category
+            // let url = `${DEVOPS_BCS_API_URL}/api/app/projects/${projectId}/all_musters/?cluster_type=${clusterType}`
+            // if (category) {
+            //     url += `&category=${category}`
+            // }
+            // return http.get(url, {}, config)
+
             const projectId = params.projectId
-            const clusterType = params.cluster_type
-            const category = params.category
-            let url = `${DEVOPS_BCS_API_URL}/api/app/projects/${projectId}/all_musters/?cluster_type=${clusterType}`
-            if (category) {
-                url += `&category=${category}`
-            }
-            return http.get(url, {}, config)
+            delete params.projectId
+
+            return http.get(
+                `${DEVOPS_BCS_API_URL}/api/app/projects/${projectId}/all_musters/?${json2Query(params)}`,
+                {},
+                config
+            )
         },
 
         /**
@@ -1473,7 +1501,7 @@ export default {
         },
 
         /**
-         * 获取 gamestatefulset 详细信息
+         * 删除 gamestatefulset 详细信息
          *
          * @param {Object} context store 上下文对象
          * @param {string} projectId 项目 id
@@ -1519,6 +1547,24 @@ export default {
             return http.patch(
                 `${DEVOPS_BCS_API_URL}/api/dashboard/projects/${params.projectId}/clusters/${params.clusterId}/crds/${params.gamestatefulsets}/custom_objects/${params.name}/scale/`,
                 params.data,
+                config
+            )
+        },
+
+        /**
+         * 删除
+         *
+         * @param {Object} context store 上下文对象
+         * @param {Object} params 参数
+         * @param {Object} config 请求的配置
+         *
+         * @return {Promise} promise 对象
+         */
+        batchDeleteGameStatefulset (context, params, config = {}) {
+            return http.delete(
+                `${DEVOPS_BCS_API_URL}/api/dashboard/projects/${params.projectId}/clusters/${params.clusterId}/crds/${params.gamestatefulsets}/custom_objects/`, {
+                    data: params.data
+                },
                 config
             )
         },

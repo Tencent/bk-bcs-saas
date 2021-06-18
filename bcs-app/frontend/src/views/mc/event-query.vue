@@ -12,10 +12,12 @@
                     <div class="left">
                         <bk-selector :placeholder="$t('集群')"
                             :selected.sync="clusterIndex"
+                            :disabled="curClusterId"
                             :list="dropdownClusterList"
                             :setting-key="'cluster_id'"
                             :display-key="'name'"
                             :allow-clear="true"
+                            v-if="!curClusterId"
                             @clear="clusterClear">
                         </bk-selector>
                     </div>
@@ -50,15 +52,13 @@
                         </bk-selector>
                     </div>
                     <div class="left range-picker">
-                        <bk-date-range
-                            @change="change"
-                            :range-separator="'-'"
-                            :disabled="false"
-                            :quick-select="true"
-                            :ranges="ranges"
-                            :position="'bottom-left'"
-                            :timer="true">
-                        </bk-date-range>
+                        <bk-date-picker
+                            :placeholder="$t('选择日期')"
+                            :shortcuts="shortcuts"
+                            :type="'datetimerange'"
+                            :placement="'bottom-end'"
+                            @change="change">
+                        </bk-date-picker>
                     </div>
                     <div class="left">
                         <bk-button type="primary" :title="$t('查询')" icon="search" @click="handleClick">
@@ -66,85 +66,42 @@
                         </bk-button>
                     </div>
                 </div>
-                <div v-bkloading="{ isLoading: isPageLoading && !isInitLoading }">
-                    <div class="biz-table-wrapper">
-                        <table class="bk-table has-table-hover biz-table biz-event-query-table">
-                            <thead>
-                                <tr>
-                                    <th style="width: 260px; text-align: left;padding-left: 30px;">
-                                        {{$t('时间')}}
-                                    </th>
-                                    <th style="width: 200px;">{{$t('组件')}}</th>
-                                    <th style="width: 170px;">{{$t('对象及级别')}}</th>
-                                    <th style="width: 250px;">{{$t('所属集群')}}</th>
-                                    <th style="width: 100px;">{{$t('事件内容')}}</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <template v-if="dataList.length">
-                                    <tr v-for="(item, index) in dataList" :key="index">
-                                        <td style="text-align: left;padding-left: 30px;">
-                                            {{item.eventTime}}
-                                        </td>
-                                        <td>
-                                            {{item.component}}
-                                        </td>
-                                        <td>
-                                            <p class="extra-info" :title="item.extra.level || '--'"><span>{{$t('级别：')}}</span>{{item.extra.level || '--'}}</p>
-                                            <p class="extra-info" :title="item.extra.kind || '--'"><span>{{$t('对象：')}}</span>{{item.extra.kind || '--'}}</p>
-                                        </td>
-                                        <td>
-                                            <bk-tooltip :content="item.cluster_id" placement="top">
-                                                {{item.clusterName}}
-                                            </bk-tooltip>
-                                        </td>
-                                        <td>
-                                            <bk-tooltip placement="top" :delay="500">
-                                                <div class="description">
-                                                    {{item.describe}}
-                                                </div>
-                                                <template slot="content">
-                                                    <p style="text-align: left; white-space: normal;word-break: break-all;">{{item.describe}}</p>
-                                                </template>
-                                            </bk-tooltip>
-                                        </td>
-                                    </tr>
-                                </template>
-                                <template v-else-if="!dataList.length && !isPageLoading">
-                                    <tr class="no-hover">
-                                        <td colspan="5">
-                                            <div class="bk-message-box">
-                                                <p class="message empty-message">{{$t('无数据')}}</p>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                </template>
-                                <template v-else>
-                                    <tr class="no-hover">
-                                        <td colspan="5">
-                                            <div class="bk-message-box">
-                                            </div>
-                                        </td>
-                                    </tr>
-                                </template>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-
-                <div class="biz-page-wrapper" v-if="pageConf.show">
-                    <bk-page-counter
-                        :is-en="isEn"
-                        :total="pageConf.total"
-                        :page-size="pageConf.pageSize"
-                        @change="changePageSize">
-                    </bk-page-counter>
-                    <bk-paging
-                        ref="bkPage"
-                        :cur-page.sync="pageConf.curPage"
-                        :total-page="pageConf.totalPage"
-                        @page-change="pageChange">
-                    </bk-paging>
+                <div class="biz-table-wrapper">
+                    <bk-table
+                        v-bkloading="{ isLoading: isPageLoading && !isInitLoading }"
+                        :data="dataList"
+                        :size="'medium'"
+                        :page-params="pageConf"
+                        @page-change="pageChangeHandler"
+                        @page-limit-change="changePageSize">
+                        <bk-table-column :label="$t('时间')" :show-overflow-tooltip="true" min-width="150" prop="eventTime" />
+                        <bk-table-column :label="$t('组件')" min-width="150" prop="component" />
+                        <bk-table-column :label="$t('对象及级别')" min-width="150" prop="extra">
+                            <template slot-scope="{ row }">
+                                <p class="extra-info" :title="row.level || '--'"><span>{{$t('级别：')}}</span>{{ row.level || '--' }}</p>
+                                <p class="extra-info" :title="row.kind || '--'"><span>{{$t('对象：')}}</span>{{ row.kind || '--' }}</p>
+                            </template>
+                        </bk-table-column>
+                        <bk-table-column :label="$t('所属集群')" min-width="200" prop="cluster_id">
+                            <template slot-scope="{ row }">
+                                <bcs-popover :content="row.cluster_id" placement="top">
+                                    {{ row.clusterName || '--' }}
+                                </bcs-popover>
+                            </template>
+                        </bk-table-column>
+                        <bk-table-column :label="$t('事件内容')" min-width="150" prop="describe">
+                            <template slot-scope="{ row }">
+                                <bcs-popover placement="top" :delay="500">
+                                    <div class="description">
+                                        {{ row.describe || '--' }}
+                                    </div>
+                                    <template slot="content">
+                                        <p style="text-align: left; white-space: normal;word-break: break-all;">{{row.describe}}</p>
+                                    </template>
+                                </bcs-popover>
+                            </template>
+                        </bk-table-column>
+                    </bk-table>
                 </div>
             </template>
         </div>
@@ -231,7 +188,7 @@
                 componentIndex: -1,
 
                 // 查询时间范围
-                dataRange: '',
+                dataRange: ['', ''],
                 // 列表数据
                 dataList: [],
                 isInitLoading: true,
@@ -250,7 +207,47 @@
                     show: false
                 },
                 bkMessageInstance: null,
-                dropdownClusterList: []
+                dropdownClusterList: [],
+                shortcuts: [
+                    {
+                        text: this.$t('今天'),
+                        value () {
+                            const end = new Date()
+                            const start = new Date()
+                            return [start, end]
+                        },
+                        onClick: picker => {
+                            console.error(picker)
+                        }
+                    },
+                    {
+                        text: this.$t('近7天'),
+                        value () {
+                            const end = new Date()
+                            const start = new Date()
+                            start.setTime(start.getTime() - 3600 * 1000 * 24 * 7)
+                            return [start, end]
+                        }
+                    },
+                    {
+                        text: this.$t('近15天'),
+                        value () {
+                            const end = new Date()
+                            const start = new Date()
+                            start.setTime(start.getTime() - 3600 * 1000 * 24 * 15)
+                            return [start, end]
+                        }
+                    },
+                    {
+                        text: this.$t('近30天'),
+                        value () {
+                            const end = new Date()
+                            const start = new Date()
+                            start.setTime(start.getTime() - 3600 * 1000 * 24 * 30)
+                            return [start, end]
+                        }
+                    }
+                ]
             }
         },
         computed: {
@@ -259,14 +256,35 @@
             },
             isEn () {
                 return this.$store.state.isEn
+            },
+            curClusterId () {
+                return this.$store.state.curClusterId
+            }
+        },
+        watch: {
+            curClusterId: {
+                immediate: true,
+                handler () {
+                    this.clusterIndex = this.curClusterId
+                    this.handleClick()
+                }
             }
         },
         mounted () {
-            this.fetchData({
-                projId: this.projectId,
-                limit: this.pageConf.pageSize,
-                offset: 0
-            })
+            if (!this.curClusterId) {
+                this.fetchData({
+                    projId: this.projectId,
+                    limit: this.pageConf.pageSize,
+                    offset: 0
+                })
+            } else {
+                this.fetchData({
+                    projId: this.projectId,
+                    cluster_id: this.curClusterId,
+                    limit: this.pageConf.pageSize,
+                    offset: 0
+                })
+            }
 
             this.getClusters()
         },
@@ -302,10 +320,6 @@
                         this.dropdownClusterList.unshift({ cluster_id: 'all', name: this.$t('全部1') })
                     }
                 } catch (e) {
-                    this.bkMessageInstance = this.$bkMessage({
-                        theme: 'error',
-                        message: e.message || e.data.msg || e.statusText
-                    })
                 }
             },
 
@@ -345,10 +359,7 @@
                 const component = this.componentIndex === -1 ? null : this.componentIndex
 
                 // 开始结束时间
-                let [beginTime, endTime] = ['', '']
-                if (this.dataRange) {
-                    [beginTime, endTime] = this.dataRange.split(' - ')
-                }
+                const [beginTime, endTime] = this.dataRange
 
                 this.isPageLoading = true
                 try {
@@ -400,10 +411,6 @@
                         })
                     })
                 } catch (e) {
-                    this.bkMessageInstance = this.$bkMessage({
-                        theme: 'error',
-                        message: e.message || e.data.msg || e.statusText
-                    })
                 } finally {
                     this.isPageLoading = false
                     // 晚消失是为了防止整个页面loading和表格数据loading效果叠加产生闪动
@@ -418,7 +425,8 @@
              *
              * @param {number} page 页码
              */
-            pageChange (page = 1) {
+            pageChangeHandler (page = 1) {
+                this.pageConf.curPage = page
                 this.fetchData({
                     projId: this.projectId,
                     limit: this.pageConf.pageSize,
@@ -457,10 +465,9 @@
             /**
              * 日期范围搜索条件
              *
-             * @param {string} oldValue 变化前的值
-             * @param {string} newValue 变化后的值
+             * @param {string} newValue 变化前的值
              */
-            change (oldValue, newValue) {
+            change (newValue) {
                 this.dataRange = newValue
             },
 
