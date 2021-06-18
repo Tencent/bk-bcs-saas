@@ -14,7 +14,7 @@
 import logging
 from typing import Optional
 
-from backend.resources.cluster.models import CtxCluster
+from backend.container_service.clusters.base.models import CtxCluster
 
 from ..resource import ResourceClient
 

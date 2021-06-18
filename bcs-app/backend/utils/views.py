@@ -293,6 +293,12 @@ class VueTemplateView(TemplateView):
             "BK_IAM_APP_URL": settings.BK_IAM_APP_URL,
             "SUPPORT_MESOS": str2bool(os.environ.get("BKAPP_SUPPORT_MESOS", "false")),
         }
+
+        # 增加扩展的字段渲染前端页面，用于多版本
+        ext_context = getattr(settings, 'ext_context', {})
+        if ext_context:
+            context.update(ext_context)
+
         response = super(VueTemplateView, self).get(request, **context)
         return response
 

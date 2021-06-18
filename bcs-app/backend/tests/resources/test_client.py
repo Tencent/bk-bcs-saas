@@ -16,8 +16,8 @@ from unittest import mock
 
 import pytest
 
+from backend.container_service.clusters.base import CtxCluster
 from backend.resources.client import BcsAPIEnvironmentQuerier, BcsKubeConfigurationService
-from backend.resources.cluster import CtxCluster
 from backend.tests.testing_utils.mocks.bcs_api import StubBcsApiClient
 from backend.tests.testing_utils.mocks.collection import StubComponentCollection
 from backend.tests.testing_utils.mocks.paas_cc import StubPaaSCCClient

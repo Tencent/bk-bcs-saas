@@ -56,7 +56,7 @@ class RetrieveApiRespBuilder:
         self.client = client
         raw_resource = self.client.get(namespace=namespace, name=name, is_format=False, **kwargs)
         if not raw_resource:
-            raise ResourceNotExist(_('资源(Namespace: {}, Name: {})不存在').format(namespace, name))
+            raise ResourceNotExist(_('资源 {}/{} 不存在').format(namespace, name))
         self.resource = raw_resource.to_dict()
 
     def build(self) -> Dict:

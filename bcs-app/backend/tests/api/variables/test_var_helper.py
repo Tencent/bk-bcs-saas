@@ -13,7 +13,7 @@
 #
 import pytest
 
-from backend.apis.variables.var_helper import compose_data
+from backend.templatesets.var_mgmt.open_apis.var_helper import compose_data
 
 
 class TestVariables:

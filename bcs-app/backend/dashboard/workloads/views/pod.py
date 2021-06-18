@@ -11,8 +11,6 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-from typing import Dict
-
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
@@ -33,7 +31,7 @@ class PodViewSet(SystemViewSet):
         """ 获取 Pod 列表，支持 labelSelector """
         params = self.params_validate(ListPodsSLZ)
         client = Pod(request.ctx_cluster)
-        response_data = ListApiRespBuilder(client, **params).build()
+        response_data = ListApiRespBuilder(client, namespace=namespace, **params).build()
         return Response(response_data)
 
     def retrieve(self, request, project_id, cluster_id, namespace, pod_name):

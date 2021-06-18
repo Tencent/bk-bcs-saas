@@ -36,7 +36,7 @@ INSTALLED_APPS += [
 ]
 
 # 本地开发先去除权限中心v3的数据初始逻辑
-INSTALLED_APPS.remove("backend.apps.bcs_iam_migration.apps.BcsIamMigrationConfig")
+INSTALLED_APPS.remove("backend.bcs_web.iam.bcs_iam_migration.apps.BcsIamMigrationConfig")
 
 LOG_LEVEL = "DEBUG"
 LOGGING = get_logging_config(LOG_LEVEL)

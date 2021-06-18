@@ -26,7 +26,7 @@ class TestPod:
         response = api_client.get(f'/api/dashboard/projects/{project_id}/clusters/{cluster_id}/workloads/pods/')
         assert response.json()['code'] == 0
 
-    def test_retrieve(self, api_client, project_id, cluster_id, dashboard_api_common_patch):
+    def test_retrieve(self, api_client, project_id, cluster_id, dashboard_api_common_patch, dashboard_pod_api_patch):
         """ 测试获取单个资源接口 """
         response = api_client.get(
             f'/api/dashboard/projects/{project_id}/clusters/{cluster_id}/'

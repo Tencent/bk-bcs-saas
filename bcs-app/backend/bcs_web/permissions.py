@@ -17,15 +17,17 @@ from django.conf import settings
 from rest_framework.permissions import BasePermission
 
 from backend.accounts import bcs_perm
-from backend.activity_log.audit.context import AuditContext
 from backend.apps.constants import ClusterType
+from backend.bcs_web.audit_log.audit.context import AuditContext
+from backend.bcs_web.iam import permissions
 from backend.components.base import ComponentAuth
-from backend.components.iam import permissions
 from backend.components.paas_cc import PaaSCCClient
-from backend.resources.cluster.models import CtxCluster
-from backend.resources.project.models import CtxProject
+from backend.container_service.clusters.base.models import CtxCluster
+from backend.container_service.projects.base.models import CtxProject
 from backend.utils import FancyDict
 from backend.utils.cache import region
+
+from .constants import bcs_project_cache_key
 
 EXPIRATION_TIME = 3600 * 24 * 30
 
@@ -94,7 +96,7 @@ class ProjectEnableBCS(BasePermission):
         return False
 
     def _get_enabled_project(self, access_token, project_id_or_code: str) -> Optional[FancyDict]:
-        cache_key = f"BK_DEVOPS_BCS:ENABLED_BCS_PROJECT:{project_id_or_code}"
+        cache_key = bcs_project_cache_key.format(project_id_or_code=project_id_or_code)
         project = region.get(cache_key, expiration_time=EXPIRATION_TIME)
         if project and isinstance(project, FancyDict):
             return project
@@ -117,7 +119,7 @@ class ProjectEnableBCS(BasePermission):
         project.project_code = project.english_name
 
         try:
-            from backend.apps.projects.utils import get_project_kind
+            from backend.container_service.projects.utils import get_project_kind
 
             # k8s类型包含kind为1(bcs k8s)或其它属于k8s的编排引擎
             project.kind = get_project_kind(project.kind)

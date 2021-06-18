@@ -14,7 +14,7 @@
 import logging
 from typing import Dict, List
 
-from backend.resources.cluster.models import CtxCluster
+from backend.container_service.clusters.base.models import CtxCluster
 from backend.resources.configs import secret
 from backend.utils.basic import getitems
 

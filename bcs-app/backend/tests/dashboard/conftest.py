@@ -23,11 +23,11 @@ from backend.tests.testing_utils.mocks.resp import MockRetrieveApiRespBuilder
 from backend.tests.testing_utils.mocks.viewsets import FakeSystemViewSet
 
 
-@pytest.fixture
+@pytest.fixture(autouse=True, scope='package')
 def dashboard_api_common_patch():
     with mock.patch('backend.bcs_web.viewsets.SystemViewSet', new=FakeSystemViewSet), mock.patch(
         'backend.resources.resource.get_dynamic_client', new=get_dynamic_client
-    ), mock.patch('backend.dashboard.utils.resp.RetrieveApiRespBuilder', new=MockRetrieveApiRespBuilder):
+    ), mock.patch('backend.dashboard.viewsets.RetrieveApiRespBuilder', new=MockRetrieveApiRespBuilder):
         yield
 
 
@@ -47,11 +47,13 @@ def gen_mock_env_info(*args, **kwargs) -> str:
 def dashboard_container_api_patch():
     with mock.patch(
         'backend.dashboard.workloads.views.container.Pod.fetch_manifest', new=gen_mock_pod_manifest
-    ), mock.patch('backend.dashboard.workloads.views.container.exec_command', new=gen_mock_env_info):
+    ), mock.patch('backend.dashboard.workloads.views.container.Pod.exec_command', new=gen_mock_env_info):
         yield
 
 
 @pytest.fixture
 def dashboard_pod_api_patch():
-    with mock.patch('backend.dashboard.workloads.views.pod.Pod.fetch_manifest', new=gen_mock_pod_manifest):
+    with mock.patch('backend.dashboard.workloads.views.pod.Pod.fetch_manifest', new=gen_mock_pod_manifest), mock.patch(
+        'backend.dashboard.workloads.views.pod.RetrieveApiRespBuilder', new=MockRetrieveApiRespBuilder
+    ):
         yield

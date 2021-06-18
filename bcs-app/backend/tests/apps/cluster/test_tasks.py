@@ -4,8 +4,8 @@ from unittest import mock
 
 import pytest
 
-from backend.apps.cluster import models
-from backend.apps.cluster.tasks import ClusterOrNodeTaskPoller, TaskStatusResultHandler
+from backend.container_service.clusters import models
+from backend.container_service.clusters.tasks import ClusterOrNodeTaskPoller, TaskStatusResultHandler
 from backend.packages.blue_krill.async_utils.poll_task import (
     CallbackResult,
     CallbackStatus,
@@ -37,11 +37,11 @@ def cluster_record():
 
 class TestClusterOrNodeTaskPoller:
     @mock.patch(
-        "backend.apps.cluster.tasks.ops.OPSClient",
+        "backend.container_service.clusters.tasks.ops.OPSClient",
         new=FakeOPSClient,
     )
     @mock.patch(
-        "backend.apps.cluster.tasks.paas_auth.get_access_token",
+        "backend.container_service.clusters.tasks.paas_auth.get_access_token",
         return_values={"access_token": "access_token"},
     )
     def test_task_query(self, get_access_token):
@@ -60,7 +60,7 @@ class TestClusterOrNodeTaskPoller:
 
 
 class TestTaskStatusResultHandler:
-    @mock.patch("backend.apps.cluster.tasks.update_status", return_values=None)
+    @mock.patch("backend.container_service.clusters.tasks.update_status", return_values=None)
     def test_callback(self, status):
         callback_result = CallbackResult(status=CallbackStatus.TIMEOUT.value)
         started_at = time.time()

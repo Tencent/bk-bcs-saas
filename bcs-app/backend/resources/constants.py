@@ -58,6 +58,7 @@ class K8sResourceKind(ChoicesEnum):
     # rbac
     ServiceAccount = "ServiceAccount"
     # other
+    Event = "Event"
     Namespace = "Namespace"
     Node = "Node"
 
@@ -83,6 +84,7 @@ class K8sResourceKind(ChoicesEnum):
         # rbac
         (ServiceAccount, "ServiceAccount"),
         # other
+        (Event, "Event"),
         (Namespace, "Namespace"),
         (Node, "Node"),
     )
