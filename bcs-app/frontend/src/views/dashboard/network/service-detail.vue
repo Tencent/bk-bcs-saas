@@ -18,6 +18,7 @@
                 <p class="mb10">{{ $t('Service IP') }}:</p>
                 <p class="bcs-ellipsis"></p>
             </div>
+
             <div class="basic-info-item">
                 <p class="mb10">{{ $t('Service Domain') }}:</p>
                 <p class="bcs-ellipsis"></p>
