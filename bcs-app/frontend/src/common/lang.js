@@ -1800,7 +1800,6 @@ export default {
     '必填项，不能为空': ['Required field, cannot be empty'],
     '请输入整数': ['Please enter an integer'],
     '新增数据源': ['New data source'],
-    '拉取镜像如果出现not found,并且镜像确认已经推送到仓库，可以联系下necrohuang添加镜像同步白名单': ['If you pull the image not found, and the image is confirmed to have been pushed to the warehouse, you can contact necrohuang to add the image synchronization whitelist'],
     '请先删除{name}中挂载卷已经关联项': ['Please delete the associated items of the mounted volume in {name} first'],
     '例如{path}': ['For example {path}'],
     '请输入挂载名': ['Please enter the mount name'],
