@@ -16,36 +16,41 @@
                 <div class="biz-tab-box" v-else v-show="!isDataLoading">
                     <biz-tabs @tab-change="tabResource" ref="commonTab"></biz-tabs>
                     <div class="biz-tab-content" v-bkloading="{ isLoading: isTabChanging }">
+                        <bk-alert type="info" class="mb20">
+                            <div slot="title">
+                                <div>
+                                    {{$t('HPA (Horizontal Pod Autoscaler) 是k8s自动扩缩容服务，利用HPA，k8s能够根据监测到的 cpu, memory 利用率, 自动的扩缩容 Deployment 中 Pod 的数量')}}，
+                                    <a class="bk-text-button" :href="PROJECT_CONFIG.doc.k8sHpa" target="_blank">{{$t('详情查看文档')}}</a>
+                                </div>
+                                <div class="mt5">
+                                    {{$t('注意：功能灰度测试中，请联系')}}<a :href="PROJECT_CONFIG.doc.contact" class="bk-text-button">【{{$t('蓝鲸容器助手')}}】</a>{{$t('添加白名单')}}
+                                </div>
+                            </div>
+                        </bk-alert>
                         <template v-if="!HPAs.length">
-                            <p class="biz-template-tip f12">
-                                {{$t('HPA (Horizontal Pod Autoscaler) 是k8s自动扩缩容服务，利用HPA，k8s能够根据监测到的 cpu, memory 利用率, 自动的扩缩容 Deployment 中 Pod 的数量')}}，<a class="bk-text-button" :href="PROJECT_CONFIG.doc.k8sHpa" target="_blank">{{$t('详情查看文档')}}</a>
-                            </p>
                             <div class="biz-guide-box mt0">
-                                <button class="bk-button bk-primary" @click.stop.prevent="addLocalHPA">
-                                    <i class="bk-icon icon-plus"></i>
+                                <bk-button type="primary" @click.stop.prevent="addLocalHPA">
+                                    <i class="bcs-icon bcs-icon-plus"></i>
                                     <span style="margin-left: 0;">{{$t('添加')}}HPA</span>
-                                </button>
+                                </bk-button>
                             </div>
                         </template>
                         <template v-else>
                             <div class="biz-configuration-topbar">
-                                <p class="biz-template-tip f12">
-                                    {{$t('HPA (Horizontal Pod Autoscaler) 是k8s自动扩缩容服务，利用HPA，k8s能够根据监测到的 cpu, memory 利用率, 自动的扩缩容 Deployment 中 Pod 的数量')}}，<a class="bk-text-button" :href="PROJECT_CONFIG.doc.k8sHpa" target="_blank">{{$t('详情查看文档')}}</a>
-                                </p>
                                 <div class="biz-list-operation">
                                     <div class="item" v-for="(hpa, index) in HPAs" :key="hpa.id">
-                                        <button :class="['bk-button', { 'bk-primary': curHPA.id === hpa.id }]" @click.stop="setCurHPA(hpa, index)">
+                                        <bk-button :class="['bk-button', { 'bk-primary': curHPA.id === hpa.id }]" @click.stop="setCurHPA(hpa, index)">
                                             {{(hpa && hpa.config.metadata.name) || $t('未命名')}}
                                             <span class="biz-update-dot" v-show="hpa.isEdited"></span>
-                                        </button>
-                                        <span class="bk-icon icon-close" @click.stop="removeHPA(hpa, index)"></span>
+                                        </bk-button>
+                                        <span class="bcs-icon bcs-icon-close" @click.stop="removeHPA(hpa, index)"></span>
                                     </div>
 
-                                    <bk-tooltip ref="hpaTooltip" :content="$t('添加HPA')" placement="top">
-                                        <button class="bk-button bk-default is-outline is-icon" @click.stop="addLocalHPA">
-                                            <i class="bk-icon icon-plus"></i>
-                                        </button>
-                                    </bk-tooltip>
+                                    <bcs-popover ref="hpaTooltip" :content="$t('添加HPA')" placement="top">
+                                        <bk-button class="bk-button bk-default is-outline is-icon" @click.stop="addLocalHPA">
+                                            <i class="bcs-icon bcs-icon-plus"></i>
+                                        </bk-button>
+                                    </bcs-popover>
                                 </div>
                             </div>
 
@@ -101,7 +106,7 @@
                                                     :is-loading="isLoadingApps">
                                                 </bk-selector>
                                             </div>
-                                            <span class="biz-tip f12 ml10" v-if="!isDataLoading && !applicationList.length">{{$t('请先配置Deployment，再进行关联')}}</span>
+                                            <span class="biz-tip ml10" v-if="!isDataLoading && !applicationList.length">{{$t('请先配置Deployment，再进行关联')}}</span>
                                         </div>
                                     </div>
 
@@ -112,28 +117,28 @@
                                                 <span class="input-group-addon prefix" style="display: inline-block;">
                                                     {{$t('最小')}}
                                                 </span>
-                                                <bk-input
+                                                <bkbcs-input
                                                     type="number"
                                                     :placeholder="$t('请输入')"
                                                     style="width: 105px;"
                                                     :min="1"
                                                     :value.sync="curHPA.config.spec.minReplicas"
                                                     :list="varList">
-                                                </bk-input>
+                                                </bkbcs-input>
                                             </div>
 
                                             <div class="bk-form-input-group is-addon-left" style="display: inline-block;">
                                                 <span class="input-group-addon prefix">
                                                     {{$t('最大')}}
                                                 </span>
-                                                <bk-input
+                                                <bkbcs-input
                                                     type="number"
                                                     :placeholder="$t('请输入')"
                                                     style="width: 103px;"
                                                     :min="curHPA.config.spec.minReplicas"
                                                     :value.sync="curHPA.config.spec.maxReplicas"
                                                     :list="varList">
-                                                </bk-input>
+                                                </bkbcs-input>
                                             </div>
                                         </div>
                                     </div>
@@ -167,25 +172,25 @@
                                                         </td>
                                                         <td>
                                                             <div class="bk-form-input-group">
-                                                                <bk-input
+                                                                <bkbcs-input
                                                                     type="number"
                                                                     style="width: 180px;"
                                                                     :min="0"
                                                                     :placeholder="$t('请输入')"
                                                                     :value.sync="metric.resource.target.averageUtilization">
-                                                                </bk-input>
+                                                                </bkbcs-input>
                                                                 <span class="input-group-addon">
                                                                     %
                                                                 </span>
                                                             </div>
                                                         </td>
                                                         <td>
-                                                            <button class="action-btn" @click="addResource" v-if="curHPA.config.spec.metrics.length < resourceList.length">
-                                                                <i class="bk-icon icon-plus"></i>
-                                                            </button>
-                                                            <button class="action-btn" v-if="curHPA.config.spec.metrics.length > 1" @click="removeResource(metric, index)">
-                                                                <i class="bk-icon icon-minus"></i>
-                                                            </button>
+                                                            <bk-button class="action-btn" @click="addResource" v-if="curHPA.config.spec.metrics.length < resourceList.length">
+                                                                <i class="bcs-icon bcs-icon-plus"></i>
+                                                            </bk-button>
+                                                            <bk-button class="action-btn" v-if="curHPA.config.spec.metrics.length > 1" @click="removeResource(metric, index)">
+                                                                <i class="bcs-icon bcs-icon-minus"></i>
+                                                            </bk-button>
                                                         </td>
                                                     </tr>
                                                 </tbody>
@@ -382,10 +387,10 @@
                 const projectId = this.projectId
                 const version = this.curVersion
                 const HPAId = hpa.id
-                
+
                 this.$bkInfo({
-                    title: this.$t('确认'),
-                    content: this.$createElement('p', { style: { 'text-align': 'center' } }, `${this.$t('删除HPA')}：${hpa.config.metadata.name || this.$t('未命名')}`),
+                    title: this.$t('确认删除'),
+                    content: this.$createElement('p', { style: { 'text-align': 'left' } }, `${this.$t('删除HPA')}：${hpa.config.metadata.name || this.$t('未命名')}`),
                     async confirmFn () {
                         if (HPAId.indexOf && HPAId.indexOf('local_') > -1) {
                             self.removeLocalHPA(hpa, index)
@@ -431,7 +436,7 @@
             },
             async initResource (data) {
                 const version = data.latest_version_id || data.version
-                
+
                 if (version) {
                     await this.initApplications(version)
                 }

@@ -21,9 +21,19 @@
     border-radius: 2px;
     z-index: 1;
 
+    .clear-btn,
+    .search-btn {
+        .bcs-icon {
+            color: #BBB;
+            font-size: 13px;
+            top: -3px;
+            position: relative;
+        }
+    }
+
     .biz-searcher {
         width: 80%;
-        height: 36px;
+        height: 30px;
         border-radius: 2px;
         font-size: 12px;
         position: relative;
@@ -34,6 +44,10 @@
         margin: 0 5px;
         overflow: hidden;
         overflow-x: scroll;
+
+        .clear-btn {
+            color: red;
+        }
 
         &::-webkit-scrollbar {
             display: none;
@@ -53,7 +67,7 @@
             box-sizing: border-box;
             outline: none;
             max-width: 150px;
-            height: 36px;
+            height: 30px;
             margin: -3px 3px;
             margin-left: 0;
         }
@@ -66,16 +80,16 @@
 
             >li {
                 display: inline-block;
-                margin: -1px 3px;
+                margin: 0 3px;
                 cursor: pointer;
                 position: relative;
                 padding: 2px;
                 border-radius: 2px;
-                height: 27px;
+                height: 24px;
                 line-height: 1;
                 &.placeholder {
                     color: #c3cdd7;
-                    top: 2px;
+                    top: 1px;
                 }
             }
 
@@ -92,8 +106,8 @@
                 position: absolute;
                 width: 16px;
                 height: 16px;
-                line-height: 16px;
-                bottom: 7px;
+                line-height: 15px;
+                bottom: 5px;
                 right: 3px;
                 display: inline-block;
                 font-size: 12px;
@@ -113,9 +127,9 @@
             box-sizing: border-box;
             overflow: hidden;
             border-radius: 2px;
-            padding: 0 9px;
-            min-height: 21px;
-            line-height: 22px;
+            padding: 0 7px;
+            min-height: 20px;
+            line-height: 18px;
             word-break: break-all;
         }
     }
@@ -126,8 +140,8 @@
         top: 2px;
         color: #c4ced8;
         z-index: 10;
-        height: 36px;
-        line-height: 36px;
+        height: 30px;
+        line-height: 30px;
 
         .btn {
             font-size: 16px;
@@ -144,7 +158,7 @@
 
     .ip-searcher-footer {
         @mixin clearfix;
-        height: 36px;
+        height: 30px;
         line-height: 1;
         position: relative;
         font-size: 12px;

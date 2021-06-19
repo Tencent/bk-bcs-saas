@@ -16,36 +16,36 @@
                 <div class="biz-tab-box" v-else v-show="!isDataLoading">
                     <biz-tabs @tab-change="tabResource" ref="commonTab"></biz-tabs>
                     <div class="biz-tab-content" v-bkloading="{ isLoading: isTabChanging }">
+                        <bk-alert type="info" class="mb20">
+                            <div slot="title">
+                                {{$t('Secret是一种包含少量敏感信息例如密码、token 或 key 的对象，与ConfigMap相比更加安全')}}，
+                                <a class="bk-text-button" :href="PROJECT_CONFIG.doc.k8sSecret" target="_blank">{{$t('详情查看文档')}}</a>
+                            </div>
+                        </bk-alert>
                         <template v-if="!secrets.length">
-                            <p class="biz-template-tip f12 mb10">
-                                {{$t('Secret是一种包含少量敏感信息例如密码、token 或 key 的对象，与ConfigMap相比更加安全')}}，<a class="bk-text-button" :href="PROJECT_CONFIG.doc.k8sSecret" target="_blank">{{$t('详情查看文档')}}</a>
-                            </p>
                             <div class="biz-guide-box mt0">
-                                <button class="bk-button bk-primary" @click.stop.prevent="addLocalSecret">
-                                    <i class="bk-icon icon-plus"></i>
+                                <bk-button type="primary" @click.stop.prevent="addLocalSecret">
+                                    <i class="bcs-icon bcs-icon-plus"></i>
                                     <span style="margin-left: 0;">{{$t('添加')}}Secret</span>
-                                </button>
+                                </bk-button>
                             </div>
                         </template>
                         <template v-else>
                             <div class="biz-configuration-topbar">
-                                <p class="biz-template-tip f12 mb10">
-                                    {{$t('Secret是一种包含少量敏感信息例如密码、token 或 key 的对象，与ConfigMap相比更加安全')}}，<a class="bk-text-button" :href="PROJECT_CONFIG.doc.k8sSecret" target="_blank">{{$t('详情查看文档')}}</a>
-                                </p>
                                 <div class="biz-list-operation">
                                     <div class="item" v-for="(secret, index) in secrets" :key="secret.id">
-                                        <button :class="['bk-button', { 'bk-primary': curSecret.id === secret.id }]" @click.stop="setCurSecret(secret, index)">
+                                        <bk-button :class="['bk-button', { 'bk-primary': curSecret.id === secret.id }]" @click.stop="setCurSecret(secret, index)">
                                             {{(secret && secret.config.metadata.name) || $t('未命名')}}
                                             <span class="biz-update-dot" v-show="secret.isEdited"></span>
-                                        </button>
-                                        <span class="bk-icon icon-close" @click.stop="removeSecret(secret, index)"></span>
+                                        </bk-button>
+                                        <span class="bcs-icon bcs-icon-close" @click.stop="removeSecret(secret, index)"></span>
                                     </div>
 
-                                    <bk-tooltip ref="secretTooltip" :content="$t('添加Secret')" placement="top">
-                                        <button class="bk-button bk-default is-outline is-icon" @click.stop="addLocalSecret">
-                                            <i class="bk-icon icon-plus"></i>
-                                        </button>
-                                    </bk-tooltip>
+                                    <bcs-popover ref="secretTooltip" :content="$t('添加Secret')" placement="top">
+                                        <bk-button class="bk-button bk-default is-outline is-icon" @click.stop="addLocalSecret">
+                                            <i class="bcs-icon bcs-icon-plus"></i>
+                                        </bk-button>
+                                    </bcs-popover>
                                 </div>
                             </div>
 
@@ -109,10 +109,10 @@
                                                 <div class="biz-list-operation">
                                                     <template v-if="curSecret.config.type === 'Opaque'">
                                                         <div class="item" v-for="(data, index) in curSecret.secretKeyList" :key="index">
-                                                            <button :class="['bk-button', { 'bk-primary': curKeyIndex === index }]" @click.stop.prevent="setCurKey(data, index)" v-if="!data.isEdit">
+                                                            <bk-button :class="['bk-button', { 'bk-primary': curKeyIndex === index }]" @click.stop.prevent="setCurKey(data, index)" v-if="!data.isEdit">
                                                                 {{data.key || $t('未命名')}}
-                                                            </button>
-                                                            <bk-input
+                                                            </bk-button>
+                                                            <bkbcs-input
                                                                 type="text"
                                                                 placeholder=""
                                                                 v-else
@@ -121,21 +121,21 @@
                                                                 :value.sync="data.key"
                                                                 :list="varList"
                                                                 @blur="setKey(data, index)">
-                                                            </bk-input>
-                                                            <span class="bk-icon icon-edit" v-show="!data.isEdit" @click.stop.prevent="editKey(data, index)"></span>
-                                                            <span class="bk-icon icon-close" v-show="!data.isEdit" @click.stop.prevent="removeKey(data, index)"></span>
+                                                            </bkbcs-input>
+                                                            <span class="bcs-icon bcs-icon-edit" v-show="!data.isEdit" @click.stop.prevent="editKey(data, index)"></span>
+                                                            <span class="bcs-icon bcs-icon-close" v-show="!data.isEdit" @click.stop.prevent="removeKey(data, index)"></span>
                                                         </div>
-                                                        <bk-tooltip ref="keyTooltip" :content="$t('添加Key')" placement="top">
-                                                            <button class="bk-button bk-default is-outline is-icon" @click.stop.prevent="addKey">
-                                                                <i class="bk-icon icon-plus"></i>
-                                                            </button>
-                                                        </bk-tooltip>
+                                                        <bcs-popover ref="keyTooltip" :content="$t('添加Key')" placement="top">
+                                                            <bk-button class="bk-button bk-default is-outline is-icon" @click.stop.prevent="addKey">
+                                                                <i class="bcs-icon bcs-icon-plus"></i>
+                                                            </bk-button>
+                                                        </bcs-popover>
                                                     </template>
                                                     <template v-else>
                                                         <div class="item" v-for="(data, index) in curSecret.secretKeyList" :key="index">
-                                                            <button :class="['bk-button', { 'bk-primary': curKeyIndex === index }]" style="cursor: default;">
+                                                            <bk-button :class="['bk-button', { 'bk-primary': curKeyIndex === index }]" style="cursor: default;">
                                                                 {{data.key || $t('未命名')}}
-                                                            </button>
+                                                            </bk-button>
                                                         </div>
                                                     </template>
                                                 </div>
@@ -146,7 +146,7 @@
                                                 <label class="bk-label" style="width: 105px;">{{$t('值')}}：</label>
                                                 <div class="bk-form-content" style="margin-left: 105px;">
                                                     <textarea class="bk-form-textarea biz-resize-textarea" style="height: 300px;" v-model="curKeyParams.content" :placeholder="valuePlaceholder"></textarea>
-                                                    <p class="biz-tip f12 mt10 f14">{{$t('实例化时会将值的内容做base64编码')}}</p>
+                                                    <p class="biz-tip mt5">{{$t('实例化时会将值的内容做base64编码')}}</p>
                                                 </div>
                                             </div>
                                         </template>
@@ -472,8 +472,8 @@
                 const secretId = secret.id
 
                 this.$bkInfo({
-                    title: this.$t('确认'),
-                    content: this.$createElement('p', { style: { 'text-align': 'center' } }, `${this.$t('删除Secret')}：${secret.config.metadata.name || this.$t('未命名')}`),
+                    title: this.$t('确认删除'),
+                    content: this.$createElement('p', { style: { 'text-align': 'left' } }, `${this.$t('删除Secret')}：${secret.config.metadata.name || this.$t('未命名')}`),
                     confirmFn () {
                         if (secretId.indexOf && secretId.indexOf('local_') > -1) {
                             self.removeLocalSecret(secret, index)

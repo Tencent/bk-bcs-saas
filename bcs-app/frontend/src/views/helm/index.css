@@ -1,5 +1,5 @@
-@import '@open/css/variable.css';
-@import '@open/css/mixins/ellipsis.css';
+@import '@/css/variable.css';
+@import '@/css/mixins/ellipsis.css';
 
 .biz-helm-title {
     display: inline-block;
@@ -76,7 +76,7 @@
 
             .stag,
             .prod {
-                border: 1px solid #c3cdd7;
+                border: 1px solid #c4c6cc;
                 padding: 1px 8px;
                 border-radius: 2px;
                 margin-left: 5px;
@@ -90,9 +90,9 @@
             }
 
             .prod {
-                color: #3c96ff;
+                color: #3a84ff;
                 background-color: #e1f3ff;
-                border: solid 1px #3c96ff;
+                border: solid 1px #3a84ff;
             }
         }
 
@@ -141,13 +141,13 @@
 }
 
 .data-th {
-    width: 350px;
-    padding-left: 20px;
+    width: 370px;
+    padding-left: 40px;
 }
 
 .data {
     width: 350px;
-    padding-left: 20px;
+    padding: 10px 0 10px 20px;
 }
 
 .namespace-th {
@@ -160,18 +160,32 @@
     padding: 0 10px;
 }
 
+.chart-th {
+    width: 200px;
+    padding: 0 10px;
+}
+
+.chart {
+    width: 200px;
+    padding: 0 10px;
+}
+
 .opera_record-th {
     width: auto;
 }
 
 .opera_record {
     width: auto;
+    .updated {
+        margin-top: 5px;
+    }
 }
 
 .action-th {
-    width: 230px;
+    width: 235px;
     padding-left: 0;
-}   
+    border-right: 1px solid #dfe0e5;
+}
 
 .action {
     width: 205px;
@@ -233,7 +247,7 @@
 
     a {
         font-size: 12px;
-        color: #3c96ff;
+        color: #3a84ff;
     }
 
     strong {
@@ -244,8 +258,8 @@
         transition: none;
 
         &:hover {
-            background-color: #3c96ff;
-            border-color: #3c96ff;
+            background-color: #3a84ff;
+            border-color: #3a84ff;
             opacity: 1;
             color: #fff;
         }
@@ -267,6 +281,11 @@
         height: 42px;
         background-color: #ebf0f5;
         color: #52525d;
+    }
+
+    &..bk-table td,
+    &..bk-table th.is-leaf {
+        border-bottom: none;
     }
 }
 
@@ -476,16 +495,25 @@
     transform: scale(0.75);
 }
 
+.biz-templateset-table {
+    border: 1px solid #dfe0e5;
+    border-bottom: none;
+}
+
+.biz-namespace {
+    padding: 0 20px;
+}
+
 /* 自适应 */
 @media screen and (max-width: 1600px) {
     .data-th {
-        width: 300px;
-        padding-left: 20px;
+        width: 320px;
+        padding-left: 40px;
     }
 
     .data {
         width: 300px;
-        padding-left: 20px;
+        padding-left: 40px;
     }
 
     .namespace-th {
@@ -495,6 +523,16 @@
 
     .namespace {
         width: 300px;
+        padding: 0 10px;
+    }
+
+    .chart-th {
+        width: 200px;
+        padding: 0 10px;
+    }
+
+    .chart {
+        width: 200px;
         padding: 0 10px;
     }
 }
@@ -514,8 +552,8 @@
     }
 
     .data-th {
-        width: 240px;
-        padding-left: 20px;
+        width: 260px;
+        padding-left: 40px;
     }
 
     .data {
@@ -534,11 +572,22 @@
     }
 
     .action-th {
-        width: 230px;
+        width: 235px;
         padding-left: 0;
-    }   
+        border-right: 1px solid #dfe0e5;
+    }
 
     .action {
         width: 205px;
+    }
+
+    .chart-th {
+        width: 200px;
+        padding: 0 10px;
+    }
+
+    .chart {
+        width: 200px;
+        padding: 0 10px;
     }
 }

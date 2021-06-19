@@ -1,5 +1,5 @@
-@import '@open/css/variable.css';
-@import '@open/css/mixins/ellipsis.css';
+@import '@/css/variable.css';
+@import '@/css/mixins/ellipsis.css';
 
 .biz-app-instance {
     padding: 20px;
@@ -80,6 +80,10 @@
     }
 }
 
+/deep/ .bk-tab-section {
+    border-bottom: 0;
+}
+
 .biz-app-toggle-instance-chart-view {
     font-size: 0;
     position: relative;
@@ -125,6 +129,13 @@
         margin-top: 20px;
         .bk-selector-list {
             z-index: 102;
+        }
+    }
+
+    .biz-dropdown-button {
+        vertical-align: bottom;
+        /deep/ .bcs-icon {
+            top: -1px;
         }
     }
 
@@ -317,26 +328,23 @@
 
         .status {
             margin-left: 50px;
-            width: 250px;
+            width: 150px;
         }
 
         .host-ip,
         .pod-ip,
         .survive-time {
             margin-left: 15px;
-            width: 180px;
+            width: 150px;
         }
 
         .act {
-            height: 68px;
-            line-height: 68px;
+            display: flex;
+            align-items: center;
             flex: 1;
             font-size: 14px;
-
-            a {
-                float: right;
-                margin-right: 40px;
-            }
+            justify-content: flex-end;
+            min-width: 150px;
         }
     }
 
@@ -827,11 +835,12 @@
 
 .biz-configuration-instantiation-cancel-fullscreen {
     position: fixed;
-    top: 20px;
+    top: 10px;
     right: 20px;
-    z-index: 2001;
-    font-size: 40px;
-    padding: 10px;
+    z-index: 5000;
+    font-size: 16px;
+    padding: 7px;
+    color: #fff;
     cursor: pointer;
 
     i.icon-close {
@@ -901,5 +910,29 @@
                 padding-right: 20px;
             }
         }
+    }
+}
+.log-dialog {
+    /deep/ .bk-dialog-tool {
+        display: none;
+    }
+    /deep/ .bk-dialog {
+        top: 0;
+        position: relative;
+        height: calc(100% - 32px);
+        float: right;
+        margin: 16px;
+        border-radius: 6px;
+        transition-property: transform, opacity;
+        transition: transform 200ms cubic-bezier(0.165, 0.84, 0.44, 1),opacity 100ms cubic-bezier(0.215, 0.61, 0.355, 1);
+    }
+    /deep/ .bk-dialog-body {
+        padding: 0;
+        height: 100%;
+    }
+    /deep/ .bk-dialog-wrapper .bk-dialog-content {
+        border-radius: 6px;
+        height: 100%;
+        width: 100% !important;
     }
 }

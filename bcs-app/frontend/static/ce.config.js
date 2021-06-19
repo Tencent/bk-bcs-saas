@@ -1,0 +1,1 @@
+window.BCS_CONFIG = {}

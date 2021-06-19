@@ -16,36 +16,36 @@
                 <div class="biz-tab-box" v-else v-show="!isDataLoading">
                     <biz-tabs @tab-change="tabResource" ref="commonTab"></biz-tabs>
                     <div class="biz-tab-content" v-bkloading="{ isLoading: isTabChanging }">
+                        <bk-alert type="info" class="mb20">
+                            <div slot="title">
+                                {{$t('ConfigMap是用来存储配置文件的k8s资源对象，它的作用是将配置文件从容器镜像中解耦，从而增强容器应用的可移植性')}}，
+                                <a class="bk-text-button" :href="PROJECT_CONFIG.doc.k8sConfigmap" target="_blank">{{$t('详情查看文档')}}</a>
+                            </div>
+                        </bk-alert>
                         <template v-if="!configmaps.length">
-                            <p class="biz-template-tip f12 mb10">
-                                {{$t('ConfigMap是用来存储配置文件的k8s资源对象，它的作用是将配置文件从容器镜像中解耦，从而增强容器应用的可移植性')}}，<a class="bk-text-button" :href="PROJECT_CONFIG.doc.k8sConfigmap" target="_blank">{{$t('详情查看文档')}}</a>
-                            </p>
                             <div class="biz-guide-box mt0">
-                                <button class="bk-button bk-primary" @click.stop.prevent="addLocalConfigmap">
-                                    <i class="bk-icon icon-plus"></i>
+                                <bk-button type="primary" @click.stop.prevent="addLocalConfigmap">
+                                    <i class="bcs-icon bcs-icon-plus"></i>
                                     <span style="margin-left: 0;">{{$t('添加')}}ConfigMap</span>
-                                </button>
+                                </bk-button>
                             </div>
                         </template>
                         <template v-else>
                             <div class="biz-configuration-topbar">
-                                <p class="biz-template-tip f12 mb10">
-                                    {{$t('ConfigMap是用来存储配置文件的k8s资源对象，它的作用是将配置文件从容器镜像中解耦，从而增强容器应用的可移植性')}}，<a class="bk-text-button" :href="PROJECT_CONFIG.doc.k8sConfigmap" target="_blank">{{$t('详情查看文档')}}</a>
-                                </p>
                                 <div class="biz-list-operation">
                                     <div class="item" v-for="(configmap, index) in configmaps" :key="configmap.id">
-                                        <button :class="['bk-button', { 'bk-primary': curConfigmap.id === configmap.id }]" @click.stop="setCurConfigmap(configmap, index)">
+                                        <bk-button :class="['bk-button', { 'bk-primary': curConfigmap.id === configmap.id }]" @click.stop="setCurConfigmap(configmap, index)">
                                             {{(configmap && configmap.config.metadata.name) || $t('未命名')}}
                                             <span class="biz-update-dot" v-show="configmap.isEdited"></span>
-                                        </button>
-                                        <span class="bk-icon icon-close" @click.stop="removeConfigmap(configmap, index)"></span>
+                                        </bk-button>
+                                        <span class="bcs-icon bcs-icon-close" @click.stop="removeConfigmap(configmap, index)"></span>
                                     </div>
 
-                                    <bk-tooltip ref="configmapTooltip" :content="$t('添加ConfigMap')" placement="top">
-                                        <button class="bk-button bk-default is-outline is-icon" @click.stop="addLocalConfigmap">
-                                            <i class="bk-icon icon-plus"></i>
-                                        </button>
-                                    </bk-tooltip>
+                                    <bcs-popover ref="configmapTooltip" :content="$t('添加ConfigMap')" placement="top">
+                                        <bk-button class="bk-button bk-default is-outline is-icon" @click.stop="addLocalConfigmap">
+                                            <i class="bcs-icon bcs-icon-plus"></i>
+                                        </bk-button>
+                                    </bcs-popover>
                                 </div>
                             </div>
 
@@ -92,10 +92,10 @@
                                             <div class="bk-form-content" style="margin-left: 105px;">
                                                 <div class="biz-list-operation">
                                                     <div class="item" v-for="(data, index) in curConfigmap.configmapKeyList" :key="index">
-                                                        <button :class="['bk-button', { 'bk-primary': curKeyIndex === index }]" @click.stop.prevent="setCurKey(data, index)" v-if="!data.isEdit">
+                                                        <bk-button :class="['bk-button', { 'bk-primary': curKeyIndex === index }]" @click.stop.prevent="setCurKey(data, index)" v-if="!data.isEdit">
                                                             {{data.key || $t('未命名')}}
-                                                        </button>
-                                                        <bk-input
+                                                        </bk-button>
+                                                        <bkbcs-input
                                                             type="text"
                                                             placeholder=""
                                                             v-else
@@ -104,15 +104,15 @@
                                                             :value.sync="data.key"
                                                             :list="varList"
                                                             @blur="setKey(data, index)">
-                                                        </bk-input>
-                                                        <span class="bk-icon icon-edit" v-show="!data.isEdit" @click.stop.prevent="editKey(data, index)"></span>
-                                                        <span class="bk-icon icon-close" v-show="!data.isEdit" @click.stop.prevent="removeKey(data, index)"></span>
+                                                        </bkbcs-input>
+                                                        <span class="bcs-icon bcs-icon-edit" v-show="!data.isEdit" @click.stop.prevent="editKey(data, index)"></span>
+                                                        <span class="bcs-icon bcs-icon-close" v-show="!data.isEdit" @click.stop.prevent="removeKey(data, index)"></span>
                                                     </div>
-                                                    <bk-tooltip ref="keyTooltip" :content="$t('添加Key')" placement="top">
-                                                        <button class="bk-button bk-default is-outline is-icon" @click.stop.prevent="addKey">
-                                                            <i class="bk-icon icon-plus"></i>
-                                                        </button>
-                                                    </bk-tooltip>
+                                                    <bcs-popover ref="keyTooltip" :content="$t('添加Key')" placement="top">
+                                                        <bk-button class="bk-button bk-default is-outline is-icon" @click.stop.prevent="addKey">
+                                                            <i class="bcs-icon bcs-icon-plus"></i>
+                                                        </bk-button>
+                                                    </bcs-popover>
                                                 </div>
                                             </div>
                                         </div>
@@ -437,8 +437,8 @@
                 const configmapId = configmap.id
 
                 this.$bkInfo({
-                    title: this.$t('确认'),
-                    content: this.$createElement('p', { style: { 'text-align': 'center' } }, `${this.$t('删除ConfigMap')}：${configmap.config.metadata.name || this.$t('未命名')}`),
+                    title: this.$t('确认删除'),
+                    content: this.$createElement('p', { style: { 'text-align': 'left' } }, `${this.$t('删除ConfigMap')}：${configmap.config.metadata.name || this.$t('未命名')}`),
                     async confirmFn () {
                         if (configmapId.indexOf && configmapId.indexOf('local_') > -1) {
                             self.removeLocalConfigmap(configmap, index)
@@ -583,7 +583,7 @@
                     if (!appParamKeys.includes(key)) {
                         this.$bkMessage({
                             theme: 'error',
-                            message: `${key}{{$t('为无效字段')}}`
+                            message: `${key}${this.$t('为无效字段')}`
                         })
                         const match = editor.find(`${key}`)
                         if (match) {

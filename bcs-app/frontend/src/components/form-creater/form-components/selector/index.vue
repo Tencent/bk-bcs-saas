@@ -8,7 +8,7 @@
             </bk-selector>
             <div class="bk-form-tip">
                 <p v-if="configData.description" class="bk-tip-text">
-                    <span class="bk-tip-variable">值来源：Values.{{configData.variable}}</span>
+                    <span class="bk-tip-variable">{{$t('值来源')}}：Values.{{configData.variable}}</span>
                     {{configData.description}}
                 </p>
             </div>

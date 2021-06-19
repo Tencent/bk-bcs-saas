@@ -1,26 +1,26 @@
 <template>
     <div
         :class="['bk-dropdown-menu biz-terminal active', { 'active': isActive }]"
-        v-if="curProject && curProject.kind === 1 && clusterList.length"
+        v-if="curProject && curProject.kind !== PROJECT_MESOS && clusterList.length"
         @mouseover="handlerMouseover"
         @mouseout="handlerMouseout">
         <div class="bk-dropdown-trigger">
             <div class="biz-terminal-trigger">
-                <img src="@open/images/terminal.svg" class="icon">
+                <img src="@/images/terminal.svg" class="icon">
                 <span class="text">WebConsole</span>
-                <a :href="PROJECT_CONFIG.doc.webConsole" target="_blank" class="terminal-helper bk-text-icon">
-                    <i class="bk-icon icon-helper"></i>
+                <a href="https://bk.tencent.com/docs/document/6.0/144/6541" target="_blank" class="terminal-helper bk-text-icon">
+                    <i class="bcs-icon bcs-icon-helper"></i>
                 </a>
             </div>
             <transition name="fade">
                 <div :class="['bk-dropdown-content is-show']" style="bottom: 44px; right: 0;" v-show="isShow">
                     <div class="search-box">
-                        <bk-input
+                        <bkbcs-input
                             v-model="keyword"
                             :placeholder="$t('请输入集群名或ID')"
                             @focus="isFocus = true"
                             @blur="isFocus = false">
-                        </bk-input>
+                        </bkbcs-input>
                     </div>
                     <ul class="bk-dropdown-list" v-if="searchList.length">
                         <li>
@@ -40,6 +40,9 @@
     export default {
         data () {
             return {
+                PROJECT_K8S: window.PROJECT_K8S,
+                PROJECT_MESOS: window.PROJECT_MESOS,
+                PROJECT_TKE: window.PROJECT_TKE,
                 terminalWins: null,
                 isActive: false,
                 isShow: false,
@@ -134,19 +137,18 @@
                     }
                     await this.$store.dispatch('getResourcePermissions', params)
                 }
+
                 const clusterId = cluster.cluster_id
                 const url = `${DEVOPS_BCS_API_URL}/web_console/projects/${this.projectId}/mgr/#cluster=${clusterId}`
-                const urlMetadata = DEVOPS_BCS_API_URL.split('/')
-                let backendHost = ''
-                if (urlMetadata[2]) {
-                    backendHost = `${urlMetadata[0]}://${urlMetadata[2]}`
-                }
+
+                this.keyword = ''
+                this.isShow = false
                 if (this.terminalWins) {
                     if (!this.terminalWins.closed) {
                         this.terminalWins.postMessage({
                             clusterId: clusterId,
                             clusterName: cluster.name
-                        }, backendHost)
+                        }, DEVOPS_BCS_HOST)
                         this.terminalWins.focus()
                     } else {
                         this.terminalWins = window.open(url, '')
@@ -160,13 +162,13 @@
 </script>
 
 <style scoped lang="postcss">
-    @import "../../css/mixins/ellipsis.css";
+    @import "@/css/mixins/ellipsis.css";
 
     .biz-terminal {
         position: fixed;
         right: 10px;
         bottom: 10px;
-        z-index: 1100;
+        z-index: 5000;
         &.active {
             .biz-terminal-trigger {
                 width: 200px;
@@ -198,6 +200,7 @@
             }
             .terminal-helper {
                 display: none;
+                font-size: 14px;
             }
             .text {
                 color: #333;
@@ -214,7 +217,7 @@
             vertical-align: middle;
             &:hover {
                 color: red;
-                .bk-icon {
+                .bcs-icon {
                     color: red !important;
                 }
             }

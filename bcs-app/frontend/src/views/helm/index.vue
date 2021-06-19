@@ -5,7 +5,7 @@
                 {{$t('Helm Release列表')}}
             </div>
             <bk-guide>
-                <a class="bk-text-button" href="https://bk.tencent.com/docs/markdown/%E5%AE%B9%E5%99%A8%E7%AE%A1%E7%90%86%E5%B9%B3%E5%8F%B0/%E4%BA%A7%E5%93%81%E7%99%BD%E7%9A%AE%E4%B9%A6/Function/helm/ServiceAccess.md" target="_blank">{{$t('如何使用Helm？')}}</a>
+                <a class="bk-text-button" :href="PROJECT_CONFIG.doc.serviceAccess" target="_blank">{{$t('如何使用Helm？')}}</a>
             </bk-guide>
         </div>
         <div class="biz-content-wrapper biz-helm-wrapper m0 p0" v-bkloading="{ isLoading: showLoading, opacity: 0.1 }">
@@ -19,7 +19,7 @@
                 <div class="biz-panel-header p20">
                     <div class="left">
                         <router-link class="bk-button bk-primary" :to="{ name: 'helmTplList' }">
-                            <i class="bk-icon icon-plus"></i>
+                            <i class="bcs-icon bcs-icon-plus"></i>
                             <span>{{$t('部署Helm Chart')}}</span>
                         </router-link>
                     </div>
@@ -31,6 +31,7 @@
                             :search-key.sync="searchKeyword"
                             :search-scope.sync="searchScope"
                             :search-namespace.sync="searchNamespace"
+                            :cluster-fixed="!!curClusterId"
                             @cluster-change="handleClusterChange"
                             @search="handleSearch"
                             @refresh="handleRefresh">
@@ -54,10 +55,11 @@
                     <table class="bk-table biz-templateset-table mb20">
                         <thead>
                             <tr>
-                                <th class="logo-th center">{{$t('图标')}}</th>
+                                <!-- <th class="logo-th center">{{$t('图标')}}</th> -->
                                 <th class="data-th">{{$t('Release名称')}}</th>
+                                <th class="chart-th">{{$t('Chart')}}</th>
                                 <th class="namespace-th">{{$t('集群')}}/{{$t('命名空间')}}</th>
-                                <th class="opera_record-th">{{$t('操作记录')}}</th>
+                                <th class="opera_record-th pl0">{{$t('操作记录')}}</th>
                                 <th class="action-th">{{$t('操作')}}</th>
                             </tr>
                         </thead>
@@ -67,27 +69,18 @@
                                     <td colspan="66">
                                         <table class="biz-inner-table">
                                             <tr>
-                                                <td class="logo">
-                                                    <svg class="biz-set-icon">
-                                                        <use xlink:href="#biz-set-icon"></use>
-                                                    </svg>
-                                                </td>
                                                 <td class="data">
-                                                    <span v-if="app.transitioning_on" class="f14 fb app-name">
-                                                        {{app.name}}
-                                                    </span>
-                                                    <a @click="showAppDetail(app)" href="javascript:void(0)" class="bk-text-button app-name f14" v-else v-bktooltips="app.name">
-                                                        {{app.name}}
-                                                    </a>
-                                                    <div class="mt5">
-                                                        {{$t('版本')}}：
-                                                        <bk-tooltip :content="app.current_version" placement="top">
-                                                            <span class="app-version biz-text-wrapper">{{app.current_version}}</span>
-                                                        </bk-tooltip>
+                                                    <div>
+                                                        <span v-if="app.transitioning_on" class="f14 fb app-name">
+                                                            {{app.name}}
+                                                        </span>
+                                                        <a @click="showAppDetail(app)" href="javascript:void(0)" class="bk-text-button app-name f14" v-else v-bk-tooltips="app.name">
+                                                            {{app.name}}
+                                                        </a>
                                                     </div>
                                                     <template v-if="app.transitioning_on">
-                                                        <div class="bk-tag bk-warning">
-                                                            <div class="bk-spin-loading bk-spin-loading-mini bk-spin-loading-warning" style="margin-top: -3px;">
+                                                        <bk-tag theme="warning mt5" style="margin-left: -5px;">
+                                                            <div class="bk-spin-loading bk-spin-loading-mini bk-spin-loading-warning">
                                                                 <div class="rotate rotate1"></div>
                                                                 <div class="rotate rotate2"></div>
                                                                 <div class="rotate rotate3"></div>
@@ -98,23 +91,36 @@
                                                                 <div class="rotate rotate8"></div>
                                                             </div>
                                                             {{appAction[app.transitioning_action]}}中...
-                                                        </div>
+                                                        </bk-tag>
                                                     </template>
                                                     <template v-else-if="!app.transitioning_result && app.transitioning_action !== 'noop'">
-                                                        <bk-tooltip :content="$t('点击查看原因')" placement="top">
-                                                            <div class="bk-tag bk-danger biz-check-btn" @click="showAppError(app)">
-                                                                <i class="bk-icon icon-order"></i>
+                                                        <bcs-popover :content="$t('点击查看原因')" placement="top" style="margin-left: -5px;">
+                                                            <bk-tag class="m0 mt5" type="filled" theme="danger" style="cursor: pointer;" @click.native="showAppError(app)">
+                                                                <i class="bcs-icon bcs-icon-order"></i>
                                                                 {{appAction[app.transitioning_action]}}{{$t('失败')}}
-                                                            </div>
-                                                        </bk-tooltip>
+                                                            </bk-tag>
+                                                        </bcs-popover>
                                                     </template>
                                                 </td>
+                                                <td class="chart">
+                                                    {{`${app.chart_name}:${app.current_version}`}}
+                                                </td>
                                                 <td class="namespace">
-                                                    <div>
+                                                    <div style="margin-top: -5px;">
                                                         {{$t('所属集群')}}：
-                                                        <bk-tooltip :content="app.cluster_id || '--'" placement="top">
+                                                        <bcs-popover :content="app.cluster_id || '--'" placement="top">
                                                             <span class="biz-min-wrapper">{{app.cluster_name ? app.cluster_name : '--'}}</span>
-                                                        </bk-tooltip>
+                                                        </bcs-popover>
+                                                        <template v-if="$INTERNAL">
+                                                            <template v-if="app.cluster_env === 'stag'">
+                                                                <bk-tag type="filled" theme="warning" class="biz-small-tag m0 mt5">{{$t('测试')}}</bk-tag>
+                                                            <!-- <span class="biz-mark" style="background-color: #ff9c01;">{{$t('测试')}}</span> -->
+                                                            </template>
+                                                            <template v-else-if="app.cluster_env === 'prod'">
+                                                                <bk-tag type="filled" theme="success" class="biz-small-tag m0 mt5">{{$t('正式')}}</bk-tag>
+                                                            <!-- <span class="biz-mark" style="background-color: #3a84ff;">{{$t('正式')}}</span> -->
+                                                            </template>
+                                                        </template>
                                                     </div>
                                                     <p>
                                                         {{$t('命名空间')}}：<span class="biz-text-wrapper ml5">{{app.namespace}}</span>
@@ -126,23 +132,23 @@
                                                 </td>
                                                 <td class="action" style="width: 215px">
                                                     <template v-if="app.transitioning_on">
-                                                        <button :class="['bk-button bk-default btn is-disabled']">
+                                                        <bk-button disabled>
                                                             <span>{{$t('操作')}}</span>
-                                                            <i class="bk-icon icon-angle-down dropdown-menu-angle-down ml0" style="font-size: 10px;"></i>
-                                                        </button>
-                                                        <button :class="['bk-button bk-default btn is-disabled']">
+                                                            <i class="bcs-icon bcs-icon-angle-down dropdown-menu-angle-down ml0" style="font-size: 10px;"></i>
+                                                        </bk-button>
+                                                        <bk-button disabled>
                                                             <span>{{$t('查看状态')}}</span>
-                                                        </button>
+                                                        </bk-button>
                                                     </template>
                                                     <template v-else>
                                                         <bk-dropdown-menu
                                                             class="dropdown-menu"
                                                             :align="'left'"
                                                             ref="dropdown">
-                                                            <button :class="['bk-button bk-default btn']" slot="dropdown-trigger" style="position: relative;">
-                                                                <span>{{$t('操作')}}</span>
-                                                                <i class="bk-icon icon-angle-down dropdown-menu-angle-down ml0" style="font-size: 10px;"></i>
-                                                            </button>
+                                                            <bk-button slot="dropdown-trigger" style="position: relative;">
+                                                                <span class="f14">{{$t('操作')}}</span>
+                                                                <i class="bcs-icon bcs-icon-angle-down dropdown-menu-angle-down ml0" style="font-size: 10px;"></i>
+                                                            </bk-button>
 
                                                             <ul class="bk-dropdown-list" slot="dropdown-content">
                                                                 <li>
@@ -156,9 +162,9 @@
                                                                 </li>
                                                             </ul>
                                                         </bk-dropdown-menu>
-                                                        <button :class="['bk-button bk-default btn']" @click="showAppInfoSlider(app)">
+                                                        <bk-button @click="showAppInfoSlider(app)">
                                                             <span>{{$t('查看状态')}}</span>
-                                                        </button>
+                                                        </bk-button>
                                                     </template>
                                                 </td>
                                             </tr>
@@ -170,7 +176,7 @@
                                 <tr>
                                     <td colspan="7">
                                         <div class="biz-guide-box" style="margin: 0 20px;">
-                                            <p class="message empty-message">{{$t('无数据')}}</p>
+                                            <bcs-exception type="empty" scene="part"></bcs-exception>
                                         </div>
                                     </td>
                                 </tr>
@@ -191,7 +197,7 @@
             <template slot="content">
                 <div class="flex" style="margin-top: -15px;">
                     <div class="bk-form bk-form-vertical" style="width: 760px;">
-                        <div class="bk-form-item">
+                        <div class="bk-form-item mb20">
                             <label for="" class="bk-label">
                                 {{$t('回滚到版本')}} <span class="error-tip" v-if="!isRebackListLoading && !rebackList.length">{{$t('（Release当前没有可切换的版本，无法回滚）')}}</span>
                             </label>
@@ -209,11 +215,12 @@
 
                             <div style="height: 370px;" v-bkloading="{ isLoading: isRebackVersionLoading }" v-if="versionId">
                                 <bk-tab
+                                    class="biz-special-tab"
                                     :type="'fill'"
                                     :size="'small'"
                                     :active-name="'Difference'"
                                     :key="rebackPreviewList.length">
-                                    <bk-tabpanel :name="'Difference'" :title="$t('版本对比')">
+                                    <bk-tab-panel :name="'Difference'" :title="$t('版本对比')">
                                         <div style="height: 320px;">
                                             <ace
                                                 :value="difference"
@@ -224,8 +231,8 @@
                                                 :full-screen="rebackEditorConfig.fullScreen">
                                             </ace>
                                         </div>
-                                    </bk-tabpanel>
-                                    <bk-tabpanel :key="index" :name="item.name" :title="item.name" v-for="(item, index) in rebackPreviewList">
+                                    </bk-tab-panel>
+                                    <bk-tab-panel :key="index" :name="item.name" :title="item.name" v-for="(item, index) in rebackPreviewList">
                                         <div style="height: 320px;">
                                             <ace
                                                 :value="item.value"
@@ -236,25 +243,25 @@
                                                 :full-screen="rebackEditorConfig.fullScreen">
                                             </ace>
                                         </div>
-                                    </bk-tabpanel>
+                                    </bk-tab-panel>
                                 </bk-tab>
                             </div>
                         </div>
                     </div>
                 </div>
             </template>
-            <template slot="footer">
+            <div slot="footer">
                 <div class="bk-dialog-outer">
                     <template>
-                        <button :class="['bk-button bk-dialog-btn-confirm bk-primary', { 'is-disabled': isRebackVersionLoading || isRebackLoading || !versionId }]" @click="submitRebackData">
-                            {{isRebackLoading ? $t('更新中...') : $t('确定')}}
-                        </button>
-                        <button :class="['bk-button bk-dialog-btn-cancel bk-default', { 'is-disabled': isRebackLoading }]" :disabled="isRebackLoading" @click="cancelReback">
+                        <bk-button theme="primary" :loading="isRebackLoading" :disabled="isRebackVersionLoading || !versionId" @click="submitRebackData">
+                            {{$t('确定')}}
+                        </bk-button>
+                        <bk-button :disabled="isRebackLoading" @click="cancelReback">
                             {{$t('取消')}}
-                        </button>
+                        </bk-button>
                     </template>
                 </div>
-            </template>
+            </div>
         </bk-dialog>
 
         <bk-dialog
@@ -263,19 +270,19 @@
             :has-footet="false"
             :title="errorDialogConf.title"
             @cancel="hideErrorDialog">
-            <div slot="content">
+            <template slot="content">
                 <div class="bk-intro bk-danger pb30 mb15" v-if="errorDialogConf.message" style="position: relative;">
                     <pre class="biz-error-message">
                         {{errorDialogConf.message}}
                     </pre>
-                    <bk-button size="mini" type="default" id="error-copy-btn" :data-clipboard-text="errorDialogConf.message"><i class="bk-icon icon-clipboard mr5"></i>{{$t('复制')}}</bk-button>
+                    <bk-button size="small" type="default" id="error-copy-btn" :data-clipboard-text="errorDialogConf.message"><i class="bcs-icon bcs-icon-clipboard mr5"></i>{{$t('复制')}}</bk-button>
                 </div>
-            </div>
-            <template slot="footer">
+            </template>
+            <div slot="footer">
                 <div class="biz-footer">
                     <bk-button type="primary" @click="hideErrorDialog">{{$t('知道了')}}</bk-button>
                 </div>
-            </template>
+            </div>
         </bk-dialog>
 
         <bk-sideslider
@@ -286,20 +293,17 @@
             @hidden="hideAppInfoSlider">
             <div slot="content" :style="{ height: `${winHeight - 100}px`, padding: '20px' }" v-bkloading="{ isLoading: isAppInfoLoading }">
                 <div class="biz-search-input" style="width: 240px; float: right; margin-top: -68px;" v-if="!isAppInfoLoading">
-                    <input
-                        type="text"
-                        class="bk-form-input"
+                    <bk-input right-icon="bk-icon icon-search"
+                        clearable
                         :placeholder="$t('输入关键字，按Enter搜索')"
                         v-model="resourceSearchKey"
-                        @keyup.enter="searchResource" />
-                    <span href="javascript:void(0)" class="biz-search-btn" v-if="!resourceSearchKey">
-                        <i class="bk-icon icon-search"></i>
-                    </span>
-                    <a href="javascript:void(0)" class="biz-search-btn" v-else @click.stop.prevent="clearResoureceSearch">
-                        <i class="bk-icon icon-close-circle-shape"></i>
-                    </a>
+                        @enter="searchResource"
+                        @clear="clearResoureceSearch" />
                 </div>
-                <table class="bk-table has-table-hover biz-data-table" v-if="!isAppInfoLoading">
+                <table
+                    class="bk-table has-table-hover biz-data-table"
+                    v-if="!isAppInfoLoading"
+                    style="border: 1px solid #e6e6e6; border-bottom: none;">
                     <thead>
                         <tr>
                             <th style="width: 10px; padding: 0;"></th>
@@ -307,9 +311,9 @@
                             <th style="width: 130px;">{{$t('类型')}}</th>
                             <th style="width: 100px;">
                                 Pods
-                                <bk-tooltip :content="$t('实际实例数/期望数')" placement="right">
-                                    <i class="bk-icon icon-info-circle tip-trigger"></i>
-                                </bk-tooltip>
+                                <bcs-popover :content="$t('实际实例数/期望数')" placement="right">
+                                    <i class="bcs-icon bcs-icon-info-circle tip-trigger"></i>
+                                </bcs-popover>
                             </th>
                         </tr>
                     </thead>
@@ -322,11 +326,11 @@
                                     :key="resource.id">
                                     <td style="padding: 0;">
                                         <template v-if="resource.pods.warnings">
-                                            <bk-tooltip content="点击查看原因" placement="left">
-                                                <i class="biz-status-icon bk-icon icon-info-circle tip-trigger biz-danger-text f13"></i>
-                                            </bk-tooltip>
+                                            <bcs-popover :content="$t('点击查看原因')" placement="left">
+                                                <i class="biz-status-icon bcs-icon bcs-icon-info-circle tip-trigger biz-danger-text f13"></i>
+                                            </bcs-popover>
                                         </template>
-                                        <i class="biz-status-icon bk-icon icon-check-circle biz-success-text f13" v-else></i>
+                                        <i class="biz-status-icon bcs-icon bcs-icon-check-circle biz-success-text f13" v-else></i>
                                     </td>
                                     <td>
                                         <template v-if="resource.link">
@@ -337,7 +341,7 @@
                                         </template>
                                     </td>
                                     <td>
-                                        <span class="bk-tag bk-primary">{{resource.kind}}</span>
+                                        <bk-tag type="filled" theme="info">{{resource.kind}}</bk-tag>
                                     </td>
                                     <td>
                                         <template v-if="resource.pods.running !== 0 || resource.pods.desired !== 0">
@@ -360,7 +364,7 @@
                         <template v-if="curAppResources.length === 0">
                             <tr>
                                 <td colspan="4">
-                                    <div class="biz-empty-message p50">{{$t('无数据')}}</div>
+                                    <bcs-exception type="empty" scene="part"></bcs-exception>
                                 </td>
                             </tr>
                         </template>
@@ -475,6 +479,9 @@
                 const project = this.$store.state.curProject
                 return project
             },
+            curClusterId () {
+                return this.$store.state.curClusterId
+            },
             projectId () {
                 this.curProjectId = this.$route.params.projectId
                 return this.$route.params.projectId
@@ -513,6 +520,12 @@
                         }
                     })
                 }
+            },
+            curClusterId () {
+                this.searchScope = this.curClusterId
+                this.searchNamespace = ''
+                this.handleSearch()
+                this.setNamespaceList()
             }
         },
         mounted () {
@@ -531,10 +544,10 @@
         beforeRouteLeave (to, from, next) {
             this.isRouterLeave = true
             // 如果不是到详情内页，清空搜索条件
-            // if (to.name !== 'helmAppDetail') {
-            //     window.sessionStorage['bcs-helm-cluster'] = ''
-            //     window.sessionStorage['bcs-helm-namespace'] = ''
-            // }
+            if (to.name !== 'helmAppDetail') {
+                // window.sessionStorage['bcs-helm-cluster'] = ''
+                window.sessionStorage['bcs-helm-namespace'] = ''
+            }
             clearTimeout(this.statusTimer)
             next()
         },
@@ -542,7 +555,7 @@
             this.isRouterLeave = true
             clearTimeout(this.statusTimer)
             // window.sessionStorage['bcs-helm-cluster'] = ''
-            // window.sessionStorage['bcs-helm-namespace'] = ''
+            window.sessionStorage['bcs-helm-namespace'] = ''
         },
         methods: {
             /**
@@ -723,14 +736,14 @@
                     'margin-top': '-20px',
                     'margin-bottom': '-20px'
                 }
-                const titleStyle = {
-                    style: {
-                        'text-align': 'left',
-                        'font-size': '20px',
-                        'margin-bottom': '15px',
-                        'color': '#313238'
-                    }
-                }
+                // const titleStyle = {
+                //     style: {
+                //         'text-align': 'left',
+                //         'font-size': '14px',
+                //         'margin-bottom': '10px',
+                //         'color': '#313238'
+                //     }
+                // }
                 const itemStyle = {
                     style: {
                         'text-align': 'left',
@@ -743,13 +756,13 @@
                 clearTimeout(this.statusTimer)
                 this.isOperaLayerShow = true
                 this.$bkInfo({
-                    title: '',
+                    title: this.$t('确认删除Release'),
                     clsName: 'biz-remove-dialog',
                     // content: me.$createElement('p', {
                     //     class: 'biz-confirm-desc'
                     // }, `确定要删除Release【${app.name}】？`),
                     content: me.$createElement('div', { class: 'biz-confirm-desc', style: boxStyle }, [
-                        me.$createElement('h5', titleStyle, this.$t('确定要删除Release？')),
+                        // me.$createElement('p', titleStyle, this.$t('确定要删除Release？')),
                         me.$createElement('p', itemStyle, `${this.$t('名称')}：${app.name}`),
                         me.$createElement('p', itemStyle, `${this.$t('所属集群')}：${app.cluster_name}`),
                         me.$createElement('p', itemStyle, `${this.$t('命名空间')}：${app.namespace}`)
@@ -819,7 +832,7 @@
                         this.clipboardInstance.on('success', e => {
                             this.$bkMessage({
                                 theme: 'success',
-                                message: '复制成功'
+                                message: this.$t('复制成功')
                             })
                             this.isVarPanelShow = false
                         })
@@ -834,7 +847,7 @@
                 const keyword = this.searchKeyword
                 const keyList = ['name', 'namespace', 'cluster_name']
                 const list = JSON.parse(JSON.stringify(this.appListCache))
-                
+
                 if (keyword) {
                     const results = list.filter(item => {
                         for (const key of keyList) {
@@ -963,7 +976,9 @@
                     data.params.cluster_id = args[0]
                     data.params.namespace = args[1]
                 }
-
+                if (this.curClusterId) {
+                    data.params.cluster_id = this.curClusterId
+                }
                 return data
             },
 

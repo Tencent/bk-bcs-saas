@@ -1,5 +1,6 @@
 /**
  * @file 替换 asset js 中的敏感信息
+ * @author ielgnaw <wuji0223@gmail.com>
  */
 
 const fs = require('fs')
@@ -37,10 +38,30 @@ const distJSFiles = []
     })
 })(DIST_DIR)
 
+class ReplaceContent extends Transform {
+    _transform (chunk, enc, done) {
+        const reg = /((http:\/\/|ftp:\/\/|https:\/\/|\/\/)?(([^./"' \u4e00-\u9fa5（]+\.)*(oa.com|ied.com)+))/ig
+        this.push(chunk.toString('utf-8').replace(reg, 'http://bking.com'))
+        done()
+    }
+}
+
+// const arr = [
+//     {
+//         fileName: 'ee.cf0a6ab228cd129dffc9.js',
+//         filePath: '/Users/ielgnaw/Workspace/tencent-git/paas-bcs-webfe/package_vue/dist/ce.bak/static/js/ee.cf0a6ab228cd129dffc9.js'
+//     },
+//     {
+//         fileName: 'vendor.b5488250a85ed8ad7ffc.js',
+//         filePath: '/Users/ielgnaw/Workspace/tencent-git/paas-bcs-webfe/package_vue/dist/ce.bak/static/js/vendor.b5488250a85ed8ad7ffc.js'
+//     }
+// ]
+
 const doTransform = file => {
     return new Promise((resolve, reject) => {
         const read = fs.createReadStream(file.filePath)
-        read.setEncoding('utf-8').resume().pipe(
+        read.setEncoding('utf-8').resume().pipe(new ReplaceContent(file))
+            .pipe(
                 fs.createWriteStream(
                     path.resolve(TMP_DIR, `${file.fileName}`)
                 )

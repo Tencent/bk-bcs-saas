@@ -19,7 +19,7 @@ const fileSystem = new CachedInputFileSystem(new NodeJsInputFileSystem(), CACHED
 
 const resolver = ResolverFactory.createResolver({
     alias: {
-        '@open': path.resolve('src')
+        '@': path.resolve('src')
     },
     extensions: ['.css'],
     modules: ['src', 'node_modules'],

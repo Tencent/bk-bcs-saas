@@ -241,6 +241,11 @@ export default {
                     ]
                 }
 
+                // 解决空数据不传key兼容问题
+                if (!item.config.spec.template.spec.hasOwnProperty('serviceAccountName')) {
+                    item.config.spec.template.spec.serviceAccountName = ''
+                }
+
                 if (!item.config.spec.selector) {
                     item.config.spec.selector = {
                         matchLabels: {}

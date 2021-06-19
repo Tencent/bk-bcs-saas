@@ -2,9 +2,9 @@
     <div class="biz-content">
         <div class="biz-top-bar">
             <div class="biz-crd-instance-title">
-                <a href="javascript:void(0);" class="bk-icon icon-arrows-left back" @click="goBack"></a>
+                <a href="javascript:void(0);" class="bcs-icon bcs-icon-arrows-left back" @click="goBack"></a>
                 {{$t('DB授权配置管理')}}
-                <span class="biz-tip f12 ml10">({{$t('集群名称')}}：{{clusterName}})</span>
+                <span class="biz-tip ml10">({{$t('集群名称')}}：{{clusterName}})</span>
             </div>
             <bk-guide></bk-guide>
         </div>
@@ -18,10 +18,10 @@
             <template v-if="!exceptionCode && !isInitLoading">
                 <div class="biz-panel-header">
                     <div class="left">
-                        <button class="bk-button bk-primary" @click.stop.prevent="createLoadBlance">
-                            <i class="bk-icon icon-plus" style="top: -1px;"></i>
+                        <bk-button type="primary" @click.stop.prevent="createLoadBlance">
+                            <i class="bcs-icon bcs-icon-plus" style="top: -1px;"></i>
                             <span>{{$t('新建')}}</span>
-                        </button>
+                        </bk-button>
                     </div>
                     <div class="right">
                         <bk-data-searcher
@@ -37,66 +37,52 @@
 
                 <div class="biz-crd-instance">
                     <div class="biz-table-wrapper" v-bkloading="{ isLoading: isPageLoading && !isInitLoading }">
-                        <table class="bk-table has-table-hover biz-table biz-crd-instance-table">
-                            <thead>
-                                <tr>
-                                    <th style="width: 200px; padding-left: 30px;">{{$t('名称')}}</th>
-                                    <!-- <th>{{$t('所属集群')}}</th> -->
-                                    <th>{{$t('命名空间')}}</th>
-                                    <th style="width: 100px;">{{$t('状态')}}</th>
-                                    <th>{{$t('更新时间')}}</th>
-                                    <th>{{$t('更新人')}}</th>
-                                    <th style="min-width: 120px;">{{$t('操作')}}</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <template v-if="crdInstanceList.length">
-                                    <tr v-for="(crdInstance, index) in curPageData" :key="index">
-                                        <td style="width: 200px; padding-left: 30px;">
-                                            <a href="javascript: void(0)" class="bk-text-button biz-table-title biz-resource-title" @click.stop.prevent="editCrdInstance(crdInstance, true)">{{crdInstance.name || '--'}}</a>
-                                        </td>
-                                        <td>{{crdInstance.namespace || '--'}}</td>
-                                        <td>{{crdInstance.status ? $t('正常') : $t('异常')}}</td>
-                                        <td>{{crdInstance.updated || '--'}}</td>
-                                        <td>{{crdInstance.operator || '--'}}</td>
-                                        <td>
-                                            <a href="javascript:void(0);" class="bk-text-button" @click="editCrdInstance(crdInstance)">{{$t('更新')}}</a>
-                                            <a href="javascript:void(0);" class="bk-text-button" @click="removeCrdInstance(crdInstance)">{{$t('删除')}}</a>
-                                        </td>
-                                    </tr>
+                        <bk-table
+                            class="biz-namespace-table"
+                            v-bkloading="{ isLoading: isPageLoading && !isInitLoading }"
+                            :size="'medium'"
+                            :data="curPageData"
+                            :pagination="pageConf"
+                            @page-change="handlePageChange"
+                            @page-limit-change="handlePageSizeChange">
+                            <bk-table-column :label="$t('名称')" prop="name" :show-overflow-tooltip="true" min-width="150">
+                                <template slot-scope="{ row }">
+                                    <a href="javascript: void(0)" class="bk-text-button biz-table-title biz-resource-title" @click.stop.prevent="editCrdInstance(row, true)">{{row.name || '--'}}</a>
                                 </template>
-                                <template v-else>
-                                    <tr style="background: none;">
-                                        <td colspan="6">
-                                            <div class="biz-app-list">
-                                                <div class="bk-message-box">
-                                                    <p class="message empty-message" v-if="!isInitLoading">{{$t('无数据')}}</p>
-                                                </div>
-                                            </div>
-                                        </td>
-                                    </tr>
+                            </bk-table-column>
+                            <bk-table-column :label="$t('命名空间')" min-width="100">
+                                <template slot-scope="{ row }">
+                                    {{row.namespace || '--'}}
                                 </template>
-                            </tbody>
-                        </table>
-                    </div>
-                    <div class="biz-page-wrapper" v-if="pageConf.total">
-                        <bk-page-counter
-                            :is-en="isEn"
-                            :total="pageConf.total"
-                            :page-size="pageConf.pageSize"
-                            @change="changePageSize">
-                        </bk-page-counter>
-                        <bk-paging
-                            :cur-page.sync="pageConf.curPage"
-                            :total-page="pageConf.totalPage"
-                            @page-change="handlerPageChange">
-                        </bk-paging>
+                            </bk-table-column>
+                            <bk-table-column :label="$t('状态')" min-width="100">
+                                <template slot-scope="{ row }">
+                                    <bk-tag type="filled" v-if="row.bind_success" theme="success">{{$t('正常')}}</bk-tag>
+                                    <bk-tag type="filled" v-else theme="danger">{{$t('异常')}}</bk-tag>
+                                </template>
+                            </bk-table-column>
+                            <bk-table-column :label="$t('更新时间')" min-width="100">
+                                <template slot-scope="{ row }">
+                                    {{row.updated || '--'}}
+                                </template>
+                            </bk-table-column>
+                            <bk-table-column :label="$t('更新人')" min-width="100">
+                                <template slot-scope="{ row }">
+                                    {{row.operator || '--'}}
+                                </template>
+                            </bk-table-column>
+                            <bk-table-column :label="$t('操作')" min-width="100">
+                                <template slot-scope="{ row }">
+                                    <a href="javascript:void(0);" class="bk-text-button" @click="editCrdInstance(row)">{{$t('更新')}}</a>
+                                    <a href="javascript:void(0);" class="bk-text-button" @click="removeCrdInstance(row)">{{$t('删除')}}</a>
+                                </template>
+                            </bk-table-column>
+                        </bk-table>
                     </div>
                 </div>
             </template>
 
             <bk-sideslider
-                style="z-index: 150;"
                 :quick-close="false"
                 :is-show.sync="crdInstanceSlider.isShow"
                 :title="crdInstanceSlider.title"
@@ -140,23 +126,23 @@
                                 <div class="bk-form-inline-item is-required" style="width: 270px;">
                                     <label class="bk-label">{{$t('名称')}}：</label>
                                     <div class="bk-form-content">
-                                        <bk-input
+                                        <bkbcs-input
                                             :placeholder="$t('请输入')"
                                             :value.sync="curCrdInstance.name"
                                             :disabled="curCrdInstance.crd_id">
-                                        </bk-input>
+                                        </bkbcs-input>
                                     </div>
                                 </div>
                                 <div class="bk-form-inline-item is-required" style="width: 270px; margin-left: 35px;">
                                     <label class="bk-label">
                                         {{$t('业务名称')}}：
-                                        <i class="bk-icon icon-question-circle label-icon" v-bktooltips.left="$t('必须与GCS权限模板中的“业务名”相同')"></i>
+                                        <i class="bcs-icon bcs-icon-question-circle label-icon" v-bk-tooltips.left="$t('必须与GCS权限模板中的“业务名”相同')"></i>
                                     </label>
                                     <div class="bk-form-content">
-                                        <bk-input
+                                        <bkbcs-input
                                             :placeholder="$t('请输入')"
                                             :value.sync="curCrdInstance.app_name">
-                                        </bk-input>
+                                        </bkbcs-input>
                                     </div>
                                 </div>
                             </div>
@@ -167,10 +153,10 @@
                                 <div class="bk-form-inline-item is-required" style="width: 270px;">
                                     <label class="bk-label">{{$t('DB访问地址')}}：</label>
                                     <div class="bk-form-content">
-                                        <bk-input
+                                        <bkbcs-input
                                             :placeholder="$t('请输入')"
                                             :value.sync="curCrdInstance.db_host">
-                                        </bk-input>
+                                        </bkbcs-input>
                                     </div>
                                 </div>
                                 <div class="bk-form-inline-item is-required" style="width: 270px; margin-left: 35px;">
@@ -191,25 +177,25 @@
                                 <div class="bk-form-inline-item is-required" style="width: 270px;">
                                     <label class="bk-label">
                                         {{$t('帐号')}}：
-                                        <i class="bk-icon icon-question-circle label-icon" v-bktooltips.right="$t('必须与GCS权限模板中的“帐号”相同')"></i>
+                                        <i class="bcs-icon bcs-icon-question-circle label-icon" v-bk-tooltips.right="$t('必须与GCS权限模板中的“帐号”相同')"></i>
                                     </label>
                                     <div class="bk-form-content">
-                                        <bk-input
+                                        <bkbcs-input
                                             :placeholder="$t('请输入')"
                                             :value.sync="curCrdInstance.call_user">
-                                        </bk-input>
+                                        </bkbcs-input>
                                     </div>
                                 </div>
                                 <div class="bk-form-inline-item is-required" style="width: 270px; margin-left: 35px;">
                                     <label class="bk-label">
                                         {{$t('DB名称')}}：
-                                        <i class="bk-icon icon-question-circle label-icon" v-bktooltips.left="$t('必须与GCS权限模板中的“数据库名称”相同')"></i>
+                                        <i class="bcs-icon bcs-icon-question-circle label-icon" v-bk-tooltips.left="$t('必须与GCS权限模板中的“数据库名称”相同')"></i>
                                     </label>
                                     <div class="bk-form-content">
-                                        <bk-input
+                                        <bkbcs-input
                                             :placeholder="$t('请输入')"
                                             :value.sync="curCrdInstance.db_name">
-                                        </bk-input>
+                                        </bkbcs-input>
                                     </div>
                                 </div>
                             </div>
@@ -218,7 +204,7 @@
                         <div class="bk-form-item is-required">
                             <label class="bk-label">
                                 {{$t('标签管理')}}：
-                                <i class="bk-icon icon-question-circle label-icon" v-bktooltips.right="$t('bcs-webhook-server用labels过滤，相同labels的pod被选中注入用于DB授权的init-container')"></i>
+                                <i class="bcs-icon bcs-icon-question-circle label-icon" v-bk-tooltips.right="{ width: 400, content: $t('bcs-webhook-server用labels过滤，相同labels的pod被选中注入用于DB授权的init-container') }"></i>
                             </label>
                             <div class="bk-form-content">
                                 <bk-keyer :key-list.sync="curLabelList" ref="labelKeyer" @change="changeLabels"></bk-keyer>
@@ -226,8 +212,8 @@
                         </div>
 
                         <div class="bk-form-item mt25">
-                            <button :class="['bk-button bk-primary', { 'is-loading': isDataSaveing }]" @click.stop.prevent="saveCrdInstance">{{curCrdInstance.crd_id ? $t('更新') : $t('创建')}}</button>
-                            <button class="bk-button bk-default" @click.stop.prevent="hideCrdInstanceSlider">{{$t('取消')}}</button>
+                            <bk-button type="primary" :loading="isDataSaveing" @click.stop.prevent="saveCrdInstance">{{curCrdInstance.crd_id ? $t('更新') : $t('创建')}}</bk-button>
+                            <bk-button @click.stop.prevent="hideCrdInstanceSlider" :disabled="isDataSaveing">{{$t('取消')}}</bk-button>
                         </div>
                     </div>
                 </div>
@@ -288,7 +274,7 @@
                     </div>
                     <div class="point-box">
                         <template v-if="curLabelList.length">
-                            <ul class="key-list">
+                            <ul class="key-list" style="display: flex;">
                                 <li v-for="(label, index) in curLabelList" :key="index">
                                     <span class="key">{{label.key}}</span>
                                     <span class="value">{{label.value}}</span>
@@ -297,7 +283,7 @@
                         </template>
                         <template v-else>
                             <div class="bk-message-box" style="min-height: auto;">
-                                <p class="message empty-message" style="margin: 30px; font-size: 14px;">{{$t('无数据')}}</p>
+                                <bcs-exception type="empty" scene="part"></bcs-exception>
                             </div>
                         </template>
                     </div>
@@ -324,10 +310,10 @@
                 isDataSaveing: false,
                 prmissions: {},
                 pageConf: {
-                    total: 0,
+                    count: 0,
                     totalPage: 1,
-                    pageSize: 5,
-                    curPage: 1,
+                    limit: 5,
+                    current: 1,
                     show: true
                 },
                 crdInstanceSlider: {
@@ -379,7 +365,7 @@
                     isShow: false,
                     title: ''
                 },
-                crdKind: 'DbPrivilege'
+                crdKind: 'BcsDbPrivConfig'
             }
         },
         computed: {
@@ -428,7 +414,7 @@
         },
         watch: {
             crdInstanceList () {
-                this.curPageData = this.getDataByPage(this.pageConf.curPage)
+                this.curPageData = this.getDataByPage(this.pageConf.current)
             },
             curPageData () {
                 this.curPageData.forEach(item => {
@@ -468,7 +454,7 @@
              * 刷新列表
              */
             refresh () {
-                this.pageConf.curPage = 1
+                this.pageConf.current = 1
                 this.isPageLoading = true
                 this.getCrdInstanceList()
             },
@@ -478,11 +464,11 @@
              *
              * @param {number} pageSize pageSize
              */
-            changePageSize (pageSize) {
-                this.pageConf.pageSize = pageSize
-                this.pageConf.curPage = 1
+            handlePageSizeChange (pageSize) {
+                this.pageConf.limit = pageSize
+                this.pageConf.current = 1
                 this.initPageConf()
-                this.handlerPageChange()
+                this.handlePageChange()
             },
 
             /**
@@ -490,7 +476,8 @@
              */
             createLoadBlance () {
                 this.curCrdInstance = {
-                    'cluster_id': this.clusterId,
+                    // 'crd_kind': this.crdKind,
+                    // 'cluster_id': this.clusterId,
                     'name': '',
                     'namespace': '',
                     'namespace_id': 0,
@@ -500,7 +487,6 @@
                     'db_type': 'mysql',
                     'call_user': '',
                     'db_name': '',
-                    'crd_kind': this.crdKind,
                     'labels': [
                         {
                             'key': '',
@@ -538,15 +524,17 @@
                 try {
                     const projectId = this.projectId
                     const clusterId = this.clusterId
-                    const crdId = crdInstance.crd_id
+                    const crdKind = this.crdKind
+                    const crdId = crdInstance.id
                     const res = await this.$store.dispatch('crdcontroller/getCrdInstanceDetail', {
+                        crdKind,
                         projectId,
                         clusterId,
                         crdId
                     })
 
                     res.data.labels = []
-                    const selector = res.data.pod_selector
+                    const selector = res.data.crd_data.pod_selector
                     this.curLabelList = []
                     for (const key in selector) {
                         res.data.labels.push({
@@ -567,8 +555,7 @@
                             }
                         ]
                     }
-
-                    this.curCrdInstance = res.data
+                    this.curCrdInstance = { ...res.data, ...res.data.crd_data }
                     this.curCrdInstance.crd_id = crdId
 
                     if (isReadonly) {
@@ -602,10 +589,11 @@
                 const self = this
                 const projectId = this.projectId
                 const clusterId = this.clusterId
-                const crdId = crdInstance.crd_id
+                const crdKind = this.crdKind
+                const crdId = crdInstance.id
 
                 this.$bkInfo({
-                    title: '',
+                    title: this.$t('确认删除'),
                     clsName: 'biz-remove-dialog',
                     content: this.$createElement('p', {
                         class: 'biz-confirm-desc'
@@ -613,7 +601,7 @@
                     async confirmFn () {
                         self.isPageLoading = true
                         try {
-                            await self.$store.dispatch('crdcontroller/deleteCrdInstance', { projectId, clusterId, crdId })
+                            await self.$store.dispatch('crdcontroller/deleteCrdInstance', { projectId, clusterId, crdKind, crdId })
                             self.$bkMessage({
                                 theme: 'success',
                                 message: self.$t('删除成功')
@@ -663,9 +651,9 @@
                     }
                 })
                 this.crdInstanceList.splice(0, this.crdInstanceList.length, ...results)
-                this.pageConf.curPage = 1
+                this.pageConf.current = 1
                 this.initPageConf()
-                this.curPageData = this.getDataByPage(this.pageConf.curPage)
+                this.curPageData = this.getDataByPage(this.pageConf.current)
             },
 
             /**
@@ -673,10 +661,10 @@
              */
             initPageConf () {
                 const total = this.crdInstanceList.length
-                this.pageConf.total = total
-                this.pageConf.totalPage = Math.ceil(total / this.pageConf.pageSize)
-                if (this.pageConf.curPage > this.pageConf.totalPage) {
-                    this.pageConf.curPage = this.pageConf.totalPage
+                this.pageConf.count = total
+                this.pageConf.totalPage = Math.ceil(total / this.pageConf.limit)
+                if (this.pageConf.current > this.pageConf.totalPage) {
+                    this.pageConf.current = this.pageConf.totalPage
                 }
             },
 
@@ -685,10 +673,10 @@
              */
             reloadCurPage () {
                 this.initPageConf()
-                if (this.pageConf.curPage > this.pageConf.totalPage) {
-                    this.pageConf.curPage = this.pageConf.totalPage
+                if (this.pageConf.current > this.pageConf.totalPage) {
+                    this.pageConf.current = this.pageConf.totalPage
                 }
-                this.curPageData = this.getDataByPage(this.pageConf.curPage)
+                this.curPageData = this.getDataByPage(this.pageConf.current)
             },
 
             /**
@@ -699,10 +687,10 @@
             getDataByPage (page) {
                 // 如果没有page，重置
                 if (!page) {
-                    this.pageConf.curPage = page = 1
+                    this.pageConf.current = page = 1
                 }
-                let startIndex = (page - 1) * this.pageConf.pageSize
-                let endIndex = page * this.pageConf.pageSize
+                let startIndex = (page - 1) * this.pageConf.limit
+                let endIndex = page * this.pageConf.limit
                 // this.isPageLoading = true
                 if (startIndex < 0) {
                     startIndex = 0
@@ -710,9 +698,7 @@
                 if (endIndex > this.crdInstanceList.length) {
                     endIndex = this.crdInstanceList.length
                 }
-                setTimeout(() => {
-                    this.isPageLoading = false
-                }, 200)
+                this.isPageLoading = false
                 return this.crdInstanceList.slice(startIndex, endIndex)
             },
 
@@ -720,9 +706,9 @@
              * 分页改变回调
              * @param  {number} page 页
              */
-            handlerPageChange (page = 1) {
+            handlePageChange (page = 1) {
                 this.isPageLoading = true
-                this.pageConf.curPage = page
+                this.pageConf.current = page
                 const data = this.getDataByPage(page)
                 this.curPageData = JSON.parse(JSON.stringify(data))
             },
@@ -741,18 +727,18 @@
                 try {
                     const projectId = this.projectId
                     const clusterId = this.clusterId
-                    const params = {
-                        crd_kind: this.crdKind
-                    }
+                    const crdKind = this.crdKind
+                    const params = {}
 
                     await this.$store.dispatch('crdcontroller/getCrdInstanceList', {
                         projectId,
                         clusterId,
+                        crdKind,
                         params
                     })
 
                     this.initPageConf()
-                    this.curPageData = this.getDataByPage(this.pageConf.curPage)
+                    this.curPageData = this.getDataByPage(this.pageConf.current)
 
                     // 如果有搜索关键字，继续显示过滤后的结果
                     if (this.searchKeyword) {
@@ -863,6 +849,30 @@
                     return false
                 }
 
+                if (this.curCrdInstance.labels.length) {
+                    let result = true
+                    this.curCrdInstance.labels.forEach((item, index) => {
+                        if (!/^(([A-Za-z0-9][-A-Za-z0-9_.]*)?[A-Za-z0-9])?$/.test(item.value)) {
+                            this.$bkMessage({
+                                theme: 'error',
+                                message: this.$t(`第${index + 1}组标签的值不符合正则表达式^(([A-Za-z0-9][-A-Za-z0-9_.]*)?[A-Za-z0-9])?$`),
+                                delay: 5000
+                            })
+                            result = false
+                        }
+                    })
+                    return result
+                }
+                // !/^(([A-Za-z0-9][-A-Za-z0-9_.]*)?[A-Za-z0-9])?$/.test(this.curCrdInstance.labels)
+                if (!/^(([A-Za-z0-9][-A-Za-z0-9_.]*)?[A-Za-z0-9])?$/.test(this.curCrdInstance.labels)) {
+                    this.$bkMessage({
+                        theme: 'error',
+                        message: this.$t('标签值不符合正则表达式^(([A-Za-z0-9][-A-Za-z0-9_.]*)?[A-Za-z0-9])?$'),
+                        delay: 5000
+                    })
+                    return false
+                }
+
                 return true
             },
 
@@ -897,12 +907,14 @@
              * 保存新建的
              */
             async createCrdInstance () {
+                const crdKind = this.crdKind
+                const clusterId = this.clusterId
                 const projectId = this.projectId
                 const data = this.curCrdInstance
                 this.isDataSaveing = true
 
                 try {
-                    await this.$store.dispatch('crdcontroller/addCrdInstance', { projectId, data })
+                    await this.$store.dispatch('crdcontroller/addCrdInstance', { projectId, clusterId, crdKind, data })
 
                     this.$bkMessage({
                         theme: 'success',
@@ -911,7 +923,6 @@
                     this.getCrdInstanceList()
                     this.hideCrdInstanceSlider()
                 } catch (e) {
-                    catchErrorHandler(e, this)
                 } finally {
                     this.isDataSaveing = false
                 }
@@ -921,13 +932,15 @@
              * 保存更新的
              */
             async updateCrdInstance () {
+                const crdKind = this.crdKind
+                const clusterId = this.clusterId
                 const projectId = this.projectId
                 const data = this.curCrdInstance
                 this.isDataSaveing = true
 
                 data.crd_kind = this.crdKind
                 try {
-                    await this.$store.dispatch('crdcontroller/updateCrdInstance', { projectId, data })
+                    await this.$store.dispatch('crdcontroller/updateCrdInstance', { projectId, clusterId, crdKind, data })
 
                     this.$bkMessage({
                         theme: 'success',
@@ -936,7 +949,6 @@
                     this.getCrdInstanceList()
                     this.hideCrdInstanceSlider()
                 } catch (e) {
-                    catchErrorHandler(e, this)
                 } finally {
                     this.isDataSaveing = false
                 }

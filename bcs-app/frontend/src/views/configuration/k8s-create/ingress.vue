@@ -23,7 +23,7 @@
                     :quick-close="false"
                     @confirm="addLocalIngress"
                     @cancel="dialogConf.isShow = false">
-                    <div slot="content">
+                    <template slot="content">
                         <div style="margin: -20px;">
                             <div class="ingress-type-header">
                                 {{$t('请选择类型')}}
@@ -49,43 +49,45 @@
                             </div>
                             <p class="pb30 f12 biz-danger-text">{{$t('提示：调度引擎为BCS-K8S的集群，需在左侧菜单“网络” => “LoadBalancer”中新建LoadBalancer，Ingress规则才能生效（通常单个集群只需要创建一个LoadBalancer）')}}</p>
                         </div>
-                    </div>
+                    </template>
                 </bk-dialog>
 
                 <div class="biz-tab-content" v-bkloading="{ isLoading: isTabChanging }">
+                    <bk-alert type="info" class="mb20">
+                        <div slot="title">
+                            <div>
+                                {{$t('Ingress是管理外部访问集群内服务的对象，可配置访问的URL、基于名称的虚拟主机等。 Ingress controller负责实现Ingress，BCS使用的是nginx-controller')}}，
+                                <a class="bk-text-button" :href="PROJECT_CONFIG.doc.k8sIngress" target="_blank">{{$t('详情查看文档')}}</a>
+                            </div>
+                            <div class="mt5">
+                                {{$t('提示：调度引擎为BCS-K8S的集群，需在左侧菜单“网络” => “LoadBalancer”中新建LoadBalancer，Ingress规则才能生效（通常单个集群只需要创建一个LoadBalancer）')}}
+                            </div>
+                        </div>
+                    </bk-alert>
                     <template v-if="!ingresss.length">
-                        <p class="biz-template-tip f12 mb10">
-                            {{$t('Ingress是管理外部访问集群内服务的对象，可配置访问的URL、基于名称的虚拟主机等。 Ingress controller负责实现Ingress，BCS使用的是nginx-controller')}}，<a class="bk-text-button" :href="PROJECT_CONFIG.doc.k8sIngress" target="_blank">{{$t('详情查看文档')}}</a>
-                        </p>
                         <div class="biz-guide-box mt0">
-                            <button class="bk-button bk-primary" @click.stop.prevent="addLocalIngress">
-                                <i class="bk-icon icon-plus"></i>
+                            <bk-button type="primary" @click.stop.prevent="addLocalIngress">
+                                <i class="bcs-icon bcs-icon-plus"></i>
                                 <span style="margin-left: 0;">{{$t('添加')}}Ingress</span>
-                            </button>
+                            </bk-button>
                         </div>
                     </template>
                     <template v-else>
                         <div class="biz-configuration-topbar">
-                            <p class="biz-template-tip f12 mb10">
-                                {{$t('Ingress是管理外部访问集群内服务的对象，可配置访问的URL、基于名称的虚拟主机等。 Ingress controller负责实现Ingress，BCS使用的是nginx-controller')}}，<a class="bk-text-button" :href="PROJECT_CONFIG.doc.k8sIngress" target="_blank">{{$t('详情查看文档')}}</a>
-                            </p>
-                            <p class="biz-template-tip f12 mb10">
-                                {{$t('提示：调度引擎为BCS-K8S的集群，需在左侧菜单“网络” => “LoadBalancer”中新建LoadBalancer，Ingress规则才能生效（通常单个集群只需要创建一个LoadBalancer）')}}
-                            </p>
                             <div class="biz-list-operation">
                                 <div class="item" v-for="(ingress, index) in ingresss" :key="ingress.id">
-                                    <button :class="['bk-button', { 'bk-primary': curIngress.id === ingress.id }]" @click.stop="setCurIngress(ingress, index)">
+                                    <bk-button :class="['bk-button', { 'bk-primary': curIngress.id === ingress.id }]" @click.stop="setCurIngress(ingress, index)">
                                         {{(ingress && ingress.config.metadata.name) || $t('未命名')}}
                                         <span class="biz-update-dot" v-show="ingress.isEdited"></span>
-                                    </button>
-                                    <span class="bk-icon icon-close" @click.stop="removeIngress(ingress, index)"></span>
+                                    </bk-button>
+                                    <span class="bcs-icon bcs-icon-close" @click.stop="removeIngress(ingress, index)"></span>
                                 </div>
 
-                                <bk-tooltip ref="applicationTooltip" :content="$t('添加Ingress')" placement="top">
-                                    <button class="bk-button bk-default is-outline is-icon" @click.stop="addLocalIngress">
-                                        <i class="bk-icon icon-plus"></i>
-                                    </button>
-                                </bk-tooltip>
+                                <bcs-popover ref="applicationTooltip" :content="$t('添加Ingress')" placement="top">
+                                    <bk-button class="bk-button bk-default is-outline is-icon" @click.stop="addLocalIngress">
+                                        <i class="bcs-icon bcs-icon-plus"></i>
+                                    </bk-button>
+                                </bcs-popover>
                             </div>
                         </div>
                         <div class="biz-configuration-content" style="position: relative;">
@@ -200,7 +202,7 @@
             },
             async initResource (data) {
                 const version = data.latest_version_id || data.version
-                
+
                 if (version) {
                     await this.initServices(version)
                 } else {
@@ -335,8 +337,8 @@
                 const version = this.curVersion
                 const ingressId = ingress.id
                 this.$bkInfo({
-                    title: this.$t('确认'),
-                    content: this.$createElement('p', { style: { 'text-align': 'center' } }, `${this.$t('删除Ingress')}：${ingress.config.metadata.name || this.$t('未命名')}`),
+                    title: this.$t('确认删除'),
+                    content: this.$createElement('p', { style: { 'text-align': 'left' } }, `${this.$t('删除Ingress')}：${ingress.config.metadata.name || this.$t('未命名')}`),
                     confirmFn () {
                         if (ingressId.indexOf && ingressId.indexOf('local_') > -1) {
                             self.removeLocalIngress(ingress, index)

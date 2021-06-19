@@ -1,7 +1,7 @@
-@import '@open/css/variable.css';
-@import '@open/css/mixins/clearfix.css';
-@import '@open/css/mixins/scroller.css';
-@import '@open/css/mixins/ellipsis.css';
+@import '@/css/variable.css';
+@import '@/css/mixins/clearfix.css';
+@import '@/css/mixins/scroller.css';
+@import '@/css/mixins/ellipsis.css';
 
 .biz-app-instance {
     padding: 20px;
@@ -674,13 +674,13 @@
 
 .biz-configuration-instantiation-cancel-fullscreen {
     position: fixed;
-    top: 20px;
+    top: 10px;
     right: 20px;
-    z-index: 2001;
-    font-size: 40px;
-    padding: 10px;
+    z-index: 5000;
+    font-size: 16px;
+    padding: 7px;
+    color: #fff;
     cursor: pointer;
-
     i.icon-close {
         font-weight: 700;
     }

@@ -1,17 +1,6 @@
-/**
- * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community Edition) available.
- * Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
- * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- * http://opensource.org/licenses/MIT
- * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
- * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
- * specific language governing permissions and limitations under the License.
- */
-
-@import '../../css/variable.css';
-@import '../../css/mixins/ellipsis.css';
-@import '../../css/mixins/clearfix.css';
+@import '@/css/variable.css';
+@import '@/css/mixins/ellipsis.css';
+@import '@/css/mixins/clearfix.css';
 
 .biz-cluster-create-title {
     display: inline-block;
@@ -30,31 +19,29 @@
     }
 }
 
-.biz-actions {
-    position: absolute;
-    right: 20px;
-    top: 12px;
-
-    .button {
-        width: 32px;
+.bk-button-group {
+    vertical-align: top;
+    .bk-button {
+        width: 160px;
         height: 32px;
-        border: none;
-        background: transparent;
-        font-size: 26px;
-        color: $fnMinorColor;
-        padding: 0;
-        margin: 0 3px;
-        line-height: 1;
+        line-height: 30px;
+        &.active {
+            background-color: #E1ECFF !important;
+        }
     }
 }
 
-.bk-button-group {
-    vertical-align: top;
+.biz-cluster-create-wrapper {
+    display: flex;
+    border: 1px solid #DCDEE5;
+    background-color: #FFFFFF;
+    border-radius: 2px;
 }
 
 .biz-cluster-create-form-wrapper {
-    margin: 50px 0 100px 48px;
-
+    flex: 1;
+    min-width: 860px;
+    padding: 30px 30px 0 26px;
     .biz-cluster-create-form-tip {
         height: 28px;
         line-height: 28px;
@@ -62,6 +49,7 @@
 
         &.is-danger {
             color: $dangerColor;
+            background-color: #fafbfd;
 
             .tip-text {
                 color: $dangerColor;
@@ -70,7 +58,7 @@
 
         .tip-text {
             float: left;
-            font-size: 14px;
+            font-size: 12px;
             color: $fontWeightColor;
             display: inline-block;
             padding: 0;
@@ -80,24 +68,72 @@
     }
 
     .form-item {
+        display: flex;
         margin-bottom: 20px;
+        color: #63656E;
 
-        .red {
-            color: red;
-            margin-right: 3px;
+        .biz-span {
+            text-align: left;
+            margin: 0;
+            &:after {
+                content: none;
+            }
+            .title {
+                padding: 0;
+            }
+            .bk-text-button {
+                padding: 0;
+            }
+        }
+        .bk-text-button {
+            .bcs-icon {
+                transition: all ease 0.3s;
+                transform: rotate(270deg);
+                display: inline-block;
+            }
+
+            &.rotate {
+                .bcs-icon {
+                    transform: rotate(90deg);
+                }
+            }
+        }
+        .bk-button-group {
+            button {
+                margin: 0 0 0 -1px;
+            }
+            button.active {
+                background-color: #fff;
+                border-color: #3a84ff;
+                color: #3a84ff;
+                position: relative;
+                z-index: 1;
+            }
+        }
+
+        .info-item {
+            color: #c3cdd7;
+            background-color: #fafbfd;
+            font-size: 14px;
+            margin-left: 118px;
+            &.long {
+                margin-left: 178px;
+            }
         }
 
         >label {
+            line-height: 32px;
             font-size: 14px;
-            font-weight: 700;
-            width: 105px;
-            display: inline-block;
-            text-align: right;
+            width: 140px;
+            min-width: 140px;
         }
 
         &.en {
-           >label {
-               width: 170px;
+            .info-item {
+                margin-left: 183px;
+                &.long {
+                    margin-left: 228px;
+                }
             }
 
             .form-item-inner {
@@ -111,24 +147,67 @@
             }
         }
 
+        .red {
+            color: red;
+            margin-right: 3px;
+        }
+
         .cluster-name {
-            width: 310px;
+            width: 320px;
         }
 
         textarea {
             min-height: 60px;
-            width: 800px;
+            width: 750px;
         }
 
         .form-item-inner {
-            display: inline-block;
+            flex: 1;
             position: relative;
-            margin-left: 10px;
+            margin-left: 26px;
 
             &.dropdown {
-                width: 310px;
+                flex: 0 0 320px;
                 vertical-align: middle;
                 background-color: #fff;
+                position: relative;
+                .tip-wrapper {
+                    position: absolute;
+                    right: -25px;
+                    top: 6px;
+                }
+            }
+
+            .host-opertation {
+                display: flex;
+                align-items: center;
+            }
+
+            .netword-area {
+                display: flex;
+                flex-wrap: wrap;
+                width: 540px;
+                font-size: 14px;
+                padding: 0 20px 20px;
+                border-radius: 2px;
+                background-color: #F5F6FA;
+                .netword-area-item {
+                    flex: 0 0 calc(50% - 5px);
+                    margin-top: 10px;
+                    &:nth-child(odd) {
+                        margin-right: 10px;
+                    }
+                    >label {
+                        display: inline-block;
+                        line-height: 30px;
+                    }
+                }
+                .computed-rules {
+                    width: 100%;
+                    color: #979BA5;
+                    font-size: 12px;
+                    margin-top: 4px;
+                }
             }
 
             .is-disabled {
@@ -145,21 +224,117 @@
                     color: $dangerColor;
                 }
             }
+
+            .server-select-button {
+                width: 540px;
+                height: 42px;
+                line-height: 40px;
+                color: #3A84FF;
+                border: 1px dashed #C4C6CC;
+                &.disabled {
+                    color: #C4C6CC;
+                    border: 1px dashed #DCDEE5;
+                    background: #fafbfd;
+                }
+            }
+
+            .apply-host {
+                /deep/ .bk-button {
+                    height: 42px;
+                    line-height: 40px;
+                }
+            }
+
+            .apply-host-disabled {
+                height: 42px;
+                line-height: 40px;
+            }
+
+            /deep/ .cluster-prod {
+                margin-left: -2px;
+            }
         }
+    }
+
+    .tke-tip {
+        width: 750px;
+        font-size: 14px;
+        color: red;
+    }
+}
+
+.biz-cluster-create-form-tips {
+    max-width: 520px;
+    padding: 0 10px 20px;
+    border-left: 1px solid #DCDEE5;
+    .tips-item {
+        color: #63656E;
+        margin-top: 14px;
+        padding: 4px 10px;
+        border-radius: 2px;
+        &.active {
+            background-color: #E1ECFF;
+        }
+        .title {
+            font-size: 14px;
+            line-height: 22px;
+            margin: 0 0 6px;
+        }
+        .item-content {
+            font-size: 12px;
+        }
+        .tips-list {
+            li {
+                position: relative;
+                padding-left: 10px;
+                margin-bottom: 10px;
+                &::before {
+                    content: '';
+                    position: absolute;
+                    top: 6px;
+                    left: 0;
+                    width: 4px;
+                    height: 4px;
+                    background-color: #63656E;
+                    border-radius: 50%;
+                }
+                &:last-child {
+                    margin-bottom: 0;
+                }
+            }
+        }
+    }
+}
+
+.biz-cluster-create-form-footer {
+    position: fixed;
+    width: calc(100% - 261px);
+    height: 60px;
+    line-height: 60px;
+    bottom: 0;
+    right: 0;
+    background-color: #FFFFFF;
+    text-align: center;
+    border-top: 1px solid #DCDEE5;
+    box-shadow: 0px -2px 4px 0px rgba(0,0,0,0.05);
+    z-index: 2;
+    .bk-button {
+        width: 86px;
+    }
+}
+@media screen and (max-width: 1440px) {
+    .biz-cluster-create-form-footer {
+        width: calc(100% - 241px);
     }
 }
 
 .biz-cluster-create-table-header {
     @mixin clearfix;
-    border: 1px solid $borderWeightColor;
     background-color: #fff;
     height: 60px;
     line-height: 59px;
     font-size: 16px;
     padding: 0 20px;
-    border-bottom: none;
-    border-top-left-radius: 2px;
-    border-top-right-radius: 2px;
 
     .left {
         float: left;
@@ -173,6 +348,7 @@
         .remain-tip {
             font-size: 12px;
             margin-left: 10px;
+            color: $dangerColor;
         }
     }
 
@@ -257,7 +433,7 @@
 .biz-cluster-create-table {
     background-color: #fff;
     border: 1px solid $borderWeightColor;
-    width: 800px;
+    width: 100%;
 
     thead {
         background-color: $bgHoverColor;
@@ -282,6 +458,17 @@
         }
     }
 
+    .inner-ip {
+        @mixin ellipsis 100px;
+    }
+
+    .inner-ip-tips {
+        /deep/ .bk-tooltip-inner {
+            max-height: 324px;
+            overflow-y: auto;
+        }
+    }
+
     .no-data {
         min-height: 399px;
 
@@ -302,7 +489,7 @@
     .biz-cluster-create-table {
         border-left: none;
         border-right: none;
-        width: 920px;
+        width: 100%;
 
         thead {
             tr {
@@ -320,7 +507,6 @@
                     padding-bottom: 0;
                     position: relative;
                     line-height: 1;
-                    /* top: 5px; */
                 }
             }
         }
@@ -344,13 +530,14 @@
 
         .device-class {
             @mixin ellipsis 80px;
+            vertical-align: bottom;
         }
     }
 
-    .biz-cluster-create-table-header {
+    /* .biz-cluster-create-table-header {
         border-left: none;
         border-right: none;
-    }
+    } */
 
     .biz-page-box {
         padding: 10px 25px 10px 0;
@@ -361,5 +548,23 @@
 
     .bk-dialog-footer.bk-d-footer {
         background-color: #fff;
+    }
+}
+
+.host-seletor-table {
+    /deep/ .bk-table-pagination-wrapper {
+        .bk-page-total-count, .bk-page-count {
+            display: none;
+        }
+    }
+}
+
+.create-selector-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    .footer-tips {
+        text-align: left;
+        font-size: 12px;
     }
 }

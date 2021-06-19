@@ -57,13 +57,14 @@
                 }, 
                 "spec": {
                     "restartPolicy": "Always", 
-                    "terminationGracePeriodSeconds": 10, 
+                    "terminationGracePeriodSeconds": 30, 
                     "nodeSelector": {}, 
                     "affinity": {}, 
                     "hostNetwork": 0, 
                     "dnsPolicy": "ClusterFirst",
                     "volumes": [],
                     "imagePullSecrets": [],
+                    "serviceAccountName": "",
                     "allContainers": [
                         {
                             "name": "",

@@ -2,14 +2,14 @@
     <div class="bk-form-item">
         <label class="bk-label" style="width:300px;">{{configData.label}}：</label>
         <div class="bk-form-content" style="margin-left:300px;">
-            <input type="password" :class="['bk-form-input', { 'is-danger': status.invalid }]" name="validation_name" placeholder="请输入" v-model="configData.default" @input="checkValue">
+            <input type="password" :class="['bk-form-input', { 'is-danger': status.invalid }]" name="validation_name" :placeholder="$t('请输入')" v-model="configData.default" @input="checkValue">
             <div class="bk-form-tip">
                 <template v-if="status.invalid">
                     <p class="bk-tip-text">{{status.errorMsg}}</p>
                 </template>
                 <template v-else>
                     <p v-if="configData.description" class="bk-tip-text">
-                        <span class="bk-tip-variable">值来源：Values.{{configData.variable}}</span>
+                        <span class="bk-tip-variable">{{$t('值来源')}}：Values.{{configData.variable}}</span>
                         {{configData.description}}
                     </p>
                 </template>
@@ -50,7 +50,7 @@
                 if (this.configData.required && !value) {
                     this.status = {
                         invalid: true,
-                        errorMsg: '必填项，不能为空'
+                        errorMsg: this.$t('必填项，不能为空')
                     }
                 } else {
                     this.status = {

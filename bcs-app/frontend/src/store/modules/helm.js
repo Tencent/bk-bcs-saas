@@ -139,6 +139,20 @@ export default {
         },
 
         /**
+         * 获取更新版本列表 (新)
+         *
+         * @param {Object} context store 上下文对象
+         * @param {Object} params 请求参数，包含projectId, appId, clusterId
+         * @param {Object} config 请求的配置
+         *
+         * @return {Promise} promise 对象
+         */
+        getUpdateVersionList (context, { projectId, appId, clusterId, namespace }, config = {}) {
+            const url = `${DEVOPS_BCS_API_URL}/api/helm_release/projects/${projectId}/clusters/${clusterId}/namespaces/${namespace}/releases/${appId}/versions/`
+            return http.get(url, {}, config)
+        },
+
+        /**
          * 获取App
          *
          * @param {Object} context store 上下文对象
@@ -167,10 +181,24 @@ export default {
         },
 
         /**
+         * 获取版本对应的app (新)
+         *
+         * @param {Object} context store 上下文对象
+         * @param {Object} params 请求参数，包含projectId, appId, clusterId
+         * @param {Object} config 请求的配置
+         *
+         * @return {Promise} promise 对象
+         */
+        getUpdateChartVersionDetail (context, { projectId, appId, clusterId, version, namespace }, config = {}) {
+            const url = `${DEVOPS_BCS_API_URL}/api/helm_release/projects/${projectId}/clusters/${clusterId}/namespaces/${namespace}/releases/${appId}/versions/`
+            return http.post(url, { version: version }, config)
+        },
+
+        /**
          * 获取版本对应的chart
          *
          * @param {Object} context store 上下文对象
-         * @param {Object} params 请求参数，包含projectId, appId，version
+         * @param {Object} params 请求参数，包含projectId, chartId，version
          * @param {Object} config 请求的配置
          *
          * @return {Promise} promise 对象
@@ -178,6 +206,20 @@ export default {
         getChartByVersion (context, { projectId, chartId, version }, config = {}) {
             const url = `${DEVOPS_BCS_API_URL}/api/bcs/k8s/configuration/${projectId}/helm/charts/${chartId}/versions/${version}/`
             return http.get(url, {}, config)
+        },
+
+        /**
+         * 获取版本对应的chart (新)
+         *
+         * @param {Object} context store 上下文对象
+         * @param {Object} params 请求参数，包含projectId, chartId, version
+         * @param {Object} config 请求的配置
+         *
+         * @return {Promise} promise 对象
+         */
+        getChartVersionDetail (context, { projectId, chartId, version, isPublic }, config = {}) {
+            const url = `${DEVOPS_BCS_API_URL}/api/helm_chart/projects/${projectId}/charts/${chartId}/versions/${version}/`
+            return http.post(url, { is_public_repo: isPublic }, config)
         },
 
         /**
@@ -291,6 +333,20 @@ export default {
          */
         getTplVersions (context, { projectId, tplId }, config = {}) {
             const url = `${DEVOPS_BCS_API_URL}/api/bcs/k8s/configuration/${projectId}/helm/charts/${tplId}/versions/`
+            return http.get(url, {}, config)
+        },
+
+        /**
+         * 获取模板版本列表（新）
+         *
+         * @param {Object} context store 上下文对象
+         * @param {Object} params 请求参数，包含projectId, tplId
+         * @param {Object} config 请求的配置
+         *
+         * @return {Promise} promise 对象
+         */
+        getTplVersionList (context, { projectId, tplId, isPublic }, config = {}) {
+            const url = `${DEVOPS_BCS_API_URL}/api/helm_chart/projects/${projectId}/charts/${tplId}/versions/?is_public_repo=${isPublic}`
             return http.get(url, {}, config)
         },
 
@@ -460,12 +516,8 @@ export default {
          *
          * @return {Promise} promise 对象
          */
-        getExistReleases (context, { projectId, templateId, versionId }, config = {}) {
-            let url = `${DEVOPS_BCS_API_URL}/api/projects/${projectId}/helm/charts/${templateId}/releases/`
-            if (versionId) {
-                url = url + `?version_id=${versionId}`
-            }
-            return http.get(url)
+        getExistReleases (context, { projectId, chartName, versions }, config = {}) {
+            return http.post(`${DEVOPS_BCS_API_URL}/api/projects/${projectId}/helm/charts/${chartName}/releases/`, { version_list: versions })
         },
 
         /**
@@ -473,16 +525,31 @@ export default {
          *
          * @param {Object} context store 上下文对象
          * @param {string} projectId 项目 id
-         * @param {string} templateId template id
+         * @param {string} chartName
          *
          * @return {Promise} promise 对象
          */
-        removeTemplate (context, { templateId, projectId, versionId }, config = {}) {
-            let url = `${DEVOPS_BCS_API_URL}/api/projects/${projectId}/helm/charts/${templateId}/`
-            if (versionId) {
-                url = url + `?version_id=${versionId}`
-            }
-            return http.delete(url, {}, config)
+        removeTemplate (context, { chartName, projectId, versions }, config = {}) {
+            return http.delete(`${DEVOPS_BCS_API_URL}/api/projects/${projectId}/helm/charts/${chartName}/`, {
+                data: {
+                    version_list: versions
+                }
+            }, config)
+        },
+
+        /**
+         * 获取 app notes
+         *
+         * @param {Object} context store 上下文对象
+         * @param {string} projectId 项目 id
+         * @param {string} clusterId
+         * @param {string} namespaceName
+         * @param {string} releaseName
+         *
+         * @return {Promise} promise 对象
+         */
+        getNotes (context, { clusterId, projectId, namespaceName, releaseName }, config = {}) {
+            return http.get(`${DEVOPS_BCS_API_URL}/api/helm/projects/${projectId}/clusters/${clusterId}/namespaces/${namespaceName}/releases/${releaseName}/notes/`, {}, config)
         }
 
     }

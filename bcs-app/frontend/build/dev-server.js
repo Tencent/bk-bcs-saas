@@ -13,7 +13,6 @@ const express = require('express')
 const path = require('path')
 const webpack = require('webpack')
 const bodyParser = require('body-parser')
-const open = require('open')
 const proxyMiddleware = require('http-proxy-middleware')
 const webpackHotMiddleware = require('webpack-hot-middleware')
 const webpackDevMiddleware = require('webpack-dev-middleware')
@@ -34,8 +33,6 @@ if (!process.env.NODE_ENV) {
 const webpackConfig = devConf
 
 const port = process.env.PORT || config.dev.port
-
-const autoOpenBrowser = !!config.dev.autoOpenBrowser
 
 const proxyTable = config.dev.proxyTable
 
@@ -74,6 +71,7 @@ app.use(history({
     rewrites: [
         {
             // connect-history-api-fallback 默认会对 url 中有 . 的 url 当成静态资源处理而不是当成页面地址来处理
+            // 兼容 /cs/28aa9eda67644a6eb254d694d944307e/cluster/BCS-MESOS-10001/node/10.121.23.12 这样以 IP 结尾的 url
             // from: /\d+\.\d+\.\d+\.\d+$/,
             from: /(\d+\.)*\d+$/,
             to: '/'
@@ -102,8 +100,6 @@ app.use(ajaxMiddleware)
 const staticPath = path.posix.join(config.dev.assetsPublicPath, config.dev.assetsSubDirectory)
 app.use(staticPath, express.static('./static'))
 
-const url = `http://localhost:${port}`
-
 let _resolve
 const readyPromise = new Promise(resolve => {
     _resolve = resolve
@@ -111,13 +107,9 @@ const readyPromise = new Promise(resolve => {
 
 console.log('> Starting dev server...')
 devMiddleware.waitUntilValid(() => {
-    console.log('> Listening at ' + url + '\n')
     console.log('Other available url: ')
     console.log(`http://${getIP()}:${port}`)
     console.log(`http://localhost:${port}\n`)
-    if (autoOpenBrowser) {
-        open(url)
-    }
     _resolve()
 })
 

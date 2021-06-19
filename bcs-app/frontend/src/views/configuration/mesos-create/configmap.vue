@@ -20,10 +20,10 @@
                                 {{$t('ConfigMap是用来存储配置文件的Mesos资源对象，它的作用是将配置文件从容器镜像中解耦，从而增强容器应用的可移植性')}}，<a class="bk-text-button" :href="PROJECT_CONFIG.doc.mesosConfigmap" target="_blank">{{$t('详情查看文档')}}</a>
                             </p>
                             <div class="biz-guide-box mt0" style="padding: 140px 30px;">
-                                <button class="bk-button bk-primary" @click.stop.prevent="addLocalConfigmap">
-                                    <i class="bk-icon icon-plus"></i>
+                                <bk-button type="primary" @click.stop.prevent="addLocalConfigmap">
+                                    <i class="bcs-icon bcs-icon-plus"></i>
                                     <span style="margin-left: 0;">{{$t('添加')}}Configmap</span>
-                                </button>
+                                </bk-button>
                             </div>
                         </template>
                         <template v-else>
@@ -33,18 +33,18 @@
                                 </p>
                                 <div class="biz-list-operation">
                                     <div class="item" v-for="(configmap, index) in configmaps" :key="configmap.id">
-                                        <button :class="['bk-button', { 'bk-primary': curConfigmap.id === configmap.id }]" @click.stop="setCurConfigmap(configmap, index)">
+                                        <bk-button :class="['bk-button', { 'bk-primary': curConfigmap.id === configmap.id }]" @click.stop="setCurConfigmap(configmap, index)">
                                             {{(configmap && configmap.config.metadata.name) || $t('未命名')}}
                                             <span class="biz-update-dot" v-show="configmap.isEdited"></span>
-                                        </button>
-                                        <span class="bk-icon icon-close" @click.stop="removeConfigmap(configmap, index)"></span>
+                                        </bk-button>
+                                        <span class="bcs-icon bcs-icon-close" @click.stop="removeConfigmap(configmap, index)"></span>
                                     </div>
 
-                                    <bk-tooltip ref="configmapTooltip" :content="$t('添加ConfigMap')" placement="top">
-                                        <button class="bk-button bk-default is-outline is-icon" @click.stop="addLocalConfigmap">
-                                            <i class="bk-icon icon-plus"></i>
-                                        </button>
-                                    </bk-tooltip>
+                                    <bcs-popover ref="configmapTooltip" :content="$t('添加ConfigMap')" placement="top">
+                                        <bk-button class="bk-button bk-default is-outline is-icon" @click.stop="addLocalConfigmap">
+                                            <i class="bcs-icon bcs-icon-plus"></i>
+                                        </bk-button>
+                                    </bcs-popover>
                                 </div>
                             </div>
 
@@ -91,11 +91,11 @@
                                             <div class="bk-form-content" style="margin-left: 105px;">
                                                 <div class="biz-list-operation">
                                                     <div class="item" v-for="(data, index) in curConfigmap.configmapKeyList" :key="index">
-                                                        <button :class="['bk-button', { 'bk-primary': curKeyIndex === index }]" @click.stop.prevent="setCurKey(data, index)" v-if="!data.isEdit">
+                                                        <bk-button :class="['bk-button', { 'bk-primary': curKeyIndex === index }]" @click.stop.prevent="setCurKey(data, index)" v-if="!data.isEdit">
                                                             {{data.key || $t('未命名')}}
-                                                        </button>
+                                                        </bk-button>
 
-                                                        <bk-input
+                                                        <bkbcs-input
                                                             type="text"
                                                             :placeholder="$t('请输入')"
                                                             style="width: 150px;"
@@ -105,15 +105,15 @@
                                                             :list="varList"
                                                             @blur="setKey(data, index)"
                                                         >
-                                                        </bk-input>
-                                                        <span class="bk-icon icon-edit" v-show="!data.isEdit" @click.stop.prevent="editKey(data, index)"></span>
-                                                        <span class="bk-icon icon-close" v-show="!data.isEdit" @click.stop.prevent="removeKey(data, index)"></span>
+                                                        </bkbcs-input>
+                                                        <span class="bcs-icon bcs-icon-edit" v-show="!data.isEdit" @click.stop.prevent="editKey(data, index)"></span>
+                                                        <span class="bcs-icon bcs-icon-close" v-show="!data.isEdit" @click.stop.prevent="removeKey(data, index)"></span>
                                                     </div>
-                                                    <bk-tooltip ref="keyTooltip" :content="$t('添加Key')" placement="top">
-                                                        <button class="bk-button bk-default is-outline is-icon" @click.stop.prevent="addKey">
-                                                            <i class="bk-icon icon-plus"></i>
-                                                        </button>
-                                                    </bk-tooltip>
+                                                    <bcs-popover ref="keyTooltip" :content="$t('添加Key')" placement="top">
+                                                        <bk-button class="bk-button bk-default is-outline is-icon" @click.stop.prevent="addKey">
+                                                            <i class="bcs-icon bcs-icon-plus"></i>
+                                                        </bk-button>
+                                                    </bcs-popover>
                                                 </div>
                                             </div>
                                         </div>
@@ -121,39 +121,35 @@
                                             <div class="bk-form-item is-required">
                                                 <label class="bk-label" style="width: 105px;">{{$t('值来源')}}：</label>
                                                 <div class="bk-form-content" style="margin-left: 105px;">
-                                                    <label class="bk-form-radio">
-                                                        <input type="radio" name="key-type" value="file" v-model="curKeyParams.type">
-                                                        <i class="bk-radio-text">{{$t('在线编辑')}}</i>
-                                                    </label>
-                                                    <label class="bk-form-radio">
-                                                        <input type="radio" name="key-type" value="http" v-model="curKeyParams.type">
-                                                        <i class="bk-radio-text">{{$t('仓库获取')}}</i>
-                                                    </label>
+                                                    <bk-radio-group v-model="curKeyParams.type">
+                                                        <bk-radio value="file">{{$t('在线编辑')}}</bk-radio>
+                                                        <bk-radio value="http">{{$t('仓库获取')}}</bk-radio>
+                                                    </bk-radio-group>
                                                 </div>
                                             </div>
                                             <div class="bk-form-item is-required">
                                                 <label class="bk-label" style="width: 105px;">{{$t('值')}}：</label>
                                                 <div class="bk-form-content" style="margin-left: 105px;">
                                                     <textarea class="bk-form-textarea biz-resize-textarea" style="height: 300px;" v-model="curKeyParams.content" :placeholder="$t('请输入键') + curKeyParams.key + $t('的内容')" v-if="curKeyParams.type === 'file'"></textarea>
-                                                    <textarea class="bk-form-textarea biz-resize-textarea" style="height: 300px;" v-model="curKeyParams.content" :placeholder="$t('请输入仓库中配置文件的相对路径')" v-else></textarea>
-                                                    <p class="biz-tip mt10 f14" v-show="curKeyParams.type === 'file'">{{$t('实例化时会将值的内容做base64编码')}}</p>
+                                                    <textarea class="bk-form-textarea biz-resize-textarea" style="height: 300px;" v-model="curKeyParams.content" :placeholder="$t('请输入在线文件地址，如http://www.example.com/config.txt')" v-else></textarea>
+                                                    <p class="biz-tip mt5" v-show="curKeyParams.type === 'file'">{{$t('实例化时会将值的内容做base64编码')}}</p>
                                                 </div>
                                             </div>
                                             <div class="bk-form-item" v-show="curKeyParams.type === 'http'">
                                                 <label class="bk-label" style="width: 105px;">{{$t('凭证')}}：</label>
                                                 <div class="bk-form-content" style="margin-left: 105px;">
-                                                    <bk-input
+                                                    <bkbcs-input
                                                         type="text"
                                                         style="width:310px;"
                                                         :placeholder="$t('输入格式用户名:密码，如bcs:123#@bk')"
                                                         :value.sync="curKeyParams.auth">
-                                                    </bk-input>
-                                                    <bk-tooltip placement="top">
+                                                    </bkbcs-input>
+                                                    <bcs-popover placement="top">
                                                         <p slot="content" style="word-break: break-all; width: 480px;">{{authTip}}</p>
                                                         <span class="bk-badge">
-                                                            <i class="bk-icon icon-question"></i>
+                                                            <i class="bcs-icon bcs-icon-question-circle"></i>
                                                         </span>
-                                                    </bk-tooltip>
+                                                    </bcs-popover>
                                                 </div>
                                             </div>
                                         </template>
@@ -216,7 +212,7 @@
                     value: '',
                     editor: null
                 },
-                authTip: this.$t('后台实际拉取文件命令: curl -X GET -H "Authorization: Basic {user:$base64(passwd)}"')
+                authTip: this.$t('后台实际拉取文件命令: curl -X GET -H "Authorization: Basic {user:$base64(passwd)}" http://www.example.com/config.txt')
             }
         },
         computed: {
@@ -475,8 +471,8 @@
                 const configmapId = configmap.id
 
                 this.$bkInfo({
-                    title: this.$t('确认'),
-                    content: this.$createElement('p', { style: { 'text-align': 'center' } }, `${this.$t('删除ConfigMap')}：${configmap.config.metadata.name || this.$t('未命名')}`),
+                    title: this.$t('确认删除'),
+                    content: this.$createElement('p', { style: { 'text-align': 'left' } }, `${this.$t('删除ConfigMap')}：${configmap.config.metadata.name || this.$t('未命名')}`),
                     confirmFn () {
                         if (configmapId.indexOf && configmapId.indexOf('local_') > -1) {
                             self.removeLocalConfigmap(configmap, index)

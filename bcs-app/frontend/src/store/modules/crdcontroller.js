@@ -90,9 +90,9 @@ export default {
          *
          * @return {Promise} promise 对象
          */
-        getCrdInstanceList (context, { projectId, clusterId, params = {} }, config = {}) {
+        getCrdInstanceList (context, { projectId, clusterId, crdKind, params = {} }, config = {}) {
             context.commit('updateCrdInstanceList', [])
-            const url = `${DEVOPS_BCS_API_URL}/api/bcs_crd/projects/${projectId}/clusters/${clusterId}/crd_instances/?${json2Query(params)}`
+            const url = `${DEVOPS_BCS_API_URL}/api/bcs_crd/projects/${projectId}/clusters/${clusterId}/crds/${crdKind}/custom_objects/?${json2Query(params)}`
             return http.get(url, {}, config).then(res => {
                 context.commit('updateCrdInstanceList', res.data)
                 return res
@@ -126,8 +126,8 @@ export default {
          *
          * @return {Promise} promise 对象
          */
-        getCrdInstanceDetail (context, { projectId, clusterId, crdId }, config = {}) {
-            const url = `${DEVOPS_BCS_API_URL}/api/bcs_crd/projects/${projectId}/clusters/${clusterId}/crd_instances/${crdId}/`
+        getCrdInstanceDetail (context, { projectId, clusterId, crdKind, crdId }, config = {}) {
+            const url = `${DEVOPS_BCS_API_URL}/api/bcs_crd/projects/${projectId}/clusters/${clusterId}/crds/${crdKind}/custom_objects/-/detail/?id=${crdId}`
             return http.get(url, {}, config)
         },
 
@@ -140,8 +140,8 @@ export default {
          *
          * @return {Promise} promise 对象
          */
-        getLogCrdInstanceDetail (context, { projectId, crdId, crdKind }, config = {}) {
-            const url = `${DEVOPS_BCS_API_URL}/api/bcs_crd/projects/${projectId}/crds/-/detail/?id=${crdId}&crd_kind=${crdKind}`
+        getLogCrdInstanceDetail (context, { projectId, crdId, crdKind, clusterId }, config = {}) {
+            const url = `${DEVOPS_BCS_API_URL}/api/bcs_crd/projects/${projectId}/clusters/${clusterId}/crds/${crdKind}/custom_objects/-/detail/?id=${crdId}`
             return http.get(url, {}, config)
         },
 
@@ -184,8 +184,8 @@ export default {
          *
          * @return {Promise} promise 对象
          */
-        addCrdInstance (context, { projectId, data }, config = {}) {
-            return http.post(`${DEVOPS_BCS_API_URL}/api/bcs_crd/projects/${projectId}/crds/`, data, config)
+        addCrdInstance (context, { projectId, clusterId, crdKind, data }, config = {}) {
+            return http.post(`${DEVOPS_BCS_API_URL}/api/bcs_crd/projects/${projectId}/clusters/${clusterId}/crds/${crdKind}/custom_objects/`, data, config)
         },
 
         /**
@@ -197,8 +197,8 @@ export default {
          *
          * @return {Promise} promise 对象
          */
-        updateCrdInstance (context, { projectId, data }, config = {}) {
-            return http.put(`${DEVOPS_BCS_API_URL}/api/bcs_crd/projects/${projectId}/crds/`, data, config)
+        updateCrdInstance (context, { projectId, clusterId, crdKind, data }, config = {}) {
+            return http.put(`${DEVOPS_BCS_API_URL}/api/bcs_crd/projects/${projectId}/clusters/${clusterId}/crds/${crdKind}/custom_objects/`, data, config)
         },
 
         /**
@@ -210,9 +210,9 @@ export default {
          *
          * @return {Promise} promise 对象
          */
-        deleteCrdInstance (context, { projectId, clusterId, crdId }, config = {}) {
-            const url = `${DEVOPS_BCS_API_URL}/api/bcs_crd/projects/${projectId}/clusters/${clusterId}/crd_instances/${crdId}/`
-            return http.delete(url, {}, config)
+        deleteCrdInstance (context, { projectId, clusterId, crdKind, crdId }, config = {}) {
+            const url = `${DEVOPS_BCS_API_URL}/api/bcs_crd/projects/${projectId}/clusters/${clusterId}/crds/${crdKind}/custom_objects/`
+            return http.delete(url, { data: { id: crdId } }, config)
         },
 
         /**

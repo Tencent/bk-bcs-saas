@@ -1,6 +1,6 @@
-@import '@open/css/variable.css';
-@import '@open/css/mixins/ellipsis.css';
-@import '@open/css/mixins/scroller.css';
+@import '@/css/variable.css';
+@import '@/css/mixins/ellipsis.css';
+@import '@/css/mixins/scroller.css';
 
 .biz-app-title {
     display: inline-block;
@@ -102,7 +102,7 @@
         }
     }
 
-    i.bk-icon {
+    i.bcs-icon {
         font-size: 16px;
         vertical-align: middle;
         position: relative;

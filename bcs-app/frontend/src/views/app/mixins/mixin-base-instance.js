@@ -14,7 +14,7 @@ import { Decimal } from 'decimal.js'
 import { instanceDetailChart } from '@open/common/chart-option'
 import { randomInt, catchErrorHandler, chartColors, formatBytes } from '@open/common/util'
 import ace from '@open/components/ace-editor'
-
+import BcsLog from '@open/components/bcs-log/index'
 import { createChartOption } from '../pod-chart-opts'
 
 export default {
@@ -25,7 +25,8 @@ export default {
     // },
     components: {
         chart: ECharts,
-        ace
+        ace,
+        BcsLog
     },
     data () {
         return {
@@ -148,7 +149,16 @@ export default {
             networkToggleRangeStr: this.$t('1小时'),
             cpuContainerToggleRangeStr: this.$t('1小时'),
             memContainerToggleRangeStr: this.$t('1小时'),
-            diskContainerToggleRangeStr: this.$t('1小时')
+            diskContainerToggleRangeStr: this.$t('1小时'),
+            bcsLog: {
+                show: false,
+                loading: false,
+                containerList: [],
+                groupData: {
+                    podId: '',
+                    defaultContainer: ''
+                }
+            }
         }
     },
     computed: {
@@ -525,6 +535,11 @@ export default {
                         surviveTime: diffStr
                     })
                 })
+                clearTimeout(this.taskgroupTimer)
+                this.taskgroupTimer = null
+                this.taskgroupTimer = setTimeout(() => {
+                    this.loopTaskgroup()
+                }, 5000)
             } catch (e) {
                 catchErrorHandler(e, this)
             } finally {
@@ -775,7 +790,6 @@ export default {
             if (!chartNode) {
                 return
             }
-
             const chartOpts = Object.assign({}, this.podMemChartOptsInternal)
 
             chartOpts.series.splice(0, chartOpts.series.length, ...[])
@@ -817,7 +831,7 @@ export default {
                         },
                         itemStyle: {
                             normal: {
-                                color: '#3c96ff'
+                                color: '#3a84ff'
                             }
                         },
                         data: item.values
@@ -1370,7 +1384,7 @@ export default {
                         },
                         itemStyle: {
                             normal: {
-                                color: '#3c96ff'
+                                color: '#3a84ff'
                             }
                         },
                         data: item.values
@@ -1927,7 +1941,7 @@ export default {
                         )
                     )
                     const arr = [
-                        timeDiff.get('day'),
+                        moment(this.baseData.current_time).diff(moment(this.baseData.start_time), 'days'),
                         timeDiff.get('hour'),
                         timeDiff.get('minute'),
                         timeDiff.get('second')
@@ -1968,7 +1982,13 @@ export default {
             }
 
             taskgroup.containerLoading = true
+            const containerList = await this.getTaskGroupContainer(taskgroup)
+            taskgroup.containerList = containerList
+            taskgroup.containerLoading = false
             this.$set(this.taskgroupList, index, taskgroup)
+        },
+
+        async getTaskGroupContainer (taskgroup) {
             try {
                 const params = {
                     projectId: this.projectId,
@@ -1988,12 +2008,26 @@ export default {
                 }
 
                 const res = await this.$store.dispatch('app/getContainterList', params)
-                taskgroup.containerList = res.data || []
+                let containerList = res.data || []
+
+                const containerIds = containerList.map(container => container.container_id).join(',')
+                if (containerIds) {
+                    const logParams = {
+                        projectId: this.projectId,
+                        container_ids: containerIds
+                    }
+                    const logRes = await this.$store.dispatch('app/getContaintersLogLinks', logParams)
+                    const logLinks = logRes.data || {}
+                    containerList = containerList.map(container => ({
+                        ...container,
+                        ...(logLinks[container.container_id] || {})
+                    }))
+                }
+
+                return containerList
             } catch (e) {
                 catchErrorHandler(e, this)
-            } finally {
-                taskgroup.containerLoading = false
-                this.$set(this.taskgroupList, index, taskgroup)
+                return []
             }
         },
 
@@ -2067,7 +2101,9 @@ export default {
                 }
 
                 await this.$store.dispatch('app/reschedulerTaskgroup', params)
-                setTimeout(() => {
+                clearTimeout(this.taskgroupTimer)
+                this.taskgroupTimer = null
+                this.taskgroupTimer = setTimeout(() => {
                     this.loopTaskgroup()
                 }, 5000)
             } catch (e) {
@@ -2103,6 +2139,7 @@ export default {
 
                 const res = await this.$store.dispatch('app/getTaskgroupList', params)
 
+                this.openTaskgroup = Object.assign({}, {})
                 this.taskgroupList.forEach(item => {
                     if (item.isOpen) {
                         this.openTaskgroup[item.name] = item.containerList
@@ -2121,7 +2158,7 @@ export default {
                             )
                         )
                         const arr = [
-                            timeDiff.get('day'),
+                            moment(item.current_time).diff(moment(item.start_time), 'days'),
                             timeDiff.get('hour'),
                             timeDiff.get('minute'),
                             timeDiff.get('second')
@@ -2208,6 +2245,24 @@ export default {
             } finally {
                 this.logLoading = false
             }
+        },
+
+        async handleShowLog (taskGroup, index) {
+            this.bcsLog.show = true
+            this.bcsLog.loading = true
+            const { containerList = [] } = this.taskgroupList[index]
+            if (!containerList.length) {
+                const list = await this.getTaskGroupContainer(taskGroup)
+                taskGroup.containerList = list
+                this.$set(this.taskgroupList, index, taskGroup)
+            }
+            this.bcsLog.containerList = this.taskgroupList[index].containerList.map(item => ({
+                id: item.name,
+                name: item.name
+            }))
+            this.bcsLog.groupData.podId = this.taskgroupList[index].name
+            this.bcsLog.groupData.defaultContainer = this.taskgroupList[index].containerList[0]?.name
+            this.bcsLog.loading = false
         },
 
         /**
@@ -2532,6 +2587,10 @@ export default {
             })
 
             this[hook](range)
+        },
+
+        handleShowEditorSearch () {
+            this.$refs.yamlEditor && this.$refs.yamlEditor.showSearchBox()
         }
     }
 }
