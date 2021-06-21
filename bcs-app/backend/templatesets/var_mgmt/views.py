@@ -27,7 +27,8 @@ from rest_framework.response import Response
 from backend.accounts import bcs_perm
 from backend.apps import constants
 from backend.apps.constants import ALL_LIMIT
-from backend.bcs_web.audit_log import client
+from backend.bcs_web.audit_log.audit.decorators import log_audit, log_audit_on_view
+from backend.bcs_web.audit_log.constants import BaseActivityType
 from backend.components import paas_cc
 from backend.container_service.observability.metric_mesos.models import Metric
 from backend.templatesets.legacy_apps.configuration.models import MODULE_DICT, VersionedEntity
@@ -41,6 +42,7 @@ from backend.utils.views import FinalizeResponseMixin
 from ..legacy_apps.instance.generator import handel_custom_network_mode
 from ..legacy_apps.instance.serializers import VariableNamespaceSLZ
 from . import serializers
+from .auditor import VariableAuditor
 from .import_vars import import_vars
 from .models import ClusterVariable, NameSpaceVariable, Variable
 
@@ -65,18 +67,20 @@ class ListCreateVariableView(generics.ListCreateAPIView):
 
         return variables
 
+    @log_audit(VariableAuditor, activity_type=BaseActivityType.Add)
     def perform_create(self, serializer):
-        instance = serializer.save(creator=self.request.user.username)
-        # 记录操作日志
-        client.ContextActivityLogClient(
+        self.audit_ctx.update_fields(
             project_id=self.kwargs['project_id'],
             user=self.request.user.username,
-            resource_type="variable",
+            extra=dict(serializer.data),
+            description=_("新增变量"),
+        )
+        instance = serializer.save(creator=self.request.user.username)
+        # 记录操作日志
+        self.audit_ctx.update_fields(
             resource=instance.name,
             resource_id=instance.id,
-            extra=json.dumps(serializer.data),
-            description=_("新增变量"),
-        ).log_add()
+        )
 
     def post(self, request, project_id):
         """创建变量"""
@@ -113,20 +117,18 @@ class RetrieveUpdateVariableView(FinalizeResponseMixin, generics.RetrieveUpdateD
     def get_object(self):
         return Variable.objects.get_by_id_with_projects(project_id=self.kwargs['project_id'], id=self.kwargs['pk'])
 
+    @log_audit(VariableAuditor, activity_type=BaseActivityType.Modify)
     def perform_update(self, serializer):
+        self.audit_ctx.update_fields(
+            project_id=self.kwargs['project_id'],
+            user=self.request.user.username,
+            extra=dict(serializer.data),
+            description=_("更新变量"),
+        )
         instance = serializer.save(
             updator=self.request.user.username,
         )
-        # 记录操作日志
-        client.ContextActivityLogClient(
-            project_id=self.kwargs['project_id'],
-            user=self.request.user.username,
-            resource_type="variable",
-            resource=instance.name,
-            resource_id=instance.id,
-            extra=json.dumps(serializer.data),
-            description=_("更新变量"),
-        ).log_modify()
+        self.audit_ctx.update_fields(resource=instance.name, resource_id=instance.id)
 
     # TODO mark refactor 改成put方法, 需要前端同步调整
     def post(self, request, project_id, pk):
@@ -234,6 +236,7 @@ class ResourceVariableView(FinalizeResponseMixin, views.APIView):
 class VariableOverView(viewsets.ViewSet):
     renderer_classes = (BKAPIRenderer, BrowsableAPIRenderer)
 
+    @log_audit_on_view(VariableAuditor, activity_type=BaseActivityType.Delete)
     @transaction.atomic
     def batch_delete(self, request, project_id):
         self.slz = serializers.VariableDeleteSLZ(data=request.GET)
@@ -245,22 +248,17 @@ class VariableOverView(viewsets.ViewSet):
         del_id_list = list(query_sets.values_list('id', flat=True))
 
         deled_id_list = []
-        with client.ContextActivityLogClient(
-            project_id=project_id,
-            user=request.user.username,
-            resource_type="variable",
-            resource=','.join(name_list),
-            resource_id=json.dumps(del_id_list),
-            description=_("删除变量"),
-        ).log_delete():
-            for _s in query_sets:
-                # 删除后KEY添加 [deleted]前缀
-                _del_prefix = '[deleted_%s]' % int(time.time())
-                _s.key = "%s%s" % (_del_prefix, _s.key)
-                _s.is_deleted = True
-                _s.deleted_time = timezone.now()
-                _s.save()
-                deled_id_list.append(_s.id)
+        request.audit_ctx.update_fields(
+            resource=','.join(name_list), resource_id=json.dumps(del_id_list), description=_("删除变量")
+        )
+        for _s in query_sets:
+            # 删除后KEY添加 [deleted]前缀
+            _del_prefix = '[deleted_%s]' % int(time.time())
+            _s.key = "%s%s" % (_del_prefix, _s.key)
+            _s.is_deleted = True
+            _s.deleted_time = timezone.now()
+            _s.save()
+            deled_id_list.append(_s.id)
         return Response({"code": 0, "message": "OK", "data": {"deled_id_list": deled_id_list}})
 
     def get_quote_info(self, request, project_id, pk):

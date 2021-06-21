@@ -15,6 +15,7 @@ import logging
 from abc import ABCMeta, abstractmethod
 from typing import Optional, Tuple, Type
 
+import wrapt
 from rest_framework.exceptions import ValidationError
 
 from backend.packages.blue_krill.web.std_error import APIError
@@ -43,45 +44,47 @@ class BaseLogAudit(metaclass=ABCMeta):
         auditor_cls: Type[Auditor] = type(Auditor),
         activity_type: str = '',
         auto_audit: bool = True,
+        use_raw_audit: bool = False,
         ignore_exceptions: Optional[Tuple[Type[Exception]]] = None,
     ):
 
         self.auditor_cls = auditor_cls
         self.activity_type = activity_type
         self.auto_audit = auto_audit
+        self.use_raw_audit = use_raw_audit
         self.ignore_exceptions = ignore_exceptions or tuple()
 
-    def __call__(self, func):
-        def wrapper(*args, **kwargs):
-            audit_ctx = self._pre_audit_ctx(*args, **kwargs)
-            err_msg = ''
+    @wrapt.decorator
+    def __call__(self, wrapped, instance, args, kwargs):
+        audit_ctx = self._pre_audit_ctx(instance, *args, **kwargs)
+        err_msg = ''
 
-            try:
-                ret = func(*args, **kwargs)
-                return ret
-            except self.ignore_exceptions:
-                # 如果是 ignore_exceptions 中的异常，不做审计记录
-                self.auto_audit = False
-                raise
-            except self.err_msg_exceptions as e:
-                err_msg = str(e)
-                raise
-            except Exception as e:
-                # 屏蔽非预期的异常信息
-                logger.error("log audit failed: %s" % e)
-                err_msg = "unknown error"
-                raise
-            finally:
-                if self.auto_audit:
+        try:
+            ret = wrapped(*args, **kwargs)
+            return ret
+        except self.ignore_exceptions:
+            # 如果是 ignore_exceptions 中的异常，不做审计记录
+            self.auto_audit = False
+            raise
+        except self.err_msg_exceptions as e:
+            err_msg = str(e)
+            raise
+        except Exception as e:
+            # 屏蔽非预期的异常信息
+            logger.error("log audit failed: %s" % e)
+            err_msg = "unknown error"
+            raise
+        finally:
+            if self.auto_audit:
+                if self.use_raw_audit:
+                    self._save_raw_audit(audit_ctx)
+                else:
                     audit_ctx = self._post_audit_ctx(audit_ctx, *args, **kwargs)
                     self._save_audit(audit_ctx, err_msg)
 
-        return wrapper
-
     @abstractmethod
-    def _pre_audit_ctx(self, *args, **kwargs) -> AuditContext:
+    def _pre_audit_ctx(self, instance, *args, **kwargs) -> AuditContext:
         """前置获取初始 audit_ctx"""
-        pass
 
     def _post_audit_ctx(self, audit_ctx: AuditContext, *args, **kwargs) -> AuditContext:
         """后置更新 audit_ctx"""
@@ -94,6 +97,10 @@ class BaseLogAudit(metaclass=ABCMeta):
             auditor.log_failed(err_msg)
         else:
             auditor.log_succeed()
+
+    def _save_raw_audit(self, audit_ctx: AuditContext):
+        """保存原始的审计信息"""
+        self.auditor_cls(audit_ctx).raw_log()
 
 
 class log_audit_on_view(BaseLogAudit):
@@ -109,8 +116,8 @@ class log_audit_on_view(BaseLogAudit):
             return Response()
     """
 
-    def _pre_audit_ctx(self, *args, **kwargs) -> AuditContext:
-        request = args[1]
+    def _pre_audit_ctx(self, instance, *args, **kwargs) -> AuditContext:
+        request = args[0]
         if hasattr(request, 'audit_ctx'):
             request.audit_ctx.update_fields(activity_type=self.activity_type)
         else:
@@ -127,7 +134,7 @@ class log_audit_on_view(BaseLogAudit):
             return audit_ctx
 
         # TODO 优化默认 extra 的构成
-        request = args[1]
+        request = args[0]
         extra = dict(**kwargs)
         if hasattr(request, 'data'):
             if isinstance(request.data, dict):
@@ -147,7 +154,7 @@ class log_audit_on_view(BaseLogAudit):
 class log_audit(BaseLogAudit):
     """
     用于一般类实例方法或函数的操作审计装饰器。使用规则:
-    - 对于类实例方法，第二个位置参数是 AuditContext 实例或者类实例包含 audit_ctx 属性
+    - 对于类实例方法，第二个位置参数是 AuditContext 实例或者 self.audit_ctx (如果没有会创建)
     - 对于普通方法，通常需要第一个位置参数是 AuditContext 实例
 
     使用示例:
@@ -159,22 +166,28 @@ class log_audit(BaseLogAudit):
         )
     """
 
-    def _pre_audit_ctx(self, *args, **kwargs) -> AuditContext:
-        if len(args) <= 0:
-            raise TypeError('missing AuditContext instance argument')
+    def _pre_audit_ctx(self, instance, *args, **kwargs) -> AuditContext:
 
-        if isinstance(args[0], AuditContext):
-            audit_ctx = args[0]
-
-        elif len(args) >= 2 and isinstance(args[1], AuditContext):
-            audit_ctx = args[1]
-
-        elif hasattr(args[0], 'audit_ctx') and isinstance(args[0].audit_ctx, AuditContext):
-            audit_ctx = args[0].audit_ctx
-
-        else:
-            raise TypeError('missing AuditContext instance argument')
+        if instance is None:  # 被装饰者为类/函数/静态方法
+            # 只处理函数/静态方法的情况
+            if len(args) <= 0:
+                raise TypeError('missing AuditContext instance argument')
+            # 第一个参数是 AuditContext 类型
+            if isinstance(args[0], AuditContext):
+                audit_ctx = args[0]
+            else:
+                raise TypeError('missing AuditContext instance argument')
+        else:  # 被装饰者为 classmethod 类方法 或者普通类方法
+            audit_ctx = self._get_or_create_audit_ctx(instance)
 
         if not audit_ctx.activity_type:
             audit_ctx.activity_type = self.activity_type
+        return audit_ctx
+
+    def _get_or_create_audit_ctx(self, instance) -> AuditContext:
+        if hasattr(instance, 'audit_ctx') and isinstance(instance.audit_ctx, AuditContext):
+            return instance.audit_ctx
+
+        audit_ctx = AuditContext()
+        instance.audit_ctx = audit_ctx
         return audit_ctx

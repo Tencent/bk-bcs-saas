@@ -13,10 +13,13 @@
 #
 import json
 
-from backend.bcs_web.audit_log import client
+from backend.bcs_web.audit_log.audit.context import AuditContext
+from backend.bcs_web.audit_log.constants import BaseActivityStatus, BaseActivityType
 from backend.resources.deployment import Deployment
 from backend.resources.namespace.utils import get_namespace_by_id
+from backend.templatesets.legacy_apps.configuration.auditor import TemplatesetAuditor
 from backend.templatesets.legacy_apps.configuration.models import get_model_class_by_resource_name
+from backend.templatesets.legacy_apps.instance.auditor import InstanceAuditor
 from backend.templatesets.legacy_apps.instance.constants import InsState
 from backend.templatesets.legacy_apps.instance.drivers import get_scheduler_driver
 from backend.templatesets.legacy_apps.instance.models import InstanceConfig, VersionInstance
@@ -95,16 +98,14 @@ class DeployController:
         log_params = {
             "project_id": release_data["project_id"],
             "user": self.username,
-            "resource_type": "template",
             "resource": template_name,
             "resource_id": release_data["template_id"],
-            "extra": json.dumps(
-                {
-                    "variable_info": release_data["variable_info"],
-                    "instance_entity": release_data["instance_entity"],
-                    "ns_list": release_data["ns_list"],
-                }
-            ),
+            "extra": {
+                "variable_info": release_data["variable_info"],
+                "instance_entity": release_data["instance_entity"],
+                "ns_list": release_data["ns_list"],
+            },
+            'activity_type': BaseActivityType.Add,
         }
 
         # only one namespace
@@ -112,7 +113,8 @@ class DeployController:
             ret = release_result["success"][0]
             release_id = ret["instance_id"]
             log_params["description"] = "实例化模板集[{}]到命名空间[{}]".format(template_name, ret["ns_name"])
-            client.ContextActivityLogClient(**log_params).log_add(activity_status="succeed")
+            log_params['activity_status'] = BaseActivityStatus.Succeed
+            TemplatesetAuditor(AuditContext(**log_params)).raw_log()
             return release_id
 
         ret = release_result["failed"][0]
@@ -127,7 +129,8 @@ class DeployController:
             )
 
         log_params["description"] = description
-        client.ContextActivityLogClient(**log_params).log_add(activity_status="failed")
+        log_params['activity_status'] = BaseActivityStatus.Failed
+        TemplatesetAuditor(AuditContext(**log_params)).raw_log()
         return release_id
 
     def update_release(self, release_data):
@@ -139,20 +142,22 @@ class DeployController:
         log_params = {
             "project_id": project_id,
             "user": self.username,
-            "resource_type": "instance",
             "resource": release_data["name"],
             "resource_id": release_id,
-            "extra": json.dumps({"namespace": namespace_info["name"], "variable_info": release_data["variable_info"]}),
+            "extra": {"namespace": namespace_info["name"], "variable_info": release_data["variable_info"]},
+            'activity_type': BaseActivityType.Modify,
         }
         try:
             update_resources(self.access_token, self.username, release_data, namespace_info)
         except Exception as e:
             log_params["description"] = f"rollupdate failed: {e}"
-            client.ContextActivityLogClient(**log_params).log_modify(activity_status="failed")
+            log_params['activity_status'] = BaseActivityStatus.Failed
+            InstanceAuditor(AuditContext(**log_params)).raw_log()
             update_inst_params = {"ins_state": InsState.UPDATE_FAILED.value}
         else:
             log_params["description"] = f"rollupdate success"
-            client.ContextActivityLogClient(**log_params).log_modify(activity_status="succeed")
+            log_params['activity_status'] = BaseActivityStatus.Succeed
+            InstanceAuditor(AuditContext(**log_params)).raw_log()
             update_inst_params = {"ins_state": InsState.UPDATE_SUCCESS.value}
 
         update_inst_params.update(

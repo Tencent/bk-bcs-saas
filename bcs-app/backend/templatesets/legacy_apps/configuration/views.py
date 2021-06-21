@@ -24,7 +24,8 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from backend.accounts import bcs_perm
-from backend.bcs_web.audit_log.audit.decorators import AuditContext, log_audit, log_audit_on_view
+from backend.bcs_web.audit_log.audit.decorators import log_audit, log_audit_on_view
+from backend.bcs_web.audit_log.constants import BaseActivityType
 from backend.bcs_web.viewsets import SystemViewSet
 from backend.templatesets.legacy_apps.instance.utils import check_tempalte_available, validate_template_id
 from backend.utils.renderers import BKAPIRenderer
@@ -97,7 +98,7 @@ class TemplatesView(APIView):
 
 
 class CreateTemplateDraftView(SystemViewSet, TemplatePermission):
-    @log_audit_on_view(TemplatesetAuditor, activity_type='add')
+    @log_audit_on_view(TemplatesetAuditor, activity_type=BaseActivityType.Add)
     def create_draft(self, request, project_id, template_id):
         if is_create_template(template_id):
             # template dict like {'desc': '', 'name': ''}
@@ -250,7 +251,7 @@ class UpdateDestroyAppResourceView(APIView, TemplatePermission):
 
 
 class LockTemplateView(SystemViewSet, TemplatePermission):
-    @log_audit_on_view(TemplatesetAuditor, activity_type='add')
+    @log_audit_on_view(TemplatesetAuditor, activity_type=BaseActivityType.Add)
     def lock_template(self, request, project_id, template_id):
         template = get_template_by_project_and_id(project_id, template_id)
         self.validate_template_locked(request, template)
@@ -263,7 +264,7 @@ class LockTemplateView(SystemViewSet, TemplatePermission):
 
         return Response(data={})
 
-    @log_audit_on_view(TemplatesetAuditor, activity_type='delete')
+    @log_audit_on_view(TemplatesetAuditor, activity_type=BaseActivityType.Delete)
     def unlock_template(self, request, project_id, template_id):
         template = get_template_by_project_and_id(project_id, template_id)
         self.validate_template_locked(request, template)
@@ -312,13 +313,16 @@ class SingleTemplateView(generics.RetrieveUpdateDestroyAPIView):
         context.update({"request": self.request})
         return context
 
-    @log_audit(TemplatesetAuditor, activity_type='modify')
+    @log_audit(TemplatesetAuditor, activity_type=BaseActivityType.Modify)
     def perform_update(self, serializer):
-        instance = serializer.save(updator=self.request.user.username, project_id=self.project_id)
-        # 记录操作日志
         self.audit_ctx.update_fields(
-            resource=instance.name, resource_id=instance.id, extra=dict(serializer.data), description=_("更新模板集")
+            user=self.request.user.username,
+            project_id=self.project_id,
+            extra=dict(serializer.data),
+            description=_("更新模板集"),
         )
+        instance = serializer.save(updator=self.request.user.username, project_id=self.project_id)
+        self.audit_ctx.update_fields(resource=instance.name, resource_id=instance.id)
         # 同步模板集名称到权限中心
         self.perm.update_name(instance.name)
 
@@ -348,9 +352,6 @@ class SingleTemplateView(generics.RetrieveUpdateDestroyAPIView):
         self.slz = serializers_new.UpdateTemplateSLZ(data=request.data)
         self.slz.is_valid(raise_exception=True)
 
-        # 构建 audit_ctx 用于自定义的 perform_update 方法
-        self.audit_ctx = AuditContext(user=request.user.username, project_id=project_id)
-
         return super(SingleTemplateView, self).update(self.slz)
 
     def get(self, request, project_id, pk):
@@ -372,7 +373,7 @@ class SingleTemplateView(generics.RetrieveUpdateDestroyAPIView):
         data_list = perm.hook_perms([data])
         return Response({"code": 0, "message": "OK", "data": data_list[0]})
 
-    @log_audit_on_view(TemplatesetAuditor, activity_type='delete')
+    @log_audit_on_view(TemplatesetAuditor, activity_type=BaseActivityType.Delete)
     def delete(self, request, project_id, pk):
         self.request = request
         self.project_id = project_id
@@ -402,7 +403,7 @@ class SingleTemplateView(generics.RetrieveUpdateDestroyAPIView):
 
         return Response({"code": 0, "message": "OK", "data": {"id": pk}})
 
-    @log_audit_on_view(TemplatesetAuditor, activity_type='add')
+    @log_audit_on_view(TemplatesetAuditor, activity_type=BaseActivityType.Add)
     @transaction.atomic
     def put(self, request, project_id, pk):
         """复制模板"""

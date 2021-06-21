@@ -20,11 +20,13 @@ from rest_framework.exceptions import ValidationError
 from rest_framework.renderers import BrowsableAPIRenderer
 from rest_framework.response import Response
 
-from backend.bcs_web.audit_log import client
+from backend.bcs_web.audit_log.audit.decorators import log_audit
+from backend.bcs_web.audit_log.constants import BaseActivityType
 from backend.templatesets.legacy_apps.instance.utils import has_instance_of_show_version
 from backend.utils.renderers import BKAPIRenderer
 
 from .. import models
+from ..auditor import TemplatesetAuditor
 from ..mixins import TemplatePermission
 from .serializers import (
     GetShowVersionSLZ,
@@ -49,6 +51,7 @@ def get_draft_show_version(template):
 class ShowVersionViewSet(viewsets.ViewSet, TemplatePermission):
     renderer_classes = (BKAPIRenderer, BrowsableAPIRenderer)
 
+    @log_audit(TemplatesetAuditor, activity_type=BaseActivityType.Modify)
     def _create_or_update_with_ventity(self, create_data):
         show_version_name = create_data["name"]
         username = create_data["username"]
@@ -80,15 +83,15 @@ class ShowVersionViewSet(viewsets.ViewSet, TemplatePermission):
         # show_version_id为 0，标识需要创建一个新的show version
         if show_version_id == 0:
             desc = _("新建版本[{}]").format(show_version_name)
-        client.ContextActivityLogClient(
+
+        self.audit_ctx.update_fields(
             project_id=create_data["project_id"],
             user=username,
-            resource_type="template",
             resource=template.name,
             resource_id=template.id,
-            extra=json.dumps(create_data),
+            extra=create_data,
             description=desc,
-        ).log_modify()
+        )
 
         return show_version
 
@@ -170,39 +173,31 @@ class ShowVersionViewSet(viewsets.ViewSet, TemplatePermission):
 
         return Response({"show_version_id": show_version.id})
 
+    @log_audit(TemplatesetAuditor, activity_type=BaseActivityType.Modify)
     def _delete_show_version(self, delete_data):
         project_id = delete_data["project_id"]
         template = delete_data["template"]
         show_version_id = delete_data["show_version_id"]
         username = delete_data["username"]
 
+        audit_ctx_kwargs = {
+            'project_id': project_id,
+            'user': username,
+            'resource': template.name,
+            'resource_id': template.id,
+        }
         if show_version_id == "-1":
             models.Template.objects.filter(id=template.id).update(
                 draft="", draft_time=None, draft_updator="", draft_version=0
             )
-            client.ContextActivityLogClient(
-                project_id=project_id,
-                user=username,
-                resource_type="template",
-                resource=template.name,
-                resource_id=template.id,
-                extra="",
-                description=_("删除草稿"),
-            ).log_modify()
+            audit_ctx_kwargs.update({'description': _("删除草稿")})
         else:
             show_version = models.ShowVersion.objects.get(template_id=template.id, id=show_version_id)
             version_name = show_version.name
             show_version.delete()
+            audit_ctx_kwargs.update({'extra': show_version_id, 'description': _("删除版本[{}]").format(version_name)})
 
-            client.ContextActivityLogClient(
-                project_id=project_id,
-                user=username,
-                resource_type="template",
-                resource=template.name,
-                resource_id=template.id,
-                extra=show_version_id,
-                description=_("删除版本[{}]").format(version_name),
-            ).log_modify()
+        self.audit_ctx.update_fields(**audit_ctx_kwargs)
 
     def delete_show_version(self, request, project_id, template_id, show_version_id):
         template = models.get_template_by_project_and_id(project_id, template_id)

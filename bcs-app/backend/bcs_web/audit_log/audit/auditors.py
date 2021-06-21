@@ -13,6 +13,7 @@
 #
 from dataclasses import asdict
 
+from ..constants import BaseActivityStatus
 from ..models import UserActivityLog
 from .context import AuditContext
 
@@ -20,33 +21,41 @@ from .context import AuditContext
 class Auditor:
     """提供操作审计日志记录功能"""
 
-    def __init__(self, audit_context: AuditContext):
-        self.audit_context = audit_context
+    def __init__(self, audit_ctx: AuditContext):
+        self.audit_ctx = audit_ctx
+
+    def raw_log(self):
+        UserActivityLog.objects.create(**asdict(self.audit_ctx))
 
     def log_succeed(self):
-        self._log('succeed')
+        self._log(BaseActivityStatus.Succeed)
 
     def log_failed(self, err_msg: str = ''):
-        self._log('failed', err_msg)
+        self._log(BaseActivityStatus.Failed, err_msg)
 
     def _log(self, activity_status: str, err_msg: str = ''):
-        if not self.audit_context.description:
-            self.audit_context.description = self._gen_default_description(activity_status, err_msg)
-        self.audit_context.activity_status = activity_status
-        UserActivityLog.objects.create(**asdict(self.audit_context))
+        self._complete_description(activity_status, err_msg)
+        self.audit_ctx.activity_status = activity_status
+        UserActivityLog.objects.create(**asdict(self.audit_ctx))
 
-    def _gen_default_description(self, activity_status: str, err_msg: str):
-        audit_context = self.audit_context
-        description_prefix = f'{audit_context.activity_type} {audit_context.resource_type}'
-        if audit_context.resource:
-            description_prefix = f'{description_prefix} {audit_context.resource}'
+    def _complete_description(self, activity_status: str, err_msg: str):
+        audit_ctx = self.audit_ctx
+        if not audit_ctx.description:
+            description_prefix = f'{audit_ctx.activity_type} {audit_ctx.resource_type}'
+            if audit_ctx.resource:
+                description_prefix = f'{description_prefix} {audit_ctx.resource}'
+        else:
+            description_prefix = audit_ctx.description
 
         if err_msg:
-            return f'{description_prefix} {activity_status}: {err_msg}'
-        return f'{description_prefix} {activity_status}'
+            audit_ctx.description = (
+                f'{description_prefix} {BaseActivityStatus.get_choice_label(activity_status)}: {err_msg}'
+            )
+        else:
+            audit_ctx.description = f'{description_prefix} {BaseActivityStatus.get_choice_label(activity_status)}'
 
 
 class HelmAuditor(Auditor):
-    def __init__(self, audit_context: AuditContext):
-        super().__init__(audit_context)
-        self.audit_context.resource_type = 'helm'
+    def __init__(self, audit_ctx: AuditContext):
+        super().__init__(audit_ctx)
+        self.audit_ctx.resource_type = 'helm'

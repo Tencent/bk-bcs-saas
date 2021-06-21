@@ -99,6 +99,7 @@ class BaseResourceType(str, StructuredEnum):
     Node = EnumField('node', _('节点'))
     Namespace = EnumField('namespace', _('命名空间'))
     Template = EnumField('template', _('模板集'))
+    Variable = EnumField('variable', _('变量'))
     Instance = EnumField('instance', _('应用'))
     Service = EnumField('service', _('Service'))
     Ingress = EnumField('ingress', _('Ingress'))

@@ -16,7 +16,7 @@ from backend.bcs_web.audit_log.audit.context import AuditContext
 from backend.bcs_web.audit_log.constants import BaseResourceType
 
 
-class TemplatesetAuditor(Auditor):
+class VariableAuditor(Auditor):
     def __init__(self, audit_ctx: AuditContext):
         super().__init__(audit_ctx)
-        self.audit_ctx.resource_type = BaseResourceType.Template  # 沿用 DB 中的旧值 'template'
+        self.audit_ctx.resource_type = BaseResourceType.Variable

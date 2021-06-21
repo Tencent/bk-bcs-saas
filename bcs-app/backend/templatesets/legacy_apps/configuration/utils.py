@@ -24,10 +24,13 @@ from rest_framework.exceptions import ValidationError
 
 from backend.accounts import bcs_perm
 from backend.apps.constants import ProjectKind
-from backend.bcs_web.audit_log import client
+from backend.bcs_web.audit_log.audit.context import AuditContext
+from backend.bcs_web.audit_log.audit.decorators import log_audit
+from backend.bcs_web.audit_log.constants import BaseActivityType
 from backend.utils import cache
 from backend.utils.exceptions import ResNotFoundError
 
+from .auditor import TemplatesetAuditor
 from .constants import NUM_VAR_ERROR_MSG, RESOURCE_NAMES, VARIABLE_PATTERN, TemplateEditMode
 from .models import CATE_SHOW_NAME, MODULE_DICT, ShowVersion, Template, VersionedEntity
 from .serializers_new import CreateTemplateSLZ, TemplateSLZ
@@ -166,41 +169,38 @@ def validate_template_locked(template, username):
         raise ValidationError(_('{locker}正在操作，您如需操作请联系{locker}解锁').format(locker=locker))
 
 
-def create_template(username, project_id, tpl_args):
+@log_audit(TemplatesetAuditor, activity_type=BaseActivityType.Add, ignore_exceptions=(ValidationError,))
+def create_template(audit_ctx, username, project_id, tpl_args):
     if not tpl_args:
         raise ValidationError(_("请先创建模板集"))
+
+    audit_ctx.update_fields(
+        resource=tpl_args['name'],
+        extra=tpl_args,
+        description=_("创建模板集"),
+    )
 
     tpl_args['project_id'] = project_id
     serializer = CreateTemplateSLZ(data=tpl_args)
     serializer.is_valid(raise_exception=True)
     template = serializer.save(creator=username)
-    # 记录操作日志
-    client.ContextActivityLogClient(
-        project_id=project_id,
-        user=username,
-        resource_type='template',
-        resource=tpl_args['name'],
-        resource_id=template.id,
-        extra=json.dumps(tpl_args),
-        description=_("创建模板集"),
-    ).log_add()
+    audit_ctx.update_fields(resource_id=template.id)
+
     return template
 
 
-def update_template(username, template, tpl_args):
+@log_audit(TemplatesetAuditor, activity_type=BaseActivityType.Modify)
+def update_template(audit_ctx, username, template, tpl_args):
     serializer = TemplateSLZ(template, data=tpl_args)
     serializer.is_valid(raise_exception=True)
-    template = serializer.save(updator=username)
     # 记录操作日志
-    client.ContextActivityLogClient(
-        project_id=template.project_id,
-        user=username,
-        resource_type="template",
+    audit_ctx.update_fields(
         resource=template.name,
         resource_id=template.id,
-        extra=json.dumps(serializer.data),
+        extra=dict(serializer.data),
         description=_("更新模板集"),
-    ).log_modify()
+    )
+    template = serializer.save(updator=username)
     return template
 
 
@@ -209,7 +209,9 @@ def create_template_with_perm_check(request, project_id, tpl_args):
     perm = bcs_perm.Templates(request, project_id, bcs_perm.NO_RES)
     # 如果没有权限，会抛出异常
     perm.can_create(raise_exception=True)
-    template = create_template(request.user.username, project_id, tpl_args)
+
+    audit_ctx = AuditContext(user=request.user.username, project_id=project_id)
+    template = create_template(audit_ctx, request.user.username, project_id, tpl_args)
     # 注册资源到权限中心
     perm.register(template.id, tpl_args['name'])
     return template
@@ -220,7 +222,9 @@ def update_template_with_perm_check(request, template, tpl_args):
     # 验证用户是否有编辑权限
     perm = bcs_perm.Templates(request, template.project_id, template.id, template.name)
     perm.can_edit(raise_exception=True)
-    template = update_template(request.user.username, template, tpl_args)
+
+    audit_ctx = AuditContext(user=request.user.username, project_id=template.project_id)
+    template = update_template(audit_ctx, request.user.username, template, tpl_args)
     if template.name != tpl_args.get('name'):
         perm.update_name(template.name)
     return template
