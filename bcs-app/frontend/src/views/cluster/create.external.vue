@@ -139,8 +139,7 @@
                                 （{{$t('关联业务：')}}{{ccApplicationName}}）
                             </span>
                             <span class="tip">{{$t('请选择奇数个服务器')}}</span>
-                            <span class="remain-tip" v-if="isEn">{{remainCount}} items</span>
-                            <span class="remain-tip" v-else>已选择{{remainCount}}个节点</span>
+                            <span class="remain-tip">{{$t('已选择{count}个节点', { count: remainCount })}}</span>
                         </div>
                         <div style="position: absolute;right: 20px;top: 11px;">
                             <div class="biz-searcher-wrapper">
@@ -210,12 +209,7 @@
                                                     </span>
                                                     <template slot="content">
                                                         <p style="text-align: left; white-space: normal;word-break: break-all;">
-                                                            <template v-if="isEn">
-                                                                Agent abnormal, please install first
-                                                            </template>
-                                                            <template v-else>
-                                                                Agent异常，请先安装
-                                                            </template>
+                                                            {{$t('Agent异常，请先安装')}}
                                                         </p>
                                                     </template>
                                                 </bcs-popover>

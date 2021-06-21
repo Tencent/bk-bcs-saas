@@ -452,8 +452,7 @@
                             </span>
                             <span class="tip ml0" v-if="clusterType === 'stag'">{{$t('请选择奇数个服务器，最多选择7个')}}</span>
                             <span class="tip ml0" v-else>{{$t('请选择奇数个服务器，最少选择3个，最多选择7个')}}</span>
-                            <span class="remain-tip ml5" v-if="isEn">{{remainCount}} items</span>
-                            <span class="remain-tip ml5" v-else>已选择{{remainCount}}个节点</span>
+                            <span class="remain-tip ml5">{{$t('已选择{count}个节点', { count: remainCount })}}</span>
                         </div>
                         <div style="position: absolute;right: 20px;top: 11px;">
                             <div class="biz-searcher-wrapper">
@@ -487,8 +486,7 @@
                                                 {{$t('Agent状态异常')}}
                                             </p>
                                             <p v-if="!row.is_valid" style="text-align: left; white-space: normal;word-break: break-all; width: 120px;">
-                                                <template v-if="isEn">Docker is not allowed to use</template>
-                                                <template v-else>Docker机不允许使用</template>
+                                                {{$t('Docker机不允许使用')}}
                                             </p>
                                         </template>
                                     </bcs-popover>

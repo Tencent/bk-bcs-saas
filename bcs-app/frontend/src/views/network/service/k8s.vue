@@ -57,15 +57,13 @@
                             <bk-table-column :label="$t('所属集群/命名空间')" min-width="200">
                                 <template slot-scope="props">
                                     <div class="lh20">
-                                        <span class="cluster-namespace-source en" v-if="isEn">Cluster: </span>
-                                        <span class="cluster-namespace-source" v-else>所属集群: </span>
+                                        <span :class="['cluster-namespace-source', { en: isEn }]">{{$t('所属集群: ')}}</span>
                                         <bcs-popover :content="props.row.clusterId || '--'" placement="top">
                                             <div class="cluster-name">{{props.row.cluster_name ? props.row.cluster_name : '--'}}</div>
                                         </bcs-popover>
                                     </div>
                                     <div class="lh20">
-                                        <span class="cluster-namespace-source en" v-if="isEn">Namespace: </span>
-                                        <span class="cluster-namespace-source" v-else>命名空间: </span>
+                                        <span :class="['cluster-namespace-source', { en: isEn }]">{{$t('命名空间: ')}}</span>
                                         {{props.row.namespace ? props.row.namespace : '--'}}
                                     </div>
                                 </template>

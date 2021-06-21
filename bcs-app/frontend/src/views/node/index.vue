@@ -207,8 +207,7 @@
             class="biz-cluster-set-label-sideslider"
             @hidden="hideSetLabel">
             <div slot="content">
-                <div class="title-tip" v-if="isEn">Tags help organize your resources (like env:prod)</div>
-                <div class="title-tip" v-else>标签有助于整理你的资源（如 env:prod）</div>
+                <div class="title-tip">{{$t('标签有助于整理你的资源（如 env:prod）')}}</div>
                 <div class="wrapper" style="position: relative;">
                     <form class="bk-form bk-form-vertical set-label-form">
                         <div class="bk-form-item flex-item">

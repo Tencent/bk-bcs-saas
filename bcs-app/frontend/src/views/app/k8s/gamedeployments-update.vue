@@ -23,8 +23,7 @@
                 </monaco-editor>
                 <div class="tip">
                     <i class="bcs-icon bcs-icon-alarm-insufficient" style="font-size: 16px;"></i>
-                    <span v-if="isEn">This action is equivalent to kubectl patch gamestatefulset {{renderItem.name}} -n {{renderItem.namespace}} --type='json' -p='{text}'</span>
-                    <span v-else>此操作相当于kubectl patch gamestatefulset {{renderItem.name}} -n {{renderItem.namespace}} --type='json' -p='{文本中的内容}'</span>
+                    <span>{{$t('此操作相当于kubectl patch gamestatefulset {name} -n {namespace} --type=\'json\' -p=\'\{文本中的内容\}\'', { name: renderItem.name, namespace: renderItem.namespace })}}</span>
                 </div>
             </div>
         </template>

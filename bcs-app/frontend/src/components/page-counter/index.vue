@@ -1,12 +1,7 @@
 <template>
     <div class="biz-page-count">
         <div class="total-page">
-            <template v-if="isEn">
-                Total: {{total || totalPage}} items
-            </template>
-            <template v-else>
-                共计{{total || totalPage}}条
-            </template>
+            {{$t('共计{total}条', { total: total || totalPage })}}
         </div>
         <div class="page-count-selector">
             <template v-if="isEn">
