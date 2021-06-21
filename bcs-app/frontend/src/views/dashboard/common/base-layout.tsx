@@ -103,7 +103,7 @@ export default defineComponent({
                 <bcs-sideslider
                     quick-close
                     isShow={this.showDetailPanel}
-                    title={this.curDetailRow.metadata?.name}
+                    title={this.curDetailRow.data?.metadata?.name}
                     width={800}
                     {
                     ...{
@@ -114,7 +114,7 @@ export default defineComponent({
                         },
                         scopedSlots: {
                             content: () => (this.$scopedSlots.detail && this.$scopedSlots.detail({
-                                data: this.curDetailRow
+                                ...this.curDetailRow
                             }))
                         }
                     }

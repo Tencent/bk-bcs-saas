@@ -39,8 +39,8 @@
                 </bk-table-column>
             </bk-table>
         </template>
-        <template #detail="{ data }">
-            <ServiceDetail :data="data"></ServiceDetail>
+        <template #detail="{ data, extData }">
+            <ServiceDetail :data="data" :ext-data="extData"></ServiceDetail>
         </template>
     </BaseLayout>
 </template>
