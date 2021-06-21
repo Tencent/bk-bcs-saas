@@ -224,7 +224,7 @@
             margin-top: 16px;
         }
         .storage {
-            margin-top: 24px;
+            margin-bottom: 24px;
             .title {
                 font-size: 14px;
                 color: #313238;

@@ -1,11 +1,12 @@
 <template>
     <BaseLayout title="PersistentVolumeClaims" kind="PersistentVolumeClaim" category="persistent_volume_claims" type="storages">
-        <template #default="{ curPageData, pageConf, handlePageChange, handlePageSizeChange, handleGetExtData }">
+        <template #default="{ curPageData, pageConf, handlePageChange, handlePageSizeChange, handleGetExtData, handleSortChange }">
             <bk-table
                 :data="curPageData"
                 :pagination="pageConf"
                 @page-change="handlePageChange"
-                @page-limit-change="handlePageSizeChange">
+                @page-limit-change="handlePageSizeChange"
+                @sort-change="handleSortChange">
                 <bk-table-column :label="$t('名称')" prop="metadata.name" sortable :resizable="false"></bk-table-column>
                 <bk-table-column :label="$t('命名空间')" prop="metadata.namespace" sortable :resizable="false"></bk-table-column>
                 <bk-table-column label="Status">

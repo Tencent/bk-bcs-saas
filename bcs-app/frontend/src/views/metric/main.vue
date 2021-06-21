@@ -4,12 +4,7 @@
             <div class="biz-app-title">
                 {{$t('Metric管理')}}
                 <span class="biz-tip ml10">
-                    <template v-if="isEn">
-                        Support for Metric in Prometheus format
-                    </template>
-                    <template v-else>
-                        支持 Prometheus 格式的 Metric
-                    </template>
+                    {{$t('支持 Prometheus 格式的 Metric')}}
                 </span>
             </div>
             <bk-guide></bk-guide>
