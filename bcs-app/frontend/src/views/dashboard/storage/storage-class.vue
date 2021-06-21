@@ -1,11 +1,12 @@
 <template>
     <BaseLayout title="StorageClasses" kind="StorageClass" category="storage_classes" type="storages" :show-name-space="false">
-        <template #default="{ curPageData, pageConf, handlePageChange, handlePageSizeChange, handleGetExtData }">
+        <template #default="{ curPageData, pageConf, handlePageChange, handlePageSizeChange, handleGetExtData, handleSortChange }">
             <bk-table
                 :data="curPageData"
                 :pagination="pageConf"
                 @page-change="handlePageChange"
-                @page-limit-change="handlePageSizeChange">
+                @page-limit-change="handlePageSizeChange"
+                @sort-change="handleSortChange">
                 <bk-table-column :label="$t('名称')" prop="metadata.name" sortable :resizable="false"></bk-table-column>
                 <bk-table-column label="Provisioner">
                     <template #default="{ row }">

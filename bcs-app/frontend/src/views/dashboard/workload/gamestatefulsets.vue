@@ -13,7 +13,7 @@
 </template>
 <script>
     import { defineComponent, ref } from '@vue/composition-api'
-    import DashboardTopActions from '../dashboard-top-actions'
+    import DashboardTopActions from '../common/dashboard-top-actions'
 
     export default defineComponent({
         name: 'HelloWorld',
