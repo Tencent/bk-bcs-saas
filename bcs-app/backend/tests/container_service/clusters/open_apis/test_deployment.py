@@ -17,7 +17,7 @@ import pytest
 
 from backend.container_service.clusters.base import CtxCluster
 from backend.resources.workloads.deployment import Deployment
-from backend.tests.conftest import DEFAULT_NAMESPACE, MOCK_CLUSTER_ID, MOCK_PROJECT_ID
+from backend.tests.conftest import TEST_CLUSTER_ID, TEST_NAMESPACE, TEST_PROJECT_ID
 from backend.tests.testing_utils.base import generate_random_string
 
 pytestmark = pytest.mark.django_db
@@ -27,18 +27,18 @@ class TestDeployment:
     """ Deployment OpenAPI 相关接口测试 """
 
     deployment_name = 'deployment-for-test-{}'.format(generate_random_string(8))
-    common_prefix = '/apis/resources/projects/{project_id}/clusters/{cluster_id}/namespaces/{namespace}/deployments'.format(  # noqa
-        project_id=MOCK_PROJECT_ID, cluster_id=MOCK_CLUSTER_ID, namespace=DEFAULT_NAMESPACE
+    common_prefix = '/apis/resources/projects/{p_id}/clusters/{c_id}/namespaces/{ns}/deployments'.format(
+        p_id=TEST_PROJECT_ID, c_id=TEST_CLUSTER_ID, ns=TEST_NAMESPACE
     )
 
     @pytest.fixture(autouse=True)
     def common_patch(self, patch_system_viewset, patch_get_dynamic_client):
-        ctx_cluster = CtxCluster.create(MOCK_CLUSTER_ID, MOCK_PROJECT_ID, token='token')
+        ctx_cluster = CtxCluster.create(TEST_CLUSTER_ID, TEST_PROJECT_ID, token='token')
         Deployment(ctx_cluster).update_or_create(
-            namespace=DEFAULT_NAMESPACE, name=self.deployment_name, body=gen_deployment_body(self.deployment_name)
+            namespace=TEST_NAMESPACE, name=self.deployment_name, body=gen_deployment_body(self.deployment_name)
         )
         yield
-        Deployment(ctx_cluster).delete(namespace=DEFAULT_NAMESPACE, name=self.deployment_name)
+        Deployment(ctx_cluster).delete(namespace=TEST_NAMESPACE, name=self.deployment_name)
 
     def test_list_by_namespace(self, api_client):
         """ 测试获取指定命名空间下的 Deployment """
@@ -50,7 +50,19 @@ class TestDeployment:
         """ 测试获取指定 Deployment 下属 Pod """
         response = api_client.get(f'{self.common_prefix}/{self.deployment_name}/pods/')
         assert response.json()['code'] == 0
-        assert isinstance(response.json()['data'], list)
+        response_data = response.json()['data']
+        assert isinstance(response_data, list)
+        # 验证获取到的 Pod 属于指定 Deployment（名称前缀相同）
+        assert set(response_data[0].keys()) == {
+            'data',
+            'clusterId',
+            'resourceType',
+            'resourceName',
+            'namespace',
+            'createTime',
+            'updateTime',
+        }
+        assert response_data[0]['resourceName'].startswith(self.deployment_name)
 
 
 def gen_deployment_body(name: str) -> Dict:

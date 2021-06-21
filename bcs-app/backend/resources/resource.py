@@ -42,6 +42,8 @@ class ResourceClient:
             self.api = self.dynamic_client.resources.get(kind=self.kind, api_version=api_version)
         else:
             self.api = self.dynamic_client.get_preferred_resource(self.kind)
+        # 保存 ctx_cluster 作为类对象，部分方法会使用
+        self.ctx_cluster = ctx_cluster
 
     def list(
         self, is_format: bool = True, formatter: Optional[ResourceDefaultFormatter] = None, **kwargs

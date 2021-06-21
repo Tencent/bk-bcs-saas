@@ -17,7 +17,7 @@ import pytest
 
 from backend.container_service.clusters.base import CtxCluster
 from backend.resources.workloads.pod import Pod
-from backend.tests.conftest import DEFAULT_NAMESPACE, MOCK_CLUSTER_ID, MOCK_PROJECT_ID
+from backend.tests.conftest import TEST_CLUSTER_ID, TEST_NAMESPACE, TEST_PROJECT_ID
 from backend.tests.testing_utils.base import generate_random_string
 
 pytestmark = pytest.mark.django_db
@@ -30,27 +30,25 @@ class TestPod:
 
     @pytest.fixture(autouse=True)
     def common_patch(self, patch_system_viewset, patch_get_dynamic_client):
-        ctx_cluster = CtxCluster.create(MOCK_CLUSTER_ID, MOCK_PROJECT_ID, token='token')
+        ctx_cluster = CtxCluster.create(TEST_CLUSTER_ID, TEST_PROJECT_ID, token='token')
         Pod(ctx_cluster).update_or_create(
-            namespace=DEFAULT_NAMESPACE, name=self.pod_name, body=gen_pod_body(self.pod_name)
+            namespace=TEST_NAMESPACE, name=self.pod_name, body=gen_pod_body(self.pod_name)
         )
         yield
-        Pod(ctx_cluster).delete(namespace=DEFAULT_NAMESPACE, name=self.pod_name)
+        Pod(ctx_cluster).delete(namespace=TEST_NAMESPACE, name=self.pod_name)
 
     def test_get_pod(self, api_client):
         """ 测试获取指定命名空间下的 Deployment """
         response = api_client.get(
-            '/apis/resources/projects/{project_id}/clusters/{cluster_id}/namespaces/{namespace}/pods/{pod_name}/'.format(  # noqa
-                project_id=MOCK_PROJECT_ID,
-                cluster_id=MOCK_CLUSTER_ID,
-                namespace=DEFAULT_NAMESPACE,
-                pod_name=self.pod_name,
+            '/apis/resources/projects/{p_id}/clusters/{c_id}/namespaces/{ns}/pods/{pod_name}/'.format(
+                p_id=TEST_PROJECT_ID, c_id=TEST_CLUSTER_ID, ns=TEST_NAMESPACE, pod_name=self.pod_name
             )
         )
         assert response.json()['code'] == 0
         response_data = response.json()['data']
         assert isinstance(response_data, list)
         assert isinstance(response_data[0]['data'], dict)
+        # 测试 ResourceDefaultFormatter 是否生效
         assert set(response_data[0].keys()) == {
             'data',
             'clusterId',

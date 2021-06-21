@@ -14,11 +14,8 @@
 from backend.packages.blue_krill.data_types.enum import EnumField, StructuredEnum
 from backend.utils.basic import ChoicesEnum
 
-# Deployment 名称格式
-DEPLOYMENT_REGEX = "[a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*"
-
-# Pod 名称格式
-POD_REGEX = DEPLOYMENT_REGEX
+# k8s 资源名称格式
+KUBE_NAME_REGEX = "[a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*"
 
 # cronjob 不在 preferred resource 中，需要指定 api_version
 DEFAULT_CRON_JOB_API_VERSION = 'v1beta1'

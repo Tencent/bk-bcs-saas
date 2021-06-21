@@ -11,9 +11,8 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-from typing import Dict, Optional
+from typing import Dict
 
-from backend.container_service.clusters.base.models import CtxCluster
 from backend.resources.constants import K8sResourceKind
 from backend.resources.namespace.formatter import NamespaceFormatter
 from backend.resources.namespace.utils import create_cc_namespace, get_namespaces_by_cluster_id
@@ -23,11 +22,6 @@ from backend.resources.resource import ResourceClient
 class Namespace(ResourceClient):
     kind = K8sResourceKind.Namespace.value
     formatter = NamespaceFormatter()
-
-    def __init__(self, ctx_cluster: CtxCluster, api_version: Optional[str] = None):
-        super().__init__(ctx_cluster, api_version)
-        # 保存 ctx_cluster 作为类对象，部分方法会使用
-        self.ctx_cluster = ctx_cluster
 
     def get_or_create_cc_namespace(self, name: str, username: str) -> Dict:
         """
@@ -44,8 +38,8 @@ class Namespace(ResourceClient):
         for ns in cc_namespaces:
             if ns["name"] == name:
                 return self._extract_namespace_info(ns)
-        else:
-            return self._create_namespace(username, name)
+
+        return self._create_namespace(username, name)
 
     def _create_namespace(self, creator: str, name: str) -> Dict:
         """

@@ -13,7 +13,7 @@
 #
 import pytest
 
-from backend.tests.conftest import MOCK_CLUSTER_ID, MOCK_PROJECT_ID
+from backend.tests.conftest import TEST_CLUSTER_ID, TEST_PROJECT_ID
 
 pytestmark = pytest.mark.django_db
 
@@ -23,7 +23,7 @@ class TestService:
 
     def test_list(self, api_client, metric_api_common_patch, patch_k8s_client):
         """ 测试获取 集群指标总览 接口 """
-        response = api_client.get(f'/api/metrics/projects/{MOCK_PROJECT_ID}/clusters/{MOCK_CLUSTER_ID}/services/')
+        response = api_client.get(f'/api/metrics/projects/{TEST_PROJECT_ID}/clusters/{TEST_CLUSTER_ID}/services/')
         assert response.json()['code'] == 0
         assert response.json()['data'] == [
             {

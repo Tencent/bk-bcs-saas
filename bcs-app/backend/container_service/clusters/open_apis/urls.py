@@ -13,7 +13,7 @@
 #
 from django.conf.urls import include, url
 
-from backend.resources.constants import DEPLOYMENT_REGEX, POD_REGEX
+from backend.resources.constants import KUBE_NAME_REGEX
 from backend.resources.namespace.constants import NAMESPACE_REGEX
 
 from .cluster import ClusterViewSet
@@ -40,12 +40,12 @@ urlpatterns = [
     ),
     url(
         r"^(?P<cluster_id>[\w\-]+)/namespaces/(?P<namespace>%s)/deployments/(?P<deploy_name>%s)/pods/$"
-        % (NAMESPACE_REGEX, DEPLOYMENT_REGEX),
+        % (NAMESPACE_REGEX, KUBE_NAME_REGEX),
         DeploymentViewSet.as_view({"get": "list_pods_by_deployment"}),
     ),
     url(
         r"^(?P<cluster_id>[\w\-]+)/namespaces/(?P<namespace>%s)/pods/(?P<pod_name>%s)/$"
-        % (NAMESPACE_REGEX, POD_REGEX),
+        % (NAMESPACE_REGEX, KUBE_NAME_REGEX),
         PodViewSet.as_view({"get": "get_pod"}),
     ),
 ]
