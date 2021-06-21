@@ -6,6 +6,7 @@ import useNamespace from './common/use-namespace'
 import usePage from './common/use-page'
 import useSearch from './common/use-search'
 import useSubscribe from './common/use-subscribe'
+import { sort } from '@/common/util'
 import './index.css'
 
 export default defineComponent({
@@ -21,9 +22,23 @@ export default defineComponent({
         // 获取命名空间
         const { namespaceLoading, namespaceData, getNamespaceData } = useNamespace(ctx)
 
+        // 排序
+        const sortData = ref({
+            prop: '',
+            order: ''
+        })
+        const handleSortChange = (data) => {
+            sortData.value = {
+                prop: data.prop,
+                order: data.order
+            }
+        }
+
         // 表格数据
         const tableData = computed(() => {
-            return namespaceData.value.manifest?.items || []
+            const items = JSON.parse(JSON.stringify(namespaceData.value.manifest?.items || []))
+            const { prop, order } = sortData.value
+            return prop ? sort(items, prop, order) : items
         })
         // resourceVersion
         const resourceVersion = computed(() => {
@@ -68,7 +83,8 @@ export default defineComponent({
             curPageData,
             pageChange,
             pageSizeChange,
-            handleExtCol
+            handleExtCol,
+            handleSortChange
         }
     },
     render () {
@@ -89,8 +105,9 @@ export default defineComponent({
                     <bcs-table data={this.curPageData}
                         pagination={this.pagination}
                         on-page-change={this.pageChange}
-                        on-page-limit-change={this.pageSizeChange}>
-                        <bcs-table-column label={this.$t('名称')}
+                        on-page-limit-change={this.pageSizeChange}
+                        on-sort-change={this.handleSortChange}>
+                        <bcs-table-column label={this.$t('名称')} sortable prop="metadata.name"
                             scopedSlots={{
                                 default: ({ row }: { row: any }) => row.metadata?.name || '--'
                             }}>
