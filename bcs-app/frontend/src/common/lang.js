@@ -425,6 +425,7 @@ export default {
     '节点数量': ['Node count'],
     '所属地域': ['Region'],
     '创建时间': ['Create Time'],
+    '存在时间': ['Existence Time'],
     '更新时间': ['Update Time'],
     '集群描述': ['Cluster Desc'],
     '设置变量': ['Set Variable'],
@@ -1862,7 +1863,8 @@ export default {
     '，然后进行安装; 重装系统后，如果内核版本大于0048，说明已经安装NAT模块': ['and install it. After reinstalling the system, if the kernel version is greater than 0048, the NAT module is installed.'],
     '您不是当前项目绑定业务的运维人员，如需申请机器，请联系业务运维人员 {maintainers}': ['You are not the operation and maintenance personnel of the business bound to the current project. If you need to apply for a machine, please contact the business operation and maintenance personnel {maintainers}'],
     '日志检索': ['Log retrieval'],
-    '搜索名称': ['Search name']
+    '搜索名称': ['Search name'],
+    '注释': ['annotation']
     // 变量的使用 $t('test', { vari1: 1, vari2: 2 })
     // // 变量的使用 $t('test', { vari1: 1, vari2: 2 })
     // 'test': ['{vari1} ---english--- {vari2}'],

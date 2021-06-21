@@ -103,7 +103,7 @@ export default defineComponent({
                 <bcs-sideslider
                     quick-close
                     isShow={this.showDetailPanel}
-                    title={this.curDetailRow.metadata?.name}
+                    title={this.curDetailRow.data?.metadata?.name}
                     width={800}
                     {
                     ...{

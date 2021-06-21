@@ -1,12 +1,16 @@
 <template>
     <BaseLayout title="ServiceAccounts" kind="ServiceAccount" category="service_accounts" type="rbac">
-        <template #default="{ curPageData, pageConf, handlePageChange, handlePageSizeChange, handleGetExtData }">
+        <template #default="{ curPageData, pageConf, handlePageChange, handlePageSizeChange, handleGetExtData, handleShowDetail }">
             <bk-table
                 :data="curPageData"
                 :pagination="pageConf"
                 @page-change="handlePageChange"
                 @page-limit-change="handlePageSizeChange">
-                <bk-table-column :label="$t('名称')" prop="metadata.name" sortable :resizable="false"></bk-table-column>
+                <bk-table-column :label="$t('名称')" prop="metadata.name" sortable :resizable="false">
+                    <template #default="{ row }">
+                        <bk-button class="bcs-button-ellipsis" text @click="handleShowDetail(row)">{{ row.metadata.name }}</bk-button>
+                    </template>
+                </bk-table-column>
                 <bk-table-column :label="$t('命名空间')" prop="metadata.namespace" sortable :resizable="false"></bk-table-column>
                 <bk-table-column label="Secrets">
                     <template #default="{ row }">
@@ -20,13 +24,17 @@
                 </bk-table-column>
             </bk-table>
         </template>
+        <template #detail="{ data }">
+            <ServiceAccountsDetail :data="data"></ServiceAccountsDetail>
+        </template>
     </BaseLayout>
 </template>
 <script>
     import { defineComponent } from '@vue/composition-api'
+    import ServiceAccountsDetail from './service-accounts-detail.vue'
     import BaseLayout from '@open/views/dashboard/common/base-layout'
 
     export default defineComponent({
-        components: { BaseLayout }
+        components: { BaseLayout, ServiceAccountsDetail }
     })
 </script>

@@ -19,7 +19,10 @@ export default function useCommon (ctx: SetupContext, options: IOptions) {
     const keys = ref(['metadata.name'])
     const namespaceValue = ref('')
     const showDetailPanel = ref(false)
-    const curDetailRow = ref<any>({})
+    const curDetailRow = ref<any>({
+        data: {},
+        extData: {}
+    })
 
     // 初始化集群列表信息
     useCluster(ctx)
@@ -83,9 +86,9 @@ export default function useCommon (ctx: SetupContext, options: IOptions) {
     })
 
     // 获取额外字段方法
-    const handleGetExtData = (uid: string, ext: string) => {
+    const handleGetExtData = (uid: string, ext?: string) => {
         const extData = data.value.manifest_ext[uid] || {}
-        return extData[ext]
+        return ext ? extData[ext] : extData
     }
 
     // 跳转详情界面
@@ -102,7 +105,8 @@ export default function useCommon (ctx: SetupContext, options: IOptions) {
 
     // 显示侧栏详情
     const handleShowDetail = (row) => {
-        curDetailRow.value = row
+        curDetailRow.value.data = row
+        curDetailRow.value.extData = handleGetExtData(row.metadata.uid)
         showDetailPanel.value = true
     }
 
