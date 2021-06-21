@@ -33,12 +33,27 @@ class ResourceList:
     """包装了 Kubernetes 资源列表的自定义类型
 
     :param data: DynamicClient 返回的 ResourceInstance 对象
+    :param item_type: 包装原始返回的资源类型，应当为 `ResourceObj` 或其子类
     """
 
     def __init__(self, data: ResourceInstance, item_type: Type[T]):
         self.data = data
+        self.item_type = item_type
         self.metadata = dict(data.metadata)
-        self.items: List[T] = [item_type(item) for item in self.data.items]
+        self._set_items(data)
+
+    def _set_items(self, data: ResourceInstance):
+        """Set `self.items` property based on current data"""
+        items = getattr(data, 'items')
+        try:
+            # 检查 "items" 是否可迭代
+            iter(items)
+            self.items: List[T] = [self.item_type(item) for item in items]
+        except TypeError:
+            # 当对 `CustomResourceDefinition` 等资源调用 list 接口时, Client 会返回普通的资源而不是 `*List` 类，
+            # 针对这种情况，用原结果造一个“假”资源列表
+            logger.warning(f"'data.items' is not a valid list type, current type: {type(items)}")
+            self.items: List[T] = [self.item_type(data)]
 
     def __repr__(self) -> str:
         return pprint.pformat({'metadata': self.metadata, 'items': self.items})
