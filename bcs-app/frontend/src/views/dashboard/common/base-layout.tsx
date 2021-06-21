@@ -1,5 +1,5 @@
 import { defineComponent } from '@vue/composition-api'
-import DashboardTopActions from '../dashboard-top-actions'
+import DashboardTopActions from './dashboard-top-actions'
 import useCommon from './use-common'
 import './base-layout.css'
 

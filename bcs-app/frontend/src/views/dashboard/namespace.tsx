@@ -1,5 +1,5 @@
 import { defineComponent, computed, ref, watch, onMounted } from '@vue/composition-api'
-import DashboardTopActions from './dashboard-top-actions'
+import DashboardTopActions from './common/dashboard-top-actions'
 import useCluster from './common/use-cluster'
 import useInterval from './common/use-interval'
 import useNamespace from './common/use-namespace'
@@ -7,7 +7,7 @@ import usePage from './common/use-page'
 import useSearch from './common/use-search'
 import useSubscribe from './common/use-subscribe'
 import { sort } from '@/common/util'
-import './index.css'
+import './namespace.css'
 
 export default defineComponent({
     name: 'Namespace',
