@@ -93,7 +93,7 @@
 .detail {
     &-title {
         margin-bottom: 10px;
-        font-size: 16px;
+        font-size: 14px;
         color: #333948;
     }
     &-content {
@@ -113,12 +113,12 @@
             height: 32px;
             td {
                 padding-left: 15px;
-                &:hover {
-                    background-color: #F7F8FA;
-                }
             }
             td:nth-child(1) {
                 width: 215px;
+            }
+            &:nth-child(even) {
+                background-color: #F7F8FA;
             }
         }
     }
