@@ -29,7 +29,7 @@ class TestPod:
     pod_name = 'pod-for-test-{}'.format(generate_random_string(8))
 
     @pytest.fixture(autouse=True)
-    def common_patch(self, patch_system_viewset, patch_get_dynamic_client):
+    def common_patch(self, patch_user_viewset, patch_get_dynamic_client):
         ctx_cluster = CtxCluster.create(TEST_CLUSTER_ID, TEST_PROJECT_ID, token='token')
         Pod(ctx_cluster).update_or_create(
             namespace=TEST_NAMESPACE, name=self.pod_name, body=gen_pod_body(self.pod_name)

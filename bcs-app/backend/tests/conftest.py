@@ -22,7 +22,7 @@ from rest_framework.test import APIClient
 from backend.container_service.projects.base.constants import ProjectKind
 from backend.tests.testing_utils.base import generate_random_string
 from backend.tests.testing_utils.mocks.k8s_client import get_dynamic_client
-from backend.tests.testing_utils.mocks.viewsets import FakeSystemViewSet
+from backend.tests.testing_utils.mocks.viewsets import FakeSystemViewSet, FakeUserViewSet
 from backend.utils import FancyDict
 
 TESTING_API_SERVER_URL = os.environ.get("TESTING_API_SERVER_URL", 'http://localhost:28180')
@@ -133,6 +133,12 @@ TEST_NAMESPACE = os.environ.get("TEST_NAMESPACE", 'default')
 @pytest.fixture
 def patch_system_viewset():
     with mock.patch('backend.bcs_web.viewsets.SystemViewSet', new=FakeSystemViewSet):
+        yield
+
+
+@pytest.fixture
+def patch_user_viewset():
+    with mock.patch('backend.bcs_web.viewsets.UserViewSet', new=FakeUserViewSet):
         yield
 
 

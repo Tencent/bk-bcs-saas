@@ -32,7 +32,7 @@ class TestDeployment:
     )
 
     @pytest.fixture(autouse=True)
-    def common_patch(self, patch_system_viewset, patch_get_dynamic_client):
+    def common_patch(self, patch_user_viewset, patch_get_dynamic_client):
         ctx_cluster = CtxCluster.create(TEST_CLUSTER_ID, TEST_PROJECT_ID, token='token')
         Deployment(ctx_cluster).update_or_create(
             namespace=TEST_NAMESPACE, name=self.deployment_name, body=gen_deployment_body(self.deployment_name)
@@ -73,9 +73,9 @@ def gen_deployment_body(name: str) -> Dict:
         'metadata': {'name': name, 'labels': {'app': 'nginx'}},
         'spec': {
             'replicas': 3,
-            'selector': {'matchLabels': {'app': 'nginx'}},
+            'selector': {'matchLabels': {'app': 'nginx', 'deploy_name': name}},
             'template': {
-                'metadata': {'labels': {'app': 'nginx'}},
+                'metadata': {'labels': {'app': 'nginx', 'deploy_name': name}},
                 'spec': {'containers': [{'name': 'nginx', 'image': 'nginx:1.14.2', 'ports': [{'containerPort': 80}]}]},
             },
         },

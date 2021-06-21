@@ -13,7 +13,7 @@
 #
 from rest_framework.response import Response
 
-from backend.bcs_web.viewsets import SystemViewSet
+from backend.bcs_web.viewsets import UserViewSet
 from backend.resources.utils.format import ResourceDefaultFormatter
 from backend.resources.utils.kube_client import make_labels_string
 from backend.resources.workloads.deployment import Deployment
@@ -21,7 +21,7 @@ from backend.resources.workloads.pod import Pod
 from backend.utils.basic import getitems
 
 
-class DeploymentViewSet(SystemViewSet):
+class DeploymentViewSet(UserViewSet):
     def list_by_namespace(self, request, project_id_or_code, cluster_id, namespace):
         # TODO 增加用户对层级资源project/cluster/namespace的权限校验
         deployments = Deployment(request.ctx_cluster).list(namespace=namespace, is_format=False)

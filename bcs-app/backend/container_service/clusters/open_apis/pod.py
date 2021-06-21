@@ -13,12 +13,12 @@
 #
 from rest_framework.response import Response
 
-from backend.bcs_web.viewsets import SystemViewSet
+from backend.bcs_web.viewsets import UserViewSet
 from backend.resources.utils.format import ResourceDefaultFormatter
 from backend.resources.workloads.pod import Pod
 
 
-class PodViewSet(SystemViewSet):
+class PodViewSet(UserViewSet):
     def get_pod(self, request, project_id_or_code, cluster_id, namespace, pod_name):
         """ 获取指定 Pod 信息，以列表格式返回 """
         pod = Pod(request.ctx_cluster).get(namespace=namespace, name=pod_name, formatter=ResourceDefaultFormatter())
