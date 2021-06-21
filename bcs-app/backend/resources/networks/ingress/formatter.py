@@ -77,6 +77,7 @@ class IngressFormatter(NetworkFormatter):
 
     def format_dict(self, resource_dict: Dict) -> Dict:
         res = self.format_common_dict(resource_dict)
+        # 根据不同 api 版本，选择不同的解析 Rules 方法
         parse_rules_func = {
             'networking.k8s.io/v1': self.parse_v1_rules,
             'extensions/v1beta1': self.parse_v1beta1_rules,
