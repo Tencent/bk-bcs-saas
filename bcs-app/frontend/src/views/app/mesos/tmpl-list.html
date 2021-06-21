@@ -64,11 +64,8 @@
                             <div class="app-name" :title="tmplMuster.tmpl_muster_name">
                                 {{tmplMuster.tmpl_muster_name}}
                             </div>
-                            <div class="app-desc" v-if="isEn">
-                                A total of {{tmplMuster.tmpl_num}} application templates
-                            </div>
-                            <div class="app-desc" v-else>
-                                共包含 {{tmplMuster.tmpl_num}} 个应用模板
+                            <div class="app-desc">
+                                {{$t('共包含{total}个应用模板', { total: tmplMuster.tmpl_num })}}
                             </div>
                             <div class="app-toggle">
                                 <i class="bcs-icon" :class="tmplMuster.isOpen ? 'bcs-icon-angle-up' : 'bcs-icon-angle-down'"></i>
@@ -90,12 +87,7 @@
                                                     {{$t('无应用')}}
                                                 </span>
                                                 <span class="status" v-else-if="tpl.error_num !== 0">
-                                                    <template v-if="isEn">
-                                                        App abnormal：{{tpl.error_num || 0}}
-                                                    </template>
-                                                    <template v-else>
-                                                        {{tpl.error_num || 0}}个应用异常
-                                                    </template>
+                                                    {{$t('{total}个应用异常', { total: tpl.error_num || 0 })}}
                                                 </span>
                                                 <span class="status normal" v-else>
                                                     {{$t('正常')}}
@@ -727,12 +719,7 @@
                                 </span>
                             </div>
                             <div class="app-desc">
-                                <template v-if="isEn">
-                                    A total of {{namespace.total_num}} applications, {{namespace.error_num === 0 ? 'no exception' : `${namespace.error_num} exceptions`}}
-                                </template>
-                                <template v-else>
-                                    共包含 {{namespace.total_num}} 个应用，{{namespace.error_num === 0 ? '无异常' : `${namespace.error_num}个异常`}}
-                                </template>
+                                {{$t('共包含 {total} 个应用，', { total: namespace.total_num })}} {{namespace.error_num === 0 ? $t('无异常') : $t('{total}个异常', { total: namespace.error_num })}}
                             </div>
                             <div class="app-act">
                                 <a href="javascript:void(0);" class="bk-text-button" @click.stop="batchDelete4Namespace(namespace, namespaceIndex)"

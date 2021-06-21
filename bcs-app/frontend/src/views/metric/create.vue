@@ -57,14 +57,9 @@
                             </div>
                         </div>
                         <div class="bk-form-content" v-else>
-                            <div style="color: #737987;font-size: 14px;">
-                                <template v-if="isEn">
-                                    Current Service does not set Labels.<a class="bk-text-button metric-query" @click="goService" href="javascript:void(0)">Please add it first</a>
-                                </template>
-                                <template v-else>
-                                    当前Service没有设置Labels，<a class="bk-text-button metric-query" @click="goService" href="javascript:void(0)">请先添加</a>
-                                </template>
-                            </div>
+                            <i18n path="当前Service没有设置Labels，{action}" style="color: #737987;font-size: 14px;" tag="div">
+                                <a place="action" class="bk-text-button metric-query" @click="goService" href="javascript:void(0)">{{$t('请先添加')}}</a>
+                            </i18n>
                         </div>
                     </div>
                     <div class="bk-form-item" v-if="portList.length">

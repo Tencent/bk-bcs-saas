@@ -353,8 +353,9 @@
                                         </template>
                                     </template>
                                     <template v-else>
-                                        <span v-if="isEn" style="margin-left: 10px;">Please contact "<a :href="PROJECT_CONFIG.doc.contact" class="bk-text-button">BCS</a>"</span>
-                                        <span v-else style="margin-left: 10px;">请联系“<a :href="PROJECT_CONFIG.doc.contact" class="bk-text-button">蓝鲸容器助手</a>”解决</span>
+                                        <i18n path="请联系“{user}”解决">
+                                            <a place="user" :href="PROJECT_CONFIG.doc.contact" class="bk-text-button">{{$t('蓝鲸容器助手')}}</a>
+                                        </i18n>
                                     </template>
                                 </div>
                                 <div style="margin: 10px 0px 5px 13px; font-size: 10px;" v-else>
@@ -407,8 +408,9 @@
                                         </template>
                                     </template>
                                     <template v-else>
-                                        <span v-if="isEn" style="margin-left: 10px;">Please contact "<a :href="PROJECT_CONFIG.doc.contact" class="bk-text-button">BCS</a>"</span>
-                                        <span v-else style="margin-left: 10px;">请联系“<a :href="PROJECT_CONFIG.doc.contact" class="bk-text-button">蓝鲸容器助手</a>”解决</span>
+                                        <i18n path="请联系“{user}”解决">
+                                            <a place="user" :href="PROJECT_CONFIG.doc.contact" class="bk-text-button">{{$t('蓝鲸容器助手')}}</a>
+                                        </i18n>
                                     </template>
                                 </div>
                                 <div style="margin: 10px 0px 5px 13px; font-size: 10px;" v-else>
@@ -446,8 +448,9 @@
                 <div class="helm-repos-detail" v-else>
                     <div class="repos-item">
                         <div class="wrapper mb10">
-                            <p class="url mb15" v-if="isEn">You can manage K8S resources through <router-link class="bk-text-button bk-primary" :to="{ name: 'helmTplList' }">Helm Chart</router-link></p>
-                            <p class="url mb15" v-else>您可以通过<router-link class="bk-text-button bk-primary" :to="{ name: 'helmTplList' }">Helm Chart</router-link>的方式管理K8S资源</p>
+                            <i18n path="您可以通过{method}的方式管理K8S资源" class="url mb15" tag="p">
+                                <router-link place="method" class="bk-text-button bk-primary" :to="{ name: 'helmTplList' }">Helm Chart</router-link>
+                            </i18n>
                             <p class="url mb25">
                                 <a :href="PROJECT_CONFIG.doc.serviceAccess" target="_blank" class="bk-text-button">{{$t('点击了解更多')}}</a>
                             </p>
@@ -456,15 +459,12 @@
                 </div>
 
                 <div class="biz-message" v-if="helmErrorCode === 40032">
-                    <template v-if="isEn">
-                        <h3>No nodes under cluster, and you need to:</h3>
-                        <p>1. Under cluster, add nodes</p>
-                        <p>2. Or Contact【<a :href="PROJECT_CONFIG.doc.contact" class="bk-text-button">BCS</a>】</p>
-                    </template>
-                    <template v-else>
-                        <h3>集群下没有节点，您需要：</h3>
-                        <p>1、在集群下，添加节点</p>
-                        <p>2、或者联系【<a :href="PROJECT_CONFIG.doc.contact" class="bk-text-button">蓝鲸容器助手</a>】</p>
+                    <template>
+                        <h3>{{$t('集群下没有节点，您需要：')}}</h3>
+                        <p>{{$t('1、在集群下，添加节点')}}</p>
+                        <i18n path="2、或者联系【{user}】" tag="p">
+                            <a place="user" :href="PROJECT_CONFIG.doc.contact" class="bk-text-button">{{$t('蓝鲸容器助手')}}</a>
+                        </i18n>
                     </template>
                 </div>
             </template>

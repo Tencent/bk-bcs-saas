@@ -296,8 +296,12 @@
                         <template v-if="editNamespaceConf.variableList && editNamespaceConf.variableList.length">
                             <div class="bk-form-item flex-item">
                                 <div class="left">
-                                    <label class="bk-label label" v-if="isEn">Variables: <span class="biz-tip fn">(You can create more variables in the namespace through <button class="bk-text-button" @click="handleGoVar">Variables</button>)</span></label>
-                                    <label class="bk-label label" v-else>变量：<span class="biz-tip fn">（可通过 <button class="bk-text-button" @click="handleGoVar">变量管理</button> 创建更多作用在命名空间的变量）</span></label>
+                                    <label class="bk-label label">
+                                        {{$t('变量：')}}
+                                        <i18n path="（可通过 {action} 创建更多作用在命名空间的变量）" class="biz-tip fn">
+                                            <button place="action" class="bk-text-button" @click="handleGoVar">{{$t('变量管理')}}</button>
+                                        </i18n>
+                                    </label>
                                 </div>
                             </div>
                             <div class="bk-form-item">
@@ -322,10 +326,9 @@
                             </div>
                         </template>
                         <template v-else>
-                            <div class="biz-tip mt40">
-                                <template v-if="isEn">The project does not set an environment variable that acts on the namespace. You cannot set the variable value. You can go to the <router-link class="bk-text-button" :to="{ name: 'var', params: { projectCode: projectCode } }">Variables</router-link> to set.</template>
-                                <template v-else>该项目未设置作用在命名空间范围的环境变量，无法设置变量值，可前往 <router-link class="bk-text-button" :to="{ name: 'var', params: { projectCode: projectCode } }">变量管理</router-link> 设置</template>
-                            </div>
+                            <i18n path="该项目未设置作用在命名空间范围的环境变量，无法设置变量值，可前往 {action} 设置" class="biz-tip mt40" tag="div">
+                                <router-link place="action" class="bk-text-button" :to="{ name: 'var', params: { projectCode: projectCode } }">{{$t('变量管理')}}</router-link>
+                            </i18n>
                         </template>
                     </div>
                 </div>
@@ -463,12 +466,7 @@
                     {{$t('')}}
                 </div> -->
                 <div class="info">
-                    <template v-if="isEn">
-                        Confirm want to delete the namespace: {{delNamespaceDialogConf.ns.name}}?
-                    </template>
-                    <template v-else>
-                        您确定要删除Namespace: {{delNamespaceDialogConf.ns.name}}吗？
-                    </template>
+                    {{$t('您确定要删除Namespace: {name}吗？', { name: delNamespaceDialogConf.ns.name })}}
                 </div>
                 <div style="color: red;">
                     {{$t('删除Namespace将销毁Namespace下的所有资源，销毁后所有数据将被清除且不可恢复，请提前备份好数据。')}}
@@ -512,12 +510,7 @@
                     </div>
                     <template v-else>
                         <div class="info">
-                            <template v-if="isEn">
-                                Confirm want to delete the namespace: {{delMesosNamespaceDialogConf.ns.name}}?
-                            </template>
-                            <template v-else>
-                                您确定要删除Namespace: {{delMesosNamespaceDialogConf.ns.name}}吗？
-                            </template>
+                            {{$t('您确定要删除Namespace: {name}吗？', { name: delNamespaceDialogConf.ns.name })}}
                         </div>
                     </template>
                 </div>
@@ -547,12 +540,7 @@
             @cancel="delQuotaDialogConf.isShow = false">
             <template slot="content" style="padding: 0 20px;">
                 <div class="info">
-                    <template v-if="isEn">
-                        Confirm want to delete the namespace's quota: {{delQuotaDialogConf.ns.name}}?
-                    </template>
-                    <template v-else>
-                        确定删除Namespace: {{delQuotaDialogConf.ns.name}}的配额？
-                    </template>
+                    {{$t('确定删除Namespace: {name}的配额？', { name: delQuotaDialogConf.ns.name })}}
                 </div>
             </template>
             <div slot="footer">
