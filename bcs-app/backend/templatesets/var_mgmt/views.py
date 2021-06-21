@@ -248,9 +248,6 @@ class VariableOverView(viewsets.ViewSet):
         del_id_list = list(query_sets.values_list('id', flat=True))
 
         deled_id_list = []
-        request.audit_ctx.update_fields(
-            resource=','.join(name_list), resource_id=json.dumps(del_id_list), description=_("删除变量")
-        )
         for _s in query_sets:
             # 删除后KEY添加 [deleted]前缀
             _del_prefix = '[deleted_%s]' % int(time.time())
@@ -259,6 +256,11 @@ class VariableOverView(viewsets.ViewSet):
             _s.deleted_time = timezone.now()
             _s.save()
             deled_id_list.append(_s.id)
+
+        request.audit_ctx.update_fields(
+            resource=','.join(name_list), resource_id=json.dumps(del_id_list), description=_("删除变量")
+        )
+
         return Response({"code": 0, "message": "OK", "data": {"deled_id_list": deled_id_list}})
 
     def get_quote_info(self, request, project_id, pk):
