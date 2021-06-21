@@ -8,26 +8,26 @@
                 <tbody>
                     <tr>
                         <td>{{ $t('命名空间') }}</td>
-                        <td>{{ data.data.metadata.namespace || '--' }}</td>
+                        <td>{{ data.metadata.namespace || '--' }}</td>
                     </tr>
                     <tr>
                         <td>UID</td>
-                        <td>{{ data.data.metadata.uid || '--' }}</td>
+                        <td>{{ data.metadata.uid || '--' }}</td>
                     </tr>
                     <tr>
                         <td>{{ $t('创建时间') }}</td>
-                        <td>{{ data.extData.createTime || '--' }}</td>
+                        <td>{{ extData.createTime || '--' }}</td>
                     </tr>
                     <tr>
                         <td>{{ $t('存在时间') }}</td>
-                        <td>{{ data.extData.age || '--' }}</td>
+                        <td>{{ extData.age || '--' }}</td>
                     </tr>
                 </tbody>
             </table>
         </div>
         <bcs-tab class="mt20" :label-height="40">
             <bcs-tab-panel name="data" label="Data">
-                <bk-table :data="data.data.data">
+                <bk-table :data="data.data">
                     <bk-table-column label="Key">
                         <template slot-scope="props">
                             {{ props.$index }}
@@ -41,7 +41,7 @@
                 </bk-table>
             </bcs-tab-panel>
             <bcs-tab-panel name="lebel" :label="$t('标签')">
-                <bk-table :data="data.data.metadata.labels">
+                <bk-table :data="data.metadata.labels">
                     <bk-table-column label="Key">
                         <template slot-scope="props">
                             {{ props.$index }}
@@ -55,7 +55,7 @@
                 </bk-table>
             </bcs-tab-panel>
             <bcs-tab-panel name="annotation" :label="$t('注释')">
-                <bk-table :data="data.data.metadata.annotations">
+                <bk-table :data="data.metadata.annotations">
                     <bk-table-column label="Key">
                         <template slot-scope="props">
                             {{ props.$index }}
@@ -79,6 +79,10 @@
         props: {
             // 当前行数据
             data: {
+                type: Object,
+                default: () => ({})
+            },
+            extData: {
                 type: Object,
                 default: () => ({})
             }

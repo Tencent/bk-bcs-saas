@@ -29,8 +29,8 @@
                 </bk-table-column>
             </bk-table>
         </template>
-        <template #detail="{ data }">
-            <SecretsDetail :data="data"></SecretsDetail>
+        <template #detail="{ data, extData }">
+            <SecretsDetail :data="data" :ext-data="extData"></SecretsDetail>
         </template>
     </BaseLayout>
 </template>

@@ -24,8 +24,8 @@
                 </bk-table-column>
             </bk-table>
         </template>
-        <template #detail="{ data }">
-            <ServiceAccountsDetail :data="data"></ServiceAccountsDetail>
+        <template #detail="{ data, extData }">
+            <ServiceAccountsDetail :data="data" :ext-data="extData"></ServiceAccountsDetail>
         </template>
     </BaseLayout>
 </template>

@@ -114,7 +114,7 @@ export default defineComponent({
                         },
                         scopedSlots: {
                             content: () => (this.$scopedSlots.detail && this.$scopedSlots.detail({
-                                data: this.curDetailRow
+                                ...this.curDetailRow
                             }))
                         }
                     }

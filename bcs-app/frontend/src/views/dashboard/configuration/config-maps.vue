@@ -24,8 +24,8 @@
                 </bk-table-column>
             </bk-table>
         </template>
-        <template #detail="{ data }">
-            <ConfigMapsDetail :data="data"></ConfigMapsDetail>
+        <template #detail="{ data, extData }">
+            <ConfigMapsDetail :data="data" :ext-data="extData"></ConfigMapsDetail>
         </template>
     </BaseLayout>
 </template>

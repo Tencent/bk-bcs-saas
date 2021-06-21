@@ -8,19 +8,19 @@
                 <tbody>
                     <tr>
                         <td>{{ $t('命名空间') }}</td>
-                        <td>{{ data.data.metadata.namespace || '--' }}</td>
+                        <td>{{ data.metadata.namespace || '--' }}</td>
                     </tr>
                     <tr>
                         <td>UID</td>
-                        <td>{{ data.data.metadata.uid || '--' }}</td>
+                        <td>{{ data.metadata.uid || '--' }}</td>
                     </tr>
                     <tr>
                         <td>{{ $t('创建时间') }}</td>
-                        <td>{{ data.extData.createTime || '--' }}</td>
+                        <td>{{ extData.createTime || '--' }}</td>
                     </tr>
                     <tr>
                         <td>{{ $t('存在时间') }}</td>
-                        <td>{{ data.extData.age || '--' }}</td>
+                        <td>{{ extData.age || '--' }}</td>
                     </tr>
                 </tbody>
             </table>
@@ -29,7 +29,7 @@
             Scerets
         </div>
         <div class="scerets-content">
-            <bk-table :data="data.data.secrets">
+            <bk-table :data="data.secrets">
                 <bk-table-column label="name">
                     <template slot-scope="{ row }">
                         {{ row.name }}
@@ -49,10 +49,10 @@
             data: {
                 type: Object,
                 default: () => ({})
-            }
-        },
-        setup () {
-            return {
+            },
+            extData: {
+                type: Object,
+                default: () => ({})
             }
         }
     })
