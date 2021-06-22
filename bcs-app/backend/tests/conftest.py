@@ -136,7 +136,7 @@ def patch_system_viewset():
         yield
 
 
-@pytest.fixture
+@pytest.fixture(autouse=True)
 def patch_user_viewset():
     with mock.patch('backend.bcs_web.viewsets.UserViewSet', new=FakeUserViewSet):
         yield
