@@ -185,6 +185,8 @@ export default {
     '还未选择{namespaceName}下的应用': ['No apps selected under {namespaceName}'],
     '确定要取消{tmplAppName}实例化操作？': ['Confirm to cancel the {tmplAppName} instantiation?'],
     '创建时间：': ['Create Time：'],
+    '存在时间：': ['Existence Time：'],
+    '注释': ['annotation'],
     '更新时间：': ['Update Time：'],
     '所在命名空间：': ['Namespace：'],
     'Taskgroup管理': ['Taskgroup manage'],
