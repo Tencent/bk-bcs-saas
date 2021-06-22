@@ -35,7 +35,7 @@
             </div>
             <div class="basic-info-item">
                 <label>{{ $t('存在时间') }}</label>
-                <span>{{ extData.updateTime }}</span>
+                <span>{{ extData.age }}</span>
             </div>
         </div>
         <!-- 配置、标签、注解 -->
