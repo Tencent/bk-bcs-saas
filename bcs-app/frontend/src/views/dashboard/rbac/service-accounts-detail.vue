@@ -43,6 +43,7 @@
     import { defineComponent } from '@vue/composition-api'
 
     export default defineComponent({
+        // 1
         name: 'ConfigMapsDetail',
         props: {
             // 当前行数据
