@@ -25,9 +25,9 @@
                 </tbody>
             </table>
         </div>
-        <bcs-tab class="mt20" :label-height="40">
+        <bcs-tab class="mt20" type="card" :label-height="40">
             <bcs-tab-panel name="data" label="Data">
-                <bk-table :data="data.data">
+                <bk-table :data="extData.data">
                     <bk-table-column label="Key">
                         <template slot-scope="props">
                             {{ props.$index }}
@@ -54,7 +54,7 @@
                     </bk-table-column>
                 </bk-table>
             </bcs-tab-panel>
-            <bcs-tab-panel name="annotation" :label="$t('注释')">
+            <bcs-tab-panel name="annotation" :label="$t('注解')">
                 <bk-table :data="data.metadata.annotations">
                     <bk-table-column label="Key">
                         <template slot-scope="props">
@@ -90,37 +90,5 @@
     })
 </script>
 <style lang="postcss" scoped>
-.detail {
-    &-title {
-        margin-bottom: 10px;
-        font-size: 14px;
-        color: #333948;
-    }
-    &-content {
-        font-size: 14px;
-        margin-bottom: 20px;
-    }
-    &-table {
-        width: 100%;
-        border: 1px solid #dfe0e5;
-        color: #737987;
-        th {
-            text-align: left;
-            padding-left: 15px;
-            height: 32px;
-        }
-        tr {
-            height: 32px;
-            td {
-                padding-left: 15px;
-            }
-            td:nth-child(1) {
-                width: 215px;
-            }
-            &:nth-child(even) {
-                background-color: #F7F8FA;
-            }
-        }
-    }
-}
+@import './config-detail.css'
 </style>

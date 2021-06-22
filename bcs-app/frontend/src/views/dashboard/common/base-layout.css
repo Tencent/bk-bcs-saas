@@ -25,3 +25,18 @@
         width: 320px;
     }
 }
+
+.base-layout {
+    .detail-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding-right: 30px;
+    }
+    .bk-button-group {
+        font-weight: normal;
+    }
+    .bk-sideslider .bk-sideslider-content {
+        height: 100%;
+    }
+}

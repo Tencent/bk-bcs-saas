@@ -27,7 +27,7 @@
             <bcs-tab-panel name="config" :label="$t('配置')">
                 <p class="detail-title">Addresses</p>
                 <bk-table :data="addresses" class="mb20">
-                    <bk-table-column label="IP" prop="ip"></bk-table-column>
+                    <bk-table-column label="IP" prop="ip" width="140"></bk-table-column>
                     <bk-table-column label="NodeName" prop="nodeName"></bk-table-column>
                     <bk-table-column label="TargetRef">
                         <template #default="{ row }">
@@ -109,5 +109,5 @@
     })
 </script>
 <style lang="postcss" scoped>
-@import './detail.css';
+@import './network-detail.css';
 </style>

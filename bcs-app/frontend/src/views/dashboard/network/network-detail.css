@@ -1,5 +1,17 @@
 .detail {
     font-size: 14px;
+    /deep/ .bk-tab-label-item {
+        background-color: #FAFBFD;
+        border-bottom: 1px solid #dcdee5;
+        line-height: 39px !important;
+        height: 39px;
+        &.active {
+            border-bottom: none;
+        }
+    }
+    /deep/ .bk-tab-label-wrapper {
+        overflow: unset !important;
+    }
     &-title {
         margin-bottom: 10px;
         color: #313238;
