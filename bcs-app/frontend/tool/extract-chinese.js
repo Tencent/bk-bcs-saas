@@ -1,5 +1,6 @@
 /**
  * @file 提取 .vue, .js 文件里的中文（非注释中的）
+ * @author ielgnaw <wuji0223@gmail.com>
  */
 
 const { readdirSync, readFileSync, writeFileSync, statSync } = require('fs')

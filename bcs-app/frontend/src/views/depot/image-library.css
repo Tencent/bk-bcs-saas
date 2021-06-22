@@ -1,16 +1,5 @@
-/**
- * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community Edition) available.
- * Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
- * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- * http://opensource.org/licenses/MIT
- * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
- * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
- * specific language governing permissions and limitations under the License.
- */
-
-@import '../../css/variable.css';
-@import '../../css/mixins/clearfix.css';
+@import '@/css/variable.css';
+@import '@/css/mixins/clearfix.css';
 
 .biz-image-library-sideslider {
     .biz-log-box {
@@ -143,7 +132,7 @@
         margin-bottom: 7px;
 
         &:hover {
-            border: 1px solid #3c96ff;
+            border: 1px solid #3a84ff;
         }
 
         .left-wrapper {
@@ -231,7 +220,7 @@
                         transform: scale(.6, .6);
                         position: absolute;
                         font-weight: 700;
-                        top: -2px;
+                        top: 0;
                         right: -23px;
                     }
                 }
@@ -241,7 +230,7 @@
 }
 
 .mc-operate-audit-table {
-    i.bk-icon {
+    i.bcs-icon {
         font-size: 16px;
         vertical-align: middle;
         position: relative;

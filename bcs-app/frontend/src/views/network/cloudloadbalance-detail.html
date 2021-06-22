@@ -1,7 +1,7 @@
 <div class="biz-content">
     <div class="biz-top-bar">
         <div class="biz-app-instance-title">
-            <i class="bk-icon icon-arrows-left back" @click="goCloudLoadBalances"></i>
+            <i class="bcs-icon bcs-icon-arrows-left back" @click="goCloudLoadBalances"></i>
             <span style="cursor: default;">{{instanceInfo.name}}</span>
         </div>
     </div>
@@ -11,9 +11,9 @@
             <div class="biz-app-instance-header" v-bkloading="{isLoading: instanceInfoLoading}">
                 <div class="header-item">
                     <div class="key-label">{{$t('应用名称：')}}</div>
-                    <bk-tooltip :delay="500" :content="instanceInfo.name" placement="bottom">
+                    <bcs-popover :delay="500" :content="instanceInfo.name" placement="bottom">
                         <div class="value-label">{{instanceInfo.name}}</div>
-                    </bk-tooltip>
+                    </bcs-popover>
                 </div>
                 <div class="header-item">
                     <div class="key-label">{{$t('创建时间：')}}</div>
@@ -25,15 +25,15 @@
                 </div>
                 <div class="header-item">
                     <div class="key-label">{{$t('所在命名空间：')}}</div>
-                    <bk-tooltip :delay="500" :content="instanceInfo.namespace_name" placement="bottom">
+                    <bcs-popover :delay="500" :content="instanceInfo.namespace_name" placement="bottom">
                         <div class="value-label">{{instanceInfo.namespace_name}}</div>
-                    </bk-tooltip>
+                    </bcs-popover>
                 </div>
                 <div class="header-item">
                     <div class="key-label">{{$t('所属集群：')}}</div>
-                    <bk-tooltip :delay="500" :content="instanceInfo.cluster_name" placement="bottom">
+                    <bcs-popover :delay="500" :content="instanceInfo.cluster_name" placement="bottom">
                         <div class="value-label">{{instanceInfo.cluster_name}}</div>
-                    </bk-tooltip>
+                    </bcs-popover>
                 </div>
             </div>
             <div class="biz-app-instance-chart-wrapper">
@@ -43,7 +43,7 @@
                             <div class="left">
                                 {{$t('CPU使用率')}}
                                 <a :href="PROJECT_CONFIG.doc.dockerCpuSummary" target="_blank">
-                                    <i class="bk-icon icon-info-circle cpu-tip"></i>
+                                    <i class="bcs-icon bcs-icon-info-circle cpu-tip"></i>
                                 </a>
                             </div>
                         </div>
@@ -58,8 +58,8 @@
                 </div>
             </div>
             <div class="biz-app-instance-table-wrapper">
-                <bk-tab :type="'fill'" :active-name="tabActiveName" @tab-changed="tabChanged">
-                    <bk-tabpanel name="taskgroup" :title="$t('Taskgroup管理')">
+                <bk-tab class="biz-tab-container" :type="'fill'" :active-name="tabActiveName" @tab-changed="tabChanged">
+                    <bk-tab-panel name="taskgroup" :title="$t('Taskgroup管理')">
                         <div v-bkloading="{isLoading: taskgroupLoading}">
                             <div class="biz-app-instance-taskgroup-data" v-if="taskgroupList.length">
                                 <div class="taskgroup-item-wrapper" v-for="(taskgroup, index) in taskgroupList" :key="index">
@@ -67,15 +67,15 @@
                                         <div class="name">
                                             <template v-if="taskgroup.status !== 'Starting'">
                                                 <span @click.stop="toggleContainers(taskgroup, index)">
-                                                    <i class="bk-icon toggle" :class="taskgroup.isOpen ? 'icon-minus' : 'icon-plus'"></i>
+                                                    <i class="bcs-icon toggle" :class="taskgroup.isOpen ? 'bcs-icon-minus' : 'bcs-icon-plus'"></i>
                                                 </span>
                                             </template>
                                             <template v-else>
                                                 <span>
-                                                    <i style="cursor: not-allowed;" class="bk-icon toggle" :class="taskgroup.isOpen ? 'icon-minus' : 'icon-plus'"></i>
+                                                    <i style="cursor: not-allowed;" class="bcs-icon toggle" :class="taskgroup.isOpen ? 'bcs-icon-minus' : 'bcs-icon-plus'"></i>
                                                 </span>
                                             </template>
-                                            <bk-tooltip :delay="500" placement="top">
+                                            <bcs-popover :delay="500" placement="top">
                                                 <template v-if="taskgroup.status !== 'Starting'">
                                                     <span @click="showTaskgroupInfo(taskgroup, index)">{{taskgroup.name.substring(0, 70)}}</span>
                                                 </template>
@@ -87,7 +87,7 @@
                                                         {{taskgroup.name || '--'}}
                                                     </p>
                                                 </template>
-                                            </bk-tooltip>
+                                            </bcs-popover>
                                         </div>
                                         <div class="status">
                                             <div style="margin-bottom: 6px;">{{$t('状态：')}}</div>
@@ -96,13 +96,13 @@
                                                 || taskgroup.status === 'Failed'
                                                 || taskgroup.status === 'Lost'">
                                                 <div class="value-label" style="color: #ff5656;">
-                                                    <bk-tooltip placement="top" :delay="500" :transfer="true">
-                                                        <i class="bk-icon icon-info-circle" style="font-size: 16px;color: #ff5656;position: relative;top: 2px;"></i>
+                                                    <bcs-popover placement="top" :delay="500" :transfer="true">
+                                                        <i class="bcs-icon bcs-icon-info-circle" style="font-size: 16px;color: #ff5656;position: relative;top: 2px;"></i>
                                                         {{taskgroup.status || '--'}}
                                                         <template slot="content">
                                                             <p style="text-align: left; white-space: normal;word-break: break-word;font-weight:400;">{{taskgroup.message || $t('异常')}}</p>
                                                         </template>
-                                                    </bk-tooltip>
+                                                    </bcs-popover>
                                                 </div>
                                             </template>
                                             <template v-else-if="taskgroup.status === 'Running'">
@@ -153,25 +153,25 @@
                                                 <template v-if="taskgroup.containerList.length">
                                                     <tr v-for="(container, containerIndex) in taskgroup.containerList">
                                                         <td style="text-align: left; padding-left: 23px; font-weight: 700; width: 400px;">
-                                                            <bk-tooltip placement="top" :delay="500" :transfer="true">
+                                                            <bcs-popover placement="top" :delay="500" :transfer="true">
                                                                 <a href="javascript:void(0);" class="bk-text-button name">
                                                                     {{container.name}}
                                                                 </a>
                                                                 <template slot="content">
                                                                     <p style="text-align: left; white-space: normal;word-break: break-all;font-weight: 400;">{{container.name}}</p>
                                                                 </template>
-                                                            </bk-tooltip>
+                                                            </bcs-popover>
                                                         </td>
                                                         <td style="width: 100px;">
                                                             {{container.status || '--'}}
                                                         </td>
                                                         <td style="width: 400px">
-                                                            <bk-tooltip placement="top" :delay="500" :transfer="true">
+                                                            <bcs-popover placement="top" :delay="500" :transfer="true">
                                                                 <p class="image">{{container.image}}</p>
                                                                 <template slot="content">
                                                                     <p style="text-align: left; white-space: normal;word-break: break-all;">{{container.image}}</p>
                                                                 </template>
-                                                            </bk-tooltip>
+                                                            </bcs-popover>
                                                         </td>
                                                     </tr>
                                                 </template>
@@ -179,7 +179,7 @@
                                                     <tr>
                                                         <td colspan="4">
                                                             <div class="bk-message-box">
-                                                                <p class="message empty-message" v-if="!taskgroup.containerLoading">{{$t('无数据')}}</p>
+                                                                <bcs-exception type="empty" scene="part" v-if="!taskgroup.containerLoading"></bcs-exception>
                                                             </div>
                                                         </td>
                                                     </tr>
@@ -191,19 +191,19 @@
                             </div>
                             <div class="biz-app-instance-taskgroup-data" v-else>
                                 <div class="bk-message-box">
-                                    <p class="message empty-message" v-if="!taskgroupLoading">{{$t('无数据')}}</p>
+                                    <bcs-exception type="empty" scene="part" v-if="!taskgroupLoading"></bcs-exception>
                                 </div>
                             </div>
                         </div>
-                    </bk-tabpanel>
-                    <bk-tabpanel name="status" :title="$t('监听器详情')">
+                    </bk-tab-panel>
+                    <bk-tab-panel name="status" :title="$t('监听器详情')">
                         <template v-if="!listenerStatus">
                             <table class="bk-table has-table-hover biz-table" style="overflow: hidden;" v-bkloading="{ isLoading: listenerLoading }">
                                 <thead>
                                     <tr>
                                         <th class="pl20">{{$t('名称')}}</th>
                                         <th>{{$t('监听端口')}}</th>
-                                        <th class="clb-th">{{$t('路径')}} <span class="biz-tip f12 fn">( Domain+URL )</span> / {{$t('规则')}} <span class="biz-tip f12 fn">( IP+Port+{{$t('健康状态')}} )</span> </th>
+                                        <th class="clb-th">{{$t('路径')}} <span class="biz-tip fn">( Domain+URL )</span> / {{$t('规则')}} <span class="biz-tip fn">( IP+Port+{{$t('健康状态')}} )</span> </th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -230,7 +230,7 @@
                                         <tr>
                                             <td colspan="3">
                                                 <div class="bk-message-box">
-                                                    <p class="message empty-message">{{$t('无数据')}}</p>
+                                                    <bcs-exception type="empty" scene="part"></bcs-exception>
                                                 </div>
                                             </td>
                                         </tr>
@@ -243,7 +243,7 @@
                                 <p class="message empty-message">{{listenerStatus}}</p>
                             </div>
                         </template>
-                    </bk-tabpanel>
+                    </bk-tab-panel>
                 </bk-tab>
             </div>
         </div>
@@ -257,24 +257,24 @@
         class="biz-app-container-log-sideslider"
         :quick-close="true">
         <div slot="content" class="slider-log-content-wrapper" style="position: relative;">
-            <button class="bk-button toggle-time-btn"
+            <bk-button class="bk-button toggle-time-btn"
                 :class="logSideDialogConf.showLogTime ? 'bk-primary' : 'bk-default'"
                 @click="logSideDialogConf.showLogTime = !logSideDialogConf.showLogTime">
                 显示时间
-            </button>
-            <bk-tooltip class="refresh-tooltip" :content="$t('刷新')" :delay="500" placement="bottom">
-                <button class="bk-button bk-default is-outline is-icon" @click="refreshLog">
-                    <i class="bk-icon icon-refresh"></i>
-                </button>
-            </bk-tooltip>
-            <bk-tooltip class="title-tooltip" :delay="500" placement="bottom">
+            </bk-button>
+            <bcs-popover class="refresh-tooltip" :content="$t('刷新')" :delay="500" placement="bottom">
+                <bk-button class="bk-button bk-default is-outline is-icon" @click="refreshLog">
+                    <i class="bcs-icon bcs-icon-refresh"></i>
+                </bk-button>
+            </bcs-popover>
+            <bcs-popover class="title-tooltip" :delay="500" placement="bottom">
                 <p class="title">{{logSideDialogConf.title}}</p>
                 <template slot="content">
                     <p style="text-align: left; white-space: normal;word-break: break-all;font-weight: 400;">
                         {{logSideDialogConf.title}}
                     </p>
                 </template>
-            </bk-tooltip>
+            </bcs-popover>
             <template v-if="!logList.length && !logLoading">
                 <div style="margin: 0 5px; padding: 10px 0; text-align: center;">
                     {{$t('暂无日志信息')}}
@@ -319,11 +319,11 @@
         <div slot="content" style="position: relative;">
             <div class="biz-log-box" :style="{height: `${winHeight - 60}px`}" v-bkloading="{isLoading: toJsonDialogConf.loading}">
                 <div class="copy-code" :title="$t('复制代码')">
-                    <bk-button class="copy-code-btn" :data-clipboard-text="copyContent" type="default" :size="'small'">{{$t('复制代码')}}</bk-button>
+                    <bk-button class="copy-code-btn" :data-clipboard-text="copyContent" type="default">{{$t('复制代码')}}</bk-button>
                 </div>
                 <div class="code-fullscreen" :title="$t('全屏')"
                     @click="setFullScreen">
-                    <i class="bk-icon icon-full-screen"></i>
+                    <i class="bcs-icon bcs-icon-full-screen"></i>
                 </div>
                 <ace
                     :value="editorConfig.value"
@@ -486,7 +486,7 @@
 
     <div :title="$t('关闭全屏')" @click="cancelFullScreen" class="biz-configuration-instantiation-cancel-fullscreen"
         v-if="editorConfig.fullScreen">
-        <i class="bk-icon icon-close"></i>
+        <i class="bcs-icon bcs-icon-close"></i>
     </div>
 
     <bk-dialog
@@ -499,15 +499,15 @@
         <template slot="content">
             <div></div>
         </template>
-        <template slot="footer">
+        <div slot="footer">
             <div class="bk-dialog-outer">
-                <button type="button" class="bk-dialog-btn bk-dialog-btn-confirm bk-btn-primary" @click="reschedulerConfirm">
+                <bk-button type="primary" @click="reschedulerConfirm">
                     {{$t('确定')}}
-                </button>
-                <button type="button" class="bk-dialog-btn bk-dialog-btn-cancel" @click="hideRescheduler">
+                </bk-button>
+                <bk-button type="button" @click="hideRescheduler">
                     {{$t('取消')}}
-                </button>
+                </bk-button>
             </div>
-        </template>
+        </div>
     </bk-dialog>
 </div>

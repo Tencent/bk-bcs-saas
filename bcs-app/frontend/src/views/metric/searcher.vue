@@ -1,10 +1,10 @@
 <template>
     <div class="metric-searcher">
-        <template v-if="localScopeList.length">
+        <template v-if="localScopeList.length && !clusterFixed">
             <bk-dropdown-menu ref="dropdown" trigger="click" :align="'left'">
-                <button class="bk-button trigger-btn" slot="dropdown-trigger" style="width: 200px;">
-                    <span class="btn-text">{{curScope.name}}</span><i class="bk-icon icon-angle-down"></i>
-                </button>
+                <bk-button class="bk-button trigger-btn" slot="dropdown-trigger">
+                    <span class="btn-text">{{curScope.name}}</span><i class="bcs-icon bcs-icon-angle-down"></i>
+                </bk-button>
                 <ul class="bk-dropdown-list" slot="dropdown-content">
                     <li class="dropdown-item">
                         <a href="javascript:;" v-for="scopeItem of localScopeList" :title="scopeItem.name" :key="scopeItem.id" @click="handleSechScope(scopeItem)">{{scopeItem.name}}</a>
@@ -13,25 +13,19 @@
             </bk-dropdown-menu>
         </template>
         <div class="biz-search-input" style="width: 300px;">
-            <input
-                type="text"
-                class="bk-form-input"
+            <bkbcs-input right-icon="bk-icon icon-search"
+                clearable
                 :placeholder="placeholderRender"
                 v-model="localKey"
-                @keyup.enter="handleSearch" />
-            <a href="javascript:void(0)" class="biz-search-btn" v-if="!localKey">
-                <i class="bk-icon icon-search" style="color: #c3cdd7;"></i>
-            </a>
-            <a href="javascript:void(0)" class="biz-search-btn" v-else @click.stop.prevent="clearSearch">
-                <i class="bk-icon icon-close-circle-shape"></i>
-            </a>
+                @enter="handleSearch"
+                @clear="clearSearch" />
         </div>
         <div class="biz-refresh-wrapper" v-if="widthRefresh">
-            <bk-tooltip class="refresh" :content="$t('刷新')" :delay="500" placement="top">
-                <button :class="['bk-button bk-default is-outline is-icon']" @click="handleRefresh">
-                    <i class="bk-icon icon-refresh"></i>
-                </button>
-            </bk-tooltip>
+            <bcs-popover class="refresh" :content="$t('刷新')" :delay="500" placement="top">
+                <bk-button :class="['bk-button bk-default is-outline is-icon']" @click="handleRefresh">
+                    <i class="bcs-icon bcs-icon-refresh"></i>
+                </bk-button>
+            </bcs-popover>
         </div>
     </div>
 </template>
@@ -60,6 +54,10 @@
                 default () {
                     return []
                 }
+            },
+            clusterFixed: {
+                type: Boolean,
+                default: false
             }
         },
         data () {
@@ -100,7 +98,7 @@
         methods: {
             handleSechScope (data) {
                 this.curScope = data
-                this.$refs.dropdown.hide()
+                // this.$refs.dropdown.hide()
                 sessionStorage['bcs-cluster'] = this.curScope.id
                 this.$emit('update:searchScope', this.curScope.id)
             },
@@ -116,11 +114,7 @@
                 this.isRefresh = false
             },
             handleRefresh () {
-                this.localKey = ''
                 this.isRefresh = true
-                // if (this.localScopeList.length) {
-                //     this.curScope = this.localScopeList[0]
-                // }
                 this.$emit('refresh')
             },
             clearSearch () {
@@ -135,8 +129,8 @@
 </script>
 
 <style lang="postcss">
-    @import '@open/css/mixins/clearfix.css';
-    @import '@open/css/mixins/ellipsis.css';
+    @import '@/css/mixins/clearfix.css';
+    @import '@/css/mixins/ellipsis.css';
     .metric-searcher {
         @mixin clearfix;
 

@@ -23,3 +23,13 @@
     text-overflow: ellipsis;
     white-space: nowrap;
 }
+
+@define-mixin bcs-ellipsis {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: normal;
+    word-break: break-all;
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
+}

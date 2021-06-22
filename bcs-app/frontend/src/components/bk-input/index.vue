@@ -703,7 +703,7 @@
 
                     if ((distanceTop + listHeight + 42 - scrollTop) < winHeight) {
                         ySet = {
-                            top: '40px',
+                            top: '34px',
                             bottom: 'auto'
                         }
 
@@ -711,7 +711,7 @@
                     } else {
                         ySet = {
                             top: 'auto',
-                            bottom: '40px'
+                            bottom: '34px'
                         }
 
                         this.listSlideName = 'toggle-slide2'

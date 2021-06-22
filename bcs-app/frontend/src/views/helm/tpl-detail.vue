@@ -2,7 +2,7 @@
     <div class="biz-content">
         <div class="biz-top-bar">
             <div class="biz-helm-title">
-                <a class="bk-icon icon-arrows-left back" @click="goTplList"></a>
+                <a class="bcs-icon bcs-icon-arrows-left back" @click="goTplList"></a>
                 <span>{{$t('Chart详情')}}</span>
             </div>
             <div class="biz-actions" style="margin-top: 11px; ">
@@ -43,19 +43,22 @@
                     <div class="right">
                         <div class="bk-collapse biz-collapse">
                             <div class="bk-collapse-item bk-collapse-item-active">
-                                <div class="bk-collapse-item-header" style="cursor: default;">
+                                <div class="biz-item-header">
                                     {{$t('版本')}}
                                 </div>
+                                <!-- <div class="bk-collapse-item-header" style="cursor: default; border-color: #dfe0e5;">
+                                    {{$t('版本')}}
+                                </div> -->
                                 <div class="bk-collapse-item-content f13" style="padding: 15px;">
                                     <div class="config-box">
                                         <div class="inner">
-                                            <label class="title">{{$t('Chart版本')}}</label>
+                                            <label class="title">{{$t('Chart版本')}}：</label>
                                             <bk-selector
                                                 :placeholder="$t('请选择')"
                                                 style="max-width: 800px;"
                                                 :selected.sync="tplsetVerIndex"
                                                 :list="curTplVersions"
-                                                :setting-key="'id'"
+                                                :setting-key="'version'"
                                                 :display-key="'version'"
                                                 @item-selected="getTplDetail">
                                             </bk-selector>
@@ -68,24 +71,24 @@
                 </div>
 
                 <div v-if="tplsetVerIndex" v-bkloading="{ isLoading: isVersionLoading }">
-                    <bk-tab :active-name="'files'" class="mt20">
-                        <bk-tabpanel name="files" :title="$t('资源文件')">
+                    <bk-tab :active-name="'files'" class="mt20 biz-tab-container">
+                        <bk-tab-panel name="files" :title="$t('资源文件')" class="biz-tree-tab">
                             <template v-if="previewList.length">
-                                <div class="biz-resource-wrapper">
+                                <div class="biz-resource-wrapper" style="display: flex;">
                                     <resizer :class="['resize-layout fl']"
                                         direction="right"
                                         :handler-offset="3"
                                         :min="250"
                                         :max="500">
                                         <div class="tree-box" style="max-height: 500px;">
-                                            <bk-tree
+                                            <bcs-tree
                                                 ref="tree1"
                                                 :class="'biz-helm-tree'"
                                                 :data="treeData"
                                                 :node-key="'id'"
                                                 :has-border="true"
                                                 @on-click="getFileDetail">
-                                            </bk-tree>
+                                            </bcs-tree>
                                         </div>
                                     </resizer>
                                     
@@ -106,11 +109,11 @@
                             </template>
                             <template v-else>
                                 <div class="bk-message-box">
-                                    <p class="message empty-message">{{$t('无数据')}}</p>
+                                    <bcs-exception type="empty" scene="part"></bcs-exception>
                                 </div>
                             </template>
-                        </bk-tabpanel>
-                        <bk-tabpanel name="readme" :title="$t('详细说明')">
+                        </bk-tab-panel>
+                        <bk-tab-panel name="readme" :title="$t('详细说明')">
                             <template v-if="curTplReadme">
                                 <div class="p20">
                                     <div class="biz-scroller-container">
@@ -120,10 +123,10 @@
                             </template>
                             <template v-else>
                                 <div class="bk-message-box">
-                                    <p class="message empty-message">{{$t('无数据')}}</p>
+                                    <bcs-exception type="empty" scene="part"></bcs-exception>
                                 </div>
                             </template>
-                        </bk-tabpanel>
+                        </bk-tab-panel>
                     </bk-tab>
                 </div>
             </div>
@@ -205,7 +208,7 @@
         async mounted () {
             const tplId = this.$route.params.tplId
             this.curTpl = await this.getTplById(tplId)
-            this.getTplVersions(tplId)
+            this.getTplVersions()
             this.getNamespaceList()
         },
         methods: {
@@ -230,7 +233,7 @@
                 if (file.hasOwnProperty('value')) {
                     this.curReourceFile = file
                     this.$nextTick(() => {
-                        this.$refs.codeViewer.$ace.scrollToLine(1, true, true)
+                        this.$refs.codeViewer && this.$refs.codeViewer.$ace && this.$refs.codeViewer.$ace.scrollToLine(1, true, true)
                     })
                 }
             },
@@ -272,16 +275,18 @@
                 const list = []
                 const projectId = this.projectId
                 const version = index
-                const chartId = this.$route.params.tplId
+                const chartId = this.curTpl.name
 
                 this.isVersionLoading = true
                 this.treeData = []
 
                 try {
-                    const res = await this.$store.dispatch('helm/getChartByVersion', {
+                    const isPublic = this.curTpl.repository.name === 'public-repo'
+                    const res = await this.$store.dispatch('helm/getChartVersionDetail', {
                         projectId,
                         chartId,
-                        version
+                        version,
+                        isPublic
                     })
 
                     const tplData = res.data
@@ -307,7 +312,7 @@
                         this.curReourceFile = this.previewList[0]
                         
                         this.$nextTick(() => {
-                            this.$refs.codeViewer.$ace.scrollToLine(1, true, true)
+                            this.$refs.codeViewer && this.$refs.codeViewer.$ace && this.$refs.codeViewer.$ace.scrollToLine(1, true, true)
                         })
                     }
                 } catch (e) {
@@ -321,16 +326,17 @@
              * 获取模板版本列表
              * @param  {number} tplId 模板ID
              */
-            async getTplVersions (tplId) {
+            async getTplVersions () {
                 const projectId = this.projectId
-
+                const tplId = this.curTpl.name
+                const isPublic = this.curTpl.repository.name === 'public-repo'
                 try {
-                    const res = await this.$store.dispatch('helm/getTplVersions', { projectId, tplId })
+                    const res = await this.$store.dispatch('helm/getTplVersionList', { projectId, tplId, isPublic })
 
-                    this.curTplVersions = res.data.results
+                    this.curTplVersions = res.data
                     if (this.curTplVersions.length) {
                         const firstVersion = this.curTplVersions[0]
-                        const versionId = firstVersion.id
+                        const versionId = firstVersion.version
 
                         this.tplsetVerIndex = versionId
                         this.getTplDetail(versionId, firstVersion)

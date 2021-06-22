@@ -2,7 +2,7 @@
     <div class="biz-content">
         <div class="biz-top-bar">
             <div class="biz-app-instance-title">
-                <i class="bk-icon icon-arrows-left back" @click="goNodeOverview"></i>
+                <i class="bcs-icon bcs-icon-arrows-left back" @click="goNodeOverview"></i>
                 <span @click="refreshCurRouter">{{containerInfo.container_name || '--'}}</span>
             </div>
             <bk-guide></bk-guide>
@@ -13,57 +13,57 @@
                 <div class="biz-app-instance-header">
                     <div class="header-item">
                         <div class="key-label">{{$t('主机名称：')}}</div>
-                        <bk-tooltip :delay="500" placement="bottom-start">
+                        <bcs-popover :delay="500" placement="bottom-start">
                             <div class="value-label">{{containerInfo.host_name || '--'}}</div>
                             <template slot="content">
                                 <p style="text-align: left; white-space: normal;word-break: break-all;font-weight: 400;">{{containerInfo.host_name || '--'}}</p>
                             </template>
-                        </bk-tooltip>
+                        </bcs-popover>
                     </div>
                     <div class="header-item">
                         <div class="key-label">{{$t('主机IP：')}}</div>
-                        <bk-tooltip :delay="500" placement="bottom">
+                        <bcs-popover :delay="500" placement="bottom">
                             <div class="value-label">{{containerInfo.host_ip || '--'}}</div>
                             <template slot="content">
                                 <p style="text-align: left; white-space: normal;word-break: break-all;font-weight: 400;">{{containerInfo.host_ip || '--'}}</p>
                             </template>
-                        </bk-tooltip>
+                        </bcs-popover>
                     </div>
                     <div class="header-item">
                         <div class="key-label">{{$t('容器IP：')}}</div>
-                        <bk-tooltip :delay="500" placement="bottom">
+                        <bcs-popover :delay="500" placement="bottom">
                             <div class="value-label">{{containerInfo.container_ip || '--'}}</div>
                             <template slot="content">
                                 <p style="text-align: left; white-space: normal;word-break: break-all;font-weight: 400;">{{containerInfo.container_ip || '--'}}</p>
                             </template>
-                        </bk-tooltip>
+                        </bcs-popover>
                     </div>
                     <div class="header-item">
                         <div class="key-label">{{$t('容器ID：')}}</div>
-                        <bk-tooltip :delay="500" placement="bottom">
+                        <bcs-popover :delay="500" placement="bottom">
                             <div class="value-label">{{containerInfo.container_id || '--'}}</div>
                             <template slot="content">
                                 <p style="text-align: left; white-space: normal;word-break: break-all;font-weight: 400;">{{containerInfo.container_id || '--'}}</p>
                             </template>
-                        </bk-tooltip>
+                        </bcs-popover>
                     </div>
                     <div class="header-item">
                         <div class="key-label">{{$t('镜像：')}}</div>
-                        <bk-tooltip :delay="500" placement="bottom">
+                        <bcs-popover :delay="500" placement="bottom">
                             <div class="value-label">{{containerInfo.image || '--'}}</div>
                             <template slot="content">
                                 <p style="text-align: left; white-space: normal;word-break: break-all;font-weight: 400;">{{containerInfo.image || '--'}}</p>
                             </template>
-                        </bk-tooltip>
+                        </bcs-popover>
                     </div>
                     <div class="header-item">
                         <div class="key-label">{{$t('网络模式：')}}</div>
-                        <bk-tooltip :delay="500" placement="bottom">
+                        <bcs-popover :delay="500" placement="bottom">
                             <div class="value-label">{{containerInfo.network_mode || '--'}}</div>
                             <template slot="content">
                                 <p style="text-align: left; white-space: normal;word-break: break-all;font-weight: 400;">{{containerInfo.network_mode || '--'}}</p>
                             </template>
-                        </bk-tooltip>
+                        </bcs-popover>
                     </div>
                 </div>
                 <div class="biz-app-instance-chart-wrapper">
@@ -89,8 +89,8 @@
                     </div>
                 </div>
                 <div class="biz-app-container-table-wrapper">
-                    <bk-tab :type="'fill'" :active-name="tabActiveName" @tab-changed="tabChanged">
-                        <bk-tabpanel name="ports" :title="$t('端口映射')">
+                    <bk-tab :type="'fill'" class="biz-tab-container" :active-name="tabActiveName" @tab-changed="tabChanged">
+                        <bk-tab-panel name="ports" :title="$t('端口映射')">
                             <table class="bk-table has-table-hover biz-table biz-app-container-ports-table">
                                 <thead>
                                     <tr>
@@ -106,22 +106,22 @@
                                     <template v-if="portList.length">
                                         <tr v-for="(port, index) in portList" :key="index">
                                             <td style="text-align: left;padding-left: 27px;">
-                                                <bk-tooltip placement="top" :delay="500">
+                                                <bcs-popover placement="top" :delay="500">
                                                     <p class="port-name">{{port.name}}</p>
                                                     <template slot="content">
                                                         <p style="text-align: left; white-space: normal;word-break: break-all;">{{port.name}}</p>
                                                     </template>
-                                                </bk-tooltip>
+                                                </bcs-popover>
                                             </td>
                                             <td>{{port.hostPort}}</td>
                                             <td>{{port.containerPort}}</td>
                                             <td>
-                                                <bk-tooltip placement="top" :delay="500">
+                                                <bcs-popover placement="top" :delay="500">
                                                     <p class="port-protocol">{{port.protocol}}</p>
                                                     <template slot="content">
                                                         <p style="text-align: left; white-space: normal;word-break: break-all;">{{port.protocol}}</p>
                                                     </template>
-                                                </bk-tooltip>
+                                                </bcs-popover>
                                             </td>
                                         </tr>
                                     </template>
@@ -136,8 +136,8 @@
                                     </template>
                                 </tbody>
                             </table>
-                        </bk-tabpanel>
-                        <bk-tabpanel name="commands" :title="$t('命令')">
+                        </bk-tab-panel>
+                        <bk-tab-panel name="commands" :title="$t('命令')">
                             <table class="bk-table has-table-hover biz-table biz-app-container-commands-table">
                                 <thead>
                                     <tr>
@@ -151,20 +151,20 @@
                                     <template v-if="commandList.length">
                                         <tr v-for="(command, index) in commandList" :key="index">
                                             <td style="text-align: left;padding-left: 27px;">
-                                                <bk-tooltip placement="top" :delay="500">
+                                                <bcs-popover placement="top" :delay="500">
                                                     <p class="command-name">{{command.command}}</p>
                                                     <template slot="content">
                                                         <p style="text-align: left; white-space: normal;word-break: break-all;">{{command.command}}</p>
                                                     </template>
-                                                </bk-tooltip>
+                                                </bcs-popover>
                                             </td>
                                             <td>
-                                                <bk-tooltip placement="top" :delay="500">
+                                                <bcs-popover placement="top" :delay="500">
                                                     <p class="command-args">{{command.args}}</p>
                                                     <template slot="content">
                                                         <p style="text-align: left; white-space: normal;word-break: break-all;">{{command.args}}</p>
                                                     </template>
-                                                </bk-tooltip>
+                                                </bcs-popover>
                                             </td>
                                         </tr>
                                     </template>
@@ -172,15 +172,15 @@
                                         <tr>
                                             <td colspan="2">
                                                 <div class="bk-message-box no-data">
-                                                    <p class="message empty-message">{{$t('无数据')}}</p>
+                                                    <bcs-exception type="empty" scene="part"></bcs-exception>
                                                 </div>
                                             </td>
                                         </tr>
                                     </template>
                                 </tbody>
                             </table>
-                        </bk-tabpanel>
-                        <bk-tabpanel name="volumes" :title="$t('挂载卷')">
+                        </bk-tab-panel>
+                        <bk-tab-panel name="volumes" :title="$t('挂载卷')">
                             <table class="bk-table has-table-hover biz-table biz-app-container-volumes-table">
                                 <thead>
                                     <tr>
@@ -195,20 +195,20 @@
                                     <template v-if="volumeList.length">
                                         <tr v-for="(volume, index) in volumeList" :key="index">
                                             <td style="text-align: left;padding-left: 27px;">
-                                                <bk-tooltip placement="top" :delay="500">
+                                                <bcs-popover placement="top" :delay="500">
                                                     <p class="volume-host">{{volume.hostPath}}</p>
                                                     <template slot="content">
                                                         <p style="text-align: left; white-space: normal;word-break: break-all;">{{volume.hostPath}}</p>
                                                     </template>
-                                                </bk-tooltip>
+                                                </bcs-popover>
                                             </td>
                                             <td>
-                                                <bk-tooltip placement="top" :delay="500">
+                                                <bcs-popover placement="top" :delay="500">
                                                     <p class="volume-mount">{{volume.mountPath}}</p>
                                                     <template slot="content">
                                                         <p style="text-align: left; white-space: normal;word-break: break-all;">{{volume.mountPath}}</p>
                                                     </template>
-                                                </bk-tooltip>
+                                                </bcs-popover>
                                             </td>
                                             <td>{{volume.readOnly}}</td>
                                         </tr>
@@ -217,15 +217,15 @@
                                         <tr>
                                             <td colspan="3">
                                                 <div class="bk-message-box no-data">
-                                                    <p class="message empty-message">{{$t('无数据')}}</p>
+                                                    <bcs-exception type="empty" scene="part"></bcs-exception>
                                                 </div>
                                             </td>
                                         </tr>
                                     </template>
                                 </tbody>
                             </table>
-                        </bk-tabpanel>
-                        <bk-tabpanel name="env_args" :title="$t('环境变量')">
+                        </bk-tab-panel>
+                        <bk-tab-panel name="env_args" :title="$t('环境变量')">
                             <table class="bk-table has-table-hover biz-table biz-app-container-env-table">
                                 <thead>
                                     <tr>
@@ -239,20 +239,20 @@
                                     <template v-if="envList.length">
                                         <tr v-for="(env, index) in envList" :key="index">
                                             <td style="text-align: left;padding-left: 27px;">
-                                                <bk-tooltip placement="top" :delay="500">
+                                                <bcs-popover placement="top" :delay="500">
                                                     <p class="env-key">{{env.key}}</p>
                                                     <template slot="content">
                                                         <p style="text-align: left; white-space: normal;word-break: break-all;">{{env.key}}</p>
                                                     </template>
-                                                </bk-tooltip>
+                                                </bcs-popover>
                                             </td>
                                             <td>
-                                                <bk-tooltip placement="top" :delay="500">
+                                                <bcs-popover placement="top" :delay="500">
                                                     <p class="env-value">{{env.value}}</p>
                                                     <template slot="content">
                                                         <p style="text-align: left; white-space: normal;word-break: break-all;">{{env.value}}</p>
                                                     </template>
-                                                </bk-tooltip>
+                                                </bcs-popover>
                                             </td>
                                         </tr>
                                     </template>
@@ -260,15 +260,15 @@
                                         <tr>
                                             <td colspan="2">
                                                 <div class="bk-message-box no-data">
-                                                    <p class="message empty-message">{{$t('无数据')}}</p>
+                                                    <bcs-exception type="empty" scene="part"></bcs-exception>
                                                 </div>
                                             </td>
                                         </tr>
                                     </template>
                                 </tbody>
                             </table>
-                        </bk-tabpanel>
-                        <bk-tabpanel name="health_check" :title="$t('健康检查')">
+                        </bk-tab-panel>
+                        <bk-tab-panel name="health_check" :title="$t('健康检查')">
                             <table class="bk-table has-table-hover biz-table biz-app-container-health-table">
                                 <thead>
                                     <tr>
@@ -283,21 +283,21 @@
                                     <template v-if="healthList.length">
                                         <tr v-for="(health, index) in healthList" :key="index">
                                             <td style="text-align: left;padding-left: 27px;">
-                                                <bk-tooltip placement="top" :delay="500">
+                                                <bcs-popover placement="top" :delay="500">
                                                     <p class="health-type">{{health.type}}</p>
                                                     <template slot="content">
                                                         <p style="text-align: left; white-space: normal;word-break: break-all;">{{health.type}}</p>
                                                     </template>
-                                                </bk-tooltip>
+                                                </bcs-popover>
                                             </td>
                                             <td>{{health.result}}</td>
                                             <td>
-                                                <bk-tooltip placement="top" :delay="500">
+                                                <bcs-popover placement="top" :delay="500">
                                                     <p class="health-message">{{health.message}}</p>
                                                     <template slot="content">
                                                         <p style="text-align: left; white-space: normal;word-break: break-all;">{{health.message}}</p>
                                                     </template>
-                                                </bk-tooltip>
+                                                </bcs-popover>
                                             </td>
                                         </tr>
                                     </template>
@@ -305,15 +305,15 @@
                                         <tr>
                                             <td colspan="3">
                                                 <div class="bk-message-box no-data">
-                                                    <p class="message empty-message">{{$t('无数据')}}</p>
+                                                    <bcs-exception type="empty" scene="part"></bcs-exception>
                                                 </div>
                                             </td>
                                         </tr>
                                     </template>
                                 </tbody>
                             </table>
-                        </bk-tabpanel>
-                        <bk-tabpanel name="labels" :title="$t('标签')">
+                        </bk-tab-panel>
+                        <bk-tab-panel name="labels" :title="$t('标签')">
                             <table class="bk-table has-table-hover biz-table biz-app-container-label-table">
                                 <thead>
                                     <tr>
@@ -327,20 +327,20 @@
                                     <template v-if="labelList.length">
                                         <tr v-for="(label, index) in labelList" :key="index">
                                             <td style="text-align: left;padding-left: 27px;">
-                                                <bk-tooltip placement="top" :delay="500">
+                                                <bcs-popover placement="top" :delay="500">
                                                     <p class="label-key">{{label.key}}</p>
                                                     <template slot="content">
                                                         <p style="text-align: left; white-space: normal;word-break: break-all;">{{label.key}}</p>
                                                     </template>
-                                                </bk-tooltip>
+                                                </bcs-popover>
                                             </td>
                                             <td>
-                                                <bk-tooltip placement="top" :delay="500">
+                                                <bcs-popover placement="top" :delay="500">
                                                     <p class="label-value">{{label.val}}</p>
                                                     <template slot="content">
                                                         <p style="text-align: left; white-space: normal;word-break: break-all;">{{label.val}}</p>
                                                     </template>
-                                                </bk-tooltip>
+                                                </bcs-popover>
                                             </td>
                                         </tr>
                                     </template>
@@ -348,15 +348,15 @@
                                         <tr>
                                             <td colspan="2">
                                                 <div class="bk-message-box no-data">
-                                                    <p class="message empty-message">{{$t('无数据')}}</p>
+                                                    <bcs-exception type="empty" scene="part"></bcs-exception>
                                                 </div>
                                             </td>
                                         </tr>
                                     </template>
                                 </tbody>
                             </table>
-                        </bk-tabpanel>
-                        <bk-tabpanel name="resources" :title="$t('资源限制')">
+                        </bk-tab-panel>
+                        <bk-tab-panel name="resources" :title="$t('资源限制')">
                             <table class="bk-table has-table-hover biz-table biz-app-container-resource-table">
                                 <thead>
                                     <tr>
@@ -381,14 +381,14 @@
                                         <tr>
                                             <td colspan="2">
                                                 <div class="bk-message-box no-data">
-                                                    <p class="message empty-message">{{$t('无数据')}}</p>
+                                                    <bcs-exception type="empty" scene="part"></bcs-exception>
                                                 </div>
                                             </td>
                                         </tr>
                                     </template>
                                 </tbody>
                             </table>
-                        </bk-tabpanel>
+                        </bk-tab-panel>
                     </bk-tab>
                 </div>
             </div>
@@ -771,7 +771,7 @@
                             },
                             itemStyle: {
                                 normal: {
-                                    color: '#3c96ff'
+                                    color: '#3a84ff'
                                 }
                             },
                             data: item.values
@@ -1004,8 +1004,8 @@
 </script>
 
 <style scoped lang="postcss">
-    @import '../../css/variable.css';
-    @import '../../css/mixins/ellipsis.css';
+    @import '@/css/variable.css';
+    @import '@/css/mixins/ellipsis.css';
 
     .biz-app-instance {
         padding: 20px;
@@ -1079,11 +1079,6 @@
                 height: 250px;
                 &.top-left {
                     border-right: 1px solid $borderWeightColor;
-                    border-bottom: 1px solid $borderWeightColor;
-                }
-
-                &.top-right {
-                    border-bottom: 1px solid $borderWeightColor;
                 }
 
                 .info {
@@ -1167,7 +1162,7 @@
 
                     .system {
                         .circle {
-                            border: 3px solid #3c96ff;
+                            border: 3px solid #3a84ff;
                         }
                     }
 

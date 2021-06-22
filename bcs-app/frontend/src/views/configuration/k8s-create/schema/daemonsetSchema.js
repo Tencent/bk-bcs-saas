@@ -238,7 +238,8 @@ const schema = {
                                                     'type': 'object',
                                                     'properties': {
                                                         'name': {
-                                                            'type': 'string' },
+                                                            'type': 'string'
+                                                        },
                                                         'value': {
                                                             'type': 'string'
                                                         }

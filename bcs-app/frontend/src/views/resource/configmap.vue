@@ -3,7 +3,7 @@
         <div class="biz-top-bar">
             <div class="biz-topbar-title">
                 ConfigMaps
-                <span class="biz-tip f12 ml10">{{currentView === 'mesosService' ? $t('请通过模板集创建ConfigMap') : $t('请通过模板集或Helm创建ConfigMap')}}</span>
+                <span class="biz-tip ml10">{{currentView === 'mesosService' ? $t('请通过模板集创建ConfigMap') : $t('请通过模板集或Helm创建ConfigMap')}}</span>
             </div>
             <bk-guide></bk-guide>
         </div>
@@ -17,9 +17,9 @@
             <template v-if="!exceptionCode && !isInitLoading">
                 <div class="biz-panel-header">
                     <div class="left">
-                        <button class="bk-button bk-default" @click.stop.prevent="removeConfigmaps" v-if="curPageData.length">
+                        <bk-button @click.stop.prevent="removeConfigmaps" v-if="curPageData.length">
                             <span>{{$t('批量删除')}}</span>
-                        </button>
+                        </bk-button>
                     </div>
                     <div class="right">
                         <bk-data-searcher
@@ -27,125 +27,77 @@
                             :scope-list="searchScopeList"
                             :search-key.sync="searchKeyword"
                             :search-scope.sync="searchScope"
+                            :cluster-fixed="!!curClusterId"
                             @search="getConfigmapList"
                             @refresh="refresh">
                         </bk-data-searcher>
                     </div>
                 </div>
 
-                <div class="biz-resource">
-                    <div class="biz-table-wrapper" v-bkloading="{ isLoading: isPageLoading && !isInitLoading }">
-                        <table class="bk-table has-table-hover biz-table biz-resource-table">
-                            <thead>
-                                <tr>
-                                    <th style="width: 80px;">
-                                        <label class="bk-form-checkbox">
-                                            <input
-                                                type="checkbox"
-                                                name="check-all-user"
-                                                :checked="isCheckCurPageAll"
-                                                :disabled="!configmapList.length"
-                                                @click="toggleCheckCurPage" />
-                                        </label>
-                                    </th>
-                                    <th style="min-width: 200px;">{{$t('名称')}}</th>
-                                    <th style="min-width: 130px;">{{$t('所属集群')}}</th>
-                                    <th style="min-width: 130px;">{{$t('命名空间')}}</th>
-                                    <th style="min-width: 130px">{{$t('来源')}}</th>
-                                    <th style="min-width: 130px;">{{$t('创建时间')}}</th>
-                                    <th style="min-width: 130px;">{{$t('更新时间')}}</th>
-                                    <th style="min-width: 130px;">{{$t('更新人')}}</th>
-                                    <th style="min-width: 130px">{{$t('操作')}}</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <template v-if="configmapList.length">
-                                    <tr v-for="(configmap, index) in curPageData" :key="index">
-                                        <td style="position: relative;">
-                                            <label class="bk-form-checkbox">
-                                                <input
-                                                    type="checkbox"
-                                                    name="check-variable"
-                                                    :disabled="!configmap.can_delete || !configmap.permissions.use"
-                                                    v-model="configmap.isChecked"
-                                                    @click="rowClick" />
-                                            </label>
-                                            <div class="bk-spin-loading bk-spin-loading-mini bk-spin-loading-warning" v-if="configmap.status === 'updating'">
-                                                <div class="rotate rotate1"></div>
-                                                <div class="rotate rotate2"></div>
-                                                <div class="rotate rotate3"></div>
-                                                <div class="rotate rotate4"></div>
-                                                <div class="rotate rotate5"></div>
-                                                <div class="rotate rotate6"></div>
-                                                <div class="rotate rotate7"></div>
-                                                <div class="rotate rotate8"></div>
-                                            </div>
-                                        </td>
-                                        <td>
-                                            <a href="javascript: void(0)" class="bk-text-button biz-resource-title biz-text-wrapper" @click.stop.prevent="showConfigmapDetail(configmap, index)">{{configmap.resourceName}}</a>
-                                        </td>
-                                        <td>
-                                            <bk-tooltip :content="configmap.cluster_id || '--'" placement="top">
-                                                <p class="biz-text-wrapper">{{configmap.cluster_name ? configmap.cluster_name : '--'}}</p>
-                                            </bk-tooltip>
-                                        </td>
-                                        <td>
-                                            {{configmap.namespace}}
-                                        </td>
-                                        <td>
-                                            {{configmap.source_type}}
-                                        </td>
-                                        <td>
-                                            {{configmap.createTime ? formatDate(configmap.createTime) : '--'}}
-                                        </td>
-                                        <td>
-                                            {{configmap.update_time ? formatDate(configmap.update_time) : '--'}}
-                                        </td>
-                                        <td>
-                                            {{configmap.updator || '--'}}
-                                        </td>
-                                        <td>
-                                            <li>
-                                                <span v-if="configmap.can_update" @click.stop="updateConfigmap(configmap)" class="biz-operate">{{$t('更新')}}</span>
-                                                <bk-tooltip :content="configmap.can_update_msg" v-else placement="left">
-                                                    <span class="biz-not-operate">{{$t('更新')}}</span>
-                                                </bk-tooltip>
-                                                <span v-if="configmap.can_delete" @click.stop="removeConfigmap(configmap)" class="biz-operate">{{$t('删除')}}</span>
-                                                <bk-tooltip :content="configmap.can_delete_msg || $t('不可删除')" v-else placement="left">
-                                                    <span class="biz-not-operate">{{$t('删除')}}</span>
-                                                </bk-tooltip>
-                                            </li>
-                                        </td>
-                                    </tr>
-                                </template>
-                                <template v-else>
-                                    <tr style="background: none;">
-                                        <td colspan="8">
-                                            <div class="biz-app-list">
-                                                <div class="bk-message-box">
-                                                    <p class="message empty-message" v-if="!isInitLoading">{{$t('无数据')}}</p>
-                                                </div>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                </template>
-                            </tbody>
-                        </table>
-                    </div>
-                    <div class="biz-page-wrapper" v-if="pageConf.total">
-                        <bk-page-counter
-                            :is-en="isEn"
-                            :total="pageConf.total"
-                            :page-size="pageConf.pageSize"
-                            @change="changePageSize">
-                        </bk-page-counter>
-                        <bk-paging
-                            :cur-page.sync="pageConf.curPage"
-                            :total-page="pageConf.totalPage"
-                            @page-change="pageChangeHandler">
-                        </bk-paging>
-                        <div class="already-selected-nums" v-if="alreadySelectedNums">{{$t('已选')}} {{alreadySelectedNums}} {{$t('条')}}</div>
-                    </div>
+                <div class="biz-resource biz-table-wrapper">
+                    <bk-table
+                        v-bkloading="{ isLoading: isPageLoading && !isInitLoading }"
+                        class="biz-resource-table"
+                        :data="curPageData"
+                        :page-params="pageConf"
+                        @page-change="pageChangeHandler"
+                        @page-limit-change="changePageSize"
+                        @select="handlePageSelect"
+                        @select-all="handlePageSelectAll">
+                        <bk-table-column type="selection" width="60" :selectable="rowSelectable" />
+                        <bk-table-column :label="$t('名称')" prop="name" :show-overflow-tooltip="true" min-width="150">
+                            <template slot-scope="{ row }">
+                                <a
+                                    class="bk-text-button biz-resource-title biz-text-wrapper"
+                                    href="javascript: void(0)"
+                                    @click.stop.prevent="showConfigmapDetail(row, index)">
+                                    {{row.resourceName}}
+                                </a>
+                            </template>
+                        </bk-table-column>
+                        <bk-table-column :label="$t('所属集群')" prop="cluster_name" min-width="150">
+                            <template slot-scope="{ row }">
+                                <bcs-popover :content="row.cluster_id || '--'" placement="top">
+                                    <p class="biz-text-wrapper">{{row.cluster_name ? row.cluster_name : '--'}}</p>
+                                </bcs-popover>
+                            </template>
+                        </bk-table-column>
+                        <bk-table-column :label="$t('命名空间')" prop="namespace" min-width="100" />
+                        <bk-table-column :label="$t('来源')" prop="source_type" min-width="100">
+                            <template slot-scope="{ row }">
+                                {{ row.source_type || '--' }}
+                            </template>
+                        </bk-table-column>
+                        <bk-table-column :label="$t('创建时间')" prop="createTime" min-width="150">
+                            <template slot-scope="{ row }">
+                                {{ formatDate(row.createTime) || '--' }}
+                            </template>
+                        </bk-table-column>
+                        <bk-table-column :label="$t('更新时间')" prop="update_time" min-width="150">
+                            <template slot-scope="{ row }">
+                                {{ formatDate(row.update_time) || '--' }}
+                            </template>
+                        </bk-table-column>
+                        <bk-table-column :label="$t('更新人')" prop="updator">
+                            <template slot-scope="{ row }">
+                                {{row.updator || '--'}}
+                            </template>
+                        </bk-table-column>
+                        <bk-table-column :label="$t('操作')" prop="permissions" min-width="150">
+                            <template slot-scope="{ row }">
+                                <li>
+                                    <span v-if="row.can_update" @click.stop="updateConfigmap(row)" class="biz-operate">{{$t('更新')}}</span>
+                                    <bcs-popover :content="row.can_update_msg" v-else placement="left">
+                                        <span class="biz-not-operate">{{$t('更新')}}</span>
+                                    </bcs-popover>
+                                    <span v-if="row.can_delete" @click.stop="removeConfigmap(row)" class="biz-operate">{{$t('删除')}}</span>
+                                    <bcs-popover :content="row.can_delete_msg || $t('不可删除')" v-else placement="left">
+                                        <span class="biz-not-operate">{{$t('删除')}}</span>
+                                    </bcs-popover>
+                                </li>
+                            </template>
+                        </bk-table-column>
+                    </bk-table>
                 </div>
             </template>
 
@@ -182,14 +134,14 @@
                             </template>
                             <template v-else>
                                 <tr>
-                                    <td colspan="2"><p style="padding: 10px; text-align: center;">{{$t('无数据')}}</p></td>
+                                    <td colspan="2"><bcs-exception type="empty" scene="part"></bcs-exception></td>
                                 </tr>
                             </template>
                         </tbody>
                     </table>
 
                     <div class="actions">
-                        <button class="show-labels-btn bk-button bk-button-small bk-primary">{{$t('显示标签')}}</button>
+                        <bk-button class="show-labels-btn bk-button bk-button-small bk-primary">{{$t('显示标签')}}</bk-button>
                     </div>
 
                     <div class="point-box">
@@ -202,7 +154,7 @@
                             </ul>
                         </template>
                         <template v-else>
-                            <p class="biz-no-data">{{$t('无数据')}}</p>
+                            <bcs-exception type="empty" scene="part"></bcs-exception>
                         </template>
                     </div>
                 </div>
@@ -219,12 +171,10 @@
                             <div class="bk-form-item" style="margin-bottom: 20px;">
                                 <label class="bk-label">{{$t('名称')}}：</label>
                                 <div class="bk-form-content" style="margin-left: 105px;">
-                                    <input
-                                        type="text"
-                                        class="bk-form-input"
+                                    <bk-input
                                         name="configmapName"
-                                        disabled="disabled"
-                                        style="min-width: 310px; cursor: not-allowed;"
+                                        disabled
+                                        style="min-width: 310px;"
                                         v-model="curConfigmapName" />
                                 </div>
                             </div>
@@ -232,30 +182,32 @@
                             <div class="bk-form-content" style="margin-left: 105px;">
                                 <div class="biz-list-operation">
                                     <div class="item" v-for="(data, index) in configmapKeyList" :key="index">
-                                        <button
+                                        <bk-button
+                                            v-show="!data.isEdit"
+                                            style="width: 120px;"
                                             :class="['bk-button', { 'bk-primary': curKeyIndex === index }]"
-                                            v-if="!data.isEdit"
                                             @click.stop.prevent="setCurKey(data, index)">
                                             {{data.key || $t('未命名')}}
-                                        </button>
-                                        <bk-input
+                                        </bk-button>
+                                        <bkbcs-input
+                                            v-show="data.isEdit"
+                                            :ref="`bcs-input-${index}`"
+                                            :key="index"
                                             type="text"
                                             placeholder=""
-                                            v-else
-                                            style="width: 78px;"
+                                            style="width: 120px;"
                                             :value.sync="data.key"
                                             :list="varList"
-                                            @blur="setKey(data, index)"
-                                        >
-                                        </bk-input>
-                                        <span class="bk-icon icon-edit" v-show="!data.isEdit" @click.stop.prevent="editKey(data, index)"></span>
-                                        <span class="bk-icon icon-close" v-show="!data.isEdit" @click.stop.prevent="removeKey(data, index)"></span>
+                                            @blur="setKey(data, index)">
+                                        </bkbcs-input>
+                                        <span class="bcs-icon bcs-icon-edit" v-show="!data.isEdit" @click.stop.prevent="editKey(data, index)"></span>
+                                        <span class="bcs-icon bcs-icon-close" v-show="!data.isEdit" @click.stop.prevent="removeKey(data, index)"></span>
                                     </div>
-                                    <bk-tooltip ref="keyTooltip" :content="$t('添加Key')" placement="top">
-                                        <button class="bk-button bk-default is-outline is-icon" @click.stop.prevent="addKey">
-                                            <i class="bk-icon icon-plus"></i>
-                                        </button>
-                                    </bk-tooltip>
+                                    <bcs-popover ref="keyTooltip" :content="$t('添加Key')" placement="top">
+                                        <bk-button class="bk-button bk-default is-outline is-icon" @click.stop.prevent="addKey">
+                                            <i class="bcs-icon bcs-icon-plus"></i>
+                                        </bk-button>
+                                    </bcs-popover>
                                 </div>
                             </div>
                         </div>
@@ -263,35 +215,47 @@
                             <div class="bk-form-item" style="margin-top: 0;" v-if="currentView === 'mesosService'">
                                 <label class="bk-label">{{$t('值来源')}}：</label>
                                 <div class="bk-form-content" style="margin-left: 105px;">
-                                    <label class="bk-form-radio">
-                                        <input type="radio" name="key-type" value="file" v-model="curKeyParams.type">
-                                        <i class="bk-radio-text">{{$t('在线编辑')}}</i>
-                                    </label>
-                                    <label class="bk-form-radio">
-                                        <input type="radio" name="key-type" value="http" v-model="curKeyParams.type">
-                                        <i class="bk-radio-text">{{$t('仓库获取')}}</i>
-                                    </label>
+                                    <bk-radio-group v-model="curKeyParams.type">
+                                        <bk-radio value="file">{{$t('在线编辑')}}</bk-radio>
+                                        <bk-radio value="http">{{$t('仓库获取')}}</bk-radio>
+                                    </bk-radio-group>
                                 </div>
                             </div>
                             <div class="bk-form-item" style="margin-top: 13px;">
                                 <label class="bk-label">{{$t('值')}}：</label>
                                 <div class="bk-form-content" style="margin-left: 105px;" v-if="currentView === 'k8sService'">
-                                    <textarea class="bk-form-textarea" style="height: 200px;" v-model="curKeyParams.content" :placeholder="$t('请输入键') + curKeyParams.key + $t('的内容')"></textarea>
+                                    <textarea class="bk-form-textarea"
+                                        style="height: 200px;"
+                                        v-model="curKeyParams.content"
+                                        :placeholder="$t('请输入键') + curKeyParams.key + $t('的内容')"
+                                        v-full-screen>
+                                    </textarea>
                                 </div>
                                 <div class="bk-form-content" style="margin-left: 105px;" v-else>
-                                    <textarea class="bk-form-textarea" style="height: 200px;" v-model="curKeyParams.content" :placeholder="$t('请输入键') + curKeyParams.key + $t('的内容')" v-if="curKeyParams.type === 'file'"></textarea>
-                                    <textarea class="bk-form-textarea" style="height: 200px;" v-model="curKeyParams.content" :placeholder="$t('请输入仓库中配置文件的相对路径')" v-else></textarea>
+                                    <textarea class="bk-form-textarea"
+                                        style="height: 200px;"
+                                        v-model="curKeyParams.content"
+                                        :placeholder="$t('请输入键') + curKeyParams.key + $t('的内容')"
+                                        v-full-screen
+                                        v-if="curKeyParams.type === 'file'">
+                                    </textarea>
+                                    <textarea class="bk-form-textarea" style="height: 200px;"
+                                        v-model="curKeyParams.content"
+                                        :placeholder="$t('请输入在线文件地址，如http://www.example.com/config.txt')"
+                                        v-full-screen
+                                        v-else>
+                                    </textarea>
                                 </div>
-                                <label style="margin-left: 105px; font-size: 14px; color: #c3cdd7;" v-if="currentView === 'mesosService' && curKeyParams.type === 'file'">{{$t('实例化时会将值的内容做base64编码')}}</label>
+                                <p class="biz-tip mt5" style="margin-left: 105px; " v-if="currentView === 'mesosService' && curKeyParams.type === 'file'">{{$t('实例化时会将值的内容做base64编码')}}</p>
                             </div>
                         </template>
                         <div class="action-inner" style="margin-top: 20px; margin-left: 105px;">
-                            <button type="button" class="bk-dialog-btn bk-dialog-btn-confirm bk-btn-primary" @click="submitUpdateConfigmap">
+                            <bk-button type="primary" :loading="isSaveBtnLoading" @click="submitUpdateConfigmap">
                                 {{$t('保存')}}
-                            </button>
-                            <button type="button" class="bk-dialog-btn bk-dialog-btn-cancel" @click="cancleUpdateConfigmap">
+                            </bk-button>
+                            <bk-button :disabled="isSaveBtnLoading" @click="cancleUpdateConfigmap">
                                 {{$t('取消')}}
-                            </button>
+                            </bk-button>
                         </div>
                     </div>
                 </div>
@@ -299,19 +263,20 @@
 
             <bk-dialog
                 :is-show="batchDialogConfig.isShow"
-                :width="550"
+                :width="600"
                 :has-header="false"
                 :quick-close="false"
+                :title="$t('确认删除')"
                 @confirm="deleteConfigmaps(batchDialogConfig.data)"
                 @cancel="batchDialogConfig.isShow = false">
-                <div slot="content">
+                <template slot="content">
                     <div class="biz-batch-wrapper">
                         <p class="batch-title">{{$t('确定要删除以下ConfigMap？')}}</p>
                         <ul class="batch-list">
                             <li v-for="(item, index) of batchDialogConfig.list" :key="index" :title="item">{{item}}</li>
                         </ul>
                     </div>
-                </div>
+                </template>
             </bk-dialog>
         </div>
     </div>
@@ -320,8 +285,12 @@
 <script>
     import { catchErrorHandler, formatDate } from '@open/common/util'
     import globalMixin from '@open/mixins/global'
+    import fullScreen from '@open/directives/full-screen'
 
     export default {
+        directives: {
+            'full-screen': fullScreen
+        },
         mixins: [globalMixin],
         data () {
             return {
@@ -334,6 +303,7 @@
                 curPageData: [],
                 curConfigmap: null,
                 isShowKeyValue: false,
+                isSaveBtnLoading: false,
                 pageConf: {
                     total: 1,
                     totalPage: 1,
@@ -369,7 +339,8 @@
                 isBatchRemoving: false,
                 curSelectedData: [],
                 alreadySelectedNums: 0,
-                curConfigmapKeyList: []
+                curConfigmapKeyList: [],
+                comfigSelectedList: []
             }
         },
         computed: {
@@ -428,6 +399,9 @@
             },
             isClusterDataReady () {
                 return this.$store.state.cluster.isClusterDataReady
+            },
+            curClusterId () {
+                return this.$store.state.curClusterId
             }
         },
         watch: {
@@ -445,11 +419,15 @@
                                     this.searchScope = this.searchScopeList[1].id
                                 }
                             }
-                            
+
                             this.getConfigmapList()
                         }, 1000)
                     }
                 }
+            },
+            curClusterId () {
+                this.searchScope = this.curClusterId
+                this.getConfigmapList()
             }
         },
         created () {
@@ -513,17 +491,16 @@
             async removeConfigmaps () {
                 const data = []
                 const names = []
-
-                this.configmapList.forEach(item => {
-                    if (item.isChecked) {
+                if (this.comfigSelectedList.length) {
+                    this.comfigSelectedList.forEach(item => {
                         data.push({
                             cluster_id: item.cluster_id,
                             namespace: item.namespace,
                             name: item.name
                         })
                         names.push(`${item.cluster_name} / ${item.namespace} / ${item.resourceName}`)
-                    }
-                })
+                    })
+                }
                 if (!data.length) {
                     this.$bkMessage({
                         theme: 'error',
@@ -645,7 +622,7 @@
 
                 const me = this
                 me.$bkInfo({
-                    title: ``,
+                    title: me.$t('确认删除'),
                     clsName: 'biz-remove-dialog max-size',
                     content: me.$createElement('p', {
                         class: 'biz-confirm-desc'
@@ -688,6 +665,7 @@
              * 向服务器提交configmap更新数据
              */
             async submitUpdateConfigmap () {
+                this.isSaveBtnLoading = true
                 const enity = {}
                 enity.namespace_id = this.namespaceId
                 enity.instance_id = this.instanceId
@@ -759,6 +737,7 @@
                 } catch (e) {
                     catchErrorHandler(e, this)
                 } finally {
+                    this.isSaveBtnLoading = false
                     this.cancleUpdateConfigmap()
                 }
             },
@@ -811,7 +790,7 @@
              */
             setKey (data, index) {
                 if (data.key === '') {
-                    data.key = 'key-' + this.configmapKeyList.length
+                    data.key = 'key-' + (index + 1)
                 } else {
                     const nameReg = /^[a-zA-Z]{1}[a-zA-Z0-9-_.]{0,254}$/
                     const varReg = /\{\{([^\{\}]+)?\}\}/g
@@ -866,6 +845,11 @@
              * @param  {Number} index 索引
              */
             editKey (data, index) {
+                setTimeout(() => {
+                    this.$refs[`bcs-input-${index}`][0].$el.children[0].focus()
+                    this.setCurKey(data, index)
+                }, 200)
+                // this.$refs[`bsc-input-${index}`]
                 data.isEdit = true
             },
 
@@ -1095,7 +1079,24 @@
                 setTimeout(() => {
                     this.isPageLoading = false
                 }, 200)
+                this.comfigSelectedList = []
                 return this.configmapList.slice(startIndex, endIndex)
+            },
+
+            /**
+             * 单选
+             * @param {array} selection 已经选中的行数
+             * @param {object} row 当前选中的行
+             */
+            handlePageSelect (selection, row) {
+                this.comfigSelectedList = selection
+            },
+
+            /**
+             * 全选
+             */
+            handlePageSelectAll (selection, row) {
+                this.comfigSelectedList = selection
             },
 
             /**
@@ -1119,6 +1120,10 @@
                 this.$nextTick(() => {
                     this.alreadySelectedNums = this.configmapList.filter(item => item.isChecked).length
                 })
+            },
+
+            rowSelectable (row, index) {
+                return row.can_delete || !row.permissions.use
             }
         }
     }

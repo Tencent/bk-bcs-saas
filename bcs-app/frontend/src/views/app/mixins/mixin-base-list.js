@@ -10,7 +10,7 @@ import bkDiff from '@open/components/bk-diff'
 import applyPerm from '@open/mixins/apply-perm'
 import ace from '@open/components/ace-editor'
 
-import MonacoEditor from '@open/components/monaco-editor/editor'
+import MonacoEditor from '@open/components/monaco-editor/editor.vue'
 
 export default {
     mixins: [applyPerm],
@@ -22,7 +22,13 @@ export default {
     },
     data () {
         return {
-            bkSearcherFixedSearchParams: [],
+            bkSearcherFixedSearchParams: [
+                // {
+                //     id: 'cluster_type',
+                //     text: this.$t('集群类型'),
+                //     list: [{ id: 1, text: this.$t('正式集群') }, { id: 2, text: this.$t('测试集群'), isSelected: true }]
+                // }
+            ],
             bkSearcherMask: false,
             bkSearcherFilterList: [],
             showLoading: false,
@@ -122,12 +128,14 @@ export default {
                 isShow: false,
                 width: 400,
                 title: '',
+                content: '',
                 closeIcon: false
             },
             forceDeleteDialogConf: {
                 isShow: false,
                 width: 400,
                 title: '',
+                content: '',
                 closeIcon: false
             },
             bkMessageInstance: null,
@@ -146,7 +154,7 @@ export default {
             loopAppListParams: [],
             cancelLoop: false,
             searchParams: {
-                cluster_type: ''
+                // cluster_type: ''
             },
             searchParamsList: [],
             // 集群类型 1 正式，2 测试
@@ -172,7 +180,9 @@ export default {
                 isShow: false,
                 list: [],
                 tpl: null
-            }
+            },
+            clusterValue: '',
+            clusterSearchSelectExpand: false
         }
     },
     watch: {
@@ -184,7 +194,7 @@ export default {
             }
             this.handleSearch()
         },
-        searchParams (val) {
+        searchParams () {
             this.cancelLoopAppList()
             this.cancelLoopInstanceList()
             // this.searchParamsListFromRoute
@@ -209,6 +219,9 @@ export default {
         },
         showLoading (v) {
             this.bkSearcherMask = v
+        },
+        curClusterId (v) {
+            this.clusterValue = v
         }
     },
     computed: {
@@ -242,9 +255,35 @@ export default {
         },
         isEn () {
             return this.$store.state.isEn
+        },
+        curClusterId () {
+            return this.$store.state.curClusterId
+        },
+        clusterList () {
+            return this.$store.state.cluster.clusterList
         }
     },
     created () {
+        let clusterId = ''
+        if (this.curClusterId) {
+            clusterId = this.curClusterId
+        } else if (sessionStorage['bcs-cluster']) {
+            // 应用进到pod页面，点击返回，回到记录的集群下,而不是选中第一个集群
+            clusterId = sessionStorage['bcs-cluster']
+        } else if (this.clusterList.length) {
+            clusterId = this.clusterList[0].cluster_id
+        }
+        this.clusterValue = clusterId
+
+        if (!this.clusterValue) {
+            this.showLoading = true
+            this.cancelLoop = false
+            setTimeout(() => {
+                this.showLoading = false
+            }, 1500)
+            return
+        }
+
         const appViewMode = localStorage.getItem('appViewMode')
         if (appViewMode) {
             this.viewMode = appViewMode
@@ -294,38 +333,9 @@ export default {
                 }
             ])
         }
-        // 不是从实例化页面跳转过来的
-        if (this.isProdCluster === void 0) {
-            if (this.bkSearcherFixedSearchParams.length === 0) {
-                this.clusterType = '1'
-                localStorage.setItem('clusterType', this.clusterType)
-            } else {
-                const clusterType = localStorage.getItem('clusterType')
-                if (clusterType) {
-                    this.clusterType = clusterType
-                }
-                localStorage.setItem('clusterType', this.clusterType)
-            }
-        } else {
-            if (this.isProdCluster) {
-                this.clusterType = '1'
-                localStorage.setItem('clusterType', this.clusterType)
-            } else {
-                this.clusterType = '2'
-                localStorage.setItem('clusterType', this.clusterType)
-            }
-        }
-
-        // 设置 bkSearch fixedSearchParams 的选中状态
-        if (this.bkSearcherFixedSearchParams.length) {
-            this.bkSearcherFixedSearchParams[0].list.forEach(item => {
-                item.isSelected = String(item.id) === this.clusterType
-            })
-        }
 
         if (!this.searchParamsListFromRoute || !this.searchParamsListFromRoute.length) {
             const searchParams = {}
-            searchParams.cluster_type = this.clusterType
             this.searchParams = JSON.parse(JSON.stringify(searchParams))
         } else {
             const searchParams = {}
@@ -340,11 +350,7 @@ export default {
                     obj.value = item.text
                 }
                 searchParams[item.id] = item.value.id
-                if (item.id === 'cluster_type') {
-                    localStorage.setItem('clusterType', item.value.id)
-                }
             })
-            searchParams.cluster_type = this.clusterType
             this.searchParams = JSON.parse(JSON.stringify(searchParams))
             this.bkSearcherFilterList.splice(0, this.bkSearcherFilterList.length, ...bkSearcherFilterList)
             this.searchParamsList.splice(0, this.searchParamsList.length, ...this.searchParamsListFromRoute)
@@ -361,6 +367,72 @@ export default {
         this.instanceTimer = null
     },
     methods: {
+        clusterSearchSelectToggle (expand) {
+            this.clusterSearchSelectExpand = expand
+        },
+
+        changeCluster (clusterId) {
+            // 全部集群状态下，应用列表切换集群记录集群id
+            sessionStorage['bcs-cluster'] = clusterId
+            this.cancelLoopAppList()
+            this.cancelLoopInstanceList()
+
+            if (this.viewMode === 'namespace') {
+                this.bkSearcherFilterList.splice(0, this.bkSearcherFilterList.length, ...[
+                    {
+                        id: 'ns_id',
+                        text: this.$t('命名空间名称')
+                    },
+                    {
+                        id: 'app_id',
+                        text: this.$t('应用名称')
+                    },
+                    {
+                        id: 'app_status',
+                        text: this.$t('状态'),
+                        list: [
+                            {
+                                id: 1,
+                                text: this.$t('正常')
+                            },
+                            {
+                                id: 2,
+                                text: this.$t('异常')
+                            }
+                        ]
+                    }
+                ])
+            }
+            if (this.viewMode === 'template') {
+                this.bkSearcherFilterList.splice(0, this.bkSearcherFilterList.length, ...[
+                    {
+                        id: 'muster_id',
+                        text: this.$t('模板集名称')
+                    },
+                    {
+                        id: 'app_id',
+                        text: this.$t('应用名称')
+                    },
+                    {
+                        id: 'ns_id',
+                        text: this.$t('命名空间名称')
+                    }
+                ])
+            }
+            this.$refs.bkSearcher.$emit('resetSearchParams', true)
+
+            // this.searchParamsListFromRoute
+            // 为 undefined 说明是第一次进入
+            // 为空数组说明只有默认的 fix 搜索条件进入 instance 然后返回的
+            // 为有 item 的数组说明是带了搜索条件进入 instance 然后返回的
+            // 为 ['fromSearch'] 时说明是在本页搜索导致的查询，这时不需要展开
+            if (this.searchParamsListFromRoute && this.searchParamsListFromRoute[0] === 'fromSearch') {
+                this.fetchData(false)
+            } else {
+                this.fetchData(this.searchParamsListFromRoute !== void 0)
+            }
+        },
+
         /**
          * 获取变量数据
          */
@@ -394,36 +466,39 @@ export default {
             const p = []
             p.splice(0, 0, ...data)
             if (this.bkSearcherFixedSearchParams.length === 0) {
-                p.push({
-                    id: 'cluster_type',
-                    text: this.$t('集群类型'),
-                    list: [{ id: 1, text: this.$t('正式集群'), isSelected: true }],
-                    value: { id: 1, isSelected: true, text: this.$t('正式集群') }
-                })
+                // p.push({
+                //     id: 'cluster_type',
+                //     text: this.$t('集群类型'),
+                //     list: [{ id: 1, text: this.$t('正式集群'), isSelected: true }],
+                //     value: { id: 1, isSelected: true, text: this.$t('正式集群') }
+                // })
             }
             const searchParamsList = []
             const searchParams = {}
             p.forEach(item => {
                 searchParams[item.id] = item.value.id
-                if (item.id === 'cluster_type') {
-                    localStorage.setItem('clusterType', item.value.id)
-                } else {
-                    const len = item.list.length
-                    for (let i = 0; i < len; i++) {
-                        if (item.list[i].id === item.value.id) {
-                            item.list[i].isSelected = true
-                            break
-                        }
+                // if (item.id === 'cluster_type') {
+                //     localStorage.setItem('clusterType', item.value.id)
+                // } else {
+                const len = item.list.length
+                for (let i = 0; i < len; i++) {
+                    if (item.list[i].id === item.value.id) {
+                        item.list[i].isSelected = true
+                        break
                     }
-                    searchParamsList.push({
-                        id: item.id,
-                        list: item.list,
-                        text: item.text,
-                        value: item.value,
-                        dynamicData: item.dynamicData
-                    })
                 }
+                searchParamsList.push({
+                    id: item.id,
+                    list: item.list,
+                    text: item.text,
+                    value: item.value,
+                    dynamicData: item.dynamicData
+                })
+                // }
             })
+
+            console.error(searchParams)
+
             this.searchParams = JSON.parse(JSON.stringify(searchParams))
             this.searchParamsList.splice(0, this.searchParamsList.length, ...searchParamsList)
 
@@ -459,10 +534,11 @@ export default {
 
                 const fsp = Object.assign({}, fixedSearchParams)
                 if (this.bkSearcherFixedSearchParams.length === 0) {
-                    fsp.cluster_type = 1
+                    // TODO: 待接口支持 cluster_id 后，就可以去掉 cluster_type 条件
+                    // fsp.cluster_type = 2
                 }
 
-                const params = Object.assign({ projectId: this.projectId }, fsp)
+                const params = Object.assign({ projectId: this.projectId, cluster_id: this.clusterValue }, fsp)
 
                 if (this.CATEGORY) {
                     params.category = this.CATEGORY
@@ -473,9 +549,9 @@ export default {
                 const list = res.data || []
                 list.forEach(item => {
                     if (isNs) {
-                        item.id = item.ns_id
+                        item.id = item.ns_id || item.id
                         const clusterId = item.cluster_id || ''
-                        item.text = item.ns_name + (clusterId ? ` (${clusterId})` : '')
+                        item.text = item.name + (clusterId ? ` (${clusterId})` : '')
                     }
                     if (isApp) {
                         item.id = item.app_id
@@ -489,10 +565,6 @@ export default {
                 resolve(list)
             } catch (e) {
                 console.error(e)
-                this.bkMessageInstance = this.$bkMessage({
-                    theme: 'error',
-                    message: e.message || e.data.msg || e.statusText
-                })
             }
         },
 
@@ -578,7 +650,11 @@ export default {
 
                 // 集群模板视图
                 if (this.viewMode === 'template') {
-                    const params = Object.assign({ projectId: this.projectId }, this.searchParams)
+                    const params = Object.assign({
+                        projectId: this.projectId,
+                        cluster_id: this.clusterValue
+                    }, this.searchParams)
+
                     if (this.CATEGORY) {
                         params.category = this.CATEGORY
                     }
@@ -628,7 +704,12 @@ export default {
                     }
                 } else {
                     // exist_app: 1: 有应用的命名空间 0: 有应用和没有应用的命名空间
-                    const params = Object.assign({ projectId: this.projectId, exist_app: 1 }, this.searchParams)
+                    const params = Object.assign({
+                        projectId: this.projectId,
+                        exist_app: 1,
+                        cluster_id: this.clusterValue
+                    }, this.searchParams)
+
                     if (this.CATEGORY) {
                         params.category = this.CATEGORY
                     }
@@ -691,7 +772,8 @@ export default {
             try {
                 const params = Object.assign({
                     projectId: this.projectId,
-                    tmplMusterId: tmplMuster.tmpl_muster_id
+                    tmplMusterId: tmplMuster.tmpl_muster_id,
+                    cluster_id: this.clusterValue
                 }, this.searchParams)
 
                 if (this.CATEGORY) {
@@ -779,7 +861,11 @@ export default {
             }
 
             try {
-                const params = Object.assign({ projectId: this.projectId, namespaceId: namespace.id }, this.searchParams)
+                const params = Object.assign({
+                    projectId: this.projectId,
+                    namespaceId: namespace.id,
+                    cluster_id: this.clusterValue
+                }, this.searchParams)
 
                 if (this.CATEGORY) {
                     params.category = this.CATEGORY
@@ -846,10 +932,6 @@ export default {
                 }
             } catch (e) {
                 console.error(e)
-                this.bkMessageInstance = this.$bkMessage({
-                    theme: 'error',
-                    message: e.message || e.data.msg || e.statusText
-                })
             } finally {
                 namespace.appLoading = false
             }
@@ -955,7 +1037,8 @@ export default {
                     projectId: this.projectId,
                     tmplMusterId: tmplMuster.tmpl_muster_id,
                     templateId: tpl.tmpl_app_id,
-                    category: tpl.category
+                    category: tpl.category,
+                    cluster_id: this.clusterValue
                 }, this.searchParams)
 
                 if (this.CATEGORY) {
@@ -1022,10 +1105,6 @@ export default {
                 }
             } catch (e) {
                 console.error(e)
-                this.bkMessageInstance = this.$bkMessage({
-                    theme: 'error',
-                    message: e.message || e.data.msg || e.statusText
-                })
             } finally {
                 this.instanceLoading = false
             }
@@ -1182,8 +1261,9 @@ export default {
             const me = this
 
             me.$bkInfo({
-                title: '',
+                title: this.$t('确认操作'),
                 clsName: 'biz-confirm-dialog',
+                confirmLoading: true,
                 content: me.$createElement('p', {
                     style: {
                         color: '#666',
@@ -1352,8 +1432,9 @@ export default {
             })
 
             me.$bkInfo({
-                title: '',
+                title: this.$t('确认操作'),
                 clsName: 'biz-confirm-dialog',
+                confirmLoading: true,
                 content: me.$createElement('p', {
                     style: {
                         color: '#666',
@@ -1505,11 +1586,6 @@ export default {
             this.curInstance.instanceList = instanceList
             this.curInstance.instanceIndex = instanceIndex
 
-            this.rollbackPreviousDialogConf.isShow = true
-            this.rollbackPreviousDialogConf.loading = true
-            this.rollbackPreviousDialogConf.title = this.$t('{instanceName}回滚上一版本', {
-                instanceName: instance.name
-            })
             this.fetchRollbackPreviousInfo(this.curInstance)
 
             if (this.viewMode === 'namespace') {
@@ -1525,7 +1601,18 @@ export default {
          * @param {Object} instanceId 实例对象
          */
         async fetchRollbackPreviousInfo (instance) {
+            if (this.rollbackPreviousDialogConf.loading) {
+                return
+            }
+
+            this.rollbackPreviousDialogConf.loading = true
+
             try {
+                const dropdownComps = Array.isArray(this.$refs.dropdown) ? this.$refs.dropdown : [this.$refs.dropdown]
+                dropdownComps.forEach(item => {
+                    item.hide()
+                })
+
                 const instanceId = instance.id
 
                 const params = {
@@ -1545,13 +1632,22 @@ export default {
 
                 const res = await this.$store.dispatch('app/getInstanceConfig4RollbackPrevious', params)
                 const data = res.data || {}
-                this.rollbackPreviousDialogConf.prevContent = data.last_config_yaml
-                this.rollbackPreviousDialogConf.curContent = data.current_config_yaml
-                this.useEditorDiff = true
-                this.reRenderEditor++
+                this.rollbackPreviousDialogConf.isShow = true
+
+                setTimeout(() => {
+                    this.rollbackPreviousDialogConf.title = this.$t('{instanceName}回滚上一版本', {
+                        instanceName: instance.name
+                    })
+
+                    this.rollbackPreviousDialogConf.prevContent = data.last_config_yaml
+                    this.rollbackPreviousDialogConf.curContent = data.current_config_yaml
+                    this.useEditorDiff = true
+                    this.reRenderEditor++
+                })
             } catch (e) {
                 console.error(e)
-                this.hideRollbackPrevious()
+                // this.hideRollbackPrevious()
+
                 this.$bkMessage({
                     theme: 'error',
                     message: e.message || e.data.msg || e.statusText
@@ -1593,8 +1689,9 @@ export default {
             const me = this
 
             me.$bkInfo({
-                title: '',
+                title: me.$t('确认操作'),
                 clsName: 'biz-confirm-dialog',
+                confirmLoading: true,
                 content: me.$createElement('p', {
                     style: {
                         color: '#666',
@@ -1830,8 +1927,9 @@ export default {
             const me = this
 
             me.$bkInfo({
-                title: '',
+                title: this.$t('确认操作'),
                 clsName: 'biz-confirm-dialog',
+                confirmLoading: true,
                 content: me.$createElement('p', {
                     style: {
                         color: '#666',
@@ -2127,8 +2225,9 @@ export default {
             })
 
             me.$bkInfo({
-                title: '',
+                title: me.$t('确认操作'),
                 clsName: 'biz-confirm-dialog',
+                confirmLoading: true,
                 content: me.$createElement('p', {
                     style: {
                         color: '#666',
@@ -2217,7 +2316,7 @@ export default {
 
             const me = this
             me.$bkInfo({
-                title: '',
+                title: me.$t('确认操作'),
                 clsName: 'biz-confirm-dialog',
                 content: me.$createElement('p', {
                     style: {
@@ -2324,7 +2423,7 @@ export default {
 
             const me = this
             me.$bkInfo({
-                title: '',
+                title: me.$t('确认操作'),
                 clsName: 'biz-confirm-dialog',
                 content: me.$createElement('p', {
                     style: {
@@ -2431,7 +2530,7 @@ export default {
 
             const me = this
             me.$bkInfo({
-                title: '',
+                title: me.$t('确认操作'),
                 clsName: 'biz-confirm-dialog',
                 content: me.$createElement('p', {
                     style: {
@@ -2592,7 +2691,8 @@ export default {
                 }
             }
             me.$bkInfo({
-                title: ``,
+                title: me.$t('确认操作'),
+                confirmLoading: true,
                 clsName: 'biz-confirm-dialog',
                 content: me.$createElement('p', {
                     style: {
@@ -2600,7 +2700,6 @@ export default {
                         fontSize: '14px',
                         marginLeft: '-7px'
                     }
-                // }, me.$t('确定扩缩容【{instanceName}】？', { instanceName: me.curInstance.name })),
                 }, msg),
                 async confirmFn () {
                     const params = {
@@ -2811,10 +2910,7 @@ export default {
             try {
                 await this.$store.dispatch(url, params)
             } catch (e) {
-                this.bkMessageInstance = this.$bkMessage({
-                    theme: 'error',
-                    message: e.message || e.data.msg || e.statusText
-                })
+                console.log(e)
             } finally {
                 this.isUpdating = false
                 this.hideReBuild()
@@ -2861,7 +2957,8 @@ export default {
             this.curInstance.instanceIndex = instanceIndex
 
             this.deleteDialogConf.isShow = true
-            this.deleteDialogConf.title = this.$t('确定删除【{instanceName}】？', { instanceName: instance.name })
+            this.deleteDialogConf.title = this.$t('确认删除')
+            this.deleteDialogConf.content = this.$t('确定要删除【{instanceName}】？', { instanceName: instance.name })
 
             if (this.viewMode === 'namespace') {
                 this.cancelLoopAppList()
@@ -2910,10 +3007,7 @@ export default {
             try {
                 await this.$store.dispatch('app/deleteInstance', params)
             } catch (e) {
-                this.bkMessageInstance = this.$bkMessage({
-                    theme: 'error',
-                    message: e.message || e.data.msg || e.statusText
-                })
+                console.log(e)
             } finally {
                 this.isUpdating = false
                 this.hideDelete()
@@ -2960,7 +3054,8 @@ export default {
             this.curInstance.instanceIndex = instanceIndex
 
             this.forceDeleteDialogConf.isShow = true
-            this.forceDeleteDialogConf.title = this.$t('确定要强制删除【{instanceName}】？', {
+            this.forceDeleteDialogConf.title = this.$t('确认删除')
+            this.forceDeleteDialogConf.content = this.$t('确定要强制删除【{instanceName}】？', {
                 instanceName: instance.name
             })
 
@@ -3011,10 +3106,7 @@ export default {
             try {
                 await this.$store.dispatch('app/forceDeleteInstance', params)
             } catch (e) {
-                this.bkMessageInstance = this.$bkMessage({
-                    theme: 'error',
-                    message: e.message || e.data.msg || e.statusText
-                })
+                console.log(e)
             } finally {
                 this.isUpdating = false
                 this.hideForceDelete()
@@ -3068,8 +3160,9 @@ export default {
 
             const me = this
             me.$bkInfo({
-                title: '',
+                title: this.$t('确认操作'),
                 clsName: 'biz-confirm-dialog',
+                confirmLoading: true,
                 content: me.$createElement('p', {
                     style: {
                         color: '#666',
@@ -3134,10 +3227,9 @@ export default {
          * @param {Object} tpl 当前点击的模板对象
          * @param {number} index 当前点击的模板对象的索引
          * @param {Array} 当前模板集下所有的模板数组
+         * @param {boolean} checked 是否选中
          */
-        checkAllInstance (e, tpl, index, tplList) {
-            const checked = e.target.checked
-
+        checkAllInstance (tpl, index, tplList, checked) {
             const instanceList = []
             instanceList.splice(0, 0, ...tpl.instanceList)
 
@@ -3164,8 +3256,9 @@ export default {
          * @param {Object} tpl 当前点击的模板对象
          * @param {number} index 当前点击的模板对象的索引
          * @param {Array} 当前模板集下所有的模板数组
+         * @param {boolean} checked 是否选中
          */
-        checkInstance (instance, instanceIndex, tpl, index, tplList) {
+        checkInstance (instance, instanceIndex, tpl, index, tplList, checked) {
             const id = instance.id
             const prepareDeleteInstances = []
             prepareDeleteInstances.splice(0, 0, ...tpl.prepareDeleteInstances)
@@ -3224,11 +3317,12 @@ export default {
 
             const me = this
             me.$bkInfo({
-                title: this.$t('已选择 {len} 个实例，确定全部删除？', {
+                title: this.$t('确认删除'),
+                confirmLoading: true,
+                content: this.$t('已选择 {len} 个实例，确定全部删除？', {
                     len: tpl.prepareDeleteInstances.length
                 }),
-                clsName: 'biz-dialog-700',
-                content: '',
+                width: 360,
                 async confirmFn () {
                     // 用来触发组件的响应式，最终改变 me.curInstance.state
                     me.isUpdating = true
@@ -3283,10 +3377,9 @@ export default {
          * @param {Object} namespace 当前点击的命名对象
          * @param {number} namespaceIndex 当前点击的命名对象的索引
          * @param {Array} namespaceList 当前命名空间数组
+         * @param {boolean} checked 是否选中
          */
-        checkAllNamespace (e, namespace, namespaceIndex, namespaceList) {
-            const checked = e.target.checked
-
+        checkAllNamespace (namespace, namespaceIndex, namespaceList, checked) {
             const appList = []
             appList.splice(0, 0, ...namespace.appList)
 
@@ -3314,8 +3407,9 @@ export default {
          * @param {Object} namespace 当前点击的命名对象
          * @param {number} namespaceIndex 当前点击的命名对象的索引
          * @param {Array} namespaceList 当前命名空间数组
+         * @param {boolean} checked 是否选中
          */
-        checkNamespace (instance, instanceIndex, namespace, namespaceIndex, namespaceList) {
+        checkNamespace (instance, instanceIndex, namespace, namespaceIndex, namespaceList, checked) {
             const name = instance.name
             const prepareDeleteInstances = []
             prepareDeleteInstances.splice(0, 0, ...namespace.prepareDeleteInstances)
@@ -3361,11 +3455,12 @@ export default {
 
             const me = this
             me.$bkInfo({
-                title: this.$t('已选择 {len} 个实例，确定全部删除？', {
+                title: this.$t('确认删除'),
+                confirmLoading: true,
+                content: this.$t('已选择 {len} 个实例，确定全部删除？', {
                     len: namespace.prepareDeleteInstances.length
                 }),
-                clsName: 'biz-dialog-700',
-                content: '',
+                width: 360,
                 async confirmFn () {
                     // 用来触发组件的响应式，最终改变 me.curInstance.state
                     me.isUpdating = true
@@ -3605,10 +3700,7 @@ export default {
                     message: this.$t('任务下发成功')
                 })
             } catch (e) {
-                this.bkMessageInstance = this.$bkMessage({
-                    theme: 'error',
-                    message: e.message || e.data.msg || e.statusText
-                })
+                console.log(e)
             } finally {
                 this.isUpdating = false
                 this.hideBatchReBuild()

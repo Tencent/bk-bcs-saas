@@ -137,13 +137,19 @@
                             ],
                             "resources": {
                                 "limits": {
-                                    "cpu": "", 
+                                    "cpu": "",
                                     "memory": ""
-                                }, 
+                                },
                                 "requests": {
-                                    "cpu": 2, 
+                                    "cpu": 2,
                                     "memory": 4096
-                                }
+                                },
+                                "extendedResources": [
+                                    {
+                                        "name": "",
+                                        "value": 0
+                                    }
+                                ]
                             },
                             "volumes": [
                                 {

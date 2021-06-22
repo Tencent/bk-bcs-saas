@@ -3,7 +3,7 @@
         <div class="bk-login-wrapper">
             <iframe :src="iframeSrc" scrolling="no" border="0" width="500" height="500"></iframe>
             <!-- <a class="close-btn" @click="hideLoginModal">
-                <i class="bk-icon icon-close"></i>
+                <i class="bcs-icon bcs-icon-close"></i>
             </a> -->
         </div>
     </div>
@@ -30,9 +30,13 @@
                 this.isShow = false
             },
             showLoginModal (data) {
+                const ver = +new Date()
+                const url = data.simple
+                const sep = url.indexOf('?') === -1 ? '?' : '&'
+                this.iframeSrc = `${url}${sep}c_url=${this.loginCallbackURL}&ver=${ver}`
                 setTimeout(() => {
-                    window.$syncUrl(this.$route.fullPath.replace(new RegExp(`^${SITE_URL}`), ''), true)
-                }, 10)
+                    this.isShow = true
+                }, 1000)
             }
         }
     }

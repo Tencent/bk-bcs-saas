@@ -12,19 +12,19 @@
             <template v-if="!isLoading">
                 <div class="biz-panel-header">
                     <div class="left">
-                        <button class="bk-button bk-primary" @click.stop.prevent="addVar">
-                            <i class="bk-icon icon-plus"></i>
+                        <bk-button type="primary" @click.stop.prevent="addVar">
+                            <i class="bcs-icon bcs-icon-plus"></i>
                             <span>{{$t('新增变量')}}</span>
-                        </button>
+                        </bk-button>
                         
-                        <button class="bk-button bk-default import-btn">
-                            <span>{{$t('文件导入')}}</span>
-                            <input ref="fileInput" type="file" name="upload" class="file-input" accept="application/json" @change="handleFileInput">
-                        </button>
+                        <bk-button class="bk-button bk-default import-btn">
+                            <span @click="handleFileImport">{{$t('文件导入')}}</span>
+                        </bk-button>
 
-                        <button class="bk-button bk-default" @click.stop.prevent="removeVars">
+                        <bk-button @click.stop.prevent="removeVars">
                             <span>{{$t('批量删除')}}</span>
-                        </button>
+                        </bk-button>
+                        <input ref="fileInput" type="file" style="opacity: 0; position: absolute; top: -111px;" name="upload" class="file-input" accept="application/json" @change="handleFileInput">
                     </div>
                     <div class="right">
                         <bk-data-searcher
@@ -37,102 +37,41 @@
                         </bk-data-searcher>
                     </div>
                 </div>
-                <div class="biz-variable">
-                    <div class="biz-table-wrapper" v-bkloading="{ isLoading: isPageLoading && !isLoading }">
-                        <table class="bk-table biz-variable-table has-table-hover">
-                            <thead>
-                                <tr>
-                                    <th style="width: 50px;">
-                                        <label class="bk-form-checkbox">
-                                            <input type="checkbox" name="check-all-user" v-model="isCheckCurPageAll" @click="toogleCheckCurPage" v-if="curPageData.filter(item => item.category !== 'sys').length">
-                                            <input type="checkbox" v-else name="check-all-user" disabled="disabled" />
-                                        </label>
-                                    </th>
-                                    <th style="width: 200px;">
-                                        {{$t('变量名称')}}
-                                    </th>
-                                    <th>KEY</th>
-                                    <th>{{$t('默认值')}}</th>
-                                    <th style="width: 110px;">{{$t('类型')}}</th>
-                                    <th style="width: 130px;">{{$t('作用范围')}}</th>
-                                    <th style="width: 250px; "><span>{{$t('操作')}}</span></th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <template v-if="curPageData.length">
-                                    <tr v-for="variable in curPageData" :key="variable.key">
-                                        <td>
-                                            <label class="bk-form-checkbox">
-                                                <input type="checkbox" name="check-variable" v-model="variable.isChecked" @click="rowClick(variable)" :disabled="variable.category === 'sys'">
-                                            </label>
-                                        </td>
-                                        <td>
-                                            {{variable.name}}
-                                        </td>
-                                        <td>
-                                            <bk-tooltip :content="variable.key" placement="top">
-                                                <span class="biz-text-wrapper">
-                                                    {{variable.key}}
-                                                </span>
-                                            </bk-tooltip>
-                                        </td>
-                                        <td>
-                                            <bk-tooltip :content="variable.default.value" placement="top">
-                                                <span class="var-value">{{variable.default.value}}</span>
-                                            </bk-tooltip>
-                                        </td>
-                                        <td>{{variable.category_name}}</td>
-                                        <td>{{variable.scope_name}}</td>
-                                        <td>
-                                            <a href="javascript:void(0);" class="bk-text-button" @click="getQuoteDetail(variable)">{{$t('查看引用')}}</a>
-                                            <a href="javascript:void(0);" class="ml10 bk-text-button" @click="batchUpdate(variable)" v-show="variable.category !== 'sys' && (variable.scope === 'namespace' || variable.scope === 'cluster')">{{$t('批量更新')}}</a>
+                <div class="biz-table-wrapper">
+                    <bk-table
+                        v-bkloading="{ isLoading: isPageLoading && !isLoading }"
+                        :data="curPageData"
+                        :page-params="pageConf"
+                        @selection-change="handleSelectionChange"
+                        @page-change="pageChange"
+                        @page-limit-change="changePageSize">
+                        <bk-table-column type="selection" width="60" :selectable="(row, index) => row.category !== 'sys'"></bk-table-column>
+                        <bk-table-column :label="$t('变量名称')" prop="name" width="200"></bk-table-column>
+                        <bk-table-column label="KEY" prop="key"></bk-table-column>
+                        <bk-table-column :label="$t('默认值')" prop="default_value"></bk-table-column>
+                        <bk-table-column :label="$t('类型')" prop="category_name" width="120"></bk-table-column>
+                        <bk-table-column :label="$t('作用范围')" prop="scope_name" width="140"></bk-table-column>
+                        <bk-table-column :label="$t('操作')" width="250">
+                            <template slot-scope="{ row }">
+                                <a href="javascript:void(0);" class="bk-text-button" @click="getQuoteDetail(row)">{{$t('查看引用')}}</a>
+                                <a href="javascript:void(0);" class="ml10 bk-text-button" @click="batchUpdate(row)" v-show="row.category !== 'sys' && (row.scope === 'namespace' || row.scope === 'cluster')">{{$t('批量更新')}}</a>
 
-                                            <template v-if="variable.category === 'sys'">
-                                                <bk-tooltip :content="$t('系统内置变量，不能编辑')" placement="left">
-                                                    <a href="javascript:void(0);" class="bk-text-button is-disabled ml10">{{$t('编辑')}}</a>
-                                                </bk-tooltip>
-                                            </template>
-                                            <template v-else>
-                                                <a href="javascript:void(0);" class=" ml10 bk-text-button" @click="editVar(variable)">{{$t('编辑')}}</a>
-                                            </template>
-
-                                            <template v-if="variable.category === 'sys'">
-                                                <bk-tooltip :content="variable.category === 'sys' ? $t('系统内置变量') : $t('已经被引用，不能删除')" placement="left">
-                                                    <a href="javascript:void(0);" class="ml10 bk-text-button is-disabled">{{$t('删除')}}</a>
-                                                </bk-tooltip>
-                                            </template>
-                                            <template v-else>
-                                                <a href="javascript:void(0);" class="ml10 bk-text-button" @click="removeVar(variable)">{{$t('删除')}}</a>
-                                            </template>
-                                        </td>
-                                    </tr>
+                                <template v-if="row.category === 'sys'">
+                                    <a href="javascript:void(0);" class="bk-text-button is-disabled ml10" v-bk-tooltips.left="$t('系统内置变量，不能编辑')">{{$t('编辑')}}</a>
                                 </template>
                                 <template v-else>
-                                    <tr style="background: none;">
-                                        <td colspan="8">
-                                            <div class="bk-message-box">
-                                                <p class="message empty-message" v-if="!isLoading">{{$t('无数据')}}</p>
-                                            </div>
-                                        </td>
-                                    </tr>
+                                    <a href="javascript:void(0);" class=" ml10 bk-text-button" @click="editVar(row)">{{$t('编辑')}}</a>
                                 </template>
-                            </tbody>
-                        </table>
-                    </div>
-                    <div class="biz-page-wrapper" v-show="pageConf.total">
-                        <bk-page-counter
-                            :is-en="isEn"
-                            :total="pageConf.total"
-                            :page-size="pageConf.pageSize"
-                            @change="changePageSize">
-                        </bk-page-counter>
-                        <bk-paging
-                            :cur-page.sync="pageConf.curPage"
-                            :total-page="pageConf.totalPage"
-                            @page-change="pageChange">
-                        </bk-paging>
-                        <div class="already-selected-nums" v-if="alreadySelectedNums">{{$t('已选')}} {{alreadySelectedNums}} {{$t('条')}}</div>
-                    </div>
+
+                                <template v-if="row.category === 'sys'">
+                                    <a href="javascript:void(0);" class="ml10 bk-text-button is-disabled" v-bk-tooltips.left="row.category === 'sys' ? $t('系统内置变量') : $t('已经被引用，不能删除')">{{$t('删除')}}</a>
+                                </template>
+                                <template v-else>
+                                    <a href="javascript:void(0);" class="ml10 bk-text-button" @click="removeVar(row)">{{$t('删除')}}</a>
+                                </template>
+                            </template>
+                        </bk-table-column>
+                    </bk-table>
                 </div>
             </template>
         </div>
@@ -168,9 +107,9 @@
             :width="batchUpdateConf.width">
             <div style="padding: 20px 20px 10px 20px;" slot="content" v-bkloading="{ isLoading: isBatchVarLoading }">
                 <div style="height: 60px; margin-top: -60px;">
-                    <button class="fr bk-text-button f13" @click="toggleBatchMode">{{batchUpdateConf.mode === 'form' ? $t('切换为文本模式') : $t('切换为表单模式')}}</button>
+                    <bk-button class="fr bk-text-button f13" @click="toggleBatchMode">{{batchUpdateConf.mode === 'form' ? $t('切换为文本模式') : $t('切换为表单模式')}}</bk-button>
                 </div>
-                <table class="bk-table biz-data-table has-table-bordered" v-if="batchUpdateConf.mode === 'form'">
+                <table class="bk-table biz-data-table has-table-bordered" v-if="batchUpdateConf.mode === 'form'" style="border-bottom: none;">
                     <thead>
                         <tr>
                             <th v-if="curBatchVar && curBatchVar.scope === 'namespace'" style="width: 250px;">{{$t('所属')}}{{$t('集群')}}</th>
@@ -183,12 +122,12 @@
                             <tr v-for="(variable, index) in batchVarList" :key="index">
                                 <td v-if="curBatchVar && curBatchVar.scope === 'namespace'">{{variable.cluster_name}}</td>
                                 <td><p style="max-width: 160px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" :title="variable.name">{{variable.name}}</p></td>
-                                <td><input type="text" class="bk-form-input" v-model="variable.variable_value"></td>
+                                <td><bk-input v-model="variable.variable_value" /></td>
                             </tr>
                         </template>
                         <template v-else>
                             <tr>
-                                <td colspan="2"><p style="padding: 10px; text-align: center;">{{$t('无数据')}}</p></td>
+                                <td colspan="2"><bcs-exception type="empty" scene="part"></bcs-exception></td>
                             </tr>
                         </template>
                     </tbody>
@@ -205,8 +144,8 @@
                     </ace>
                 </div>
                 <div v-if="batchVarList.length">
-                    <button class="bk-button bk-primary" @click="saveBatchVar">{{$t('保存')}}</button>
-                    <button class="bk-button bk-default" @click="cancelBatchVar">{{$t('取消')}}</button>
+                    <bk-button type="primary" @click="saveBatchVar">{{$t('保存')}}</bk-button>
+                    <bk-button @click="cancelBatchVar">{{$t('取消')}}</bk-button>
                 </div>
             </div>
         </bk-sideslider>
@@ -216,168 +155,125 @@
             :width="400"
             :has-header="false"
             :quick-close="false"
+            :title="$t('确认删除')"
             @confirm="deleteVar(batchDialogConfig.removeIds)"
             @cancel="batchDialogConfig.isShow = false">
-            <div slot="content">
+            <template slot="content">
                 <div class="biz-batch-wrapper">
                     <p class="batch-title">{{$t('确定要删除以下变量？')}}</p>
                     <ul class="batch-list">
                         <li v-for="(item, index) of batchDialogConfig.list" :key="index">{{item}}</li>
                     </ul>
                 </div>
-            </div>
+            </template>
         </bk-dialog>
-
+        
         <bk-dialog
             :is-show.sync="varDialogConfig.isShow"
             :width="varDialogConfig.width"
             :title="varDialogConfig.title"
             :quick-close="false"
             @cancel="varDialogConfig.isShow = false">
-            <div slot="content" v-bkloading="{ isLoading: isSaving }">
+            <template slot="content" v-bkloading="{ isLoading: isSaving }">
                 <div class="content-inner">
                     <div class="bk-form" style="margin-bottom: 20px; margin-right: 10px;">
                         <div class="bk-form-item">
                             <label class="bk-label" style="width: 95px;">{{$t('作用范围')}}：</label>
                             <div class="bk-form-content" style="margin-left: 95px;">
-                                <label class="bk-form-radio">
-                                    <input type="radio" value="global" name="scope" v-model="curVar.scope" :disabled="curVar.quote_num !== undefined && curVar.quote_num > 0">
-                                    <i class="bk-radio-text">{{$t('全局变量')}}</i>
-                                </label>
-                                <label class="bk-form-radio">
-                                    <input type="radio" value="cluster" name="scope" v-model="curVar.scope" :disabled="curVar.quote_num !== undefined && curVar.quote_num > 0">
-                                    <i class="bk-radio-text">{{$t('集群变量')}}</i>
-                                </label>
-                                <label class="bk-form-radio" style="margin-right: 0;">
-                                    <input type="radio" value="namespace" name="scope" v-model="curVar.scope" :disabled="curVar.quote_num !== undefined && curVar.quote_num > 0">
-                                    <i class="bk-radio-text">{{$t('命名空间变量')}}</i>
-                                </label>
+                                <bk-radio-group v-model="curVar.scope">
+                                    <bk-radio value="global" style="margin-right: 15px;" :disabled="curVar.quote_num !== undefined && curVar.quote_num > 0">{{$t('全局变量')}}</bk-radio>
+                                    <bk-radio value="cluster" style="margin-right: 15px;" :disabled="curVar.quote_num !== undefined && curVar.quote_num > 0">{{$t('集群变量')}}</bk-radio>
+                                    <bk-radio value="namespace" :disabled="curVar.quote_num !== undefined && curVar.quote_num > 0">{{$t('命名空间变量')}}</bk-radio>
+                                </bk-radio-group>
                             </div>
                         </div>
                         <div class="bk-form-item is-required">
                             <label class="bk-label" style="width: 95px;">{{$t('名称')}}：</label>
                             <div class="bk-form-content" style="margin-left: 95px;">
-                                <input type="text"
-                                    maxlength="32"
-                                    :class="['bk-form-input']"
+                                <bk-input maxlength="32"
                                     :placeholder="$t('请输入32个字符以内的名称')"
-                                    v-model="curVar.name">
+                                    v-model="curVar.name" />
                             </div>
                         </div>
                         <div class="bk-form-item is-required">
                             <label class="bk-label" style="width: 95px;">KEY：</label>
                             <div class="bk-form-content" style="margin-left: 95px;">
-                                <input type="text"
-                                    :disabled="curVar.quote_num !== undefined && curVar.quote_num > 0"
-                                    :class="['bk-form-input']"
+                                <bk-input :disabled="curVar.quote_num !== undefined && curVar.quote_num > 0"
                                     maxlength="64"
                                     :placeholder="$t('请输入')"
-                                    v-model="curVar.key">
+                                    v-model="curVar.key" />
                             </div>
                         </div>
                         <div class="bk-form-item">
                             <label class="bk-label" style="width: 95px;">{{$t('默认值')}}：</label>
                             <div class="bk-form-content" style="margin-left: 95px;">
-                                <input type="text"
-                                    :class="['bk-form-input']"
-                                    :placeholder="$t('请输入')"
-                                    v-model="curVar.default.value">
+                                <bk-input :placeholder="$t('请输入')" v-model="curVar.default.value" />
                             </div>
                         </div>
                         <div class="bk-form-item">
                             <label class="bk-label" style="width: 95px;">{{$t('说明')}}：</label>
                             <div class="bk-form-content" style="margin-left: 95px;">
                                 <textarea maxlength="100" :class="['bk-form-textarea']" :placeholder="$t('请输入')" v-model="curVar.desc" style="height: 60px;"></textarea>
-                                <p class="biz-tip" style="text-align: left; margin-top: 10px;">{{$t('您可以在模板集中使用')}} {{curVarKeyText}} {{$t('来引用该变量')}}</p>
+                                <p class="biz-tip" style="text-align: left;">{{$t('您可以在模板集中使用')}} {{curVarKeyText}} {{$t('来引用该变量')}}</p>
                             </div>
                         </div>
                     </div>
                 </div>
-            </div>
-            <template slot="footer">
+            </template>
+            <div slot="footer">
                 <div class="bk-dialog-outer">
                     <template v-if="isSaving">
-                        <button type="button" class="bk-dialog-btn bk-dialog-btn-confirm bk-btn-primary disabled">
-                            {{$t('提交')}}...
-                        </button>
-                        <button type="button" class="bk-dialog-btn bk-dialog-btn-cancel disabled">
-                            {{$t('取消')}}
-                        </button>
+                        <bk-button type="primary" disabled>{{$t('提交')}}</bk-button>
+                        <bk-button disabled>{{$t('取消')}}</bk-button>
                     </template>
                     <template v-else>
-                        <button type="button" class="bk-dialog-btn bk-dialog-btn-confirm bk-btn-primary"
-                            @click="saveVar">
-                            {{$t('提交')}}
-                        </button>
-                        <button type="button" class="bk-dialog-btn bk-dialog-btn-cancel" @click="cancelVar">
-                            {{$t('取消')}}
-                        </button>
+                        <bk-button type="primary" @click="saveVar">{{$t('提交')}}</bk-button>
+                        <bk-button @click="cancelVar">{{$t('取消')}}</bk-button>
                     </template>
                 </div>
-            </template>
+            </div>
         </bk-dialog>
 
         <bk-dialog
+            :title="curVar.name"
             :is-show.sync="quoteDialogConf.isShow"
             :width="quoteDialogConf.width"
             :content="quoteDialogConf.content"
             :has-header="quoteDialogConf.hasHeader"
             :has-footer="false"
-            :close-icon="quoteDialogConf.closeIcon"
+            :close-icon="true"
+            @cancel="hideQuoteDialog"
             :ext-cls="'biz-var-quote-dialog'">
-            <div slot="content">
+            <template slot="content">
                 <div style="margin: -20px;">
-                    <div class="bk-dialog-tool">
-                        <i class="bk-dialog-close bk-icon icon-close" @click="hideQuoteDialog"></i>
-                    </div>
-                    <div class="quote-title">
-                        {{curVar.name}}
-                    </div>
-                    <div style="min-height: 150px;" v-bkloading="{ isLoading: isQuoteLoading }">
-                        <table class="bk-table has-table-hover biz-table biz-var-quote-table" :style="{ borderBottomWidth: curQuotePageData.length ? '1px' : 0 }" v-show="!isQuoteLoading">
-                            <thead>
-                                <tr>
-                                    <th style="padding-left: 30px;">{{$t('被引用位置')}}</th>
-                                    <th style="width: 150px;">{{$t('上下文')}}</th>
-                                    <th style="width: 120px;">{{$t('操作')}}</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <template v-if="curQuotePageData.length">
-                                    <tr v-for="(quote, index) in curQuotePageData" :key="index">
-                                        <td style="padding-left: 30px;">
-                                            {{quote.quote_location}}
-                                        </td>
-                                        <td>
-                                            {{quote.context}}
-                                        </td>
-                                        <td>
-                                            <a href="javascript:void(0)" class="bk-text-button" @click="checkVarQuote(quote)">{{$t('查看详情')}}</a>
-                                        </td>
-                                    </tr>
+                    <div style="min-height: 100px;">
+                        <bk-table
+                            v-bkloading="{ isLoading: isQuoteLoading }"
+                            :data="curQuotePageData"
+                            :page-params="quotePageConf"
+                            :border="false"
+                            :outer-border="false"
+                            @page-change="quotePageChange">
+                            <bk-table-column :label="$t('被引用位置')" prop="quote_location" key="quote_location" width="400" :show-overflow-tooltip="true" />
+                            <bk-table-column :label="$t('上下文')" prop="context" width="150" key="context" />
+                            <bk-table-column :label="$t('操作')" key="action">
+                                <template slot-scope="{ row }">
+                                    <a href="javascript:void(0)" class="bk-text-button" @click="checkVarQuote(row)">{{$t('查看详情')}}</a>
                                 </template>
-                                <template v-else>
-                                    <tr>
-                                        <td colspan="3">
-                                            <div class="bk-message-box no-data">
-                                                <p class="message empty-message">{{$t('无数据')}}</p>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                </template>
-                            </tbody>
-                        </table>
+                            </bk-table-column>
+                        </bk-table>
                     </div>
                     <div class="biz-page-box" v-if="!isQuoteLoading && quotePageConf.show && curQuotePageData.length">
-                        <bk-paging
-                            :size="'small'"
-                            :cur-page.sync="quotePageConf.curPage"
-                            :total-page="quotePageConf.totalPage"
-                            @page-change="quotePageChange">
-                        </bk-paging>
+                        <bk-pagination
+                            :show-limit="false"
+                            :current.sync="quotePageConf.curPage"
+                            :count.sync="quotePageConf.count"
+                            :limit="quotePageConf.pageSize"
+                            @change="quotePageChange">
+                        </bk-pagination>
                     </div>
                 </div>
-            </div>
+            </template>
         </bk-dialog>
     </div>
 </template>
@@ -444,6 +340,7 @@
                     totalPage: 1,
                     pageSize: 5,
                     curPage: 1,
+                    count: 1,
                     show: true
                 },
                 curPageData: [],
@@ -713,7 +610,7 @@
             removeVar (data) {
                 const self = this
                 this.$bkInfo({
-                    title: ``,
+                    title: this.$t('确认删除'),
                     clsName: 'biz-remove-dialog',
                     content: this.$createElement('p', {
                         class: 'biz-confirm-desc'
@@ -748,73 +645,11 @@
             },
 
             /**
-             * 是否全选
+             * 表格选中事件
              */
-            toogleCheckCurPage (e) {
-                this.$nextTick(() => {
-                    const isChecked = this.isCheckCurPageAll
-                    this.curPageData.forEach(item => {
-                        item.isChecked = item.category === 'sys' ? false : isChecked
-                    })
-
-                    const curAllSelectedData = []
-                    curAllSelectedData.splice(0, 0, ...this.curAllSelectedData)
-                    // 用于区分是否已经选择过
-                    const hasCheckedList = curAllSelectedData.map(item => item.id)
-                    if (isChecked) {
-                        const checkedList = this.curPageData.filter(
-                            item => item.category !== 'sys' && !hasCheckedList.includes(item.id)
-                        )
-                        curAllSelectedData.push(...checkedList)
-                        this.curAllSelectedData.splice(0, this.curAllSelectedData.length, ...curAllSelectedData)
-                    } else {
-                        // 当前页所有合法的 variable id 集合
-                        const validIdList = this.curPageData.filter(
-                            item => item.category !== 'sys'
-                        ).map(item => item.id)
-
-                        const newCurAllSelectedData = []
-                        this.curAllSelectedData.forEach(checkedVariable => {
-                            if (validIdList.indexOf(checkedVariable.id) < 0) {
-                                newCurAllSelectedData.push(JSON.parse(JSON.stringify(checkedVariable)))
-                            }
-                        })
-                        this.curAllSelectedData.splice(0, this.curAllSelectedData.length, ...newCurAllSelectedData)
-                    }
-
-                    this.alreadySelectedNums = this.curAllSelectedData.length
-                })
-            },
-
-            /**
-             * 每行的多选框点击事件
-             *
-             * @param {Object} variable 当前变量对象即当前行
-             */
-            rowClick (variable) {
-                this.$nextTick(() => {
-                    // 当前页选中的
-                    const checkedCurPageList = this.curPageData.filter(item => item.isChecked)
-                    // 当前页合法的
-                    const validList = this.curPageData.filter(item => item.category !== 'sys')
-                    this.isCheckCurPageAll = checkedCurPageList.length === validList.length
-
-                    const curAllSelectedData = []
-                    if (variable.isChecked) {
-                        curAllSelectedData.splice(0, curAllSelectedData.length, ...this.curAllSelectedData)
-                        if (!this.curAllSelectedData.filter(checkedVariable => checkedVariable.id === variable.id).length) {
-                            curAllSelectedData.push(variable)
-                        }
-                    } else {
-                        this.curAllSelectedData.forEach(checkedVariable => {
-                            if (checkedVariable.id !== variable.id) {
-                                curAllSelectedData.push(JSON.parse(JSON.stringify(checkedVariable)))
-                            }
-                        })
-                    }
-                    this.curAllSelectedData.splice(0, this.curAllSelectedData.length, ...curAllSelectedData)
-                    this.alreadySelectedNums = this.curAllSelectedData.length
-                })
+            handleSelectionChange (selection) {
+                this.curAllSelectedData.splice(0, this.curAllSelectedData.length, ...selection)
+                this.alreadySelectedNums = this.curAllSelectedData.length
             },
 
             /**
@@ -920,6 +755,7 @@
             initQuotePageConf () {
                 const total = this.quoteList.length
                 this.quotePageConf.totalPage = Math.ceil(total / this.quotePageConf.pageSize)
+                this.quotePageConf.count = total
             },
 
             /**
@@ -1103,7 +939,7 @@
 
             /**
              * 获取相应变量的引用列表
-             * @param  {Object} variable 变量
+             * @param {Object} variable 变量
              */
             async getQuoteDetail (variable) {
                 const projectId = this.projectId
@@ -1125,9 +961,9 @@
                     this.quotePageConf.curPage = 1
                     this.initQuotePageConf()
                     this.curQuotePageData = this.getQuoteDataByPage(this.quotePageConf.curPage)
-                    this.isQuoteLoading = false
                 } catch (e) {
                     catchErrorHandler(e, this)
+                } finally {
                     this.isQuoteLoading = false
                 }
             },
@@ -1189,6 +1025,10 @@
 
             hideQuoteDialog () {
                 this.quoteDialogConf.isShow = false
+            },
+            
+            handleFileImport () {
+                this.$refs.fileInput.click()
             },
 
             handleFileInput () {

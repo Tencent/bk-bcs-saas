@@ -36,7 +36,7 @@
         height: 55px;
         margin: auto auto 15px auto;
 
-        .bk-icon {
+        .bcs-icon {
             font-size: 50px;
         }
     }
@@ -52,7 +52,7 @@
     }
 
     .dialog-content {
-        padding: 25px 50px 30px 50px;
+        padding: 25px 30px 30px 30px;
     }
 
     strong {
@@ -70,7 +70,7 @@
 
         li {
             margin-bottom: 5px;
-            line-height: 1.3;
+            line-height: 1;
         }
     }
 
@@ -79,7 +79,7 @@
         text-align: center;
     }
 
-    .dialog-btn {
+    /deep/ .dialog-btn {
         width: 220px;
         border-radius: 2px;
         display: inline-block;

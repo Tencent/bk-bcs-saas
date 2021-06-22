@@ -237,9 +237,12 @@
 
                 if (bcsRouteKeys.includes(routeName)) {
                     parentRouteName = 'clusterMain'
-                    document.title = '容器服务'
+                    document.title = this.$t('容器服务')
                 }
                 return parentRouteName
+            },
+            curViewType () {
+                return this.$route.path.indexOf('dashboard') > -1 ? 'dashboard' : 'cluster'
             }
         },
         created () {
@@ -309,7 +312,7 @@
                 this.setLocalStorage(projectId)
 
                 // 这么做是因为如果在总览页面或者节点列表页面或者节点详情页面时，切换项目的时候，新切换的项目可能会没有当前的 clusterId
-                if (this.clusterRouters.indexOf(routeName) > -1) {
+                if (this.clusterRouters.indexOf(routeName) > -1 || this.curViewType === 'dashboard') {
                     this.$router.push({
                         name: 'clusterMain',
                         params: {

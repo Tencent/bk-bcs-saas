@@ -13,6 +13,7 @@ import _ from 'lodash'
 
 import http from '@open/api'
 import { json2Query } from '@open/common/util'
+import { getBizMaintainers } from '@open/api/base'
 
 export default {
     namespaced: true,
@@ -1413,6 +1414,77 @@ export default {
                 {},
                 config
             )
+        },
+
+        /**
+         * 获取 SCR 主机
+         *
+         * @param {Object} context store 上下文对象
+         * @param {Object} params 参数
+         * @param {Object} config 请求的配置
+         *
+         * @return {Promise} promise 对象
+         */
+        getSCRHosts (context, params, config = {}) {
+            const projectId = params.projectId
+            delete params.projectId
+            return http.post(
+                `${DEVOPS_BCS_API_URL}/api/hosts/projects/${projectId}/cvm_types/`,
+                params,
+                config
+            )
+        },
+
+        /**
+         * 申请主机
+         *
+         * @param {Object} context store 上下文对象
+         * @param {Object} params 参数
+         * @param {Object} config 请求的配置
+         *
+         * @return {Promise} promise 对象
+         */
+        applySCRHost (context, params, config = {}) {
+            const projectId = params.projectId
+            delete params.projectId
+            return http.post(
+                `${DEVOPS_BCS_API_URL}/api/hosts/projects/${projectId}/apply_hosts/`,
+                params,
+                config
+            )
+        },
+
+        /**
+         * 查看主机申请状态
+         *
+         * @param {Object} context store 上下文对象
+         * @param {Object} params 参数
+         * @param {Object} config 请求的配置
+         *
+         * @return {Promise} promise 对象
+         */
+        checkApplyHostStatus (context, { projectId }, config = {}) {
+            return http.get(
+                `${DEVOPS_BCS_API_URL}/api/hosts/projects/${projectId}/apply_hosts/logs/`,
+                {},
+                config
+            )
+        },
+
+        /**
+         * 查看主机权限
+         *
+         * @param {Object} context store 上下文对象
+         * @param {Object} params 参数
+         * @param {Object} config 请求的配置
+         *
+         * @return {Promise} promise 对象
+         */
+        async getBizMaintainers (context, params = {}, config = {}) {
+            const data = await getBizMaintainers(params, config).catch(() => ({
+                maintainers: []
+            }))
+            return data
         }
     }
 }

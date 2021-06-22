@@ -1,5 +1,6 @@
 <template>
     <bk-dialog
+        :position="{ top: 100 }"
         :is-show.sync="isVisible"
         :width="1050"
         :title="$t('更新')"
@@ -10,32 +11,7 @@
         @cancel="hide">
         <template slot="content">
             <div class="gamestatefulset-update-wrapper" v-bkloading="{ isLoading: isLoading, opacity: 1 }">
-                <label class="bk-form-radio">
-                    <input type="radio" value="1" name="method" v-model="method" />
-                    <i class="bk-radio-text">{{$t('原地升级')}}</i>
-                </label>
-                <span class="editor-placeholder" v-if="showPlaceholder" @click="editorInstance.focus()">
-                    <pre v-if="isEn">
-Please enter updated data for the list structure, as shown in:
-[
-    {
-        "op" : "replace",
-        "path" : "/spec/template/spec/containers/0/image",
-        "value" : "example/paas/public/mesos/bcs-loadbalance:v1.1.0"
-    }
-]
-                    </pre>
-                    <pre v-else>
-请输入list结构的更新数据，示例如：
-[
-    {
-        "op" : "replace",
-        "path" : "/spec/template/spec/containers/0/image",
-        "value" : "example/paas/public/mesos/bcs-loadbalance:v1.1.0"
-    }
-]
-                    </pre>
-                </span>
+                <bk-radio class="mb5" value="1" name="method" v-model="method" checked>{{$t('原地升级')}}</bk-radio>
                 <monaco-editor v-if="!isLoading"
                     ref="jsonEditor"
                     class="editor"
@@ -47,33 +23,32 @@ Please enter updated data for the list structure, as shown in:
                     @mounted="handleEditorMount">
                 </monaco-editor>
                 <div class="tip">
-                    <i class="bk-icon icon-alarm-insufficient" style="font-size: 16px;"></i>
-                    <span v-if="isEn">This action is equivalent to kubectl patch gamestatefulset {{renderItem.name}} -n {{renderItem.namespace}} --type='json' -p='{text}'</span>
-                    <span v-else>此操作相当于kubectl patch gamestatefulset {{renderItem.name}} -n {{renderItem.namespace}} --type='json' -p='{文本中的内容}'</span>
+                    <i class="bcs-icon bcs-icon-alarm-insufficient" style="font-size: 16px;"></i>
+                    <span>{{$t('此操作相当于kubectl patch gamestatefulset {name} -n {namespace} --type=\'json\' -p=\'\{文本中的内容\}\'', { name: renderItem.name, namespace: renderItem.namespace })}}</span>
                 </div>
             </div>
         </template>
-        <template slot="footer">
+        <div slot="footer">
             <div class="bk-dialog-outer">
                 <template v-if="isUpdating">
-                    <button type="button" class="bk-dialog-btn bk-dialog-btn-confirm bk-btn-primary disabled">
+                    <bk-button type="primary" disabled>
                         {{$t('更新中...')}}
-                    </button>
-                    <button type="button" class="bk-dialog-btn bk-dialog-btn-cancel disabled">
+                    </bk-button>
+                    <bk-button type="button" class="bk-dialog-btn bk-dialog-btn-cancel disabled">
                         {{$t('取消')}}
-                    </button>
+                    </bk-button>
                 </template>
                 <template v-else>
-                    <button type="button" class="bk-dialog-btn bk-dialog-btn-confirm bk-btn-primary"
+                    <bk-button type="primary" class="bk-dialog-btn bk-dialog-btn-confirm bk-btn-primary"
                         @click="confirm">
                         {{$t('更新')}}
-                    </button>
-                    <button type="button" class="bk-dialog-btn bk-dialog-btn-cancel" @click="hide">
+                    </bk-button>
+                    <bk-button type="button" @click="hide">
                         {{$t('取消')}}
-                    </button>
+                    </bk-button>
                 </template>
             </div>
-        </template>
+        </div>
     </bk-dialog>
 </template>
 
@@ -143,6 +118,14 @@ Please enter updated data for the list structure, as shown in:
         },
         methods: {
             handleEditorMount (editorInstance, monacoEditor) {
+                this.editorContent = `[
+    {
+        "op": "replace",
+        "path": "/spec/template/spec/containers/0/image",
+        "value": "example:8443/paas/public/mesos/bcs-loadbalance:v1.1.0"
+    }
+]
+`
                 this.editorInstance = editorInstance
                 editorInstance.onDidBlurEditorText(() => {
                     this.isEditorFocus = false
@@ -150,6 +133,11 @@ Please enter updated data for the list structure, as shown in:
 
                 editorInstance.onDidFocusEditorText(() => {
                     this.isEditorFocus = true
+                })
+
+                this.$nextTick(() => {
+                    this.editorInstance.focus()
+                    this.editorInstance.setPosition({ lineNumber: 8, column: 1 })
                 })
             },
 
@@ -185,7 +173,8 @@ Please enter updated data for the list structure, as shown in:
                         name: this.renderItem.name,
                         data: {
                             namespace: this.renderItem.namespace,
-                            body: editorContentObj
+                            body: editorContentObj,
+                            patch_type: 'application/json-patch+json'
                         }
                     })
                     this.bkMessageInstance && this.bkMessageInstance.close()

@@ -8,8 +8,8 @@
                 :style="getHandlerStyle(_direction)"
                 @mousedown.left="handleMousedown($event, _direction)">
                 <template v-if="showToggle">
-                    <i class="bk-icon icon-more"></i>
-                    <i class="bk-icon icon-more"></i>
+                    <i class="bcs-icon bcs-icon-more"></i>
+                    <i class="bcs-icon bcs-icon-more"></i>
                 </template>
             </div>
         </template>
@@ -199,7 +199,7 @@
             position: absolute;
             background-color: transparent;
 
-            .bk-icon {
+            .bcs-icon {
                 position: absolute;
                 left: -12px;
                 top: 48%;

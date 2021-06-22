@@ -24,12 +24,12 @@
                 </tbody>
             </table>
         </template>
-        <template slot="footer">
+        <div slot="footer">
             <div class="bk-dialog-outer">
-                <button type="button" class="bk-dialog-btn bk-dialog-btn-confirm bk-btn-primary" @click="goApplyUrl">{{$t('去申请')}}</button>
-                <button type="button" class="bk-dialog-btn bk-dialog-btn-cancel" @click="hide">{{$t('取消')}}</button>
+                <bk-button type="primary" @click="goApplyUrl">{{$t('去申请')}}</bk-button>
+                <bk-button type="button" @click="hide">{{$t('取消')}}</bk-button>
             </div>
-        </template>
+        </div>
     </bk-dialog>
 </template>
 

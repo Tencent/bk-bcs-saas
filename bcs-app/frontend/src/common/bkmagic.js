@@ -11,15 +11,28 @@
 
 import Vue from 'vue'
 
-import '@open/components/bk-magic/ui/bk-magic-vue.min.css'
-import bkMagic from '@open/components/bk-magic/bk-magic-vue.min'
+import 'bk-magic-vue/dist/bk-magic-vue.min.css'
+import bcsMagic, { bkLink } from 'bk-magic-vue'
 
-Vue.use(bkMagic)
+Vue.use(bkLink)
+Vue.use(bcsMagic, {
+    namespace: 'bcs'
+})
+Vue.use(bcsMagic.bkDialog, {
+    headerPosition: 'left'
+})
 
-const Message = Vue.prototype.$bkMessage
+const tmpMessage = Vue.prototype.$bkMessage
+// 错误信息默认显示3行，内容超出时开启复制功能
+const Message = Vue.prototype.$bkMessage = (config) => {
+    const cfg = config?.theme === 'error'
+        ? Object.assign({ ellipsisLine: 3, ellipsisCopy: true }, config)
+        : config
+
+    tmpMessage(cfg)
+}
 
 let messageInstance = null
-
 export const messageError = (message, delay = 3000) => {
     messageInstance && messageInstance.close()
     messageInstance = Message({

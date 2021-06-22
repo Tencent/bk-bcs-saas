@@ -32,14 +32,14 @@
         cursor: pointer;
         border: 1px solid #ddd;
 
-        .bk-icon {
+        .bcs-icon {
             margin-left: 1px;
         }
 
         &:hover {
-            background-color: #3c96ff;
+            background-color: #3a84ff;
             color: #fff;
-            border-color: #3c96ff;
+            border-color: #3a84ff;
         }
     }
 

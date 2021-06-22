@@ -3,7 +3,7 @@
         <div class="biz-top-bar">
             <div class="biz-topbar-title">
                 Ingress
-                <span class="biz-tip f12 ml10">{{$t('请通过模板集或Helm创建Ingress')}}</span>
+                <span class="biz-tip ml10">{{$t('请通过模板集或Helm创建Ingress')}}</span>
             </div>
             <bk-guide></bk-guide>
         </div>
@@ -11,18 +11,19 @@
             <template v-if="!isInitLoading">
                 <div class="biz-panel-header">
                     <div class="left">
-                        <button
+                        <bk-button
                             class="bk-button bk-default"
                             v-if="curPageData.length"
                             @click.stop.prevent="removeIngresses">
                             <span>{{$t('批量删除')}}</span>
-                        </button>
+                        </bk-button>
                     </div>
                     <div class="right">
                         <bk-data-searcher
                             :scope-list="searchScopeList"
                             :search-key.sync="searchKeyword"
                             :search-scope.sync="searchScope"
+                            :cluster-fixed="!!curClusterId"
                             @search="getIngressList"
                             @refresh="refresh">
                         </bk-data-searcher>
@@ -30,117 +31,67 @@
                 </div>
 
                 <div class="biz-resource">
-                    <div class="biz-table-wrapper" v-bkloading="{ isLoading: isPageLoading && !isInitLoading }">
-                        <table class="bk-table has-table-hover biz-table biz-resource-table">
-                            <thead>
-                                <tr>
-                                    <th style="width: 80px;">
-                                        <label class="bk-form-checkbox">
-                                            <input
-                                                type="checkbox"
-                                                name="check-all-user"
-                                                :checked="isCheckCurPageAll"
-                                                :disabled="!ingressList.length"
-                                                @click="toogleCheckCurPage" />
-                                        </label>
-                                    </th>
-                                    <th style="width: 300px;">{{$t('名称')}}</th>
-                                    <th style="width: 300px;">{{$t('所属集群')}}</th>
-                                    <th style="width: 300px;">{{$t('命名空间')}}</th>
-                                    <th style="min-width: 70px;">{{$t('来源')}}</th>
-                                    <th style="width: 300px;">{{$t('创建时间')}}</th>
-                                    <th style="width: 300px;">{{$t('更新时间')}}</th>
-                                    <th style="width: 300px;">{{$t('更新人')}}</th>
-                                    <th style="width: 100px">{{$t('操作')}}</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <template v-if="ingressList.length">
-                                    <tr v-for="(ingress, index) in curPageData" :key="index">
-                                        <td>
-                                            <label class="bk-form-checkbox">
-                                                <input
-                                                    type="checkbox"
-                                                    name="check-variable"
-                                                    :disabled="!ingress.can_delete || !ingress.permissions.use"
-                                                    v-model="ingress.isChecked"
-                                                    @click="rowClick" />
-                                            </label>
-                                            <div class="bk-spin-loading bk-spin-loading-mini bk-spin-loading-warning" v-if="ingress.status === 'updating'">
-                                                <div class="rotate rotate1"></div>
-                                                <div class="rotate rotate2"></div>
-                                                <div class="rotate rotate3"></div>
-                                                <div class="rotate rotate4"></div>
-                                                <div class="rotate rotate5"></div>
-                                                <div class="rotate rotate6"></div>
-                                                <div class="rotate rotate7"></div>
-                                                <div class="rotate rotate8"></div>
-                                            </div>
-                                        </td>
-                                        <td>
-                                            <a href="javascript: void(0)" class="bk-text-button biz-resource-title" @click.stop.prevent="showIngressDetail(ingress, index)">{{ingress.resourceName}}</a>
-                                        </td>
-                                        <td>
-                                            <bk-tooltip :content="ingress.cluster_id || '--'" placement="top">
-                                                <p class="biz-text-wrapper">{{ingress.cluster_name ? ingress.cluster_name : '--'}}</p>
-                                            </bk-tooltip>
-                                        </td>
-                                        <td>
-                                            {{ingress.namespace}}
-                                        </td>
-                                        <td>
-                                            {{ingress.source_type ? ingress.source_type : '--'}}
-                                        </td>
-                                        <td>
-                                            {{ingress.createTime ? formatDate(ingress.createTime) : '--'}}
-                                        </td>
-                                        <td>
-                                            {{ingress.updateTime ? formatDate(ingress.updateTime) : '--'}}
-                                        </td>
-                                        <td>
-                                            {{ingress.updator || '--'}}
-                                        </td>
-                                        <td>
-                                            <li style="width: 100px;">
-                                                <a v-if="ingress.can_update" href="javascript:void(0);" class="bk-text-button" @click="showIngressEditDialog(ingress)">{{$t('更新')}}</a>
-                                                <bk-tooltip :content="ingress.can_update_msg" v-else placement="left">
-                                                    <a href="javascript:void(0);" class="bk-text-button is-disabled">{{$t('更新')}}</a>
-                                                </bk-tooltip>
-                                                <a v-if="ingress.can_delete" @click.stop="removeIngress(ingress)" class="bk-text-button ml10">{{$t('删除')}}</a>
-                                                <bk-tooltip :content="ingress.can_delete_msg || $t('不可删除')" v-else placement="left">
-                                                    <span class="bk-text-button is-disabled ml10">{{$t('删除')}}</span>
-                                                </bk-tooltip>
-                                            </li>
-                                        </td>
-                                    </tr>
+                    <div class="biz-table-wrapper">
+                        <bk-table
+                            :size="'medium'"
+                            :data="curPageData"
+                            :pagination="pageConf"
+                            v-bkloading="{ isLoading: isPageLoading && !isInitLoading }"
+                            @page-limit-change="handlePageLimitChange"
+                            @page-change="handlePageChange"
+                            @select="handlePageSelect"
+                            @select-all="handlePageSelectAll">
+                            <bk-table-column type="selection" width="60" :selectable="rowSelectable"></bk-table-column>
+                            <bk-table-column :label="$t('名称')" :show-overflow-tooltip="true" min-width="200">
+                                <template slot-scope="props">
+                                    <a href="javascript: void(0)" class="bk-text-button biz-resource-title" @click.stop.prevent="showIngressDetail(props.row, index)">{{props.row.resourceName}}</a>
                                 </template>
-                                <template v-else>
-                                    <tr style="background: none;">
-                                        <td colspan="9">
-                                            <div class="biz-app-list">
-                                                <div class="bk-message-box">
-                                                    <p class="message empty-message" v-if="!isInitLoading">{{$t('无数据')}}</p>
-                                                </div>
-                                            </div>
-                                        </td>
-                                    </tr>
+                            </bk-table-column>
+                            <bk-table-column :label="$t('所属集群')" min-width="150">
+                                <template slot-scope="props">
+                                    <bcs-popover :content="props.row.cluster_id || '--'" placement="top">
+                                        <p class="biz-text-wrapper">{{props.row.cluster_name ? props.row.cluster_name : '--'}}</p>
+                                    </bcs-popover>
                                 </template>
-                            </tbody>
-                        </table>
-                    </div>
-                    <div class="biz-page-wrapper" v-if="pageConf.total">
-                        <bk-page-counter
-                            :is-en="isEn"
-                            :total="pageConf.total"
-                            :page-size="pageConf.pageSize"
-                            @change="changePageSize">
-                        </bk-page-counter>
-                        <bk-paging
-                            :cur-page.sync="pageConf.curPage"
-                            :total-page="pageConf.totalPage"
-                            @page-change="pageChangeHandler">
-                        </bk-paging>
-                        <div class="already-selected-nums" v-if="alreadySelectedNums">{{$t('已选')}} {{alreadySelectedNums}} {{$t('条')}}</div>
+                            </bk-table-column>
+                            <bk-table-column :label="$t('命名空间')" min-width="130">
+                                <template slot-scope="props">
+                                    {{props.row.namespace}}
+                                </template>
+                            </bk-table-column>
+                            <bk-table-column :label="$t('来源')" min-width="130">
+                                <template slot-scope="props">
+                                    {{props.row.source_type ? props.row.source_type : '--'}}
+                                </template>
+                            </bk-table-column>
+                            <bk-table-column :label="$t('创建时间')" min-width="160">
+                                <template slot-scope="props">
+                                    {{props.row.createTime ? formatDate(props.row.createTime) : '--'}}
+                                </template>
+                            </bk-table-column>
+                            <bk-table-column :label="$t('更新时间')" min-width="160">
+                                <template slot-scope="props">
+                                    {{props.row.updateTime ? formatDate(props.row.updateTime) : '--'}}
+                                </template>
+                            </bk-table-column>
+                            <bk-table-column :label="$t('更新人')" min-width="100">
+                                <template slot-scope="props">
+                                    {{props.row.updator || '--'}}
+                                </template>
+                            </bk-table-column>
+                            <bk-table-column :label="$t('操作')" width="150">
+                                <template slot-scope="props">
+                                    <a v-if="props.row.can_update" href="javascript:void(0);" class="bk-text-button" @click="showIngressEditDialog(props.row)">{{$t('更新')}}</a>
+                                    <bcs-popover :content="props.row.can_update_msg" v-else placement="left">
+                                        <a href="javascript:void(0);" class="bk-text-button is-disabled">{{$t('更新')}}</a>
+                                    </bcs-popover>
+                                    <a v-if="props.row.can_delete" @click.stop="removeIngress(props.row)" class="bk-text-button ml10">{{$t('删除')}}</a>
+                                    <bcs-popover :content="props.row.can_delete_msg || $t('不可删除')" v-else placement="left">
+                                        <span class="bk-text-button is-disabled ml10">{{$t('删除')}}</span>
+                                    </bcs-popover>
+                                </template>
+                            </bk-table-column>
+                        </bk-table>
                     </div>
                 </div>
             </template>
@@ -153,7 +104,7 @@
                 :width="'800'">
                 <div class="pt20 pr30 pb20 pl30" slot="content">
                     <label class="biz-title">{{$t('主机列表')}}（spec.tls）</label>
-                    <table class="bk-table biz-data-table has-table-bordered">
+                    <table class="bk-table biz-data-table has-table-bordered biz-special-bk-table">
                         <thead>
                             <tr>
                                 <th style="width: 270px;">{{$t('主机名')}}</th>
@@ -169,14 +120,14 @@
                             </template>
                             <template v-else>
                                 <tr>
-                                    <td colspan="2"><p style="padding: 10px; text-align: center;">{{$t('无数据')}}</p></td>
+                                    <td colspan="2"><bcs-exception type="empty" scene="part"></bcs-exception></td>
                                 </tr>
                             </template>
                         </tbody>
                     </table>
 
                     <label class="biz-title">{{$t('规则')}}（spec.rules）</label>
-                    <table class="bk-table biz-data-table has-table-bordered">
+                    <table class="bk-table biz-data-table has-table-bordered biz-special-bk-table">
                         <thead>
                             <tr>
                                 <th style="width: 200px;">{{$t('主机名')}}</th>
@@ -196,14 +147,14 @@
                             </template>
                             <template v-else>
                                 <tr>
-                                    <td colspan="4"><p style="padding: 10px; text-align: center;">{{$t('无数据')}}</p></td>
+                                    <td colspan="4"><bcs-exception type="empty" scene="part"></bcs-exception></td>
                                 </tr>
                             </template>
                         </tbody>
                     </table>
 
                     <div class="actions">
-                        <button class="show-labels-btn bk-button bk-button-small bk-primary">{{$t('显示标签')}}</button>
+                        <bk-button class="show-labels-btn bk-button bk-button-small bk-primary">{{$t('显示标签')}}</bk-button>
                     </div>
 
                     <div class="point-box">
@@ -216,7 +167,7 @@
                             </ul>
                         </template>
                         <template v-else>
-                            <p class="biz-no-data">{{$t('无数据')}}</p>
+                            <bcs-exception type="empty" scene="part"></bcs-exception>
                         </template>
                     </div>
                 </div>
@@ -235,14 +186,12 @@
                                     <div class="bk-form-item is-required">
                                         <label class="bk-label" style="width: 130px;">{{$t('名称')}}：</label>
                                         <div class="bk-form-content" style="margin-left: 130px;">
-                                            <input
-                                                type="text"
-                                                class="bk-form-input"
+                                            <bk-input
                                                 :disabled="true"
                                                 style="width: 310px;"
                                                 v-model="curEditedIngress.config.metadata.name"
                                                 maxlength="64"
-                                                name="applicationName">
+                                                name="applicationName" />
                                         </div>
                                     </div>
                                 </div>
@@ -251,10 +200,10 @@
                             <div class="bk-form-item">
                                 <div class="bk-form-content" style="margin-left: 130px;">
                                     <button :class="['bk-text-button f12 mb10 pl0', { 'rotate': isTlsPanelShow }]" @click.stop.prevent="toggleTlsPanel">
-                                        {{$t('TLS设置')}}<i class="bk-icon icon-angle-double-down ml5"></i>
+                                        {{$t('TLS设置')}}<i class="bcs-icon bcs-icon-angle-double-down ml5"></i>
                                     </button>
                                     <button :class="['bk-text-button f12 mb10 pl0', { 'rotate': isPanelShow }]" @click.stop.prevent="togglePanel">
-                                        {{$t('更多设置')}}<i class="bk-icon icon-angle-double-down ml5"></i>
+                                        {{$t('更多设置')}}<i class="bcs-icon bcs-icon-angle-double-down ml5"></i>
                                     </button>
                                 </div>
                             </div>
@@ -262,20 +211,20 @@
                             <div class="bk-form-item mt0" v-show="isTlsPanelShow">
                                 <div class="bk-form-content" style="margin-left: 130px;">
                                     <bk-tab :type="'fill'" :active-name="'tls'" :size="'small'">
-                                        <bk-tabpanel name="tls" title="TLS">
+                                        <bk-tab-panel name="tls" title="TLS">
                                             <div class="p20">
                                                 <table class="biz-simple-table">
                                                     <tbody>
                                                         <tr v-for="(computer, index) in curEditedIngress.config.spec.tls" :key="index">
                                                             <td>
-                                                                <bk-input
+                                                                <bkbcs-input
                                                                     type="text"
                                                                     :placeholder="$t('主机名，多个用英文逗号分隔')"
                                                                     style="width: 310px;"
                                                                     :value.sync="computer.hosts"
                                                                     :list="varList"
                                                                 >
-                                                                </bk-input>
+                                                                </bkbcs-input>
                                                             </td>
                                                             <td>
                                                                 <bk-selector
@@ -288,24 +237,24 @@
                                                                     @item-selected="handlerSelectCert(computer, ...arguments)"
                                                                 >
                                                                     <div class="bk-selector-create-item" slot="newItem" @click="goCertList" v-if="certListUrl">
-                                                                        <i class="bk-icon icon-apps"></i>
+                                                                        <i class="bcs-icon bcs-icon-apps"></i>
                                                                         <i class="text">{{$t('证书列表')}}</i>
                                                                     </div>
                                                                 </bk-selector>
                                                             </td>
                                                             <td>
-                                                                <button class="action-btn ml5" @click.stop.prevent="addTls">
-                                                                    <i class="bk-icon icon-plus"></i>
-                                                                </button>
-                                                                <button class="action-btn" v-if="curEditedIngress.config.spec.tls.length > 1" @click.stop.prevent="removeTls(index, computer)">
-                                                                    <i class="bk-icon icon-minus"></i>
-                                                                </button>
+                                                                <bk-button class="action-btn ml5" @click.stop.prevent="addTls">
+                                                                    <i class="bcs-icon bcs-icon-plus"></i>
+                                                                </bk-button>
+                                                                <bk-button class="action-btn" v-if="curEditedIngress.config.spec.tls.length > 1" @click.stop.prevent="removeTls(index, computer)">
+                                                                    <i class="bcs-icon bcs-icon-minus"></i>
+                                                                </bk-button>
                                                             </td>
                                                         </tr>
                                                     </tbody>
                                                 </table>
                                             </div>
-                                        </bk-tabpanel>
+                                        </bk-tab-panel>
                                     </bk-tab>
                                 </div>
                             </div>
@@ -313,16 +262,16 @@
                             <div class="bk-form-item mt0" v-show="isPanelShow">
                                 <div class="bk-form-content" style="margin-left: 130px;">
                                     <bk-tab :type="'fill'" :active-name="'remark'" :size="'small'">
-                                        <bk-tabpanel name="remark" :title="$t('注解')">
+                                        <bk-tab-panel name="remark" :title="$t('注解')">
                                             <div class="biz-tab-wrapper m20">
                                                 <bk-keyer :key-list.sync="curRemarkList" :var-list="varList" ref="remarkKeyer"></bk-keyer>
                                             </div>
-                                        </bk-tabpanel>
-                                        <bk-tabpanel name="label" :title="$t('标签')">
+                                        </bk-tab-panel>
+                                        <bk-tab-panel name="label" :title="$t('标签')">
                                             <div class="biz-tab-wrapper m20">
                                                 <bk-keyer :key-list.sync="curLabelList" :var-list="varList" ref="labelKeyer"></bk-keyer>
                                             </div>
-                                        </bk-tabpanel>
+                                        </bk-tab-panel>
                                     </bk-tab>
                                 </div>
                             </div>
@@ -331,16 +280,16 @@
                             <div class="biz-part-header">
                                 <div class="bk-button-group">
                                     <div class="item" v-for="(rule, index) in curEditedIngress.config.spec.rules" :key="index">
-                                        <button :class="['bk-button bk-default is-outline', { 'is-selected': curRuleIndex === index }]" @click.stop="setCurRule(rule, index)">
+                                        <bk-button :class="['bk-button bk-default is-outline', { 'is-selected': curRuleIndex === index }]" @click.stop="setCurRule(rule, index)">
                                             {{rule.host || $t('未命名')}}
-                                        </button>
-                                        <span class="bk-icon icon-close-circle" @click.stop="removeRule(index)" v-if="curEditedIngress.config.spec.rules.length > 1"></span>
+                                        </bk-button>
+                                        <span class="bcs-icon bcs-icon-close-circle" @click.stop="removeRule(index)" v-if="curEditedIngress.config.spec.rules.length > 1"></span>
                                     </div>
-                                    <bk-tooltip ref="containerTooltip" :content="curEditedIngress.config.spec.rules.length >= 5 ? $t('最多添加5个') : $t('添加Rule')" placement="top">
-                                        <button type="button" class="bk-button bk-default is-outline is-icon" :disabled="curEditedIngress.config.spec.rules.length >= 5 " @click.stop.prevent="addLocalRule">
-                                            <i class="bk-icon icon-plus"></i>
-                                        </button>
-                                    </bk-tooltip>
+                                    <bcs-popover ref="containerTooltip" :content="curEditedIngress.config.spec.rules.length >= 5 ? $t('最多添加5个') : $t('添加Rule')" placement="top">
+                                        <bk-button type="button" class="bk-button bk-default is-outline is-icon" :disabled="curEditedIngress.config.spec.rules.length >= 5 " @click.stop.prevent="addLocalRule">
+                                            <i class="bcs-icon bcs-icon-plus"></i>
+                                        </bk-button>
+                                    </bcs-popover>
                                 </div>
                             </div>
 
@@ -351,7 +300,7 @@
                                 <div class="bk-form-item is-required">
                                     <label class="bk-label" style="width: 130px;">{{$t('虚拟主机名')}}：</label>
                                     <div class="bk-form-content" style="margin-left: 130px;">
-                                        <input type="text" :class="['bk-form-input']" :placeholder="$t('请输入')" style="width: 310px;" v-model="curRule.host" name="ruleName">
+                                        <bk-input :placeholder="$t('请输入')" style="width: 310px;" v-model="curRule.host" name="ruleName" />
                                     </div>
                                 </div>
                                 <div class="bk-form-item">
@@ -361,17 +310,17 @@
                                             <tbody>
                                                 <tr v-for="(pathRule, index) of curRule.http.paths" :key="index">
                                                     <td>
-                                                        <bk-input
+                                                        <bkbcs-input
                                                             type="text"
                                                             :placeholder="$t('路径')"
                                                             style="width: 310px;"
                                                             :value.sync="pathRule.path"
                                                             :list="varList"
                                                         >
-                                                        </bk-input>
+                                                        </bkbcs-input>
                                                     </td>
                                                     <td style="text-align: center;">
-                                                        <i class="bk-icon icon-arrows-right"></i>
+                                                        <i class="bcs-icon bcs-icon-arrows-right"></i>
                                                     </td>
                                                     <td>
                                                         <bk-selector
@@ -397,12 +346,12 @@
                                                         </bk-selector>
                                                     </td>
                                                     <td>
-                                                        <button class="action-btn ml5" @click.stop.prevent="addRulePath">
-                                                            <i class="bk-icon icon-plus"></i>
-                                                        </button>
-                                                        <button class="action-btn" v-if="curRule.http.paths.length > 1" @click.stop.prevent="removeRulePath(pathRule, index)">
-                                                            <i class="bk-icon icon-minus"></i>
-                                                        </button>
+                                                        <bk-button class="action-btn ml5" @click.stop.prevent="addRulePath">
+                                                            <i class="bcs-icon bcs-icon-plus"></i>
+                                                        </bk-button>
+                                                        <bk-button class="action-btn" v-if="curRule.http.paths.length > 1" @click.stop.prevent="removeRulePath(pathRule, index)">
+                                                            <i class="bcs-icon bcs-icon-minus"></i>
+                                                        </bk-button>
                                                     </td>
                                                 </tr>
                                             </tbody>
@@ -413,30 +362,32 @@
                             </div>
 
                             <div class="bk-form-item mt25" style="margin-left: 130px;">
-                                <button :class="['bk-button bk-primary', { 'is-loading': isDetailSaving }]" @click.stop.prevent="saveIngressDetail">{{$t('保存并更新')}}</button>
-                                <button class="bk-button bk-default" @click.stop.prevent="handleCancelUpdate">{{$t('取消')}}</button>
+                                <bk-button type="primary" :loading="isDetailSaving" @click.stop.prevent="saveIngressDetail">{{$t('保存并更新')}}</bk-button>
+                                <bk-button :loading="isDetailSaving" @click.stop.prevent="handleCancelUpdate">{{$t('取消')}}</bk-button>
                             </div>
-            
+
                         </div>
                     </div>
                 </div>
             </bk-sideslider>
 
             <bk-dialog
+                :title="$t('确认删除')"
+                :header-position="'left'"
                 :is-show="batchDialogConfig.isShow"
-                :width="550"
+                :width="600"
                 :has-header="false"
                 :quick-close="false"
                 @confirm="deleteIngresses(batchDialogConfig.data)"
                 @cancel="batchDialogConfig.isShow = false">
-                <div slot="content">
+                <template slot="content">
                     <div class="biz-batch-wrapper">
-                        <p class="batch-title">{{$t('确定要删除以下Ingress？')}}</p>
+                        <p class="batch-title mt10 f14">{{$t('确定要删除以下Ingress？')}}</p>
                         <ul class="batch-list">
                             <li v-for="(item, index) of batchDialogConfig.list" :key="index">{{item}}</li>
                         </ul>
                     </div>
-                </div>
+                </template>
             </bk-dialog>
         </div>
     </div>
@@ -464,11 +415,12 @@
                 curEditedIngress: ingressParams,
                 isPanelShow: false,
                 isTlsPanelShow: false,
+                isDetailSaving: false,
                 pageConf: {
-                    total: 1,
+                    count: 1,
                     totalPage: 1,
-                    pageSize: 10,
-                    curPage: 1,
+                    limit: 10,
+                    current: 1,
                     show: true
                 },
                 ingressSlider: {
@@ -488,7 +440,8 @@
                     title: '',
                     isShow: false
                 },
-                linkServices: []
+                linkServices: [],
+                ingressSelectedList: []
             }
         },
         computed: {
@@ -592,6 +545,9 @@
                     })
                 }
                 return list
+            },
+            curClusterId () {
+                return this.$store.state.curClusterId
             }
         },
         watch: {
@@ -603,31 +559,33 @@
                             if (this.searchScopeList.length) {
                                 const clusterIds = this.searchScopeList.map(item => item.id)
                                 // 使用当前缓存
-                                if (sessionStorage['bcs-cluster'] && clusterIds.includes(sessionStorage['bcs-cluster'])) {
-                                    this.searchScope = sessionStorage['bcs-cluster']
+                                if (localStorage['bcs-cluster'] && clusterIds.includes(localStorage['bcs-cluster'])) {
+                                    this.searchScope = localStorage['bcs-cluster']
                                 } else {
                                     this.searchScope = this.searchScopeList[1].id
                                 }
                             }
-                            
+
                             this.getIngressList()
                         }, 1000)
                     }
                 }
+            },
+            curClusterId () {
+                this.searchScope = this.curClusterId
+                this.getIngressList()
             }
         },
         created () {
             this.initPageConf()
             this.getCertList()
-            // this.initServices()
-            // this.getIngressList()
         },
         methods: {
             /**
              * 刷新列表
              */
             refresh () {
-                this.pageConf.curPage = 1
+                this.pageConf.current = 1
                 this.isPageLoading = true
                 this.getIngressList()
             },
@@ -637,11 +595,11 @@
              *
              * @param {number} pageSize pageSize
              */
-            changePageSize (pageSize) {
-                this.pageConf.pageSize = pageSize
-                this.pageConf.curPage = 1
+            handlePageLimitChange (pageSize) {
+                this.pageConf.limit = pageSize
+                this.pageConf.current = 1
                 this.initPageConf()
-                this.pageChangeHandler()
+                this.handlePageChange()
             },
 
             /**
@@ -666,15 +624,13 @@
                 const data = []
                 const names = []
 
-                this.ingressList.forEach(item => {
-                    if (item.isChecked) {
-                        data.push({
-                            cluster_id: item.cluster_id,
-                            namespace: item.namespace,
-                            name: item.name
-                        })
-                        names.push(`${item.cluster_name} / ${item.namespace} / ${item.resourceName}`)
-                    }
+                this.ingressSelectedList.forEach(item => {
+                    data.push({
+                        cluster_id: item.cluster_id,
+                        namespace: item.namespace,
+                        name: item.name
+                    })
+                    names.push(`${item.cluster_name} / ${item.namespace} / ${item.resourceName}`)
                 })
 
                 if (!data.length) {
@@ -742,7 +698,7 @@
 
                 const me = this
                 me.$bkInfo({
-                    title: ``,
+                    title: me.$t('确认删除'),
                     clsName: 'biz-remove-dialog max-size',
                     content: me.$createElement('p', {
                         class: 'biz-confirm-desc'
@@ -776,7 +732,7 @@
                         theme: 'success',
                         message: this.$t('删除成功')
                     })
-                    
+
                     // 稍晚一点加载数据，接口不一定立即清除
                     setTimeout(() => {
                         me.getIngressList()
@@ -823,7 +779,7 @@
                     })
 
                     this.initPageConf()
-                    this.curPageData = this.getDataByPage(this.pageConf.curPage)
+                    this.curPageData = this.getDataByPage(this.pageConf.current)
 
                     // 如果有搜索关键字，继续显示过滤后的结果
                     if (this.searchKeyword) {
@@ -874,9 +830,9 @@
                 })
 
                 this.ingressList.splice(0, this.ingressList.length, ...results)
-                this.pageConf.curPage = 1
+                this.pageConf.current = 1
                 this.initPageConf()
-                this.curPageData = this.getDataByPage(this.pageConf.curPage)
+                this.curPageData = this.getDataByPage(this.pageConf.current)
             },
 
             /**
@@ -884,9 +840,9 @@
              */
             initPageConf () {
                 const total = this.ingressList.length
-                this.pageConf.total = total
-                this.pageConf.curPage = 1
-                this.pageConf.totalPage = Math.ceil(total / this.pageConf.pageSize)
+                this.pageConf.count = total
+                this.pageConf.current = 1
+                this.pageConf.totalPage = Math.ceil(total / this.pageConf.limit)
             },
 
             /**
@@ -895,7 +851,7 @@
              */
             reloadCurPage () {
                 this.initPageConf()
-                this.curPageData = this.getDataByPage(this.pageConf.curPage)
+                this.curPageData = this.getDataByPage(this.pageConf.current)
             },
 
             /**
@@ -905,10 +861,10 @@
              */
             getDataByPage (page) {
                 if (page < 1) {
-                    this.pageConf.curPage = page = 1
+                    this.pageConf.current = page = 1
                 }
-                let startIndex = (page - 1) * this.pageConf.pageSize
-                let endIndex = page * this.pageConf.pageSize
+                let startIndex = (page - 1) * this.pageConf.limit
+                let endIndex = page * this.pageConf.limit
                 this.isPageLoading = true
                 if (startIndex < 0) {
                     startIndex = 0
@@ -919,6 +875,7 @@
                 setTimeout(() => {
                     this.isPageLoading = false
                 }, 200)
+                this.ingressSelectedList = []
                 return this.ingressList.slice(startIndex, endIndex)
             },
 
@@ -926,8 +883,8 @@
              * 页数改变回调
              * @param  {number} page 第几页
              */
-            pageChangeHandler (page = 1) {
-                this.pageConf.curPage = page
+            handlePageChange (page = 1) {
+                this.pageConf.current = page
 
                 const data = this.getDataByPage(page)
                 this.curPageData = data
@@ -979,9 +936,23 @@
                 this.curEditedIngress.config = ingressClone.data
                 this.ingressEditSlider.title = ingress.name
                 delete this.curEditedIngress.data
-                
+
                 if (this.curEditedIngress.config.spec.rules.length) {
-                    this.setCurRule(this.curEditedIngress.config.spec.rules[0], 0)
+                    // 初始化数据放在后面使用报错
+                    const rule = Object.assign({
+                        http: {
+                            paths: [
+                                {
+                                    backend: {
+                                        serviceName: '',
+                                        servicePort: ''
+                                    },
+                                    path: ''
+                                }
+                            ]
+                        }
+                    }, this.curEditedIngress.config.spec.rules[0])
+                    this.setCurRule(rule, 0)
                 } else {
                     this.addLocalRule()
                 }
@@ -1122,11 +1093,11 @@
                         return false
                     }
 
-                    const paths = rule.http.paths
+                    const paths = rule.http?.paths || []
 
                     for (const path of paths) {
                         if (!path.path) {
-                            megPrefix += `${rule.host}中${this.$t('路径组')}：`
+                            megPrefix += this.$t('{host}中路径组：', { host: rule.host })
                             this.$bkMessage({
                                 theme: 'error',
                                 message: megPrefix + this.$t('请填写路径！'),
@@ -1136,7 +1107,7 @@
                         }
 
                         if (path.path && !pathReg.test(path.path)) {
-                            megPrefix += `${rule.host}中${this.$t('路径组')}：`
+                            megPrefix += this.$t('{host}中路径组：', { host: rule.host })
                             this.$bkMessage({
                                 theme: 'error',
                                 message: megPrefix + this.$t('路径不正确'),
@@ -1146,7 +1117,7 @@
                         }
 
                         if (!path.backend.serviceName) {
-                            megPrefix += `${rule.host}中${this.$t('路径组')}：`
+                            megPrefix += this.$t('{host}中路径组：', { host: rule.host })
                             this.$bkMessage({
                                 theme: 'error',
                                 message: megPrefix + this.$t('请关联服务！'),
@@ -1156,7 +1127,7 @@
                         }
 
                         if (!path.backend.servicePort) {
-                            megPrefix += `${rule.host}中${this.$t('路径组')}：`
+                            megPrefix += this.$t('{host}中路径组：', { host: rule.host })
                             this.$bkMessage({
                                 theme: 'error',
                                 message: megPrefix + this.$t('请关联服务端口！'),
@@ -1166,10 +1137,10 @@
                         }
 
                         if (path.backend.serviceName && !this.linkServices.hasOwnProperty(path.backend.serviceName)) {
-                            megPrefix += `${rule.host}中${this.$t('路径组')}：`
+                            megPrefix += this.$t('{host}中路径组：', { host: rule.host })
                             this.$bkMessage({
                                 theme: 'error',
-                                message: megPrefix + `关联的Service【${path.backend.serviceName}】不存在，请重新绑定！`,
+                                message: megPrefix + this.$t('关联的Service【{serviceName}】不存在，请重新绑定', { serviceName: path.backend.serviceName }),
                                 delay: 8000
                             })
                             return false
@@ -1184,7 +1155,7 @@
                 delete params.config.metadata.resourceVersion
                 delete params.config.metadata.selfLink
                 delete params.config.metadata.uid
-                
+
                 params.config.metadata.annotations = this.$refs.remarkKeyer.getKeyObject()
                 params.config.metadata.labels = this.$refs.labelKeyer.getKeyObject()
 
@@ -1195,6 +1166,8 @@
                         item.hosts = item.hosts.split(',')
                     }
                 })
+                // 设置当前rules
+                params.config.spec.rules = [JSON.parse(JSON.stringify(this.curRule))]
                 return params
             },
 
@@ -1238,6 +1211,22 @@
                         this.isDetailSaving = false
                     }
                 }
+            },
+
+            /**
+             * 单选
+             * @param {array} selection 已经选中的行数
+             * @param {object} row 当前选中的行
+             */
+            handlePageSelect (selection, row) {
+                this.ingressSelectedList = selection
+            },
+
+            /**
+             * 全选
+             */
+            handlePageSelectAll (selection, row) {
+                this.ingressSelectedList = selection
             },
 
             handleCancelUpdate () {

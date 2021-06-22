@@ -6,13 +6,13 @@
         :quick-close="false"
         class="biz-metric-manage-create-sideslider"
         @hidden="hideCreateMetric">
-        <template slot="content">
-            <div class="wrapper" style="position: relative;" v-bkloading="{ isLoading: isLoading, opacity: 0.8 }">
+        <div slot="content">
+            <div class="wrapper" style="position: relative;">
                 <form class="bk-form bk-form-vertical create-form">
                     <div class="bk-form-item">
                         <label class="bk-label label">{{$t('名称')}}：<span class="red">*</span></label>
                         <div class="bk-form-content">
-                            <input type="text" v-model="createParams.name" class="bk-form-input text-input-half" :placeholder="$t('请输入')" maxlength="253" />
+                            <bk-input style="width: 282px;" v-model="createParams.name" :placeholder="$t('请输入')" maxlength="253" />
                         </div>
                     </div>
                     <div class="bk-form-item flex-item">
@@ -22,7 +22,7 @@
                                 <span class="tip">{{$t('选择Service以获取Label')}}</span>
                             </label>
                             <div class="bk-form-content">
-                                <bk-input style="cursor: not-allowed;" type="text" disabled :value.sync="clusterName"></bk-input>
+                                <bkbcs-input style="cursor: not-allowed;" type="text" disabled :value.sync="clusterName"></bkbcs-input>
                             </div>
                         </div>
                         <div class="right">
@@ -48,25 +48,18 @@
                             <div class="bk-keyer http-header">
                                 <div class="biz-keys-list mb10">
                                     <div class="biz-key-item" v-for="(key, keyIndex) in Object.keys(keyValueData)" :key="keyIndex">
-                                        <input type="text" disabled class="bk-form-input" :value="key">
+                                        <bk-input style="width: 235px;" :disabled="true" :value="key" />
                                         <span class="operator">=</span>
-                                        <input type="text" disabled class="bk-form-input" :value="keyValueData[key]">
-                                        <label class="bk-form-checkbox" style="margin-left: 10px;">
-                                            <input type="checkbox" v-model="createParams.selector[key]" @change="valueChange($event, key)">
-                                        </label>
+                                        <bk-input style="width: 235px;" :disabled="true" :value="keyValueData[key]" />
+                                        <bk-checkbox class="ml10" :value="!!createParams.selector[key]" @change="valueChange(arguments[0], key)"></bk-checkbox>
                                     </div>
                                 </div>
                             </div>
                         </div>
                         <div class="bk-form-content" v-else>
-                            <div style="color: #737987;font-size: 14px;">
-                                <template v-if="isEn">
-                                    Current Service does not set Labels.<a class="bk-text-button metric-query" @click="goService" href="javascript:void(0)">Please add it first</a>
-                                </template>
-                                <template v-else>
-                                    当前Service没有设置Labels，<a class="bk-text-button metric-query" @click="goService" href="javascript:void(0)">请先添加</a>
-                                </template>
-                            </div>
+                            <i18n path="当前Service没有设置Labels，{action}" style="color: #737987;font-size: 14px;" tag="div">
+                                <a place="action" class="bk-text-button metric-query" @click="goService" href="javascript:void(0)">{{$t('请先添加')}}</a>
+                            </i18n>
                         </div>
                     </div>
                     <div class="bk-form-item" v-if="portList.length">
@@ -87,7 +80,7 @@
                             {{$t('Metric路径')}}：<span class="red">*</span>
                         </label>
                         <div class="bk-form-content">
-                            <input type="text" v-model="createParams.path" class="bk-form-input text-input" :placeholder="$t('请输入')" />
+                            <bk-input v-model="createParams.path" :placeholder="$t('请输入')" />
                         </div>
                     </div>
                     <div class="bk-form-item">
@@ -119,22 +112,23 @@
                                     class="text-input-half"
                                     :value.sync="createParams.sample_limit"
                                     :min="0"
-                                    :debounce-timer="0">
+                                    :debounce-timer="0"
+                                    :placeholder="$t('请输入')">
                                 </bk-number-input>
                             </div>
                         </div>
                     </div>
                     <div class="action-inner">
-                        <button type="button" class="bk-dialog-btn bk-dialog-btn-confirm bk-btn-primary" @click="confirmCreateMetric">
+                        <bk-button type="primary" :loading="isLoading" @click="confirmCreateMetric">
                             {{$t('提交')}}
-                        </button>
-                        <button type="button" class="bk-dialog-btn bk-dialog-btn-cancel" @click="hideCreateMetric">
+                        </bk-button>
+                        <bk-button type="button" :disabled="isLoading" @click="hideCreateMetric">
                             {{$t('取消')}}
-                        </button>
+                        </bk-button>
                     </div>
                 </form>
             </div>
-        </template>
+        </div>
     </bk-sideslider>
 </template>
 
@@ -235,10 +229,6 @@
                     this.serviceList.splice(0, this.serviceList.length, ...list)
                 } catch (e) {
                     console.error(e)
-                    this.bkMessageInstance = this.$bkMessage({
-                        theme: 'error',
-                        message: e.message || e.data.msg || e.statusText
-                    })
                 } finally {
                     this.isLoading = false
                 }
@@ -277,8 +267,7 @@
              * @param {Object} e 事件对象
              * @param {string} key 勾选的 key
              */
-            valueChange (e, key) {
-                const checked = e.target.checked
+            valueChange (checked, key) {
                 if (checked) {
                     this.createParams.selector[key] = this.keyValueData[key]
                 } else {
@@ -418,10 +407,6 @@
                     this.$emit('create-success')
                 } catch (e) {
                     console.error(e)
-                    this.bkMessageInstance = this.$bkMessage({
-                        theme: 'error',
-                        message: e.message || e.data.msg || e.statusText
-                    })
                 } finally {
                     this.isLoading = false
                 }

@@ -15,16 +15,16 @@
             <template v-if="!exceptionCode && !pageLoading">
                 <div class="biz-panel-header biz-node-query">
                     <div class="left">
-                        <button class="bk-button bk-default" @click="showSetLabel">
+                        <bcs-button :disabled="!checkedNodeList.length" @click="showSetLabel">
                             <span>{{$t('设置标签')}}</span>
-                        </button>
-                        <button class="bk-button bk-default" @click="exportNode">
+                        </bcs-button>
+                        <bk-button @click="exportNode">
                             <span>{{$t('导出')}}</span>
-                        </button>
+                        </bk-button>
                         <bk-dropdown-menu :align="'left'" ref="copyIpDropdownMenu" class="copy-ip-dropdown">
                             <a href="javascript:void(0);" slot="dropdown-trigger" class="bk-text-button copy-ip-btn">
                                 <span class="label">{{$t('复制IP')}}</span>
-                                <i class="bk-icon icon-angle-down dropdown-menu-angle-down"></i>
+                                <i class="bcs-icon bcs-icon-angle-down dropdown-menu-angle-down"></i>
                             </a>
                             <ul class="bk-dropdown-list" slot="dropdown-content">
                                 <li>
@@ -42,6 +42,7 @@
                     <div class="right">
                         <bk-selector
                             class="cluster-selector"
+                            v-if="!curClusterId"
                             :placeholder="$t('请选择')"
                             :searchable="true"
                             :setting-key="'cluster_id'"
@@ -51,13 +52,17 @@
                             @item-selected="changeCluster">
                         </bk-selector>
                         <div class="biz-searcher-wrapper">
-                            <!-- <bk-ip-searcher @search="searchNodeList" ref="searcher" /> -->
-                            <node-searcher :cluster-id="clusterId" :project-id="projectId" ref="searcher" @search="searchNodeList"></node-searcher>
+                            <node-searcher
+                                :cluster-id="clusterId"
+                                :project-id="projectId"
+                                ref="searcher"
+                                @search="searchNodeList">
+                            </node-searcher>
                         </div>
                         <span class="close-wrapper">
                             <template v-if="$refs.searcher && $refs.searcher.searchParams && $refs.searcher.searchParams.length">
-                                <button class="bk-button bk-default is-outline is-icon" :title="$t('清除')" @click="clearSearchParams">
-                                    <i class="bk-icon icon-close"></i>
+                                <button class="bk-button bk-default is-outline is-icon" :title="$t('清除')" @click="clearSearchParams" style="border: 1px solid #c4c6cc;">
+                                    <i class="bcs-icon bcs-icon-close"></i>
                                 </button>
                             </template>
                             <template v-else>
@@ -66,385 +71,130 @@
                             </template>
                         </span>
                         <span class="refresh-wrapper">
-                            <bk-tooltip class="refresh" :content="$t('重置')" :transfer="true" :placement="'top-end'">
+                            <bcs-popover class="refresh" :content="$t('重置')" :transfer="true" :placement="'top-end'">
                                 <button class="bk-button bk-default is-outline is-icon" @click="refresh">
-                                    <i class="bk-icon icon-refresh"></i>
+                                    <i class="bcs-icon bcs-icon-refresh"></i>
                                 </button>
-                            </bk-tooltip>
+                            </bcs-popover>
                         </span>
                     </div>
                 </div>
-                <div class="biz-node-list">
-                    <div class="biz-table-wrapper" v-bkloading="{ isLoading: showLoading, opacity: 0.9 }">
-                        <table class="bk-table has-table-hover biz-table" style="overflow: hidden;">
-                            <thead>
-                                <tr>
-                                    <th style="width: 20px; text-align: center; top: 0; position: relative; padding: 0;">
-                                        <label class="bk-form-checkbox" v-if="curPageData.length">
-                                            <input type="checkbox" name="check-all-node" v-model="isCheckAllNode" @click="checkAllNode" v-if="curPageData.filter(node => node.permissions && node.permissions.edit && node.status === 'normal').length">
-                                            <input type="checkbox" v-else name="check-instance" disabled="disabled" />
-                                        </label>
-                                    </th>
-                                    <th style="width: 120px; text-align: left;">{{$t('主机名/IP')}}</th>
-                                    <th style="width: 100px;">{{$t('状态')}}</th>
-                                    <th style="width: 150px;">{{$t('所属集群')}}</th>
-                                    <th style="width: 300px;">{{$t('标签')}}</th>
-                                    <th style="width: 200px;">{{$t('操作')}}</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <template v-if="curPageData.length">
-                                    <tr v-for="(node, index) in curPageData" @click.stop="nodeRowClick" :key="node.id">
-                                        <!--
-                                            初始化中: initializing, so_initializing, initial_checking, uninitialized
-                                            删除中: removing
-                                        -->
-                                        <template v-if="ingStatus.includes(node.status)">
-                                            <td style="width: 40px; text-align: center; position: relative;">
-                                                <label class="bk-form-checkbox">
-                                                    <input type="checkbox" name="check-node" style="border: 1px solid #ebf0f5;background-color: #fafbfd;background-image: none;" disabled="disabled">
-                                                </label>
-                                            </td>
-                                            <td>{{node.inner_ip}}</td>
-                                            <td style="white-space: nowrap;">
-                                                <div class="biz-status-node"><loading-cell :style="{ left: 0 }" :ext-cls="['bk-spin-loading-mini', 'bk-spin-loading-danger']"></loading-cell></div>
-                                                {{node.status === 'initializing' || node.status === 'so_initializing' || node.status === 'initial_checking' ? $t('初始化中') : $t('删除中')}}
-                                            </td>
-                                            <td style="white-space: nowrap;">
-                                                <bk-tooltip :content="`${node.cluster_id}`" placement="top">
-                                                    <p class="biz-text-wrapper">{{node.cluster_name}}</p>
-                                                </bk-tooltip>
-                                            </td>
-                                            <td>
-                                                <template v-if="node.transformLabels.length">
-                                                    <div class="labels-container" :class="node.isExpandLabels ? 'expand' : ''">
-                                                        <div class="labels-wrapper" :class="node.isExpandLabels ? 'expand' : ''" :ref="`${pageConf.curPage}-real${index}`">
-                                                            <div class="labels-inner" v-for="(label, labelIndex) in node.transformLabels" :key="labelIndex">
-                                                                <span class="key" :title="label.key">{{label.key}}</span>
-                                                                <span class="value" :title="label.value">{{label.value}}</span>
-                                                            </div>
-                                                            <a href="javascript:void(0);" class="bk-text-button toggle-labels"
-                                                                :class="node.isExpandLabels ? 'expand' : ''"
-                                                                v-if="node.showExpand"
-                                                                @click.stop="toggleLabel(node, index)">
-                                                                <template v-if="!node.isExpandLabels">
-                                                                    {{$t('展开')}}<i class="bk-icon icon-angle-down"></i>
-                                                                </template>
-                                                                <template v-else>
-                                                                    {{$t('收起')}}<i class="bk-icon icon-angle-up"></i>
-                                                                </template>
-                                                            </a>
-                                                        </div>
-                                                    </div>
-                                                </template>
-                                                <template v-else>--</template>
-                                            </td>
-                                            <td>
-                                                <a href="javascript:void(0);" class="bk-text-button disabled">{{$t('设置标签')}}</a>
-                                                <a href="javascript:void(0);" class="bk-text-button" @click.stop="goClusterNode(node)">{{$t('更多操作')}}</a>
-                                            </td>
-                                        </template>
-
-                                        <!--
-                                            初始化失败: initial_failed, so_init_failed, check_failed, bke_failed, schedule_failed
-                                            删除失败: delete_failed
-                                            删除失败: remove_failed
-                                        -->
-                                        <template v-if="failStatus.includes(node.status)">
-                                            <td style="width: 40px; text-align: center; position: relative;">
-                                                <label class="bk-form-checkbox">
-                                                    <input type="checkbox" name="check-node" style="border: 1px solid #ebf0f5;background-color: #fafbfd;background-image: none;" disabled="disabled">
-                                                </label>
-                                            </td>
-                                            <td>
-                                                <a href="javascript:void(0)" class="bk-text-button" @click="goNodeOverview(node)">{{node.inner_ip}}</a>
-                                            </td>
-                                            <td style="white-space: nowrap;">
-                                                <div class="biz-status-node"><i class="node danger"></i></div>
-                                                {{node.status === 'initial_failed' || node.status === 'so_init_failed' || node.status === 'check_failed' || node.status === 'schedule_failed' || node.status === 'bke_failed' ? $t('初始化失败') : $t('移除失败')}}
-                                            </td>
-                                            <td>
-                                                <bk-tooltip :content="`${node.cluster_id}`" placement="top">
-                                                    <a href="javascript: void(0);" class="bk-text-button" @click.stop="goClusterOverview(node)">
-                                                        <p class="biz-text-wrapper">{{node.cluster_name}}</p>
-                                                    </a>
-                                                </bk-tooltip>
-                                            </td>
-                                            <td>
-                                                <template v-if="node.transformLabels.length">
-                                                    <div class="labels-container" :class="node.isExpandLabels ? 'expand' : ''">
-                                                        <div class="labels-wrapper" :class="node.isExpandLabels ? 'expand' : ''" :ref="`${pageConf.curPage}-real${index}`">
-                                                            <div class="labels-inner" v-for="(label, labelIndex) in node.transformLabels" :key="labelIndex">
-                                                                <span class="key" :title="label.key">{{label.key}}</span>
-                                                                <span class="value" :title="label.value">{{label.value}}</span>
-                                                            </div>
-                                                            <a href="javascript:void(0);" class="bk-text-button toggle-labels"
-                                                                :class="node.isExpandLabels ? 'expand' : ''"
-                                                                v-if="node.showExpand"
-                                                                @click.stop="toggleLabel(node, index)">
-                                                                <template v-if="!node.isExpandLabels">
-                                                                    {{$t('展开')}}<i class="bk-icon icon-angle-down"></i>
-                                                                </template>
-                                                                <template v-else>
-                                                                    {{$t('收起')}}<i class="bk-icon icon-angle-up"></i>
-                                                                </template>
-                                                            </a>
-                                                        </div>
-                                                    </div>
-                                                </template>
-                                                <template v-else>--</template>
-                                            </td>
-                                            <td>
-                                                <a href="javascript:void(0);" class="bk-text-button disabled">{{$t('设置标签')}}</a>
-                                                <a href="javascript:void(0);" class="bk-text-button" @click.stop="goClusterNode(node)">{{$t('更多操作')}}</a>
-                                            </td>
-                                        </template>
-
-                                        <!--
-                                            不可调度: to_removed
-                                        -->
-                                        <template v-if="node.status === 'to_removed'">
-                                            <td style="width: 40px; text-align: center; position: relative;">
-                                                <label class="bk-form-checkbox">
-                                                    <input type="checkbox" name="check-node" style="border: 1px solid #ebf0f5;background-color: #fafbfd;background-image: none;" disabled="disabled">
-                                                </label>
-                                            </td>
-                                            <td>
-                                                <a href="javascript:void(0)" class="bk-text-button" @click="goNodeOverview(node)">{{node.inner_ip}}</a>
-                                            </td>
-                                            <td>
-                                                <div class="biz-status-node"><i class="node warning"></i></div>
-                                                {{$t('不可调度')}}
-                                            </td>
-                                            <td>
-                                                <bk-tooltip :content="`${node.cluster_id}`" placement="top">
-                                                    <a href="javascript: void(0);" class="bk-text-button" @click.stop="goClusterOverview(node)">
-                                                        <p class="biz-text-wrapper">{{node.cluster_name}}</p>
-                                                    </a>
-                                                </bk-tooltip>
-                                            </td>
-                                            <td>
-                                                <template v-if="node.transformLabels.length">
-                                                    <div class="labels-container" :class="node.isExpandLabels ? 'expand' : ''">
-                                                        <div class="labels-wrapper" :class="node.isExpandLabels ? 'expand' : ''" :ref="`${pageConf.curPage}-real${index}`">
-                                                            <div class="labels-inner" v-for="(label, labelIndex) in node.transformLabels" :key="labelIndex">
-                                                                <span class="key" :title="label.key">{{label.key}}</span>
-                                                                <span class="value" :title="label.value">{{label.value}}</span>
-                                                            </div>
-                                                            <a href="javascript:void(0);" class="bk-text-button toggle-labels"
-                                                                :class="node.isExpandLabels ? 'expand' : ''"
-                                                                v-if="node.showExpand"
-                                                                @click.stop="toggleLabel(node, index)">
-                                                                <template v-if="!node.isExpandLabels">
-                                                                    {{$t('展开')}}<i class="bk-icon icon-angle-down"></i>
-                                                                </template>
-                                                                <template v-else>
-                                                                    {{$t('收起')}}<i class="bk-icon icon-angle-up"></i>
-                                                                </template>
-                                                            </a>
-                                                        </div>
-                                                    </div>
-                                                </template>
-                                                <template v-else>--</template>
-                                            </td>
-                                            <td>
-                                                <a href="javascript:void(0);" class="bk-text-button disabled">{{$t('设置标签')}}</a>
-                                                <a href="javascript:void(0);" class="bk-text-button" @click.stop="goClusterNode(node)">{{$t('更多操作')}}</a>
-                                            </td>
-                                        </template>
-
-                                        <!--
-                                            不可调度: removable
-                                        -->
-                                        <template v-if="node.status === 'removable'">
-                                            <td style="width: 40px; text-align: center; position: relative;">
-                                                <label class="bk-form-checkbox">
-                                                    <input type="checkbox" name="check-node" style="border: 1px solid #ebf0f5;background-color: #fafbfd;background-image: none;" disabled="disabled">
-                                                </label>
-                                            </td>
-                                            <td>
-                                                <a href="javascript:void(0)" class="bk-text-button" @click="goNodeOverview(node)">{{node.inner_ip}}</a>
-                                            </td>
-                                            <td>
-                                                <div class="biz-status-node"><i class="node warning"></i></div>
-                                                {{$t('不可调度')}}
-                                            </td>
-                                            <td>
-                                                <bk-tooltip :content="`${node.cluster_id}`" placement="top">
-                                                    <a href="javascript: void(0);" class="bk-text-button" @click.stop="goClusterOverview(node)">
-                                                        <p class="biz-text-wrapper">{{node.cluster_name}}</p>
-                                                    </a>
-                                                </bk-tooltip>
-                                            </td>
-                                            <td>
-                                                <template v-if="node.transformLabels.length">
-                                                    <div class="labels-container" :class="node.isExpandLabels ? 'expand' : ''">
-                                                        <div class="labels-wrapper" :class="node.isExpandLabels ? 'expand' : ''" :ref="`${pageConf.curPage}-real${index}`">
-                                                            <div class="labels-inner" v-for="(label, labelIndex) in node.transformLabels" :key="labelIndex">
-                                                                <span class="key" :title="label.key">{{label.key}}</span>
-                                                                <span class="value" :title="label.value">{{label.value}}</span>
-                                                            </div>
-                                                            <a href="javascript:void(0);" class="bk-text-button toggle-labels"
-                                                                :class="node.isExpandLabels ? 'expand' : ''"
-                                                                v-if="node.showExpand"
-                                                                @click.stop="toggleLabel(node, index)">
-                                                                <template v-if="!node.isExpandLabels">
-                                                                    {{$t('展开')}}<i class="bk-icon icon-angle-down"></i>
-                                                                </template>
-                                                                <template v-else>
-                                                                    {{$t('收起')}}<i class="bk-icon icon-angle-up"></i>
-                                                                </template>
-                                                            </a>
-                                                        </div>
-                                                    </div>
-                                                </template>
-                                                <template v-else>--</template>
-                                            </td>
-                                            <td>
-                                                <a href="javascript:void(0);" class="bk-text-button disabled">{{$t('设置标签')}}</a>
-                                                <a href="javascript:void(0);" class="bk-text-button" @click.stop="goClusterNode(node)">{{$t('更多操作')}}</a>
-                                            </td>
-                                        </template>
-
-                                        <!--
-                                            不正常: not_ready
-                                            不正常: unnormal
-                                        -->
-                                        <template v-if="node.status === 'not_ready' || node.status === 'unnormal'">
-                                            <td style="width: 40px; text-align: center; position: relative;">
-                                                <label class="bk-form-checkbox">
-                                                    <input type="checkbox" name="check-node" style="border: 1px solid #ebf0f5;background-color: #fafbfd;background-image: none;" disabled="disabled">
-                                                </label>
-                                            </td>
-                                            <td>
-                                                <a href="javascript:void(0)" class="bk-text-button" @click="goNodeOverview(node)">{{node.inner_ip}}</a>
-                                            </td>
-                                            <td>
-                                                <div class="biz-status-node"><i class="node danger"></i></div>
-                                                {{$t('不正常')}}
-                                            </td>
-                                            <td>
-                                                <bk-tooltip :content="`${node.cluster_id}`" placement="top">
-                                                    <a href="javascript: void(0);" class="bk-text-button" @click.stop="goClusterOverview(node)">
-                                                        <p class="biz-text-wrapper">{{node.cluster_name}}</p>
-                                                    </a>
-                                                </bk-tooltip>
-                                            </td>
-                                            <td>
-                                                <template v-if="node.transformLabels.length">
-                                                    <div class="labels-container" :class="node.isExpandLabels ? 'expand' : ''">
-                                                        <div class="labels-wrapper" :class="node.isExpandLabels ? 'expand' : ''" :ref="`${pageConf.curPage}-real${index}`">
-                                                            <div class="labels-inner" v-for="(label, labelIndex) in node.transformLabels" :key="labelIndex">
-                                                                <span class="key" :title="label.key">{{label.key}}</span>
-                                                                <span class="value" :title="label.value">{{label.value}}</span>
-                                                            </div>
-                                                            <a href="javascript:void(0);" class="bk-text-button toggle-labels"
-                                                                :class="node.isExpandLabels ? 'expand' : ''"
-                                                                v-if="node.showExpand"
-                                                                @click.stop="toggleLabel(node, index)">
-                                                                <template v-if="!node.isExpandLabels">
-                                                                    {{$t('展开')}}<i class="bk-icon icon-angle-down"></i>
-                                                                </template>
-                                                                <template v-else>
-                                                                    {{$t('收起')}}<i class="bk-icon icon-angle-up"></i>
-                                                                </template>
-                                                            </a>
-                                                        </div>
-                                                    </div>
-                                                </template>
-                                                <template v-else>--</template>
-                                            </td>
-                                            <td>
-                                                <a href="javascript:void(0);" class="bk-text-button disabled">{{$t('设置标签')}}</a>
-                                                <a href="javascript:void(0);" class="bk-text-button" @click.stop="goClusterNode(node)">{{$t('更多操作')}}</a>
-                                            </td>
-                                        </template>
-
-                                        <!--
-                                            正常: normal
-                                        -->
-                                        <template v-if="node.status === 'normal'">
-                                            <td style="width: 40px; text-align: center; position: relative;">
-                                                <label class="bk-form-checkbox">
-                                                    <input type="checkbox" name="check-node" v-model="node.isChecked" @click.stop="checkNode(node)" :disabled="!node.permissions.edit" />
-                                                </label>
-                                            </td>
-                                            <td>
-                                                <a href="javascript:void(0)" class="bk-text-button" @click="goNodeOverview(node)">{{node.inner_ip}}</a>
-                                            </td>
-                                            <td>
-                                                <div class="biz-status-node"><i class="node success"></i></div>
-                                                {{$t('正常')}}
-                                            </td>
-                                            <td>
-                                                <bk-tooltip :content="`${node.cluster_id}`" placement="top">
-                                                    <a href="javascript: void(0);" class="bk-text-button" @click.stop="goClusterOverview(node)">
-                                                        <p class="biz-text-wrapper">{{node.cluster_name}}</p>
-                                                    </a>
-                                                </bk-tooltip>
-                                            </td>
-                                            <td>
-                                                <template v-if="node.transformLabels.length">
-                                                    <div class="labels-container" :class="node.isExpandLabels ? 'expand' : ''">
-                                                        <div class="labels-wrapper" :class="node.isExpandLabels ? 'expand' : ''" :ref="`${pageConf.curPage}-real${index}`">
-                                                            <div class="labels-inner" v-for="(label, labelIndex) in node.transformLabels" :key="labelIndex">
-                                                                <span class="key" :title="label.key">{{label.key}}</span>
-                                                                <span class="value" :title="label.value">{{label.value}}</span>
-                                                            </div>
-                                                            <a href="javascript:void(0);" class="bk-text-button toggle-labels"
-                                                                :class="node.isExpandLabels ? 'expand' : ''"
-                                                                v-if="node.showExpand"
-                                                                @click.stop="toggleLabel(node, index)">
-                                                                <template v-if="!node.isExpandLabels">
-                                                                    {{$t('展开')}}<i class="bk-icon icon-angle-down"></i>
-                                                                </template>
-                                                                <template v-else>
-                                                                    {{$t('收起')}}<i class="bk-icon icon-angle-up"></i>
-                                                                </template>
-                                                            </a>
-                                                        </div>
-                                                    </div>
-                                                </template>
-                                                <template v-else>--</template>
-                                            </td>
-                                            <td>
-                                                <a href="javascript:void(0);" class="bk-text-button" @click.stop="showSetLabelInRow(node)">{{$t('设置标签')}}</a>
-                                                <a href="javascript:void(0);" class="bk-text-button" @click.stop="goClusterNode(node)">{{$t('更多操作')}}</a>
-                                            </td>
-                                        </template>
-                                    </tr>
-                                </template>
-                                <template v-if="!curPageData.length">
-                                    <tr>
-                                        <td colspan="6">
-                                            <div class="bk-message-box no-data">
-                                                <p class="message empty-message">{{$t('无数据')}}</p>
+                <div class="biz-node-list biz-table-wrapper">
+                    <bk-table
+                        v-bkloading="{ isLoading: showLoading, opacity: 0.9 }"
+                        :key="renderTableIndex"
+                        :data="curPageData"
+                        :pagination="pageConf"
+                        @page-change="handlePageChange"
+                        @page-limit-change="handlePageLimitChange"
+                        @select="handlePageSelect"
+                        @select-all="handlePageSelectAll">
+                        <bk-table-column type="selection" width="60" :selectable="rowSelectable"></bk-table-column>
+                        <bk-table-column :label="$t('主机名/IP')" prop="name" :show-overflow-tooltip="true" width="200">
+                            <template slot-scope="{ row }">
+                                <a v-if="failStatus.includes(row.status) || row.status === 'to_removed' || row.status === 'removable' || row.status === 'not_ready' || row.status === 'unnormal' || row.status === 'normal'"
+                                    href="javascript:void(0)"
+                                    class="bk-text-button"
+                                    @click="goNodeOverview(row)">
+                                    {{row.inner_ip}}
+                                </a>
+                                <span v-else>{{ row.inner_ip }}</span>
+                            </template>
+                        </bk-table-column>
+                        <bk-table-column :label="$t('状态')" prop="cluster_name" width="200">
+                            <template slot-scope="{ row }">
+                                <div v-if="ingStatus.includes(row.status)">
+                                    <div class="biz-status-node"><loading-cell :style="{ left: 0 }" :ext-cls="['bk-spin-loading-mini', 'bk-spin-loading-danger']"></loading-cell></div>
+                                    {{row.status === 'initializing' || row.status === 'so_initializing' || row.status === 'initial_checking' ? $t('初始化中') : $t('删除中')}}
+                                </div>
+                                <div v-if="failStatus.includes(row.status)">
+                                    <div class="biz-status-node"><i class="node danger"></i></div>
+                                    {{row.status === 'initial_failed' || row.status === 'so_init_failed' || row.status === 'check_failed' || row.status === 'schedule_failed' || row.status === 'bke_failed' ? $t('初始化失败') : $t('移除失败')}}
+                                </div>
+                                <div v-if="row.status === 'to_removed' || row.status === 'removable'">
+                                    <div class="biz-status-node"><i class="node warning"></i></div>
+                                    {{$t('不可调度')}}
+                                </div>
+                                <div v-if="row.status === 'not_ready' || row.status === 'unnormal'">
+                                    <div class="biz-status-node"><i class="node danger"></i></div>
+                                    {{$t('不正常')}}
+                                </div>
+                                <div v-if="row.status === 'normal'">
+                                    <div class="biz-status-node"><i class="node success"></i></div>
+                                    {{$t('正常')}}
+                                </div>
+                            </template>
+                        </bk-table-column>
+                        <bk-table-column :label="$t('所属集群')" prop="cluster_name" width="200">
+                            <template slot-scope="{ row }">
+                                <div v-if="ingStatus.includes(row.status)">
+                                    <bk-tooltip :content="`${row.cluster_id}`" placement="top">
+                                        <p class="biz-text-wrapper">{{row.cluster_name}}</p>
+                                    </bk-tooltip>
+                                </div>
+                                <div v-if="failStatus.includes(row.status)
+                                    || row.status === 'to_removed'
+                                    || row.status === 'removable'
+                                    || row.status === 'not_ready'
+                                    || row.status === 'unnormal'
+                                    || row.status === 'normal'">
+                                    <bk-tooltip :content="`${row.cluster_id}`" placement="top">
+                                        <a href="javascript: void(0);" class="bk-text-button" @click.stop="goClusterOverview(row)">
+                                            <p class="biz-text-wrapper">{{row.cluster_name}}</p>
+                                        </a>
+                                    </bk-tooltip>
+                                </div>
+                            </template>
+                        </bk-table-column>
+                        <bk-table-column :label="$t('标签')" prop="source_type" :show-overflow-tooltip="false">
+                            <template slot-scope="{ row, $index }">
+                                <div v-if="row.transformLabels.length">
+                                    <bcs-popover :delay="300" placement="left">
+                                        <div class="labels-container" :class="row.isExpandLabels ? 'expand' : ''">
+                                            <div class="labels-wrapper" :class="row.isExpandLabels ? 'expand' : ''" :ref="`${pageConf.current}-real${$index}`">
+                                                <div class="labels-inner" v-for="(label, labelIndex) in row.transformLabels" :key="labelIndex">
+                                                    <span class="key" :title="label.key">{{label.key}}</span>
+                                                    <span class="value" :title="label.value">{{label.value}}</span>
+                                                </div>
+                                                <span v-if="row.showExpand" style="line-height: 32px;">...</span>
                                             </div>
-                                        </td>
-                                    </tr>
-                                </template>
-                            </tbody>
-                        </table>
-                    </div>
-                    <div class="biz-page-wrapper" v-if="pageConf.total">
-                        <bk-page-counter
-                            :is-en="isEn"
-                            :total="pageConf.total"
-                            :page-size="pageConf.pageSize"
-                            @change="changePageSize">
-                        </bk-page-counter>
-                        <bk-paging
-                            :cur-page.sync="pageConf.curPage"
-                            :total-page="pageConf.totalPage"
-                            @page-change="pageChange">
-                        </bk-paging>
-                        <template v-if="isEn">
-                            <div class="already-selected-nums" v-if="alreadySelectedNums">Checked: {{alreadySelectedNums}}</div>
-                        </template>
-                        <template v-else>
-                            <div class="already-selected-nums" v-if="alreadySelectedNums">已选{{alreadySelectedNums}}条</div>
-                        </template>
-                    </div>
+                                        </div>
+                                        <template slot="content">
+                                            <div class="labels-wrapper fake" :ref="`${pageConf.current}-fake${index}`">
+                                                <div class="labels-inner" v-for="(label, labelIndex) in row.transformLabels" :key="labelIndex">
+                                                    <div>
+                                                        <span class="key">{{label.key}}</span>:
+                                                        <span class="value">{{label.value}}</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </template>
+                                    </bcs-popover>
+
+                                    <!-- <div class="labels-container" :class="row.isExpandLabels ? 'expand' : ''">
+                                        <div class="labels-wrapper" :class="row.isExpandLabels ? 'expand' : ''" :ref="`${pageConf.current}-real${index}`">
+                                            <div class="labels-inner" v-for="(label, labelIndex) in row.transformLabels" :key="labelIndex">
+                                                <span class="key" :title="label.key">{{label.key}}</span>
+                                                <span class="value" :title="label.value">{{label.value}}</span>
+                                            </div>
+                                        </div>
+                                    </div> -->
+                                </div>
+                                <template v-else>--</template>
+                            </template>
+                        </bk-table-column>
+                        <bk-table-column :label="$t('操作')" prop="permissions" width="200">
+                            <template slot-scope="{ row }">
+                                <span v-if="row.status === 'normal'">
+                                    <a href="javascript:void(0);" class="bk-text-button" @click.stop="showSetLabelInRow(row)">{{$t('设置标签')}}</a>
+                                </span>
+                                <span v-else>
+                                    <a href="javascript:void(0);" class="bk-text-button disabled">{{$t('设置标签')}}</a>
+                                </span>
+                                <a href="javascript:void(0);" class="bk-text-button ml5" @click.stop="goClusterNode(row)">{{$t('更多操作')}}</a>
+                            </template>
+                        </bk-table-column>
+                    </bk-table>
                 </div>
             </template>
         </div>
@@ -456,10 +206,9 @@
             :quick-close="false"
             class="biz-cluster-set-label-sideslider"
             @hidden="hideSetLabel">
-            <template slot="content">
-                <div class="title-tip" v-if="isEn">Tags help organize your resources (like env:prod), <a :href="labelDocUrl" target="_blank" class="bk-text-button">Show detail</a></div>
-                <div class="title-tip" v-else>标签有助于整理你的资源（如 env:prod）</div>
-                <div class="wrapper" style="position: relative;" v-bkloading="{ isLoading: setLabelConf.loading }">
+            <div slot="content">
+                <div class="title-tip">{{$t('标签有助于整理你的资源（如 env:prod）')}}</div>
+                <div class="wrapper" style="position: relative;">
                     <form class="bk-form bk-form-vertical set-label-form">
                         <div class="bk-form-item flex-item">
                             <div class="left">
@@ -468,13 +217,13 @@
                             <div class="right">
                                 <label class="bk-label label">{{$t('值')}}：
                                     <template v-if="showMixinTip">
-                                        <bk-tooltip :delay="300" placement="top">
-                                            <i class="bk-icon icon-question-circle" style="vertical-align: middle;"></i>
+                                        <bcs-popover :delay="300" placement="top">
+                                            <i class="bcs-icon bcs-icon-question-circle" style="vertical-align: middle;"></i>
                                             <div slot="content">
                                                 <p class="app-biz-node-label-tip-content">{{$t('为什么会有混合值')}}：</p>
                                                 <p class="app-biz-node-label-tip-content">{{$t('已选节点的标签中存在同一个键对应多个值')}}</p>
                                             </div>
-                                        </bk-tooltip>
+                                        </bcs-popover>
                                     </template>
                                 </label>
                             </div>
@@ -484,32 +233,32 @@
                                 <div class="biz-key-value-wrapper mb10">
                                     <div class="biz-key-value-item" v-for="(label, index) in labelList" :key="index">
                                         <template v-if="label.key && label.fromData">
-                                            <input type="text" class="bk-form-input" disabled v-model="label.key">
+                                            <bk-input style="width: 280px;" disabled v-model="label.key" />
                                         </template>
                                         <template v-else>
-                                            <input type="text" :placeholder="$t('键')" maxlength="30" class="bk-form-input" v-model="label.key">
+                                            <bk-input style="width: 280px;" :placeholder="$t('键')" maxlength="30" v-model="label.key" />
                                         </template>
                                         <span class="equals-sign">=</span>
-                                        <input type="text" maxlength="30" class="bk-form-input right" :placeholder="$t('混合值')" v-if="label.isMixin" v-model="label.value">
-                                        <input type="text" maxlength="30" class="bk-form-input right" :placeholder="$t('值')" v-else-if="!label.value" v-model="label.value">
-                                        <input type="text" maxlength="30" class="bk-form-input right" :placeholder="$t('值')" v-else v-model="label.value">
+                                        <bk-input style="width: 280px; margin-left: 35px;" maxlength="30" :placeholder="$t('混合值')" v-if="label.isMixin" v-model="label.value" />
+                                        <bk-input style="width: 280px; margin-left: 35px;" maxlength="30" :placeholder="$t('值')" v-else-if="!label.value" v-model="label.value" />
+                                        <bk-input style="width: 280px; margin-left: 35px;" maxlength="30" :placeholder="$t('值')" v-else v-model="label.value" />
 
                                         <template v-if="labelList.length === 1">
                                             <button class="action-btn">
-                                                <i class="bk-icon icon-plus" @click.stop.prevent="addLabel"></i>
+                                                <i class="bcs-icon bcs-icon-plus" @click.stop.prevent="addLabel"></i>
                                             </button>
                                         </template>
                                         <template v-else>
                                             <template v-if="index === labelList.length - 1">
                                                 <button class="action-btn" @click.stop.prevent>
-                                                    <i class="bk-icon icon-plus mr5" @click.stop.prevent="addLabel"></i>
-                                                    <i class="bk-icon icon-minus" @click.stop.prevent="delLabel(label, index)"></i>
+                                                    <i class="bcs-icon bcs-icon-plus mr5" @click.stop.prevent="addLabel"></i>
+                                                    <i class="bcs-icon bcs-icon-minus" @click.stop.prevent="delLabel(label, index)"></i>
                                                 </button>
                                             </template>
                                             <template v-else>
                                                 <button class="action-btn">
-                                                    <i class="bk-icon icon-plus mr5" @click.stop.prevent="addLabel"></i>
-                                                    <i class="bk-icon icon-minus" @click.stop.prevent="delLabel(label, index)"></i>
+                                                    <i class="bcs-icon bcs-icon-plus mr5" @click.stop.prevent="addLabel"></i>
+                                                    <i class="bcs-icon bcs-icon-minus" @click.stop.prevent="delLabel(label, index)"></i>
                                                 </button>
                                             </template>
                                         </template>
@@ -518,16 +267,16 @@
                             </div>
                         </div>
                         <div class="action-inner">
-                            <button type="button" class="bk-dialog-btn bk-dialog-btn-confirm bk-btn-primary" @click="confirmSetLabel">
+                            <bk-button type="primary" :loading="setLabelConf.loading" @click="confirmSetLabel">
                                 {{$t('保存')}}
-                            </button>
-                            <button type="button" class="bk-dialog-btn bk-dialog-btn-cancel" @click="hideSetLabel">
+                            </bk-button>
+                            <bk-button :disalbed="setLabelConf.loading" @click="hideSetLabel">
                                 {{$t('取消')}}
-                            </button>
+                            </bk-button>
                         </div>
                     </form>
                 </div>
-            </template>
+            </div>
         </bk-sideslider>
     </div>
 </template>
@@ -577,13 +326,14 @@
                 showLoading: false,
                 pageLoading: false,
                 nodeList: [],
+                renderTableIndex: 0,
                 curPageData: [],
                 // for search
                 nodeListTmp: [],
                 pageConf: {
-                    totalPage: 1,
-                    pageSize: 10,
-                    curPage: 1,
+                    count: 1,
+                    limit: 10,
+                    current: 1,
                     show: true
                 },
                 // 已选择的 nodeList
@@ -631,12 +381,18 @@
             },
             isEn () {
                 return this.$store.state.isEn
+            },
+            curClusterId () {
+                return this.$store.state.curClusterId
             }
         },
         watch: {
             'checkedNodeList.length' (len) {
                 this.enableSetLabel = !!len
                 this.alreadySelectedNums = len
+            },
+            async curClusterId (v) {
+                await this.fetchData()
             }
         },
         beforeDestroy () {
@@ -656,7 +412,7 @@
             }
         },
         async created () {
-            this.pageConf.curPage = 1
+            this.pageConf.current = 1
             this.pageLoading = true
             await this.fetchData()
         },
@@ -667,12 +423,18 @@
             async getClusters () {
                 try {
                     const res = await this.$store.dispatch('cluster/getClusterList', this.projectId)
-
                     const list = res.data.results || []
                     this.$store.commit('cluster/forceUpdateClusterList', list)
-
-                    this.curSelectedClusterName = list.length ? list[0].name : this.$t('全部集群')
-                    this.curSelectedClusterId = list.length ? list[0].cluster_id : 'all'
+                    if (this.curClusterId) {
+                        const match = list.find(item => {
+                            return item.cluster_id === this.curClusterId
+                        })
+                        this.curSelectedClusterName = match ? match.name : this.$t('全部集群')
+                        this.curSelectedClusterId = match ? match.cluster_id : 'all'
+                    } else {
+                        this.curSelectedClusterName = list.length ? list[0].name : this.$t('全部集群')
+                        this.curSelectedClusterId = list.length ? list[0].cluster_id : 'all'
+                    }
 
                     list.unshift({
                         name: this.$t('全部集群'),
@@ -693,7 +455,7 @@
             async changeCluster (clusterId, cluster) {
                 this.curSelectedClusterName = cluster.name
                 this.curSelectedClusterId = clusterId
-                this.pageConf.curPage = 1
+                this.pageConf.current = 1
                 if (this.isMesosProject) {
                     this.showLoading = true
                     await this.fetchData(true)
@@ -707,11 +469,12 @@
              *
              * @param {number} pageSize pageSize
              */
-            changePageSize (pageSize) {
-                this.pageConf.pageSize = pageSize
-                this.pageConf.curPage = 1
+            handlePageLimitChange (pageSize) {
+                this.renderTableIndex++
+                this.pageConf.limit = pageSize
+                this.pageConf.current = 1
                 this.initPageConf()
-                this.pageChange()
+                this.handlePageChange()
             },
 
             /**
@@ -737,9 +500,9 @@
              */
             async fetchData (isPolling) {
                 if (!isPolling) {
-                    this.showLoading = true
                     await this.getClusters()
                 }
+                this.showLoading = true
                 try {
                     const api = this.isMesosProject ? 'cluster/getMesosNodeList' : 'cluster/getAllNodeList'
                     const params = { projectId: this.projectId }
@@ -777,30 +540,30 @@
                     if (this.curSelectedClusterId !== 'all') {
                         const newNodeList = []
                         newNodeList.splice(0, 0, ...this.nodeListTmp.filter(
-                            node => node.cluster_name === this.curSelectedClusterName
+                            node => node.cluster_id === this.curSelectedClusterId
                         ))
 
                         this.nodeList.splice(0, this.nodeList.length, ...newNodeList)
                     }
 
                     // this.initPageConf()
-                    // this.curPageData = this.getDataByPage(this.pageConf.curPage)
+                    // this.curPageData = this.getDataByPage(this.pageConf.current)
                     if (this.$refs.searcher
                         && this.$refs.searcher.searchParams
                         && this.$refs.searcher.searchParams.length
                     ) {
-                        this.searchNodeList(this.pageConf.curPage)
+                        this.searchNodeList(this.pageConf.current)
                     } else {
                         this.initPageConf()
-                        this.curPageData = this.getDataByPage(this.pageConf.curPage)
+                        this.curPageData = this.getDataByPage(this.pageConf.current)
                     }
 
                     setTimeout(() => {
                         this.curPageData.forEach((item, index) => {
-                            const real = this.$refs[`${this.pageConf.curPage}-real${index}`]
-                            if (real && real[0]) {
+                            const real = this.$refs[`${this.pageConf.current}-real${index}`]
+                            if (real) {
                                 // .labels-inner 高度 24px, margin-bottom 5px
-                                if (real[0].offsetHeight > 24 + 5) {
+                                if (real.offsetHeight > 24 + 5) {
                                     item.showExpand = true
                                 }
                             }
@@ -810,7 +573,7 @@
                     const checkNodeIdList = this.checkedNodeList.map(node => node.id)
                     this.nodeList.forEach(node => {
                         if (node.permissions && node.permissions.edit && node.status === 'normal') {
-                            node.isChecked = checkNodeIdList.indexOf(node.id) > -1
+                            this.$set(node, 'isChecked', checkNodeIdList.indexOf(node.id) > -1)
                         }
                     })
 
@@ -840,9 +603,9 @@
              */
             initPageConf () {
                 const total = this.nodeList.length
-                this.pageConf.total = total
+                this.pageConf.count = total
                 this.pageConf.show = true
-                this.pageConf.totalPage = Math.ceil(total / this.pageConf.pageSize)
+                this.pageConf.totalPage = Math.ceil(total / this.pageConf.limit)
             },
 
             /**
@@ -853,14 +616,15 @@
              * @return {Array} 当前页数据
              */
             getDataByPage (page) {
-                let startIndex = (page - 1) * this.pageConf.pageSize
-                let endIndex = page * this.pageConf.pageSize
+                let startIndex = (page - 1) * this.pageConf.limit
+                let endIndex = page * this.pageConf.limit
                 if (startIndex < 0) {
                     startIndex = 0
                 }
                 if (endIndex > this.nodeList.length) {
                     endIndex = this.nodeList.length
                 }
+                this.checkedNodeList = []
                 const data = this.nodeList.slice(startIndex, endIndex)
                 return data
             },
@@ -870,8 +634,8 @@
              *
              * @param {number} page 当前页
              */
-            pageChange (page = 1) {
-                this.pageConf.curPage = page
+            handlePageChange (page = 1) {
+                this.pageConf.current = page
                 const data = this.getDataByPage(page)
                 this.curPageData.splice(0, this.curPageData.length, ...data)
 
@@ -887,7 +651,7 @@
 
                 setTimeout(() => {
                     this.curPageData.forEach((item, index) => {
-                        const real = this.$refs[`${this.pageConf.curPage}-real${index}`]
+                        const real = this.$refs[`${this.pageConf.current}-real${index}`]
                         if (real && real[0]) {
                             // .labels-inner 高度 24px, margin-bottom 5px
                             if (real[0].offsetHeight > 24 + 5) {
@@ -896,17 +660,6 @@
                         }
                     })
                 }, 0)
-            },
-
-            /**
-             * 展开或收起当前行的标签
-             *
-             * @param {Object} node 当前行 node 对象
-             * @param {number} index 当前行 node 对象索引
-             */
-            toggleLabel (node, index) {
-                node.isExpandLabels = !node.isExpandLabels
-                this.$set(this.curPageData, index, node)
             },
 
             /**
@@ -1043,10 +796,10 @@
 
                 this.nodeList.splice(0, this.nodeList.length, ...results)
 
-                this.pageConf.curPage = page
+                this.pageConf.current = page
 
                 this.initPageConf()
-                this.curPageData = this.getDataByPage(this.pageConf.curPage)
+                this.curPageData = this.getDataByPage(this.pageConf.current)
 
                 const checkNodeIdList = this.checkedNodeList.map(node => node.id)
                 this.curPageData.forEach(item => {
@@ -1083,8 +836,8 @@
             /**
              * 节点列表全选
              */
-            checkAllNode (e) {
-                const isChecked = e.target.checked
+            checkAllNode (value) {
+                const isChecked = value
                 this.curPageData.forEach(node => {
                     if (node.permissions && node.permissions.edit && node.status === 'normal') {
                         node.isChecked = isChecked
@@ -1250,7 +1003,7 @@
                         }))
                         delete params.nodeIds
                     }
-                    
+
                     const res = await this.$store.dispatch(api, params)
 
                     const labels = this.isMesosProject ? this.getMesosLabls(res.data || []) : res.data || {}
@@ -1276,10 +1029,6 @@
                     this.labelList.splice(0, this.labelList.length, ...labelList)
                 } catch (e) {
                     console.error(e)
-                    this.bkMessageInstance = this.$bkMessage({
-                        theme: 'error',
-                        message: e.message || e.data.msg || e.statusText
-                    })
                 } finally {
                     setTimeout(() => {
                         this.setLabelConf.loading = false
@@ -1347,10 +1096,6 @@
                     this.curRowNode = Object.assign({}, node)
                 } catch (e) {
                     console.error(e)
-                    this.bkMessageInstance = this.$bkMessage({
-                        theme: 'error',
-                        message: e.message || e.data.msg || e.statusText
-                    })
                 } finally {
                     setTimeout(() => {
                         this.setLabelConf.loading = false
@@ -1469,14 +1214,10 @@
                     this.checkedNodeList.splice(0, this.checkedNodeList.length, ...[])
                     setTimeout(() => {
                         this.curRowNode = null
-                        this.fetchData()
+                        this.fetchData(true)
                     }, 200)
                 } catch (e) {
                     console.error(e)
-                    this.bkMessageInstance = this.$bkMessage({
-                        theme: 'error',
-                        message: e.message || e.data.msg || e.statusText
-                    })
                 } finally {
                     this.setLabelConf.loading = false
                 }
@@ -1621,6 +1362,33 @@
                     a.click()
                     window.URL.revokeObjectURL(downUrl)
                 }
+            },
+
+            renderSelectionHeader () {
+                if (this.curPageData.filter(node => node.permissions && node.permissions.edit && node.status === 'normal').length) {
+                    return <bk-checkbox v-if={this.curPageData.length} name="check-all-node" v-model={this.isCheckAllNode} onChange={this.checkAllNode} />
+                }
+                return <bk-checkbox v-if={this.curPageData.length} name="check-instance" disabled={true} />
+            },
+
+            rowSelectable (row, index) {
+                return row.permissions.edit
+            },
+
+            /**
+             * 单选
+             * @param {array} selection 已经选中的行数
+             * @param {object} row 当前选中的行
+             */
+            handlePageSelect (selection, row) {
+                this.checkedNodeList = selection
+            },
+
+            /**
+             * 全选
+             */
+            handlePageSelectAll (selection, row) {
+                this.checkedNodeList = selection
             }
         }
     }

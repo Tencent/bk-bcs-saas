@@ -6,11 +6,11 @@
                     <template v-if="item.name === 'line'">
                         <div class="line"></div>
                     </template>
-                    <template v-else>
+                    <template v-else-if="featureFlag[item.id]">
                         <div v-if="(!item.children || !item.children.length)" class="bk-menu-title-wrapper"
                             :class="[item.hide, item.disable, item.isSelected ? 'selected' : '']"
                             @click="(!item.disable && !item.hide) ? handleClick(item, itemIndex, $event) : () => {}">
-                            <i class="bk-icon left-icon" :class="[item.disable, item.icon, item.isSelected ? 'selected' : '']"></i>
+                            <i class="bcs-icon left-icon" :class="[item.disable, item.icon, item.isSelected ? 'selected' : '']"></i>
                             <div class="bk-menu-title">{{item.name}}</div>
                             <i class="biz-badge" v-if="item.badge !== undefined">{{item.badge}}</i>
                         </div>
@@ -18,9 +18,9 @@
                         <div v-else class="bk-menu-title-wrapper"
                             :class="[item.hide, item.disable, item.isChildSelected ? 'child-selected' : '']"
                             @click="(!item.disable && !item.hide) ? openChildren(item, itemIndex, $event) : () => {}">
-                            <i class="bk-icon left-icon" :class="[item.disable, item.icon]"></i>
+                            <i class="bcs-icon left-icon" :class="[item.disable, item.icon]"></i>
                             <div class="bk-menu-title">{{item.name}}</div>
-                            <i class="bk-icon right-icon icon-angle-down" :class="item.isOpen ? 'selected' : 'icon-angle-down'"></i>
+                            <i class="bcs-icon right-icon bcs-icon-angle-down" :class="item.isOpen ? 'selected' : 'bcs-icon-angle-down'"></i>
                         </div>
                         <collapse-transition>
                             <ul v-show="item.isOpen">
@@ -38,8 +38,8 @@
         </template>
         <template v-else>
             <div class="biz-no-data" style="margin-top: 100px;">
-                <i class="bk-icon icon-empty"></i>
-                <p>无数据</p>
+                <i class="bcs-icon bcs-icon-empty"></i>
+                <p>{{$t("无数据")}}</p>
             </div>
         </template>
     </div>
@@ -74,6 +74,12 @@
                 menuList: this.list
             }
         },
+        computed: {
+            featureFlag () {
+                return this.$store.getters.featureFlag || {}
+            }
+        },
+
         watch: {
             list () {
                 this.menuList = this.list
@@ -100,6 +106,16 @@
                 // 当传入 menuChangeHandler 时，点击菜单不走 emit item-selected 的逻辑，而是需要判断 menuChangeHandler 的
                 // 返回值来决定是否选中菜单
                 if (this.menuChangeHandler && typeof this.menuChangeHandler === 'function') {
+                    const data = {
+                        isChild: true,
+                        item,
+                        itemIndex
+                    }
+                    if (item.isSaveData) {
+                        sessionStorage['bcs-selected-menu-data'] = JSON.stringify(data)
+                    } else {
+                        sessionStorage.removeItem('bcs-selected-menu-data')
+                    }
                     const ret = this.menuChangeHandler({
                         isChild: false,
                         item,
@@ -129,6 +145,19 @@
                 // 当传入 menuChangeHandler 时，点击菜单不走 emit item-selected 的逻辑，而是需要判断 menuChangeHandler 的
                 // 返回值来决定是否选中菜单
                 if (this.menuChangeHandler && typeof this.menuChangeHandler === 'function') {
+                    const data = {
+                        isChild: true,
+                        item,
+                        itemIndex,
+                        child,
+                        childIndex
+                    }
+                    if (item.isSaveData) {
+                        sessionStorage['bcs-selected-menu-data'] = JSON.stringify(data)
+                    } else {
+                        // sessionStorage['bcs-selected-menu-data'] = ''
+                        sessionStorage.removeItem('bcs-selected-menu-data')
+                    }
                     const ret = this.menuChangeHandler({
                         isChild: true,
                         item,
