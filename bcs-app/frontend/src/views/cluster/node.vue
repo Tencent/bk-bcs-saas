@@ -712,8 +712,7 @@
                             <span style="font-size: 12px;cursor: pointer;">
                                 （{{$t('关联业务：')}}{{ccApplicationName}}）
                             </span>
-                            <span class="remain-tip" v-if="isEn">{{remainCount}} items</span>
-                            <span class="remain-tip" v-else>已选择{{remainCount}}个节点</span>
+                            <span class="remain-tip">{{$t('已选择{count}个节点', { count: remainCount })}}</span>
                         </div>
                         <div style="position: absolute;right: 20px;top: 11px;">
                             <div class="biz-searcher-wrapper">
@@ -752,8 +751,7 @@
                                                     {{$t('Agent状态异常')}}
                                                 </p>
                                                 <p v-if="!row.is_valid" style="text-align: left; white-space: normal;word-break: break-all; width: 120px;">
-                                                    <template v-if="isEn">Docker is not allowed to use</template>
-                                                    <template v-else>Docker机不允许使用</template>
+                                                    {{$t('Docker机不允许使用')}}
                                                 </p>
                                             </template>
                                         </bcs-popover>
@@ -917,12 +915,10 @@
                                         </template>
                                     </template>
                                     <template v-else>
-                                        <template v-if="isEn">
-                                            Operation failed <span style="margin-left: 10px;">Please contact“<a :href="PROJECT_CONFIG.doc.contact" class="bk-text-button">BCS</a>”</span>
-                                        </template>
-                                        <template v-else>
-                                            操作失败<span style="margin-left: 10px;">请联系“<a :href="PROJECT_CONFIG.doc.contact" class="bk-text-button">蓝鲸容器助手</a>”解决</span>
-                                        </template>
+                                        {{$t('操作失败')}}
+                                        <i18n path="请联系“{user}”解决" style="margin-left: 10px;">
+                                            <a place="user" :href="PROJECT_CONFIG.doc.contact" class="bk-text-button">{{$t('蓝鲸容器助手')}}</a>
+                                        </i18n>
                                     </template>
                                 </div>
                                 <div style="margin: 10px 0px 5px 13px; font-size: 10px;" v-else>
@@ -972,12 +968,10 @@
                                     {{$t('操作成功')}}
                                 </div>
                                 <div v-else-if="op.status.toLowerCase() === 'failed'" style="margin: 0 0 5px 0; color: #e64d34; font-size: 14px; font-weight: 700; margin-left: 20px;">
-                                    <template v-if="isEn">
-                                        Operation failed <span style="margin-left: 10px;">Please contact“<a :href="PROJECT_CONFIG.doc.contact" class="bk-text-button">BCS</a>”</span>
-                                    </template>
-                                    <template v-else>
-                                        操作失败<span style="margin-left: 10px;">请联系“<a :href="PROJECT_CONFIG.doc.contact" class="bk-text-button">蓝鲸容器助手</a>”解决</span>
-                                    </template>
+                                    {{$t('操作失败')}}
+                                    <i18n path="请联系“{user}”解决" style="margin-left: 10px;">
+                                        <a place="user" :href="PROJECT_CONFIG.doc.contact" class="bk-text-button">{{$t('蓝鲸容器助手')}}</a>
+                                    </i18n>
                                 </div>
                                 <div style="margin: 10px 0px 5px 13px; font-size: 10px;" v-else>
                                     <div class="bk-spin-loading bk-spin-loading-small bk-spin-loading-primary">
@@ -1296,12 +1290,10 @@
             :ext-cls="'biz-node-re-initialization-dialog'"
             :quick-close="false">
             <template slot="content">
-                <div v-if="isEn">
-                    Confirm to <span class="operate">{str}</span> on <span class="len">{len}</span> nodes?
-                </div>
-                <div v-else>
-                    确定要对<span class="len">{{batchDialogConf.len}}</span>个节点进行<span class="operate">{{batchDialogConf.operate}}</span>操作？
-                </div>
+                <i18n path="确定要对{len}个节点进行{operate}操作？" tag="div">
+                    <span place="len" class="len">{{batchDialogConf.len}}</span>
+                    <span place="operate" class="operate">{{batchDialogConf.operate}}</span>
+                </i18n>
             </template>
             <div slot="footer">
                 <div class="bk-dialog-outer">

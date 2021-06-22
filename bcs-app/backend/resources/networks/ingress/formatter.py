@@ -42,7 +42,8 @@ class IngressFormatter(NetworkFormatter):
         """
         return '80, 443' if 'tls' in resource_dict['spec'] else '80'
 
-    def parse_rules(self, resource_dict: Dict) -> List:
+    def parse_v1_rules(self, resource_dict: Dict) -> List:
+        """ 解析 networking.k8s.io/v1 版本 Ingress Rules """
         rules = []
         for r in getitems(resource_dict, 'spec.rules', []):
             sub_rules = [
@@ -58,14 +59,35 @@ class IngressFormatter(NetworkFormatter):
             rules.extend(sub_rules)
         return rules
 
+    def parse_v1beta1_rules(self, resource_dict: Dict) -> List:
+        """ 解析 extensions/v1beta1 版本 Ingress Rules """
+        rules = []
+        for r in getitems(resource_dict, 'spec.rules', []):
+            sub_rules = [
+                {
+                    'host': get_with_placeholder(r, 'host'),
+                    'path': get_with_placeholder(p, 'path'),
+                    'serviceName': get_with_placeholder(p, 'backend.serviceName'),
+                    'port': get_with_placeholder(p, 'backend.servicePort'),
+                }
+                for p in getitems(r, 'http.paths', [])
+            ]
+            rules.extend(sub_rules)
+        return rules
+
     def format_dict(self, resource_dict: Dict) -> Dict:
         res = self.format_common_dict(resource_dict)
+        # 根据不同 api 版本，选择不同的解析 Rules 方法
+        parse_rules_func = {
+            'networking.k8s.io/v1': self.parse_v1_rules,
+            'extensions/v1beta1': self.parse_v1beta1_rules,
+        }[resource_dict['apiVersion']]
         res.update(
             {
                 'hosts': self.parse_hosts(resource_dict),
                 'addresses': self.parse_addresses(resource_dict),
                 'default_ports': self.parse_default_ports(resource_dict),
-                'rules': self.parse_rules(resource_dict),
+                'rules': parse_rules_func(resource_dict),
             }
         )
         return res

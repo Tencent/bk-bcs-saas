@@ -91,11 +91,8 @@
                             <div class="app-name" :title="tmplMuster.tmpl_muster_name">
                                 {{tmplMuster.tmpl_muster_name}}
                             </div>
-                            <div class="app-desc" v-if="isEn">
-                                A total of {{tmplMuster.tmpl_num}} application templates
-                            </div>
-                            <div class="app-desc" v-else>
-                                {{$t('共包含')}} {{tmplMuster.tmpl_num}} {{$t('个应用模板')}}
+                            <div class="app-desc">
+                                {{$t('共包含{total}个应用模板', { total: tmplMuster.tmpl_num })}}
                             </div>
                             <div class="app-toggle">
                                 <i class="bcs-icon" :class="tmplMuster.isOpen ? 'bcs-icon-angle-up' : 'bcs-icon-angle-down'"></i>
@@ -117,12 +114,7 @@
                                                     {{$t('无应用')}}
                                                 </span>
                                                 <span class="status" v-else-if="tpl.error_num !== 0">
-                                                    <template v-if="isEn">
-                                                        App abnormal：{{tpl.error_num || 0}}
-                                                    </template>
-                                                    <template v-else>
-                                                        {{tpl.error_num || 0}}个应用异常
-                                                    </template>
+                                                    {{$t('{total}个应用异常', { total: tpl.error_num || 0 })}}
                                                 </span>
                                                 <span class="status normal" v-else>
                                                     {{$t('正常')}}
@@ -530,12 +522,7 @@
                                 </span>
                             </div>
                             <div class="app-desc">
-                                <template v-if="isEn">
-                                    A total of {{namespace.total_num}} applications, {{namespace.error_num === 0 ? 'no exception' : `${namespace.error_num} exceptions`}}
-                                </template>
-                                <template v-else>
-                                    共包含 {{namespace.total_num}} 个应用，{{namespace.error_num === 0 ? '无异常' : `${namespace.error_num}个异常`}}
-                                </template>
+                                {{$t('共包含 {total} 个应用，', { total: namespace.total_num })}} {{namespace.error_num === 0 ? $t('无异常') : $t('{total}个异常', { total: namespace.error_num })}}
                             </div>
                             <div class="app-act">
                                 <template v-if="namespace.appList && namespace.appList.length && namespace.appList.filter(item => item.isChecked === true).length > 0">
@@ -1439,8 +1426,7 @@
             <div class="biz-batch-wrapper pb20">
                 <p class="batch-title">
                     {{$t('确定要重建以下资源？')}}
-                    <span class="title-tip" v-if="isEn">(eg: namespace: appname)</span>
-                    <span class="title-tip" v-else>（格式：命名空间: 应用名称）</span>
+                    <span class="title-tip">{{$t('（格式：命名空间: 应用名称）')}}</span>
                 </p>
                 <ul class="batch-list">
                     <li v-for="(item, index) of batchRebuildDialogConf.list" :key="index">{{item.namespace}}: {{item.name}}</li>
