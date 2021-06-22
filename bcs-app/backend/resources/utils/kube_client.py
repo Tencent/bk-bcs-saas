@@ -26,6 +26,7 @@ from backend.container_service.clusters.base import CtxCluster
 from backend.utils.error_codes import error_codes
 
 from ..client import BcsKubeConfigurationService
+from ..exceptions import ResourceNotExist
 from .discovery import BcsLazyDiscoverer, DiscovererCache
 
 logger = logging.getLogger(__name__)
@@ -128,6 +129,22 @@ class CoreDynamicClient(DynamicClient):
 
         update_func_obj = getattr(resource, update_method)
         return update_func_obj(body=body, name=name, namespace=namespace, **kwargs), False
+
+    def replace(
+        self,
+        resource: Resource,
+        body: Optional[Dict] = None,
+        name: Optional[str] = None,
+        namespace: str = None,
+        auto_add_version: bool = False,
+        **kwargs,
+    ) -> ResourceInstance:
+        if auto_add_version:
+            obj = self.get_or_none(resource, name=name, namespace=namespace, **kwargs)
+            if not obj:
+                raise ResourceNotExist(f'Resource {resource.kind}:{name} not exists, replace failed!')
+            self._add_resource_version(obj, body)
+        return super().replace(resource, body, name, namespace, **kwargs)
 
     def request(self, method, path, body=None, **params):
         # TODO: 包装转换请求异常
