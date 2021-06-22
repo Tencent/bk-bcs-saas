@@ -746,6 +746,7 @@
                                                         :is-select-mode="true"
                                                         :default-list="imageVersionList"
                                                         :disabled="!curContainer.webCache.imageName"
+                                                        :key="imageVersionKey"
                                                         @item-selected="setImageVersion">
                                                     </bk-combox>
                                                 </div>
@@ -1902,7 +1903,8 @@
                 isMorePanelShow: false,
                 isPodPanelShow: false,
                 strategy: 'Cluster',
-                curApplicationCache: null
+                curApplicationCache: null,
+                imageVersionKey: new Date().getTime()
             }
         },
         computed: {
@@ -3280,6 +3282,7 @@
                 } else if (data.deployment && data.deployment.length) {
                     this.setCurApplication(data.deployment[0], 0)
                 }
+                this.imageVersionKey = new Date().getTime()
             },
 
             exportToYaml (data) {
