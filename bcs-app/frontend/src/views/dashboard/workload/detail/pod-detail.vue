@@ -88,10 +88,14 @@
                             </template>
                         </bk-table-column>
                         <bk-table-column :label="$t('原因')">
-                            <template>--</template>
+                            <template #default="{ row }">
+                                {{ row.reason || '--' }}
+                            </template>
                         </bk-table-column>
                         <bk-table-column :label="$t('消息')">
-                            <template>--</template>
+                            <template #default="{ row }">
+                                {{ row.message || '--' }}
+                            </template>
                         </bk-table-column>
                     </bk-table>
                 </bcs-tab-panel>
