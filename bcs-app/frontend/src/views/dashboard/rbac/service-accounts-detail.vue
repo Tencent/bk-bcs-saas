@@ -4,28 +4,24 @@
             {{ $t('基础信息') }}
         </div>
         <div class="detail-content basic-info">
-            <table class="detail-table" border="1">
-                <tbody>
-                    <tr>
-                        <td>{{ $t('命名空间') }}</td>
-                        <td>{{ data.metadata.namespace || '--' }}</td>
-                    </tr>
-                    <tr>
-                        <td>UID</td>
-                        <td>{{ data.metadata.uid || '--' }}</td>
-                    </tr>
-                    <tr>
-                        <td>{{ $t('创建时间') }}</td>
-                        <td>{{ extData.createTime || '--' }}</td>
-                    </tr>
-                    <tr>
-                        <td>{{ $t('存在时间') }}</td>
-                        <td>{{ extData.age || '--' }}</td>
-                    </tr>
-                </tbody>
-            </table>
+            <div class="basic-info-item">
+                <label>{{ $t('命名空间') }}</label>
+                <span>{{ data.metadata.namespace }}</span>
+            </div>
+            <div class="basic-info-item">
+                <label>UID</label>
+                <span class="bcs-ellipsis">{{ data.metadata.uid }}</span>
+            </div>
+            <div class="basic-info-item">
+                <label>{{ $t('创建时间') }}</label>
+                <span>{{ extData.createTime }}</span>
+            </div>
+            <div class="basic-info-item">
+                <label>{{ $t('存在时间') }}</label>
+                <span>{{ extData.age }}</span>
+            </div>
         </div>
-        <div class="scerets-title">
+        <div class="mt20 mb10">
             Scerets
         </div>
         <div class="scerets-content">
@@ -59,42 +55,45 @@
 </script>
 <style lang="postcss" scoped>
 .detail {
+    font-size: 14px;
+    /deep/ .bk-tab-label-item {
+        background-color: #FAFBFD;
+        border-bottom: 1px solid #dcdee5;
+        line-height: 39px !important;
+        height: 39px;
+        &.active {
+            border-bottom: none;
+        }
+    }
+    /deep/ .bk-tab-label-wrapper {
+        overflow: unset !important;
+    }
     &-title {
         margin-bottom: 10px;
-        font-size: 14px;
-        color: #333948;
+        color: #313238;
     }
     &-content {
-        font-size: 14px;
-        margin-bottom: 20px;
-    }
-    &-table {
-        width: 100%;
-        border: 1px solid #dfe0e5;
-        border-radius: 3px;
-        color: #737987;
-        th {
-            text-align: left;
-            padding-left: 15px;
-            height: 32px;
-        }
-        tr {
-            height: 32px;
-            td {
-                padding-left: 15px;
-            }
-            td:nth-child(1) {
-                width: 215px;
-            }
-            &:nth-child(even) {
-                background-color: #F7F8FA;
+        &.basic-info {
+            border: 1px solid #dfe0e5;
+            border-radius: 2px;
+            .basic-info-item {
+                display: flex;
+                align-items: center;
+                height: 32px;
+                padding: 0 15px;
+                &:nth-of-type(even) {
+                    background: #F7F8FA;
+                }
+                label {
+                    line-height: 32px;
+                    border-right: 1px solid #dfe0e5;
+                    width: 200px;
+                }
+                span {
+                    padding: 0 15px;
+                }
             }
         }
-    }
-    .scerets-title {
-        margin-bottom: 10px;
-        font-size: 14px;
-        color: #333948;
     }
 }
 </style>
