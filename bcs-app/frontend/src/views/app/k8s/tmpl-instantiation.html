@@ -114,12 +114,7 @@
                         <div class="form-wrapper">
                             <template v-if="invalidNsList.length && invalidNsList.indexOf(previewNs.name) > -1">
                                 <div style="text-align: center; margin: 0 auto; margin-bottom: 20px; margin-top: -20px;">
-                                    <template v-if="isEn">
-                                        Namespace [{{previewNs.name}}] has no associated LoadBalance, please go to Network -> LoadBalance page association first.
-                                    </template>
-                                    <template v-else>
-                                        命令空间[{{previewNs.name}}]没有相关联的 LoadBalance，请先到 网络 -> LoadBalance 页面关联
-                                    </template>
+                                    {{$t('命令空间[{name}]没有相关联的 LoadBalance，请先到 网络 -> LoadBalance 页面关联', { name: previewNs.name })}}
                                 </div>
                             </template>
                             <template v-else>
@@ -243,8 +238,7 @@
                             <div class="label">
                                 <span :class="['biz-env-label mr5', {'stag': item.environment !== 'prod', 'prod': item.environment === 'prod'}]">{{item.environment_name}}</span>
                                 <span class="biz-text-wrapper" style="max-width: 300px;">{{item.name}}</span>
-                                <span class="choose-num" v-if="isEn">Selected: {{item.results.filter(ns => ns.isChoose).length}}</span>
-                                <span class="choose-num" v-else>已经选择 {{item.results.filter(ns => ns.isChoose).length}} 个</span>
+                                <span class="choose-num">{{$t('已经选择 {len} 个', { len: item.results.filter(ns => ns.isChoose).length })}}</span>
                             </div>
                             <div class="checker-inner">
                                 <a href="javascript:;" class="bk-text-button" @click.stop="selectAll(item, index)">{{$t('全选')}}</a>
@@ -320,12 +314,9 @@
         :quick-close="false"
         @cancel="goNamespaceDialogConf.isShow = false">
         <template slot="content">
-            <template v-if="isEn">
-                There is no namespace yet, please <a href="javascript:void(0);" class="bk-text-button" @click="goNamespace"></a>create or request</a> a namespace
-            </template>
-            <template v-else>
-                还没有命名空间，请<a href="javascript:void(0);" class="bk-text-button" @click="goNamespace">创建或申请</a>命名空间
-            </template>
+            <i18n path="还没有命名空间，请{action}命名空间">
+                <a place="action" href="javascript:void(0);" class="bk-text-button" @click="goNamespace">{{$t('创建或申请')}}</a>
+            </i18n>
         </template>
         <div slot="footer">
             <div class="bk-dialog-outer">

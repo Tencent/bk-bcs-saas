@@ -1,4 +1,4 @@
-.status {
+.dashboard-status {
     display: flex;
     align-items: center;
 }
@@ -13,19 +13,19 @@
     margin-right: 8px;
 }
 
-.status-name {
-    flex: 1;
-}
+    .status-name {
+        flex: 1;
+    }
 
-.status-red {
-    border-color: #ffe6e6;
-    background: #ea3636;
-}
+    .status-red {
+        border-color: #ffe6e6;
+        background: #ea3636;
+    }
 
-.status-green {
-    border-color: #E5F6EA;
-    background: #3FC06D;
-}
+    .status-green {
+        border-color: #E5F6EA;
+        background: #3FC06D;
+    }
 
 .status-blue {
     border-color: #E2EDFF;

@@ -28,7 +28,7 @@ export default defineComponent({
     },
     render () {
         return (
-            <div class="status">
+            <div class="dashboard-status">
                 <span class={this.statusClass}></span>
                 {
                     this.$scopedSlots.default
