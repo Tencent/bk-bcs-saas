@@ -19,7 +19,7 @@
     </div>
 </template>
 <script lang="ts">
-    import { defineComponent, reactive, toRefs, onMounted, ref, watch } from '@vue/composition-api'
+    import { defineComponent, reactive, toRefs, onMounted, ref, watch, computed } from '@vue/composition-api'
     import moment from 'moment'
     import defaultChartOption from './default-echarts-option'
     import ECharts from 'vue-echarts'
@@ -93,6 +93,17 @@
                 isLoading: false
             })
             const echartsOptions = ref<any>({})
+            const metricNameProp = computed(() => {
+                let prop = ''
+                switch (props.category) {
+                    case 'pods':
+                        prop = 'pod_name'
+                        break
+                    case 'containers':
+                        prop = 'container_name'
+                }
+                return prop
+            })
 
             const handleTimeRangeChange = (item) => {
                 if (state.activeTime.range === item.range) return
@@ -109,8 +120,7 @@
                     const list = item?.result.map((result, index) => {
                         // series 配置
                         return {
-                            // eslint-disable-next-line camelcase
-                            name: result.metric?.pod_name,
+                            name: result.metric?.[metricNameProp.value],
                             type: 'line',
                             showSymbol: false,
                             smooth: true,
@@ -181,8 +191,9 @@
             })
 
             return {
-                echartsOptions,
                 ...toRefs(state),
+                metricNameProp,
+                echartsOptions,
                 handleTimeRangeChange,
                 handleGetMetricData,
                 handleSetChartOptions
