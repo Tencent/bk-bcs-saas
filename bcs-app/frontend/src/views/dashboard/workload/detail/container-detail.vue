@@ -1,6 +1,6 @@
 <template>
-    <div class="workload-detail" v-bkloading="{ isLoading }">
-        <div class="workload-detail-info">
+    <div class="workload-detail">
+        <div class="workload-detail-info" v-bkloading="{ isLoading }">
             <div class="workload-info-basic">
                 <span class="name mr20">{{ detail && detail.container_name }}</span>
                 <div class="basic-wrapper">

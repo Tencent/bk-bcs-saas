@@ -106,9 +106,11 @@
 
                 const series: any[] = []
                 data.forEach(item => {
-                    const list = item?.result.map((item, index) => {
+                    const list = item?.result.map((result, index) => {
                         // series 配置
                         return {
+                            // eslint-disable-next-line camelcase
+                            name: result.metric?.pod_name,
                             type: 'line',
                             showSymbol: false,
                             smooth: true,
@@ -125,7 +127,7 @@
                                         : props.colors
                                 }
                             },
-                            data: item?.values || []
+                            data: result?.values || []
                         }
                     }) || []
                     series.push(...list)

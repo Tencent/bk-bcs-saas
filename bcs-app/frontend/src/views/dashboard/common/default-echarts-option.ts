@@ -1,7 +1,24 @@
-import { formatBytes } from '@/common/util'
+import { formatBytes, formatDate } from '@/common/util'
 import { Decimal } from 'decimal.js'
 
 export default function (unit) {
+    const axisLabel = (value) => {
+        if (!value) return ''
+
+        let label = value
+        switch (unit) {
+            // 字节类型纵坐标
+            case 'byte':
+                label = `${formatBytes(value, 2)}`
+                break
+            // 百分比类型纵坐标
+            case 'percent':
+                const valueLen = String(value).length > 3 ? 3 : String(value).length
+                label = `${new Decimal(value).toPrecision(valueLen)}%`
+                break
+        }
+        return label
+    }
     return {
         tooltip: {
             trigger: 'axis',
@@ -12,6 +29,15 @@ export default function (unit) {
                 label: {
                     backgroundColor: '#6a7985'
                 }
+            },
+            formatter: (params) => {
+                const date = formatDate(params?.[0]?.axisValue, 'YYYY-MM-DD hh:mm:ss')
+                let ret = `<div>${date}</div>`
+                params.forEach(p => {
+                    ret += `<div>${p.seriesName}：${axisLabel(p.value?.[1])}</div>`
+                })
+
+                return ret
             }
         },
         grid: {
@@ -40,7 +66,12 @@ export default function (unit) {
                     }
                 },
                 axisLabel: {
-                    color: '#868b97'
+                    color: '#868b97',
+                    formatter: (value) => {
+                        const time = formatDate(value * 1000, 'hh:mm')
+                        const date = formatDate(value * 1000, 'MM-DD')
+                        return `${time}\n${date}`
+                    }
                 },
                 splitLine: {
                     show: true,
@@ -70,20 +101,8 @@ export default function (unit) {
                 },
                 axisLabel: {
                     color: '#868b97',
-                    formatter (value, index) {
-                        let axisLabel = value
-                        switch (unit) {
-                            // 字节类型纵坐标
-                            case 'byte':
-                                axisLabel = `${formatBytes(value, 2)}`
-                                break
-                            // 百分比类型纵坐标
-                            case 'percent':
-                                const valueLen = String(value).length > 3 ? 3 : String(value).length
-                                axisLabel = `${new Decimal(value).toPrecision(valueLen)}%`
-                                break
-                        }
-                        return axisLabel
+                    formatter (value) {
+                        return axisLabel(value)
                     }
                 },
                 splitLine: {

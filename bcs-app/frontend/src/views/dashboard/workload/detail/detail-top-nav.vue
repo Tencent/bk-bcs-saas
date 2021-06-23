@@ -55,8 +55,7 @@
     align-items: center;
     font-size: 12px;
     padding-left: 12px;
-    box-shadow: 4px 0 3px rgb(0 0 0 / 10%);
-    border-bottom: 1px solid #dde4eb;
+    border-bottom: 1px solid #F3F3F3;
     background: #fff;
         .icon-wrapper {
         display: flex;

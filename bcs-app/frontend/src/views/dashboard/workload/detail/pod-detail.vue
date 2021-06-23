@@ -240,6 +240,7 @@
             }
         },
         setup (props, ctx) {
+            const { $store } = ctx.root
             const {
                 isLoading,
                 detail,
@@ -252,7 +253,6 @@
                 category: 'pods',
                 defaultActivePanel: 'container'
             })
-            const { $store } = ctx.root
             const { name, namespace } = toRefs(props)
             const params = computed(() => {
                 return {

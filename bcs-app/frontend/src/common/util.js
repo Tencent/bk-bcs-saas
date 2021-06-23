@@ -444,6 +444,8 @@ export const chartColors = [
  * @return {str} 格式化后的日期
  */
 export function formatDate (date, formatStr = 'YYYY-MM-DD hh:mm:ss') {
+    if (!date) return ''
+
     const dateObj = new Date(date)
     const o = {
         'M+': dateObj.getMonth() + 1, // 月份
