@@ -1,7 +1,50 @@
 <template>
     <div class="workload-detail" v-bkloading="{ isLoading }">
         <div class="workload-detail-info">
-            <!-- todo -->
+            <div class="workload-info-basic">
+                <span class="name mr20">{{ metadata.name }}</span>
+                <div class="basic-wrapper">
+                    <StatusIcon class="basic-item" :status="manifestExt.status"></StatusIcon>
+                    <div class="basic-item">
+                        <span class="label">Ready</span>
+                        <span class="value">{{ manifestExt.readyCnt }} / {{ manifestExt.totalCnt }}</span>
+                    </div>
+                    <div class="basic-item">
+                        <span class="label">Host IP</span>
+                        <span class="value">{{ status.hostIP || '--' }}</span>
+                    </div>
+                    <div class="basic-item">
+                        <span class="label">Pod IP</span>
+                        <span class="value">{{ status.podIP || '--' }}</span>
+                    </div>
+                </div>
+            </div>
+            <div class="workload-main-info">
+                <div class="info-item">
+                    <span class="label">{{ $t('命名空间') }}</span>
+                    <span class="value" v-bk-overflow-tips>{{ metadata.namespace }}</span>
+                </div>
+                <div class="info-item">
+                    <span class="label">{{ $t('镜像') }}</span>
+                    <span class="value" v-bk-overflow-tips="getImagesTips(manifestExt.images)">{{ manifestExt.images && manifestExt.images.join(', ') }}</span>
+                </div>
+                <div class="info-item">
+                    <span class="label">{{ $t('节点') }}</span>
+                    <span class="value" v-bk-overflow-tips>{{ spec.nodeName }}</span>
+                </div>
+                <div class="info-item">
+                    <span class="label">UID</span>
+                    <span class="value" v-bk-overflow-tips>{{ metadata.uid }}</span>
+                </div>
+                <div class="info-item">
+                    <span class="label">{{ $t('创建时间') }}</span>
+                    <span class="value">{{ manifestExt.createTime }}</span>
+                </div>
+                <div class="info-item">
+                    <span class="label">{{ $t('存在时间') }}</span>
+                    <span class="value">{{ manifestExt.age }}</span>
+                </div>
+            </div>
         </div>
         <div class="workload-detail-body">
             <div class="workload-metric">
@@ -75,6 +118,7 @@
 <script lang="ts">
     /* eslint-disable camelcase */
     import { computed, defineComponent, onMounted, ref, toRefs } from '@vue/composition-api'
+    import { bkOverflowTips } from 'bk-magic-vue'
     import StatusIcon from '../../common/status-icon'
     import Metric from '../../common/metric.vue'
     import useDetail from './use-detail'
@@ -95,6 +139,9 @@
         components: {
             StatusIcon,
             Metric
+        },
+        directives: {
+            bkOverflowTips
         },
         props: {
             namespace: {
@@ -142,6 +189,16 @@
             const conditions = computed(() => {
                 return detail.value?.manifest.status?.conditions || []
             })
+            
+            // metadata 数据
+            const metadata = computed(() => detail.value?.manifest?.metadata || {})
+            // manifestExt 数据
+            const manifestExt = computed(() => detail.value?.manifest_ext || {})
+            // status 数据
+            const status = computed(() => detail.value?.manifest?.status || {})
+            // spec 数据
+            const spec = computed(() => detail.value?.manifest?.spec || {})
+
             // 存储
             const storage = ref<IStorage>({
                 pvcs: null,
@@ -177,6 +234,20 @@
                 ctx.emit('container-detail', row)
             }
 
+            // 获取镜像tips
+            const getImagesTips = (images) => {
+                if (!images) {
+                    return {
+                        content: ''
+                    }
+                }
+                return {
+                    allowHTML: true,
+                    maxWidth: 480,
+                    content: images.join('<br />')
+                }
+            }
+
             onMounted(async () => {
                 isLoading.value = true
                 await Promise.all([
@@ -195,21 +266,27 @@
                 storageTableData,
                 isLoading,
                 detail,
+                metadata,
+                manifestExt,
+                spec,
+                status,
                 activePanel,
                 labels,
                 annotations,
                 handleGetStorage,
                 handleGetContainer,
-                gotoContainerDetail
+                gotoContainerDetail,
+                getImagesTips
             }
         }
     })
 </script>
 <style lang="postcss" scoped>
+@import './detail-info.css';
 .workload-detail {
     width: 100%;
     &-info {
-
+        @mixin detail-info 3;
     }
     &-body {
         background: #FAFBFD;
