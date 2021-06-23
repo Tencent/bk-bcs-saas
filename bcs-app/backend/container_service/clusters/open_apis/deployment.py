@@ -14,6 +14,7 @@
 from rest_framework.response import Response
 
 from backend.bcs_web.viewsets import UserViewSet
+from backend.resources.constants import K8sResourceKind
 from backend.resources.utils.format import ResourceDefaultFormatter
 from backend.resources.utils.kube_client import make_labels_string
 from backend.resources.workloads.deployment import Deployment
@@ -31,5 +32,11 @@ class DeploymentViewSet(UserViewSet):
         # TODO 增加用户对层级资源project/cluster/namespace的权限校验(由于粒度没有细化到Deployment)
         deployment = Deployment(request.ctx_cluster).get(namespace=namespace, name=deploy_name, is_format=False)
         labels_string = make_labels_string(getitems(deployment.to_dict(), 'spec.selector.matchLabels', {}))
-        pods = Pod(request.ctx_cluster).list(namespace=namespace, label_selector=labels_string, is_format=False)
+        pods = Pod(request.ctx_cluster).list(
+            namespace=namespace,
+            label_selector=labels_string,
+            is_format=False,
+            owner_kind=K8sResourceKind.Deployment.value,
+            owner_names=deploy_name,
+        )['items']
         return Response(ResourceDefaultFormatter().format_list(pods))

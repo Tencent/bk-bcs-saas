@@ -62,7 +62,9 @@ class TestDeployment:
             'createTime',
             'updateTime',
         }
-        assert response_data[0]['resourceName'].startswith(self.deployment_name)
+        # 确保所有的 Pod 都是属于指定的 Deployment 的
+        for pod in response_data:
+            assert pod['resourceName'].startswith(self.deployment_name)
 
 
 def gen_deployment_body(name: str) -> Dict:
