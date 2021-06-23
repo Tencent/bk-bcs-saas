@@ -22,7 +22,7 @@ from rest_framework.validators import ValidationError
 from backend.bcs_web.audit_log.audit.auditors import HelmAuditor
 from backend.bcs_web.audit_log.audit.context import AuditContext
 from backend.bcs_web.audit_log.audit.decorators import log_audit, log_audit_on_view
-from backend.bcs_web.audit_log.constants import BaseActivityStatus
+from backend.bcs_web.audit_log.constants import BaseActivityStatus, BaseActivityType, BaseResourceType
 from backend.bcs_web.audit_log.models import UserActivityLog
 from backend.bcs_web.viewsets import SystemViewSet
 from backend.templatesets.legacy_apps.configuration.auditor import TemplatesetAuditor
@@ -44,24 +44,25 @@ def patch_permissions():
 
 
 class TemplatesetsViewSet(SystemViewSet):
-    @log_audit_on_view(TemplatesetAuditor, activity_type='list')
+    @log_audit_on_view(TemplatesetAuditor, activity_type=BaseActivityType.Retrieve)
     def list(self, request, project_id):
         return Response()
 
-    @log_audit_on_view(TemplatesetAuditor, activity_type='create')
+    @log_audit_on_view(TemplatesetAuditor, activity_type=BaseActivityType.Add)
     def create(self, request, project_id):
         request.audit_ctx.update_fields(resource='nginx')
         raise ValidationError('invalid manifest')
 
-    @log_audit_on_view(TemplatesetAuditor, activity_type='delete', ignore_exceptions=(ValidationError,))
+    @log_audit_on_view(TemplatesetAuditor, activity_type=BaseActivityType.Delete, ignore_exceptions=(ValidationError,))
     def delete(self, request, project_id):
         raise ValidationError('test')
 
 
-@log_audit(HelmAuditor, activity_type='install')
+@log_audit(HelmAuditor, activity_type=BaseActivityType.Add)
 def install_chart(audit_ctx: AuditContext):
     audit_ctx.update_fields(
-        description='test install helm', extra={'chart': 'http://example.chart.com/nginx/nginx1.12.tgz'}
+        description=f'test {BaseActivityType.Add} {BaseResourceType.HelmApp}',
+        extra={'chart': 'http://example.chart.com/nginx/nginx1.12.tgz'},
     )
 
 
@@ -74,12 +75,12 @@ class HelmViewSet(SystemViewSet):
         self._upgrade(request, project_id)
         return Response()
 
-    @log_audit(HelmAuditor, activity_type='upgrade')
+    @log_audit(HelmAuditor, activity_type=BaseActivityType.Modify)
     def _upgrade(self, request, project_id):
         self.audit_ctx.update_fields(
             project_id=project_id,
             user=request.user.username,
-            description='test upgrade helm',
+            description=f'test {BaseActivityType.Modify} {BaseResourceType.HelmApp}',
             extra={'chart': 'http://example.chart.com/nginx/nginx1.12.tgz'},
         )
 
@@ -91,11 +92,13 @@ class TestAuditDecorator:
         force_authenticate(request, bk_user)
         t_view(request, project_id=project_id)
 
-        activity_log = UserActivityLog.objects.get(project_id=project_id, user=bk_user.username, activity_type='list')
+        activity_log = UserActivityLog.objects.get(
+            project_id=project_id, user=bk_user.username, activity_type=BaseActivityType.Retrieve
+        )
         assert activity_log.activity_status == BaseActivityStatus.Succeed
         assert (
             activity_log.description
-            == f'list template {BaseActivityStatus.get_choice_label(BaseActivityStatus.Succeed)}'
+            == f'{BaseActivityType.Retrieve} template {BaseActivityStatus.get_choice_label(BaseActivityStatus.Succeed)}'
         )
 
     def test_log_audit_on_view_failed(self, bk_user, project_id):
@@ -105,14 +108,13 @@ class TestAuditDecorator:
         t_view(request, project_id=project_id)
 
         activity_log = UserActivityLog.objects.get(
-            project_id=project_id, user=bk_user.username, activity_type='create'
+            project_id=project_id, user=bk_user.username, activity_type=BaseActivityType.Add
         )
         assert activity_log.activity_status == BaseActivityStatus.Failed
         assert json.loads(activity_log.extra)['version'] == '1.6.0'
         assert (
-            activity_log.description
-            == f"create template nginx {BaseActivityStatus.get_choice_label(BaseActivityStatus.Failed)}: "
-            f"{ValidationError('invalid manifest')}"
+            activity_log.description == f"{BaseActivityType.Add} template nginx "
+            f"{BaseActivityStatus.get_choice_label(BaseActivityStatus.Failed)}: {ValidationError('invalid manifest')}"
         )
 
     def test_log_audit_ignore_exceptions(self, bk_user, project_id):
@@ -126,7 +128,7 @@ class TestAuditDecorator:
 
         assert (
             UserActivityLog.objects.filter(
-                project_id=project_id, user=bk_user.username, activity_type='delete'
+                project_id=project_id, user=bk_user.username, activity_type=BaseActivityType.Delete
             ).count()
             == 0
         )
@@ -137,11 +139,13 @@ class TestAuditDecorator:
         force_authenticate(request, bk_user)
         h_view(request, project_id=project_id)
 
-        activity_log = UserActivityLog.objects.get(project_id=project_id, user=bk_user.username, resource_type='helm')
-        assert activity_log.activity_type == 'install'
+        activity_log = UserActivityLog.objects.get(
+            project_id=project_id, user=bk_user.username, resource_type=BaseResourceType.HelmApp
+        )
+        assert activity_log.activity_type == BaseActivityType.Add
         assert (
-            activity_log.description
-            == f'test install helm {BaseActivityStatus.get_choice_label(BaseActivityStatus.Succeed)}'
+            activity_log.description == f'test {BaseActivityType.Add} {BaseResourceType.HelmApp} '
+            f'{BaseActivityStatus.get_choice_label(BaseActivityStatus.Succeed)}'
         )
         assert json.loads(activity_log.extra)['chart'] == 'http://example.chart.com/nginx/nginx1.12.tgz'
 
@@ -151,10 +155,12 @@ class TestAuditDecorator:
         force_authenticate(request, bk_user)
         h_view(request, project_id=project_id)
 
-        activity_log = UserActivityLog.objects.get(project_id=project_id, user=bk_user.username, resource_type='helm')
-        assert activity_log.activity_type == 'upgrade'
+        activity_log = UserActivityLog.objects.get(
+            project_id=project_id, user=bk_user.username, resource_type=BaseResourceType.HelmApp
+        )
+        assert activity_log.activity_type == BaseActivityType.Modify
         assert (
-            activity_log.description
-            == f'test upgrade helm {BaseActivityStatus.get_choice_label(BaseActivityStatus.Succeed)}'
+            activity_log.description == f'test {BaseActivityType.Modify} {BaseResourceType.HelmApp} '
+            f'{BaseActivityStatus.get_choice_label(BaseActivityStatus.Succeed)}'
         )
         assert json.loads(activity_log.extra)['chart'] == 'http://example.chart.com/nginx/nginx1.12.tgz'

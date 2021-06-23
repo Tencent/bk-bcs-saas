@@ -170,18 +170,18 @@ def validate_template_locked(template, username):
 
 
 @log_audit(TemplatesetAuditor, activity_type=BaseActivityType.Add, ignore_exceptions=(ValidationError,))
-def create_template(audit_ctx, username, project_id, tpl_args):
-    if not tpl_args:
+def create_template(audit_ctx, username, project_id, tmpl_args):
+    if not tmpl_args:
         raise ValidationError(_("请先创建模板集"))
 
     audit_ctx.update_fields(
-        resource=tpl_args['name'],
-        extra=tpl_args,
+        resource=tmpl_args['name'],
+        extra=tmpl_args,
         description=_("创建模板集"),
     )
 
-    tpl_args['project_id'] = project_id
-    serializer = CreateTemplateSLZ(data=tpl_args)
+    tmpl_args['project_id'] = project_id
+    serializer = CreateTemplateSLZ(data=tmpl_args)
     serializer.is_valid(raise_exception=True)
     template = serializer.save(creator=username)
     audit_ctx.update_fields(resource_id=template.id)
@@ -190,41 +190,41 @@ def create_template(audit_ctx, username, project_id, tpl_args):
 
 
 @log_audit(TemplatesetAuditor, activity_type=BaseActivityType.Modify)
-def update_template(audit_ctx, username, template, tpl_args):
-    serializer = TemplateSLZ(template, data=tpl_args)
+def update_template(audit_ctx, username, template, tmpl_args):
+    serializer = TemplateSLZ(template, data=tmpl_args)
     serializer.is_valid(raise_exception=True)
     # 记录操作日志
     audit_ctx.update_fields(
         resource=template.name,
         resource_id=template.id,
-        extra=dict(serializer.data),
+        extra=serializer.data,
         description=_("更新模板集"),
     )
     template = serializer.save(updator=username)
     return template
 
 
-def create_template_with_perm_check(request, project_id, tpl_args):
+def create_template_with_perm_check(request, project_id, tmpl_args):
     # 验证用户是否有创建的权限
     perm = bcs_perm.Templates(request, project_id, bcs_perm.NO_RES)
     # 如果没有权限，会抛出异常
     perm.can_create(raise_exception=True)
 
     audit_ctx = AuditContext(user=request.user.username, project_id=project_id)
-    template = create_template(audit_ctx, request.user.username, project_id, tpl_args)
+    template = create_template(audit_ctx, request.user.username, project_id, tmpl_args)
     # 注册资源到权限中心
-    perm.register(template.id, tpl_args['name'])
+    perm.register(template.id, tmpl_args['name'])
     return template
 
 
-def update_template_with_perm_check(request, template, tpl_args):
+def update_template_with_perm_check(request, template, tmpl_args):
     validate_template_locked(template, request.user.username)
     # 验证用户是否有编辑权限
     perm = bcs_perm.Templates(request, template.project_id, template.id, template.name)
     perm.can_edit(raise_exception=True)
 
     audit_ctx = AuditContext(user=request.user.username, project_id=template.project_id)
-    template = update_template(audit_ctx, request.user.username, template, tpl_args)
-    if template.name != tpl_args.get('name'):
+    template = update_template(audit_ctx, request.user.username, template, tmpl_args)
+    if template.name != tmpl_args.get('name'):
         perm.update_name(template.name)
     return template

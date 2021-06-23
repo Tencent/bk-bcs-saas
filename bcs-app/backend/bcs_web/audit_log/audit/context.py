@@ -31,6 +31,9 @@ class AuditContext:
     activity_status: str = ''
     extra: Dict = field(default_factory=dict)
 
+    def __post_init__(self):
+        self.extra = dict(self.extra)
+
     def update(self, ctx: 'AuditContext'):
         """仅将 ctx 中的非空属性覆盖到当前实例中"""
         for f in fields(AuditContext):

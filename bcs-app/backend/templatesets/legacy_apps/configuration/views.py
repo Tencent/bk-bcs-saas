@@ -318,7 +318,7 @@ class SingleTemplateView(generics.RetrieveUpdateDestroyAPIView):
         self.audit_ctx.update_fields(
             user=self.request.user.username,
             project_id=self.project_id,
-            extra=dict(serializer.data),
+            extra=serializer.data,
             description=_("更新模板集"),
         )
         instance = serializer.save(updator=self.request.user.username, project_id=self.project_id)
@@ -395,8 +395,8 @@ class SingleTemplateView(generics.RetrieveUpdateDestroyAPIView):
         request.audit_ctx.update_fields(resource=instance.name, resource_id=instance.id, description=_("删除模板集"))
 
         # 删除后名称添加 [deleted]前缀
-        _del_prefix = "[deleted_%s]" % int(time.time())
-        del_tem_name = "%s%s" % (_del_prefix, instance.name)
+        _del_prefix = f"[deleted_{int(time.time())}]"
+        del_tem_name = f"{_del_prefix}{instance.name}"
         self.get_queryset().update(name=del_tem_name, is_deleted=True, deleted_time=timezone.now())
         # 直接调用delete删除权限中心的资源
         perm.delete()

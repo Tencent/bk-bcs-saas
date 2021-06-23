@@ -13,7 +13,7 @@
 #
 from dataclasses import asdict
 
-from ..constants import BaseActivityStatus
+from ..constants import BaseActivityStatus, BaseResourceType
 from ..models import UserActivityLog
 from .context import AuditContext
 
@@ -58,4 +58,4 @@ class Auditor:
 class HelmAuditor(Auditor):
     def __init__(self, audit_ctx: AuditContext):
         super().__init__(audit_ctx)
-        self.audit_ctx.resource_type = 'helm'
+        self.audit_ctx.resource_type = BaseResourceType.HelmApp

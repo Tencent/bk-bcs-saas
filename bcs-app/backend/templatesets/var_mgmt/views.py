@@ -72,7 +72,7 @@ class ListCreateVariableView(generics.ListCreateAPIView):
         self.audit_ctx.update_fields(
             project_id=self.kwargs['project_id'],
             user=self.request.user.username,
-            extra=dict(serializer.data),
+            extra=serializer.data,
             description=_("新增变量"),
         )
         instance = serializer.save(creator=self.request.user.username)
@@ -122,7 +122,7 @@ class RetrieveUpdateVariableView(FinalizeResponseMixin, generics.RetrieveUpdateD
         self.audit_ctx.update_fields(
             project_id=self.kwargs['project_id'],
             user=self.request.user.username,
-            extra=dict(serializer.data),
+            extra=serializer.data,
             description=_("更新变量"),
         )
         instance = serializer.save(
@@ -239,7 +239,7 @@ class VariableOverView(viewsets.ViewSet):
     @log_audit_on_view(VariableAuditor, activity_type=BaseActivityType.Delete)
     @transaction.atomic
     def batch_delete(self, request, project_id):
-        self.slz = serializers.VariableDeleteSLZ(data=request.GET)
+        self.slz = serializers.VariableDeleteSLZ(data=request.query_params)
         self.slz.is_valid(raise_exception=True)
         id_list = self.slz.data['id_list']
 
@@ -250,8 +250,8 @@ class VariableOverView(viewsets.ViewSet):
         deled_id_list = []
         for _s in query_sets:
             # 删除后KEY添加 [deleted]前缀
-            _del_prefix = '[deleted_%s]' % int(time.time())
-            _s.key = "%s%s" % (_del_prefix, _s.key)
+            _del_prefix = f'[deleted_{int(time.time())}]'
+            _s.key = f"{_del_prefix}{_s.key}"
             _s.is_deleted = True
             _s.deleted_time = timezone.now()
             _s.save()

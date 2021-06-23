@@ -15,55 +15,6 @@ from django.utils.translation import ugettext_lazy as _
 
 from backend.packages.blue_krill.data_types.enum import EnumField, StructuredEnum
 
-ActivityTypes = dict(
-    add=_('创建'),
-    modify=_('更新'),
-    rollback=_('回滚'),
-    delete=_('删除'),
-    begin=_('开始'),
-    end=_('结束'),
-    start=_('启动'),
-    pause=_('暂停'),
-    carryon=_('继续'),
-    stop=_('停止'),
-    restart=_('重启'),
-)
-ActivityTypeChoices = {v: k for k, v in ActivityTypes.items()}
-
-
-ActivityStatus = dict(
-    completed=_('完成'),
-    error=_('错误'),
-    succeed=_('成功'),
-    failed=_('失败'),
-)
-ActivityStatusChoices = {v: k for k, v in ActivityStatus.items()}
-
-
-ResourceTypes = dict(
-    project=_('项目'),
-    cluster=_('集群'),
-    node=_('节点'),
-    namespace=_('命名空间'),
-    template=_('模板集'),
-    instance=_('应用'),
-    service=_('Service'),
-    ingress=_('Ingress'),
-    lb=_('LoadBalancer'),
-    configmap=_('Configmap'),
-    secret=_('Secret'),
-    metric=_('Metric'),
-    web_console=_('WebConsole'),
-    helm_app=_('Helm'),
-    hpa=_('HPA'),
-)
-ResourceTypeChoices = {v: k for k, v in ResourceTypes.items()}
-
-MetaMap = {'activity_type': ActivityTypes, 'activity_status': ActivityStatus, 'resource_type': ResourceTypes}
-
-
-# ---- 避免与已定义结构冲突，需要使用枚举类型使用以下枚举类 ----
-
 
 class BaseActivityType(str, StructuredEnum):
     """ 操作类型 """
@@ -85,7 +36,7 @@ class BaseActivityType(str, StructuredEnum):
 class BaseActivityStatus(str, StructuredEnum):
     """ 操作状态 """
 
-    Add = EnumField('completed', _('完成'))
+    Completed = EnumField('completed', _('完成'))
     Error = EnumField('error', _('错误'))
     Succeed = EnumField('succeed', _('成功'))
     Failed = EnumField('failed', _('失败'))
@@ -101,12 +52,21 @@ class BaseResourceType(str, StructuredEnum):
     Template = EnumField('template', _('模板集'))
     Variable = EnumField('variable', _('变量'))
     Instance = EnumField('instance', _('应用'))
-    Service = EnumField('service', _('Service'))
-    Ingress = EnumField('ingress', _('Ingress'))
-    LB = EnumField('lb', _('LoadBalancer'))
-    ConfigMap = EnumField('configmap', _('Configmap'))
-    Secret = EnumField('secret', _('Secret'))
-    Metric = EnumField('metric', _('Metric'))
-    WebConsole = EnumField('web_console', _('WebConsole'))
-    HelmApp = EnumField('helm_app', _('Helm'))
-    HPA = EnumField('hpa', _('HPA'))
+    Service = EnumField('service', 'Service')
+    Ingress = EnumField('ingress', 'Ingress')
+    LB = EnumField('lb', 'LoadBalancer')
+    ConfigMap = EnumField('configmap', 'Configmap')
+    Secret = EnumField('secret', 'Secret')
+    Metric = EnumField('metric', 'Metric')
+    WebConsole = EnumField('web_console', 'WebConsole')
+    HelmApp = EnumField('helm_app', 'Helm')
+    HPA = EnumField('hpa', 'HPA')
+
+
+ResourceTypes = dict(BaseActivityType.get_choices())
+
+MetaMap = {
+    'activity_type': dict(BaseActivityType.get_choices()),
+    'activity_status': dict(BaseActivityStatus.get_choices()),
+    'resource_type': ResourceTypes,
+}
