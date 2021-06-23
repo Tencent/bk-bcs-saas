@@ -99,8 +99,8 @@ const webpackConfig = merge(baseWebpackConfig, {
                         loader: 'postcss-loader',
                         options: {
                             sourceMap: config.build.cssSourceMap,
-                            config: {
-                                path: resolve(__dirname, '..', 'postcss.config.js')
+                            postcssOptions: {
+                                config: resolve(__dirname, '..', 'postcss.config.js')
                             }
                         }
                     }
