@@ -251,6 +251,8 @@
                 activePanel,
                 labels,
                 annotations,
+                metadata,
+                manifestExt,
                 handleGetDetail
             } = useDetail(ctx, {
                 ...props,
@@ -279,11 +281,6 @@
             const conditions = computed(() => {
                 return detail.value?.manifest.status?.conditions || []
             })
-
-            // metadata 数据
-            const metadata = computed(() => detail.value?.manifest?.metadata || {})
-            // manifestExt 数据
-            const manifestExt = computed(() => detail.value?.manifest_ext || {})
             // status 数据
             const status = computed(() => detail.value?.manifest?.status || {})
             // spec 数据
