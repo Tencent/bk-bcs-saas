@@ -150,9 +150,14 @@
         term.onResize(function (size) {
             // set_pty_size()
             data = size.rows + ',' + size.cols
-            // RESIZE_CHANNEL = 4
-            ws.send('4' + data);
-            console.log('set_pty_size: ' + data)
+
+
+            if (typeof ws != "undefined") {
+                // RESIZE_CHANNEL = 4
+
+                ws.send('4' + data);
+                console.log('set_pty_size: ' + data)
+            }
         });
 
         window.onresize = function (event) {
@@ -194,6 +199,7 @@
         // }
 
         function get_session_id() {
+            debounceFit()
             term.write('\x1b[32mLaunching BCS Console...\x1b[m');
             $.getJSON(session_url, function (result) {
                 if (result.code != 0) {
@@ -228,7 +234,6 @@
             ws.onopen = function () {
                 term.reset();
                 term.focus();
-                debounceFit()
             };
 
             ws.onclose = function (e) {
