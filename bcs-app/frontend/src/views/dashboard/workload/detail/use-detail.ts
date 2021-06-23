@@ -35,6 +35,10 @@ export default function useDetail (ctx: SetupContext, options: IDetailOptions) {
             value: obj[key]
         }))
     })
+    // metadata 数据
+    const metadata = computed(() => detail.value?.manifest?.metadata || {})
+    // manifestExt 数据
+    const manifestExt = computed(() => detail.value?.manifest_ext || {})
 
     const handleTabChange = (item) => {
         activePanel.value = item.name
@@ -59,6 +63,8 @@ export default function useDetail (ctx: SetupContext, options: IDetailOptions) {
         activePanel,
         labels,
         annotations,
+        metadata,
+        manifestExt,
         handleTabChange,
         handleGetDetail
     }

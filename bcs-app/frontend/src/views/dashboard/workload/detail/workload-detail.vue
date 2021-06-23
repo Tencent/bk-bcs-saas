@@ -164,6 +164,8 @@
                 activePanel,
                 labels,
                 annotations,
+                metadata,
+                manifestExt,
                 handleGetDetail
             } = useDetail(ctx, {
                 ...props,
@@ -190,10 +192,6 @@
                     ? { pod_name_list: list }
                     : null
             })
-            // metadata 数据
-            const metadata = computed(() => detail.value?.manifest?.metadata || {})
-            // manifestExt 数据
-            const manifestExt = computed(() => detail.value?.manifest_ext || {})
 
             // 跳转pod详情
             const gotoPodDetail = (row) => {
