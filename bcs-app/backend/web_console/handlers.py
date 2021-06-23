@@ -154,7 +154,7 @@ class BCSWebSocketHandler(LocaleHandlerMixin, tornado.websocket.WebSocketHandler
         if channel == constants.RESIZE_CHANNEL:
             rows, cols = message.split(",")
             rows = int(rows)
-            cols = int(rows)
+            cols = int(cols)
             self.bcs_client.set_pty_size(rows, cols)
         else:
             self.send_message(message)
