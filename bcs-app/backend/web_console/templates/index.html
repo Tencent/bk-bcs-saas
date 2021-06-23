@@ -8,6 +8,7 @@
     <script src="{{ settings.SITE_STATIC_URL }}/assets/xterm/lib/xterm.js"></script>
     <script src="{{ settings.SITE_STATIC_URL }}/assets/xterm-addon-fit/lib/xterm-addon-fit.js"></script>
     <script src="{{ settings.SITE_STATIC_URL }}/assets/xterm-addon-web-links/lib/xterm-addon-web-links.js"></script>
+    <script src="{{ settings.SITE_STATIC_URL }}/assets/throttle-debounce.js"></script>
     <script src="{{ settings.SITE_STATIC_URL }}/assets/jquery.min.js"></script>
 
     <style>
@@ -141,22 +142,21 @@
 
         term.open(document.getElementById('terminal-container'));
 
-        function set_pty_size() {
+        // debounce 200 毫秒, 减少 resize 事件多次触发问题
+        const debounceFit = throttleDebounce.debounce(200, false, function() {
             fitAddon.fit();
-
-            data = term.rows + ',' + term.cols
-            // RESIZE_CHANNEL = 4
-            ws.send('4' + data);
-
-            console.log('set_pty_size: ' + data)
-        }
+        })
 
         term.onResize(function (size) {
-            set_pty_size(size, ws)
+            // set_pty_size()
+            data = size.rows + ',' + size.cols
+            // RESIZE_CHANNEL = 4
+            ws.send('4' + data);
+            console.log('set_pty_size: ' + data)
         });
 
         window.onresize = function (event) {
-            set_pty_size();
+            debounceFit();
         };
 
         term.attachCustomKeyEventHandler(function (e) {
@@ -228,7 +228,7 @@
             ws.onopen = function () {
                 term.reset();
                 term.focus();
-                set_pty_size()
+                debounceFit()
             };
 
             ws.onclose = function (e) {
