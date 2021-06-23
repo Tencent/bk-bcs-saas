@@ -1,15 +1,17 @@
 .dashboard-status {
     display: flex;
     align-items: center;
-    .status-icon {
-        display: inline-block;
-        width: 13px;
-        height: 13px;
-        border: 3px solid #E2EDFF;
-        border-radius: 6.5px;
-        background: #3A84FF;
-        margin-right: 8px;
-    }
+}
+
+.status-icon {
+    display: inline-block;
+    width: 13px;
+    height: 13px;
+    border: 3px solid #FFE8C3;
+    border-radius: 6.5px;
+    background: #FF9C01;
+    margin-right: 8px;
+}
 
     .status-name {
         flex: 1;
@@ -25,8 +27,7 @@
         background: #3FC06D;
     }
 
-    .status-yellow {
-        border-color: #FFE8C3;
-        background: #FF9C01;
-    }
+.status-blue {
+    border-color: #E2EDFF;
+    background: #3A84FF;
 }

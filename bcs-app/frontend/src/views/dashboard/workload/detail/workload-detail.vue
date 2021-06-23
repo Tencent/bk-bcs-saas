@@ -1,7 +1,39 @@
 <template>
     <div class="workload-detail" v-bkloading="{ isLoading }">
         <div class="workload-detail-info">
-            <!-- todo -->
+            <div class="workload-info-basic">
+                <span class="name mr20">{{ metadata.name }}</span>
+                <div class="basic-wrapper">
+                    <div v-for="item in basicInfoList"
+                        :key="item.label"
+                        class="basic-item">
+                        <span class="label">{{ item.label }}</span>
+                        <span class="value">{{ item.value }}</span>
+                    </div>
+                </div>
+            </div>
+            <div class="workload-main-info">
+                <div class="info-item">
+                    <span class="label">{{ $t('命名空间') }}</span>
+                    <span class="value">{{ metadata.namespace }}</span>
+                </div>
+                <div class="info-item">
+                    <span class="label">{{ $t('镜像') }}</span>
+                    <span class="value" v-bk-overflow-tips="getImagesTips(manifestExt.images)">{{ manifestExt.images && manifestExt.images.join(', ') }}</span>
+                </div>
+                <div class="info-item">
+                    <span class="label">UID</span>
+                    <span class="value">{{ metadata.uid }}</span>
+                </div>
+                <div class="info-item">
+                    <span class="label">{{ $t('创建时间') }}</span>
+                    <span class="value">{{ manifestExt.createTime }}</span>
+                </div>
+                <div class="info-item">
+                    <span class="label">{{ $t('存在时间') }}</span>
+                    <span class="value">{{ manifestExt.age }}</span>
+                </div>
+            </div>
         </div>
         <div class="workload-detail-body">
             <div class="workload-metric">
@@ -81,9 +113,11 @@
 <script lang="ts">
     /* eslint-disable camelcase */
     import { defineComponent, computed, ref, onMounted } from '@vue/composition-api'
+    import { bkOverflowTips } from 'bk-magic-vue'
     import StatusIcon from '../../common/status-icon'
     import Metric from '../../common/metric.vue'
     import useDetail from './use-detail'
+    import detailBasicList from './detail-basic'
 
     export interface IDetail {
         manifest: any;
@@ -99,6 +133,9 @@
         components: {
             StatusIcon,
             Metric
+        },
+        directives: {
+            bkOverflowTips
         },
         props: {
             namespace: {
@@ -134,7 +171,10 @@
             })
             const podLoading = ref(false)
             const workloadPods = ref<IDetail|null>(null)
-
+            const basicInfoList = detailBasicList(ctx, {
+                category: props.category,
+                detail
+            })
             // pods数据
             const pods = computed(() => {
                 return workloadPods.value?.manifest?.items || []
@@ -150,10 +190,28 @@
                     ? { pod_name_list: list }
                     : null
             })
+            // metadata 数据
+            const metadata = computed(() => detail.value?.manifest?.metadata || {})
+            // manifestExt 数据
+            const manifestExt = computed(() => detail.value?.manifest_ext || {})
 
             // 跳转pod详情
             const gotoPodDetail = (row) => {
                 ctx.emit('pod-detail', row)
+            }
+
+            // 获取镜像tips
+            const getImagesTips = (images) => {
+                if (!images) {
+                    return {
+                        content: ''
+                    }
+                }
+                return {
+                    allowHTML: true,
+                    maxWidth: 480,
+                    content: images.join('<br />')
+                }
             }
 
             onMounted(async () => {
@@ -177,6 +235,9 @@
             return {
                 isLoading,
                 detail,
+                metadata,
+                manifestExt,
+                basicInfoList,
                 activePanel,
                 params,
                 pods,
@@ -184,16 +245,18 @@
                 annotations,
                 podLoading,
                 gotoPodDetail,
-                handleGetExtData
+                handleGetExtData,
+                getImagesTips
             }
         }
     })
 </script>
 <style lang="postcss" scoped>
+@import './detail-info.css';
 .workload-detail {
     width: 100%;
     &-info {
-
+        @mixin detail-info 3;
     }
     &-body {
         background: #FAFBFD;
