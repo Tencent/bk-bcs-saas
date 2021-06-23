@@ -11,17 +11,4 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-
-from django.utils.translation import ugettext_lazy as _
-from rest_framework import serializers
-
-
-class ListPodsSLZ(serializers.Serializer):
-    """ 获取 Pod 列表 """
-
-    label_selector = serializers.CharField(label=_('标签选择算符'), max_length=512, required=False)
-    # 过滤子资源（Pod）用参数
-    owner_names = serializers.ListField(
-        label=_('名称列表'), child=serializers.CharField(label=_('所属资源名称'), max_length=256), required=False
-    )
-    owner_kind = serializers.CharField(label=_('所属资源类型'), max_length=32, required=False)
+from .client import ReplicaSet  # noqa

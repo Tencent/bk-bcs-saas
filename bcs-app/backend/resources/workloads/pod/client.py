@@ -11,17 +11,21 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 #
-from typing import Dict, List
+from typing import Dict, List, Optional, Union
 
 from django.utils.translation import ugettext_lazy as _
 from kubernetes.client import CoreV1Api
+from kubernetes.dynamic import ResourceInstance
 from kubernetes.stream import stream
 
 from backend.dashboard.exceptions import ResourceNotExist
 from backend.dashboard.workloads.constants import VOLUME_RESOURCE_NAME_KEY_MAP
 from backend.resources.constants import K8sResourceKind
 from backend.resources.resource import ResourceClient
+from backend.resources.utils.format import ResourceDefaultFormatter
+from backend.resources.workloads.job import Job
 from backend.resources.workloads.pod.formatter import PodFormatter
+from backend.resources.workloads.replicaset import ReplicaSet
 from backend.utils.basic import getitems
 from backend.utils.string import decapitalize
 
@@ -31,6 +35,38 @@ class Pod(ResourceClient):
 
     kind = K8sResourceKind.Pod.value
     formatter = PodFormatter()
+
+    def list(
+        self,
+        is_format: bool = True,
+        formatter: Optional[ResourceDefaultFormatter] = None,
+        owner_kind: Optional[str] = None,
+        owner_names: Optional[List] = None,
+        **kwargs
+    ) -> Union[ResourceInstance, Dict]:
+        resp = super().list(is_format, formatter, **kwargs)
+        if not (kwargs.get('namespace') and owner_kind and owner_names):
+            return resp
+
+        # NOTE: Pod 类型 list 若需要支持根据 owner_reference 过滤，
+        # 结果不是返回 ResourceInstance 而是 Dict，需要上层进行兼容
+        # 原因是：ResourceInstance 对象属性不支持赋值
+        resp = resp.to_dict()
+        # Deployment/CronJob 不直接关联 Pod，而是通过 ReplicaSet/Job 间接关联
+        if owner_kind in [K8sResourceKind.Deployment.value, K8sResourceKind.CronJob.value]:
+            SubResClient = {
+                K8sResourceKind.Deployment.value: ReplicaSet,
+                K8sResourceKind.CronJob.value: Job,
+            }[owner_kind]
+            sub_res = SubResClient(self.ctx_cluster).list(namespace=kwargs['namespace'], is_format=False).to_dict()
+            owner_names = [
+                getitems(sr, 'metadata.name')
+                for sr in self._filter_by_owner_reference(sub_res['items'], owner_kind, owner_names)
+            ]
+            owner_kind = SubResClient.kind
+
+        resp['items'] = self._filter_by_owner_reference(resp['items'], owner_kind, owner_names)
+        return resp
 
     def fetch_manifest(self, namespace: str, pod_name: str) -> Dict:
         """
@@ -93,3 +129,22 @@ class Pod(ResourceClient):
             stdout=True,
             tty=False,
         )
+
+    def _filter_by_owner_reference(self, sub_res_items: List, owner_kind: str, owner_names: List) -> List:
+        """
+        根据 owner_reference 过滤关联的子资源
+
+        :param sub_res_items: 子资源列表
+        :param owner_kind: 所属资源类型
+        :param owner_names: 所属资源名称列表
+        :return: 根据 owner_reference 过滤后的资源列表
+        """
+        ret = []
+        for sub_res in sub_res_items:
+            if 'ownerReferences' not in sub_res['metadata']:
+                continue
+            for owner_ref in sub_res['metadata']['ownerReferences']:
+                if owner_ref['kind'] == owner_kind and owner_ref['name'] in owner_names:
+                    ret.append(sub_res)
+                    break
+        return ret

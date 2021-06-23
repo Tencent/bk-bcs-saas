@@ -23,6 +23,7 @@ DEFAULT_CRON_JOB_API_VERSION = 'v1beta1'
 
 class WorkloadTypes(ChoicesEnum):
     Deployment = "Deployment"
+    ReplicaSet = "ReplicaSet"
     StatefulSet = "StatefulSet"
     DaemonSet = "DaemonSet"
     Job = "Job"
@@ -42,6 +43,7 @@ class WorkloadTypes(ChoicesEnum):
 class K8sResourceKind(ChoicesEnum):
     # workload
     Deployment = "Deployment"
+    ReplicaSet = "ReplicaSet"
     StatefulSet = "StatefulSet"
     DaemonSet = "DaemonSet"
     CronJob = "CronJob"
