@@ -1,5 +1,6 @@
 /* eslint-disable camelcase */
 import { ref, computed, SetupContext } from '@vue/composition-api'
+import yamljs from 'js-yaml'
 
 export interface IWorkloadDetail {
     manifest: any;
@@ -18,6 +19,7 @@ export default function useDetail (ctx: SetupContext, options: IDetailOptions) {
     const isLoading = ref(false)
     const detail = ref<IWorkloadDetail|null>(null)
     const activePanel = ref(options.defaultActivePanel)
+    const showYamlPanel = ref(false)
 
     // 标签数据
     const labels = computed(() => {
@@ -39,6 +41,10 @@ export default function useDetail (ctx: SetupContext, options: IDetailOptions) {
     const metadata = computed(() => detail.value?.manifest?.metadata || {})
     // manifestExt 数据
     const manifestExt = computed(() => detail.value?.manifest_ext || {})
+    // yaml数据
+    const yaml = computed(() => {
+        return yamljs.dump(detail.value?.manifest || {})
+    })
 
     const handleTabChange = (item) => {
         activePanel.value = item.name
@@ -57,6 +63,10 @@ export default function useDetail (ctx: SetupContext, options: IDetailOptions) {
         return detail.value
     }
 
+    const handleShowYamlPanel = () => {
+        showYamlPanel.value = true
+    }
+
     return {
         isLoading,
         detail,
@@ -65,6 +75,9 @@ export default function useDetail (ctx: SetupContext, options: IDetailOptions) {
         annotations,
         metadata,
         manifestExt,
+        yaml,
+        showYamlPanel,
+        handleShowYamlPanel,
         handleTabChange,
         handleGetDetail
     }

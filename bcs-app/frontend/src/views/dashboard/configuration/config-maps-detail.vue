@@ -23,7 +23,7 @@
         </div>
         <bcs-tab class="mt20" type="card" :label-height="40">
             <bcs-tab-panel name="data" label="Data">
-                <bk-table :data="extData.data">
+                <bk-table :data="data.data">
                     <bk-table-column label="Key">
                         <template slot-scope="props">
                             {{ props.$index }}
