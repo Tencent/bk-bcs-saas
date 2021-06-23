@@ -4,26 +4,22 @@
             {{ $t('基础信息') }}
         </div>
         <div class="detail-content basic-info">
-            <table class="detail-table" border="1">
-                <tbody>
-                    <tr>
-                        <td>{{ $t('命名空间') }}</td>
-                        <td>{{ data.metadata.namespace || '--' }}</td>
-                    </tr>
-                    <tr>
-                        <td>UID</td>
-                        <td>{{ data.metadata.uid || '--' }}</td>
-                    </tr>
-                    <tr>
-                        <td>{{ $t('创建时间') }}</td>
-                        <td>{{ extData.createTime || '--' }}</td>
-                    </tr>
-                    <tr>
-                        <td>{{ $t('存在时间') }}</td>
-                        <td>{{ extData.age || '--' }}</td>
-                    </tr>
-                </tbody>
-            </table>
+            <div class="basic-info-item">
+                <label>{{ $t('命名空间') }}</label>
+                <span>{{ data.metadata.namespace }}</span>
+            </div>
+            <div class="basic-info-item">
+                <label>UID</label>
+                <span class="bcs-ellipsis">{{ data.metadata.uid }}</span>
+            </div>
+            <div class="basic-info-item">
+                <label>{{ $t('创建时间') }}</label>
+                <span>{{ extData.createTime }}</span>
+            </div>
+            <div class="basic-info-item">
+                <label>{{ $t('存在时间') }}</label>
+                <span>{{ extData.age }}</span>
+            </div>
         </div>
         <bcs-tab class="mt20" type="card" :label-height="40">
             <bcs-tab-panel name="data" label="Data">
