@@ -14,10 +14,10 @@
 
 from rest_framework import serializers
 
-from backend.dashboard.templates.constants import HAS_DEMO_MANIFEST_RESOURCE_KIND
+from backend.dashboard.templates.constants import RES_KIND_WITH_DEMO_MANIFEST
 
 
 class FetchResourceDemoManifestSLZ(serializers.Serializer):
     """ 获取指定资源配置模版 """
 
-    kind = serializers.ChoiceField(label='资源类型', choices=HAS_DEMO_MANIFEST_RESOURCE_KIND)
+    kind = serializers.ChoiceField(label='资源类型', choices=RES_KIND_WITH_DEMO_MANIFEST)

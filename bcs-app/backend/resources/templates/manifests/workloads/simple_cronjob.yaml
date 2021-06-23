@@ -5,7 +5,7 @@ metadata:
   name: cronjob-test
   namespace: default
 spec:
-  schedule: "*/1 * * * *"
+  schedule: "*/10 * * * *"
   jobTemplate:
     spec:
       template:

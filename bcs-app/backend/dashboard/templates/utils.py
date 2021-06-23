@@ -32,5 +32,9 @@ def load_demo_manifest(file_path: str) -> Dict:
         manifest = yaml.load(fr.read(), yaml.SafeLoader)
 
     # 避免名称重复，每次默认添加随机后缀
-    manifest['metadata']['name'] = f"{manifest['metadata']['name']}-{gen_random_str()}"
+    new_resource_name = f"{manifest['metadata']['name']}-{gen_random_str()}"
+    manifest['metadata']['name'] = new_resource_name
+    # 对于 Deployment, DaemonSet, StatefulSet 需要更新默认的 selector.matchLabels 信息，防止发生冲突
+    manifest['spec']['selector']['matchLabels'].update({'owner': new_resource_name})
+    manifest['spec']['template']['metadata']['labels'].update({'owner': new_resource_name})
     return manifest

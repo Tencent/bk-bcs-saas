@@ -23,7 +23,7 @@ TEMPLATE_CONFIG_DIR = f'{RESOURCE_TEMPLATE_DIR}/configs'
 DEMO_RESOURCE_MANIFEST_DIR = f'{RESOURCE_TEMPLATE_DIR}/manifests'
 
 
-HAS_DEMO_MANIFEST_RESOURCE_KIND = [
+RES_KIND_WITH_DEMO_MANIFEST = [
     # workload
     K8sResourceKind.Deployment.value,
     K8sResourceKind.StatefulSet.value,
