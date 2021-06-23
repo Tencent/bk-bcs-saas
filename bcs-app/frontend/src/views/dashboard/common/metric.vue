@@ -15,7 +15,8 @@
                 </ul>
             </bk-dropdown-menu>
         </div>
-        <ECharts class="vue-echarts" :options="echartsOptions" auto-resize></ECharts>
+        <ECharts class="vue-echarts" :options="echartsOptions" auto-resize v-if="!isNoData"></ECharts>
+        <bk-exception class="echarts-empty" type="empty" scene="part" v-else> </bk-exception>
     </div>
 </template>
 <script lang="ts">
@@ -93,6 +94,11 @@
                 isLoading: false
             })
             const echartsOptions = ref<any>({})
+            const isNoData = computed(() => {
+                return !echartsOptions.value?.series?.some(series => {
+                    return !!series.data?.length
+                })
+            })
             const metricNameProp = computed(() => {
                 let prop = ''
                 switch (props.category) {
@@ -192,6 +198,7 @@
 
             return {
                 ...toRefs(state),
+                isNoData,
                 metricNameProp,
                 echartsOptions,
                 handleTimeRangeChange,
@@ -239,6 +246,11 @@
         padding-top: 12px;
         width: 100% !important;
         height: 180px;
+    }
+    /deep/ .echarts-empty {
+        margin: 0;
+        height: 180px;
+        justify-content: center;
     }
 }
 </style>
