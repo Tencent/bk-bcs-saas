@@ -62,7 +62,7 @@ class ResourceFormatter(abc.ABC):
         raise NotImplementedError
 
 
-class ResourceDefaultFormatter:
+class ResourceDefaultFormatter(ResourceFormatter):
     """格式化 Kubernetes 资源为通用资源格式"""
 
     def format_list(self, resources: Union[ResourceInstance, List[Dict], None]) -> List[Dict]:

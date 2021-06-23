@@ -157,7 +157,7 @@ class ResourceClient:
         is_format: bool = True,
         formatter: Optional[ResourceFormatter] = None,
         **kwargs,
-    ) -> Tuple[Union[ResourceInstance, Dict], bool]:
+    ) -> Tuple[Union[ResourceObj, Dict], bool]:
         obj, created = self.api.update_or_create(
             body=body, name=name, namespace=namespace, update_method="replace", **kwargs
         )
@@ -174,7 +174,7 @@ class ResourceClient:
         is_format: bool = True,
         formatter: Optional[ResourceFormatter] = None,
         **kwargs,
-    ) -> Union[ResourceInstance, Dict]:
+    ) -> Union[ResourceObj, Dict]:
         # 参考kubernetes/client/rest.py中RESTClientObject类的request方法中对PATCH的处理
         # 如果指定的是json-patch+json但body不是list，则设置为strategic-merge-patch+json
         if kwargs.get("content_type") == PatchType.JSON_PATCH_JSON.value:
