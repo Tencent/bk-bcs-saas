@@ -264,6 +264,10 @@
             color: #fff;
         }
     }
+    .action-btn-group {
+        display: flex;
+        align-items: center;
+    }
 }
 
 .biz-config-templateset-title {

@@ -51,10 +51,11 @@
 }
 .header-router {
     display: flex;
-    height: 48px;
+    height: 60px;
     align-items: center;
     font-size: 12px;
     padding-left: 12px;
+    border-bottom: 1px solid #F3F3F3;
     background: #fff;
         .icon-wrapper {
         display: flex;
