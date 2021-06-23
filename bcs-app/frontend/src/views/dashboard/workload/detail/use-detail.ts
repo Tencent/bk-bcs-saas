@@ -43,11 +43,13 @@ export default function useDetail (ctx: SetupContext, options: IDetailOptions) {
     const handleGetDetail = async () => {
         const { namespace, category, name } = options
         // workload详情
+        isLoading.value = true
         detail.value = await $store.dispatch('dashboard/getWorkloadDetail', {
             $namespaceId: namespace,
             $category: category,
             $name: name
         })
+        isLoading.value = false
         return detail.value
     }
 

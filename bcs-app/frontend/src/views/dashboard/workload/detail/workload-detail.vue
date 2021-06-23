@@ -6,16 +6,17 @@
         <div class="workload-detail-body">
             <div class="workload-metric">
                 <Metric :title="$t('CPU使用率')" metric="cpu_usage" :params="params" category="pods" colors="#30d878"></Metric>
-                <Metric :title="$t('内存使用率')" metric="memory_usage" :params="params" category="pods" colors="#3a84ff"></Metric>
+                <Metric :title="$t('内存使用率')" metric="memory_usage" :params="params" unit="byte" category="pods" colors="#3a84ff"></Metric>
                 <Metric :title="$t('网络')"
                     :metric="['network_receive', 'network_transmit']"
                     :params="params"
                     category="pods"
+                    unit="byte"
                     :colors="['#853cff', '#30d878']">
                 </Metric>
             </div>
             <bcs-tab class="workload-tab" :active.sync="activePanel" type="card" :label-height="40">
-                <bcs-tab-panel name="pod" label="Pod">
+                <bcs-tab-panel name="pod" label="Pod" v-bkloading="{ isLoading: podLoading }">
                     <bk-table :data="pods">
                         <bk-table-column :label="$t('名称')" prop="metadata.name" sortable :resizable="false">
                             <template #default="{ row }">
@@ -24,24 +25,41 @@
                         </bk-table-column>
                         <bk-table-column :label="$t('命名空间')" prop="metadata.namespace" sortable :resizable="false"></bk-table-column>
                         <bk-table-column :label="$t('镜像')" width="450" :resizable="false">
-
+                            <template slot-scope="{ row }">
+                                <div class="images-wrapper">
+                                    <div class="image-item"
+                                        :title="image"
+                                        v-for="(image, imageIndex) in handleGetExtData(row.metadata.uid, 'images')"
+                                        :key="imageIndex">
+                                        {{image}}
+                                    </div>
+                                </div>
+                            </template>
                         </bk-table-column>
                         <bk-table-column label="Status" :resizable="false">
                             <template slot-scope="{ row }">
-                                <StatusIcon :status="row.status"></StatusIcon>
+                                <StatusIcon :status="handleGetExtData(row.metadata.uid, 'status')"></StatusIcon>
                             </template>
                         </bk-table-column>
                         <bk-table-column label="Ready" width="110" :resizable="false">
-                            <!--todo-->
+                            <template slot-scope="{ row }">
+                                {{handleGetExtData(row.metadata.uid, 'readyCnt')}}/{{handleGetExtData(row.metadata.uid, 'totalCnt')}}
+                            </template>
                         </bk-table-column>
-                        <bk-table-column label="Restarts" width="110" :resizable="false" prop="restartCnt"></bk-table-column>
+                        <bk-table-column label="Restarts" width="110" :resizable="false">
+                            <template slot-scope="{ row }">{{handleGetExtData(row.metadata.uid, 'restartCnt')}}</template>
+                        </bk-table-column>
                         <bk-table-column label="IP" :resizable="false">
                             <template slot-scope="{ row }">{{row.status.podIP || '--'}}</template>
                         </bk-table-column>
                         <bk-table-column label="Node" :resizable="false">
                             <template slot-scope="{ row }">{{row.spec.nodeName || '--'}}</template>
                         </bk-table-column>
-                        <bk-table-column label="Age" :resizable="false" prop="age"></bk-table-column>
+                        <bk-table-column label="Age" :resizable="false">
+                            <template #default="{ row }">
+                                <span>{{handleGetExtData(row.metadata.uid, 'age')}}</span>
+                            </template>
+                        </bk-table-column>
                     </bk-table>
                 </bcs-tab-panel>
                 <bcs-tab-panel name="label" :label="$t('标签')">
@@ -102,6 +120,7 @@
             }
         },
         setup (props, ctx) {
+            const { $store } = ctx.root
             const {
                 isLoading,
                 detail,
@@ -113,16 +132,17 @@
                 ...props,
                 defaultActivePanel: 'pod'
             })
+            const podLoading = ref(false)
             const workloadPods = ref<IDetail|null>(null)
 
             // pods数据
             const pods = computed(() => {
-                const data = workloadPods.value?.manifest?.items || []
-                return data.map(item => ({
-                    ...item,
-                    ...workloadPods.value?.manifest_ext[item.metadata.uid]
-                }))
+                return workloadPods.value?.manifest?.items || []
             })
+            // 获取pod manifest_ext数据
+            const handleGetExtData = (uid, prop) => {
+                return workloadPods.value?.manifest_ext?.[uid]?.[prop]
+            }
             // 指标参数
             const params = computed<IParams | null>(() => {
                 const list = pods.value.map(item => item.metadata.name)
@@ -136,11 +156,12 @@
                 ctx.emit('pod-detail', row)
             }
 
-            const { $store } = ctx.root
-
             onMounted(async () => {
-                isLoading.value = true
+                // 详情接口前置
                 await handleGetDetail()
+
+                // 获取工作负载下对应的pod数据
+                podLoading.value = true
                 const matchLabels = detail.value?.manifest?.spec.selector.matchLabels || {}
                 const labelSelector = Object.keys(matchLabels).reduce((pre, key, index) => {
                     pre += `${index > 0 ? ',' : ''}${key}=${matchLabels[key]}`
@@ -150,7 +171,7 @@
                     $namespaceId: props.namespace,
                     label_selector: labelSelector
                 })
-                isLoading.value = false
+                podLoading.value = false
             })
 
             return {
@@ -161,7 +182,9 @@
                 pods,
                 labels,
                 annotations,
-                gotoPodDetail
+                podLoading,
+                gotoPodDetail,
+                handleGetExtData
             }
         }
     })

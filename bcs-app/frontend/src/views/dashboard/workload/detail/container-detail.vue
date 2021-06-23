@@ -6,11 +6,12 @@
         <div class="workload-detail-body">
             <div class="workload-metric">
                 <Metric :title="$t('CPU使用率')" metric="cpu_usage" :params="params" category="containers" colors="#30d878"></Metric>
-                <Metric :title="$t('内存使用率')" metric="memory_usage" :params="params" category="containers" colors="#3a84ff"></Metric>
+                <Metric :title="$t('内存使用率')" metric="memory_usage" :params="params" unit="byte" category="containers" colors="#3a84ff"></Metric>
                 <Metric :title="$t('磁盘IO总量')"
                     :metric="['disk_read', 'disk_write']"
                     :params="params"
                     category="containers"
+                    unit="byte"
                     :colors="['#853cff', '#30d878']">
                 </Metric>
             </div>
@@ -91,22 +92,24 @@
             // pod名
             pod: {
                 type: String,
-                default: ''
-            },
-            // 父路径（pod别名 -- 兼容导航detail-top-nav）
-            parent: {
-                type: String,
-                default: ''
+                default: '',
+                required: true
             },
             // 容器名
             name: {
                 type: String,
                 default: '',
                 required: true
+            },
+            // 容器ID
+            id: {
+                type: String,
+                default: '',
+                required: true
             }
         },
         setup (props, ctx) {
-            const { name, namespace, pod, parent } = toRefs(props)
+            const { name, id, namespace, pod } = toRefs(props)
             const { $store } = ctx.root
 
             const isLoading = ref(false)
@@ -117,12 +120,9 @@
             // 图表指标参数
             const params = computed(() => {
                 return {
-                    container_ids: [name.value],
-                    $podId: podName.value
+                    container_ids: [id.value],
+                    $podId: pod.value
                 }
-            })
-            const podName = computed(() => {
-                return pod.value || parent.value
             })
 
             // 端口映射
@@ -153,8 +153,8 @@
                 detail.value = await $store.dispatch('dashboard/retrieveContainerDetail', {
                     $namespaceId: namespace.value,
                     $category: 'pods',
-                    $name: podName.value,
-                    $containerId: name.value
+                    $name: pod.value,
+                    $containerName: name.value
                 })
                 return detail.value
             }
@@ -163,8 +163,8 @@
             const handleGetContainerEnv = async () => {
                 envs.value = await $store.dispatch('dashboard/fetchContainerEnvInfo', {
                     $namespaceId: namespace.value,
-                    $podId: podName.value,
-                    $containerId: name.value
+                    $podId: pod.value,
+                    $containerName: name.value
                 })
                 return envs.value
             }

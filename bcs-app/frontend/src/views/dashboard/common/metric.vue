@@ -21,7 +21,7 @@
 <script lang="ts">
     import { defineComponent, reactive, toRefs, onMounted, ref, watch } from '@vue/composition-api'
     import moment from 'moment'
-    import { createChartOption } from '@/views/cluster/node-overview-chart-opts'
+    import defaultChartOption from './default-echarts-option'
     import ECharts from 'vue-echarts'
     import 'echarts/lib/chart/line'
     import 'echarts/lib/component/tooltip'
@@ -56,7 +56,7 @@
             },
             options: {
                 type: Object,
-                default: () => (createChartOption())
+                default: () => ({})
             },
             category: {
                 type: String,
@@ -75,6 +75,10 @@
             colors: {
                 type: [String, Array],
                 default: '#3a84ff'
+            },
+            unit: {
+                type: String,
+                default: 'percent'
             }
         },
         setup (props, ctx) {
@@ -126,13 +130,13 @@
                     }) || []
                     series.push(...list)
                 })
-                echartsOptions.value = Object.assign({}, props.options, { series })
+                echartsOptions.value = Object.assign(defaultChartOption(props.unit), props.options, { series })
             }
             // 获取图表数据
             const handleGetMetricData = async () => {
                 const timeRange = {
-                    start_at: moment().subtract(state.activeTime.range, 'ms').format('YYYY-MM-DD HH:mm:ss'),
-                    end_at: moment().format('YYYY-MM-DD HH:mm:ss')
+                    start_at: moment().subtract(state.activeTime.range, 'ms').utc(),
+                    end_at: moment().utc()
                 }
 
                 let action = ''
